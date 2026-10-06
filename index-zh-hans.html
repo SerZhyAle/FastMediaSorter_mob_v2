@@ -86,6 +86,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="styles.css">
+    <script src="assets/site-ui.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3615067087450824"
         crossorigin="anonymous"></script>
 
@@ -147,6 +148,7 @@
     <!-- lang-row:end -->
 
     <!-- GitHub Corner -->
+    <aside class="source-link">
     <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
         aria-label="在 GitHub 上查看源代码">
         <svg width="80" height="80" viewBox="0 0 250 250"
@@ -161,7 +163,9 @@
                 fill="currentColor" class="octo-body"></path>
         </svg>
     </a>
+    </aside>
 
+    <main id="main-content">
     <header class="hero" id="top">
         <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
         <div class="hero-inner">
@@ -194,13 +198,14 @@
                 <a class="btn btn-ghost" href="https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter"
                     target="_blank" rel="noopener">IzzyOnDroid</a>
             </div>
+            <p class="shell-links"><a href="#download">查看其他 APK 版本和表盘</a></p>
             <ol class="quickstart">
                 <li>安装适合的版本并打开应用。</li>
                 <li>在欢迎向导中，或稍后在“设置”、“常规”、“主启动窗口”中选择“设备主屏幕”，并在 Android 询问时确认。</li>
                 <li>按主页键：桌面已按你的设备布置好 - 在编辑模式中移动、添加和调整方块大小。</li>
                 <li>如果 Android 请求，允许文件访问，然后点按“添加资源”，把本地、网络或云端文件夹接入外壳。</li>
             </ol>
-            <aside class="note"><span class="tag">重要</span><p>整理功能需要文件访问权限。移动前请先检查您的选择；若需要可撤回的操作，请先使用复制。</p></aside>
+            <aside class="note" role="note"><span class="tag">重要</span><p>整理功能需要文件访问权限。移动前请先检查您的选择；若需要可撤回的操作，请先使用复制。</p></aside>
         </section>
     </section>
 
@@ -294,11 +299,11 @@
         <h2 class="section-title">使用场景</h2>
         <p class="section-lead">每个板块都以快速答案开始，需要具体设置步骤时再展开详细说明。</p>
         <div class="cards-grid">
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="launcher">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20,3H4c-1.1,0 -2,0.9 -2,2v10c0,1.1 0.9,2 2,2h6v2H8v2h8v-2h-2v-2h6c1.1,0 2,-0.9 2,-2V5C22,3.9 21.1,3 20,3zM20,15H4V5h16V15z" fill="currentColor"/><path d="M6,6.8h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,6.8H18v2.6h-4.4z" fill="currentColor"/><path d="M6,10.6h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,10.6H18v2.6h-4.4z" fill="currentColor"/></svg></span>
-                        <h3>主屏幕替换（启动器）</h3>
+                        <h3><button type="button" class="scenario-select" disabled>主屏幕替换（启动器）</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">仅标准版</span></div>
                     <p class="card-summary">用应用自带的桌面替换设备的主屏幕 - 您的文件夹、时钟、天气、应用和任务栏，均可按您的喜好排列。</p>
@@ -313,11 +318,11 @@
                     <a href="documentation/launcher/desktop-grid-and-icons.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="widgets">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4C2.9,4 2,4.9 2,6v12c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8c0,-1.1 -0.9,-2 -2,-2h-8L10,4zM14,17v-3H9v-2h5V9l4,4 -4,4z" fill="currentColor"/></svg></span>
-                        <h3>主屏幕智能小组件</h3>
+                        <h3><button type="button" class="scenario-select" disabled>主屏幕智能小组件</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge common">标准版 / Legacy / VR</span></div>
                     <p class="card-summary">在主屏幕添加一键快捷方式，用于录制语音备忘录、扫描文档或运行后台同步任务。</p>
@@ -332,11 +337,11 @@
                     <a href="documentation/launcher/home-screen-widgets.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="launcher">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><g transform="translate(12 12) translate(-12.3 -13.5)"><path d="M9,11.24V7.5C9,6.12 10.12,5 11.5,5S14,6.12 14,7.5v3.74c1.21,-0.81 2,-2.18 2,-3.74C16,5.01 13.99,3 11.5,3S7,5.01 7,7.5c0,1.56 0.79,2.93 2,3.74zM18.84,15.87l-4.54,-2.26c-0.17,-0.07 -0.35,-0.11 -0.54,-0.11H13v-6C13,6.67 12.33,6 11.5,6S10,6.67 10,7.5v10.74l-3.43,-0.72c-0.08,-0.01 -0.15,-0.03 -0.24,-0.03 -0.31,0 -0.59,0.13 -0.79,0.33l-0.79,0.8 4.94,4.94c0.27,0.27 0.65,0.44 1.06,0.44h6.79c0.75,0 1.33,-0.55 1.44,-1.28l0.75,-5.27c0.01,-0.07 0.02,-0.14 0.02,-0.2 0,-0.62 -0.38,-1.16 -0.92,-1.4z" fill="currentColor"/></g></svg></span>
-                        <h3>任务栏、开始菜单和手势</h3>
+                        <h3><button type="button" class="scenario-select" disabled>任务栏、开始菜单和手势</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">仅标准版</span></div>
                     <p class="card-summary">从带开始菜单、最近启动、固定应用和托盘的任务栏启动应用，并为桌面上的滑动设置你自己的操作。</p>
@@ -351,11 +356,11 @@
                     <a href="documentation/launcher/taskbar-and-dock.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="launcher">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20,3H4c-1.1,0 -2,0.9 -2,2v10c0,1.1 0.9,2 2,2h6v2H8v2h8v-2h-2v-2h6c1.1,0 2,-0.9 2,-2V5C22,3.9 21.1,3 20,3zM20,15H4V5h16V15z" fill="currentColor"/><path d="M6,6.8h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,6.8H18v2.6h-4.4z" fill="currentColor"/><path d="M6,10.6h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,10.6H18v2.6h-4.4z" fill="currentColor"/></svg></span>
-                        <h3>先试用桌面</h3>
+                        <h3><button type="button" class="scenario-select" disabled>先试用桌面</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">仅标准版</span></div>
                     <p class="card-summary">从应用图标打开桌面，而你平常的主屏幕保持不变 - 准备好了再切换。</p>
@@ -370,11 +375,11 @@
                     <a href="documentation/launcher/desktop-grid-and-icons.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="launcher">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><g transform="translate(12 12) translate(-12 -13)"><path d="M18.92,6.01C18.72,5.42 18.16,5 17.5,5h-11c-0.66,0 -1.21,0.42 -1.42,1.01L3,12v8c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-1h12v1c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-8l-2.08,-5.99zM6.5,16c-0.83,0 -1.5,-0.67 -1.5,-1.5S5.67,13 6.5,13s1.5,0.67 1.5,1.5S7.33,16 6.5,16zM17.5,16c-0.83,0 -1.5,-0.67 -1.5,-1.5s0.67,-1.5 1.5,-1.5 1.5,0.67 1.5,1.5 -0.67,1.5 -1.5,1.5zM5,11l1.5,-4.5h11L19,11L5,11z" fill="currentColor"/></g></svg></span>
-                        <h3>车机主屏幕</h3>
+                        <h3><button type="button" class="scenario-select" disabled>车机主屏幕</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">仅标准版</span></div>
                     <p class="card-summary">在车机上，桌面为驾驶而布置：先是地图，图标大而少，屏幕永不熄灭。</p>
@@ -389,11 +394,11 @@
                     <a href="documentation/launcher/screen-dimming-and-timeout.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="photo">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,19V5c0,-1.1 -0.9,-2 -2,-2H5c-1.1,0 -2,0.9 -2,2v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2zM8.5,13.5l2.5,3.01L14.5,12l4.5,6H5l3.5,-4.5z" fill="currentColor"/></svg></span>
-                        <h3>数码相框</h3>
+                        <h3><button type="button" class="scenario-select" disabled>数码相框</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge common">标准版 / VR</span></div>
                     <p class="card-summary">将 Android 平板变成一台常亮相框，从 SMB/NAS 或云端流式播放照片，而不占用本地存储空间。</p>
@@ -408,11 +413,11 @@
                     <a href="documentation/images/slideshow-and-transitions.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="video">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM10,16.5v-9l6,4.5 -6,4.5z" fill="currentColor"/></svg></span>
-                        <h3>家庭影院与 VR</h3>
+                        <h3><button type="button" class="scenario-select" disabled>家庭影院与 VR</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge common">标准版 / VR</span></div>
                     <p class="card-summary">无需先复制文件，即可在手机、电视盒或 VR 头显上观看来自电脑、NAS 或云端的电影和剧集。</p>
@@ -427,11 +432,11 @@
                     <a href="documentation/player/video-playback-controls.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="vrcinema">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20.74,6H3.26C2.57,6 2,6.57 2,7.26v9.49C2,17.43 2.57,18 3.26,18h4.85c0.45,0 0.86,-0.26 1.06,-0.67l0.99,-1.99c0.33,-0.67 1.01,-1.09 1.75,-1.09h0.18c0.74,0 1.42,0.42 1.75,1.09l0.99,1.99c0.2,0.41 0.61,0.67 1.06,0.67h4.85c0.69,0 1.26,-0.57 1.26,-1.26V7.26C22,6.57 21.43,6 20.74,6zM7.5,14C5.57,14 4,12.43 4,10.5S5.57,7 7.5,7S11,8.57 11,10.5S9.43,14 7.5,14zM16.5,14c-1.93,0 -3.5,-1.57 -3.5,-3.5S14.57,7 16.5,7S20,8.57 20,10.5S18.43,14 16.5,14z" fill="currentColor"/><path d="M7.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z" fill="currentColor"/><path d="M16.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z" fill="currentColor"/></svg></span>
-                        <h3>OpenXR VR 沉浸式影院</h3>
+                        <h3><button type="button" class="scenario-select" disabled>OpenXR VR 沉浸式影院</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge common">仅限 VR</span></div>
                     <p class="card-summary">在虚拟现实中，通过巨大的虚拟屏幕观看 SBS 3D 电影、360°/180° 视频或普通平面文件。</p>
@@ -446,11 +451,11 @@
                     <a href="documentation/vr/spatial-cinema-playback.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="tv">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,3L3,3c-1.1,0 -2,0.9 -2,2v12c0,1.1 0.9,2 2,2h5v2h8v-2h5c1.1,0 2,-0.9 2,-2L23,5c0,-1.1 -0.9,-2 -2,-2zM21,17L3,17L3,5h18v12z" fill="currentColor"/></svg></span>
-                        <h3>面向电视的 NAS 媒体库</h3>
+                        <h3><button type="button" class="scenario-select" disabled>面向电视的 NAS 媒体库</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">标准版</span><span class="scenario-badge">Lite / Photos</span></div>
                     <p class="card-summary">将 NAS 用作 Android 电视盒、平板或客厅手机的共享媒体库。</p>
@@ -465,11 +470,11 @@
                     <a href="documentation/network/smb-samba-shares.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="docs">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M18,2H6C4.9,2 4,2.9 4,4v16c0,1.1 0.9,2 2,2h12c1.1,0 2,-0.9 2,-2V4C20,2.9 19.1,2 18,2zM18,20H6V4h2v8l2.5,-1.5L13,12V4h5V20z" fill="currentColor"/></svg></span>
-                        <h3>云文档与 EPUB</h3>
+                        <h3><button type="button" class="scenario-select" disabled>云文档与 EPUB</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">云端功能限标准版</span><span class="scenario-badge common">本地功能所有版本均支持</span></div>
                     <p class="card-summary">使用便于阅读的控制方式，读取云存储或本地文件夹中的 PDF 和 EPUB 文件。</p>
@@ -484,11 +489,11 @@
                     <a href="documentation/documents/pdf-epub-viewing.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="music">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><g transform="translate(12 12) translate(-12 -13)"><path d="M18.92,6.01C18.72,5.42 18.16,5 17.5,5h-11c-0.66,0 -1.21,0.42 -1.42,1.01L3,12v8c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-1h12v1c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-8l-2.08,-5.99zM6.5,16c-0.83,0 -1.5,-0.67 -1.5,-1.5S5.67,13 6.5,13s1.5,0.67 1.5,1.5S7.33,16 6.5,16zM17.5,16c-0.83,0 -1.5,-0.67 -1.5,-1.5s0.67,-1.5 1.5,-1.5 1.5,0.67 1.5,1.5 -0.67,1.5 -1.5,1.5zM5,11l1.5,-4.5h11L19,11L5,11z" fill="currentColor"/></g></svg></span>
-                        <h3>车载音乐</h3>
+                        <h3><button type="button" class="scenario-select" disabled>车载音乐</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">仅标准版</span><span class="scenario-badge">Legacy</span></div>
                     <p class="card-summary">将 Android 车机用作专注的音乐播放器，播放本地、USB 或网络媒体库。</p>
@@ -503,11 +508,11 @@
                     <a href="documentation/audio/playing-and-organizing-music.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="chromecast">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,3H3C1.9,3 1,3.9 1,5v3h2V5h18v14h-7v2h7c1.1,0 2,-0.9 2,-2V5C23,3.9 22.1,3 21,3zM1,18v3h3c0,-1.66 -1.34,-3 -3,-3zM1,14v2c2.76,0 5,2.24 5,5h2C8,17.13 4.87,14 1,14zM1,10v2c4.97,0 9,4.03 9,9h2C12,15.07 6.93,10 1,10z" fill="currentColor"/></svg></span>
-                        <h3>Chromecast 播放</h3>
+                        <h3><button type="button" class="scenario-select" disabled>Chromecast 播放</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">标准版 / Lite / Legacy</span></div>
                     <p class="card-summary">将手机中的音频、图片和本地视频发送到房间内的 Cast 接收设备。</p>
@@ -522,11 +527,11 @@
                     <a href="documentation/player/video-playback-controls.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="radio">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,6h-7.59l3.29,-3.29L16,2l-4,4 -4,-4 -0.71,0.71L10.59,6H3c-1.1,0 -2,0.89 -2,2v12c0,1.1 0.9,2 2,2h18c1.1,0 2,-0.9 2,-2V8c0,-1.11 -0.9,-2 -2,-2zM21,20H3V8h18v12zM9,10v8l7,-4z" fill="currentColor"/></svg></span>
-                        <h3>网络电台与直播流</h3>
+                        <h3><button type="button" class="scenario-select" disabled>网络电台与直播流</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">标准版 / Legacy</span></div>
                     <p class="card-summary">将 Fast Media Sorter 用作您的网络电台和 IPTV 播放器 - 添加电台网址、导入 .m3u 播放列表，或下载精选目录，在驾车途中播放。</p>
@@ -542,11 +547,11 @@
                     <a href="documentation/streams/live-stream-playback.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="ocr">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><g transform="translate(11 11.5) translate(-12 -12)"><path d="M3,9 C3,7.9 3.9,7 5,7 L18,7 C19.1,7 20,7.9 20,9 V19 C20,20.1 19.1,21 18,21 L5,21 C3.9,21 3,20.1 3,19 Z M8.5,14 m-4,0 a4,4 0,1,0 8,0 a4,4 0,1,0 -8,0 M8.5,14 m-2,0 a2,2 0,1,0 4,0 a2,2 0,1,0 -4,0" fill="currentColor" fill-rule="evenodd"/><path d="M20,11 H23 V17 H20 Z" fill="currentColor"/><path d="M7,4 H17 V7 H7 Z" fill="currentColor"/></g></svg></span>
-                        <h3>OCR 翻译</h3>
+                        <h3><button type="button" class="scenario-select" disabled>OCR 翻译</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge common">标准版 / VR</span></div>
                     <p class="card-summary">无需离开查看器，即可从图片、扫描件、截图和 PDF 中提取并翻译文字。</p>
@@ -561,11 +566,11 @@
                     <a href="documentation/tools/ocr-text-recognition.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="calculator">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M19,3H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V5c0,-1.1 -0.9,-2 -2,-2zM7,7h10v3H7V7zM8,13h2v2H8v-2zM8,16h2v2H8v-2zM11,13h2v2h-2v-2zM11,16h2v2h-2v-2zM14,13h2v5h-2v-5z" fill="currentColor"/></svg></span>
-                        <h3>快速数学计算</h3>
+                        <h3><button type="button" class="scenario-select" disabled>快速数学计算</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge common">标准版 / Legacy / VR</span></div>
                     <p class="card-summary">在 PDF、电子书或 OCR 叠加层中选中数学公式或数字，即可立即求值。</p>
@@ -580,11 +585,11 @@
                     <a href="documentation/programs/calculator-and-stopwatch.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="cloudnotes">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M3,17.25V21h3.75L17.81,9.94l-3.75,-3.75L3,17.25zM20.71,7.04c0.39,-0.39 0.39,-1.02 0,-1.41l-2.34,-2.34c-0.39,-0.39 -1.02,-0.39 -1.41,0l-1.83,1.83 3.75,3.75 1.83,-1.83z" fill="currentColor"/></svg></span>
-                        <h3>云端 Markdown 与代码笔记</h3>
+                        <h3><button type="button" class="scenario-select" disabled>云端 Markdown 与代码笔记</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">云端功能限标准版</span><span class="scenario-badge common">本地功能所有版本均支持</span></div>
                     <p class="card-summary">直接在云文件夹、本地存储或网络共享上创建和编辑 Markdown 文件或代码片段。</p>
@@ -599,11 +604,11 @@
                     <a href="documentation/documents/text-code-editor.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="watch">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M12,3v9.28c-0.47,-0.17 -0.97,-0.28 -1.5,-0.28C8.01,12 6,14.01 6,16.5S8.01,21 10.5,21c2.31,0 4.2,-1.75 4.45,-4H15V6h4V3h-7z" fill="currentColor"/></svg></span>
-                        <h3>智能手表上的音乐</h3>
+                        <h3><button type="button" class="scenario-select" disabled>智能手表上的音乐</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge wear">Wear OS（FastMedia Wear）</span></div>
                     <p class="card-summary">直接在 Wear OS 手表上浏览和播放音乐，支持专辑封面、随机播放、表圈音量调节和省电熄屏模式。</p>
@@ -614,16 +619,16 @@
                         <li>从配对的 Android 手机流式播放音频，或播放手表本地存储中的音乐。</li>
                         <li>使用旋转表冠/表圈调节音量，并通过可拖动的触控进度条控制播放。</li>
                         <li>OLED 熄屏模式在播放继续的同时关闭屏幕像素以省电。</li>
-                        <li>A separate free watch face for Wear OS 6 and newer is on Google Play: on the watch, open Play and search for FastMediaSorter, or use the <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">FastMediaSorter Watch Face</a> page.</li>
+                        <li>A separate free watch face for Wear OS 6 and newer is on Google Play: on the watch, open Play and search for FastMediaSorter, or use the <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">FastMediaSorter 表盘</a> page.</li>
                     </ul>
                     <a href="documentation/wear/standalone-music-playback.html" class="card-footer" target="_blank">打开方案</a> <a href="docs/wear/" class="card-footer" target="_blank">Wear OS 网页门户</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="watch">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4C2.9,4 2,4.9 2,6L2,18C2,19.1 2.9,20 4,20H20C21.1,20 22,19.1 22,18V8C22,6.9 21.1,6 20,6H12L10,4ZM7,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM11.5,12a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM16,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM10.993,15.232L12.503,13.889L11.507,12.768L9.997,14.111ZM14.497,13.889L16.007,15.232L17.003,14.111L15.493,12.768Z" fill="currentColor" fill-rule="evenodd"/></svg></span>
-                        <h3>将手表连接到网络共享</h3>
+                        <h3><button type="button" class="scenario-select" disabled>将手表连接到网络共享</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge wear">Wear OS（FastMedia Wear）</span></div>
                     <p class="card-summary">通过 Wi-Fi 将您的智能手表直接连接到 NAS、Windows 共享、FTP 或 SFTP 服务器，实现独立浏览和播放。</p>
@@ -638,11 +643,11 @@
                     <a href="documentation/wear/phone-and-network-folders-on-watch.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="download">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M3,18h6v-2H3v2zM3,6v2h18V6H3zM3,13h12v-2H3v2z" fill="currentColor"/></svg></span>
-                        <h3>下载整理器</h3>
+                        <h3><button type="button" class="scenario-select" disabled>下载整理器</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge common">所有版本</span></div>
                     <p class="card-summary">一键将文件发送到预设目标位置，快速整理杂乱的下载文件夹。</p>
@@ -657,11 +662,11 @@
                     <a href="documentation/storage/destination-targets-setup.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="backup">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M9,2L7.17,4H4C2.9,4 2,4.9 2,6v12c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V6c0,-1.1 -0.9,-2 -2,-2h-3.17L15,2H9zm3,15c-2.76,0 -5,-2.24 -5,-5s2.24,-5 5,-5 5,2.24 5,5 -2.24,5 -5,5z" fill="currentColor"/><path d="M12,12m-3.2,0a3.2,3.2 0,1 1,6.4 0a3.2,3.2 0,1 1,-6.4 0" fill="currentColor"/></svg></span>
-                        <h3>定时相机备份</h3>
+                        <h3><button type="button" class="scenario-select" disabled>定时相机备份</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">标准版</span></div>
                     <p class="card-summary">在夜间充电时，通过 Wi-Fi 将新拍摄的照片和视频复制到电脑或 NAS。</p>
@@ -676,11 +681,11 @@
                     <a href="documentation/storage/scheduled-operations.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="smb">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4C2.9,4 2,4.9 2,6L2,18C2,19.1 2.9,20 4,20H20C21.1,20 22,19.1 22,18V8C22,6.9 21.1,6 20,6H12L10,4ZM7,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM11.5,12a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM16,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM10.993,15.232L12.503,13.889L11.507,12.768L9.997,14.111ZM14.497,13.889L16.007,15.232L17.003,14.111L15.493,12.768Z" fill="currentColor" fill-rule="evenodd"/></svg></span>
-                        <h3>SMB 网络设置</h3>
+                        <h3><button type="button" class="scenario-select" disabled>SMB 网络设置</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge common">所有版本</span></div>
                     <p class="card-summary">通过本地网络将 Android 设备连接到 Windows、macOS、Linux 或 NAS 的共享文件夹。</p>
@@ -695,11 +700,11 @@
                     <a href="documentation/network/smb-samba-shares.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="smb">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2zm2 5c1.1 0 2 .9 2 2v1h1v4h-6v-4h1v-1c0-1.1.9-2 2-2zm-1 3v-1c0-.55.45-1 1-1s1 .45 1 1v1h-2z" fill="currentColor"/></svg></span>
-                        <h3>Windows 文件夹共享（电脑伴侣）</h3>
+                        <h3><button type="button" class="scenario-select" disabled>Windows 文件夹共享（电脑伴侣）</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">标准版 / Photos / Legacy</span></div>
                     <p class="card-summary">直接从 Windows 电脑将文件夹共享给应用：免费的 <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" target="_blank">Fast Media Sorter for Windows</a> 会为此运行一个安全的 SFTP 服务器 - 配对只需导入一个配置文件，无需手动输入主机、端口或密钥。</p>
@@ -715,11 +720,11 @@
                     <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" class="card-footer" target="_blank">获取 Fast Media Sorter for Windows</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="offline">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14z" fill="currentColor"/></svg></span>
-                        <h3>离线旅行文件夹</h3>
+                        <h3><button type="button" class="scenario-select" disabled>离线旅行文件夹</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge common">所有版本</span></div>
                     <p class="card-summary">在网络不稳定之前，预先准备一个包含媒体、PDF、EPUB、截图和笔记的本地文件夹。</p>
@@ -734,11 +739,11 @@
                     <a href="documentation/network/network-sync-and-cache.html" class="card-footer" target="_blank">打开方案</a>
                 </details>
             </article>
-            <article class="card scenario-card">
+            <article class="card scenario-card" data-scenario="duplicates">
                 <div>
                     <div class="card-title-row">
                         <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"/></svg></span>
-                        <h3>重复文件清理</h3>
+                        <h3><button type="button" class="scenario-select" disabled>重复文件清理</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge common">标准版 / VR</span></div>
                     <p class="card-summary">在照片归档或下载文件夹变得杂乱失控之前，找出存储中的相同文件。</p>
@@ -858,51 +863,48 @@
 
         <!-- Download APK Builds - live buttons from the latest GitHub Release (S0394) -->
         <h2 class="section-title" id="download">下载 APK 安装包</h2>
-        <p class="section-lead">直接从最新的 GitHub 发布版下载。选择与您设备匹配的版本 - 版本号会自动更新。</p>
+        <p class="section-lead">各版本最新可用的稳定 APK。版本号可能不同；如果未列出所需版本，请查看 GitHub 发布列表。</p>
         <p class="section-lead">Android 会对从未见过的 APK 发出警告。<a href="docs/INSTALL_TRUST_EN.html" target="_blank" rel="noopener">为什么会出现此警告 - 以及应该点击什么</a>。</p>
+        <h3 class="edition-heading">头显和手表版本</h3>
+        <div class="edition-download-grid">
+            <article class="card edition-card" data-download-edition="noLegal">
+                <h3>noLegal</h3>
+                <p class="card-summary">扩展的侧载版本：视频站点下载、APK 安装和 Office 文档。不通过应用商店分发。</p>
+                <p class="edition-build" data-ready-label="已发布的 APK：" data-missing-label="尚未发布 APK。" data-preview-label="测试版本" data-error-label="无法检查发布。已验证的链接仍然可用。" aria-live="polite">尚未发布 APK。</p>
+                <div class="edition-card-actions">
+                    <a class="apk-btn" data-edition-apk data-download-label="下载 APK" hidden><div>下载 APK</div></a> <a class="feature-link" href="nolegal.html">功能与安装</a>
+                </div>
+            </article>
+            <article class="card edition-card" data-download-edition="vr">
+                <h3>VR</h3>
+                <p class="card-summary">适用于 Meta Quest 等 Android VR 头显：媒体播放和本地、网络及云文件。请安装到头显。</p>
+                <p class="edition-build" data-ready-label="已发布的 APK：" data-missing-label="尚未发布 APK。" data-preview-label="测试版本" data-error-label="无法检查发布。已验证的链接仍然可用。" aria-live="polite">已发布的 APK： v2.60.6050.126</p>
+                <div class="edition-card-actions">
+                    <a class="apk-btn" data-edition-apk data-download-label="下载 APK" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/v2.60.6050.126/FastMediaSorter-vr-2.60.6050.126.apk"><div>下载 APK</div></a> <a class="feature-link" href="documentation/vr/spatial-cinema-playback.html">功能与安装</a>
+                </div>
+            </article>
+            <article class="card edition-card" data-download-edition="wear">
+                <h3>Wear OS</h3>
+                <p class="card-summary">Wear OS 手表应用：音乐、网络文件夹、直播和手机连接。请安装到手表，而不是手机。</p>
+                <p class="edition-build" data-ready-label="已发布的 APK：" data-missing-label="尚未发布 APK。" data-preview-label="测试版本" data-error-label="无法检查发布。已验证的链接仍然可用。" aria-live="polite">已发布的 APK： v2.61.0031.801</p>
+                <div class="edition-card-actions">
+                    <a class="apk-btn" data-edition-apk data-download-label="下载 APK" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/v2.61.0031.801/FastMediaSorter-wear-2.61.0031.801.apk"><div>下载 APK</div></a> <a class="feature-link" href="docs/wear/">功能与安装</a>
+                </div>
+            </article>
+            <article class="card edition-card" data-download-edition="watchface">
+                <h3>表盘</h3>
+                <p class="card-summary">适用于 Wear OS 6+ 的独立表盘：时间、日期、动态波浪和电池指示。与 Wear OS 应用分别安装。</p>
+                <p class="edition-build" data-ready-label="已发布的 APK：" data-missing-label="尚未发布 APK。" data-preview-label="测试版本" data-error-label="无法检查发布。已验证的链接仍然可用。" aria-live="polite">尚未发布 APK。</p>
+                <div class="edition-card-actions">
+                    <a class="apk-btn" data-edition-apk data-download-label="下载 APK" hidden><div>下载 APK</div></a> <a class="feature-link" href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">在 Google Play 获取表盘</a> <a class="feature-link" href="docs/wear/">功能与安装</a>
+                </div>
+            </article>
+        </div>
         <div id="apkDownloads" class="apk-downloads" data-flavors="standard,vr,lite,photos,legacy,wear">
-            <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest" target="_blank" rel="noopener">在 GitHub 上打开最新发布版 →</a>
+            <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases" target="_blank" rel="noopener">GitHub 上的所有发布 →</a>
         </div>
         <script>
-            (function () {
-                var box = document.getElementById('apkDownloads');
-                if (!box) return;
-                var REPO = 'SerZhyAle/FastMediaSorter_mob_v2';
-                var wanted = (box.getAttribute('data-flavors') || '').split(',')
-                    .map(function (s) { return s.trim(); }).filter(Boolean);
-                // Build identifiers are kept in English across locales (brand-ish flavor names).
-                var labels = {
-                    standard: 'Standard', vr: 'VR', lite: 'Lite', photos: 'Photos',
-                    legacy: 'Legacy', wear: 'Wear OS'
-                };
-                fetch('https://api.github.com/repos/' + REPO + '/releases/latest',
-                    { headers: { 'Accept': 'application/vnd.github+json' } })
-                    .then(function (r) { if (!r.ok) throw new Error('release ' + r.status); return r.json(); })
-                    .then(function (rel) {
-                        var ver = rel.tag_name || '';
-                        var assets = rel.assets || [];
-                        var made = [];
-                        wanted.forEach(function (flavor) {
-                            var prefix = 'FastMediaSorter-' + flavor + '-';
-                            var a = assets.find(function (x) {
-                                return x.name && x.name.indexOf(prefix) === 0 && x.name.slice(-4) === '.apk';
-                            });
-                            if (a) made.push({ flavor: flavor, url: a.browser_download_url });
-                        });
-                        if (!made.length) return; // keep the static fallback link
-                        box.innerHTML = '';
-                        made.forEach(function (m) {
-                            var link = document.createElement('a');
-                            link.className = 'apk-btn';
-                            link.href = m.url;
-                            link.setAttribute('rel', 'noopener');
-                            link.innerHTML = '<span class="apk-flavor">' + (labels[m.flavor] || m.flavor) +
-                                '</span> <span class="apk-ver">' + ver + '</span>';
-                            box.appendChild(link);
-                        });
-                    })
-                    .catch(function () { /* leave the static fallback link in place */ });
-            }());
+            window.SiteUI.loadReleaseDownloads(document.getElementById('apkDownloads'));
         </script>
 
         <!-- Interactive Feature Explorer Dashboard -->
@@ -925,7 +927,7 @@
                 </div>
                 <div class="search-wrapper">
                     <span class="search-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg></span>
-                    <input type="text" id="featureSearch" class="search-input" placeholder="搜索功能..">
+                    <input type="text" id="featureSearch" class="search-input" aria-label="搜索功能" placeholder="搜索功能..">
                 </div>
             </div>
 
@@ -945,7 +947,7 @@
                 </div>
             </div>
 
-            <div class="feature-grid" id="featureExplorerGrid">
+            <div class="feature-grid" id="featureExplorerGrid" aria-live="polite">
                 <!-- Grid items generated dynamically from FEATURES.md -->
                 <noscript>
                     <ul class="detail-list">
@@ -1166,6 +1168,8 @@
 
     </div>
 
+    </main>
+
     <footer class="site-footer">
         <div class="container">
             <h2 class="section-title">SZA 出品的更多工具</h2>
@@ -1247,6 +1251,9 @@
             }
 
             var scenariosList = [
+                { id: 'launcher', label: '主屏幕' },
+                { id: 'watch', label: '手表伴侣' },
+                { id: 'radio', label: '直播' },
                 { id: 'all', label: '全部场景' },
                 { id: 'photo', label: '电子相框' },
                 { id: 'music', label: '车载音乐' },
@@ -1269,6 +1276,9 @@
             // A scenario matches words inside each FEATURES bullet, so a renamed bullet stays in its scenario;
             // the earlier list of exact bullet titles went stale and left every scenario pill empty.
             var scenarioKeywords = {
+                launcher: ['launcher', 'desktop', 'home screen', 'taskbar', 'start menu', 'лаунчер', 'рабоч', 'домашн', 'панель задач', 'робоч', 'пуск'],
+                watch: ['watch', 'wear', 'час', 'годин'],
+                radio: ['radio', 'stream', 'iptv', 'радио', 'радіо', 'трансляц', 'поток', 'потік'],
                 photo: ['slideshow', 'image viewer', 'gif', 'webp', 'picture', 'photo frame'],
                 music: ['music', 'audio', 'radio', 'mono ', 'stereo balance', 'lyrics'],
                 video: ['video', 'subtitle', 'movie', 'cinema', 'television'],
@@ -1395,6 +1405,7 @@
             }
 
             function renderExplorer() {
+                if (!allFeatures.length) return;
                 var grid = document.getElementById('featureExplorerGrid');
                 grid.innerHTML = '';
 
@@ -1433,7 +1444,7 @@
                     var badgeLabel = f.tag;
 
                     var headerHtml = '<span class="feature-header">' +
-                        '<span class="feature-title">' + f.title + '</span>' +
+                        '<span class="feature-title">' + f.htmlTitle + '</span>' +
                         '<span style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">' +
                         '<span class="feature-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
                         (forceOpen ? '' : '<span class="toggle-icon">▼</span>') +
@@ -1498,6 +1509,7 @@
                         btn.addEventListener('click', function () {
                             activeCategoryV1 = cat.id;
                             renderExplorer();
+                            grid.querySelector('.v1-cat-btn.active').focus({ preventScroll: true });
                         });
                         sidebar.appendChild(btn);
                     });
@@ -1566,13 +1578,14 @@
                         var list = document.createElement('div');
                         list.className = 'dashboard-v2-list';
                         colFeatures.forEach(function (f) {
-                            var item = document.createElement('div');
+                            var item = document.createElement('button');
+                            item.type = 'button';
                             item.className = 'dashboard-v2-item';
                             
                             var tagBadge = '';
                             if (flavorKind(f) === 'vr') tagBadge = ' <span style="font-size:0.65rem; color:#22d3ee; border:1px solid rgba(0,229,255,0.3); padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.5rem; text-transform:uppercase;">VR</span>';
                             
-                            item.innerHTML = '<span>' + f.title + tagBadge + '</span><span class="dashboard-v2-item-arrow">→</span>';
+                            item.innerHTML = '<span>' + f.htmlTitle + tagBadge + '</span><span class="dashboard-v2-item-arrow">→</span>';
                             item.addEventListener('click', function () {
                                 openDrawer(f);
                             });
@@ -1616,7 +1629,7 @@
                             card.className = 'feature-card-major ' + tagClass;
                             card.innerHTML = '<div>' +
                                 '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">' +
-                                '<span class="feature-title">' + f.title + '</span>' +
+                                '<span class="feature-title">' + f.htmlTitle + '</span>' +
                                 '<span class="feature-badge badge-' + flavorKind(f) + '">' + f.tag + '</span>' +
                                 '</div>' +
                                 '<div class="feature-desc">' + f.desc + '</div>' +
@@ -1651,7 +1664,7 @@
                                 var item = document.createElement('div');
                                 item.className = 'compact-tree-item';
                                 var tagBadge = ' <span style="font-size:0.65rem; opacity:0.7;">[' + f.tag + ']</span>';
-                                item.innerHTML = '<span class="compact-tree-item-text"><strong class="compact-tree-item-title">' + f.title + '</strong>' + tagBadge + ': ' + f.desc + '</span>';
+                                item.innerHTML = '<span class="compact-tree-item-text"><strong class="compact-tree-item-title">' + f.htmlTitle + '</strong>' + tagBadge + ': ' + f.desc + '</span>';
                                 list.appendChild(item);
                             });
                             catDiv.appendChild(list);
@@ -1733,11 +1746,13 @@
 
                 document.getElementById('detailDrawer').classList.add('open');
                 document.getElementById('detailDrawerOverlay').classList.add('open');
+                window.SiteUI.openDrawer();
             }
 
             function closeDrawer() {
                 document.getElementById('detailDrawer').classList.remove('open');
                 document.getElementById('detailDrawerOverlay').classList.remove('open');
+                window.SiteUI.closeDrawer();
             }
 
             function buildScenarioPills() {
@@ -1813,13 +1828,14 @@
 
             function setupScenarioCards() {
                 document.querySelectorAll('.scenario-card').forEach(function (card) {
+                    var select = card.querySelector('.scenario-select');
+                    if (select) select.disabled = false;
                     card.addEventListener('click', function (e) {
                         if (e.target.tagName === 'A' || e.target.closest('a') || e.target.tagName === 'SUMMARY' || e.target.closest('summary')) return;
                         var h3 = card.querySelector('h3');
                         if (!h3) return;
 
-                        var text = h3.innerText.trim();
-                        var scId = mapTitleToScenario(text);
+                        var scId = card.getAttribute('data-scenario');
                         if (scId) {
                             e.preventDefault();
                             activeVariant = 'v4';
@@ -1837,19 +1853,31 @@
 
                             renderExplorer();
                             document.querySelector('.explorer-panel').scrollIntoView({ behavior: 'smooth' });
+                            var selected = document.querySelector('.scenario-pill-btn.active');
+                            if (selected) selected.focus({ preventScroll: true });
                         }
                     });
                 });
             }
 
-            // Fetch and parse canonical FEATURES.md
-            fetch(featuresPage)
-                .then(function (r) { return r.text(); })
+            // Controls remain usable when the inventory request fails.
+            setupSwitcher();
+            buildScenarioPills();
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupDrawer);
+            else setupDrawer();
+            setupScenarioCards();
+
+            function loadFeatures() {
+            document.getElementById('featureExplorerGrid').setAttribute('aria-busy', 'true');
+            window.SiteUI.fetch(featuresPage)
+                .then(function (r) { if (!r.ok) throw new Error('features ' + r.status); return r.text(); })
                 .then(function (text) {
                     // GitHub Pages serves FEATURES only as Jekyll's rendered page, never as markdown source,
                     // so the explorer reads the rendered headings and list items.
                     var page = new DOMParser().parseFromString(text, 'text/html');
                     var main = page.querySelector('.main-content') || page.body;
+                    window.SiteUI.prepareInventory(main, featuresPage);
+                    allFeatures = [];
                     document.getElementById('full-features-content').innerHTML = main.innerHTML;
 
                     var currentCategory = null;
@@ -1868,6 +1896,8 @@
                         var strong = body.querySelector(':scope > strong');
                         if (!strong) return;
                         var title = strong.textContent.trim();
+                        var escapedTitle = document.createElement('span');
+                        escapedTitle.textContent = title;
                         if (hiddenFeatureTitles.indexOf(title) !== -1) return;
                         body.removeChild(strong);
 
@@ -1882,6 +1912,7 @@
                             category: currentCategory,
                             anchor: currentAnchor,
                             title: title,
+                            htmlTitle: escapedTitle.innerHTML,
                             tag: tag,
                             desc: body.innerHTML.trim().replace(/^:\s*/, ''),
                             text: body.textContent.trim().replace(/^:\s*/, ''),
@@ -1890,18 +1921,29 @@
                         rank++;
                     });
 
-                    // Initialize
-                    setupSwitcher();
-                    buildScenarioPills();
-                    setupDrawer();
-                    setupScenarioCards();
+                    if (!allFeatures.length) throw new Error('Empty feature inventory');
                     renderExplorer();
                 })
                 .catch(function (err) {
                     console.error(err);
                     document.getElementById('featureExplorerGrid').innerHTML =
                         '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">加载功能清单失败，请刷新页面。</div>';
+                    document.getElementById('full-features-content').textContent = document.getElementById('featureExplorerGrid').textContent;
+                })
+                .finally(function () {
+                    var grid = document.getElementById('featureExplorerGrid');
+                    grid.setAttribute('aria-busy', 'false');
+                    if (!allFeatures.length) {
+                        var retry = document.createElement('button');
+                        retry.type = 'button';
+                        retry.className = 'btn btn-ghost';
+                        retry.textContent = '重试';
+                        retry.addEventListener('click', loadFeatures);
+                        grid.appendChild(retry);
+                    }
                 });
+            }
+            loadFeatures();
 
             // Tabs events wiring
             document.getElementById('tab-all').addEventListener('click', function (e) {
@@ -1935,10 +1977,10 @@
 
     <!-- Detail Drawer Overlay and Container for Variant 2 (S0387) -->
     <div class="detail-drawer-overlay" id="detailDrawerOverlay"></div>
-    <div class="detail-drawer" id="detailDrawer">
+    <div class="detail-drawer" id="detailDrawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" inert>
         <div class="detail-drawer-header">
             <h3 id="drawerTitle">功能详情</h3>
-            <button class="detail-drawer-close" id="detailDrawerClose">&times;</button>
+            <button type="button" class="detail-drawer-close" id="detailDrawerClose" aria-label="关闭功能详情">&times;</button>
         </div>
         <div class="detail-drawer-body">
             <div class="detail-drawer-cat" id="drawerCat">分类</div>
@@ -1967,13 +2009,14 @@
             var btn = document.getElementById('themeBtn');
             if (!btn) return;
             var meta = document.querySelector('meta[name="theme-color"]');
-            function apply(t) {
+            function apply(t, persist) {
                 document.documentElement.setAttribute('data-theme', t);
-                try { localStorage.setItem('sza-theme', t); } catch (e) { }
+                if (persist !== false) { try { localStorage.setItem('sza-theme', t); } catch (e) { } }
                 var dark = t === 'dark';
                 if (meta) meta.setAttribute('content', dark ? '#0a0f0a' : '#eef3ea');
                 btn.setAttribute('aria-label', dark ? '切换到浅色主题' : '切换到深色主题');
             }
+            window.SiteUI.initTheme(btn, meta, apply);
             btn.addEventListener('click', function () {
                 var cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
                 apply(cur === 'light' ? 'dark' : 'light');

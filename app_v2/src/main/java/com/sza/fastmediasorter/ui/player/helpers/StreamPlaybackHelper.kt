@@ -52,7 +52,6 @@ import timber.log.Timber
 internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenReady: Boolean = true) {
     // Setup runs inside the tracked load; cancelling it here would abort the replacement.
     releasePlayer(cancelPendingLoad = false)
-    Timber.d("S4092: StreamPlaybackHelper released the previous player without cancelling setup")
 
     // S0936: a fresh playback session starts with a full watchdog-recovery window, and a stale
     // "reconnecting" flag must not leak a RECONNECTING label into the new stream's first buffering.

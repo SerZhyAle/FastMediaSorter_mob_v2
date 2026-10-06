@@ -21,6 +21,7 @@ if (-not $OutputPath) {
 }
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'DocumentationShell.ps1')
 $repoRoot = Resolve-Path "$PSScriptRoot/../.."
 $termbaseFile = Join-Path $repoRoot $TermbasePath
 $outFile = Join-Path $repoRoot $OutputPath
@@ -1051,6 +1052,8 @@ $sb.AppendLine(@"
 "@) | Out-Null
 
 $html = $sb.ToString()
+$relativePage = [IO.Path]::GetRelativePath((Join-Path $repoRoot 'documentation'), $outFile).Replace('\', '/')
+$html = ConvertTo-DocumentationShell -Html $html -RelativePath $relativePage -DocumentationRoot (Join-Path $repoRoot 'documentation')
 
 # S2972 check: Liquid markers
 if ($html -match '\{\{|\{%') {

@@ -66,6 +66,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="styles.css">
+    <script src="assets/site-ui.js"></script>
 </head>
 
 <body>
@@ -74,7 +75,7 @@
     <header class="site-header">
         <a class="brand" href="index-ru.html">Fast Media Sorter<span class="dot">.</span></a>
         <div class="seg" role="group" aria-label="Язык">
-            <a href="nolegal-ru.html" class="on" data-lang="ru">RU</a>
+            <a href="nolegal-ru.html" class="on" aria-current="page" data-lang="ru">RU</a>
             <a href="nolegal.html" data-lang="en">EN</a>
             <a href="nolegal-uk.html" data-lang="ua">UA</a>
         </div>
@@ -82,6 +83,7 @@
         <a class="btn btn-primary btn-sm" href="#get">Скачать</a>
     </header>
 
+    <aside class="source-link">
     <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
         aria-label="Исходный код на GitHub">
         <svg width="80" height="80" viewBox="0 0 250 250"
@@ -89,7 +91,9 @@
             <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
         </svg>
     </a>
+    </aside>
 
+    <main id="main-content">
     <header class="hero" id="top">
         <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
         <div class="hero-inner">
@@ -107,9 +111,7 @@
             только для sideload. Она построена поверх VR-версии и добавляет возможности, которые нельзя
             распространять через Google Play или Meta Horizon Store из-за лицензий на перераспространение,
             политик магазинов, патентных ограничений или тяжёлого рантайма на устройстве.</p>
-            <p>Эта страница не рекламируется с основного сайта, но подписанный sideload-APK доступен ниже для тех,
-            кто целенаправленно его ищет - здесь также показано, что сборка умеет и почему эти возможности остаются
-            вне опубликованных флейворов.</p>
+            <p>Основной сайт содержит ссылку на эту редакцию. Здесь описаны дополнительные возможности и установка; прямая ссылка на APK появится после публикации сборки.</p>
             <p>В основе это та же полноценная оболочка Android-устройства, что и основное приложение: оболочка
             устройства, медиаплеер, трансляции, запуск программ, замена штатных программ, спутник на часах,
             мониторинг устройства и полный файловый менеджер.</p>
@@ -117,54 +119,19 @@
 
         <!-- Sideload download - noLegal asset from the latest GitHub Release (S0394) -->
         <h2 class="section-title" id="get">Загрузка для sideload</h2>
-        <p class="topology-lead">Сборка noLegal только для ручной установки (sideload). Скачайте подписанный APK
-        ниже и установите вручную - её нет на основном сайте и ни в одном сторе.</p>
+        <p class="topology-lead">Сборка noLegal только для ручной установки (sideload). Устанавливайте опубликованный APK вручную. Редакция представлена на основном сайте, но не распространяется через магазины приложений.</p>
         <p class="topology-lead">Android предупреждает об APK, который видит впервые.
             <a href="docs/INSTALL_TRUST_RU.html" target="_blank" rel="noopener">Почему появляется предупреждение - и что
                 нажимать</a>.</p>
         <div id="apkDownloads" class="apk-downloads" data-flavors="noLegal">
-            <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest"
-                target="_blank" rel="noopener">Открыть последний релиз на GitHub →</a>
+            <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases"
+                target="_blank" rel="noopener">Все релизы на GitHub →</a>
         </div>
         <div class="gpl-source-notice">
             <strong>Соответствие лицензии GPLv3:</strong> Эта sideload-сборка линкует copyleft-компоненты (такие как NewPipe Extractor), распространяемые под лицензией GPL-3.0-or-later. В соответствии с параграфом 6 лицензии GPLv3, соответствующий исходный код (Corresponding Source) для комбинированного произведения (включая исходный код приложения и исходный код экстрактора) доступен в нашем <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">репозитории GitHub</a> и <a href="https://github.com/TeamNewPipe/NewPipeExtractor" target="_blank" rel="noopener">репозитории NewPipe Extractor</a>.
         </div>
         <script>
-            (function () {
-                var box = document.getElementById('apkDownloads');
-                if (!box) return;
-                var REPO = 'SerZhyAle/FastMediaSorter_mob_v2';
-                var wanted = (box.getAttribute('data-flavors') || '').split(',')
-                    .map(function (s) { return s.trim(); }).filter(Boolean);
-                var labels = { noLegal: 'noLegal' };
-                fetch('https://api.github.com/repos/' + REPO + '/releases/latest',
-                    { headers: { 'Accept': 'application/vnd.github+json' } })
-                    .then(function (r) { if (!r.ok) throw new Error('release ' + r.status); return r.json(); })
-                    .then(function (rel) {
-                        var ver = rel.tag_name || '';
-                        var assets = rel.assets || [];
-                        var made = [];
-                        wanted.forEach(function (flavor) {
-                            var prefix = 'FastMediaSorter-' + flavor + '-';
-                            var a = assets.find(function (x) {
-                                return x.name && x.name.indexOf(prefix) === 0 && x.name.slice(-4) === '.apk';
-                            });
-                            if (a) made.push({ flavor: flavor, url: a.browser_download_url });
-                        });
-                        if (!made.length) return; // keep the static fallback link
-                        box.innerHTML = '';
-                        made.forEach(function (m) {
-                            var link = document.createElement('a');
-                            link.className = 'apk-btn apk-btn-nolegal';
-                            link.href = m.url;
-                            link.setAttribute('rel', 'noopener');
-                            link.innerHTML = '<span class="apk-flavor">' + (labels[m.flavor] || m.flavor) +
-                                '</span> <span class="apk-ver">' + ver + '</span>';
-                            box.appendChild(link);
-                        });
-                    })
-                    .catch(function () { /* leave the static fallback link in place */ });
-            }());
+            window.SiteUI.loadReleaseDownloads(document.getElementById('apkDownloads'));
         </script>
 
         <h2 class="section-title">Как noLegal соотносится с другими сборками</h2>
@@ -365,6 +332,8 @@
 
     </div>
 
+    </main>
+
     <footer class="site-footer">
         <div class="container">
             <h2 class="section-title">Другие инструменты SZA</h2>
@@ -415,13 +384,14 @@
             var btn = document.getElementById('themeBtn');
             if (!btn) return;
             var meta = document.querySelector('meta[name="theme-color"]');
-            function apply(t) {
+            function apply(t, persist) {
                 document.documentElement.setAttribute('data-theme', t);
-                try { localStorage.setItem('sza-theme', t); } catch (e) { }
+                if (persist !== false) { try { localStorage.setItem('sza-theme', t); } catch (e) { } }
                 var dark = t === 'dark';
                 if (meta) meta.setAttribute('content', dark ? '#0a0f0a' : '#eef3ea');
                 btn.setAttribute('aria-label', dark ? 'Переключить на светлую тему' : 'Переключить на тёмную тему');
             }
+            window.SiteUI.initTheme(btn, meta, apply);
             btn.addEventListener('click', function () {
                 var cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
                 apply(cur === 'light' ? 'dark' : 'light');

@@ -12,7 +12,7 @@ ingredients:
   - FastMediaSorter v2 installed on your Android device (version 2.6 or later).
   - "**Read Media Audio** permission granted upon first launch."
   - Local music files (MP3, FLAC, AAC, OGG, or WAV format).
-  - (Optional) Local Wi-Fi network for streaming directly from <a href="#s2950" class="doc-link-bookmark" data-target="S2950">SMB / SFTP servers</a>.
+  - (Optional) Local Wi-Fi network for streaming directly from <a href="network/smb-samba-shares.html" class="doc-link">SMB / SFTP servers</a>.
 steps:
   - number: 1
     id: step-1
@@ -71,7 +71,7 @@ next_recipes:
     badge_type: music
     description: Learn how to save custom EQ presets for headphones, car audio, and Bluetooth speakers.
   - title: Setting Up SMB Streaming on Home NAS
-    url: "#s2950"
+    page_id: network.smb-samba-shares
     target: S2950
     badge: Network
     badge_type: docs

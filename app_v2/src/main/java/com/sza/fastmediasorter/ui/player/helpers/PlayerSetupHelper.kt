@@ -36,7 +36,6 @@ internal fun VideoPlayerManager.createPlayer(
 ): ExoPlayer {
     // Setup runs inside the tracked load; cancelling it here would abort the replacement.
     releasePlayer(cancelPendingLoad = false)
-    Timber.d("S4092: PlayerSetupHelper released the previous player without cancelling setup")
 
     val loadControl = PrefetchLoadControlFactory.build(
         plan = activePrefetchPlan,

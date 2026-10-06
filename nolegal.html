@@ -67,6 +67,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="styles.css">
+    <script src="assets/site-ui.js"></script>
 </head>
 
 <body>
@@ -76,7 +77,7 @@
         <a class="brand" href="index.html">Fast Media Sorter<span class="dot">.</span></a>
         <div class="seg" role="group" aria-label="Language">
             <a href="nolegal-ru.html" data-lang="ru">RU</a>
-            <a href="nolegal.html" class="on" data-lang="en">EN</a>
+            <a href="nolegal.html" class="on" aria-current="page" data-lang="en">EN</a>
             <a href="nolegal-uk.html" data-lang="ua">UA</a>
         </div>
         <button class="theme-btn" id="themeBtn" aria-label="Switch to light theme" title="Toggle theme">◐</button>
@@ -84,6 +85,7 @@
     </header>
 
     <!-- GitHub Corner -->
+    <aside class="source-link">
     <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
         aria-label="View source on GitHub">
         <svg width="80" height="80" viewBox="0 0 250 250"
@@ -91,7 +93,9 @@
             <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
         </svg>
     </a>
+    </aside>
 
+    <main id="main-content">
     <header class="hero" id="top">
         <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
         <div class="hero-inner">
@@ -109,9 +113,7 @@
             sideload-only edition. It is built on top of the VR edition and adds features that cannot be
             distributed through Google Play or the Meta Horizon Store because of redistribution licenses,
             store policies, patent constraints, or heavy on-device runtimes.</p>
-            <p>It is not advertised from the main site, but the signed sideload APK is available below for those
-            who specifically seek it - this page also describes what the build does and why these capabilities
-            stay outside the published flavors.</p>
+            <p>The main site links to this edition. This page describes its extra capabilities and installation; a direct APK link appears when a build has been published.</p>
             <p>Underneath, it is the same complete shell for an Android device as the main app: device shell,
             media player, live streams, app launching, a replacement for stock apps, a companion on the watch,
             device monitoring and a full file manager.</p>
@@ -119,54 +121,19 @@
 
         <!-- Sideload download - noLegal asset from the latest GitHub Release (S0394) -->
         <h2 class="section-title" id="get">Sideload Download</h2>
-        <p class="topology-lead">The noLegal build is sideload-only. Download the latest signed APK below and install
-        it manually - it is not offered on the main site or any store.</p>
+        <p class="topology-lead">The noLegal build is sideload-only. Install a published APK manually. This edition is linked from the main site but is not distributed through app stores.</p>
         <p class="topology-lead">Android warns about an APK it has not seen before.
             <a href="docs/INSTALL_TRUST_EN.html" target="_blank" rel="noopener">Why the warning appears - and what to
                 tap</a>.</p>
         <div id="apkDownloads" class="apk-downloads" data-flavors="noLegal">
-            <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest"
-                target="_blank" rel="noopener">Open the latest release on GitHub →</a>
+            <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases"
+                target="_blank" rel="noopener">All releases on GitHub →</a>
         </div>
         <div class="gpl-source-notice">
             <strong>GPLv3 Compliance Notice:</strong> This sideload build links copyleft components (such as NewPipe Extractor) licensed under GPL-3.0-or-later. In accordance with GPLv3 §6, the Corresponding Source code for the combined work (including both the application's source code and the extractor's source code) is available at our <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub Repository</a> and the <a href="https://github.com/TeamNewPipe/NewPipeExtractor" target="_blank" rel="noopener">NewPipe Extractor Repository</a>.
         </div>
         <script>
-            (function () {
-                var box = document.getElementById('apkDownloads');
-                if (!box) return;
-                var REPO = 'SerZhyAle/FastMediaSorter_mob_v2';
-                var wanted = (box.getAttribute('data-flavors') || '').split(',')
-                    .map(function (s) { return s.trim(); }).filter(Boolean);
-                var labels = { noLegal: 'noLegal' };
-                fetch('https://api.github.com/repos/' + REPO + '/releases/latest',
-                    { headers: { 'Accept': 'application/vnd.github+json' } })
-                    .then(function (r) { if (!r.ok) throw new Error('release ' + r.status); return r.json(); })
-                    .then(function (rel) {
-                        var ver = rel.tag_name || '';
-                        var assets = rel.assets || [];
-                        var made = [];
-                        wanted.forEach(function (flavor) {
-                            var prefix = 'FastMediaSorter-' + flavor + '-';
-                            var a = assets.find(function (x) {
-                                return x.name && x.name.indexOf(prefix) === 0 && x.name.slice(-4) === '.apk';
-                            });
-                            if (a) made.push({ flavor: flavor, url: a.browser_download_url });
-                        });
-                        if (!made.length) return; // keep the static fallback link
-                        box.innerHTML = '';
-                        made.forEach(function (m) {
-                            var link = document.createElement('a');
-                            link.className = 'apk-btn apk-btn-nolegal';
-                            link.href = m.url;
-                            link.setAttribute('rel', 'noopener');
-                            link.innerHTML = '<span class="apk-flavor">' + (labels[m.flavor] || m.flavor) +
-                                '</span> <span class="apk-ver">' + ver + '</span>';
-                            box.appendChild(link);
-                        });
-                    })
-                    .catch(function () { /* leave the static fallback link in place */ });
-            }());
+            window.SiteUI.loadReleaseDownloads(document.getElementById('apkDownloads'));
         </script>
 
         <h2 class="section-title">How noLegal Relates to the Other Builds</h2>
@@ -367,6 +334,8 @@
 
     </div>
 
+    </main>
+
     <footer class="site-footer">
         <div class="container">
             <h2 class="section-title">More tools by SZA</h2>
@@ -417,13 +386,14 @@
             var btn = document.getElementById('themeBtn');
             if (!btn) return;
             var meta = document.querySelector('meta[name="theme-color"]');
-            function apply(t) {
+            function apply(t, persist) {
                 document.documentElement.setAttribute('data-theme', t);
-                try { localStorage.setItem('sza-theme', t); } catch (e) { }
+                if (persist !== false) { try { localStorage.setItem('sza-theme', t); } catch (e) { } }
                 var dark = t === 'dark';
                 if (meta) meta.setAttribute('content', dark ? '#0a0f0a' : '#eef3ea');
                 btn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
             }
+            window.SiteUI.initTheme(btn, meta, apply);
             btn.addEventListener('click', function () {
                 var cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
                 apply(cur === 'light' ? 'dark' : 'light');

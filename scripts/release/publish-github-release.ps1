@@ -89,8 +89,8 @@ $whatsNewPath  = Join-Path $repoRoot "docs/WHATS_NEW.md"
 
 # Full release spectrum (S0394): flavor -> release APK output dir (relative to repoRoot).
 # All app_v2 flavors share the one release key; wear lives in its own module tree and
-# is signed with the same key (S0394 Phase 01). noLegal is published as an asset but
-# the website links it only from nolegal*.html, never the main page.
+# is signed with the same key (S0394 Phase 01). The website now lists noLegal alongside
+# other editions, with a link to its dedicated capabilities and installation page.
 $spectrum = [ordered]@{
     standard = "app_v2/build/outputs/apk/standard/release"
     vr       = "app_v2/build/outputs/apk/vr/release"

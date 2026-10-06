@@ -11,8 +11,10 @@ layout: null
     <title>Fast Media Sorter Documentation - User Guides &amp; Cookbook Recipes</title>
     <meta name="description" content="Official documentation, cookbook recipes, and user guides for Fast Media Sorter across all 7 Android editions.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/">
-    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/">
-    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/index.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/index-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/index-uk.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/index.html">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/">
     <meta property="og:title" content="Fast Media Sorter Documentation - User Guides &amp; Cookbook Recipes">
@@ -128,21 +130,11 @@ layout: null
                 
                 <!-- 13-Language Selector -->
                 <div class="doc-lang-picker">
-                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
-                    <div class="doc-lang-menu" id="langMenu" role="menu">
-                        <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
-                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
-                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
-                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
-                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
-                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
-                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
-                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
-                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
-                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
-                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
-                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
-                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">EN</button>
+                    <div class="doc-lang-menu" id="langMenu">
+                        <a href="" class="doc-lang-item active" data-lang="en" aria-current="page"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="index-ru.html" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="index-uk.html" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
                     </div>
                 </div>
 
@@ -242,24 +234,14 @@ layout: null
                 </header>
 
                 <!-- Featured Recipes Carousel / Grid -->
-                <section class="doc-section" style="margin-bottom: 3rem;">
-                    <h2>Benchmark Cookbook Recipes</h2>
+                <section class="doc-section" id="start-with-a-task" style="margin-bottom: 3rem;">
+                    <h2>Start with your task</h2>
                     <div class="doc-next-grid">
-                        <a href="sample-recipe.html" class="doc-next-card">
-                            <span class="doc-badge doc-badge-music doc-badge-sm">Audio</span>
-                            <h4>Playing &amp; Organizing Music Files</h4>
-                            <p>Queue lossless FLAC tracks, manage playlists, and move albums without altering physical folders.</p>
-                        </a>
-                        <a href="sample-settings-recipe.html" class="doc-next-card">
-                            <span class="doc-badge doc-badge-standard doc-badge-sm">Settings</span>
-                            <h4>Customizing Playback &amp; Sorting</h4>
-                            <p>Configure natural number sorting, thumbnail densities, and background audio behaviors.</p>
-                        </a>
-                        <a href="sample-program-recipe.html" class="doc-next-card">
-                            <span class="doc-badge doc-badge-docs doc-badge-sm">Utilities</span>
-                            <h4>Storage Breakdown &amp; Statistics</h4>
-                            <p>Inspect disk usage, large video files, and space distribution across internal and SD card storage.</p>
-                        </a>
+                        <a href="getting-started/quick-tour.html" class="doc-next-card"><h3>Set up the app</h3><p>Take a short tour and choose what to enable.</p></a>
+                        <a href="storage/destination-targets-setup.html" class="doc-next-card"><h3>Sort files into folders</h3><p>Choose destinations before moving or copying files.</p></a>
+                        <a href="network/smb-samba-shares.html" class="doc-next-card"><h3>Connect a PC or NAS</h3><p>Open shared folders on your local network.</p></a>
+                        <a href="streams/channel-catalog-browsing.html" class="doc-next-card"><h3>Find an internet stream</h3><p>Browse the channel catalog and choose a stream.</p></a>
+                        <a href="wear/installation-and-pairing.html" class="doc-next-card"><h3>Set up your watch</h3><p>Install and pair the watch companion.</p></a>
                     </div>
                 </section>
 

@@ -1396,3 +1396,31 @@ mark.doc-search-highlight {
     }
 }
 
+
+/* Keep core controls visible on phone-width screens rather than clipping overflow. */
+.doc-header-inner > div { min-width: 0; }
+.doc-footer-links { display: flex; flex-wrap: wrap; gap: 12px 16px; }
+.doc-search-input { min-width: 0; }
+.doc-search-item-title { overflow-wrap: anywhere; }
+.doc-search-close { margin-top: 4px; }
+.doc-body :is(a, button, input):focus-visible { outline: 2px solid var(--doc-accent); outline-offset: 3px; }
+@media (max-width: 768px) {
+    .doc-header-inner { height: auto; min-height: 64px; flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
+    .doc-header-inner > div { width: 100%; }
+    .doc-header-nav { flex: 1; justify-content: flex-end; gap: 8px; min-width: 0; }
+    .doc-header-nav .doc-header-link { display: none; }
+    .doc-header-brand { font-size: 1rem; }
+    .doc-header .doc-search-trigger { padding: 6px 8px; }
+    .doc-header .doc-search-trigger kbd { display: none; }
+    .doc-lang-btn { min-width: 44px; padding: 6px 10px; }
+    .doc-footer-inner { flex-wrap: wrap; gap: 12px; }
+    .doc-footer-links { min-width: 0; }
+    .doc-search-footer { flex-wrap: wrap; gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .doc-search-modal { animation: none; }
+    .doc-sidebar { transition: none; }
+}
+.doc-content { min-width: 0; overflow-wrap: anywhere; }
+.doc-content .doc-search-trigger { max-width: 100%; white-space: normal; flex-wrap: wrap; text-align: left; }
+.doc-content .doc-search-trigger > span { min-width: 0; }

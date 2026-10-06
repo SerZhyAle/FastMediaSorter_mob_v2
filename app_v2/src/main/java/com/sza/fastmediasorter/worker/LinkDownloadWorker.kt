@@ -134,7 +134,6 @@ class LinkDownloadWorker @AssistedInject constructor(
         } catch (e: CancellationException) {
             // A stop otherwise leaves no line at all, which reads as a hung extractor in a field log.
             Timber.i("LinkDownloadWorker: stopped url=%s reason=%s", url ?: "(batch)", stopReasonLabel())
-            Timber.d("S4089: worker stop logged")
             throw e
         }
 
@@ -250,7 +249,6 @@ class LinkDownloadWorker @AssistedInject constructor(
         val notification = builder.build()
         val key = notification.extras.getCharSequence(NotificationCompat.EXTRA_TEXT)?.toString().orEmpty()
         if (!shouldPostProgress(state, key)) return
-        Timber.d("S4093: progress notify posted after throttle")
         nm.notify(NOTIF_ID_PROGRESS, notification)
     }
 

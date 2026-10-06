@@ -107,7 +107,6 @@ internal object LauncherSignalIconBinder {
         // straight from the application's own files.
         val info = icon.applicationInfo
         val drawable: Drawable? = if (info != null) {
-            Timber.d("S4090: icon for %s drawn from attached info", icon.packageName)
             context.packageManager.getApplicationIcon(info)
         } else {
             try {

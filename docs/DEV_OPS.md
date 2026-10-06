@@ -2372,8 +2372,9 @@ re-obtained before an entry is reused, and Gradle invalidates the entry itself w
 stamp is memoised on the root project, so one invocation building both modules reads the clock once
 and cannot straddle a minute boundary between them.
 
-**Reading a produced artifact's version.** AGP writes `output-metadata.json` beside every artifact,
-and it cannot disagree with the file it describes:
+**Reading a produced artifact's version.** AGP writes `output-metadata.json` beside an APK -
+under AGP 9 no longer beside a bundle, which is why the release consumers below fall back to the
+standard APK's metadata (S4095) - and it cannot disagree with the file it describes:
 
 ```powershell
 Get-Content app_v2\build\outputs\apk\standard\debug\output-metadata.json | ConvertFrom-Json |
@@ -2414,8 +2415,9 @@ binding to the tested build. The binding Android declares, owner decision 2026-1
 - The tested tree equals the tagged tree, and the worktree the AAB was built in sits at that tree
   with no tracked modification. Trees are compared, not commits: the merge commit differs from the
   DEBUG head and is still bound when `main` carried nothing the branch lacked.
-- The versionCode read back from the built bundle's `output-metadata.json` equals the pinned one;
-  `publish-play-release.py` reads the same file again before the Play upload.
+- The versionCode read back from the release's `output-metadata.json` (AGP 9 writes it beside the
+  APK, not the bundle) equals the pinned one; `publish-play-release.py` reads the same file again
+  before the Play upload.
 - Gitignored inputs copied by `scripts/release-worktree-sync.txt` - signing material,
   `local.properties`, prebuilt AARs - are outside the tracked tree and outside the binding.
 

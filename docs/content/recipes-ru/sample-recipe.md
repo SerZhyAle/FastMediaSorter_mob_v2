@@ -12,7 +12,7 @@ ingredients:
   - FastMediaSorter v2, установленный на вашем Android-устройстве (версия 2.6 или новее).
   - "Предоставленное разрешение **Аудиофайлы и музыка** при первом запуске."
   - Локальные музыкальные файлы (форматы MP3, FLAC, AAC, OGG или WAV).
-  - (Опционально) Локальная сеть Wi-Fi для потокового воспроизведения напрямую с <a href="#s2950" class="doc-link-bookmark" data-target="S2950">серверов SMB / SFTP</a>.
+  - (Опционально) Локальная сеть Wi-Fi для потокового воспроизведения напрямую с <a href="network/smb-samba-shares.html" class="doc-link">серверов SMB / SFTP</a>.
 steps:
   - number: 1
     id: step-1
@@ -71,7 +71,7 @@ next_recipes:
     badge_type: music
     description: Узнайте, как сохранять собственные пресеты эквалайзера для наушников, аудиосистемы автомобиля и Bluetooth-колонок.
   - title: Настройка потокового воспроизведения по SMB с домашнего NAS
-    url: "#s2950"
+    page_id: network.smb-samba-shares
     target: S2950
     badge: Сеть
     badge_type: docs

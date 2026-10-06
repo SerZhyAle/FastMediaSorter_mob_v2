@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.core.view.ViewCompat
 import androidx.media3.ui.PlayerView
-import timber.log.Timber
 
 /** Keeps timed chrome presentation separate from the host's fullscreen mode. */
 class VideoChromeVisibilityManager(
@@ -70,7 +69,6 @@ class VideoChromeVisibilityManager(
     private fun setHidden(value: Boolean) {
         if (value == hidden) return
         hidden = value
-        Timber.d("S4091: video chrome hidden=$value")
         if (value) {
             originalAlpha = commandPanel.alpha
             originalAccessibility = commandPanel.importantForAccessibility

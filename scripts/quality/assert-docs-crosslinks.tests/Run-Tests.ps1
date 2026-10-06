@@ -52,15 +52,16 @@ function New-Tree([hashtable]$pages, [string[]]$baseline) {
     return $root
 }
 
-function Invoke-Gate([string]$root) {
-    $out = & $pwshExe -NoProfile -File $gateScript -RepoRoot $root -BaselinePath (Join-Path $root 'baseline.txt') 2>&1 | Out-String
+function Invoke-Gate([string]$root, [bool]$fragments = $false) {
+    [string[]]$extra = if ($fragments) { @('-CheckFragments') } else { @() }
+    $out = & $pwshExe -NoProfile -File $gateScript -RepoRoot $root -BaselinePath (Join-Path $root 'baseline.txt') @extra 2>&1 | Out-String
     return [pscustomobject]@{ Exit = $LASTEXITCODE; Output = $out }
 }
 
-function Test-Case([string]$name, [hashtable]$pages, [string[]]$baseline, [int]$expectedExit, [string]$expectedText) {
+function Test-Case([string]$name, [hashtable]$pages, [string[]]$baseline, [int]$expectedExit, [string]$expectedText, [bool]$fragments = $false) {
     $root = New-Tree $pages $baseline
     try {
-        $r = Invoke-Gate $root
+        $r = Invoke-Gate $root $fragments
         $ok = $r.Exit -eq $expectedExit -and (-not $expectedText -or $r.Output.Contains($expectedText))
         Assert-That $name $ok "expected exit $expectedExit '$expectedText', got exit $($r.Exit):`n$($r.Output)"
     }
@@ -117,6 +118,18 @@ Test-Case 'a root landing page href to a missing page fails' $landing @() 1 "'do
 $landingOk = $clean.Clone()
 $landingOk['index.html'] = New-Page $null '<a href="documentation/sec/page.html">ok</a> <a href="documentation/">docs</a>'
 Test-Case 'a root landing page with live hrefs passes' $landingOk @() 0 'PASS'
+
+$fragmentOk = @{ 'documentation/index.html' = New-Page '/documentation/' '<h2 id="one">One</h2><a href="#one">one</a>' }
+Test-Case 'an existing same-page fragment passes' $fragmentOk @() 0 'PASS' $true
+$fragmentBad = @{ 'documentation/index.html' = New-Page '/documentation/' '<a href="#missing">missing</a>' }
+Test-Case 'a missing same-page fragment fails' $fragmentBad @() 1 "missing fragment 'missing'" $true
+$fragmentCross = @{
+    'documentation/index.html' = New-Page '/documentation/' '<a href="topic.html#two">two</a>'
+    'documentation/topic.html' = New-Page '/documentation/topic.html' '<h2 id="two">Two</h2>'
+}
+Test-Case 'an existing cross-page fragment passes' $fragmentCross @() 0 'PASS' $true
+$fragmentCross['documentation/topic.html'] = New-Page '/documentation/topic.html' '<h2 id="other">Other</h2>'
+Test-Case 'a missing cross-page fragment fails' $fragmentCross @() 1 "missing fragment 'two'" $true
 
 Write-Host ""
 Write-Host "Summary: $script:pass passed, $script:fail failed" -ForegroundColor $(if ($script:fail -eq 0) { 'Green' } else { 'Red' })

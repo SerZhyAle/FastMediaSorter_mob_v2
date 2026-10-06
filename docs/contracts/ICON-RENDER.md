@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `ICON-RENDER` |
-| **Version** | 0.15, draft. Owner: this product |
+| **Version** | 0.16, draft. Owner: this product |
 | **Home** | `iconography/README.md` sections 3 and 10 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 

@@ -35,6 +35,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../docs/Read-DocumentationSearchIndex.ps1')
 . (Join-Path $PSScriptRoot 'lib/check-subject.ps1')
 Write-CheckSubject -Axes ([ordered]@{ module = 'site'; scope = 'docs-portal-ui-ux'; files = 'documentation/**/*.html,documentation/assets/docs.css,documentation/assets/search.js' })
 
@@ -214,7 +215,7 @@ foreach ($file in $htmlFiles) {
 if (Test-Path -LiteralPath $searchIndexPath) {
     try {
         $indexData = Get-Content -LiteralPath $searchIndexPath -Raw -Encoding utf8 | ConvertFrom-Json
-        $pages = $indexData.pages
+        $pages = @(Read-DocumentationSearchIndex -Path $searchIndexPath)
 
         # Verify that an unindexed random term matches 0 documents
         $bogusQuery = "xyznonexistentbogusterm999"
@@ -223,7 +224,8 @@ if (Test-Path -LiteralPath $searchIndexPath) {
             $t = if ($p.title) { $p.title.ToLowerInvariant() } else { "" }
             $k = if ($p.keywords) { $p.keywords.ToLowerInvariant() } else { "" }
             $d = if ($p.description) { $p.description.ToLowerInvariant() } else { "" }
-            if ($t.Contains($bogusQuery) -or $k.Contains($bogusQuery) -or $d.Contains($bogusQuery)) {
+            $body = if ($p.PSObject.Properties['body']) { ([string]$p.body).ToLowerInvariant() } else { "" }
+            if ($body.Contains($bogusQuery) -or $t.Contains($bogusQuery) -or $k.Contains($bogusQuery) -or $d.Contains($bogusQuery)) {
                 $bogusMatches++
             }
         }
