@@ -144,4 +144,6 @@ next_recipes:
     description: Draw, write and mark up on top of a picture.
 ---
 
+<sub class="doc-stamp">26.09.24 06:41</sub>
+
 Turn, mirror and crop a photo, make a small copy to send, brighten a dark picture or give it a black-and-white look, and change the speed of an animated GIF - right in the [image viewer](term:image-viewer), without a separate editor.

@@ -3,6 +3,8 @@ layout: default
 title: "📖 হাউ-টু নির্দেশিকা"
 permalink: /docs/HOW_TO-bn.html
 ---
+<sub class="doc-stamp">26.09.26 10:42</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # 📖 হাউ-টু নির্দেশিকা

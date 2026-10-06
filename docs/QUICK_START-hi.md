@@ -3,6 +3,8 @@ layout: default
 title: "🚀 त्वरित आरंभ मार्गदर्शिका - FastMediaSorter v2"
 permalink: /docs/QUICK_START-hi.html
 ---
+<sub class="doc-stamp">26.09.24 20:10</sub>
+
 <div lang="hi" dir="ltr" markdown="1">
 
 # 🚀 त्वरित आरंभ मार्गदर्शिका - FastMediaSorter v2

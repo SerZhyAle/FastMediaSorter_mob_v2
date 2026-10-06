@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.30 08:56</sub>
+
 # Pointer - `INPUT-PARITY`
 
 | | |

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.09 00:24</sub>
+
 # scripts/agent_latency
 
 Repository side of the agent latency measurement contract (S2760). The operator protocol, the four stages and the rules about what does not count as evidence live in `docs/AGENT_LATENCY_PLAYBOOK.md`; this file documents the files here and their result shapes.

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.08 03:05</sub>
+
 # AVD Setup for Maestro Tests
 
 # Настройка виртуального устройства для тестов Maestro

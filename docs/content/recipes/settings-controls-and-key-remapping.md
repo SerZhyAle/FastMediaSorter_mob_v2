@@ -104,4 +104,6 @@ next_recipes:
     description: Keyboard, D-pad and remote-control navigation across the app.
 ---
 
+<sub class="doc-stamp">26.09.24 09:01</sub>
+
 Remap any command to a [D-pad](term:d-pad), gamepad, keyboard or mouse button, move fast through large grids, and always see where focus is with the travelling focus frame - plus readable VR gesture names and a Permissions screen, empty lists and custom views that all take D-pad focus the way the rest of the app does.

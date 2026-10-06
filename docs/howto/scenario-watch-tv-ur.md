@@ -3,6 +3,8 @@ layout: default
 title: "اپنی اسمارٹ واچ پر ٹی وی چینلز دیکھیں - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-ur.html
 ---
+<sub class="doc-stamp">26.09.25 02:28</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # <img src="../icons/doc/ic_stream.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> اپنی اسمارٹ واچ پر ٹی وی چینلز دیکھیں

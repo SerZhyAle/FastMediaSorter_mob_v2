@@ -104,4 +104,6 @@ next_recipes:
     description: Play and control music from your Wear OS watch.
 ---
 
+<sub class="doc-stamp">26.09.24 07:29</sub>
+
 Keep a video going in a small floating window, choose what happens to the sound when you leave the player, and decide how the phone player and your watch work together.

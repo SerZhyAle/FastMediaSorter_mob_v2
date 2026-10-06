@@ -130,4 +130,6 @@ next_recipes:
     description: Pick one of thirteen languages and switch between metric and US units.
 ---
 
+<sub class="doc-stamp">26.09.25 21:58</sub>
+
 [Extensions](term:extension) are optional parts of FastMediaSorter that you download only when you need them: text recognition, extra audio formats, background videos and stream catalogs. This page shows how to download, update and delete them.

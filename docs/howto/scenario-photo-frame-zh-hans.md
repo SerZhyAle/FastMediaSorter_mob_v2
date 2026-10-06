@@ -3,6 +3,8 @@ layout: default
 title: "平板上的数字相框 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-zh-hans.html
 ---
+<sub class="doc-stamp">26.09.25 02:19</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 🖼️ 平板上的数字相框

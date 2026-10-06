@@ -3,6 +3,8 @@ layout: default
 title: "📖 操作指南"
 permalink: /docs/HOW_TO-zh-hans.html
 ---
+<sub class="doc-stamp">26.09.26 10:42</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 📖 操作指南

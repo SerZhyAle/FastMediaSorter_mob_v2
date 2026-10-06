@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.03 04:27</sub>
+
 # Writing Maestro Tests - Developer Guide
 
 A practical guide for developers to create effective Maestro tests for FastMediaSorter v2.

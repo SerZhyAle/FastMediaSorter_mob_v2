@@ -3,6 +3,8 @@ layout: default
 title: "Privacy Policy for FastMediaSorter"
 permalink: /docs/PRIVACY_POLICY.html
 ---
+<sub class="doc-stamp">26.10.02 14:50</sub>
+
 # Privacy Policy for FastMediaSorter
 
 **Last updated: September 30, 2026**

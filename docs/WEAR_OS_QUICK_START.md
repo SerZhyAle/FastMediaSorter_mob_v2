@@ -3,6 +3,8 @@ layout: default
 title: "Wear OS Quick Start - Running in Android Studio"
 permalink: /docs/WEAR_OS_QUICK_START.html
 ---
+<sub class="doc-stamp">26.09.11 13:39</sub>
+
 # Wear OS Quick Start - Running in Android Studio
 
 ## TL;DR - Get Running in 5 Minutes

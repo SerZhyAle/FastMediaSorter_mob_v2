@@ -116,4 +116,6 @@ next_recipes:
     description: Find any setting fast, including Permissions & Access.
 ---
 
+<sub class="doc-stamp">26.09.24 09:11</sub>
+
 FastMediaSorter only asks for the permissions a feature actually needs, explains each one in the same plain words everywhere it is asked, and lets you grant them one at a time or all at once from **Settings, General, Permissions & Access** - with Android's own app settings always one tap away for changing your mind later.

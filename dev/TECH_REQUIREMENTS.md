@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.03 00:24</sub>
+
 # FastMediaSorter v2 - Technical Requirements & Stack Reference
 
 **Last Updated**: July 19, 2026

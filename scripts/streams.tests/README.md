@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.09 14:54</sub>
+
 # Stream publisher tests
 
 Run the deterministic publisher suite from the repository root with PowerShell 7 and the installed Pester 3 command:

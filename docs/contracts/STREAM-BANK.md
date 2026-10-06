@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.03 05:10</sub>
+
 # Pointer - `STREAM-BANK`
 
 | | |

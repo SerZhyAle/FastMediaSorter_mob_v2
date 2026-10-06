@@ -145,4 +145,6 @@ next_recipes:
     description: PIN-protected resources, encryption and keeping remote sources safe.
 ---
 
+<sub class="doc-stamp">26.09.25 04:13</sub>
+
 [Settings](term:settings) is where you shape how FastMediaSorter looks and behaves, and it has grown into a lot of ground to cover - which is why it is organized into collapsible groups, searchable by keyword, and built from one consistent row pattern instead of a different one per screen. This page walks through finding your way around it and searching it; the individual settings themselves are covered on the pages that follow.

@@ -3,6 +3,8 @@ layout: default
 title: "Connect to NAS / Windows Share (SMB) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-smb-setup.html
 ---
+<sub class="doc-stamp">26.09.24 06:25</sub>
+
 # 🖥️ Connect to Home NAS / Windows Share (SMB)
 
 > **Level:** Beginner &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (Lite has no network sources)

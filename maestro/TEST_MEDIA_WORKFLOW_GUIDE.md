@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.03.18 00:24</sub>
+
 # Test Media Workflow - Quick Guide
 
 ## Prerequisites

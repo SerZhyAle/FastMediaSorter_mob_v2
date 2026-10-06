@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.11 10:29</sub>
+
 # Maestro Suite Index
 
 Status: active S0551 capability-regression suite.

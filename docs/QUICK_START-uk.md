@@ -3,6 +3,8 @@ layout: default
 title: "🚀 Швидкий Старт - FastMediaSorter v2"
 permalink: /docs/QUICK_START_UK.html
 ---
+<sub class="doc-stamp">26.09.26 10:02</sub>
+
 # 🚀 Швидкий Старт - FastMediaSorter v2
 
 *Почніть за 5 хвилин! Простий посібник для новачків.*

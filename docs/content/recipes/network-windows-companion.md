@@ -108,4 +108,6 @@ next_recipes:
     description: The overview of every kind of network and cloud place this app can open.
 ---
 
+<sub class="doc-stamp">26.09.25 02:04</sub>
+
 Fast Media Sorter for Windows publishes PC folders so this app opens them with no server address to type - bring them in with a file or a QR scan, and the connection follows the phone off the home network and back.

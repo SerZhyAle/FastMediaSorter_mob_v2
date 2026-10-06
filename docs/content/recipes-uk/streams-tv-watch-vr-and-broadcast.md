@@ -132,4 +132,6 @@ next_recipes:
     description: Основи відтворення каналу на телефоні.
 ---
 
+<sub class="doc-stamp">26.09.25 22:16</sub>
+
 Виведіть прямий [канал](term:channel) на ТВ через [Chromecast](term:chromecast), на свій [годинник](term:watch) або у [VR-шолом](term:vr-headset), і додайте [Прямий ефір](term:live-broadcast) друга за QR-кодом, посиланням чи файлом.

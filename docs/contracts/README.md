@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.05 22:01</sub>
+
 # Contract pointers
 
 Every file in this folder is a **pointer**, never a copy. The contracts themselves live in the shared

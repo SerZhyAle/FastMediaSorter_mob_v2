@@ -4,6 +4,8 @@ title: "Руководство по установке VR через sideload"
 permalink: /docs/VR_SIDELOAD_RU.html
 ---
 
+<sub class="doc-stamp">26.09.10 21:58</sub>
+
 # Руководство по установке VR через sideload
 
 Как установить рабочую иммерсивную VR-сборку (`noLegal`) на Meta Quest без использования магазина.

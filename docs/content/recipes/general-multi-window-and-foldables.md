@@ -117,4 +117,6 @@ next_recipes:
     description: How the app shows itself around the phone.
 ---
 
+<sub class="doc-stamp">26.09.26 10:44</sub>
+
 FastMediaSorter fits the screen it gets: half of a phone in split-screen, a whole tablet, an unfolded foldable or a floating window. This page shows how to use each of them.

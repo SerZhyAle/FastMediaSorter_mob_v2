@@ -3,6 +3,8 @@ layout: default
 title: "Scheduled Camera Backup to PC - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup.html
 ---
+<sub class="doc-stamp">26.09.30 02:31</sub>
+
 # 📷 Scheduled Camera Backup to PC
 
 > **Level:** Beginner &bull; **Time:** ~15 minutes setup &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (needs network sources - Lite has none)

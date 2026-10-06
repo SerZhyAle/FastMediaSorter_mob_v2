@@ -172,4 +172,6 @@ next_recipes:
     description: The Chromecast session the watch's Show on TV hands off to.
 ---
 
+<sub class="doc-stamp">26.09.24 09:24</sub>
+
 A tour of the watch app's three players - image, video and audio - plus its text document reader and sending what's on the watch to a TV.

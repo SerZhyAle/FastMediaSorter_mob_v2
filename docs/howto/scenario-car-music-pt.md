@@ -3,6 +3,8 @@ layout: default
 title: "Player de Música no Carro (Rádio Android) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-pt.html
 ---
+<sub class="doc-stamp">26.09.25 02:14</sub>
+
 <div lang="pt" dir="ltr" markdown="1">
 
 # 🚗 Player de Música no Carro (Rádio Android)

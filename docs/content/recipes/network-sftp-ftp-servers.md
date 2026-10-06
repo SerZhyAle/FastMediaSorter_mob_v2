@@ -118,4 +118,6 @@ next_recipes:
     description: The PC-side companion that publishes folders as ready-made SFTP resources.
 ---
 
+<sub class="doc-stamp">26.09.25 02:04</sub>
+
 Add an FTP or SFTP server by address, sign in with a password or an SSH key, let the app confirm the server's identity once and re-check it on every visit, and hand a folder to someone else - or receive one from them - as a single shared file. Testing the same kind of resource from a paired [watch](term:watch) is covered too.

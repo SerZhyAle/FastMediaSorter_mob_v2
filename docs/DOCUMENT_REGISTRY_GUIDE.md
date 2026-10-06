@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.06 11:05</sub>
+
 # Document Registry Guide
 
 Every agent must use the document registry at task start, after a material scope change, at each engineering phase boundary, and before the final response. This is not limited to documentation tasks.

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.03 08:45</sub>
+
 # Google Play technical quality thresholds - February 2027 (S2100)
 
 Google Play begins enforcing quality thresholds on three metrics from **February 2027**. Exceeding a

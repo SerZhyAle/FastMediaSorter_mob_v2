@@ -3,6 +3,8 @@ layout: default
 title: "ایپ کو اپنی ہوم اسکرین کے طور پر استعمال کریں - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-ur.html
 ---
+<sub class="doc-stamp">26.09.25 02:22</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # 🖥️ ایپ کو اپنی ہوم اسکرین کے طور پر استعمال کریں

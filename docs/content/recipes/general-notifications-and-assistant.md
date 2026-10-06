@@ -111,4 +111,6 @@ next_recipes:
     description: The app next to another one, on a tablet or on an unfolded phone.
 ---
 
+<sub class="doc-stamp">26.09.26 10:44</sub>
+
 The startup splash, the notifications, the colors of content types and programs, private password screens and one language everywhere - the ways FastMediaSorter shows itself around the phone.

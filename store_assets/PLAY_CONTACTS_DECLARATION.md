@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.02 14:53</sub>
+
 # Play Console - Contacts Permission declaration (S4030)
 
 Source of truth for the **Contacts Permission** form in Play Console

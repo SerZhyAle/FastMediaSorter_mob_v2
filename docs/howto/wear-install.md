@@ -3,6 +3,8 @@ layout: default
 title: "Put FastMedia on Your Watch - FastMediaSorter v2"
 permalink: /docs/howto/wear-install.html
 ---
+<sub class="doc-stamp">26.09.30 13:01</sub>
+
 # <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Put FastMedia on Your Watch
 
 > **Level:** Beginner &bull; **Time:** ~5 minutes &bull; **Device:** Wear OS smartwatch paired with an Android phone

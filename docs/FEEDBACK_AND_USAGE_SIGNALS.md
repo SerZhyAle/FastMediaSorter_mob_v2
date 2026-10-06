@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.23 01:46</sub>
+
 # Feedback and usage signals - how this app hears from users and what it counts
 
 **Last reconciled:** 2026-09-22

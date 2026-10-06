@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.22 19:52</sub>
+
 # Refuted approaches
 
 This index admits an entry only when a source ticket supplies a measurement. It records

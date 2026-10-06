@@ -3,6 +3,8 @@ layout: default
 title: "Wear OS SMB Quick Reference"
 permalink: /docs/WEAR_OS_SMB_QUICK_REF.html
 ---
+<sub class="doc-stamp">26.10.01 17:26</sub>
+
 # Wear OS SMB Quick Reference
 
 > **Step-by-step guide:** See [Connect Smartwatch to NAS & PC Shares](howto/scenario-watch-network.md).

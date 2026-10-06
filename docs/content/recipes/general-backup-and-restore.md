@@ -125,4 +125,6 @@ next_recipes:
     description: Moving around the app without touching the screen.
 ---
 
+<sub class="doc-stamp">26.09.24 09:08</sub>
+
 Your settings, Favorites and resources can all go into a backup and come back again. This page is about the backup itself: where its buttons are, what it carries, what it leaves behind on purpose, and how an old backup restores.

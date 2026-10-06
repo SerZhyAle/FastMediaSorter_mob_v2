@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.03.18 00:24</sub>
+
 # Maestro Installation Guide - Windows
 
 ## ⚠️ Important Warning

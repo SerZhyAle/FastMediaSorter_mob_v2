@@ -3,6 +3,8 @@ layout: default
 title: "গাড়িতে মিউজিক প্লেয়ার (অ্যান্ড্রয়েড হেড ইউনিট) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-bn.html
 ---
+<sub class="doc-stamp">26.09.25 02:14</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # 🚗 গাড়িতে মিউজিক প্লেয়ার (অ্যান্ড্রয়েড হেড ইউনিট)

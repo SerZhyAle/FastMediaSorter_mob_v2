@@ -3,6 +3,8 @@ layout: default
 title: "Marco de Fotos Digital en Tablet - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-es.html
 ---
+<sub class="doc-stamp">26.09.25 02:16</sub>
+
 <div lang="es" dir="ltr" markdown="1">
 
 # 🖼️ Marco de Fotos Digital en Tablet

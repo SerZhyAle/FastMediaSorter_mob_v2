@@ -3,6 +3,8 @@ layout: default
 title: "Домашній кінотеатр та VR-стримінг - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema-uk.html
 ---
+<sub class="doc-stamp">26.09.24 18:41</sub>
+
 # 🍿 Домашній кінотеатр та VR-стримінг
 
 > **Рівень:** Початківець &bull; **Час:** ~15 хвилин &bull; **Версія:** Standard, Legacy, VR, noLegal (у Lite немає мережевих джерел, у Photos немає відео)

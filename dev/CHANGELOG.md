@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.06 16:16</sub>
+
 # Development Changelog
 
 Auto-generated log of all code modifications.
@@ -35975,3 +35977,5 @@ Format: | datetime | file | target | description |
 | 2026-10-04 17:17:26 | `PLAN/S4095_bugfix-play-publisher-reads-dev-dir-outputs.md` | `spec-dev` | Trivial bugfix closed: Play publisher reads worktree metadata and changelogs; status -> Verified [branch: DEBUG-v044] |
 | 2026-10-04 17:18:27 | `docs/DEV_OPS.md` | `S4095` | DEV_OPS drops the AGP-9-false beside-every-artifact premise for output-metadata.json (S4095) [branch: DEBUG-v044] |
 | 2026-10-05 22:04:38 | `docs/contracts/ANYWHERE-ACCESS.md` | `docs/contracts` | S4094: ANYWHERE-ACCESS contract adopted - pointer file, index and summary row added (contract draft 0.10 lives in the shared catalog); ICON-RENDER pointer version drift 0.15->0.16 fixed per registry [set of 4: docs/contracts/README.md, docs/contracts/ICON-RENDER.md, docs/CROSS_PROJECT_CONTRACTS.md] [branch: DEBUG-v044] |
+| 2026-10-06 15:35:25 | `scripts/docs/lib/doc-stamp.ps1` | `doc-last-edited-stamp` | Last-edited stamp (yy.MM.dd HH:mm) on every Markdown/HTML doc: stamp-doc-dates.ps1 + lib, portal pages stamped from recipe sources, closure step doc-stamp, DEV_OPS section [set of 8: scripts/docs/stamp-doc-dates.ps1, scripts/docs/stamp-doc-dates.tests/Run-Tests.ps1, scripts/docs/generate-docs-pages.ps1, scripts/post-change.ps1, scripts/quality/gate-recovery-hints.psd1, docs/DEV_OPS.md, +1 more] [branch: DEBUG-v045] |
+| 2026-10-06 16:16:16 | `docs/FAQ.md` | `faq-settings-paths` | FAQ settings paths: Primary startup window option and Media > Other resolve against the settings manifest [set of 3: docs/FAQ-ru.md, docs/FAQ-uk.md] [branch: DEBUG-v045] |

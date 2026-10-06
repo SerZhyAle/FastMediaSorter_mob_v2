@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.02 23:35</sub>
+
 # Pointer - `PAGE-STYLE`
 
 | | |

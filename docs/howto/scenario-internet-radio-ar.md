@@ -3,6 +3,8 @@ layout: default
 title: "راديو الإنترنت والبث - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-ar.html
 ---
+<sub class="doc-stamp">26.09.25 02:20</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 # 📻 راديو الإنترنت والبث

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.04 16:02</sub>
+
 # Play publishing state
 
 The single record of what Google Play is currently publishing for `com.sza.fastmediasorter`: what the

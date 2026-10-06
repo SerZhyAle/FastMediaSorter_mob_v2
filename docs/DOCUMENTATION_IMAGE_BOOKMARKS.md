@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.24 02:35</sub>
+
 # Documentation Image Bookmarks Specification & Authoring Guide
 
 This specification defines the canonical image bookmark format for the FastMediaSorter v2 documentation corpus (S2977).

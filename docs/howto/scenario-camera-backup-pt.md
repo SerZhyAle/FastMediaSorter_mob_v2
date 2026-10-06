@@ -3,6 +3,8 @@ layout: default
 title: "Backup Agendado da Câmera para o PC - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-pt.html
 ---
+<sub class="doc-stamp">26.09.25 02:13</sub>
+
 <div lang="pt" dir="ltr" markdown="1">
 
 # 📷 Backup Agendado da Câmera para o PC

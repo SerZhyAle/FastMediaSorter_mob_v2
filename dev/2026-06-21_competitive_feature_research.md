@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.06.21 23:27</sub>
+
 # Competitive Feature Research for FastMediaSorter v2
 
 Last updated: 2026-06-21

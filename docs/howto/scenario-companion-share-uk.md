@@ -3,6 +3,8 @@ layout: default
 title: "Відкрийте папки ПК, відсканувавши один код - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-uk.html
 ---
+<sub class="doc-stamp">26.09.24 06:25</sub>
+
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Відкрийте папки ПК, відсканувавши один код
 
 > **Рівень:** Початківець &bull; **Флейвори:** Standard, Photos, Legacy, VR, noLegal (у Lite немає мережевих джерел; для скану потрібна камера, спосіб із файлом працює всюди)

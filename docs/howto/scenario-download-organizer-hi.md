@@ -3,6 +3,8 @@ layout: default
 title: "डाउनलोड ऑर्गनाइज़र (क्विक सॉर्ट) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-hi.html
 ---
+<sub class="doc-stamp">26.09.25 02:16</sub>
+
 <div lang="hi" dir="ltr" markdown="1">
 
 # 🧹 डाउनलोड ऑर्गनाइज़र - एक टैप से फ़ाइलें छांटें

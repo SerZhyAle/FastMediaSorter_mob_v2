@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.02 12:24</sub>
+
 # Pointer - `RULE-DELIVERY`
 
 | | |

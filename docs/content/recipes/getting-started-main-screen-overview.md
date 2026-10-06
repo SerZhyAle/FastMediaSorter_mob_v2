@@ -130,4 +130,6 @@ next_recipes:
     description: The full detail behind the Filter and Sort Resources dialog.
 ---
 
+<sub class="doc-stamp">26.09.25 21:58</sub>
+
 The [main screen](term:main-screen) is your home base: a [resource list](term:resource-list) with All Files pinned first, a command bar that never runs out of room, tabs and optional panels that fit any screen width, and a filter and sort dialog that remembers your choice - with a corner pill to tell you when something is recording.

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.14 11:54</sub>
+
 # Agent latency playbook
 
 Optional method for publishing a comparative claim about agent speed. Ticket: S2760.

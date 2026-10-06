@@ -3,6 +3,8 @@ layout: default
 title: "🚀 Quick Start Guide - FastMediaSorter v2"
 permalink: /docs/QUICK_START-de.html
 ---
+<sub class="doc-stamp">26.09.24 20:12</sub>
+
 <div lang="de" dir="ltr" markdown="1">
 
 {% include lang-switcher.html doc="QUICK_START" dir="/docs/" current="de" %}

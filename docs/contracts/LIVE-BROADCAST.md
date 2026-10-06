@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.24 16:31</sub>
+
 # Pointer - `LIVE-BROADCAST`
 
 | | |

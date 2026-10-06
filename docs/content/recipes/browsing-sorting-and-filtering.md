@@ -140,4 +140,6 @@ next_recipes:
     description: How FastMediaSorter keeps thumbnails and large folders fast to browse.
 ---
 
+<sub class="doc-stamp">26.09.24 07:26</sub>
+
 Put a [resource](term:resource) in the order that suits it, narrow it down with a filter that stays with that resource, or jump straight to one file with live search - all from the same toolbar in the [file browser](term:file-browser).

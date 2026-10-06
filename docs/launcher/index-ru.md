@@ -3,6 +3,8 @@ layout: default
 title: "FastMedia Launcher - Рабочий стол для планшетов и автомагнитол"
 permalink: /docs/launcher/index-ru.html
 ---
+<sub class="doc-stamp">26.09.24 04:02</sub>
+
 # <img src="../icons/doc/ic_launcher_mode.png" alt="" width="24" height="24" style="vertical-align:text-bottom"> Веб-портал FastMedia Launcher
 
 [📱 Главный сайт приложения](../README-ru.md) | [📖 Все руководства](../howto/index-ru.md) | [⌚ Портал Wear OS](../wear/index-ru.md) | [English](index.md) | [Українська](index-uk.md)

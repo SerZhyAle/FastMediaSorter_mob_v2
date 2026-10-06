@@ -115,4 +115,6 @@ next_recipes:
     description: Switch on the lights, the mirror, the SOS signal and the other programs.
 ---
 
+<sub class="doc-stamp">26.09.24 08:45</sub>
+
 FastMediaSorter keeps a private tally of what you do with it: files sorted and deleted, photos taken, videos watched, documents read. This page shows where to switch the tally on or off, how to read the Statistics screen, and how to save the summary or send it to the author yourself.

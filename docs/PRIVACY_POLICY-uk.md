@@ -3,6 +3,8 @@ layout: default
 title: "Політика конфіденційності FastMediaSorter"
 permalink: /docs/PRIVACY_POLICY.uk.html
 ---
+<sub class="doc-stamp">26.10.02 14:50</sub>
+
 # Політика конфіденційності FastMediaSorter
 
 **Останнє оновлення: 30 вересня 2026**

@@ -3,6 +3,8 @@ layout: default
 title: "📖 Руководства"
 permalink: /docs/HOW_TO_RU.html
 ---
+<sub class="doc-stamp">26.09.26 10:42</sub>
+
 # 📖 Руководства
 
 Пошаговые инструкции для общих задач.

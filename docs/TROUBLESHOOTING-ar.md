@@ -3,6 +3,8 @@ layout: default
 title: "🔧 دليل استكشاف الأخطاء وإصلاحها"
 permalink: /docs/TROUBLESHOOTING-ar.html
 ---
+<sub class="doc-stamp">26.09.24 20:24</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 # 🔧 دليل استكشاف الأخطاء وإصلاحها

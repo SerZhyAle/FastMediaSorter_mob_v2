@@ -140,4 +140,6 @@ next_recipes:
     description: What happens the first time you open the app, step by step.
 ---
 
+<sub class="doc-stamp">26.09.30 10:24</sub>
+
 FastMediaSorter comes in seven [editions](term:edition). They look and work the same, but each one is made for a certain kind of device or store. This page shows what each edition is for, which features it has, where to get it and how to move between them.

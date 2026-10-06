@@ -3,6 +3,8 @@ layout: default
 title: "Module Selection Guide"
 permalink: /docs/MODULE_SELECTION.html
 ---
+<sub class="doc-stamp">26.09.11 13:39</sub>
+
 # Module Selection Guide
 
 ## Overview

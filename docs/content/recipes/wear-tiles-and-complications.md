@@ -124,4 +124,6 @@ next_recipes:
     description: Get the network resources a Resource tile can point at.
 ---
 
+<sub class="doc-stamp">26.09.30 11:27</sub>
+
 Add the FastMediaSorter [tiles](term:tile) to the watch's tile carousel, point a Resource or Stream tile at the place you want, and put the Last Resource, Favorites and Now Playing [complications](term:complication) on your watch face.

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.07.31 18:22</sub>
+
 # Agent process audit - cost, speed, quality
 
 **Date:** 2026-07-31

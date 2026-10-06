@@ -134,4 +134,6 @@ next_recipes:
     description: What the in-app camera can do once a gesture opens it.
 ---
 
+<sub class="doc-stamp">26.09.24 15:50</sub>
+
 Set up to twelve swipe gestures across four screen-edge bands for screenshots, the camera, recording and launching apps, and open the quick-access panel they can lead to - by gesture in the Standard and noLegal editions, or by its own Quick Settings tile in every edition.

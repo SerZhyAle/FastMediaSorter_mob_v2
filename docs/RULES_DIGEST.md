@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.03 04:41</sub>
+
 # Rules Digest (Свод правил)
 
 ## Purpose, portability, and status

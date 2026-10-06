@@ -3,6 +3,8 @@ layout: default
 title: "Backup fotografico pianificato sul PC - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-it.html
 ---
+<sub class="doc-stamp">26.09.25 02:13</sub>
+
 <div lang="it" dir="ltr" markdown="1">
 
 # 📷 Backup fotografico pianificato sul PC

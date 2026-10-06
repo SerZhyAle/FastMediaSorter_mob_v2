@@ -132,4 +132,6 @@ next_recipes:
     description: The basics of playing a channel on the phone.
 ---
 
+<sub class="doc-stamp">26.09.24 07:58</sub>
+
 Take a live [channel](term:channel) to the TV with [Chromecast](term:chromecast), to your [watch](term:watch) or into a [VR headset](term:vr-headset), and add a friend's [Live Broadcast](term:live-broadcast) to your Streams with a QR code, a link or a file.

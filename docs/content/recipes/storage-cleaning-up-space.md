@@ -124,4 +124,6 @@ next_recipes:
     description: See how many files you sorted and how much space your deletions freed.
 ---
 
+<sub class="doc-stamp">26.09.24 08:40</sub>
+
 Find identical files across your folders and delete the extra copies, remove every file above or below a chosen size in one go, and pack selected files into a ZIP archive.

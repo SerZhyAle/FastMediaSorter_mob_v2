@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.01 04:13</sub>
+
 # Meta Horizon Store listing source
 
 This tree is the **Meta Horizon Store** listing source for the `vr` flavor (S0555), the sibling of

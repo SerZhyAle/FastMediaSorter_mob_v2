@@ -3,6 +3,8 @@ layout: default
 title: "FastMediaSorter v2"
 permalink: /docs/README-de.html
 ---
+<sub class="doc-stamp">26.09.30 11:23</sub>
+
 <div lang="de" dir="ltr" markdown="1">
 
 {% include lang-switcher.html doc="README" dir="/docs/" current="de" %}

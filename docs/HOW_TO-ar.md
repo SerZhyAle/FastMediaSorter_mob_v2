@@ -3,6 +3,8 @@ layout: default
 title: "📖 أدلة كيفية الاستخدام"
 permalink: /docs/HOW_TO-ar.html
 ---
+<sub class="doc-stamp">26.09.26 10:42</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 # 📖 أدلة كيفية الاستخدام

@@ -37,4 +37,6 @@ next_recipes:
     description: Export configuration and bookmarks to JSON archive.
 ---
 
+<sub class="doc-stamp">26.09.24 09:12</sub>
+
 Fine-tune FastMediaSorter to match your exact media sorting style. Learn how to configure default sorting orders, grid thumbnail densities, and background audio behaviors.

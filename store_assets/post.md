@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.08.07 18:57</sub>
+
 https://xdaforums.com/t/app-8-0-fastmediasorter-v2-multi-protocol-media-manager-smb-sftp-ftp-cloud.4785566/
 
 [APP][8.0+] FastMediaSorter v2 - Multi-Protocol Media Manager (SMB/SFTP/FTP/Cloud)

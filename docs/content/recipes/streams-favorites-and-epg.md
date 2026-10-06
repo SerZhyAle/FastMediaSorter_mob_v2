@@ -119,4 +119,6 @@ next_recipes:
     description: What happens when you tap a channel, on the streams panel and in the full player.
 ---
 
+<sub class="doc-stamp">26.09.25 04:13</sub>
+
 Keep your everyday [channels](term:channel) within reach two ways: pin them to the top of [Streams](term:streams-screen) in the order you choose, and star the ones you want in the shared [Favorites](term:favorites) list. This page covers pinning, reordering, the pinned-only filter, and adding a channel to Favorites.

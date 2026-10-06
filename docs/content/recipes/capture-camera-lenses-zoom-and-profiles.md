@@ -126,4 +126,6 @@ next_recipes:
     description: Capture the screen itself and send it straight to editing, translation or another app.
 ---
 
+<sub class="doc-stamp">26.09.24 08:27</sub>
+
 Pick the lens, zoom range and shooting profile that fit the shot, open the full Camera settings dialog when you need manual control, and use the System information report to see exactly what your phone's cameras can do.

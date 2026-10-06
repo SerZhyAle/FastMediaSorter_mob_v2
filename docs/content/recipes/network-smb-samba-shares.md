@@ -115,4 +115,6 @@ next_recipes:
     description: The overview - what kinds of places you can add, and how the app keeps them quick.
 ---
 
+<sub class="doc-stamp">26.09.25 02:04</sub>
+
 Share a folder on Windows, find it from the app with a network scan, sign in and test the connection before committing, and read what a "cannot connect" message actually means - the full walk-through behind [adding a network folder](page:storage.network-and-cloud-sources) as a [resource](term:resource).

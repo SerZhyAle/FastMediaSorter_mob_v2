@@ -161,4 +161,6 @@ next_recipes:
     description: Exporting and restoring settings, resources and favorites, and keeping devices in step.
 ---
 
+<sub class="doc-stamp">26.09.25 04:13</sub>
+
 Beyond how [Settings](term:settings) looks lies how the app actually behaves day to day - whether the screen stays on, whether it plays nicely with the battery, whether it answers when another app hands it a file, and how quickly your [programs](term:program) and resources are within reach. This page covers that everyday behavior, from screen and power to the [launcher](term:launcher) and the programs panel.

@@ -3,6 +3,8 @@ layout: default
 title: "🔧 Troubleshooting Guide"
 permalink: /docs/TROUBLESHOOTING-de.html
 ---
+<sub class="doc-stamp">26.09.24 20:13</sub>
+
 <div lang="de" dir="ltr" markdown="1">
 
 {% include lang-switcher.html doc="TROUBLESHOOTING" dir="/docs/" current="de" %}

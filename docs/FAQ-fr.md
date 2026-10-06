@@ -5,6 +5,8 @@ permalink: /docs/FAQ-fr.html
 lang: fr
 ---
 
+<sub class="doc-stamp">26.10.06 14:51</sub>
+
 <div lang="fr" markdown="1">
 
 <div lang="fr" dir="ltr" markdown="1">

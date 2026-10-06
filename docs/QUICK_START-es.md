@@ -3,6 +3,8 @@ layout: default
 title: "🚀 Guía de inicio rápido - FastMediaSorter v2"
 permalink: /docs/QUICK_START-es.html
 ---
+<sub class="doc-stamp">26.09.24 20:13</sub>
+
 <div lang="es" dir="ltr" markdown="1">
 
 # 🚀 Guía de inicio rápido - FastMediaSorter v2

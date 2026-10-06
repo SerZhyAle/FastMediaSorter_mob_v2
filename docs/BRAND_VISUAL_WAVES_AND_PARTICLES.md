@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.23 21:40</sub>
+
 # Brand visual: waves and particles - description and reproduction algorithm
 
 > Status: **Reference** - a descriptive contract read before touching either implementation or before

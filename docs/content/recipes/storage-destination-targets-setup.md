@@ -120,4 +120,6 @@ next_recipes:
     description: Let the app fill your destinations by itself.
 ---
 
+<sub class="doc-stamp">26.09.24 07:56</sub>
+
 Turn your folders into numbered, colored destinations, then copy or move the photo or video you are looking at into one of them with a single tap or a number key.

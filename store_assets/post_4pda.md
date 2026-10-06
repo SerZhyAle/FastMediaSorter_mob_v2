@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.07.27 19:40</sub>
+
 https://4pda.to/forum/index.php?showtopic=1120883
 
 PLATFORM: 4PDA

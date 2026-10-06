@@ -3,6 +3,8 @@ layout: default
 title: "Sauvegarde photo programmée vers le PC - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-fr.html
 ---
+<sub class="doc-stamp">26.09.25 02:12</sub>
+
 <div lang="fr" dir="ltr" markdown="1">
 
 # 📷 Sauvegarde photo programmée vers le PC

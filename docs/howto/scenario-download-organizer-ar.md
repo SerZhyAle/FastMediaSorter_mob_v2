@@ -3,6 +3,8 @@ layout: default
 title: "منظم التنزيلات (الفرز السريع) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-ar.html
 ---
+<sub class="doc-stamp">26.09.25 02:19</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 # 🧹 منظم التنزيلات - فرز الملفات بلمسة واحدة

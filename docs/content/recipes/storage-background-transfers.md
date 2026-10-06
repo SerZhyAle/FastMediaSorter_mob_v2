@@ -103,4 +103,6 @@ next_recipes:
     description: The other direction - send files from the app to others.
 ---
 
+<sub class="doc-stamp">26.09.24 07:57</sub>
+
 What happens while a big copy or move runs in the background - the notification, the thin progress line at the bottom of every screen, files shared into the app, unreachable servers, expired cloud sign-ins, and new files saved on the phone when their destination is out of reach.

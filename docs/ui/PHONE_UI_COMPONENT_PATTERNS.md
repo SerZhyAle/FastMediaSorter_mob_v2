@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.02 18:41</sub>
+
 # Phone UI Component Patterns and Unification Catalogue
 
 Scope: the `app_v2` module, every source set that ships in a flavor. This is a standard, not a report: each rule below is what a future change must follow, names the concrete style, class or attribute that implements it, and cites the measured divergence it replaces. Every count came from the working tree during S3231 Phase 01 and Phase 02 and is reproducible; the two inventories are `PLAN/S3231_research-phone-ui-component-patterns/research/01__dialogs-and-bottom-sheets-inventory.md` and `PLAN/S3231_research-phone-ui-component-patterns/research/02__lists-cards-and-controls-inventory.md`.

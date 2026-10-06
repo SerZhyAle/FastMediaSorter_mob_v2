@@ -3,6 +3,8 @@ layout: default
 title: "🚀 Quick Start Guide - FastMediaSorter v2"
 permalink: /docs/QUICK_START-zh-hans.html
 ---
+<sub class="doc-stamp">26.09.24 20:15</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 🚀 快速上手指南 - FastMediaSorter v2

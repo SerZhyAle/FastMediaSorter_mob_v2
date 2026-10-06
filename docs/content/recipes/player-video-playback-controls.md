@@ -162,4 +162,6 @@ next_recipes:
     description: Play the video on your TV.
 ---
 
+<sub class="doc-stamp">26.10.04 14:02</sub>
+
 Play videos full screen or with the command panel, move between them with taps and swipes, zoom in, resume where you stopped, save still frames as pictures and sort your videos while you watch.

@@ -3,6 +3,8 @@ layout: default
 title: "Radio internet e stream - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-it.html
 ---
+<sub class="doc-stamp">26.09.25 02:16</sub>
+
 <div lang="it" dir="ltr" markdown="1">
 
 # 📻 Radio internet e stream

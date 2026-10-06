@@ -120,4 +120,6 @@ next_recipes:
     description: Want many photos instead of one? Let them change by themselves.
 ---
 
+<sub class="doc-stamp">26.09.25 22:33</sub>
+
 The launcher desktop can draw six kinds of wallpaper, from the moving waves and particles of the FastMediaSorter brand to your own photo or a live camera view. This page shows how to choose one and tune it.

@@ -110,4 +110,6 @@ next_recipes:
     description: The starter layout the Start menu and All apps sit alongside.
 ---
 
+<sub class="doc-stamp">26.09.25 04:13</sub>
+
 Start is the short list, [All apps](term:all-apps) is the long one. This page covers sizing the Start panel, opening the full app list, searching and sorting it, an app's own shortcuts from a long press, and the four swipes that move through the list without a single tap.

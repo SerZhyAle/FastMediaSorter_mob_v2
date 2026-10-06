@@ -3,6 +3,8 @@ layout: default
 title: "ऐप को अपनी होम स्क्रीन के रूप में इस्तेमाल करें - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-hi.html
 ---
+<sub class="doc-stamp">26.09.25 02:18</sub>
+
 <div lang="hi" dir="ltr" markdown="1">
 
 # 🖥️ ऐप को अपनी होम स्क्रीन के रूप में इस्तेमाल करें

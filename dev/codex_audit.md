@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.26 10:02</sub>
+
 # Codex Audit: Research and Development Speed
 
 Generated: 2026-05-20

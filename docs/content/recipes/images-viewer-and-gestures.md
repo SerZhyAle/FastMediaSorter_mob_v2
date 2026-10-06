@@ -133,4 +133,6 @@ next_recipes:
     description: Find the photo you want faster with thumbnails, sorting and filters.
 ---
 
+<sub class="doc-stamp">26.09.24 06:41</sub>
+
 The [image viewer](term:image-viewer) shows one picture at a time on the whole screen. Swipe to move between photos, pinch to zoom, turn a sideways photo for a moment and pause animated pictures - all without changing your files.

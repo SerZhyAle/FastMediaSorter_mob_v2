@@ -121,4 +121,6 @@ next_recipes:
     description: Move the day's photos and notes to their place every night.
 ---
 
+<sub class="doc-stamp">26.09.25 21:58</sub>
+
 Take a photo or a video, or record a voice note, from inside a folder so it is saved right there - on the phone, on a network folder or in the cloud - and use the Quick Recorder widget and the clipboard for even faster notes.

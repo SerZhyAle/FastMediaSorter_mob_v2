@@ -86,4 +86,6 @@ next_recipes:
     description: Sort renamed photos into their folders with one tap.
 ---
 
+<sub class="doc-stamp">26.09.24 07:57</sub>
+
 Rename one file, a folder or several files at once in the file browser or in the player - on the phone, on network folders and in the cloud - and take a rename back with Undo.

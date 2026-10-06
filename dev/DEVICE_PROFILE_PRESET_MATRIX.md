@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.24 03:03</sub>
+
 # Device Profile Preset Matrix
 
 Developer reference for the S0327 device-profile feature: why it exists, where the matrix lives,

@@ -5,6 +5,8 @@ permalink: /docs/V2_architecture_overview.html
 lang: en
 ---
 
+<sub class="doc-stamp">26.10.06 14:18</sub>
+
 # Architecture Overview
 
 [Technical specification](V2_Specification.html) | [Technology stack](TECH_STACK.html) | [Requirements](TECHNICAL_REQUIREMENTS.html)

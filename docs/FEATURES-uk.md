@@ -3,6 +3,8 @@ layout: default
 title: "FastMediaSorter v2 - Повний список можливостей"
 permalink: /docs/FEATURES_UK.html
 ---
+<sub class="doc-stamp">26.09.30 17:26</sub>
+
 # FastMediaSorter v2 - Повний список можливостей
 
 *Останнє оновлення: 2026-09-30*

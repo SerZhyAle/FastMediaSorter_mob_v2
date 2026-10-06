@@ -102,4 +102,6 @@ next_recipes:
     description: Watch 3D and 360 video in a headset.
 ---
 
+<sub class="doc-stamp">26.10.04 14:02</sub>
+
 Pick the soundtrack and subtitles of a film, make them readable, balance the sound between your ears, change speed and colors, and watch 3D films on an ordinary screen.

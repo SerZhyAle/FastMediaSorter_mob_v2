@@ -3,6 +3,8 @@ layout: default
 title: "🔧 Troubleshooting Guide"
 permalink: /docs/TROUBLESHOOTING.html
 ---
+<sub class="doc-stamp">26.09.24 18:35</sub>
+
 # 🔧 Troubleshooting Guide
 
 Current troubleshooting guide for FastMediaSorter v2. Use the canonical flavor matrix in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) when the issue depends on the selected build path (Standard, Lite, Photos, Legacy, or XR / noLegal).

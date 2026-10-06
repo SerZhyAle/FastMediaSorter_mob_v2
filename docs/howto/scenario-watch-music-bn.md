@@ -3,6 +3,8 @@ layout: default
 title: "আপনার ওয়াচে মিউজিক শুনুন - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music-bn.html
 ---
+<sub class="doc-stamp">26.09.25 02:21</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_audio.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> আপনার ওয়াচে মিউজিক শুনুন

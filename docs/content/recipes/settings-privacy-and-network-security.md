@@ -124,4 +124,6 @@ next_recipes:
     description: Remapping keys, D-pad and gamepad navigation, and the travelling focus frame.
 ---
 
+<sub class="doc-stamp">26.09.24 09:01</sub>
+
 Review and clear saved sign-ins and unused network credentials, keep password screens out of the Recents preview, read a masked diagnostic report before you ask for help, and send a crash report - automatically after a restart, by hand from any error dialog, or one that arrived from your [watch](term:watch). This page covers all of it, from [Settings](term:settings), **General**.

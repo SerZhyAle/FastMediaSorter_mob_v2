@@ -134,4 +134,6 @@ next_recipes:
     description: What a bigger copy, move or download looks like while it runs.
 ---
 
+<sub class="doc-stamp">26.09.30 08:55</sub>
+
 One Send to.. menu reaches every receiver the app knows - messengers, Google Keep, Lens, Print, your paired watch and your own [resources](term:resource) - with a switch for each one, honest progress for network and cloud files, a shortcut to download by link, and a QR code to hand an SFTP server to another phone.

@@ -138,4 +138,6 @@ next_recipes:
     description: Find duplicates and big files, pack files into ZIP archives.
 ---
 
+<sub class="doc-stamp">26.09.24 07:56</sub>
+
 Select files and whole folders in the file browser, copy or move them between the phone, network folders and the cloud, delete them with or without the trash, and take the last step back with Undo.

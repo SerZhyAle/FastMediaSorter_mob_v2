@@ -99,4 +99,6 @@ next_recipes:
     description: Install the Translation Module and OCR language models, or remove them again.
 ---
 
+<sub class="doc-stamp">26.09.24 08:20</sub>
+
 Recognized text, a PDF page, an EPUB chapter or a text file reads in your language with one tap, entirely on the phone - as a card of its own, or painted right over the original words like Google Lens.

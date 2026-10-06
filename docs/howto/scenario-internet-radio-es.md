@@ -3,6 +3,8 @@ layout: default
 title: "Radio por Internet y Transmisiones - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-es.html
 ---
+<sub class="doc-stamp">26.09.25 02:14</sub>
+
 <div lang="es" dir="ltr" markdown="1">
 
 # 📻 Radio por Internet y Transmisiones

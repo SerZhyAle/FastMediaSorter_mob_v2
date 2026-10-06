@@ -3,6 +3,8 @@ layout: default
 title: "اپنی واچ پر میوزک سنیں - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music-ur.html
 ---
+<sub class="doc-stamp">26.09.25 02:26</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # <img src="../icons/doc/ic_audio.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> اپنی واچ پر میوزک سنیں

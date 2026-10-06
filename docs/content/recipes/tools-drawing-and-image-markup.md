@@ -131,4 +131,6 @@ next_recipes:
     description: Pull the words out of a picture instead of drawing on it.
 ---
 
+<sub class="doc-stamp">26.09.30 08:55</sub>
+
 Open the drawing editor on any picture or a blank page, draw, write, erase, crop without leaving the session, save in place or as a new file, and send the result straight into the [Send to..](page:tools.fast-sharing-and-export) menu.

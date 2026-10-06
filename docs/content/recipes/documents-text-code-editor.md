@@ -144,4 +144,6 @@ next_recipes:
     description: The calculator and the other small tools that come with the app.
 ---
 
+<sub class="doc-stamp">26.09.25 04:13</sub>
+
 Read text, Markdown and log files comfortably, fix them on the spot, find and replace words, create new text notes in any folder, and pass the text on to Google Keep, the calculator, a speech voice or a translator - without a separate editor app.

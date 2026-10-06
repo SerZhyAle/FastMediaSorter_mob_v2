@@ -3,6 +3,8 @@ layout: default
 title: "एक कोड स्कैन करके अपने पीसी के फ़ोल्डर खोलें - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-hi.html
 ---
+<sub class="doc-stamp">26.09.25 02:15</sub>
+
 <div lang="hi" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> एक कोड स्कैन करके अपने पीसी के फ़ोल्डर खोलें

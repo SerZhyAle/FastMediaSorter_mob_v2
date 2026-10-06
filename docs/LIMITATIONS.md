@@ -4,6 +4,8 @@ title: "⚠️ Program Limitations"
 permalink: /docs/LIMITATIONS.html
 ---
 
+<sub class="doc-stamp">26.09.24 02:48</sub>
+
 # ⚠️ Program Limitations
 
 This document outlines the current technical constraints, functional limitations, and performance considerations of FastMediaSorter v2.

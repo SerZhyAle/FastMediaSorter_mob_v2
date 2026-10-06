@@ -127,4 +127,6 @@ next_recipes:
     description: Play and control music from your Wear OS watch.
 ---
 
+<sub class="doc-stamp">26.09.24 06:45</sub>
+
 Play music straight from the folders where it lives - on the phone, a memory card or another computer. The [audio player](term:audio-player) finds missing covers, shows lyrics, casts to a Chromecast and lets you sort tracks while you listen.

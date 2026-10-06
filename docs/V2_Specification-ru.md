@@ -5,6 +5,8 @@ permalink: /docs/V2_Specification_RU.html
 lang: ru
 ---
 
+<sub class="doc-stamp">26.10.06 14:18</sub>
+
 <div lang="ru" markdown="1">
 
 # Техническая спецификация

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.30 11:46</sub>
+
 # Wear OS Release Readiness Gate
 
 Canonical readiness contract for a **Wear OS** release of the `wear` module - the signed `:wear:bundleStandardRelease` AAB that goes to the watch form-factor track, and the `:wear:assembleStandardRelease` APK that goes anywhere else. It is an engineer/operator gate, not a marketing surface.

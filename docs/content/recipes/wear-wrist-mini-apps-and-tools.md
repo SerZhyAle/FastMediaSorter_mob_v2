@@ -238,4 +238,6 @@ next_recipes:
     description: The Wear Companion window these Send to phone and Clipboard actions land in.
 ---
 
+<sub class="doc-stamp">26.09.26 00:08</sub>
+
 The watch's [programs](term:program) turn the wrist into a small toolbox - a [calculator](term:calculator), a [Network Monitor](term:network-monitor), a mini-game, a stopwatch, a water flashlight, a voice recorder, System information, Tourist, Phone camera, Clipboard and an on-request [screenshot](term:screenshot) - each reachable straight from the watch, with or without the phone nearby.

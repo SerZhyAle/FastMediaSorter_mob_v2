@@ -3,6 +3,8 @@ layout: default
 title: "Usa la App como tu Pantalla de Inicio - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-es.html
 ---
+<sub class="doc-stamp">26.09.25 02:15</sub>
+
 <div lang="es" dir="ltr" markdown="1">
 
 # 🖥️ Usa la App como tu Pantalla de Inicio

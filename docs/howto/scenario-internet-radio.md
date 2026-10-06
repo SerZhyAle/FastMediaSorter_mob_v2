@@ -3,6 +3,8 @@ layout: default
 title: "Internet Radio & Streams - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio.html
 ---
+<sub class="doc-stamp">26.09.24 06:25</sub>
+
 # 📻 Internet Radio & Streams
 
 > **Level:** Beginner - **Time:** ~10 minutes - **Flavor:** Standard, Legacy, VR, noLegal (Streams are absent in Lite and Photos)

@@ -5,6 +5,8 @@ permalink: /docs/TECHNICAL_REQUIREMENTS.html
 lang: en
 ---
 
+<sub class="doc-stamp">26.10.06 14:18</sub>
+
 # Technical Requirements
 
 [Technical Specification](V2_Specification.html) | [Tech Stack, EN](TECH_STACK.html)

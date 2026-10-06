@@ -1,4 +1,6 @@
-﻿# Documentation Feature Area Assignments (S2945 - S2967)
+﻿<sub class="doc-stamp">26.09.24 08:49</sub>
+
+# Documentation Feature Area Assignments (S2945 - S2967)
 
 This document establishes the canonical assignment of all 32 feature inventory areas across the 22 thematic documentation tickets (S2946 - S2967).
 

@@ -1864,6 +1864,16 @@ Invoke-Step "dev-log" {
     & $pwsh -NoProfile -File (Join-Path $root "scripts/add_to_dev_log.ps1") $File $Target $logDescription
 }
 
+# Last-edited stamp (yy.MM.dd HH:mm) on every document of the set, and on the changelog the row above
+# has just changed. After the dev-log on purpose: stamping rewrites no gate input that matters, and the
+# changelog's mtime only moves once its row is written. Cosmetic by nature, so it can never fail a
+# closure whose gates passed - a refusal there would leave a row claiming a closure the verdict denies.
+$stampTargets = @($changedFiles | Where-Object { $_ -match '\.(md|html?)$' }) + 'dev/CHANGELOG.md'
+Invoke-Step "doc-stamp" {
+    & $pwsh -NoProfile -File (Join-Path $root "scripts/docs/stamp-doc-dates.ps1") -Files ($stampTargets -join ',') -Quiet
+    $global:LASTEXITCODE = 0
+}
+
 if ($Target -match '^S\d{4}$') {
     # Silent by contract: the ledger is read later through the recorder's Summary verb, and printing
     # it here would add to the agent context it measures. A recorder failure never changes the verdict.

@@ -3,6 +3,8 @@ layout: default
 title: "Conectar a NAS / Recurso Compartido de Windows (SMB) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-smb-setup-es.html
 ---
+<sub class="doc-stamp">26.09.25 02:16</sub>
+
 <div lang="es" dir="ltr" markdown="1">
 
 # 🖥️ Conectar a NAS de Casa / Recurso Compartido de Windows (SMB)

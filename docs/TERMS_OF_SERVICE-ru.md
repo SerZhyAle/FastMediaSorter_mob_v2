@@ -3,6 +3,8 @@ layout: default
 title: "Условия использования"
 permalink: /docs/TERMS_OF_SERVICE_RU.html
 ---
+<sub class="doc-stamp">26.09.23 01:45</sub>
+
 # Условия использования
 
 **Последнее обновление:** 30 ноября 2024 г.

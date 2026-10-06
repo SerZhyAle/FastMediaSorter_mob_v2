@@ -4,6 +4,8 @@ title: "Чому Android попереджає про цей APK"
 permalink: /docs/INSTALL_TRUST_UK.html
 ---
 
+<sub class="doc-stamp">26.10.02 22:09</sub>
+
 # Чому Android попереджає про цей APK - і що натискати
 
 FastMediaSorter - безкоштовний застосунок незалежного розробника, і збірки зі сторінки завантажень

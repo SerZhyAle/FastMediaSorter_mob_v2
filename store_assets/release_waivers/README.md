@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.06.20 02:06</sub>
+
 # Release waivers
 
 Storage convention for standard production release waivers (S0553 §3.3, ADR-2).

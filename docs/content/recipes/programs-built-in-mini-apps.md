@@ -182,4 +182,6 @@ next_recipes:
     description: Put the flashlights and the stopwatch on your home screen.
 ---
 
+<sub class="doc-stamp">26.09.25 04:13</sub>
+
 FastMediaSorter comes with a set of small [programs](term:program) you switch on only if you want them. This page shows where to switch them on, where to open them, and how to use the front flashlight, the water flashlight, the flashlight in the notification shade, the lit mirror and the SOS emergency signal.

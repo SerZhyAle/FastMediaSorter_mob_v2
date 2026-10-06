@@ -3,6 +3,8 @@ layout: default
 title: "Utiliser l'application comme écran d'accueil - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-fr.html
 ---
+<sub class="doc-stamp">26.09.25 02:15</sub>
+
 <div lang="fr" dir="ltr" markdown="1">
 
 # 🖥️ Utiliser l'application comme écran d'accueil

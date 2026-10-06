@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.24 10:47</sub>
+
 # Surfaces that show an external picture
 
 Every surface of this product that shows a picture loaded at run time - album art, a favicon, a

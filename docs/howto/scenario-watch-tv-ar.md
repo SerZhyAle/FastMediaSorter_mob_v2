@@ -3,6 +3,8 @@ layout: default
 title: "مشاهدة قنوات التلفاز على ساعتك الذكية - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-ar.html
 ---
+<sub class="doc-stamp">26.09.25 02:27</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 # <img src="../icons/doc/ic_stream.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> مشاهدة قنوات التلفاز على ساعتك الذكية

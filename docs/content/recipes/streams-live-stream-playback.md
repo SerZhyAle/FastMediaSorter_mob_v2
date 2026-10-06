@@ -157,4 +157,6 @@ next_recipes:
     description: Keep the channels you play most at the top.
 ---
 
+<sub class="doc-stamp">26.09.24 07:53</sub>
+
 Tap a [channel](term:channel) and it plays: radio inside the list with the current song in view, TV and video full screen with only the controls that make sense for a live picture, and music that keeps going when you leave the app.

@@ -92,4 +92,6 @@ next_recipes:
     description: Find your way around the launcher settings, and reset the desktop back to its first state.
 ---
 
+<sub class="doc-stamp">26.09.24 08:44</sub>
+
 The [launcher](term:launcher) [desktop](term:desktop) can turn its own screen off after a while of inactivity, warn you first with a dim, and show a readable clock even once it has gone dark. This page covers setting the timeout, reading the dim screen, keeping it lit while charging, and what each device profile starts with.

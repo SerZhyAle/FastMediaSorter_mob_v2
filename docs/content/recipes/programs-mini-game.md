@@ -112,4 +112,6 @@ next_recipes:
     description: Put the game on your home screen next to the other widgets.
 ---
 
+<sub class="doc-stamp">26.09.25 04:13</sub>
+
 **Kryvavitsa and the Monster** is a small turn-based puzzle built into FastMediaSorter. This page shows how to switch it on, the rules and the score, how to play with touch, keyboard, D-pad or gamepad, how to restart a level, the three looks and the watch version.

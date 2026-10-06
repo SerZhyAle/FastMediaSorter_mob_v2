@@ -3,6 +3,8 @@ layout: default
 title: "Подключение часов к сетевым ресурсам NAS и ПК - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-network-ru.html
 ---
+<sub class="doc-stamp">26.09.24 06:25</sub>
+
 # <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Подключение часов к сетевым ресурсам NAS и ПК
 
 > **Уровень:** Средний &bull; **Время:** ~10 минут &bull; **Устройство:** Смарт-часы Wear OS

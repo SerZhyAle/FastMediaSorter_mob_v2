@@ -3,6 +3,8 @@ layout: default
 title: "SMB Network Storage Setup Guide"
 permalink: /docs/SMB_SETUP_GUIDE.html
 ---
+<sub class="doc-stamp">26.03.18 00:24</sub>
+
 # SMB Network Storage Setup Guide
 
 ## What is SMB?

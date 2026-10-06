@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.08.12 13:17</sub>
+
 # Agent process audit - week of 2026-08-05 .. 2026-08-11
 
 Follow-up to `dev/AGENT_PROCESS_AUDIT_2026-07-31.md` and its 2026-08-05 retrospective. That audit

@@ -140,4 +140,6 @@ next_recipes:
     description: See which edition opens which kinds of files.
 ---
 
+<sub class="doc-stamp">26.09.24 07:50</sub>
+
 Read EPUB books with the font, size, colors and margins you like, jump between chapters, search a whole book, listen to it or translate it - and open Word, Excel and PowerPoint files with one tap, in the way your edition offers.

@@ -105,4 +105,6 @@ next_recipes:
     description: Set up the watch, and the full sideload edition these readings need.
 ---
 
+<sub class="doc-stamp">26.09.24 09:22</sub>
+
 Your watch already carries a heart-rate sensor and an accelerometer against your skin. This page checks your pulse, estimates blood pressure, reads the Motion Monitor [program](term:program)'s movement sensors and steps, and shows light, pressure and magnetic-field readings - general-wellbeing numbers, not a medical device.

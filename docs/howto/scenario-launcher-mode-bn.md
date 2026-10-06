@@ -3,6 +3,8 @@ layout: default
 title: "অ্যাপটিকে আপনার হোম স্ক্রিন হিসেবে ব্যবহার করুন - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-bn.html
 ---
+<sub class="doc-stamp">26.09.25 02:19</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # 🖥️ অ্যাপটিকে আপনার হোম স্ক্রিন হিসেবে ব্যবহার করুন

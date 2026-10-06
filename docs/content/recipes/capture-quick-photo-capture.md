@@ -170,4 +170,6 @@ next_recipes:
     description: Record everything happening on screen, with microphone audio, from the Programs menu.
 ---
 
+<sub class="doc-stamp">26.09.25 21:59</sub>
+
 Open the app's own camera from the Programs menu for a quick photo or video snap, get to know its viewfinder and gestures, record video with a timer and Pause/Resume, and even watch through your phone's camera from a paired watch.

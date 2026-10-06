@@ -3,6 +3,8 @@ layout: default
 title: "📖 استعمال کے رہنما"
 permalink: /docs/HOW_TO-ur.html
 ---
+<sub class="doc-stamp">26.09.26 10:42</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # 📖 استعمال کے رہنما

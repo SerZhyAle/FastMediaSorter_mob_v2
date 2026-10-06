@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.05.18 17:59</sub>
+
 PLATFORM: Indie Hackers
 URL: https://www.indiehackers.com/
 SECTION: Products → Submit your product  OR  Post in relevant group (e.g., "Android Developers")

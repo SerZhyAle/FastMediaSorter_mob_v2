@@ -3,6 +3,8 @@ layout: default
 title: "История продукта - FastMediaSorter v2"
 permalink: /docs/PRODUCT_HISTORY_RU.html
 ---
+<sub class="doc-stamp">26.09.16 22:18</sub>
+
 # История продукта - FastMediaSorter v2
 
 **Дата снимка**: 13 сентября 2026  

@@ -3,6 +3,8 @@ layout: default
 title: "Organizador de Downloads (Classificação Rápida) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-pt.html
 ---
+<sub class="doc-stamp">26.09.25 02:16</sub>
+
 <div lang="pt" dir="ltr" markdown="1">
 
 # 🧹 Organizador de Downloads - Organize Arquivos com Um Toque

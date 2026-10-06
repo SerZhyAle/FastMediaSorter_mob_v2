@@ -163,4 +163,6 @@ next_recipes:
     description: The first steps, if the watch and phone do not see each other yet.
 ---
 
+<sub class="doc-stamp">26.09.24 09:03</sub>
+
 Choose which [network resources](term:network-resource) the [watch](term:watch) gets, push them, read what the sync reports, and set the watch up from the phone's [Wear Companion](term:wear-companion) window - media types, slideshow, screen, color scheme, background and power saving.

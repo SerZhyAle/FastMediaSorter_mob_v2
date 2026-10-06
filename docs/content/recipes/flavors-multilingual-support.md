@@ -110,4 +110,6 @@ next_recipes:
     description: Find any setting in a few taps, or by typing its name.
 ---
 
+<sub class="doc-stamp">26.09.24 09:36</sub>
+
 FastMediaSorter speaks thirteen languages and shows times, distances and temperatures in metric or US units. This page shows how the app picks its language, how to change it, and how to choose your units.

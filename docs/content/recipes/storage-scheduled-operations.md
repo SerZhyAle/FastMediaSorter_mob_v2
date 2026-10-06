@@ -122,4 +122,6 @@ next_recipes:
     description: The other programs you can open from the same menu.
 ---
 
+<sub class="doc-stamp">26.09.24 15:50</sub>
+
 Let the app copy, move or delete files by itself on a schedule - for example copy new camera photos to the home computer every night - and read the run history to see what was done.

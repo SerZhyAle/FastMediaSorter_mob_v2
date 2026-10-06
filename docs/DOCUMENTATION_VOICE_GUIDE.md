@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.23 12:50</sub>
+
 # Documentation Voice and Style Guide
 
 This guide establishes the voice, tone, and editorial standards for all documentation pages in FastMediaSorter v2 (S2945 - S2967).

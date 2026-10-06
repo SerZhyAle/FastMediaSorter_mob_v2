@@ -4,6 +4,8 @@ title: "FastMediaSorter VR-редакція"
 permalink: /docs/VR_EDITION_UK.html
 ---
 
+<sub class="doc-stamp">26.09.16 22:43</sub>
+
 # FastMediaSorter VR-редакція
 
 ## Що таке VR-редакція?

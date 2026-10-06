@@ -124,4 +124,6 @@ next_recipes:
     description: Keep a resource or a single file away from other eyes.
 ---
 
+<sub class="doc-stamp">26.09.24 07:45</sub>
+
 Pack your resources into a file for another phone, import them back, bring in a ready configuration from the Windows companion, keep a full backup in Google Drive, and know what happens if the app's database ever has to be reset.

@@ -3,6 +3,8 @@ layout: default
 title: "ধাপে ধাপে গাইড - FastMediaSorter v2"
 permalink: /docs/howto/index-bn.html
 ---
+<sub class="doc-stamp">26.09.25 02:12</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> ধাপে ধাপে গাইড

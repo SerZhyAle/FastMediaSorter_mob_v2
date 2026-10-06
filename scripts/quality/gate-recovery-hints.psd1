@@ -398,6 +398,11 @@
         Fix   = 'The changelog row could not be written - read the error above; never edit dev/CHANGELOG.md by hand to work around it.'
     }
 
+    'doc-stamp' = @{
+        Repro = 'pwsh -NoProfile -File scripts/docs/stamp-doc-dates.ps1 -Files "<your,files>"'
+        Fix   = 'The last-edited stamp could not be written to a document - read the error above. It is cosmetic and never changes the closure verdict; re-run the repro once the file is writable.'
+    }
+
     'icon-contract-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-icon-contract.ps1 -Gate'
         Fix   = 'An icon or label violates the icon contract ladder (unmapped drawable, label-glyph mismatch, or translated name substitution). Update docs/icons/icon-contract-map.json or adjust the paired resource.'

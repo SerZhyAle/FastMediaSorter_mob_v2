@@ -4,6 +4,8 @@ title: "Управление в иммерсивном VR"
 permalink: /docs/VR_CONTROLS_RU.html
 ---
 
+<sub class="doc-stamp">26.09.10 08:57</sub>
+
 # Управление в иммерсивном VR
 
 *Обновлено: 2026-07-29*

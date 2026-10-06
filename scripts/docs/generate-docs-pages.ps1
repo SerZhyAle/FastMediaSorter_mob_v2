@@ -5,6 +5,7 @@
 [CmdletBinding()]
 param (
     [switch]$Check,
+    [switch]$StampOnly,
     [string]$Lang = "en",
     [string]$ContentDir,
     [string]$OutputDir = "documentation"
@@ -22,6 +23,7 @@ if (-not $ContentDir) {
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'DocumentationShell.ps1')
+. (Join-Path $PSScriptRoot 'lib/doc-stamp.ps1')
 $repoRoot = Resolve-Path "$PSScriptRoot/../.."
 $contentRoot = Join-Path $repoRoot $ContentDir
 $outputRoot = Join-Path $repoRoot $OutputDir
@@ -985,6 +987,11 @@ $script:PageTargets = @{}
 $script:CorpusPages = [System.Collections.Generic.List[object]]::new()
 foreach ($rf in $recipeFiles) {
     $raw = Get-Content $rf.FullName -Raw -Encoding utf8
+    # The source's last-edited stamp is the page's stamp: it leaves the body so it is not rendered as
+    # content, and is re-emitted below as the page's own small header line. Deriving it from the source
+    # keeps -Check deterministic - a regeneration never invents a newer date than the last real edit.
+    $sourceStamp = Get-DocStampValue -Text $raw
+    $raw = Remove-DocStamp -Text $raw
     $parsed = Parse-Frontmatter $raw
     $canonical = [string]$parsed.Meta['canonical_url']
     $outRel = if ($canonical -match '^documentation/(.+\.html)$') {
@@ -992,7 +999,7 @@ foreach ($rf in $recipeFiles) {
     } else {
         [System.IO.Path]::ChangeExtension($rf.Name, '.html')
     }
-    $parsedRecipes.Add([PSCustomObject]@{ Parsed = $parsed; OutRel = $outRel })
+    $parsedRecipes.Add([PSCustomObject]@{ Parsed = $parsed; OutRel = $outRel; StampDate = $sourceStamp })
     $pageId = [string]$parsed.Meta['page_id']
     if ($pageId) { $script:PageTargets[$pageId] = $outRel }
     if ($outRel.Contains('/')) {
@@ -1037,9 +1044,30 @@ foreach ($lCode in $knownContentDirs.Keys) {
     }
 }
 
+# -StampOnly: refresh each existing page's last-edited line from its source and touch nothing else,
+# so a source edit can reach the published page without a full render picking up unrelated drift.
+if ($StampOnly) {
+    $stampedPages = 0
+    foreach ($pr in $parsedRecipes) {
+        $target = Join-Path $outputRoot $pr.OutRel
+        if (-not $pr.StampDate -or -not (Test-Path $target)) { continue }
+        $onDisk = Get-Content $target -Raw -Encoding utf8
+        $withStamp = Add-DocStamp -Text $onDisk -Kind html -Date $pr.StampDate
+        if ($null -eq $withStamp -or $withStamp -ceq $onDisk) { continue }
+        [System.IO.File]::WriteAllText($target, $withStamp, [System.Text.UTF8Encoding]::new($false))
+        $stampedPages++
+    }
+    Write-Host "generate-docs-pages -StampOnly: $stampedPages page(s) restamped ($ContentDir)" -ForegroundColor Green
+    exit 0
+}
+
 foreach ($pr in $parsedRecipes) {
     $html = Render-RecipeHtml $pr.Parsed $pr.OutRel
     $html = ConvertTo-DocumentationShell -Html $html -RelativePath $pr.OutRel -DocumentationRoot $outputRoot
+    if ($pr.StampDate) {
+        $stampedHtml = Add-DocStamp -Text $html -Kind html -Date $pr.StampDate
+        if ($null -ne $stampedHtml) { $html = $stampedHtml }
+    }
     # S2972: a page with front matter goes through Liquid on the Pages build, where a stray
     # template marker either aborts the whole site build or silently eats page text.
     if ($pr.OutRel.Contains('/') -and $html -match '\{\{|\{%') {

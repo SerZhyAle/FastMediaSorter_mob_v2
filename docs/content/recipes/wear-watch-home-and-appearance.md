@@ -232,4 +232,6 @@ next_recipes:
     description: Set the watch's colors, background and more from the phone.
 ---
 
+<sub class="doc-stamp">26.09.30 11:27</sub>
+
 A tour of the watch app's home screen - its sections, its recent and now-playing rows, [Favorites](term:favorites) - along with the clock, the back button, the first-run walk, and the Settings behind how it all looks.

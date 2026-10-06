@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.29 20:21</sub>
+
 # Build & Test Fast Path
 
 This playbook defines the cheapest safe validation path for common change types in `app_v2/` and `wear/`.

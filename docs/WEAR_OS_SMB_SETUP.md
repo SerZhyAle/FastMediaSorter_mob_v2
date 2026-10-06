@@ -3,6 +3,8 @@ layout: default
 title: "Wear OS - How to Set Up SMB Network Storage"
 permalink: /docs/WEAR_OS_SMB_SETUP.html
 ---
+<sub class="doc-stamp">26.10.01 17:26</sub>
+
 # Wear OS - How to Set Up SMB Network Storage
 
 > **Step-by-step guides:** See our visual walk-throughs: [Connect Smartwatch to NAS & PC Shares](howto/scenario-watch-network.md) and [Listen to Music on Your Watch](howto/scenario-watch-music.md).

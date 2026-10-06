@@ -3,6 +3,8 @@ layout: default
 title: "Digital Photo Frame on Tablet - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame.html
 ---
+<sub class="doc-stamp">26.09.24 20:50</sub>
+
 # 🖼️ Digital Photo Frame on Tablet
 
 > **Level:** Beginner &bull; **Time:** ~15 minutes &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (for NAS/cloud photos) or any flavor (for local photos)

@@ -157,4 +157,6 @@ next_recipes:
     description: Install, update and delete the channel preview atlas, station logos and other downloadable extras by hand.
 ---
 
+<sub class="doc-stamp">26.09.25 04:13</sub>
+
 Every [channel](term:channel) in [Streams](term:streams-screen) always shows something - a live frame, a downloaded logo, a small favicon, a flag, or a plain icon - and a small dot and badge next to it tell you whether it is worth a tap. This page explains what each picture and badge means and where the channel picture packs come from.

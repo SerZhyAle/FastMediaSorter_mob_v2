@@ -105,4 +105,6 @@ next_recipes:
     description: The equivalent flat-screen controls, outside the headset.
 ---
 
+<sub class="doc-stamp">26.09.24 09:28</sub>
+
 The floating control panel, its head-locked banner, the session settings behind the menu button, hiding and summoning the strip, thumbstick seeking with the grip modifier, controller haptics, hand tracking, and the FPS overlay - every control VR Cinema puts within reach.

@@ -3,6 +3,8 @@ layout: default
 title: "🔧 Посібник з усунення несправностей"
 permalink: /docs/TROUBLESHOOTING_UK.html
 ---
+<sub class="doc-stamp">26.09.24 18:35</sub>
+
 # 🔧 Посібник з усунення несправностей
 
 Часті проблеми та рішення для FastMediaSorter v2.

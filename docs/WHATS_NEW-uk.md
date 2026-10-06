@@ -4,6 +4,8 @@ title: "Що нового у FastMediaSorter v2"
 permalink: /docs/WHATS_NEW_UK.html
 ---
 
+<sub class="doc-stamp">26.10.04 15:44</sub>
+
 # Що нового у FastMediaSorter v2
 
 **Поточний реліз: 2.61.0041.544** (жовтень 2026)

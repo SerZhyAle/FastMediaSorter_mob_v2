@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.01 17:23</sub>
+
 # Play Console - Data safety, location section (S2083)
 
 Source of truth for the **location rows of the Data safety form** in Play Console

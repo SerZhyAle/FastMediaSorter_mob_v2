@@ -113,4 +113,6 @@ next_recipes:
     description: Why a channel shows a live frame, a logo, a flag or a plain icon, and what its status dot means.
 ---
 
+<sub class="doc-stamp">26.09.30 08:55</sub>
+
 Bring your own [channels](term:channel) into [Streams](term:streams-screen): type a web address for a single stream, or import a whole station list from a remote M3U playlist. This page covers adding, importing, editing and the duplicate-address check that keeps one address from ending up in your list twice.

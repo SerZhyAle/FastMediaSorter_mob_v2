@@ -3,6 +3,8 @@ layout: default
 title: "📖 Anleitungen"
 permalink: /docs/HOW_TO-de.html
 ---
+<sub class="doc-stamp">26.09.26 10:42</sub>
+
 <div lang="de" dir="ltr" markdown="1">
 
 # 📖 Anleitungen

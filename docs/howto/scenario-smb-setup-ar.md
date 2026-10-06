@@ -3,6 +3,8 @@ layout: default
 title: "الاتصال بـ NAS / مشاركة Windows (SMB) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-smb-setup-ar.html
 ---
+<sub class="doc-stamp">26.09.25 02:24</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 # 🖥️ الاتصال بجهاز NAS المنزلي / مشاركة Windows (SMB)

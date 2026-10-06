@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.05 22:02</sub>
+
 # Cross-project contracts: what binds us, and where it lives
 
 Every contract this product exposes to another program - mine or an external developer's - lives in

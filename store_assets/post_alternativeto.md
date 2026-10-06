@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.05.18 17:59</sub>
+
 https://alternativeto.net/
 
 PLATFORM: AlternativeTo

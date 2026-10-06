@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.24 22:04</sub>
+
 # FastMediaSorter - Политика общения в интерфейсе
 
 **Канонический источник:** `COMMUNICATION_POLICY.md`. Этот файл - зеркало на русском.

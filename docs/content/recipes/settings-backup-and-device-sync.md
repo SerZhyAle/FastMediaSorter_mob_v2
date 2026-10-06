@@ -122,4 +122,6 @@ next_recipes:
     description: Every backup and export option of the app on one page.
 ---
 
+<sub class="doc-stamp">26.09.24 08:55</sub>
+
 Pack every setting into a file or a Google Drive backup, export and import just your Favorites, move exactly one kind of data with the unified menu, and keep a paired [watch](term:watch)'s settings and resources in step with the phone - synced both ways, with only the resources you chose along for the ride.

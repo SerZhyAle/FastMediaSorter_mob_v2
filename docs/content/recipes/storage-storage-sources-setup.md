@@ -146,4 +146,6 @@ next_recipes:
     description: Look through a resource as tiles or as a list.
 ---
 
+<sub class="doc-stamp">26.09.25 21:58</sub>
+
 Add a folder from the phone, a memory card or a USB drive as a resource, meet the ready-made collections the app creates for you, and let a folder show every kind of file with Reconnect resource.

@@ -3,6 +3,8 @@ layout: default
 title: "🔧 Troubleshooting Guide"
 permalink: /docs/TROUBLESHOOTING-ur.html
 ---
+<sub class="doc-stamp">26.09.24 20:18</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # 🔧 ٹربل شوٹنگ گائیڈ

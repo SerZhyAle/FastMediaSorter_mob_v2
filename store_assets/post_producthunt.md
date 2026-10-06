@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.05.18 17:59</sub>
+
 https://www.producthunt.com/products/fastmediasorter-v2/fastmediasorter-v2/prelaunch
 
 PLATFORM: Product Hunt

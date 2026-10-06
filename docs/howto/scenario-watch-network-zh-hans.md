@@ -3,6 +3,8 @@ layout: default
 title: "将智能手表连接到 NAS 和电脑共享 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-network-zh-hans.html
 ---
+<sub class="doc-stamp">26.09.25 02:21</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> 将智能手表连接到 NAS 和电脑共享

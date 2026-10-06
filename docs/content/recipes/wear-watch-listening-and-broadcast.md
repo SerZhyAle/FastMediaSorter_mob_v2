@@ -114,4 +114,6 @@ next_recipes:
     description: Everything else waiting in the watch's Programs grid.
 ---
 
+<sub class="doc-stamp">26.09.24 09:26</sub>
+
 Listen to your paired [watch](term:watch)'s microphone from the phone, [broadcast](term:live-broadcast) the watch's own microphone to listeners on the same Wi-Fi or into a Windows PC, and send a live broadcast from the phone straight to the watch.

@@ -60,4 +60,6 @@ next_recipes:
     description: See the connection itself when a sync or a stream is not behaving.
 ---
 
+<sub class="doc-stamp">26.09.25 02:04</sub>
+
 Turn on a background schedule so network and cloud folders stay current on their own, preload their thumbnails ahead of time, and let a playing network video keep the full connection to itself while previews wait their turn.

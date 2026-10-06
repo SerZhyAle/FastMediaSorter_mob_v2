@@ -5,6 +5,8 @@ permalink: /docs/V2_architecture_overview_UK.html
 lang: uk
 ---
 
+<sub class="doc-stamp">26.10.06 14:18</sub>
+
 <div lang="uk" markdown="1">
 
 # Огляд архітектури

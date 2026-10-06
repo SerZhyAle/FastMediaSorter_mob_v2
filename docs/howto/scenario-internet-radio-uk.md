@@ -3,6 +3,8 @@ layout: default
 title: "Інтернет-радіо і Трансляції - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-uk.html
 ---
+<sub class="doc-stamp">26.09.24 06:25</sub>
+
 # 📻 Інтернет-радіо і Трансляції
 
 > **Рівень:** Початківець - **Час:** ~10 хвилин - **Версія:** Standard, Legacy, VR, noLegal (у Lite і Photos Трансляцій немає)

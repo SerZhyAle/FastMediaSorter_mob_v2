@@ -3,6 +3,8 @@ layout: default
 title: "Ouvrir les dossiers de votre PC en scannant un seul code - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-fr.html
 ---
+<sub class="doc-stamp">26.09.25 02:13</sub>
+
 <div lang="fr" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Ouvrir les dossiers de votre PC en scannant un seul code

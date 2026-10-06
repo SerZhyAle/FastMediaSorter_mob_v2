@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.02 14:54</sub>
+
 # Play Console Operator Checklist - S0135
 
 > Operator slice of the full standard production gate: `docs/RELEASE_READINESS_STANDARD.md` (verdict via `scripts/release/standard-release-gate.ps1`).

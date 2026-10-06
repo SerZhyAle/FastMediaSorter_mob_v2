@@ -3,6 +3,8 @@ layout: default
 title: "FastMedia Wear OS - Detailed Development Steps"
 permalink: /docs/WEAR_OS_IMPLEMENTATION_STEPS.html
 ---
+<sub class="doc-stamp">26.09.11 13:40</sub>
+
 # FastMedia Wear OS - Detailed Development Steps
 
 **Version**: 1.0  

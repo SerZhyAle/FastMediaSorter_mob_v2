@@ -128,4 +128,6 @@ next_recipes:
     description: Keep the screen on, choose colors and tune how the app looks.
 ---
 
+<sub class="doc-stamp">26.09.24 06:43</sub>
+
 A [slideshow](term:slideshow) moves from one photo to the next by itself. Choose how long each photo stays, add background music, and let the app keep the screen on - a phone or tablet becomes a photo frame in a minute.

@@ -128,4 +128,6 @@ next_recipes:
     description: Keep watching in a small window.
 ---
 
+<sub class="doc-stamp">26.09.24 07:29</sub>
+
 Send the video you are watching to a TV with Chromecast, or turn your phone into a small live sound or camera station that others open with a QR code.

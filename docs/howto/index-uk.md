@@ -3,6 +3,8 @@ layout: default
 title: "Покрокові сценарії - FastMediaSorter v2"
 permalink: /docs/howto/index-uk.html
 ---
+<sub class="doc-stamp">26.09.30 08:53</sub>
+
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Покрокові сценарії
 
 Практичні посібники для реальних задач. Попередні знання не потрібні - кожен крок пояснено з нуля.

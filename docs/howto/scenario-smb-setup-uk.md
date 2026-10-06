@@ -3,6 +3,8 @@ layout: default
 title: "Підключення до NAS / Windows (SMB) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-smb-setup-uk.html
 ---
+<sub class="doc-stamp">26.09.24 06:25</sub>
+
 # 🖥️ Підключення до домашнього NAS / Windows (SMB)
 
 > **Рівень:** Початківець &bull; **Версія:** Standard, Photos, Legacy, VR, noLegal (у Lite немає мережевих джерел)

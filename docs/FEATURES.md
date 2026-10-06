@@ -3,6 +3,8 @@ layout: default
 title: "FastMediaSorter v2 - Complete Feature List"
 permalink: /docs/FEATURES.html
 ---
+<sub class="doc-stamp">26.09.30 17:26</sub>
+
 # FastMediaSorter v2 - Complete Feature List
 
 *Last updated: 2026-09-30*

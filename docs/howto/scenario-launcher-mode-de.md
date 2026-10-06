@@ -3,6 +3,8 @@ layout: default
 title: "Die App als Startbildschirm verwenden - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-de.html
 ---
+<sub class="doc-stamp">26.09.25 02:18</sub>
+
 <div lang="de" dir="ltr" markdown="1">
 
 # 🖥️ Die App als Startbildschirm verwenden

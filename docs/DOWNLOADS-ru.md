@@ -4,6 +4,8 @@ title: "Загрузки APK FastMediaSorter"
 permalink: /docs/DOWNLOADS_RU.html
 ---
 
+<sub class="doc-stamp">26.09.22 19:12</sub>
+
 # Загрузки APK FastMediaSorter
 
 Скомпилированные APK публикуются как **ассеты GitHub Release** - в репозиторий они не коммитятся.

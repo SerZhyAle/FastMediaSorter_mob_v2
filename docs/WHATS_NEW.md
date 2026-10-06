@@ -4,6 +4,8 @@ title: "What's New in FastMediaSorter v2"
 permalink: /docs/WHATS_NEW.html
 ---
 
+<sub class="doc-stamp">26.10.04 15:44</sub>
+
 # What's New in FastMediaSorter v2
 
 **Current release: 2.61.0041.544** (October 2026)

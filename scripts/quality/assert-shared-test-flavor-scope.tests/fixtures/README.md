@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.08.09 11:06</sub>
+
 # Fixtures for assert-shared-test-flavor-scope
 
 Nothing in this folder is a real source file, and nothing here is checked in as one.

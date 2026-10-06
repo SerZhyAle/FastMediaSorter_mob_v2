@@ -3,6 +3,8 @@ layout: default
 title: "আপনার ওয়াচে FastMedia রাখুন - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-bn.html
 ---
+<sub class="doc-stamp">26.09.30 11:26</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> আপনার ওয়াচে FastMedia রাখুন

@@ -3,6 +3,8 @@ layout: default
 title: "Abra as Pastas do Seu PC Escaneando um Único Código - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-pt.html
 ---
+<sub class="doc-stamp">26.09.25 02:16</sub>
+
 <div lang="pt" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Abra as Pastas do Seu PC Escaneando um Único Código

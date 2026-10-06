@@ -3,6 +3,8 @@ layout: default
 title: "ডাউনলোড অর্গানাইজার (কুইক সর্ট) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-bn.html
 ---
+<sub class="doc-stamp">26.09.25 02:16</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # 🧹 ডাউনলোড অর্গানাইজার - এক ট্যাপে ফাইল সাজান

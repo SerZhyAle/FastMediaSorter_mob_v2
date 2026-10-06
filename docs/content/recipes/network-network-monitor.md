@@ -104,4 +104,6 @@ next_recipes:
     description: Network Monitor and the rest of the watch's built-in toolbox.
 ---
 
+<sub class="doc-stamp">26.09.25 02:04</sub>
+
 Switch on the opt-in Network Monitor, read its summary and its Wi-Fi, Mobile, Bluetooth and Satellites sections with their live charts, ping or trace a single address in Tools, measure one resource's real speed, and carry the same readings to a home-screen widget, a launcher gadget and your watch.

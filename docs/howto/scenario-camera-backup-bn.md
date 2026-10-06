@@ -3,6 +3,8 @@ layout: default
 title: "পিসিতে শিডিউল করা ক্যামেরা ব্যাকআপ - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-bn.html
 ---
+<sub class="doc-stamp">26.09.25 02:13</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # 📷 পিসিতে শিডিউল করা ক্যামেরা ব্যাকআপ

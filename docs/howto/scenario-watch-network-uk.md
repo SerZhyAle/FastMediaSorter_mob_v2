@@ -3,6 +3,8 @@ layout: default
 title: "Підключення годинника до мережевих ресурсів NAS і ПК - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-network-uk.html
 ---
+<sub class="doc-stamp">26.09.24 06:25</sub>
+
 # <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Підключення годинника до мережевих ресурсів NAS і ПК
 
 > **Рівень:** Середній &bull; **Час:** ~10 хвилин &bull; **Пристрій:** Смарт-годинник Wear OS

@@ -3,6 +3,8 @@ layout: default
 title: "একটি কোড স্ক্যান করে আপনার পিসির ফোল্ডার খুলুন - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-bn.html
 ---
+<sub class="doc-stamp">26.09.25 02:15</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> একটি কোড স্ক্যান করে আপনার পিসির ফোল্ডার খুলুন

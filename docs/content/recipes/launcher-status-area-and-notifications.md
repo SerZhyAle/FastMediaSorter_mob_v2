@@ -100,4 +100,6 @@ next_recipes:
     description: What the same status signals look like on the dimmed screen.
 ---
 
+<sub class="doc-stamp">26.09.25 04:13</sub>
+
 The taskbar's tray can carry as much or as little as you want. This page covers choosing between the launcher's own status area and Android's, picking indicators one by one, moving them to the top of the screen, and seeing other apps' notifications as a count you control.

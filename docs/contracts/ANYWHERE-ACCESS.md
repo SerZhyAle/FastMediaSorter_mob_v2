@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.05 22:01</sub>
+
 # Pointer - `ANYWHERE-ACCESS`
 
 | | |

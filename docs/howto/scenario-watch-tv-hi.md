@@ -3,6 +3,8 @@ layout: default
 title: "अपनी स्मार्टवॉच पर टीवी चैनल देखें - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-hi.html
 ---
+<sub class="doc-stamp">26.09.25 02:22</sub>
+
 <div lang="hi" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_stream.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> अपनी स्मार्टवॉच पर टीवी चैनल देखें

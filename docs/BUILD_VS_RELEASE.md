@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.02 20:40</sub>
+
 # Build vs Release - workflow glossary
 
 Source of truth for two work-process terms used across this project: **build** (RU «сборка») and **release** (RU «релиз»). They are different actions with very different cost. This document defines each, maps it to the existing tooling, and states exactly which GitHub Actions workflows a push starts and what they cost.

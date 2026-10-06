@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.19 23:45</sub>
+
 # Rules you enforce yourself - every runtime that is not Claude Code
 
 Claude Code refuses these mistakes at the tool call; for you nothing refuses anything, and nothing announces the absence. This sheet is the rule text - `docs/AGENT_HOOKS.md` is the mechanism behind it, `CLAUDE.md` is the full rule set, and neither restates what is below.

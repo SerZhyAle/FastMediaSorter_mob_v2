@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.08.20 15:27</sub>
+
 # Rule/prompt executable drift audit (S0315)
 
 `check-rule-prompt-drift.ps1` reports **executable** mismatch between the canonical rules and every surface that is supposed to agree with them: prompt skills, agent profiles, `AGENTS.md`, copilot instructions, workflow docs, and the scripts that actually exist on disk. It never reports wording, tone, or narrative differences - only mismatch that would make an agent run the wrong command or a missing one.

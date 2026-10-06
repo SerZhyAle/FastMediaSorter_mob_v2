@@ -3,6 +3,8 @@ layout: default
 title: "پی سی پر شیڈول شدہ کیمرہ بیک اپ - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-ur.html
 ---
+<sub class="doc-stamp">26.09.25 02:16</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # 📷 پی سی پر شیڈول شدہ کیمرہ بیک اپ

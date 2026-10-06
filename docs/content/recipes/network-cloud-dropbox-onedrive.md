@@ -66,4 +66,6 @@ next_recipes:
     description: The full backup and restore picture for your settings and resources.
 ---
 
+<sub class="doc-stamp">26.09.25 00:21</sub>
+
 Sign in to Dropbox and OneDrive to add their folders as resources next to your local and Google Drive ones, with the same simple sign-in, sign-out and plain-spoken error messages for both [cloud providers](term:cloud-provider).

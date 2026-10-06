@@ -3,6 +3,8 @@ layout: default
 title: "Политика конфиденциальности FastMediaSorter"
 permalink: /docs/PRIVACY_POLICY.ru.html
 ---
+<sub class="doc-stamp">26.10.02 14:50</sub>
+
 # Политика конфиденциальности FastMediaSorter
 
 **Последнее обновление: 30 сентября 2026**

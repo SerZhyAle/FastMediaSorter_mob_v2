@@ -155,4 +155,6 @@ next_recipes:
     description: The Start button, recent and pinned apps and the status tray.
 ---
 
+<sub class="doc-stamp">26.09.25 22:45</sub>
+
 A long press on the [launcher](term:launcher) [desktop](term:desktop) is rarely just one thing. This page walks through what each long press opens - on a resource, a channel, an app function - and through the squares that build or update themselves on their own: new resources, app shortcuts, contacts, a shared place, live channel windows and a few small helpers.

@@ -3,6 +3,8 @@ layout: default
 title: "Cine en Casa y Streaming VR - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema-es.html
 ---
+<sub class="doc-stamp">26.09.25 02:14</sub>
+
 <div lang="es" dir="ltr" markdown="1">
 
 # 🍿 Cine en Casa y Streaming VR

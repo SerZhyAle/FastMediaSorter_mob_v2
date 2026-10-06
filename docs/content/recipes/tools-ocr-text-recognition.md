@@ -109,4 +109,6 @@ next_recipes:
     description: Install the OCR engine and language-specific models, or remove them again.
 ---
 
+<sub class="doc-stamp">26.09.24 09:11</sub>
+
 One tap turns a photo, a screenshot or a scanned page into text you can copy, search or save - read on the phone itself, with no picture ever leaving the device.

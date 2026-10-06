@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.02 14:54</sub>
+
 # Security posture - what this app can touch and what it can send
 
 **Last reconciled:** 2026-10-02

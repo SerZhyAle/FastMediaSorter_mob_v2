@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.23 12:50</sub>
+
 # Documentation Illustration Conventions Guide
 
 This guide defines conventions for capturing, naming, placing, and annotating visual assets across the documentation site.

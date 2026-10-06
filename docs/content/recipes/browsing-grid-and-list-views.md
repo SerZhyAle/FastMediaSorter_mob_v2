@@ -158,4 +158,6 @@ next_recipes:
     description: Why folders open fast and stay accurate as files change.
 ---
 
+<sub class="doc-stamp">26.09.24 07:21</sub>
+
 The [file browser](term:file-browser) is where every resource opens: switch between grid and list, move through subfolders with a single path button, see every file with File Manager Mode, check details or lock a resource down, and reach removable drives, archives and documents that hand off to another app.

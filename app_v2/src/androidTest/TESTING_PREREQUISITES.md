@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.26 22:32</sub>
+
 # Instrumentation Test Prerequisites
 
 The device tests under `app_v2/src/androidTest/` need a prepared device and a prepared app. Both are automatic since S3741 - nothing is set up by hand.

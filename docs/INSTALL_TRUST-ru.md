@@ -4,6 +4,8 @@ title: "Почему Android предупреждает об этом APK"
 permalink: /docs/INSTALL_TRUST_RU.html
 ---
 
+<sub class="doc-stamp">26.10.02 22:09</sub>
+
 # Почему Android предупреждает об этом APK - и что нажимать
 
 FastMediaSorter - бесплатное приложение независимого разработчика, и сборки со страницы загрузок

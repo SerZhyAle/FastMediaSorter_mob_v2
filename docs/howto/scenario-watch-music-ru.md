@@ -3,6 +3,8 @@ layout: default
 title: "Прослушивание музыки на часах - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music-ru.html
 ---
+<sub class="doc-stamp">26.09.24 10:01</sub>
+
 # <img src="../icons/doc/ic_audio.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Прослушивание музыки на часах
 
 > **Уровень:** Для начинающих &bull; **Время:** ~5 минут &bull; **Устройство:** Часы Wear OS (в связке с Android-телефоном)

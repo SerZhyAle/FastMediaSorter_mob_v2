@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.26 03:09</sub>
+
 # Third-party licenses
 
 This document lists licenses of third-party assets bundled with FastMediaSorter v2.

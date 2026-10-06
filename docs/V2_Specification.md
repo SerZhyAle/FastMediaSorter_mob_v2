@@ -5,6 +5,8 @@ permalink: /docs/V2_Specification.html
 lang: en
 ---
 
+<sub class="doc-stamp">26.10.06 14:18</sub>
+
 # Technical Specification
 
 [Product](../index.html) | [User documentation](../documentation/) | [Terminology](V2_TERMS.html)

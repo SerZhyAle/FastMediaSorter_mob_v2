@@ -3,6 +3,8 @@ layout: default
 title: "Abre las Carpetas de tu PC Escaneando un Código - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-es.html
 ---
+<sub class="doc-stamp">26.09.25 02:13</sub>
+
 <div lang="es" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Abre las Carpetas de tu PC Escaneando un Código

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.19 21:54</sub>
+
 # Spec Catalog - Journal Schema
 
 **Active journal:** `PLAN/spec-catalog.jsonl` - non-`Archived` records only.

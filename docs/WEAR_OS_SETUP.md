@@ -3,6 +3,8 @@ layout: default
 title: "Wear OS Configuration Guide"
 permalink: /docs/WEAR_OS_SETUP.html
 ---
+<sub class="doc-stamp">26.09.11 13:39</sub>
+
 # Wear OS Configuration Guide
 
 ## Overview

@@ -3,6 +3,8 @@ layout: default
 title: "🔧 Guia de Solução de Problemas"
 permalink: /docs/TROUBLESHOOTING-pt.html
 ---
+<sub class="doc-stamp">26.09.24 20:17</sub>
+
 <div lang="pt" dir="ltr" markdown="1">
 
 # 🔧 Guia de Solução de Problemas

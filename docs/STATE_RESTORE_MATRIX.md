@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.22 16:59</sub>
+
 # State Restore Matrix
 
 Every user-facing screen and every long operation has a **declared fate** under the four events

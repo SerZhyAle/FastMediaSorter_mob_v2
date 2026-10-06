@@ -3,6 +3,8 @@ layout: default
 title: "انٹرنیٹ ریڈیو اور اسٹریمز - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-ur.html
 ---
+<sub class="doc-stamp">26.09.25 02:21</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # 📻 انٹرنیٹ ریڈیو اور اسٹریمز

@@ -4,6 +4,8 @@ title: "FastMediaSorter v2"
 permalink: /docs/README.html
 ---
 
+<sub class="doc-stamp">26.09.30 11:23</sub>
+
 # FastMediaSorter v2 🚀
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple?style=flat-square&logo=kotlin)

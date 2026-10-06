@@ -3,6 +3,8 @@ layout: default
 title: "توصيل الساعة الذكية بمشاركات NAS وجهاز الكمبيوتر - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-network-ar.html
 ---
+<sub class="doc-stamp">26.09.25 02:26</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 # <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> توصيل الساعة الذكية بمشاركات NAS وجهاز الكمبيوتر

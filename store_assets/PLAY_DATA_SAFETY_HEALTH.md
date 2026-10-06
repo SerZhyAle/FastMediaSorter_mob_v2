@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.12 05:55</sub>
+
 # Play Console - Data safety & Health apps section (S2995)
 
 Source of truth for the **Health apps and health data declarations** in Play Console

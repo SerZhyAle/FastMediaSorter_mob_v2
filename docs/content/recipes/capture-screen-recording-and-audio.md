@@ -104,4 +104,6 @@ next_recipes:
     description: Everything the in-app camera can do beyond a quick video gesture.
 ---
 
+<sub class="doc-stamp">26.09.24 15:50</sub>
+
 Start a screen recording with sound from the Programs menu or a single edge-swipe, control it from a corner pill, its notification, or by repeating the gesture - and use the same gesture family for a quick camera video or a quick voice note.

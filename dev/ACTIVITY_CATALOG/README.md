@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.08.20 15:27</sub>
+
 # ACTIVITY_CATALOG - Activity entry-point database
 
 Focused catalog of all Android Activity classes in the project.

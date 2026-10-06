@@ -171,4 +171,6 @@ next_recipes:
     description: Pin your favorite network folder one swipe from the watch face.
 ---
 
+<sub class="doc-stamp">26.09.24 09:26</sub>
+
 Browse your [phone](term:phone)'s folders and your [network resources](term:network-resource) right from the watch, add a new one by hand, and copy, move or send a file between the two devices - or add the watch itself as a resource on the phone.

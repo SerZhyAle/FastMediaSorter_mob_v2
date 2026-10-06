@@ -164,4 +164,6 @@ next_recipes:
     description: Turn the desktop on and put apps, folders, channels and gadgets on it.
 ---
 
+<sub class="doc-stamp">26.09.24 08:31</sub>
+
 The launcher [desktop](term:desktop) can hold live gadgets: clocks for here and elsewhere, weather for several cities, sunrise and dew point, a map of where you are, a compass and speed charts, the battery, network, storage and memory of the device, and an offline translator. This page shows what each one does and how to set it up.

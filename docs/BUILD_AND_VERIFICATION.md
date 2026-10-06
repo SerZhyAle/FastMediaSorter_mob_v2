@@ -5,6 +5,8 @@ permalink: /docs/BUILD_AND_VERIFICATION.html
 lang: en
 ---
 
+<sub class="doc-stamp">26.10.06 14:18</sub>
+
 # Build and Verification
 
 [Technical specification](V2_Specification.html) | [Technology stack](TECH_STACK.html) | [Requirements](TECHNICAL_REQUIREMENTS.html)

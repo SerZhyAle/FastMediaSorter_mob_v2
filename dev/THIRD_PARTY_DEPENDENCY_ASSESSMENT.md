@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.26 10:02</sub>
+
 # Third-party dependency assessment - measured 2026-09-10
 
 What each third-party library in this project costs, how deeply it is used, and whether it could go.

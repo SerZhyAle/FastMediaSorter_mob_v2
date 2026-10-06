@@ -3,6 +3,8 @@ layout: default
 title: "استخدام التطبيق كشاشة رئيسية - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-ar.html
 ---
+<sub class="doc-stamp">26.09.25 02:22</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 # 🖥️ استخدام التطبيق كشاشة رئيسية

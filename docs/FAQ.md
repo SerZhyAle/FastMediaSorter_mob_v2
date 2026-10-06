@@ -5,6 +5,8 @@ permalink: /docs/FAQ.html
 lang: en
 ---
 
+<sub class="doc-stamp">26.10.06 16:15</sub>
+
 <div lang="en" markdown="1">
 
 # ❓ Frequently Asked Questions (FAQ)
@@ -40,7 +42,7 @@ Local files do not need internet. SMB/SFTP/FTP on your LAN need a reachable netw
 Yes! FastMediaSorter v2 ships a variety of home-screen widgets - find them via long-press on the home screen → Widgets → FastMediaSorter. They include resource shortcuts, slideshow launchers, and more.
 
 ### Can the app replace my home screen?
-In **Standard** and **noLegal**, select **Settings → General → Primary startup window → Device home screen**, then choose FastMediaSorter as Android's Home app. **Desktop as primary window** opens the desktop without replacing your system launcher.
+In **Standard** and **noLegal**, open **Settings → General → Primary startup window**, pick **Device home screen**, then choose FastMediaSorter as Android's Home app. **Desktop as primary window** opens the desktop without replacing your system launcher.
 
 [Edition capability matrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
@@ -263,7 +265,7 @@ Availability depends on the edition and device class. ML Kit translation is allo
 The first use of a language loads its text model, and large or detailed pictures take longer to read. Later runs on the same language start faster.
 
 ### What is lens-style translation mode?
-The overlay places translated blocks over the image; standard mode shows separate text. Find **Translation result in blocks** under **Settings → Media → Translation, digitization (OCR)** on supported devices.
+The overlay places translated blocks over the image; standard mode shows separate text. Find **Translation result in blocks** under **Settings → Media → Other** on supported devices.
 
 ---
 

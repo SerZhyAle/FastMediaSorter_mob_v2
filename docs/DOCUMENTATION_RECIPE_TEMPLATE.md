@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.23 12:49</sub>
+
 # Documentation Recipe Template & Structure Guide
 
 This guide defines the standard structure for all culinary-style user documentation recipes across FastMediaSorter v2 (S2945 - S2967).

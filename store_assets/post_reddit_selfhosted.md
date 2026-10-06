@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.08.07 18:57</sub>
+
 https://www.reddit.com/r/selfhosted/comments/1slh5us/i_built_an_android_app_specifically_for_managing/
 
 PLATFORM: Reddit - r/selfhosted

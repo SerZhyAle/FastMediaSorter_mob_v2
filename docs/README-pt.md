@@ -3,6 +3,8 @@ layout: default
 title: "FastMediaSorter v2"
 permalink: /docs/README-pt.html
 ---
+<sub class="doc-stamp">26.09.30 11:23</sub>
+
 <div lang="pt" dir="ltr" markdown="1">
 
 # FastMediaSorter v2 🚀

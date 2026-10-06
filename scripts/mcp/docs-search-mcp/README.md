@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.07.17 13:11</sub>
+
 # Docs Search MCP (Local)
 
 Local MCP servers for FastMediaSorter documentation and curated repo knowledge.

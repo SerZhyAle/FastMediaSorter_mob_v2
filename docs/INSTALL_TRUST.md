@@ -4,6 +4,8 @@ title: "Why Android warns about this APK"
 permalink: /docs/INSTALL_TRUST_EN.html
 ---
 
+<sub class="doc-stamp">26.10.02 22:09</sub>
+
 # Why Android warns about this APK - and what to tap
 
 FastMediaSorter is a free app from an independent developer, and the builds on the downloads page are

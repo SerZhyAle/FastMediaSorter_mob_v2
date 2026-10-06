@@ -166,4 +166,6 @@ next_recipes:
     description: Find a live channel, pin it and listen right from the watch.
 ---
 
+<sub class="doc-stamp">26.09.24 09:34</sub>
+
 Browse the watch's own files, your [phone](term:phone)'s media and your servers as a list or a grid, act on several files at once, see where each one landed on the phone, hand a file to the phone to open it there, and unlock FileDO containers on the watch.

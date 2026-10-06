@@ -3,6 +3,8 @@ layout: default
 title: "Coloque o FastMedia no Seu Relógio - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-pt.html
 ---
+<sub class="doc-stamp">26.09.30 11:26</sub>
+
 <div lang="pt" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Coloque o FastMedia no Seu Relógio

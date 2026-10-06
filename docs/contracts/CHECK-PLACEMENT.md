@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.02 20:43</sub>
+
 # Pointer - `CHECK-PLACEMENT`
 
 | | |

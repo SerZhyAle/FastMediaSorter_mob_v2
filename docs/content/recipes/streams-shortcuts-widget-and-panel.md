@@ -124,4 +124,6 @@ next_recipes:
     description: Take a station to your wrist or a channel to the TV.
 ---
 
+<sub class="doc-stamp">26.09.24 07:54</sub>
+
 Your everyday stations, one tap away: a [shortcut](term:shortcut) or the **Stream** [widget](term:widget) on the Android home screen, or the [streams panel](term:streams-panel) with your pinned [channels](term:channel) on the FastMediaSorter main screen.

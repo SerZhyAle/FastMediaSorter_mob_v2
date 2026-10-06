@@ -5,6 +5,8 @@ permalink: /docs/FAQ-zh-hans.html
 lang: zh-Hans
 ---
 
+<sub class="doc-stamp">26.10.06 14:51</sub>
+
 <div lang="zh-Hans" markdown="1">
 
 <div lang="zh-Hans" dir="ltr" markdown="1">

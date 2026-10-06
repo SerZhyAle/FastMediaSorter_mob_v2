@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.15 14:33</sub>
+
 # Как ставить задачи агентам, чтобы они тратили меньше токенов
 
 Для владельца. Основание - S3147 (`PLAN/S3147_agent-context-token-cost.md`, `research/01` и `research/02`).

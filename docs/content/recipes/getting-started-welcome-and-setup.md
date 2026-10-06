@@ -178,4 +178,6 @@ next_recipes:
     description: Installing the app, the first launch splash, and a map of what to read next.
 ---
 
+<sub class="doc-stamp">26.09.24 09:11</sub>
+
 The welcome wizard runs once, the first time you open FastMediaSorter, and walks you through language, theme, [device profile](term:device-profile), network and cloud sources, capabilities, permissions and your default player - or you can skip straight to the end with the **Enable all** button on its first page. Every choice it makes lives in [Settings](term:settings) afterward, so nothing here is a one-way door.

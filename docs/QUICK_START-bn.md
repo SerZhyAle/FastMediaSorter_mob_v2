@@ -3,6 +3,8 @@ layout: default
 title: "🚀 কুইক স্টার্ট গাইড - FastMediaSorter v2"
 permalink: /docs/QUICK_START-bn.html
 ---
+<sub class="doc-stamp">26.09.24 20:14</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # 🚀 কুইক স্টার্ট গাইড - FastMediaSorter v2

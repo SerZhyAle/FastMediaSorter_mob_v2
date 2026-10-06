@@ -5,6 +5,8 @@ permalink: /docs/FAQ-ar.html
 lang: ar
 ---
 
+<sub class="doc-stamp">26.10.06 14:51</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 <div lang="ar" dir="rtl" markdown="1">

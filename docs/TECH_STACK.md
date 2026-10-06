@@ -5,6 +5,8 @@ permalink: /docs/TECH_STACK.html
 lang: en
 ---
 
+<sub class="doc-stamp">26.10.06 14:18</sub>
+
 # Technology Stack
 
 [Technical specification](V2_Specification.html) | [Architecture](V2_architecture_overview.html) | [Requirements](TECHNICAL_REQUIREMENTS.html) | [Build and verification](BUILD_AND_VERIFICATION.html)

@@ -3,6 +3,8 @@ layout: default
 title: "FastMedia Wear - Smartwatch Media Companion & Standalone App"
 permalink: /docs/wear/
 ---
+<sub class="doc-stamp">26.10.02 11:00</sub>
+
 # <img src="../icons/doc/ic_watch.png" alt="" width="24" height="24" style="vertical-align:text-bottom"> FastMedia Wear OS Portal
 
 [📱 Main App Home](../README.md) | [📖 All Step-by-Step Guides](../howto/index.md) | [📘 Watch documentation](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/#wear) | [Русский](index-ru.md) | [Українська](index-uk.md)

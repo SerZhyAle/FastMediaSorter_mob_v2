@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.02 21:06</sub>
+
 # Pointer - `DIAGNOSTIC-REPORT`
 
 | | |

@@ -110,4 +110,6 @@ next_recipes:
     description: Edge swipes, the clock's own gestures, and the double tap that locks the screen.
 ---
 
+<sub class="doc-stamp">26.09.24 08:44</sub>
+
 Fourteen-odd rows of launcher settings are easier to use folded into a few groups than laid out in one long list, and a single **Reset launcher settings** button undoes an experiment without touching anything outside the [launcher](term:launcher). This page covers both, plus how a fresh [desktop](term:desktop) is seeded and how its sections and icons stay readable.

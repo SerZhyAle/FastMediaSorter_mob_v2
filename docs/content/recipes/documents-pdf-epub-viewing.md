@@ -186,4 +186,6 @@ next_recipes:
     description: Choose languages and the look of offline translation.
 ---
 
+<sub class="doc-stamp">26.09.30 08:35</sub>
+
 Open a PDF with one tap, turn pages by swiping, find a page by its picture, read at night in dark colors, copy, search, listen to and translate the text, and save the pages as pictures or print them - all in the built-in [reader](term:reader).

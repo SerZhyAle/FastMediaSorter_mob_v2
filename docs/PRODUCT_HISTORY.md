@@ -5,6 +5,8 @@ permalink: /docs/PRODUCT_HISTORY.html
 lang: en
 ---
 
+<sub class="doc-stamp">26.10.06 14:18</sub>
+
 # FastMediaSorter v2 - Product History
 
 **Snapshot Date**: September 13, 2026

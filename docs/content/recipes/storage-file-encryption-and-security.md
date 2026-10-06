@@ -115,4 +115,6 @@ next_recipes:
     description: Delete the original after you have sealed it.
 ---
 
+<sub class="doc-stamp">26.09.24 07:45</sub>
+
 Lock a resource with a PIN, and turn a single file into a password-protected .fd-sec container that you can view without unpacking and unpack again - on the phone, on a network folder or in the cloud.

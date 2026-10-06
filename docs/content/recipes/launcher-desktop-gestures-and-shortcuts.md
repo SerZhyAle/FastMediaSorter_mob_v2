@@ -111,4 +111,6 @@ next_recipes:
     description: The Start button, recent and pinned apps and the status tray.
 ---
 
+<sub class="doc-stamp">26.09.25 04:13</sub>
+
 An [edge gesture](term:edge-gesture) works from inside any app, and the [launcher](term:launcher) [desktop](term:desktop) adds its own swipes and taps on top. This page covers setting up both, plus the small gestures on the Clock gadget and the double tap that locks the screen.

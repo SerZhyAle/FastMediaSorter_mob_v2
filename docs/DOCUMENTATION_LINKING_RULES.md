@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.25 14:58</sub>
+
 # Documentation Linking, Termbase & External Reference Rules
 
 This guide defines linking rules across documentation pages, termbase references (S2974), unwritten page bookmarks, and external links.

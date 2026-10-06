@@ -3,6 +3,8 @@ layout: default
 title: "📖 Guias Práticos"
 permalink: /docs/HOW_TO-pt.html
 ---
+<sub class="doc-stamp">26.09.26 10:42</sub>
+
 <div lang="pt" dir="ltr" markdown="1">
 
 # 📖 Guias Práticos

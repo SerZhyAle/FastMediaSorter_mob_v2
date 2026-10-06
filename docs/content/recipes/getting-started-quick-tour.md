@@ -115,4 +115,6 @@ next_recipes:
     description: Which edition carries which capability, and how to tell them apart.
 ---
 
+<sub class="doc-stamp">26.09.25 05:48</sub>
+
 From installing FastMediaSorter to the clock on its first splash to a map of which recipe to read next - this is the five-minute tour before the [welcome wizard](page:getting-started.welcome-and-setup) asks you anything.

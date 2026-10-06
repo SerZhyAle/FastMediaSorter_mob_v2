@@ -143,4 +143,6 @@ next_recipes:
     description: Keyboard, D-pad and remote-control navigation across the app.
 ---
 
+<sub class="doc-stamp">26.09.25 04:13</sub>
+
 A theme, a language and a size that fit you make every other screen easier to use, and FastMediaSorter keeps all three in [Settings](term:settings), **General**, together with the icon and unit choices that follow from them. This page covers picking a [color theme](term:color-theme) or an accent, reading the app in your own language, switching button size, turning decorative motion off, themed icons, the app-wide unit system, color-coded panels and how the same look carries over to the [watch](term:watch).

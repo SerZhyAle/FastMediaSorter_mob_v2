@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.06 12:45</sub>
+
 # Google Play listing source
 
 This tree is the **Google Play** store-listing source. It is consumed by

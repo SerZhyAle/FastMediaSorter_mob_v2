@@ -42,4 +42,6 @@ next_recipes:
     description: Export diagnostic reports and logs.
 ---
 
+<sub class="doc-stamp">26.09.25 04:50</sub>
+
 Quickly analyze which folders, file types, and large video files are consuming storage on your device, SD card, or network shares.

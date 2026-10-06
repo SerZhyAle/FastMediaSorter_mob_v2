@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.06.26 01:31</sub>
+
 # Shared-State Mutation Audit - Agent Prompt (S0703)
 
 This is the agent-side stage of the S0703 cross-project audit for multi-layer, redundant, and

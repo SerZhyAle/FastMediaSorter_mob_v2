@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.07.28 15:49</sub>
+
 # Search Engine Registration - Operator Runbook
 
 How to get the project site into Google, Bing and Yandex, and how to keep them informed after every

@@ -3,6 +3,8 @@ layout: default
 title: "NAS / Windows শেয়ারের সাথে সংযুক্ত করুন (SMB) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-smb-setup-bn.html
 ---
+<sub class="doc-stamp">26.09.25 02:20</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # 🖥️ বাড়ির NAS / Windows শেয়ারের সাথে সংযুক্ত করুন (SMB)

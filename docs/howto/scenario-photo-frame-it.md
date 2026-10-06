@@ -3,6 +3,8 @@ layout: default
 title: "Cornice fotografica digitale su tablet - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-it.html
 ---
+<sub class="doc-stamp">26.09.25 02:18</sub>
+
 <div lang="it" dir="ltr" markdown="1">
 
 # 🖼️ Cornice fotografica digitale su tablet

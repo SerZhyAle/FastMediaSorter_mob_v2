@@ -3,6 +3,8 @@ layout: default
 title: "Guarda canali TV sul tuo smartwatch - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-it.html
 ---
+<sub class="doc-stamp">26.09.25 02:20</sub>
+
 <div lang="it" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_stream.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Guarda canali TV sul tuo smartwatch

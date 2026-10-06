@@ -745,15 +745,15 @@ scripts/builders/build-release.ps1
 ```
 
 ### build-sbom.ps1
-S3371: produce the CycloneDX SBOM for one module.
+Produce the CycloneDX SBOM for one module (S3371).
 
 ```
 scripts/builders/build-sbom.ps1
-  S3371: produce the CycloneDX SBOM for one module.
+  Produce the CycloneDX SBOM for one module (S3371).
   Params:
     -Module         [String] = 'app_v2'  {app_v2|wear}
     -OutDir         [String]
-  Exit: 0 - the SBOM was written; its path is printed.; 1 - the gradle task failed, or it reported success and wrote no file.; 2 - the module name is not one this repository has.; 4 - the module's build domain is held by another session (Enter-BuildLockOrExit).
+  Exit: 0 - a fresh SBOM was written; its path is printed.; 1 - Gradle failed, the report is absent, or report publication failed.; 2 - the Gradle wrapper or required SZA harness is unavailable.; 4 - the module's build domain is queued (Enter-BuildLockOrExit).
 ```
 
 ### build-standard-debug.ps1
@@ -1117,6 +1117,17 @@ scripts/builders/build-queue-refusal.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2612) - contract suite for scripts/builders/build-queue-refusal.ps1.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\builders\build-sbom.tests
+
+### Run-Tests.ps1
+Hermetic regression suite for the module SBOM builder and licence configuration.
+
+```
+scripts/builders/build-sbom.tests/Run-Tests.ps1
+  Hermetic regression suite for the module SBOM builder and licence configuration.
+  (no param block)
 ```
 
 ## scripts\builders\device-build-mode.tests
@@ -2285,6 +2296,15 @@ scripts/docs/check-settings-annotations.ps1
     -AnnotationsPath         [String] = (Join-Path $PSScriptRoot '..\..\docs\settings\settings-annotations.json')
 ```
 
+### DocumentationShell.ps1
+Build locale navigation and shared shell metadata for documentation pages.
+
+```
+scripts/docs/DocumentationShell.ps1
+  Build locale navigation and shared shell metadata for documentation pages.
+  (no param block)
+```
+
 ### export-doc-icon-pngs.ps1
 S0889 - export the docs/site icon assets (SVG + PNG) for every drawable named in docs/icons/doc-icon-map.json.
 
@@ -2329,6 +2349,7 @@ scripts/docs/generate-docs-pages.ps1
   Generator: Documentation HTML Pages Compiler
   Params:
     -Check              [SwitchParameter]
+    -StampOnly          [SwitchParameter]
     -Lang               [String] = "en"
     -ContentDir         [String]
     -OutputDir          [String] = "documentation"
@@ -2430,6 +2451,15 @@ scripts/docs/OssDependencyParser.ps1
   Exit: 0 parsed; 2 could not verify: build file missing, dependencies block not found,
 ```
 
+### Read-DocumentationSearchIndex.ps1
+Read and validate a complete v1 or sharded v2 documentation search index.
+
+```
+scripts/docs/Read-DocumentationSearchIndex.ps1
+  Read and validate a complete v1 or sharded v2 documentation search index.
+  (no param block)
+```
+
 ### render-icon-legend.ps1
 S0815 Phase 03 - render the trilingual icon-legend pages.
 
@@ -2466,6 +2496,22 @@ scripts/docs/render-wear-icon-legend.ps1
   Exit: 0 - the legend pages and their SVGs were written.; 1 - a referenced, mapped drawable has no source file or cannot be converted; nothing was written.; 2 - the vocabulary or the declaration is missing or unreadable; nothing was written.; 4 - Code.Scripts is held by another session: nothing was written, the place in the queue is
 ```
 
+### stamp-doc-dates.ps1
+Puts a "last edited" stamp (yy.MM.dd HH:mm) at the top of every Markdown and HTML document.
+
+```
+scripts/docs/stamp-doc-dates.ps1
+  Puts a "last edited" stamp (yy.MM.dd HH:mm) at the top of every Markdown and HTML document.
+  Params:
+    -Files                    [String[]]
+    -All                      [SwitchParameter]
+    -Check                    [SwitchParameter]
+    -Now                      [SwitchParameter]
+    -IncludeGenerated         [SwitchParameter]
+    -Quiet                    [SwitchParameter]
+  Exit: 0 every considered document is stamped and current (or was stamped now); 1 -Check found a missing or stale stamp; 2 no input given, or a file could not be read or written
+```
+
 ### strip-landing-filter-emoji.ps1
 S0907 - strip decorative emoji from the landing feature-explorer (JS scenario-filter labels, variant/tab/toggle buttons, and JS/markup section titles), text-only per owner decision 2026-07-04.
 
@@ -2486,7 +2532,27 @@ scripts/docs/strip-landing-meta-icons.ps1
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 ```
 
+### update-docs-shell.ps1
+Normalize the hand-maintained documentation hubs using the shared portal shell.
+
+```
+scripts/docs/update-docs-shell.ps1
+  Normalize the hand-maintained documentation hubs using the shared portal shell.
+  Params:
+    -Check         [SwitchParameter]
+  Exit: 0 - every hub is current, or the requested shell updates were written.; 1 - Check found at least one stale shell.
+```
+
 ## scripts\docs\lib
+
+### doc-stamp.ps1
+Last-edited stamp for Markdown and HTML documents - shared by stamp-doc-dates.ps1 and by every
+
+```
+scripts/docs/lib/doc-stamp.ps1
+  Last-edited stamp for Markdown and HTML documents - shared by stamp-doc-dates.ps1 and by every
+  (no param block)
+```
 
 ### icon-contract-looks.ps1
 The palette and the decorated look of ICON-RENDER 0.10 section 10 items B, D and E, for the icon contract exporter.
@@ -2536,6 +2602,19 @@ scripts/docs/oss-notices.tests/Run-Tests.ps1
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
   Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: parser or fixture missing, or the generator was queued
+```
+
+## scripts\docs\stamp-doc-dates.tests
+
+### Run-Tests.ps1
+Test suite for the last-edited stamp: scripts/docs/lib/doc-stamp.ps1 and stamp-doc-dates.ps1.
+
+```
+scripts/docs/stamp-doc-dates.tests/Run-Tests.ps1
+  Test suite for the last-edited stamp: scripts/docs/lib/doc-stamp.ps1 and stamp-doc-dates.ps1.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+  Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: the library or the script is missing
 ```
 
 ## scripts\document_registry
@@ -3260,11 +3339,12 @@ Quality Gate: Assert Documentation Cross-Links and Bookmarks
 scripts/quality/assert-docs-crosslinks.ps1
   Quality Gate: Assert Documentation Cross-Links and Bookmarks
   Params:
-    -Strict               [SwitchParameter]
-    -Path                 [String] = "documentation"
-    -LandingPages         [String] = "index*.html"
-    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-    -BaselinePath         [String] = (Join-Path $PSScriptRoot 'docs-crosslinks-baseline.txt')
+    -Strict                 [SwitchParameter]
+    -CheckFragments         [SwitchParameter]
+    -Path                   [String] = "documentation"
+    -LandingPages           [String] = "index*.html"
+    -RepoRoot               [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -BaselinePath           [String] = (Join-Path $PSScriptRoot 'docs-crosslinks-baseline.txt')
   Exit: 0 - every link resolves, or is a bookmark, or its target is baselined.; 1 - a new broken target, a stale baseline row, or the page manifest is missing.; 2 - -Strict and unwritten bookmarks remain.
 ```
 
@@ -7207,6 +7287,15 @@ scripts/release/watch-play-vitals.tests/Run-Tests.ps1
 
 ## scripts\site
 
+### DownloadBindings.ps1
+Bind verified APK URLs after translation while keeping translation keys version-independent.
+
+```
+scripts/site/DownloadBindings.ps1
+  Bind verified APK URLs after translation while keeping translation keys version-independent.
+  (no param block)
+```
+
 ### generate-landing-pages.ps1
 Generates the landing page in every site language from index.html plus _data/landing/<slug>.json.
 
@@ -7245,6 +7334,18 @@ scripts/site/render-family-footer.ps1
     -Quiet         [SwitchParameter]
     -Help          [SwitchParameter]
   Exit: 0 - every page matches the source (after writing, or already).; 1 - -Check only: at least one page differs from the source or carries no markers.; 2 - cannot render: the root, the source or a page is missing, the source is malformed, or a
+```
+
+### update-download-manifest.ps1
+Refresh verified public APK fallbacks for the product's edition cards.
+
+```
+scripts/site/update-download-manifest.ps1
+  Refresh verified public APK fallbacks for the product's edition cards.
+  Params:
+    -ReleasesFile         [String]
+    -Root                 [String] = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+  Exit: 0 - verified manifest written.; 1 - release retrieval or validation failed; the previous manifest is untouched.
 ```
 
 ## scripts\spec_catalog

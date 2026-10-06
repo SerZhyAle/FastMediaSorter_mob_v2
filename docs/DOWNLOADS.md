@@ -4,6 +4,8 @@ title: "FastMediaSorter APK Downloads"
 permalink: /docs/DOWNLOADS_EN.html
 ---
 
+<sub class="doc-stamp">26.09.22 19:12</sub>
+
 # FastMediaSorter APK Downloads
 
 Compiled APKs are published as **GitHub Release assets** - they are not committed to the repository.

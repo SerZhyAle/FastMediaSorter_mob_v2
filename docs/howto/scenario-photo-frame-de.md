@@ -3,6 +3,8 @@ layout: default
 title: "Digitaler Bilderrahmen auf dem Tablet - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-de.html
 ---
+<sub class="doc-stamp">26.09.25 02:19</sub>
+
 <div lang="de" dir="ltr" markdown="1">
 
 # 🖼️ Digitaler Bilderrahmen auf dem Tablet

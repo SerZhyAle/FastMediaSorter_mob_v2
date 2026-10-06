@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.08.07 18:57</sub>
+
 https://habr.com/ru/sandbox/280806/
 
 PLATFORM: Habr.com

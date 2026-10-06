@@ -3,6 +3,8 @@ layout: default
 title: "Пошаговые сценарии - FastMediaSorter v2"
 permalink: /docs/howto/index-ru.html
 ---
+<sub class="doc-stamp">26.09.30 08:53</sub>
+
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Пошаговые сценарии
 
 Практические руководства для реальных задач. Предварительные знания не нужны - каждый шаг объяснён с нуля.

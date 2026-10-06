@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.22 15:46</sub>
+
 # FastMediaSorter curated stream catalog
 
 A curated, human-maintainable catalog of **clearly-free** internet audio, video and RTSP streams,

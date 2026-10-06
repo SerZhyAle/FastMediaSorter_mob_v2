@@ -124,4 +124,6 @@ next_recipes:
     description: Перенесіть станцію на зап'ясток або канал на ТВ.
 ---
 
+<sub class="doc-stamp">26.09.25 22:14</sub>
+
 Ваші щоденні станції - в один дотик: [ярлик](term:shortcut) або [віджет](term:widget) **Трансляція** на домашньому екрані Android, або [панель трансляцій](term:streams-panel) із закріпленими [каналами](term:channel) на головному екрані FastMediaSorter.

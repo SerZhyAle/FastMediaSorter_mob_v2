@@ -111,4 +111,6 @@ next_recipes:
     description: How subtitles and stereo formats work in the flat player.
 ---
 
+<sub class="doc-stamp">26.09.24 09:27</sub>
+
 Step from the flat player into VR Cinema, meet the 360, 180, cylinder and flat virtual cinema screens, watch stereo 3D detected or set by hand, keep walking your playlist with PREV and NEXT, and see how FastMediaSorter handles it when something along the way does not work.

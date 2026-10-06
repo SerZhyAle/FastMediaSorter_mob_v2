@@ -3,6 +3,8 @@ layout: default
 title: "ایک کوڈ اسکین کر کے اپنے پی سی کے فولڈرز کھولیں - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-ur.html
 ---
+<sub class="doc-stamp">26.09.25 02:18</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> ایک کوڈ اسکین کر کے اپنے پی سی کے فولڈرز کھولیں

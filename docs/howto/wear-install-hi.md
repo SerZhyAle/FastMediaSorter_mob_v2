@@ -3,6 +3,8 @@ layout: default
 title: "FastMedia को अपनी वॉच पर लगाएं - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-hi.html
 ---
+<sub class="doc-stamp">26.09.30 11:26</sub>
+
 <div lang="hi" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> FastMedia को अपनी वॉच पर लगाएं

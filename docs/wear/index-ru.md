@@ -3,6 +3,8 @@ layout: default
 title: "FastMedia Wear - Портал умных часов Wear OS"
 permalink: /docs/wear/index-ru.html
 ---
+<sub class="doc-stamp">26.10.02 11:00</sub>
+
 # <img src="../icons/doc/ic_watch.png" alt="" width="24" height="24" style="vertical-align:text-bottom"> Веб-портал FastMedia Wear OS
 
 [📱 Главный сайт приложения](../README-ru.md) | [📖 Все руководства](../howto/index-ru.md) | [📘 Документация по часам (EN)](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/#wear) | [English](index.md) | [Українська](index-uk.md)

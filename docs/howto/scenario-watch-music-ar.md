@@ -3,6 +3,8 @@ layout: default
 title: "الاستماع إلى الموسيقى على ساعتك - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music-ar.html
 ---
+<sub class="doc-stamp">26.09.25 02:25</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 # <img src="../icons/doc/ic_audio.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> الاستماع إلى الموسيقى على ساعتك

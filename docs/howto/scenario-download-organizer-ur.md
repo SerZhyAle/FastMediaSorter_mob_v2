@@ -3,6 +3,8 @@ layout: default
 title: "ڈاؤن لوڈ آرگنائزر (کوئیک سورٹ) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-ur.html
 ---
+<sub class="doc-stamp">26.09.25 02:19</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # 🧹 ڈاؤن لوڈ آرگنائزر - ایک ٹیپ سے فائلیں ترتیب دیں

@@ -3,6 +3,8 @@ layout: default
 title: "在智能手表上观看电视频道 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-zh-hans.html
 ---
+<sub class="doc-stamp">26.09.25 02:22</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_stream.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> 在智能手表上观看电视频道

@@ -104,4 +104,6 @@ next_recipes:
     description: The slideshow that Continue Reading picks up again.
 ---
 
+<sub class="doc-stamp">26.09.24 08:48</sub>
+
 FastMediaSorter offers a set of [widgets](term:widget) for the Android [home screen](term:home-screen): one-tap buttons for the camera, the recorder, random music and your folders, and larger windows for a photo frame, the player and your scheduled jobs. This page shows what each one does, in which editions it is available, and how to add and set it up.

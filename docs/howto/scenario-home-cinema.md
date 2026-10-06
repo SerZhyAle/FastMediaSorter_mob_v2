@@ -3,6 +3,8 @@ layout: default
 title: "Home Cinema & VR Streaming - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema.html
 ---
+<sub class="doc-stamp">26.09.24 18:41</sub>
+
 # 🍿 Home Cinema & VR Streaming
 
 > **Level:** Beginner &bull; **Time:** ~15 minutes &bull; **Flavor:** Standard, Legacy, VR, noLegal (Lite has no network sources, Photos has no video)

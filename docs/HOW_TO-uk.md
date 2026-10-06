@@ -3,6 +3,8 @@ layout: default
 title: "📖 Посібники"
 permalink: /docs/HOW_TO_UK.html
 ---
+<sub class="doc-stamp">26.09.26 10:42</sub>
+
 # 📖 Посібники
 
 Покрокові інструкції для основних завдань.

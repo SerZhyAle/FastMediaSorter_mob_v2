@@ -3,6 +3,8 @@ layout: default
 title: "🔧 সমস্যা সমাধান গাইড"
 permalink: /docs/TROUBLESHOOTING-bn.html
 ---
+<sub class="doc-stamp">26.09.24 20:17</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # 🔧 সমস্যা সমাধান গাইড

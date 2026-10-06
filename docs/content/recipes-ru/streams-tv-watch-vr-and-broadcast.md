@@ -132,4 +132,6 @@ next_recipes:
     description: Основы воспроизведения онлайн-каналов на смартфоне.
 ---
 
+<sub class="doc-stamp">26.09.30 08:05</sub>
+
 Выводите прямой [канал](term:channel) на большой экран ТВ через [Chromecast](term:chromecast), на свои смарт-[часы](term:watch) или в [VR-гарнитуру](term:vr-headset), и подключайтесь к [прямому эфиру](term:live-broadcast) близких по QR-коду, ссылке или файлу.

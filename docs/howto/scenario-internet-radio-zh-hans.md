@@ -3,6 +3,8 @@ layout: default
 title: "网络电台与串流 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-zh-hans.html
 ---
+<sub class="doc-stamp">26.09.25 02:18</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 📻 网络电台与串流

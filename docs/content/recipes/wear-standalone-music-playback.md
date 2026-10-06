@@ -105,4 +105,6 @@ next_recipes:
     description: Every button of the watch's audio and video players.
 ---
 
+<sub class="doc-stamp">26.09.24 09:35</sub>
+
 Put music on the watch, open a home server as music, check the volume before you tap, and play a track that keeps going with the screen off or the app closed - with the [phone](term:phone) left at home.

@@ -88,4 +88,6 @@ next_recipes:
     description: The overview of every kind of place you can add as a resource.
 ---
 
+<sub class="doc-stamp">26.09.25 02:04</sub>
+
 Sign in to Google Drive once and it opens folders as resources, backs up your settings, and moves files and settings between your own devices through a private Drive queue - all from the same [Google Account](term:google-drive) connection, which keeps working across app updates.

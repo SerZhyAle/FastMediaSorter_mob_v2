@@ -3,6 +3,8 @@ layout: default
 title: "ইন্টারনেট রেডিও ও স্ট্রিম - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-bn.html
 ---
+<sub class="doc-stamp">26.09.25 02:17</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # 📻 ইন্টারনেট রেডিও ও স্ট্রিম

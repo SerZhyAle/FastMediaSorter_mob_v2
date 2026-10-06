@@ -3,6 +3,8 @@ layout: default
 title: "🔧 Руководство по устранению неполадок"
 permalink: /docs/TROUBLESHOOTING_RU.html
 ---
+<sub class="doc-stamp">26.09.24 18:35</sub>
+
 # 🔧 Руководство по устранению неполадок
 
 Частые проблемы и решения для FastMediaSorter v2.

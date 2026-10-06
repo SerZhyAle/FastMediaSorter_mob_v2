@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.05.31 02:46</sub>
+
 # Flavor isolation guard (S0313)
 
 `flavor-isolation-guard.ps1` is a diff-aware static guard that enforces **CLAUDE.md Rule 15**: forbidden flavor gates must not be ADDED to the shared `app_v2/src/main/java` source set. Flavor-specific logic belongs in `src/<flavor>/java` (see `dev/FLAVOR_DEVELOPMENT_RULES.md`).

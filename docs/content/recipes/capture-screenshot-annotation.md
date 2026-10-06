@@ -111,4 +111,6 @@ next_recipes:
     description: Where Send To and the system share sheet take a captured screenshot.
 ---
 
+<sub class="doc-stamp">26.09.24 15:50</sub>
+
 Turn on Gesture overlay, give a swipe a job, and a screenshot is one drag away from wherever you are - saved quietly, opened for editing, translated or sent on, exactly the way you set it up.

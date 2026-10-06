@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.19 23:44</sub>
+
 # Agent Hooks - the complete inventory
 
 Claude Code hooks run around your tool calls. One may **refuse** a call before it happens, **rewrite** its input, **observe** its result, **warn** you, or **arm** a gate for the session. This file is the whole live set. It exists because, when it was written, five of the eleven registered hooks were named in no file an agent reads, and two of those five alter the call itself (S1604).

@@ -4,6 +4,8 @@ title: "Что заменяет FastMediaSorter"
 permalink: /docs/REPLACES_RU.html
 ---
 
+<sub class="doc-stamp">26.09.24 06:37</sub>
+
 # Что заменяет FastMediaSorter
 
 *Последнее обновление: 2026-09-24*

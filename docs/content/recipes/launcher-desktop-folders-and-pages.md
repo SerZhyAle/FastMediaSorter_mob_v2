@@ -141,4 +141,6 @@ next_recipes:
     description: What a long press offers on apps, channels and gadgets.
 ---
 
+<sub class="doc-stamp">26.09.24 08:15</sub>
+
 Once the [desktop](term:desktop) holds the things you use, arranging them is a matter of a few long presses. This page covers moving and resizing squares, sections you can fold, several screens, the four swipes and the lock that keeps it all in place.

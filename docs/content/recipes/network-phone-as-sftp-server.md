@@ -94,4 +94,6 @@ next_recipes:
     description: The overview of every kind of network and cloud place this app can open.
 ---
 
+<sub class="doc-stamp">26.09.25 02:04</sub>
+
 Share folders straight from this phone over SFTP - pick them with the folder picker, sign in with a password or an SSH key, and pair another FastMediaSorter in one scan instead of typing an address.

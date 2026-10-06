@@ -3,6 +3,8 @@ layout: default
 title: "کار میں میوزک پلیئر (Android ہیڈ یونٹ) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-ur.html
 ---
+<sub class="doc-stamp">26.09.25 02:17</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # 🚗 کار میں میوزک پلیئر (Android ہیڈ یونٹ)

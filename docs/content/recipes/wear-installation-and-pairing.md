@@ -145,4 +145,6 @@ next_recipes:
     description: Listen straight from the watch, with or without the phone.
 ---
 
+<sub class="doc-stamp">26.09.30 11:27</sub>
+
 Install the FastMediaSorter [watch app](term:watch-app), switch on [Wear Companion](term:wear-companion) on the phone, open its window, and add the [watch](term:watch) to your resources - the first half of every watch feature.

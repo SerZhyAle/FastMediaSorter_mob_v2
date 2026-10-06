@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.15 16:18</sub>
+
 # Agent Cost Playbook
 
 Single operational playbook for keeping agent-session cost low without losing execution quality. The source signal is a weekly usage summary of the agent shell (subagent share, context length, parallel sessions, heavy skills, MCP servers) - not Android app profiling. Strategic rationale: `PLAN/S0816_agent-session-cost-optimization.md`. This doc is the *policy*; mechanical changes (e.g. per-skill model tiers) ship as their own child tickets.

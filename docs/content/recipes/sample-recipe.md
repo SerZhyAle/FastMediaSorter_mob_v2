@@ -78,4 +78,6 @@ next_recipes:
     description: Stream your high-resolution FLAC library directly without filling your device storage.
 ---
 
+<sub class="doc-stamp">26.10.06 01:22</sub>
+
 Whether you have thousands of lossless FLAC tracks on an SD card or albums shared across a home <span class="doc-link-term" data-term="NAS">NAS</span> server, FastMediaSorter lets you browse, queue, and sort your audio library without altering your physical folder hierarchy.

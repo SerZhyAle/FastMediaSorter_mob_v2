@@ -5,6 +5,8 @@ permalink: /docs/FAQ-ur.html
 lang: ur
 ---
 
+<sub class="doc-stamp">26.10.06 14:51</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 <div lang="ur" dir="rtl" markdown="1">

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.03 04:47</sub>
+
 # Maestro Test Examples
 # FastMediaSorter v2
 

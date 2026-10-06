@@ -3,6 +3,8 @@ layout: default
 title: "Porta-Retrato Digital no Tablet - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-pt.html
 ---
+<sub class="doc-stamp">26.09.25 02:19</sub>
+
 <div lang="pt" dir="ltr" markdown="1">
 
 # 🖼️ Porta-Retrato Digital no Tablet

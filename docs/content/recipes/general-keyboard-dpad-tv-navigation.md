@@ -155,4 +155,6 @@ next_recipes:
     description: Select many files and act on all of them at once.
 ---
 
+<sub class="doc-stamp">26.09.24 09:10</sub>
+
 A remote, a keyboard, a game controller or a mouse - FastMediaSorter answers to all of them. This page shows how to move around, answer dialogs, use the shortcuts and select files without touching the screen.

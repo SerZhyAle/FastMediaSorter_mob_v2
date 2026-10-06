@@ -122,4 +122,6 @@ next_recipes:
     description: What each permission is for, when a feature does not work.
 ---
 
+<sub class="doc-stamp">26.09.25 04:13</sub>
+
 Two tools help when something in FastMediaSorter does not work as it should: the **System information** report about your phone and the app, and the **debug log** of what the app was doing. This page shows how to open, read, copy, save and send both, and how to read the exact build from the version number.

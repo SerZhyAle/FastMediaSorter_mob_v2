@@ -3,6 +3,8 @@ layout: default
 title: "Умови використання"
 permalink: /docs/TERMS_OF_SERVICE_UK.html
 ---
+<sub class="doc-stamp">26.09.23 01:45</sub>
+
 # Умови використання
 
 **Останнє оновлення:** 30 листопада 2024 р.

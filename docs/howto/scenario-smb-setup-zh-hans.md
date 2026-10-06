@@ -3,6 +3,8 @@ layout: default
 title: "连接到 NAS / Windows 共享（SMB）- FastMediaSorter v2"
 permalink: /docs/howto/scenario-smb-setup-zh-hans.html
 ---
+<sub class="doc-stamp">26.09.25 02:20</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 🖥️ 连接到家庭 NAS / Windows 共享（SMB）

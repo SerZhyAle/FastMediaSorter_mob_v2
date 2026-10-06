@@ -128,4 +128,6 @@ next_recipes:
     description: Play and control music from your Wear OS watch.
 ---
 
+<sub class="doc-stamp">26.09.24 06:46</sub>
+
 Decide in which order the tracks of a folder play, let the sleep timer stop the music gently, and keep listening while you use other apps - with controls in the notification, a Quick Settings tile and the Now Playing bar.

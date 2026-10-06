@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.24 18:35</sub>
+
 # Screenshot Shooting Guide - How-To Scenario Guides
 
 All screenshots go to: `docs/howto/screenshots/`

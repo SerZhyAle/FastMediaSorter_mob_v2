@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.07.28 15:56</sub>
+
 PLATFORM: Reddit - r/androidapps
 URL: https://www.reddit.com/r/androidapps/
 FORMAT: Reddit Markdown

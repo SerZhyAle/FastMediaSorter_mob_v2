@@ -3,6 +3,8 @@ layout: default
 title: "Use the App as Your Home Screen - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode.html
 ---
+<sub class="doc-stamp">26.09.24 20:50</sub>
+
 # 🖥️ Use the App as Your Home Screen
 
 > **Level:** Beginner &bull; **Flavor:** Standard / noLegal

@@ -3,6 +3,8 @@ layout: default
 title: "ہوم سنیما اور VR اسٹریمنگ - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema-ur.html
 ---
+<sub class="doc-stamp">26.09.25 02:20</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # 🍿 ہوم سنیما اور VR اسٹریمنگ

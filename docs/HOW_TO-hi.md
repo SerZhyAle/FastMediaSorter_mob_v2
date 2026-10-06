@@ -3,6 +3,8 @@ layout: default
 title: "📖 कैसे-करें गाइड"
 permalink: /docs/HOW_TO-hi.html
 ---
+<sub class="doc-stamp">26.09.26 10:42</sub>
+
 <div lang="hi" dir="ltr" markdown="1">
 
 # 📖 कैसे-करें गाइड

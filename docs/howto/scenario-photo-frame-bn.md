@@ -3,6 +3,8 @@ layout: default
 title: "ট্যাবলেটে ডিজিটাল ফটো ফ্রেম - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-bn.html
 ---
+<sub class="doc-stamp">26.09.25 02:19</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # 🖼️ ট্যাবলেটে ডিজিটাল ফটো ফ্রেম

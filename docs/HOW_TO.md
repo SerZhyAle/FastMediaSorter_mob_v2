@@ -3,6 +3,8 @@ layout: default
 title: "📖 How-To Guides"
 permalink: /docs/HOW_TO.html
 ---
+<sub class="doc-stamp">26.09.26 10:42</sub>
+
 # 📖 How-To Guides
 
 Step-by-step instructions for common tasks.

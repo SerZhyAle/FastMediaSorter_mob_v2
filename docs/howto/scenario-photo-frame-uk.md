@@ -3,6 +3,8 @@ layout: default
 title: "Цифрова фоторамка на планшеті - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-uk.html
 ---
+<sub class="doc-stamp">26.09.24 20:50</sub>
+
 # 🖼️ Цифрова фоторамка на планшеті
 
 > **Рівень:** Початківець &bull; **Час:** ~15 хвилин &bull; **Версія:** Standard, Photos, Legacy, VR, noLegal (для фото з NAS/хмари) або будь-яка (для локальних фото)

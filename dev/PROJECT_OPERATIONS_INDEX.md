@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.27 01:22</sub>
+
 # FastMediaSorter v2 - Project Operations Index
 
 Last Updated: 2026-09-11

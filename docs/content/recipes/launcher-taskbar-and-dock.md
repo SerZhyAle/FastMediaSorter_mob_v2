@@ -114,4 +114,6 @@ next_recipes:
     description: The screen-edge gestures behind the camera actions in the quick-launch dock.
 ---
 
+<sub class="doc-stamp">26.09.25 04:13</sub>
+
 The [taskbar](term:taskbar) is the one part of the [launcher](term:launcher) that never scrolls away. This page covers where it sits, pinning and managing the apps on it, the fastest ways back to your files, the quick-launch dock that opens from it, and a couple of switches that need no screen of their own.
