@@ -358,7 +358,11 @@
     "</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"docs/wear/\">বৈশিষ্ট্য ও ইনস্টল</a>",
     "Watch Face": "ওয়াচ ফেস",
     "Separate watch face for Wear OS 6+: time, date, animated waves and battery indicators. Install alongside the Wear OS app.": "Wear OS 6+ এর আলাদা ওয়াচ ফেস: সময়, তারিখ, অ্যানিমেটেড তরঙ্গ ও ব্যাটারি। Wear OS অ্যাপের পাশাপাশি আলাদা ইনস্টল করুন।",
-    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Google Play-এ ওয়াচ ফেস</a> <a class=\"feature-link\" href=\"docs/wear/\">বৈশিষ্ট্য ও ইনস্টল</a>"
+    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Google Play-এ ওয়াচ ফেস</a> <a class=\"feature-link\" href=\"docs/wear/\">বৈশিষ্ট্য ও ইনস্টল</a>",
+    "<span class=\"screenshot-name\">Home screen</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">হোম স্ক্রিন</span><span class=\"screenshot-action\">প্রিভিউ</span>",
+    "<span class=\"screenshot-name\">All apps</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">সব অ্যাপ</span><span class=\"screenshot-action\">প্রিভিউ</span>",
+    "<span class=\"screenshot-name\">Network monitor</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">নেটওয়ার্ক মনিটর</span><span class=\"screenshot-action\">প্রিভিউ</span>",
+    "Hover or select a card to preview the screen.": "স্ক্রিন দেখতে কার্ডের ওপর কার্সর রাখুন বা কার্ডটি নির্বাচন করুন।"
   },
   "js": {
     "Shell & launching": "শেল ও চালু করা",

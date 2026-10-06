@@ -358,7 +358,11 @@
     "</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"docs/wear/\">Funciones e instalación</a>",
     "Watch Face": "Esfera",
     "Separate watch face for Wear OS 6+: time, date, animated waves and battery indicators. Install alongside the Wear OS app.": "Esfera independiente para Wear OS 6+: hora, fecha, ondas animadas y batería. Se instala por separado de la app Wear OS.",
-    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Esfera en Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Funciones e instalación</a>"
+    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Esfera en Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Funciones e instalación</a>",
+    "<span class=\"screenshot-name\">Home screen</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">Pantalla de inicio</span><span class=\"screenshot-action\">Vista previa</span>",
+    "<span class=\"screenshot-name\">All apps</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">Todas las aplicaciones</span><span class=\"screenshot-action\">Vista previa</span>",
+    "<span class=\"screenshot-name\">Network monitor</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">Monitor de red</span><span class=\"screenshot-action\">Vista previa</span>",
+    "Hover or select a card to preview the screen.": "Pasa el cursor o selecciona una tarjeta para ver la pantalla."
   },
   "js": {
     "Shell & launching": "Shell y lanzamiento",

@@ -8,6 +8,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
 const root = path.resolve(__dirname, '../..');
+const screenshotDir = process.env.SITE_SCREENSHOT_DIR;
+if (screenshotDir) fs.mkdirSync(screenshotDir, { recursive: true });
 const locales = ['', '-ru', '-uk', '-zh-hans', '-hi', '-es', '-fr', '-ar', '-bn', '-pt', '-ur', '-de', '-it'];
 const pages = locales.map(l => 'index' + l + '.html').concat(['nolegal.html', 'nolegal-ru.html', 'nolegal-uk.html']);
 const fixture = '<main class="main-content"><h1>Complete Feature List</h1><h2 id="shell">1. Device shell</h2>' +
@@ -34,6 +36,7 @@ const server = http.createServer((request, response) => {
     } catch { response.writeHead(404); response.end(); }
 });
 async function test(name, action) {
+    if (process.env.SITE_TEST_FILTER && !new RegExp(process.env.SITE_TEST_FILTER).test(name)) return;
     try { await action(); passed++; console.log('PASS ' + name); }
     catch (error) { failures.push(name + ': ' + error.message); console.error('FAIL ' + name + ': ' + error.message); }
 }
@@ -75,6 +78,85 @@ async function test(name, action) {
                     }
                 }
             }
+        });
+        await test('scenarios precede installation and optional screenshots in every locale', async () => {
+            for (const locale of locales) {
+                await page.goto(base + 'index' + locale + '.html');
+                const layout = await page.evaluate(() => {
+                    const scenarios = document.getElementById('scenarios');
+                    const get = document.getElementById('get');
+                    const gallery = document.getElementById('home-screen');
+                    return { first: document.querySelector('main > section').id,
+                        beforeGet: !!(scenarios.compareDocumentPosition(get) & Node.DOCUMENT_POSITION_FOLLOWING),
+                        beforeGallery: !!(scenarios.compareDocumentPosition(gallery) & Node.DOCUMENT_POSITION_FOLLOWING),
+                        cards: document.querySelectorAll('.screenshot-card').length,
+                        open: document.querySelectorAll('.screenshot-card[open]').length };
+                });
+                assert.deepEqual(layout, { first: 'scenarios', beforeGet: true, beforeGallery: true, cards: 3, open: 0 }, locale);
+                assert.equal(await page.locator('.screenshot-preview').first().isVisible(), false, locale);
+            }
+        });
+        await test('desktop previews support hover, keyboard, dismissal and viewport limits', async () => {
+            await page.setViewportSize({ width: 1280, height: 900 });
+            await page.goto(base + 'index-ru.html');
+            const card = page.locator('.screenshot-card').first();
+            const summary = card.locator('summary');
+            await summary.hover();
+            await page.waitForFunction(() => document.querySelector('.screenshot-card').open);
+            const preview = card.locator('.screenshot-preview');
+            await preview.locator('img').evaluate(img => img.decode());
+            await page.waitForTimeout(100);
+            const rect = await preview.boundingBox();
+            assert.ok(rect.x >= 0 && rect.y >= 0 && rect.x + rect.width <= 1281 && rect.y + rect.height <= 901);
+            await preview.hover(); await page.waitForTimeout(250);
+            assert.equal(await card.evaluate(e => e.open), true, 'preview remains hoverable');
+            await page.mouse.move(5, 5); await page.waitForTimeout(250);
+            assert.equal(await card.evaluate(e => e.open), false, 'leaving closes the preview');
+            await summary.focus(); await page.keyboard.press('Enter');
+            assert.equal(await card.evaluate(e => e.open), true);
+            await page.keyboard.press('Escape');
+            assert.equal(await card.evaluate(e => e.open), false);
+            assert.equal(await summary.evaluate(e => e === document.activeElement), true);
+            await page.keyboard.press('Space');
+            assert.equal(await card.evaluate(e => e.open), true);
+            await page.keyboard.press('Space');
+            assert.equal(await card.evaluate(e => e.open), false);
+            await summary.click();
+            assert.equal(await card.evaluate(e => e.open), true);
+            await page.mouse.click(5, 5);
+            assert.equal(await card.evaluate(e => e.open), false);
+            await summary.focus(); await page.keyboard.press('Enter');
+            if (screenshotDir) await page.screenshot({ path: path.join(screenshotDir, 'site-preview-desktop.png') });
+            await page.keyboard.press('Escape');
+        });
+        await test('touch previews open on tap, fit the viewport and close on a second tap', async () => {
+            const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+            const touch = await context.newPage(); await touch.route(/^https:\/\//, route => route.abort());
+            try {
+                await touch.goto(base + 'index-ru.html');
+                const card = touch.locator('.screenshot-card').first();
+                const summary = card.locator('summary');
+                assert.equal(await card.evaluate(e => e.open), false);
+                await summary.tap(); assert.equal(await card.evaluate(e => e.open), true);
+                await card.locator('img').evaluate(img => img.decode());
+                assert.ok(await touch.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+                assert.ok((await card.locator('img').boundingBox()).height <= 844 * 0.61);
+                if (screenshotDir) await touch.screenshot({ path: path.join(screenshotDir, 'site-preview-mobile.png') });
+                await summary.tap(); assert.equal(await card.evaluate(e => e.open), false);
+            } finally { await context.close(); }
+        });
+        await test('screenshots remain optional and usable without JavaScript', async () => {
+            const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
+            const plain = await context.newPage(); await plain.route(/^https:\/\//, route => route.abort());
+            try {
+                await plain.goto(base + 'index-ru.html');
+                const card = plain.locator('.screenshot-card').first();
+                assert.equal(await card.locator('img').isVisible(), false);
+                await card.locator('summary').click();
+                assert.equal(await card.locator('img').isVisible(), true);
+                await card.locator('summary').click();
+                assert.equal(await card.locator('img').isVisible(), false);
+            } finally { await context.close(); }
         });
         await test('every translated scenario uses its stable filter, not its title', async () => {
             await page.setViewportSize({ width: 1280, height: 900 });

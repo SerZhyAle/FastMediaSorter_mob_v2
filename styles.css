@@ -667,42 +667,67 @@ h1 img {
     color: var(--text-2);
 }
 
-.shell-shots {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin: 0;
-}
-
-.shell-shot {
-    margin: 0;
-}
-
-.shell-shot img {
-    border: 1px solid var(--border-glass);
-    border-radius: var(--radius-sm);
-    box-shadow: var(--shadow);
-    display: block;
-    height: auto;
-    width: 100%;
-}
-
 .shell-links {
     color: var(--text-muted);
     font-size: 0.9rem;
 }
 
-@media (max-width: 600px) {
-    .shell-shots {
-        grid-auto-columns: 70%;
-        grid-auto-flow: column;
-        grid-template-columns: none;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
+/* Screens are optional previews, not an oversized opening gallery. */
+.usage-scenarios { padding-top: 1.5rem; }
+.screenshot-hint { color: var(--text-muted); font-size: 0.9rem; }
+.screenshot-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 1rem;
+}
+.screenshot-card {
+    min-width: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+.screenshot-card:hover, .screenshot-card:focus-within { border-color: var(--acc); }
+.screenshot-card > summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    padding: 1.1rem 1.25rem;
+    min-height: 48px;
+    cursor: pointer;
+    list-style: none;
+}
+.screenshot-card > summary::-webkit-details-marker { display: none; }
+.screenshot-name { font-family: var(--font-heading); font-weight: 700; color: var(--text-highlight); }
+.screenshot-action { color: var(--acc); font-size: 0.85rem; }
+.screenshot-preview {
+    margin: 0;
+    padding: 0.75rem;
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+}
+.screenshot-preview img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: min(60vh, 540px);
+    margin: 0 auto;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+}
+@media (hover: hover) and (pointer: fine) {
+    .screenshot-card[data-preview-enhanced][open] > .screenshot-preview {
+        position: fixed;
+        z-index: 1100;
+        width: min(280px, calc(100vw - 24px));
+        border: 1px solid var(--border-glass);
+        box-shadow: var(--shadow);
     }
-
-    .shell-shot {
-        scroll-snap-align: start;
+    .screenshot-card[data-preview-enhanced] .screenshot-preview img {
+        max-height: var(--preview-limit, min(60vh, 540px));
     }
 }
 

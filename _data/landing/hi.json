@@ -366,7 +366,11 @@
     "</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"docs/wear/\">सुविधाएँ और इंस्टॉल</a>",
     "Watch Face": "वॉच फेस",
     "Separate watch face for Wear OS 6+: time, date, animated waves and battery indicators. Install alongside the Wear OS app.": "Wear OS 6+ के लिए अलग वॉच फेस: समय, तारीख, एनिमेटेड तरंगें और बैटरी। Wear OS ऐप के साथ अलग से इंस्टॉल करें।",
-    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Google Play पर वॉच फेस</a> <a class=\"feature-link\" href=\"docs/wear/\">सुविधाएँ और इंस्टॉल</a>"
+    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Google Play पर वॉच फेस</a> <a class=\"feature-link\" href=\"docs/wear/\">सुविधाएँ और इंस्टॉल</a>",
+    "<span class=\"screenshot-name\">Home screen</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">होम स्क्रीन</span><span class=\"screenshot-action\">पूर्वावलोकन</span>",
+    "<span class=\"screenshot-name\">All apps</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">सभी ऐप्स</span><span class=\"screenshot-action\">पूर्वावलोकन</span>",
+    "<span class=\"screenshot-name\">Network monitor</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">नेटवर्क मॉनिटर</span><span class=\"screenshot-action\">पूर्वावलोकन</span>",
+    "Hover or select a card to preview the screen.": "स्क्रीन देखने के लिए कार्ड पर कर्सर रखें या उसे चुनें।"
   },
   "js": {
     "Shell & launching": "शेल और लॉन्चिंग",
