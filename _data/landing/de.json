@@ -197,9 +197,7 @@
     "One-tap downloads are in the Download APK Builds section below.": "Ein-Tipp-Downloads findest du im Abschnitt APK-Builds herunterladen weiter unten.",
     "<a href=\"docs/DOWNLOADS_EN.html\" class=\"card-footer\" target=\"_blank\">Open details</a>": "<a href=\"docs/DOWNLOADS_EN.html\" class=\"card-footer\" target=\"_blank\">Details öffnen</a>",
     "Download APK Builds": "APK-Builds herunterladen",
-    "Direct downloads from the latest GitHub Release. Pick the edition that matches your device - the version updates automatically.": "Direkte Downloads aus dem neuesten GitHub-Release. Wähle die Edition, die zu deinem Gerät passt - die Version aktualisiert sich automatisch.",
     "Android warns about an APK it has not seen before. <a href=\"docs/INSTALL_TRUST_EN.html\" target=\"_blank\" rel=\"noopener\">Why the warning appears - and what to tap</a>.": "Android warnt vor einer APK, die es noch nicht kennt. <a href=\"docs/INSTALL_TRUST_EN.html\" target=\"_blank\" rel=\"noopener\">Warum die Warnung erscheint - und worauf du tippen solltest</a>.",
-    "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest\" target=\"_blank\" rel=\"noopener\">Open the latest release on GitHub →</a>": "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest\" target=\"_blank\" rel=\"noopener\">Neuestes Release auf GitHub öffnen →</a>",
     "Application Features": "App-Funktionen",
     "<span class=\"variant-title\">Dashboard:</span>": "<span class=\"variant-title\">Übersicht:</span>",
     "Categories": "Kategorien",
@@ -294,9 +292,7 @@
     "<a href=\"documentation/network/network-sync-and-cache.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/network/network-sync-and-cache.html\" class=\"card-footer\" target=\"_blank\">Rezept öffnen</a>",
     "<a href=\"documentation/documents/pdf-epub-viewing.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/documents/pdf-epub-viewing.html\" class=\"card-footer\" target=\"_blank\">Rezept öffnen</a>",
     "<a href=\"documentation/tools/ocr-text-recognition.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/tools/ocr-text-recognition.html\" class=\"card-footer\" target=\"_blank\">Rezept öffnen</a>",
-    "<a href=\"documentation/network/smb-samba-shares.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/network/smb-samba-shares.html\" class=\"card-footer\" target=\"_blank\">Rezept öffnen</a>",
     "<a href=\"documentation/storage/file-copy-move-delete.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/storage/file-copy-move-delete.html\" class=\"card-footer\" target=\"_blank\">Rezept öffnen</a>",
-    "<a href=\"documentation/player/video-playback-controls.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/player/video-playback-controls.html\" class=\"card-footer\" target=\"_blank\">Rezept öffnen</a>",
     "<a href=\"documentation/vr/spatial-cinema-playback.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/vr/spatial-cinema-playback.html\" class=\"card-footer\" target=\"_blank\">Rezept öffnen</a>",
     "<a href=\"documentation/programs/calculator-and-stopwatch.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/programs/calculator-and-stopwatch.html\" class=\"card-footer\" target=\"_blank\">Rezept öffnen</a>",
     "<a href=\"documentation/documents/text-code-editor.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/documents/text-code-editor.html\" class=\"card-footer\" target=\"_blank\">Rezept öffnen</a>",
@@ -341,7 +337,11 @@
     "<a href=\"documentation/launcher/desktop-grid-and-icons.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/desktop-grid-and-icons.html\" class=\"card-footer\" target=\"_blank\">Rezept öffnen</a>",
     "<a href=\"documentation/launcher/home-screen-widgets.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/home-screen-widgets.html\" class=\"card-footer\" target=\"_blank\">Rezept öffnen</a>",
     "<a href=\"documentation/launcher/taskbar-and-dock.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/taskbar-and-dock.html\" class=\"card-footer\" target=\"_blank\">Rezept öffnen</a>",
-    "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">Rezept öffnen</a>"
+    "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">Rezept öffnen</a>",
+    "Close feature details": "Funktionsdetails schließen",
+    "Search features": "Funktionen suchen",
+    "Latest available stable APK for each edition. Versions may differ; use GitHub releases if your edition is not listed.": "Das neueste verfügbare stabile APK jeder Edition. Versionen können abweichen; fehlt deine Edition, öffne die GitHub-Releases.",
+    "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases\" target=\"_blank\" rel=\"noopener\">All releases on GitHub →</a>": "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases\" target=\"_blank\" rel=\"noopener\">Alle Releases auf GitHub →</a>"
   },
   "js": {
     "Shell & launching": "Shell & Start",
@@ -379,6 +379,10 @@
     "Recipe: In-Car Music": "Rezept: Im Auto",
     "Recipe: Home Cinema": "Rezept: Heimkino",
     "Watch Music": "Watch-Musik",
-    "Watch Network": "Watch-Netzwerk"
+    "Watch Network": "Watch-Netzwerk",
+    "Home screen": "Startbildschirm",
+    "Watch companion": "Watch-Begleiter",
+    "Live streams": "Live-Streams",
+    "Retry": "Erneut versuchen"
   }
 }

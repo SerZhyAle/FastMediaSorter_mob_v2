@@ -205,9 +205,7 @@
     "One-tap downloads are in the Download APK Builds section below.": "一键下载位于下方的“下载 APK 安装包”部分。",
     "<a href=\"docs/DOWNLOADS_EN.html\" class=\"card-footer\" target=\"_blank\">Open details</a>": "<a href=\"docs/DOWNLOADS_EN.html\" class=\"card-footer\" target=\"_blank\">查看详情</a>",
     "Download APK Builds": "下载 APK 安装包",
-    "Direct downloads from the latest GitHub Release. Pick the edition that matches your device - the version updates automatically.": "直接从最新的 GitHub 发布版下载。选择与您设备匹配的版本 - 版本号会自动更新。",
     "Android warns about an APK it has not seen before. <a href=\"docs/INSTALL_TRUST_EN.html\" target=\"_blank\" rel=\"noopener\">Why the warning appears - and what to tap</a>.": "Android 会对从未见过的 APK 发出警告。<a href=\"docs/INSTALL_TRUST_EN.html\" target=\"_blank\" rel=\"noopener\">为什么会出现此警告 - 以及应该点击什么</a>。",
-    "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest\" target=\"_blank\" rel=\"noopener\">Open the latest release on GitHub →</a>": "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest\" target=\"_blank\" rel=\"noopener\">在 GitHub 上打开最新发布版 →</a>",
     "Application Features": "应用功能",
     "<span class=\"variant-title\">Dashboard:</span>": "<span class=\"variant-title\">仪表盘：</span>",
     "Categories": "分类",
@@ -302,9 +300,7 @@
     "<a href=\"documentation/network/network-sync-and-cache.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/network/network-sync-and-cache.html\" class=\"card-footer\" target=\"_blank\">打开方案</a>",
     "<a href=\"documentation/documents/pdf-epub-viewing.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/documents/pdf-epub-viewing.html\" class=\"card-footer\" target=\"_blank\">打开方案</a>",
     "<a href=\"documentation/tools/ocr-text-recognition.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/tools/ocr-text-recognition.html\" class=\"card-footer\" target=\"_blank\">打开方案</a>",
-    "<a href=\"documentation/network/smb-samba-shares.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/network/smb-samba-shares.html\" class=\"card-footer\" target=\"_blank\">打开方案</a>",
     "<a href=\"documentation/storage/file-copy-move-delete.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/storage/file-copy-move-delete.html\" class=\"card-footer\" target=\"_blank\">打开方案</a>",
-    "<a href=\"documentation/player/video-playback-controls.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/player/video-playback-controls.html\" class=\"card-footer\" target=\"_blank\">打开方案</a>",
     "<a href=\"documentation/vr/spatial-cinema-playback.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/vr/spatial-cinema-playback.html\" class=\"card-footer\" target=\"_blank\">打开方案</a>",
     "<a href=\"documentation/programs/calculator-and-stopwatch.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/programs/calculator-and-stopwatch.html\" class=\"card-footer\" target=\"_blank\">打开方案</a>",
     "<a href=\"documentation/documents/text-code-editor.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/documents/text-code-editor.html\" class=\"card-footer\" target=\"_blank\">打开方案</a>",
@@ -349,10 +345,13 @@
     "<a href=\"documentation/launcher/desktop-grid-and-icons.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/desktop-grid-and-icons.html\" class=\"card-footer\" target=\"_blank\">打开方案</a>",
     "<a href=\"documentation/launcher/home-screen-widgets.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/home-screen-widgets.html\" class=\"card-footer\" target=\"_blank\">打开方案</a>",
     "<a href=\"documentation/launcher/taskbar-and-dock.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/taskbar-and-dock.html\" class=\"card-footer\" target=\"_blank\">打开方案</a>",
-    "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">打开方案</a>"
+    "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">打开方案</a>",
+    "Close feature details": "关闭功能详情",
+    "Search features": "搜索功能",
+    "Latest available stable APK for each edition. Versions may differ; use GitHub releases if your edition is not listed.": "各版本最新可用的稳定 APK。版本号可能不同；如果未列出所需版本，请查看 GitHub 发布列表。",
+    "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases\" target=\"_blank\" rel=\"noopener\">All releases on GitHub →</a>": "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases\" target=\"_blank\" rel=\"noopener\">GitHub 上的所有发布 →</a>"
   },
   "js": {
-    "Wear OS": "Wear OS",
     "Shell & launching": "外壳与启动",
     "Media & streams": "媒体与直播流",
     "Tools & monitoring": "工具与监控",
@@ -390,6 +389,10 @@
     "Recipe: In-Car Music": "方案：车载音乐",
     "Recipe: Home Cinema": "方案：家庭影院",
     "Watch Music": "手表音乐",
-    "Watch Network": "手表网络"
+    "Watch Network": "手表网络",
+    "Home screen": "主屏幕",
+    "Watch companion": "手表伴侣",
+    "Live streams": "直播",
+    "Retry": "重试"
   }
 }

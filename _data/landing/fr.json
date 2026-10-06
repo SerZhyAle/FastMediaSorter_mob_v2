@@ -205,9 +205,7 @@
     "One-tap downloads are in the Download APK Builds section below.": "Les téléchargements en un geste se trouvent dans la section Télécharger les APK ci-dessous.",
     "<a href=\"docs/DOWNLOADS_EN.html\" class=\"card-footer\" target=\"_blank\">Open details</a>": "<a href=\"docs/DOWNLOADS_EN.html\" class=\"card-footer\" target=\"_blank\">Ouvrir les détails</a>",
     "Download APK Builds": "Télécharger les versions APK",
-    "Direct downloads from the latest GitHub Release. Pick the edition that matches your device - the version updates automatically.": "Téléchargements directs depuis la dernière version GitHub. Choisissez l’édition adaptée à votre appareil - la version se met à jour automatiquement.",
     "Android warns about an APK it has not seen before. <a href=\"docs/INSTALL_TRUST_EN.html\" target=\"_blank\" rel=\"noopener\">Why the warning appears - and what to tap</a>.": "Android avertit à propos d’un APK qu’il n’a encore jamais vu. <a href=\"docs/INSTALL_TRUST_EN.html\" target=\"_blank\" rel=\"noopener\">Pourquoi cet avertissement apparaît - et sur quoi appuyer</a>.",
-    "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest\" target=\"_blank\" rel=\"noopener\">Open the latest release on GitHub →</a>": "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest\" target=\"_blank\" rel=\"noopener\">Ouvrir la dernière version sur GitHub →</a>",
     "Application Features": "Fonctionnalités de l’application",
     "<span class=\"variant-title\">Dashboard:</span>": "<span class=\"variant-title\">Tableau de bord :</span>",
     "Categories": "Catégories",
@@ -302,9 +300,7 @@
     "<a href=\"documentation/network/network-sync-and-cache.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/network/network-sync-and-cache.html\" class=\"card-footer\" target=\"_blank\">Ouvrir la recette</a>",
     "<a href=\"documentation/documents/pdf-epub-viewing.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/documents/pdf-epub-viewing.html\" class=\"card-footer\" target=\"_blank\">Ouvrir la recette</a>",
     "<a href=\"documentation/tools/ocr-text-recognition.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/tools/ocr-text-recognition.html\" class=\"card-footer\" target=\"_blank\">Ouvrir la recette</a>",
-    "<a href=\"documentation/network/smb-samba-shares.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/network/smb-samba-shares.html\" class=\"card-footer\" target=\"_blank\">Ouvrir la recette</a>",
     "<a href=\"documentation/storage/file-copy-move-delete.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/storage/file-copy-move-delete.html\" class=\"card-footer\" target=\"_blank\">Ouvrir la recette</a>",
-    "<a href=\"documentation/player/video-playback-controls.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/player/video-playback-controls.html\" class=\"card-footer\" target=\"_blank\">Ouvrir la recette</a>",
     "<a href=\"documentation/vr/spatial-cinema-playback.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/vr/spatial-cinema-playback.html\" class=\"card-footer\" target=\"_blank\">Ouvrir la recette</a>",
     "<a href=\"documentation/programs/calculator-and-stopwatch.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/programs/calculator-and-stopwatch.html\" class=\"card-footer\" target=\"_blank\">Ouvrir la recette</a>",
     "<a href=\"documentation/documents/text-code-editor.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/documents/text-code-editor.html\" class=\"card-footer\" target=\"_blank\">Ouvrir la recette</a>",
@@ -349,10 +345,13 @@
     "<a href=\"documentation/launcher/desktop-grid-and-icons.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/desktop-grid-and-icons.html\" class=\"card-footer\" target=\"_blank\">Ouvrir la recette</a>",
     "<a href=\"documentation/launcher/home-screen-widgets.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/home-screen-widgets.html\" class=\"card-footer\" target=\"_blank\">Ouvrir la recette</a>",
     "<a href=\"documentation/launcher/taskbar-and-dock.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/taskbar-and-dock.html\" class=\"card-footer\" target=\"_blank\">Ouvrir la recette</a>",
-    "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">Ouvrir la recette</a>"
+    "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">Ouvrir la recette</a>",
+    "Close feature details": "Fermer les détails de la fonction",
+    "Search features": "Rechercher des fonctions",
+    "Latest available stable APK for each edition. Versions may differ; use GitHub releases if your edition is not listed.": "Le dernier APK stable disponible pour chaque édition. Les versions peuvent différer ; consultez les versions GitHub si votre édition manque.",
+    "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases\" target=\"_blank\" rel=\"noopener\">All releases on GitHub →</a>": "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases\" target=\"_blank\" rel=\"noopener\">Toutes les versions sur GitHub →</a>"
   },
   "js": {
-    "Wear OS": "Wear OS",
     "Shell & launching": "Shell et lancement",
     "Media & streams": "Médias et flux",
     "Tools & monitoring": "Outils et surveillance",
@@ -390,6 +389,10 @@
     "Recipe: In-Car Music": "Recette : En voiture",
     "Recipe: Home Cinema": "Recette : Cinéma maison",
     "Watch Music": "Musique sur montre",
-    "Watch Network": "Réseau sur montre"
+    "Watch Network": "Réseau sur montre",
+    "Home screen": "Écran d’accueil",
+    "Watch companion": "Compagnon de montre",
+    "Live streams": "Diffusions en direct",
+    "Retry": "Réessayer"
   }
 }

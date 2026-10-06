@@ -205,9 +205,7 @@
     "One-tap downloads are in the Download APK Builds section below.": "एक-टैप डाउनलोड नीचे Download APK Builds सेक्शन में हैं।",
     "<a href=\"docs/DOWNLOADS_EN.html\" class=\"card-footer\" target=\"_blank\">Open details</a>": "<a href=\"docs/DOWNLOADS_EN.html\" class=\"card-footer\" target=\"_blank\">विवरण खोलें</a>",
     "Download APK Builds": "APK Builds डाउनलोड करें",
-    "Direct downloads from the latest GitHub Release. Pick the edition that matches your device - the version updates automatically.": "नवीनतम GitHub Release से सीधे डाउनलोड। अपने डिवाइस से मेल खाने वाला एडिशन चुनें - वर्ज़न अपने आप अपडेट होता है।",
     "Android warns about an APK it has not seen before. <a href=\"docs/INSTALL_TRUST_EN.html\" target=\"_blank\" rel=\"noopener\">Why the warning appears - and what to tap</a>.": "Android किसी ऐसे APK के बारे में चेतावनी देता है जो उसने पहले नहीं देखा। <a href=\"docs/INSTALL_TRUST_EN.html\" target=\"_blank\" rel=\"noopener\">चेतावनी क्यों दिखती है - और क्या टैप करें</a>।",
-    "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest\" target=\"_blank\" rel=\"noopener\">Open the latest release on GitHub →</a>": "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest\" target=\"_blank\" rel=\"noopener\">GitHub पर नवीनतम रिलीज़ खोलें →</a>",
     "Application Features": "ऐप्लिकेशन फ़ीचर",
     "<span class=\"variant-title\">Dashboard:</span>": "<span class=\"variant-title\">डैशबोर्ड:</span>",
     "Categories": "श्रेणियां",
@@ -302,9 +300,7 @@
     "<a href=\"documentation/network/network-sync-and-cache.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/network/network-sync-and-cache.html\" class=\"card-footer\" target=\"_blank\">रेसिपी खोलें</a>",
     "<a href=\"documentation/documents/pdf-epub-viewing.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/documents/pdf-epub-viewing.html\" class=\"card-footer\" target=\"_blank\">रेसिपी खोलें</a>",
     "<a href=\"documentation/tools/ocr-text-recognition.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/tools/ocr-text-recognition.html\" class=\"card-footer\" target=\"_blank\">रेसिपी खोलें</a>",
-    "<a href=\"documentation/network/smb-samba-shares.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/network/smb-samba-shares.html\" class=\"card-footer\" target=\"_blank\">रेसिपी खोलें</a>",
     "<a href=\"documentation/storage/file-copy-move-delete.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/storage/file-copy-move-delete.html\" class=\"card-footer\" target=\"_blank\">रेसिपी खोलें</a>",
-    "<a href=\"documentation/player/video-playback-controls.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/player/video-playback-controls.html\" class=\"card-footer\" target=\"_blank\">रेसिपी खोलें</a>",
     "<a href=\"documentation/vr/spatial-cinema-playback.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/vr/spatial-cinema-playback.html\" class=\"card-footer\" target=\"_blank\">रेसिपी खोलें</a>",
     "<a href=\"documentation/programs/calculator-and-stopwatch.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/programs/calculator-and-stopwatch.html\" class=\"card-footer\" target=\"_blank\">रेसिपी खोलें</a>",
     "<a href=\"documentation/documents/text-code-editor.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/documents/text-code-editor.html\" class=\"card-footer\" target=\"_blank\">रेसिपी खोलें</a>",
@@ -349,10 +345,13 @@
     "<a href=\"documentation/launcher/desktop-grid-and-icons.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/desktop-grid-and-icons.html\" class=\"card-footer\" target=\"_blank\">रेसिपी खोलें</a>",
     "<a href=\"documentation/launcher/home-screen-widgets.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/home-screen-widgets.html\" class=\"card-footer\" target=\"_blank\">रेसिपी खोलें</a>",
     "<a href=\"documentation/launcher/taskbar-and-dock.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/taskbar-and-dock.html\" class=\"card-footer\" target=\"_blank\">रेसिपी खोलें</a>",
-    "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">रेसिपी खोलें</a>"
+    "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>": "<a href=\"documentation/launcher/screen-dimming-and-timeout.html\" class=\"card-footer\" target=\"_blank\">रेसिपी खोलें</a>",
+    "Close feature details": "सुविधा विवरण बंद करें",
+    "Search features": "सुविधाएँ खोजें",
+    "Latest available stable APK for each edition. Versions may differ; use GitHub releases if your edition is not listed.": "हर संस्करण के लिए नवीनतम उपलब्ध स्थिर APK। संस्करण अलग हो सकते हैं; अपना संस्करण न दिखे तो GitHub रिलीज़ देखें।",
+    "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases\" target=\"_blank\" rel=\"noopener\">All releases on GitHub →</a>": "<a class=\"apk-fallback\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases\" target=\"_blank\" rel=\"noopener\">GitHub पर सभी रिलीज़ →</a>"
   },
   "js": {
-    "Wear OS": "Wear OS",
     "Shell & launching": "शेल और लॉन्चिंग",
     "Media & streams": "मीडिया और स्ट्रीम",
     "Tools & monitoring": "टूल और मॉनिटरिंग",
@@ -390,6 +389,10 @@
     "Recipe: In-Car Music": "रेसिपी: कार में संगीत",
     "Recipe: Home Cinema": "रेसिपी: होम सिनेमा",
     "Watch Music": "वॉच संगीत",
-    "Watch Network": "वॉच नेटवर्क"
+    "Watch Network": "वॉच नेटवर्क",
+    "Home screen": "होम स्क्रीन",
+    "Watch companion": "घड़ी साथी",
+    "Live streams": "लाइव स्ट्रीम",
+    "Retry": "फिर कोशिश करें"
   }
 }
