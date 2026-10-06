@@ -49,7 +49,7 @@
     {
       "id": "BSD-2-Clause AND Apache-2.0 AND MIT",
       "spdx": false,
-      "packages": ["maven/com.github.bumptech.glide:glide"],
+      "packages": ["pkg:maven/com.github.bumptech.glide/glide"],
       "flavors": ["standard", "noLegal", "lite", "photos", "legacy", "vr", "foss"],
       "reason": "Glide's composite expression. Every member is already allowed above; it is listed as a package exemption because the composite string is not a single SPDX identifier the PR gate can match."
     },
@@ -57,11 +57,11 @@
       "id": "Android Software Development Kit License",
       "spdx": false,
       "packages": [
-        "maven/com.google.android.gms:play-services-auth",
-        "maven/com.google.android.gms:play-services-auth-blockstore",
-        "maven/com.google.android.gms:play-services-cast-framework",
-        "maven/com.google.android.gms:play-services-wearable",
-        "maven/com.google.android.libraries.identity.googleid:googleid"
+        "pkg:maven/com.google.android.gms/play-services-auth",
+        "pkg:maven/com.google.android.gms/play-services-auth-blockstore",
+        "pkg:maven/com.google.android.gms/play-services-cast-framework",
+        "pkg:maven/com.google.android.gms/play-services-wearable",
+        "pkg:maven/com.google.android.libraries.identity.googleid/googleid"
       ],
       "flavors": ["standard", "noLegal", "lite", "photos", "legacy", "vr", "foss"],
       "reason": "Google's own SDK terms, not an SPDX identifier. Accepted per package rather than per licence, so a new Google artifact under the same terms is still reviewed."
@@ -69,14 +69,14 @@
     {
       "id": "ML Kit Terms of Service",
       "spdx": false,
-      "packages": ["maven/com.google.mlkit:language-id", "maven/com.google.mlkit:translate"],
+      "packages": ["pkg:maven/com.google.mlkit/language-id", "pkg:maven/com.google.mlkit/translate"],
       "flavors": ["standard", "noLegal", "legacy", "vr"],
       "reason": "Google's ML Kit terms, not SPDX. Named per package: the two the translation feature already ships."
     },
     {
       "id": "Play Core Software Development Kit Terms of Service",
       "spdx": false,
-      "packages": ["maven/com.google.android.play:feature-delivery-ktx", "maven/com.google.android.play:review-ktx"],
+      "packages": ["pkg:maven/com.google.android.play/feature-delivery-ktx", "pkg:maven/com.google.android.play/review-ktx"],
       "flavors": ["standard", "noLegal", "lite", "photos", "legacy", "vr"],
       "reason": "Google Play Core terms, not SPDX. Named per package: feature delivery and the in-app review prompt. foss ships neither."
     }

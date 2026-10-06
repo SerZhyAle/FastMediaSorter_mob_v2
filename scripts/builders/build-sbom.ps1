@@ -1,17 +1,23 @@
-# S3371: produce the CycloneDX SBOM for one module.
-#
-# Exists so nothing has to invoke gradlew by hand for it. The SBOM is a dependency-admission
-# artifact, not a build output: the weekly dependency-scan workflow uploads it, and a human asking
-# "what ships in this module" runs the same command the workflow does. Routing it through a builder
-# also keeps it inside Rule 23 - the task resolves every configuration of the module, which is the
-# same daemon a compile would take.
-#
-# Exit codes (CLAUDE.md Rule 7):
-#   0 - the SBOM was written; its path is printed.
-#   1 - the gradle task failed, or it reported success and wrote no file.
-#   2 - the module name is not one this repository has.
-#   4 - the module's build domain is held by another session (Enter-BuildLockOrExit).
-
+<#
+.SYNOPSIS
+    Produce the CycloneDX SBOM for one module (S3371).
+.DESCRIPTION
+    Uses the shared build-domain lock locally and in CI. CycloneDX 3.x has a direct
+    task per module; its aggregate task is not the contract for a module SBOM.
+    A fresh report is required, so a stale bom.json cannot certify a failed producer.
+.PARAMETER Module
+    The phone or Wear OS module to resolve.
+.PARAMETER OutDir
+    Optional destination directory, relative to the project root unless absolute.
+.NOTES
+    Exit codes:
+      0 - a fresh SBOM was written; its path is printed.
+      1 - Gradle failed, the report is absent, or report publication failed.
+      2 - the Gradle wrapper or required SZA harness is unavailable.
+      4 - the module's build domain is queued (Enter-BuildLockOrExit).
+.EXAMPLE
+    pwsh -NoProfile -File scripts/builders/build-sbom.ps1 -Module wear -OutDir artifacts/sbom
+#>
 [CmdletBinding()]
 param(
     [ValidateSet('app_v2', 'wear')]
@@ -22,44 +28,50 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-. "$PSScriptRoot\..\utils\agent-lock.ps1"
-
-$projectRoot = (Resolve-Path "$PSScriptRoot\..\..\").Path.TrimEnd('\')
+$projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $domain = if ($Module -eq 'wear') { 'Build.Wear' } else { 'Build.Phone' }
-$gradlew = Join-Path $projectRoot 'gradlew.bat'
-if (-not (Test-Path -LiteralPath $gradlew)) {
-    Write-Host "build-sbom: gradlew.bat not found at $gradlew" -ForegroundColor Red
+$wrapperName = if ($IsWindows) { 'gradlew.bat' } else { 'gradlew' }
+$gradlew = Join-Path $projectRoot $wrapperName
+if (-not (Test-Path -LiteralPath $gradlew -PathType Leaf)) {
+    Write-Host "build-sbom: $wrapperName not found at $gradlew" -ForegroundColor Red
     exit 2
 }
 
+# Gradle defaults to the current user's .gradle directory on both platforms. The
+# shared lock's daemon probe needs this explicit on Linux, where USERPROFILE is absent.
+if (-not $env:GRADLE_USER_HOME) { $env:GRADLE_USER_HOME = Join-Path $HOME '.gradle' }
+. (Join-Path $PSScriptRoot '../utils/agent-lock.ps1')
 Enter-BuildLockOrExit -Reason "build-sbom.ps1 ($Module)" -Domain $domain
+Push-Location $projectRoot
 try {
+    $report = Join-Path $projectRoot "$Module/build/reports/cyclonedx-direct/bom.json"
+    # Remove only this task's report, after acquiring its domain. Gradle will rerun the
+    # producer when its declared output is missing; other module reports stay untouched.
+    if (Test-Path -LiteralPath $report) { Remove-Item -LiteralPath $report -Force }
     Write-Host "Producing the CycloneDX SBOM for $Module .." -ForegroundColor Cyan
-    & $gradlew ":${Module}:cyclonedxBom" --configuration-cache
+    & $gradlew ":${Module}:cyclonedxDirectBom" --configuration-cache
     if ($LASTEXITCODE -ne 0) {
-        Write-Host 'build-sbom: the cyclonedxBom task failed.' -ForegroundColor Red
+        Write-Host "build-sbom: cyclonedxDirectBom failed (exit $LASTEXITCODE)." -ForegroundColor Red
         exit 1
     }
-
-    # The plugin's own default output directory. Resolved rather than assumed: a task that reports
-    # success and writes nothing is the failure this check exists to catch.
-    $produced = @(Get-ChildItem -LiteralPath (Join-Path $projectRoot "$Module/build/reports") -Recurse -File -Filter 'bom.json' -ErrorAction SilentlyContinue)
-    if ($produced.Count -eq 0) {
-        Write-Host 'build-sbom: the task reported success but no bom.json was written.' -ForegroundColor Red
+    if (-not (Test-Path -LiteralPath $report -PathType Leaf)) {
+        Write-Host 'build-sbom: the task reported success but no direct bom.json was written.' -ForegroundColor Red
         exit 1
     }
-
-    foreach ($file in $produced) {
-        $destination = $file.FullName
-        if ($OutDir) {
-            if (-not (Test-Path -LiteralPath $OutDir)) { New-Item -ItemType Directory -Path $OutDir -Force | Out-Null }
-            $destination = Join-Path $OutDir "sbom-$Module.json"
-            Copy-Item -LiteralPath $file.FullName -Destination $destination -Force
-        }
-        Write-Host "SBOM: $destination" -ForegroundColor Green
+    $destination = $report
+    if ($OutDir) {
+        $null = New-Item -ItemType Directory -Path $OutDir -Force
+        $destination = Join-Path $OutDir "sbom-$Module.json"
+        Copy-Item -LiteralPath $report -Destination $destination -Force
     }
+    Write-Host "SBOM: $destination" -ForegroundColor Green
     exit 0
 }
+catch {
+    Write-Host "build-sbom: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
 finally {
+    Pop-Location
     Exit-AgentLock -Name 'Build' -Domains @($domain)
 }
