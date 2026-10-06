@@ -1,3 +1,13 @@
+<#
+.SYNOPSIS
+    Normalize the hand-maintained documentation hubs using the shared portal shell.
+.PARAMETER Check
+    Check generated shell freshness without changing files.
+.NOTES
+    Exit codes:
+      0 - every hub is current, or the requested shell updates were written.
+      1 - Check found at least one stale shell.
+#>
 # Normalize the hand-maintained portal hubs. Recipe/glossary/index pages use their owning generators.
 [CmdletBinding()]
 param([switch]$Check)

@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Build locale navigation and shared shell metadata for documentation pages.
+.DESCRIPTION
+    Dot-sourced library used by the owning documentation generators; it returns HTML and never exits.
+#>
 # Shared generated shell: locale links must match the published page, not a query parameter.
 function ConvertTo-DocumentationShell {
     param([string]$Html, [string]$RelativePath, [string]$DocumentationRoot)

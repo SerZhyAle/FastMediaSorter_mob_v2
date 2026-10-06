@@ -17,6 +17,7 @@
     </main>
     <script>
         (function () {
+            function updateBroadcast() {
             var payload = new URLSearchParams(location.hash.slice(1)).get('payload');
             var status = document.getElementById('status');
             var openApp = document.getElementById('open-app');
@@ -29,7 +30,12 @@
             // most likely absent. Never auto-navigate to fmsbcast:// - an unresolvable custom scheme
             // replaces this document and leaves the user with a browser error and no install route
             // (measured on Pixel_9/Chrome, S3053). The app attempt stays an explicit tap.
+            openApp.hidden = false;
+            status.textContent = 'Tap "Open in Fast Media Sorter" if the app is already installed.';
             openApp.href = 'fmsbcast://import?payload=' + encodeURIComponent(payload);
+            }
+            updateBroadcast();
+            window.addEventListener('hashchange', updateBroadcast);
         }());
     </script>
 </body>

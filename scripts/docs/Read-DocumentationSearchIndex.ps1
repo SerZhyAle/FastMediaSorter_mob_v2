@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Read and validate a complete v1 or sharded v2 documentation search index.
+.DESCRIPTION
+    Dot-sourced quality-gate helper; it returns page records or throws on invalid input and never exits.
+#>
 # Both quality gates consume the same v1/v2 index contract as the browser.
 function Read-DocumentationSearchIndex {
     param([Parameter(Mandatory)][string]$Path)

@@ -2305,3 +2305,56 @@ html[data-theme="light"] .btn-ghost {
         scroll-behavior: auto !important;
     }
 }
+
+/* Landing fixes: retain card styling while exposing real keyboard controls. */
+.scenario-select {
+    font: inherit;
+    color: inherit;
+    text-align: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+.dashboard-v2-item {
+    width: 100%;
+    font: inherit;
+    color: inherit;
+    text-align: start;
+}
+:where(a, button, input, summary):focus-visible {
+    outline: 2px solid var(--acc);
+    outline-offset: 3px;
+}
+.feature-header, .feature-title, .feature-desc, .compact-tree-item-text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.major-grid-v3 {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+}
+.dashboard-v2-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+}
+[id] { scroll-margin-top: 100px; }
+@media (max-width: 480px) {
+    .site-header { flex-wrap: wrap; gap: 8px; }
+    .brand { flex: 1 1 100%; }
+}
+.explorer-tabs { flex-wrap: wrap; min-width: 0; }
+.explorer-controls > *, .explorer-v1-content, .dashboard-v2-col, .tools-grid > a {
+    min-width: 0;
+}
+.section-title, h1, .tools-grid a { overflow-wrap: anywhere; }
+/* Keep the existing green palette; the darker kit accent meets small-text contrast. */
+html[data-theme="light"] .btn-primary,
+html[data-theme="light"] .seg a.on,
+html[data-theme="light"] .seg button.on,
+html[data-theme="light"] .seg button[aria-pressed="true"] {
+    background: var(--acc-strong);
+}
+/* Author display rules must not reveal controls hidden by the broadcast fallback. */
+[hidden] { display: none !important; }
+/* Hide the closed sheet during viewport changes without animating visibility on its close control. */
+.detail-drawer:not(.open) { visibility: hidden; }
+.detail-drawer-close { transition-property: color, transform; }

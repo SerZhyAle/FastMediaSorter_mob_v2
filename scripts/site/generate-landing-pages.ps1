@@ -374,7 +374,7 @@ foreach ($lang in $present) {
             "$i<meta property=`"og:locale`" content=`"$ogLocale`">`n$i<meta property=`"og:locale:alternate`" content=`"en_US`">"
         })
     $html = $html.Replace('<a class="brand" href="index.html">', "<a class=`"brand`" href=`"$file`">")
-    $html = $html.Replace('<a href="index.html" class="on" data-lang="en">', '<a href="index.html" data-lang="en">')
+    $html = [regex]::Replace($html, '<a href="index.html" class="on"(?: aria-current="page")? data-lang="en">', '<a href="index.html" data-lang="en">')
     $links = Get-DocLinkMap $lang.slug
     $html = [regex]::Replace($html, 'href="(docs/[^"#]+)', {
             param($h)
