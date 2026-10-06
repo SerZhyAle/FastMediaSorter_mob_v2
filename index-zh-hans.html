@@ -198,6 +198,7 @@
                 <a class="btn btn-ghost" href="https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter"
                     target="_blank" rel="noopener">IzzyOnDroid</a>
             </div>
+            <p class="shell-links"><a href="#download">查看其他 APK 版本和表盘</a></p>
             <ol class="quickstart">
                 <li>安装适合的版本并打开应用。</li>
                 <li>在欢迎向导中，或稍后在“设置”、“常规”、“主启动窗口”中选择“设备主屏幕”，并在 Android 询问时确认。</li>
@@ -618,7 +619,7 @@
                         <li>从配对的 Android 手机流式播放音频，或播放手表本地存储中的音乐。</li>
                         <li>使用旋转表冠/表圈调节音量，并通过可拖动的触控进度条控制播放。</li>
                         <li>OLED 熄屏模式在播放继续的同时关闭屏幕像素以省电。</li>
-                        <li>A separate free watch face for Wear OS 6 and newer is on Google Play: on the watch, open Play and search for FastMediaSorter, or use the <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">FastMediaSorter Watch Face</a> page.</li>
+                        <li>A separate free watch face for Wear OS 6 and newer is on Google Play: on the watch, open Play and search for FastMediaSorter, or use the <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">FastMediaSorter 表盘</a> page.</li>
                     </ul>
                     <a href="documentation/wear/standalone-music-playback.html" class="card-footer" target="_blank">打开方案</a> <a href="docs/wear/" class="card-footer" target="_blank">Wear OS 网页门户</a>
                 </details>
@@ -864,6 +865,41 @@
         <h2 class="section-title" id="download">下载 APK 安装包</h2>
         <p class="section-lead">各版本最新可用的稳定 APK。版本号可能不同；如果未列出所需版本，请查看 GitHub 发布列表。</p>
         <p class="section-lead">Android 会对从未见过的 APK 发出警告。<a href="docs/INSTALL_TRUST_EN.html" target="_blank" rel="noopener">为什么会出现此警告 - 以及应该点击什么</a>。</p>
+        <h3 class="edition-heading">头显和手表版本</h3>
+        <div class="edition-download-grid">
+            <article class="card edition-card" data-download-edition="noLegal">
+                <h3>noLegal</h3>
+                <p class="card-summary">扩展的侧载版本：视频站点下载、APK 安装和 Office 文档。不通过应用商店分发。</p>
+                <p class="edition-build" data-ready-label="已发布的 APK：" data-missing-label="尚未发布 APK。" data-preview-label="测试版本" data-error-label="无法检查发布。已验证的链接仍然可用。" aria-live="polite">尚未发布 APK。</p>
+                <div class="edition-card-actions">
+                    <a class="apk-btn" data-edition-apk data-download-label="下载 APK" hidden><div>下载 APK</div></a> <a class="feature-link" href="nolegal.html">功能与安装</a>
+                </div>
+            </article>
+            <article class="card edition-card" data-download-edition="vr">
+                <h3>VR</h3>
+                <p class="card-summary">适用于 Meta Quest 等 Android VR 头显：媒体播放和本地、网络及云文件。请安装到头显。</p>
+                <p class="edition-build" data-ready-label="已发布的 APK：" data-missing-label="尚未发布 APK。" data-preview-label="测试版本" data-error-label="无法检查发布。已验证的链接仍然可用。" aria-live="polite">已发布的 APK： v2.60.6050.126</p>
+                <div class="edition-card-actions">
+                    <a class="apk-btn" data-edition-apk data-download-label="下载 APK" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/v2.60.6050.126/FastMediaSorter-vr-2.60.6050.126.apk"><div>下载 APK</div></a> <a class="feature-link" href="documentation/vr/spatial-cinema-playback.html">功能与安装</a>
+                </div>
+            </article>
+            <article class="card edition-card" data-download-edition="wear">
+                <h3>Wear OS</h3>
+                <p class="card-summary">Wear OS 手表应用：音乐、网络文件夹、直播和手机连接。请安装到手表，而不是手机。</p>
+                <p class="edition-build" data-ready-label="已发布的 APK：" data-missing-label="尚未发布 APK。" data-preview-label="测试版本" data-error-label="无法检查发布。已验证的链接仍然可用。" aria-live="polite">已发布的 APK： v2.61.0031.801</p>
+                <div class="edition-card-actions">
+                    <a class="apk-btn" data-edition-apk data-download-label="下载 APK" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/v2.61.0031.801/FastMediaSorter-wear-2.61.0031.801.apk"><div>下载 APK</div></a> <a class="feature-link" href="docs/wear/">功能与安装</a>
+                </div>
+            </article>
+            <article class="card edition-card" data-download-edition="watchface">
+                <h3>表盘</h3>
+                <p class="card-summary">适用于 Wear OS 6+ 的独立表盘：时间、日期、动态波浪和电池指示。与 Wear OS 应用分别安装。</p>
+                <p class="edition-build" data-ready-label="已发布的 APK：" data-missing-label="尚未发布 APK。" data-preview-label="测试版本" data-error-label="无法检查发布。已验证的链接仍然可用。" aria-live="polite">尚未发布 APK。</p>
+                <div class="edition-card-actions">
+                    <a class="apk-btn" data-edition-apk data-download-label="下载 APK" hidden><div>下载 APK</div></a> <a class="feature-link" href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">在 Google Play 获取表盘</a> <a class="feature-link" href="docs/wear/">功能与安装</a>
+                </div>
+            </article>
+        </div>
         <div id="apkDownloads" class="apk-downloads" data-flavors="standard,vr,lite,photos,legacy,wear">
             <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases" target="_blank" rel="noopener">GitHub 上的所有发布 →</a>
         </div>
