@@ -198,6 +198,7 @@
                 <a class="btn btn-ghost" href="https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter"
                     target="_blank" rel="noopener">IzzyOnDroid</a>
             </div>
+            <p class="shell-links"><a href="#download">Ver otras ediciones APK y la esfera</a></p>
             <ol class="quickstart">
                 <li>Instala una edición adecuada y abre la app.</li>
                 <li>En el asistente de bienvenida, o después en Ajustes, General, Ventana de inicio principal, elige Pantalla de inicio del dispositivo y confírmalo cuando Android lo pregunte.</li>
@@ -619,7 +620,7 @@
                         <li>Transmite pistas de audio desde tu teléfono Android emparejado o reproduce el almacenamiento local del reloj.</li>
                         <li>Controla la reproducción con la corona giratoria/volumen del bisel y una barra de progreso táctil deslizable.</li>
                         <li>El modo de pantalla apagada OLED apaga los píxeles de la pantalla mientras la reproducción continúa.</li>
-                        <li>A separate free watch face for Wear OS 6 and newer is on Google Play: on the watch, open Play and search for FastMediaSorter, or use the <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">FastMediaSorter Watch Face</a> page.</li>
+                        <li>A separate free watch face for Wear OS 6 and newer is on Google Play: on the watch, open Play and search for FastMediaSorter, or use the <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">FastMediaSorter Esfera</a> page.</li>
                     </ul>
                     <a href="documentation/wear/standalone-music-playback.html" class="card-footer" target="_blank">Abrir receta</a> <a href="docs/wear/" class="card-footer" target="_blank">Portal web de Wear OS</a>
                 </details>
@@ -865,6 +866,41 @@
         <h2 class="section-title" id="download">Descargar compilaciones APK</h2>
         <p class="section-lead">La última APK estable disponible para cada edición. Las versiones pueden diferir; consulta las publicaciones de GitHub si falta tu edición.</p>
         <p class="section-lead">Android advierte sobre un APK que no ha visto antes. <a href="docs/INSTALL_TRUST_EN.html" target="_blank" rel="noopener">Por qué aparece el aviso y qué debes tocar</a>.</p>
+        <h3 class="edition-heading">Ediciones para visores y relojes</h3>
+        <div class="edition-download-grid">
+            <article class="card edition-card" data-download-edition="noLegal">
+                <h3>noLegal</h3>
+                <p class="card-summary">Edición ampliada de instalación manual: descargas de sitios de vídeo, instalación de APK y documentos Office. No se distribuye en tiendas.</p>
+                <p class="edition-build" data-ready-label="APK publicado:" data-missing-label="Aún no hay un APK publicado." data-preview-label="Versión de prueba" data-error-label="No se pueden consultar los lanzamientos. Los enlaces verificados siguen disponibles." aria-live="polite">Aún no hay un APK publicado.</p>
+                <div class="edition-card-actions">
+                    <a class="apk-btn" data-edition-apk data-download-label="Descargar APK" hidden><div>Descargar APK</div></a> <a class="feature-link" href="nolegal.html">Funciones e instalación</a>
+                </div>
+            </article>
+            <article class="card edition-card" data-download-edition="vr">
+                <h3>VR</h3>
+                <p class="card-summary">Para visores Android VR como Meta Quest: reproducción multimedia y archivos locales, de red y nube. Instala en el visor.</p>
+                <p class="edition-build" data-ready-label="APK publicado:" data-missing-label="Aún no hay un APK publicado." data-preview-label="Versión de prueba" data-error-label="No se pueden consultar los lanzamientos. Los enlaces verificados siguen disponibles." aria-live="polite">APK publicado: v2.60.6050.126</p>
+                <div class="edition-card-actions">
+                    <a class="apk-btn" data-edition-apk data-download-label="Descargar APK" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/v2.60.6050.126/FastMediaSorter-vr-2.60.6050.126.apk"><div>Descargar APK</div></a> <a class="feature-link" href="documentation/vr/spatial-cinema-playback.html">Funciones e instalación</a>
+                </div>
+            </article>
+            <article class="card edition-card" data-download-edition="wear">
+                <h3>Wear OS</h3>
+                <p class="card-summary">App para relojes Wear OS: música, carpetas de red, transmisiones y conexión al teléfono. Instala en el reloj, no en el teléfono.</p>
+                <p class="edition-build" data-ready-label="APK publicado:" data-missing-label="Aún no hay un APK publicado." data-preview-label="Versión de prueba" data-error-label="No se pueden consultar los lanzamientos. Los enlaces verificados siguen disponibles." aria-live="polite">APK publicado: v2.61.0031.801</p>
+                <div class="edition-card-actions">
+                    <a class="apk-btn" data-edition-apk data-download-label="Descargar APK" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/v2.61.0031.801/FastMediaSorter-wear-2.61.0031.801.apk"><div>Descargar APK</div></a> <a class="feature-link" href="docs/wear/">Funciones e instalación</a>
+                </div>
+            </article>
+            <article class="card edition-card" data-download-edition="watchface">
+                <h3>Esfera</h3>
+                <p class="card-summary">Esfera independiente para Wear OS 6+: hora, fecha, ondas animadas y batería. Se instala por separado de la app Wear OS.</p>
+                <p class="edition-build" data-ready-label="APK publicado:" data-missing-label="Aún no hay un APK publicado." data-preview-label="Versión de prueba" data-error-label="No se pueden consultar los lanzamientos. Los enlaces verificados siguen disponibles." aria-live="polite">Aún no hay un APK publicado.</p>
+                <div class="edition-card-actions">
+                    <a class="apk-btn" data-edition-apk data-download-label="Descargar APK" hidden><div>Descargar APK</div></a> <a class="feature-link" href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">Esfera en Google Play</a> <a class="feature-link" href="docs/wear/">Funciones e instalación</a>
+                </div>
+            </article>
+        </div>
         <div id="apkDownloads" class="apk-downloads" data-flavors="standard,vr,lite,photos,legacy,wear">
             <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases" target="_blank" rel="noopener">Todas las publicaciones en GitHub →</a>
         </div>
