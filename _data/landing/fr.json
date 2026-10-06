@@ -366,7 +366,11 @@
     "</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"docs/wear/\">Fonctions et installation</a>",
     "Watch Face": "Cadran",
     "Separate watch face for Wear OS 6+: time, date, animated waves and battery indicators. Install alongside the Wear OS app.": "Cadran séparé pour Wear OS 6+ : heure, date, vagues animées et batterie. À installer à côté de l’application Wear OS.",
-    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Cadran sur Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Fonctions et installation</a>"
+    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Cadran sur Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Fonctions et installation</a>",
+    "<span class=\"screenshot-name\">Home screen</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">Écran d’accueil</span><span class=\"screenshot-action\">Aperçu</span>",
+    "<span class=\"screenshot-name\">All apps</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">Toutes les applications</span><span class=\"screenshot-action\">Aperçu</span>",
+    "<span class=\"screenshot-name\">Network monitor</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">Moniteur réseau</span><span class=\"screenshot-action\">Aperçu</span>",
+    "Hover or select a card to preview the screen.": "Survolez ou sélectionnez une carte pour afficher l’écran."
   },
   "js": {
     "Shell & launching": "Shell et lancement",

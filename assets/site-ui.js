@@ -153,7 +153,90 @@
         if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
         else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     });
+    function initScreenPreviews() {
+        var cards = Array.from(document.querySelectorAll('.screenshot-card'));
+        var hover = matchMedia('(hover: hover) and (pointer: fine)');
+        var active = null;
+        var pinned = false;
+        var leaveTimer;
+        function close() {
+            clearTimeout(leaveTimer);
+            if (active) active.open = false;
+            active = null;
+            pinned = false;
+        }
+        function position(card) {
+            if (!hover.matches || !card.open) return;
+            var preview = card.querySelector('.screenshot-preview');
+            var rect = card.getBoundingClientRect();
+            var width = preview.getBoundingClientRect().width;
+            var header = document.querySelector('.site-header');
+            var safeTop = Math.max(12, header ? header.getBoundingClientRect().bottom + 8 : 12);
+            var above = Math.max(0, rect.top - safeTop - 8);
+            var below = Math.max(0, innerHeight - rect.bottom - 20);
+            var useAbove = above >= below;
+            var room = useAbove ? above : below;
+            // Shrink the image to available space instead of clamping it across its own trigger.
+            preview.style.setProperty('--preview-limit', Math.max(0, Math.min(540, innerHeight * 0.6, room - 26)) + 'px');
+            var height = preview.getBoundingClientRect().height;
+            var left = Math.max(12, Math.min(innerWidth - width - 12, rect.left + (rect.width - width) / 2));
+            var top = useAbove ? rect.top - height - 8 : rect.bottom + 8;
+            preview.style.left = left + 'px';
+            preview.style.top = top + 'px';
+        }
+        function open(card, pin) {
+            clearTimeout(leaveTimer);
+            if (active !== card) close();
+            active = card;
+            pinned = pin;
+            card.open = true;
+            requestAnimationFrame(function () { position(card); });
+        }
+        cards.forEach(function (card) {
+            card.setAttribute('data-preview-enhanced', '');
+            var summary = card.querySelector('summary');
+            card.addEventListener('pointerenter', function (event) {
+                clearTimeout(leaveTimer);
+                if (hover.matches && event.pointerType !== 'touch' && !pinned) open(card, false);
+            });
+            card.addEventListener('pointerleave', function () {
+                if (active === card && !pinned) leaveTimer = setTimeout(close, 180);
+            });
+            summary.addEventListener('focus', function () {
+                // Touch and mouse focus must not turn the first click into a close action.
+                if (summary.matches(':focus-visible') && active !== card) open(card, false);
+            });
+            card.addEventListener('focusout', function (event) {
+                if (active === card && !pinned && !card.contains(event.relatedTarget)) close();
+            });
+            summary.addEventListener('click', function (event) {
+                event.preventDefault();
+                if (active === card && pinned) close();
+                else open(card, true);
+            });
+            card.addEventListener('toggle', function () {
+                summary.setAttribute('aria-expanded', String(card.open));
+                if (card.open) position(card);
+            });
+            card.querySelector('img').addEventListener('load', function () { position(card); });
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && active) { event.preventDefault(); close(); }
+        });
+        document.addEventListener('pointerdown', function (event) {
+            if (active && !active.contains(event.target)) close();
+        });
+        window.addEventListener('resize', close);
+        window.addEventListener('scroll', function () {
+            if (!active) return;
+            var rect = active.getBoundingClientRect();
+            if (rect.bottom < 0 || rect.top > innerHeight) close();
+            else position(active);
+        }, { passive: true });
+        hover.addEventListener('change', close);
+    }
     document.addEventListener('DOMContentLoaded', function () {
+        initScreenPreviews();
         var panel = document.querySelector('.explorer-panel');
         if (!panel) return;
         function syncButtons() {

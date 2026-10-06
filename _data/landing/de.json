@@ -358,7 +358,11 @@
     "</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"docs/wear/\">Funktionen und Installation</a>",
     "Watch Face": "Zifferblatt",
     "Separate watch face for Wear OS 6+: time, date, animated waves and battery indicators. Install alongside the Wear OS app.": "Separates Zifferblatt für Wear OS 6+: Uhrzeit, Datum, animierte Wellen und Akkuanzeigen. Zusätzlich zur Wear-OS-App installieren.",
-    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Zifferblatt bei Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Funktionen und Installation</a>"
+    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Zifferblatt bei Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Funktionen und Installation</a>",
+    "<span class=\"screenshot-name\">Home screen</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">Startbildschirm</span><span class=\"screenshot-action\">Vorschau</span>",
+    "<span class=\"screenshot-name\">All apps</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">Alle Apps</span><span class=\"screenshot-action\">Vorschau</span>",
+    "<span class=\"screenshot-name\">Network monitor</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">Netzwerkmonitor</span><span class=\"screenshot-action\">Vorschau</span>",
+    "Hover or select a card to preview the screen.": "Bewege den Mauszeiger über eine Karte oder wähle sie aus, um den Bildschirm anzusehen."
   },
   "js": {
     "Shell & launching": "Shell & Start",

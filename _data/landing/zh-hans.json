@@ -366,7 +366,11 @@
     "</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"docs/wear/\">功能与安装</a>",
     "Watch Face": "表盘",
     "Separate watch face for Wear OS 6+: time, date, animated waves and battery indicators. Install alongside the Wear OS app.": "适用于 Wear OS 6+ 的独立表盘：时间、日期、动态波浪和电池指示。与 Wear OS 应用分别安装。",
-    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">在 Google Play 获取表盘</a> <a class=\"feature-link\" href=\"docs/wear/\">功能与安装</a>"
+    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">在 Google Play 获取表盘</a> <a class=\"feature-link\" href=\"docs/wear/\">功能与安装</a>",
+    "<span class=\"screenshot-name\">Home screen</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">主屏幕</span><span class=\"screenshot-action\">预览</span>",
+    "<span class=\"screenshot-name\">All apps</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">所有应用</span><span class=\"screenshot-action\">预览</span>",
+    "<span class=\"screenshot-name\">Network monitor</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">网络监控</span><span class=\"screenshot-action\">预览</span>",
+    "Hover or select a card to preview the screen.": "悬停或选择卡片以预览屏幕。"
   },
   "js": {
     "Shell & launching": "外壳与启动",

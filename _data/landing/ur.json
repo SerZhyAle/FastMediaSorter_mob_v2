@@ -358,7 +358,11 @@
     "</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"docs/wear/\">خصوصیات اور انسٹال</a>",
     "Watch Face": "واچ فیس",
     "Separate watch face for Wear OS 6+: time, date, animated waves and battery indicators. Install alongside the Wear OS app.": "Wear OS 6+ کے لیے الگ واچ فیس: وقت، تاریخ، متحرک لہریں اور بیٹری۔ Wear OS ایپ کے ساتھ الگ انسٹال کریں۔",
-    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Google Play پر واچ فیس</a> <a class=\"feature-link\" href=\"docs/wear/\">خصوصیات اور انسٹال</a>"
+    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Google Play پر واچ فیس</a> <a class=\"feature-link\" href=\"docs/wear/\">خصوصیات اور انسٹال</a>",
+    "<span class=\"screenshot-name\">Home screen</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">ہوم اسکرین</span><span class=\"screenshot-action\">پیش منظر</span>",
+    "<span class=\"screenshot-name\">All apps</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">تمام ایپس</span><span class=\"screenshot-action\">پیش منظر</span>",
+    "<span class=\"screenshot-name\">Network monitor</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">نیٹ ورک مانیٹر</span><span class=\"screenshot-action\">پیش منظر</span>",
+    "Hover or select a card to preview the screen.": "اسکرین دیکھنے کے لیے کارڈ پر کرسر رکھیں یا اسے منتخب کریں۔"
   },
   "js": {
     "Shell & launching": "شیل اور لانچنگ",

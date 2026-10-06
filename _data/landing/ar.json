@@ -355,7 +355,11 @@
     "</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"docs/wear/\">الميزات والتثبيت</a>",
     "Watch Face": "واجهة الساعة",
     "Separate watch face for Wear OS 6+: time, date, animated waves and battery indicators. Install alongside the Wear OS app.": "واجهة ساعة مستقلة لنظام Wear OS 6+: الوقت والتاريخ والأمواج المتحركة والبطارية. تثبت بجانب تطبيق Wear OS.",
-    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">واجهة الساعة على Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">الميزات والتثبيت</a>"
+    "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Get watch face on Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">Features and installation</a>": "</a> <a class=\"feature-link\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">واجهة الساعة على Google Play</a> <a class=\"feature-link\" href=\"docs/wear/\">الميزات والتثبيت</a>",
+    "<span class=\"screenshot-name\">Home screen</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">الشاشة الرئيسية</span><span class=\"screenshot-action\">معاينة</span>",
+    "<span class=\"screenshot-name\">All apps</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">كل التطبيقات</span><span class=\"screenshot-action\">معاينة</span>",
+    "<span class=\"screenshot-name\">Network monitor</span><span class=\"screenshot-action\">Preview</span>": "<span class=\"screenshot-name\">مراقب الشبكة</span><span class=\"screenshot-action\">معاينة</span>",
+    "Hover or select a card to preview the screen.": "مرّر المؤشر أو اختر بطاقة لمعاينة الشاشة."
   },
   "js": {
     "Shell & launching": "الغلاف والتشغيل",
