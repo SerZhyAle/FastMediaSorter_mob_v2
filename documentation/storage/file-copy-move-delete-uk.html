@@ -85,7 +85,7 @@ layout: null
           "@type": "HowToStep",
           "position": 4,
           "name": "Коли файл з таким самим іменем уже є",
-          "text": "Нічого не замінюється, якщо ви цього не попросите. За замовчуванням файл, чиє ім\u0027я вже існує в призначенні, пропускається, а файл у призначенні лишається як був. Фінальне повідомлення рахує лише файли, які справді скопійовано чи переміщено - якщо їх менше, ніж ви обрали, решта вже існувала там. Щоб замінювати такі файли, відкрийте Налаштування, вкладку Управління, Копіювання, переміщення й перезапис, і увімкніть Перезаписувати при копіюванні чи Перезаписувати при переміщенні.",
+          "text": "Нічого не замінюється, якщо ви цього не попросите. Поки перезапис вимкнено, файл, чиє ім\u0027я вже існує в призначенні, пропускається, а файл у призначенні лишається як був. Фінальне повідомлення рахує лише файли, які справді скопійовано чи переміщено - якщо їх менше, ніж ви обрали, решта вже існувала там. Щоб замінювати такі файли, відкрийте Налаштування, вкладку Управління, Копіювання, переміщення й перезапис, і увімкніть Перезаписувати при копіюванні чи Перезаписувати при переміщенні.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-copy-move-delete-uk.html#same-name"
         },
         {
@@ -148,20 +148,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.25 22:28</div>
+<div class="doc-stamp">26.10.07 03:43</div>
+    <a class="doc-skip-link" href="#main-content">Перейти до вмісту</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index-uk.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index-uk.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index-uk.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index-uk.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Пошук...</span>
                 <kbd>/</kbd>
             </button>
@@ -183,8 +184,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index-uk.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index-uk.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Тема</span></button>
             </nav>
         </div>
     </header>
@@ -440,11 +441,12 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Джерела, призначення та операції з файлами</span>
-                    <span class="doc-badge doc-badge-standard">Усі редакції (мережа - усі, крім Lite; хмара - усі, крім Lite і FOSS)</span>
+                    <span class="doc-edition-badge">Усі редакції</span>
                     <span class="doc-badge doc-badge-sm">Recipe #05</span>
                 </div>
+                <p class="doc-availability-note">Усі редакції (мережа - усі, крім Lite; хмара - усі, крім Lite і FOSS)</p>
 
                 <h1>Копіювання, переміщення і видалення файлів і папок</h1>
 
@@ -459,12 +461,12 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Перед початком: Що вам знадобиться</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter будь-якої <span class="doc-link-term" data-term="edition">редакції</span>. Lite копіює й переміщує між папками на цьому пристрої й картками пам'яті; FOSS ще й до і з мережевих папок та серверів; Standard, noLegal, Photos, Legacy і VR ще й до і з хмари. Редакція Photos працює із зображеннями.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> <span class="doc-link-term" data-term="resource">Ресурс</span>, відкритий у браузері файлів. Переміщення, перейменування й видалення потребують ресурсу, у який застосунок може писати.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> FastMediaSorter будь-якої <span class="doc-link-term" data-term="edition">редакції</span>. Lite копіює й переміщує між папками на цьому пристрої й картками пам'яті; FOSS ще й до і з мережевих папок та серверів; Standard, noLegal, Photos, Legacy і VR ще й до і з хмари. Редакція Photos працює із зображеннями.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> <span class="doc-link-term" data-term="resource">Ресурс</span>, відкритий у браузері файлів. Переміщення, перейменування й видалення потребують ресурсу, у який застосунок може писати.</li>
                     </ul>
                 </div>
 
@@ -526,9 +528,32 @@ layout: null
                         <h2 class="doc-step-title">Коли файл з таким самим іменем уже є</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Нічого не замінюється, якщо ви цього не попросите. За замовчуванням файл, чиє ім'я вже існує в призначенні, пропускається, а файл у призначенні лишається як був. Фінальне повідомлення рахує лише файли, які справді скопійовано чи переміщено - якщо їх менше, ніж ви обрали, решта вже існувала там.</p>
+                        <p>Нічого не замінюється, якщо ви цього не попросите. Поки перезапис вимкнено, файл, чиє ім'я вже існує в призначенні, пропускається, а файл у призначенні лишається як був. Фінальне повідомлення рахує лише файли, які справді скопійовано чи переміщено - якщо їх менше, ніж ви обрали, решта вже існувала там.</p>
                         <p>Щоб замінювати такі файли, відкрийте <strong>Налаштування</strong>, вкладку <strong>Управління</strong>, <strong>Копіювання, переміщення й перезапис</strong>, і увімкніть <strong>Перезаписувати при копіюванні</strong> чи <strong>Перезаписувати при переміщенні</strong>.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="storage.overwrite-settings"
+                             data-device-profile="phone"
+                             data-screen-state="settings-management-overwrite-behavior"
+                             data-alt="Вкладка «Керування» в налаштуваннях з карткою поведінки копіювання, переміщення й перезапису та двома перемикачами перезапису наявного файлу"
+                             data-caption="Два перемикачі вирішують, чи замінювати файл з тим самим ім'ям.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скріншот: перемикачі перезапису</strong>
+                                <p class="doc-img-bookmark-desc">Налаштування, вкладка «Керування», картка копіювання, переміщення й перезапису, обидва перемикачі вимкнені.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>storage.overwrite-settings</code></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+                <div class="doc-callout doc-callout-warning">
+                    <div class="doc-callout-title">
+                        <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>Видалення не завжди можна скасувати
+                    </div>
+                    <p>У мережевій папці, у хмарі й на телефоні з вимкненим кошиком <strong>Видалити</strong> стирає файли назавжди - <strong>Скасувати</strong> їх не поверне.</p>
                 </div>
 
                 <!-- Step 5 -->
@@ -558,6 +583,22 @@ layout: null
                         <p>Одразу після копіювання, переміщення, видалення чи перейменування повідомлення внизу пропонує <strong>Скасувати</strong>, і кнопка <strong>Скасувати</strong> лишається на панелі операцій. У вас є приблизно десять секунд:</p>
                         <ul><li><strong>Скасувати видалення</strong> - файли повертаються з кошика на своє місце.</li><li><strong>Скасувати переміщення</strong> - файли повертаються туди, звідки прийшли. Переміщена папка повертається як фонове перенесення («Переносимо папки назад..»).</li><li><strong>Скасувати копіювання</strong> - копії видаляються. Для папок застосунок спершу питає «Скасувати копіювання папки?» і попереджає, що все, додане до копій відтоді, теж піде; торкніться <strong>Видалити копії</strong>, щоб підтвердити. Оригінальні папки лишаються на місці.</li><li><strong>Скасувати перейменування</strong> - старе ім'я повертається.</li></ul>
                         <p>У плеєрі кнопка <strong>Скасувати</strong> на <span class="doc-link-term" data-term="command-panel">панелі команд</span> повертає файл, який ви щойно видалили.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="storage.undo-after-delete"
+                             data-device-profile="phone"
+                             data-screen-state="browse-undo-message-after-delete"
+                             data-alt="Браузер файлів одразу після видалення: внизу повідомлення з кнопкою «Скасувати» і кнопка «Скасувати» на панелі операцій"
+                             data-caption="«Скасувати» пропонується одразу після дії.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скріншот: скасування після видалення</strong>
+                                <p class="doc-img-bookmark-desc">Перегляд у локальній папці, 3 фото щойно переміщено в кошик, видно повідомлення зі скасуванням.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>storage.undo-after-delete</code></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -569,6 +610,22 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Кошик - це страхувальна сітка на зараз, а не архів. Фонове завдання виконується приблизно кожні 15 хвилин і спорожняє папки кошика, чий вміст старший за кілька хвилин, тож місце повертається саме. Щоб спорожнити всі папки кошика одразу, торкніться кнопки <strong>Видалити все в кошику</strong> поруч із <strong>Використовувати кошик (.trash)</strong> - застосунок повідомить, скільки папок кошика він прибрав.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="storage.trash-settings"
+                             data-device-profile="phone"
+                             data-screen-state="settings-management-file-deletion-and-trash"
+                             data-alt="Картка видалення файлів і кошика на вкладці «Керування» з перемикачем папки кошика (.trash) і кнопкою очищення кошика поруч"
+                             data-caption="Очищення кошика спорожнює всі папки кошика одразу.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скріншот: налаштування кошика</strong>
+                                <p class="doc-img-bookmark-desc">Налаштування, вкладка «Керування», картка видалення файлів і кошика, кошик увімкнено.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>storage.trash-settings</code></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -593,17 +650,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="background-transfers-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-other">Сховище</span>
-                            <h4>Фонове перенесення файлів і стеження за прогресом</h4>
+                            <h3>Фонове перенесення файлів і стеження за прогресом</h3>
                             <p>Що відбувається, поки велике копіювання триває, а ви робите щось інше.</p>
                         </a>
                         <a href="batch-renaming-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-other">Сховище</span>
-                            <h4>Перейменування файлів і папок</h4>
+                            <h3>Перейменування файлів і папок</h3>
                             <p>Дайте одному файлу чи цілій групі нові імена.</p>
                         </a>
                         <a href="cleaning-up-space-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-other">Сховище</span>
-                            <h4>Звільняємо місце</h4>
+                            <h3>Звільняємо місце</h3>
                             <p>Знайдіть дублікати й великі файли, запакуйте файли в ZIP-архіви.</p>
                         </a>
                     </div>
@@ -638,8 +695,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Безкоштовний органайзер із відкритим вихідним кодом.</div>
             <div class="doc-footer-links">
-                <a href="../../docs/PRIVACY_POLICY.uk.html">Політика конфіденційності</a>
-                <a href="../../docs/TERMS_OF_SERVICE_UK.html">Умови використання</a>
+                <a href="../../docs/PRIVACY_POLICY-uk.html">Політика конфіденційності</a>
+                <a href="../../docs/TERMS_OF_SERVICE-uk.html">Умови використання</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>

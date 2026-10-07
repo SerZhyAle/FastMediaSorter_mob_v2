@@ -6,7 +6,7 @@ description: "Як відтворювати відео на весь екран 
 category: Відео та медіаплеєр
 category_slug: player
 ticket: S2951
-flavor: Усі редакції, крім Photos; збереження кадрів і керування кольором - у Standard, noLegal, Legacy та VR
+availability_note: Усі редакції, крім Photos; збереження кадрів і керування кольором - у Standard, noLegal, Legacy та VR
 recipe_number: "01"
 canonical_url: documentation/player/video-playback-controls-uk.html
 why: |
@@ -160,6 +160,6 @@ next_recipes:
     description: Відтворіть відео на своєму телевізорі.
 ---
 
-<sub class="doc-stamp">26.09.25 22:35</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Відтворюйте відео на весь екран чи з панеллю команд, переходьте між ними дотиками й свайпами, наближайте, продовжуйте з місця зупинки, зберігайте стоп-кадри як картинки і сортуйте відео просто під час перегляду.

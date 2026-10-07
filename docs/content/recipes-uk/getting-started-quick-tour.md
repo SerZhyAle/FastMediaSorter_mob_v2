@@ -6,7 +6,7 @@ description: Встановлення FastMediaSorter, що показує за�
 category: Перші кроки
 category_slug: getting-started
 ticket: S2946
-flavor: Усі редакції - джерело встановлення залежить від редакції
+availability_note: Усі редакції - джерело встановлення залежить від редакції
 recipe_number: "04"
 canonical_url: documentation/getting-started/quick-tour-uk.html
 why: |
@@ -115,6 +115,6 @@ next_recipes:
     description: Яка редакція має які можливості і як їх відрізнити.
 ---
 
-<sub class="doc-stamp">26.09.25 22:19</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Від встановлення FastMediaSorter через годинник на першій заставці до карти того, який рецепт читати далі - це п'ятихвилинний тур перед тим, як [майстер привітання](page:getting-started.welcome-and-setup) щось у вас запитає.

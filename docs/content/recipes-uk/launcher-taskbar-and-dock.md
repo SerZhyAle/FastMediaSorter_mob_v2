@@ -6,7 +6,6 @@ description: Як розташувати панель задач лаунчер�
 category: "Лаунчер: панель задач, меню та жести"
 category_slug: launcher
 ticket: S2960
-flavor: Редакції Standard і noLegal
 recipe_number: "04"
 canonical_url: documentation/launcher/taskbar-and-dock-uk.html
 why: |
@@ -114,6 +113,6 @@ next_recipes:
     description: Крайові жести екрана за діями камери в доку швидкого запуску.
 ---
 
-<sub class="doc-stamp">26.09.25 22:28</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Панель задач](term:taskbar) - єдина частина [лаунчера](term:launcher), яка ніколи не зникає при прокрутці. Ця сторінка описує, де вона розташована, закріплення й керування застосунками на ній, найшвидші шляхи назад до файлів, док швидкого запуску, що з неї відкривається, і пару перемикачів, яким не потрібен власний екран.

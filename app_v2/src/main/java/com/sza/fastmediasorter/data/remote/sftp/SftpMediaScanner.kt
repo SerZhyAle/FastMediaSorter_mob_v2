@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.data.network.exceptions.ScanTimeoutException
 import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.SftpTunnelAddress.forLog
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.MediaFilePage
 import com.sza.fastmediasorter.domain.usecase.MediaScanner
@@ -551,12 +552,14 @@ class SftpMediaScanner @Inject constructor(
             val credentials = if (credentialsId != null) {
                 credentialsRepository.getByCredentialId(credentialsId)
             } else {
-                // Fallback to old behavior for backward compatibility
+                // Fallback to old behavior for backward compatibility; a Drive-announced address (S4110)
+                // has no row of its own, so the requested address's row stands in for it.
                 credentialsRepository.getByTypeServerAndPort("SFTP", host, port)
+                    ?: credentialsRepository.getByTypeServerAndPort("SFTP", rawHost, rawPort)
             }
 
             if (credentials == null) {
-                Timber.w("No SFTP credentials found for host: $host:$port")
+                Timber.w("No SFTP credentials found for host: ${forLog(host)}:$port")
                 return null
             }
 

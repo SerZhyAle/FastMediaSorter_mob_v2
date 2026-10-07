@@ -70,6 +70,26 @@ class WifiRequiredException(
 ) : NetworkConnectionLostException(message, cause)
 
 /**
+ * Contract ANYWHERE-ACCESS: the server sharing the folder is not reachable on this path, for a reason the
+ * user can act on and that a generic dropped connection would hide. A [NetworkConnectionLostException]
+ * subtype so retry and availability handling stay exactly as for any transient outage.
+ */
+class NetworkPeerUnreachableException(
+    val reason: Reason,
+    message: String = "Peer unreachable",
+    cause: Throwable? = null
+) : NetworkConnectionLostException(message, cause) {
+
+    enum class Reason {
+        /** The exchange server has no live registration for the share (section 6.4). */
+        TUNNEL_NOT_REGISTERED,
+
+        /** The producer announced itself on Drive within its TTL, yet none of its addresses answered (section 7). */
+        UNREACHABLE_FROM_THIS_NETWORK,
+    }
+}
+
+/**
  * Unsupported protocol or operation
  */
 class NetworkUnsupportedOperationException(message: String = "Unsupported operation", cause: Throwable? = null) : 

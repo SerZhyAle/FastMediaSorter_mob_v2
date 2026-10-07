@@ -6,7 +6,8 @@ description: How to switch on and use the built-in calculator - live result, fun
 category: "Programs, Statistics and Diagnostics"
 category_slug: programs
 ticket: S2961
-flavor: All editions; the watch calculator with FastMedia Wear in the Standard and noLegal editions
+availability: all
+availability_note: All editions; the watch calculator with FastMedia Wear in the Standard and noLegal editions
 recipe_number: "02"
 canonical_url: documentation/programs/calculator-and-stopwatch.html
 why: |
@@ -136,6 +137,6 @@ next_recipes:
     description: Put the calculator and the stopwatch on your home screen.
 ---
 
-<sub class="doc-stamp">26.09.25 04:13</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Two everyday [programs](term:program) come with FastMediaSorter: a calculator that shows the answer as you type and keeps a history, and a stopwatch for up to four people. This page shows how to open them, what each key and button does, and how to set them up.

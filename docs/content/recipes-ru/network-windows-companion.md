@@ -6,7 +6,7 @@ description: Как программа Fast Media Sorter for Windows откры�
 category: Сеть и облачные хранилища
 category_slug: network
 ticket: S2950
-flavor: Импорт по файлу - Standard, noLegal, Photos, Legacy, VR (кроме Lite и FOSS). Импорт по QR-коду и встроенная справка - те же редакции, кроме VR (так как шлему нужна камера). Отслеживание ПК между сетями, автопоиск в локальной сети и импорт папок с правом записи - только Standard.
+availability_note: Импорт по файлу - Standard, noLegal, Photos, Legacy, VR (кроме Lite и FOSS). Импорт по QR-коду и встроенная справка - те же редакции, кроме VR (так как шлему нужна камера). Отслеживание ПК между сетями, автопоиск в локальной сети и импорт папок с правом записи - только Standard.
 recipe_number: "03"
 canonical_url: documentation/network/windows-companion-ru.html
 why: |
@@ -108,6 +108,6 @@ next_recipes:
     description: Полный обзор всех типов сетевых и облачных папок, доступных в приложении.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Программа Fast Media Sorter for Windows открывает доступ к папкам на ПК для мобильного приложения без ручного ввода адресов: подключайте их через файл конфигурации или сканированием QR-кода, а связь сохранится даже при выходе из домашней сети Wi-Fi.

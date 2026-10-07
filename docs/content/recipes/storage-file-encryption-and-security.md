@@ -6,7 +6,8 @@ description: How to lock a resource with a PIN, and how to turn a single file in
 category: Sources, Destinations & File Operations
 category_slug: storage
 ticket: S2949
-flavor: All editions (containers in the cloud - all except Lite and FOSS)
+availability: all
+availability_note: All editions (containers in the cloud - all except Lite and FOSS)
 recipe_number: "11"
 canonical_url: documentation/storage/file-encryption-and-security.html
 why: |
@@ -115,6 +116,6 @@ next_recipes:
     description: Delete the original after you have sealed it.
 ---
 
-<sub class="doc-stamp">26.09.24 07:45</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Lock a resource with a PIN, and turn a single file into a password-protected .fd-sec container that you can view without unpacking and unpack again - on the phone, on a network folder or in the cloud.

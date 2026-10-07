@@ -6,7 +6,7 @@ description: How to set when the launcher desktop's screen turns off, what the w
 category: "Launcher: Taskbar, Menus and Gestures"
 category_slug: launcher
 ticket: S2960
-flavor: Standard and noLegal
+availability: SUPPORT_LAUNCHER
 recipe_number: "09"
 canonical_url: documentation/launcher/screen-dimming-and-timeout.html
 why: |
@@ -92,6 +92,6 @@ next_recipes:
     description: Find your way around the launcher settings, and reset the desktop back to its first state.
 ---
 
-<sub class="doc-stamp">26.09.24 08:44</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 The [launcher](term:launcher) [desktop](term:desktop) can turn its own screen off after a while of inactivity, warn you first with a dim, and show a readable clock even once it has gone dark. This page covers setting the timeout, reading the dim screen, keeping it lit while charging, and what each device profile starts with.

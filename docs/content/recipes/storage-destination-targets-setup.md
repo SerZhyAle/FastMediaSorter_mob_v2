@@ -6,7 +6,7 @@ description: How to turn folders into numbered, colored destinations, and then c
 category: Sources, Destinations & File Operations
 category_slug: storage
 ticket: S2949
-flavor: All editions
+availability: all
 recipe_number: "04"
 canonical_url: documentation/storage/destination-targets-setup.html
 why: |
@@ -120,6 +120,6 @@ next_recipes:
     description: Let the app fill your destinations by itself.
 ---
 
-<sub class="doc-stamp">26.09.24 07:56</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Turn your folders into numbered, colored destinations, then copy or move the photo or video you are looking at into one of them with a single tap or a number key.

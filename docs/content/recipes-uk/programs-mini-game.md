@@ -6,7 +6,7 @@ description: Як увімкнути та грати в Кривавиця і Ч
 category: "Програми, статистика та діагностика"
 category_slug: programs
 ticket: S2961
-flavor: Усі редакції; версія для годинника з FastMedia Wear доступна в редакціях Standard і noLegal
+availability_note: Усі редакції; версія для годинника з FastMedia Wear доступна в редакціях Standard і noLegal
 recipe_number: "03"
 canonical_url: documentation/programs/mini-game-uk.html
 why: |
@@ -112,6 +112,6 @@ next_recipes:
     description: Розмістіть гру на головному екрані поруч з іншими віджетами.
 ---
 
-<sub class="doc-stamp">26.09.25 22:22</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 **Кривавиця і Чудовисько** - невелика покрокова головоломка, вбудована у FastMediaSorter. На цій сторінці показано, як її увімкнути, правила та рахунок, як грати дотиком, клавіатурою, D-pad або геймпадом, як перезапустити рівень, три вигляди та версію для годинника.

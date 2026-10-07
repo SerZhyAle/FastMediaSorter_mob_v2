@@ -37,8 +37,8 @@ class GeneralSettingsLinkButtonsSetupHelper(
         }
         binding.btnHowToGuides.setOnClickListener {
             val url = when (LocaleHelper.getLanguage(fragment.requireContext())) {
-                "ru" -> "$DOCS_ROOT/HOW_TO_RU.html"
-                "uk" -> "$DOCS_ROOT/HOW_TO_UK.html"
+                "ru" -> "$DOCS_ROOT/HOW_TO-ru.html"
+                "uk" -> "$DOCS_ROOT/HOW_TO-uk.html"
                 else -> "$DOCS_ROOT/HOW_TO.html"
             }
             openUrl(url, fragment.getString(R.string.settings_no_browser_for_docs))
@@ -57,8 +57,8 @@ class GeneralSettingsLinkButtonsSetupHelper(
         }
         binding.btnPrivacyPolicy.setOnClickListener {
             val url = when (LocaleHelper.getLanguage(fragment.requireContext())) {
-                "ru" -> "$DOCS_ROOT/PRIVACY_POLICY.ru.html"
-                "uk" -> "$DOCS_ROOT/PRIVACY_POLICY.uk.html"
+                "ru" -> "$DOCS_ROOT/PRIVACY_POLICY-ru.html"
+                "uk" -> "$DOCS_ROOT/PRIVACY_POLICY-uk.html"
                 else -> "$DOCS_ROOT/PRIVACY_POLICY.html"
             }
             openUrl(url, fragment.getString(R.string.settings_no_browser_for_privacy))

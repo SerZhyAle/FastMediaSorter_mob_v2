@@ -6,7 +6,7 @@ description: Как загрузить музыку в память часов, 
 category: Часы Wear OS
 category_slug: wear
 ticket: S2965
-flavor: Полная версия приложения для часов (только sideload). Копирование музыки со смартфона требует редакции Standard или noLegal на телефоне.
+availability_note: Полная версия приложения для часов (только sideload). Копирование музыки со смартфона требует редакции Standard или noLegal на телефоне.
 recipe_number: "11"
 canonical_url: documentation/wear/standalone-music-playback-ru.html
 why: |
@@ -105,6 +105,6 @@ next_recipes:
     description: Назначение всех кнопок аудиоплеера и видеоплеера на часах.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Загружайте музыку на часы, открывайте сетевой сервер как источник треков, контролируйте громкость до запуска и слушайте музыку с выключенным экраном или в фоне - оставив [телефон](term:phone) дома.

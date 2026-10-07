@@ -1,9 +1,9 @@
 ---
 layout: default
 title: "🔧 Руководство по устранению неполадок"
-permalink: /docs/TROUBLESHOOTING_RU.html
+permalink: /docs/TROUBLESHOOTING-ru.html
 ---
-<sub class="doc-stamp">26.09.24 18:35</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 # 🔧 Руководство по устранению неполадок
 

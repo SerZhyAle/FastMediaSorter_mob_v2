@@ -6,7 +6,6 @@ description: Как слушать интернет-радиостанции п�
 category: Интернет-трансляции
 category_slug: streams
 ticket: S2955
-flavor: Standard, noLegal, Legacy и VR
 recipe_number: "05"
 canonical_url: documentation/streams/live-stream-playback-ru.html
 why: |
@@ -154,6 +153,6 @@ next_recipes:
     description: Закрепление главных станций вверху списка.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Нажмите на [канал](term:channel) - и он сразу заиграет: радио звучит прямо внутри списка с показом текущей песни, ТВ и видеоканалы заполняют весь экран с элементами управления прямого эфира, а звук продолжает играть в фоне при выходе из приложения.

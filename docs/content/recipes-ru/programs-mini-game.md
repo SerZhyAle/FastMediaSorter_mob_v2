@@ -6,7 +6,7 @@ description: Как включить и играть в пошаговую го�
 category: Программы, статистика и диагностика
 category_slug: programs
 ticket: S2961
-flavor: Все редакции; версия для часов с FastMedia Wear доступна в редакциях Standard и noLegal.
+availability_note: Все редакции; версия для часов с FastMedia Wear доступна в редакциях Standard и noLegal.
 recipe_number: "03"
 canonical_url: documentation/programs/mini-game-ru.html
 why: |
@@ -112,6 +112,6 @@ next_recipes:
     description: Размещение виджета игры на домашнем экране рядом с остальными виджетами.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 **«Крывавица и чудовище»** - пошаговая логическая мини-игра, встроенная в FastMediaSorter. На этой странице описано включение игры, правила и начисление очков, управление с сенсора, клавиатуры, пульта и геймпада, перезапуск уровней, три стиля графики и версия для смарт-часов.

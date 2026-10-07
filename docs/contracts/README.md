@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.05 22:01</sub>
+<sub class="doc-stamp">26.10.07 01:49</sub>
 
 # Contract pointers
 
@@ -27,6 +27,7 @@ catalog registry to one set of ids and versions.
 | [`FMSCFG.md`](FMSCFG.md) | `FMSCFG` | consumer (the `.fmscfg` importer); also writes `.fmscfg` files and `FMSCFG1:` QR payloads |
 | [`SHARE-SESSION.md`](SHARE-SESSION.md) | `SHARE-SESSION` | client - the SFTP connection to a shared folder |
 | [`ANYWHERE-ACCESS.md`](ANYWHERE-ACCESS.md) | `ANYWHERE-ACCESS` | owner; reference producer (phone shares over rendezvous/tunnel) and consumer (reads others' shares) - [PROPOSED], nothing ships against it yet |
+| [`DEVICE-EXCHANGE.md`](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | owner; phone - resource producer and consumer, broadcaster, receiver; watch - audio broadcaster and receiver - [PROPOSED], nothing ships yet |
 | [`OCR-OVERLAY.md`](OCR-OVERLAY.md) | `OCR-OVERLAY` | consumer - the player's OCR + translation overlay |
 | [`LETTERBOX-FILL.md`](LETTERBOX-FILL.md) | `LETTERBOX-BARS`, `LETTERBOX-HALO` | consumer - the player's edge-extended background behind a fitted photo |
 | [`OCR-ACCURACY.md`](OCR-ACCURACY.md) | `OCR-ACCURACY` | owner of the record |
@@ -56,4 +57,5 @@ catalog registry to one set of ids and versions.
 | [`RULE-DELIVERY.md`](RULE-DELIVERY.md) | `RULE-DELIVERY` | adopter - the `sza` plugin |
 | [`DOC-INTERNAL-QUALITY.md`](DOC-INTERNAL-QUALITY.md) | `DOC-INTERNAL-QUALITY` | owner and reference implementation (internal engineering docs quality) |
 | [`DOC-EXTERNAL-QUALITY.md`](DOC-EXTERNAL-QUALITY.md) | `DOC-EXTERNAL-QUALITY` | owner and reference implementation (external published docs quality) |
+| [`PRODUCT-SITE.md`](PRODUCT-SITE.md) | `SITE-STRUCTURE`, `SITE-EXPERIENCE`, `SITE-REPRESENTATION` | owner and reference implementation (the product site and its help portal: pages, look and behaviour, how the product and each function are presented) |
 | [`INPUT-PARITY.md`](INPUT-PARITY.md) | `INPUT-PARITY` | steward of the touch, gamepad and TV remote / D-pad columns |

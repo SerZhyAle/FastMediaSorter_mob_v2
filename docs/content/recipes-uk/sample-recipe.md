@@ -5,7 +5,6 @@ description: Практичний рецепт кулінарної книги �
 category: Аудіо та музика
 category_slug: audio
 ticket: S2946
-flavor: Standard і NoLegal
 recipe_number: "01"
 canonical_url: documentation/sample-recipe-uk.html
 ingredients:
@@ -78,6 +77,6 @@ next_recipes:
     description: Слухайте свою бібліотеку FLAC у високій роздільності напряму, не заповнюючи сховище пристрою.
 ---
 
-<sub class="doc-stamp">26.10.06 01:22</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Незалежно від того, чи маєте ви тисячі треків без втрат у форматі FLAC на SD-карті, чи альбоми, доступні через домашній <span class="doc-link-term" data-term="NAS">NAS</span>-сервер, FastMediaSorter дає змогу переглядати, ставити в чергу та сортувати вашу аудіотеку, не змінюючи фізичну структуру папок.

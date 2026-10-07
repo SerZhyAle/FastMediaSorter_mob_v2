@@ -1,10 +1,10 @@
 ---
 layout: default
 title: "Что нового в FastMediaSorter v2"
-permalink: /docs/WHATS_NEW_RU.html
+permalink: /docs/WHATS_NEW-ru.html
 ---
 
-<sub class="doc-stamp">26.10.04 15:44</sub>
+<sub class="doc-stamp">26.10.06 23:40</sub>
 
 # Что нового в FastMediaSorter v2
 
@@ -16,8 +16,8 @@ permalink: /docs/WHATS_NEW_RU.html
 
 ## Что нового
 
-- **Замедленное видео и масштаб** - скорости 0.1x и 0.3x, увеличение щипком и сдвиг кадра.
-- **Размещение плиток лаунчера** - новые приложения попадают в раздел приложений Android.
+- **Замедленное видео и масштаб** - скорости 0.1x и 0.3x, увеличение щипком и сдвиг кадра. <!-- af: video-player.video-chrome-slow-playback-and-gesture-zoom -->
+- **Размещение плиток лаунчера** - новые приложения попадают в раздел приложений Android. <!-- af: launcher.section-aware-placement-of-new-app-shortcut-and -->
 
 ## Что исправлено
 

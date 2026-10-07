@@ -1,9 +1,9 @@
 ---
 layout: default
 title: "🔧 Посібник з усунення несправностей"
-permalink: /docs/TROUBLESHOOTING_UK.html
+permalink: /docs/TROUBLESHOOTING-uk.html
 ---
-<sub class="doc-stamp">26.09.24 18:35</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 # 🔧 Посібник з усунення несправностей
 

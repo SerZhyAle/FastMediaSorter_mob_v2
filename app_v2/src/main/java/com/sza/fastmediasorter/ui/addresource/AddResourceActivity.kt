@@ -115,7 +115,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         uri?.let { viewModel.importCompanionConfig(it) }
     }
 
-    private val sftpQrCoordinator by lazy { AddResourceSftpQrCoordinator(this) }
+    private val sftpQrCoordinator by lazy { AddResourceSftpQrCoordinator(this, viewModel::setSftpPairingTunnel) }
 
     // S0988: camera QR scan returns the raw companion payload; the parser/import path is shared.
     private val companionQrScanLauncher = registerForActivityResult(

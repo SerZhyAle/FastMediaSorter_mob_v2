@@ -6,7 +6,7 @@ description: "Як відкрити спільний доступ до папо�
 category: Мережеві папки та хмари
 category_slug: network
 ticket: S2950
-flavor: Усі редакції, крім Lite; потрібен Android 8.0 або новіший.
+availability_note: Усі редакції, крім Lite; потрібен Android 8.0 або новіший.
 recipe_number: "04"
 canonical_url: documentation/network/phone-as-sftp-server-uk.html
 why: |
@@ -94,6 +94,6 @@ next_recipes:
     description: Огляд усіх видів мережевих і хмарних місць, які може відкрити цей застосунок.
 ---
 
-<sub class="doc-stamp">26.09.25 22:24</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Діліться папками прямо з цього телефону через SFTP - обирайте їх засобом вибору папок, входьте за паролем або SSH-ключем і спарюйте інший FastMediaSorter одним скануванням замість введення адреси вручну.

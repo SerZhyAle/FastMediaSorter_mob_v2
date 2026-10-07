@@ -6,7 +6,7 @@ description: Прив'язаний до голови інформаційний 
 category: VR і OpenXR
 category_slug: vr
 ticket: S2967
-flavor: noLegal і VR, на сумісному шоломі
+availability_note: noLegal і VR, на сумісному шоломі
 recipe_number: "03"
 canonical_url: documentation/vr/passthrough-and-controllers-uk.html
 why: |
@@ -105,6 +105,6 @@ next_recipes:
     description: Такі самі елементи керування на пласких екранах, поза шоломом.
 ---
 
-<sub class="doc-stamp">26.09.25 22:25</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Плаваюча панель керування, її прив'язаний до голови банер, налаштування сеансу за кнопкою меню, приховування й виклик смуги, перемотка стиком з модифікатором захвату, тактильний відгук контролерів, відстеження рук і накладення FPS - кожне керування, яке VR Cinema тримає напохваті.

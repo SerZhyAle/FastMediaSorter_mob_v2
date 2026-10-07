@@ -512,7 +512,11 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     // The server removes a client from its list before it reports the disconnect, so its own count is the
     // truth on both edges and a missed or doubled callback cannot drift the number.
+    // The library calls this inside its PLAY handling, before the client may send. Without a fresh IDR the
+    // listener sees nothing until the encoder's next scheduled keyframe (LIVE-BROADCAST consumer rule 1).
     override fun onClientConnected(client: ServerClient) {
+        cameraServer?.requestKeyFrame()
+        Timber.d("S4124: keyframe requested on PLAY from %s", client.getAddress())
         publishListenerCount()
     }
 

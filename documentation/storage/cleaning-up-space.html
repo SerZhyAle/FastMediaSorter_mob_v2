@@ -134,20 +134,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.24 08:40</div>
+<div class="doc-stamp">26.10.07 01:10</div>
+    <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Search...</span>
                 <kbd>/</kbd>
             </button>
@@ -169,8 +170,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
             </nav>
         </div>
     </header>
@@ -411,11 +412,12 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Sources, Destinations & File Operations</span>
-                    <span class="doc-badge doc-badge-standard">Standard, noLegal, Legacy and VR; ZIP archives in all editions</span>
+                    <span class="doc-edition-badge">All editions</span>
                     <span class="doc-badge doc-badge-sm">Recipe #08</span>
                 </div>
+                <p class="doc-availability-note">Standard, noLegal, Legacy and VR; ZIP archives in all editions</p>
 
                 <h1>Freeing Space - Duplicates, Big Files and ZIP Archives</h1>
 
@@ -430,13 +432,13 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Before You Begin: Ingredients &amp; Prerequisites</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> Finding duplicates and deleting by size: the Standard, noLegal, Legacy and VR <span class="doc-link-term" data-term="edition">editions</span>.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> ZIP archives: every edition - Standard, noLegal, Lite, Photos, Legacy, VR and FOSS.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> A <span class="doc-link-term" data-term="resource">resource</span> you can write to. ZIP archives are made from files on this device only.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Finding duplicates and deleting by size: the Standard, noLegal, Legacy and VR <span class="doc-link-term" data-term="edition">editions</span>.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> ZIP archives: every edition - Standard, noLegal, Lite, Photos, Legacy, VR and FOSS.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> A <span class="doc-link-term" data-term="resource">resource</span> you can write to. ZIP archives are made from files on this device only.</li>
                     </ul>
                 </div>
 
@@ -472,6 +474,13 @@ layout: null
                     </div>
                 </div>
 
+                <div class="doc-callout doc-callout-warning">
+                    <div class="doc-callout-title">
+                        <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>This deletion cannot be undone
+                    </div>
+                    <p>The app asks 'Are you sure you want to permanently delete..?' before it deletes. Look through the ticks once more - especially in groups where the copies sit in different folders.</p>
+                </div>
+
                 <!-- Step 3 -->
                 <div class="doc-step" id="delete-duplicates">
                     <div class="doc-step-header">
@@ -481,13 +490,14 @@ layout: null
                     <div class="doc-step-body">
                         <p>Change the ticks if you want to keep a different copy - you can also drag across several files to tick them at once - or delete one file with its own delete button. Then tap <strong>Delete Selected</strong>, which shows how many files and how much space it will free. Confirm, and the selected copies are deleted for good.</p>
                         <p>In a hurry? <strong>Find and Delete Duplicates</strong> in the same menu opens the same screen, ready to delete right after the scan.</p>
-                        <div class="doc-callout doc-callout-warning">
-                            <div class="doc-callout-title">
-                                <span class="doc-callout-icon">⚠️</span> This deletion cannot be undone
-                            </div>
-                            <p>The app asks 'Are you sure you want to permanently delete..?' before it deletes. Look through the ticks once more - especially in groups where the copies sit in different folders.</p>
-                        </div>
                     </div>
+                </div>
+
+                <div class="doc-callout doc-callout-warning">
+                    <div class="doc-callout-title">
+                        <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>Network and cloud folders have no trash
+                    </div>
+                    <p>On a network or cloud resource the confirmation adds a red line: 'Warning: trash is not supported for this resource. Deletion will be permanent!' On the phone's own folders deleted files go to the <span class="doc-link-term" data-term="trash">trash</span> when it is switched on - see <a href="file-copy-move-delete.html" class="doc-link">Copying, moving and deleting files</a>.</p>
                 </div>
 
                 <!-- Step 4 -->
@@ -505,12 +515,6 @@ layout: null
                             <img src="../assets/images/storage/delete-by-size-dialog.png" alt="The Delete by Size window with Larger than selected, the value 500 and the unit MB, and the Analyze button" class="doc-screenshot" loading="lazy" />
                             <figcaption>Choose the size limit, then Analyze.</figcaption>
                         </figure>
-                        <div class="doc-callout doc-callout-warning">
-                            <div class="doc-callout-title">
-                                <span class="doc-callout-icon">⚠️</span> Network and cloud folders have no trash
-                            </div>
-                            <p>On a network or cloud resource the confirmation adds a red line: 'Warning: trash is not supported for this resource. Deletion will be permanent!' On the phone's own folders deleted files go to the <span class="doc-link-term" data-term="trash">trash</span> when it is switched on - see <a href="file-copy-move-delete.html" class="doc-link">Copying, moving and deleting files</a>.</p>
-                        </div>
                     </div>
                 </div>
 
@@ -551,17 +555,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="file-copy-move-delete.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-other">Storage</span>
-                            <h4>Copying, moving and deleting files</h4>
+                            <h3>Copying, moving and deleting files</h3>
                             <p>Everyday file work, the trash and Undo.</p>
                         </a>
                         <a href="scheduled-operations.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-other">Storage</span>
-                            <h4>Running file jobs on a schedule</h4>
+                            <h3>Running file jobs on a schedule</h3>
                             <p>Let the app clean up or move files by itself every night.</p>
                         </a>
                         <a href="../programs/usage-statistics.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Programs</span>
-                            <h4>Usage statistics</h4>
+                            <h3>Usage statistics</h3>
                             <p>See how many files you sorted and how much space your deletions freed.</p>
                         </a>
                     </div>

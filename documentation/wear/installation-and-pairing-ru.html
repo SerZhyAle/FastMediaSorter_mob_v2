@@ -148,20 +148,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.30 10:24</div>
+<div class="doc-stamp">26.10.07 01:10</div>
+    <a class="doc-skip-link" href="#main-content">Перейти к содержимому</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index-ru.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index-ru.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Поиск...</span>
                 <kbd>/</kbd>
             </button>
@@ -183,8 +184,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Тема</span></button>
             </nav>
         </div>
     </header>
@@ -430,11 +431,13 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Часы Wear OS</span>
-                    <span class="doc-badge doc-badge-standard">На телефоне (Wear-компаньон) - Standard и noLegal; приложение на часах - версия из Google Play или полная версия из APK</span>
+                    <span class="doc-edition-badge">FastMedia Wear</span>
+                    <span class="doc-device-badge doc-device-badge--wear"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g transform="translate(12 12) scale(0.917 0.917) translate(-12 -12)"><path d="M20,12c0,-2.54 -1.19,-4.81 -3.04,-6.27L16,0L8,0l-0.96,5.73C5.19,7.19 4,9.46 4,12s1.19,4.81 3.04,6.27L8,24h8l0.96,-5.73C18.81,16.81 20,14.54 20,12zM6,12c0,-3.31 2.69,-6 6,-6s6,2.69 6,6 -2.69,6 -6,6 -6,-2.69 -6,-6z"/><path d="M12.5,12L12.5,8.5L11.5,8.5L11.5,12.5L15,12.5L15,11.5z"/></g></svg>Часы</span>
                     <span class="doc-badge doc-badge-sm">Recipe #01</span>
                 </div>
+                <p class="doc-availability-note">На телефоне (Wear-компаньон) - Standard и noLegal; приложение на часах - версия из Google Play или полная версия из APK</p>
 
                 <h1>FastMediaSorter на смарт-часах: установка, сопряжение и Wear-компаньон</h1>
 
@@ -449,14 +452,14 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Перед началом: Что вам понадобится</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> Смарт-часы на <span class="doc-link-term" data-term="wear-os">Wear OS</span> под управлением Android 9 или новее (подходят любые модели на Wear OS 3, 4 и 5; часы Galaxy Watch 3, Galaxy Watch Active и Active 2 работают на ОС Tizen и не поддерживаются).</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Часы уже сопряжены с телефоном Android в приложении производителя (Galaxy Wearable, Google Pixel Watch и т. д.).</li>
-                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter на смартфоне в редакции Standard или <span class="doc-link-term" data-term="nolegal-edition">noLegal</span> (в других <span class="doc-link-term" data-term="edition">редакциях</span> модуль Wear-компаньона не предусмотрен).</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Несколько минут времени и подключение к интернету на часах или смартфоне.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Смарт-часы на <span class="doc-link-term" data-term="wear-os">Wear OS</span> под управлением Android 9 или новее (подходят любые модели на Wear OS 3, 4 и 5; часы Galaxy Watch 3, Galaxy Watch Active и Active 2 работают на ОС Tizen и не поддерживаются).</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Часы уже сопряжены с телефоном Android в приложении производителя (Galaxy Wearable, Google Pixel Watch и т. д.).</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> FastMediaSorter на смартфоне в редакции Standard или <span class="doc-link-term" data-term="nolegal-edition">noLegal</span> (в других <span class="doc-link-term" data-term="edition">редакциях</span> модуль Wear-компаньона не предусмотрен).</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Несколько минут времени и подключение к интернету на часах или смартфоне.</li>
                     </ul>
                 </div>
 
@@ -469,7 +472,7 @@ layout: null
                     <div class="doc-step-body">
                         <p>Приложение для часов выпускается в двух вариантах:</p>
                         <ul><li><strong>Версия из Google Play</strong> - базовый компактный выпуск: Калькулятор, Секундомер, мини-игра, настройки часов и <span class="doc-link-term" data-term="tile">плитка</span> «Программы».</li><li><strong>Полная версия</strong> - APK-файл, устанавливаемый вручную со <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest" target="_blank" rel="noopener" class="doc-link-external">страницы загрузок</a>. В нее включены все возможности: плеер музыки, просмотр фото, доступ к сетевым папкам, связь с телефоном, полный набор плиток и усложнений для циферблатов. Это аналог <span class="doc-link-term" data-term="nolegal-edition">редакции noLegal</span> для часов, и разделы с пометкой *только sideload* требуют именно ее.</li></ul>
-                        <p>Обе версии используют одинаковое имя пакета, поэтому телефон без проблем связывается с любой из них. Если Android предупреждает о пакете, <a href="../../docs/INSTALL_TRUST_RU.html" class="doc-link">здесь объяснено, почему это происходит и что нажимать</a>.</p>
+                        <p>Обе версии используют одинаковое имя пакета, поэтому телефон без проблем связывается с любой из них. Если Android предупреждает о пакете, <a href="../../docs/INSTALL_TRUST-ru.html" class="doc-link">здесь объяснено, почему это происходит и что нажимать</a>.</p>
                     </div>
                 </div>
 
@@ -634,17 +637,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="companion-data-sync-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Часы</span>
-                            <h4>Синхронизация телефона и часов</h4>
+                            <h3>Синхронизация телефона и часов</h3>
                             <p>Выбор сетевых папок для часов и поддержание настроек в актуальном состоянии.</p>
                         </a>
                         <a href="tiles-and-complications-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Часы</span>
-                            <h4>Плитки и усложнения для циферблата</h4>
+                            <h3>Плитки и усложнения для циферблата</h3>
                             <p>Быстрый доступ к любимым разделам в одном свайпе от циферблата.</p>
                         </a>
                         <a href="standalone-music-playback-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Часы</span>
-                            <h4>Воспроизведение музыки на часах</h4>
+                            <h3>Воспроизведение музыки на часах</h3>
                             <p>Прослушивание музыки напрямую с часов - с телефоном или полностью автономно.</p>
                         </a>
                     </div>
@@ -679,8 +682,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.</div>
             <div class="doc-footer-links">
-                <a href="../../docs/PRIVACY_POLICY.ru.html">Политика конфиденциальности</a>
-                <a href="../../docs/TERMS_OF_SERVICE_RU.html">Условия использования</a>
+                <a href="../../docs/PRIVACY_POLICY-ru.html">Политика конфиденциальности</a>
+                <a href="../../docs/TERMS_OF_SERVICE-ru.html">Условия использования</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>

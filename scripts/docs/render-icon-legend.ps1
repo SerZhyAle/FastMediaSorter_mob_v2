@@ -203,8 +203,8 @@ function Render-Legend([string] $locale, [string] $permalinkName) {
 $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $targets = @(
     @{ locale = 'en'; permalink = 'ICON_LEGEND';    file = 'ICON_LEGEND.md' }
-    @{ locale = 'ru'; permalink = 'ICON_LEGEND_RU'; file = 'ICON_LEGEND-ru.md' }
-    @{ locale = 'uk'; permalink = 'ICON_LEGEND_UK'; file = 'ICON_LEGEND-uk.md' }
+    @{ locale = 'ru'; permalink = 'ICON_LEGEND-ru'; file = 'ICON_LEGEND-ru.md' }
+    @{ locale = 'uk'; permalink = 'ICON_LEGEND-uk'; file = 'ICON_LEGEND-uk.md' }
 )
 $codeScope = $null
 try {

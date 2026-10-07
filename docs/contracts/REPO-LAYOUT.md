@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 12:24</sub>
+<sub class="doc-stamp">26.10.07 04:59</sub>
 
 # Pointer - `REPO-LAYOUT`
 
 | | |
 | --- | --- |
 | **Id** | `REPO-LAYOUT` |
-| **Version** | 0.10, draft. Owner: the canon (sza-unified-rules) |
+| **Version** | 0.11, draft. Owner: the canon (sza-unified-rules) |
 | **Home** | `rule-adoption/README.md` section 4 in the shared contracts catalog |
 | **Role here** | adopter - keeps the names tools address by |
 

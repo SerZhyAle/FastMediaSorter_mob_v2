@@ -6,7 +6,8 @@ description: How to switch on and play Kryvavitsa and the Monster, the small tur
 category: "Programs, Statistics and Diagnostics"
 category_slug: programs
 ticket: S2961
-flavor: All editions; the watch version with FastMedia Wear in the Standard and noLegal editions
+availability: all
+availability_note: All editions; the watch version with FastMedia Wear in the Standard and noLegal editions
 recipe_number: "03"
 canonical_url: documentation/programs/mini-game.html
 why: |
@@ -112,6 +113,6 @@ next_recipes:
     description: Put the game on your home screen next to the other widgets.
 ---
 
-<sub class="doc-stamp">26.09.25 04:13</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 **Kryvavitsa and the Monster** is a small turn-based puzzle built into FastMediaSorter. This page shows how to switch it on, the rules and the score, how to play with touch, keyboard, D-pad or gamepad, how to restart a level, the three looks and the watch version.

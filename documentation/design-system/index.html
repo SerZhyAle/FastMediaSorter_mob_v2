@@ -38,77 +38,34 @@
     <link rel="stylesheet" href="../../styles.css">
     <link rel="stylesheet" href="../assets/docs.css">
 
-    <style>
-        /* Demo showcase helper styles */
-        .demo-section {
-            margin-bottom: 3.5rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px dashed var(--doc-border);
-        }
-        .demo-section:last-of-type {
-            border-bottom: none;
-        }
-        .demo-title {
-            font-family: var(--doc-font-heading);
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--doc-text);
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .demo-desc {
-            color: var(--doc-text-muted);
-            font-size: 0.9375rem;
-            margin-bottom: 1.25rem;
-        }
-        .demo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.25rem;
-        }
-        .demo-box {
-            background: var(--doc-bg-surface);
-            border: 1px solid var(--doc-border);
-            border-radius: var(--doc-radius);
-            padding: 1.25rem;
-        }
-        .demo-label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--doc-text-muted);
-            margin-bottom: 0.75rem;
-        }
-    </style>
 </head>
 
 <body class="doc-body">
+    <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Sticky Header -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <span class="doc-badge doc-badge-sm" style="color: var(--doc-text-secondary);">Docs Kit S2976</span>
+            <div class="doc-header-start">
+                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
-                <span>Search documentation...</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <span>Search...</span>
                 <kbd>/</kbd>
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link">Sample Recipe</a>
-                <a href="index.html" class="doc-header-link active">Component Catalog</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
+                <a href="index.html" class="doc-header-link active">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
-                <!-- Live Theme Toggle Button -->
-                                <!-- 13-Language Selector -->
+                <!-- 13-Language Selector -->
                 <div class="doc-lang-picker">
                     <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">EN</button>
                     <div class="doc-lang-menu" id="langMenu">
@@ -116,8 +73,8 @@
                     </div>
                 </div>
 
-                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
             </nav>
         </div>
     </header>
@@ -154,7 +111,7 @@
             <!-- Main Content: Living Component Catalog -->
             <main class="doc-content" id="main-content">
 
-                <div class="doc-lead" style="margin-bottom: 2rem;">
+                <div class="doc-lead demo-intro">
                     Living showcase of all visual components and design tokens developed for the <strong>FastMediaSorter v2 Documentation Portal</strong>. Use the theme toggle button (top right) to inspect light and dark modes.
                 </div>
 
@@ -187,7 +144,7 @@
 
                     <div class="demo-box">
                         <div class="demo-label">Media Type Badges</div>
-                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                        <div class="demo-row">
                             <span class="doc-badge doc-badge-music">Music</span>
                             <span class="doc-badge doc-badge-video">Video</span>
                             <span class="doc-badge doc-badge-image">Photos</span>
@@ -196,7 +153,7 @@
                         </div>
 
                         <div class="demo-label">Application Editions & OS Targets</div>
-                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <div class="demo-row">
                             <span class="doc-badge doc-badge-standard">Standard Edition</span>
                             <span class="doc-badge doc-badge-nolegal">NoLegal Edition</span>
                             <span class="doc-badge doc-badge-vr">VR Edition</span>
@@ -204,6 +161,19 @@
                             <span class="doc-badge doc-badge-android-tv">Android TV</span>
                             <span class="doc-badge doc-badge-sm">Small Chip</span>
                         </div>
+
+                        <div class="demo-label">Edition Badge &amp; Device Badges</div>
+                        <div class="demo-row">
+                            <span class="doc-edition-badge">All editions</span>
+                            <span class="doc-edition-badge">Standard, noLegal, Legacy and VR</span>
+                            <span class="doc-device-badge"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17,1H7c-1.1,0 -2,0.9 -2,2v18c0,1.1 0.9,2 2,2h10c1.1,0 2,-0.9 2,-2V3c0,-1.1 -0.9,-2 -2,-2zM17,19H7V5h10v14z"/></svg>Phone</span>
+                            <span class="doc-device-badge doc-device-badge--wear"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g transform="translate(12 12) scale(0.917 0.917) translate(-12 -12)"><path d="M20,12c0,-2.54 -1.19,-4.81 -3.04,-6.27L16,0L8,0l-0.96,5.73C5.19,7.19 4,9.46 4,12s1.19,4.81 3.04,6.27L8,24h8l0.96,-5.73C18.81,16.81 20,14.54 20,12zM6,12c0,-3.31 2.69,-6 6,-6s6,2.69 6,6 -2.69,6 -6,6 -6,-2.69 -6,-6z"/><path d="M12.5,12L12.5,8.5L11.5,8.5L11.5,12.5L15,12.5L15,11.5z"/></g></svg>Wear OS</span>
+                            <span class="doc-device-badge doc-device-badge--vr"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.74,6H3.26C2.57,6 2,6.57 2,7.26v9.49C2,17.43 2.57,18 3.26,18h4.85c0.45,0 0.86,-0.26 1.06,-0.67l0.99,-1.99c0.33,-0.67 1.01,-1.09 1.75,-1.09h0.18c0.74,0 1.42,0.42 1.75,1.09l0.99,1.99c0.2,0.41 0.61,0.67 1.06,0.67h4.85c0.69,0 1.26,-0.57 1.26,-1.26V7.26C22,6.57 21.43,6 20.74,6zM7.5,14C5.57,14 4,12.43 4,10.5S5.57,7 7.5,7S11,8.57 11,10.5S9.43,14 7.5,14zM16.5,14c-1.93,0 -3.5,-1.57 -3.5,-3.5S14.57,7 16.5,7S20,8.57 20,10.5S18.43,14 16.5,14z"/><path d="M7.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z"/><path d="M16.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z"/></svg>VR</span>
+                            <span class="doc-device-badge doc-device-badge--tv"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21,3L3,3c-1.1,0 -2,0.9 -2,2v12c0,1.1 0.9,2 2,2h5v2h8v-2h5c1.1,0 2,-0.9 2,-2L23,5c0,-1.1 -0.9,-2 -2,-2zM21,17L3,17L3,5h18v12z"/></svg>TV / D-Pad</span>
+                        </div>
+
+                        <div class="demo-label">Menu Path</div>
+                        <p>Open <span class="doc-menu-path"><span class="doc-menu-path-item">Settings</span><span class="doc-menu-path-sep">→</span><span class="doc-menu-path-item">General</span><span class="doc-menu-path-sep">→</span><span class="doc-menu-path-item">File browser interface</span></span>.</p>
                     </div>
                 </section>
 
@@ -214,14 +184,14 @@
 
                     <div class="doc-card-prereq">
                         <div class="doc-card-prereq-title">
-                            <span class="doc-card-prereq-icon">✓</span>
+                            <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                             <span>What You Will Need for this Recipe</span>
                         </div>
                         <ul class="doc-prereq-list">
-                            <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter v2 (Standard or NoLegal edition, version 2.6+)</li>
-                            <li><span class="doc-prereq-bullet">✓</span> Android 8.0 (Oreo) or later device with storage permissions enabled</li>
-                            <li><span class="doc-prereq-bullet">✓</span> Local music tracks stored in internal storage or SD card</li>
-                            <li><span class="doc-prereq-bullet">✓</span> (Optional) Local Wi-Fi connection for SMB network playback</li>
+                            <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> FastMediaSorter v2 (Standard or NoLegal edition, version 2.6+)</li>
+                            <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Android 8.0 (Oreo) or later device with storage permissions enabled</li>
+                            <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Local music tracks stored in internal storage or SD card</li>
+                            <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> (Optional) Local Wi-Fi connection for SMB network playback</li>
                         </ul>
                     </div>
                 </section>
@@ -263,21 +233,21 @@
 
                     <div class="doc-callout doc-callout-tip">
                         <div class="doc-callout-title">
-                            <span class="doc-callout-icon">💡</span> Pro-Tip: Background Audio Playback
+                            Pro-Tip: Background Audio Playback
                         </div>
                         <p>FastMediaSorter continues playback seamlessly when the screen is locked or when you switch apps, using battery-efficient Media3 background services.</p>
                     </div>
 
                     <div class="doc-callout doc-callout-warning">
                         <div class="doc-callout-title">
-                            <span class="doc-callout-icon">⚠️</span> Caution: OEM Battery Optimizers
+                            <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>Caution: OEM Battery Optimizers
                         </div>
                         <p>Some vendor devices (Xiaomi MIUI, Samsung OneUI) aggressively kill background services. Add FastMediaSorter to <em>Battery &gt; Unrestricted</em> to prevent playback pauses.</p>
                     </div>
 
                     <div class="doc-callout doc-callout-note">
                         <div class="doc-callout-title">
-                            <span class="doc-callout-icon">ℹ️</span> Note: NoLegal Edition Differences
+                            <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>Note: NoLegal Edition Differences
                         </div>
                         <p>The NoLegal edition includes built-in standalone audio decoders without relying on Google Play services.</p>
                     </div>
@@ -288,34 +258,34 @@
                     <div class="demo-title">6. Device Mockup Frames</div>
                     <div class="demo-desc">Adaptive frames for phone screenshots, round/square Wear OS watches, and VR headsets.</div>
 
-                    <div class="demo-grid" style="align-items: start;">
+                    <div class="demo-grid demo-grid-top">
                         <!-- Phone Frame -->
-                        <div class="demo-box" style="text-align: center;">
+                        <div class="demo-box demo-box-centered">
                             <div class="demo-label">Phone Mockup</div>
-                            <div class="doc-frame-phone" style="height: 380px;">
+                            <div class="doc-frame-phone demo-frame-phone">
                                 <div class="doc-frame-notch"></div>
-                                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--doc-text-muted); font-size: 0.875rem;">
+                                <div class="demo-screen">
                                     Phone Screen Content (9:16)
                                 </div>
                             </div>
                         </div>
 
                         <!-- Round Watch Frame -->
-                        <div class="demo-box" style="text-align: center;">
+                        <div class="demo-box demo-box-centered">
                             <div class="demo-label">Wear OS Round Watch</div>
                             <div class="doc-frame-watch-round">
                                 <div class="doc-frame-watch-crown"></div>
-                                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--doc-text-muted); font-size: 0.75rem; text-align: center; padding: 1rem;">
+                                <div class="demo-screen demo-screen-watch">
                                     Wear OS Companion Controller
                                 </div>
                             </div>
                         </div>
 
                         <!-- VR Visor Frame -->
-                        <div class="demo-box" style="text-align: center;">
+                        <div class="demo-box demo-box-centered">
                             <div class="demo-label">VR Visor / Headset</div>
                             <div class="doc-frame-vr">
-                                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--doc-text-muted); font-size: 0.8125rem;">
+                                <div class="demo-screen demo-screen-vr">
                                     VR 360° / Stereo 3D Viewer
                                 </div>
                             </div>
@@ -330,7 +300,7 @@
 
                     <div class="demo-box">
                         <div class="demo-label">Interactive Link Types</div>
-                        <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.75rem;">
+                        <ul class="demo-list">
                             <li>
                                 <strong>Termbase Tooltip:</strong> Hover over <span class="doc-link-term" data-term="SMB">SMB (Server Message Block)</span> to preview glossary definition.
                             </li>

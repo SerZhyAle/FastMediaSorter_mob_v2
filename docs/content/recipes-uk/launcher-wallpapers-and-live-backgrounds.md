@@ -6,7 +6,6 @@ description: Як обрати одну з шести шпалер робочо�
 category: "Лаунчер: робочий стіл"
 category_slug: launcher
 ticket: S2958
-flavor: Редакції Standard і noLegal
 recipe_number: "02"
 canonical_url: documentation/launcher/wallpapers-and-live-backgrounds-uk.html
 why: |
@@ -120,6 +119,6 @@ next_recipes:
     description: Хочете багато фото замість одного? Нехай вони змінюються самі.
 ---
 
-<sub class="doc-stamp">26.09.25 22:33</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Робочий стіл лаунчера вміє малювати шість видів шпалер - від фірмових рухомих хвиль і частинок FastMediaSorter до вашого власного фото чи живого вигляду з камери. Ця сторінка показує, як обрати одні з них і налаштувати.

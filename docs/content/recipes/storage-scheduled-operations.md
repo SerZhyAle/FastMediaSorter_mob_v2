@@ -6,7 +6,7 @@ description: How to let the app copy, move or delete files by itself on a schedu
 category: Sources, Destinations & File Operations
 category_slug: storage
 ticket: S2949
-flavor: Standard, noLegal, Legacy and VR
+availability: all
 recipe_number: "09"
 canonical_url: documentation/storage/scheduled-operations.html
 why: |
@@ -14,7 +14,7 @@ why: |
 
   Typical jobs: copy new camera photos to a [network folder](term:network-folder) every night, move downloaded videos to the memory card every few hours, or empty a folder of temporary screenshots once a day.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Legacy or VR [edition](term:edition)."
+  - "FastMediaSorter in any [edition](term:edition)."
   - "The source: a [resource](term:resource) or any folder on this device."
   - "For copy and move: a [destination](term:destination), or any folder on this device."
   - "The phone switched on at the scheduled time. Android decides the exact moment, so a job may start a few minutes late."
@@ -122,6 +122,6 @@ next_recipes:
     description: The other programs you can open from the same menu.
 ---
 
-<sub class="doc-stamp">26.09.24 15:50</sub>
+<sub class="doc-stamp">26.10.07 01:11</sub>
 
 Let the app copy, move or delete files by itself on a schedule - for example copy new camera photos to the home computer every night - and read the run history to see what was done.

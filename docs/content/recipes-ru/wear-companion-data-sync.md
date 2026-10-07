@@ -6,7 +6,7 @@ description: Как выбрать сетевые ресурсы для отпр
 category: Часы Wear OS
 category_slug: wear
 ticket: S2964
-flavor: На телефоне - Standard и noLegal; отправка сетевых ресурсов и синхронизация с часов - полная версия для часов (только sideload)
+availability_note: На телефоне - Standard и noLegal; отправка сетевых ресурсов и синхронизация с часов - полная версия для часов (только sideload)
 recipe_number: "02"
 canonical_url: documentation/wear/companion-data-sync-ru.html
 why: |
@@ -163,6 +163,6 @@ next_recipes:
     description: Первые шаги по настройке связи, если часы и телефон пока не видят друг друга.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Выбирайте [сетевые ресурсы](term:network-resource) для передачи на [часы](term:watch), отправляйте их в одно касание, проверяйте статус связи и настраивайте часы прямо из окна [Wear-компаньона](term:wear-companion) на телефоне - типы медиафайлов, слайд-шоу, параметры экрана, цветовые темы, фоновые рисунки и энергосбережение.

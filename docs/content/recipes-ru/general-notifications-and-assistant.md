@@ -6,7 +6,7 @@ description: Что показывает заставка при старте, �
 category: "General, Keyboard & TV"
 category_slug: general
 ticket: S2963
-flavor: Все редакции - каждое уведомление появляется только в тех редакциях, где есть соответствующая функция
+availability_note: Все редакции - каждое уведомление появляется только в тех редакциях, где есть соответствующая функция
 recipe_number: "04"
 canonical_url: documentation/general/notifications-and-assistant-ru.html
 why: |
@@ -111,6 +111,6 @@ next_recipes:
     description: Работа приложения в многооконном режиме, на планшетах и складных смартфонах.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Заставка при запуске, системные уведомления, единые цвета типов контента и программ, защита паролей и согласованный язык на всех экранах - все детали внешнего взаимодействия FastMediaSorter.

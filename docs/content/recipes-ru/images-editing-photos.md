@@ -6,7 +6,6 @@ description: Как повернуть или зеркально отразит�
 category: Изображения, аудио и слайд-шоу
 category_slug: images
 ticket: S2952
-flavor: Все редакции
 recipe_number: "02"
 canonical_url: documentation/images/editing-photos-ru.html
 why: |
@@ -144,6 +143,6 @@ next_recipes:
     description: Рисуйте, пишите текст и ставьте отметки прямо поверх картинок.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Поворачивайте, отражайте и обрезайте фотографии, создавайте уменьшенные копии для отправки, настраивайте яркость и цвета, применяйте фильтры и управляйте скоростью анимированных GIF прямо в [просмотрщике изображений](term:image-viewer) без сторонних редакторов.

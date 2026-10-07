@@ -6,7 +6,6 @@ description: Як каталог каналів потрапляє на прис
 category: Інтернет-трансляції
 category_slug: streams
 ticket: S2954
-flavor: Standard, noLegal, Legacy і VR
 recipe_number: "01"
 canonical_url: documentation/streams/channel-catalog-browsing-uk.html
 why: |
@@ -207,6 +206,6 @@ next_recipes:
     description: Що відбувається, щойно ви торкаєтеся каналу і починається відтворення.
 ---
 
-<sub class="doc-stamp">26.09.25 22:58</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Каталог](term:catalog) - це те, як [Трансляції](term:streams-screen) переходять від порожнечі до тисяч [каналів](term:channel), вартих перегляду: завантажте його, тримайте свіжим, а потім орієнтуйтеся фільтрами, добірними колекціями, сортуванням і списком, що пам'ятає, де саме ви зупинилися.

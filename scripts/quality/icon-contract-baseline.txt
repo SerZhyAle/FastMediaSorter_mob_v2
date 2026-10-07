@@ -13,7 +13,6 @@ compose-unmapped|wear|Icons.Filled.CropFree
 compose-unmapped|wear|Icons.Filled.Dashboard
 compose-unmapped|wear|Icons.Filled.DirectionsWalk
 compose-unmapped|wear|Icons.Filled.EditNote
-compose-unmapped|wear|Icons.Filled.Email
 compose-unmapped|wear|Icons.Filled.Favorite
 compose-unmapped|wear|Icons.Filled.FiberManualRecord
 compose-unmapped|wear|Icons.Filled.HourglassEmpty
@@ -64,7 +63,6 @@ name-substitution|app_v2|touch_zones_overlay_zonePrevious_text|ru
 name-substitution|app_v2|touch_zones_overlay_zonePrevious_text|uk
 name-substitution|app_v2|vr_overlay_btn_next|ru
 unmapped|app_v2|ic_save_frame
-unmapped|app_v2|ic_send_email
 unmapped|app_v2|ic_send_note
 unmapped|app_v2|ic_send_note_brush
 unmapped|app_v2|ic_vinyl_record

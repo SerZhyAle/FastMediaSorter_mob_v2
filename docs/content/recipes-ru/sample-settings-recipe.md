@@ -5,7 +5,6 @@ description: Практический рецепт по настройке со�
 category: Настройки и навигация
 category_slug: settings
 ticket: S2962
-flavor: Все редакции
 recipe_number: "02"
 canonical_url: documentation/sample-settings-recipe-ru.html
 ingredients:
@@ -37,6 +36,6 @@ next_recipes:
     description: Экспорт конфигурации и закладок в файл архива.
 ---
 
-<sub class="doc-stamp">26.09.25 17:06</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Настройте FastMediaSorter под ваш персональный стиль организации медиафайлов. Узнайте, как задать порядок сортировки по умолчанию, плотность сетки миниатюр и параметры фонового воспроизведения звука.

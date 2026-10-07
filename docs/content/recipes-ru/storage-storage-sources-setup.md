@@ -6,7 +6,6 @@ description: Как подключить локальную папку со см
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: Все редакции
 recipe_number: "01"
 canonical_url: documentation/storage/storage-sources-setup-ru.html
 why: |
@@ -145,6 +144,6 @@ next_recipes:
     description: Просмотр содержимого ресурса в виде плиток или списка.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Добавляйте папки со смартфона, карты памяти SD или USB-накопителя в качестве ресурсов, пользуйтесь готовыми автоматическими коллекциями и открывайте полный доступ ко всем типам файлов с помощью функции «Переподключить ресурс».

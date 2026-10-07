@@ -6,7 +6,7 @@ description: Как открыть общий доступ к папке в Wind
 category: Сеть и облачные хранилища
 category_slug: network
 ticket: S2950
-flavor: Сетевые папки (SMB) - все редакции, кроме Lite. Автоматический поиск компьютеров, список общих папок, проверка подключения и автоматическая оптимизация скорости - Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS).
+availability_note: Сетевые папки (SMB) - все редакции, кроме Lite. Автоматический поиск компьютеров, список общих папок, проверка подключения и автоматическая оптимизация скорости - Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS).
 recipe_number: "01"
 canonical_url: documentation/network/smb-samba-shares-ru.html
 why: |
@@ -115,6 +115,6 @@ next_recipes:
     description: Обзорный рецепт: типы подключаемых папок и технологии быстрого кэширования.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Откройте общий доступ к папке в Windows, найдите ее в приложении сканированием локальной сети, проверьте подключение до сохранения и разберитесь, что означают сообщения о статусе связи - полное руководство по [добавлению сетевых папок](page:storage.network-and-cloud-sources) в качестве [ресурсов](term:resource).

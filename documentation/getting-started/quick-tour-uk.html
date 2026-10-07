@@ -134,20 +134,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.25 22:19</div>
+<div class="doc-stamp">26.10.07 01:10</div>
+    <a class="doc-skip-link" href="#main-content">Перейти до вмісту</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index-uk.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index-uk.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index-uk.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index-uk.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Пошук...</span>
                 <kbd>/</kbd>
             </button>
@@ -169,8 +170,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index-uk.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index-uk.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Тема</span></button>
             </nav>
         </div>
     </header>
@@ -426,11 +427,12 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Перші кроки</span>
-                    <span class="doc-badge doc-badge-standard">Усі редакції - джерело встановлення залежить від редакції</span>
+                    <span class="doc-edition-badge">Усі редакції</span>
                     <span class="doc-badge doc-badge-sm">Recipe #04</span>
                 </div>
+                <p class="doc-availability-note">Усі редакції - джерело встановлення залежить від редакції</p>
 
                 <h1>Швидкий огляд можливостей</h1>
 
@@ -445,13 +447,13 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Перед початком: Що вам знадобиться</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> Телефон на Android, планшет, ТБ-приставка, автомобільна магнітола чи гарнітура - FastMediaSorter працює на всіх них, у <span class="doc-link-term" data-term="edition">редакції</span>, створеній саме для цього обладнання.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Спосіб встановити застосунок: Google Play Store або завантажений файл APK для редакцій, яких немає в магазині.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Для кроку з папками Windows: запущений Fast Media Sorter for Windows у тій самій мережі, що й ваш телефон.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Телефон на Android, планшет, ТБ-приставка, автомобільна магнітола чи гарнітура - FastMediaSorter працює на всіх них, у <span class="doc-link-term" data-term="edition">редакції</span>, створеній саме для цього обладнання.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Спосіб встановити застосунок: Google Play Store або завантажений файл APK для редакцій, яких немає в магазині.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Для кроку з папками Windows: запущений Fast Media Sorter for Windows у тій самій мережі, що й ваш телефон.</li>
                     </ul>
                 </div>
 
@@ -463,7 +465,7 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Редакція Standard є в Google Play, як і будь-який інший застосунок - знайдіть FastMediaSorter через пошук або відкрийте його сторінку в магазині безпосередньо й торкніться <strong>Встановити</strong>.</p>
-                        <p>Інші редакції - noLegal, VR, Lite, Photos і Legacy - мають можливості, які магазин не пропускає у своєму лістингу, тому там їх не продають. Такі редакції встановлюють, завантаживши файл APK напряму - зі сторінки GitHub Releases проєкту або з репозиторію IzzyOnDroid, - і відкривши його. Коли Android бачить пакунок, встановлений не з магазину, вперше, він показує одноразове попередження; це попередження про те, скільки разів Android бачив підпис файлу, а не про щось знайдене всередині нього. <a href="../../docs/INSTALL_TRUST_UK.html" class="doc-link">Чому Android попереджає про цей APK і що саме натискати</a> детально розбирає обидва екрани.</p>
+                        <p>Інші редакції - noLegal, VR, Lite, Photos і Legacy - мають можливості, які магазин не пропускає у своєму лістингу, тому там їх не продають. Такі редакції встановлюють, завантаживши файл APK напряму - зі сторінки GitHub Releases проєкту або з репозиторію IzzyOnDroid, - і відкривши його. Коли Android бачить пакунок, встановлений не з магазину, вперше, він показує одноразове попередження; це попередження про те, скільки разів Android бачив підпис файлу, а не про щось знайдене всередині нього. <a href="../../docs/INSTALL_TRUST-uk.html" class="doc-link">Чому Android попереджає про цей APK і що саме натискати</a> детально розбирає обидва екрани.</p>
                     </div>
                 </div>
 
@@ -510,7 +512,7 @@ layout: null
                         <ul><li><strong>Файловий менеджер</strong> - перегляд, сортування та операції з файлами починаються з <a href="../browsing/grid-and-list-views-uk.html" class="doc-link">перегляду сіткою та списком</a> і <a href="../storage/file-copy-move-delete-uk.html" class="doc-link">копіювання, переміщення та видалення</a>.</li><li><strong>Плеєр</strong> - фото та GIF у <a href="../images/viewer-and-gestures-uk.html" class="doc-link">перегляді зображень</a>, відео в <a href="../player/video-playback-controls-uk.html" class="doc-link">керуванні відтворенням</a>, а музика у <a href="../audio/playing-and-organizing-music-uk.html" class="doc-link">відтворенні й упорядкуванні</a>.</li><li><strong>Будь-яке джерело</strong> - локальні, мережеві та хмарні папки починаються з <a href="../storage/storage-sources-setup-uk.html" class="doc-link">налаштування джерел сховища</a> і <a href="../network/smb-samba-shares-uk.html" class="doc-link">мережевих ресурсів Windows</a>.</li><li><strong>Трансляції</strong>, у редакціях, що їх підтримують, - починаються з <a href="../streams/channel-catalog-browsing-uk.html" class="doc-link">каталогу каналів</a>.</li><li><strong>Більше</strong> - робочий стіл <a href="../launcher/desktop-grid-and-icons-uk.html" class="doc-link">лаунчера</a>, <a href="../wear/installation-and-pairing-uk.html" class="doc-link">застосунок для годинника</a>, <a href="../vr/headset-setup-and-openxr-uk.html" class="doc-link">VR-шолом</a> і повна <a href="../settings/settings-overview-and-search-uk.html" class="doc-link">карта налаштувань</a> - усе розгалужується звідси, поряд із <a href="../flavors/overview-and-comparison-uk.html" class="doc-link">порівнянням семи редакцій</a>.</li></ul>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
-                                <span class="doc-callout-icon">💡</span> Годинник довіряє тому, кому довіряє телефон
+                                Годинник довіряє тому, кому довіряє телефон
                             </div>
                             <p>Якщо ви закріпили ключ хоста сервера <span class="doc-link-term" data-term="sftp">SFTP</span> на телефоні, <span class="doc-link-term" data-term="watch-app">застосунок для годинника</span> застосовує те саме закріплення: сервер з іншим ключем буде відхилено ще до того, як буде надіслано ваш пароль. Закріплення подорожує разом із джерелом, тож на самому годиннику налаштовувати нічого не потрібно - див. <a href="../wear/companion-data-sync-uk.html" class="doc-link">синхронізацію даних супутника годинника</a>.</p>
                         </div>
@@ -542,7 +544,7 @@ layout: null
                 <div class="doc-callout doc-callout-tip">
                     <ul>
                         <li><strong>Заставка чесна щодо часу.</strong> Вона тримається рівно стільки, скільки триває реальний запуск - на швидшому телефоні вона коротша, а не має фіксованої тривалості анімації.</li>
-                        <li><strong>Жодних серверів, жодної аналітики.</strong> У FastMediaSorter немає власного бекенда; жодні дані про те, як ви користуєтеся застосунком, нікуди не надсилаються без вашої згоди. Подробиці - у <a href="../../docs/PRIVACY_POLICY.uk.html" class="doc-link">політиці конфіденційності</a>.</li>
+                        <li><strong>Жодних серверів, жодної аналітики.</strong> У FastMediaSorter немає власного бекенда; жодні дані про те, як ви користуєтеся застосунком, нікуди не надсилаються без вашої згоди. Подробиці - у <a href="../../docs/PRIVACY_POLICY-uk.html" class="doc-link">політиці конфіденційності</a>.</li>
                         <li><strong>Повторний імпорт файлу компаньйона завжди безпечний.</strong> Він лише додає або оновлює змінені ресурси - і ніколи не залишить вас із двома копіями однієї й тієї самої папки на ПК.</li>
                         <li><strong>Випадково пропустили майстер?</strong> Він завжди на відстані одного дотику в налаштуваннях - див. <a href="welcome-and-setup-uk.html" class="doc-link">майстер першого запуску та налаштування</a>.</li>
                     </ul>
@@ -554,22 +556,22 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="welcome-and-setup-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Перші кроки</span>
-                            <h4>Перший запуск і майстер налаштування</h4>
+                            <h3>Перший запуск і майстер налаштування</h3>
                             <p>Мова, тема, профіль пристрою, джерела, дозволи та плеєр за замовчуванням - сторінка за сторінкою.</p>
                         </a>
                         <a href="permissions-guide-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Перші кроки</span>
-                            <h4>Сховище та системні дозволи</h4>
+                            <h3>Сховище та системні дозволи</h3>
                             <p>Усі дозволи, які може запитати FastMediaSorter, і що кожен з них відкриває.</p>
                         </a>
                         <a href="main-screen-overview-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Перші кроки</span>
-                            <h4>Навігація головним робочим простором</h4>
+                            <h3>Навігація головним робочим простором</h3>
                             <p>Повний огляд головного екрана, на який ви потрапляєте після налаштування.</p>
                         </a>
                         <a href="../flavors/overview-and-comparison-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Редакції</span>
-                            <h4>Порівняння семи редакцій</h4>
+                            <h3>Порівняння семи редакцій</h3>
                             <p>Яка редакція має які можливості і як їх відрізнити.</p>
                         </a>
                     </div>
@@ -602,8 +604,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Безкоштовний органайзер із відкритим вихідним кодом.</div>
             <div class="doc-footer-links">
-                <a href="../../docs/PRIVACY_POLICY.uk.html">Політика конфіденційності</a>
-                <a href="../../docs/TERMS_OF_SERVICE_UK.html">Умови використання</a>
+                <a href="../../docs/PRIVACY_POLICY-uk.html">Політика конфіденційності</a>
+                <a href="../../docs/TERMS_OF_SERVICE-uk.html">Умови використання</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>

@@ -6,7 +6,7 @@ description: What the resource list, the command bar, the resource-type tabs and
 category: Getting Started
 category_slug: getting-started
 ticket: S2946
-flavor: All editions
+availability: all
 recipe_number: "03"
 canonical_url: documentation/getting-started/main-screen-overview.html
 why: |
@@ -37,6 +37,14 @@ steps:
     title: The command bar across the top
     text: |
       The row of buttons above the list - **Exit**, **Add**, **Filter**, **Refresh**, **Settings**, **View**, **Favorites** and **Start Player** - is always there, though not always with its text labels. On a narrow screen the labels disappear first so every icon still fits; if icons alone still do not fit, the buttons at the right give way one at a time into the **More actions** (three-dots) menu, so a command is never simply cut off the edge of the screen.
+    image_bookmark:
+      shot_id: getting-started.main-screen-command-bar
+      device_profile: phone
+      screen_state: main-screen-command-bar-overflow
+      alt: The command bar at the top of the main screen with its icons and the More actions menu at the right holding the buttons that did not fit
+      caption: "Buttons that do not fit move into More actions."
+      title: "Screenshot: Command bar"
+      desc: Main screen in portrait, More actions menu open.
     callout:
       type: tip
       title: Everything still reachable
@@ -93,6 +101,14 @@ steps:
     title: More on one resource - the three-dots menu
     text: |
       Open the [three-dots menu](term:three-dots-menu) on any resource row for the actions that do not fit as icons - renaming, removing, and **Reconnect resource** for a folder that needs its connection refreshed. If the folder you pick during a reconnect does not match what the resource pointed to before, a confirmation dialog asks you to double-check before it is applied - and that dialog now stays on screen if you rotate the phone while it is open, instead of quietly disappearing.
+    image_bookmark:
+      shot_id: getting-started.main-screen-resource-menu
+      device_profile: phone
+      screen_state: main-screen-resource-three-dots-menu
+      alt: The three-dots menu of one resource row open on the main screen, with Reconnect resource among its actions
+      caption: "Actions for one resource live in its three-dots menu."
+      title: "Screenshot: Resource menu"
+      desc: Main screen, three-dots menu opened on a local folder resource.
   - number: 7
     id: recording-indicator
     title: The recording indicator
@@ -130,6 +146,6 @@ next_recipes:
     description: The full detail behind the Filter and Sort Resources dialog.
 ---
 
-<sub class="doc-stamp">26.09.25 21:58</sub>
+<sub class="doc-stamp">26.10.07 03:42</sub>
 
 The [main screen](term:main-screen) is your home base: a [resource list](term:resource-list) with All Files pinned first, a command bar that never runs out of room, tabs and optional panels that fit any screen width, and a filter and sort dialog that remembers your choice - with a corner pill to tell you when something is recording.

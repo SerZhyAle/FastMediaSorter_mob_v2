@@ -6,7 +6,7 @@ description: What FastMediaSorter does by itself when a stream slows down or dro
 category: Internet Streams
 category_slug: streams
 ticket: S2955
-flavor: Standard, noLegal, Legacy and VR
+availability: SUPPORT_STREAMS
 recipe_number: "06"
 canonical_url: documentation/streams/hls-dash-buffering.html
 why: |
@@ -115,6 +115,6 @@ next_recipes:
     description: Check channels in bulk and clean up the ones that no longer play.
 ---
 
-<sub class="doc-stamp">26.09.24 09:11</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 A weak connection does not have to spoil a live [stream](term:stream): FastMediaSorter buffers, reconnects, catches up with live TV and adjusts the picture quality on its own, and tells you plainly when it is your connection and when it is the channel.

@@ -6,7 +6,7 @@ description: "Як надіслати відео, яке ви дивитеся, 
 category: Відео та медіаплеєр
 category_slug: player
 ticket: S2951
-flavor: Chromecast - Standard, noLegal, Lite та Legacy; Мовлення - Standard, noLegal та Legacy
+availability_note: Chromecast - Standard, noLegal, Lite та Legacy; Мовлення - Standard, noLegal та Legacy
 recipe_number: "04"
 canonical_url: documentation/player/casting-and-broadcast-uk.html
 why: |
@@ -128,6 +128,6 @@ next_recipes:
     description: Продовжуйте перегляд у маленькому вікні.
 ---
 
-<sub class="doc-stamp">26.09.25 22:30</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Надішліть відео, яке дивитеся, на телевізор через Chromecast, або перетворіть телефон на невелику станцію живого звуку чи камери, яку інші відкривають скануванням QR-коду.

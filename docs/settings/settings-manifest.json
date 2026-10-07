@@ -1471,6 +1471,36 @@
       "titleUk": "Зберегти логи"
     },
     {
+      "key": "btnSftpExchangeNewLink",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "New access link",
+      "titleRu": "Новая ссылка доступа",
+      "titleUk": "Нове посилання доступу"
+    },
+    {
+      "key": "btnSftpExchangeSave",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Save server",
+      "titleRu": "Сохранить сервер",
+      "titleUk": "Зберегти сервер"
+    },
+    {
+      "key": "btnSftpExchangeTrustAgain",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Trust the server again",
+      "titleRu": "Снова доверять серверу",
+      "titleUk": "Знову довіряти серверу"
+    },
+    {
       "key": "btnSftpServerAddRoot",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1479,6 +1509,16 @@
       "titleEn": "Add folder",
       "titleRu": "Добавить папку",
       "titleUk": "Додати папку"
+    },
+    {
+      "key": "btnSftpServerLegacyQr",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Code for older app versions",
+      "titleRu": "Код для старых версий приложения",
+      "titleUk": "Код для старих версій застосунку"
     },
     {
       "key": "btnSftpServerNewPassword",
@@ -1979,6 +2019,16 @@
       "titleEn": "Secure sensitive screens",
       "titleRu": "Защищать секретные экраны",
       "titleUk": "Захищати секретні екрани"
+    },
+    {
+      "key": "rowSftpExchangeEnabled",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Exchange server",
+      "titleRu": "Сервер обмена",
+      "titleUk": "Сервер обміну"
     },
     {
       "key": "rowSftpServerEnabled",

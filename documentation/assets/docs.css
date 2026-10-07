@@ -8,48 +8,72 @@
    1. Design Tokens & Theme Palettes (Step 01.1)
    ========================================================================== */
 
+/*
+ * SITE-EXPERIENCE rule 2: a portal token with a kit meaning is a reference to the kit token, so a
+ * kit revision reaches the portal without a second edit. Every portal page links ../styles.css
+ * before this file, and styles.css carries the kit tokens (a copy, until the kit is vendored -
+ * the PAGE-STYLE exception in the contracts registry). A value the kit has no token for stays
+ * the layer's own and lives in the "layer-own" groups below.
+ */
 :root {
-    /* Base typography */
-    --doc-font-heading: 'Outfit', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --doc-font-body: 'Plus Jakarta Sans', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --doc-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    /* Typography (kit) */
+    --doc-font-heading: var(--font-heading);
+    --doc-font-body: var(--font-body);
+    --doc-font-mono: var(--font-mono);
 
-    /* Spacing & Metrics */
+    /* Radii (kit); the 6px corner of small controls has no kit token */
+    --doc-radius: var(--radius-sm);
+    --doc-radius-lg: var(--radius);
+    --doc-radius-pill: var(--radius-pill);
+    --doc-radius-sm: 6px;
+
+    /* Layer-own metrics */
     --doc-max-content-width: 100%;
     --doc-sidebar-width: 280px;
     --doc-toc-width: 240px;
-    --doc-radius: 12px;
-    --doc-radius-sm: 6px;
-    --doc-radius-lg: 20px;
-    --doc-radius-pill: 9999px;
-
-    /* Transitions */
     --doc-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* --- Dark Theme (Default) --- */
-    --doc-bg: #0a0f0a;
-    --doc-bg-surface: #101711;
-    --doc-bg-surface-elevated: #162018;
+    /* Surfaces and text (kit) */
+    --doc-bg: var(--bg);
+    --doc-bg-surface: var(--bg-2);
+    --doc-bg-surface-elevated: var(--bg-3);
+    --doc-text: var(--text);
+    --doc-text-secondary: var(--text-2);
+    --doc-text-muted: var(--muted);
+    --doc-border: var(--border);
+    --doc-border-subtle: color-mix(in srgb, var(--border) 55%, transparent);
+    --doc-border-focus: var(--acc-strong);
+
+    /* Accents (kit) - the dark theme draws the accent with --acc, the light one with --acc-strong */
+    --doc-accent: var(--acc);
+    --doc-accent-hover: var(--acc-strong);
+    --doc-accent-bg: color-mix(in srgb, var(--doc-accent) 12%, transparent);
+    --doc-accent-ink: var(--acc-ink);
+    --doc-gold: var(--gold);
+    --doc-gold-hover: var(--gold-strong);
+    --doc-gold-bg: color-mix(in srgb, var(--gold) 12%, transparent);
+
+    /* Callouts (kit semantic colours) */
+    --doc-tip-border: var(--doc-accent);
+    --doc-tip-bg: color-mix(in srgb, var(--doc-tip-border) 10%, transparent);
+    --doc-tip-text: var(--text);
+    --doc-warn-border: var(--warn);
+    --doc-warn-bg: color-mix(in srgb, var(--doc-warn-border) 10%, transparent);
+    --doc-warn-text: var(--text);
+    --doc-danger-border: var(--danger);
+    --doc-danger-bg: color-mix(in srgb, var(--danger) 10%, transparent);
+    --doc-danger-text: var(--text);
+
+    /* Shadows: the medium one is the kit's; the small and device shadows are the layer's own */
+    --doc-shadow-md: var(--shadow);
+    --doc-shadow-lg: var(--shadow);
+    --doc-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --doc-device-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+
+    /* Layer-own surface: a step between --bg-2 and --bg-3 for code and table stripes */
     --doc-bg-subtle: #1c271e;
-    
-    --doc-text: #f1f5ee;
-    --doc-text-secondary: #b8c4b2;
-    --doc-text-muted: #85947e;
 
-    --doc-border: rgba(255, 255, 255, 0.09);
-    --doc-border-subtle: rgba(255, 255, 255, 0.05);
-    --doc-border-focus: #56d364;
-
-    --doc-accent: #3fb950;
-    --doc-accent-hover: #56d364;
-    --doc-accent-bg: rgba(63, 185, 80, 0.12);
-    --doc-accent-ink: #04130c;
-
-    --doc-gold: #e3b341;
-    --doc-gold-hover: #f0c862;
-    --doc-gold-bg: rgba(227, 179, 65, 0.12);
-
-    /* Canonical Media Type Colors (Night theme values from app_v2/res/values-night/colors.xml) */
+    /* Layer-own: media type colours from app_v2/res/values-night/colors.xml */
     --doc-media-music: #80cbc4;
     --doc-media-music-bg: rgba(128, 203, 196, 0.15);
     --doc-media-video: #ce93d8;
@@ -61,55 +85,27 @@
     --doc-media-other: #bdbdbd;
     --doc-media-other-bg: rgba(189, 189, 189, 0.15);
 
-    /* Program Accents (app_v2/src/main/res/values/colors.xml) */
+    /* Layer-own: program accents from app_v2/src/main/res/values/colors.xml */
     --doc-prog-red: #ef5350;
     --doc-prog-blue: #42a5f5;
     --doc-prog-green: #66bb6a;
     --doc-prog-amber: #ffa726;
 
-    /* Callouts semantic */
-    --doc-tip-bg: rgba(63, 185, 80, 0.10);
-    --doc-tip-border: #3fb950;
-    --doc-tip-text: #d6e2cf;
-
-    --doc-warn-bg: rgba(227, 179, 65, 0.10);
-    --doc-warn-border: #e3b341;
-    --doc-warn-text: #f0e6cf;
-
-    --doc-danger-bg: rgba(248, 81, 73, 0.10);
-    --doc-danger-border: #f85149;
-    --doc-danger-text: #ffdedb;
-
-    --doc-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
-    --doc-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
-    --doc-device-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+    /* Layer-own: device edition hue (the product layer's VR accent) and the device frame */
+    --doc-vr: var(--color-vr, #00e5ff);
+    --doc-device-bezel: #1a221b;
+    --doc-device-screen: #000;
 }
 
-/* --- Light Theme (Activated via html[data-theme="light"]) --- */
 html[data-theme="light"] {
-    --doc-bg: #f8faf6;
-    --doc-bg-surface: #ffffff;
-    --doc-bg-surface-elevated: #f1f4ed;
+    /* The kit's --acc is under 4.5 : 1 on a light surface, so text accents take --acc-strong */
+    --doc-accent: var(--acc-strong);
+    --doc-accent-hover: color-mix(in srgb, var(--acc-strong) 80%, black);
+    /* The kit keeps --warn at its dark-theme value in the light theme, too pale for a border here */
+    --doc-warn-border: var(--gold);
+
     --doc-bg-subtle: #e8ece2;
 
-    --doc-text: #162115;
-    --doc-text-secondary: #3d4d3a;
-    --doc-text-muted: #647560;
-
-    --doc-border: rgba(22, 33, 15, 0.12);
-    --doc-border-subtle: rgba(22, 33, 15, 0.06);
-    --doc-border-focus: #267a30;
-
-    --doc-accent: #267a30;
-    --doc-accent-hover: #1e6327;
-    --doc-accent-bg: rgba(38, 122, 48, 0.10);
-    --doc-accent-ink: #ffffff;
-
-    --doc-gold: #9a6a13;
-    --doc-gold-hover: #7e560f;
-    --doc-gold-bg: rgba(154, 106, 19, 0.10);
-
-    /* Canonical Media Type Colors (Light theme values from app_v2/res/values/colors.xml) */
     --doc-media-music: #00796b;
     --doc-media-music-bg: rgba(0, 121, 107, 0.12);
     --doc-media-video: #7b1fa2;
@@ -121,27 +117,12 @@ html[data-theme="light"] {
     --doc-media-other: #616161;
     --doc-media-other-bg: rgba(97, 97, 97, 0.12);
 
-    /* Program Accents */
     --doc-prog-red: #c62828;
     --doc-prog-blue: #1565c0;
     --doc-prog-green: #2e7d32;
     --doc-prog-amber: #f57f17;
 
-    /* Callouts semantic */
-    --doc-tip-bg: rgba(38, 122, 48, 0.08);
-    --doc-tip-border: #267a30;
-    --doc-tip-text: #133917;
-
-    --doc-warn-bg: rgba(154, 106, 19, 0.08);
-    --doc-warn-border: #9a6a13;
-    --doc-warn-text: #453008;
-
-    --doc-danger-bg: rgba(209, 36, 47, 0.08);
-    --doc-danger-border: #d1242f;
-    --doc-danger-text: #4c0f13;
-
     --doc-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-    --doc-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
     --doc-device-shadow: 0 16px 36px rgba(0, 0, 0, 0.15);
 }
 
@@ -229,6 +210,13 @@ header.doc-header {
     font-size: 0.85rem;
     font-weight: 600;
     transition: var(--doc-transition);
+}
+
+.doc-theme-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    white-space: nowrap;
 }
 
 .doc-theme-btn:hover,
@@ -555,13 +543,8 @@ header.doc-header {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--doc-accent);
-    color: var(--doc-accent-ink);
-    font-size: 0.8rem;
-    font-weight: 800;
+    color: var(--doc-accent);
+    font-size: 1.35rem;
 }
 
 .doc-prereq-list {
@@ -756,36 +739,52 @@ header.doc-header {
 }
 
 .doc-badge-nolegal {
-    background: rgba(227, 179, 65, 0.15);
+    background: var(--doc-gold-bg);
     color: var(--doc-gold);
     border: 1px solid var(--doc-gold);
 }
 
 .doc-badge-vr {
-    background: rgba(0, 229, 255, 0.15);
-    color: #00e5ff;
-    border: 1px solid #00e5ff;
+    background: color-mix(in srgb, var(--doc-vr) 15%, transparent);
+    color: var(--doc-vr);
+    border: 1px solid var(--doc-vr);
 }
 
 .doc-badge-wear {
-    background: rgba(144, 202, 249, 0.15);
-    color: #42a5f5;
-    border: 1px solid #42a5f5;
+    background: color-mix(in srgb, var(--doc-prog-blue) 15%, transparent);
+    color: var(--doc-prog-blue);
+    border: 1px solid var(--doc-prog-blue);
 }
 
 .doc-badge-android-tv {
-    background: rgba(255, 183, 77, 0.15);
-    color: #ffa726;
-    border: 1px solid #ffa726;
+    background: color-mix(in srgb, var(--doc-prog-amber) 15%, transparent);
+    color: var(--doc-prog-amber);
+    border: 1px solid var(--doc-prog-amber);
 }
+
+/*
+ * Light theme: a badge's small bold text sits on its own 12-15% tint, and the token colours fall
+ * under 4.5 : 1 there on the palest portal surface (#e4ecdf). Only the text is darkened, so the
+ * tint, the border and every other use of the token keep their hue. Each mix ratio is the lightest
+ * that clears 4.5 : 1 over #ffffff, --bg, --bg-3 and --doc-bg-subtle.
+ */
+html[data-theme="light"] .doc-badge-music { color: color-mix(in srgb, var(--doc-media-music) 85%, black); }
+html[data-theme="light"] .doc-badge-image { color: color-mix(in srgb, var(--doc-media-image) 80%, black); }
+html[data-theme="light"] .doc-badge-docs { color: color-mix(in srgb, var(--doc-media-docs) 70%, black); }
+html[data-theme="light"] .doc-badge-other { color: color-mix(in srgb, var(--doc-media-other) 90%, black); }
+html[data-theme="light"] .doc-badge-standard { color: color-mix(in srgb, var(--doc-accent) 85%, black); }
+html[data-theme="light"] .doc-badge-nolegal { color: color-mix(in srgb, var(--doc-gold) 80%, black); }
+html[data-theme="light"] .doc-badge-vr { color: color-mix(in srgb, var(--doc-vr) 45%, black); }
+html[data-theme="light"] .doc-badge-wear { color: color-mix(in srgb, var(--doc-prog-blue) 85%, black); }
+html[data-theme="light"] .doc-badge-android-tv { color: color-mix(in srgb, var(--doc-prog-amber) 60%, black); }
 
 /* Device Mockup Frames */
 .doc-frame-phone {
     max-width: 240px;
     margin: 16px auto;
     border-radius: 28px;
-    border: 8px solid #1a221b;
-    background: #000;
+    border: 8px solid var(--doc-device-bezel);
+    background: var(--doc-device-screen);
     box-shadow: var(--doc-device-shadow);
     position: relative;
     overflow: hidden;
@@ -794,7 +793,7 @@ header.doc-header {
 .doc-frame-notch {
     width: 60px;
     height: 10px;
-    background: #1a221b;
+    background: var(--doc-device-bezel);
     position: absolute;
     top: 0;
     left: 50%;
@@ -809,8 +808,8 @@ header.doc-header {
     height: 180px;
     margin: 16px auto;
     border-radius: 50%;
-    border: 10px solid #1a221b;
-    background: #000;
+    border: 10px solid var(--doc-device-bezel);
+    background: var(--doc-device-screen);
     box-shadow: var(--doc-device-shadow);
     position: relative;
     overflow: hidden;
@@ -832,8 +831,8 @@ header.doc-header {
     height: 180px;
     margin: 16px auto;
     border-radius: 24%;
-    border: 8px solid #1a221b;
-    background: #000;
+    border: 8px solid var(--doc-device-bezel);
+    background: var(--doc-device-screen);
     box-shadow: var(--doc-device-shadow);
     position: relative;
     overflow: hidden;
@@ -845,7 +844,7 @@ header.doc-header {
     margin: 16px auto;
     border-radius: 36px / 20px;
     border: 8px solid #151d24;
-    background: #000;
+    background: var(--doc-device-screen);
     box-shadow: var(--doc-device-shadow);
     position: relative;
     overflow: hidden;
@@ -924,6 +923,7 @@ header.doc-header {
     box-shadow: var(--doc-shadow-sm);
 }
 
+.doc-next-card h3,
 .doc-next-card h4 {
     margin: 8px 0 4px 0;
     color: var(--doc-text);
@@ -1348,7 +1348,7 @@ header.doc-header {
 
 .doc-search-highlight,
 mark.doc-search-highlight {
-    background: rgba(63, 185, 80, 0.25);
+    background: color-mix(in srgb, var(--acc) 25%, transparent);
     color: var(--doc-accent);
     font-weight: 700;
     border-radius: 2px;
@@ -1424,3 +1424,879 @@ mark.doc-search-highlight {
 .doc-content { min-width: 0; overflow-wrap: anywhere; }
 .doc-content .doc-search-trigger { max-width: 100%; white-space: normal; flex-wrap: wrap; text-align: left; }
 .doc-content .doc-search-trigger > span { min-width: 0; }
+
+/* ==========================================================================
+   Subject index page (moved from the page, S4099: SITE-EXPERIENCE rules 2 and 4)
+   ========================================================================== */
+
+.doc-alpha-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 2rem;
+    position: sticky;
+    top: 70px;
+    background: var(--doc-bg);
+    padding: 10px 0;
+    z-index: 10;
+    border-bottom: 1px solid var(--doc-border);
+}
+.doc-alpha-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: var(--doc-bg-surface);
+    color: var(--doc-text);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: 1px solid var(--doc-border);
+    transition: all 0.15s ease;
+}
+.doc-alpha-btn:hover, .doc-alpha-btn.active {
+    background: var(--doc-accent);
+    color: var(--doc-accent-ink);
+    border-color: var(--doc-accent);
+}
+.doc-alpha-btn.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+.doc-index-filter {
+    width: 100%;
+    max-width: 480px;
+    padding: 10px 14px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--doc-border);
+    background: var(--doc-bg-surface);
+    color: var(--doc-text);
+    margin-bottom: 1.5rem;
+}
+.doc-index-filter:focus {
+    outline: none;
+    border-color: var(--doc-accent);
+    box-shadow: 0 0 0 2px rgba(63, 185, 80, 0.2);
+}
+.doc-letter-section {
+    margin-bottom: 3rem;
+    scroll-margin-top: 130px;
+}
+/* An h2 since S4112; the .doc-content prefix outranks the generic .doc-content h2 rule */
+.doc-letter-title,
+.doc-content .doc-letter-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    border-bottom: 2px solid var(--doc-border);
+    padding-bottom: 0.5rem;
+    margin: 0 0 1.25rem 0;
+    color: var(--doc-accent);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.doc-index-item {
+    background: var(--doc-bg-surface);
+    border: 1px solid var(--doc-border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    transition: border-color 0.15s ease;
+}
+.doc-index-item:hover {
+    border-color: rgba(63, 185, 80, 0.5);
+}
+.doc-index-item-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.35rem;
+}
+.doc-index-item-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--doc-text);
+}
+.doc-index-item-desc {
+    font-size: 0.92rem;
+    color: var(--doc-text-muted);
+    margin: 0.25rem 0 0.5rem 0;
+    line-height: 1.5;
+}
+.doc-index-item-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+.doc-index-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: rgba(63, 185, 80, 0.1);
+    color: var(--doc-accent);
+    border: 1px solid rgba(63, 185, 80, 0.25);
+    border-radius: 4px;
+    font-size: 0.82rem;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+.doc-index-pill:hover {
+    background: var(--doc-accent);
+    color: var(--doc-accent-ink);
+}
+
+/* ==========================================================================
+   Glossary page (moved from the page, S4099: SITE-EXPERIENCE rules 2 and 4)
+   ========================================================================== */
+
+/* Glossary specific styling adhering to design system */
+.doc-glossary-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 1.5rem 0 2rem 0;
+    padding: 1.25rem;
+    background: var(--doc-bg-surface);
+    border: 1px solid var(--doc-border);
+    border-radius: var(--doc-radius);
+}
+.doc-glossary-search-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    position: relative;
+}
+.doc-glossary-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    background: var(--doc-bg-subtle);
+    border: 1px solid var(--doc-border);
+    border-radius: var(--doc-radius-sm);
+    color: var(--doc-text);
+    font-family: var(--doc-font-body);
+    font-size: 0.95rem;
+    outline: none;
+    transition: var(--doc-transition);
+}
+.doc-glossary-input:focus {
+    border-color: var(--doc-border-focus);
+    box-shadow: 0 0 0 3px var(--doc-accent-bg);
+}
+.doc-glossary-search-icon {
+    position: absolute;
+    left: 0.85rem;
+    color: var(--doc-text-muted);
+    pointer-events: none;
+}
+.doc-filter-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+.doc-filter-pill {
+    padding: 0.35rem 0.75rem;
+    background: var(--doc-bg-subtle);
+    border: 1px solid var(--doc-border-subtle);
+    border-radius: var(--doc-radius-pill);
+    color: var(--doc-text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--doc-transition);
+    user-select: none;
+}
+.doc-filter-pill:hover, .doc-filter-pill.active {
+    background: var(--doc-accent-bg);
+    border-color: var(--doc-accent);
+    color: var(--doc-text);
+}
+.doc-az-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 2rem;
+    background: var(--doc-bg-surface-elevated);
+    border: 1px solid var(--doc-border);
+    border-radius: var(--doc-radius);
+    justify-content: center;
+    position: sticky;
+    top: 70px;
+    z-index: 10;
+    backdrop-filter: blur(8px);
+}
+.doc-az-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--doc-radius-sm);
+    color: var(--doc-accent);
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: var(--doc-transition);
+}
+.doc-az-link:hover {
+    background: var(--doc-accent-bg);
+    color: var(--doc-accent-hover);
+}
+.doc-az-link.disabled {
+    color: var(--doc-text-muted);
+    opacity: 0.35;
+    pointer-events: none;
+}
+.doc-glossary-group {
+    margin-bottom: 3rem;
+    scroll-margin-top: 130px;
+}
+.doc-glossary-letter-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    font-size: 2rem;
+    font-family: var(--doc-font-heading);
+    color: var(--doc-accent);
+    border-bottom: 2px solid var(--doc-border);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+.doc-glossary-letter-count {
+    font-size: 0.9rem;
+    color: var(--doc-text-muted);
+    font-weight: normal;
+}
+.doc-term-card {
+    background: var(--doc-bg-surface);
+    border: 1px solid var(--doc-border);
+    border-left: 4px solid var(--doc-accent);
+    border-radius: var(--doc-radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+    scroll-margin-top: 140px;
+    transition: var(--doc-transition);
+}
+.doc-term-card:hover {
+    border-color: var(--doc-accent);
+    box-shadow: var(--doc-shadow-sm);
+}
+.doc-term-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+.doc-term-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+.doc-term-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+.doc-term-title {
+    margin: 0;
+    font-size: 1.3rem;
+    font-family: var(--doc-font-heading);
+    color: var(--doc-text);
+    font-weight: 700;
+}
+.doc-term-anchor {
+    color: var(--doc-text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    opacity: 0;
+    transition: var(--doc-transition);
+}
+.doc-term-card:hover .doc-term-anchor {
+    opacity: 0.8;
+}
+.doc-term-anchor:hover {
+    opacity: 1;
+    color: var(--doc-accent);
+}
+.doc-term-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+}
+.doc-term-definition {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--doc-text);
+    margin: 0.5rem 0 0.75rem 0;
+}
+.doc-term-disambiguation {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    padding: 0.75rem 1rem;
+    background: var(--doc-bg-subtle);
+    border-left: 3px solid var(--doc-gold);
+    border-radius: 0 var(--doc-radius-sm) var(--doc-radius-sm) 0;
+    font-size: 0.9rem;
+    color: var(--doc-text-secondary);
+    margin-bottom: 0.75rem;
+}
+.doc-term-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    align-items: center;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--doc-border-subtle);
+    font-size: 0.85rem;
+    color: var(--doc-text-muted);
+}
+.doc-term-locales {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+.doc-term-locale-tag {
+    background: var(--doc-bg-subtle);
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--doc-radius-sm);
+    color: var(--doc-text-secondary);
+    font-family: var(--doc-font-mono);
+    font-size: 0.8rem;
+}
+.doc-term-related-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+}
+.doc-term-related-chip {
+    color: var(--doc-accent);
+    text-decoration: none;
+    background: var(--doc-accent-bg);
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--doc-radius-sm);
+    font-size: 0.8rem;
+    transition: var(--doc-transition);
+}
+.doc-term-related-chip:hover {
+    background: var(--doc-accent);
+    color: var(--doc-accent-ink);
+}
+.doc-term-synonyms {
+    font-size: 0.85rem;
+    color: var(--doc-gold);
+    background: var(--doc-gold-bg);
+    padding: 0.35rem 0.6rem;
+    border-radius: var(--doc-radius-sm);
+    margin-bottom: 0.5rem;
+}
+.doc-no-results {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: var(--doc-bg-surface);
+    border: 1px dashed var(--doc-border);
+    border-radius: var(--doc-radius);
+    color: var(--doc-text-muted);
+    font-size: 1.1rem;
+}
+
+/* ==========================================================================
+   Design system page (moved from the page, S4099: SITE-EXPERIENCE rules 2 and 4)
+   ========================================================================== */
+
+/* Demo showcase helper styles */
+.demo-section {
+    margin-bottom: 3.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px dashed var(--doc-border);
+}
+.demo-section:last-of-type {
+    border-bottom: none;
+}
+.demo-title {
+    font-family: var(--doc-font-heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--doc-text);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.demo-desc {
+    color: var(--doc-text-muted);
+    font-size: 0.9375rem;
+    margin-bottom: 1.25rem;
+}
+.demo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+.demo-box {
+    background: var(--doc-bg-surface);
+    border: 1px solid var(--doc-border);
+    border-radius: var(--doc-radius);
+    padding: 1.25rem;
+}
+.demo-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--doc-text-muted);
+    margin-bottom: 0.75rem;
+}
+
+/* ==========================================================================
+   Portal components (S4099: SITE-EXPERIENCE rules 3, 4, 6 and 15)
+   One class per meaning; a page never restates these values in a style attribute.
+   ========================================================================== */
+
+/* Skip link: the first focusable element of every page, shown only while focused */
+.doc-skip-link {
+    position: absolute;
+    left: 12px;
+    top: -100px;
+    z-index: 2000;
+    padding: 10px 16px;
+    background: var(--doc-accent);
+    color: var(--doc-accent-ink);
+    border-radius: var(--doc-radius-sm);
+    font-family: var(--doc-font-heading);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.doc-skip-link:focus,
+.doc-skip-link:focus-visible {
+    top: 12px;
+}
+
+/* An ICON-SET glyph drawn inline beside its text label, in the colour of the text */
+.doc-glyph {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    flex: none;
+    vertical-align: -0.125em;
+    fill: currentColor;
+}
+
+.doc-stamp {
+    font-size: 11px;
+    opacity: 0.6;
+    margin: 0;
+    padding: 2px 8px;
+    text-align: right;
+}
+
+/* Header chrome */
+.doc-header-start {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.doc-header-brand-dot {
+    color: var(--doc-accent);
+}
+
+.doc-header-docs-link {
+    text-decoration: none;
+    color: var(--doc-text-secondary);
+}
+
+.doc-header-home {
+    display: flex;
+    align-items: center;
+}
+
+/* Badge row above a page title: section, editions, page number */
+.doc-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+/* The part of a function's availability the badge cannot say, right under the badge row */
+.doc-availability-note {
+    margin: -1rem 0 1.5rem;
+    color: var(--doc-text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+/* Edition badge: which editions carry the function; device badge: which device class */
+.doc-edition-badge,
+.doc-device-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    max-width: 100%;
+    padding: 3px 10px;
+    border: 1px solid var(--doc-accent);
+    border-radius: var(--doc-radius-pill);
+    background: var(--doc-accent-bg);
+    color: var(--doc-accent);
+    font-family: var(--doc-font-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: normal;
+    vertical-align: middle;
+}
+
+.doc-device-badge {
+    padding: 2px 7px;
+    font-size: 0.7rem;
+}
+
+.doc-device-badge--wear {
+    border-color: var(--doc-media-video);
+    background: var(--doc-media-video-bg);
+    color: var(--doc-media-video);
+}
+
+.doc-device-badge--vr {
+    border-color: var(--doc-media-music);
+    background: var(--doc-media-music-bg);
+    color: var(--doc-media-music);
+}
+
+.doc-device-badge--tv {
+    border-color: var(--doc-media-image);
+    background: var(--doc-media-image-bg);
+    color: var(--doc-media-image);
+}
+
+/* A control's name with its glyph in front, kept on one line */
+.doc-glyph-label {
+    white-space: nowrap;
+}
+
+.doc-glyph-label .doc-glyph {
+    margin-right: 0.3em;
+}
+
+/* Menu path: the chain of menu entries that leads to a control */
+.doc-menu-path-item {
+    padding: 0 0.35em;
+    border: 1px solid var(--doc-border);
+    border-radius: var(--doc-radius-sm);
+    background: var(--doc-bg-subtle);
+    color: var(--doc-text);
+    font-weight: 600;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+}
+
+.doc-menu-path-sep {
+    margin: 0 0.3em;
+    color: var(--doc-text-muted);
+}
+
+/* Snippet blocks */
+.doc-snippet-section {
+    margin-top: 2.5rem;
+}
+
+.doc-snippet-card {
+    margin-bottom: 1.5rem;
+}
+
+.doc-snippet-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.doc-snippet-card pre {
+    padding: 1rem;
+    border: 1px solid var(--doc-border);
+    border-radius: var(--doc-radius-sm);
+    background: var(--code-bg);
+    color: var(--code-ink);
+    overflow-x: auto;
+}
+
+/* Subject index and glossary */
+.doc-page-header {
+    margin-bottom: 1.5rem;
+}
+
+.doc-page-header h1 {
+    font-size: 2.3rem;
+    margin-bottom: 0.5rem;
+}
+
+.doc-page-header .doc-lead {
+    font-size: 1.15rem;
+}
+
+.doc-sidebar-note {
+    margin: 0 0 0.5rem;
+    color: var(--doc-text-muted);
+    font-size: 0.85rem;
+}
+
+.doc-letter-count {
+    color: var(--doc-text-muted);
+    font-size: 0.9rem;
+    font-weight: normal;
+}
+
+.doc-toc-count {
+    color: var(--doc-text-muted);
+    font-size: 0.8rem;
+}
+
+.doc-filter-label {
+    margin-right: 0.25rem;
+    color: var(--doc-text-muted);
+    font-size: 0.8rem;
+}
+
+.doc-term-disambiguation .doc-glyph {
+    margin-top: 0.15rem;
+    color: var(--doc-gold);
+    font-size: 1.1rem;
+}
+
+.doc-no-results[hidden] {
+    display: none;
+}
+
+/* An app control's own picture shown inline beside its name in a recipe */
+.doc-inline-icon {
+    vertical-align: text-bottom;
+}
+
+.doc-filter-pill .doc-glyph {
+    margin-right: 0.3em;
+}
+
+/* Hand-kept hubs: docs home and product overview */
+.doc-hub-header {
+    margin-bottom: 2.5rem;
+}
+
+.doc-hub-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.doc-hub-header .doc-lead {
+    font-size: 1.2rem;
+}
+
+.doc-hub-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.doc-hub-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+.doc-hub-search {
+    margin-top: 1.5rem;
+}
+
+.doc-search-trigger-lg {
+    padding: 10px 20px;
+    font-size: 1rem;
+}
+
+.doc-search-trigger-lg kbd {
+    margin-left: 8px;
+}
+
+.doc-hub-note,
+.doc-hub-block {
+    margin-top: 1rem;
+}
+
+.doc-hub-section {
+    margin-top: 2.5rem;
+    margin-bottom: 3rem;
+}
+
+.doc-next-grid-wide {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.doc-next-grid-compact {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.doc-table-wrapper {
+    overflow-x: auto;
+    margin-top: 1rem;
+}
+
+.doc-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.doc-table tr {
+    border-bottom: 1px solid var(--doc-border);
+}
+
+.doc-table thead tr {
+    border-bottom-width: 2px;
+    text-align: left;
+}
+
+.doc-table th,
+.doc-table td {
+    padding: 10px;
+}
+
+.doc-table-key {
+    font-weight: 600;
+}
+
+.doc-table-key .doc-glyph {
+    margin-right: 0.4em;
+}
+
+.doc-hub-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.doc-hub-step {
+    padding: 1.25rem;
+    border: 1px solid var(--doc-border);
+    border-radius: var(--doc-radius-sm);
+    background: var(--doc-bg-surface);
+}
+
+.doc-hub-step h3,
+.doc-hub-step h4 {
+    margin: 0 0 8px 0;
+    font-size: 1.0625rem;
+    color: var(--doc-accent);
+}
+
+.demo-intro {
+    margin-bottom: 2rem;
+}
+
+.demo-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.demo-grid-top {
+    align-items: start;
+}
+
+.demo-box-centered {
+    text-align: center;
+}
+
+.demo-frame-phone {
+    height: 380px;
+}
+
+.demo-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--doc-text-muted);
+    font-size: 0.875rem;
+}
+
+.demo-screen-watch {
+    padding: 1rem;
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.demo-screen-vr {
+    font-size: 0.8125rem;
+}
+
+.demo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0;
+    list-style: none;
+}
+
+/*
+ * SITE-EXPERIENCE rule 17: on a touch screen every interactive chrome target is at least 44 px.
+ * Elements that a narrow-screen rule hides with display: none (header links, the menu button on
+ * a wide screen) get only a minimum box here, never a display value, so they stay hidden.
+ */
+@media (pointer: coarse) {
+    .doc-header-brand,
+    .doc-header-home,
+    .doc-header-link,
+    .doc-header-docs-link,
+    .doc-lang-item {
+        min-height: 44px;
+    }
+    .doc-header-link,
+    .doc-header-docs-link {
+        align-content: center;
+    }
+    .doc-mobile-menu-btn,
+    .doc-lang-btn,
+    .doc-theme-btn,
+    .doc-theme-toggle,
+    .doc-search-trigger,
+    .doc-header-home {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    .doc-sidebar-link,
+    .doc-nav-link,
+    .doc-toc-link {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+    }
+    .doc-toc-list li {
+        margin-bottom: 0;
+    }
+    .doc-breadcrumbs a,
+    .doc-footer-links a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+}

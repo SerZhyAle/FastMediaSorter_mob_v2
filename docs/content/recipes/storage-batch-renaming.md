@@ -6,7 +6,7 @@ description: How to rename one file, a folder or several files at once in the fi
 category: Sources, Destinations & File Operations
 category_slug: storage
 ticket: S2949
-flavor: All editions
+availability: all
 recipe_number: "07"
 canonical_url: documentation/storage/batch-renaming.html
 why: |
@@ -86,6 +86,6 @@ next_recipes:
     description: Sort renamed photos into their folders with one tap.
 ---
 
-<sub class="doc-stamp">26.09.24 07:57</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Rename one file, a folder or several files at once in the file browser or in the player - on the phone, on network folders and in the cloud - and take a rename back with Undo.

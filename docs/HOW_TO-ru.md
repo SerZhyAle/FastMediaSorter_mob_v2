@@ -1,9 +1,9 @@
 ---
 layout: default
 title: "📖 Руководства"
-permalink: /docs/HOW_TO_RU.html
+permalink: /docs/HOW_TO-ru.html
 ---
-<sub class="doc-stamp">26.09.26 10:42</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 # 📖 Руководства
 

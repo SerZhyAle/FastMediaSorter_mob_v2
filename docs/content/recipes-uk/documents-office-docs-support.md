@@ -6,7 +6,6 @@ description: Як читати електронні книги EPUB зі сво�
 category: Документи та текстовий редактор
 category_slug: documents
 ticket: S2953
-flavor: Standard, noLegal, Legacy, VR та FOSS
 recipe_number: "02"
 canonical_url: documentation/documents/office-docs-support-uk.html
 why: |
@@ -140,6 +139,6 @@ next_recipes:
     description: Дізнайтеся, яка редакція відкриває які типи файлів.
 ---
 
-<sub class="doc-stamp">26.09.25 22:12</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Читайте EPUB-книги зі шрифтом, розміром, кольорами та полями, які вам подобаються, переходьте між главами, шукайте по всій книзі, слухайте її або перекладайте - і відкривайте файли Word, Excel та PowerPoint одним дотиком, так, як пропонує ваша редакція.

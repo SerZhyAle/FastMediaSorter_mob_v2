@@ -1,9 +1,9 @@
 ---
 layout: default
 title: "История продукта - FastMediaSorter v2"
-permalink: /docs/PRODUCT_HISTORY_RU.html
+permalink: /docs/PRODUCT_HISTORY-ru.html
 ---
-<sub class="doc-stamp">26.09.16 22:18</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 # История продукта - FastMediaSorter v2
 

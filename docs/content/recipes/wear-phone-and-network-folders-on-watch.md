@@ -6,7 +6,9 @@ description: How to browse your phone's folders and favorites from the watch, ad
 category: Wear OS Watch
 category_slug: wear
 ticket: S2966
-flavor: Phone side - Standard and noLegal; browsing the phone, adding a network resource and everything else on this page - the full watch version (sideload only). Testing an already-saved connection also works in the Google Play watch app.
+availability: companion:wear
+devices: watch
+availability_note: Phone side - Standard and noLegal; browsing the phone, adding a network resource and everything else on this page - the full watch version (sideload only). Testing an already-saved connection also works in the Google Play watch app.
 recipe_number: "08"
 canonical_url: documentation/wear/phone-and-network-folders-on-watch.html
 why: |
@@ -171,6 +173,6 @@ next_recipes:
     description: Pin your favorite network folder one swipe from the watch face.
 ---
 
-<sub class="doc-stamp">26.09.24 09:26</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Browse your [phone](term:phone)'s folders and your [network resources](term:network-resource) right from the watch, add a new one by hand, and copy, move or send a file between the two devices - or add the watch itself as a resource on the phone.

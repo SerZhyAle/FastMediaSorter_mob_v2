@@ -1,10 +1,10 @@
 ---
 layout: default
 title: "Що замінює FastMediaSorter"
-permalink: /docs/REPLACES_UK.html
+permalink: /docs/REPLACES-uk.html
 ---
 
-<sub class="doc-stamp">26.09.24 06:37</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 # Що замінює FastMediaSorter
 

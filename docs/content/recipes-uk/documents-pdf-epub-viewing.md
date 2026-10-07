@@ -6,7 +6,6 @@ description: Як відкрити PDF, гортати й переходити �
 category: Документи та текстовий редактор
 category_slug: documents
 ticket: S2953
-flavor: Standard, noLegal, Legacy, VR та FOSS
 recipe_number: "01"
 canonical_url: documentation/documents/pdf-epub-viewing-uk.html
 why: |
@@ -186,6 +185,6 @@ next_recipes:
     description: Оберіть мови та вигляд офлайн-перекладу.
 ---
 
-<sub class="doc-stamp">26.09.30 08:35</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Відкрийте PDF одним дотиком, гортайте сторінки свайпом, знаходьте сторінку за її виглядом, читайте вночі в темних кольорах, копіюйте, шукайте, слухайте та перекладайте текст, зберігайте сторінки як картинки або друкуйте їх - усе у вбудованій [читалці](term:reader).

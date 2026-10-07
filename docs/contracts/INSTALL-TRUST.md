@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 12:24</sub>
+<sub class="doc-stamp">26.10.07 04:59</sub>
 
 # Pointer - `INSTALL-TRUST`
 
 | | |
 | --- | --- |
 | **Id** | `INSTALL-TRUST` |
-| **Version** | 1.1, active. Owner: shared (amendments through the domain page) |
+| **Version** | 1.2, active. Owner: shared (amendments through the domain page) |
 | **Home** | `install-trust/README.md` in the shared contracts catalog |
 | **Role here** | producer - the page a user reads after Android warns about a sideloaded APK |
 

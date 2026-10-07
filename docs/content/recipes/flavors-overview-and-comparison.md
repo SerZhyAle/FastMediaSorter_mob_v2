@@ -6,11 +6,11 @@ description: What each of the seven editions of FastMediaSorter is made for, whe
 category: Editions, Extensions & Languages
 category_slug: flavors
 ticket: S2947
-flavor: All editions
+availability: all
 recipe_number: "01"
 canonical_url: documentation/flavors/overview-and-comparison.html
 why: |
-  FastMediaSorter is published in seven versions, called [editions](term:edition). They share the same look and the same way of working, but each one is made for a certain kind of device or store. A phone, an old tablet, a VR headset and a phone without Google services each get the edition that fits them best.
+  FastMediaSorter is published in seven [editions](term:edition). They share the same look and the same way of working, but each one is made for a certain kind of device or store. A phone, an old tablet, a VR headset and a phone without Google services each get the edition that fits them best.
 
   This page helps you pick the right edition before you install it, and tells you what to do if you later want a different one. If you already have the app and only want to know which edition it is, jump to step 3.
 ingredients:
@@ -140,6 +140,6 @@ next_recipes:
     description: What happens the first time you open the app, step by step.
 ---
 
-<sub class="doc-stamp">26.09.30 10:24</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 FastMediaSorter comes in seven [editions](term:edition). They look and work the same, but each one is made for a certain kind of device or store. This page shows what each edition is for, which features it has, where to get it and how to move between them.

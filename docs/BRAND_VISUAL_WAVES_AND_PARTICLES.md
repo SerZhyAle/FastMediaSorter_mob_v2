@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.23 21:40</sub>
+<sub class="doc-stamp">26.10.06 20:05</sub>
 
 # Brand visual: waves and particles - description and reproduction algorithm
 
@@ -135,8 +135,10 @@ Constant names and line numbers for the Android column are in
 
 - The profile: the low-RAM and watch surfaces use the contract's reduced counts; the website uses the full one.
 - The palette: the app rolls `DYNAMIC` by default; the website declares `GREEN`.
-- Dimming: each surface may be quieter than the contract, never brighter - the website hero at 0.65 opacity,
-  the documentation background at 0.35 behind text.
+- Dimming and pace: each surface may be quieter than the contract, never brighter - the website hero at
+  intensity 0.35 and speed 0.5 with its text on translucent plates, the documentation background at 0.35
+  behind text. A host may fix `speed` below 1 behind text (contract section 5 since 0.15); `speed` slows the
+  lines only, the particles keep their own velocities.
 
 ## 6. Resolved drift (S2206, 2026-08-28)
 

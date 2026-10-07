@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 12:24</sub>
+<sub class="doc-stamp">26.10.07 05:04</sub>
 
 # Pointer - `FMSCFG`
 
 | | |
 | --- | --- |
 | **Id** | `FMSCFG` |
-| **Version** | 2.2, active; wire carrier `schemaVersion`, this product reads 1-2. Owner: FMS Companion |
+| **Version** | 2.4, active; wire carrier `schemaVersion`, this product reads 1-2. Owner: FMS Companion |
 | **Home** | `config-interchange/README.md` and `CONFIG_FORMAT.md` in the shared contracts catalog |
 | **Role here** | producer and consumer - the `.fmscfg` importer, and the writer of `schemaVersion` 2 files and `FMSCFG1:` QR payloads when a user shares an SFTP resource |
 
@@ -15,6 +15,8 @@
   message and no partial import.
 - Ignore an unknown `accessPaths[].kind`; take every missing optional root field at the default the
   contract's table gives, never at a local choice.
+- A `rendezvousTunnel` path still carries a valid `host` and `port` and is written last (2.4 rule 7);
+  an `accessNote`, when written, is in the exporter's UI language with an English copy (2.3).
 - Import merges by path and never replaces what the user already has.
 - Keep the canonical vectors byte-identical to the catalog's - a change to those bytes is a contract
   change, not a test update.

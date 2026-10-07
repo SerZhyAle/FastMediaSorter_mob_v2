@@ -6,6 +6,7 @@ import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.Session
 import com.jcraft.jsch.UserInfo
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTunnelProxy
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -40,6 +41,7 @@ object SftpConnectionTester {
         try {
             val testJsch = JSch()
             testSession = testJsch.getSession(username, host, port)
+            ExchangeTunnelProxy.attachIfTunnel(testSession, host)
             testSession.setPassword(password)
 
             testSession.userInfo = object : UserInfo {
@@ -101,6 +103,7 @@ object SftpConnectionTester {
             }
 
             testSession = testJsch.getSession(username, host, port)
+            ExchangeTunnelProxy.attachIfTunnel(testSession, host)
 
             if (passphrase != null) {
                 testSession.userInfo = object : UserInfo {

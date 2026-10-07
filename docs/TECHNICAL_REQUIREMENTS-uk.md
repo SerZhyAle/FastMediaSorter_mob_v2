@@ -1,17 +1,17 @@
 ---
 layout: default
 title: "Технічні вимоги"
-permalink: /docs/TECHNICAL_REQUIREMENTS_UK.html
+permalink: /docs/TECHNICAL_REQUIREMENTS-uk.html
 lang: uk
 ---
 
-<sub class="doc-stamp">26.10.06 14:18</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 <div lang="uk" markdown="1">
 
 # Технічні вимоги
 
-[Технічна специфікація](V2_Specification_UK.html) | [Tech Stack, EN](TECH_STACK.html)
+[Технічна специфікація](V2_Specification-uk.html) | [Tech Stack, EN](TECH_STACK.html)
 
 Тут розділено вимоги SDK з конфігурації та умови окремих функцій. Це публічний довідник, а не обіцянка встановлення на будь-який пристрій чи оголошення нового випуску.
 

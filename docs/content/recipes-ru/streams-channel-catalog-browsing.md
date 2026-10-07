@@ -6,7 +6,6 @@ description: Как загрузить каталог каналов на уст
 category: Интернет-трансляции
 category_slug: streams
 ticket: S2954
-flavor: Standard, noLegal, Legacy и VR
 recipe_number: "01"
 canonical_url: documentation/streams/channel-catalog-browsing-ru.html
 why: |
@@ -207,6 +206,6 @@ next_recipes:
     description: Что происходит при нажатии на канал и запуске воспроизведения.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Встроенный [каталог](term:catalog) превращает раздел [Трансляции](term:streams-screen) в богатую коллекцию из тысяч онлайн-[каналов](term:channel): загружайте его на устройство, поддерживайте актуальность и ориентируйтесь с помощью фильтров, авторских подборок и интеллектуальной сортировки.

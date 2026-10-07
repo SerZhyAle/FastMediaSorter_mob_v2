@@ -6,7 +6,7 @@ description: Як встановити застосунок FastMediaSorter дл
 category: Годинник Wear OS
 category_slug: wear
 ticket: S2964
-flavor: На телефоні (Wear-супутник) - Standard і noLegal; застосунок для годинника - версія з Google Play або повна версія, встановлена з APK
+availability_note: На телефоні (Wear-супутник) - Standard і noLegal; застосунок для годинника - версія з Google Play або повна версія, встановлена з APK
 recipe_number: "01"
 canonical_url: documentation/wear/installation-and-pairing-uk.html
 why: |
@@ -144,6 +144,6 @@ next_recipes:
     description: Слухайте прямо з годинника - з телефоном або без нього.
 ---
 
-<sub class="doc-stamp">26.09.30 10:24</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Встановіть [застосунок для годинника](term:watch-app) FastMediaSorter, увімкніть [Wear-супутник](term:wear-companion) на телефоні, відкрийте його вікно та додайте [годинник](term:watch) до своїх ресурсів - це перша половина будь-якої функції годинника.

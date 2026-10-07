@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.05 22:01</sub>
+<sub class="doc-stamp">26.10.07 04:59</sub>
 
 # Pointer - `ANYWHERE-ACCESS`
 
 | | |
 | --- | --- |
 | **Id** | `ANYWHERE-ACCESS` |
-| **Version** | 0.10, draft - [PROPOSED] in full, nothing ships against it yet. Owner: FastMediaSorter Android |
+| **Version** | 0.12, draft - [PROPOSED] in full; since 0.11 the exchange server, its wire and the Drive channel are `DEVICE-EXCHANGE`. Owner: FastMediaSorter Android |
 | **Home** | `anywhere-access/README.md` in the shared contracts catalog |
 | **Role here** | owner, and reference producer and consumer - the phone's embedded SFTP server (S3041) shares over the rendezvous/tunnel, and this app reads others' shares |
 
@@ -36,3 +36,4 @@
 
 - S4094 - strategic spec, research and cross-repo work packages:
   `PLAN/S4094_sftp-server-access-from-anywhere/`.
+- S4116 - migration of the S4094 tunnel code from the superseded 0.10 wire to `DEVICE-EXCHANGE`.

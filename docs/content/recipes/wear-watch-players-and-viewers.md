@@ -6,7 +6,9 @@ description: How to use the watch's image viewer, video player and audio player 
 category: Wear OS Watch
 category_slug: wear
 ticket: S2966
-flavor: The full version of the watch app (sideload only) - the Google Play version has no player at all. See the noLegal edition.
+availability: companion:wear
+devices: watch
+availability_note: The full version of the watch app (sideload only) - the Google Play version has no player at all. See the noLegal edition.
 recipe_number: "07"
 canonical_url: documentation/wear/watch-players-and-viewers.html
 why: |
@@ -172,6 +174,6 @@ next_recipes:
     description: The Chromecast session the watch's Show on TV hands off to.
 ---
 
-<sub class="doc-stamp">26.09.24 09:24</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 A tour of the watch app's three players - image, video and audio - plus its text document reader and sending what's on the watch to a TV.

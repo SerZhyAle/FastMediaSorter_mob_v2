@@ -6,7 +6,7 @@ description: Як перейти зі звичайного відеоплеєр�
 category: VR і OpenXR
 category_slug: vr
 ticket: S2967
-flavor: noLegal і VR, на сумісному шоломі
+availability_note: noLegal і VR, на сумісному шоломі
 recipe_number: "02"
 canonical_url: documentation/vr/spatial-cinema-playback-uk.html
 why: |
@@ -111,6 +111,6 @@ next_recipes:
     description: Як субтитри й стереоформати працюють у пласкому плеєрі.
 ---
 
-<sub class="doc-stamp">26.09.25 22:26</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Увійдіть зі звичайного плеєра до VR Cinema, познайомтесь із віртуальними кіноекранами 360, 180, циліндр і плаский, дивіться стерео 3D, визначене автоматично чи задане вручну, продовжуйте гортати плейлист кнопками НАЗАД і ДАЛІ, і подивіться, як FastMediaSorter упорається, коли щось на цьому шляху не працює.

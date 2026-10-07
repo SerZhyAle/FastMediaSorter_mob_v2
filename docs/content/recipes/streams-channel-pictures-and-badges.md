@@ -6,7 +6,7 @@ description: Why a channel in Streams shows a live preview, a station logo, a fl
 category: Internet Streams
 category_slug: streams
 ticket: S2954
-flavor: Standard, noLegal, Legacy and VR
+availability: SUPPORT_STREAMS
 recipe_number: "02"
 canonical_url: documentation/streams/channel-pictures-and-badges.html
 why: |
@@ -88,7 +88,7 @@ steps:
     id: access-badges
     title: Understand the region and access badges
     text: |
-      Some channels in the catalog carry a badge next to their name in list view. A **🌐 Region-locked** badge means the channel answered with an access error during the catalog's own checks and may not play from your location - it is kept in the catalog because it can still work for someone in its home region. A **🔒 Restricted** badge covers any other access limit the catalog found, without naming a specific reason.
+      Some channels in the catalog carry a badge next to their name in list view. A **[Region-locked](glyph:system.internet)** badge means the channel answered with an access error during the catalog's own checks and may not play from your location - it is kept in the catalog because it can still work for someone in its home region. A **[Restricted](glyph:status.locked)** badge covers any other access limit the catalog found, without naming a specific reason.
 
       Neither badge means the channel is broken everywhere - only that it is worth trying with that in mind. Tap the channel to open **About this channel** for the same information spelled out in full.
     image_bookmark:
@@ -157,6 +157,6 @@ next_recipes:
     description: Install, update and delete the channel preview atlas, station logos and other downloadable extras by hand.
 ---
 
-<sub class="doc-stamp">26.09.25 04:13</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Every [channel](term:channel) in [Streams](term:streams-screen) always shows something - a live frame, a downloaded logo, a small favicon, a flag, or a plain icon - and a small dot and badge next to it tell you whether it is worth a tap. This page explains what each picture and badge means and where the channel picture packs come from.

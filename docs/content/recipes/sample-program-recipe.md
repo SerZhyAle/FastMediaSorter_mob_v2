@@ -5,7 +5,7 @@ description: A practical cookbook recipe for inspecting disk usage, duplicate fi
 category: Programs & Tools
 category_slug: programs
 ticket: S2961
-flavor: All Editions
+availability: all
 recipe_number: "03"
 canonical_url: documentation/sample-program-recipe.html
 ingredients:
@@ -42,6 +42,6 @@ next_recipes:
     description: Export diagnostic reports and logs.
 ---
 
-<sub class="doc-stamp">26.09.25 04:50</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Quickly analyze which folders, file types, and large video files are consuming storage on your device, SD card, or network shares.

@@ -6,7 +6,7 @@ description: Как защитить ресурс ПИН-кодом, преоб�
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: Все редакции (контейнеры в облаке - все, кроме Lite и FOSS)
+availability_note: Все редакции (контейнеры в облаке - все, кроме Lite и FOSS)
 recipe_number: "11"
 canonical_url: documentation/storage/file-encryption-and-security-ru.html
 why: |
@@ -115,6 +115,6 @@ next_recipes:
     description: Удаление открытого оригинала после упаковки в контейнер.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Защищайте ресурсы ПИН-кодом и упаковывайте важные файлы в зашифрованные паролем контейнеры .fd-sec с возможностью безопасного просмотра без распаковки на диск - на смартфоне, сетевых дисках и в облаке.

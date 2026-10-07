@@ -6,7 +6,7 @@ description: How to size the Start panel, open the full list of every installed 
 category: "Launcher: Taskbar, Menus and Gestures"
 category_slug: launcher
 ticket: S2960
-flavor: Standard and noLegal
+availability: SUPPORT_LAUNCHER
 recipe_number: "05"
 canonical_url: documentation/launcher/start-menu-and-all-apps.html
 why: |
@@ -49,7 +49,7 @@ steps:
     id: search-sort-browse
     title: Find one app fast
     text: |
-      Type anywhere in the list to search - the **Search apps** field narrows the results as you type, matching the app's name or its package name. Tap **Sort order** to change how the list is arranged: **By name**, **By install date**, **By update date**, **By how often you open it** or **By category**, each with a **Reverse order** switch; by default the list opens sorted by how often you actually open things from it, with the extra space under the letter tiles filled by a bigger preview instead of a fixed two rows.
+      Type anywhere in the list to search - the **Search apps** field narrows the results as you type, matching the app's name or its package name. Tap **Sort order** to change how the list is arranged: **By name**, **By install date**, **By update date**, **By how often you open it** or **By category**, each with a **Reverse order** switch; the extra space under the letter tiles filled by a bigger preview instead of a fixed two rows.
 
       Scroll without a search term and the apps are grouped alphabetically, each letter its own small heading with a short preview of what is under it - tap a letter and its group expands.
     image_bookmark:
@@ -77,7 +77,7 @@ steps:
     id: swipe-actions
     title: Swipe the list instead of tapping
     text: |
-      In the launcher settings, open **All apps swipe action** and set **All apps: swipe up**, **swipe down**, **swipe left** and **swipe right** from the same list each direction offers: **Back to desktop**, **Expand all apps** (shows the full list instead of the letter groups), **Launch a chosen app**, **Lock screen**, or leave the direction unused. By default swiping down at the top of the list returns to the desktop and swiping up at the end expands the full list; **Lock screen** only appears in builds that can actually lock the device.
+      In the launcher settings, open **All apps swipe action** and set **All apps: swipe up**, **swipe down**, **swipe left** and **swipe right** from the same list each direction offers: **Back to desktop**, **Expand all apps** (shows the full list instead of the letter groups), **Launch a chosen app**, **Lock screen**, or leave the direction unused. What each direction does is described in the [settings reference](../../docs/SETTINGS_REFERENCE.html); **Lock screen** only appears in builds that can actually lock the device.
     image_bookmark:
       shot_id: launcher.all-apps-swipe-settings
       device_profile: phone
@@ -110,6 +110,6 @@ next_recipes:
     description: The starter layout the Start menu and All apps sit alongside.
 ---
 
-<sub class="doc-stamp">26.09.25 04:13</sub>
+<sub class="doc-stamp">26.10.07 03:43</sub>
 
 Start is the short list, [All apps](term:all-apps) is the long one. This page covers sizing the Start panel, opening the full app list, searching and sorting it, an app's own shortcuts from a long press, and the four swipes that move through the list without a single tap.

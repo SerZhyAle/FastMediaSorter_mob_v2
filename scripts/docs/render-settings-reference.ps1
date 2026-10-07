@@ -196,8 +196,8 @@ try {
     }
     # Published (standard family) EN/RU/UK
     Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE.md')    (Render-Doc 'en' $publishedFlavors $false 'SETTINGS_REFERENCE')
-    Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE-ru.md') (Render-Doc 'ru' $publishedFlavors $false 'SETTINGS_REFERENCE_RU')
-    Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE-uk.md') (Render-Doc 'uk' $publishedFlavors $false 'SETTINGS_REFERENCE_UK')
+    Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE-ru.md') (Render-Doc 'ru' $publishedFlavors $false 'SETTINGS_REFERENCE-ru')
+    Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE-uk.md') (Render-Doc 'uk' $publishedFlavors $false 'SETTINGS_REFERENCE-uk')
     # noLegal all-inclusive (gitignored)
     Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE_noLegal.md') (Render-Doc 'en' @('noLegal') $true 'SETTINGS_REFERENCE_noLegal')
 }

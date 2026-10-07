@@ -134,20 +134,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.24 09:26</div>
+<div class="doc-stamp">26.10.07 03:42</div>
+    <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Search...</span>
                 <kbd>/</kbd>
             </button>
@@ -169,8 +170,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
             </nav>
         </div>
     </header>
@@ -411,11 +412,13 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Wear OS Watch</span>
-                    <span class="doc-badge doc-badge-standard">The full watch version (sideload only); the phone's Listen to the watch and Live Broadcast screens - Standard and noLegal.</span>
+                    <span class="doc-edition-badge">FastMedia Wear</span>
+                    <span class="doc-device-badge doc-device-badge--wear"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g transform="translate(12 12) scale(0.917 0.917) translate(-12 -12)"><path d="M20,12c0,-2.54 -1.19,-4.81 -3.04,-6.27L16,0L8,0l-0.96,5.73C5.19,7.19 4,9.46 4,12s1.19,4.81 3.04,6.27L8,24h8l0.96,-5.73C18.81,16.81 20,14.54 20,12zM6,12c0,-3.31 2.69,-6 6,-6s6,2.69 6,6 -2.69,6 -6,6 -6,-2.69 -6,-6z"/><path d="M12.5,12L12.5,8.5L11.5,8.5L11.5,12.5L15,12.5L15,11.5z"/></g></svg>Watch</span>
                     <span class="doc-badge doc-badge-sm">Recipe #09</span>
                 </div>
+                <p class="doc-availability-note">The full watch version (sideload only); the phone's Listen to the watch and Live Broadcast screens - Standard and noLegal.</p>
 
                 <h1>Listening Through the Watch and Broadcasting from It</h1>
 
@@ -430,14 +433,14 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Before You Begin: Ingredients &amp; Prerequisites</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> The <span class="doc-link-term" data-term="watch-app">watch app</span> installed and paired - see <a href="installation-and-pairing.html" class="doc-link">installing and pairing the watch</a>.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> The full version of the watch app. *Sideload version only* - see the <span class="doc-link-term" data-term="nolegal-edition">noLegal edition</span>.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> The phone and the watch on the same Wi-Fi network - sound doesn't travel over Bluetooth.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> For turning the watch into a PC microphone: StreamsPlayer and, optionally, the free VB-CABLE virtual audio cable on the Windows PC.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> The <span class="doc-link-term" data-term="watch-app">watch app</span> installed and paired - see <a href="installation-and-pairing.html" class="doc-link">installing and pairing the watch</a>.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> The full version of the watch app. *Sideload version only* - see the <span class="doc-link-term" data-term="nolegal-edition">noLegal edition</span>.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> The phone and the watch on the same Wi-Fi network - sound doesn't travel over Bluetooth.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> For turning the watch into a PC microphone: StreamsPlayer and, optionally, the free VB-CABLE virtual audio cable on the Windows PC.</li>
                     </ul>
                 </div>
 
@@ -564,6 +567,22 @@ layout: null
                         <p>None of this needs anything from you - it's simply how the watch behaves now. A broadcast or a listening session holds the processor awake for as long as it's serving sound, so the watch going to sleep on your wrist or on the charger no longer cuts the listeners off; Wear OS has no per-app background-work switch to grant here, so the app asks for nothing and just keeps its foreground service running instead.</p>
                         <p>If the system kills that service anyway, a broadcast restarts itself rather than staying silently dead, and work the watch already received from the phone - a slow sync, a file transfer, a pin - survives the same kind of restart and still gets answered.</p>
                         <p>A very long, completely undisturbed sleep can still end a session; if that happens, start it again from the watch.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="wear.watch-broadcast-after-sleep"
+                             data-device-profile="watch"
+                             data-screen-state="watch-broadcast-live-after-screen-off"
+                             data-alt="The watch broadcast screen still live with its listeners after the watch screen went off and came back"
+                             data-caption="The broadcast keeps going while the watch sleeps.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Broadcast after sleep</strong>
+                                <p class="doc-img-bookmark-desc">Watch broadcasting to one listener, screen turned off and woken again.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>watch</code></span>
+                                    <span>ID: <code>wear.watch-broadcast-after-sleep</code></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -587,17 +606,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="companion-data-sync.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Watch</span>
-                            <h4>Syncing the phone and the watch</h4>
+                            <h3>Syncing the phone and the watch</h3>
                             <p>Pair the watch and turn Wear Companion on, if listening and broadcasting aren't offered yet.</p>
                         </a>
                         <a href="../player/casting-and-broadcast.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Player</span>
-                            <h4>Chromecast casting and Live Broadcast</h4>
+                            <h3>Chromecast casting and Live Broadcast</h3>
                             <p>Start a Live Broadcast from the phone in the first place.</p>
                         </a>
                         <a href="wrist-mini-apps-and-tools.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Watch</span>
-                            <h4>Wrist programs and tools</h4>
+                            <h3>Wrist programs and tools</h3>
                             <p>Everything else waiting in the watch's Programs grid.</p>
                         </a>
                     </div>

@@ -6,7 +6,8 @@ description: How to add a shared folder on a home computer or NAS, a server over
 category: Sources, Destinations & File Operations
 category_slug: storage
 ticket: S2949
-flavor: Network folders - all except Lite; cloud storage - all except Lite and FOSS
+availability: SUPPORT_LOCAL_NETWORK, SUPPORT_CLOUD
+availability_note: Network folders - all except Lite; cloud storage - all except Lite and FOSS
 recipe_number: "02"
 canonical_url: documentation/storage/network-and-cloud-sources.html
 why: |
@@ -130,6 +131,6 @@ next_recipes:
     description: The phone's own folders, memory cards and USB drives.
 ---
 
-<sub class="doc-stamp">26.09.25 00:23</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Add a shared folder on a home computer or NAS, an FTP or SFTP server, or a Google Drive, Dropbox or OneDrive folder as a resource, switch whole groups of them off, and let the app's caches keep them quick.

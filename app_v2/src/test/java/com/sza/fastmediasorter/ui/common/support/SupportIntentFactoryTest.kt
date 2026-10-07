@@ -58,10 +58,10 @@ class SupportIntentFactoryTest {
     }
 
     @Test
-    fun `helpUrl - keeps the UK scenario index while the portal has no UK edition`() {
+    fun `helpUrl - returns the UK portal index when locale is uk`() {
         every { LocaleHelper.getLanguage(context) } returns "uk"
         val url = SupportIntentFactory.helpUrl(context)
-        assertTrue("URL must be the UK scenario index: $url", url.endsWith("/docs/howto/index-uk.html"))
+        assertTrue("URL must be the UK portal index: $url", url.endsWith("/documentation/index-uk.html"))
     }
 
     @Test

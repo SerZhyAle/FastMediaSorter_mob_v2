@@ -6,7 +6,7 @@ description: "Як Fast Media Sorter for Windows публікує папки з 
 category: Мережеві папки та хмари
 category_slug: network
 ticket: S2950
-flavor: Імпорт файлом - Standard, noLegal, Photos, Legacy, VR (не Lite, не FOSS). Імпорт скануванням QR і вбудований посібник з налаштування - той самий список без VR, бо сканування потребує камери. Стеження за ПК між мережами, самостійний пошук у локальній мережі й імпорт папки з правом запису - лише Standard.
+availability_note: Імпорт файлом - Standard, noLegal, Photos, Legacy, VR (не Lite, не FOSS). Імпорт скануванням QR і вбудований посібник з налаштування - той самий список без VR, бо сканування потребує камери. Стеження за ПК між мережами, самостійний пошук у локальній мережі й імпорт папки з правом запису - лише Standard.
 recipe_number: "03"
 canonical_url: documentation/network/windows-companion-uk.html
 why: |
@@ -108,6 +108,6 @@ next_recipes:
     description: Огляд усіх видів мережевих і хмарних місць, які може відкрити цей застосунок.
 ---
 
-<sub class="doc-stamp">26.09.25 22:28</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Fast Media Sorter for Windows публікує папки ПК так, що цей застосунок відкриває їх без жодної адреси сервера для введення - заведіть їх файлом чи скануванням QR-коду, і з'єднання йде за телефоном поза домашню мережу й назад.

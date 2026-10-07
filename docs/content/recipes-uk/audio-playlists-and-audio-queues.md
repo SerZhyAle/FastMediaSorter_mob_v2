@@ -6,7 +6,7 @@ description: Як перемішувати чи повторювати трек�
 category: Зображення, аудіо та слайдшоу
 category_slug: audio
 ticket: S2952
-flavor: Усі редакції, крім Photos; фонове прослуховування недоступне в Lite
+availability_note: Усі редакції, крім Photos; фонове прослуховування недоступне в Lite
 recipe_number: "05"
 canonical_url: documentation/audio/playlists-and-audio-queues-uk.html
 why: |
@@ -128,6 +128,6 @@ next_recipes:
     description: Відтворюйте музику й керуйте нею з годинника Wear OS.
 ---
 
-<sub class="doc-stamp">26.09.25 23:04</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Вирішуйте, у якому порядку грають треки папки, дозвольте таймеру сну м'яко зупинити музику і продовжуйте слухати, працюючи з іншими застосунками - з керуванням через повідомлення, плитку швидких налаштувань і панель «Зараз грає».

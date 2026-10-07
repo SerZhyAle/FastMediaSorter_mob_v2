@@ -6,7 +6,7 @@ description: How to record your screen with sound from the Programs menu or an e
 category: Camera & Screen Capture
 category_slug: capture
 ticket: S2956
-flavor: Standard and noLegal editions
+availability: screenCapture
 recipe_number: "4"
 canonical_url: documentation/capture/screen-recording-and-audio.html
 why: |
@@ -104,6 +104,6 @@ next_recipes:
     description: Everything the in-app camera can do beyond a quick video gesture.
 ---
 
-<sub class="doc-stamp">26.09.24 15:50</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Start a screen recording with sound from the Programs menu or a single edge-swipe, control it from a corner pill, its notification, or by repeating the gesture - and use the same gesture family for a quick camera video or a quick voice note.

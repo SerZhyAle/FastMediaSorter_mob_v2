@@ -6,7 +6,8 @@ description: How the Settings screen is organized into collapsible groups, how t
 category: "Settings & Navigation"
 category_slug: settings
 ticket: S2962
-flavor: All editions - full-text search and the online settings reference are in Standard, Lite, Photos and Legacy
+availability: all
+availability_note: All editions - full-text search and the online settings reference are in Standard, Lite, Photos and Legacy
 recipe_number: "01"
 canonical_url: documentation/settings/settings-overview-and-search.html
 why: |
@@ -145,6 +146,6 @@ next_recipes:
     description: PIN-protected resources, encryption and keeping remote sources safe.
 ---
 
-<sub class="doc-stamp">26.09.25 04:13</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Settings](term:settings) is where you shape how FastMediaSorter looks and behaves, and it has grown into a lot of ground to cover - which is why it is organized into collapsible groups, searchable by keyword, and built from one consistent row pattern instead of a different one per screen. This page walks through finding your way around it and searching it; the individual settings themselves are covered on the pages that follow.

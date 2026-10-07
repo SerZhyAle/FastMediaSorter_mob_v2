@@ -6,7 +6,7 @@ description: How to set up edge-swipe gestures that work over any app, point the
 category: "Launcher: Taskbar, Menus and Gestures"
 category_slug: launcher
 ticket: S2960
-flavor: Standard and noLegal
+availability: SUPPORT_LAUNCHER
 recipe_number: "07"
 canonical_url: documentation/launcher/desktop-gestures-and-shortcuts.html
 why: |
@@ -111,6 +111,6 @@ next_recipes:
     description: The Start button, recent and pinned apps and the status tray.
 ---
 
-<sub class="doc-stamp">26.09.25 04:13</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 An [edge gesture](term:edge-gesture) works from inside any app, and the [launcher](term:launcher) [desktop](term:desktop) adds its own swipes and taps on top. This page covers setting up both, plus the small gestures on the Clock gadget and the double tap that locks the screen.

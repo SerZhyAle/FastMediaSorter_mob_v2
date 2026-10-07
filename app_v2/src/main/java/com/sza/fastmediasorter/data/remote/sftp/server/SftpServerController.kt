@@ -10,6 +10,8 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.network.LanAddressResolver
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpDriveRendezvousPublisher
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpServerTunnelManager
 import com.sza.fastmediasorter.data.repository.settings.SftpServerSettingsStore
 import com.sza.fastmediasorter.domain.model.SftpServerAuthMode
 import com.sza.fastmediasorter.domain.model.SftpServerConfig
@@ -56,8 +58,11 @@ import javax.inject.Singleton
  * eagerly in a global scope (`docs/ARCHITECTURE.md`).
  *
  * The listener binds `0.0.0.0`: the same socket answers on Wi-Fi, Ethernet and any VPN or tunnel the
- * user set up, which is how external access works - the server builds no transport of its own
- * (strategic spec section 3). Only the SFTP subsystem is installed, so a client gets no shell.
+ * user set up. With an exchange server configured, [SftpServerTunnelManager] also registers outward and
+ * splices relayed tunnels to this listener (contract ANYWHERE-ACCESS); without one the server builds no
+ * transport of its own. [SftpDriveRendezvousPublisher] keeps the current LAN endpoints published in the
+ * user's private Drive space, so a paired device finds a changed address (contract DEVICE-EXCHANGE
+ * section 8). Only the SFTP subsystem is installed, so a client gets no shell.
  */
 @Singleton
 class SftpServerController @Inject constructor(
@@ -66,6 +71,8 @@ class SftpServerController @Inject constructor(
     private val identityStore: SftpServerIdentityStore,
     private val capabilityAvailability: CapabilityAvailability,
     private val mediaCapabilities: MediaCapabilities,
+    private val tunnelManager: SftpServerTunnelManager,
+    private val rendezvousPublisher: SftpDriveRendezvousPublisher,
     @ApplicationScope private val appScope: CoroutineScope,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
@@ -105,6 +112,16 @@ class SftpServerController @Inject constructor(
         }
     }
 
+    /**
+     * Re-registers on the exchange server with the settings as they are now; a stopped server has no
+     * registration to renew. A registration whose settings were switched off ends here as well.
+     */
+    fun restartTunnel() {
+        val running = mutableState.value as? SftpServerState.Running ?: return
+        tunnelManager.start(running.port, advertisedAddresses().map { "$it:${running.port}" })
+        rendezvousPublisher.start(running.port, ::advertisedAddresses)
+    }
+
     /** The LAN addresses a client can use right now; never a loopback address. */
     fun advertisedAddresses(): List<String> = listOfNotNull(LanAddressResolver(context).resolve())
 
@@ -137,6 +154,8 @@ class SftpServerController @Inject constructor(
                 startOrRelease(instance)
                 server = instance
                 watchRoots()
+                tunnelManager.start(instance.port, advertisedAddresses().map { "$it:${instance.port}" })
+                rendezvousPublisher.start(instance.port, ::advertisedAddresses)
                 Timber.i("SftpServerController: listening on port %d", instance.port)
                 SftpServerState.Running(instance.port, advertisedAddresses())
             } catch (e: BindException) {
@@ -243,6 +262,8 @@ class SftpServerController @Inject constructor(
     }
 
     private suspend fun stopLocked() {
+        tunnelManager.stop()
+        rendezvousPublisher.stop()
         rootsJob?.cancel()
         rootsJob = null
         val running = server

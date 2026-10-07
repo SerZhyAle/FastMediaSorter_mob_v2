@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.03 04:41</sub>
+<sub class="doc-stamp">26.10.07 01:35</sub>
 
 # Rules Digest (Свод правил)
 
@@ -305,94 +305,95 @@ runtimes, which must follow `docs/NON_CLAUDE_RUNTIME_RULES.md` manually.
 
 ## 9. FastMediaSorter complete quality-gate inventory
 
-There are 162 `scripts/quality/assert-*.ps1` entry points. This is the complete
+There are 166 `scripts/quality/assert-*.ps1` entry points. This is the complete
 filename inventory, retained here for automation research; the gate-placement
 registry and each script define its exact trigger and refusal scope. These names
 are an FMS implementation map, not a portable rule list.
 
 ```text
-assert-16kb-alignment                     assert-manifest-risk-diff
-assert-a11y-semantics                     assert-memory-budget
-assert-acceptance-preconditions           assert-meta-packaging-limits
-assert-activity-locale-wrapper            assert-migration-schema-conformance
-assert-activity-logic-not-growing         assert-migration-test-pairing
-assert-allfeatures-sync                   assert-module-version-parity
-assert-always-loaded-budget               assert-mutation-producer-registration
-assert-android-xr-manifest                assert-neuroslop
-assert-appsettings-persistence            assert-new-lexemes-translated
-assert-archive-artefacts                  assert-no-line-budget
-assert-artifact-version-fresh             assert-no-orphan-merged-resources
-assert-backup-rules-consistent            assert-no-release-probes
-assert-baseline-inventory                 assert-no-secrets
-assert-bridge-scenario-coverage           assert-no-test-retry
-assert-check-subject                      assert-no-ticket-logs
-assert-ci-cost-map                        assert-non-null-assertion
-assert-code-domain-writers                assert-notification-small-icon
-assert-codex-transcript-hygiene           assert-orientation-implied-feature
-assert-contract-pointers                  assert-orientation-layout-pairing
-assert-credential-encryption              assert-orphaned-merged-resources
-assert-ctor-arg-slots                     assert-oss-notices
-assert-delivery-size-estimates            assert-packaging-excludes-parity
-assert-deobfuscation-retained             assert-page-content
-assert-deprecated-pm-flags                assert-page-style
-assert-detekt                             assert-perf-budget
-assert-detekt-baseline-absorption         assert-play-listing-graphics
-assert-device-profile-matrix              assert-play-listing-locales
-assert-device-ready-module                assert-play-listing-screenshot-geometry
-assert-diagnostics-redaction              assert-positioning-consistency
-assert-dialog-cancel-style                assert-prerelease-content-gates
-assert-doc-house-style                    assert-qualified-gradle-tasks
-assert-doc-icons-sync                     assert-qualifier-shadowing
-assert-doc-pin-drift                      assert-quantity-format-seam
-assert-docs-coverage                      assert-release-scope-gates
-assert-release-tree-binding
-assert-docs-crosslinks                    assert-resource-icon-parity
-assert-docs-external-content              assert-retired-dependency-names
-assert-docs-external-links                assert-rtl-layout-attrs
-assert-docs-portal-ui-ux                  assert-rule-digest-sync
-assert-docs-screenshots                   assert-script-cheatsheet-sync
-assert-docs-search                        assert-script-described
-assert-docs-termbase                      assert-script-file-size
-assert-docs-translation-freshness         assert-script-parses
-assert-document-registry-coverage         assert-script-references
-assert-dotsource-tracked                  assert-sdk-pin-claims
-assert-enum-persistence-contract          assert-security-posture
-assert-exit-contract                      assert-sensitive-settings-annotated
-assert-fast-gates                         assert-settings-catalog-complete
-assert-fdsec-vectors-provenance           assert-settings-doc-sync
-assert-fgs-notifications                  assert-shared-test-flavor-scope
-assert-file-line-ceiling                  assert-site-family-map
-assert-fileop-journal-pairing             assert-site-languages-current
-assert-flavor-binding-coverage            assert-source-gates
-assert-flavor-count-prose                 assert-spec-catalog-valid
-assert-flavor-flags-not-growing           assert-splash-brand-sync
-assert-flavor-matrix-docs                 assert-stream-asset-revisions
-assert-focus-highlight                    assert-string-format
-assert-focus-parity                       assert-suite-tracked
-assert-gate-count-prose                   assert-swallowed-cancellation
-assert-gate-hints-sync                    assert-tactical-step-form
-assert-gate-placement                     assert-temp-root-inventory
-assert-gate-timing-claims                 assert-test-suite-complete
-assert-globalscope                        assert-ticket-acceptance-probes
-assert-gson-persistence-contract          assert-trivial-scope
-assert-guide-coverage                     assert-ui-sweep-catalog
-assert-harness-drift                      assert-unreferenced-strings
-assert-hook-inventory                     assert-unsafe-collect
-assert-howto-settings-paths               assert-untracked-dialogs
-assert-icon-contract                      assert-watchface-listing-live
-assert-icon-inventory-sync                assert-wear-64bit-abi
-assert-icon-style                         assert-wear-canonical-key-parity
-assert-install-trust                      assert-wear-mirrored-strings
-assert-invoked-tracked                    assert-wear-phone-identity-parity
-assert-launcher-contrast                  assert-wear-record-merge-parity
-assert-launcher-reset-coverage            assert-wear-route-literals
-assert-layout-variant-id-parity           assert-wear-settings-parity
-assert-lint-baseline-absorption           assert-wear-store-boundary
-assert-listener-symmetry                  assert-wear-walk-contract
-assert-localized-page-set                 assert-wear-wire-nullability
-assert-lock-path-coverage                 assert-wear-wire-vocabulary-parity
-assert-log-redaction                      assert-window-insets
-assert-maestro-oracle
+assert-16kb-alignment                     assert-meta-packaging-limits
+assert-a11y-semantics                     assert-migration-schema-conformance
+assert-acceptance-preconditions           assert-migration-test-pairing
+assert-activity-locale-wrapper            assert-module-version-parity
+assert-activity-logic-not-growing         assert-mutation-producer-registration
+assert-allfeatures-sync                   assert-neuroslop
+assert-always-loaded-budget               assert-new-lexemes-translated
+assert-android-xr-manifest                assert-no-line-budget
+assert-appsettings-persistence            assert-no-orphan-merged-resources
+assert-archive-artefacts                  assert-no-release-probes
+assert-artifact-version-fresh             assert-no-secrets
+assert-backup-rules-consistent            assert-no-test-retry
+assert-baseline-inventory                 assert-no-ticket-logs
+assert-bridge-scenario-coverage           assert-non-null-assertion
+assert-check-subject                      assert-notification-small-icon
+assert-ci-cost-map                        assert-orientation-implied-feature
+assert-code-domain-writers                assert-orientation-layout-pairing
+assert-codex-transcript-hygiene           assert-orphaned-merged-resources
+assert-contract-pointers                  assert-oss-notices
+assert-credential-encryption              assert-packaging-excludes-parity
+assert-ctor-arg-slots                     assert-page-content
+assert-delivery-size-estimates            assert-page-style
+assert-deobfuscation-retained             assert-perf-budget
+assert-deprecated-pm-flags                assert-play-listing-graphics
+assert-detekt                             assert-play-listing-locales
+assert-detekt-baseline-absorption         assert-play-listing-screenshot-geometry
+assert-device-profile-matrix              assert-positioning-consistency
+assert-device-ready-module                assert-prerelease-content-gates
+assert-diagnostics-redaction              assert-qualified-gradle-tasks
+assert-dialog-cancel-style                assert-qualifier-shadowing
+assert-doc-house-style                    assert-quantity-format-seam
+assert-doc-icons-sync                     assert-release-scope-gates
+assert-doc-pin-drift                      assert-release-tree-binding
+assert-docs-coverage                      assert-resource-icon-parity
+assert-docs-crosslinks                    assert-retired-dependency-names
+assert-docs-external-content              assert-rtl-layout-attrs
+assert-docs-external-links                assert-rule-digest-sync
+assert-docs-portal-ui-ux                  assert-script-cheatsheet-sync
+assert-docs-screenshots                   assert-script-described
+assert-docs-search                        assert-script-file-size
+assert-docs-termbase                      assert-script-parses
+assert-docs-translation-freshness         assert-script-references
+assert-document-registry-coverage         assert-sdk-pin-claims
+assert-dotsource-tracked                  assert-security-posture
+assert-enum-persistence-contract          assert-sensitive-settings-annotated
+assert-exit-contract                      assert-settings-catalog-complete
+assert-fast-gates                         assert-settings-doc-sync
+assert-fdsec-vectors-provenance           assert-shared-test-flavor-scope
+assert-fgs-notifications                  assert-showcase-inventory
+assert-file-line-ceiling                  assert-site-addresses
+assert-fileop-journal-pairing             assert-site-facts
+assert-flavor-binding-coverage            assert-site-family-map
+assert-flavor-count-prose                 assert-site-languages-current
+assert-flavor-flags-not-growing           assert-site-origins
+assert-flavor-matrix-docs                 assert-source-gates
+assert-focus-highlight                    assert-spec-catalog-valid
+assert-focus-parity                       assert-splash-brand-sync
+assert-gate-count-prose                   assert-stream-asset-revisions
+assert-gate-hints-sync                    assert-string-format
+assert-gate-placement                     assert-suite-tracked
+assert-gate-timing-claims                 assert-swallowed-cancellation
+assert-globalscope                        assert-tactical-step-form
+assert-gson-persistence-contract          assert-temp-root-inventory
+assert-guide-coverage                     assert-test-suite-complete
+assert-harness-drift                      assert-ticket-acceptance-probes
+assert-hook-inventory                     assert-trivial-scope
+assert-howto-settings-paths               assert-ui-sweep-catalog
+assert-icon-contract                      assert-unreferenced-strings
+assert-icon-inventory-sync                assert-unsafe-collect
+assert-icon-style                         assert-untracked-dialogs
+assert-install-trust                      assert-watchface-listing-live
+assert-invoked-tracked                    assert-wear-64bit-abi
+assert-launcher-contrast                  assert-wear-canonical-key-parity
+assert-launcher-reset-coverage            assert-wear-mirrored-strings
+assert-layout-variant-id-parity           assert-wear-phone-identity-parity
+assert-lint-baseline-absorption           assert-wear-record-merge-parity
+assert-listener-symmetry                  assert-wear-route-literals
+assert-localized-page-set                 assert-wear-settings-parity
+assert-lock-path-coverage                 assert-wear-store-boundary
+assert-log-redaction                      assert-wear-walk-contract
+assert-maestro-oracle                     assert-wear-wire-nullability
+assert-manifest-risk-diff                 assert-wear-wire-vocabulary-parity
+assert-memory-budget                      assert-window-insets
 ```
 
 The inventory spans architecture, coroutine/lifecycle safety, UI/XML/resources,

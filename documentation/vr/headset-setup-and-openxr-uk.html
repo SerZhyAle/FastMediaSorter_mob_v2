@@ -169,20 +169,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.25 22:23</div>
+<div class="doc-stamp">26.10.07 01:10</div>
+    <a class="doc-skip-link" href="#main-content">Перейти до вмісту</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index-uk.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index-uk.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index-uk.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index-uk.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Пошук...</span>
                 <kbd>/</kbd>
             </button>
@@ -204,8 +205,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index-uk.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index-uk.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Тема</span></button>
             </nav>
         </div>
     </header>
@@ -461,11 +462,13 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">VR і OpenXR</span>
-                    <span class="doc-badge doc-badge-standard">noLegal і VR, на сумісному шоломі</span>
+                    <span class="doc-edition-badge">noLegal і VR</span>
+                    <span class="doc-device-badge doc-device-badge--vr"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.74,6H3.26C2.57,6 2,6.57 2,7.26v9.49C2,17.43 2.57,18 3.26,18h4.85c0.45,0 0.86,-0.26 1.06,-0.67l0.99,-1.99c0.33,-0.67 1.01,-1.09 1.75,-1.09h0.18c0.74,0 1.42,0.42 1.75,1.09l0.99,1.99c0.2,0.41 0.61,0.67 1.06,0.67h4.85c0.69,0 1.26,-0.57 1.26,-1.26V7.26C22,6.57 21.43,6 20.74,6zM7.5,14C5.57,14 4,12.43 4,10.5S5.57,7 7.5,7S11,8.57 11,10.5S9.43,14 7.5,14zM16.5,14c-1.93,0 -3.5,-1.57 -3.5,-3.5S14.57,7 16.5,7S20,8.57 20,10.5S18.43,14 16.5,14z"/><path d="M7.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z"/><path d="M16.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z"/></svg>VR-гарнітура</span>
                     <span class="doc-badge doc-badge-sm">Recipe #01</span>
                 </div>
+                <p class="doc-availability-note">noLegal і VR, на сумісному шоломі</p>
 
                 <h1>Налаштування Meta Quest і пристроїв OpenXR</h1>
 
@@ -480,13 +483,13 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Перед початком: Що вам знадобиться</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter у <span class="doc-link-term" data-term="nolegal-edition">редакції noLegal</span> або <span class="doc-link-term" data-term="vr-edition">редакції VR</span> - immersive-режиму немає в Standard, Lite, Photos, Legacy чи FOSS.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> <span class="doc-link-term" data-term="vr-headset">VR-шолом</span>, наприклад Meta Quest, або інший шолом, сумісний з Android XR / OpenXR. Кишеньковий об'єктив-коробка для телефону не підходить - див. уточнення до цього терміна.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Для редакції noLegal: APK, встановлений на шоломі так само, як ви встановили б його на телефоні. Редакція VR встановлюється як будь-який інший застосунок для шолома.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> FastMediaSorter у <span class="doc-link-term" data-term="nolegal-edition">редакції noLegal</span> або <span class="doc-link-term" data-term="vr-edition">редакції VR</span> - immersive-режиму немає в Standard, Lite, Photos, Legacy чи FOSS.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> <span class="doc-link-term" data-term="vr-headset">VR-шолом</span>, наприклад Meta Quest, або інший шолом, сумісний з Android XR / OpenXR. Кишеньковий об'єктив-коробка для телефону не підходить - див. уточнення до цього терміна.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Для редакції noLegal: APK, встановлений на шоломі так само, як ви встановили б його на телефоні. Редакція VR встановлюється як будь-який інший застосунок для шолома.</li>
                     </ul>
                 </div>
 
@@ -678,17 +681,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="spatial-cinema-playback-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-video">VR</span>
-                            <h4>Просторовий 3D/360 кінотеатр і відтворення відео</h4>
+                            <h3>Просторовий 3D/360 кінотеатр і відтворення відео</h3>
                             <p>Як насправді відтворюються файли 360, 180, циліндр і стерео, щойно ви всередині.</p>
                         </a>
                         <a href="passthrough-and-controllers-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">VR</span>
-                            <h4>Керування в шоломі</h4>
+                            <h3>Керування в шоломі</h3>
                             <p>Плаваюча панель, контролери, відстеження рук і тактильний відгук.</p>
                         </a>
                         <a href="../streams/tv-watch-vr-and-broadcast-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Трансляції</span>
-                            <h4>Трансляції на ТВ, годиннику чи у VR-шоломі</h4>
+                            <h3>Трансляції на ТВ, годиннику чи у VR-шоломі</h3>
                             <p>Відкрийте прямий відеоканал прямо у VR Cinema.</p>
                         </a>
                     </div>
@@ -726,8 +729,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Безкоштовний органайзер із відкритим вихідним кодом.</div>
             <div class="doc-footer-links">
-                <a href="../../docs/PRIVACY_POLICY.uk.html">Політика конфіденційності</a>
-                <a href="../../docs/TERMS_OF_SERVICE_UK.html">Умови використання</a>
+                <a href="../../docs/PRIVACY_POLICY-uk.html">Політика конфіденційності</a>
+                <a href="../../docs/TERMS_OF_SERVICE-uk.html">Умови використання</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>

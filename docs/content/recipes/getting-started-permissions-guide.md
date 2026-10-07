@@ -6,7 +6,7 @@ description: What each permission FastMediaSorter can ask for actually unlocks, 
 category: Getting Started
 category_slug: getting-started
 ticket: S2946
-flavor: All editions
+availability: all
 recipe_number: "02"
 canonical_url: documentation/getting-started/permissions-guide.html
 why: |
@@ -74,6 +74,14 @@ steps:
       - **Contacts** - reading a pinned contact's current name and photo so a launcher shortcut stays up to date, on editions with a launcher desktop.
 
       A row you do not see simply does not apply to this edition or this Android version - the list never hides a permission the app could still use.
+    image_bookmark:
+      shot_id: getting-started.permissions-groups
+      device_profile: phone
+      screen_state: settings-permissions-groups-scrolled
+      alt: The Permissions list scrolled to the Location, System and Contacts groups, each row naming what it unlocks
+      caption: "Each group row says what it unlocks."
+      title: "Screenshot: Permission groups"
+      desc: Settings, Permissions, scrolled down past Camera.
     callout:
       type: tip
       title: One wording, everywhere
@@ -116,6 +124,6 @@ next_recipes:
     description: Find any setting fast, including Permissions & Access.
 ---
 
-<sub class="doc-stamp">26.09.24 09:11</sub>
+<sub class="doc-stamp">26.10.07 03:42</sub>
 
 FastMediaSorter only asks for the permissions a feature actually needs, explains each one in the same plain words everywhere it is asked, and lets you grant them one at a time or all at once from **Settings, General, Permissions & Access** - with Android's own app settings always one tap away for changing your mind later.

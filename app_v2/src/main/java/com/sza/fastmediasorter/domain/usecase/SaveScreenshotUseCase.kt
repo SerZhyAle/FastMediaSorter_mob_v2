@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.stats.CaptureKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.util.CaptureFileNamer
+import com.sza.fastmediasorter.util.PngTimeChunk
 import com.sza.fastmediasorter.util.ScreenshotDestinationPolicy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -48,7 +49,13 @@ class SaveScreenshotUseCase @Inject constructor(
         bitmap: Bitmap,
         target: ScreenshotDestinationPolicy.Target
     ): SaveResult = withContext(Dispatchers.IO) {
-        val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.SCREENSHOT, ".png")
+        // CAPTURE-OUTPUT rule 16: the tIME chunk must hold the same second the name was formed from.
+        val captureMillis = System.currentTimeMillis()
+        val fileName = CaptureFileNamer.shared.allocate(
+            CaptureFileNamer.CaptureKind.SCREENSHOT,
+            ".png",
+            timestampMillis = captureMillis,
+        )
         val tempDir = File(context.cacheDir, TEMP_DIR_NAME)
         if (!tempDir.exists() && !tempDir.mkdirs()) {
             return@withContext SaveResult.Failure(
@@ -58,7 +65,7 @@ class SaveScreenshotUseCase @Inject constructor(
         val tempFile = File(tempDir, fileName)
 
         try {
-            writeTempPng(bitmap, tempFile)
+            writeTempPng(bitmap, tempFile, captureMillis)
             val result = when (target) {
                 is ScreenshotDestinationPolicy.Target.SelectedResource ->
                     saveToSelectedResource(tempFile, fileName, target.resource)
@@ -80,11 +87,9 @@ class SaveScreenshotUseCase @Inject constructor(
         }
     }
 
-    private fun writeTempPng(bitmap: Bitmap, tempFile: File) {
+    private fun writeTempPng(bitmap: Bitmap, tempFile: File, captureMillis: Long) {
         FileOutputStream(tempFile).use { output ->
-            if (!bitmap.compress(Bitmap.CompressFormat.PNG, PNG_QUALITY, output)) {
-                throw IOException("Bitmap.compress returned false for ${tempFile.name}")
-            }
+            PngTimeChunk.writePng(bitmap, captureMillis, output)
         }
     }
 
@@ -176,7 +181,6 @@ class SaveScreenshotUseCase @Inject constructor(
 
     companion object {
         private const val TEMP_DIR_NAME = "screenshot_capture"
-        private const val PNG_QUALITY = 100
         private const val PNG_MIME_TYPE = "image/png"
     }
 }

@@ -16,6 +16,15 @@
       and mobile navigation drawer styling.
     - Validates search engine client implementation, scoring accuracy (no false positives on
       unmatched tokens), universal category link prefixes, and modal accessibility.
+    - SITE-EXPERIENCE 0.1 on the portal layer (S4099), each finding naming its rule:
+      rule 2  - every page links styles.css (the kit tokens) before docs.css, and docs.css outside
+                its print rules carries no colour literal equal to a kit token value of styles.css;
+      rule 3  - docs.css defines the menu-path and edition-badge components, and a page's badge row
+                (doc-meta-row) carries exactly one edition badge;
+      rule 4  - no page carries a style attribute or a <style> element outside its scripts;
+      rule 12 - search.js renders an empty result that repeats the query and links the subject index;
+      rule 15 - every page opens <body> (after the optional date stamp) with a skip link to
+                #main-content, and carries that target.
 
 .PARAMETER RepoRoot
     Target repository root path.
@@ -52,8 +61,40 @@ if (-not (Test-Path -LiteralPath $docRoot)) {
 $errors = [System.Collections.Generic.List[string]]::new()
 $warnings = [System.Collections.Generic.List[string]]::new()
 
-# A docs/*.md page is served at its `permalink:` address, which often differs from the source
-# name (PRIVACY_POLICY-ru.md -> /docs/PRIVACY_POLICY.ru.html), so a link is live when it names a
+# One spelling per colour, so #FFF, #ffffff and rgba(0,0,0,.5) / rgba(0, 0, 0, 0.5) compare equal.
+function ConvertTo-CssColorKey([string]$value) {
+    $v = $value.Trim().ToLowerInvariant()
+    if ($v -match '^#([0-9a-f])([0-9a-f])([0-9a-f])$') {
+        $v = '#' + $Matches[1] + $Matches[1] + $Matches[2] + $Matches[2] + $Matches[3] + $Matches[3]
+    }
+    $v = [regex]::Replace($v, '\s+', '')
+    return [regex]::Replace($v, '(?<![\d.])0\.(\d)', '.$1')
+}
+
+# The text with every @media print block blanked, line count kept.
+function Remove-CssPrintRules([string]$text) {
+    $sb = [System.Text.StringBuilder]::new()
+    $i = 0
+    while ($true) {
+        $start = $text.IndexOf('@media print', $i)
+        if ($start -lt 0) { $null = $sb.Append($text.Substring($i)); break }
+        $null = $sb.Append($text.Substring($i, $start - $i))
+        $open = $text.IndexOf('{', $start)
+        if ($open -lt 0) { break }
+        $depth = 0
+        $end = $open
+        for (; $end -lt $text.Length; $end++) {
+            if ($text[$end] -eq '{') { $depth++ }
+            elseif ($text[$end] -eq '}') { $depth--; if ($depth -eq 0) { break } }
+        }
+        $null = $sb.Append("`n" * ([regex]::Matches($text.Substring($start, [Math]::Min($end + 1, $text.Length) - $start), "`n")).Count)
+        $i = [Math]::Min($end + 1, $text.Length)
+    }
+    return $sb.ToString()
+}
+
+# A docs/*.md page is served at its `permalink:` address, which can differ from the source
+# name (docs/howto/index.md -> /docs/howto/), so a link is live when it names a
 # published permalink even though no file of that name exists on disk.
 $publishedPermalinks = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 foreach ($mdPage in (Get-ChildItem -LiteralPath (Join-Path $RepoRoot 'docs') -Filter *.md -File)) {
@@ -100,6 +141,38 @@ if (-not (Test-Path -LiteralPath $docsCssPath)) {
     if ($css -notmatch '@media\s+print') {
         $errors.Add("docs.css missing @media print styles")
     }
+
+    # SITE-EXPERIENCE rule 3: the portal layer's own components exist, each with one form.
+    foreach ($component in '.doc-menu-path-item', '.doc-edition-badge') {
+        if ($css -notmatch ([regex]::Escape($component) + '\b')) {
+            $errors.Add("docs.css does not define the $component component (SITE-EXPERIENCE rule 3)")
+        }
+    }
+
+    # SITE-EXPERIENCE rule 2: a colour the kit has a token for is a reference to it, never a copy.
+    # Paper colours of the print rules are outside the theme and are not judged.
+    $kitPath = Join-Path $RepoRoot 'styles.css'
+    if (-not (Test-Path -LiteralPath $kitPath)) {
+        $errors.Add("styles.css missing at $kitPath - the kit tokens the portal layer references (SITE-EXPERIENCE rule 2)")
+    } else {
+        $kitNames = @('bg', 'bg-2', 'bg-3', 'card', 'card-hover', 'border', 'border-hover', 'text', 'text-2', 'muted',
+            'acc', 'acc-strong', 'acc-ink', 'gold', 'gold-strong', 'gold-ink', 'code-bg', 'code-ink', 'ok', 'warn',
+            'danger', 'blob-1', 'blob-2', 'blob-3')
+        $kitValues = @{}
+        foreach ($m in [regex]::Matches((Get-Content -LiteralPath $kitPath -Raw -Encoding utf8), '--([a-z0-9-]+)\s*:\s*([^;]+);')) {
+            $value = $m.Groups[2].Value
+            if ($kitNames -contains $m.Groups[1].Value -and $value -notmatch 'var\(') {
+                $kitValues[(ConvertTo-CssColorKey $value)] = '--' + $m.Groups[1].Value
+            }
+        }
+        $themeCss = Remove-CssPrintRules ([regex]::Replace($css, '(?s)/\*.*?\*/', ''))
+        foreach ($m in [regex]::Matches($themeCss, '#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)')) {
+            $key = ConvertTo-CssColorKey $m.Value
+            if ($kitValues.ContainsKey($key)) {
+                $errors.Add("docs.css copies the kit value $($m.Value) of $($kitValues[$key]); write var($($kitValues[$key])) (SITE-EXPERIENCE rule 2)")
+            }
+        }
+    }
 }
 
 # -------------------------------------------------------------------------
@@ -122,6 +195,13 @@ if (-not (Test-Path -LiteralPath $searchJsPath)) {
 
     if ($js -notmatch 'keydown') {
         $errors.Add("search.js missing keyboard navigation handler")
+    }
+
+    # SITE-EXPERIENCE rule 12: an empty result repeats the query in every language and offers the subject index.
+    $emptyFunction = [regex]::Match($js, '(?s)function emptyResult\(query\)\s*\{.*?\n    \}')
+    if (-not $emptyFunction.Success -or $emptyFunction.Value -notmatch 'subject-index' -or
+        ([regex]::Matches($js, "empty:\s*'[^']*\{query\}")).Count -lt 3 -or $js -notmatch 'emptyResult\(query\);') {
+        $errors.Add("search.js: an empty result does not repeat the query in en/ru/uk and link the subject index (SITE-EXPERIENCE rule 12)")
     }
 }
 
@@ -180,6 +260,29 @@ foreach ($file in $htmlFiles) {
     # 3f. Search integration
     if ($content -notmatch 'search\.js') {
         $errors.Add("$relPath - missing search.js client script inclusion")
+    }
+
+    # 3f-bis. SITE-EXPERIENCE rules 2, 3, 4 and 15 on the page itself (S4099).
+    $kitLink = [regex]::Match($content, '<link\b[^>]*href="[^"]*styles\.css"')
+    $layerLink = [regex]::Match($content, '<link\b[^>]*href="[^"]*docs\.css"')
+    if ($layerLink.Success -and (-not $kitLink.Success -or $kitLink.Index -gt $layerLink.Index)) {
+        $errors.Add("$relPath - styles.css (the kit tokens) is not linked before docs.css (SITE-EXPERIENCE rule 2)")
+    }
+    $markup = [regex]::Replace($content, '(?is)<script\b[^>]*>.*?</script>', '<script></script>')
+    $styleAttributes = ([regex]::Matches($markup, '<[a-zA-Z][^>]*\sstyle\s*=')).Count
+    if ($styleAttributes -gt 0) {
+        $errors.Add("$relPath - $styleAttributes style attribute(s); the layout belongs in docs.css (SITE-EXPERIENCE rule 4)")
+    }
+    if ($markup -match '<style\b') {
+        $errors.Add("$relPath - a <style> element; the page's presentation belongs in docs.css (SITE-EXPERIENCE rule 4)")
+    }
+    $metaRow = [regex]::Match($markup, '(?s)<div class="doc-meta-row">(.*?)</div>')
+    if ($metaRow.Success -and ([regex]::Matches($metaRow.Groups[1].Value, 'class="doc-edition-badge"')).Count -ne 1) {
+        $errors.Add("$relPath - the badge row does not carry exactly one edition badge (SITE-EXPERIENCE rule 3)")
+    }
+    if ($markup -notmatch '<body\b[^>]*>\s*(?:<div class="doc-stamp"[^>]*>[^<]*</div>\s*)?<a class="doc-skip-link" href="#main-content">[^<]+</a>' -or
+        $markup -notmatch '\bid="main-content"') {
+        $errors.Add("$relPath - the page does not open with a skip link to #main-content (SITE-EXPERIENCE rule 15)")
     }
 
     # 3g. Image accessibility (alt attribute)

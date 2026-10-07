@@ -6,7 +6,7 @@ description: How to start a favorite radio station or TV channel with one tap - 
 category: Internet Streams
 category_slug: streams
 ticket: S2955
-flavor: Standard, noLegal, Legacy and VR
+availability: SUPPORT_STREAMS
 recipe_number: "07"
 canonical_url: documentation/streams/shortcuts-widget-and-panel.html
 why: |
@@ -124,6 +124,6 @@ next_recipes:
     description: Take a station to your wrist or a channel to the TV.
 ---
 
-<sub class="doc-stamp">26.09.24 07:54</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Your everyday stations, one tap away: a [shortcut](term:shortcut) or the **Stream** [widget](term:widget) on the Android home screen, or the [streams panel](term:streams-panel) with your pinned [channels](term:channel) on the FastMediaSorter main screen.

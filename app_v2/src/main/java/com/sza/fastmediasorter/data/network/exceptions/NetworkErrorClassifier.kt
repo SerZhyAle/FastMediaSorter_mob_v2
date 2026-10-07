@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.data.network.exceptions
 
 import com.jcraft.jsch.JSchException
 import com.sza.fastmediasorter.data.remote.sftp.HostKeyMismatchException
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTunnelUnavailableException
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpPeerUnreachableFromHereException
 import timber.log.Timber
 import java.io.FileNotFoundException
 import java.net.ConnectException
@@ -62,6 +64,8 @@ object NetworkErrorClassifier {
         // S1055: SSH-specific reconnect outcomes (host-key change / auth reject) short-circuit ahead of
         // the generic message heuristics so they are never folded into a transient, retryable outcome.
         sshOutcome(throwable)?.let { return ClassificationResult(it, usedFallback = false) }
+
+        peerOutcome(throwable)?.let { return ClassificationResult(it, usedFallback = false) }
 
         return when {
             // OS-level socket block for missing ACCESS_LOCAL_NETWORK (Android 17+)
@@ -295,6 +299,21 @@ object NetworkErrorClassifier {
         link is JSchException && link.messageContains("auth fail", "auth cancel", "userauth") ->
             NetworkAuthRejectedException("SFTP auth failed: ${link.message}", original)
         else -> null
+    }
+
+    // Contract ANYWHERE-ACCESS: both failures surface wrapped (JSch wraps a proxy failure, the client wraps
+    // a verdict), and neither carries a message token the heuristics below would recognise.
+    private fun peerOutcome(throwable: Throwable): NetworkException? {
+        val link = causeChain(throwable).firstOrNull {
+            it is ExchangeTunnelUnavailableException || it is SftpPeerUnreachableFromHereException
+        } ?: return null
+        Timber.d("S4110: tunnel or rendezvous failure classified as peer unreachable")
+        val reason = if (link is ExchangeTunnelUnavailableException) {
+            NetworkPeerUnreachableException.Reason.TUNNEL_NOT_REGISTERED
+        } else {
+            NetworkPeerUnreachableException.Reason.UNREACHABLE_FROM_THIS_NETWORK
+        }
+        return NetworkPeerUnreachableException(reason, "Peer unreachable: ${link.message}", throwable)
     }
 
     private fun causeChain(throwable: Throwable): Sequence<Throwable> =

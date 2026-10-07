@@ -1,10 +1,10 @@
 ---
 layout: default
 title: "FastMediaSorter v2"
-permalink: /docs/README_RU.html
+permalink: /docs/README-ru.html
 ---
 
-<sub class="doc-stamp">26.10.01 04:06</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 # FastMediaSorter v2 🚀
 

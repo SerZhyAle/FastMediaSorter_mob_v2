@@ -134,20 +134,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.30 08:05</div>
+<div class="doc-stamp">26.10.07 01:10</div>
+    <a class="doc-skip-link" href="#main-content">Перейти к содержимому</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index-ru.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index-ru.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Поиск...</span>
                 <kbd>/</kbd>
             </button>
@@ -169,8 +170,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Тема</span></button>
             </nav>
         </div>
     </header>
@@ -416,11 +417,12 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Источники, назначения и операции с файлами</span>
-                    <span class="doc-badge doc-badge-standard">Standard, noLegal, Legacy и VR; создание ZIP-архивов - во всех редакциях</span>
+                    <span class="doc-edition-badge">Все редакции</span>
                     <span class="doc-badge doc-badge-sm">Recipe #08</span>
                 </div>
+                <p class="doc-availability-note">Standard, noLegal, Legacy и VR; создание ZIP-архивов - во всех редакциях</p>
 
                 <h1>Освобождение места - дубликаты, большие файлы и ZIP-архивы</h1>
 
@@ -435,13 +437,13 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Перед началом: Что вам понадобится</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> Поиск дубликатов и удаление по размеру: <span class="doc-link-term" data-term="edition">редакции</span> Standard, noLegal, Legacy и VR.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Создание ZIP-архивов: все редакции - Standard, noLegal, Lite, Photos, Legacy, VR и FOSS.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Целевой <span class="doc-link-term" data-term="resource">ресурс</span> с правом на запись. ZIP-архивы создаются только из файлов, расположенных на локальном устройстве.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Поиск дубликатов и удаление по размеру: <span class="doc-link-term" data-term="edition">редакции</span> Standard, noLegal, Legacy и VR.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Создание ZIP-архивов: все редакции - Standard, noLegal, Lite, Photos, Legacy, VR и FOSS.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Целевой <span class="doc-link-term" data-term="resource">ресурс</span> с правом на запись. ZIP-архивы создаются только из файлов, расположенных на локальном устройстве.</li>
                     </ul>
                 </div>
 
@@ -477,6 +479,13 @@ layout: null
                     </div>
                 </div>
 
+                <div class="doc-callout doc-callout-warning">
+                    <div class="doc-callout-title">
+                        <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>Это удаление необратимо
+                    </div>
+                    <p>Перед удалением приложение запрашивает подтверждение: «Вы уверены, что хотите безвозвратно удалить..?». Внимательно просмотрите отмеченные файлы - особенно в группах, где копии лежат в разных папках.</p>
+                </div>
+
                 <!-- Step 3 -->
                 <div class="doc-step" id="delete-duplicates">
                     <div class="doc-step-header">
@@ -486,13 +495,14 @@ layout: null
                     <div class="doc-step-body">
                         <p>Вы можете изменить отметки, если хотите оставить другую копию (или провести пальцем по строкам для быстрого выделения), либо удалить единичный файл кнопкой удаления в его строке. Затем нажмите <strong>Удалить выбранные</strong> - кнопка точно сообщает, сколько файлов и какой объём памяти освободится. Подтвердите действие, и копии будут удалены.</p>
                         <p>Хотите всё сделать быстрее? Пункт <strong>Найти и удалить дубликаты</strong> в меню открывает этот же экран, сразу подготавливая удаление после проверки списка.</p>
-                        <div class="doc-callout doc-callout-warning">
-                            <div class="doc-callout-title">
-                                <span class="doc-callout-icon">⚠️</span> Это удаление необратимо
-                            </div>
-                            <p>Перед удалением приложение запрашивает подтверждение: «Вы уверены, что хотите безвозвратно удалить..?». Внимательно просмотрите отмеченные файлы - особенно в группах, где копии лежат в разных папках.</p>
-                        </div>
                     </div>
+                </div>
+
+                <div class="doc-callout doc-callout-warning">
+                    <div class="doc-callout-title">
+                        <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>В сетевых папках и облаках нет корзины
+                    </div>
+                    <p>Для сетевых и облачных ресурсов диалог выводит предупреждение красным цветом: «Внимание: корзина не поддерживается для этого ресурса. Удаление будет окончательным!». В локальных папках телефона удалённые файлы перемещаются в <span class="doc-link-term" data-term="trash">корзину</span>, если она включена - см. <a href="file-copy-move-delete-ru.html" class="doc-link">Копирование, перемещение и удаление файлов</a>.</p>
                 </div>
 
                 <!-- Step 4 -->
@@ -510,12 +520,6 @@ layout: null
                             <img src="../assets/images/storage/delete-by-size-dialog.png" alt="Окно «Удалить по размеру» с выбранным условием «Больше чем», значением 500 МБ и кнопкой «Анализировать»" class="doc-screenshot" loading="lazy" />
                             <figcaption>Выбор критерия размера и кнопка «Анализировать».</figcaption>
                         </figure>
-                        <div class="doc-callout doc-callout-warning">
-                            <div class="doc-callout-title">
-                                <span class="doc-callout-icon">⚠️</span> В сетевых папках и облаках нет корзины
-                            </div>
-                            <p>Для сетевых и облачных ресурсов диалог выводит предупреждение красным цветом: «Внимание: корзина не поддерживается для этого ресурса. Удаление будет окончательным!». В локальных папках телефона удалённые файлы перемещаются в <span class="doc-link-term" data-term="trash">корзину</span>, если она включена - см. <a href="file-copy-move-delete-ru.html" class="doc-link">Копирование, перемещение и удаление файлов</a>.</p>
-                        </div>
                     </div>
                 </div>
 
@@ -556,17 +560,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="file-copy-move-delete-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-other">Хранилище</span>
-                            <h4>Копирование, перемещение и удаление файлов</h4>
+                            <h3>Копирование, перемещение и удаление файлов</h3>
                             <p>Повседневная работа с файлами, управление корзиной и отмена действий.</p>
                         </a>
                         <a href="scheduled-operations-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-other">Хранилище</span>
-                            <h4>Выполнение операций с файлами по расписанию</h4>
+                            <h3>Выполнение операций с файлами по расписанию</h3>
                             <p>Автоматическая очистка и перенос старых файлов по ночам.</p>
                         </a>
                         <a href="../programs/usage-statistics-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Программы</span>
-                            <h4>Статистика использования</h4>
+                            <h3>Статистика использования</h3>
                             <p>Наглядный подсчёт разобранных файлов и освобождённого пространства.</p>
                         </a>
                     </div>
@@ -599,8 +603,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.</div>
             <div class="doc-footer-links">
-                <a href="../../docs/PRIVACY_POLICY.ru.html">Политика конфиденциальности</a>
-                <a href="../../docs/TERMS_OF_SERVICE_RU.html">Условия использования</a>
+                <a href="../../docs/PRIVACY_POLICY-ru.html">Политика конфиденциальности</a>
+                <a href="../../docs/TERMS_OF_SERVICE-ru.html">Условия использования</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>

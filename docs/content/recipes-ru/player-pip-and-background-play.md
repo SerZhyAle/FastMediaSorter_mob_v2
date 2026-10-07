@@ -6,7 +6,7 @@ description: Как продолжать просмотр видео в комп
 category: Видеоплеер и медиаплеер
 category_slug: player
 ticket: S2951
-flavor: Все редакции, кроме Photos; фоновое прослушивание недоступно в Lite; управление с часов доступно в Standard и noLegal
+availability_note: Все редакции, кроме Photos; фоновое прослушивание недоступно в Lite; управление с часов доступно в Standard и noLegal
 recipe_number: "03"
 canonical_url: documentation/player/pip-and-background-play-ru.html
 why: |
@@ -104,6 +104,6 @@ next_recipes:
     description: Воспроизведение и управление музыкой с часов на Wear OS.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Смотрите видео в компактном плавающем окне поверх других программ, настраивайте фоновое звучание при выходе из плеера и управляйте взаимодействием между смартфоном и смарт-часами.

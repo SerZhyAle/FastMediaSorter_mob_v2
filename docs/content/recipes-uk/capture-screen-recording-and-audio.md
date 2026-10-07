@@ -6,7 +6,6 @@ description: Як записати екран зі звуком з меню «П
 category: Камера та запис екрана
 category_slug: capture
 ticket: S2956
-flavor: Редакції Standard і noLegal
 recipe_number: "4"
 canonical_url: documentation/capture/screen-recording-and-audio-uk.html
 why: |
@@ -104,6 +103,6 @@ next_recipes:
     description: Усе, на що здатна вбудована камера, крім швидкого жесту відео.
 ---
 
-<sub class="doc-stamp">26.09.25 22:38</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Почніть запис екрана зі звуком із меню «Програми» чи одним крайовим змахом, керуйте ним із кутової піґулки, сповіщення чи повторенням жесту - і використовуйте ту саму родину жестів для швидкого відео з камери чи голосової нотатки.

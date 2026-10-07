@@ -6,7 +6,8 @@ description: How to share a folder on Windows, find it from the app by scanning 
 category: Network & Cloud
 category_slug: network
 ticket: S2950
-flavor: Network folders (SMB) - every edition except Lite. Finding a computer automatically, listing its shares, testing the connection and the quiet speed tuning - Standard, noLegal, Photos, Legacy and VR (not Lite, not FOSS).
+availability: SUPPORT_LOCAL_NETWORK
+availability_note: Network folders (SMB) - every edition except Lite. Finding a computer automatically, listing its shares, testing the connection and the quiet speed tuning - Standard, noLegal, Photos, Legacy and VR (not Lite, not FOSS).
 recipe_number: "01"
 canonical_url: documentation/network/smb-samba-shares.html
 why: |
@@ -115,6 +116,6 @@ next_recipes:
     description: The overview - what kinds of places you can add, and how the app keeps them quick.
 ---
 
-<sub class="doc-stamp">26.09.25 02:04</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Share a folder on Windows, find it from the app with a network scan, sign in and test the connection before committing, and read what a "cannot connect" message actually means - the full walk-through behind [adding a network folder](page:storage.network-and-cloud-sources) as a [resource](term:resource).

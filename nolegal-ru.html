@@ -70,7 +70,7 @@
 </head>
 
 <body>
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.06 12:13</div>
+<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.07 05:47</div>
 
     <!-- SZA Web Kit sticky header -->
     <header class="site-header">
@@ -80,7 +80,7 @@
             <a href="nolegal.html" data-lang="en">EN</a>
             <a href="nolegal-uk.html" data-lang="ua">UA</a>
         </div>
-        <button class="theme-btn" id="themeBtn" aria-label="Переключить на светлую тему" title="Сменить тему">◐</button>
+        <button class="theme-btn" id="themeBtn" aria-label="Переключить на светлую тему" title="Сменить тему"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Тема</span></button>
         <a class="btn btn-primary btn-sm" href="#get">Скачать</a>
     </header>
 
@@ -96,9 +96,15 @@
 
     <main id="main-content">
     <header class="hero" id="top">
-        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
+        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.35" data-speed="0.5"></canvas>
         <div class="hero-inner">
-            <p class="kicker"><span class="nolegal-tag">noLegal</span> - версия только для sideload</p>
+            <div class="identity">
+                <img class="product-icon" src="icon.png" width="104" height="104" alt="">
+                <div>
+                    <p class="product-name">Fast Media Sorter &amp; Organizer</p>
+                    <p class="kicker"><span class="nolegal-tag">noLegal</span> - версия только для sideload</p>
+                </div>
+            </div>
             <h1>VR-сборка плюс возможности, которые нельзя публиковать в магазинах.</h1>
             <p class="subtitle">Загружайте медиа с видеосайтов, ставьте APK из браузера файлов и читайте Office-документы - установка вручную, вне магазинов.</p>
             <div class="version-badge nolegal-badge">Только sideload • Нет в Google Play и Meta Horizon Store</div>
@@ -122,7 +128,7 @@
         <h2 class="section-title" id="get">Загрузка для sideload</h2>
         <p class="topology-lead">Сборка noLegal только для ручной установки (sideload). Устанавливайте опубликованный APK вручную. Редакция представлена на основном сайте, но не распространяется через магазины приложений.</p>
         <p class="topology-lead">Android предупреждает об APK, который видит впервые.
-            <a href="docs/INSTALL_TRUST_RU.html" target="_blank" rel="noopener">Почему появляется предупреждение - и что
+            <a href="docs/INSTALL_TRUST-ru.html" target="_blank" rel="noopener">Почему появляется предупреждение - и что
                 нажимать</a>.</p>
         <div id="apkDownloads" class="apk-downloads" data-flavors="noLegal">
             <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases"
@@ -351,10 +357,10 @@
                 <!-- family-footer:end -->
             </div>
             <div class="footer-bottom">
-                <span>&copy; 2024-2026 Сергей Жигуненко · Fast Media Sorter</span>
+                <span>&copy; 2024-2026 <a href="https://sza.od.ua">Сергей Жигуненко</a> · Fast Media Sorter</span>
                 <span>
-                    <a href="docs/PRIVACY_POLICY.ru.html">Конфиденциальность</a> ·
-                    <a href="docs/TERMS_OF_SERVICE_RU.html">Условия</a> ·
+                    <a href="docs/PRIVACY_POLICY-ru.html">Конфиденциальность</a> ·
+                    <a href="docs/TERMS_OF_SERVICE-ru.html">Условия</a> ·
                     <a href="https://github.com/SerZhyAle">GitHub</a> ·
                     <a href="mailto:sza@ukr.net">sza@ukr.net</a>
                 </span>

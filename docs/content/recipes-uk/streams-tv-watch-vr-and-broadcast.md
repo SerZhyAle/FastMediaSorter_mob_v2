@@ -6,7 +6,7 @@ description: Як транслювати онлайн-канал на ТВ че�
 category: Інтернет-трансляції
 category_slug: streams
 ticket: S2955
-flavor: Chromecast - Standard, noLegal та Legacy; годинник - Standard і noLegal; VR-плеєр - noLegal і VR; Прямий ефір - Standard, noLegal та Legacy
+availability_note: Chromecast - Standard, noLegal та Legacy; годинник - Standard і noLegal; VR-плеєр - noLegal і VR; Прямий ефір - Standard, noLegal та Legacy
 recipe_number: "08"
 canonical_url: documentation/streams/tv-watch-vr-and-broadcast-uk.html
 why: |
@@ -132,6 +132,6 @@ next_recipes:
     description: Основи відтворення каналу на телефоні.
 ---
 
-<sub class="doc-stamp">26.09.25 22:16</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Виведіть прямий [канал](term:channel) на ТВ через [Chromecast](term:chromecast), на свій [годинник](term:watch) або у [VR-шолом](term:vr-headset), і додайте [Прямий ефір](term:live-broadcast) друга за QR-кодом, посиланням чи файлом.

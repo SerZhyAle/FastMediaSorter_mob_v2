@@ -116,7 +116,8 @@
 </head>
 
 <body>
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.06 14:18</div>
+<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.07 05:47</div>
+    <a class="skip-link" href="#main-content">Перейти к содержимому</a>
 
     <!-- SZA Web Kit sticky header -->
     <header class="site-header">
@@ -127,7 +128,7 @@
             <a href="index.html" data-lang="en">EN</a>
             <a href="index-uk.html" data-lang="ua">UA</a>
         </div>
-        <button class="theme-btn" id="themeBtn" aria-label="Переключить на светлую тему" title="Сменить тему">◐</button>
+        <button class="theme-btn" id="themeBtn" aria-label="Переключить на светлую тему" title="Сменить тему"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Тема</span></button>
         <a class="btn btn-primary btn-sm" href="#get">Установить</a>
     </header>
 
@@ -148,7 +149,7 @@
 
     <!-- GitHub Corner -->
     <aside class="source-link">
-    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
+    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" tabindex="-1" target="_blank"
         aria-label="Исходный код на GitHub">
         <svg width="80" height="80" viewBox="0 0 250 250"
             style="fill:var(--color-standard); color:var(--acc-ink); position: absolute; top: 0; border: 0; right: 0;"
@@ -166,9 +167,15 @@
 
     <main id="main-content">
     <header class="hero" id="top">
-        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
+        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.35" data-speed="0.5"></canvas>
         <div class="hero-inner">
-            <p class="kicker">Android - оболочка устройства</p>
+            <div class="identity">
+                <img class="product-icon" src="icon.png" width="104" height="104" alt="">
+                <div>
+                    <p class="product-name">Fast Media Sorter &amp; Organizer</p>
+                    <p class="kicker">Android - оболочка устройства</p>
+                </div>
+            </div>
             <h1>Полноценная оболочка для вашего Android-устройства.</h1>
             <p class="subtitle">Домашний экран, медиа, трансляции, программы, часы и файлы - в одном месте.</p>
             <p class="whatfor">Fast Media Sorter &amp; Organizer занимает домашний экран и становится местом, откуда всё
@@ -692,6 +699,7 @@
                     target="_blank" rel="noopener">IzzyOnDroid</a>
             </div>
             <p class="shell-links"><a href="#download">Другие APK-редакции и циферблат</a></p>
+            <p class="shell-links">Редакции: <a href="#download">Lite</a> · <a href="#download">Photos</a> · <a href="#download">Legacy</a> · <a href="nolegal-ru.html">noLegal</a> · <a href="documentation/vr/spatial-cinema-playback-ru.html">VR</a> · <a href="docs/wear/index-ru.html">Wear OS</a> · <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">Циферблат</a></p>
             <ol class="quickstart">
                 <li>Установите подходящую редакцию и откройте приложение.</li>
                 <li>В мастере приветствия или позже в «Настройки», «Общие», «Основное стартовое окно» выберите «Домашний экран устройства» и подтвердите выбор, когда Android спросит.</li>
@@ -857,7 +865,7 @@
                         <li>Показывает новые функции, исправления и изменения поведения.</li>
                         <li>Полезно перед обновлением, тестированием или сравнением сборок.</li>
                     </ul>
-                    <a href="docs/WHATS_NEW_RU.html" class="card-footer" target="_blank">Посмотреть историю
+                    <a href="docs/WHATS_NEW-ru.html" class="card-footer" target="_blank">Посмотреть историю
                         изменений</a>
                 </details>
             </article>
@@ -874,7 +882,7 @@
                         <li>Покрывает первый ресурс, открытие файлов и базовое управление плеером.</li>
                         <li>Лучшее начало для нового пользователя до полного руководства.</li>
                     </ul>
-                    <a href="docs/QUICK_START_RU.html" class="card-footer" target="_blank">Открыть гайд</a>
+                    <a href="docs/QUICK_START-ru.html" class="card-footer" target="_blank">Открыть гайд</a>
                 </details>
             </article>
             <article class="card">
@@ -890,7 +898,7 @@
                         <li>Объясняет сортировку, сетевые ресурсы, горячие клавиши, ПИН-коды и жесты.</li>
                         <li>Подходит, когда цель понятна, но нужно уточнить точное поведение.</li>
                     </ul>
-                    <a href="docs/FAQ_RU.html" class="card-footer" target="_blank">Читать FAQ</a>
+                    <a href="docs/FAQ-ru.html" class="card-footer" target="_blank">Читать FAQ</a>
                 </details>
             </article>
             <article class="card">
@@ -907,7 +915,7 @@
                         <li>Помогает с ошибками, которые обычно можно разобрать без логов.</li>
                         <li>Стоит открыть перед issue или сбросом ресурса.</li>
                     </ul>
-                    <a href="docs/TROUBLESHOOTING_RU.html" class="card-footer" target="_blank">Решить проблему</a>
+                    <a href="docs/TROUBLESHOOTING-ru.html" class="card-footer" target="_blank">Решить проблему</a>
                 </details>
             </article>
             <article class="card">
@@ -939,7 +947,7 @@
                         <li>Поясняет различия редакций и запасное зеркало на Google Drive.</li>
                         <li>Загрузка в один тап - в разделе «Скачать сборки APK» ниже.</li>
                     </ul>
-                    <a href="docs/DOWNLOADS_RU.html" class="card-footer" target="_blank">Открыть подробности</a>
+                    <a href="docs/DOWNLOADS-ru.html" class="card-footer" target="_blank">Открыть подробности</a>
                 </details>
             </article>
         </div>
@@ -948,7 +956,7 @@
         <h2 class="section-title" id="download">Скачать сборки APK</h2>
         <p class="section-lead">Последняя доступная стабильная APK-сборка каждой редакции. Версии могут отличаться; если нужной редакции нет, откройте список релизов GitHub.</p>
         <p class="section-lead">Android предупреждает об APK, который видит впервые.
-            <a href="docs/INSTALL_TRUST_RU.html" target="_blank" rel="noopener">Почему появляется предупреждение - и что
+            <a href="docs/INSTALL_TRUST-ru.html" target="_blank" rel="noopener">Почему появляется предупреждение - и что
                 нажимать</a>.</p>
         <h3 class="edition-heading">Сборки для гарнитур и часов</h3>
         <div class="edition-download-grid">
@@ -1057,7 +1065,7 @@
             <div id="full-features-content" class="full-features-content">
                 <em>Загрузка канонического перечня возможностей..</em>
             </div>
-            <a class="full-features-link" href="docs/FEATURES_RU.html" target="_blank">Открыть полную страницу в новой
+            <a class="full-features-link" href="docs/FEATURES-ru.html" target="_blank">Открыть полную страницу в новой
                 вкладке →</a>
         </details>
 
@@ -1109,7 +1117,7 @@
                         <li>Найдите любой пункт по названию и узнайте, что он меняет.</li>
                         <li>Указано, в каких вариантах сборки доступен каждый медиараздел.</li>
                     </ul>
-                    <a href="docs/SETTINGS_REFERENCE_RU.html" class="card-footer" target="_blank">Открыть справочник настроек</a>
+                    <a href="docs/SETTINGS_REFERENCE-ru.html" class="card-footer" target="_blank">Открыть справочник настроек</a>
                 </details>
             </article>
             <article class="card">
@@ -1125,7 +1133,7 @@
                         <li>Описывает требования, установку, сетевые протоколы, облака и плееры.</li>
                         <li>Подходит для полного чтения после быстрого старта.</li>
                     </ul>
-                    <a href="docs/README_RU.html" class="card-footer" target="_blank">Читать руководство</a>
+                    <a href="docs/README-ru.html" class="card-footer" target="_blank">Читать руководство</a>
                 </details>
             </article>
             <article class="card">
@@ -1141,7 +1149,7 @@
                         <li>Объединяет доказательства из репозитория и исторический контекст от владельца.</li>
                         <li>Полезно, когда нужна общая картина эволюции продукта.</li>
                     </ul>
-                    <a href="docs/PRODUCT_HISTORY_RU.html" class="card-footer" target="_blank">Читать историю</a>
+                    <a href="docs/PRODUCT_HISTORY-ru.html" class="card-footer" target="_blank">Читать историю</a>
                 </details>
             </article>
             <article class="card">
@@ -1157,7 +1165,7 @@
                         <li>Раскрывает компоненты, хранение данных, кэширование и фоновые процессы.</li>
                         <li>Полезна мейнтейнерам и продвинутым участникам проекта.</li>
                     </ul>
-                    <a href="docs/V2_Specification_RU.html" class="card-footer" target="_blank">Открыть спеку</a>
+                    <a href="docs/V2_Specification-ru.html" class="card-footer" target="_blank">Открыть спеку</a>
                 </details>
             </article>
             <article class="card">
@@ -1173,7 +1181,7 @@
                         <li>Кратко объясняет роли Clean Architecture, MVVM, Hilt и Room.</li>
                         <li>Хорошее первое чтение перед изменением кода.</li>
                     </ul>
-                    <a href="docs/V2_architecture_overview_RU.html" class="card-footer" target="_blank">Подробнее</a>
+                    <a href="docs/V2_architecture_overview-ru.html" class="card-footer" target="_blank">Подробнее</a>
                 </details>
             </article>
             <article class="card">
@@ -1189,7 +1197,7 @@
                         <li>Разъясняет Resources, Destinations, папки действий и другие базовые понятия.</li>
                         <li>Полезно при чтении спецификаций, настроек и сценариев.</li>
                     </ul>
-                    <a href="docs/V2_TERMS_RU.html" class="card-footer" target="_blank">Открыть глоссарий</a>
+                    <a href="docs/V2_TERMS-ru.html" class="card-footer" target="_blank">Открыть глоссарий</a>
                 </details>
             </article>
             <article class="card">
@@ -1205,7 +1213,7 @@
                         <li>Отслеживает активные задачи и будущие направления, а не пользовательские инструкции.</li>
                         <li>Помогает понять, запланировано поведение или ещё в работе.</li>
                     </ul>
-                    <a href="docs/TODO_V2_RU.html" class="card-footer" target="_blank">Открыть дорожную карту</a>
+                    <a href="docs/TODO_V2-ru.html" class="card-footer" target="_blank">Открыть дорожную карту</a>
                 </details>
             </article>
         </div>
@@ -1242,7 +1250,7 @@
                         <li>Объясняет ожидания по доступу к хранилищу, сети и облачным ресурсам.</li>
                         <li>Стоит прочитать перед распространением приложения в управляемой среде.</li>
                     </ul>
-                    <a href="docs/PRIVACY_POLICY.ru.html" class="card-footer" target="_blank">Читать политику</a>
+                    <a href="docs/PRIVACY_POLICY-ru.html" class="card-footer" target="_blank">Читать политику</a>
                 </details>
             </article>
             <article class="card">
@@ -1258,7 +1266,7 @@
                         <li>Фиксирует ответственность пользователя и границы ответственности проекта.</li>
                         <li>Полезно для публикации, распространения и compliance-проверок.</li>
                     </ul>
-                    <a href="docs/TERMS_OF_SERVICE_RU.html" class="card-footer" target="_blank">Читать условия</a>
+                    <a href="docs/TERMS_OF_SERVICE-ru.html" class="card-footer" target="_blank">Читать условия</a>
                 </details>
             </article>
         </div>
@@ -1283,10 +1291,10 @@
                 <!-- family-footer:end -->
             </div>
             <div class="footer-bottom">
-                <span>&copy; 2024-2026 Сергей Жигуненко · Fast Media Sorter</span>
+                <span>&copy; 2024-2026 <a href="https://sza.od.ua">Сергей Жигуненко</a> · Fast Media Sorter</span>
                 <span>
-                    <a href="docs/PRIVACY_POLICY.ru.html">Конфиденциальность</a> ·
-                    <a href="docs/TERMS_OF_SERVICE_RU.html">Условия</a> ·
+                    <a href="docs/PRIVACY_POLICY-ru.html">Конфиденциальность</a> ·
+                    <a href="docs/TERMS_OF_SERVICE-ru.html">Условия</a> ·
                     <a href="https://github.com/SerZhyAle">GitHub</a> ·
                     <a href="mailto:sza@ukr.net">sza@ukr.net</a>
                 </span>
@@ -1307,7 +1315,7 @@
             var activeCategoryV1 = null;
             var activeToggleV3 = 'key'; // 'key', 'all'
             var activeScenarioV4 = 'all';
-            var featuresPage = 'docs/FEATURES_RU.html';
+            var featuresPage = 'docs/FEATURES-ru.html';
 
             // FEATURES-ru.md is curated to one entry per capability; no noise rows to suppress.
             var hiddenFeatureTitles = [];

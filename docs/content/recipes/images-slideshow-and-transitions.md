@@ -6,7 +6,7 @@ description: How to let your photos change by themselves, set how many seconds e
 category: Images, Audio & Slideshow
 category_slug: images
 ticket: S2952
-flavor: All editions
+availability: all
 recipe_number: "03"
 canonical_url: documentation/images/slideshow-and-transitions.html
 why: |
@@ -128,6 +128,6 @@ next_recipes:
     description: Keep the screen on, choose colors and tune how the app looks.
 ---
 
-<sub class="doc-stamp">26.09.24 06:43</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 A [slideshow](term:slideshow) moves from one photo to the next by itself. Choose how long each photo stays, add background music, and let the app keep the screen on - a phone or tablet becomes a photo frame in a minute.

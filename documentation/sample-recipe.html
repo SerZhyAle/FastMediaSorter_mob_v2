@@ -116,20 +116,21 @@
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.06 01:22</div>
+<div class="doc-stamp">26.10.07 01:10</div>
+    <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../index.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="index.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Search...</span>
                 <kbd>/</kbd>
             </button>
@@ -151,8 +152,8 @@
                     </div>
                 </div>
 
-                <a href="../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
             </nav>
         </div>
     </header>
@@ -393,9 +394,9 @@
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-music">Audio & Music</span>
-                    <span class="doc-badge doc-badge-standard">Standard & NoLegal</span>
+                    <span class="doc-edition-badge">Standard, noLegal, Lite, Legacy, VR and FOSS</span>
                     <span class="doc-badge doc-badge-sm">Recipe #01</span>
                 </div>
 
@@ -408,14 +409,14 @@
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Before You Begin: Ingredients &amp; Prerequisites</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter v2 installed on your Android device (version 2.6 or later).</li>
-                        <li><span class="doc-prereq-bullet">✓</span> <strong>Read Media Audio</strong> permission granted upon first launch.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Local music files (MP3, FLAC, AAC, OGG, or WAV format).</li>
-                        <li><span class="doc-prereq-bullet">✓</span> (Optional) Local Wi-Fi network for streaming directly from <a href="network/smb-samba-shares.html" class="doc-link">SMB / SFTP servers</a>.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> FastMediaSorter v2 installed on your Android device (version 2.6 or later).</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> <strong>Read Media Audio</strong> permission granted upon first launch.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Local music files (MP3, FLAC, AAC, OGG, or WAV format).</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> (Optional) Local Wi-Fi network for streaming directly from <a href="network/smb-samba-shares.html" class="doc-link">SMB / SFTP servers</a>.</li>
                     </ul>
                 </div>
 
@@ -449,11 +450,18 @@
                         </figure>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
-                                <span class="doc-callout-icon">💡</span> Background Playback & Headset Controls
+                                Background Playback & Headset Controls
                             </div>
                             <p>FastMediaSorter continues playback in the background with lock screen controls and supports Bluetooth headset buttons (single tap pause, double tap next track).</p>
                         </div>
                     </div>
+                </div>
+
+                <div class="doc-callout doc-callout-warning">
+                    <div class="doc-callout-title">
+                        <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>Keep Your Android Screen On During Large Network Transfers
+                    </div>
+                    <p>When moving files across network shares (<span class="doc-link-term" data-term="SMB">SMB</span> or <span class="doc-link-term" data-term="SFTP">SFTP</span>), keep the transfer window in the foreground or ensure FastMediaSorter is excluded from aggressive vendor battery-killer rules.</p>
                 </div>
 
                 <!-- Step 3 -->
@@ -481,21 +489,15 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="doc-callout doc-callout-warning">
-                            <div class="doc-callout-title">
-                                <span class="doc-callout-icon">⚠️</span> Keep Your Android Screen On During Large Network Transfers
-                            </div>
-                            <p>When moving files across network shares (<span class="doc-link-term" data-term="SMB">SMB</span> or <span class="doc-link-term" data-term="SFTP">SFTP</span>), keep the transfer window in the foreground or ensure FastMediaSorter is excluded from aggressive vendor battery-killer rules.</p>
-                        </div>
                     </div>
                 </div>
 
                 <!-- External Configuration & Listing Snippets -->
-                <div class="doc-snippet-section" style="margin-top: 2.5rem;">
+                <div class="doc-snippet-section">
                     <h3>External Configuration &amp; Code Snippets</h3>
-                    <div class="doc-snippet-card" style="margin-bottom: 1.5rem;">
-                        <div class="doc-snippet-header" style="font-weight: 600; margin-bottom: 0.5rem;">📄 Sample Equalizer Configuration Preset (<code>docs/content/snippets/audio-equalizer-config.json</code>):</div>
-                        <pre style="background: var(--doc-bg-card, #161b22); padding: 1rem; border-radius: 8px; border: 1px solid var(--doc-border, #30363d); overflow-x: auto;"><code class="language-json">{
+                    <div class="doc-snippet-card">
+                        <div class="doc-snippet-header"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14,2H6C4.9,2 4,2.9 4,4v16c0,1.1 0.9,2 2,2h12c1.1,0 2,-0.9 2,-2V8L14,2zM16,18H8v-2h8v2zM16,14H8v-2h8v2zM13,9V3.5L18.5,9H13z"/></svg> Sample Equalizer Configuration Preset (<code>docs/content/snippets/audio-equalizer-config.json</code>):</div>
+                        <pre><code class="language-json">{
   &quot;preset_name&quot;: &quot;Deep Bass &amp; Clear Vocal&quot;,
   &quot;bands&quot;: [
     { &quot;frequency_hz&quot;: 60, &quot;gain_db&quot;: 4.5 },
@@ -517,12 +519,12 @@
                     <div class="doc-next-grid">
                         <a href="design-system/index.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-music">Audio</span>
-                            <h4>Fine-Tuning the 10-Band Equalizer</h4>
+                            <h3>Fine-Tuning the 10-Band Equalizer</h3>
                             <p>Learn how to save custom EQ presets for headphones, car audio, and Bluetooth speakers.</p>
                         </a>
                         <a href="#" class="doc-next-card doc-link-bookmark" data-target="S2950">
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Network</span>
-                            <h4>Setting Up SMB Streaming on Home NAS</h4>
+                            <h3>Setting Up SMB Streaming on Home NAS</h3>
                             <p>Stream your high-resolution FLAC library directly without filling your device storage.</p>
                         </a>
                     </div>

@@ -41,7 +41,11 @@ _Generated from the app. Do not edit by hand._
 | Reset SMB | Clears all saved SMB network connection credentials and configurations. |
 | Restore settings from Google Drive | Restores app settings from a backup stored in your Google Drive account. |
 | Save Debug Logs | Saves the current debug log to a file on the device for sharing or inspection. |
+| New access link | Issues a new access link: every code shared before stops opening this server through the exchange server. |
+| Save server | Saves the exchange server address, port and password; the password needs at least 10 characters with upper- and lower-case Latin letters and digits. |
+| Trust the server again | Shown when the exchange server presented a different certificate: trusts the certificate it presents next. |
 | Add folder | Picks a folder through the system picker and adds it to the folders the server shares. |
+| Code for older app versions | Shows the pairing code without the exchange server part, for a FastMediaSorter too old to read the new code; it connects on the local network only. |
 | New password | Replaces the server login password with a new random one; clients need the new password afterwards. |
 | Show pairing code | Shows a pairing code with the address, login and host key fingerprint for another FastMediaSorter to scan. |
 | Share Debug Logs | Shares the current debug log via the system share sheet. |
@@ -92,6 +96,7 @@ _Generated from the app. Do not edit by hand._
 | Resource grid cell size | Sets how large the resource cells are in the main window grid: small fits more resources per row, large makes each one bigger. |
 | Show resource actions in menu ⋮ | Off adds shortcut buttons for the frequent resource actions (edit, duplicate, move, delete) directly on the row. The ⋮ menu with the full action list is always available either way. |
 | Secure sensitive screens | Blocks screenshots and the Recents preview on screens that show passwords (add/edit resource, credentials in Settings, the login WebView, and the credential QR). On by default. |
+| Exchange server | Lets the SFTP server register on your exchange server so devices in any network can reach it; off keeps the server local-network only. |
 | SFTP server | Starts or stops the SFTP server; while it runs a notification with a Stop action stays in the shade. |
 | Show hidden files | Shows files and folders whose names begin with a dot (hidden by convention). |
 | Programs panel | Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu. |

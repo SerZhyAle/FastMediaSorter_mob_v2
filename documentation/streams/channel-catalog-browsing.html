@@ -183,20 +183,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.25 04:13</div>
+<div class="doc-stamp">26.10.07 01:10</div>
+    <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Search...</span>
                 <kbd>/</kbd>
             </button>
@@ -218,8 +219,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
             </nav>
         </div>
     </header>
@@ -460,9 +461,9 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Internet Streams</span>
-                    <span class="doc-badge doc-badge-standard">Standard, noLegal, Legacy and VR</span>
+                    <span class="doc-edition-badge">Standard, noLegal, Legacy and VR</span>
                     <span class="doc-badge doc-badge-sm">Recipe #01</span>
                 </div>
 
@@ -479,13 +480,13 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Before You Begin: Ingredients &amp; Prerequisites</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter in the Standard, noLegal, Legacy or VR <span class="doc-link-term" data-term="edition">edition</span>, with <span class="doc-link-term" data-term="streams-screen">Streams</span> turned on. Streams and its catalog do not exist in the Lite, Photos or FOSS editions.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> An internet connection to bring the catalog in the first place. Once channels are on the device, browsing, filtering and sorting all work from what is already there.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> A few channels in the list already - your own, or from the catalog - so there is something to filter, sort and manage. See step 1 if the list is still empty.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> FastMediaSorter in the Standard, noLegal, Legacy or VR <span class="doc-link-term" data-term="edition">edition</span>, with <span class="doc-link-term" data-term="streams-screen">Streams</span> turned on. Streams and its catalog do not exist in the Lite, Photos or FOSS editions.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> An internet connection to bring the catalog in the first place. Once channels are on the device, browsing, filtering and sorting all work from what is already there.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> A few channels in the list already - your own, or from the catalog - so there is something to filter, sort and manage. See step 1 if the list is still empty.</li>
                     </ul>
                 </div>
 
@@ -704,22 +705,22 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="channel-pictures-and-badges.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Streams</span>
-                            <h4>Channel pictures, logos and badges</h4>
+                            <h3>Channel pictures, logos and badges</h3>
                             <p>What a live frame, a logo, a flag or a plain icon on a channel tile actually means.</p>
                         </a>
                         <a href="custom-m3u-playlists.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Streams</span>
-                            <h4>Importing M3U/IPTV playlists</h4>
+                            <h3>Importing M3U/IPTV playlists</h3>
                             <p>Add your own channels by typing a URL or importing an M3U playlist.</p>
                         </a>
                         <a href="favorites-and-epg.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Streams</span>
-                            <h4>Pinned and favorite channels</h4>
+                            <h3>Pinned and favorite channels</h3>
                             <p>Keep your favorite channels at the top, independent of any filter or sort.</p>
                         </a>
                         <a href="live-stream-playback.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Streams</span>
-                            <h4>Playing live streams and radio</h4>
+                            <h3>Playing live streams and radio</h3>
                             <p>What happens once you actually tap a channel and playback starts.</p>
                         </a>
                     </div>

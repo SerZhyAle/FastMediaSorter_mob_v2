@@ -6,7 +6,9 @@ description: How to listen to your paired watch's microphone from the phone and 
 category: Wear OS Watch
 category_slug: wear
 ticket: S2966
-flavor: The full watch version (sideload only); the phone's Listen to the watch and Live Broadcast screens - Standard and noLegal.
+availability: companion:wear
+devices: watch
+availability_note: The full watch version (sideload only); the phone's Listen to the watch and Live Broadcast screens - Standard and noLegal.
 recipe_number: "09"
 canonical_url: documentation/wear/watch-listening-and-broadcast.html
 why: |
@@ -90,6 +92,14 @@ steps:
       If the system kills that service anyway, a broadcast restarts itself rather than staying silently dead, and work the watch already received from the phone - a slow sync, a file transfer, a pin - survives the same kind of restart and still gets answered.
 
       A very long, completely undisturbed sleep can still end a session; if that happens, start it again from the watch.
+    image_bookmark:
+      shot_id: wear.watch-broadcast-after-sleep
+      device_profile: watch
+      screen_state: watch-broadcast-live-after-screen-off
+      alt: The watch broadcast screen still live with its listeners after the watch screen went off and came back
+      caption: "The broadcast keeps going while the watch sleeps."
+      title: "Screenshot: Broadcast after sleep"
+      desc: Watch broadcasting to one listener, screen turned off and woken again.
 outcome: |
   You can hear what's happening near your watch from anywhere on the same Wi-Fi, and turn the watch's own microphone into a broadcast anyone nearby - or a Windows PC - can pick up, all without leaving the room your phone is in.
 tips:
@@ -114,6 +124,6 @@ next_recipes:
     description: Everything else waiting in the watch's Programs grid.
 ---
 
-<sub class="doc-stamp">26.09.24 09:26</sub>
+<sub class="doc-stamp">26.10.07 03:42</sub>
 
 Listen to your paired [watch](term:watch)'s microphone from the phone, [broadcast](term:live-broadcast) the watch's own microphone to listeners on the same Wi-Fi or into a Windows PC, and send a live broadcast from the phone straight to the watch.

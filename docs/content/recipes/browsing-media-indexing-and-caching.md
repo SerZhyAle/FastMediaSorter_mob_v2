@@ -6,7 +6,7 @@ description: Why thumbnails and folder listings load quickly, how a folder is re
 category: Browsing & Sorting
 category_slug: browsing
 ticket: S2948
-flavor: All editions
+availability: all
 recipe_number: "04"
 canonical_url: documentation/browsing/media-indexing-and-caching.html
 why: |
@@ -115,6 +115,6 @@ next_recipes:
     description: Select several files at once and act on all of them together.
 ---
 
-<sub class="doc-stamp">26.09.24 07:21</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 The [file browser](term:file-browser) loads thumbnails in the background, remembers a folder between visits, and updates itself when files change on the device - so a folder opens fast and stays accurate, even when it holds thousands of files.

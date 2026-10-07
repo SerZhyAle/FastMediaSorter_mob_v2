@@ -6,7 +6,7 @@ description: How to play music from any folder, get album covers and lyrics from
 category: Images, Audio & Slideshow
 category_slug: audio
 ticket: S2952
-flavor: All editions except Photos
+availability: SUPPORT_AUDIO
 recipe_number: "04"
 canonical_url: documentation/audio/playing-and-organizing-music.html
 why: |
@@ -127,6 +127,6 @@ next_recipes:
     description: Play and control music from your Wear OS watch.
 ---
 
-<sub class="doc-stamp">26.09.24 06:45</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Play music straight from the folders where it lives - on the phone, a memory card or another computer. The [audio player](term:audio-player) finds missing covers, shows lyrics, casts to a Chromecast and lets you sort tracks while you listen.

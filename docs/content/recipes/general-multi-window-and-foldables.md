@@ -6,7 +6,8 @@ description: Using FastMediaSorter next to another app in split-screen or in a f
 category: "General, Keyboard & TV"
 category_slug: general
 ticket: S2963
-flavor: All editions - split-screen, wide layouts and rotation everywhere; picture-in-picture where the video player is present
+availability: all
+availability_note: All editions - split-screen, wide layouts and rotation everywhere; picture-in-picture where the video player is present
 recipe_number: "03"
 canonical_url: documentation/general/multi-window-and-foldables.html
 why: |
@@ -117,6 +118,6 @@ next_recipes:
     description: How the app shows itself around the phone.
 ---
 
-<sub class="doc-stamp">26.09.26 10:44</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 FastMediaSorter fits the screen it gets: half of a phone in split-screen, a whole tablet, an unfolded foldable or a floating window. This page shows how to use each of them.

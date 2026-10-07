@@ -115,7 +115,8 @@
 </head>
 
 <body>
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.06 14:18</div>
+<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.07 00:53</div>
+    <a class="skip-link" href="#main-content">Skip to content</a>
 
     <!-- SZA Web Kit sticky header -->
     <header class="site-header">
@@ -126,7 +127,7 @@
             <a href="index.html" data-lang="en">EN</a>
             <a href="index-uk.html" data-lang="ua">UA</a>
         </div>
-        <button class="theme-btn" id="themeBtn" aria-label="切换到浅色主题" title="切换主题">◐</button>
+        <button class="theme-btn" id="themeBtn" aria-label="切换到浅色主题" title="切换主题"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>主题</span></button>
         <a class="btn btn-primary btn-sm" href="#get">安装</a>
     </header>
 
@@ -150,7 +151,7 @@
 
     <!-- GitHub Corner -->
     <aside class="source-link">
-    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
+    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" tabindex="-1" target="_blank"
         aria-label="在 GitHub 上查看源代码">
         <svg width="80" height="80" viewBox="0 0 250 250"
             style="fill:var(--color-standard); color:var(--acc-ink); position: absolute; top: 0; border: 0; right: 0;"
@@ -168,9 +169,15 @@
 
     <main id="main-content">
     <header class="hero" id="top">
-        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
+        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.35" data-speed="0.5"></canvas>
         <div class="hero-inner">
-            <p class="kicker">Android - 设备外壳</p>
+            <div class="identity">
+                <img class="product-icon" src="icon.png" width="104" height="104" alt="">
+                <div>
+                    <p class="product-name">Fast Media Sorter &amp; Organizer</p>
+                    <p class="kicker">Android - 设备外壳</p>
+                </div>
+            </div>
             <h1>您 Android 设备的完整外壳。</h1>
             <p class="subtitle">主屏幕、媒体、直播流、应用、手表和文件 - 一站式集成。</p>
             <p class="whatfor">Fast Media Sorter &amp; Organizer 接管您的主屏幕，成为一切操作的起点：设备外壳、媒体播放器、直播流、应用启动、系统自带应用的替代品、手表端的伴侣应用、设备监控，以及支持本地存储、SMB/NAS、SFTP/FTP 和云盘的完整文件管理器。</p>
@@ -657,6 +664,7 @@
                     target="_blank" rel="noopener">IzzyOnDroid</a>
             </div>
             <p class="shell-links"><a href="#download">查看其他 APK 版本和表盘</a></p>
+            <p class="shell-links">版本: <a href="#download">Lite</a> · <a href="#download">Photos</a> · <a href="#download">Legacy</a> · <a href="nolegal.html">noLegal</a> · <a href="documentation/vr/spatial-cinema-playback.html">VR</a> · <a href="docs/wear/">Wear OS</a> · <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">表盘</a></p>
             <ol class="quickstart">
                 <li>安装适合的版本并打开应用。</li>
                 <li>在欢迎向导中，或稍后在“设置”、“常规”、“主启动窗口”中选择“设备主屏幕”，并在 Android 询问时确认。</li>
@@ -869,7 +877,7 @@
                         <li>说明各版本之间的差异以及备用 Google Drive 镜像。</li>
                         <li>一键下载位于下方的“下载 APK 安装包”部分。</li>
                     </ul>
-                    <a href="docs/DOWNLOADS_EN.html" class="card-footer" target="_blank">查看详情</a>
+                    <a href="docs/DOWNLOADS.html" class="card-footer" target="_blank">查看详情</a>
                 </details>
             </article>
         </div>
@@ -877,7 +885,7 @@
         <!-- Download APK Builds - live buttons from the latest GitHub Release (S0394) -->
         <h2 class="section-title" id="download">下载 APK 安装包</h2>
         <p class="section-lead">各版本最新可用的稳定 APK。版本号可能不同；如果未列出所需版本，请查看 GitHub 发布列表。</p>
-        <p class="section-lead">Android 会对从未见过的 APK 发出警告。<a href="docs/INSTALL_TRUST_EN.html" target="_blank" rel="noopener">为什么会出现此警告 - 以及应该点击什么</a>。</p>
+        <p class="section-lead">Android 会对从未见过的 APK 发出警告。<a href="docs/INSTALL_TRUST.html" target="_blank" rel="noopener">为什么会出现此警告 - 以及应该点击什么</a>。</p>
         <h3 class="edition-heading">头显和手表版本</h3>
         <div class="edition-download-grid">
             <article class="card edition-card" data-download-edition="noLegal">
@@ -1192,7 +1200,7 @@
                 <!-- family-footer:end -->
             </div>
             <div class="footer-bottom">
-                <span>&copy; 2024-2026 Serhii Zhyhunenko · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">隐私政策</a> · <a href="docs/TERMS_OF_SERVICE.html">条款</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
+                <span>&copy; 2024-2026 <a href="https://sza.od.ua">Serhii Zhyhunenko</a> · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">隐私政策</a> · <a href="docs/TERMS_OF_SERVICE.html">条款</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
             </div>
         </div>
     </footer>

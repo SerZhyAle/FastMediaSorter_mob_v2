@@ -6,7 +6,7 @@ description: Як додати спільну папку на домашньом
 category: Джерела, призначення та операції з файлами
 category_slug: storage
 ticket: S2949
-flavor: Мережеві папки - усі редакції, крім Lite; хмарні сховища - усі, крім Lite і FOSS
+availability_note: Мережеві папки - усі редакції, крім Lite; хмарні сховища - усі, крім Lite і FOSS
 recipe_number: "02"
 canonical_url: documentation/storage/network-and-cloud-sources-uk.html
 why: |
@@ -130,6 +130,6 @@ next_recipes:
     description: Власні папки телефону, карти пам'яті та USB-накопичувачі.
 ---
 
-<sub class="doc-stamp">26.09.25 22:36</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Додайте спільну папку на домашньому комп'ютері чи NAS, сервер FTP або SFTP, або папку Google Drive, Dropbox чи OneDrive як ресурс, вимикайте цілі групи джерел і дозвольте кешу застосунку тримати їх швидкими.

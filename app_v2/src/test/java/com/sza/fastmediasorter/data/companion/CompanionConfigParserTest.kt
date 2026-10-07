@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.companion
 
+import com.google.gson.JsonParser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -269,6 +270,26 @@ class CompanionConfigParserTest {
         val hosts = requireNotNull(parser.parse(json).accessPaths).map { it.host }
 
         assertEquals(listOf("10.0.0.2", "2001:db8::1", "203.0.113.7"), hosts)
+    }
+
+    @Test
+    fun `parses the ANYWHERE-ACCESS tunnel path vector`() {
+        val stream = javaClass.classLoader?.getResourceAsStream("anywhere/descriptor_v2_vectors.json")
+        val vectors = checkNotNull(stream) {
+            "descriptor_v2_vectors.json test resource missing"
+        }.use { JsonParser.parseString(it.readBytes().toString(Charsets.UTF_8)).asJsonObject }
+        val json = vectors.getAsJsonObject("fmscfgTunnelPath").get("json").asString
+
+        val paths = requireNotNull(parser.parse(json).accessPaths)
+
+        assertEquals(
+            listOf(CompanionAccessPathDto.KIND_LAN, CompanionAccessPathDto.KIND_RENDEZVOUS_TUNNEL),
+            paths.map { it.kind }
+        )
+        assertNull(paths[0].shareId)
+        assertEquals("q3Vb7YtK0xP2mN9sLfR4wA", paths[1].shareId)
+        assertEquals("relay.example.net", paths[1].host)
+        assertEquals(44022, paths[1].port)
     }
 
     @Test

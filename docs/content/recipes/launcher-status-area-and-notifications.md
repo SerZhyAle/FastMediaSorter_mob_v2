@@ -6,7 +6,7 @@ description: How to choose whether the launcher or Android owns the status bar, 
 category: "Launcher: Taskbar, Menus and Gestures"
 category_slug: launcher
 ticket: S2960
-flavor: Standard and noLegal
+availability: SUPPORT_LAUNCHER
 recipe_number: "06"
 canonical_url: documentation/launcher/status-area-and-notifications.html
 why: |
@@ -100,6 +100,6 @@ next_recipes:
     description: What the same status signals look like on the dimmed screen.
 ---
 
-<sub class="doc-stamp">26.09.25 04:13</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 The taskbar's tray can carry as much or as little as you want. This page covers choosing between the launcher's own status area and Android's, picking indicators one by one, moving them to the top of the screen, and seeing other apps' notifications as a count you control.

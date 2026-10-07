@@ -6,7 +6,7 @@ description: Как открыть отчет «Сведения о систем
 category: Программы, статистика и диагностика
 category_slug: programs
 ticket: S2961
-flavor: Все редакции; отчет с часов доступен в FastMedia Wear в редакциях Standard и noLegal.
+availability_note: Все редакции; отчет с часов доступен в FastMedia Wear в редакциях Standard и noLegal.
 recipe_number: "05"
 canonical_url: documentation/programs/device-diagnostics-and-logs-ru.html
 why: |
@@ -122,6 +122,6 @@ next_recipes:
     description: Назначение каждого системного разрешения и устранение проблем с доступом.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Два инструмента помогают быстро локализовать и устранить любую неполадку в FastMediaSorter: отчет **Сведения о системе** с параметрами устройства и **журнал отладки (debug log)** с техническими событиями приложения. На этой странице описано, как просматривать, копировать, сохранять и отправлять эти данные разработчику.

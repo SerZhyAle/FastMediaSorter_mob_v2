@@ -6,7 +6,8 @@ description: How to play a video full screen or with the command panel, move bet
 category: Video & Media Player
 category_slug: player
 ticket: S2951
-flavor: All editions except Photos; saving frames and color controls in Standard, noLegal, Legacy and VR
+availability: SUPPORT_VIDEO
+availability_note: All editions except Photos; saving frames and color controls in Standard, noLegal, Legacy and VR
 recipe_number: "01"
 canonical_url: documentation/player/video-playback-controls.html
 why: |
@@ -162,6 +163,6 @@ next_recipes:
     description: Play the video on your TV.
 ---
 
-<sub class="doc-stamp">26.10.04 14:02</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Play videos full screen or with the command panel, move between them with taps and swipes, zoom in, resume where you stopped, save still frames as pictures and sort your videos while you watch.

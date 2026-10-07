@@ -6,7 +6,8 @@ description: How the Send to.. menu picks its list of receivers, what each one d
 category: OCR, Drawing & Sharing
 category_slug: tools
 ticket: S2957
-flavor: All editions (details per step)
+availability: all
+availability_note: All editions (details per step)
 recipe_number: "04"
 canonical_url: documentation/tools/fast-sharing-and-export.html
 why: |
@@ -28,7 +29,7 @@ steps:
 
       If only one receiver can actually take the file, it is sent right away with no list to tap through. Otherwise a sheet lists every receiver that is turned on, available right now and able to handle that kind of file, always in the same order, ending with a permanent **Select resource..** row that copies the file to one of your resources instead of sending it anywhere.
 
-      On a narrow player screen the Share button sometimes does not fit the bar; tap the overflow <img src="../../docs/icons/doc/ic_more_vert.png" alt="More actions" width="18" height="18" style="vertical-align:text-bottom"> instead - the same receivers are there, one per row with its own icon.
+      On a narrow player screen the Share button sometimes does not fit the bar; tap the overflow <img src="../../docs/icons/doc/ic_more_vert.png" alt="More actions" width="18" height="18" class="doc-inline-icon"> instead - the same receivers are there, one per row with its own icon.
     image_bookmark:
       shot_id: tools.send-to-bottom-sheet
       device_profile: phone
@@ -43,21 +44,29 @@ steps:
     text: |
       - **Other apps** - opens Android's own share picker; works with any file type and is always there.
       - **Open in..** - opens the file directly in another app on this device.
-      - **Email** - attaches the file to a new email; on by default once the phone has internet access.
+      - **Email** - attaches the file to a new email; offered once the phone has internet access.
       - **Print** - sends images, GIFs, PDFs, text and office documents to Android's print system.
       - **Telegram, WhatsApp, Viber, Messenger and a short-video app** such as TikTok - send straight to the installed app; each one is shown only when that app is actually on your phone, and falls back to Android's own picker if the direct hand-off fails.
       - **Instagram** - takes one image, video or GIF at a time; picking several files sends the first one, with a note that it applies only to the first file.
       - **Keep: image / Keep: text** - the two Google Keep receivers save a picture or a piece of text as a new Keep note; need the Keep app installed.
-      - **Google Lens** - opens the picture in Lens for a visual search; needs Google's own services and is off by default.
+      - **Google Lens** - opens the picture in Lens for a visual search; needs Google's own services.
       - **Watch** - see step 4.
       - **Select resource..** - the row at the end of every list; copies the file to a destination resource (or a folder you pick) instead of sending it anywhere.
 
       A receiver whose app is not installed, or that you have turned off, simply is not in the list - there is nothing to tap that will not work.
+    image_bookmark:
+      shot_id: tools.send-to-receivers-photo
+      device_profile: phone
+      screen_state: player-send-to-sheet-photo-scrolled
+      alt: The Send to.. list for a photo scrolled to its end, with the Keep image, Google Lens and Watch receivers and the Select resource.. row last
+      caption: "Only the receivers that can take this file are listed."
+      title: "Screenshot: Receivers for a photo"
+      desc: Photo open in the player, Send to.. opened and scrolled to the end, Google Lens switched on.
   - number: 3
     id: toggle-receivers
     title: Turn a receiver on or off
     text: |
-      Open **Settings**, the **Destinations** tab, and find the **Send file to..** card. Every receiver has its own switch and a short help note explaining what it does. Turn one off and it stops appearing in every Send to.. list across the app, even if the app it points to is installed - Google Lens, for example, starts off until you switch it on.
+      Open **Settings**, the **Destinations** tab, and find the **Send file to..** card. Every receiver has its own switch and a short help note explaining what it does. Turn one off and it stops appearing in every Send to.. list across the app, even if the app it points to is installed. What each switch does is described in the [settings reference](../../docs/SETTINGS_REFERENCE.html).
     image_bookmark:
       shot_id: tools.send-to-destinations-settings
       device_profile: phone
@@ -75,6 +84,14 @@ steps:
       Pick **Watch** from the Send to.. list and whatever you have open - a photo, a GIF, a video or a track - opens on the watch itself, with no need to go looking for the same file on the small screen. A file kept on a network drive or in the cloud is downloaded first, with progress you can cancel by going back.
 
       The watch app has to be open on the watch for the file to arrive, and the phone tells you exactly what happened: opened on the watch, the watch is not reachable, the watch did not answer, the watch app is closed, the watch cannot show that type of file, or the file is over the 32 MB the watch accepts. Documents, text and EPUB files never offer the watch as a receiver.
+    image_bookmark:
+      shot_id: tools.send-to-watch-opened
+      device_profile: phone
+      screen_state: player-send-to-watch-opened-message
+      alt: The player on the phone with the message that the photo was opened on the watch, after Watch was picked from the Send to.. list
+      caption: "The phone tells you what happened on the watch."
+      title: "Screenshot: Sent to the watch"
+      desc: Photo open in the player, a paired watch with the app open, Watch picked from Send to..
   - number: 5
     id: remote-materialization
     title: Sending a file that lives on a network drive or in the cloud
@@ -82,6 +99,14 @@ steps:
       *Standard, noLegal, Photos, Legacy and VR.*
 
       Sending a file straight from a [network folder](term:network-folder) or [cloud storage](term:cloud-storage) works the same as sending a local one - the app just needs a local copy first. You see "Downloading file.." with a progress bar for a network folder, or a spinner for a server that does not report progress, and the receiver opens as soon as the copy is ready. Pressing back cancels the download; a failure shows "Could not prepare the file for sharing." and nothing is sent.
+    image_bookmark:
+      shot_id: tools.send-to-network-download
+      device_profile: phone
+      screen_state: send-to-network-file-downloading
+      alt: The Downloading file.. window with a progress bar, shown while a file from a network folder is copied to the phone before it is sent
+      caption: "A network file is copied to the phone first."
+      title: "Screenshot: Preparing a network file"
+      desc: Browse on an SMB resource, a video sent through Send to.., download about 40 percent done.
     callout:
       type: tip
       title: Where the progress goes for a bigger job
@@ -93,6 +118,14 @@ steps:
       *Standard, Lite, Photos and Legacy.*
 
       When link auto-download is switched on, the main menu shows **Download by link**. Tap it and a **Link to download** box opens, already filled in with whatever is on your clipboard - paste or type a different one if you need to. The file downloads the same way any link handed to the app does, straight into your chosen folder.
+    image_bookmark:
+      shot_id: tools.download-by-link-dialog
+      device_profile: phone
+      screen_state: main-menu-download-by-link-dialog
+      alt: The Link to download box filled in with a link taken from the clipboard
+      caption: "The link from the clipboard is already filled in."
+      title: "Screenshot: Download by link"
+      desc: Main screen, link auto-download on, Download by link tapped with a link on the clipboard.
   - number: 7
     id: sftp-qr-share
     title: Share an SFTP resource as a QR code
@@ -105,6 +138,10 @@ steps:
       - **Show QR** - shows a QR code on screen instead: "Scan to add the resource", with the hint "In FastMediaSorter: Add resource -> Scan QR."
 
       On the other phone, tap **Add** on the main screen and, under **Import a ready configuration**, tap **Import by barcode** and point the camera at the code - the resource arrives fully set up, exactly like importing a Windows companion configuration.
+    image:
+      src: assets/images/network/sftp-ftp-servers-share-access.png
+      alt: The Share SFTP access screen with the password warning, the Do not include the password checkbox and the Share button
+      caption: "Share access to a folder, password optional."
     callout:
       type: warning
       title: The file and the code both carry your password
@@ -134,6 +171,6 @@ next_recipes:
     description: What a bigger copy, move or download looks like while it runs.
 ---
 
-<sub class="doc-stamp">26.09.30 08:55</sub>
+<sub class="doc-stamp">26.10.07 03:43</sub>
 
 One Send to.. menu reaches every receiver the app knows - messengers, Google Keep, Lens, Print, your paired watch and your own [resources](term:resource) - with a switch for each one, honest progress for network and cloud files, a shortcut to download by link, and a QR code to hand an SFTP server to another phone.

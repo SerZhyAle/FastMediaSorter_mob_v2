@@ -6,7 +6,7 @@ description: Организация экрана Настроек в виде с
 category: Настройки и навигация
 category_slug: settings
 ticket: S2962
-flavor: Все редакции. Полнотекстовый поиск и интерактивная онлайн-справка доступны в Standard, Lite, Photos и Legacy.
+availability_note: Все редакции. Полнотекстовый поиск и интерактивная онлайн-справка доступны в Standard, Lite, Photos и Legacy.
 recipe_number: "01"
 canonical_url: documentation/settings/settings-overview-and-search-ru.html
 why: |
@@ -145,6 +145,6 @@ next_recipes:
     description: Защищенные PIN-кодом ресурсы, шифрование и безопасность удаленных источников.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Настройки](term:settings) - главный центр управления внешним видом и возможностями FastMediaSorter. Благодаря группировке по сворачиваемым разделам, мгновенному поиску по ключевым словам и единому формату строк вы легко сориентируетесь в любом наборе опций. На этой странице рассмотрены принципы навигации и поиска по Настройкам.

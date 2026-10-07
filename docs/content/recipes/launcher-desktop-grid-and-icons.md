@@ -6,7 +6,7 @@ description: How to turn the FastMediaSorter desktop on, what a fresh desktop al
 category: "Launcher: Desktop"
 category_slug: launcher
 ticket: S2958
-flavor: Standard and noLegal
+availability: SUPPORT_LAUNCHER
 recipe_number: "01"
 canonical_url: documentation/launcher/desktop-grid-and-icons.html
 why: |
@@ -161,6 +161,6 @@ next_recipes:
     description: The Start button, recent and pinned apps and the status tray.
 ---
 
-<sub class="doc-stamp">26.09.24 08:32</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 The FastMediaSorter [desktop](term:desktop) is a grid of squares where you keep what you use every day: apps, your media folders, radio channels, a clock and the weather. This page shows how to switch it on, what it holds from the first minute, and how to add your own things.

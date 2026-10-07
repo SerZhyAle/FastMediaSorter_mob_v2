@@ -6,7 +6,7 @@ description: Вхід у Dropbox та OneDrive і додавання їхніх 
 category: Мережа й хмара
 category_slug: network
 ticket: S2950
-flavor: Standard, noLegal, Photos, Legacy і VR - без Lite, без FOSS. Потрібен обліковий запис Dropbox і/або Microsoft.
+availability_note: Standard, noLegal, Photos, Legacy і VR - без Lite, без FOSS. Потрібен обліковий запис Dropbox і/або Microsoft.
 recipe_number: "06"
 canonical_url: documentation/network/cloud-dropbox-onedrive-uk.html
 why: |
@@ -66,6 +66,6 @@ next_recipes:
     description: Повна картина резервного копіювання й відновлення ваших налаштувань і ресурсів.
 ---
 
-<sub class="doc-stamp">26.09.25 22:32</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Увійдіть у Dropbox та OneDrive, щоб додати їхні папки як ресурси поруч із локальними та Google Диском, із однаково простим входом, виходом і зрозумілими повідомленнями про помилки для обох [хмарних сервісів](term:cloud-provider).

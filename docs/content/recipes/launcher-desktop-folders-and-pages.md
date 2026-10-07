@@ -6,7 +6,7 @@ description: How to move, resize and remove squares on the launcher desktop, gro
 category: "Launcher: Desktop"
 category_slug: launcher
 ticket: S2958
-flavor: Standard and noLegal
+availability: SUPPORT_LAUNCHER
 recipe_number: "03"
 canonical_url: documentation/launcher/desktop-folders-and-pages.html
 why: |
@@ -141,6 +141,6 @@ next_recipes:
     description: What a long press offers on apps, channels and gadgets.
 ---
 
-<sub class="doc-stamp">26.09.24 08:15</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Once the [desktop](term:desktop) holds the things you use, arranging them is a matter of a few long presses. This page covers moving and resizing squares, sections you can fold, several screens, the four swipes and the lock that keeps it all in place.

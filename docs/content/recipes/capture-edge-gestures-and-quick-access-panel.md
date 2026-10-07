@@ -6,7 +6,8 @@ description: How to set up swipe gestures on the screen edges for screenshots, t
 category: Camera & Screen Capture
 category_slug: capture
 ticket: S2956
-flavor: All editions (the quick-access panel and its Quick Settings tile); Standard and noLegal for the edge gestures themselves and their screenshot, camera and recording actions
+availability: all
+availability_note: All editions (the quick-access panel and its Quick Settings tile); Standard and noLegal for the edge gestures themselves and their screenshot, camera and recording actions
 recipe_number: "5"
 canonical_url: documentation/capture/edge-gestures-and-quick-access-panel.html
 why: |
@@ -134,6 +135,6 @@ next_recipes:
     description: What the in-app camera can do once a gesture opens it.
 ---
 
-<sub class="doc-stamp">26.09.24 15:50</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Set up to twelve swipe gestures across four screen-edge bands for screenshots, the camera, recording and launching apps, and open the quick-access panel they can lead to - by gesture in the Standard and noLegal editions, or by its own Quick Settings tile in every edition.

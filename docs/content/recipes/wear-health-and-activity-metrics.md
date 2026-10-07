@@ -6,7 +6,9 @@ description: Check your heart rate, get a blood-pressure estimate, read the Moti
 category: Wear OS Watch
 category_slug: wear
 ticket: S2966
-flavor: Motion Monitor's movement sensors and System information's Environment readings - both watch versions; Heart Rate, Blood Pressure and Motion Monitor's step readings - the full watch version (sideload only).
+availability: companion:wear
+devices: watch
+availability_note: Motion Monitor's movement sensors and System information's Environment readings - both watch versions; Heart Rate, Blood Pressure and Motion Monitor's step readings - the full watch version (sideload only).
 recipe_number: "05"
 canonical_url: documentation/wear/health-and-activity-metrics.html
 why: |
@@ -105,6 +107,6 @@ next_recipes:
     description: Set up the watch, and the full sideload edition these readings need.
 ---
 
-<sub class="doc-stamp">26.09.24 09:22</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Your watch already carries a heart-rate sensor and an accelerometer against your skin. This page checks your pulse, estimates blood pressure, reads the Motion Monitor [program](term:program)'s movement sensors and steps, and shows light, pressure and magnetic-field readings - general-wellbeing numbers, not a medical device.

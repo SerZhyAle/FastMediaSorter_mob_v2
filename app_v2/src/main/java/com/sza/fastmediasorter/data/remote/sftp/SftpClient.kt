@@ -4,6 +4,7 @@ import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.SftpException
 import com.sza.fastmediasorter.core.util.InputStreamExt.copyToWithProgress
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpRendezvousVerdicts
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +58,7 @@ class SftpClient @Inject constructor(
     private val idleDisconnectPolicy: com.sza.fastmediasorter.data.network.IdleDisconnectPolicy,
     private val networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor,
     private val pinRegistry: SftpHostKeyPinRegistry,
+    private val rendezvousVerdicts: SftpRendezvousVerdicts,
 ) {
 
     companion object {
@@ -110,11 +112,14 @@ class SftpClient @Inject constructor(
         // only success. A failed op still leaves a transport that should stay under idle-policy
         // supervision; only CancellationException (user-initiated cancel, S0205) skips rearm.
         var cancelled = false
+        // A producer online on Drive that answered on no address gets its own verdict (ANYWHERE-ACCESS 7).
         return try {
-            pool.withConnection(info, replayable, block)
+            rendezvousVerdicts.annotate(info.host, info.port, pool.withConnection(info, replayable, block))
         } catch (e: CancellationException) {
             cancelled = true
             throw e
+        } catch (e: IOException) {
+            throw rendezvousVerdicts.annotate(info.host, info.port, e)
         } finally {
             if (!cancelled && trackedTransportKeys.contains(transportKey)) {
                 armTransport(info)
@@ -131,9 +136,12 @@ class SftpClient @Inject constructor(
         val pinned = pinRegistry.withPinBlocking(connectionInfo)
         val transportKey = rememberTransportKey(pinned)
         idleDisconnectPolicy.touch(transportKey)
-        return pool.getConnectionForExoPlayer(pinned).also {
-            armTransport(pinned)
+        val connection = try {
+            pool.getConnectionForExoPlayer(pinned)
+        } catch (e: IOException) {
+            throw rendezvousVerdicts.annotate(pinned.host, pinned.port, e)
         }
+        return connection.also { armTransport(pinned) }
     }
 
     /**

@@ -6,7 +6,7 @@ description: How to select several files at once with long-press and range-selec
 category: Browsing & Sorting
 category_slug: browsing
 ticket: S2948
-flavor: All editions
+availability: all
 recipe_number: "03"
 canonical_url: documentation/browsing/batch-selection.html
 why: |
@@ -118,6 +118,6 @@ next_recipes:
     description: Switch between grid and list, open folders, and find your way around the file browser.
 ---
 
-<sub class="doc-stamp">26.09.25 21:58</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Tick as many files as you need with long-press and range-select, then run Copy, Move, Delete, Share or Archive on the whole batch at once from the [file browser](term:file-browser) - or reach for a single file's own three-dots menu or a row swipe when that is all the job calls for.

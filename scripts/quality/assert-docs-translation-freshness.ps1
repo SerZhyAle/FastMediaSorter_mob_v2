@@ -83,6 +83,9 @@ function Get-KeySkeleton([string]$filePath) {
         }
         if (-not $inFront) { continue }
         if ($line -match '^\s*$') { continue }
+        # S4107: only the English recipe declares `availability:` and `devices:`; the badge of all three languages
+        # is derived from it, so its absence in a translation is the design, not drift.
+        if ($line -match '^(availability|devices):') { continue }
         $indent = if ($line -match '^(\s+)') { $Matches[1].Length } else { 0 }
         if ($blockIndent -ge 0) {
             if ($indent -gt $blockIndent) { continue }

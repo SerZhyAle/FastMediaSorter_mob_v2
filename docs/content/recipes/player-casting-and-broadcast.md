@@ -6,7 +6,8 @@ description: How to send the video you are watching to a TV with Chromecast, and
 category: Video & Media Player
 category_slug: player
 ticket: S2951
-flavor: Chromecast - Standard, noLegal, Lite and Legacy; Live Broadcast - Standard, noLegal and Legacy
+availability: SUPPORT_CAST+SUPPORT_VIDEO, SUPPORT_BROADCAST_SOURCE
+availability_note: Chromecast - Standard, noLegal, Lite and Legacy; Live Broadcast - Standard, noLegal and Legacy
 recipe_number: "04"
 canonical_url: documentation/player/casting-and-broadcast.html
 why: |
@@ -128,6 +129,6 @@ next_recipes:
     description: Keep watching in a small window.
 ---
 
-<sub class="doc-stamp">26.09.24 07:29</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Send the video you are watching to a TV with Chromecast, or turn your phone into a small live sound or camera station that others open with a QR code.

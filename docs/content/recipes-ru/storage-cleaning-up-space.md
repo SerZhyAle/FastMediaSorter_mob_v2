@@ -6,7 +6,7 @@ description: Как найти одинаковые файлы в разных �
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: Standard, noLegal, Legacy и VR; создание ZIP-архивов - во всех редакциях
+availability_note: Standard, noLegal, Legacy и VR; создание ZIP-архивов - во всех редакциях
 recipe_number: "08"
 canonical_url: documentation/storage/cleaning-up-space-ru.html
 why: |
@@ -124,6 +124,6 @@ next_recipes:
     description: Наглядный подсчёт разобранных файлов и освобождённого пространства.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Находите полные дубликаты файлов в любых папках и удаляйте лишние копии, очищайте память от файлов заданного размера в один клик и упаковывайте группы документов в компактные ZIP-архивы.

@@ -6,7 +6,6 @@ description: Как выбрать один из шести вариантов �
 category: "Лаунчер - Рабочий стол"
 category_slug: launcher
 ticket: S2958
-flavor: Редакции Standard и noLegal
 recipe_number: "02"
 canonical_url: documentation/launcher/wallpapers-and-live-backgrounds-ru.html
 why: |
@@ -120,6 +119,6 @@ next_recipes:
     description: Хотите видеть коллекцию фотографий вместо одной? Настройте автоматическое слайд-шоу.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Рабочий стол лаунчера предлагает шесть режимов оформления: от фирменных динамических волн и частиц FastMediaSorter до собственных фотографий и живой трансляции с камеры. В этом руководстве показано, как выбрать и настроить идеальный фон.

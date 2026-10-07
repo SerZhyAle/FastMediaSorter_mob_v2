@@ -6,7 +6,7 @@ description: Информационный баннер, привязанный �
 category: VR и OpenXR
 category_slug: vr
 ticket: S2967
-flavor: noLegal и VR, на совместимом шлеме
+availability_note: noLegal и VR, на совместимом шлеме
 recipe_number: "03"
 canonical_url: documentation/vr/passthrough-and-controllers-ru.html
 why: |
@@ -105,6 +105,6 @@ next_recipes:
     description: Аналогичные элементы управления на обычном плоском экране смартфона.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Плавающая панель управления, информационный баннер перед глазами, настройки сеанса по кнопке меню, скрытие и вызов интерфейса, перемотка стиком с кнопкой захвата, тактильный отклик, управление жестами рук и счетчик FPS - все возможности управления в VR Cinema.

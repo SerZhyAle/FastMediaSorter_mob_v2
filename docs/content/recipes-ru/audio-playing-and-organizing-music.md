@@ -6,7 +6,6 @@ description: Как воспроизводить музыку из любых п
 category: Изображения, аудио и слайд-шоу
 category_slug: audio
 ticket: S2952
-flavor: Все редакции, кроме Photos
 recipe_number: "04"
 canonical_url: documentation/audio/playing-and-organizing-music-ru.html
 why: |
@@ -127,6 +126,6 @@ next_recipes:
     description: Автономное воспроизведение и управление музыкой с часов Wear OS.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Слушайте музыку напрямую из тех папок, где она хранится - на телефоне, карте памяти или сетевом компьютере. [Аудиоплеер](term:audio-player) находит недостающие обложки, показывает тексты песен, выводит звук на Chromecast и позволяет сортировать треки прямо во время прослушивания.

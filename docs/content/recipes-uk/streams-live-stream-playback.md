@@ -6,7 +6,6 @@ description: Як слухати інтернет-радіостанцію, пр
 category: Інтернет-трансляції
 category_slug: streams
 ticket: S2955
-flavor: Standard, noLegal, Legacy і VR
 recipe_number: "05"
 canonical_url: documentation/streams/live-stream-playback-uk.html
 why: |
@@ -157,6 +156,6 @@ next_recipes:
     description: Тримайте канали, які слухаєте найчастіше, вгорі.
 ---
 
-<sub class="doc-stamp">26.09.25 23:03</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Торкніться [каналу](term:channel) - і він грає: радіо всередині списку з поточною піснею на виду, ТБ і відео на весь екран лише з тим керуванням, яке має сенс для живої картинки, і музика, що продовжує грати, коли ви покидаєте застосунок.

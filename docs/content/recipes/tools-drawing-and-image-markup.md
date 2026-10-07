@@ -6,7 +6,7 @@ description: How to open the drawing editor on a photo or start from a blank can
 category: OCR, Drawing & Sharing
 category_slug: tools
 ticket: S2957
-flavor: All editions
+availability: all
 recipe_number: "03"
 canonical_url: documentation/tools/drawing-and-image-markup.html
 why: |
@@ -76,7 +76,7 @@ steps:
     id: settings
     title: Adjust brush size, opacity and text size
     text: |
-      Open the overflow button <img src="../../docs/icons/doc/ic_more_vert.png" alt="More actions" width="18" height="18" style="vertical-align:text-bottom"> and tap **Settings** to open **Draw settings**: sliders for **Brush size** and **Opacity**, and a **Text size** choice of **Small**, **Medium** or **Large**. These, like your last color, are remembered for next time.
+      Open the overflow button <img src="../../docs/icons/doc/ic_more_vert.png" alt="More actions" width="18" height="18" class="doc-inline-icon"> and tap **Settings** to open **Draw settings**: sliders for **Brush size** and **Opacity**, and a **Text size** choice of **Small**, **Medium** or **Large**. These, like your last color, are remembered for next time.
     image_bookmark:
       shot_id: tools.drawing-settings-dialog
       device_profile: phone
@@ -92,7 +92,7 @@ steps:
       - **Save** - writes your drawing into the picture you started from (or, for a blank canvas, saves it for the first time) and keeps the editor open. The toolbar tints itself while there is anything unsaved, so you can see at a glance that you still have work to save.
       - **Save & close** - the same, then takes you back to the picture.
       - **Save as..** - in the overflow menu, asks for a file name (the suggested one is the original name plus `_draw-` and the date and time, for example `beach_draw-260924-1530.jpg`) and keeps the original picture untouched.
-      - **Cancel** <img src="../../docs/icons/doc/ic_cancel.png" alt="Cancel" width="18" height="18" style="vertical-align:text-bottom"> - leaves without saving; nothing changes.
+      - **Cancel** <img src="../../docs/icons/doc/ic_cancel.png" alt="Cancel" width="18" height="18" class="doc-inline-icon"> - leaves without saving; nothing changes.
     callout:
       type: tip
       title: Pictures on another computer
@@ -101,7 +101,7 @@ steps:
     id: undo-delete-send
     title: Undo, delete or send the result
     text: |
-      The overflow button <img src="../../docs/icons/doc/ic_more_vert.png" alt="More actions" width="18" height="18" style="vertical-align:text-bottom"> also holds:
+      The overflow button <img src="../../docs/icons/doc/ic_more_vert.png" alt="More actions" width="18" height="18" class="doc-inline-icon"> also holds:
 
       - **Undo last** and **Undo all** - step back through your strokes, or clear every one of them at once.
       - **Delete file** - removes the picture you started from. Only shown when you opened an existing file, never for a blank canvas.
@@ -131,6 +131,6 @@ next_recipes:
     description: Pull the words out of a picture instead of drawing on it.
 ---
 
-<sub class="doc-stamp">26.09.30 08:55</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Open the drawing editor on any picture or a blank page, draw, write, erase, crop without leaving the session, save in place or as a new file, and send the result straight into the [Send to..](page:tools.fast-sharing-and-export) menu.

@@ -636,7 +636,20 @@
                         android:focusable="true"
                         android:clickable="true"
                         android:nextFocusUp="@id/btnSftpServerNewPassword"
+                        android:nextFocusDown="@id/btnSftpServerLegacyQr"
                         android:text="@string/settings_sftp_server_show_qr"
+                        android:visibility="gone" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSftpServerLegacyQr"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:nextFocusUp="@id/btnSftpServerShowQr"
+                        android:nextFocusDown="@id/rowSftpExchangeEnabled"
+                        android:text="@string/settings_sftp_server_legacy_qr"
                         android:visibility="gone" />
 
                     <ImageView
@@ -647,6 +660,139 @@
                         android:layout_marginTop="@dimen/margin_small"
                         android:contentDescription="@string/settings_sftp_server_qr_description"
                         android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/labelSftpExchange"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:text="@string/settings_sftp_exchange_title" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowSftpExchangeEnabled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:nextFocusUp="@id/btnSftpServerShowQr"
+                        android:nextFocusDown="@id/etSftpExchangeHost"
+                        app:str_icon="@drawable/ic_cloud"
+                        app:str_title="@string/settings_sftp_exchange_enable_title"
+                        app:str_subtitle="@string/settings_sftp_exchange_enable_subtitle" />
+
+                    <TextView
+                        android:id="@+id/textSftpExchangeStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:textColor="@color/text_color_secondary"
+                        android:textIsSelectable="true"
+                        android:text="@string/settings_sftp_exchange_status_off" />
+
+                    <LinearLayout
+                        android:id="@+id/containerSftpExchangeFields"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilSftpExchangeHost"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:hint="@string/settings_sftp_exchange_host_hint">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etSftpExchangeHost"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:clickable="true"
+                                android:nextFocusUp="@id/rowSftpExchangeEnabled"
+                                android:nextFocusDown="@id/etSftpExchangePort"
+                                android:imeOptions="actionNext"
+                                android:inputType="textUri|textNoSuggestions" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilSftpExchangePort"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:hint="@string/settings_sftp_exchange_port_hint">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etSftpExchangePort"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:clickable="true"
+                                android:nextFocusUp="@id/etSftpExchangeHost"
+                                android:nextFocusDown="@id/etSftpExchangePassword"
+                                android:imeOptions="actionNext"
+                                android:inputType="number"
+                                android:maxLength="5" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilSftpExchangePassword"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:hint="@string/settings_sftp_exchange_password_hint"
+                            app:endIconMode="password_toggle"
+                            app:helperText="@string/settings_sftp_exchange_password_rule">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etSftpExchangePassword"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:clickable="true"
+                                android:nextFocusUp="@id/etSftpExchangePort"
+                                android:nextFocusDown="@id/btnSftpExchangeSave"
+                                android:imeOptions="actionDone"
+                                android:inputType="textPassword" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSftpExchangeSave"
+                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:focusable="true"
+                            android:clickable="true"
+                            android:nextFocusUp="@id/etSftpExchangePassword"
+                            android:nextFocusDown="@id/btnSftpExchangeNewLink"
+                            android:text="@string/settings_sftp_exchange_save" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSftpExchangeNewLink"
+                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:focusable="true"
+                            android:clickable="true"
+                            android:nextFocusUp="@id/btnSftpExchangeSave"
+                            android:nextFocusDown="@id/btnSftpExchangeTrustAgain"
+                            android:text="@string/settings_sftp_exchange_new_link"
+                            app:icon="@drawable/ic_refresh" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSftpExchangeTrustAgain"
+                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:focusable="true"
+                            android:clickable="true"
+                            android:nextFocusUp="@id/btnSftpExchangeNewLink"
+                            android:text="@string/settings_sftp_exchange_trust_again"
+                            android:visibility="gone" />
+                    </LinearLayout>
 
                 </LinearLayout>
             </LinearLayout>

@@ -6,7 +6,8 @@ description: How to switch on the small programs that come with FastMediaSorter 
 category: "Programs, Statistics and Diagnostics"
 category_slug: programs
 ticket: S2961
-flavor: All editions; the notification-shade flashlight and the water flashlight need a phone with a camera flash, the mirror a front camera
+availability: all
+availability_note: All editions; the notification-shade flashlight and the water flashlight need a phone with a camera flash, the mirror a front camera
 recipe_number: "01"
 canonical_url: documentation/programs/built-in-mini-apps.html
 why: |
@@ -182,6 +183,6 @@ next_recipes:
     description: Put the flashlights and the stopwatch on your home screen.
 ---
 
-<sub class="doc-stamp">26.09.25 04:13</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 FastMediaSorter comes with a set of small [programs](term:program) you switch on only if you want them. This page shows where to switch them on, where to open them, and how to use the front flashlight, the water flashlight, the flashlight in the notification shade, the lit mirror and the SOS emergency signal.

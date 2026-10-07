@@ -6,7 +6,7 @@ description: How to listen to an internet radio station while you keep browsing,
 category: Internet Streams
 category_slug: streams
 ticket: S2955
-flavor: Standard, noLegal, Legacy and VR
+availability: SUPPORT_STREAMS
 recipe_number: "05"
 canonical_url: documentation/streams/live-stream-playback.html
 why: |
@@ -157,6 +157,6 @@ next_recipes:
     description: Keep the channels you play most at the top.
 ---
 
-<sub class="doc-stamp">26.09.24 07:53</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Tap a [channel](term:channel) and it plays: radio inside the list with the current song in view, TV and video full screen with only the controls that make sense for a live picture, and music that keeps going when you leave the app.

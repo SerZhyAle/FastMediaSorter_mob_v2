@@ -37,14 +37,22 @@
     /* kit effects */
     --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
     --glow: 0 0 26px rgba(63, 185, 80, 0.28);
+    /* hero text plate over the WAVE-PARTICLES backdrop: --bg at partial opacity */
+    --hero-plate: rgba(10, 15, 10, 0.62);
+    --hero-plate-border: rgba(255, 255, 255, 0.07);
     /* kit type */
     --font-heading: 'Outfit', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, Menlo, monospace;
     /* kit metrics */
-    --wide: 1100px;
+    --wide: 100%;
+    --gutter: clamp(16px, 3vw, 40px);
     --radius: 16px;
     --radius-sm: 10px;
     --radius-pill: 30px;
+    /* ICON-SET nav.expand / nav.collapse, drawn as a mask so the marker takes the text colour */
+    --glyph-nav-expand: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z'/%3E%3C/svg%3E");
+    --glyph-nav-collapse: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z'/%3E%3C/svg%3E");
 
     /* --- legacy aliases mapped onto kit tokens --- */
     --bg-dark: var(--bg);
@@ -92,6 +100,8 @@ html[data-theme="light"] {
     --code-ink: #d6e2cf;
     --shadow: 0 6px 24px rgba(20, 40, 20, 0.10);
     --glow: 0 0 26px rgba(47, 143, 58, 0.18);
+    --hero-plate: rgba(238, 243, 234, 0.74);
+    --hero-plate-border: rgba(16, 40, 20, 0.10);
 
     /* legacy aliases that carry literal values need a light override */
     --text-highlight: #0b1408;
@@ -138,7 +148,7 @@ body {
 /* Header & Canvas Background */
 header {
     position: relative;
-    padding: 1.75rem 1rem 2rem 1rem;
+    padding: 1.75rem var(--gutter) 2rem var(--gutter);
     text-align: center;
     overflow: hidden;
     border-bottom: 1px solid var(--border-glass);
@@ -152,7 +162,6 @@ header {
     height: 100%;
     z-index: 0;
     pointer-events: none;
-    opacity: 0.65;
 }
 
 header>*:not(canvas) {
@@ -161,14 +170,51 @@ header>*:not(canvas) {
 }
 
 /* Hero content shares the broad, left-aligned composition of the SZA site. */
+/* The hero fills the header content box: PAGE-CONTENT layout contract, full width of the screen. */
 .hero-inner {
-    width: min(1760px, 94vw);
-    margin: 0 auto;
+    width: 100%;
+    margin: 0;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 0.9rem;
     text-align: left;
+}
+
+/* Identity block (PAGE-STYLE 4.1b): the application icon and the full name open the hero. */
+.hero-inner > .identity {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.2rem;
+    background: var(--hero-plate);
+    border: 1px solid var(--hero-plate-border);
+    border-radius: var(--radius);
+    padding: 0.7rem 1.1rem;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+.product-icon {
+    width: clamp(64px, 10vw, 104px);
+    height: auto;
+    aspect-ratio: 1;
+    border-radius: 22%;
+    flex: none;
+}
+
+.product-name {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    font-size: clamp(1.75rem, 4.2vw, 2.6rem);
+    color: var(--text-highlight);
+    overflow-wrap: anywhere;
+}
+
+.identity .kicker {
+    margin-top: 0.35rem;
 }
 
 .hero-inner .kicker {
@@ -178,6 +224,51 @@ header>*:not(canvas) {
     font-weight: 700;
     letter-spacing: 0.15em;
     text-transform: uppercase;
+}
+
+/* The backdrop is dimmed and slowed on the canvas itself (data-intensity, data-speed: WAVE-PARTICLES
+   section 5). Each text block sits on its own translucent plate so the lines read as passing behind the
+   text and the contrast never depends on where a line happens to be (SITE-EXPERIENCE rules 8 and 17). */
+.hero-inner > .kicker,
+.hero-inner > .subtitle,
+.hero-inner > .whatfor {
+    background: var(--hero-plate);
+    border: 1px solid var(--hero-plate-border);
+    border-radius: var(--radius-sm);
+    padding: 0.55rem 0.95rem;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+.hero-inner > .kicker {
+    border-radius: var(--radius-pill);
+    padding: 0.35rem 0.85rem;
+}
+
+/* h1 paints its gradient through background-clip: text, so a background of its own would hide the
+   glyphs. The plate is a pseudo-element instead: z-index -1 places it in the .hero-inner stacking
+   context, above the canvas and below the h1 text. */
+.hero-inner > h1 {
+    position: relative;
+    padding: 0.2rem 0.95rem 0.35rem;
+}
+
+.hero-inner > h1::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--hero-plate);
+    border: 1px solid var(--hero-plate-border);
+    border-radius: var(--radius-sm);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+.hero-inner > .version-badge {
+    background: var(--hero-plate);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
 }
 
 .hero-facts {
@@ -252,8 +343,7 @@ h1 img {
 }
 
 .container {
-    width: min(1760px, 94vw);
-    margin: 0 auto;
+    margin: 0 var(--gutter);
     padding: 2rem 0;
 }
 
@@ -758,12 +848,18 @@ h1 img {
 
 .content-details > summary::after {
     color: var(--text-muted);
-    content: '▸';
+    content: '';
     float: right;
+    width: 1.2em;
+    height: 1.2em;
+    background-color: currentColor;
+    -webkit-mask: var(--glyph-nav-expand) center / contain no-repeat;
+    mask: var(--glyph-nav-expand) center / contain no-repeat;
 }
 
 .content-details[open] > summary::after {
-    transform: rotate(90deg);
+    -webkit-mask-image: var(--glyph-nav-collapse);
+    mask-image: var(--glyph-nav-collapse);
 }
 
 .card {
@@ -904,14 +1000,19 @@ h1 img {
 
 .card-details summary::after {
     color: var(--text-muted);
-    content: '▼';
-    font-size: 0.72rem;
+    content: '';
+    flex: none;
+    width: 1.1em;
+    height: 1.1em;
     margin-left: auto;
-    transition: var(--transition-smooth);
+    background-color: currentColor;
+    -webkit-mask: var(--glyph-nav-expand) center / contain no-repeat;
+    mask: var(--glyph-nav-expand) center / contain no-repeat;
 }
 
 .card-details[open] summary::after {
-    transform: rotate(180deg);
+    -webkit-mask-image: var(--glyph-nav-collapse);
+    mask-image: var(--glyph-nav-collapse);
 }
 
 .detail-list {
@@ -976,7 +1077,6 @@ h1 img {
     color: var(--text-muted);
     font-size: 0.85rem;
     font-style: italic;
-    max-width: 760px;
     margin: 0 0 4rem 0;
 }
 
@@ -1039,15 +1139,20 @@ h1 img {
 }
 
 .full-features-panel>summary::after {
-    content: ' ▲';
-    font-size: 0.75rem;
+    content: '';
+    flex: none;
+    width: 1.1em;
+    height: 1.1em;
     opacity: 0.6;
     margin-left: auto;
-    transition: var(--transition-smooth);
+    background-color: currentColor;
+    -webkit-mask: var(--glyph-nav-expand) center / contain no-repeat;
+    mask: var(--glyph-nav-expand) center / contain no-repeat;
 }
 
-.full-features-panel:not([open])>summary::after {
-    content: ' ▼';
+.full-features-panel[open]>summary::after {
+    -webkit-mask-image: var(--glyph-nav-collapse);
+    mask-image: var(--glyph-nav-collapse);
 }
 
 .full-features-content {
@@ -1137,6 +1242,25 @@ footer p {
     z-index: 1000;
 }
 
+/* SITE-EXPERIENCE 15: first Tab stop, off-screen until focused (mirrors the portal's .doc-skip-link) */
+.skip-link {
+    position: absolute;
+    left: 12px;
+    top: -100px;
+    z-index: 2000;
+    padding: 10px 16px;
+    background: var(--acc);
+    color: var(--acc-ink);
+    border-radius: 6px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+    top: 12px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     h1 {
@@ -1148,7 +1272,7 @@ footer p {
     }
 
     header {
-        padding: 2rem 1rem 2.25rem 1rem;
+        padding: 2rem var(--gutter) 2.25rem var(--gutter);
     }
 
     .hero-inner {
@@ -1985,8 +2109,7 @@ footer p {
     align-items: center;
     gap: 12px;
     padding: 10px 16px;
-    margin: 14px auto;
-    max-width: min(1760px, 94vw);
+    margin: 14px var(--gutter);
     border: 1px solid var(--border);
     border-radius: 14px;
     background: color-mix(in srgb, var(--bg-2) 78%, transparent);
@@ -2058,17 +2181,29 @@ html[data-theme="light"] .seg {
 }
 
 .theme-btn {
-    width: 32px;
+    min-width: 32px;
     height: 32px;
+    padding: 0 0.7rem;
     border: 1px solid var(--border);
-    border-radius: 50%;
+    border-radius: var(--radius-pill);
     background: transparent;
     color: var(--muted);
     cursor: pointer;
-    display: grid;
-    place-items: center;
-    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
     flex-shrink: 0;
+}
+
+.theme-btn svg {
+    width: 1.1em;
+    height: 1.1em;
+    flex: none;
+    fill: currentColor;
 }
 
 .theme-btn:hover {
@@ -2239,8 +2374,7 @@ html[data-theme="light"] .btn-ghost {
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.2rem 0.6rem;
-    max-width: min(1760px, 94vw);
-    margin: -6px auto 10px;
+    margin: -6px var(--gutter) 10px;
     font-size: 0.8rem;
     letter-spacing: 0.04em;
 }
@@ -2396,3 +2530,28 @@ html[data-theme="light"] .seg button[aria-pressed="true"] {
 .edition-build { font-size: 0.85rem; color: var(--text-muted); overflow-wrap: anywhere; }
 .edition-card-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
 .edition-card-actions a { overflow-wrap: anywhere; }
+
+/* Last-edited stamp written by scripts/docs/lib/doc-stamp.ps1 (S4099: no style attribute) */
+.doc-stamp {
+    font-size: 11px;
+    opacity: 0.6;
+    margin: 0;
+    padding: 2px 8px;
+    text-align: right;
+}
+
+/* SITE-EXPERIENCE rule 17: on a touch screen the brand, theme toggle and footer links are at least 44 px. */
+@media (pointer: coarse) {
+    .brand {
+        min-height: 44px;
+    }
+    .theme-btn {
+        min-width: 44px;
+        height: 44px;
+    }
+    .footer-bottom a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+}

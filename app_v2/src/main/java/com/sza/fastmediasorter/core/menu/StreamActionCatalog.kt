@@ -18,7 +18,7 @@ enum class StreamMenuAction(@param:DrawableRes val iconRes: Int) {
     TOGGLE_PIN(R.drawable.ic_pin),
     MOVE_UP(R.drawable.ic_arrow_upward),
     MOVE_DOWN(R.drawable.ic_arrow_downward),
-    MOVE_TO_TOP(R.drawable.ic_arrow_upward),
+    MOVE_TO_TOP(R.drawable.ic_move_to_top),
     TOGGLE_FAVORITE(R.drawable.ic_favorite),
     ADD_SHORTCUT(R.drawable.ic_widget_resource_launch),
 

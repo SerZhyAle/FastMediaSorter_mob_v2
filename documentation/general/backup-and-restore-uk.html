@@ -134,20 +134,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.25 22:22</div>
+<div class="doc-stamp">26.10.07 01:10</div>
+    <a class="doc-skip-link" href="#main-content">Перейти до вмісту</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index-uk.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index-uk.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index-uk.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index-uk.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Пошук...</span>
                 <kbd>/</kbd>
             </button>
@@ -169,8 +170,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index-uk.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index-uk.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Тема</span></button>
             </nav>
         </div>
     </header>
@@ -426,11 +427,12 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Загальні, клавіатура та ТВ</span>
-                    <span class="doc-badge doc-badge-standard">Усі редакції - резервне копіювання та відновлення у файл працюють скрізь; резервна копія в Google Drive потребує Standard, noLegal, Photos, Legacy або VR з підключеним обліковим записом Google</span>
+                    <span class="doc-edition-badge">Усі редакції</span>
                     <span class="doc-badge doc-badge-sm">Recipe #01</span>
                 </div>
+                <p class="doc-availability-note">Усі редакції - резервне копіювання та відновлення у файл працюють скрізь; резервна копія в Google Drive потребує Standard, noLegal, Photos, Legacy або VR з підключеним обліковим записом Google</p>
 
                 <h1>Резервне копіювання і відновлення налаштувань - що переходить, що лишається і де це знайти</h1>
 
@@ -445,13 +447,13 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Перед початком: Що вам знадобиться</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter у будь-якій <span class="doc-link-term" data-term="edition">редакції</span>, з відкритими <strong><span class="doc-link-term" data-term="settings">Налаштуваннями</span></strong> на вкладці <strong>Загальні</strong>.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Для резервної копії в Google Drive: редакція Standard, noLegal, Photos, Legacy або VR і підключений обліковий запис Google у застосунку.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Для резервної копії у файл: місце, де зберігати файл - папка на телефоні, карта пам'яті або папка в <span class="doc-link-term" data-term="cloud-storage">хмарному сховищі</span>.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> FastMediaSorter у будь-якій <span class="doc-link-term" data-term="edition">редакції</span>, з відкритими <strong><span class="doc-link-term" data-term="settings">Налаштуваннями</span></strong> на вкладці <strong>Загальні</strong>.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Для резервної копії в Google Drive: редакція Standard, noLegal, Photos, Legacy або VR і підключений обліковий запис Google у застосунку.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Для резервної копії у файл: місце, де зберігати файл - папка на телефоні, карта пам'яті або папка в <span class="doc-link-term" data-term="cloud-storage">хмарному сховищі</span>.</li>
                     </ul>
                 </div>
 
@@ -512,6 +514,13 @@ layout: null
                     </div>
                 </div>
 
+                <div class="doc-callout doc-callout-warning">
+                    <div class="doc-callout-title">
+                        <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>Тримайте резервну копію при собі
+                    </div>
+                    <p>Резервна копія, що несе ресурси, несе і їхні паролі. Тримайте її у власному Google Drive чи власній папці, і не надсилайте її нікому.</p>
+                </div>
+
                 <!-- Step 3 -->
                 <div class="doc-step" id="what-travels">
                     <div class="doc-step-header">
@@ -522,12 +531,6 @@ layout: null
                         <p>Резервна копія налаштувань - у файл чи в Google Drive - несе практично кожне налаштування застосунку. Серед них:</p>
                         <ul><li>колірна тема й вигляд кожного екрана;</li><li>весь блок налаштувань трансляцій;</li><li>параметри <span class="doc-link-term" data-term="camera">камери</span>, мікрофона й <span class="doc-link-term" data-term="screen-recording">запису екрана</span>;</li><li>обидві свайп-команди браузера файлів і ваші перевизначення меню <strong>Надіслати в..</strong>;</li><li>шістнадцять слотів свайпів лаунчера, індикатор швидкості мережі в його лотку та колірну палітру його анімованих хвиль і часточок;</li><li>усі поля жестів <span class="doc-link-term" data-term="screenshot">знімка екрана</span> - кожна зона й кожен жест, які ви налаштували.</li></ul>
                         <p>Резервна копія в Google Drive додає ваші ресурси з їхніми мережевими паролями та збереженими входами на сайти, ваше Обране, ваші <span class="doc-link-term" data-term="scheduled-operation">операції за розкладом</span> і робочий стіл вашого лаунчера. Перенесення вашого списку місць на чужий телефон описано крок за кроком у <a href="../storage/sharing-and-backing-up-resources-uk.html" class="doc-link">спільному доступі та резервному копіюванні ресурсів</a>.</p>
-                        <div class="doc-callout doc-callout-warning">
-                            <div class="doc-callout-title">
-                                <span class="doc-callout-icon">⚠️</span> Тримайте резервну копію при собі
-                            </div>
-                            <p>Резервна копія, що несе ресурси, несе і їхні паролі. Тримайте її у власному Google Drive чи власній папці, і не надсилайте її нікому.</p>
-                        </div>
                     </div>
                 </div>
 
@@ -593,17 +596,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="../storage/sharing-and-backing-up-resources-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-other">Сховище</span>
-                            <h4>Спільний доступ та резервне копіювання ресурсів</h4>
+                            <h3>Спільний доступ та резервне копіювання ресурсів</h3>
                             <p>Передайте ваш список папок і серверів на інший телефон в одному файлі.</p>
                         </a>
                         <a href="../settings/backup-and-device-sync-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Налаштування</span>
-                            <h4>Резервне копіювання налаштувань і синхронізація пристроїв</h4>
+                            <h3>Резервне копіювання налаштувань і синхронізація пристроїв</h3>
                             <p>Налаштування у файл чи Google Drive, Обране окремо, і годинник у крок із телефоном.</p>
                         </a>
                         <a href="keyboard-dpad-tv-navigation-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Загальне</span>
-                            <h4>Клавіатура, D-pad та керування ТВ</h4>
+                            <h3>Клавіатура, D-pad та керування ТВ</h3>
                             <p>Переміщення застосунком без дотику до екрана.</p>
                         </a>
                     </div>
@@ -636,8 +639,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Безкоштовний органайзер із відкритим вихідним кодом.</div>
             <div class="doc-footer-links">
-                <a href="../../docs/PRIVACY_POLICY.uk.html">Політика конфіденційності</a>
-                <a href="../../docs/TERMS_OF_SERVICE_UK.html">Умови використання</a>
+                <a href="../../docs/PRIVACY_POLICY-uk.html">Політика конфіденційності</a>
+                <a href="../../docs/TERMS_OF_SERVICE-uk.html">Умови використання</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>

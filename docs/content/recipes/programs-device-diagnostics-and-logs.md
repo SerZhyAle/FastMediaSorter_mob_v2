@@ -6,7 +6,8 @@ description: How to open the System information report about your phone and the 
 category: "Programs, Statistics and Diagnostics"
 category_slug: programs
 ticket: S2961
-flavor: All editions; the watch report with FastMedia Wear in the Standard and noLegal editions
+availability: all
+availability_note: All editions; the watch report with FastMedia Wear in the Standard and noLegal editions
 recipe_number: "05"
 canonical_url: documentation/programs/device-diagnostics-and-logs.html
 why: |
@@ -122,6 +123,6 @@ next_recipes:
     description: What each permission is for, when a feature does not work.
 ---
 
-<sub class="doc-stamp">26.09.25 04:13</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Two tools help when something in FastMediaSorter does not work as it should: the **System information** report about your phone and the app, and the **debug log** of what the app was doing. This page shows how to open, read, copy, save and send both, and how to read the exact build from the version number.

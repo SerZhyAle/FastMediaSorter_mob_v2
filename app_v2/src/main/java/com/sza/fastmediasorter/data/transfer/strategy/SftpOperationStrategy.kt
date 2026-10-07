@@ -296,8 +296,10 @@ class SftpOperationStrategy @Inject constructor(
         val resolved = endpointResolver.resolve(pathInfo.host, pathInfo.port)
         val host = resolved.host
         val port = resolved.port
+        // A Drive-announced address (S4110) has no row of its own; the requested address's row stands in.
         val credentials = credentialsRepository.getByTypeServerAndPort("SFTP", host, port)
             ?: credentialsRepository.getCredentialsByHost(host)
+            ?: credentialsRepository.getByTypeServerAndPort("SFTP", pathInfo.host, pathInfo.port)
 
         if (credentials == null) {
             throw IllegalStateException("No credentials found for $host:$port")

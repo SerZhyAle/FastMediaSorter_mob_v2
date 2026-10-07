@@ -6,7 +6,6 @@ description: Як запустити улюблену радіостанцію �
 category: Інтернет-трансляції
 category_slug: streams
 ticket: S2955
-flavor: Standard, noLegal, Legacy та VR
 recipe_number: "07"
 canonical_url: documentation/streams/shortcuts-widget-and-panel-uk.html
 why: |
@@ -124,6 +123,6 @@ next_recipes:
     description: Перенесіть станцію на зап'ясток або канал на ТВ.
 ---
 
-<sub class="doc-stamp">26.09.25 22:14</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Ваші щоденні станції - в один дотик: [ярлик](term:shortcut) або [віджет](term:widget) **Трансляція** на домашньому екрані Android, або [панель трансляцій](term:streams-panel) із закріпленими [каналами](term:channel) на головному екрані FastMediaSorter.

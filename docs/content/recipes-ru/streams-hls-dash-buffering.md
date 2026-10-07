@@ -6,7 +6,6 @@ description: Что FastMediaSorter делает автоматически пр
 category: Интернет-трансляции
 category_slug: streams
 ticket: S2955
-flavor: Standard, noLegal, Legacy и VR
 recipe_number: "06"
 canonical_url: documentation/streams/hls-dash-buffering-ru.html
 why: |
@@ -115,6 +114,6 @@ next_recipes:
     description: Пакетная проверка доступности каналов и очистка неработающих.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Слабый сигнал сети не помешает онлайн-[трансляциям](term:stream): FastMediaSorter упреждающе буферизирует данные, тихо восстанавливает связь, удерживает прямой эфир ТВ и адаптирует качество видео, наглядно информируя о состоянии соединения.

@@ -6,7 +6,6 @@ description: Як читати текстові файли, Markdown, логи �
 category: Документи та текстовий редактор
 category_slug: documents
 ticket: S2953
-flavor: Standard, noLegal, Legacy, VR та FOSS
 recipe_number: "03"
 canonical_url: documentation/documents/text-code-editor-uk.html
 why: |
@@ -144,6 +143,6 @@ next_recipes:
     description: Калькулятор та інші маленькі інструменти, що йдуть із застосунком.
 ---
 
-<sub class="doc-stamp">26.09.25 22:27</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Читайте текстові файли, Markdown і логи зручно, виправляйте їх на місці, шукайте й замінюйте слова, створюйте нові текстові нотатки в будь-якій папці та передавайте текст у Google Keep, калькулятор, голос або перекладач - без окремого застосунку-редактора.

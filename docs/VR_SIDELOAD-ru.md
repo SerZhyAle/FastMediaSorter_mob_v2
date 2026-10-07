@@ -1,10 +1,10 @@
 ---
 layout: default
 title: "Руководство по установке VR через sideload"
-permalink: /docs/VR_SIDELOAD_RU.html
+permalink: /docs/VR_SIDELOAD-ru.html
 ---
 
-<sub class="doc-stamp">26.09.10 21:58</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 # Руководство по установке VR через sideload
 

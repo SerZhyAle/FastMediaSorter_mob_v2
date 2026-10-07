@@ -6,7 +6,7 @@ description: Как передать список папок и серверов
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: Все редакции (подробности в описании шагов)
+availability_note: Все редакции (подробности в описании шагов)
 recipe_number: "03"
 canonical_url: documentation/storage/sharing-and-backing-up-resources-ru.html
 why: |
@@ -124,6 +124,6 @@ next_recipes:
     description: Защита ресурсов и отдельных файлов от посторонних глаз.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Экспортируйте ресурсы в файл для переноса на другой смартфон, импортируйте их обратно, загружайте готовую конфигурацию из Windows-компаньона, храните полные копии в Google Диске и будьте уверены в сохранности данных при любых сбоях.

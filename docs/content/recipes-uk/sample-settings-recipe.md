@@ -5,7 +5,6 @@ description: Практичний рецепт для налаштування �
 category: Налаштування
 category_slug: settings
 ticket: S2962
-flavor: Усі редакції
 recipe_number: "02"
 canonical_url: documentation/sample-settings-recipe-uk.html
 ingredients:
@@ -37,6 +36,6 @@ next_recipes:
     description: Експортуйте конфігурацію та закладки в архів JSON.
 ---
 
-<sub class="doc-stamp">26.09.25 23:04</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Тонко налаштуйте FastMediaSorter під свій стиль сортування медіа. Дізнайтеся, як налаштувати порядок сортування за замовчуванням, щільність сітки мініатюр і поведінку фонового відтворення аудіо.

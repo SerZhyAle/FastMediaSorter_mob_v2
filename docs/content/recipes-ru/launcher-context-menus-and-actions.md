@@ -6,7 +6,6 @@ description: Что открывается по долгому нажатию н
 category: "Лаунчер - Панель задач, меню и жесты"
 category_slug: launcher
 ticket: S2960
-flavor: Редакции Standard и noLegal
 recipe_number: "08"
 canonical_url: documentation/launcher/context-menus-and-actions-ru.html
 why: |
@@ -155,6 +154,6 @@ next_recipes:
     description: Кнопка «Пуск», закрепленные и недавние приложения и область уведомлений.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Долгое нажатие на [рабочем столе](term:desktop) [лаунчера](term:launcher) открывает богатые возможности: контекстные меню для ресурсов, каналов и функций, а также создание умных динамических плиток - от контактов и навигационных меток до живых мини-окон трансляций и офлайн-инструментов.

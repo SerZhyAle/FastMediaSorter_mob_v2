@@ -6,7 +6,7 @@ description: "Як відкрити спільний доступ до папк�
 category: Мережеві папки та хмари
 category_slug: network
 ticket: S2950
-flavor: Мережеві папки (SMB) - усі редакції, крім Lite. Автоматичний пошук комп'ютера, список його спільних папок, перевірка підключення й тихе налаштування швидкості - Standard, noLegal, Photos, Legacy та VR (не Lite, не FOSS).
+availability_note: Мережеві папки (SMB) - усі редакції, крім Lite. Автоматичний пошук комп'ютера, список його спільних папок, перевірка підключення й тихе налаштування швидкості - Standard, noLegal, Photos, Legacy та VR (не Lite, не FOSS).
 recipe_number: "01"
 canonical_url: documentation/network/smb-samba-shares-uk.html
 why: |
@@ -115,6 +115,6 @@ next_recipes:
     description: Огляд - які місця можна додати і як застосунок тримає їх швидкими.
 ---
 
-<sub class="doc-stamp">26.09.25 22:27</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Відкрийте спільний доступ до папки у Windows, знайдіть її із застосунку скануванням мережі, увійдіть і перевірте підключення до збереження, і дізнайтеся, що насправді означає повідомлення «не вдається підключитися» - повний огляд за [додаванням мережевої папки](page:storage.network-and-cloud-sources) як [ресурсу](term:resource).

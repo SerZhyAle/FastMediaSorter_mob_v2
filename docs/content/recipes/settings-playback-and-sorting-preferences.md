@@ -6,7 +6,8 @@ description: Keeping the screen on where it matters, letting the app follow the 
 category: "Settings & Navigation"
 category_slug: settings
 ticket: S2962
-flavor: All editions - launcher mode and the quick-access panel's programs-menu entry are Standard and noLegal only; most other rows are in Standard, Lite, Photos and Legacy
+availability: all
+availability_note: All editions - launcher mode and the quick-access panel's programs-menu entry are Standard and noLegal only; most other rows are in Standard, Lite, Photos and Legacy
 recipe_number: "03"
 canonical_url: documentation/settings/playback-and-sorting-preferences.html
 why: |
@@ -161,6 +162,6 @@ next_recipes:
     description: Exporting and restoring settings, resources and favorites, and keeping devices in step.
 ---
 
-<sub class="doc-stamp">26.09.25 04:13</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Beyond how [Settings](term:settings) looks lies how the app actually behaves day to day - whether the screen stays on, whether it plays nicely with the battery, whether it answers when another app hands it a file, and how quickly your [programs](term:program) and resources are within reach. This page covers that everyday behavior, from screen and power to the [launcher](term:launcher) and the programs panel.

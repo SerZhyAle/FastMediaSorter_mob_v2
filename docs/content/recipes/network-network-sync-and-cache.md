@@ -6,7 +6,8 @@ description: Turning on periodic background sync for network folders, choosing h
 category: Network & Cloud
 category_slug: network
 ticket: S2950
-flavor: Background sync - Standard, noLegal, Photos, Legacy and VR, not Lite, not FOSS. Video playback priority for thumbnails - Standard only.
+availability: SUPPORT_CLOUD
+availability_note: Background sync - Standard, noLegal, Photos, Legacy and VR, not Lite, not FOSS. Video playback priority for thumbnails - Standard only.
 recipe_number: "07"
 canonical_url: documentation/network/network-sync-and-cache.html
 why: |
@@ -19,7 +20,7 @@ steps:
     id: enable-background-sync
     title: Let the app check for changes by itself
     text: |
-      Open **Settings**, the **General** tab, and find **Background sync, network and cache**. Turn on **Enable background sync** - "Automatically check network resources for file changes in the background" - and set **Sync interval (min)** to how often it should run (four hours by default).
+      Open **Settings**, the **General** tab, and find **Background sync, network and cache**. Turn on **Enable background sync** - "Automatically check network resources for file changes in the background" - and set **Sync interval (min)** to how often it should run.
 
       Want it done right now instead of waiting? Tap **Sync Now**. The row shows "Syncing.." while it works, then something like "Synced 5 resources successfully" once it finishes, or "Couldn't finish the sync. Try again." if it did not. Underneath, the app always shows when it last managed it - "Last sync: " or "Never synced" the first time.
     image:
@@ -31,11 +32,27 @@ steps:
     title: Have thumbnails ready before you open the folder
     text: |
       In the same section, **Preload thumbnails** - "Pre-generate thumbnails for network video and PDF files in the background after sync" - gets previews ready right after each sync instead of only when you scroll to a file. If you would rather this only happens on Wi-Fi, turn on **Wi-Fi only preload** too, so it never spends mobile data quietly generating previews you have not asked to see yet.
+    image_bookmark:
+      shot_id: network.sync-preload-thumbnails
+      device_profile: phone
+      screen_state: settings-network-preload-thumbnails
+      alt: The background sync section scrolled to the Preload thumbnails and Wi-Fi only preload switches
+      caption: "Previews can be prepared right after each sync."
+      title: "Screenshot: Preload thumbnails"
+      desc: Settings, background sync, network and cache section, both preload switches on.
   - number: 3
     id: video-priority
     title: A playing network video always gets the bandwidth
     text: |
       *Standard edition.* While a video from a network folder is playing, the app pauses loading previews for the files around it in the background, so the video gets the connection to itself instead of sharing it with a dozen thumbnails at once. The moment playback ends, preview loading picks back up by itself, and those paused previews load correctly rather than getting stuck as if they had failed.
+    image_bookmark:
+      shot_id: network.network-video-playing
+      device_profile: phone
+      screen_state: player-network-video-playing
+      alt: The video player playing a video from a network folder, with the playback controls shown
+      caption: "While a network video plays, it has the connection to itself."
+      title: "Screenshot: Network video playing"
+      desc: Video from an SMB resource playing in the player, controls visible.
 outcome: |
   Network and cloud folders stay current on their own, on the schedule you chose, their thumbnails are often ready before you even open them, and a playing network video never has to fight background preview loading for bandwidth.
 tips:
@@ -60,6 +77,6 @@ next_recipes:
     description: See the connection itself when a sync or a stream is not behaving.
 ---
 
-<sub class="doc-stamp">26.09.25 02:04</sub>
+<sub class="doc-stamp">26.10.07 03:43</sub>
 
 Turn on a background schedule so network and cloud folders stay current on their own, preload their thumbnails ahead of time, and let a playing network video keep the full connection to itself while previews wait their turn.

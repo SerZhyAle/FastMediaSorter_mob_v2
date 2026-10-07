@@ -64,7 +64,7 @@ layout: null
           "@type": "HowToStep",
           "position": 1,
           "name": "Разрешите приложению проверять изменения автоматически",
-          "text": "Откройте Настройки, перейдите на вкладку Общие и найдите раздел Фоновая синхронизация, сеть и кэш. Включите параметр Включить фоновую синхронизацию («Автоматически проверять сетевые ресурсы на наличие изменений в фоне») и укажите в поле Интервал синхронизации (мин), как часто должна запускаться проверка (по умолчанию каждые 4 часа). Хотите обновить список прямо сейчас? Нажмите Синхронизировать сейчас. Строка покажет статус «Синхронизация..» во время работы, затем отчет вида «Успешно синхронизировано ресурсов: 5» либо «Не удалось завершить синхронизацию. Попробуйте снова». Внизу всегда указано время последней успешной проверки («Последняя синхронизация: » или «Никогда не синхронизировалось» при первом запуске).",
+          "text": "Откройте Настройки, перейдите на вкладку Общие и найдите раздел Фоновая синхронизация, сеть и кэш. Включите параметр Включить фоновую синхронизацию («Автоматически проверять сетевые ресурсы на наличие изменений в фоне») и укажите в поле Интервал синхронизации (мин), как часто должна запускаться проверка. Хотите обновить список прямо сейчас? Нажмите Синхронизировать сейчас. Строка покажет статус «Синхронизация..» во время работы, затем отчет вида «Успешно синхронизировано ресурсов: 5» либо «Не удалось завершить синхронизацию. Попробуйте снова». Внизу всегда указано время последней успешной проверки («Последняя синхронизация: » или «Никогда не синхронизировалось» при первом запуске).",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/network-sync-and-cache-ru.html#enable-background-sync"
         },
         {
@@ -120,20 +120,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.30 08:05</div>
+<div class="doc-stamp">26.10.07 03:43</div>
+    <a class="doc-skip-link" href="#main-content">Перейти к содержимому</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index-ru.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index-ru.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Поиск...</span>
                 <kbd>/</kbd>
             </button>
@@ -155,8 +156,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Тема</span></button>
             </nav>
         </div>
     </header>
@@ -402,11 +403,12 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Сеть и облачные хранилища</span>
-                    <span class="doc-badge doc-badge-standard">Фоновая синхронизация - Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS). Приоритет воспроизведения видео для миниатюр - только Standard.</span>
+                    <span class="doc-edition-badge">Standard, noLegal, Photos, Legacy и VR</span>
                     <span class="doc-badge doc-badge-sm">Recipe #07</span>
                 </div>
+                <p class="doc-availability-note">Фоновая синхронизация - Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS). Приоритет воспроизведения видео для миниатюр - только Standard.</p>
 
                 <h1>Поддержание актуальности сетевых папок</h1>
 
@@ -420,12 +422,12 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Перед началом: Что вам понадобится</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter в <span class="doc-link-term" data-term="edition">редакции</span> Standard, noLegal, Photos, Legacy или VR для фоновой синхронизации (кроме Lite и FOSS). См. <a href="../flavors/overview-and-comparison-ru.html" class="doc-link">Обзор и сравнение семи редакций</a>.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Как минимум одна добавленная <span class="doc-link-term" data-term="network-folder">сетевая папка</span> или <span class="doc-link-term" data-term="cloud-storage">облачное хранилище</span> - см. <a href="../storage/network-and-cloud-sources-ru.html" class="doc-link">Добавление сетевых папок и облачных хранилищ</a>.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> FastMediaSorter в <span class="doc-link-term" data-term="edition">редакции</span> Standard, noLegal, Photos, Legacy или VR для фоновой синхронизации (кроме Lite и FOSS). См. <a href="../flavors/overview-and-comparison-ru.html" class="doc-link">Обзор и сравнение семи редакций</a>.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Как минимум одна добавленная <span class="doc-link-term" data-term="network-folder">сетевая папка</span> или <span class="doc-link-term" data-term="cloud-storage">облачное хранилище</span> - см. <a href="../storage/network-and-cloud-sources-ru.html" class="doc-link">Добавление сетевых папок и облачных хранилищ</a>.</li>
                     </ul>
                 </div>
 
@@ -436,7 +438,7 @@ layout: null
                         <h2 class="doc-step-title">Разрешите приложению проверять изменения автоматически</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Откройте <strong>Настройки</strong>, перейдите на вкладку <strong>Общие</strong> и найдите раздел <strong>Фоновая синхронизация, сеть и кэш</strong>. Включите параметр <strong>Включить фоновую синхронизацию</strong> («Автоматически проверять сетевые ресурсы на наличие изменений в фоне») и укажите в поле <strong>Интервал синхронизации (мин)</strong>, как часто должна запускаться проверка (по умолчанию каждые 4 часа).</p>
+                        <p>Откройте <strong>Настройки</strong>, перейдите на вкладку <strong>Общие</strong> и найдите раздел <strong>Фоновая синхронизация, сеть и кэш</strong>. Включите параметр <strong>Включить фоновую синхронизацию</strong> («Автоматически проверять сетевые ресурсы на наличие изменений в фоне») и укажите в поле <strong>Интервал синхронизации (мин)</strong>, как часто должна запускаться проверка.</p>
                         <p>Хотите обновить список прямо сейчас? Нажмите <strong>Синхронизировать сейчас</strong>. Строка покажет статус «Синхронизация..» во время работы, затем отчет вида «Успешно синхронизировано ресурсов: 5» либо «Не удалось завершить синхронизацию. Попробуйте снова». Внизу всегда указано время последней успешной проверки («Последняя синхронизация: » или «Никогда не синхронизировалось» при первом запуске).</p>
                         <figure class="doc-figure">
                             <img src="../assets/images/network/network-sync-background-sync-settings.png" alt="Раздел Фоновая синхронизация, сеть и кэш с переключателем Включить фоновую синхронизацию, полем Интервал синхронизации и кнопкой Синхронизировать сейчас" class="doc-screenshot" loading="lazy" />
@@ -453,6 +455,22 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>В том же разделе включите <strong>Предзагрузка миниатюр</strong> («Создавать миниатюры для сетевых видео и PDF-файлов в фоне после синхронизации»). Превью будут генерироваться сразу после синхронизации, а не в момент прокрутки списка. Чтобы избежать непредвиденного расхода мобильного трафика, активируйте параметр <strong>Предзагрузка только по Wi-Fi</strong>.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="network.sync-preload-thumbnails"
+                             data-device-profile="phone"
+                             data-screen-state="settings-network-preload-thumbnails"
+                             data-alt="Раздел фоновой синхронизации, прокрученный до переключателей предзагрузки миниатюр и предзагрузки только по Wi-Fi"
+                             data-caption="Превью можно готовить сразу после каждой синхронизации.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скриншот: предзагрузка миниатюр</strong>
+                                <p class="doc-img-bookmark-desc">Настройки, раздел фоновой синхронизации, сети и кэша, оба переключателя предзагрузки включены.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>network.sync-preload-thumbnails</code></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -464,6 +482,22 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>*Только редакция Standard.* Во время воспроизведения видео из сетевой папки приложение временно приостанавливает фоновую подгрузку миниатюр для соседних файлов. Вся пропускная способность канала отдается плавному воспроизведению видео, не разделяясь с десятками фоновых картинок. Как только просмотр завершается, загрузка миниатюр возобновляется автоматически и завершается корректно без сбоев и зависаний.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="network.network-video-playing"
+                             data-device-profile="phone"
+                             data-screen-state="player-network-video-playing"
+                             data-alt="Видеоплеер воспроизводит видео из сетевой папки, элементы управления показаны"
+                             data-caption="Пока играет сетевое видео, соединение отдано ему.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скриншот: воспроизведение сетевого видео</strong>
+                                <p class="doc-img-bookmark-desc">Видео из ресурса SMB воспроизводится в плеере, элементы управления видны.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>network.network-video-playing</code></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -487,17 +521,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="../storage/network-and-cloud-sources-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-other">Storage</span>
-                            <h4>Добавление сетевых папок и облачных хранилищ</h4>
+                            <h3>Добавление сетевых папок и облачных хранилищ</h3>
                             <p>Типы подключаемых хранилищ и механизмы кэширования для максимального быстродействия.</p>
                         </a>
                         <a href="smb-samba-shares-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Network</span>
-                            <h4>Подключение сетевых ресурсов SMB/Windows</h4>
+                            <h3>Подключение сетевых ресурсов SMB/Windows</h3>
                             <p>Пошаговая настройка общих папок на компьютерах с Windows и сетевых хранилищах NAS.</p>
                         </a>
                         <a href="network-monitor-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Network</span>
-                            <h4>Проверка соединения с помощью Сетевого монитора</h4>
+                            <h3>Проверка соединения с помощью Сетевого монитора</h3>
                             <p>Диагностика сетевого канала, если синхронизация или воспроизведение работают медленно.</p>
                         </a>
                     </div>
@@ -528,8 +562,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.</div>
             <div class="doc-footer-links">
-                <a href="../../docs/PRIVACY_POLICY.ru.html">Политика конфиденциальности</a>
-                <a href="../../docs/TERMS_OF_SERVICE_RU.html">Условия использования</a>
+                <a href="../../docs/PRIVACY_POLICY-ru.html">Политика конфиденциальности</a>
+                <a href="../../docs/TERMS_OF_SERVICE-ru.html">Условия использования</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>

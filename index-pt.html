@@ -115,7 +115,8 @@
 </head>
 
 <body>
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.06 14:18</div>
+<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.07 00:53</div>
+    <a class="skip-link" href="#main-content">Skip to content</a>
 
     <!-- SZA Web Kit sticky header -->
     <header class="site-header">
@@ -126,7 +127,7 @@
             <a href="index.html" data-lang="en">EN</a>
             <a href="index-uk.html" data-lang="ua">UA</a>
         </div>
-        <button class="theme-btn" id="themeBtn" aria-label="Mudar para o tema claro" title="Alternar tema">◐</button>
+        <button class="theme-btn" id="themeBtn" aria-label="Mudar para o tema claro" title="Alternar tema"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Tema</span></button>
         <a class="btn btn-primary btn-sm" href="#get">Instalar</a>
     </header>
 
@@ -150,7 +151,7 @@
 
     <!-- GitHub Corner -->
     <aside class="source-link">
-    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
+    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" tabindex="-1" target="_blank"
         aria-label="Ver código-fonte no GitHub">
         <svg width="80" height="80" viewBox="0 0 250 250"
             style="fill:var(--color-standard); color:var(--acc-ink); position: absolute; top: 0; border: 0; right: 0;"
@@ -168,9 +169,15 @@
 
     <main id="main-content">
     <header class="hero" id="top">
-        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
+        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.35" data-speed="0.5"></canvas>
         <div class="hero-inner">
-            <p class="kicker">Android - shell para dispositivo</p>
+            <div class="identity">
+                <img class="product-icon" src="icon.png" width="104" height="104" alt="">
+                <div>
+                    <p class="product-name">Fast Media Sorter &amp; Organizer</p>
+                    <p class="kicker">Android - shell para dispositivo</p>
+                </div>
+            </div>
             <h1>Um shell completo para o seu dispositivo Android.</h1>
             <p class="subtitle">Tela inicial, mídia, transmissões, apps, relógio e arquivos - tudo em um só lugar.</p>
             <p class="whatfor">O Fast Media Sorter &amp; Organizer assume a tela inicial e se torna o ponto de partida de tudo: shell do dispositivo, reprodutor de mídia, transmissões ao vivo, inicialização de apps, um substituto para os apps padrão, um companion no relógio, monitoramento do dispositivo e um gerenciador de arquivos completo para armazenamento local, SMB/NAS, SFTP/FTP e unidades na nuvem.</p>
@@ -657,6 +664,7 @@
                     target="_blank" rel="noopener">IzzyOnDroid</a>
             </div>
             <p class="shell-links"><a href="#download">Outras edições APK e mostrador</a></p>
+            <p class="shell-links">Edições: <a href="#download">Lite</a> · <a href="#download">Photos</a> · <a href="#download">Legacy</a> · <a href="nolegal.html">noLegal</a> · <a href="documentation/vr/spatial-cinema-playback.html">VR</a> · <a href="docs/wear/">Wear OS</a> · <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">Mostrador</a></p>
             <ol class="quickstart">
                 <li>Instale uma edição adequada e abra o app.</li>
                 <li>No assistente de boas-vindas, ou depois em Configurações, Geral, Janela inicial principal, escolha Tela inicial do dispositivo e confirme quando o Android perguntar.</li>
@@ -869,7 +877,7 @@
                         <li>Explica as diferenças entre edições e o espelho alternativo no Google Drive.</li>
                         <li>Downloads com um toque estão na seção Baixar Builds do APK abaixo.</li>
                     </ul>
-                    <a href="docs/DOWNLOADS_EN.html" class="card-footer" target="_blank">Abrir detalhes</a>
+                    <a href="docs/DOWNLOADS.html" class="card-footer" target="_blank">Abrir detalhes</a>
                 </details>
             </article>
         </div>
@@ -877,7 +885,7 @@
         <!-- Download APK Builds - live buttons from the latest GitHub Release (S0394) -->
         <h2 class="section-title" id="download">Baixar Builds do APK</h2>
         <p class="section-lead">O APK estável mais recente disponível para cada edição. As versões podem variar; veja os lançamentos no GitHub se sua edição não aparecer.</p>
-        <p class="section-lead">O Android avisa sobre um APK que ele ainda não viu. <a href="docs/INSTALL_TRUST_EN.html" target="_blank" rel="noopener">Por que o aviso aparece - e o que tocar</a>.</p>
+        <p class="section-lead">O Android avisa sobre um APK que ele ainda não viu. <a href="docs/INSTALL_TRUST.html" target="_blank" rel="noopener">Por que o aviso aparece - e o que tocar</a>.</p>
         <h3 class="edition-heading">Edições para headsets e relógios</h3>
         <div class="edition-download-grid">
             <article class="card edition-card" data-download-edition="noLegal">
@@ -1192,7 +1200,7 @@
                 <!-- family-footer:end -->
             </div>
             <div class="footer-bottom">
-                <span>&copy; 2024-2026 Serhii Zhyhunenko · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">Privacidade</a> · <a href="docs/TERMS_OF_SERVICE.html">Termos</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
+                <span>&copy; 2024-2026 <a href="https://sza.od.ua">Serhii Zhyhunenko</a> · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">Privacidade</a> · <a href="docs/TERMS_OF_SERVICE.html">Termos</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
             </div>
         </div>
     </footer>

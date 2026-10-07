@@ -1998,6 +1998,30 @@
     "en": "Shows a pairing code with the address, login and host key fingerprint for another FastMediaSorter to scan.",
     "ru": "Показывает код для подключения с адресом, логином и отпечатком ключа сервера для сканирования в другом FastMediaSorter.",
     "uk": "Показує код для підключення з адресою, логіном і відбитком ключа сервера для сканування в іншому FastMediaSorter."
+  },  "btnSftpServerLegacyQr": {
+    "en": "Shows the pairing code without the exchange server part, for a FastMediaSorter too old to read the new code; it connects on the local network only.",
+    "ru": "Показывает код подключения без данных сервера обмена - для FastMediaSorter, слишком старого для нового кода; такой код работает только в локальной сети.",
+    "uk": "Показує код підключення без даних сервера обміну - для FastMediaSorter, надто старого для нового коду; такий код працює лише в локальній мережі."
+  },
+  "rowSftpExchangeEnabled": {
+    "en": "Lets the SFTP server register on your exchange server so devices in any network can reach it; off keeps the server local-network only.",
+    "ru": "Разрешает SFTP-серверу регистрироваться на вашем сервере обмена, чтобы к нему подключались устройства из любой сети; выключено - сервер доступен только в локальной сети.",
+    "uk": "Дозволяє SFTP-серверу реєструватися на вашому сервері обміну, щоб до нього підключалися пристрої з будь-якої мережі; вимкнено - сервер доступний лише в локальній мережі."
+  },
+  "btnSftpExchangeSave": {
+    "en": "Saves the exchange server address, port and password; the password needs at least 10 characters with upper- and lower-case Latin letters and digits.",
+    "ru": "Сохраняет адрес, порт и пароль сервера обмена; пароль - не меньше 10 символов с заглавными и строчными латинскими буквами и цифрами.",
+    "uk": "Зберігає адресу, порт і пароль сервера обміну; пароль - щонайменше 10 символів із великими й малими латинськими літерами та цифрами."
+  },
+  "btnSftpExchangeNewLink": {
+    "en": "Issues a new access link: every code shared before stops opening this server through the exchange server.",
+    "ru": "Выдаёт новую ссылку доступа: все выданные раньше коды перестают открывать этот сервер через сервер обмена.",
+    "uk": "Видає нове посилання доступу: усі видані раніше коди перестають відкривати цей сервер через сервер обміну."
+  },
+  "btnSftpExchangeTrustAgain": {
+    "en": "Shown when the exchange server presented a different certificate: trusts the certificate it presents next.",
+    "ru": "Появляется, когда сервер обмена предъявил другой сертификат: доверяет сертификату, который он предъявит следующим.",
+    "uk": "Зʼявляється, коли сервер обміну показав інший сертифікат: довіряє сертифікату, який він покаже наступним."
   },
   "rowLetterboxHalo": {
     "en": "Softly fades the extended bars into the background around a photo. Needs the dynamic background.",

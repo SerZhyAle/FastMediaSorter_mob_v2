@@ -6,7 +6,7 @@ description: Блокировка отключения экрана, следо�
 category: Настройки и навигация
 category_slug: settings
 ticket: S2962
-flavor: Все редакции. Режим домашнего экрана и меню программ на панели быстрого доступа доступны только в Standard и noLegal; большинство остальных строк - в Standard, Lite, Photos и Legacy.
+availability_note: Все редакции. Режим домашнего экрана и меню программ на панели быстрого доступа доступны только в Standard и noLegal; большинство остальных строк - в Standard, Lite, Photos и Legacy.
 recipe_number: "03"
 canonical_url: documentation/settings/playback-and-sorting-preferences-ru.html
 why: |
@@ -161,6 +161,6 @@ next_recipes:
     description: Полное руководство по резервному копированию настроек, ресурсов и избранного.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Помимо визуального стиля, [Настройки](term:settings) определяют поведение FastMediaSorter в повседневной жизни: блокировку сна, оптимизацию батареи, открытие файлов из внешних программ и быстрый доступ к вашим [программам](term:program) и ресурсам через панели и режим [лаунчера](term:launcher).

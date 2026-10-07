@@ -6,7 +6,8 @@ description: How to take a photo or a video, or record a voice note, from inside
 category: Sources, Destinations & File Operations
 category_slug: storage
 ticket: S2949
-flavor: Standard, noLegal, Legacy and VR (Quick Recorder widget - Standard and Legacy)
+availability: SUPPORT_MIC_RECORDING
+availability_note: Standard, noLegal, Legacy and VR (Quick Recorder widget - Standard and Legacy)
 recipe_number: "10"
 canonical_url: documentation/storage/capture-to-destination.html
 why: |
@@ -121,6 +122,6 @@ next_recipes:
     description: Move the day's photos and notes to their place every night.
 ---
 
-<sub class="doc-stamp">26.09.25 21:58</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Take a photo or a video, or record a voice note, from inside a folder so it is saved right there - on the phone, on a network folder or in the cloud - and use the Quick Recorder widget and the clipboard for even faster notes.

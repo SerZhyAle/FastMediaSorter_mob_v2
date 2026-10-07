@@ -1,0 +1,9 @@
+{
+  "languages_source": "_data/languages.yml",
+  "groups": [
+    { "id": "landing", "match": "^(index|nolegal)(-[a-z0-9-]+)?\\.html$", "form": "-<lang>" },
+    { "id": "portal", "match": "^(documentation/|docs/(howto|wear|launcher)/)", "form": "-<lang>" },
+    { "id": "trust", "match": "^docs/(PRIVACY_POLICY|INSTALL_TRUST|TERMS_OF_SERVICE|OPEN_SOURCE)(-[a-z0-9-]+)?\\.html$", "form": "-<lang>" },
+    { "id": "reference", "match": "^docs/", "form": "-<lang>" }
+  ]
+}

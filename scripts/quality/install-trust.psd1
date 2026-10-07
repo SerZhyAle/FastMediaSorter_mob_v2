@@ -40,27 +40,27 @@
         @{ Path = 'docs/DOWNLOADS.md';    Link = '(INSTALL_TRUST.md)' }
         @{ Path = 'docs/DOWNLOADS-ru.md'; Link = '(INSTALL_TRUST-ru.md)' }
         @{ Path = 'docs/DOWNLOADS-uk.md'; Link = '(INSTALL_TRUST-uk.md)' }
-        @{ Path = 'index.html';           Link = 'href="docs/INSTALL_TRUST_EN.html"' }
-        @{ Path = 'index-ru.html';        Link = 'href="docs/INSTALL_TRUST_RU.html"' }
-        @{ Path = 'index-uk.html';        Link = 'href="docs/INSTALL_TRUST_UK.html"' }
-        @{ Path = 'nolegal.html';         Link = 'href="docs/INSTALL_TRUST_EN.html"' }
-        @{ Path = 'nolegal-ru.html';      Link = 'href="docs/INSTALL_TRUST_RU.html"' }
-        @{ Path = 'nolegal-uk.html';      Link = 'href="docs/INSTALL_TRUST_UK.html"' }
+        @{ Path = 'index.html';           Link = 'href="docs/INSTALL_TRUST.html"' }
+        @{ Path = 'index-ru.html';        Link = 'href="docs/INSTALL_TRUST-ru.html"' }
+        @{ Path = 'index-uk.html';        Link = 'href="docs/INSTALL_TRUST-uk.html"' }
+        @{ Path = 'nolegal.html';         Link = 'href="docs/INSTALL_TRUST.html"' }
+        @{ Path = 'nolegal-ru.html';      Link = 'href="docs/INSTALL_TRUST-ru.html"' }
+        @{ Path = 'nolegal-uk.html';      Link = 'href="docs/INSTALL_TRUST-uk.html"' }
 
-        # Documentation recipes (source) and the pages compiled from them. The compiler rewrites the
-        # source's .html target to the _EN/_RU/_UK page name, so the two forms differ.
+        # Documentation recipes (source) and the pages compiled from them. The compiler writes the
+        # source's .html target into an href, so the two forms differ only in their quoting.
         @{ Path = 'docs/content/recipes/flavors-overview-and-comparison.md';    Link = '(../../docs/INSTALL_TRUST.html)' }
         @{ Path = 'docs/content/recipes-ru/flavors-overview-and-comparison.md'; Link = '(../../docs/INSTALL_TRUST-ru.html)' }
         @{ Path = 'docs/content/recipes-uk/flavors-overview-and-comparison.md'; Link = '(../../docs/INSTALL_TRUST-uk.html)' }
         @{ Path = 'docs/content/recipes/wear-installation-and-pairing.md';      Link = '(../../docs/INSTALL_TRUST.html)' }
         @{ Path = 'docs/content/recipes-ru/wear-installation-and-pairing.md';   Link = '(../../docs/INSTALL_TRUST-ru.html)' }
         @{ Path = 'docs/content/recipes-uk/wear-installation-and-pairing.md';   Link = '(../../docs/INSTALL_TRUST-uk.html)' }
-        @{ Path = 'documentation/flavors/overview-and-comparison.html';         Link = 'href="../../docs/INSTALL_TRUST_EN.html"' }
-        @{ Path = 'documentation/flavors/overview-and-comparison-ru.html';      Link = 'href="../../docs/INSTALL_TRUST_RU.html"' }
-        @{ Path = 'documentation/flavors/overview-and-comparison-uk.html';      Link = 'href="../../docs/INSTALL_TRUST_UK.html"' }
-        @{ Path = 'documentation/wear/installation-and-pairing.html';           Link = 'href="../../docs/INSTALL_TRUST_EN.html"' }
-        @{ Path = 'documentation/wear/installation-and-pairing-ru.html';        Link = 'href="../../docs/INSTALL_TRUST_RU.html"' }
-        @{ Path = 'documentation/wear/installation-and-pairing-uk.html';        Link = 'href="../../docs/INSTALL_TRUST_UK.html"' }
+        @{ Path = 'documentation/flavors/overview-and-comparison.html';         Link = 'href="../../docs/INSTALL_TRUST.html"' }
+        @{ Path = 'documentation/flavors/overview-and-comparison-ru.html';      Link = 'href="../../docs/INSTALL_TRUST-ru.html"' }
+        @{ Path = 'documentation/flavors/overview-and-comparison-uk.html';      Link = 'href="../../docs/INSTALL_TRUST-uk.html"' }
+        @{ Path = 'documentation/wear/installation-and-pairing.html';           Link = 'href="../../docs/INSTALL_TRUST.html"' }
+        @{ Path = 'documentation/wear/installation-and-pairing-ru.html';        Link = 'href="../../docs/INSTALL_TRUST-ru.html"' }
+        @{ Path = 'documentation/wear/installation-and-pairing-uk.html';        Link = 'href="../../docs/INSTALL_TRUST-uk.html"' }
 
         # Locales without a trust page of their own: the README and the landing page carry the English
         # page, as they already did before these rows existed.
@@ -74,16 +74,16 @@
         @{ Path = 'docs/README-pt.md';      Link = '(INSTALL_TRUST.md)' }
         @{ Path = 'docs/README-ur.md';      Link = '(INSTALL_TRUST.md)' }
         @{ Path = 'docs/README-zh-hans.md'; Link = '(INSTALL_TRUST.md)' }
-        @{ Path = 'index-ar.html';          Link = 'href="docs/INSTALL_TRUST_EN.html"' }
-        @{ Path = 'index-bn.html';          Link = 'href="docs/INSTALL_TRUST_EN.html"' }
-        @{ Path = 'index-de.html';          Link = 'href="docs/INSTALL_TRUST_EN.html"' }
-        @{ Path = 'index-es.html';          Link = 'href="docs/INSTALL_TRUST_EN.html"' }
-        @{ Path = 'index-fr.html';          Link = 'href="docs/INSTALL_TRUST_EN.html"' }
-        @{ Path = 'index-hi.html';          Link = 'href="docs/INSTALL_TRUST_EN.html"' }
-        @{ Path = 'index-it.html';          Link = 'href="docs/INSTALL_TRUST_EN.html"' }
-        @{ Path = 'index-pt.html';          Link = 'href="docs/INSTALL_TRUST_EN.html"' }
-        @{ Path = 'index-ur.html';          Link = 'href="docs/INSTALL_TRUST_EN.html"' }
-        @{ Path = 'index-zh-hans.html';     Link = 'href="docs/INSTALL_TRUST_EN.html"' }
+        @{ Path = 'index-ar.html';          Link = 'href="docs/INSTALL_TRUST.html"' }
+        @{ Path = 'index-bn.html';          Link = 'href="docs/INSTALL_TRUST.html"' }
+        @{ Path = 'index-de.html';          Link = 'href="docs/INSTALL_TRUST.html"' }
+        @{ Path = 'index-es.html';          Link = 'href="docs/INSTALL_TRUST.html"' }
+        @{ Path = 'index-fr.html';          Link = 'href="docs/INSTALL_TRUST.html"' }
+        @{ Path = 'index-hi.html';          Link = 'href="docs/INSTALL_TRUST.html"' }
+        @{ Path = 'index-it.html';          Link = 'href="docs/INSTALL_TRUST.html"' }
+        @{ Path = 'index-pt.html';          Link = 'href="docs/INSTALL_TRUST.html"' }
+        @{ Path = 'index-ur.html';          Link = 'href="docs/INSTALL_TRUST.html"' }
+        @{ Path = 'index-zh-hans.html';     Link = 'href="docs/INSTALL_TRUST.html"' }
     )
 
     # A .md or .html file containing any of these hands the APK out. Matched literally.

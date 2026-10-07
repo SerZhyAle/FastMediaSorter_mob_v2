@@ -6,7 +6,7 @@ description: Как передать просматриваемое видео �
 category: Видеоплеер и медиаплеер
 category_slug: player
 ticket: S2951
-flavor: Chromecast - редакции Standard, noLegal, Lite и Legacy; Прямой эфир - редакции Standard, noLegal и Legacy
+availability_note: Chromecast - редакции Standard, noLegal, Lite и Legacy; Прямой эфир - редакции Standard, noLegal и Legacy
 recipe_number: "04"
 canonical_url: documentation/player/casting-and-broadcast-ru.html
 why: |
@@ -128,6 +128,6 @@ next_recipes:
     description: Продолжайте просмотр видео в компактном плавающем окне.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Передавайте просматриваемое видео на большой экран телевизора через Chromecast или превратите смартфон в локальную станцию прямого видео- и аудиовещания с мгновенным подключением по QR-коду.

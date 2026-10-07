@@ -6,7 +6,9 @@ description: How to browse the phone's media by type from the watch, switch file
 category: Wear OS Watch
 category_slug: wear
 ticket: S2965
-flavor: The full version of the watch app (sideload only), with the phone app in the Standard or noLegal edition. Opening FileDO containers stored on a network resource - noLegal only.
+availability: companion:wear
+devices: watch
+availability_note: The full version of the watch app (sideload only), with the phone app in the Standard or noLegal edition. Opening FileDO containers stored on a network resource - noLegal only.
 recipe_number: "10"
 canonical_url: documentation/wear/watch-file-manager.html
 why: |
@@ -166,6 +168,6 @@ next_recipes:
     description: Find a live channel, pin it and listen right from the watch.
 ---
 
-<sub class="doc-stamp">26.09.24 09:34</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Browse the watch's own files, your [phone](term:phone)'s media and your servers as a list or a grid, act on several files at once, see where each one landed on the phone, hand a file to the phone to open it there, and unlock FileDO containers on the watch.

@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Stream publisher module: liveness probes that classify each catalog row before pruning.
+#>
+
+
 function Invoke-LivenessProbe {
     param(
         [Parameter(Mandatory = $true)][object[]]$Rows,

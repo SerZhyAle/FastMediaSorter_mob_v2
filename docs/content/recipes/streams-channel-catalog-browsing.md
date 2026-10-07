@@ -6,7 +6,7 @@ description: How the channel catalog gets onto your device and stays fresh, how 
 category: Internet Streams
 category_slug: streams
 ticket: S2954
-flavor: Standard, noLegal, Legacy and VR
+availability: SUPPORT_STREAMS
 recipe_number: "01"
 canonical_url: documentation/streams/channel-catalog-browsing.html
 why: |
@@ -207,6 +207,6 @@ next_recipes:
     description: What happens once you actually tap a channel and playback starts.
 ---
 
-<sub class="doc-stamp">26.09.25 04:13</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 The [catalog](term:catalog) is how [Streams](term:streams-screen) goes from empty to thousands of [channels](term:channel) worth browsing: download it, keep it fresh, then find your way around with filters, curated collections, sorting and a list that remembers exactly where you left it.

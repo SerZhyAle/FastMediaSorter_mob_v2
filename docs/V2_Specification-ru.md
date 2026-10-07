@@ -1,25 +1,25 @@
 ---
 layout: default
 title: "Техническая спецификация"
-permalink: /docs/V2_Specification_RU.html
+permalink: /docs/V2_Specification-ru.html
 lang: ru
 ---
 
-<sub class="doc-stamp">26.10.06 14:18</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 <div lang="ru" markdown="1">
 
 # Техническая спецификация
 
-[Сайт продукта](../index-ru.html) | [Документация пользователя](../documentation/index-ru.html) | [Термины](V2_TERMS_RU.html)
+[Сайт продукта](../index-ru.html) | [Документация пользователя](../documentation/index-ru.html) | [Термины](V2_TERMS-ru.html)
 
 Fast Media Sorter объединяет оболочку Android-устройства, медиаплеер, организацию файлов, сетевые и облачные источники, интеграцию с Wear OS и отдельный циферблат. Здесь описана текущая конфигурация исходного кода; опубликованные версии могут содержать более ранний или ограниченный набор возможностей.
 
 ## Основные технические документы
 
-- [Обзор архитектуры](V2_architecture_overview_RU.html): модули, поток выполнения и границы подсистем.
+- [Обзор архитектуры](V2_architecture_overview-ru.html): модули, поток выполнения и границы подсистем.
 - [Технологический стек, EN](TECH_STACK.html): инструменты сборки, источники зависимостей и идентификаторы пакетов.
-- [Технические требования](TECHNICAL_REQUIREMENTS_RU.html): SDK, возможности устройства и ограничения редакций.
+- [Технические требования](TECHNICAL_REQUIREMENTS-ru.html): SDK, возможности устройства и ограничения редакций.
 - [Сборка и проверки, EN](BUILD_AND_VERIFICATION.html): публичный CI, SBOM и отличие сборки от выпуска.
 - [Сгенерированная матрица редакций](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md): возможности из конфигурации сборки, просмотр на GitHub.
 
@@ -34,6 +34,6 @@ Fast Media Sorter объединяет оболочку Android-устройст
 
 ## Исходники и выпуски
 
-[Исходный код](https://github.com/SerZhyAle/FastMediaSorter_mob_v2), [выпуски](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases) и [публичные задачи](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) отвечают на разные вопросы. Внутренние планы, локальные учётные данные и материалы подписи не входят в сайт. [Указатель развития](TODO_V2_RU.html) помогает следить за опубликованными изменениями без ссылок на недоступные внутренние каталоги.
+[Исходный код](https://github.com/SerZhyAle/FastMediaSorter_mob_v2), [выпуски](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases) и [публичные задачи](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) отвечают на разные вопросы. Внутренние планы, локальные учётные данные и материалы подписи не входят в сайт. [Указатель развития](TODO_V2-ru.html) помогает следить за опубликованными изменениями без ссылок на недоступные внутренние каталоги.
 
 </div>

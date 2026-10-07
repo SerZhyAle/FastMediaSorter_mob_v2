@@ -6,7 +6,7 @@ description: How to capture a screenshot with an edge gesture, what Android asks
 category: Camera & Screen Capture
 category_slug: capture
 ticket: S2956
-flavor: Standard and noLegal editions
+availability: screenCapture
 recipe_number: "3"
 canonical_url: documentation/capture/screenshot-annotation.html
 why: |
@@ -111,6 +111,6 @@ next_recipes:
     description: Where Send To and the system share sheet take a captured screenshot.
 ---
 
-<sub class="doc-stamp">26.09.24 15:50</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Turn on Gesture overlay, give a swipe a job, and a screenshot is one drag away from wherever you are - saved quietly, opened for editing, translated or sent on, exactly the way you set it up.

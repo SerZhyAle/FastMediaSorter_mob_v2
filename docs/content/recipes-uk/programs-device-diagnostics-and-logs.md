@@ -6,7 +6,7 @@ description: Як відкрити звіт Відомості про систе
 category: "Програми, статистика та діагностика"
 category_slug: programs
 ticket: S2961
-flavor: Усі редакції; звіт із годинника з FastMedia Wear доступний у редакціях Standard і noLegal
+availability_note: Усі редакції; звіт із годинника з FastMedia Wear доступний у редакціях Standard і noLegal
 recipe_number: "05"
 canonical_url: documentation/programs/device-diagnostics-and-logs-uk.html
 why: |
@@ -122,6 +122,6 @@ next_recipes:
     description: Для чого потрібен кожен дозвіл, коли функція не працює.
 ---
 
-<sub class="doc-stamp">26.09.25 22:20</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Два інструменти допомагають, коли щось у FastMediaSorter працює не так, як має: звіт **Відомості про систему** про ваш телефон і застосунок та **журнал діагностики** про те, що робив застосунок. На цій сторінці показано, як відкрити, прочитати, скопіювати, зберегти і надіслати обидва, а також як дізнатися точну збірку за номером версії.

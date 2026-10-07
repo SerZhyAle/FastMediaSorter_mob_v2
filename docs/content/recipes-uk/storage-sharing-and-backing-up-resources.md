@@ -6,7 +6,7 @@ description: Як передати список папок і серверів �
 category: Джерела, призначення та операції з файлами
 category_slug: storage
 ticket: S2949
-flavor: Усі редакції (подробиці в кожному кроці)
+availability_note: Усі редакції (подробиці в кожному кроці)
 recipe_number: "03"
 canonical_url: documentation/storage/sharing-and-backing-up-resources-uk.html
 why: |
@@ -124,6 +124,6 @@ next_recipes:
     description: Тримайте ресурс чи окремий файл подалі від чужих очей.
 ---
 
-<sub class="doc-stamp">26.09.25 22:43</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Упакуйте ресурси у файл для іншого телефону, імпортуйте їх назад, перенесіть готову конфігурацію з Fast Media Sorter for Windows, зберігайте повну резервну копію в Google Drive і знайте, що станеться, якщо базу даних застосунку колись доведеться скинути.

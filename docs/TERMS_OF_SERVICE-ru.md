@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "Условия использования"
-permalink: /docs/TERMS_OF_SERVICE_RU.html
+permalink: /docs/TERMS_OF_SERVICE-ru.html
 ---
-<sub class="doc-stamp">26.09.23 01:45</sub>
+<sub class="doc-stamp">26.10.07 02:56</sub>
 
 # Условия использования
 

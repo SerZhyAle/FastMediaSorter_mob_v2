@@ -6,7 +6,7 @@ description: "Як тримати відео у невеликому плаву�
 category: Відео та медіаплеєр
 category_slug: player
 ticket: S2951
-flavor: Усі редакції, крім Photos; фонове прослуховування недоступне в Lite; керування з годинника - у Standard і noLegal
+availability_note: Усі редакції, крім Photos; фонове прослуховування недоступне в Lite; керування з годинника - у Standard і noLegal
 recipe_number: "03"
 canonical_url: documentation/player/pip-and-background-play-uk.html
 why: |
@@ -104,6 +104,6 @@ next_recipes:
     description: Відтворюйте й керуйте музикою з вашого годинника на Wear OS.
 ---
 
-<sub class="doc-stamp">26.09.25 22:31</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Тримайте відео у невеликому плавучому вікні, вирішуйте, що станеться зі звуком, коли йдете з плеєра, і визначайте, як телефонний плеєр і ваш годинник працюють разом.

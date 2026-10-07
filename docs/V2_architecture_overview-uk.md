@@ -1,17 +1,17 @@
 ---
 layout: default
 title: "Огляд архітектури"
-permalink: /docs/V2_architecture_overview_UK.html
+permalink: /docs/V2_architecture_overview-uk.html
 lang: uk
 ---
 
-<sub class="doc-stamp">26.10.06 14:18</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 <div lang="uk" markdown="1">
 
 # Огляд архітектури
 
-[Технічна специфікація](V2_Specification_UK.html) | [Стек, EN](TECH_STACK.html) | [Вимоги](TECHNICAL_REQUIREMENTS_UK.html)
+[Технічна специфікація](V2_Specification-uk.html) | [Стек, EN](TECH_STACK.html) | [Вимоги](TECHNICAL_REQUIREMENTS-uk.html)
 
 Застосунок використовує MVVM, Hilt, репозиторії та use case. Потік виконання близький до Clean Architecture, але залежності при компіляції навмисно прагматичні.
 

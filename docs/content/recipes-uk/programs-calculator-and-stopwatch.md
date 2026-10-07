@@ -6,7 +6,7 @@ description: Як увімкнути та користуватися вбудо�
 category: "Програми, статистика та діагностика"
 category_slug: programs
 ticket: S2961
-flavor: Усі редакції; калькулятор на годиннику з FastMedia Wear доступний у редакціях Standard і noLegal
+availability_note: Усі редакції; калькулятор на годиннику з FastMedia Wear доступний у редакціях Standard і noLegal
 recipe_number: "02"
 canonical_url: documentation/programs/calculator-and-stopwatch-uk.html
 why: |
@@ -136,6 +136,6 @@ next_recipes:
     description: Розмістіть калькулятор і секундомір на головному екрані.
 ---
 
-<sub class="doc-stamp">26.09.25 22:19</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 У FastMediaSorter є дві повсякденні [програми](term:program): калькулятор, що показує відповідь одразу під час введення і зберігає історію, та секундомір для чотирьох людей одночасно. На цій сторінці показано, як їх відкрити, що робить кожна клавіша та кнопка, і як їх налаштувати.

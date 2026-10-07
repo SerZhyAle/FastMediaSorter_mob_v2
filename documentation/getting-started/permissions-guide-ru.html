@@ -134,20 +134,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.30 08:05</div>
+<div class="doc-stamp">26.10.07 03:42</div>
+    <a class="doc-skip-link" href="#main-content">Перейти к содержимому</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index-ru.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index-ru.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Поиск...</span>
                 <kbd>/</kbd>
             </button>
@@ -169,8 +170,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Тема</span></button>
             </nav>
         </div>
     </header>
@@ -416,16 +417,16 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Первые шаги и настройка</span>
-                    <span class="doc-badge doc-badge-standard">Все редакции</span>
+                    <span class="doc-edition-badge">Все редакции</span>
                     <span class="doc-badge doc-badge-sm">Recipe #02</span>
                 </div>
 
                 <h1>Разрешения и права доступа приложения</h1>
 
                 <p class="doc-lead">
-                    FastMediaSorter запрашивает только те разрешения, которые действительно требуются функциям приложения, объясняет каждое из них простыми словами и позволяет выдать их по отдельности или сразу все вместе в разделе <strong>Настройки → Общие → Разрешения и доступ</strong>, оставляя возможность скорректировать выбор в настройках Android в любой момент.
+                    FastMediaSorter запрашивает только те разрешения, которые действительно требуются функциям приложения, объясняет каждое из них простыми словами и позволяет выдать их по отдельности или сразу все вместе в разделе <span class="doc-menu-path"><span class="doc-menu-path-item">Настройки</span><span class="doc-menu-path-sep">→</span><span class="doc-menu-path-item">Общие</span><span class="doc-menu-path-sep">→</span><span class="doc-menu-path-item">Разрешения и доступ</span></span>, оставляя возможность скорректировать выбор в настройках Android в любой момент.
                 </p>
 
                 <h2 id="why">Почему вам это понравится</h2>
@@ -435,12 +436,12 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Перед началом: Что вам понадобится</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> Установленный FastMediaSorter в любой <span class="doc-link-term" data-term="edition">редакции</span>: Standard, noLegal, Lite, Photos, Legacy, VR или FOSS. Точный список строк немного отличается в зависимости от сборки - показываются только те разрешения, которые реально используются.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Некоторые пункты появляются только начиная с определённых версий Android - рядом с каждым из них указана требуемая версия системы.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Установленный FastMediaSorter в любой <span class="doc-link-term" data-term="edition">редакции</span>: Standard, noLegal, Lite, Photos, Legacy, VR или FOSS. Точный список строк немного отличается в зависимости от сборки - показываются только те разрешения, которые реально используются.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Некоторые пункты появляются только начиная с определённых версий Android - рядом с каждым из них указана требуемая версия системы.</li>
                     </ul>
                 </div>
 
@@ -500,9 +501,25 @@ layout: null
                     <div class="doc-step-body">
                         <ul><li><strong>Память</strong> - чтение фотографий, видео и музыки, а в sideload-редакции noLegal - полный доступ ко всем папкам для пакетной обработки файлов.</li><li><strong>Сеть</strong> - подключение к серверам SMB, SFTP, FTP и DLNA в локальной сети. В свежих версиях Android это отдельное разрешение, независимое от простого включения Wi-Fi.</li><li><strong>Микрофон</strong> - запись голосовых заметок и захват звука при записи экрана (в редакциях с поддержкой записи аудио).</li><li><strong>Уведомления</strong> - показ прогресса длительных фоновых операций и управление воспроизведением в фоновом режиме.</li><li><strong>Камера</strong> - съёмка фото и видео внутри приложения, распознавание текста (OCR) и сканирование QR-кодов (включая сопряжение с ПК-компаньоном).</li><li><strong>Местоположение</strong> - добавление геотегов к создаваемым в приложении фото и видео. В редакциях с рабочим столом лаунчера или монитором сети это же разрешение питает виджеты компаса, скорости, высоты над уровнем моря, карту, а также параметры GNSS и Wi-Fi.</li><li><strong>Система</strong> - фоновые службы: исключение из оптимизации батареи для фоновых задач, отображение панели жестов поверх других окон, установка открытых APK-пакетов (только в noLegal), отображение уровня сигнала сети и шагомера на рабочем столе.</li><li><strong>Контакты</strong> - чтение имени и фото закреплённого контакта для актуальности ярлыков на рабочем столе (в редакциях с лаунчером).</li></ul>
                         <p>Строки, которые вы не видите в списке, просто не относятся к вашей редакции или версии Android - приложение никогда не прячет доступные ему функции.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="getting-started.permissions-groups"
+                             data-device-profile="phone"
+                             data-screen-state="settings-permissions-groups-scrolled"
+                             data-alt="Список разрешений, прокрученный до групп «Местоположение», «Система» и «Контакты», каждая строка называет, что она открывает"
+                             data-caption="Каждая строка группы говорит, что она открывает.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скриншот: группы разрешений</strong>
+                                <p class="doc-img-bookmark-desc">Настройки, «Разрешения», прокручено ниже «Камеры».</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>getting-started.permissions-groups</code></span>
+                                </div>
+                            </div>
+                        </div>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
-                                <span class="doc-callout-icon">💡</span> Единые и понятные формулировки
+                                Единые и понятные формулировки
                             </div>
                             <p>Где бы ни запрашивалось разрешение - в этом списке, в мастере настройки или во время работы - оно описывается одними и теми же простыми словами. Смысл назначения никогда не меняется от контекста.</p>
                         </div>
@@ -545,17 +562,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="welcome-and-setup-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Первые шаги</span>
-                            <h4>Мастер первого запуска и настройки</h4>
+                            <h3>Мастер первого запуска и настройки</h3>
                             <p>Краткая версия этого же списка разрешений на финальном шаге первоначальной настройки.</p>
                         </a>
                         <a href="main-screen-overview-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Первые шаги</span>
-                            <h4>Обзор главного экрана</h4>
+                            <h3>Обзор главного экрана</h3>
                             <p>Что представляют собой список ресурсов, панель команд и виджеты после выдачи прав.</p>
                         </a>
                         <a href="../settings/settings-overview-and-search-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-settings">Настройки</span>
-                            <h4>Навигация и поиск по настройкам</h4>
+                            <h3>Навигация и поиск по настройкам</h3>
                             <p>Быстрый поиск любого параметра, включая раздел «Разрешения и доступ».</p>
                         </a>
                     </div>
@@ -588,8 +605,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.</div>
             <div class="doc-footer-links">
-                <a href="../../docs/PRIVACY_POLICY.ru.html">Политика конфиденциальности</a>
-                <a href="../../docs/TERMS_OF_SERVICE_RU.html">Условия использования</a>
+                <a href="../../docs/PRIVACY_POLICY-ru.html">Политика конфиденциальности</a>
+                <a href="../../docs/TERMS_OF_SERVICE-ru.html">Условия использования</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>

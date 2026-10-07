@@ -1,11 +1,11 @@
 ---
 layout: default
 title: "Справочник терминов"
-permalink: /docs/V2_TERMS_RU.html
+permalink: /docs/V2_TERMS-ru.html
 lang: ru
 ---
 
-<sub class="doc-stamp">26.10.06 14:18</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 <div lang="ru" markdown="1">
 
@@ -24,10 +24,10 @@ lang: ru
 
 ## Дополнительные термины
 
-- **Flavor** - вариант продукта (`standard`, `noLegal`, `lite`, `photos`, `legacy`, `vr`, `xr`, `foss`); [SDK](TECHNICAL_REQUIREMENTS_RU.html)
+- **Flavor** - вариант продукта (`standard`, `noLegal`, `lite`, `photos`, `legacy`, `vr`, `xr`, `foss`); [SDK](TECHNICAL_REQUIREMENTS-ru.html)
 - **Browse** - экран списка/сетки файлов выбранного ресурса
 - **Player** - полноэкранный просмотрщик медиа и документов
 
-Практические инструкции: [HOW_TO_RU.html](HOW_TO_RU.html) и [FAQ_RU.html](FAQ_RU.html).
+Практические инструкции: [HOW_TO-ru.html](HOW_TO-ru.html) и [FAQ-ru.html](FAQ-ru.html).
 
 </div>

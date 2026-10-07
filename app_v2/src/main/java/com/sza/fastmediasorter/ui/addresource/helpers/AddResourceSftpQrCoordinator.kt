@@ -2,19 +2,27 @@ package com.sza.fastmediasorter.ui.addresource.helpers
 
 import android.widget.Toast
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.SftpPairingPayload
+import com.sza.fastmediasorter.domain.model.SftpTunnelAddress
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
+import timber.log.Timber
 
 /**
  * Turns a scanned embedded-server pairing code into a filled SFTP form ("Resources -> Add Resource ->
  * My Device Server"). The same camera scan also reads companion configs; a code without the
- * [SftpPairingPayload.PREFIX] is left to that path.
+ * [SftpPairingPayload.PREFIX] or [SftpPairingPayload.PREFIX_V2] is left to that path. A v2 code fills
+ * the form from its direct fields and hands its tunnel candidate to the view model, which saves it as an
+ * alternate path of the resource (contract ANYWHERE-ACCESS).
  *
  * The host-key fingerprint goes into the form's fingerprint field, which the save path already turns
  * into a pin (`PinnedHostKeyRepository`), so the first connection refuses any machine but the one that
  * showed the code. Nothing is saved here: the user reviews the form and saves it.
  */
-class AddResourceSftpQrCoordinator(private val activity: AddResourceActivity) {
+class AddResourceSftpQrCoordinator(
+    private val activity: AddResourceActivity,
+    private val rememberTunnel: (HostPort?) -> Unit,
+) {
 
     /** True when [payload] was a pairing code - applied, or refused as damaged - and needs no other handler. */
     fun handle(payload: String): Boolean {
@@ -23,6 +31,8 @@ class AddResourceSftpQrCoordinator(private val activity: AddResourceActivity) {
         val message = if (pairing == null) {
             R.string.add_resource_sftp_pairing_invalid
         } else {
+            Timber.d("S4094: pairing code scanned")
+            rememberTunnel(SftpTunnelAddress.fromPairing(pairing))
             apply(pairing)
             R.string.add_resource_sftp_pairing_filled
         }

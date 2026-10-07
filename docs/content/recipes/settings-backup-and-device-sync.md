@@ -6,7 +6,8 @@ description: Exporting and restoring every app setting to a file or to Google Dr
 category: "Settings & Navigation"
 category_slug: settings
 ticket: S2962
-flavor: All editions - Google Drive backup needs Standard, noLegal, Photos, Legacy or VR with a Google account connected; Wear OS sync needs Standard or noLegal with Wear Companion
+availability: all
+availability_note: All editions - Google Drive backup needs Standard, noLegal, Photos, Legacy or VR with a Google account connected; Wear OS sync needs Standard or noLegal with Wear Companion
 recipe_number: "05"
 canonical_url: documentation/settings/backup-and-device-sync.html
 why: |
@@ -122,6 +123,6 @@ next_recipes:
     description: Every backup and export option of the app on one page.
 ---
 
-<sub class="doc-stamp">26.09.24 08:55</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Pack every setting into a file or a Google Drive backup, export and import just your Favorites, move exactly one kind of data with the unified menu, and keep a paired [watch](term:watch)'s settings and resources in step with the phone - synced both ways, with only the resources you chose along for the ride.

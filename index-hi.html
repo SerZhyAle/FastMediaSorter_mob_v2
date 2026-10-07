@@ -115,7 +115,8 @@
 </head>
 
 <body>
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.06 14:18</div>
+<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.07 00:53</div>
+    <a class="skip-link" href="#main-content">Skip to content</a>
 
     <!-- SZA Web Kit sticky header -->
     <header class="site-header">
@@ -126,7 +127,7 @@
             <a href="index.html" data-lang="en">EN</a>
             <a href="index-uk.html" data-lang="ua">UA</a>
         </div>
-        <button class="theme-btn" id="themeBtn" aria-label="लाइट थीम पर स्विच करें" title="थीम टॉगल करें">◐</button>
+        <button class="theme-btn" id="themeBtn" aria-label="लाइट थीम पर स्विच करें" title="थीम टॉगल करें"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>थीम</span></button>
         <a class="btn btn-primary btn-sm" href="#get">इंस्टॉल करें</a>
     </header>
 
@@ -150,7 +151,7 @@
 
     <!-- GitHub Corner -->
     <aside class="source-link">
-    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
+    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" tabindex="-1" target="_blank"
         aria-label="GitHub पर सोर्स देखें">
         <svg width="80" height="80" viewBox="0 0 250 250"
             style="fill:var(--color-standard); color:var(--acc-ink); position: absolute; top: 0; border: 0; right: 0;"
@@ -168,9 +169,15 @@
 
     <main id="main-content">
     <header class="hero" id="top">
-        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
+        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.35" data-speed="0.5"></canvas>
         <div class="hero-inner">
-            <p class="kicker">Android - डिवाइस शेल</p>
+            <div class="identity">
+                <img class="product-icon" src="icon.png" width="104" height="104" alt="">
+                <div>
+                    <p class="product-name">Fast Media Sorter &amp; Organizer</p>
+                    <p class="kicker">Android - डिवाइस शेल</p>
+                </div>
+            </div>
             <h1>आपके Android डिवाइस के लिए एक संपूर्ण शेल।</h1>
             <p class="subtitle">होम स्क्रीन, मीडिया, स्ट्रीम, ऐप्स, वॉच और फ़ाइलें - सब कुछ एक ही जगह।</p>
             <p class="whatfor">Fast Media Sorter &amp; Organizer होम स्क्रीन को अपने कब्ज़े में ले लेता है और वह जगह बन जाता है जहाँ से सब कुछ शुरू होता है: डिवाइस शेल, मीडिया प्लेयर, लाइव स्ट्रीम, ऐप लॉन्चिंग, स्टॉक ऐप्स का विकल्प, वॉच पर कम्पेनियन, डिवाइस मॉनिटरिंग और लोकल स्टोरेज, SMB/NAS, SFTP/FTP और क्लाउड ड्राइव के लिए एक पूर्ण फ़ाइल मैनेजर।</p>
@@ -657,6 +664,7 @@
                     target="_blank" rel="noopener">IzzyOnDroid</a>
             </div>
             <p class="shell-links"><a href="#download">अन्य APK संस्करण और वॉच फेस</a></p>
+            <p class="shell-links">संस्करण: <a href="#download">Lite</a> · <a href="#download">Photos</a> · <a href="#download">Legacy</a> · <a href="nolegal.html">noLegal</a> · <a href="documentation/vr/spatial-cinema-playback.html">VR</a> · <a href="docs/wear/">Wear OS</a> · <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">वॉच फेस</a></p>
             <ol class="quickstart">
                 <li>उपयुक्त एडिशन इंस्टॉल करें और ऐप खोलें।</li>
                 <li>स्वागत विज़ार्ड में, या बाद में सेटिंग्स, सामान्य, प्राथमिक स्टार्टअप विंडो में, डिवाइस होम स्क्रीन चुनें और Android के पूछने पर पुष्टि करें।</li>
@@ -869,7 +877,7 @@
                         <li>एडिशन के अंतर और वैकल्पिक Google Drive मिरर बताता है।</li>
                         <li>एक-टैप डाउनलोड नीचे Download APK Builds सेक्शन में हैं।</li>
                     </ul>
-                    <a href="docs/DOWNLOADS_EN.html" class="card-footer" target="_blank">विवरण खोलें</a>
+                    <a href="docs/DOWNLOADS.html" class="card-footer" target="_blank">विवरण खोलें</a>
                 </details>
             </article>
         </div>
@@ -877,7 +885,7 @@
         <!-- Download APK Builds - live buttons from the latest GitHub Release (S0394) -->
         <h2 class="section-title" id="download">APK Builds डाउनलोड करें</h2>
         <p class="section-lead">हर संस्करण के लिए नवीनतम उपलब्ध स्थिर APK। संस्करण अलग हो सकते हैं; अपना संस्करण न दिखे तो GitHub रिलीज़ देखें।</p>
-        <p class="section-lead">Android किसी ऐसे APK के बारे में चेतावनी देता है जो उसने पहले नहीं देखा। <a href="docs/INSTALL_TRUST_EN.html" target="_blank" rel="noopener">चेतावनी क्यों दिखती है - और क्या टैप करें</a>।</p>
+        <p class="section-lead">Android किसी ऐसे APK के बारे में चेतावनी देता है जो उसने पहले नहीं देखा। <a href="docs/INSTALL_TRUST.html" target="_blank" rel="noopener">चेतावनी क्यों दिखती है - और क्या टैप करें</a>।</p>
         <h3 class="edition-heading">हेडसेट और घड़ियों के संस्करण</h3>
         <div class="edition-download-grid">
             <article class="card edition-card" data-download-edition="noLegal">
@@ -1192,7 +1200,7 @@
                 <!-- family-footer:end -->
             </div>
             <div class="footer-bottom">
-                <span>&copy; 2024-2026 Serhii Zhyhunenko · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">गोपनीयता</a> · <a href="docs/TERMS_OF_SERVICE.html">शर्तें</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
+                <span>&copy; 2024-2026 <a href="https://sza.od.ua">Serhii Zhyhunenko</a> · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">गोपनीयता</a> · <a href="docs/TERMS_OF_SERVICE.html">शर्तें</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
             </div>
         </div>
     </footer>

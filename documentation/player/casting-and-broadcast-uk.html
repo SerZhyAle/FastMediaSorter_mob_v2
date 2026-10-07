@@ -141,20 +141,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.25 22:30</div>
+<div class="doc-stamp">26.10.07 01:10</div>
+    <a class="doc-skip-link" href="#main-content">Перейти до вмісту</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index-uk.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index-uk.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index-uk.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index-uk.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Пошук...</span>
                 <kbd>/</kbd>
             </button>
@@ -176,8 +177,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index-uk.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index-uk.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Тема</span></button>
             </nav>
         </div>
     </header>
@@ -433,11 +434,12 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Відео та медіаплеєр</span>
-                    <span class="doc-badge doc-badge-standard">Chromecast - Standard, noLegal, Lite та Legacy; Мовлення - Standard, noLegal та Legacy</span>
+                    <span class="doc-edition-badge">Standard, noLegal, Lite і Legacy</span>
                     <span class="doc-badge doc-badge-sm">Recipe #04</span>
                 </div>
+                <p class="doc-availability-note">Chromecast - Standard, noLegal, Lite та Legacy; Мовлення - Standard, noLegal та Legacy</p>
 
                 <h1>Трансляція на Chromecast та пряме мовлення</h1>
 
@@ -452,13 +454,13 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Перед початком: Що вам знадобиться</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> Chromecast: FastMediaSorter у <span class="doc-link-term" data-term="edition">редакції</span> Standard, noLegal, Lite або Legacy, і <span class="doc-link-term" data-term="chromecast">Chromecast</span> чи телевізор із вбудованим Chromecast у тій самій мережі Wi-Fi, що й телефон.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Мовлення: редакція Standard, noLegal або Legacy. Телефон і ті, хто дивиться, мають бути в одній мережі Wi-Fi.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Мовлення просить доступ до мікрофона, до камери, коли ви надсилаєте картинку, і до сповіщень, щоб мовлення продовжувалося, поки екран вимкнений. Див. <a href="../getting-started/permissions-guide-uk.html" class="doc-link">розуміння дозволів застосунку</a>.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Chromecast: FastMediaSorter у <span class="doc-link-term" data-term="edition">редакції</span> Standard, noLegal, Lite або Legacy, і <span class="doc-link-term" data-term="chromecast">Chromecast</span> чи телевізор із вбудованим Chromecast у тій самій мережі Wi-Fi, що й телефон.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Мовлення: редакція Standard, noLegal або Legacy. Телефон і ті, хто дивиться, мають бути в одній мережі Wi-Fi.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Мовлення просить доступ до мікрофона, до камери, коли ви надсилаєте картинку, і до сповіщень, щоб мовлення продовжувалося, поки екран вимкнений. Див. <a href="../getting-started/permissions-guide-uk.html" class="doc-link">розуміння дозволів застосунку</a>.</li>
                     </ul>
                 </div>
 
@@ -489,7 +491,7 @@ layout: null
                         </div>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
-                                <span class="doc-callout-icon">💡</span> 3D-фільми на звичайному телевізорі
+                                3D-фільми на звичайному телевізорі
                             </div>
                             <p>3D-фільм у форматі side-by-side виглядає на звичайному телевізорі як дві картинки поряд. З увімкненим <strong>Показувати 3D-контент з одного ока</strong> (<strong>Налаштування</strong>, вкладка <strong>Плеєр</strong>) застосунок надсилає лише картинку для одного ока - ту саму, що показує телефон. Він готує цю картинку до початку трансляції, тож відтворення починається після короткого очікування. Дуже довгі фільми й прямі трансляції транслюються цілком. Більше про 3D у <a href="subtitles-and-audio-tracks-uk.html" class="doc-link">субтитрах, аудіодоріжках і 3D</a>.</p>
                         </div>
@@ -589,17 +591,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="video-playback-controls-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-video">Відео</span>
-                            <h4>Перегляд відео - керування та жести</h4>
+                            <h3>Перегляд відео - керування та жести</h3>
                             <p>Усе про сам відеоплеєр.</p>
                         </a>
                         <a href="../streams/live-stream-playback-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-video">Трансляції</span>
-                            <h4>Відтворення прямих трансляцій</h4>
+                            <h3>Відтворення прямих трансляцій</h3>
                             <p>Відкрийте мовлення іншого телефону як канал.</p>
                         </a>
                         <a href="pip-and-background-play-uk.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-video">Відео</span>
-                            <h4>Картинка в картинці й фонове відтворення</h4>
+                            <h3>Картинка в картинці й фонове відтворення</h3>
                             <p>Продовжуйте перегляд у маленькому вікні.</p>
                         </a>
                     </div>
@@ -633,8 +635,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Безкоштовний органайзер із відкритим вихідним кодом.</div>
             <div class="doc-footer-links">
-                <a href="../../docs/PRIVACY_POLICY.uk.html">Політика конфіденційності</a>
-                <a href="../../docs/TERMS_OF_SERVICE_UK.html">Умови використання</a>
+                <a href="../../docs/PRIVACY_POLICY-uk.html">Політика конфіденційності</a>
+                <a href="../../docs/TERMS_OF_SERVICE-uk.html">Умови використання</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>

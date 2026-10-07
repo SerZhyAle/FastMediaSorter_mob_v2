@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 12:24</sub>
+<sub class="doc-stamp">26.10.07 05:04</sub>
 
 # Pointer - `CAPTURE-OUTPUT`
 
 | | |
 | --- | --- |
 | **Id** | `CAPTURE-OUTPUT` |
-| **Version** | 0.3, draft. Owner: this product |
+| **Version** | 0.5, draft. Owner: this product |
 | **Home** | `capture-output/README.md` in the shared contracts catalog |
 | **Role here** | owner and producer (every screenshot, recording, photo, frame, text and translation file the app writes) |
 
@@ -15,6 +15,8 @@
 - Choose the final name before writing; on a collision in the destination append ` (n)` from 2, never overwrite and never leave the suffix to the media store.
 - Default each kind to its rule 9 folder; let the user choose a destination per kind; tell the user about every fallback.
 - Write the rule 1 format per kind; text as UTF-8 without BOM, LF; the translation layout of rule 15.
+- Write the capture time inside the file equal to the one in its name; a PNG carries it in a `tIME` chunk
+  holding the local wall-clock second (rule 16, 0.5).
 - Add a new kind to the contract before the code writes it.
 
 ## Where it lives here

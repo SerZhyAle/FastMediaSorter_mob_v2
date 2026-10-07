@@ -29,6 +29,12 @@ object NetworkErrorMessageMapper {
         // WifiRequiredException is a NetworkConnectionLostException subclass - must come first
         // so the more specific branch wins before the generic connection-lost branch.
         is WifiRequiredException -> R.string.error_wifi_required_smb
+        is NetworkPeerUnreachableException -> when (exception.reason) {
+            NetworkPeerUnreachableException.Reason.TUNNEL_NOT_REGISTERED ->
+                R.string.error_sftp_peer_tunnel_not_registered
+            NetworkPeerUnreachableException.Reason.UNREACHABLE_FROM_THIS_NETWORK ->
+                R.string.error_sftp_peer_unreachable_here
+        }
         is NetworkConnectionLostException -> R.string.error_network_connection_lost
         is NetworkUnsupportedOperationException -> R.string.error_network_unsupported
     }
@@ -76,6 +82,8 @@ object NetworkErrorMessageMapper {
             isCompanionAuthFailure -> {
                 context.getString(R.string.error_companion_repair_needed)
             }
+            // ANYWHERE-ACCESS: a known reason beats the generic companion guidance below.
+            exception is NetworkPeerUnreachableException -> context.getString(toMessageRes(exception))
             !isConnectivityError -> context.getString(toMessageRes(exception))
             else -> {
                 val companionResource = resourceType == ResourceType.SFTP || resourceType == ResourceType.FTP

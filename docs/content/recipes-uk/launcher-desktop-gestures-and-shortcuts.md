@@ -6,7 +6,6 @@ description: Як налаштувати бічні жести змахуван�
 category: "Лаунчер: панель задач, меню та жести"
 category_slug: launcher
 ticket: S2960
-flavor: Редакції Standard і noLegal
 recipe_number: "07"
 canonical_url: documentation/launcher/desktop-gestures-and-shortcuts-uk.html
 why: |
@@ -111,6 +110,6 @@ next_recipes:
     description: Кнопка «Пуск», нещодавні та закріплені застосунки й область стану.
 ---
 
-<sub class="doc-stamp">26.09.25 22:14</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Крайовий жест](term:edge-gesture) працює в будь-якому застосунку, а [робочий стіл](term:desktop) [лаунчера](term:launcher) додає власні свайпи й дотики. Ця сторінка описує налаштування обох, а також невеликі жести ґаджета «Годинник» і подвійний дотик, який блокує екран.

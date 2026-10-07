@@ -5,7 +5,6 @@ description: Практический рецепт по анализу испо�
 category: Программы, статистика и диагностика
 category_slug: programs
 ticket: S2961
-flavor: Все редакции
 recipe_number: "03"
 canonical_url: documentation/sample-program-recipe-ru.html
 ingredients:
@@ -42,6 +41,6 @@ next_recipes:
     description: Экспорт диагностических отчетов и журналов отладки.
 ---
 
-<sub class="doc-stamp">26.09.25 17:07</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Быстрый анализ того, какие папки, типы файлов и тяжелые видеоролики занимают место на вашем устройстве, карте памяти или сетевых ресурсах.

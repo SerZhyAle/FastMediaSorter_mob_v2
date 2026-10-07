@@ -6,7 +6,7 @@ description: How to turn or mirror a photo for good, crop it, save a smaller cop
 category: Images, Audio & Slideshow
 category_slug: images
 ticket: S2952
-flavor: All editions
+availability: all
 recipe_number: "02"
 canonical_url: documentation/images/editing-photos.html
 why: |
@@ -144,6 +144,6 @@ next_recipes:
     description: Draw, write and mark up on top of a picture.
 ---
 
-<sub class="doc-stamp">26.09.24 06:41</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Turn, mirror and crop a photo, make a small copy to send, brighten a dark picture or give it a black-and-white look, and change the speed of an animated GIF - right in the [image viewer](term:image-viewer), without a separate editor.

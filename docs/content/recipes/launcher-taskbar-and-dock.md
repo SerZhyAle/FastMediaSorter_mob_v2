@@ -6,7 +6,7 @@ description: How to place the launcher taskbar, pin and manage the apps on it, j
 category: "Launcher: Taskbar, Menus and Gestures"
 category_slug: launcher
 ticket: S2960
-flavor: Standard and noLegal
+availability: SUPPORT_LAUNCHER
 recipe_number: "04"
 canonical_url: documentation/launcher/taskbar-and-dock.html
 why: |
@@ -114,6 +114,6 @@ next_recipes:
     description: The screen-edge gestures behind the camera actions in the quick-launch dock.
 ---
 
-<sub class="doc-stamp">26.09.25 04:13</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 The [taskbar](term:taskbar) is the one part of the [launcher](term:launcher) that never scrolls away. This page covers where it sits, pinning and managing the apps on it, the fastest ways back to your files, the quick-launch dock that opens from it, and a couple of switches that need no screen of their own.

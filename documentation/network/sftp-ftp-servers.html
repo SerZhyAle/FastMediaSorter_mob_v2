@@ -148,20 +148,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.25 02:04</div>
+<div class="doc-stamp">26.10.07 03:42</div>
+    <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Search...</span>
                 <kbd>/</kbd>
             </button>
@@ -183,8 +184,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
             </nav>
         </div>
     </header>
@@ -425,11 +426,12 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Network & Cloud</span>
-                    <span class="doc-badge doc-badge-standard">SFTP and FTP - every edition except Lite. Signing in with an SSH key, pinning the server and sharing or importing access files - Standard, noLegal, Photos, Legacy and VR (not Lite, not FOSS); the watch's own connection test - Standard, noLegal, Lite, Photos, Legacy, VR and FOSS.</span>
+                    <span class="doc-edition-badge">Standard, noLegal, Photos, Legacy, VR and FOSS</span>
                     <span class="doc-badge doc-badge-sm">Recipe #02</span>
                 </div>
+                <p class="doc-availability-note">SFTP and FTP - every edition except Lite. Signing in with an SSH key, pinning the server and sharing or importing access files - Standard, noLegal, Photos, Legacy and VR (not Lite, not FOSS); the watch's own connection test - Standard, noLegal, Lite, Photos, Legacy, VR and FOSS.</p>
 
                 <h1>Connecting SFTP and FTP Servers</h1>
 
@@ -444,14 +446,14 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Before You Begin: Ingredients &amp; Prerequisites</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter in any <span class="doc-link-term" data-term="edition">edition</span> except Lite - see <a href="../flavors/overview-and-comparison.html" class="doc-link">The seven editions</a>.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> The server's address and port, and either a user name with a password or an SSH key.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> For key sign-in: the private key file, and its passphrase if it has one.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> To share or import access to a folder: any app that can send a file, such as Telegram or email.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> FastMediaSorter in any <span class="doc-link-term" data-term="edition">edition</span> except Lite - see <a href="../flavors/overview-and-comparison.html" class="doc-link">The seven editions</a>.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> The server's address and port, and either a user name with a password or an SSH key.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> For key sign-in: the private key file, and its passphrase if it has one.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> To share or import access to a folder: any app that can send a file, such as Telegram or email.</li>
                     </ul>
                 </div>
 
@@ -502,7 +504,7 @@ layout: null
                         </figure>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
-                                <span class="doc-callout-icon">💡</span> In plain words, what a host key fingerprint is
+                                In plain words, what a host key fingerprint is
                             </div>
                             <p>Every SFTP server has its own private identity key, and the fingerprint is a short code computed from it. Pinning it is like remembering a face instead of just a name - if someone else's server later answers under the same address, the fingerprint gives it away.</p>
                         </div>
@@ -517,6 +519,22 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>A pinned host key is verified on every connection this resource makes from then on - browsing, thumbnails, playback and its reconnects alike, not only when you press Test Connection. If a server ever answers with a different key than the one you pinned, the app refuses it outright: "This shared folder's server looks different from the one you paired with. Nothing was loaded, to keep you safe." That is what a genuine man-in-the-middle attempt looks like from the inside, and it is also exactly what happens, harmlessly, if a server was reinstalled and issued itself a new key - re-pin it once you are sure it is really the same place.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="network.sftp-host-key-mismatch"
+                             data-device-profile="phone"
+                             data-screen-state="browse-sftp-host-key-mismatch-error"
+                             data-alt="The message that the shared folder's server looks different from the one you paired with and nothing was loaded"
+                             data-caption="A changed server key is refused, not accepted.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Host key mismatch</strong>
+                                <p class="doc-img-bookmark-desc">Opening an SFTP resource whose server key differs from the pinned one.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>network.sftp-host-key-mismatch</code></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -551,7 +569,7 @@ layout: null
                         </figure>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
-                                <span class="doc-callout-icon">💡</span> This is also how a shared PC folder arrives
+                                This is also how a shared PC folder arrives
                             </div>
                             <p>A folder shared from <span class="doc-link-term" data-term="windows-companion">Fast Media Sorter for Windows</span> uses the same file format and the same import dialog - see <a href="windows-companion.html" class="doc-link">Sharing PC folders with Fast Media Sorter for Windows</a>.</p>
                         </div>
@@ -566,6 +584,22 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <ul><li><strong>A folder scan that cannot finish says so.</strong> Scanning an SFTP folder ends in bounded time even when the network changes mid-scan or a connection goes half-open - "The folder is taking too long to load. Check your network and try again." instead of a spinner that never stops.</li><li><strong>A server that was just unreachable is not retried the hard way every time.</strong> For a short cooldown after a failed connection, the app answers fast instead of making every thumbnail or file wait through a full connection timeout again.</li></ul>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="network.sftp-folder-load-timeout"
+                             data-device-profile="phone"
+                             data-screen-state="browse-sftp-folder-load-timeout"
+                             data-alt="The file browser on an SFTP folder showing that the folder is taking too long to load, with the advice to check the network and try again"
+                             data-caption="A scan that cannot finish says so instead of spinning.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Folder load timeout</strong>
+                                <p class="doc-img-bookmark-desc">Browse on an SFTP resource after the network dropped mid-scan.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>network.sftp-folder-load-timeout</code></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -590,17 +624,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="smb-samba-shares.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Network</span>
-                            <h4>Connecting SMB/Windows shares</h4>
+                            <h3>Connecting SMB/Windows shares</h3>
                             <p>Share a folder from Windows and see how SMB compares to SFTP and FTP.</p>
                         </a>
                         <a href="phone-as-sftp-server.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Network</span>
-                            <h4>Turning the phone into an SFTP server</h4>
+                            <h3>Turning the phone into an SFTP server</h3>
                             <p>Share folders from your own phone instead of connecting to someone else's.</p>
                         </a>
                         <a href="windows-companion.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Network</span>
-                            <h4>Sharing PC folders with Fast Media Sorter for Windows</h4>
+                            <h3>Sharing PC folders with Fast Media Sorter for Windows</h3>
                             <p>The PC-side companion that publishes folders as ready-made SFTP resources.</p>
                         </a>
                     </div>

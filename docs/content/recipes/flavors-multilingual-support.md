@@ -6,7 +6,7 @@ description: How FastMediaSorter picks its language on the first start, how to s
 category: Editions, Extensions & Languages
 category_slug: flavors
 ticket: S2947
-flavor: All editions
+availability: all
 recipe_number: "03"
 canonical_url: documentation/flavors/multilingual-support.html
 why: |
@@ -110,6 +110,6 @@ next_recipes:
     description: Find any setting in a few taps, or by typing its name.
 ---
 
-<sub class="doc-stamp">26.09.24 09:36</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 FastMediaSorter speaks thirteen languages and shows times, distances and temperatures in metric or US units. This page shows how the app picks its language, how to change it, and how to choose your units.

@@ -6,7 +6,6 @@ description: Как включить рабочий стол FastMediaSorter, ч
 category: "Лаунчер - Рабочий стол"
 category_slug: launcher
 ticket: S2958
-flavor: Редакции Standard и noLegal
 recipe_number: "01"
 canonical_url: documentation/launcher/desktop-grid-and-icons-ru.html
 why: |
@@ -161,6 +160,6 @@ next_recipes:
     description: Кнопка «Пуск», закрепленные и недавние приложения и область уведомлений.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Рабочий стол [лаунчера](term:launcher) FastMediaSorter - это удобная сетка плиток, где собрано все необходимое: приложения, медиапапки, радиостанции, часы и прогноз погоды. В этом руководстве показано, как включить рабочий стол и настроить его под себя.

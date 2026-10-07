@@ -6,7 +6,6 @@ description: Как настроить боковые жесты смахива�
 category: "Лаунчер - Панель задач, меню и жесты"
 category_slug: launcher
 ticket: S2960
-flavor: Редакции Standard и noLegal
 recipe_number: "07"
 canonical_url: documentation/launcher/desktop-gestures-and-shortcuts-ru.html
 why: |
@@ -111,6 +110,6 @@ next_recipes:
     description: Кнопка «Пуск», закрепленные и недавние приложения и область уведомлений.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Боковые жесты](term:edge-gesture) работают поверх любых открытых окон, а [рабочий стол](term:desktop) [лаунчера](term:launcher) дополняет их удобными экранными свайпами и двойным касанием для блокировки. В этом руководстве описана настройка всех навигационных жестов.

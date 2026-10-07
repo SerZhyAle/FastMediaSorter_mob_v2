@@ -17,7 +17,6 @@ $script:DocStampDateRegex = '\d{2}\.\d{2}\.\d{2} \d{2}:\d{2}'
 $script:DocStampValueRegex = [regex]::new('(?<head><(?:sub|div) class="doc-stamp"[^>]*>)(?<date>' + $script:DocStampDateRegex + ')(?<tail><)')
 # A whole stamp element, used to strip it before a generator compares its output with the disk.
 $script:DocStampStripRegex = [regex]::new('(?m)^[ \t]*<sub class="doc-stamp">' + $script:DocStampDateRegex + '</sub>[ \t]*\r?\n(?:[ \t]*\r?\n)?|(?:\r?\n)?[ \t]*<div class="doc-stamp"[^>]*>' + $script:DocStampDateRegex + '</div>[ \t]*')
-$script:DocHtmlStampStyle = 'font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right'
 
 function Format-DocStampDate {
     param([Parameter(Mandatory)][datetime]$When)
@@ -106,7 +105,9 @@ function Add-DocStamp {
     }
     $body = [regex]::Match($Text, '(?i)<body(?:\s[^>]*)?>')
     if (-not $body.Success) { return $null }
-    $div = '<div class="doc-stamp" style="' + $script:DocHtmlStampStyle + '">' + $Date + '</div>'
+    # The look of the line lives in the .doc-stamp rule of the page's stylesheet, never in a style
+    # attribute (SITE-EXPERIENCE rule 4).
+    $div = '<div class="doc-stamp">' + $Date + '</div>'
     $at = $body.Index + $body.Length
     return $Text.Substring(0, $at) + $eol + $div + $Text.Substring($at)
 }

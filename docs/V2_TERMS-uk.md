@@ -1,11 +1,11 @@
 ---
 layout: default
 title: "Довідник термінів"
-permalink: /docs/V2_TERMS_UK.html
+permalink: /docs/V2_TERMS-uk.html
 lang: uk
 ---
 
-<sub class="doc-stamp">26.10.06 14:18</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 <div lang="uk" markdown="1">
 
@@ -24,10 +24,10 @@ lang: uk
 
 ## Додаткові терміни
 
-- **Flavor** - варіант продукту (`standard`, `noLegal`, `lite`, `photos`, `legacy`, `vr`, `xr`, `foss`); [SDK](TECHNICAL_REQUIREMENTS_UK.html)
+- **Flavor** - варіант продукту (`standard`, `noLegal`, `lite`, `photos`, `legacy`, `vr`, `xr`, `foss`); [SDK](TECHNICAL_REQUIREMENTS-uk.html)
 - **Browse** - екран списку/сітки файлів вибраного ресурсу
 - **Player** - повноекранний переглядач медіа та документів
 
-Практичні інструкції: [HOW_TO_UK.html](HOW_TO_UK.html) та [FAQ_UK.html](FAQ_UK.html).
+Практичні інструкції: [HOW_TO-uk.html](HOW_TO-uk.html) та [FAQ-uk.html](FAQ-uk.html).
 
 </div>

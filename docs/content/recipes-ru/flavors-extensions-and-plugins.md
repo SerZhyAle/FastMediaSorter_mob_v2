@@ -6,7 +6,6 @@ description: Как открыть экран «Загружаемые расш�
 category: Редакции, расширения и языки
 category_slug: flavors
 ticket: S2947
-flavor: Редакции Standard, noLegal, Legacy и VR
 recipe_number: "02"
 canonical_url: documentation/flavors/extensions-and-plugins-ru.html
 why: |
@@ -129,6 +128,6 @@ next_recipes:
     description: Выбор одного из тринадцати языков и переключение между метрической и американской системами мер.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Расширения](term:extension) - это опциональные компоненты FastMediaSorter, загружаемые по вашему желанию: распознавание текста, поддержка редких аудиокодеков, видеоэффекты визуализации и каталоги потокового вещания. На этой странице описано, как их загружать, обновлять и удалять.

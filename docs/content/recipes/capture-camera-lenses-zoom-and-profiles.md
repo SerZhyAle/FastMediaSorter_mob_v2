@@ -6,7 +6,8 @@ description: How to pick a lens, zoom range and shooting profile for the app's c
 category: Camera & Screen Capture
 category_slug: capture
 ticket: S2956
-flavor: All editions for lenses, zoom range, shooting profiles, aspect ratio, per-lens memory and the hardware report; the zoom slider and the full Camera settings dialog need Standard, Lite, Photos or Legacy
+availability: all
+availability_note: All editions for lenses, zoom range, shooting profiles, aspect ratio, per-lens memory and the hardware report; the zoom slider and the full Camera settings dialog need Standard, Lite, Photos or Legacy
 recipe_number: "2"
 canonical_url: documentation/capture/camera-lenses-zoom-and-profiles.html
 why: |
@@ -126,6 +127,6 @@ next_recipes:
     description: Capture the screen itself and send it straight to editing, translation or another app.
 ---
 
-<sub class="doc-stamp">26.09.24 08:27</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Pick the lens, zoom range and shooting profile that fit the shot, open the full Camera settings dialog when you need manual control, and use the System information report to see exactly what your phone's cameras can do.

@@ -6,7 +6,6 @@ description: Як відтворювати музику з будь-якої п�
 category: Зображення, аудіо та слайдшоу
 category_slug: audio
 ticket: S2952
-flavor: Усі редакції, крім Photos
 recipe_number: "04"
 canonical_url: documentation/audio/playing-and-organizing-music-uk.html
 why: |
@@ -127,6 +126,6 @@ next_recipes:
     description: Відтворюйте музику й керуйте нею з годинника Wear OS.
 ---
 
-<sub class="doc-stamp">26.09.25 22:13</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Відтворюйте музику прямо з тих папок, де вона зберігається - на телефоні, карті пам'яті чи іншому комп'ютері. [Аудіоплеєр](term:audio-player) знаходить обкладинки, яких бракує, показує текст пісні, транслює на Chromecast і дає змогу сортувати треки просто під час прослуховування.

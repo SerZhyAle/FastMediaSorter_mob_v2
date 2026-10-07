@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Stream publisher module: composes curated stream collections from rules.json and overlay.json over the shipped bank.
+#>
+
+
 . "$PSScriptRoot\..\..\utils\project-paths.ps1"
 
 # --- S2669 curated stream collections (offline tooling) ------------------------------------------

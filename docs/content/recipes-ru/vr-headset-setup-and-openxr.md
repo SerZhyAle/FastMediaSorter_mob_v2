@@ -6,7 +6,7 @@ description: В каких редакциях и на каких шлемах р
 category: VR и OpenXR
 category_slug: vr
 ticket: S2967
-flavor: noLegal и VR, на совместимом шлеме
+availability_note: noLegal и VR, на совместимом шлеме
 recipe_number: "01"
 canonical_url: documentation/vr/headset-setup-and-openxr-ru.html
 why: |
@@ -137,6 +137,6 @@ next_recipes:
     description: Запуск живых видеотрансляций напрямую в кинотеатре VR Cinema.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 В каких редакциях и на каких шлемах работает режим погружения FastMediaSorter, как его установить, как работают главный переключатель 3D/VR и OpenXR, а также возможности VR Cinema, значок VR, просмотр папок прямо в шлеме, памятка по управлению и встроенная диагностика перед первым просмотром.

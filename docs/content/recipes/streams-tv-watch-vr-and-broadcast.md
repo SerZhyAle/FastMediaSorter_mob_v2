@@ -6,7 +6,8 @@ description: How to cast a live channel to a TV with Chromecast, send a channel 
 category: Internet Streams
 category_slug: streams
 ticket: S2955
-flavor: Chromecast - Standard, noLegal and Legacy; watch - Standard and noLegal; VR player - noLegal and VR; Live Broadcast - Standard, noLegal and Legacy
+availability: SUPPORT_STREAMS
+availability_note: Chromecast - Standard, noLegal and Legacy; watch - Standard and noLegal; VR player - noLegal and VR; Live Broadcast - Standard, noLegal and Legacy
 recipe_number: "08"
 canonical_url: documentation/streams/tv-watch-vr-and-broadcast.html
 why: |
@@ -132,6 +133,6 @@ next_recipes:
     description: The basics of playing a channel on the phone.
 ---
 
-<sub class="doc-stamp">26.09.24 07:58</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Take a live [channel](term:channel) to the TV with [Chromecast](term:chromecast), to your [watch](term:watch) or into a [VR headset](term:vr-headset), and add a friend's [Live Broadcast](term:live-broadcast) to your Streams with a QR code, a link or a file.

@@ -6,7 +6,8 @@ description: Signing in to Dropbox and OneDrive and adding their folders as reso
 category: Network & Cloud
 category_slug: network
 ticket: S2950
-flavor: Standard, noLegal, Photos, Legacy and VR - not Lite, not FOSS. Needs a Dropbox and/or Microsoft account.
+availability: SUPPORT_CLOUD
+availability_note: Standard, noLegal, Photos, Legacy and VR - not Lite, not FOSS. Needs a Dropbox and/or Microsoft account.
 recipe_number: "06"
 canonical_url: documentation/network/cloud-dropbox-onedrive.html
 why: |
@@ -66,6 +67,6 @@ next_recipes:
     description: The full backup and restore picture for your settings and resources.
 ---
 
-<sub class="doc-stamp">26.09.25 00:21</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Sign in to Dropbox and OneDrive to add their folders as resources next to your local and Google Drive ones, with the same simple sign-in, sign-out and plain-spoken error messages for both [cloud providers](term:cloud-provider).

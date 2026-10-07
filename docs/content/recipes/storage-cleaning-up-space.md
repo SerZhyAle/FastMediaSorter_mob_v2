@@ -6,7 +6,8 @@ description: How to find identical files across your folders and delete the extr
 category: Sources, Destinations & File Operations
 category_slug: storage
 ticket: S2949
-flavor: Standard, noLegal, Legacy and VR; ZIP archives in all editions
+availability: all
+availability_note: Standard, noLegal, Legacy and VR; ZIP archives in all editions
 recipe_number: "08"
 canonical_url: documentation/storage/cleaning-up-space.html
 why: |
@@ -124,6 +125,6 @@ next_recipes:
     description: See how many files you sorted and how much space your deletions freed.
 ---
 
-<sub class="doc-stamp">26.09.24 08:40</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Find identical files across your folders and delete the extra copies, remove every file above or below a chosen size in one go, and pack selected files into a ZIP archive.

@@ -6,7 +6,7 @@ description: How to open a PDF, turn and jump between pages, read in one long sc
 category: Documents & Text Editor
 category_slug: documents
 ticket: S2953
-flavor: Standard, noLegal, Legacy, VR and FOSS
+availability: SUPPORT_DOCUMENTS
 recipe_number: "01"
 canonical_url: documentation/documents/pdf-epub-viewing.html
 why: |
@@ -186,6 +186,6 @@ next_recipes:
     description: Choose languages and the look of offline translation.
 ---
 
-<sub class="doc-stamp">26.09.30 08:35</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Open a PDF with one tap, turn pages by swiping, find a page by its picture, read at night in dark colors, copy, search, listen to and translate the text, and save the pages as pictures or print them - all in the built-in [reader](term:reader).

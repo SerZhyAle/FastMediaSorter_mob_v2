@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 12:24</sub>
+<sub class="doc-stamp">26.10.06 20:05</sub>
 
 # Pointer - `WAVE-PARTICLES`
 
 | | |
 | --- | --- |
 | **Id** | `WAVE-PARTICLES` |
-| **Version** | 0.14, draft. Owner: this product |
+| **Version** | 0.15, draft. Owner: this product |
 | **Home** | `animated-backdrop/README.md` in the shared contracts catalog |
 | **Role here** | owner and producer - phone, launcher wallpaper, watch, and the website hero |
 
@@ -29,3 +29,5 @@
   `WaveParticleEdge.kt` beside it (the modules share no code).
 - Website: `documentation/assets/wave-particles.js`, byte-identical to the catalog's
   `reference/wave-particles.js` (rung 2), served by every page in place of the former inline copies.
+  The landing hero fixes `data-intensity` and `data-speed` on its canvas (section 5 since 0.15) and
+  puts each text block on the translucent `--hero-plate` of `styles.css`.

@@ -5,7 +5,7 @@ description: A practical cookbook recipe for playing, queuing, and organizing mu
 category: Audio & Music
 category_slug: audio
 ticket: S2946
-flavor: Standard & NoLegal
+availability: SUPPORT_AUDIO
 recipe_number: "01"
 canonical_url: documentation/sample-recipe.html
 ingredients:
@@ -78,6 +78,6 @@ next_recipes:
     description: Stream your high-resolution FLAC library directly without filling your device storage.
 ---
 
-<sub class="doc-stamp">26.10.06 01:22</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Whether you have thousands of lossless FLAC tracks on an SD card or albums shared across a home <span class="doc-link-term" data-term="NAS">NAS</span> server, FastMediaSorter lets you browse, queue, and sort your audio library without altering your physical folder hierarchy.

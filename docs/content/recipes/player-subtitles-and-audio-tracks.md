@@ -6,7 +6,8 @@ description: How to open the Control window of the video player, switch the soun
 category: Video & Media Player
 category_slug: player
 ticket: S2951
-flavor: All editions except Photos; the 3D choice in the Control window only in VR and noLegal
+availability: SUPPORT_VIDEO
+availability_note: All editions except Photos; the 3D choice in the Control window only in VR and noLegal
 recipe_number: "02"
 canonical_url: documentation/player/subtitles-and-audio-tracks.html
 why: |
@@ -102,6 +103,6 @@ next_recipes:
     description: Watch 3D and 360 video in a headset.
 ---
 
-<sub class="doc-stamp">26.10.04 14:02</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Pick the soundtrack and subtitles of a film, make them readable, balance the sound between your ears, change speed and colors, and watch 3D films on an ordinary screen.

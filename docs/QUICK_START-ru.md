@@ -1,9 +1,9 @@
 ---
 layout: default
 title: "🚀 Быстрый Старт - FastMediaSorter v2"
-permalink: /docs/QUICK_START_RU.html
+permalink: /docs/QUICK_START-ru.html
 ---
-<sub class="doc-stamp">26.10.03 00:04</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 # 🚀 Быстрый Старт - FastMediaSorter v2
 

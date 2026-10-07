@@ -6,7 +6,7 @@ description: Как открыть доступ к папкам на этом т
 category: Сеть и облачные хранилища
 category_slug: network
 ticket: S2950
-flavor: Все редакции, кроме Lite; требуется Android 8.0 или новее.
+availability_note: Все редакции, кроме Lite; требуется Android 8.0 или новее.
 recipe_number: "04"
 canonical_url: documentation/network/phone-as-sftp-server-ru.html
 why: |
@@ -94,6 +94,6 @@ next_recipes:
     description: Полный обзор всех типов сетевых и облачных хранилищ, поддерживаемых приложением.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Раздавайте папки напрямую с телефона по протоколу SFTP: выбирайте нужные каталоги через системный проводник, защищайте доступ паролем или SSH-ключом и подключайте другие устройства FastMediaSorter в одно сканирование QR-кода без ручного ввода IP-адресов.

@@ -104,29 +104,30 @@ layout: null
 </head>
 
 <body class="doc-body">
+    <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <span class="doc-badge doc-badge-standard">Docs Portal</span>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../index.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="index.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
-                <span>Search documentation...</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <span>Search...</span>
                 <kbd>/</kbd>
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="index.html" class="doc-header-link active">Docs Home</a>
                 <a href="overview.html" class="doc-header-link">Overview</a>
-                <a href="subject-index.html" class="doc-header-link">Subject Index</a>
                 <a href="general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="subject-index.html" class="doc-header-link">Index</a>
                 <a href="design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
                 <!-- 13-Language Selector -->
                 <div class="doc-lang-picker">
@@ -138,8 +139,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
             </nav>
         </div>
     </header>
@@ -190,42 +191,45 @@ layout: null
 
             <!-- Main Portal Content -->
             <main class="doc-content" id="main-content">
-                <header class="doc-page-header" style="margin-bottom: 2.5rem;">
-                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                <header class="doc-page-header doc-hub-header">
+                    <div class="doc-hub-badges">
                         <span class="doc-badge doc-badge-standard">Documentation Portal</span>
                         <span class="doc-badge doc-badge-music">22 Categories</span>
                         <span class="doc-badge doc-badge-docs">105 Recipes</span>
                     </div>
-                    <h1 style="font-size: 2.5rem; margin-bottom: 0.75rem;">Fast Media Sorter Documentation</h1>
-                    <p class="doc-lead" style="font-size: 1.2rem; max-width: 780px;">
+                    <h1>Fast Media Sorter Documentation</h1>
+                    <p class="doc-lead">
                         Welcome to the official documentation hub for Fast Media Sorter. Practical step-by-step guides, cookbook recipes, and architecture reference to organize, stream, and play media across Android phones, tablets, TVs, smartwatches, and VR.
+                    </p>
+                    <p>
+                        Fast Media Sorter is built on eight pillars, in this order: device shell, media player, live streams, app launching, a replacement for stock apps, a companion on the watch, device monitoring and a full file manager.
                     </p>
 
                     <!-- Navigation Action Buttons -->
-                    <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                        <a href="overview.html" class="doc-btn doc-btn-primary" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">
-                            <span>🌟</span> Product Overview
+                    <div class="doc-hub-actions">
+                        <a href="overview.html" class="btn btn-primary">
+                            Product Overview
                         </a>
-                        <a href="#categories" class="doc-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
-                            <span>📑</span> Table of Contents
+                        <a href="#categories" class="btn btn-ghost">
+                            Table of Contents
                         </a>
-                        <a href="subject-index.html" class="doc-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
-                            <span>🔤</span> A-Z Subject Index
+                        <a href="subject-index.html" class="btn btn-ghost">
+                            A-Z Subject Index
                         </a>
-                        <a href="general/glossary.html" class="doc-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
-                            <span>📚</span> Glossary
+                        <a href="general/glossary.html" class="btn btn-ghost">
+                            Glossary
                         </a>
                     </div>
 
-                    <div style="margin-top: 1.5rem;">
-                        <button class="doc-search-trigger" data-search-trigger style="padding: 10px 20px; font-size: 1rem;">
-                            <span>🔍</span>
+                    <div class="doc-hub-search">
+                        <button class="doc-search-trigger doc-search-trigger-lg" data-search-trigger>
+                            <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                             <span>Search all 105 recipes, topics and features...</span>
-                            <kbd style="margin-left: 8px;">Ctrl + K</kbd>
+                            <kbd>Ctrl + K</kbd>
                         </button>
                     </div>
 
-                    <p style="margin-top: 1rem;">
+                    <p class="doc-hub-note">
                         <a href="assets/FastMediaSorter-Documentation.pdf" class="doc-link" download>Download the whole documentation as one PDF</a> - read it offline, on any device.
                     </p>
                     <p>
@@ -234,7 +238,7 @@ layout: null
                 </header>
 
                 <!-- Featured Recipes Carousel / Grid -->
-                <section class="doc-section" id="start-with-a-task" style="margin-bottom: 3rem;">
+                <section class="doc-section doc-hub-section" id="start-with-a-task">
                     <h2>Start with your task</h2>
                     <div class="doc-next-grid">
                         <a href="getting-started/quick-tour.html" class="doc-next-card"><h3>Set up the app</h3><p>Take a short tour and choose what to enable.</p></a>
@@ -246,15 +250,15 @@ layout: null
                 </section>
 
                 <!-- 22 Thematic Documentation Areas Grid -->
-                <section class="doc-section" id="categories" style="margin-bottom: 3rem;">
+                <section class="doc-section doc-hub-section" id="categories">
                     <h2>Explore All Documentation Categories</h2>
                     
-                    <div class="doc-next-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                    <div class="doc-next-grid doc-next-grid-wide">
                         
                         <!-- S2946 -->
                         <div class="doc-next-card" id="getting-started">
                             <span class="doc-badge doc-badge-standard doc-badge-sm">Getting Started</span>
-                            <h4>First Steps &amp; Setup</h4>
+                            <h3>First Steps &amp; Setup</h3>
                             <ul>
                                 <li><a href="getting-started/welcome-and-setup.html" class="doc-link">First launch and the setup wizard</a></li>
                                 <li><a href="getting-started/permissions-guide.html" class="doc-link">Permissions and what each one gives</a></li>
@@ -266,7 +270,7 @@ layout: null
                         <!-- S2947 -->
                         <div class="doc-next-card" id="editions">
                             <span class="doc-badge doc-badge-standard doc-badge-sm">Editions, Extensions &amp; Languages</span>
-                            <h4>Editions, Extensions &amp; Languages</h4>
+                            <h3>Editions, Extensions &amp; Languages</h3>
                             <ul>
                                 <li><a href="flavors/overview-and-comparison.html" class="doc-link">The seven editions of FastMediaSorter</a></li>
                                 <li><a href="flavors/extensions-and-plugins.html" class="doc-link">Downloadable extensions</a></li>
@@ -277,7 +281,7 @@ layout: null
                         <!-- S2948 -->
                         <div class="doc-next-card" id="browsing">
                             <span class="doc-badge doc-badge-image doc-badge-sm">Browsing &amp; Sorting</span>
-                            <h4>Media Browsing &amp; Sorting</h4>
+                            <h3>Media Browsing &amp; Sorting</h3>
                             <ul>
                                 <li><a href="browsing/grid-and-list-views.html" class="doc-link">Browsing media collections - grid and list views</a></li>
                                 <li><a href="browsing/sorting-and-filtering.html" class="doc-link">Sorting, filtering and quick search</a></li>
@@ -289,7 +293,7 @@ layout: null
                         <!-- S2949 -->
                         <div class="doc-next-card" id="storage">
                             <span class="doc-badge doc-badge-other doc-badge-sm">Sources, Destinations &amp; File Operations</span>
-                            <h4>Sources &amp; File Operations</h4>
+                            <h3>Sources &amp; File Operations</h3>
                             <ul>
                                 <li><a href="storage/storage-sources-setup.html" class="doc-link">Adding folders from this device</a></li>
                                 <li><a href="storage/network-and-cloud-sources.html" class="doc-link">Adding network folders and clouds</a></li>
@@ -308,7 +312,7 @@ layout: null
                         <!-- S2950 -->
                         <div class="doc-next-card" id="network">
                             <span class="doc-badge doc-badge-docs doc-badge-sm">Network &amp; Cloud</span>
-                            <h4>Network Folders &amp; Clouds</h4>
+                            <h3>Network Folders &amp; Clouds</h3>
                             <ul>
                                 <li><a href="network/smb-samba-shares.html" class="doc-link">Connecting SMB shares</a></li>
                                 <li><a href="network/sftp-ftp-servers.html" class="doc-link">Connecting SFTP and FTP</a></li>
@@ -324,7 +328,7 @@ layout: null
                         <!-- S2951 -->
                         <div class="doc-next-card" id="media">
                             <span class="doc-badge doc-badge-video doc-badge-sm">Video &amp; Media Player</span>
-                            <h4>Video &amp; Media Player</h4>
+                            <h3>Video &amp; Media Player</h3>
                             <ul>
                                 <li><a href="player/video-playback-controls.html" class="doc-link">Watching videos - controls, gestures and saving frames</a></li>
                                 <li><a href="player/subtitles-and-audio-tracks.html" class="doc-link">Subtitles, audio tracks, sound balance and 3D</a></li>
@@ -336,7 +340,7 @@ layout: null
                         <!-- S2952 -->
                         <div class="doc-next-card" id="images-audio-slideshow">
                             <span class="doc-badge doc-badge-music doc-badge-sm">Images, Audio &amp; Slideshow</span>
-                            <h4>Images, Audio &amp; Slideshows</h4>
+                            <h3>Images, Audio &amp; Slideshows</h3>
                             <ul>
                                 <li><a href="images/viewer-and-gestures.html" class="doc-link">Viewing photos, GIFs and zoom gestures</a></li>
                                 <li><a href="images/editing-photos.html" class="doc-link">Editing photos - rotate, crop, colors and GIF tools</a></li>
@@ -349,7 +353,7 @@ layout: null
                         <!-- S2953 -->
                         <div class="doc-next-card" id="documents-and-text-editor">
                             <span class="doc-badge doc-badge-docs doc-badge-sm">Documents &amp; Text Editor</span>
-                            <h4>Documents &amp; Text Editor</h4>
+                            <h3>Documents &amp; Text Editor</h3>
                             <ul>
                                 <li><a href="documents/pdf-epub-viewing.html" class="doc-link">Reading PDF documents</a></li>
                                 <li><a href="documents/office-docs-support.html" class="doc-link">Reading EPUB books and Office documents</a></li>
@@ -360,7 +364,7 @@ layout: null
                         <!-- S2954 -->
                         <div class="doc-next-card" id="streams-catalog">
                             <span class="doc-badge doc-badge-video doc-badge-sm">Internet Streams</span>
-                            <h4>Streams: Channel Catalog</h4>
+                            <h3>Streams: Channel Catalog</h3>
                             <ul>
                                 <li><a href="streams/channel-catalog-browsing.html" class="doc-link">Browsing the channel catalog</a></li>
                                 <li><a href="streams/channel-pictures-and-badges.html" class="doc-link">Channel pictures, logos and badges</a></li>
@@ -372,7 +376,7 @@ layout: null
                         <!-- S2955 -->
                         <div class="doc-next-card" id="streams-playback">
                             <span class="doc-badge doc-badge-video doc-badge-sm">Internet Streams</span>
-                            <h4>Streams: Playback</h4>
+                            <h3>Streams: Playback</h3>
                             <ul>
                                 <li><a href="streams/live-stream-playback.html" class="doc-link">Playing live streams and radio</a></li>
                                 <li><a href="streams/hls-dash-buffering.html" class="doc-link">When the connection is weak</a></li>
@@ -384,7 +388,7 @@ layout: null
                         <!-- S2956 -->
                         <div class="doc-next-card" id="capture">
                             <span class="doc-badge doc-badge-other doc-badge-sm">Camera &amp; Screen Capture</span>
-                            <h4>Camera &amp; Screen Recording</h4>
+                            <h3>Camera &amp; Screen Recording</h3>
                             <ul>
                                 <li><a href="capture/quick-photo-capture.html" class="doc-link">Quick photos and video snaps</a></li>
                                 <li><a href="capture/camera-lenses-zoom-and-profiles.html" class="doc-link">Lenses, zoom and shooting profiles</a></li>
@@ -397,7 +401,7 @@ layout: null
                         <!-- S2957 -->
                         <div class="doc-next-card" id="ocr-drawing-sharing">
                             <span class="doc-badge doc-badge-docs doc-badge-sm">OCR, Drawing &amp; Sharing</span>
-                            <h4>OCR, Translation, Drawing &amp; Sharing</h4>
+                            <h3>OCR, Translation, Drawing &amp; Sharing</h3>
                             <ul>
                                 <li><a href="tools/ocr-text-recognition.html" class="doc-link">Text recognition (OCR)</a></li>
                                 <li><a href="tools/inline-translation.html" class="doc-link">Translating text on screen</a></li>
@@ -409,7 +413,7 @@ layout: null
                         <!-- S2958 -->
                         <div class="doc-next-card" id="launcher">
                             <span class="doc-badge doc-badge-standard doc-badge-sm">Launcher: Desktop</span>
-                            <h4>Launcher: Desktop &amp; Wallpapers</h4>
+                            <h3>Launcher: Desktop &amp; Wallpapers</h3>
                             <ul>
                                 <li><a href="launcher/desktop-grid-and-icons.html" class="doc-link">Your launcher desktop - the starter layout, shortcuts and gadgets</a></li>
                                 <li><a href="launcher/wallpapers-and-live-backgrounds.html" class="doc-link">Choosing a desktop wallpaper</a></li>
@@ -420,7 +424,7 @@ layout: null
                         <!-- S2959 -->
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-standard doc-badge-sm">Launcher: Gadgets and Widgets</span>
-                            <h4>Launcher: Gadgets &amp; Widgets</h4>
+                            <h3>Launcher: Gadgets &amp; Widgets</h3>
                             <ul>
                                 <li><a href="launcher/built-in-gadgets.html" class="doc-link">Desktop gadgets - clocks, weather, map, sensors, device status and more</a></li>
                                 <li><a href="launcher/android-widgets-placement.html" class="doc-link">Placing, resizing and styling gadgets and widgets</a></li>
@@ -431,7 +435,7 @@ layout: null
                         <!-- S2960 -->
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-standard doc-badge-sm">Launcher: Taskbar, Menus and Gestures</span>
-                            <h4>Launcher: Taskbar, Menus &amp; Gestures</h4>
+                            <h3>Launcher: Taskbar, Menus &amp; Gestures</h3>
                             <ul>
                                 <li><a href="launcher/taskbar-and-dock.html" class="doc-link">Using the taskbar and the quick-launch dock</a></li>
                                 <li><a href="launcher/start-menu-and-all-apps.html" class="doc-link">The Start menu and the All apps list</a></li>
@@ -446,7 +450,7 @@ layout: null
                         <!-- S2961 -->
                         <div class="doc-next-card" id="programs">
                             <span class="doc-badge doc-badge-docs doc-badge-sm">Programs and Diagnostics</span>
-                            <h4>Programs, Statistics &amp; Diagnostics</h4>
+                            <h3>Programs, Statistics &amp; Diagnostics</h3>
                             <ul>
                                 <li><a href="programs/built-in-mini-apps.html" class="doc-link">Built-in programs - the lights, the mirror and the SOS signal</a></li>
                                 <li><a href="programs/calculator-and-stopwatch.html" class="doc-link">The calculator and the stopwatch</a></li>
@@ -459,7 +463,7 @@ layout: null
                         <!-- S2962 -->
                         <div class="doc-next-card" id="settings">
                             <span class="doc-badge doc-badge-standard doc-badge-sm">Settings</span>
-                            <h4>Settings &amp; Navigation</h4>
+                            <h3>Settings &amp; Navigation</h3>
                             <ul>
                                 <li><a href="settings/settings-overview-and-search.html" class="doc-link">Finding your way around Settings and searching it</a></li>
                                 <li><a href="settings/display-and-appearance.html" class="doc-link">Themes, colors, language and units</a></li>
@@ -473,7 +477,7 @@ layout: null
                         <!-- S2963 -->
                         <div class="doc-next-card" id="general">
                             <span class="doc-badge doc-badge-standard doc-badge-sm">General</span>
-                            <h4>General, Keyboard &amp; TV</h4>
+                            <h3>General, Keyboard &amp; TV</h3>
                             <ul>
                                 <li><a href="general/backup-and-restore.html" class="doc-link">Backing up and restoring settings</a></li>
                                 <li><a href="general/keyboard-dpad-tv-navigation.html" class="doc-link">Keyboard, D-pad and TV control</a></li>
@@ -486,7 +490,7 @@ layout: null
                         <!-- S2964 -->
                         <div class="doc-next-card" id="wear">
                             <span class="doc-badge doc-badge-wear doc-badge-sm">Watch: Setup &amp; Sync</span>
-                            <h4>Watch: Setup &amp; Sync</h4>
+                            <h3>Watch: Setup &amp; Sync</h3>
                             <ul>
                                 <li><a href="wear/installation-and-pairing.html" class="doc-link">Installing and pairing the watch</a></li>
                                 <li><a href="wear/companion-data-sync.html" class="doc-link">Syncing the phone and the watch</a></li>
@@ -497,7 +501,7 @@ layout: null
                         <!-- S2965 -->
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-wear doc-badge-sm">Watch: Media &amp; Streams</span>
-                            <h4>Watch: Media &amp; Streams</h4>
+                            <h3>Watch: Media &amp; Streams</h3>
                             <ul>
                                 <li><a href="wear/watch-file-manager.html" class="doc-link">Browsing files on the watch</a></li>
                                 <li><a href="wear/standalone-music-playback.html" class="doc-link">Playing music on the watch</a></li>
@@ -508,7 +512,7 @@ layout: null
                         <!-- S2966 -->
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-wear doc-badge-sm">Watch: Programs &amp; Everyday Use</span>
-                            <h4>Watch: Programs &amp; Everyday Use</h4>
+                            <h3>Watch: Programs &amp; Everyday Use</h3>
                             <ul>
                                 <li><a href="wear/watch-home-and-appearance.html" class="doc-link">Finding your way around the watch app</a></li>
                                 <li><a href="wear/wrist-mini-apps-and-tools.html" class="doc-link">Wrist programs and tools</a></li>
@@ -522,7 +526,7 @@ layout: null
                         <!-- S2967 -->
                         <div class="doc-next-card" id="vr">
                             <span class="doc-badge doc-badge-vr doc-badge-sm">VR &amp; OpenXR</span>
-                            <h4>VR &amp; OpenXR</h4>
+                            <h3>VR &amp; OpenXR</h3>
                             <ul>
                                 <li><a href="vr/headset-setup-and-openxr.html" class="doc-link">Setting up a VR headset</a></li>
                                 <li><a href="vr/spatial-cinema-playback.html" class="doc-link">3D, 180 and 360 photos and videos in the headset</a></li>

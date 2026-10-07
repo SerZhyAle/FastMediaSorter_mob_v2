@@ -115,7 +115,8 @@
 </head>
 
 <body>
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.06 14:18</div>
+<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.07 00:53</div>
+    <a class="skip-link" href="#main-content">Skip to content</a>
 
     <!-- SZA Web Kit sticky header -->
     <header class="site-header">
@@ -126,7 +127,7 @@
             <a href="index.html" data-lang="en">EN</a>
             <a href="index-uk.html" data-lang="ua">UA</a>
         </div>
-        <button class="theme-btn" id="themeBtn" aria-label="লাইট থিমে পরিবর্তন করুন" title="থিম পরিবর্তন করুন">◐</button>
+        <button class="theme-btn" id="themeBtn" aria-label="লাইট থিমে পরিবর্তন করুন" title="থিম পরিবর্তন করুন"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>থিম</span></button>
         <a class="btn btn-primary btn-sm" href="#get">ইনস্টল করুন</a>
     </header>
 
@@ -150,7 +151,7 @@
 
     <!-- GitHub Corner -->
     <aside class="source-link">
-    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
+    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" tabindex="-1" target="_blank"
         aria-label="GitHub-এ সোর্স দেখুন">
         <svg width="80" height="80" viewBox="0 0 250 250"
             style="fill:var(--color-standard); color:var(--acc-ink); position: absolute; top: 0; border: 0; right: 0;"
@@ -168,9 +169,15 @@
 
     <main id="main-content">
     <header class="hero" id="top">
-        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
+        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.35" data-speed="0.5"></canvas>
         <div class="hero-inner">
-            <p class="kicker">Android - ডিভাইস শেল</p>
+            <div class="identity">
+                <img class="product-icon" src="icon.png" width="104" height="104" alt="">
+                <div>
+                    <p class="product-name">Fast Media Sorter &amp; Organizer</p>
+                    <p class="kicker">Android - ডিভাইস শেল</p>
+                </div>
+            </div>
             <h1>আপনার Android ডিভাইসের জন্য একটি সম্পূর্ণ শেল।</h1>
             <p class="subtitle">হোম স্ক্রিন, মিডিয়া, স্ট্রিম, অ্যাপ, ওয়াচ এবং ফাইল - সব এক জায়গায়।</p>
             <p class="whatfor">Fast Media Sorter &amp; Organizer আপনার হোম স্ক্রিন দখল করে নেয় এবং সবকিছুর শুরুর জায়গা হয়ে ওঠে: ডিভাইস শেল, মিডিয়া প্লেয়ার, লাইভ স্ট্রিম, অ্যাপ চালু করা, স্টক অ্যাপের বিকল্প, ওয়াচে একটি কম্প্যানিয়ন, ডিভাইস মনিটরিং এবং স্থানীয় স্টোরেজ, SMB/NAS, SFTP/FTP ও ক্লাউড ড্রাইভের জন্য একটি সম্পূর্ণ ফাইল ম্যানেজার।</p>
@@ -658,6 +665,7 @@
                     target="_blank" rel="noopener">IzzyOnDroid</a>
             </div>
             <p class="shell-links"><a href="#download">অন্য APK সংস্করণ ও ওয়াচ ফেস</a></p>
+            <p class="shell-links">সংস্করণ: <a href="#download">Lite</a> · <a href="#download">Photos</a> · <a href="#download">Legacy</a> · <a href="nolegal.html">noLegal</a> · <a href="documentation/vr/spatial-cinema-playback.html">VR</a> · <a href="docs/wear/">Wear OS</a> · <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">ঘড়ির মুখ</a></p>
             <ol class="quickstart">
                 <li>একটি উপযুক্ত সংস্করণ ইনস্টল করুন এবং অ্যাপটি খুলুন।</li>
                 <li>স্বাগত উইজার্ডে, বা পরে সেটিংস, সাধারণ, প্রাথমিক স্টার্টআপ উইন্ডোতে, ডিভাইস হোম স্ক্রিন বেছে নিন এবং Android জিজ্ঞেস করলে নিশ্চিত করুন।</li>
@@ -870,7 +878,7 @@
                         <li>সংস্করণের পার্থক্য এবং বিকল্প Google Drive মিরর ব্যাখ্যা করে।</li>
                         <li>এক-ট্যাপ ডাউনলোড নিচের Download APK Builds বিভাগে রয়েছে।</li>
                     </ul>
-                    <a href="docs/DOWNLOADS_EN.html" class="card-footer" target="_blank">বিস্তারিত দেখুন</a>
+                    <a href="docs/DOWNLOADS.html" class="card-footer" target="_blank">বিস্তারিত দেখুন</a>
                 </details>
             </article>
         </div>
@@ -878,7 +886,7 @@
         <!-- Download APK Builds - live buttons from the latest GitHub Release (S0394) -->
         <h2 class="section-title" id="download">APK বিল্ড ডাউনলোড করুন</h2>
         <p class="section-lead">প্রতিটি সংস্করণের সর্বশেষ উপলব্ধ স্থিতিশীল APK। সংস্করণ আলাদা হতে পারে; আপনার সংস্করণ না থাকলে GitHub রিলিজ দেখুন।</p>
-        <p class="section-lead">Android আগে না দেখা একটি APK সম্পর্কে সতর্ক করে। <a href="docs/INSTALL_TRUST_EN.html" target="_blank" rel="noopener">কেন সতর্কতাটি দেখায় - এবং কী ট্যাপ করতে হবে</a>।</p>
+        <p class="section-lead">Android আগে না দেখা একটি APK সম্পর্কে সতর্ক করে। <a href="docs/INSTALL_TRUST.html" target="_blank" rel="noopener">কেন সতর্কতাটি দেখায় - এবং কী ট্যাপ করতে হবে</a>।</p>
         <h3 class="edition-heading">হেডসেট ও ঘড়ির সংস্করণ</h3>
         <div class="edition-download-grid">
             <article class="card edition-card" data-download-edition="noLegal">
@@ -1193,7 +1201,7 @@
                 <!-- family-footer:end -->
             </div>
             <div class="footer-bottom">
-                <span>&copy; 2024-2026 Serhii Zhyhunenko · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">গোপনীয়তা</a> · <a href="docs/TERMS_OF_SERVICE.html">শর্তাবলী</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
+                <span>&copy; 2024-2026 <a href="https://sza.od.ua">Serhii Zhyhunenko</a> · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">গোপনীয়তা</a> · <a href="docs/TERMS_OF_SERVICE.html">শর্তাবলী</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
             </div>
         </div>
     </footer>

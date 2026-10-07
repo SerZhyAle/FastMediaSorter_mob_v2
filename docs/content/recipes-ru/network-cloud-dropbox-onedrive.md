@@ -6,7 +6,7 @@ description: Как войти в учетные записи Dropbox и OneDriv
 category: Сеть и облачные хранилища
 category_slug: network
 ticket: S2950
-flavor: Редакции Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS). Требуется учетная запись Dropbox и/или Microsoft.
+availability_note: Редакции Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS). Требуется учетная запись Dropbox и/или Microsoft.
 recipe_number: "06"
 canonical_url: documentation/network/cloud-dropbox-onedrive-ru.html
 why: |
@@ -66,6 +66,6 @@ next_recipes:
     description: Создание резервных копий и полное восстановление настроек и ресурсов.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Подключите учетные записи Dropbox и OneDrive, чтобы добавить нужные папки как ресурсы на главный экран рядом с локальными файлами и Google Диском - с удобной авторизацией, быстрым выходом и понятными сообщениями об ошибках от обоих [облачных провайдеров](term:cloud-provider).

@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 23:35</sub>
+<sub class="doc-stamp">26.10.07 04:59</sub>
 
 # Pointer - `PAGE-STYLE`
 
 | | |
 | --- | --- |
 | **Id** | `PAGE-STYLE` |
-| **Version** | 1.2, active. Owner: the sza.od.ua hub |
+| **Version** | 1.6, active. Owner: the sza.od.ua hub |
 | **Home** | `product-web-pages/PAGE-STYLE.md` in the shared contracts catalog |
 | **Role here** | consumer - the product site's landing and sideload pages, and the documentation portal (per-language documentation pages, section 6) |
 
@@ -19,6 +19,7 @@
 - A vendored kit file is marked `-text` and stays byte-identical; the page stylesheet is linked after
   it (sections 0 and 4.7).
 - The kit's fonts and tokens, 44 px touch targets, `prefers-reduced-motion`.
+- Fill the screen (1.3, section 5 "Width"): `--wide` is `100%`, no page wrapper carries a `max-width` or a centred `margin: auto`; the hero opens with the identity block (section 4.1b) and the header brand is text only. The 1920 / 2560 px measurement is in the catalog's `product-web-pages/README.md` section 2 (S4106).
 - Monochrome `ICON-SET` glyphs beside labels, never emoji.
 - Walk the per-site acceptance checklist (section 11) before publishing a page change.
 - The deviations currently open are recorded as exceptions in the catalog's registry.
@@ -27,7 +28,8 @@
 
 - `index.html`, `nolegal.html` and their `-ru` / `-uk` translations at the repository root.
 - The landing in each further locale, `index-<slug>.html`, written by `scripts/site/generate-landing-pages.ps1`, which also renders the further-locale row under the header.
-- The documentation portal, `documentation/**/*.html`, written by `scripts/docs/generate-docs-pages.ps1`, `generate-glossary.ps1` and `generate-subject-index.ps1`, and the `_layouts/doc.html` Jekyll layout. Its pages carry the section 7 resolver and the `sza-lang` writer; its 13-locale picker is not yet the section 4.2 secondary row.
+- The documentation portal, `documentation/**/*.html`, written by `scripts/docs/generate-docs-pages.ps1`, `generate-glossary.ps1` and `generate-subject-index.ps1`. Its pages carry the section 7 resolver and the `sza-lang` writer; its 13-locale picker is not yet the section 4.2 secondary row.
+- The `docs/` reference pages move into the portal shell (owner decision, S4104): `_layouts/doc.html` is the Jekyll copy of the portal chrome, with the language menu built from the page's real `-ru` / `-uk` siblings. The trust group (`PRIVACY_POLICY*`, `TERMS_OF_SERVICE*`) uses it; every other `docs/` page still renders through the third-party `jekyll-theme-cayman` (`_config.yml`) until its own move.
 
 ## Gate
 

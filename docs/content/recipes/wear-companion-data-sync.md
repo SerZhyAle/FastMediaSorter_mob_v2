@@ -6,7 +6,9 @@ description: How to choose which network resources travel from the phone to the 
 category: Wear OS Watch
 category_slug: wear
 ticket: S2964
-flavor: Phone side - Standard and noLegal; sending network resources and syncing from the watch - the full watch version (sideload only)
+availability: companion:wear
+devices: watch
+availability_note: Phone side - Standard and noLegal; sending network resources and syncing from the watch - the full watch version (sideload only)
 recipe_number: "02"
 canonical_url: documentation/wear/companion-data-sync.html
 why: |
@@ -163,6 +165,6 @@ next_recipes:
     description: The first steps, if the watch and phone do not see each other yet.
 ---
 
-<sub class="doc-stamp">26.09.24 09:03</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Choose which [network resources](term:network-resource) the [watch](term:watch) gets, push them, read what the sync reports, and set the watch up from the phone's [Wear Companion](term:wear-companion) window - media types, slideshow, screen, color scheme, background and power saving.

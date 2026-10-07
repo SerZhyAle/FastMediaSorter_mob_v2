@@ -6,7 +6,7 @@ description: How to put a gadget or one of the app's widgets on the launcher des
 category: "Launcher: Gadgets and Widgets"
 category_slug: launcher
 ticket: S2959
-flavor: Standard and noLegal
+availability: SUPPORT_LAUNCHER
 recipe_number: "02"
 canonical_url: documentation/launcher/android-widgets-placement.html
 why: |
@@ -109,6 +109,6 @@ next_recipes:
     description: Move, resize and fold, spread items over several screens and lock the layout.
 ---
 
-<sub class="doc-stamp">26.09.24 08:31</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 A [gadget](term:gadget) needs a good place and the right size. This page shows how to put gadgets and the app's widgets on the launcher [desktop](term:desktop), let the desktop make room, resize them, choose how solid their card is, and start again with a fresh set.

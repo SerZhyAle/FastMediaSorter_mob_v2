@@ -6,7 +6,7 @@ description: How to read EPUB e-books with your own font, size, colors and margi
 category: Documents & Text Editor
 category_slug: documents
 ticket: S2953
-flavor: Standard, noLegal, Legacy, VR and FOSS
+availability: SUPPORT_DOCUMENTS
 recipe_number: "02"
 canonical_url: documentation/documents/office-docs-support.html
 why: |
@@ -140,6 +140,6 @@ next_recipes:
     description: See which edition opens which kinds of files.
 ---
 
-<sub class="doc-stamp">26.09.24 07:50</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Read EPUB books with the font, size, colors and margins you like, jump between chapters, search a whole book, listen to it or translate it - and open Word, Excel and PowerPoint files with one tap, in the way your edition offers.

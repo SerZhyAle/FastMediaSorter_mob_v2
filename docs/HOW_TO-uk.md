@@ -1,9 +1,9 @@
 ---
 layout: default
 title: "📖 Посібники"
-permalink: /docs/HOW_TO_UK.html
+permalink: /docs/HOW_TO-uk.html
 ---
-<sub class="doc-stamp">26.09.26 10:42</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 # 📖 Посібники
 

@@ -151,7 +151,9 @@ function Strip-Markdown {
         if ($ln -match "^---\s*$") { continue }
         # Skip the "What's New" / "What's Fixed" headings - leave content but drop the heading itself.
         if ($ln -match "^##\s") { continue }
-        $t = $ln
+        # S4102: a bullet ends in an invisible <!-- af: id --> inventory anchor; a plain-text store
+        # changelog would show it verbatim and spend the 500-character budget on it.
+        $t = $ln -replace "\s*<!--.*?-->", ""
         # Convert bullets.
         $t = $t -replace "^\s*[-*]\s+", "• "
         # Drop bold/italic asterisks.

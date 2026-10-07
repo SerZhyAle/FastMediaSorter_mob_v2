@@ -6,7 +6,7 @@ description: Экспорт и восстановление всех настр�
 category: Настройки и навигация
 category_slug: settings
 ticket: S2962
-flavor: Все редакции. Резервное копирование на Google Диск требует редакций Standard, noLegal, Photos, Legacy или VR с подключенным аккаунтом Google; синхронизация с часами требует Standard или noLegal с компаньоном Wear.
+availability_note: Все редакции. Резервное копирование на Google Диск требует редакций Standard, noLegal, Photos, Legacy или VR с подключенным аккаунтом Google; синхронизация с часами требует Standard или noLegal с компаньоном Wear.
 recipe_number: "05"
 canonical_url: documentation/settings/backup-and-device-sync-ru.html
 why: |
@@ -122,6 +122,6 @@ next_recipes:
     description: Полная сводка всех возможностей экспорта и резервного копирования в приложении.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Сохраняйте все настройки в файл или резервную копию на Google Диске, экспортируйте и импортируйте только Избранное, управляйте отдельными категориями данных через универсальное меню и поддерживайте настройки и ресурсы сопряженных [часов](term:watch) в полной гармонии с телефоном.

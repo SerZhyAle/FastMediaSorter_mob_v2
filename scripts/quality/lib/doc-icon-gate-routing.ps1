@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Library: decides whether a changed-file set routes the documentation icon gate.
+#>
+
+
 Set-StrictMode -Version Latest
 
 function Test-DocIconGateRoute {

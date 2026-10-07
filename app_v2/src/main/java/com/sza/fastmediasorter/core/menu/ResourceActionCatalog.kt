@@ -51,12 +51,12 @@ enum class ResourceMenuAction(
     MOVE_DOWN(R.string.move_down, R.drawable.ic_arrow_downward, R.id.action_move_down),
     MOVE_TO_TOP(
         R.string.resource_menu_move_to_top,
-        R.drawable.ic_arrow_upward,
+        R.drawable.ic_move_to_top,
         R.id.action_move_to_top,
     ),
     MOVE_TO_BOTTOM(
         R.string.resource_menu_move_to_bottom,
-        R.drawable.ic_arrow_downward,
+        R.drawable.ic_move_to_bottom,
         R.id.action_move_to_bottom,
     ),
     DELETE(R.string.delete, R.drawable.ic_delete, R.id.action_delete),

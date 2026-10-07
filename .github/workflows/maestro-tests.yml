@@ -86,10 +86,10 @@ jobs:
           disk-size: 8192M
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: false
+          # The runner executes every script line as its own `sh -c`, so a variable assigned on one
+          # line is empty on the next - resolve and install the APK in a single line.
           script: |
-            APK=$(find app_v2/build/outputs/apk/standard/debug -name "*.apk" | head -n 1)
-            echo "Installing APK: $APK"
-            adb install -r "$APK"
+            APK=$(find app_v2/build/outputs/apk/standard/debug -name "*.apk" | head -n 1) && test -n "$APK" && echo "Installing APK: $APK" && adb install -r "$APK"
             adb shell pm list packages | grep fastmediasorter
 
             echo "Running smoke tests..."

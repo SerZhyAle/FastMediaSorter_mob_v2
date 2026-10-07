@@ -20,7 +20,6 @@
     "ic_favorite": "action.favorite",
     "ic_filter_active": "action.filter",
     "ic_folder_open": "content.folder",
-    "ic_gesture_action_shutter": "camera.shutter",
     "ic_shutter_photo": "camera.shutter",
     "ic_mobile_network": "system.mobile-network",
     "ic_notification_app_logo": "app.logo",
@@ -71,6 +70,7 @@
     "Icons.Filled.Close": "nav.close",
     "Icons.Filled.Delete": "action.delete",
     "Icons.Filled.Description": "content.document",
+    "Icons.Filled.Email": "action.email",
     "Icons.Filled.ErrorOutline": "status.error",
     "Icons.Filled.ExitToApp": "nav.exit",
     "Icons.Filled.FastForward": "media.fast-forward",
@@ -202,13 +202,10 @@
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/overflow_menu_standalone_player.xml|ic_help_outline|help", "why": "the visible help menu item opens the documentation portal page - S3506" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/overflow_menu_standalone_player.xml|ic_ocr|camera_ocr_pane_original", "why": "switches the pane between original and translated text; no pane meaning in the vocabulary - S3484" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/overflow_menu_standalone_player.xml|ic_open_in_browse|open_in_fms", "why": "nav.open-external is named \"Open in new window\", which misnames opening another app on Android - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
-    { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/resource_item_actions.xml|ic_arrow_downward|resource_menu_move_to_bottom", "why": "action.move-last carries no android glyph; the move-down arrow stands in - S3484" },
-    { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/resource_item_actions.xml|ic_arrow_upward|resource_menu_move_to_top", "why": "action.move-first carries no android glyph; the move-up arrow stands in - S3484" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/resource_item_actions.xml|ic_open_in_browse|resource_menu_open", "why": "nav.open-external is named \"Open in new window\", which misnames opening a resource on Android - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/resource_item_actions.xml|ic_vr_headset|action_open_in_vr_cinema", "why": "no \"play in VR\" meaning in the vocabulary; the headset picture stands in - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/resource_item_actions.xml|ic_widget_resource_launch|widget_add_to_home_screen", "why": "the widget preview picture of the resource shortcut - S3484" },
     { "key": "accessible-name|wear|wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/WearBackAffordance.kt|ic_double_arrow_down|wear_minimize_to_background", "why": "no \"minimise to background\" meaning in the vocabulary; the down arrow stands in - S3484" },
-    { "key": "accessible-name|app_v2|app_v2/src/launcherEnabled/res/layout/gadget_launcher_translator.xml|ic_copy|launcher_translator_paste", "why": "pastes the clipboard to translate; the vocabulary has no paste meaning and the copy sheets stand in - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
-    { "key": "unmapped|app_v2|ic_view_table", "why": "the table view mode of the resource list (S4041); the vocabulary has no table-view meaning - S4067, catalog proposal iconography/PROPOSAL-2026-10-02-fms-table-view.md" }
+    { "key": "accessible-name|app_v2|app_v2/src/launcherEnabled/res/layout/gadget_launcher_translator.xml|ic_copy|launcher_translator_paste", "why": "pastes the clipboard to translate; the vocabulary has no paste meaning and the copy sheets stand in - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" }
   ]
 }

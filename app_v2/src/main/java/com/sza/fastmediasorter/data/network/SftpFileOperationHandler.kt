@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.parseSftpStrategyPath
+import com.sza.fastmediasorter.domain.model.SftpTunnelAddress.forLog
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.transfer.FileOperationError
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
@@ -494,15 +495,19 @@ class SftpFileOperationHandler @Inject constructor(
             val resolved = endpointResolver.resolve(rawHost, rawPort)
             val host = resolved.host
             val port = resolved.port
-            Timber.d("parseSftpPath: Extracted host=$host, port=$port, remotePath=$remotePath")
+            Timber.d("parseSftpPath: Extracted host=${forLog(host)}, port=$port, remotePath=$remotePath")
 
             var credentials = credentialsRepository.getByTypeServerAndPort("SFTP", host, port)
             if (credentials == null) {
                 credentials = credentialsRepository.getCredentialsByHost(host)
             }
+            if (credentials == null && (host != rawHost || port != rawPort)) {
+                // S4110: a Drive-announced address has no row of its own; the server's login is the stored one.
+                credentials = credentialsRepository.getByTypeServerAndPort("SFTP", rawHost, rawPort)
+            }
 
             if (credentials == null) {
-                Timber.e("parseSftpPath: No credentials found for host: $host")
+                Timber.e("parseSftpPath: No credentials found for host: ${forLog(host)}")
                 return null
             }
 

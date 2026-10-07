@@ -1,10 +1,10 @@
 ---
 layout: default
 title: "⚠️ Обмеження програми"
-permalink: /docs/LIMITATIONS_UK.html
+permalink: /docs/LIMITATIONS-uk.html
 ---
 
-<sub class="doc-stamp">26.09.24 02:48</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 # ⚠️ Обмеження програми
 

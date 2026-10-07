@@ -6,7 +6,6 @@ description: Як дозволити фото змінюватися самим,
 category: Зображення, аудіо та слайдшоу
 category_slug: images
 ticket: S2952
-flavor: Усі редакції
 recipe_number: "03"
 canonical_url: documentation/images/slideshow-and-transitions-uk.html
 why: |
@@ -128,6 +127,6 @@ next_recipes:
     description: Тримайте екран увімкненим, обирайте кольори й налаштовуйте вигляд застосунку.
 ---
 
-<sub class="doc-stamp">26.09.25 22:31</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Слайдшоу](term:slideshow) саме переходить від одного фото до наступного. Виберіть, як довго показувати кожне фото, додайте фонову музику і дозвольте застосунку тримати екран увімкненим - телефон чи планшет стає фоторамкою за хвилину.

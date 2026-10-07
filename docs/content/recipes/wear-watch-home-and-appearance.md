@@ -6,7 +6,9 @@ description: How the watch app's home screen is laid out - sections, recent shor
 category: Wear OS Watch
 category_slug: wear
 ticket: S2966
-flavor: Home screen, navigation and most of Settings - both watch versions; the Permissions screen, color scheme and background synced from the phone - shown only where the build declares the matching access; the Original layout switch - the full watch version (sideload only)
+availability: companion:wear
+devices: watch
+availability_note: Home screen, navigation and most of Settings - both watch versions; the Permissions screen, color scheme and background synced from the phone - shown only where the build declares the matching access; the Original layout switch - the full watch version (sideload only)
 recipe_number: "06"
 canonical_url: documentation/wear/watch-home-and-appearance.html
 why: |
@@ -232,6 +234,6 @@ next_recipes:
     description: Set the watch's colors, background and more from the phone.
 ---
 
-<sub class="doc-stamp">26.09.30 11:27</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 A tour of the watch app's home screen - its sections, its recent and now-playing rows, [Favorites](term:favorites) - along with the clock, the back button, the first-run walk, and the Settings behind how it all looks.

@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpRendezvousDirectory
 import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.utils.SftpPathUtils
@@ -39,6 +40,7 @@ class SftpHostKeyPinRegistry @Inject constructor(
     private val resourceDao: ResourceDao,
     private val mdnsDiscovery: CompanionMdnsDiscovery,
     @ApplicationScope private val applicationScope: CoroutineScope,
+    private val rendezvous: SftpRendezvousDirectory,
 ) {
 
     private val pins = MutableStateFlow<Map<String, String>?>(null)
@@ -135,7 +137,10 @@ class SftpHostKeyPinRegistry @Inject constructor(
 
     private fun discoveredPin(host: String, port: Int, snapshot: Map<String, String>): String? {
         val endpoint = HostPort(host, port)
-        return snapshot.values.distinct().firstOrNull { mdnsDiscovery.endpointForFingerprint(it) == endpoint }
+        val discovered = snapshot.values.distinct().firstOrNull { mdnsDiscovery.endpointForFingerprint(it) == endpoint }
+        // S4110: an address announced on Drive is verified on the pin of the producer that announced it,
+        // and only on a pin a stored resource already holds - an announcement never introduces a key.
+        return discovered ?: rendezvous.fingerprintForEndpoint(endpoint)?.takeIf { it in snapshot.values }
     }
 
     private suspend fun awaitPins(): Map<String, String> {

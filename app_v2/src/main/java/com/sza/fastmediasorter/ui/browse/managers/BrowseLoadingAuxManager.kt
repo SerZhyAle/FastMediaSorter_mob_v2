@@ -167,6 +167,10 @@ class BrowseLoadingAuxManager(
         if (resource.type == ResourceType.WEAR_WATCH) {
             return context.getString(R.string.paired_watch_not_connected)
         }
+        return BrowseFriendlyErrorResolver.peerUnreachableMessage(context, e) ?: companionAccessNote(resource, e)
+    }
+
+    private fun companionAccessNote(resource: MediaResource, e: Throwable): String? {
         val msg = e.message.orEmpty()
         val isConnectivity = msg.contains("timeout", ignoreCase = true) ||
             msg.contains("timed out", ignoreCase = true) ||

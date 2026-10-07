@@ -121,6 +121,26 @@
         Fix   = 'A documentation page references an image file that does not exist, or an <img> has empty alt text. Add the image under documentation/assets/images/ or fix its path, and write the alt text; an image not captured yet is an image bookmark (docs/DOCUMENTATION_IMAGE_BOOKMARKS.md).'
     }
 
+    'site-addresses' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-site-addresses.ps1'
+        Fix   = 'The not-found page, a forwarder or a retired page is out of step. Rewrite forwarders and the registry exclusion rows with pwsh -NoProfile -File scripts/docs/generate-site-redirects.ps1; a page withdrawn with its capability goes through scripts/docs/retire-docs-page.ps1; then repair whatever address the FAIL line names. A held-addresses finding means docs/site-held-addresses.jsonl and a holder (app, listing, README) disagree, or a held address no longer answers a page: edit the list or the holder. A locale-scheme finding names an address whose language suffix is not -<lang>: publish it in that form and leave a forwarder with scripts/docs/migrate-locale-addresses.ps1.'
+    }
+
+    'site-origins' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-site-origins.ps1'
+        Fix   = 'A published page loads a third-party host the declaration does not name, a declared host is no longer loaded, a privacy page does not name a host, or an advertising host loads outside the landing. Add or remove the record in scripts/quality/site-origins.psd1 and the matching text in docs/PRIVACY_POLICY.md, -ru and -uk, or remove the load from the page the FAIL line names.'
+    }
+
+    'showcase-inventory' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-showcase-inventory.ps1'
+        Fix   = 'A docs/FEATURES*.md or current docs/WHATS_NEW*.md bullet has no <!-- af: id --> anchor, anchors an id that is not an active docs/ALL_FEATURES.jsonl record, anchors a noLegal-only record in a public file, or its RU/UK copy anchors other ids than EN. Anchor the bullet to the record it announces, in all three locales at the same position; a capability with no record gets one through scripts/all_features/add.ps1, a removed one loses its bullet.'
+    }
+
+    'site-facts' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-site-facts.ps1'
+        Fix   = 'A page states an edition count, a minimum Android version or an edition name that the declaration docs/flavors/public-editions.psd1 and the matrix docs/flavors/flavor-matrix.json do not give, or a build variant is declared nowhere. Correct the source text (a recipe under docs/content/, a document, or a generator) and regenerate the pages; declare a new variant in public-editions.psd1 as an edition or as not public.'
+    }
+
     'docs-search' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-docs-search.ps1'
         Fix   = 'The documentation search index, its client script or the responsive stylesheet is broken. Regenerate the index with pwsh -NoProfile -File scripts/docs/generate-docs-search-index.ps1, then repair whatever asset the FAIL line names.'
@@ -134,6 +154,10 @@
     'docs-portal-ui-ux' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-docs-portal-ui-ux.ps1'
         Fix   = 'A documentation portal page violates UI/UX or accessibility standards (viewport, landmark, alt text, broken local link, responsive CSS token or search scoring). Repair the asset or page the finding names, or regenerate pages with scripts/docs/generate-docs-pages.ps1.'
+    }
+    'docs-hub-shell' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-docs-hub-shell.ps1'
+        Fix   = 'A hand-kept portal hub (documentation/index*, overview* or design-system/index.html) carries a stale shared shell: language menu, hreflang block or skip link. Run pwsh -NoProfile -File scripts/docs/update-docs-shell.ps1 and keep the rewritten hubs.'
     }
 
     'memory-budget-gate' = @{

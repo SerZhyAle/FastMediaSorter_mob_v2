@@ -6,7 +6,7 @@ description: Як перенести музику на годинник, від�
 category: Годинник Wear OS
 category_slug: wear
 ticket: S2965
-flavor: Повна версія застосунку для годинника (лише sideload). Копіювання музики з телефона потребує застосунку на телефоні в редакції Standard або noLegal.
+availability_note: Повна версія застосунку для годинника (лише sideload). Копіювання музики з телефона потребує застосунку на телефоні в редакції Standard або noLegal.
 recipe_number: "11"
 canonical_url: documentation/wear/standalone-music-playback-uk.html
 why: |
@@ -105,6 +105,6 @@ next_recipes:
     description: Кожна кнопка аудіо- та відеоплеєра годинника.
 ---
 
-<sub class="doc-stamp">26.09.25 22:36</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Перенесіть музику на годинник, відкрийте домашній сервер як музику, перевірте гучність перед дотиком і відтворіть трек, що грає далі з вимкненим екраном чи закритим застосунком - лишивши [телефон](term:phone) удома.

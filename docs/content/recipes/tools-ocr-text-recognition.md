@@ -6,7 +6,7 @@ description: How to pull the words out of a photo, a screenshot or a scanned doc
 category: OCR, Drawing & Sharing
 category_slug: tools
 ticket: S2957
-flavor: Standard, noLegal, Legacy and VR
+availability: ocrEnabled
 recipe_number: "01"
 canonical_url: documentation/tools/ocr-text-recognition.html
 why: |
@@ -109,6 +109,6 @@ next_recipes:
     description: Install the OCR engine and language-specific models, or remove them again.
 ---
 
-<sub class="doc-stamp">26.09.24 09:11</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 One tap turns a photo, a screenshot or a scanned page into text you can copy, search or save - read on the phone itself, with no picture ever leaving the device.

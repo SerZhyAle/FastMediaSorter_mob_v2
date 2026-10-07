@@ -24,10 +24,7 @@ object SupportIntentFactory {
 
     private const val DOCS_BASE_EN = "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
     private const val DOCS_BASE_RU = "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/index-ru.html"
-
-    // The documentation portal has no Ukrainian edition yet (S3545), so a Ukrainian reader keeps
-    // the Ukrainian scenario guides rather than being dropped into English.
-    private const val DOCS_BASE_UK = "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/index-uk.html"
+    private const val DOCS_BASE_UK = "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/index-uk.html"
 
     /**
      * S3392: the product's one declared support address. Bug reports, crash reports, the statistics
@@ -124,8 +121,11 @@ object SupportIntentFactory {
         else -> LAUNCHER_PORTAL_EN
     }
 
-    private fun openHelp(context: Context): Intent =
-        Intent(Intent.ACTION_VIEW, Uri.parse(helpUrl(context)))
+    private fun openHelp(context: Context): Intent {
+        val url = helpUrl(context)
+        Timber.d("S4101: help entry opens $url")
+        return Intent(Intent.ACTION_VIEW, Uri.parse(url))
+    }
 
     private fun reportProblem(subject: String): Intent {
         // mailto: is an opaque URI; Uri.Builder.appendQueryParameter drops the opaque address part

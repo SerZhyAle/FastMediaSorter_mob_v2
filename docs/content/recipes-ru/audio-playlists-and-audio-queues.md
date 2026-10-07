@@ -6,7 +6,7 @@ description: Как воспроизводить треки в случайно�
 category: Изображения, аудио и слайд-шоу
 category_slug: audio
 ticket: S2952
-flavor: Все редакции, кроме Photos; фоновое прослушивание недоступно в Lite
+availability_note: Все редакции, кроме Photos; фоновое прослушивание недоступно в Lite
 recipe_number: "05"
 canonical_url: documentation/audio/playlists-and-audio-queues-ru.html
 why: |
@@ -128,6 +128,6 @@ next_recipes:
     description: Воспроизведение и управление музыкой прямо с часов Wear OS.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Выбирайте порядок воспроизведения треков, засыпайте под плавно затухающую музыку с таймером сна и продолжайте слушать любимые композиции в фоне - с удобным управлением в уведомлении, шторке настроек и нижней панели «Сейчас играет».

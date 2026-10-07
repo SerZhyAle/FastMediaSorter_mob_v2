@@ -4,7 +4,7 @@ title: "What's New in FastMediaSorter v2"
 permalink: /docs/WHATS_NEW.html
 ---
 
-<sub class="doc-stamp">26.10.04 15:44</sub>
+<sub class="doc-stamp">26.10.06 23:40</sub>
 
 # What's New in FastMediaSorter v2
 
@@ -16,8 +16,8 @@ permalink: /docs/WHATS_NEW.html
 
 ## What's New
 
-- **Slow motion and video zoom** - 0.1x and 0.3x speeds, pinch to zoom and pan.
-- **Launcher tile placement** - new apps go to the Android apps section.
+- **Slow motion and video zoom** - 0.1x and 0.3x speeds, pinch to zoom and pan. <!-- af: video-player.video-chrome-slow-playback-and-gesture-zoom -->
+- **Launcher tile placement** - new apps go to the Android apps section. <!-- af: launcher.section-aware-placement-of-new-app-shortcut-and -->
 
 ## What's Fixed
 

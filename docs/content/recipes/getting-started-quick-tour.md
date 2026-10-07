@@ -6,7 +6,8 @@ description: Installing FastMediaSorter, what the first launch splash shows you,
 category: Getting Started
 category_slug: getting-started
 ticket: S2946
-flavor: All editions - install source depends on the edition
+availability: all
+availability_note: All editions - install source depends on the edition
 recipe_number: "04"
 canonical_url: documentation/getting-started/quick-tour.html
 why: |
@@ -115,6 +116,6 @@ next_recipes:
     description: Which edition carries which capability, and how to tell them apart.
 ---
 
-<sub class="doc-stamp">26.09.25 05:48</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 From installing FastMediaSorter to the clock on its first splash to a map of which recipe to read next - this is the five-minute tour before the [welcome wizard](page:getting-started.welcome-and-setup) asks you anything.

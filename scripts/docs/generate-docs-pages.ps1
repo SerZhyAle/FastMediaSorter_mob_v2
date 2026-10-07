@@ -24,7 +24,13 @@ if (-not $ContentDir) {
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'DocumentationShell.ps1')
 . (Join-Path $PSScriptRoot 'lib/doc-stamp.ps1')
+. (Join-Path $PSScriptRoot 'lib/portal-glyphs.ps1')
+. (Join-Path $PSScriptRoot 'lib/page-availability.ps1')
 $repoRoot = Resolve-Path "$PSScriptRoot/../.."
+# SITE-REPRESENTATION rule 9 (S4107): the badge is derived from the build through the English
+# recipe's availability terms, so the three languages render one decision.
+$script:AvailabilityContext = Get-PageAvailabilityContext -RepoRoot $repoRoot.Path
+$script:AvailabilityByPage = Get-RecipeAvailabilityMap -RepoRoot $repoRoot.Path
 $contentRoot = Join-Path $repoRoot $ContentDir
 $outputRoot = Join-Path $repoRoot $OutputDir
 
@@ -188,12 +194,40 @@ function Format-MarkdownInline([string]$text) {
     $text = [regex]::Replace($text, '\*\*([^*]+)\*\*', '<strong>$1</strong>')
     # code `code`
     $text = [regex]::Replace($text, '`([^`]+)`', '<code>$1</code>')
-    # links [text](page:<page_id>) | [text](term:<term_id>) | [text](https://..)
+    # links [text](page:<page_id>) | [text](term:<term_id>) | [text](glyph:<meaning>) | [text](https://..)
     $text = [regex]::Replace($text, '\[([^\]]+)\]\(([^)\s]+)\)', {
             param($lm)
             Resolve-MarkdownLink $lm.Groups[1].Value $lm.Groups[2].Value
         })
-    return $text
+    return ConvertTo-MenuPath $text
+}
+
+# SITE-EXPERIENCE rule 3: a menu path has one form on every page. The sources write it as an arrow
+# chain - one bold run (**Settings → General**) or separately marked entries (**A** → **B**,
+# «A» → tab «B», a term link → **B**) - and both render as the menu-path component. Prose paths
+# without marks are left as written. Only an entry after an arrow may carry a lowercase descriptor
+# ("tab «General»"); before the first arrow such a word belongs to the sentence.
+$script:MenuPathEntry = '(?:<strong>[^<→]+</strong>|«[^»<]+»|<span class="doc-link-term"[^>]*>[^<]+</span>)'
+$script:MenuPathLaterEntry = '(?:' + $script:MenuPathEntry + '|\p{Ll}+\s+«[^»<]+»)'
+
+function Format-MenuPath([string[]]$items) {
+    $parts = foreach ($item in $items) {
+        $label = $item.Trim() -replace '^<strong>(.*)</strong>$', '$1' -replace '^«([^»]+)»$', '$1'
+        '<span class="doc-menu-path-item">' + $label + '</span>'
+    }
+    return '<span class="doc-menu-path">' + ($parts -join '<span class="doc-menu-path-sep">→</span>') + '</span>'
+}
+
+function ConvertTo-MenuPath([string]$html) {
+    $html = [regex]::Replace($html, '<strong>([^<]*?→[^<]*)</strong>', {
+            param($m)
+            Format-MenuPath ($m.Groups[1].Value -split '\s*→\s*')
+        })
+    $chain = $script:MenuPathEntry + '(?:\s*→\s*' + $script:MenuPathLaterEntry + ')+'
+    return [regex]::Replace($html, $chain, {
+            param($m)
+            Format-MenuPath ([regex]::Split($m.Value, '\s*→\s*'))
+        })
 }
 
 # Links name a page by its permanent page_id, never by file path, so a page can move without
@@ -218,6 +252,10 @@ function Resolve-MarkdownLink([string]$label, [string]$target) {
         }
         return "<span class=`"doc-link-term`" data-term=`"$termId`">$label</span>"
     }
+    if ($target.StartsWith('glyph:')) {
+        # SITE-EXPERIENCE rule 6: a control is named with its ICON-SET glyph, never an emoji.
+        return '<span class="doc-glyph-label">' + (Get-PortalGlyph -Meaning $target.Substring(6)) + $label + '</span>'
+    }
     if ($target -match '^https?://') {
         return "<a href=`"$target`" target=`"_blank`" rel=`"noopener`" class=`"doc-link-external`">$label</a>"
     }
@@ -230,9 +268,9 @@ function Get-RelativeHref([string]$fromRel, [string]$toRel) {
     return [System.IO.Path]::GetRelativePath($fromDir, $toRel).Replace('\', '/')
 }
 
-# S3539: a docs page's published address lives only in its `permalink:` front matter and routinely
-# differs from the source file name (PRIVACY_POLICY-ru.md serves as /docs/PRIVACY_POLICY.ru.html),
-# so a docs/ target is resolved through $script:DocsAddressMap; anything else passes through
+# S3539: a docs page's published address lives only in its `permalink:` front matter and can differ
+# from the source file name (docs/howto/index.md serves as /docs/howto/), so a docs/ target is
+# resolved through $script:DocsAddressMap; anything else passes through
 # unchanged. $target is relative to the current page; the result keeps its #fragment / ?query.
 function Resolve-DocsAddress([string]$fromRel, [string]$target) {
     $pathPart = ($target -split '[#?]')[0]
@@ -408,6 +446,31 @@ $ldJson
 "@
 }
 
+function Get-RecipeAvailabilityHtml([hashtable]$m) {
+    # Badge row entries and the optional note line; a page whose English recipe declares no resolvable
+    # availability stops the run, because a guessed badge is the defect rule 9 forbids.
+    $pageId = [string]$m['page_id']
+    $entry = $script:AvailabilityByPage[$pageId]
+    if (-not $entry) { throw "generate-docs-pages: no English recipe with page_id '$pageId' declares availability:" }
+    $resolved = Resolve-PageAvailability -Context $script:AvailabilityContext -Terms $entry.Availability
+    if ($resolved.Errors.Count -gt 0) { throw "generate-docs-pages: $pageId availability: $($resolved.Errors -join '; ')" }
+    $lang = if ($Lang -in 'ru', 'uk') { $Lang } else { 'en' }
+    $marker = Format-PageAvailabilityMarker -Context $script:AvailabilityContext -Resolved $resolved -Lang $lang
+    $badges = [System.Collections.Generic.List[string]]::new()
+    $badges.Add("                    <span class=`"doc-edition-badge`">$marker</span>")
+    foreach ($device in (Split-PageAvailabilityDevices $entry.Devices)) {
+        $d = Get-PageAvailabilityDevice -Device $device -Lang $lang
+        if (-not $d) { throw "generate-docs-pages: $pageId devices: '$device' is not one of $((Get-PageAvailabilityDeviceVocabulary) -join ', ')" }
+        $class = ('doc-device-badge ' + $d.Modifier).Trim()
+        $badges.Add("                    <span class=`"$class`">$(Get-PortalGlyph $d.Glyph)$($d.Label)</span>")
+    }
+    $note = ''
+    if ($m['availability_note']) {
+        $note = "`n                <p class=`"doc-availability-note`">$(Format-MarkdownInline ([string]$m['availability_note']))</p>"
+    }
+    return [pscustomobject]@{ Badges = [string]::Join("`n", $badges); Note = $note }
+}
+
 function Render-RecipeHtml([hashtable]$doc, [string]$outRel) {
     $m = $doc.Meta
     $script:CurrentOutRel = $outRel
@@ -421,7 +484,7 @@ function Render-RecipeHtml([hashtable]$doc, [string]$outRel) {
     $desc = $m['description']
     $category = if ($m['category']) { $m['category'] } else { "Documentation" }
     $catSlug = if ($m['category_slug']) { $m['category_slug'] } else { "general" }
-    $flavor = if ($m['flavor']) { $m['flavor'] } else { "All Editions" }
+    $availabilityHtml = Get-RecipeAvailabilityHtml $m
     $recNum = if ($m['recipe_number']) { "Recipe #" + $m['recipe_number'] } else { "Recipe" }
 
     $badgeClass = switch ($catSlug) {
@@ -482,15 +545,15 @@ $seoHead
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="${p}../$(if ($Lang -eq 'ru') { 'index-ru.html' } elseif ($Lang -eq 'uk') { 'index-uk.html' } else { 'index.html' })">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="${p}$(if ($Lang -eq 'ru') { 'index-ru.html' } elseif ($Lang -eq 'uk') { 'index-uk.html' } else { 'index.html' })" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">$(Get-PortalGlyph 'nav.contents')</button>
+                <a class="doc-header-brand" href="${p}../$(if ($Lang -eq 'ru') { 'index-ru.html' } elseif ($Lang -eq 'uk') { 'index-uk.html' } else { 'index.html' })">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="${p}$(if ($Lang -eq 'ru') { 'index-ru.html' } elseif ($Lang -eq 'uk') { 'index-uk.html' } else { 'index.html' })" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                $(Get-PortalGlyph 'action.search')
                 <span>$(if ($Lang -eq 'ru') { 'Поиск...' } elseif ($Lang -eq 'uk') { 'Пошук...' } else { 'Search...' })</span>
                 <kbd>/</kbd>
             </button>
@@ -522,7 +585,7 @@ $seoHead
                     </div>
                 </div>
 
-                <a href="${p}../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="${p}../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <a href="${p}../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="${p}../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
                 <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
             </nav>
         </div>
@@ -567,11 +630,11 @@ $seoHead
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge $badgeClass">$category</span>
-                    <span class="doc-badge doc-badge-standard">$flavor</span>
+$($availabilityHtml.Badges)
                     <span class="doc-badge doc-badge-sm">$recNum</span>
-                </div>
+                </div>$($availabilityHtml.Note)
 
                 <h1>$title</h1>
 
@@ -596,14 +659,14 @@ $seoHead
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon">$(Get-PortalGlyph 'status.ok')</span>
                         <span>$(if ($Lang -eq 'ru') { 'Перед началом: Что вам понадобится' } elseif ($Lang -eq 'uk') { 'Перед початком: Що вам знадобиться' } else { 'Before You Begin: Ingredients &amp; Prerequisites' })</span>
                     </div>
                     <ul class="doc-prereq-list">
 "@) | Out-Null
         foreach ($ing in $m['ingredients']) {
             $formatted = Format-MarkdownInline $ing
-            $sb.AppendLine("                        <li><span class=`"doc-prereq-bullet`">✓</span> $formatted</li>") | Out-Null
+            $sb.AppendLine("                        <li><span class=`"doc-prereq-bullet`">$(Get-PortalGlyph 'status.ok')</span> $formatted</li>") | Out-Null
         }
         $sb.AppendLine("                    </ul>`n                </div>") | Out-Null
     }
@@ -615,6 +678,22 @@ $seoHead
             $sid = if ($st['id']) { $st['id'] } else { "step-$snum" }
             $stitle = $st['title']
             $stextHtml = Format-MarkdownBlock $st['text']
+            $isWarning = $st['callout'] -and $st['callout']['type'] -eq 'warning'
+
+            # SITE-EXPERIENCE rule 5: a warning stands before the step it concerns, so the reader
+            # meets it before the instruction that cannot be undone.
+            if ($isWarning) {
+                $wco = $st['callout']
+                $sb.AppendLine(@"
+
+                <div class="doc-callout doc-callout-warning">
+                    <div class="doc-callout-title">
+                        $(Get-PortalGlyph 'status.warning')$($wco['title'])
+                    </div>
+                    <p>$(Format-MarkdownInline $wco['text'])</p>
+                </div>
+"@) | Out-Null
+            }
 
             $sb.AppendLine(@"
 
@@ -671,14 +750,12 @@ $seoHead
 "@) | Out-Null
             }
 
-            if ($st['callout']) {
+            if ($st['callout'] -and -not $isWarning) {
                 $co = $st['callout']
-                $coClass = if ($co['type'] -eq 'warning') { 'doc-callout-warning' } else { 'doc-callout-tip' }
-                $coIcon = if ($co['type'] -eq 'warning') { '⚠️' } else { '💡' }
                 $sb.AppendLine(@"
-                        <div class="doc-callout $coClass">
+                        <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
-                                <span class="doc-callout-icon">$coIcon</span> $($co['title'])
+                                $($co['title'])
                             </div>
                             <p>$(Format-MarkdownInline $co['text'])</p>
                         </div>
@@ -718,16 +795,16 @@ $seoHead
         $sb.AppendLine(@"
 
                 <!-- External Configuration & Listing Snippets -->
-                <div class="doc-snippet-section" style="margin-top: 2.5rem;">
+                <div class="doc-snippet-section">
                     <h3>External Configuration &amp; Code Snippets</h3>
 "@) | Out-Null
         foreach ($snp in $m['snippets']) {
             $snipPath = Join-Path $repoRoot $snp['path']
             $snipContent = if (Test-Path $snipPath) { [System.Web.HttpUtility]::HtmlEncode((Get-Content $snipPath -Raw)) } else { "<!-- Snippet missing at $($snp['path']) -->" }
             $sb.AppendLine(@"
-                    <div class="doc-snippet-card" style="margin-bottom: 1.5rem;">
-                        <div class="doc-snippet-header" style="font-weight: 600; margin-bottom: 0.5rem;">📄 $($snp['title']) (<code>$($snp['path'])</code>):</div>
-                        <pre style="background: var(--doc-bg-card, #161b22); padding: 1rem; border-radius: 8px; border: 1px solid var(--doc-border, #30363d); overflow-x: auto;"><code class="language-$($snp['language'])">$snipContent</code></pre>
+                    <div class="doc-snippet-card">
+                        <div class="doc-snippet-header">$(Get-PortalGlyph 'content.document') $($snp['title']) (<code>$($snp['path'])</code>):</div>
+                        <pre><code class="language-$($snp['language'])">$snipContent</code></pre>
                     </div>
 "@) | Out-Null
         }
@@ -765,7 +842,7 @@ $seoHead
                 $sb.AppendLine(@"
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-sm $nbadgeType">$nbadge</span>
-                            <h4><span class="doc-bookmark" data-page-id="$($nr['bookmark_id'])">$($nr['title']) [Planned]</span></h4>
+                            <h3><span class="doc-bookmark" data-page-id="$($nr['bookmark_id'])">$($nr['title']) [Planned]</span></h3>
                             <p>$($nr['description'])</p>
                         </div>
 "@) | Out-Null
@@ -773,7 +850,7 @@ $seoHead
                 $sb.AppendLine(@"
                         <a href="$nurl" class="$nclass" $ntarget>
                             <span class="doc-badge doc-badge-sm $nbadgeType">$nbadge</span>
-                            <h4>$($nr['title'])</h4>
+                            <h3>$($nr['title'])</h3>
                             <p>$($nr['description'])</p>
                         </a>
 "@) | Out-Null
@@ -964,8 +1041,8 @@ if (Test-Path $shotManifestPath) {
     }
 }
 
-# S3539: a docs page's published address lives only in its `permalink:` front matter and routinely
-# differs from the source file name (PRIVACY_POLICY-ru.md serves as /docs/PRIVACY_POLICY.ru.html).
+# S3539: a docs page's published address lives only in its `permalink:` front matter and can differ
+# from the source file name (docs/howto/index.md serves as /docs/howto/).
 # Map both the published address and the source-name alias to the published one - the same
 # first-12-lines read the canon sitemap generator uses (S2972).
 $script:DocsAddressMap = @{}
@@ -1088,7 +1165,9 @@ foreach ($pr in $parsedRecipes) {
             $mismatches++
         } else {
             $existing = Get-Content $outFilePath -Raw -Encoding utf8
-            if ($existing -ne $html) {
+            # S4105: documentation/*.html has no .gitattributes eol rule, so core.autocrlf decides
+            # the on-disk line endings; judge content only, or every checkout flavour reads OUTDATED.
+            if (($existing -replace "`r`n", "`n") -cne ($html -replace "`r`n", "`n")) {
                 Write-Host "  [OUTDATED] $outFileName differs from compiled Markdown source" -ForegroundColor Yellow
                 $mismatches++
             } else {

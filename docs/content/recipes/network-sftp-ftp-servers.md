@@ -6,7 +6,8 @@ description: Adding a server by address, signing in with a password or an SSH ke
 category: Network & Cloud
 category_slug: network
 ticket: S2950
-flavor: SFTP and FTP - every edition except Lite. Signing in with an SSH key, pinning the server and sharing or importing access files - Standard, noLegal, Photos, Legacy and VR (not Lite, not FOSS); the watch's own connection test - Standard, noLegal, Lite, Photos, Legacy, VR and FOSS.
+availability: SUPPORT_LOCAL_NETWORK
+availability_note: SFTP and FTP - every edition except Lite. Signing in with an SSH key, pinning the server and sharing or importing access files - Standard, noLegal, Photos, Legacy and VR (not Lite, not FOSS); the watch's own connection test - Standard, noLegal, Lite, Photos, Legacy, VR and FOSS.
 recipe_number: "02"
 canonical_url: documentation/network/sftp-ftp-servers.html
 why: |
@@ -61,6 +62,14 @@ steps:
     title: The server's identity is checked every time, not just once
     text: |
       A pinned host key is verified on every connection this resource makes from then on - browsing, thumbnails, playback and its reconnects alike, not only when you press Test Connection. If a server ever answers with a different key than the one you pinned, the app refuses it outright: "This shared folder's server looks different from the one you paired with. Nothing was loaded, to keep you safe." That is what a genuine man-in-the-middle attempt looks like from the inside, and it is also exactly what happens, harmlessly, if a server was reinstalled and issued itself a new key - re-pin it once you are sure it is really the same place.
+    image_bookmark:
+      shot_id: network.sftp-host-key-mismatch
+      device_profile: phone
+      screen_state: browse-sftp-host-key-mismatch-error
+      alt: The message that the shared folder's server looks different from the one you paired with and nothing was loaded
+      caption: "A changed server key is refused, not accepted."
+      title: "Screenshot: Host key mismatch"
+      desc: Opening an SFTP resource whose server key differs from the pinned one.
   - number: 5
     id: share-access
     title: Send someone access to a folder you already added
@@ -93,6 +102,14 @@ steps:
     text: |
       - **A folder scan that cannot finish says so.** Scanning an SFTP folder ends in bounded time even when the network changes mid-scan or a connection goes half-open - "The folder is taking too long to load. Check your network and try again." instead of a spinner that never stops.
       - **A server that was just unreachable is not retried the hard way every time.** For a short cooldown after a failed connection, the app answers fast instead of making every thumbnail or file wait through a full connection timeout again.
+    image_bookmark:
+      shot_id: network.sftp-folder-load-timeout
+      device_profile: phone
+      screen_state: browse-sftp-folder-load-timeout
+      alt: The file browser on an SFTP folder showing that the folder is taking too long to load, with the advice to check the network and try again
+      caption: "A scan that cannot finish says so instead of spinning."
+      title: "Screenshot: Folder load timeout"
+      desc: Browse on an SFTP resource after the network dropped mid-scan.
 outcome: |
   A server you reach by address - on your own network or anywhere on the internet - opens with a password or a key, its identity is confirmed once and checked on every visit after that, and handing someone else access to a folder, or receiving access to theirs, is one shared file away.
 tips:
@@ -118,6 +135,6 @@ next_recipes:
     description: The PC-side companion that publishes folders as ready-made SFTP resources.
 ---
 
-<sub class="doc-stamp">26.09.25 02:04</sub>
+<sub class="doc-stamp">26.10.07 03:42</sub>
 
 Add an FTP or SFTP server by address, sign in with a password or an SSH key, let the app confirm the server's identity once and re-check it on every visit, and hand a folder to someone else - or receive one from them - as a single shared file. Testing the same kind of resource from a paired [watch](term:watch) is covered too.

@@ -6,7 +6,9 @@ description: How to open the watch's Streams screen, narrow thousands of channel
 category: Wear OS Watch
 category_slug: wear
 ticket: S2965
-flavor: The full version of the watch app (sideload only). Pins made on the phone and channels sent from the phone need the phone app in the Standard or noLegal edition.
+availability: companion:wear
+devices: watch
+availability_note: The full version of the watch app (sideload only). Pins made on the phone and channels sent from the phone need the phone app in the Standard or noLegal edition.
 recipe_number: "12"
 canonical_url: documentation/wear/wrist-stream-player.html
 why: |
@@ -143,6 +145,6 @@ next_recipes:
     description: Every button of the watch's audio and video players.
 ---
 
-<sub class="doc-stamp">26.09.24 09:35</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Open the watch's own [Streams](term:streams-screen) screen, narrow thousands of live [channels](term:channel) down with search, filters and sorting, pin the few you love, and play them on the watch alone - jumping back to the live moment after a pause.

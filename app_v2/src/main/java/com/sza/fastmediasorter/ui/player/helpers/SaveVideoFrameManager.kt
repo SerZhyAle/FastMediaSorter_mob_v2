@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
 import com.sza.fastmediasorter.util.CaptureFileNamer
+import com.sza.fastmediasorter.util.PngTimeChunk
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -29,7 +30,6 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 
 private const val SNAPSHOT_DIR = "snapshots"
-private const val PNG_QUALITY = 100
 private const val JPEG_QUALITY = 85 // standard quality for JPEG frame saves
 
 /**
@@ -70,11 +70,14 @@ class SaveVideoFrameManager(
                 val settings = activity.playerHostFactory.settingsRepository.getSettings().first()
                 val useJpeg = settings.videoSnapshotFormat == "JPG"
                 val extension = if (useJpeg) ".jpg" else ".png"
+                // CAPTURE-OUTPUT rule 16: a PNG's tIME chunk must hold the second the name was formed from.
+                val captureMillis = System.currentTimeMillis()
                 val fileName = CaptureFileNamer.shared.allocate(
                     CaptureFileNamer.CaptureKind.VIDEO_FRAME,
                     extension,
+                    timestampMillis = captureMillis,
                 )
-                val allocatedTempFile = writeTempFile(bitmap, fileName, useJpeg)
+                val allocatedTempFile = writeTempFile(bitmap, fileName, useJpeg, captureMillis)
                 tempFile = allocatedTempFile
 
                 val configured = saveToConfiguredResource(settings.videoSnapshotResourceId, allocatedTempFile, fileName)
@@ -175,9 +178,12 @@ class SaveVideoFrameManager(
     }
 
     /** Saves the bitmap to a temp file in cacheDir/snapshots/ in the requested format. */
-    private suspend fun writeTempFile(bitmap: Bitmap, fileName: String, useJpeg: Boolean): File = withContext(
-        Dispatchers.IO
-    ) {
+    private suspend fun writeTempFile(
+        bitmap: Bitmap,
+        fileName: String,
+        useJpeg: Boolean,
+        captureMillis: Long,
+    ): File = withContext(Dispatchers.IO) {
         val dir = File(activity.cacheDir, SNAPSHOT_DIR).also { it.mkdirs() }
         val tempFile = File(dir, fileName)
         FileOutputStream(tempFile).use { out ->
@@ -185,7 +191,7 @@ class SaveVideoFrameManager(
                 // 85% quality - good balance of file size and visual fidelity for JPEG
                 bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
             } else {
-                bitmap.compress(Bitmap.CompressFormat.PNG, PNG_QUALITY, out)
+                PngTimeChunk.writePng(bitmap, captureMillis, out)
             }
         }
         tempFile

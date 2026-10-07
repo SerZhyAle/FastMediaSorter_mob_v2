@@ -6,7 +6,7 @@ description: Запуск FastMediaSorter на Android TV с пульта, на�
 category: Общие настройки, клавиатура и ТВ
 category_slug: general
 ticket: S2963
-flavor: Все редакции - управление с клавиатуры и в диалогах доступно везде; автоматический первичный фокус на активном элементе - в Standard, Lite, Photos и Legacy
+availability_note: Все редакции - управление с клавиатуры и в диалогах доступно везде; автоматический первичный фокус на активном элементе - в Standard, Lite, Photos и Legacy
 recipe_number: "02"
 canonical_url: documentation/general/keyboard-dpad-tv-navigation-ru.html
 why: |
@@ -154,6 +154,6 @@ next_recipes:
     description: Выделение множества файлов и совместные действия над ними.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Пульт ДУ, клавиатура, геймпад или мышь - FastMediaSorter полноценно поддерживает все способы ввода. На этой странице показано, как перемещаться по интерфейсу, подтверждать диалоги, пользоваться горячими клавишами и выделять файлы без единого прикосновения к экрану.

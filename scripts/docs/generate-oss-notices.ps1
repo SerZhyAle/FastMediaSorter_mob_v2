@@ -110,7 +110,7 @@ $LocaleText = @{
         HomeLink       = 'Back to Home'
     }
     ru = @{
-        Permalink      = '/docs/OPEN_SOURCE.ru.html'
+        Permalink      = '/docs/OPEN_SOURCE-ru.html'
         Title          = 'Уведомления об открытом ПО'
         Intro          = 'FastMediaSorter собран на перечисленных ниже компонентах с открытым исходным кодом. Мы благодарны их авторам. Перечень формируется из файлов сборки, поэтому он покрывает всё, что входит в сборку, а не выборку.'
         ShippedInAll   = 'все сборки'
@@ -129,7 +129,7 @@ $LocaleText = @{
         HomeLink       = 'На главную'
     }
     uk = @{
-        Permalink      = '/docs/OPEN_SOURCE.uk.html'
+        Permalink      = '/docs/OPEN_SOURCE-uk.html'
         Title          = 'Повідомлення про відкрите ПЗ'
         Intro          = 'FastMediaSorter побудований на перелічених нижче компонентах з відкритим кодом. Ми вдячні їхнім авторам. Перелік формується з файлів збірки, тому він охоплює все, що входить у збірку, а не вибірку.'
         ShippedInAll   = 'усі збірки'

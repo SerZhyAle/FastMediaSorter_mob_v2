@@ -6,7 +6,8 @@ description: How Fast Media Sorter for Windows publishes folders from a PC so th
 category: Network & Cloud
 category_slug: network
 ticket: S2950
-flavor: Import by file - Standard, noLegal, Photos, Legacy, VR (not Lite, not FOSS). Import by QR scan and the in-app setup guide - the same list minus VR, since scanning needs a camera. Following the PC between networks, finding it on the local network by itself, and importing a folder as writable - Standard only.
+availability: SUPPORT_CLOUD
+availability_note: Import by file - Standard, noLegal, Photos, Legacy, VR (not Lite, not FOSS). Import by QR scan and the in-app setup guide - the same list minus VR, since scanning needs a camera. Following the PC between networks, finding it on the local network by itself, and importing a folder as writable - Standard only.
 recipe_number: "03"
 canonical_url: documentation/network/windows-companion.html
 why: |
@@ -108,6 +109,6 @@ next_recipes:
     description: The overview of every kind of network and cloud place this app can open.
 ---
 
-<sub class="doc-stamp">26.09.25 02:04</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Fast Media Sorter for Windows publishes PC folders so this app opens them with no server address to type - bring them in with a file or a QR scan, and the connection follows the phone off the home network and back.

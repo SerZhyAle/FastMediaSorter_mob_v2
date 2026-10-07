@@ -6,7 +6,6 @@ description: Як обрати, хто керує рядком стану - ла
 category: "Лаунчер: панель задач, меню та жести"
 category_slug: launcher
 ticket: S2960
-flavor: Редакції Standard і noLegal
 recipe_number: "06"
 canonical_url: documentation/launcher/status-area-and-notifications-uk.html
 why: |
@@ -100,6 +99,6 @@ next_recipes:
     description: Як ті самі сигнали статусу виглядають на затемненому екрані.
 ---
 
-<sub class="doc-stamp">26.09.25 22:26</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Трей панелі задач може нести стільки чи так мало, скільки ви хочете. Ця сторінка описує вибір між власною областю статусу лаунчера й Android, вибір індикаторів по одному, перенесення їх угору екрана і перегляд сповіщень інших застосунків як числа, яким керуєте ви.

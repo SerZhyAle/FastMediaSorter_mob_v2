@@ -6,7 +6,8 @@ description: How to switch usage statistics on or off, what the Statistics scree
 category: "Programs, Statistics and Diagnostics"
 category_slug: programs
 ticket: S2961
-flavor: All editions; the Sources section only in editions with network folders or cloud storage
+availability: all
+availability_note: All editions; the Sources section only in editions with network folders or cloud storage
 recipe_number: "04"
 canonical_url: documentation/programs/usage-statistics.html
 why: |
@@ -115,6 +116,6 @@ next_recipes:
     description: Switch on the lights, the mirror, the SOS signal and the other programs.
 ---
 
-<sub class="doc-stamp">26.09.24 08:45</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 FastMediaSorter keeps a private tally of what you do with it: files sorted and deleted, photos taken, videos watched, documents read. This page shows where to switch the tally on or off, how to read the Statistics screen, and how to save the summary or send it to the author yourself.

@@ -6,7 +6,6 @@ description: Как превратить папки в пронумерован�
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: Все редакции
 recipe_number: "04"
 canonical_url: documentation/storage/destination-targets-setup-ru.html
 why: |
@@ -120,6 +119,6 @@ next_recipes:
     description: Автоматическое распределение файлов по назначениям в фоновом режиме.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Превращайте папки в пронумерованные цветные назначения и копируйте или перемещайте просматриваемые фотографии и видеоролики в нужные места одним касанием экрана или нажатием цифровой клавиши.

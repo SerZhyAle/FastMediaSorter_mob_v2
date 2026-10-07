@@ -6,7 +6,9 @@ description: Everything behind the watch's Programs row - Calculator, Network Mo
 category: Wear OS Watch
 category_slug: wear
 ticket: S2966
-flavor: Both watch versions, except the Extended signing fingerprint in System information and the shade lock during Water flashlight - the full watch version (sideload only).
+availability: companion:wear
+devices: watch
+availability_note: Both watch versions, except the Extended signing fingerprint in System information and the shade lock during Water flashlight - the full watch version (sideload only).
 recipe_number: "04"
 canonical_url: documentation/wear/wrist-mini-apps-and-tools.html
 why: |
@@ -238,6 +240,6 @@ next_recipes:
     description: The Wear Companion window these Send to phone and Clipboard actions land in.
 ---
 
-<sub class="doc-stamp">26.09.26 00:08</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 The watch's [programs](term:program) turn the wrist into a small toolbox - a [calculator](term:calculator), a [Network Monitor](term:network-monitor), a mini-game, a stopwatch, a water flashlight, a voice recorder, System information, Tourist, Phone camera, Clipboard and an on-request [screenshot](term:screenshot) - each reachable straight from the watch, with or without the phone nearby.

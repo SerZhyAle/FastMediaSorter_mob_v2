@@ -6,7 +6,7 @@ description: Какие виджеты FastMediaSorter предоставляе�
 category: "Лаунчер - Гаджеты и виджеты"
 category_slug: launcher
 ticket: S2959
-flavor: Все редакции - доступный набор виджетов зависит от редакции (см. шаг 2)
+availability_note: Все редакции - доступный набор виджетов зависит от редакции (см. шаг 2)
 recipe_number: "03"
 canonical_url: documentation/launcher/home-screen-widgets-ru.html
 why: |
@@ -104,6 +104,6 @@ next_recipes:
     description: Настройка слайд-шоу, которое подхватывает виджет «Продолжить чтение».
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 FastMediaSorter предлагает продуманный набор [виджетов](term:widget) для [домашнего экрана](term:home-screen) Android: кнопки быстрого доступа к камере, диктофону, случайной музыке и папкам в одно касание, а также масштабируемые окна для фоторамки, аудиоплеера и задач по расписанию. В этом руководстве описана работа и настройка каждого виджета.

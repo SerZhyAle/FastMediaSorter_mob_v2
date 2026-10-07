@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Stream publisher module: candidate discovery from Radio Browser mirrors and official IPTV sources.
+#>
+
+
 $rbServers = @(
     'https://de1.api.radio-browser.info',
     'https://de2.api.radio-browser.info',

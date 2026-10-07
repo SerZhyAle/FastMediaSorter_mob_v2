@@ -6,7 +6,8 @@ description: How to shuffle or repeat the tracks of a folder, fall asleep to mus
 category: Images, Audio & Slideshow
 category_slug: audio
 ticket: S2952
-flavor: All editions except Photos; background listening not in Lite
+availability: SUPPORT_AUDIO
+availability_note: All editions except Photos; background listening not in Lite
 recipe_number: "05"
 canonical_url: documentation/audio/playlists-and-audio-queues.html
 why: |
@@ -128,6 +129,6 @@ next_recipes:
     description: Play and control music from your Wear OS watch.
 ---
 
-<sub class="doc-stamp">26.09.24 06:46</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Decide in which order the tracks of a folder play, let the sleep timer stop the music gently, and keep listening while you use other apps - with controls in the notification, a Quick Settings tile and the Now Playing bar.

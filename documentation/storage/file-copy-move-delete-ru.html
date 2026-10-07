@@ -85,7 +85,7 @@ layout: null
           "@type": "HowToStep",
           "position": 4,
           "name": "Поведение при совпадении имён файлов",
-          "text": "Ни один файл не перезаписывается без вашего прямого согласия. По умолчанию файл, имя которого уже существует в целевой папке, пропускается, а файл в месте назначения остаётся неизменным. В итоговом отчёте указывается количество фактически скопированных или перемещённых файлов. Если вы хотите автоматически перезаписывать старые файлы, откройте Настройки → Управление → Поведение при копировании, перемещении и перезаписи и включите опции Перезаписывать при копировании или Перезаписывать при перемещении.",
+          "text": "Ни один файл не перезаписывается без вашего прямого согласия. Пока перезапись выключена, файл, имя которого уже существует в целевой папке, пропускается, а файл в месте назначения остаётся неизменным. В итоговом отчёте указывается количество фактически скопированных или перемещённых файлов. Если вы хотите автоматически перезаписывать старые файлы, откройте Настройки → Управление → Поведение при копировании, перемещении и перезаписи и включите опции Перезаписывать при копировании или Перезаписывать при перемещении.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-copy-move-delete-ru.html#same-name"
         },
         {
@@ -148,20 +148,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.30 08:05</div>
+<div class="doc-stamp">26.10.07 03:43</div>
+    <a class="doc-skip-link" href="#main-content">Перейти к содержимому</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index-ru.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index-ru.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Поиск...</span>
                 <kbd>/</kbd>
             </button>
@@ -183,8 +184,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Тема</span></button>
             </nav>
         </div>
     </header>
@@ -430,11 +431,12 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Источники, назначения и операции с файлами</span>
-                    <span class="doc-badge doc-badge-standard">Все редакции (сетевые папки - все, кроме Lite; облака - все, кроме Lite и FOSS)</span>
+                    <span class="doc-edition-badge">Все редакции</span>
                     <span class="doc-badge doc-badge-sm">Recipe #05</span>
                 </div>
+                <p class="doc-availability-note">Все редакции (сетевые папки - все, кроме Lite; облака - все, кроме Lite и FOSS)</p>
 
                 <h1>Копирование, перемещение и удаление файлов и папок</h1>
 
@@ -449,12 +451,12 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Перед началом: Что вам понадобится</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter в любой <span class="doc-link-term" data-term="edition">редакции</span>. Сборка Lite выполняет операции между локальной памятью и SD-картами; FOSS также поддерживает сетевые папки и серверы; Standard, noLegal, Photos, Legacy и VR дополнительно работают с облачными хранилищами. Редакция Photos специализируется на графических файлах.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Открытый <span class="doc-link-term" data-term="resource">ресурс</span> в файловом браузере. Для перемещения, переименования и удаления требуются права на запись.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> FastMediaSorter в любой <span class="doc-link-term" data-term="edition">редакции</span>. Сборка Lite выполняет операции между локальной памятью и SD-картами; FOSS также поддерживает сетевые папки и серверы; Standard, noLegal, Photos, Legacy и VR дополнительно работают с облачными хранилищами. Редакция Photos специализируется на графических файлах.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Открытый <span class="doc-link-term" data-term="resource">ресурс</span> в файловом браузере. Для перемещения, переименования и удаления требуются права на запись.</li>
                     </ul>
                 </div>
 
@@ -516,9 +518,32 @@ layout: null
                         <h2 class="doc-step-title">Поведение при совпадении имён файлов</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Ни один файл не перезаписывается без вашего прямого согласия. По умолчанию файл, имя которого уже существует в целевой папке, пропускается, а файл в месте назначения остаётся неизменным. В итоговом отчёте указывается количество фактически скопированных или перемещённых файлов.</p>
-                        <p>Если вы хотите автоматически перезаписывать старые файлы, откройте <strong>Настройки → Управление → Поведение при копировании, перемещении и перезаписи</strong> и включите опции <strong>Перезаписывать при копировании</strong> или <strong>Перезаписывать при перемещении</strong>.</p>
+                        <p>Ни один файл не перезаписывается без вашего прямого согласия. Пока перезапись выключена, файл, имя которого уже существует в целевой папке, пропускается, а файл в месте назначения остаётся неизменным. В итоговом отчёте указывается количество фактически скопированных или перемещённых файлов.</p>
+                        <p>Если вы хотите автоматически перезаписывать старые файлы, откройте <span class="doc-menu-path"><span class="doc-menu-path-item">Настройки</span><span class="doc-menu-path-sep">→</span><span class="doc-menu-path-item">Управление</span><span class="doc-menu-path-sep">→</span><span class="doc-menu-path-item">Поведение при копировании, перемещении и перезаписи</span></span> и включите опции <strong>Перезаписывать при копировании</strong> или <strong>Перезаписывать при перемещении</strong>.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="storage.overwrite-settings"
+                             data-device-profile="phone"
+                             data-screen-state="settings-management-overwrite-behavior"
+                             data-alt="Вкладка «Управление» в настройках с карточкой поведения копирования, перемещения и перезаписи и двумя переключателями перезаписи существующего файла"
+                             data-caption="Два переключателя решают, заменять ли файл с тем же именем.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скриншот: переключатели перезаписи</strong>
+                                <p class="doc-img-bookmark-desc">Настройки, вкладка «Управление», карточка копирования, перемещения и перезаписи, оба переключателя выключены.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>storage.overwrite-settings</code></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+                <div class="doc-callout doc-callout-warning">
+                    <div class="doc-callout-title">
+                        <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>Удаление не всегда можно отменить
+                    </div>
+                    <p>В сетевой папке, в облаке и на телефоне с выключенной корзиной <strong>Удалить</strong> стирает файлы навсегда - <strong>Отменить</strong> их не вернёт.</p>
                 </div>
 
                 <!-- Step 5 -->
@@ -529,7 +554,7 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Выделите ненужные файлы и нажмите кнопку <strong>Удалить</strong>. Дальнейшие действия зависят от расположения файлов и ваших настроек:</p>
-                        <ul><li><strong>На телефоне или карте памяти с включённой корзиной</strong> - файлы перемещаются в скрытую папку <code>.trash</code>, откуда их можно легко восстановить кнопкой «Отменить». Опция настраивается в <strong>Настройки → Управление → Удаление файлов и корзина</strong> параметром <strong>Использовать папку корзины (.trash)</strong>.</li><li><strong>Без корзины</strong> - файлы удаляются окончательно. На Android 11 и новее система может показать собственный диалог с запросом на удаление медиафайлов - нажмите <strong>Разрешить</strong>.</li><li><strong>В сетевой папке или в облаке</strong> - эти хранилища не поддерживают корзину приложения, поэтому перед удалением выводится список файлов и кнопка <strong>Удалить навсегда</strong>. Вы можете отметить пункт <strong>Больше не показывать для этого ресурса</strong>.</li></ul>
+                        <ul><li><strong>На телефоне или карте памяти с включённой корзиной</strong> - файлы перемещаются в скрытую папку <code>.trash</code>, откуда их можно легко восстановить кнопкой «Отменить». Опция настраивается в <span class="doc-menu-path"><span class="doc-menu-path-item">Настройки</span><span class="doc-menu-path-sep">→</span><span class="doc-menu-path-item">Управление</span><span class="doc-menu-path-sep">→</span><span class="doc-menu-path-item">Удаление файлов и корзина</span></span> параметром <strong>Использовать папку корзины (.trash)</strong>.</li><li><strong>Без корзины</strong> - файлы удаляются окончательно. На Android 11 и новее система может показать собственный диалог с запросом на удаление медиафайлов - нажмите <strong>Разрешить</strong>.</li><li><strong>В сетевой папке или в облаке</strong> - эти хранилища не поддерживают корзину приложения, поэтому перед удалением выводится список файлов и кнопка <strong>Удалить навсегда</strong>. Вы можете отметить пункт <strong>Больше не показывать для этого ресурса</strong>.</li></ul>
                         <p>При включённых параметрах <strong>Безопасный режим</strong> и <strong>Подтверждать перед удалением</strong> приложение сначала покажет проверочный запрос. Если для части файлов корзина недоступна, приложение сообщит: «Корзина недоступна для некоторых файлов - они удалены навсегда».</p>
                         <figure class="doc-figure" data-shot-id="storage.network-delete-confirm">
                             <img src="../assets/images/storage/network-delete-confirm.png" alt="Окно удаления 3 файлов из сети со списком имён, чекбоксом «Больше не показывать» и кнопкой «Удалить навсегда»" class="doc-screenshot" loading="lazy" />
@@ -548,6 +573,22 @@ layout: null
                         <p>Сразу после выполнения копирования, перемещения, удаления или переименования внизу экрана появляется сообщение с кнопкой <strong>Отменить</strong>, а сама кнопка <strong>Отменить</strong> остаётся активной на панели операций. У вас есть около десяти секунд:</p>
                         <ul><li><strong>Отмена удаления</strong> - файлы мгновенно возвращаются из корзины на свои прежние места.</li><li><strong>Отмена перемещения</strong> - файлы перемещаются обратно в исходную папку (для целых папок запускается фоновая обратная передача: «Перемещение папок обратно..»).</li><li><strong>Отмена копирования</strong> - созданные копии удаляются. При отмене копирования папки приложение запросит подтверждение («Отменить копирование папки?») и предупредит, что новые файлы внутри копии тоже будут стёрты; нажмите <strong>Удалить копии</strong> для подтверждения. Исходные папки остаются без изменений.</li><li><strong>Отмена переименования</strong> - файлу возвращается прежнее название.</li></ul>
                         <p>В плеере кнопка <strong>Отменить</strong> на <span class="doc-link-term" data-term="command-panel">панели команд</span> мгновенно возвращает только что удалённый файл.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="storage.undo-after-delete"
+                             data-device-profile="phone"
+                             data-screen-state="browse-undo-message-after-delete"
+                             data-alt="Файловый браузер сразу после удаления: внизу сообщение с кнопкой «Отменить» и кнопка «Отменить» на панели операций"
+                             data-caption="«Отменить» предлагается сразу после действия.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скриншот: отмена после удаления</strong>
+                                <p class="doc-img-bookmark-desc">Браузер в локальной папке, 3 фото только что перемещены в корзину, видно сообщение с отменой.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>storage.undo-after-delete</code></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -559,6 +600,22 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Корзина служит страховкой от случайных ошибок, а не долгосрочным архивом. Фоновая служба очистки запускается примерно каждые 15 минут и автоматически удаляет объекты из корзин, пролежавшие дольше установленного лимита. Чтобы очистить все корзины прямо сейчас, нажмите кнопку <strong>Очистить корзину</strong> в настройках удаления - приложение покажет, сколько папок корзины было освобождено.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="storage.trash-settings"
+                             data-device-profile="phone"
+                             data-screen-state="settings-management-file-deletion-and-trash"
+                             data-alt="Карточка «Удаление файлов и корзина» на вкладке «Управление» с переключателем «Использовать папку корзины (.trash)» и кнопкой «Очистить корзину» рядом"
+                             data-caption="«Очистить корзину» опустошает все папки корзины сразу.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скриншот: настройки корзины</strong>
+                                <p class="doc-img-bookmark-desc">Настройки, вкладка «Управление», карточка удаления файлов и корзины, корзина включена.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>storage.trash-settings</code></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -583,17 +640,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="background-transfers-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-other">Хранилище</span>
-                            <h4>Фоновая передача файлов и контроль прогресса</h4>
+                            <h3>Фоновая передача файлов и контроль прогресса</h3>
                             <p>Что происходит во время длительного копирования в фоновом режиме.</p>
                         </a>
                         <a href="batch-renaming-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-other">Хранилище</span>
-                            <h4>Переименование файлов и папок</h4>
+                            <h3>Переименование файлов и папок</h3>
                             <p>Присвоение новых имён одиночным файлам или целым группам.</p>
                         </a>
                         <a href="cleaning-up-space-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-other">Хранилище</span>
-                            <h4>Освобождение места - дубликаты, большие файлы и ZIP-архивы</h4>
+                            <h3>Освобождение места - дубликаты, большие файлы и ZIP-архивы</h3>
                             <p>Поиск дубликатов, чистка тяжёлых файлов и упаковка в ZIP.</p>
                         </a>
                     </div>
@@ -628,8 +685,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.</div>
             <div class="doc-footer-links">
-                <a href="../../docs/PRIVACY_POLICY.ru.html">Политика конфиденциальности</a>
-                <a href="../../docs/TERMS_OF_SERVICE_RU.html">Условия использования</a>
+                <a href="../../docs/PRIVACY_POLICY-ru.html">Политика конфиденциальности</a>
+                <a href="../../docs/TERMS_OF_SERVICE-ru.html">Условия использования</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>

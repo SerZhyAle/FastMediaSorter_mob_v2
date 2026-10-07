@@ -6,7 +6,7 @@ description: What a long press opens on a launcher square, and which squares - r
 category: "Launcher: Taskbar, Menus and Gestures"
 category_slug: launcher
 ticket: S2960
-flavor: Standard and noLegal
+availability: SUPPORT_LAUNCHER
 recipe_number: "08"
 canonical_url: documentation/launcher/context-menus-and-actions.html
 why: |
@@ -155,6 +155,6 @@ next_recipes:
     description: The Start button, recent and pinned apps and the status tray.
 ---
 
-<sub class="doc-stamp">26.09.25 22:45</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 A long press on the [launcher](term:launcher) [desktop](term:desktop) is rarely just one thing. This page walks through what each long press opens - on a resource, a channel, an app function - and through the squares that build or update themselves on their own: new resources, app shortcuts, contacts, a shared place, live channel windows and a few small helpers.

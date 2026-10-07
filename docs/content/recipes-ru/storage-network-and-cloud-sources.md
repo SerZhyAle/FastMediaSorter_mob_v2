@@ -6,7 +6,7 @@ description: Как подключить общую папку на домашн
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: Сетевые папки - все редакции, кроме Lite; облачные хранилища - все, кроме Lite и FOSS
+availability_note: Сетевые папки - все редакции, кроме Lite; облачные хранилища - все, кроме Lite и FOSS
 recipe_number: "02"
 canonical_url: documentation/storage/network-and-cloud-sources-ru.html
 why: |
@@ -130,6 +130,6 @@ next_recipes:
     description: Добавление папок устройства, карт памяти SD и USB-накопителей.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Подключайте общие папки с домашнего компьютера или NAS, серверы FTP/SFTP и каталоги Google Диска, Dropbox и OneDrive, управляйте видимостью групп источников и наслаждайтесь высокой скоростью доступа благодаря умному кэшированию.

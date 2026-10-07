@@ -6,7 +6,6 @@ description: Для чого зроблена кожна з семи редак�
 category: Редакції, розширення та мови
 category_slug: flavors
 ticket: S2947
-flavor: Усі редакції
 recipe_number: "01"
 canonical_url: documentation/flavors/overview-and-comparison-uk.html
 why: |
@@ -140,6 +139,6 @@ next_recipes:
     description: Що відбувається під час першого відкриття застосунку, крок за кроком.
 ---
 
-<sub class="doc-stamp">26.09.30 10:24</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 FastMediaSorter виходить у семи [редакціях](term:edition). Вони виглядають і працюють однаково, але кожна зроблена для певного типу пристрою чи магазину. Ця сторінка показує, для чого зроблена кожна редакція, які функції вона має, де її взяти і як переходити між ними.

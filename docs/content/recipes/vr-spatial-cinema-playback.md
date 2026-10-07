@@ -6,7 +6,9 @@ description: How to step from the flat video player into VR Cinema, the 360, 180
 category: VR and OpenXR
 category_slug: vr
 ticket: S2967
-flavor: noLegal and VR, on a compatible headset
+availability: SUPPORT_IMMERSIVE_XR
+devices: headset
+availability_note: noLegal and VR, on a compatible headset
 recipe_number: "02"
 canonical_url: documentation/vr/spatial-cinema-playback.html
 why: |
@@ -111,6 +113,6 @@ next_recipes:
     description: How subtitles and stereo formats work in the flat player.
 ---
 
-<sub class="doc-stamp">26.09.24 09:27</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Step from the flat player into VR Cinema, meet the 360, 180, cylinder and flat virtual cinema screens, watch stereo 3D detected or set by hand, keep walking your playlist with PREV and NEXT, and see how FastMediaSorter handles it when something along the way does not work.

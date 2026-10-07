@@ -1,14 +1,18 @@
 package com.sza.fastmediasorter.data.repository
 
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpServerTunnelManager
 import com.sza.fastmediasorter.data.remote.sftp.server.SftpPairingPayloadFactory
 import com.sza.fastmediasorter.data.remote.sftp.server.SftpServerController
 import com.sza.fastmediasorter.data.remote.sftp.server.SftpServerIdentityStore
+import com.sza.fastmediasorter.data.repository.settings.SftpExchangeSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.SftpServerSettingsStore
+import com.sza.fastmediasorter.domain.model.SftpExchangeConfig
 import com.sza.fastmediasorter.domain.model.SftpPairingPayload
 import com.sza.fastmediasorter.domain.model.SftpServerAuthMode
 import com.sza.fastmediasorter.domain.model.SftpServerClientCredentials
 import com.sza.fastmediasorter.domain.model.SftpServerConfig
 import com.sza.fastmediasorter.domain.model.SftpServerState
+import com.sza.fastmediasorter.domain.model.SftpTunnelState
 import com.sza.fastmediasorter.domain.repository.SftpServerRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +25,8 @@ class SftpServerRepositoryImpl @Inject constructor(
     private val settingsStore: SftpServerSettingsStore,
     private val identityStore: SftpServerIdentityStore,
     private val pairingPayloadFactory: SftpPairingPayloadFactory,
+    private val exchangeStore: SftpExchangeSettingsStore,
+    private val tunnelManager: SftpServerTunnelManager,
 ) : SftpServerRepository {
 
     override val state: StateFlow<SftpServerState> get() = controller.state
@@ -43,4 +49,21 @@ class SftpServerRepositoryImpl @Inject constructor(
     override suspend fun removeRoot(treeUri: String) = settingsStore.removeRoot(treeUri)
 
     override suspend fun regeneratePassword(): Boolean = identityStore.regeneratePassword()
+
+    override val exchangeConfig: Flow<SftpExchangeConfig> get() = exchangeStore.values
+    override val tunnelState: StateFlow<SftpTunnelState> get() = tunnelManager.state
+
+    override suspend fun setExchangeEnabled(enabled: Boolean) = exchangeStore.setEnabled(enabled)
+
+    override suspend fun setExchangeServer(host: String, port: Int) = exchangeStore.setServer(host, port)
+
+    override suspend fun setExchangePassword(password: String): Boolean = exchangeStore.setPassword(password)
+
+    override suspend fun rotateShareId() = exchangeStore.rotateShareId()
+
+    override suspend fun trustExchangeServerAgain() = exchangeStore.clearCertificatePin()
+
+    override fun applyExchangeSettings() = controller.restartTunnel()
+
+    override suspend fun legacyPairingPayload(): SftpPairingPayload? = pairingPayloadFactory.createLegacy()
 }

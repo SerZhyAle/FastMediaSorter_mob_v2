@@ -6,7 +6,6 @@ description: Как перемещать, масштабировать и уда
 category: "Лаунчер - Рабочий стол"
 category_slug: launcher
 ticket: S2958
-flavor: Редакции Standard и noLegal
 recipe_number: "03"
 canonical_url: documentation/launcher/desktop-folders-and-pages-ru.html
 why: |
@@ -141,6 +140,6 @@ next_recipes:
     description: Что открывается по долгому нажатию на приложения, каналы и гаджеты.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Когда на [рабочем столе](term:desktop) собраны нужные инструменты, организовать их - дело нескольких движений. В этом руководстве описаны перемещение и масштабирование ячеек, сворачиваемые секции, многостраничные экраны, настройка свайпов и надежная блокировка компоновки.

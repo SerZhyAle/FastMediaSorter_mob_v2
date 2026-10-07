@@ -44,11 +44,23 @@ class InputHelpLinkResolverTest {
     }
 
     @Test
-    fun `untranslated page opens the English original`() {
-        val url = InputHelpLinkResolver.urlFor(UiSurface.MAIN, "ru")
+    fun `language outside the translated set opens the English original`() {
+        val url = InputHelpLinkResolver.urlFor(UiSurface.MAIN, "de")
         val expected = "https://serzhyale.github.io/FastMediaSorter_mob_v2/" +
             "documentation/getting-started/main-screen-overview.html"
         assertEquals(expected, url)
+    }
+
+    @Test
+    fun `russian and ukrainian get the translated sibling of every surface`() {
+        for (lang in InputHelpLinkResolver.TRANSLATED_LANGUAGES) {
+            for (surface in UiSurface.entries) {
+                val english = InputHelpLinkResolver.urlFor(surface, "en")
+                val expected = english.removeSuffix(".html") + "-$lang.html"
+                assertEquals("$surface/$lang", expected, InputHelpLinkResolver.urlFor(surface, lang))
+            }
+        }
+        assertEquals(setOf("ru", "uk"), InputHelpLinkResolver.TRANSLATED_LANGUAGES)
     }
 
     @Test

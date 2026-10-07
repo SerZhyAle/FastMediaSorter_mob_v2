@@ -6,7 +6,7 @@ description: Как добавить плитки FastMediaSorter в карус�
 category: Часы Wear OS
 category_slug: wear
 ticket: S2964
-flavor: Плитка «Программы» - обе версии для часов; плитки ресурсов, потоков, избранного, разделов и все усложнения - полная версия для часов (только sideload)
+availability_note: Плитка «Программы» - обе версии для часов; плитки ресурсов, потоков, избранного, разделов и все усложнения - полная версия для часов (только sideload)
 recipe_number: "03"
 canonical_url: documentation/wear/tiles-and-complications-ru.html
 why: |
@@ -122,6 +122,6 @@ next_recipes:
     description: Настройка сетевых ресурсов, к которым привязываются плитки.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Добавляйте [плитки](term:tile) FastMediaSorter в карусель часов, привязывайте плитки к нужным сетевым папкам и интернет-станциям, а также выносите [усложнения](term:complication) «Последний ресурс», «Избранное» и «Сейчас играет» прямо на свой циферблат.

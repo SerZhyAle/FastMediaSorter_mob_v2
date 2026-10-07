@@ -1,10 +1,10 @@
 ---
 layout: default
 title: "Why Android warns about this APK"
-permalink: /docs/INSTALL_TRUST_EN.html
+permalink: /docs/INSTALL_TRUST.html
 ---
 
-<sub class="doc-stamp">26.10.02 22:09</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 # Why Android warns about this APK - and what to tap
 

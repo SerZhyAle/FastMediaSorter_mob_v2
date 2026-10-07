@@ -6,7 +6,7 @@ description: Как войти в Google Диск и добавить папку
 category: Сеть и облачные хранилища
 category_slug: network
 ticket: S2950
-flavor: Редакции Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS). Требуется учетная запись Google.
+availability_note: Редакции Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS). Требуется учетная запись Google.
 recipe_number: "05"
 canonical_url: documentation/network/cloud-google-drive-ru.html
 why: |
@@ -88,6 +88,6 @@ next_recipes:
     description: Обзор всех видов источников, которые можно добавить в качестве ресурсов.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Авторизуйтесь в Google Диске один раз, чтобы открывать облачные папки как ресурсы, создавать резервные копии настроек и передавать файлы между своими устройствами через приватную очередь на Диске - все через единое подключение [Google Аккаунта](term:google-drive), которое надежно сохраняется при обновлениях приложения.

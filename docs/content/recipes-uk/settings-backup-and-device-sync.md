@@ -6,7 +6,7 @@ description: Експортування та відновлення всіх н�
 category: Налаштування
 category_slug: settings
 ticket: S2962
-flavor: Усі редакції - резервне копіювання в Google Drive потребує Standard, noLegal, Photos, Legacy або VR з підключеним акаунтом Google; синхронізація з Wear OS потребує Standard або noLegal з Wear-супутником
+availability_note: Усі редакції - резервне копіювання в Google Drive потребує Standard, noLegal, Photos, Legacy або VR з підключеним акаунтом Google; синхронізація з Wear OS потребує Standard або noLegal з Wear-супутником
 recipe_number: "05"
 canonical_url: documentation/settings/backup-and-device-sync-uk.html
 why: |
@@ -122,6 +122,6 @@ next_recipes:
     description: Усі варіанти резервного копіювання й експорту застосунку на одній сторінці.
 ---
 
-<sub class="doc-stamp">26.09.25 22:29</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Упакуйте всі налаштування у файл або резервну копію Google Drive, експортуйте й імпортуйте лише Обране, перенесіть рівно один тип даних через єдине меню і тримайте налаштування та ресурси спарованого [годинника](term:watch) в такт із телефоном - синхронізовані в обидва боки, з тільки тими ресурсами, які ви обрали.

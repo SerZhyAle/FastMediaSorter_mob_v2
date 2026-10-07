@@ -2422,6 +2422,19 @@ scripts/docs/generate-site-languages.ps1
   Exit: 0 written; 1 a declared locale has no endonym entry in the table; 2 the XML is missing or unparseable, or declares no locale
 ```
 
+### generate-site-redirects.ps1
+Writes the forwarder page of every moved or retired address listed in docs/site-redirects.jsonl (S4097).
+
+```
+scripts/docs/generate-site-redirects.ps1
+  Writes the forwarder page of every moved or retired address listed in docs/site-redirects.jsonl (S4097).
+  Params:
+    -Check                [SwitchParameter]
+    -ManifestPath         [String]
+    -SiteRoot             [String]
+  Exit: 0 every forwarder was written, or -Check found them all current; 1 -Check found a missing or outdated forwarder; 2 could not verify: a record is malformed, or two records share a from_path
+```
+
 ### generate-subject-index.ps1
 Generator for the documentation A-Z subject index (S2969).
 
@@ -2436,6 +2449,19 @@ scripts/docs/generate-subject-index.ps1
     -RecipesDir           [String] = "docs/content/recipes"
     -OutputPath           [String]
   Exit: 0 - subject index generated successfully or -Check verified; 1 - input file missing, output outdated on -Check, or Liquid template error
+```
+
+### migrate-locale-addresses.ps1
+Moves every published docs/ address with a legacy locale suffix to the one hyphen form and repoints every reference to it (S4101).
+
+```
+scripts/docs/migrate-locale-addresses.ps1
+  Moves every published docs/ address with a legacy locale suffix to the one hyphen form and repoints every reference to it (S4101).
+  Params:
+    -WhatIf           [SwitchParameter]
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+    -Today            [String] = (Get-Date -Format 'yyyy-MM-dd')
+  Exit: 0 the moves were applied, or there was nothing to do (-WhatIf prints the plan and exits 0); 2 could not proceed: the root is not a checkout, a new address collides with a published page or with
 ```
 
 ### OssDependencyParser.ps1
@@ -2496,6 +2522,22 @@ scripts/docs/render-wear-icon-legend.ps1
   Exit: 0 - the legend pages and their SVGs were written.; 1 - a referenced, mapped drawable has no source file or cannot be converted; nothing was written.; 2 - the vocabulary or the declaration is missing or unreadable; nothing was written.; 4 - Code.Scripts is held by another session: nothing was written, the place in the queue is
 ```
 
+### retire-docs-page.ps1
+Retires a documentation page together with the capability it described, and rebuilds every index that pointed at it in the same run (S4097).
+
+```
+scripts/docs/retire-docs-page.ps1
+  Retires a documentation page together with the capability it described, and rebuilds every index that pointed at it in the same run (S4097).
+  Params:
+    -PageId       (req)  [String]
+    -To                  [String]
+    -Ticket       (req)  [String]
+    -Reason              [String]
+    -SkipRebuild         [SwitchParameter]
+    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+  Exit: 0 the page was retired, or -WhatIf printed the plan; 1 a rebuild step failed (the file changes before it are already made); 2 could not resolve: unknown or already retired page, unknown successor, malformed Ticket, no copy found
+```
+
 ### stamp-doc-dates.ps1
 Puts a "last edited" stamp (yy.MM.dd HH:mm) at the top of every Markdown and HTML document.
 
@@ -2554,6 +2596,15 @@ scripts/docs/lib/doc-stamp.ps1
   (no param block)
 ```
 
+### held-addresses.ps1
+Helpers that read the addresses of the site held outside it - app sources, listings and READMEs (S4101).
+
+```
+scripts/docs/lib/held-addresses.ps1
+  Helpers that read the addresses of the site held outside it - app sources, listings and READMEs (S4101).
+  (no param block)
+```
+
 ### icon-contract-looks.ps1
 The palette and the decorated look of ICON-RENDER 0.10 section 10 items B, D and E, for the icon contract exporter.
 
@@ -2582,6 +2633,43 @@ scripts/docs/lib/icon-style-rules.ps1
   (no param block)
 ```
 
+### page-availability.ps1
+A function page's availability marker, derived from the build (SITE-REPRESENTATION 0.1 rule 9, S4107).
+
+```
+scripts/docs/lib/page-availability.ps1
+  A function page's availability marker, derived from the build (SITE-REPRESENTATION 0.1 rule 9, S4107).
+  (no param block)
+```
+
+### portal-glyphs.ps1
+Monochrome ICON-SET glyphs for the documentation portal, as inline SVG.
+
+```
+scripts/docs/lib/portal-glyphs.ps1
+  Monochrome ICON-SET glyphs for the documentation portal, as inline SVG.
+  (no param block)
+```
+
+### site-addresses.ps1
+Shared helpers of the site-address tooling: the redirect manifest, the forwarder page it produces and the sets of pages the site publishes (S4097).
+
+```
+scripts/docs/lib/site-addresses.ps1
+  Shared helpers of the site-address tooling: the redirect manifest, the forwarder page it produces and the sets of pages the site publishes (S4097).
+  (no param block)
+```
+
+### site-facts.ps1
+The site's product facts - public editions, their count and the Android version of a minSdk - read from their sources, never typed (SITE-REPRESENTATION 0.1 rules 3 and 4, S4100).
+
+```
+scripts/docs/lib/site-facts.ps1
+  The site's product facts - public editions, their count and the Android version of a minSdk - read from their sources, never typed (SITE-REPRESENTATION 0.1 rules 3 and 4, S4100).
+  (no param block)
+  Exit: 5 = @{ en = @('five'); ru = @('пять', 'пяти', 'пятью'); uk = @('п''ять', 'п''яти', 'п''ятьма') }; 6 = @{ en = @('six'); ru = @('шесть', 'шести', 'шестью'); uk = @('шість', 'шести', 'шістьма') }; 7 = @{ en = @('seven'); ru = @('семь', 'семи', 'семью'); uk = @('сім', 'семи', 'сімома', 'сімох') }; 8 = @{ en = @('eight'); ru = @('восемь', 'восьми', 'восемью'); uk = @('вісім', 'восьми', 'вісьмома', 'вісьмох') }; 9 = @{ en = @('nine'); ru = @('девять', 'девяти', 'девятью'); uk = @('дев''ять', 'дев''яти', 'дев''ятьма') }; 10 = @{ en = @('ten'); ru = @('десять', 'десяти', 'десятью'); uk = @('десять', 'десяти', 'десятьма') }; 11 = @{ en = @('eleven'); ru = @('одиннадцать', 'одиннадцати'); uk = @('одинадцять', 'одинадцяти') }; 12 = @{ en = @('twelve'); ru = @('двенадцать', 'двенадцати'); uk = @('дванадцять', 'дванадцяти') }
+```
+
 ### vectordrawable-svg.ps1
 Shared Android VectorDrawable -> web SVG converter (S0815 core, extracted S0889).
 
@@ -2602,6 +2690,19 @@ scripts/docs/oss-notices.tests/Run-Tests.ps1
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
   Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: parser or fixture missing, or the generator was queued
+```
+
+## scripts\docs\site-redirects.tests
+
+### Run-Tests.ps1
+S4097 - test suite for the forwarder generator, the retire command and the site-address gate.
+
+```
+scripts/docs/site-redirects.tests/Run-Tests.ps1
+  S4097 - test suite for the forwarder generator, the retire command and the site-address gate.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+  Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: a script under test or the real 404.html is missing
 ```
 
 ## scripts\docs\stamp-doc-dates.tests
@@ -3322,14 +3423,16 @@ scripts/quality/assert-doc-pin-drift.ps1
 ```
 
 ### assert-docs-coverage.ps1
-Quality Gate: Assert 100% Feature Documentation Coverage
+Quality gate: every active feature is mapped to a documentation page that exists and is published.
 
 ```
 scripts/quality/assert-docs-coverage.ps1
-  Quality Gate: Assert 100% Feature Documentation Coverage
+  Quality gate: every active feature is mapped to a documentation page that exists and is published.
   Params:
+    -Root                  [String]
     -VerboseOutput         [SwitchParameter]
     -SummaryOnly           [SwitchParameter]
+  Exit: 0 - every check passed.; 1 - at least one finding, or the coverage or page manifest is missing.
 ```
 
 ### assert-docs-crosslinks.ps1
@@ -3372,6 +3475,17 @@ scripts/quality/assert-docs-external-links.ps1
     -Quiet              [SwitchParameter]
     -TimeoutSec         [Int32] = 20
   Exit: 0 every external link answers, or answers with a non-fatal warning; 1 at least one external link is dead (404/410 or unresolvable host); 2 cannot verify: no link could be requested at all (no network), or the corpus is missing
+```
+
+### assert-docs-hub-shell.ps1
+Quality gate: the hand-maintained portal hubs carry a current shared shell (S4114).
+
+```
+scripts/quality/assert-docs-hub-shell.ps1
+  Quality gate: the hand-maintained portal hubs carry a current shared shell (S4114).
+  Params:
+    -Gate         [SwitchParameter]
+  Exit: 0 - every hub shell is current.; 1 - at least one hub is stale; run scripts/docs/update-docs-shell.ps1.; 2 - cannot verify: the shell script is missing or failed to run.
 ```
 
 ### assert-docs-portal-ui-ux.ps1
@@ -4305,11 +4419,11 @@ scripts/quality/assert-page-content.ps1
 ```
 
 ### assert-page-style.ps1
-S3453 conformance gate for contract PAGE-STYLE 1.2: language switcher, pre-paint resolver, locale row, kit stylesheet.
+S3453 conformance gate for contracts PAGE-STYLE 1.2 and PAGE-CONTENT 1.3: language switcher, pre-paint resolver, locale row, kit stylesheet, uncapped page width.
 
 ```
 scripts/quality/assert-page-style.ps1
-  S3453 conformance gate for contract PAGE-STYLE 1.2: language switcher, pre-paint resolver, locale row, kit stylesheet.
+  S3453 conformance gate for contracts PAGE-STYLE 1.2 and PAGE-CONTENT 1.3: language switcher, pre-paint resolver, locale row, kit stylesheet, uncapped page width.
   Params:
     -Root                [String]
     -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
@@ -4317,7 +4431,7 @@ scripts/quality/assert-page-style.ps1
     -Gate                [SwitchParameter]
     -Quiet               [SwitchParameter]
     -Help                [SwitchParameter]
-  Exit: 0 - every page passed every check.; 1 - at least one LANG, THEME, LOCALE or KIT finding.; 2 - cannot verify: the root, a page, the catalog, its registry or its reference kit is missing.
+  Exit: 0 - every page passed every check.; 1 - at least one LANG, THEME, LOCALE, KIT or WIDTH finding.; 2 - cannot verify: the root, a page, the catalog, its registry or its reference kit is missing.
 ```
 
 ### assert-perf-budget.ps1
@@ -4386,7 +4500,7 @@ scripts/quality/assert-positioning-consistency.ps1
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
     -Help          [SwitchParameter]
-  Exit: 0 - every surface names every pillar in canonical order.; 1 - at least one surface misses a pillar or names it out of order.; 2 - cannot verify: the root, a canonical file or a surface is missing, or the canonical
+  Exit: 0 - every surface names every pillar in canonical order.; 1 - at least one surface misses a pillar or names it out of order.; 2 - cannot verify: the root, a canonical file, a surface or the landing source catalog is
 ```
 
 ### assert-prerelease-content-gates.ps1
@@ -4669,6 +4783,44 @@ scripts/quality/assert-shared-test-flavor-scope.ps1
   Exit: 0 - no violation (or violations found without -Gate).; 1 - at least one violation, and -Gate was passed.; 2 - could not verify: the build file is unreadable, its mount map carries a line this gate
 ```
 
+### assert-showcase-inventory.ps1
+S4102 gate: every showcase and release-notes bullet names a shipped record of the capability inventory.
+
+```
+scripts/quality/assert-showcase-inventory.ps1
+  S4102 gate: every showcase and release-notes bullet names a shipped record of the capability inventory.
+  Params:
+    -Root          [String]
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+    -Help          [SwitchParameter]
+  Exit: 0 - every judged bullet is anchored to a shipped record and the locales agree.; 1 - at least one finding.; 2 - cannot verify: the root, the inventory or a required showcase / release-notes file is
+```
+
+### assert-site-addresses.ps1
+Holds the site's address rules: the not-found page, the forwarders of moved or retired pages, the retirement of a page together with its capability, the addresses held outside the site and the form of the language suffix (S4097, S4101).
+
+```
+scripts/quality/assert-site-addresses.ps1
+  Holds the site's address rules: the not-found page, the forwarders of moved or retired pages, the retirement of a page together with its capability, the addresses held outside the site and the form of the language suffix (S4097, S4101).
+  Params:
+    -Dimension         [String] = 'all'  {not-found|redirects|retirement|held-addresses|locale-scheme|all}
+    -RepoRoot          [String] = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+  Exit: 0 every requested dimension passed; 1 at least one finding; 2 could not verify: an input file is missing or unreadable, or an unknown dimension was named
+```
+
+### assert-site-facts.ps1
+Holds the site's product facts against their sources: the public editions are declared, the number of editions and the minimum Android version a page states are the ones the declaration and the build matrix give, and an edition is spelled one way everywhere (S4100).
+
+```
+scripts/quality/assert-site-facts.ps1
+  Holds the site's product facts against their sources: the public editions are declared, the number of editions and the minimum Android version a page states are the ones the declaration and the build matrix give, and an edition is spelled one way everywhere (S4100).
+  Params:
+    -Dimension         [String] = 'all'  {declaration|count|android-min|names|availability|all}
+    -Root              [String] = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+  Exit: 0 every requested dimension passed; 1 at least one finding; 2 could not verify: the matrix or the declaration is missing or unreadable, the root is absent, or
+```
+
 ### assert-site-family-map.ps1
 S3454 conformance gate for contract SITE-FAMILY-MAP 1.1: the footer grid and the one contact.
 
@@ -4695,6 +4847,20 @@ scripts/quality/assert-site-languages-current.ps1
     -Gate             [SwitchParameter]
     -Quiet            [SwitchParameter]
   Exit: 0 _data/languages.yml is current; 1 _data/languages.yml is missing or differs from a fresh render; 2 cannot verify: the generator is missing or refused to render (its own message is shown)
+```
+
+### assert-site-origins.ps1
+Holds the site's third-party origins: every host a published page contacts is declared, named on the privacy pages, and an advertising host loads only on the landing (S4098).
+
+```
+scripts/quality/assert-site-origins.ps1
+  Holds the site's third-party origins: every host a published page contacts is declared, named on the privacy pages, and an advertising host loads only on the landing (S4098).
+  Params:
+    -Dimension                [String] = 'all'  {declared|privacy|advertising|all}
+    -Root                     [String] = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+    -Declaration              [String]
+    -TrustDeclaration         [String]
+  Exit: 0 every requested dimension passed; 1 at least one finding; 2 could not verify: a declaration or _config.yml is missing or unreadable, or the root is absent
 ```
 
 ### assert-source-gates.ps1
@@ -5752,6 +5918,16 @@ scripts/quality/assert-detekt.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\assert-docs-coverage.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-docs-coverage.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
 ## scripts\quality\assert-docs-crosslinks.tests
 
 ### Run-Tests.ps1
@@ -6077,6 +6253,16 @@ scripts/quality/assert-play-listing-screenshot-geometry.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (the venv python or Pillow absent, or the source
 ```
 
+## scripts\quality\assert-positioning-consistency.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-positioning-consistency.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
 ## scripts\quality\assert-release-tree-binding.tests
 
 ### Run-Tests.ps1
@@ -6125,12 +6311,63 @@ scripts/quality/assert-shared-test-flavor-scope.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\assert-showcase-inventory.tests
+
+### Run-Tests.ps1
+Contract tests for assert-showcase-inventory.ps1.
+
+```
+scripts/quality/assert-showcase-inventory.tests/Run-Tests.ps1
+  Contract tests for assert-showcase-inventory.ps1.
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
+## scripts\quality\assert-site-addresses.tests
+
+### Run-Tests.ps1
+S4101 - test suite for the held-addresses and locale-scheme dimensions of scripts/quality/assert-site-addresses.ps1.
+
+```
+scripts/quality/assert-site-addresses.tests/Run-Tests.ps1
+  S4101 - test suite for the held-addresses and locale-scheme dimensions of scripts/quality/assert-site-addresses.ps1.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+  Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: the gate script is missing
+```
+
+## scripts\quality\assert-site-facts.tests
+
+### Run-Tests.ps1
+Contract tests for assert-site-facts.ps1.
+
+```
+scripts/quality/assert-site-facts.tests/Run-Tests.ps1
+  Contract tests for assert-site-facts.ps1.
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
 ## scripts\quality\assert-site-family-map.tests
 
 ### Run-Tests.ps1
+Contract tests for assert-site-family-map.ps1 and render-family-footer.ps1.
 
 ```
 scripts/quality/assert-site-family-map.tests/Run-Tests.ps1
+  Contract tests for assert-site-family-map.ps1 and render-family-footer.ps1.
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
+## scripts\quality\assert-site-origins.tests
+
+### Run-Tests.ps1
+Contract tests for assert-site-origins.ps1.
+
+```
+scripts/quality/assert-site-origins.tests/Run-Tests.ps1
+  Contract tests for assert-site-origins.ps1.
   (no param block)
   Exit: 0 every case passed; 1 at least one case failed
 ```
@@ -6332,9 +6569,11 @@ scripts/quality/lib/absent-input.ps1
 ```
 
 ### android-string-format.ps1
+Library: parses Android string format specifiers and compares their contract across locales.
 
 ```
 scripts/quality/lib/android-string-format.ps1
+  Library: parses Android string format specifiers and compares their contract across locales.
   (no param block)
 ```
 
@@ -6420,9 +6659,11 @@ scripts/quality/lib/detekt-report.ps1
 ```
 
 ### doc-icon-gate-routing.ps1
+Library: decides whether a changed-file set routes the documentation icon gate.
 
 ```
 scripts/quality/lib/doc-icon-gate-routing.ps1
+  Library: decides whether a changed-file set routes the documentation icon gate.
   (no param block)
 ```
 
@@ -6473,9 +6714,11 @@ scripts/quality/lib/gate-pool.ps1
 ```
 
 ### gate-telemetry.ps1
+Library: appends gate and gate-batch execution records to temp/metrics/gate-executions.jsonl.
 
 ```
 scripts/quality/lib/gate-telemetry.ps1
+  Library: appends gate and gate-batch execution records to temp/metrics/gate-executions.jsonl.
   (no param block)
 ```
 
@@ -8246,44 +8489,56 @@ scripts/streams.tests/StreamPublisher.Probes.Tests.ps1
 ## scripts\streams\modules
 
 ### StreamPublisher.Artwork.ps1
+Stream publisher module: favicon download, sprite-atlas packing and artwork index for the stream catalog.
 
 ```
 scripts/streams/modules/StreamPublisher.Artwork.ps1
+  Stream publisher module: favicon download, sprite-atlas packing and artwork index for the stream catalog.
   (no param block)
 ```
 
 ### StreamPublisher.Collections.ps1
+Stream publisher module: composes curated stream collections from rules.json and overlay.json over the shipped bank.
 
 ```
 scripts/streams/modules/StreamPublisher.Collections.ps1
+  Stream publisher module: composes curated stream collections from rules.json and overlay.json over the shipped bank.
   (no param block)
 ```
 
 ### StreamPublisher.Common.ps1
+Stream publisher module: shared URL, name, topic, language and country normalisers used by every other module.
 
 ```
 scripts/streams/modules/StreamPublisher.Common.ps1
+  Stream publisher module: shared URL, name, topic, language and country normalisers used by every other module.
   (no param block)
 ```
 
 ### StreamPublisher.Delivery.ps1
+Stream publisher module: catalog maintenance, publish-time assertions and the publisher mode dispatch.
 
 ```
 scripts/streams/modules/StreamPublisher.Delivery.ps1
+  Stream publisher module: catalog maintenance, publish-time assertions and the publisher mode dispatch.
   (no param block)
 ```
 
 ### StreamPublisher.Discovery.ps1
+Stream publisher module: candidate discovery from Radio Browser mirrors and official IPTV sources.
 
 ```
 scripts/streams/modules/StreamPublisher.Discovery.ps1
+  Stream publisher module: candidate discovery from Radio Browser mirrors and official IPTV sources.
   (no param block)
 ```
 
 ### StreamPublisher.Probes.ps1
+Stream publisher module: liveness probes that classify each catalog row before pruning.
 
 ```
 scripts/streams/modules/StreamPublisher.Probes.ps1
+  Stream publisher module: liveness probes that classify each catalog row before pruning.
   (no param block)
 ```
 

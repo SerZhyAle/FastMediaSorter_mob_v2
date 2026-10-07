@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Stream publisher module: shared URL, name, topic, language and country normalisers used by every other module.
+#>
+
+
 function Get-Host2([string]$url) {
     try { return ([uri]$url).Host.ToLowerInvariant() } catch { return '' }
 }

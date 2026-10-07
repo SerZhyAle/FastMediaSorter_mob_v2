@@ -6,7 +6,8 @@ description: How to give your list of folders and servers to another phone in a 
 category: Sources, Destinations & File Operations
 category_slug: storage
 ticket: S2949
-flavor: All editions (details per step)
+availability: all
+availability_note: All editions (details per step)
 recipe_number: "03"
 canonical_url: documentation/storage/sharing-and-backing-up-resources.html
 why: |
@@ -124,6 +125,6 @@ next_recipes:
     description: Keep a resource or a single file away from other eyes.
 ---
 
-<sub class="doc-stamp">26.09.24 07:45</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Pack your resources into a file for another phone, import them back, bring in a ready configuration from the Windows companion, keep a full backup in Google Drive, and know what happens if the app's database ever has to be reset.

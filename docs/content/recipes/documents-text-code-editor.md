@@ -6,7 +6,7 @@ description: How to read text, Markdown, log and settings files, change the enco
 category: Documents & Text Editor
 category_slug: documents
 ticket: S2953
-flavor: Standard, noLegal, Legacy, VR and FOSS
+availability: SUPPORT_DOCUMENTS
 recipe_number: "03"
 canonical_url: documentation/documents/text-code-editor.html
 why: |
@@ -144,6 +144,6 @@ next_recipes:
     description: The calculator and the other small tools that come with the app.
 ---
 
-<sub class="doc-stamp">26.09.25 04:13</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Read text, Markdown and log files comfortably, fix them on the spot, find and replace words, create new text notes in any folder, and pass the text on to Google Keep, the calculator, a speech voice or a translator - without a separate editor app.

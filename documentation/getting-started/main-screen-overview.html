@@ -148,20 +148,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.25 21:58</div>
+<div class="doc-stamp">26.10.07 03:42</div>
+    <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Search...</span>
                 <kbd>/</kbd>
             </button>
@@ -183,8 +184,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
             </nav>
         </div>
     </header>
@@ -425,9 +426,9 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Getting Started</span>
-                    <span class="doc-badge doc-badge-standard">All editions</span>
+                    <span class="doc-edition-badge">All editions</span>
                     <span class="doc-badge doc-badge-sm">Recipe #03</span>
                 </div>
 
@@ -444,12 +445,12 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Before You Begin: Ingredients &amp; Prerequisites</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter in any <span class="doc-link-term" data-term="edition">edition</span>: Standard, noLegal, Lite, Photos, Legacy, VR or FOSS. A couple of pieces described here - the streams panel and the paired-watch filter - only exist on editions that ship streams or a Wear OS companion.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> At least one <span class="doc-link-term" data-term="resource">resource</span> added, so the list and the panels have something to show. See <a href="../storage/storage-sources-setup.html" class="doc-link">Setting up local and removable storage</a> if you have not added one yet.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> FastMediaSorter in any <span class="doc-link-term" data-term="edition">edition</span>: Standard, noLegal, Lite, Photos, Legacy, VR or FOSS. A couple of pieces described here - the streams panel and the paired-watch filter - only exist on editions that ship streams or a Wear OS companion.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> At least one <span class="doc-link-term" data-term="resource">resource</span> added, so the list and the panels have something to show. See <a href="../storage/storage-sources-setup.html" class="doc-link">Setting up local and removable storage</a> if you have not added one yet.</li>
                     </ul>
                 </div>
 
@@ -477,9 +478,25 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>The row of buttons above the list - <strong>Exit</strong>, <strong>Add</strong>, <strong>Filter</strong>, <strong>Refresh</strong>, <strong>Settings</strong>, <strong>View</strong>, <strong>Favorites</strong> and <strong>Start Player</strong> - is always there, though not always with its text labels. On a narrow screen the labels disappear first so every icon still fits; if icons alone still do not fit, the buttons at the right give way one at a time into the <strong>More actions</strong> (three-dots) menu, so a command is never simply cut off the edge of the screen.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="getting-started.main-screen-command-bar"
+                             data-device-profile="phone"
+                             data-screen-state="main-screen-command-bar-overflow"
+                             data-alt="The command bar at the top of the main screen with its icons and the More actions menu at the right holding the buttons that did not fit"
+                             data-caption="Buttons that do not fit move into More actions.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Command bar</strong>
+                                <p class="doc-img-bookmark-desc">Main screen in portrait, More actions menu open.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>getting-started.main-screen-command-bar</code></span>
+                                </div>
+                            </div>
+                        </div>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
-                                <span class="doc-callout-icon">💡</span> Everything still reachable
+                                Everything still reachable
                             </div>
                             <p>A command that moved into the three-dots menu works exactly the same as it did on the bar - it just needs one extra tap to find. Nothing you can do on a wide screen becomes unavailable on a narrow one.</p>
                         </div>
@@ -532,7 +549,7 @@ layout: null
                         </figure>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
-                                <span class="doc-callout-icon">💡</span> Cell size for grid view
+                                Cell size for grid view
                             </div>
                             <p>Prefer bigger or smaller tiles? Go to Settings, General, and set Resource grid cell size to Small, Medium or Large - it scales whatever column count your screen and orientation already use.</p>
                         </div>
@@ -547,6 +564,22 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Open the <span class="doc-link-term" data-term="three-dots-menu">three-dots menu</span> on any resource row for the actions that do not fit as icons - renaming, removing, and <strong>Reconnect resource</strong> for a folder that needs its connection refreshed. If the folder you pick during a reconnect does not match what the resource pointed to before, a confirmation dialog asks you to double-check before it is applied - and that dialog now stays on screen if you rotate the phone while it is open, instead of quietly disappearing.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="getting-started.main-screen-resource-menu"
+                             data-device-profile="phone"
+                             data-screen-state="main-screen-resource-three-dots-menu"
+                             data-alt="The three-dots menu of one resource row open on the main screen, with Reconnect resource among its actions"
+                             data-caption="Actions for one resource live in its three-dots menu.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Resource menu</strong>
+                                <p class="doc-img-bookmark-desc">Main screen, three-dots menu opened on a local folder resource.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>getting-started.main-screen-resource-menu</code></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -585,17 +618,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="permissions-guide.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Getting Started</span>
-                            <h4>Understanding app permissions</h4>
+                            <h3>Understanding app permissions</h3>
                             <p>What each permission unlocks, before you start adding resources.</p>
                         </a>
                         <a href="../storage/storage-sources-setup.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Storage</span>
-                            <h4>Configuring local and removable storage</h4>
+                            <h3>Configuring local and removable storage</h3>
                             <p>Add the folders that show up in this resource list.</p>
                         </a>
                         <a href="../browsing/sorting-and-filtering.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Browsing</span>
-                            <h4>Sorting, filtering and quick search</h4>
+                            <h3>Sorting, filtering and quick search</h3>
                             <p>The full detail behind the Filter and Sort Resources dialog.</p>
                         </a>
                     </div>

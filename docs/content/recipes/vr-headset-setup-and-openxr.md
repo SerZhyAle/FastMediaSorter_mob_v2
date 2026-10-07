@@ -6,7 +6,9 @@ description: Which editions and headsets FastMediaSorter's immersive mode runs o
 category: VR and OpenXR
 category_slug: vr
 ticket: S2967
-flavor: noLegal and VR, on a compatible headset
+availability: SUPPORT_IMMERSIVE_XR
+devices: headset
+availability_note: noLegal and VR, on a compatible headset
 recipe_number: "01"
 canonical_url: documentation/vr/headset-setup-and-openxr.html
 why: |
@@ -137,6 +139,6 @@ next_recipes:
     description: Open a live video channel straight into VR Cinema.
 ---
 
-<sub class="doc-stamp">26.09.24 09:27</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Which editions and headsets run FastMediaSorter's immersive mode, how to install it, how the 3D/VR master switch and OpenXR work together, and the VR Cinema, VR badge, immersive browser, controls legend and self-test you will meet before your first film.

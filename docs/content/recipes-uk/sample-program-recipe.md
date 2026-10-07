@@ -5,7 +5,6 @@ description: Практичний рецепт для перевірки вик�
 category: Програми та інструменти
 category_slug: programs
 ticket: S2961
-flavor: Усі редакції
 recipe_number: "03"
 canonical_url: documentation/sample-program-recipe-uk.html
 ingredients:
@@ -42,6 +41,6 @@ next_recipes:
     description: Експортуйте діагностичні звіти та журнали.
 ---
 
-<sub class="doc-stamp">26.09.25 22:25</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Швидко проаналізуйте, які папки, типи файлів і великі відеофайли займають місце на вашому пристрої, SD-карті чи мережевих ресурсах.

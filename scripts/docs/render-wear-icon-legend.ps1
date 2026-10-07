@@ -146,7 +146,7 @@ $intro = @{
 }
 $colIcon = @{ en = 'Icon'; ru = 'Значок'; uk = 'Значок' }
 $colName = @{ en = 'Meaning'; ru = 'Значение'; uk = 'Значення' }
-$permalink = @{ en = '/docs/wear/ICON_LEGEND.html'; ru = '/docs/wear/ICON_LEGEND_RU.html'; uk = '/docs/wear/ICON_LEGEND_UK.html' }
+$permalink = @{ en = '/docs/wear/ICON_LEGEND.html'; ru = '/docs/wear/ICON_LEGEND-ru.html'; uk = '/docs/wear/ICON_LEGEND-uk.html' }
 $fileName = @{ en = 'ICON_LEGEND.md'; ru = 'ICON_LEGEND-ru.md'; uk = 'ICON_LEGEND-uk.md' }
 
 $pages = @{}

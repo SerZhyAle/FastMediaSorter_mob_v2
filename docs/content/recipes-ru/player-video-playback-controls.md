@@ -6,7 +6,7 @@ description: Как воспроизводить видео во весь экр
 category: Видеоплеер и медиаплеер
 category_slug: player
 ticket: S2951
-flavor: Все редакции, кроме Photos; сохранение кадров и цветокоррекция доступны в Standard, noLegal, Legacy и VR
+availability_note: Все редакции, кроме Photos; сохранение кадров и цветокоррекция доступны в Standard, noLegal, Legacy и VR
 recipe_number: "01"
 canonical_url: documentation/player/video-playback-controls-ru.html
 why: |
@@ -160,6 +160,6 @@ next_recipes:
     description: Воспроизведение видео на большом экране телевизора.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Смотрите видео на полном экране или с удобной командной панелью, переключайтесь между роликами жестами и касаниями, приближайте детали, возобновляйте просмотр с момента остановки, сохраняйте стоп-кадры и раскладывайте видео по папкам прямо во время просмотра.

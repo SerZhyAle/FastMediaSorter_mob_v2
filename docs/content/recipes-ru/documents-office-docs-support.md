@@ -6,7 +6,6 @@ description: Как читать электронные книги EPUB с на�
 category: Документы и текстовый редактор
 category_slug: documents
 ticket: S2953
-flavor: Standard, noLegal, Legacy, VR и FOSS
 recipe_number: "02"
 canonical_url: documentation/documents/office-docs-support-ru.html
 why: |
@@ -140,6 +139,6 @@ next_recipes:
     description: Узнайте, какие форматы файлов открывает каждая редакция FastMediaSorter.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Читайте книги EPUB с персональными шрифтами, темами оформления и полями, переходите между главами, ищите по всей книге, слушайте текст вслух или переводите его на лету - и открывайте файлы Word, Excel и PowerPoint в одно касание.

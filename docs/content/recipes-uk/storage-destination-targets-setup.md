@@ -6,7 +6,6 @@ description: Як перетворити папки на пронумерова�
 category: Джерела, призначення та операції з файлами
 category_slug: storage
 ticket: S2949
-flavor: Усі редакції
 recipe_number: "04"
 canonical_url: documentation/storage/destination-targets-setup-uk.html
 why: |
@@ -120,6 +119,6 @@ next_recipes:
     description: Нехай застосунок сам заповнює ваші призначення.
 ---
 
-<sub class="doc-stamp">26.09.25 22:26</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Перетворіть свої папки на пронумеровані кольорові призначення, а потім копіюйте чи переміщуйте фото або відео, на яке дивитеся, в одне з них одним дотиком чи цифровою клавішею.

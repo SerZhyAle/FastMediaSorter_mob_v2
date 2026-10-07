@@ -6,7 +6,6 @@ description: Як переміщувати, змінювати розмір і �
 category: "Лаунчер: Робочий стіл"
 category_slug: launcher
 ticket: S2958
-flavor: Standard і noLegal
 recipe_number: "03"
 canonical_url: documentation/launcher/desktop-folders-and-pages-uk.html
 why: |
@@ -141,6 +140,6 @@ next_recipes:
     description: Що пропонує довге натискання на застосунках, каналах і ґаджетах.
 ---
 
-<sub class="doc-stamp">26.09.25 22:44</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Щойно [робочий стіл](term:desktop) містить речі, якими ви користуєтеся, впорядкувати їх - справа кількох довгих натискань. Ця сторінка охоплює переміщення і зміну розміру клітинок, розділи, які можна згортати, кілька екранів, чотири свайпи і блокування, яке тримає все на місці.

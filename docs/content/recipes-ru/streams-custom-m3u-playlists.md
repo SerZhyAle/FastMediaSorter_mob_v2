@@ -6,7 +6,6 @@ description: Как добавить канал по веб-адресу, имп
 category: Интернет-трансляции
 category_slug: streams
 ticket: S2954
-flavor: Standard, noLegal, Legacy и VR
 recipe_number: "03"
 canonical_url: documentation/streams/custom-m3u-playlists-ru.html
 why: |
@@ -23,7 +22,7 @@ steps:
     id: add-a-stream
     title: Добавьте трансляцию по URL-адресу
     text: |
-      Откройте меню действий <img src="../../docs/icons/doc/ic_more_vert.png" alt="Ещё" width="18" height="18" style="vertical-align:text-bottom"> на экране трансляций и нажмите **Добавить трансляцию**. Введите адрес в поле **URL трансляции (http, https, rtsp)** - стандартную ссылку http/https либо адрес rtsp:// для сетевой камеры или IPTV-потока. При желании укажите **Название (необязательно)**, чтобы канал отображался под вашим именем. Нажмите **OK**, и канал сразу появится в списке.
+      Откройте меню действий <img src="../../docs/icons/doc/ic_more_vert.png" alt="Ещё" width="18" height="18" class="doc-inline-icon"> на экране трансляций и нажмите **Добавить трансляцию**. Введите адрес в поле **URL трансляции (http, https, rtsp)** - стандартную ссылку http/https либо адрес rtsp:// для сетевой камеры или IPTV-потока. При желании укажите **Название (необязательно)**, чтобы канал отображался под вашим именем. Нажмите **OK**, и канал сразу появится в списке.
     image_bookmark:
       shot_id: streams.add-stream-dialog
       device_profile: phone
@@ -113,6 +112,6 @@ next_recipes:
     description: Стоп-кадры прямого эфира, логотипы станций, флаги и статусы каналов.
 ---
 
-<sub class="doc-stamp">26.09.30 08:55</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Добавляйте собственные [каналы](term:channel) в раздел [Трансляции](term:streams-screen): вводите прямой веб-адрес потока или импортируйте плейлисты M3U с умной защитой от дублирования ссылок.

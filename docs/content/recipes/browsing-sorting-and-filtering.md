@@ -6,7 +6,7 @@ description: How to order a folder by name, date, size, type or your own drag or
 category: Browsing & Sorting
 category_slug: browsing
 ticket: S2948
-flavor: All editions
+availability: all
 recipe_number: "02"
 canonical_url: documentation/browsing/sorting-and-filtering.html
 why: |
@@ -140,6 +140,6 @@ next_recipes:
     description: How FastMediaSorter keeps thumbnails and large folders fast to browse.
 ---
 
-<sub class="doc-stamp">26.09.24 07:26</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Put a [resource](term:resource) in the order that suits it, narrow it down with a filter that stays with that resource, or jump straight to one file with live search - all from the same toolbar in the [file browser](term:file-browser).

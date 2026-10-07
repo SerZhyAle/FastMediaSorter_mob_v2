@@ -6,7 +6,9 @@ description: How to add the FastMediaSorter tiles to the watch's tile carousel, 
 category: Wear OS Watch
 category_slug: wear
 ticket: S2964
-flavor: Programs tile - both watch versions; Resource, Stream, Favorites and Sections tiles and all complications - the full watch version (sideload only)
+availability: companion:wear
+devices: watch
+availability_note: Programs tile - both watch versions; Resource, Stream, Favorites and Sections tiles and all complications - the full watch version (sideload only)
 recipe_number: "03"
 canonical_url: documentation/wear/tiles-and-complications.html
 why: |
@@ -124,6 +126,6 @@ next_recipes:
     description: Get the network resources a Resource tile can point at.
 ---
 
-<sub class="doc-stamp">26.09.30 11:27</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Add the FastMediaSorter [tiles](term:tile) to the watch's tile carousel, point a Resource or Stream tile at the place you want, and put the Last Resource, Favorites and Now Playing [complications](term:complication) on your watch face.

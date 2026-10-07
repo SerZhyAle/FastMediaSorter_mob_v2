@@ -6,7 +6,6 @@ description: Как открыть PDF, листать страницы и бы�
 category: Документы и текстовый редактор
 category_slug: documents
 ticket: S2953
-flavor: Standard, noLegal, Legacy, VR и FOSS
 recipe_number: "01"
 canonical_url: documentation/documents/pdf-epub-viewing-ru.html
 why: |
@@ -186,6 +185,6 @@ next_recipes:
     description: Настройка языков и внешнего вида офлайн-перевода.
 ---
 
-<sub class="doc-stamp">26.09.30 08:35</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Открывайте документы PDF в одно касание, листайте страницы свайпами, находите нужные страницы по миниатюрам, читайте ночью в темной теме, копируйте, ищите, слушайте и переводите текст, сохраняйте страницы как фото и печатайте документы - во встроенной [читалке](term:reader).

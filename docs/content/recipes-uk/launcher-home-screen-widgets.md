@@ -6,7 +6,7 @@ description: Які віджети пропонує FastMediaSorter для до�
 category: "Лаунчер: ґаджети й віджети"
 category_slug: launcher
 ticket: S2959
-flavor: Усі редакції - набір віджетів відрізняється, див. крок 2
+availability_note: Усі редакції - набір віджетів відрізняється, див. крок 2
 recipe_number: "03"
 canonical_url: documentation/launcher/home-screen-widgets-uk.html
 why: |
@@ -104,6 +104,6 @@ next_recipes:
     description: Слайдшоу, яке підхоплює «Продовжити читання».
 ---
 
-<sub class="doc-stamp">26.09.25 22:19</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 FastMediaSorter пропонує набір [віджетів](term:widget) для [домашнього екрана](term:home-screen) Android: кнопки в одне торкання для камери, диктофона, випадкової музики й ваших папок, а також великі вікна для фоторамки, плеєра й запланованих завдань. Ця сторінка показує, що робить кожен із них, у яких редакціях він доступний і як його додати та налаштувати.

@@ -6,7 +6,7 @@ description: Як знайти однакові файли в різних па�
 category: Джерела, призначення та операції з файлами
 category_slug: storage
 ticket: S2949
-flavor: Standard, noLegal, Legacy і VR; ZIP-архіви в усіх редакціях
+availability_note: Standard, noLegal, Legacy і VR; ZIP-архіви в усіх редакціях
 recipe_number: "08"
 canonical_url: documentation/storage/cleaning-up-space-uk.html
 why: |
@@ -124,6 +124,6 @@ next_recipes:
     description: Подивіться, скільки файлів ви відсортували і скільки місця звільнили ваші видалення.
 ---
 
-<sub class="doc-stamp">26.09.25 22:25</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Знаходьте однакові файли в різних папках і видаляйте зайві копії, прибирайте всі файли більші чи менші за обраний розмір за один раз, і пакуйте обрані файли в ZIP-архів.

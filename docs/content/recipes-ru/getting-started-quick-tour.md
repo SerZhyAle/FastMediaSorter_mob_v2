@@ -6,7 +6,7 @@ description: Установка FastMediaSorter, заставка с часам�
 category: Первые шаги и настройка
 category_slug: getting-started
 ticket: S2946
-flavor: Все редакции (способ установки зависит от редакции)
+availability_note: Все редакции (способ установки зависит от редакции)
 recipe_number: "04"
 canonical_url: documentation/getting-started/quick-tour-ru.html
 why: |
@@ -115,6 +115,6 @@ next_recipes:
     description: Какими возможностями обладает каждая редакция и как выбрать подходящую.
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 От установки FastMediaSorter и часов на первой заставке до путеводителя по всем рецептам - это пятиминутный экспресс-тур перед тем, как [мастер первого запуска](page:getting-started.welcome-and-setup) задаст вам свои вопросы.

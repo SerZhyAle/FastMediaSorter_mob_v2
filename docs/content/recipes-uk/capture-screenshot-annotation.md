@@ -6,7 +6,6 @@ description: Як зробити скріншот крайовим жестом,
 category: Камера та запис екрана
 category_slug: capture
 ticket: S2956
-flavor: Редакції Standard і noLegal
 recipe_number: "3"
 canonical_url: documentation/capture/screenshot-annotation-uk.html
 why: |
@@ -111,6 +110,6 @@ next_recipes:
     description: Куди «Надіслати до» і системна панель «Поділитися» відправляють захоплений скріншот.
 ---
 
-<sub class="doc-stamp">26.09.25 22:40</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Увімкніть Оверлей жестів, дайте змаху роботу, і скріншот - за один рух від того місця, де ви є, - тихо збережений, відкритий для редагування, перекладений чи надісланий далі, саме так, як ви це налаштували.

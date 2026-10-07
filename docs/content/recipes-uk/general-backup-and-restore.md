@@ -6,7 +6,7 @@ description: Що саме несе резервна копія FastMediaSorter,
 category: "Загальні, клавіатура та ТВ"
 category_slug: general
 ticket: S2963
-flavor: Усі редакції - резервне копіювання та відновлення у файл працюють скрізь; резервна копія в Google Drive потребує Standard, noLegal, Photos, Legacy або VR з підключеним обліковим записом Google
+availability_note: Усі редакції - резервне копіювання та відновлення у файл працюють скрізь; резервна копія в Google Drive потребує Standard, noLegal, Photos, Legacy або VR з підключеним обліковим записом Google
 recipe_number: "01"
 canonical_url: documentation/general/backup-and-restore-uk.html
 why: |
@@ -125,6 +125,6 @@ next_recipes:
     description: Переміщення застосунком без дотику до екрана.
 ---
 
-<sub class="doc-stamp">26.09.25 22:22</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Ваші налаштування, Обране та ресурси можуть піти в резервну копію і повернутися назад. Ця сторінка про саму резервну копію: де її кнопки, що вона несе, що навмисно лишає позаду, і як відновлюється стара резервна копія.

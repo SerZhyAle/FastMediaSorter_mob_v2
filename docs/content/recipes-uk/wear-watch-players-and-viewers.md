@@ -6,7 +6,7 @@ description: Як користуватися переглядачем зобра
 category: Годинник Wear OS
 category_slug: wear
 ticket: S2966
-flavor: Повна версія застосунку для годинника (лише sideload) - у версії з Google Play плеєра взагалі немає. Див. редакцію noLegal.
+availability_note: Повна версія застосунку для годинника (лише sideload) - у версії з Google Play плеєра взагалі немає. Див. редакцію noLegal.
 recipe_number: "07"
 canonical_url: documentation/wear/watch-players-and-viewers-uk.html
 why: |
@@ -172,6 +172,6 @@ next_recipes:
     description: Сеанс Chromecast, якому передає «Показати на телевізорі» годинника.
 ---
 
-<sub class="doc-stamp">26.09.25 22:46</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Огляд трьох плеєрів застосунку на годиннику - зображень, відео й аудіо - а також читалки текстових документів і передавання того, що на годиннику, на телевізор.

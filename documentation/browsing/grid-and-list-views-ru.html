@@ -183,20 +183,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.30 08:05</div>
+<div class="doc-stamp">26.10.07 01:10</div>
+    <a class="doc-skip-link" href="#main-content">Перейти к содержимому</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index-ru.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index-ru.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Поиск...</span>
                 <kbd>/</kbd>
             </button>
@@ -218,8 +219,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Тема</span></button>
             </nav>
         </div>
     </header>
@@ -465,9 +466,9 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Просмотр медиафайлов и сортировка</span>
-                    <span class="doc-badge doc-badge-standard">Все редакции</span>
+                    <span class="doc-edition-badge">Все редакции</span>
                     <span class="doc-badge doc-badge-sm">Recipe #01</span>
                 </div>
 
@@ -484,13 +485,13 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Перед началом: Что вам понадобится</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> Установленный FastMediaSorter. Файловый браузер входит во все <span class="doc-link-term" data-term="edition">редакции</span>: Standard, noLegal, Lite, Photos, Legacy, VR и FOSS.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Как минимум один добавленный <span class="doc-link-term" data-term="resource">ресурс</span>. Если вы ещё ничего не добавили, см. рецепт <a href="../storage/storage-sources-setup-ru.html" class="doc-link">Настройка локальных и съёмных хранилищ</a>.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Установка APK-пакетов напрямую из браузера доступна только в автономной <span class="doc-link-term" data-term="nolegal-edition">редакции noLegal</span>.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Установленный FastMediaSorter. Файловый браузер входит во все <span class="doc-link-term" data-term="edition">редакции</span>: Standard, noLegal, Lite, Photos, Legacy, VR и FOSS.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Как минимум один добавленный <span class="doc-link-term" data-term="resource">ресурс</span>. Если вы ещё ничего не добавили, см. рецепт <a href="../storage/storage-sources-setup-ru.html" class="doc-link">Настройка локальных и съёмных хранилищ</a>.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Установка APK-пакетов напрямую из браузера доступна только в автономной <span class="doc-link-term" data-term="nolegal-edition">редакции noLegal</span>.</li>
                     </ul>
                 </div>
 
@@ -521,7 +522,7 @@ layout: null
                         <p>В длинных списках у края экрана автоматически появляются кнопки быстрой прокрутки в начало, в конец или постраничного листания - они отображаются только тогда, когда список действительно достаточно велик.</p>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
-                                <span class="doc-callout-icon">💡</span> Удобный возврат назад
+                                Удобный возврат назад
                             </div>
                             <p>Файловый браузер сохраняет историю переходов по папкам, поэтому системная кнопка «Назад» возвращает вас на один уровень вверх, а не выбрасывает из ресурса сразу.</p>
                         </div>
@@ -554,7 +555,7 @@ layout: null
                         <p>Нажмите кнопку <strong>Создать папку</strong> на панели инструментов, чтобы добавить новую подпапку прямо в текущем расположении - на локальном диске, в сетевом ресурсе SMB/SFTP или в облаке (в ресурсах «только для чтения» кнопка скрыта). В меню с тремя точками также есть пункт <strong>Создать рисунок</strong>, открывающий чистый лист в <span class="doc-link-term" data-term="drawing-editor">редакторе рисунков</span> и сохраняющий получившееся изображение прямо в открытую папку - удобно для быстрых заметок и скетчей.</p>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
-                                <span class="doc-callout-icon">💡</span> Настройки приложения в один клик
+                                Настройки приложения в один клик
                             </div>
                             <p>В меню с тремя точками есть прямой пункт перехода в «Настройки приложения», позволяющий изменить параметры отображения и сразу вернуться к просмотру без лишних экранов.</p>
                         </div>
@@ -627,6 +628,13 @@ layout: null
                     </div>
                 </div>
 
+                <div class="doc-callout doc-callout-warning">
+                    <div class="doc-callout-title">
+                        <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>Отображается меньше файлов, чем ожидалось?
+                    </div>
+                    <p>Если папка открыта без предоставления полного доступа к памяти устройства, под панелью инструментов появится полоса с объяснением, что видны только фото, видео и музыка. Предупреждение показывается один раз и больше не отвлекает.</p>
+                </div>
+
                 <!-- Step 10 -->
                 <div class="doc-step" id="files-without-a-picture">
                     <div class="doc-step-header">
@@ -635,12 +643,6 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Для файлов без графического предпросмотра при нажатии открывается аккуратная нижняя шторка с действиями: «Поделиться», «Открыть в..», «Копировать», «Переместить», «Переименовать» и «Удалить». Если имена файлов начинаются одинаково, на их стандартных значках пишется имя файла целиком, исключая путаницу; на смарт-часах эта надпись имеет чёткую контрастную обводку для отличной читаемости на любом фоне.</p>
-                        <div class="doc-callout doc-callout-warning">
-                            <div class="doc-callout-title">
-                                <span class="doc-callout-icon">⚠️</span> Отображается меньше файлов, чем ожидалось?
-                            </div>
-                            <p>Если папка открыта без предоставления полного доступа к памяти устройства, под панелью инструментов появится полоса с объяснением, что видны только фото, видео и музыка. Предупреждение показывается один раз и больше не отвлекает.</p>
-                        </div>
                     </div>
                 </div>
 
@@ -686,17 +688,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="sorting-and-filtering-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Просмотр</span>
-                            <h4>Сортировка, фильтрация и быстрый поиск</h4>
+                            <h3>Сортировка, фильтрация и быстрый поиск</h3>
                             <p>Режимы сортировки, перемешивание, ручной порядок, фильтры и строка быстрого поиска.</p>
                         </a>
                         <a href="batch-selection-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Просмотр</span>
-                            <h4>Множественный выбор и пакетные операции</h4>
+                            <h3>Множественный выбор и пакетные операции</h3>
                             <p>Выделение нескольких файлов и совместное копирование, перемещение или удаление.</p>
                         </a>
                         <a href="media-indexing-and-caching-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Просмотр</span>
-                            <h4>Кэширование миниатюр и индексация</h4>
+                            <h3>Кэширование миниатюр и индексация</h3>
                             <p>Почему папки открываются быстро и сохраняют актуальность при изменении файлов.</p>
                         </a>
                     </div>
@@ -736,8 +738,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.</div>
             <div class="doc-footer-links">
-                <a href="../../docs/PRIVACY_POLICY.ru.html">Политика конфиденциальности</a>
-                <a href="../../docs/TERMS_OF_SERVICE_RU.html">Условия использования</a>
+                <a href="../../docs/PRIVACY_POLICY-ru.html">Политика конфиденциальности</a>
+                <a href="../../docs/TERMS_OF_SERVICE-ru.html">Условия использования</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.addresource
 
 import android.content.Context
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.remote.sftp.HostKeyMismatchException
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -9,7 +10,6 @@ import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.data.remote.sftp.HostKeyMismatchException
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
@@ -59,10 +59,12 @@ internal class AddResourceSftpFtpCoordinator(
                 )
             bridge.emit(AddResourceEvent.ShowTestResult(message, isSuccess = false))
         } else {
-            bridge.emit(AddResourceEvent.ShowTestResult(
-                context.getString(R.string.addresource_connection_failed),
-                isSuccess = false
-            ))
+            bridge.emit(
+                AddResourceEvent.ShowTestResult(
+                    context.getString(R.string.addresource_connection_failed),
+                    isSuccess = false
+                )
+            )
         }
     }
 
@@ -87,7 +89,10 @@ internal class AddResourceSftpFtpCoordinator(
             when (protocolType) {
                 ResourceType.SFTP -> {
                     smbOperationsUseCase.testSftpConnection(
-                        host = host, port = port, username = username, password = password,
+                        host = host,
+                        port = port,
+                        username = username,
+                        password = password,
                         expectedFingerprint = canonicalFingerprint
                     ).onSuccess { testResult ->
                         Timber.d("SFTP test connection successful")
@@ -105,19 +110,26 @@ internal class AddResourceSftpFtpCoordinator(
                 }
                 ResourceType.FTP -> {
                     smbOperationsUseCase.testFtpConnection(
-                        host = host, port = port, username = username, password = password
+                        host = host,
+                        port = port,
+                        username = username,
+                        password = password
                     ).onSuccess { message ->
                         Timber.d("FTP test connection successful")
                         bridge.emit(AddResourceEvent.ShowTestResult(message, isSuccess = true))
                     }.onFailure { e ->
                         Timber.e(e, "FTP test connection failed")
-                        bridge.emit(AddResourceEvent.ShowTestResult(
-                            context.getString(R.string.addresource_connection_failed),
-                            isSuccess = false
-                        ))
+                        bridge.emit(
+                            AddResourceEvent.ShowTestResult(
+                                context.getString(R.string.addresource_connection_failed),
+                                isSuccess = false
+                            )
+                        )
                     }
                 }
-                else -> bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_protocol_invalid)))
+                else -> bridge.emit(
+                    AddResourceEvent.ShowError(context.getString(R.string.addresource_protocol_invalid))
+                )
             }
 
             bridge.markLoading(false)
@@ -166,16 +178,32 @@ internal class AddResourceSftpFtpCoordinator(
 
             val credentialsResult = when (protocolType) {
                 ResourceType.SFTP -> smbOperationsUseCase.saveSftpCredentials(
-                    host = host, port = port, username = username, password = password
+                    host = host,
+                    port = port,
+                    username = username,
+                    password = password
                 )
                 ResourceType.FTP -> smbOperationsUseCase.saveFtpCredentials(
-                    host = host, port = port, username = username, password = password
+                    host = host,
+                    port = port,
+                    username = username,
+                    password = password
                 )
                 else -> Result.failure(Exception("Invalid protocol type"))
             }
 
             credentialsResult.onSuccess { credentialsId ->
                 Timber.d("Saved $protocolName credentials with ID: $credentialsId")
+                // Credentials are looked up per host:port at connect time, so the tunnel address needs its own row.
+                val tunnel = bridge.stateValue.sftpPairingTunnel?.takeIf { protocolType == ResourceType.SFTP }
+                tunnel?.let {
+                    smbOperationsUseCase.saveSftpCredentials(
+                        host = it.host,
+                        port = it.port,
+                        username = username,
+                        password = password
+                    )
+                }
 
                 val formattedRemotePath = if (remotePath.startsWith("/") || remotePath.isEmpty()) remotePath else "/$remotePath"
                 val path = "$protocolLower://$host:$port$formattedRemotePath"
@@ -213,7 +241,8 @@ internal class AddResourceSftpFtpCoordinator(
                     showSubfoldersAsItems = showSubfoldersAsItems,
                     accessPin = accessPin?.ifBlank { null },
                     profile = profile,
-                    hostKeyFingerprint = if (protocolType == ResourceType.SFTP) canonicalFingerprint else null
+                    hostKeyFingerprint = if (protocolType == ResourceType.SFTP) canonicalFingerprint else null,
+                    altAccessPaths = listOfNotNull(tunnel)
                 )
 
                 addResourceUseCase.addMultiple(listOf(resource)).onSuccess { addResult ->
@@ -225,9 +254,15 @@ internal class AddResourceSftpFtpCoordinator(
                     )
 
                     if (scanSuccessful) {
-                        bridge.emit(AddResourceEvent.ShowMessage(context.getString(R.string.addresource_resource_added)))
+                        bridge.emit(
+                            AddResourceEvent.ShowMessage(context.getString(R.string.addresource_resource_added))
+                        )
                     } else {
-                        bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_resource_unavailable_after_add)))
+                        bridge.emit(
+                            AddResourceEvent.ShowError(
+                                context.getString(R.string.addresource_resource_unavailable_after_add)
+                            )
+                        )
                     }
                     bridge.emit(AddResourceEvent.ResourcesAdded(addResult.createdResourceIds))
                 }.onFailure { e ->

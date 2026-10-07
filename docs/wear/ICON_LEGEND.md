@@ -44,6 +44,7 @@ These are the icons FastMedia draws on the Wear OS watch, each beside the one na
 | <img src="../icons/svg/wear/ic_history.svg" alt="" width="24" height="24"> | History |
 | <img src="../icons/svg/wear/ic_image.svg" alt="" width="24" height="24"> | Image |
 | <img src="../icons/svg/wear/ic_stream.svg" alt="" width="24" height="24"> | Stream |
+| <img src="../icons/svg/wear/ic_complication_timer.svg" alt="" width="24" height="24"> | Time |
 | <img src="../icons/svg/wear/ic_video.svg" alt="" width="24" height="24"> | Video |
 
 ## Sources
@@ -71,6 +72,15 @@ These are the icons FastMedia draws on the Wear OS watch, each beside the one na
 |---|---|
 | <img src="../icons/svg/wear/ic_info.svg" alt="" width="24" height="24"> | Information |
 | <img src="../icons/svg/wear/ic_notification_app_logo.svg" alt="" width="24" height="24"> | FastMediaSorter |
+| <img src="../icons/svg/wear/ic_night_mode.svg" alt="" width="24" height="24"> | Night mode |
+
+## System
+
+| Icon | Meaning |
+|---|---|
+| <img src="../icons/svg/wear/ic_complication_alarm.svg" alt="" width="24" height="24"> | Alarm |
+| <img src="../icons/svg/wear/ic_complication_battery.svg" alt="" width="24" height="24"> | Battery |
+| <img src="../icons/svg/wear/ic_complication_date.svg" alt="" width="24" height="24"> | Calendar |
 
 ## Programs
 

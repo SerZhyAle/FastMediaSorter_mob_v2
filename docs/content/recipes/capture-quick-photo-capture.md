@@ -6,7 +6,8 @@ description: How to open the app's own camera from the Programs menu, use its vi
 category: Camera & Screen Capture
 category_slug: capture
 ticket: S2956
-flavor: All editions for the Quick capture menu and tap-to-focus; the fuller viewfinder with zoom presets, Send To and Camera settings needs Standard, Lite, Photos or Legacy; video, the Photo/Video switch and the Samsung-style gestures are Standard only; the watch live view needs Standard or noLegal
+availability: all
+availability_note: All editions for the Quick capture menu and tap-to-focus; the fuller viewfinder with zoom presets, Send To and Camera settings needs Standard, Lite, Photos or Legacy; video, the Photo/Video switch and the Samsung-style gestures are Standard only; the watch live view needs Standard or noLegal
 recipe_number: "1"
 canonical_url: documentation/capture/quick-photo-capture.html
 why: |
@@ -170,6 +171,6 @@ next_recipes:
     description: Record everything happening on screen, with microphone audio, from the Programs menu.
 ---
 
-<sub class="doc-stamp">26.09.25 21:59</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Open the app's own camera from the Programs menu for a quick photo or video snap, get to know its viewfinder and gestures, record video with a timer and Pause/Resume, and even watch through your phone's camera from a paired watch.

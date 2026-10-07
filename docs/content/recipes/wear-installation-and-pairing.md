@@ -6,7 +6,9 @@ description: How to install the FastMediaSorter watch app on a Wear OS watch, sw
 category: Wear OS Watch
 category_slug: wear
 ticket: S2964
-flavor: Phone side (Wear Companion) - Standard and noLegal; watch app - the Google Play version, or the full version installed from an APK
+availability: companion:wear
+devices: watch
+availability_note: Phone side (Wear Companion) - Standard and noLegal; watch app - the Google Play version, or the full version installed from an APK
 recipe_number: "01"
 canonical_url: documentation/wear/installation-and-pairing.html
 why: |
@@ -145,6 +147,6 @@ next_recipes:
     description: Listen straight from the watch, with or without the phone.
 ---
 
-<sub class="doc-stamp">26.09.30 11:27</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Install the FastMediaSorter [watch app](term:watch-app), switch on [Wear Companion](term:wear-companion) on the phone, open its window, and add the [watch](term:watch) to your resources - the first half of every watch feature.

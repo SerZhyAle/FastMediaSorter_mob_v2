@@ -6,7 +6,8 @@ description: Running FastMediaSorter on an Android TV box with a remote, moving 
 category: "General, Keyboard & TV"
 category_slug: general
 ticket: S2963
-flavor: All editions - keyboard and dialog control everywhere; the automatic first focus on a real control is in Standard, Lite, Photos and Legacy
+availability: all
+availability_note: All editions - keyboard and dialog control everywhere; the automatic first focus on a real control is in Standard, Lite, Photos and Legacy
 recipe_number: "02"
 canonical_url: documentation/general/keyboard-dpad-tv-navigation.html
 why: |
@@ -155,6 +156,6 @@ next_recipes:
     description: Select many files and act on all of them at once.
 ---
 
-<sub class="doc-stamp">26.09.24 09:10</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 A remote, a keyboard, a game controller or a mouse - FastMediaSorter answers to all of them. This page shows how to move around, answer dialogs, use the shortcuts and select files without touching the screen.

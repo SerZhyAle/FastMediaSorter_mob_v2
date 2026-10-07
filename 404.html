@@ -1,0 +1,152 @@
+---
+permalink: /404.html
+layout: null
+---
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page not found - Fast Media Sorter</title>
+    <meta name="description" content="This address does not lead to a page of the Fast Media Sorter site. Search the documentation or go to the documentation home or the landing page.">
+    <meta name="robots" content="noindex">
+
+    <link rel="icon" type="image/x-icon" href="{{ '/favicon.ico' | relative_url }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ '/favicon-32x32.png' | relative_url }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ '/favicon-16x16.png' | relative_url }}">
+
+    <!-- Pre-paint theme and language resolver; the host cannot tell the visitor's language, so the browser decides -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme');
+                if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', t);
+                var l = localStorage.getItem('sza-lang');
+                if (l === 'uk') l = 'ua';
+                if (l !== 'ru' && l !== 'en' && l !== 'ua') {
+                    var n = (navigator.language || 'en').toLowerCase();
+                    l = n.indexOf('ru') === 0 ? 'ru' : n.indexOf('uk') === 0 ? 'ua' : 'en';
+                }
+                document.documentElement.setAttribute('data-lang', l);
+            } catch (e) { }
+        }());
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ '/styles.css' | relative_url }}">
+    <link rel="stylesheet" href="{{ '/documentation/assets/docs.css' | relative_url }}">
+
+    <style>
+        /* English is the default so the page reads correctly with scripts disabled; data-lang switches the block. */
+        .nf-ru, .nf-uk { display: none; }
+        html[data-lang="ru"] .nf-en, html[data-lang="ua"] .nf-en { display: none; }
+        html[data-lang="ru"] .nf-ru { display: block; }
+        html[data-lang="ua"] .nf-uk { display: block; }
+        .nf-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.5rem 0; }
+        .nf-actions a, .nf-actions button {
+            display: inline-flex; align-items: center; gap: 0.5rem; padding: 8px 16px; border-radius: 6px;
+            border: 1px solid var(--doc-border, #30363d); font: inherit; font-weight: 600; text-decoration: none;
+            color: inherit; background: transparent; cursor: pointer;
+        }
+        .nf-code { font-size: 4rem; font-weight: 800; line-height: 1; margin: 0 0 0.5rem; opacity: 0.35; }
+    </style>
+</head>
+
+<body class="doc-body">
+<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.07 05:47</div>
+
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <a class="doc-header-brand" href="{{ '/' | relative_url }}">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <span class="doc-badge doc-badge-standard">Docs Portal</span>
+            </div>
+
+            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+                <span>🔍</span>
+                <span>Search documentation...</span>
+                <kbd>/</kbd>
+            </button>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="{{ '/documentation/' | relative_url }}" class="doc-header-link">Docs Home</a>
+                <a href="{{ '/documentation/subject-index.html' | relative_url }}" class="doc-header-link">Subject Index</a>
+                <a href="{{ '/documentation/general/glossary.html' | relative_url }}" class="doc-header-link">Glossary</a>
+                <a href="{{ '/' | relative_url }}" title="Fast Media Sorter Home" style="display:flex;align-items:center;"><img src="{{ '/apple-touch-icon.png' | relative_url }}" alt="Fast Media Sorter icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="doc-container">
+        <main class="doc-content" id="main-content">
+            <p class="nf-code" aria-hidden="true">404</p>
+
+            <section class="nf-en" lang="en">
+                <h1>Page not found</h1>
+                <p>No page of this site answers at this address. It may have been renamed or removed, or the link may contain a typo.</p>
+            </section>
+            <section class="nf-ru" lang="ru">
+                <h1>Страница не найдена</h1>
+                <p>По этому адресу на сайте нет страницы. Возможно, её переименовали или убрали, либо в ссылке опечатка.</p>
+            </section>
+            <section class="nf-uk" lang="uk">
+                <h1>Сторінку не знайдено</h1>
+                <p>За цією адресою на сайті немає сторінки. Можливо, її перейменували чи прибрали, або в посиланні помилка.</p>
+            </section>
+
+            <div class="nf-actions">
+                <button type="button" data-search-trigger>
+                    <span>🔍</span>
+                    <span class="nf-en">Search the documentation</span>
+                    <span class="nf-ru">Искать в документации</span>
+                    <span class="nf-uk">Шукати в документації</span>
+                </button>
+                <a href="{{ '/documentation/' | relative_url }}">
+                    <span class="nf-en">Documentation home</span>
+                    <span class="nf-ru">Главная документации</span>
+                    <span class="nf-uk">Головна документації</span>
+                </a>
+                <a href="{{ '/' | relative_url }}">
+                    <span class="nf-en">Landing page</span>
+                    <span class="nf-ru">Главная страница сайта</span>
+                    <span class="nf-uk">Головна сторінка сайту</span>
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
+            <div class="doc-footer-links">
+                <a href="{{ '/docs/PRIVACY_POLICY.html' | relative_url }}">Privacy Policy</a>
+                <a href="{{ '/docs/TERMS_OF_SERVICE.html' | relative_url }}">Terms of Service</a>
+                <a href="{{ '/documentation/subject-index.html' | relative_url }}">Subject Index</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ '/documentation/assets/search.js' | relative_url }}"></script>
+    <script>
+        (function () {
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+        }());
+    </script>
+
+</body>
+</html>

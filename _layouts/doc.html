@@ -1,18 +1,103 @@
+{%- comment -%}
+  S4104: the Jekyll copy of the documentation portal shell that scripts/docs/generate-docs-pages.ps1
+  writes, so a docs/ reference page opens in the same chrome as the portal (SITE-EXPERIENCE rules 1, 3, 5).
+  The page language and its siblings come from the source path: NAME.md is English, NAME-ru.md and
+  NAME-uk.md are the translations. A sibling whose file does not exist is not offered, so the language
+  menu never links a page that 404s (SITE-STRUCTURE rule 9).
+{%- endcomment -%}
+{%- assign doc_stem = page.path | remove: '.md' -%}
+{%- assign doc_tail = doc_stem | slice: -3, 3 -%}
+{%- assign doc_lang = 'en' -%}
+{%- assign doc_base = doc_stem -%}
+{%- if doc_tail == '-ru' or doc_tail == '-uk' -%}
+  {%- assign doc_lang = doc_tail | remove: '-' -%}
+  {%- assign doc_base_size = doc_stem.size | minus: 3 -%}
+  {%- assign doc_base = doc_stem | slice: 0, doc_base_size -%}
+{%- endif -%}
+{%- assign doc_en_path = doc_base | append: '.md' -%}
+{%- assign doc_ru_path = doc_base | append: '-ru.md' -%}
+{%- assign doc_uk_path = doc_base | append: '-uk.md' -%}
+{%- assign doc_en = site.pages | where: "path", doc_en_path | first -%}
+{%- assign doc_ru = site.pages | where: "path", doc_ru_path | first -%}
+{%- assign doc_uk = site.pages | where: "path", doc_uk_path | first -%}
+{%- if doc_lang == 'ru' -%}
+  {%- assign doc_suffix = '-ru' -%}
+  {%- assign t_search = 'Поиск...' -%}
+  {%- assign t_skip = 'Перейти к содержимому' -%}
+  {%- assign t_overview = 'Обзор' -%}
+  {%- assign t_glossary = 'Словарь' -%}
+  {%- assign t_index = 'Указатель' -%}
+  {%- assign t_home = 'Главная' -%}
+  {%- assign t_docs = 'Документация' -%}
+  {%- assign t_tour = 'Установка и краткий обзор' -%}
+  {%- assign t_first = 'Первый запуск' -%}
+  {%- assign t_perms = 'Разрешения' -%}
+  {%- assign t_toc = 'На этой странице' -%}
+  {%- assign t_privacy = 'Политика конфиденциальности' -%}
+  {%- assign t_terms = 'Условия использования' -%}
+  {%- assign t_footer = 'Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.' -%}
+{%- elsif doc_lang == 'uk' -%}
+  {%- assign doc_suffix = '-uk' -%}
+  {%- assign t_search = 'Пошук...' -%}
+  {%- assign t_skip = 'Перейти до вмісту' -%}
+  {%- assign t_overview = 'Огляд' -%}
+  {%- assign t_glossary = 'Словник' -%}
+  {%- assign t_index = 'Покажчик' -%}
+  {%- assign t_home = 'Головна' -%}
+  {%- assign t_docs = 'Документація' -%}
+  {%- assign t_tour = 'Установлення та короткий огляд' -%}
+  {%- assign t_first = 'Перший запуск' -%}
+  {%- assign t_perms = 'Дозволи' -%}
+  {%- assign t_toc = 'На цій сторінці' -%}
+  {%- assign t_privacy = 'Політика конфіденційності' -%}
+  {%- assign t_terms = 'Умови використання' -%}
+  {%- assign t_footer = 'Fast Media Sorter &copy; 2026 SerZhyAle. Безкоштовний органайзер із відкритим вихідним кодом.' -%}
+{%- else -%}
+  {%- assign doc_suffix = '' -%}
+  {%- assign t_search = 'Search...' -%}
+  {%- assign t_skip = 'Skip to content' -%}
+  {%- assign t_overview = 'Overview' -%}
+  {%- assign t_glossary = 'Glossary' -%}
+  {%- assign t_index = 'Index' -%}
+  {%- assign t_home = 'Home' -%}
+  {%- assign t_docs = 'Documentation' -%}
+  {%- assign t_tour = 'Install and quick tour' -%}
+  {%- assign t_first = 'First launch' -%}
+  {%- assign t_perms = 'Permissions' -%}
+  {%- assign t_toc = 'On this page' -%}
+  {%- assign t_privacy = 'Privacy Policy' -%}
+  {%- assign t_terms = 'Terms of Service' -%}
+  {%- assign t_footer = 'Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.' -%}
+{%- endif -%}
+{%- assign doc_portal = '/documentation/' -%}
 <!DOCTYPE html>
-<html lang="{{ page.lang | default: 'en' }}">
+<html lang="{{ doc_lang }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page.title | default: 'Documentation' }} - Fast Media Sorter</title>
-    <meta name="description" content="{{ page.description | default: 'Fast Media Sorter documentation and user guides.' }}">
-    
+    <meta name="description" content="{{ page.description | default: site.description | strip_html | escape }}">
+    <link rel="canonical" href="{{ page.url | absolute_url }}">
+    {%- if doc_en %}
+    <link rel="alternate" hreflang="en" href="{{ doc_en.url | absolute_url }}">
+    {%- endif -%}
+    {%- if doc_ru %}
+    <link rel="alternate" hreflang="ru" href="{{ doc_ru.url | absolute_url }}">
+    {%- endif -%}
+    {%- if doc_uk %}
+    <link rel="alternate" hreflang="uk" href="{{ doc_uk.url | absolute_url }}">
+    {%- endif -%}
+    {%- if doc_en %}
+    <link rel="alternate" hreflang="x-default" href="{{ doc_en.url | absolute_url }}">
+    {%- endif %}
+
     <link rel="icon" type="image/x-icon" href="{{ '/favicon.ico' | relative_url }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ '/favicon-32x32.png' | relative_url }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ '/favicon-16x16.png' | relative_url }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ '/apple-touch-icon.png' | relative_url }}">
 
-    <!-- SZA Web Kit: pre-paint theme resolver (before CSS to avoid flash) -->
+    <!-- Pre-paint theme resolver -->
     <script>
         (function () {
             try {
@@ -30,185 +115,133 @@
         }());
     </script>
 
-    <!-- Typography: Outfit (headings) and Plus Jakarta Sans (body) -->
+    <!-- Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Stylesheets: Core SZA Web Kit + Documentation Design System -->
+    <!-- Styles: the kit tokens first, the portal layer over them (SITE-EXPERIENCE rule 2) -->
     <link rel="stylesheet" href="{{ '/styles.css' | relative_url }}">
     <link rel="stylesheet" href="{{ '/documentation/assets/docs.css' | relative_url }}">
 </head>
 
 <body class="doc-body">
+    <a class="doc-skip-link" href="#main-content">{{ t_skip }}</a>
 
-    <!-- Header / Brand Chrome -->
+    <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="{{ '/' | relative_url }}">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="{{ '/documentation/' | relative_url }}" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="{{ '/index' | append: doc_suffix | append: '.html' | relative_url }}">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="{{ doc_portal | append: 'index' | append: doc_suffix | append: '.html' | relative_url }}" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
-                <span>Search documentation...</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <span>{{ t_search }}</span>
                 <kbd>/</kbd>
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="{{ '/documentation/' | relative_url }}" class="doc-header-link active">Documentation</a>
-                <a href="{{ '/documentation/design-system/' | relative_url }}" class="doc-header-link">Design System</a>
-                <a href="{{ '/nolegal.html' | relative_url }}" class="doc-header-link">NoLegal Edition</a>
+                <a href="{{ doc_portal | append: 'overview' | append: doc_suffix | append: '.html' | relative_url }}" class="doc-header-link">{{ t_overview }}</a>
+                <a href="{{ doc_portal | append: 'general/glossary' | append: doc_suffix | append: '.html' | relative_url }}" class="doc-header-link">{{ t_glossary }}</a>
+                <a href="{{ doc_portal | append: 'subject-index' | append: doc_suffix | append: '.html' | relative_url }}" class="doc-header-link">{{ t_index }}</a>
+                <a href="{{ doc_portal | append: 'design-system/index.html' | relative_url }}" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
-                
-                <!-- Theme Toggle Button -->
-                                <!-- 13-Language Selector -->
+
+                <!-- Language selector: only the translations that exist for this page -->
                 <div class="doc-lang-picker">
-                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
-                    <div class="doc-lang-menu" id="langMenu" role="menu">
-                        <a href="?lang=en" class="doc-lang-item" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
-                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
-                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
-                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
-                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
-                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
-                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
-                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
-                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
-                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
-                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
-                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
-                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">{{ doc_lang | upcase }}</button>
+                    <div class="doc-lang-menu" id="langMenu">
+                        {%- if doc_en %}
+                        <a href="{{ doc_en.url | relative_url }}" class="doc-lang-item{% if doc_lang == 'en' %} active{% endif %}" data-lang="en"{% if doc_lang == 'en' %} aria-current="page"{% endif %}><span>English</span><span class="lang-code">en</span></a>
+                        {%- endif -%}
+                        {%- if doc_ru %}
+                        <a href="{{ doc_ru.url | relative_url }}" class="doc-lang-item{% if doc_lang == 'ru' %} active{% endif %}" data-lang="ru"{% if doc_lang == 'ru' %} aria-current="page"{% endif %}><span>Русский</span><span class="lang-code">ru</span></a>
+                        {%- endif -%}
+                        {%- if doc_uk %}
+                        <a href="{{ doc_uk.url | relative_url }}" class="doc-lang-item{% if doc_lang == 'uk' %} active{% endif %}" data-lang="uk"{% if doc_lang == 'uk' %} aria-current="page"{% endif %}><span>Українська</span><span class="lang-code">uk</span></a>
+                        {%- endif %}
                     </div>
                 </div>
 
-                <a href="{{ "/" | relative_url }}" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="{{ "/apple-touch-icon.png" | relative_url }}" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="{{ '/index' | append: doc_suffix | append: '.html' | relative_url }}" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="{{ '/apple-touch-icon.png' | relative_url }}" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
             </nav>
         </div>
     </header>
 
-    <!-- Documentation Shell Layout -->
     <div class="doc-container">
 
-        <!-- Breadcrumb Navigation -->
+        <!-- Breadcrumbs -->
         <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
-            <a href="{{ '/' | relative_url }}">Home</a>
+            <a href="{{ '/index' | append: doc_suffix | append: '.html' | relative_url }}">{{ t_home }}</a>
             <span class="doc-breadcrumb-separator">/</span>
-            <a href="{{ '/documentation/' | relative_url }}">Documentation</a>
-            {% if page.category %}
-                <span class="doc-breadcrumb-separator">/</span>
-                <span>{{ page.category }}</span>
-            {% endif %}
+            <a href="{{ doc_portal | append: 'index' | append: doc_suffix | append: '.html' | relative_url }}">{{ t_docs }}</a>
+            {%- if page.category %}
+            <span class="doc-breadcrumb-separator">/</span>
+            <span>{{ page.category }}</span>
+            {%- endif %}
             <span class="doc-breadcrumb-separator">/</span>
             <span class="doc-breadcrumb-current">{{ page.title }}</span>
         </nav>
 
-        <!-- Main Content Area with Sidebar Grid -->
         <div class="doc-grid">
 
-            <!-- Left Navigation Sidebar -->
+            <!-- Sidebar -->
             <aside class="doc-sidebar" aria-label="Documentation Navigation">
-                {% if page.sidebar %}
-                    {{ page.sidebar }}
-                {% else %}
-                    <div class="doc-sidebar-section">
-                        <div class="doc-sidebar-title">Getting Started</div>
-                        <ul class="doc-sidebar-list">
-                            <li><a href="{{ '/documentation/' | relative_url }}" class="doc-sidebar-link">Overview & Architecture</a></li>
-                            <li><a href="{{ '/documentation/sample-recipe.html' | relative_url }}" class="doc-sidebar-link">Sample Recipe</a></li>
-                            <li><a href="{{ '/documentation/design-system/' | relative_url }}" class="doc-sidebar-link">Design System Catalog</a></li>
-                        </ul>
-                    </div>
-                    <div class="doc-sidebar-section">
-                        <div class="doc-sidebar-title">Media Categories</div>
-                        <ul class="doc-sidebar-list">
-                            <li><a href="#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
-                            <li><a href="#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Playback & PiP</a></li>
-                            <li><a href="#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Slideshow & EXIF</a></li>
-                            <li><a href="#docs" class="doc-sidebar-link"><span class="doc-badge doc-badge-docs doc-badge-sm">Docs</span> EPUB & PDF Reader</a></li>
-                        </ul>
-                    </div>
-                {% endif %}
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="{{ doc_portal | append: 'index' | append: doc_suffix | append: '.html' | relative_url }}" class="doc-sidebar-link">Docs Home</a></li>
+                        <li><a href="{{ doc_portal | append: 'getting-started/quick-tour' | append: doc_suffix | append: '.html' | relative_url }}" class="doc-sidebar-link">{{ t_tour }}</a></li>
+                        <li><a href="{{ doc_portal | append: 'getting-started/welcome-and-setup' | append: doc_suffix | append: '.html' | relative_url }}" class="doc-sidebar-link">{{ t_first }}</a></li>
+                        <li><a href="{{ doc_portal | append: 'getting-started/permissions-guide' | append: doc_suffix | append: '.html' | relative_url }}" class="doc-sidebar-link">{{ t_perms }}</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Media Categories</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="{{ doc_portal | append: 'audio/playing-and-organizing-music' | append: doc_suffix | append: '.html' | relative_url }}" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                        <li><a href="{{ doc_portal | append: 'player/video-playback-controls' | append: doc_suffix | append: '.html' | relative_url }}" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
+                        <li><a href="{{ doc_portal | append: 'images/viewer-and-gestures' | append: doc_suffix | append: '.html' | relative_url }}" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                    </ul>
+                </div>
             </aside>
 
-            <!-- Main Article Column -->
             <main class="doc-content" id="main-content">
                 {{ content }}
             </main>
 
-            <!-- In-Page Table of Contents (Right Sticky Bar) -->
-            {% if page.toc != false %}
-            <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
-                <nav class="doc-toc" id="doc-toc-nav">
-                    <div class="doc-toc-title">On this page</div>
-                    <div id="doc-toc-content">
-                        <!-- Populated dynamically by in-page script if headings exist -->
-                    </div>
+            <!-- In-page table of contents, filled from the page's h2 headings -->
+            <aside class="doc-toc-wrapper" id="docTocWrapper" aria-label="Page Table of Contents">
+                <nav class="doc-toc">
+                    <div class="doc-toc-title">{{ t_toc }}</div>
+                    <div id="doc-toc-content"></div>
                 </nav>
             </aside>
-            {% endif %}
 
         </div><!-- /.doc-grid -->
 
     </div><!-- /.doc-container -->
 
-    <!-- Footer -->
     <footer class="doc-footer">
         <div class="doc-footer-inner">
-            <div>
-                Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.
-            </div>
+            <div>{{ t_footer }}</div>
             <div class="doc-footer-links">
-                <a href="{{ '/docs/PRIVACY_POLICY.html' | relative_url }}">Privacy Policy</a>
-                <a href="{{ '/docs/TERMS_OF_SERVICE.html' | relative_url }}">Terms of Service</a>
-                <a href="{{ '/documentation/design-system/' | relative_url }}">Component System</a>
-                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues" target="_blank" rel="noopener">Report an Issue</a>
+                <a href="{{ '/docs/PRIVACY_POLICY' | append: doc_suffix | append: '.html' | relative_url }}">{{ t_privacy }}</a>
+                <a href="{{ '/docs/TERMS_OF_SERVICE' | append: doc_suffix | append: '.html' | relative_url }}">{{ t_terms }}</a>
+                <a href="{{ doc_portal | append: 'design-system/index.html' | relative_url }}">Component System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
         </div>
     </footer>
 
-    <!-- Interactive Scripts: Theme switcher & automatic TOC builder -->
+    <!-- Interactive scripts: theme switcher, language menu, mobile drawer, table of contents -->
     <script>
         (function () {
-            // Theme toggle
-                        // Language picker dropdown
-            var langBtn = document.getElementById('langBtn');
-            var langMenu = document.getElementById('langMenu');
-            if (langBtn && langMenu) {
-                langBtn.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    langMenu.classList.toggle('show');
-                });
-                document.addEventListener('click', function () {
-                    langMenu.classList.remove('show');
-                });
-            }
-
-            // Language state resolver: URL ?lang= -> localStorage -> navigator -> default 'en'
-            var urlParams = new URLSearchParams(window.location.search);
-            var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
-            
-            var items = document.querySelectorAll('.doc-lang-item');
-            items.forEach(function (item) {
-                var lang = item.getAttribute('data-lang');
-                if (lang === activeLang) {
-                    item.classList.add('active');
-                    if (langBtn) {
-                        var name = item.querySelector('span').textContent;
-                        langBtn.textContent = 'Language: ' + name;
-                    }
-                } else {
-                    item.classList.remove('active');
-                }
-                item.addEventListener('click', function (e) {
-                    try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
-                });
-            });
-
             var btn = document.getElementById('themeBtn');
             if (btn) {
                 btn.addEventListener('click', function () {
@@ -219,34 +252,16 @@
                 });
             }
 
-            // Client-side TOC generation if doc-toc-content exists
-            var tocContainer = document.getElementById('doc-toc-content');
-            var mainContent = document.getElementById('main-content');
-            if (tocContainer && mainContent) {
-                var headings = mainContent.querySelectorAll('h2, h3');
-                if (headings.length > 0) {
-                    var list = document.createElement('ul');
-                    list.className = 'doc-toc-list';
-                    headings.forEach(function (h, idx) {
-                        if (!h.id) {
-                            h.id = 'section-' + idx;
-                        }
-                        var li = document.createElement('li');
-                        if (h.tagName.toLowerCase() === 'h3') {
-                            li.style.paddingLeft = '0.75rem';
-                        }
-                        var a = document.createElement('a');
-                        a.href = '#' + h.id;
-                        a.className = 'doc-toc-link';
-                        a.textContent = h.textContent.replace(/^#+\s*/, '');
-                        li.appendChild(a);
-                        list.appendChild(li);
-                    });
-                    tocContainer.appendChild(list);
-                } else {
-                    var wrapper = document.querySelector('.doc-toc-wrapper');
-                    if (wrapper) wrapper.style.display = 'none';
-                }
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
             }
 
             var menuBtn = document.getElementById('mobileMenuBtn');
@@ -265,13 +280,40 @@
                     });
                 }
             }
+
+            var tocContainer = document.getElementById('doc-toc-content');
+            var tocWrapper = document.getElementById('docTocWrapper');
+            var mainContent = document.getElementById('main-content');
+            if (tocContainer && mainContent) {
+                var headings = mainContent.querySelectorAll('h2');
+                if (headings.length > 0) {
+                    var list = document.createElement('ul');
+                    list.className = 'doc-toc-list';
+                    headings.forEach(function (h, idx) {
+                        if (!h.id) h.id = 'section-' + idx;
+                        var li = document.createElement('li');
+                        var a = document.createElement('a');
+                        a.href = '#' + h.id;
+                        a.className = 'doc-toc-link';
+                        a.textContent = h.textContent;
+                        li.appendChild(a);
+                        list.appendChild(li);
+                    });
+                    tocContainer.appendChild(list);
+                } else if (tocWrapper) {
+                    tocWrapper.hidden = true;
+                }
+            }
         }());
     </script>
 
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
+
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>
-    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
     <script src="{{ '/documentation/assets/wave-particles.js' | relative_url }}"></script>
+
+    <!-- In-browser Search Modal Engine -->
     <script src="{{ '/documentation/assets/search.js' | relative_url }}"></script>
     <!-- SZA Web Kit: an RU / EN / UA choice is remembered for every family page (PAGE-STYLE 4.2); a further locale is never stored -->
     <script>
@@ -290,6 +332,3 @@
 
 </body>
 </html>
-
-
-

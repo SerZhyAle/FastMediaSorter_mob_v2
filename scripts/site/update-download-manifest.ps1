@@ -6,6 +6,7 @@
 .PARAMETER Root
     Repository root, defaulting to this script's parent tree.
 .NOTES
+    Manual tool: run by hand after a GitHub release publishes new APK assets, to refresh _data/downloads.json.
     Only published APK assets qualify; local builds and Play AABs are never advertised as APKs.
     Exit codes:
       0 - verified manifest written.

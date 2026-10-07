@@ -6,7 +6,9 @@ description: How to put music on the watch, open a network resource as music rat
 category: Wear OS Watch
 category_slug: wear
 ticket: S2965
-flavor: The full version of the watch app (sideload only). Copying music from the phone needs the phone app in the Standard or noLegal edition.
+availability: companion:wear
+devices: watch
+availability_note: The full version of the watch app (sideload only). Copying music from the phone needs the phone app in the Standard or noLegal edition.
 recipe_number: "11"
 canonical_url: documentation/wear/standalone-music-playback.html
 why: |
@@ -105,6 +107,6 @@ next_recipes:
     description: Every button of the watch's audio and video players.
 ---
 
-<sub class="doc-stamp">26.09.24 09:35</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Put music on the watch, open a home server as music, check the volume before you tap, and play a track that keeps going with the screen off or the app closed - with the [phone](term:phone) left at home.

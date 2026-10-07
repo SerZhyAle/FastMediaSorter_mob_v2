@@ -1,4 +1,7 @@
 <#
+.SYNOPSIS
+    Contract tests for assert-site-family-map.ps1 and render-family-footer.ps1.
+.DESCRIPTION
 Run-Tests.ps1 - contract tests for assert-site-family-map.ps1 and render-family-footer.ps1 (S3454).
 
 Every case builds a throwaway site tree and a throwaway catalog under the system temp directory, so no

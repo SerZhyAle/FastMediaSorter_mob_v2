@@ -1,13 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Privacy Policy for FastMediaSorter"
 permalink: /docs/PRIVACY_POLICY.html
 ---
-<sub class="doc-stamp">26.10.02 14:50</sub>
+<sub class="doc-stamp">26.10.07 03:44</sub>
 
 # Privacy Policy for FastMediaSorter
 
-**Last updated: September 30, 2026**
+**Last updated: October 6, 2026**
 
 ## Overview
 
@@ -143,6 +143,7 @@ Cloud access is subject to each provider's privacy policy:
 
 - Google Drive API: only for authenticated access to your files
 - External IP check: only after you ask for it, the Network Monitor contacts a third-party IP-echo service that can see your request address; the result is shown on screen and is not automatically saved
+- On-device translation, in editions that offer it: turning on Enable Translation downloads the Translation Module extension once, and picking a new target language downloads that language's model from Google's ML Kit servers. The download carries none of the text you translate; recognized text, PDF pages and EPUB chapters are then translated on the phone and are not sent anywhere
 - No telemetry, analytics, or tracking servers
 - All operations are user-initiated  
 
@@ -245,6 +246,7 @@ You have full control over your data:
 
 - **Google Drive API**: File access in folders you select
 - **Google Sign-In**: OAuth 2.0 authentication
+- **ML Kit Translation**: translation on the device; Google's servers supply only the language models, the text you translate stays on the phone
 - Subject to [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy)
 
 ### Open-Source Libraries
@@ -287,6 +289,19 @@ FastMediaSorter available globally. All data processing occurs:
 - In your cloud accounts (if connected)
 
 No data transferred to external servers.
+
+## This Website
+
+The app and its website are separate, and everything above is about the app. The website is a set of static pages served by GitHub Pages; we run no server behind it and keep no data about visitors. When you open a page, your browser contacts the addresses below on its own. Each one receives what any web request carries - your IP address, your browser's name and version, and the address of the page you came from - and handles it under its own privacy policy.
+
+- **fonts.googleapis.com** and **fonts.gstatic.com** (Google Fonts), on every page: they deliver the typefaces the pages are set in.
+- **pagead2.googlesyndication.com** (Google AdSense), on the landing pages only - the home page and its language versions: it shows an advertisement. While the page runs, the ad script contacts further Google addresses on its own: **ep1.adtrafficquality.google** and **ep2.adtrafficquality.google** check the ad traffic for invalid clicks and impressions, and **fundingchoicesmessages.google.com** shows the consent message for advertising cookies and keeps your choice. They receive the same request data, the page address and Google's advertising cookies - the consent address also receives the choice you make. The ad script may use cookies. Third-party vendors, including Google, use cookies to serve ads based on your earlier visits to this and other websites. You can turn off personalised advertising in [Google Ads Settings](https://adssettings.google.com), and [How Google uses information from sites that use its services](https://policies.google.com/technologies/partner-sites) explains the rest. No other page carries advertising: the documentation, the install-trust pages and this privacy page never load it.
+- **api.github.com** (GitHub), on the landing and sideload pages: the page asks it for the list of published releases, so the download buttons point at the latest build.
+- **img.shields.io**, **gitlab.com** and **raw.githubusercontent.com**, on the README pages: they serve the version and licence badges, the IzzyOnDroid badge and the GitHub Store badge.
+
+GitHub Pages, as the host, receives every page request ([GitHub Privacy Statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)). The website runs no analytics or tracking script of its own. It keeps two values in your browser - the theme and the language you picked - and they never leave it.
+
+To avoid these requests, block third-party fonts or scripts in your browser. The pages still open: the text falls back to a system typeface, the advertisement does not load, and the download buttons keep the link to the list of all releases.
 
 ## Children's Privacy
 
@@ -333,7 +348,7 @@ For privacy questions or concerns:
 - ✅ Your files stay where they are (device/servers/cloud)
 - ✅ Passwords stored encrypted on your device
 - ✅ Google Drive: only folders you choose
-- ✅ No tracking, no ads, no analytics
+- ✅ The app has no tracking, no ads, no analytics (the website's landing pages show an ad - see "This Website")
 - ✅ Uninstall = all data gone
 - ✅ You control everything
 

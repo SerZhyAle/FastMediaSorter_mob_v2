@@ -1,17 +1,17 @@
 ---
 layout: default
 title: "Обзор архитектуры"
-permalink: /docs/V2_architecture_overview_RU.html
+permalink: /docs/V2_architecture_overview-ru.html
 lang: ru
 ---
 
-<sub class="doc-stamp">26.10.06 14:18</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 <div lang="ru" markdown="1">
 
 # Обзор архитектуры
 
-[Техническая спецификация](V2_Specification_RU.html) | [Стек, EN](TECH_STACK.html) | [Требования](TECHNICAL_REQUIREMENTS_RU.html)
+[Техническая спецификация](V2_Specification-ru.html) | [Стек, EN](TECH_STACK.html) | [Требования](TECHNICAL_REQUIREMENTS-ru.html)
 
 Приложение использует MVVM, Hilt, репозитории и use case. Поток выполнения близок к Clean Architecture, но зависимости при компиляции намеренно прагматичны.
 

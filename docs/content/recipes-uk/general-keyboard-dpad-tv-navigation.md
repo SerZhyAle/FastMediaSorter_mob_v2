@@ -6,7 +6,7 @@ description: Запуск FastMediaSorter на приставці Android TV з 
 category: "Загальні, клавіатура та ТВ"
 category_slug: general
 ticket: S2963
-flavor: Усі редакції - керування клавіатурою та в діалогах скрізь; автоматичний перший фокус на справжньому елементі керування - в Standard, Lite, Photos і Legacy
+availability_note: Усі редакції - керування клавіатурою та в діалогах скрізь; автоматичний перший фокус на справжньому елементі керування - в Standard, Lite, Photos і Legacy
 recipe_number: "02"
 canonical_url: documentation/general/keyboard-dpad-tv-navigation-uk.html
 why: |
@@ -155,6 +155,6 @@ next_recipes:
     description: Виділіть багато файлів і виконайте дію над усіма одразу.
 ---
 
-<sub class="doc-stamp">26.09.25 22:24</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Пульт, клавіатура, ігровий контролер чи миша - FastMediaSorter відповідає на всі з них. Ця сторінка показує, як пересуватися, відповідати на діалоги, користуватися комбінаціями клавіш і виділяти файли, не торкаючись екрана.

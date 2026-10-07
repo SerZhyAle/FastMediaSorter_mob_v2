@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.06 15:14</sub>
+<sub class="doc-stamp">26.10.07 01:18</sub>
 
 # FastMediaSorter v2: OPS & Guidelines
 
@@ -2418,6 +2418,43 @@ residue, the mutation left the working tree dirty, and the release flow needed a
 The formula lives in exactly two places that are kept byte-compatible - `Get-BuildVersionStamp` in
 `scripts/utils/build-version-stamp.ps1` for scripts, and `gradle/build-version-stamp.gradle.kts`
 inside the build.
+
+## SITE ADDRESSES: NOT-FOUND PAGE, FORWARDERS, HELD ADDRESSES (S4097, S4101)
+
+Contract SITE-STRUCTURE 0.1 rules 8, 10, 11, 13, 15. Parameters and exit codes live in the script headers (`scripts/docs/generate-site-redirects.ps1`, `scripts/docs/retire-docs-page.ps1`, `scripts/docs/migrate-locale-addresses.ps1`, `scripts/quality/assert-site-addresses.ps1`); this section keeps only why they are shaped as they are.
+
+- **`404.html` is built with `relative_url` everywhere.** The host serves the one file for any missing address at any depth, so a relative `href` or `src` breaks on the second path segment. The language comes from the browser (`sza-lang`, then `navigator.language`) because the host cannot tell it; with scripts off the English block shows. The page is `noindex` and sits in a registry record with `indexable: false`, so its `permalink:` never reaches `sitemap.xml`.
+- **A forwarder is a static file with no front matter.** Jekyll copies it as it is, its path is its address, and it declares no permalink, so it never enters the sitemap. Its text comes from `Get-ForwarderHtml`, the one function both the generator and the gate compare against.
+- **The registry demands an exclusion row for a forwarder under `documentation/*/*.html`**, because `docs-corpus-pages` covers that glob and a file there must announce itself or be excluded. The rows are derived from `docs/site-redirects.jsonl` by the generator and checked by the gate, never written by hand.
+- **`is_published: false` in `docs/docs-pages-manifest.jsonl` means withdrawn.** The subject index and the search index skip such a page, and the search index also skips any file carrying the `fms-forwarder` marker; without both, a retired page stays findable as a "planned" topic.
+- **Measured when the gate was added:** 328 html files under `documentation/` were 315 recipe outputs plus 13 declared hubs, so the orphan check was green from the first run; none of the 10 removed capabilities left a page without live coverage rows, so the retirement check guards future removals only.
+- **Held addresses (S4101): the list is compared with the sources, not only checked.** `docs/site-held-addresses.jsonl` is judged both ways - an address a holder carries but the list lacks, and a listed address no holder carries, are both findings - because a list judged only from its own side goes stale unnoticed, which is how the comment about a Ukrainian portal outlived the page. Kotlin `val NAME = "https://.."` prefixes that the same file interpolates are expanded and not counted as addresses; an address built at run time (the help-link resolver) is the `resolver` record, judged by its `page(..)` calls, its `TRANSLATED_LANGUAGES` set and the manifest instead.
+- **A held address may not be a forwarder.** A forwarder keeps an old release working; the current source holding one means a move was not followed through, so the finding names the target to repoint to.
+- **One suffix form, and why the freeze ended (S4101).** S1211 renamed the doc files to `-ru.md` but froze every `permalink:` because no forwarder existed. With forwarders available, `scripts/docs/migrate-locale-addresses.ps1` moved 54 addresses (46 `_RU/_UK`, 4 `.ru/.uk`, 2 wear `ICON_LEGEND`, 2 `_EN`) to `<name>-<lang>.html`, since the reference group already mixed `FAQ_RU.html` with `FAQ-ar.html`. The declaration is `docs/site-address-groups.json`; `locale-scheme` reads the languages from `_data/languages.yml`.
+- **Measured when the dimensions were added:** `held-addresses` 7.4 s (it reads about 3500 Kotlin files, so its trigger is a changed holder, never any `.kt`), `locale-scheme` 0.8 s over 1846 published addresses. The landing generator reported all ten generated pages stale before the move; regenerating them was part of it.
+
+## SITE THIRD-PARTY ORIGINS (S4098)
+
+Contract SITE-EXPERIENCE 0.1 rule 14. The declaration is `scripts/quality/site-origins.psd1`, the gate `scripts/quality/assert-site-origins.ps1`; parameters and exit codes live in the gate's header. This section keeps only why they are shaped as they are.
+
+- **A load counts, a link does not.** The rule is about requests a page makes on its own; an `<a href>` is a click the visitor chooses. Counting links would have declared GitHub, Google Play and every reference in the documentation, and the privacy page would have become a link list.
+- **The published set is derived, not listed.** The gate reads `_config.yml`'s `exclude:` and Jekyll's underscore and dot rules. The first sweep found three hosts the S4096 pass had missed - `img.shields.io`, `gitlab.com`, `raw.githubusercontent.com` - on the `docs/README*` pages, which a list of "site pages" written by hand did not hold.
+- **A theme can load a host no file names.** `jekyll-theme-cayman` loads Google Fonts on every `docs/*.md` page. A record with `Theme` counts as loaded while `_config.yml` names that theme, so the record goes stale when the theme is replaced, not before.
+- **The trust and privacy pages come from `install-trust.psd1`.** One list of those pages, read by both gates.
+- **Measured when the gate was added:** 1099 published files, 39 MB, 362 of them loading a third-party host. Six whole-file regex passes took 3.8 s; one pass for the loading tags, with every other pass gated by an ordinal probe, takes 1.9 s. That is why the trigger in `post-change-docs-corpus-gates.ps1` is a published page, stylesheet, script or template, and why the gate runs pooled.
+- **Not judged:** the hosts the AdSense script loads at run time, which no file names. The privacy pages say so instead of listing them.
+
+## SITE FACTS (S4100)
+
+Contract SITE-REPRESENTATION 0.1 rules 3 and 4. The declaration is `docs/flavors/public-editions.psd1`, the reader `scripts/docs/lib/site-facts.ps1`, the gate `scripts/quality/assert-site-facts.ps1`; parameters, dimensions and exit codes live in the gate's header. This section keeps only why they are shaped as they are.
+
+- **The matrix lists variants, the declaration says which are public.** `docs/flavors/flavor-matrix.json` holds eight variants and `xr` is one of them; the site names seven editions. Nothing said so, which made "7" look like a stale number. The declaration carries the decision (`Editions` with one display name each, `NotPublic` with a reason) and the matrix stays the owner of the variants: a variant named in neither list, or named but absent from the matrix, is a finding.
+- **Publishing an edition is one record moved.** Move it from `NotPublic` to `Editions`, give it a name, then fix every page the gate names. Nothing else lists the editions.
+- **A count is compared, not rendered into prose.** The number sits inside a sentence in three languages on several hundred pages; a template would have to own the grammar of each. Generators that print the count (`generate-glossary.ps1`) read it from `Get-SiteFacts`; prose is judged by the gate.
+- **Only 6 to 12 is judged.** "Five editions" is a subset on purpose; "eight variants" of the watch colour themes is a different noun and is not read.
+- **The minimum Android version is the mainline edition's `minSdk`.** `Mainline` names the edition whose minimum the landing quotes; `AndroidVersionFor` maps the API level and throws on one it does not know, so a new `minSdk` stops the gate until the mapping is extended. On a landing page every "Android N+" is judged; elsewhere only the dotted form, because "Android 13+" is a feature requirement.
+- **Per ticket by Rule 33.** The trigger in `post-change-docs-corpus-gates.ps1` is a landing page, a documentation page, a recipe, a document under `docs/`, the label script, the declaration or the matrix; the gate runs pooled and hints at `site-facts` in `gate-recovery-hints.psd1`.
+- **Rule 9 - the availability badge is derived from the build (S4107).** The English recipe names what its function depends on in `availability:` (a matrix flag, a main source set, `companion:<id>` or `all`; terms joined by a comma form a union, atoms joined by `+` an intersection) and `devices:` from a fixed list; `scripts/docs/lib/page-availability.ps1` renders the words for both the generator and the gate dimension `availability`. Not derived from `docs/ALL_FEATURES.jsonl`: its `flavors` lists are coarser than the build (43 of 47 "All editions" pages covered a capability with a narrower list), so a page's mark would follow the inventorys noise. Source sets count as the matrix because screen capture and OCR are gated by a mounted set and by no flag. Detail the badge cannot carry stays as `availability_note:` under the badge row; the free-text `flavor:` key is retired.
 
 ## RELEASE TREE BINDING (S4057)
 

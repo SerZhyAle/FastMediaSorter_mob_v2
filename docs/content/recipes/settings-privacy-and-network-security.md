@@ -6,7 +6,8 @@ description: Reviewing and clearing saved web sign-ins and unused network creden
 category: "Settings & Navigation"
 category_slug: settings
 ticket: S2962
-flavor: All editions - saved authorizations, unused credentials, secure sensitive screens, show detailed errors and the diagnostic report are in Standard, Lite, Photos and Legacy; watch log reports need Standard or noLegal with Wear Companion
+availability: all
+availability_note: All editions - saved authorizations, unused credentials, secure sensitive screens, show detailed errors and the diagnostic report are in Standard, Lite, Photos and Legacy; watch log reports need Standard or noLegal with Wear Companion
 recipe_number: "04"
 canonical_url: documentation/settings/privacy-and-network-security.html
 why: |
@@ -37,13 +38,13 @@ steps:
     id: secure-screens
     title: Keep passwords off the Recents preview
     text: |
-      **Secure sensitive screens**, in **Settings**, **General**, is on by default. It blocks screenshots and the Recents app-switcher preview, but only on the screens that could actually show a password - adding or editing an SMB or SFTP/FTP resource, the credentials editor in Settings, the sign-in web view and the credential QR code. Everywhere else - picking a resource type, browsing a local or cloud folder - stays screenshotable as usual.
+      [**Secure sensitive screens**](../../docs/SETTINGS_REFERENCE.html), in **Settings**, **General**, blocks screenshots and the Recents app-switcher preview, but only on the screens that could actually show a password - adding or editing an SMB or SFTP/FTP resource, the credentials editor in Settings, the sign-in web view and the credential QR code. Everywhere else - picking a resource type, browsing a local or cloud folder - stays screenshotable as usual.
     image_bookmark:
       shot_id: settings.secure-sensitive-screens-toggle
       device_profile: phone
       screen_state: settings-general-secure-sensitive-screens
       alt: The Secure sensitive screens toggle in General settings, switched on, with its description text
-      caption: "Secure sensitive screens, on by default."
+      caption: "Secure sensitive screens keeps password screens out of screenshots."
       title: "Screenshot: Secure sensitive screens"
       desc: Settings, General tab, Secure sensitive screens row with its summary text, toggle on.
   - number: 3
@@ -124,6 +125,6 @@ next_recipes:
     description: Remapping keys, D-pad and gamepad navigation, and the travelling focus frame.
 ---
 
-<sub class="doc-stamp">26.09.24 09:01</sub>
+<sub class="doc-stamp">26.10.07 03:43</sub>
 
 Review and clear saved sign-ins and unused network credentials, keep password screens out of the Recents preview, read a masked diagnostic report before you ask for help, and send a crash report - automatically after a restart, by hand from any error dialog, or one that arrived from your [watch](term:watch). This page covers all of it, from [Settings](term:settings), **General**.

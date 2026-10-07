@@ -57,6 +57,7 @@
       - assert-site-languages-current  (S1211 _data/languages.yml vs a fresh render of locales_config.xml)
       - assert-localized-page-set      (S1211 every site language carries every page of the Localized Page Set)
       - assert-positioning-consistency (S2271 site, READMEs, showcase, replaces and listings name the eight pillars in order)
+      - assert-showcase-inventory      (S4102 every showcase and What's New bullet anchors a shipped inventory record)
       - assert-watchface-listing-live  (S4009 the watch face's Play page answers 200 before any surface linking to it ships)
 
     Where every gate belongs, and who decided it: scripts/quality/gate-placement.jsonl (S2870).
@@ -352,7 +353,9 @@ $gates = [ordered]@{
     # and publishes none; its subject is two ledgers with different authors - every feature ticket
     # writes the first, the documentation programme the second - so a per-ticket run would refuse a
     # feature closure over a row its author does not own; each finding names its own feature id; and
-    # mapping a batch of features costs one edit whenever it is done. -SummaryOnly drops the
+    # mapping a batch of features costs one edit whenever it is done. S4102 made it read the page
+    # files under documentation/, a root no input group covers, so it left $gateInputGroups and is
+    # always selected. -SummaryOnly drops the
     # per-ticket and per-area tallies, which are progress figures rather than findings.
     'assert-docs-coverage.ps1'         = @('-SummaryOnly')
     # S3453. Contract PAGE-STYLE on the six product pages: the RU / EN / UA switcher, the sza-theme
@@ -385,6 +388,11 @@ $gates = [ordered]@{
     # and a drifted surface reaches a reader only when the site or a listing is published. Left out of
     # $gateInputGroups on purpose: it reads root-level pages and the store listing trees.
     'assert-positioning-consistency.ps1' = @('-Quiet')
+    # S4102. Every docs/FEATURES*.md and current docs/WHATS_NEW*.md bullet carries an <!-- af: id -->
+    # anchor naming an active inventory record shipped in the page's editions (SITE-REPRESENTATION
+    # rule 11, SITE-STRUCTURE rule 14). Release scope: the showcase and the notes are written at the
+    # release; a closure that edits one of them meets the same gate through the docs-corpus lib.
+    'assert-showcase-inventory.ps1'    = @('-Quiet')
     # S2972. Every external link of the documentation corpus still answers (404/410 or an
     # unresolvable host fails). Release scope: its subject is the outside internet, which changes on
     # no ticket's clock, and a dead link reaches a reader only when the site is published. Left out
@@ -410,7 +418,6 @@ $gateInputGroups = @{
     'assert-splash-brand-sync.ps1'                = @('phone-src')
     'assert-icon-inventory-sync.ps1'              = @('docs', 'phone-src')
     'assert-doc-icons-sync.ps1'                   = @('docs')
-    'assert-docs-coverage.ps1'                    = @('docs')
     'assert-archive-artefacts.ps1'                = @('specs-archive')
     'assert-source-gates.ps1'                     = @('phone-src', 'wear-src')
     'assert-document-registry-coverage.ps1'       = @('docs', 'scripts')

@@ -64,7 +64,7 @@ layout: null
           "@type": "HowToStep",
           "position": 1,
           "name": "Переведите текст на изображении",
-          "text": "Откройте меню с тремя точками и выберите Перевести (в альбомной ориентации кнопка может располагаться прямо на панели команд). После сообщения «Перевод запущен..» распознанный текст появится в переведенном виде в одном из двух режимов в зависимости от настройки Результат перевода в блоках: - Выключено (по умолчанию) - перевод отображается в отдельной аккуратной карточке над или под картинкой, не перекрывая исходный снимок. - Включено - каждая строка перевода накладывается поверх оригинальных слов на непрозрачной цветной плашке (в стиле Google Объектива/Google Lens), благодаря чему изображение читается на вашем языке прямо на месте. Текст, расположенный по разным сторонам кадра (вывески, отдельные реплики в комиксах), разделяется и переводится независимыми блоками. Если плашка упирается в нижний край экрана, она автоматически растет вверх, а длинный текст плавно уменьшает размер шрифта, чтобы полностью уместиться в кадре.",
+          "text": "Откройте меню с тремя точками и выберите Перевести (в альбомной ориентации кнопка может располагаться прямо на панели команд). После сообщения «Перевод запущен..» распознанный текст появится в переведенном виде в одном из двух режимов в зависимости от настройки Результат перевода в блоках: - Выключено - перевод отображается в отдельной аккуратной карточке над или под картинкой, не перекрывая исходный снимок. - Включено - каждая строка перевода накладывается поверх оригинальных слов на непрозрачной цветной плашке (в стиле Google Объектива/Google Lens), благодаря чему изображение читается на вашем языке прямо на месте. Текст, расположенный по разным сторонам кадра (вывески, отдельные реплики в комиксах), разделяется и переводится независимыми блоками. Если плашка упирается в нижний край экрана, она автоматически растет вверх, а длинный текст плавно уменьшает размер шрифта, чтобы полностью уместиться в кадре.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/inline-translation-ru.html#translate-image"
         },
         {
@@ -134,20 +134,21 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.09.30 08:05</div>
+<div class="doc-stamp">26.10.07 03:44</div>
+    <a class="doc-skip-link" href="#main-content">Перейти к содержимому</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index-ru.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index-ru.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Поиск...</span>
                 <kbd>/</kbd>
             </button>
@@ -169,8 +170,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Тема</span></button>
             </nav>
         </div>
     </header>
@@ -416,9 +417,9 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">OCR, перевод, рисование и экспорт</span>
-                    <span class="doc-badge doc-badge-standard">Редакции Standard, noLegal, Legacy и VR</span>
+                    <span class="doc-edition-badge">Standard, noLegal, Legacy и VR</span>
                     <span class="doc-badge doc-badge-sm">Recipe #02</span>
                 </div>
 
@@ -429,22 +430,29 @@ layout: null
                 </p>
 
                 <h2 id="why">Почему вам это понравится</h2>
-                        <p>Когда слова уже на экране - распознаны на фото, напечатаны в PDF-документе или открыты в главе книги EPUB - FastMediaSorter может мгновенно перевести их на ваш язык прямо на месте с помощью встроенных офлайн-моделей перевода <span class="doc-link-term" data-term="ocr">ML Kit</span> от Google. После загрузки языковых пакетов интернет больше не требуется, а переводимый текст никогда не покидает ваше устройство.</p>
+                        <p>Когда слова уже на экране - распознаны на фото, напечатаны в PDF-документе или открыты в главе книги EPUB - FastMediaSorter может мгновенно перевести их на ваш язык прямо на месте с помощью встроенных офлайн-моделей перевода <span class="doc-link-term" data-term="ocr">ML Kit</span> от Google. Интернет нужен только для однократной загрузки языковых моделей от Google, а переводимый текст переводится на телефоне и никуда не отправляется.</p>
                         <p>Один и тот же модуль перевода работает с двумя источниками: изображения сначала проходят через <span class="doc-link-term" data-term="ocr">распознавание текста (OCR)</span>, а документы PDF, книги EPUB и текстовые файлы передают готовый текст сразу в переводчик.</p>
 
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Перед началом: Что вам понадобится</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter в <span class="doc-link-term" data-term="edition">редакции</span> с поддержкой перевода: Standard, noLegal, Legacy или VR. В редакциях Lite, Photos и FOSS функция перевода текста отсутствует.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Включенный параметр <strong>Включить перевод</strong> в <strong>Настройках</strong> или на этапе первоначальной настройки. При первом включении загружается расширение <strong>Модуль перевода</strong> (см. <a href="../getting-started/welcome-and-setup-ru.html" class="doc-link">Первый запуск и настройка</a> и <a href="../flavors/extensions-and-plugins-ru.html" class="doc-link">Загружаемые расширения и плагины</a>).</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Для перевода текста с изображений: расширение <strong>Движки OCR</strong>, необходимое для предварительного распознавания слов (см. <a href="ocr-text-recognition-ru.html" class="doc-link">Распознавание текста с помощью офлайн-OCR</a>).</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Материал для перевода: фото в <span class="doc-link-term" data-term="image-viewer">просмотрщике изображений</span> (см. <a href="../images/viewer-and-gestures-ru.html" class="doc-link">Просмотр фото и жесты</a>), страница PDF, глава EPUB или текстовый документ.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Смартфон, планшет, ноутбук, ПК или Chromebook. Перевод недоступен на телевизорах, автомобильных магнитолах и гарнитурах виртуальной реальности (см. шаг 5).</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> FastMediaSorter в <span class="doc-link-term" data-term="edition">редакции</span> с поддержкой перевода: Standard, noLegal, Legacy или VR. В редакциях Lite, Photos и FOSS функция перевода текста отсутствует.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Включенный параметр <strong>Включить перевод</strong> в <strong>Настройках</strong> или на этапе первоначальной настройки. При первом включении загружается расширение <strong>Модуль перевода</strong> (см. <a href="../getting-started/welcome-and-setup-ru.html" class="doc-link">Первый запуск и настройка</a> и <a href="../flavors/extensions-and-plugins-ru.html" class="doc-link">Загружаемые расширения и плагины</a>).</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Для перевода текста с изображений: расширение <strong>Движки OCR</strong>, необходимое для предварительного распознавания слов (см. <a href="ocr-text-recognition-ru.html" class="doc-link">Распознавание текста с помощью офлайн-OCR</a>).</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Материал для перевода: фото в <span class="doc-link-term" data-term="image-viewer">просмотрщике изображений</span> (см. <a href="../images/viewer-and-gestures-ru.html" class="doc-link">Просмотр фото и жесты</a>), страница PDF, глава EPUB или текстовый документ.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Смартфон, планшет, ноутбук, ПК или Chromebook. Перевод недоступен на телевизорах, автомобильных магнитолах и гарнитурах виртуальной реальности (см. шаг 5).</li>
                     </ul>
+                </div>
+
+                <div class="doc-callout doc-callout-warning">
+                    <div class="doc-callout-title">
+                        <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>Плашки не накладываются при неуверенном распознавании языка
+                    </div>
+                    <p>Если исходный язык был определен автоматически с низкой точностью, плашки поверх кадра не рисуются во избежание искажения картинки, и появляется сообщение: «Текст написан на языке, не поддерживаемом распознавателем. Выберите язык оригинала в настройках перевода». Укажите язык вручную (следующий шаг) и повторите перевод.</p>
                 </div>
 
                 <!-- Step 1 -->
@@ -455,7 +463,7 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Откройте меню с тремя точками и выберите <strong>Перевести</strong> (в альбомной ориентации кнопка может располагаться прямо на панели команд). После сообщения «Перевод запущен..» распознанный текст появится в переведенном виде в одном из двух режимов в зависимости от настройки <strong>Результат перевода в блоках</strong>:</p>
-                        <ul><li><strong>Выключено (по умолчанию)</strong> - перевод отображается в отдельной аккуратной карточке над или под картинкой, не перекрывая исходный снимок.</li><li><strong>Включено</strong> - каждая строка перевода накладывается поверх оригинальных слов на непрозрачной цветной плашке (в стиле Google Объектива/Google Lens), благодаря чему изображение читается на вашем языке прямо на месте. Текст, расположенный по разным сторонам кадра (вывески, отдельные реплики в комиксах), разделяется и переводится независимыми блоками. Если плашка упирается в нижний край экрана, она автоматически растет вверх, а длинный текст плавно уменьшает размер шрифта, чтобы полностью уместиться в кадре.</li></ul>
+                        <ul><li><strong>Выключено</strong> - перевод отображается в отдельной аккуратной карточке над или под картинкой, не перекрывая исходный снимок.</li><li><strong>Включено</strong> - каждая строка перевода накладывается поверх оригинальных слов на непрозрачной цветной плашке (в стиле Google Объектива/Google Lens), благодаря чему изображение читается на вашем языке прямо на месте. Текст, расположенный по разным сторонам кадра (вывески, отдельные реплики в комиксах), разделяется и переводится независимыми блоками. Если плашка упирается в нижний край экрана, она автоматически растет вверх, а длинный текст плавно уменьшает размер шрифта, чтобы полностью уместиться в кадре.</li></ul>
                         <div class="doc-img-bookmark"
                              data-shot-id="tools.image-translation-overlay"
                              data-device-profile="phone"
@@ -472,12 +480,6 @@ layout: null
                                 </div>
                             </div>
                         </div>
-                        <div class="doc-callout doc-callout-warning">
-                            <div class="doc-callout-title">
-                                <span class="doc-callout-icon">⚠️</span> Плашки не накладываются при неуверенном распознавании языка
-                            </div>
-                            <p>Если исходный язык был определен автоматически с низкой точностью, плашки поверх кадра не рисуются во избежание искажения картинки, и появляется сообщение: «Текст написан на языке, не поддерживаемом распознавателем. Выберите язык оригинала в настройках перевода». Укажите язык вручную (следующий шаг) и повторите перевод.</p>
-                        </div>
                     </div>
                 </div>
 
@@ -489,6 +491,22 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Страницы PDF (включая сканированные документы без текстового слоя, обрабатываемые через OCR) и главы книг EPUB переводятся одинаково легко: откройте меню с тремя точками и выберите <strong>Перевести</strong>. Для PDF поддерживаются как карточка, так и наложение блоков; для EPUB перевод открывается в удобной масштабируемой панели с независимой регулировкой шрифта. Подробнее о чтении см. в рецептах <a href="../documents/pdf-epub-viewing-ru.html" class="doc-link">Просмотр документов PDF</a> и <a href="../documents/office-docs-support-ru.html" class="doc-link">Чтение книг EPUB и офисных документов</a>.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="tools.epub-chapter-translation"
+                             data-device-profile="phone"
+                             data-screen-state="epub-chapter-translation-panel"
+                             data-alt="Глава EPUB с переводом в панели изменяемого размера поверх текста"
+                             data-caption="Глава EPUB переводится в панели поверх текста.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скриншот: перевод главы EPUB</strong>
+                                <p class="doc-img-bookmark-desc">Открыта книга EPUB, в меню из трёх точек нажато «Перевести», язык перевода задан.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>tools.epub-chapter-translation</code></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -529,6 +547,22 @@ layout: null
                     <div class="doc-step-body">
                         <p>При первом выборе нового языка FastMediaSorter незаметно скачивает соответствующую языковую модель в фоновом режиме сразу при выборе, не заставляя ждать во время чтения - на экране на пару секунд появляется сообщение «Загрузка языковой модели..», сменяющееся на «Языковая модель готова». Если загрузка прервется, появится кнопка <strong>Повторить</strong>.</p>
                         <p>Все переведенные страницы и изображения сохраняются в оперативной памяти до конца текущего сеанса: при возврате к уже пересмотренному документу перевод отобразится мгновенно без повторного распознавания и сетевых запросов.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="tools.translation-model-downloading"
+                             data-device-profile="phone"
+                             data-screen-state="translation-model-downloading-message"
+                             data-alt="Сообщение о загрузке модели перевода сразу после выбора нового языка перевода"
+                             data-caption="Модель нового языка загружается сразу после выбора.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скриншот: загрузка модели</strong>
+                                <p class="doc-img-bookmark-desc">Настройки перевода, только что выбран новый язык, его модель загружается.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>tools.translation-model-downloading</code></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -541,6 +575,22 @@ layout: null
                     <div class="doc-step-body">
                         <p>Локальный перевод текста лицензирован для смартфонов, планшетов, ноутбуков, настольных компьютеров и Chromebook. На телевизорах Android TV, автомобильных медиасистемах и очках виртуальной реальности кнопка <strong>Перевести</strong> остается неактивной с пояснением «Перевод не лицензирован для этого типа устройств», а <span class="doc-link-term" data-term="widget">виджет</span> переводчика и гаджет лаунчера на них скрыты.</p>
                         <p>В окне перевода отображается ненавязчивая ссылка на технологию Google, так как обработка текста выполняется лицензированными офлайн-моделями Google.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="tools.translate-not-licensed-tv"
+                             data-device-profile="tv"
+                             data-screen-state="tv-translate-button-disabled"
+                             data-alt="Кнопка «Перевести» на телевизоре неактивна, с пояснением, что перевод не лицензирован для этого типа устройства"
+                             data-caption="На телевизоре кнопка «Перевести» видна, но неактивна.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скриншот: перевод на телевизоре</strong>
+                                <p class="doc-img-bookmark-desc">Эмулятор телевизора, открыта картинка, фокус на неактивной кнопке «Перевести».</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>tv</code></span>
+                                    <span>ID: <code>tools.translate-not-licensed-tv</code></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -565,17 +615,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="ocr-text-recognition-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Инструменты</span>
-                            <h4>Распознавание текста с помощью офлайн-OCR</h4>
+                            <h3>Распознавание текста с помощью офлайн-OCR</h3>
                             <p>Распознавание текста на фотографиях, скриншотах и сканированных страницах перед переводом.</p>
                         </a>
                         <a href="../documents/pdf-epub-viewing-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Документы</span>
-                            <h4>Просмотр документов PDF</h4>
+                            <h3>Просмотр документов PDF</h3>
                             <p>Листание страниц, ночной режим, поиск, копирование и экспорт страниц в PDF.</p>
                         </a>
                         <a href="../flavors/extensions-and-plugins-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Редакции</span>
-                            <h4>Загружаемые расширения и языковые модели</h4>
+                            <h3>Загружаемые расширения и языковые модели</h3>
                             <p>Установка и удаление модуля перевода и языковых пакетов OCR.</p>
                         </a>
                     </div>
@@ -608,8 +658,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.</div>
             <div class="doc-footer-links">
-                <a href="../../docs/PRIVACY_POLICY.ru.html">Политика конфиденциальности</a>
-                <a href="../../docs/TERMS_OF_SERVICE_RU.html">Условия использования</a>
+                <a href="../../docs/PRIVACY_POLICY-ru.html">Политика конфиденциальности</a>
+                <a href="../../docs/TERMS_OF_SERVICE-ru.html">Условия использования</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>

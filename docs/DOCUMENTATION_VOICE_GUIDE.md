@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.23 12:50</sub>
+<sub class="doc-stamp">26.10.06 20:28</sub>
 
 # Documentation Voice and Style Guide
 
@@ -27,7 +27,7 @@ Our documentation model is the classic culinary encyclopedia:
 - State factual capabilities: "Processes up to 1,000 files per second on local storage" or "Plays 4K 60fps video with hardware decoding".
 
 ### 3. Clear Flavor & Platform Boundaries
-- FastMediaSorter ships in 7 editions: `standard`, `noLegal`, `lite`, `photos`, `legacy`, `vr`, `foss`.
+- The public editions, their count and the one display name of each are declared in `docs/flavors/public-editions.psd1`; write an edition exactly as declared there, and state a count only as the declared number (`scripts/quality/assert-site-facts.ps1` compares it).
 - Always state if a feature is restricted to specific editions:
   - *Example:* "Network cloud downloads and streaming extractors are available exclusively in the sideload / noLegal edition."
   - *Example:* "Spatial cinema features require a Meta Quest 2/3 or OpenXR compatible headset."

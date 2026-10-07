@@ -6,7 +6,8 @@ description: How to select files and whole folders in the file browser, copy or 
 category: Sources, Destinations & File Operations
 category_slug: storage
 ticket: S2949
-flavor: All editions (network - all except Lite; cloud - all except Lite and FOSS)
+availability: all
+availability_note: All editions (network - all except Lite; cloud - all except Lite and FOSS)
 recipe_number: "05"
 canonical_url: documentation/storage/file-copy-move-delete.html
 why: |
@@ -74,9 +75,17 @@ steps:
     id: same-name
     title: When a file with the same name is already there
     text: |
-      Nothing is replaced unless you ask for it. By default a file whose name already exists at the destination is left out, and the file at the destination stays as it was. The final message counts only the files that were really copied or moved - if it says fewer than you selected, the rest already existed there.
+      Nothing is replaced unless you ask for it. With overwriting off, a file whose name already exists at the destination is left out, and the file at the destination stays as it was. The final message counts only the files that were really copied or moved - if it says fewer than you selected, the rest already existed there.
 
       To replace such files, open **Settings**, the **Management** tab, **Copy, move and overwrite behavior**, and turn on **Overwrite existing file when copying** or **Overwrite existing file when moving**.
+    image_bookmark:
+      shot_id: storage.overwrite-settings
+      device_profile: phone
+      screen_state: settings-management-overwrite-behavior
+      alt: The Management tab of Settings with the Copy, move and overwrite behavior card and its Overwrite existing file when copying and Overwrite existing file when moving switches
+      caption: "Two switches decide whether a file with the same name is replaced."
+      title: "Screenshot: Overwrite switches"
+      desc: Settings, Management tab, scrolled to the copy, move and overwrite card, both switches off.
   - number: 5
     id: delete
     title: Delete files and folders
@@ -96,6 +105,10 @@ steps:
       caption: "Deleting on a network folder is permanent."
       title: "Screenshot: Network delete confirmation"
       desc: Browse on an SMB resource, 3 files selected, Delete tapped.
+    callout:
+      type: warning
+      title: Deleting cannot always be undone
+      text: "On a network folder or in the cloud, and on the phone with the trash off, **Delete** removes the files for good - **Undo** cannot bring them back."
   - number: 6
     id: undo
     title: Undo the last step
@@ -108,11 +121,27 @@ steps:
       - **Undo a rename** - the old name comes back.
 
       In the player, the **Undo** button of the [command panel](term:command-panel) brings back the file you just deleted.
+    image_bookmark:
+      shot_id: storage.undo-after-delete
+      device_profile: phone
+      screen_state: browse-undo-message-after-delete
+      alt: The file browser right after a delete, with the message at the bottom offering Undo and the Undo button in the operations bar
+      caption: "Undo is offered right after the step."
+      title: "Screenshot: Undo after a delete"
+      desc: Browse on a local folder, 3 photos just moved to the trash, the Undo message visible.
   - number: 7
     id: trash
     title: How long the trash keeps files
     text: |
       The trash is a safety net for the moment, not an archive. A background task runs about every 15 minutes and empties trash folders whose contents are older than a few minutes, so the space comes back by itself. To empty all trash folders at once, tap the **Clear Trash** button next to **Use trash folder (.trash)** - the app reports how many trash folders it removed.
+    image_bookmark:
+      shot_id: storage.trash-settings
+      device_profile: phone
+      screen_state: settings-management-file-deletion-and-trash
+      alt: The File deletion and trash card in the Management tab of Settings with the Use trash folder (.trash) switch and the Clear Trash button next to it
+      caption: "Clear Trash empties every trash folder at once."
+      title: "Screenshot: Trash settings"
+      desc: Settings, Management tab, scrolled to the file deletion and trash card, trash switched on.
 outcome: |
   Forty photos are on the memory card, the "Holidays 2019" folder with all its subfolders is on the home computer, the blurry shots are gone - and the one photo you deleted by mistake came back with a single tap on Undo.
 tips:
@@ -138,6 +167,6 @@ next_recipes:
     description: Find duplicates and big files, pack files into ZIP archives.
 ---
 
-<sub class="doc-stamp">26.09.24 07:56</sub>
+<sub class="doc-stamp">26.10.07 03:43</sub>
 
 Select files and whole folders in the file browser, copy or move them between the phone, network folders and the cloud, delete them with or without the trash, and take the last step back with Undo.

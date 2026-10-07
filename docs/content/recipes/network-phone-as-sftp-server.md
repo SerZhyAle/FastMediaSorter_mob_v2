@@ -6,7 +6,8 @@ description: How to share folders from this phone itself, so another device on t
 category: Network & Cloud
 category_slug: network
 ticket: S2950
-flavor: All editions except Lite; needs Android 8.0 or newer.
+availability: SUPPORT_LOCAL_NETWORK
+availability_note: All editions except Lite; needs Android 8.0 or newer.
 recipe_number: "04"
 canonical_url: documentation/network/phone-as-sftp-server.html
 why: |
@@ -94,6 +95,6 @@ next_recipes:
     description: The overview of every kind of network and cloud place this app can open.
 ---
 
-<sub class="doc-stamp">26.09.25 02:04</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Share folders straight from this phone over SFTP - pick them with the folder picker, sign in with a password or an SSH key, and pair another FastMediaSorter in one scan instead of typing an address.

@@ -5,7 +5,7 @@ description: A practical cookbook recipe for configuring default sorting behavio
 category: Settings & Navigation
 category_slug: settings
 ticket: S2962
-flavor: All Editions
+availability: all
 recipe_number: "02"
 canonical_url: documentation/sample-settings-recipe.html
 ingredients:
@@ -37,6 +37,6 @@ next_recipes:
     description: Export configuration and bookmarks to JSON archive.
 ---
 
-<sub class="doc-stamp">26.09.24 09:12</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Fine-tune FastMediaSorter to match your exact media sorting style. Learn how to configure default sorting orders, grid thumbnail densities, and background audio behaviors.

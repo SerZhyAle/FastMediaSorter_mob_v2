@@ -6,7 +6,7 @@ description: Как пользоваться просмотрщиком фото
 category: Часы Wear OS
 category_slug: wear
 ticket: S2966
-flavor: Полная версия приложения для часов (только sideload) - в версии из Google Play плееры отсутствуют. См. редакцию noLegal.
+availability_note: Полная версия приложения для часов (только sideload) - в версии из Google Play плееры отсутствуют. См. редакцию noLegal.
 recipe_number: "07"
 canonical_url: documentation/wear/watch-players-and-viewers-ru.html
 why: |
@@ -170,6 +170,6 @@ next_recipes:
     description: Сеанс Chromecast, на который передает воспроизведение кнопка «Показать на ТВ».
 ---
 
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Обзор трех встроенных плееров приложения на часах - просмотрщика фото, видеоплеера и аудиоплеера, а также читалки текстовых документов и передачи воспроизведения на экран телевизора.

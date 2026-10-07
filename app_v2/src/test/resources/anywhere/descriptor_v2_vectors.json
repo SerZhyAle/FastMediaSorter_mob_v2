@@ -1,0 +1,71 @@
+{
+  "contract": "ANYWHERE-ACCESS",
+  "section": "4",
+  "rung": 1,
+  "producer": "FastMediaSorter Android (SftpPairingPayload, CompanionAccessPathDto)",
+  "notes": [
+    "Every valid code decodes to its fields and re-encodes byte for byte.",
+    "Values are URL-encoded (application/x-www-form-urlencoded, UTF-8); the host list separator ',' and the share id are written raw.",
+    "A code without x, sid and drv is always written with the FMSSFTP1 prefix.",
+    "Every refused code decodes to nothing.",
+    "A FMSSFTP1 code is read by the v1 rules only: v2 keys inside it are ignored."
+  ],
+  "valid": [
+    {
+      "name": "v1-unchanged",
+      "code": "FMSSFTP1:h=192.168.1.23&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk",
+      "hosts": ["192.168.1.23"], "port": 2022, "username": "fms", "password": "k7PmQ2wXr9TzS4vGnHb3JdLe",
+      "fingerprint": "SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk",
+      "exchange": null, "shareId": null, "drive": false
+    },
+    {
+      "name": "v2-server-channel",
+      "code": "FMSSFTP2:h=192.168.1.23&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk&x=relay.example.net%3A44022&sid=q3Vb7YtK0xP2mN9sLfR4wA",
+      "hosts": ["192.168.1.23"], "port": 2022, "username": "fms", "password": "k7PmQ2wXr9TzS4vGnHb3JdLe",
+      "fingerprint": "SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk",
+      "exchange": "relay.example.net:44022", "shareId": "q3Vb7YtK0xP2mN9sLfR4wA", "drive": false
+    },
+    {
+      "name": "v2-server-and-drive-two-hosts",
+      "code": "FMSSFTP2:h=192.168.1.23,100.64.0.7&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk&x=relay.example.net%3A44022&sid=q3Vb7YtK0xP2mN9sLfR4wA&drv=1",
+      "hosts": ["192.168.1.23", "100.64.0.7"], "port": 2022, "username": "fms", "password": "k7PmQ2wXr9TzS4vGnHb3JdLe",
+      "fingerprint": "SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk",
+      "exchange": "relay.example.net:44022", "shareId": "q3Vb7YtK0xP2mN9sLfR4wA", "drive": true
+    },
+    {
+      "name": "v2-drive-only-key-login",
+      "code": "FMSSFTP2:h=192.168.1.23&p=2022&u=fms&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk&drv=1",
+      "hosts": ["192.168.1.23"], "port": 2022, "username": "fms", "password": null,
+      "fingerprint": "SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk",
+      "exchange": null, "shareId": null, "drive": true
+    },
+    {
+      "name": "v2-ipv6-exchange",
+      "code": "FMSSFTP2:h=192.168.1.23&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk&x=%5B2001%3Adb8%3A%3A7%5D%3A44022&sid=AAAAAAAAAAAAAAAAAAAAAA",
+      "hosts": ["192.168.1.23"], "port": 2022, "username": "fms", "password": "k7PmQ2wXr9TzS4vGnHb3JdLe",
+      "fingerprint": "SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk",
+      "exchange": "[2001:db8::7]:44022", "shareId": "AAAAAAAAAAAAAAAAAAAAAA", "drive": false
+    }
+  ],
+  "v1IgnoresV2Keys": [
+    {
+      "code": "FMSSFTP1:h=192.168.1.23&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk&x=relay.example.net%3A44022&sid=q3Vb7YtK0xP2mN9sLfR4wA&drv=1",
+      "reencoded": "FMSSFTP1:h=192.168.1.23&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk"
+    }
+  ],
+  "refused": [
+    { "reason": "exchange without share id", "code": "FMSSFTP2:h=192.168.1.23&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk&x=relay.example.net%3A44022" },
+    { "reason": "share id without exchange", "code": "FMSSFTP2:h=192.168.1.23&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk&sid=q3Vb7YtK0xP2mN9sLfR4wA" },
+    { "reason": "share id spare bits not zero", "code": "FMSSFTP2:h=192.168.1.23&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk&x=relay.example.net%3A44022&sid=q3Vb7YtK0xP2mN9sLfR4wB" },
+    { "reason": "share id padded", "code": "FMSSFTP2:h=192.168.1.23&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk&x=relay.example.net%3A44022&sid=q3Vb7YtK0xP2mN9sLfR4wA%3D%3D" },
+    { "reason": "exchange without port", "code": "FMSSFTP2:h=192.168.1.23&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk&x=relay.example.net&sid=q3Vb7YtK0xP2mN9sLfR4wA" },
+    { "reason": "exchange port out of range", "code": "FMSSFTP2:h=192.168.1.23&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk&x=relay.example.net%3A70000&sid=q3Vb7YtK0xP2mN9sLfR4wA" },
+    { "reason": "bare IPv6 exchange", "code": "FMSSFTP2:h=192.168.1.23&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk&x=2001%3Adb8%3A%3A7%3A44022&sid=q3Vb7YtK0xP2mN9sLfR4wA" },
+    { "reason": "drive marker not 1", "code": "FMSSFTP2:h=192.168.1.23&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk&drv=true" },
+    { "reason": "v1 field missing", "code": "FMSSFTP2:h=192.168.1.23&p=2022&u=fms&drv=1" }
+  ],
+  "fmscfgTunnelPath": {
+    "note": "schema 2; the rendezvousTunnel path is last and its host/port name the exchange server, so a reader without the kind still accepts the file.",
+    "json": "{\"schemaVersion\":2,\"resourceName\":\"Phone\",\"protocol\":\"sftp\",\"accessPaths\":[{\"kind\":\"lan\",\"host\":\"192.168.1.23\",\"port\":2022},{\"kind\":\"rendezvousTunnel\",\"host\":\"relay.example.net\",\"port\":44022,\"shareId\":\"q3Vb7YtK0xP2mN9sLfR4wA\"}],\"username\":\"fms\",\"password\":\"k7PmQ2wXr9TzS4vGnHb3JdLe\",\"hostKeyFingerprintSha256\":\"SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk\",\"roots\":[{\"virtualPath\":\"/Camera\",\"label\":\"Camera\"}]}"
+  }
+}

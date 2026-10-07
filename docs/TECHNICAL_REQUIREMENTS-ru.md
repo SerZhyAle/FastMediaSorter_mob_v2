@@ -1,17 +1,17 @@
 ---
 layout: default
 title: "Технические требования"
-permalink: /docs/TECHNICAL_REQUIREMENTS_RU.html
+permalink: /docs/TECHNICAL_REQUIREMENTS-ru.html
 lang: ru
 ---
 
-<sub class="doc-stamp">26.10.06 14:18</sub>
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 <div lang="ru" markdown="1">
 
 # Технические требования
 
-[Техническая спецификация](V2_Specification_RU.html) | [Tech Stack, EN](TECH_STACK.html)
+[Техническая спецификация](V2_Specification-ru.html) | [Tech Stack, EN](TECH_STACK.html)
 
 Здесь разделены требования SDK из конфигурации и условия отдельных функций. Это публичный справочник, а не обещание установки на любое устройство или объявление нового выпуска.
 

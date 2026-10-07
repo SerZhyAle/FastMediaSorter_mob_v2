@@ -6,7 +6,8 @@ description: Choosing a color theme or a custom accent, reading the app in your 
 category: "Settings & Navigation"
 category_slug: settings
 ticket: S2962
-flavor: All editions - color theme, custom accents, language, Big Buttons and Compact mode are in Standard, Lite, Photos and Legacy; the watch appearance rows need Standard or noLegal with a paired watch
+availability: all
+availability_note: All editions - color theme, custom accents, language, Big Buttons and Compact mode are in Standard, Lite, Photos and Legacy; the watch appearance rows need Standard or noLegal with a paired watch
 recipe_number: "02"
 canonical_url: documentation/settings/display-and-appearance.html
 why: |
@@ -143,6 +144,6 @@ next_recipes:
     description: Keyboard, D-pad and remote-control navigation across the app.
 ---
 
-<sub class="doc-stamp">26.09.25 04:13</sub>
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 A theme, a language and a size that fit you make every other screen easier to use, and FastMediaSorter keeps all three in [Settings](term:settings), **General**, together with the icon and unit choices that follow from them. This page covers picking a [color theme](term:color-theme) or an accent, reading the app in your own language, switching button size, turning decorative motion off, themed icons, the app-wide unit system, color-coded panels and how the same look carries over to the [watch](term:watch).
