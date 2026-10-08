@@ -1,0 +1,98 @@
+# Golden vectors for the language and country folds of the stream catalog (STREAM-BANK 2.3, amendment O).
+# One vector per line: kind<TAB>raw input<TAB>expected output. An empty expected output means blank.
+# Read by the publisher Pester suite, the phone unit tests and the watch unit tests: one file holds the
+# three implementations to the same table. Expected values come from the contract, never from an
+# implementation's current output.
+language	english	english
+language	English	english
+language	american english	english
+language	British English	english
+language	english uk	english
+language	caribbean english	english
+language	pigeon english	english
+language	pigin	english
+language	englsh	english
+language	#english	english
+language	english.	english
+language	en	english
+language	English, Gernan	english,german
+language	deutsch	german
+language	swiss german	german
+language	english french german russian slovak spain	english,french,german,russian,slovak
+language	english hindi	english,hindi
+language	german english	german,english
+language	lithuanian english	lithuanian,english
+language	kikuyu swahili	kikuyu,swahili
+language	sámi swedish	northern sami,swedish
+language	español argentina	spanish
+language	castellano. español	spanish
+language	ingles español	english,spanish
+language	inglés,portugués,español	english,portuguese,spanish
+language	portuguese,português (brasil)	portuguese
+language	pt-br	portuguese
+language	portugues do braasil	portuguese
+language	Portuguese Brazil	portuguese
+language	português brasileiro	portuguese
+language	bahasa indonesia	indonesian
+language	id	indonesian
+language	zh	chinese
+language	gr	greek
+language	turkçe	turkish
+language	arapça	arabic
+language	română	romanian
+language	românä	romanian
+language	русский	russian
+language	язык: русский	russian
+language	العربية	arabic
+language	عربي	arabic
+language	ภาษาไทย	thai
+language	tshivenḓa	venda
+language	isizulu	zulu
+language	sepedi	northern sotho
+language	mauritian creole	mauritian creole
+language	haiti creole	haitian
+language	torres strait creole	torres strait creole
+language	papiamentu	papiamento
+language	jamaican	jamaican patois
+language	carpatho-rusyn	rusyn
+language	francais - letzebuergesch	french,luxembourgish
+language	moroccan arabic	arabic
+language	louisiana french	french
+language	flammish	dutch
+language	hausa l	hausa
+language	dutch colombo	dutch
+language	japan	japanese
+language	#japan	japanese
+language	korea	korean
+language	africa	english
+language	usa	english
+language	africa,english,ghana,usa	english
+language	australian indigenous	english
+language	willemstad	english
+language	various filipino languages	tagalog
+language	filipino	tagalog
+language	gaelic	scottish gaelic
+language	hawaiian	hawaiian
+language	konkani	konkani
+language	haryanvi,hindi,punjabi	haryanvi,hindi,punjabi
+language	german,english,german	german,english
+language		
+language	 ,  	
+country	UK	GB
+country	uk	GB
+country	USA	US
+country	Germany	DE
+country	United States	US
+country	de	DE
+country	DE	DE
+country	AQ	AQ
+country	Czech Republic	CZ
+country	Macedonia	MK
+country	The Russian Federation	RU
+country	Wales	GB
+country	XX	
+country		
+country	Atlantis	
+country	Ukraine	UA
+country	ua	UA
+country	  fr 	FR

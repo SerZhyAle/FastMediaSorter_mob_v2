@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearStreamCollectionReposi
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ImportWearStreamCatalogUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -61,7 +62,7 @@ class StreamsSelectionRestoreTest {
             storedSort = StreamSortOrder.NAME_DESC.name,
             storedKind = StreamFilterKind.VIDEO_ONLY.name,
             storedTopic = "Rock",
-            storedLanguage = "german"
+            storedLanguage = "english"
         )
         delay(SETTLE_MS)
 
@@ -69,7 +70,7 @@ class StreamsSelectionRestoreTest {
         assertEquals(StreamSortOrder.NAME_DESC, state.sortOrder)
         assertEquals(StreamFilterKind.VIDEO_ONLY, state.filterKind)
         assertEquals("Rock", state.selectedTopic)
-        assertEquals("german", state.selectedLanguage)
+        assertEquals("english", state.selectedLanguage)
     }
 
     @Test
@@ -93,6 +94,31 @@ class StreamsSelectionRestoreTest {
     }
 
     @Test
+    fun `a stored language missing from a non-empty catalogue is cleared in state and preference`() = runBlocking {
+        // S4133: the vocabulary closing makes this common; an empty list behind an active filter is worse.
+        val preferences = mockk<WearPreferencesRepository>(relaxed = true)
+        val viewModel = buildViewModel(storedLanguage = "caribbean english", preferencesMock = preferences)
+        delay(SETTLE_MS)
+
+        assertEquals(null, viewModel.uiState.value.selectedLanguage)
+        coVerify { preferences.setStreamsSelectedLanguage(null) }
+    }
+
+    @Test
+    fun `a stored language is kept while the catalogue is empty`() = runBlocking {
+        val preferences = mockk<WearPreferencesRepository>(relaxed = true)
+        val viewModel = buildViewModel(
+            storedLanguage = "caribbean english",
+            catalog = emptyList(),
+            preferencesMock = preferences
+        )
+        delay(SETTLE_MS)
+
+        assertEquals("caribbean english", viewModel.uiState.value.selectedLanguage)
+        coVerify(exactly = 0) { preferences.setStreamsSelectedLanguage(null) }
+    }
+
+    @Test
     fun `an empty store yields the defaults`() = runBlocking {
         val viewModel = buildViewModel()
         delay(SETTLE_MS)
@@ -108,11 +134,13 @@ class StreamsSelectionRestoreTest {
         storedSort: String? = null,
         storedKind: String? = null,
         storedTopic: String? = null,
-        storedLanguage: String? = null
+        storedLanguage: String? = null,
+        catalog: List<WearStreamChannel> = CATALOG,
+        preferencesMock: WearPreferencesRepository = mockk(relaxed = true)
     ): StreamsViewModel {
         val repository = mockk<WearStreamChannelRepository>(relaxed = true)
-        every { repository.observeChannels() } returns flowOf(CATALOG)
-        val preferences = mockk<WearPreferencesRepository>(relaxed = true)
+        every { repository.observeChannels() } returns flowOf(catalog)
+        val preferences = preferencesMock
         every { preferences.viewMode } returns flowOf(WearViewMode.LIST)
         // Stubbed explicitly rather than left relaxed: the restore calls `first()` on each of these,
         // and `first()` on a relaxed mock's flow completes without emitting.

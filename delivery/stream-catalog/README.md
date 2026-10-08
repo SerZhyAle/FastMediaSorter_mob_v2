@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.22 15:46</sub>
+<sub class="doc-stamp">26.10.07 17:20</sub>
 
 # FastMediaSorter curated stream catalog
 
@@ -367,8 +367,14 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
 existing catalog into their canonical values. It is a reviewable metadata-only mode: no network
 collection runs, the row count and URL multiset stay unchanged, a timestamped backup and a per-value
 move report land under `temp/S2233/`, and nothing is uploaded unless `-Publish` is passed. Blank cells
-stay blank; an unknown non-blank value stays verbatim as a visible fallback instead of being dropped.
-The legacy `-NormalizeTopics` switch remains the topic-only subset of the same operation.
+stay blank. An unknown `category` is kept as written, for review. `language` and `country` follow
+the closed sets of STREAM-BANK 2.3 (amendment O): a language cell holds names of existing languages, one
+per language, and a non-blank cell in which no language is recognized becomes `english`; a country is an
+assigned ISO 3166-1 alpha-2 code, and a value that is still not one after folding becomes blank. The
+move report lists every value that fell to `english`, so a wrong guess is a line to review and not a
+silent change. The legacy `-NormalizeTopics` switch remains the topic-only subset of the same operation.
+`scripts/quality/assert-stream-facet-values.ps1` (release scope) fails while any cell of the catalog is
+not a fixed point of the fold.
 
 ```
 # Review the diff first - writes the backup + move report, publishes nothing:

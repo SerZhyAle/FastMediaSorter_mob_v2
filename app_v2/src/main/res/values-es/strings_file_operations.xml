@@ -61,7 +61,7 @@
     <string name="export_settings_confirm_message">¿Crear un archivo de exportación con la configuración actual?</string>
     <string name="export_settings_confirm_title">Exportar configuración</string>
     <string name="export_success">Configuración exportada a Downloads/FastMediaSorter_export.xml</string>
-    <string name="delete">Borrar</string>
+    <string name="delete">Eliminar</string>
     <string name="delete_action_cannot_be_undone_title">Esta acción no se puede deshacer.</string>
     <string name="delete_by_size_analyze">Analizar</string>
     <string name="delete_by_size_confirm_btn">Eliminar archivos</string>

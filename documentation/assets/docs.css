@@ -219,6 +219,15 @@ header.doc-header {
     white-space: nowrap;
 }
 
+/* ICON-RENDER rule 5: a glyph-only control is at least 28 CSS px under a fine pointer. */
+.doc-theme-btn,
+.doc-theme-toggle,
+.doc-mobile-menu-btn {
+    justify-content: center;
+    min-width: 28px;
+    min-height: 28px;
+}
+
 .doc-theme-btn:hover,
 .doc-theme-toggle:hover {
     border-color: var(--doc-accent);

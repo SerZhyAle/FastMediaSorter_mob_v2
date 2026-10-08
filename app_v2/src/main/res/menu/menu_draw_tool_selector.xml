@@ -3,7 +3,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/draw_tool_brush"
-        android:icon="@drawable/ic_draw_overlay"
+        android:icon="@drawable/ic_send_note_brush"
         android:iconTint="#FFFFFF"
         android:title="@string/draw_overlay_toolbar_brush" />
     <item

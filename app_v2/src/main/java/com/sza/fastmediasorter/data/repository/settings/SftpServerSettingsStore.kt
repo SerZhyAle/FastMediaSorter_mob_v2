@@ -47,6 +47,18 @@ class SftpServerSettingsStore @Inject constructor(
 
     suspend fun snapshot(): SftpServerConfig = values.first()
 
+    /**
+     * Whether the share's `access` - its addresses and password - may go into the Drive record of contract
+     * DEVICE-EXCHANGE section 8 (section 15 item X). Off until the user turns it on; kept out of
+     * [SftpServerConfig] because it changes nothing about how the LAN server serves.
+     */
+    val driveAccessShared: Flow<Boolean> = dataStore.data
+        .map { it[keyDriveAccessShared] ?: false }
+        .distinctUntilChanged()
+        .flowOn(ioDispatcher)
+
+    suspend fun setDriveAccessShared(shared: Boolean) = edit { it[keyDriveAccessShared] = shared }
+
     suspend fun setEnabled(enabled: Boolean) = edit { it[keyEnabled] = enabled }
 
     suspend fun setPort(port: Int) {
@@ -135,5 +147,6 @@ class SftpServerSettingsStore @Inject constructor(
         private val keyPasswordEncrypted = stringPreferencesKey("sftp_server_password_enc")
         private val keyAuthorizedKeys = stringPreferencesKey("sftp_server_authorized_keys")
         private val keyRootUris = stringPreferencesKey("sftp_server_root_uris")
+        private val keyDriveAccessShared = booleanPreferencesKey("sftp_server_drive_access_shared")
     }
 }

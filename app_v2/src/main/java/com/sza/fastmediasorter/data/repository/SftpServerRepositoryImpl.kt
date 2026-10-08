@@ -38,6 +38,10 @@ class SftpServerRepositoryImpl @Inject constructor(
 
     override suspend fun setEnabled(enabled: Boolean) = settingsStore.setEnabled(enabled)
 
+    override val driveAccessShared: Flow<Boolean> get() = settingsStore.driveAccessShared
+
+    override suspend fun setDriveAccessShared(shared: Boolean) = settingsStore.setDriveAccessShared(shared)
+
     override suspend fun setPort(port: Int) = settingsStore.setPort(port)
 
     override suspend fun setAuthMode(mode: SftpServerAuthMode) = settingsStore.setAuthMode(mode)

@@ -32,19 +32,19 @@ class WearStreamLanguageLabelsTest {
 
     @Test
     fun `a known catalogue name resolves through the locale table`() {
-        assertEquals("German", WearStreamLanguageLabels.label("german"))
-        assertEquals("Ukrainian", WearStreamLanguageLabels.label("ukrainian"))
+        assertEquals("German (Deutsch)", WearStreamLanguageLabels.label("german"))
+        assertEquals("English", WearStreamLanguageLabels.label("english"))
     }
 
     @Test
     fun `resolution ignores the catalogue's casing and padding`() {
-        assertEquals("French", WearStreamLanguageLabels.label("  FrEnCh  "))
+        assertEquals("French (Français)", WearStreamLanguageLabels.label("  FrEnCh  "))
     }
 
     @Test
-    fun `a composite name that no ISO code carries stays its own text, title-cased`() {
-        // Strategic §7: `brazilian portuguese` is in no ISO table and must remain selectable rather
-        // than vanish from the picker - the phone behaves the same way with the same value.
+    fun `a name the vocabulary does not know stays its own text, title-cased`() {
+        // A channel stored before the catalogue was folded may still carry `brazilian portuguese`; it
+        // must remain selectable rather than vanish from the picker - the phone does the same.
         assertEquals("Brazilian portuguese", WearStreamLanguageLabels.label("brazilian portuguese"))
     }
 

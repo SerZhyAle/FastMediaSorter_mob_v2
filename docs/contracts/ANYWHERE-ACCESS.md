@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.07 04:59</sub>
+<sub class="doc-stamp">26.10.07 12:50</sub>
 
 # Pointer - `ANYWHERE-ACCESS`
 
 | | |
 | --- | --- |
 | **Id** | `ANYWHERE-ACCESS` |
-| **Version** | 0.12, draft - [PROPOSED] in full; since 0.11 the exchange server, its wire and the Drive channel are `DEVICE-EXCHANGE`. Owner: FastMediaSorter Android |
+| **Version** | 0.13, draft - [PROPOSED] in full; since 0.11 the exchange server, its wire and the Drive channel are `DEVICE-EXCHANGE`. Owner: FastMediaSorter Android |
 | **Home** | `anywhere-access/README.md` in the shared contracts catalog |
 | **Role here** | owner, and reference producer and consumer - the phone's embedded SFTP server (S3041) shares over the rendezvous/tunnel, and this app reads others' shares |
 
@@ -21,6 +21,8 @@
   scope and the app's private `appDataFolder` space.
 - Registering outward only: the producer never requires an inbound port; reconnect discipline is
   `SHARE-SESSION` rules 6-10 applied to the registration.
+- A share's `access` reaches Drive only with the user's explicit opt-in, off by default and worded to name
+  Google (amendment H); `connect {shareId}` is TLS only (amendment I).
 
 ## Where it will live here
 
@@ -37,3 +39,4 @@
 - S4094 - strategic spec, research and cross-repo work packages:
   `PLAN/S4094_sftp-server-access-from-anywhere/`.
 - S4116 - migration of the S4094 tunnel code from the superseded 0.10 wire to `DEVICE-EXCHANGE`.
+- S4129 - the Drive opt-in for `access`.

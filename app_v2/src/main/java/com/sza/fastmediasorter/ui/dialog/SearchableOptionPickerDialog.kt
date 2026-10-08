@@ -29,13 +29,17 @@ class SearchableOptionPickerDialog : DialogFragment() {
      * A single-choice option: [label] with an optional leading visual. [countryFlag] is an ISO country
      * code whose flag glyph is drawn (streams country facet); [leading] carries a general image (app
      * icon / resource thumbnail / icon res) for migrated pickers (S0947). At most one leading visual is
-     * shown - [leading] wins.
+     * shown - [leading] wins. [rowKey] identifies the ROW in the list (S4133): it equals [id] unless the
+     * same choice is listed twice - the streams country list repeats a language's own countries ahead of
+     * the full alphabetical list - and two equal rows would otherwise collapse into one for the diff.
+     * Selection, highlight and the delivered result stay on [id].
      */
     data class Option(
         val id: String,
         val label: String,
         val countryFlag: String? = null,
         val leading: LeadingVisual? = null,
+        val rowKey: String = id,
     )
 
     /** General leading image for an [Option] (S0947); complements the country flag [Option.countryFlag]. */

@@ -4355,4 +4355,6 @@
     <string name="settings_sftp_server_legacy_qr">Код для старых версий приложения</string>
     <string name="error_sftp_peer_tunnel_not_registered">Устройство с этой папкой сейчас не подключено к своему серверу обмена. Проверьте, что на нём запущен SFTP-сервер и включён «Доступ отовсюду».</string>
     <string name="error_sftp_peer_unreachable_here">Устройство с этой папкой в сети, но из этой сети до него не достучаться. Подключите оба устройства к одному Wi-Fi или настройте «Доступ отовсюду» через сервер обмена.</string>
+    <string name="settings_sftp_drive_access_title">Доступ через Google Диск</string>
+    <string name="settings_sftp_drive_access_subtitle">Записывает адрес, логин и пароль этого сервера в папку приложения на вашем Google Диске, чтобы ваши устройства с тем же аккаунтом Google могли подключиться. Выключено - они видят ресурс, но подключиться к нему не могут.</string>
 </resources>

@@ -85,7 +85,7 @@
     <string name="keybinding_label_playback_stop">Detener</string>
     <string name="keybinding_label_sorting_copy">Copiar</string>
     <string name="keybinding_label_sorting_create_folder">Crear carpeta</string>
-    <string name="keybinding_label_sorting_delete">Borrar</string>
+    <string name="keybinding_label_sorting_delete">Eliminar</string>
     <string name="keybinding_label_sorting_favourite">Favorito</string>
     <string name="keybinding_label_sorting_file_ops">Operaciones de archivos</string>
     <string name="keybinding_label_sorting_move">Mover</string>
@@ -163,7 +163,7 @@
     <string name="kbm_help_op_copy">Copiar</string>
     <string name="kbm_help_op_create_folder">Crear carpeta</string>
     <string name="kbm_help_op_create_group">Crear grupo</string>
-    <string name="kbm_help_op_delete">Borrar</string>
+    <string name="kbm_help_op_delete">Eliminar</string>
     <string name="kbm_help_op_edit">Editar</string>
     <string name="kbm_help_op_move">Mover</string>
     <string name="kbm_help_op_refresh">Refrescar</string>

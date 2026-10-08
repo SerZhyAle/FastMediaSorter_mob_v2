@@ -96,6 +96,7 @@ _Generated from the app. Do not edit by hand._
 | Resource grid cell size | Sets how large the resource cells are in the main window grid: small fits more resources per row, large makes each one bigger. |
 | Show resource actions in menu ⋮ | Off adds shortcut buttons for the frequent resource actions (edit, duplicate, move, delete) directly on the row. The ⋮ menu with the full action list is always available either way. |
 | Secure sensitive screens | Blocks screenshots and the Recents preview on screens that show passwords (add/edit resource, credentials in Settings, the login WebView, and the credential QR). On by default. |
+| Share access through Google Drive | Puts the SFTP server's address, login and password in your Google Drive app folder so your devices on the same Google account can connect; off by default, and while off those devices see the share but cannot connect to it. |
 | Exchange server | Lets the SFTP server register on your exchange server so devices in any network can reach it; off keeps the server local-network only. |
 | SFTP server | Starts or stops the SFTP server; while it runs a notification with a Stop action stays in the shade. |
 | Show hidden files | Shows files and folders whose names begin with a dot (hidden by convention). |

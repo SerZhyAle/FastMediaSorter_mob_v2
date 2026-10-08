@@ -37,7 +37,7 @@
              EMPTY and the face is unchanged. -->
         <ComplicationSlot x="0" y="0" width="480" height="480" slotId="6" displayName="slot_face_photo_label" supportedTypes="PHOTO_IMAGE EMPTY" isCustomizable="FALSE">
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFacePhotoComplicationService" primaryProviderType="PHOTO_IMAGE" secondaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearFacePhotoComplicationService" secondaryProviderType="PHOTO_IMAGE" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearFacePhotoComplicationService" primaryProviderType="PHOTO_IMAGE" secondaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFacePhotoComplicationService" secondaryProviderType="PHOTO_IMAGE" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
             <BoundingBox x="239" y="476" width="2" height="2" />
             <Complication type="PHOTO_IMAGE">
                 <PartImage x="0" y="0" width="480" height="480">
@@ -67,7 +67,7 @@
              their defaults and the face is the S1677 face. The slot is 1 px, draws nothing and is not
              customizable, so the editor never offers it. -->
         <ComplicationSlot x="239" y="2" width="2" height="2" slotId="5" displayName="slot_clock_style_label" supportedTypes="RANGED_VALUE EMPTY" isCustomizable="FALSE">
-            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearClockStyleComplicationService" primaryProviderType="RANGED_VALUE" secondaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearClockStyleComplicationService" secondaryProviderType="RANGED_VALUE" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearClockStyleComplicationService" primaryProviderType="RANGED_VALUE" secondaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearClockStyleComplicationService" secondaryProviderType="RANGED_VALUE" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
             <BoundingBox x="0" y="0" width="2" height="2" />
             <Complication type="RANGED_VALUE">
                 <PartDraw x="0" y="0" width="1" height="1" alpha="0">
@@ -712,11 +712,14 @@
         <!-- ========== complication slots ==========
              Six customizable buttons, at the format ceiling of eight - the other two are the hidden
              style and photo service slots above. Each of the bottom four carries a primaryProvider
-             naming its own slot service in the wear module, written from the RELEASE application id
-             of the watch app, and a secondaryProvider naming the same component under the .debug
+             naming its own slot service in the wear module, written from the .debug application id
+             of the watch app, and a secondaryProvider naming the same component under the RELEASE
              application id (S4022). The watch tries the primary first and falls back to the
              secondary, so one store face serves a release watch app and a debug one alike; neither
              id alone would do, because a slot bound to a package that is not installed sits empty.
+             The debug id goes first because a watch can carry both apps: the store build installed
+             beside the owner's noLegal debug one has no slot services, so release-first left the
+             owner's slots bound to a package that cannot serve them.
              The same pair sits on the style, photo and screen-off service slots. The one thing that
              cannot follow is the <Launch> on the dial group: its target has no fallback, so on a
              watch that carries only the debug app the centre tap opens nothing.
@@ -756,7 +759,7 @@
 
         <ComplicationSlot x="48" y="304" width="87" height="87" slotId="1" displayName="slot_outer_left_label" supportedTypes="SHORT_TEXT MONOCHROMATIC_IMAGE EMPTY">
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFaceSlot1ComplicationService" primaryProviderType="SHORT_TEXT" secondaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearFaceSlot1ComplicationService" secondaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearFaceSlot1ComplicationService" primaryProviderType="SHORT_TEXT" secondaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFaceSlot1ComplicationService" secondaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
             <BoundingOval x="0" y="0" width="87" height="87" outlinePadding="2.0" />
             <Complication type="SHORT_TEXT">
                 <PartDraw x="0" y="0" width="87" height="87">
@@ -796,7 +799,7 @@
 
         <ComplicationSlot x="148" y="346" width="87" height="87" slotId="2" displayName="slot_inner_left_label" supportedTypes="SHORT_TEXT EMPTY">
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFaceSlot2ComplicationService" primaryProviderType="SHORT_TEXT" secondaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearFaceSlot2ComplicationService" secondaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearFaceSlot2ComplicationService" primaryProviderType="SHORT_TEXT" secondaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFaceSlot2ComplicationService" secondaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
             <BoundingOval x="0" y="0" width="87" height="87" outlinePadding="2.0" />
             <Complication type="SHORT_TEXT">
                 <PartDraw x="0" y="0" width="87" height="87">
@@ -823,7 +826,7 @@
 
         <ComplicationSlot x="245" y="346" width="87" height="87" slotId="3" displayName="slot_inner_right_label" supportedTypes="SHORT_TEXT EMPTY">
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFaceSlot3ComplicationService" primaryProviderType="SHORT_TEXT" secondaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearFaceSlot3ComplicationService" secondaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearFaceSlot3ComplicationService" primaryProviderType="SHORT_TEXT" secondaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFaceSlot3ComplicationService" secondaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
             <BoundingOval x="0" y="0" width="87" height="87" outlinePadding="2.0" />
             <Complication type="SHORT_TEXT">
                 <PartDraw x="0" y="0" width="87" height="87">
@@ -850,7 +853,7 @@
 
         <ComplicationSlot x="345" y="304" width="87" height="87" slotId="4" displayName="slot_outer_right_label" supportedTypes="SMALL_IMAGE MONOCHROMATIC_IMAGE SHORT_TEXT EMPTY">
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFaceSlot4ComplicationService" primaryProviderType="SHORT_TEXT" secondaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearFaceSlot4ComplicationService" secondaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearFaceSlot4ComplicationService" primaryProviderType="SHORT_TEXT" secondaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFaceSlot4ComplicationService" secondaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
             <BoundingOval x="0" y="0" width="87" height="87" outlinePadding="2.0" />
             <Complication type="SMALL_IMAGE">
                 <PartDraw x="0" y="0" width="87" height="87">
@@ -949,7 +952,7 @@
              rejects the policy and the slot stays empty (S4018 sweep, 2026-10-03). -->
         <ComplicationSlot x="282" y="23" width="87" height="87" slotId="8" displayName="slot_top_right_label" supportedTypes="SHORT_TEXT MONOCHROMATIC_IMAGE EMPTY">
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearScreenOffComplicationService" primaryProviderType="MONOCHROMATIC_IMAGE" secondaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearScreenOffComplicationService" secondaryProviderType="MONOCHROMATIC_IMAGE" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearScreenOffComplicationService" primaryProviderType="MONOCHROMATIC_IMAGE" secondaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearScreenOffComplicationService" secondaryProviderType="MONOCHROMATIC_IMAGE" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
             <BoundingOval x="0" y="0" width="87" height="87" outlinePadding="2.0" />
             <Complication type="SHORT_TEXT">
                 <PartDraw x="0" y="0" width="87" height="87">

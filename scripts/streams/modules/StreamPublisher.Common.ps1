@@ -191,8 +191,9 @@ function Get-CanonicalTopic {
 }
 
 # Grouping values are a producer contract: the Android filter matches these ids directly, so each source
-# must converge before a candidate reaches a CSV write. Categories and countries preserve an unknown value
-# for review; topics intentionally keep their existing closed-set fallback of General.
+# must converge before a candidate reaches a CSV write. Categories preserve an unknown value for review;
+# topics intentionally keep their existing closed-set fallback of General; language and country fold to
+# the closed sets of StreamPublisher.Facets.ps1 (STREAM-BANK 2.3, amendment O).
 # Rubrics that make a row a camera. Assigning the category from the RUBRIC rather than from the
 # collecting source is what lets one rule cover both new candidates and the rows already shipped:
 # the published CSV has no 'source' column, so a source-keyed rule could never reach them (S1476).
@@ -216,67 +217,6 @@ function Get-CanonicalCategory {
         { $_ -in @('webcam', 'webcams', 'cam', 'cams') } { return 'Webcam' }
         default { return $Category.Trim() }
     }
-}
-
-function Get-CanonicalLanguageToken {
-    param([string]$Language)
-    $normalized = ($Language ?? '').Trim().ToLowerInvariant() -replace '\s+', ' '
-    switch ($normalized) {
-        { $_ -in @('american english', 'british english', 'english uk', 'engilsh') } { return 'english' }
-        { $_ -in @('deutsch', 'gernan', 'gerrnan') } { return 'german' }
-        { $_ -in @('español argentino', 'español internacional', '#spanish') } { return 'spanish' }
-        { $_ -in @('brazilian portuguese', 'português brasileiro', 'portugues do brasil', 'português (br)') } {
-            return 'portuguese'
-        }
-        'bahasa indonesia' { return 'indonesian' }
-        'ภาษาไทย' { return 'thai' }
-        default { return $normalized }
-    }
-}
-
-function Get-CanonicalLanguages {
-    param([string]$Languages)
-    $raw = ($Languages ?? '').Trim()
-    if (-not $raw) { return '' }
-    if ($raw.ToLowerInvariant() -eq 'english german') { return 'english,german' }
-    $tokens = @($raw -split '[,;/|]' |
-        ForEach-Object { Get-CanonicalLanguageToken -Language $_ } |
-        Where-Object { $_ } |
-        Select-Object -Unique)
-    return $tokens -join ','
-}
-
-function Get-CountryNameToCode {
-    if ($script:CountryNameToCode) { return $script:CountryNameToCode }
-    $map = @{}
-    foreach ($culture in [System.Globalization.CultureInfo]::GetCultures(
-            [System.Globalization.CultureTypes]::SpecificCultures)) {
-        try {
-            $region = [System.Globalization.RegionInfo]::new($culture.Name)
-            foreach ($name in @($region.EnglishName, $region.NativeName, $region.DisplayName)) {
-                $key = ($name ?? '').Trim().ToLowerInvariant() -replace '\s+', ' '
-                if ($key) { $map[$key] = $region.TwoLetterISORegionName }
-            }
-        } catch {
-            # A culture without a region is not a catalogue value and contributes no alias.
-        }
-    }
-    $script:CountryNameToCode = $map
-    return $map
-}
-
-function Get-CanonicalCountry {
-    param([string]$Country)
-    $raw = ($Country ?? '').Trim()
-    if (-not $raw) { return '' }
-    $upper = $raw.ToUpperInvariant()
-    if ($upper -match '^[A-Z]{2}$') { return $upper }
-    switch ($raw.ToLowerInvariant()) {
-        'uk' { return 'GB' }
-        'usa' { return 'US' }
-    }
-    $key = $raw.ToLowerInvariant() -replace '\s+', ' '
-    return (Get-CountryNameToCode)[$key] ?? $raw
 }
 
 function Map-IptvTopic([string]$cat) {

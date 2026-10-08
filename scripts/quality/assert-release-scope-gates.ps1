@@ -94,7 +94,10 @@
 
 .NOTES
     Exit codes (CLAUDE.md Rule 7):
-      0  every gate passed (or reused this session's own green run under -ReuseFinding).
+      0  every gate passed (or reused this session's own green run under -ReuseFinding). (S4130,
+         CHECK-VERDICT 0.12) A gate that exits 0 under "<gate>: NOT APPLICABLE" is N/A, counted
+         with the skipped and never with the passed; when every run gate answered that word the
+         line reads "assert-release-scope-gates: NOT APPLICABLE (..)".
       1  at least one gate found a defect. The release does not ship until it is fixed.
       2  cannot verify - a gate script is missing from scripts/quality/.
       Under -OnlyGroups the codes are unchanged; a gate that did not run is neither PASS nor FAIL and
@@ -115,6 +118,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib/gate-telemetry.ps1')
+. (Join-Path $PSScriptRoot 'lib/verdict-word.ps1')
 
 if ($Help) {
     Get-Help $PSCommandPath
@@ -174,6 +178,13 @@ $gates = [ordered]@{
     # modest rather than least - measured 4896 ms, against 373 for the locale gate below it.
     # Not passed -Quiet: which claim drifted, and by how much, is the whole content of its report.
     'assert-gate-timing-claims.ps1'    = @()
+    # S4133. Judges the published stream catalog's language and country columns against the fold of
+    # scripts/streams/modules/StreamPublisher.Facets.ps1 (STREAM-BANK 2.3, amendment O). Rule 33: a
+    # cell that is not a fixed point reaches a user only when the owner publishes the catalog, and the
+    # subject is the whole file against the whole vocabulary, so no single changed row can be blamed;
+    # each finding names its own value, its row count and what the fold turns it into; and re-running
+    # costs about a second whenever it is done. Not passed -Quiet - which value drifted is the report.
+    'assert-stream-facet-values.ps1'   = @()
     # S2340. Reads two declarations - locales_config.xml and the LOCALES dict in
     # publish-play-listing.py - plus 39 small text files, so it is the cheapest member at 373 ms.
     # Rule 33 puts it in release scope on all four criteria (strategic S2340 "Гейт"): the listing
@@ -466,6 +477,7 @@ function Test-GateSelected {
 $results = [System.Collections.Generic.List[object]]::new()
 $missing = 0
 $skipped = 0
+$notApplicable = 0
 foreach ($entry in $gates.GetEnumerator()) {
     if (-not (Test-GateSelected -GateName $entry.Key)) {
         $results.Add([pscustomobject]@{ Gate = $entry.Key; Status = 'SKIPPED'; Ms = 0 })
@@ -491,17 +503,23 @@ foreach ($entry in $gates.GetEnumerator()) {
     if ((Get-Command -Name $path -ErrorAction SilentlyContinue)?.Parameters.ContainsKey('Gate')) {
         $gateArgs = @('-Gate') + $gateArgs
     }
-    & $pwshExe -NoProfile -File $path @gateArgs | Write-Host
+    # S4130: streamed as before and kept, so the verdict line can be read for NOT APPLICABLE.
+    $childLines = @(& $pwshExe -NoProfile -File $path @gateArgs | ForEach-Object { Write-Host $_; "$_" })
+    $childExit = [int]$LASTEXITCODE
     $sw.Stop()
-    $status = ($LASTEXITCODE -eq 0) ? 'PASS' : 'FAIL'
+    $status = ($childExit -eq 0) ? 'PASS' : 'FAIL'
+    if ($status -eq 'PASS' -and (Test-NotApplicableVerdict -Lines $childLines)) {
+        $status = 'N/A'
+        $notApplicable++
+    }
     $results.Add([pscustomobject]@{ Gate = $entry.Key; Status = $status; Ms = [int]$sw.Elapsed.TotalMilliseconds })
     Write-GateTelemetryRecord -Runner 'assert-release-scope-gates' -Gate $entry.Key `
-        -Status $status -ExitCode ([int]$LASTEXITCODE) -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
+        -Status (($status -eq 'N/A') ? 'SKIP' : $status) -ExitCode $childExit -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
 }
 
 if ($Json) {
     [ordered]@{
-        status = if ($missing -gt 0) { 'cannot-verify' } elseif (@($results | Where-Object { $_.Status -ne 'PASS' -and $_.Status -ne 'SKIPPED' }).Count -gt 0) { 'fail' } else { 'pass' }
+        status = if ($missing -gt 0) { 'cannot-verify' } elseif (@($results | Where-Object { $_.Status -notin @('PASS', 'SKIPPED', 'N/A') }).Count -gt 0) { 'fail' } elseif ($notApplicable -gt 0 -and @($results | Where-Object { $_.Status -eq 'PASS' }).Count -eq 0) { 'not-applicable' } else { 'pass' }
         gates  = $results
     } | ConvertTo-Json -Depth 4
 }
@@ -509,7 +527,7 @@ else {
     Write-Host ''
     Write-Host 'assert-release-scope-gates summary:' -ForegroundColor Cyan
     foreach ($r in $results) {
-        $color = switch ($r.Status) { 'PASS' { 'Green' } 'FAIL' { 'Red' } 'SKIPPED' { 'DarkGray' } default { 'Yellow' } }
+        $color = switch ($r.Status) { 'PASS' { 'Green' } 'FAIL' { 'Red' } 'SKIPPED' { 'DarkGray' } 'N/A' { 'DarkGray' } default { 'Yellow' } }
         Write-Host ("  {0,-40} {1} ({2} ms)" -f $r.Gate, $r.Status, $r.Ms) -ForegroundColor $color
     }
     if ($skipped -gt 0) {
@@ -565,10 +583,10 @@ if ($missing -gt 0) {
     exit 2
 }
 
-$failed = @($results | Where-Object { $_.Status -ne 'PASS' -and $_.Status -ne 'SKIPPED' }).Count
+$failed = @($results | Where-Object { $_.Status -notin @('PASS', 'SKIPPED', 'N/A') }).Count
 if ($failed -gt 0) {
     Write-GateBatchTelemetryRecord -Runner 'assert-release-scope-gates' -ExitCode 1 -ElapsedMs $batchMs
-    $names = (@($results | Where-Object { $_.Status -ne 'PASS' -and $_.Status -ne 'SKIPPED' } | ForEach-Object { $_.Gate }) -join ', ')
+    $names = (@($results | Where-Object { $_.Status -notin @('PASS', 'SKIPPED', 'N/A') } | ForEach-Object { $_.Gate }) -join ', ')
     Write-Host @'
   Why these gates run HERE and not in every closure (S2517 moved this off the always-loaded rules
   page): a gate is placed by its subject, and the subject of each of these is the tree as a whole,
@@ -582,6 +600,15 @@ if ($failed -gt 0) {
         "$names. Each printed its own remediation above; fix and re-run until this exits 0. " +
         'The release does not ship on a red scope.') -ErrorAction Continue
     exit 1
+}
+
+$passedRun = @($results | Where-Object { $_.Status -eq 'PASS' }).Count
+# S4130: CHECK-VERDICT 0.12 rule 2.14 - every gate that ran answered NOT APPLICABLE, so the release
+# scope was not inspected: exit 0 under that word, never PASS, and no "scope clean" finding posted.
+if ($notApplicable -gt 0 -and $passedRun -eq 0) {
+    Write-GateBatchTelemetryRecord -Runner 'assert-release-scope-gates' -ExitCode 0 -ElapsedMs $batchMs
+    Write-Host "assert-release-scope-gates: NOT APPLICABLE (0 passed, $($skipped + $notApplicable) skipped, $notApplicable not applicable)." -ForegroundColor DarkGray
+    exit 0
 }
 
 # S2409: post a best-effort finding on a clean run
@@ -602,5 +629,6 @@ try {
 } catch { }
 
 Write-GateBatchTelemetryRecord -Runner 'assert-release-scope-gates' -ExitCode 0 -ElapsedMs $batchMs
-Write-Host 'assert-release-scope-gates: PASS (release scope clean).' -ForegroundColor Green
+$naNote = if ($notApplicable -gt 0) { "; $passedRun passed, $notApplicable not applicable" } else { '' }
+Write-Host "assert-release-scope-gates: PASS (release scope clean$naNote)." -ForegroundColor Green
 exit 0

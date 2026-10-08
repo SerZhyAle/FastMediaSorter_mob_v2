@@ -87,7 +87,29 @@ Assert-Case 'quiet: a clean run keeps the summary blocks off the console' `
 Assert-Case 'quiet: only a red child prints its output without -ShowPasses' `
     ($text -match "if \(\`$consoleVerbose -or \`$r\.Status -eq 'FAIL'\) \{ Write-Host")
 Assert-Case 'quiet: the PASS verdict carries passed and skipped counts' `
-    ($text -match '\$counts = "\$passedCount passed, \$\(\$skippedRows\.Count\) skipped"')
+    (($text -match '\$skippedTotal = \$skippedRows\.Count \+ \$notApplicableRows\.Count') -and
+        ($text -match '\$counts = "\$passedCount passed, \$skippedTotal skipped"'))
+
+# S4130: CHECK-VERDICT 0.12 item A. The reader is shared with the other two aggregators, so it is
+# driven directly; the runner's use of it is asserted from the text.
+. (Join-Path $repoRoot 'scripts/quality/lib/verdict-word.ps1')
+Assert-Case 'reader: a NOT APPLICABLE last line with a parenthesis is the word' `
+    (Test-NotApplicableVerdict -Lines @('subject: scope=x', 'gate-a: NOT APPLICABLE (-Module app_v2)', ''))
+Assert-Case 'reader: a bare NOT APPLICABLE last line is the word' `
+    (Test-NotApplicableVerdict -Lines @("noise`ngate-a: NOT APPLICABLE"))
+Assert-Case 'reader: the word on an earlier line is not the verdict' `
+    (-not (Test-NotApplicableVerdict -Lines @('gate-a: NOT APPLICABLE', 'gate-a: PASS')))
+Assert-Case 'reader: lowercase prose is not the word' `
+    (-not (Test-NotApplicableVerdict -Lines @("gate-a: $('not' + ' applicable') - prose")))
+Assert-Case 'reader: colour escapes do not hide the word' `
+    (Test-NotApplicableVerdict -Lines @("$([char]27)[90mgate-a: NOT APPLICABLE (x)$([char]27)[0m"))
+Assert-Case 'reader: no output is not the word' (-not (Test-NotApplicableVerdict -Lines @()))
+Assert-Case 'N/A: an exit-0 child under the word is re-classified, in the parent' `
+    ($text -match "if \(\`$r\.Status -eq 'PASS' -and \(Test-NotApplicableVerdict -Lines @\(\`$r\.Output\)\)\) \{ \`$r\.Status = 'N/A' \}")
+Assert-Case 'N/A: -FailOnSkipped charges the exit-3 skips only' `
+    ($text -match '\$failed \+= \$skippedRows\.Count')
+Assert-Case 'N/A: every child under the word answers NOT APPLICABLE with exit 0' `
+    ($text -match '(?s)\$results\.Count -eq 0 -and \$skippedRows\.Count -eq 0 -and \$notApplicableRows\.Count -gt 0\) \{\s*Write-Host "assert-fast-gates: NOT APPLICABLE.*?exit 0')
 Assert-Case 'protocol: every run writes fast-gates-runs and a failing run names it' `
     (($text -match 'fast-gates-runs') -and ($text -match '(?s)FAIL \(\$failed gate\(s\)\)\.".*?protocol: \$protocolPath'))
 Assert-Case 'verbose: -ShowPasses and FMS_POSTCHANGE_VERBOSE restore the old output' `

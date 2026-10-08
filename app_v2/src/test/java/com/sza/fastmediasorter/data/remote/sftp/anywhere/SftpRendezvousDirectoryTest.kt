@@ -55,6 +55,7 @@ class SftpRendezvousDirectoryTest {
         presence: String = SftpRendezvousDevice.PRESENCE_ONLINE,
         product: String = SftpRendezvousDevice.PRODUCT_FMS_ANDROID,
         requests: List<Entry<SftpRendezvousRequest>> = emptyList(),
+        shared: Boolean = true,
     ) {
         val device = SftpRendezvousDevice(
             PRODUCER, "Pixel", product, null, null, emptyList(), presence, writtenAtMs, writtenAtMs, TTL_SECONDS,
@@ -65,7 +66,7 @@ class SftpRendezvousDirectoryTest {
             PRODUCER,
             SftpRendezvousResource.KIND_SFTP_SHARE,
             "Pixel",
-            descriptor,
+            descriptor.takeIf { shared },
             writtenAtMs,
             writtenAtMs,
             TTL_SECONDS,
@@ -85,6 +86,14 @@ class SftpRendezvousDirectoryTest {
         assertEquals(listOf(NEW_ADDRESS), directory.endpointsFor(PIN))
         assertEquals(PIN, directory.fingerprintForEndpoint(NEW_ADDRESS))
         assertNull(directory.fingerprintForEndpoint(OLD_ADDRESS))
+    }
+
+    @Test
+    fun `a share published without access is listed but serves no endpoint`() = runBlocking {
+        published(START_MS, shared = false)
+        directory.refreshAfterFailure()
+        assertTrue(directory.endpointsFor(PIN).isEmpty())
+        assertNull(directory.fingerprintForEndpoint(NEW_ADDRESS))
     }
 
     @Test

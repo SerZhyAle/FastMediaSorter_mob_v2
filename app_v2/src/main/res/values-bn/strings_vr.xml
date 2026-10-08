@@ -50,7 +50,7 @@
     <string name="vr_fullscreen_already_active">ভিআর-এ ইতিমধ্যেই ফুলস্ক্রিন</string>
     <string name="vr_hud_applied_format">প্রয়োগ করা হয়েছে: %1$s</string>
     <string name="vr_hud_copy_done">অনুলিপি করা হয়েছে</string>
-    <string name="vr_hud_error_network">কোন নেটওয়ার্ক নেই</string>
+    <string name="vr_hud_error_network">কোনো নেটওয়ার্ক নেই</string>
     <string name="vr_hud_first_file">প্রথম ফাইল</string>
     <string name="vr_hud_first_run_cheat">A পজ/প্লে · L স্টিক সিক · R স্টিক ফাইল/ভলিউম · গ্রিপ জুম · Menu সেটিংস</string>
     <string name="vr_hud_guard_controls">ইমার্সিভ মোডে কন্ট্রোল ডায়ালগটি উপলব্ধ নয়। এটি খোলার জন্য ইমার্সিভ থেকে প্রস্থান করুন।</string>

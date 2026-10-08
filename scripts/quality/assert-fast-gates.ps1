@@ -132,7 +132,10 @@
     Exit codes:
       0  every gate passed; or, with -ChangedFiles, every gate that judged the changed set
          passed and only project-wide gates were red. A gate that exited 3 - it could not verify,
-         see below - does not affect this code unless -FailOnSkipped was passed.
+         see below - does not affect this code unless -FailOnSkipped was passed. (S4130,
+         CHECK-VERDICT 0.12) A child that exits 0 under "<gate>: NOT APPLICABLE" is counted with
+         the skipped, never with the passed, and -FailOnSkipped does not charge it; when every
+         child answered that word the line reads "assert-fast-gates: NOT APPLICABLE (..)".
       1  at least one gate failed or is MISSING; with -ChangedFiles, at least one gate that
          judged the changed set failed or is MISSING; or -FailOnSkipped and a gate was skipped.
 
@@ -167,6 +170,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib/gate-telemetry.ps1')
+. (Join-Path $PSScriptRoot 'lib/verdict-word.ps1')
 
 # S2453: the batch's own wall clock, which is what `docs/BUILD_TEST_FAST_PATH.md` claims for
 # `a.ps1 fg` and what the caller waits on. Started before any gate so the record covers the
@@ -688,6 +692,10 @@ foreach ($r in (@($completed) + @($missing) | Sort-Object Index)) {
         Write-Protocol $r.Output.TrimEnd()
         if ($consoleVerbose -or $r.Status -eq 'FAIL') { Write-Host $r.Output.TrimEnd() }
     }
+    # S4130: CHECK-VERDICT 0.12 item A - exit 0 under "<gate>: NOT APPLICABLE" is the caller's own
+    # deselection. Read off the verdict line here, in the parent, because a runspace does not see
+    # the dot-sourced reader; telemetry records it as SKIP, the class it is counted with.
+    if ($r.Status -eq 'PASS' -and (Test-NotApplicableVerdict -Lines @($r.Output))) { $r.Status = 'N/A' }
     $rowScope = $r.Scope
     if ($rowScope -eq 'tree' -and $r.Status -eq 'FAIL' -and (Test-OutputNamesChangedFile -Output $r.Output)) {
         $rowScope = 'set-named'
@@ -700,7 +708,7 @@ foreach ($r in (@($completed) + @($missing) | Sort-Object Index)) {
     $telemetry = @{
         Runner    = 'assert-fast-gates'
         Gate      = $r.Gate
-        Status    = $r.Status
+        Status    = ($r.Status -eq 'N/A') ? 'SKIP' : $r.Status
         ExitCode  = $r.ExitCode
         ElapsedMs = $r.Ms
     }
@@ -757,14 +765,17 @@ function Write-GateBlock {
     }
     # S3075: SKIP is not a failure and not a pass - the gate did not run, so it is reported in its
     # own block below and never contributes to a block's failure list.
-    return @($Rows | Where-Object { $_.Status -notin @('PASS', 'SKIP') })
+    return @($Rows | Where-Object { $_.Status -notin @('PASS', 'SKIP', 'N/A') })
 }
 
 # S3075: the skipped gates leave the two scope blocks entirely. Keeping them in place would make
 # every reader check the status column of a line that has nothing to say about the tree, and the
 # whole reason the split exists is that a summary nobody reads closely catches nothing.
 $skippedRows = @($results | Where-Object { $_.Status -eq 'SKIP' })
-$results = [System.Collections.Generic.List[object]]@($results | Where-Object { $_.Status -ne 'SKIP' })
+# S4130: a NOT APPLICABLE child leaves the scope blocks like a skip and is counted with the skipped,
+# but -FailOnSkipped never charges it - the caller switched its work off, nothing failed to run.
+$notApplicableRows = @($results | Where-Object { $_.Status -eq 'N/A' })
+$results = [System.Collections.Generic.List[object]]@($results | Where-Object { $_.Status -notin @('SKIP', 'N/A') })
 $passedCount = @($results | Where-Object { $_.Status -eq 'PASS' }).Count
 $anyRed = @($results | Where-Object { $_.Status -ne 'PASS' }).Count -gt 0
 $showSummary = $consoleVerbose -or $anyRed -or ($FailOnSkipped -and $skippedRows.Count -gt 0)
@@ -790,6 +801,11 @@ if ($skippedRows.Count -gt 0) {
     Write-Line -Text '  Each line above printed the path it is missing. A gitignored root - PLAN/, .claude/ -' -Console $showSummary -Color Yellow
     Write-Line -Text '  is absent by design on a fresh clone, a release worktree and a CI runner; -FailOnSkipped' -Console $showSummary -Color Yellow
     Write-Line -Text '  makes these fatal for a caller that requires full coverage.' -Console $showSummary -Color Yellow
+}
+
+if ($notApplicableRows.Count -gt 0) {
+    Write-Line -Text '' -Console $showSummary
+    [void](Write-GateBlock -Title 'assert-fast-gates summary - NOT APPLICABLE (switched off by the caller):' -Rows $notApplicableRows)
 }
 
 $batchStopwatch.Stop()
@@ -821,7 +837,15 @@ if ($failed -gt 0) {
     exit 1
 }
 Write-GateBatchTelemetryRecord @batchArgs -ExitCode 0
-$counts = "$passedCount passed, $($skippedRows.Count) skipped"
+$skippedTotal = $skippedRows.Count + $notApplicableRows.Count
+$counts = "$passedCount passed, $skippedTotal skipped"
+# S4130: CHECK-VERDICT 0.12 rule 2.14 - every quoted child answered NOT APPLICABLE, so nothing was
+# inspected; exit 0 under that word, never PASS.
+if ($results.Count -eq 0 -and $skippedRows.Count -eq 0 -and $notApplicableRows.Count -gt 0) {
+    Write-Host "assert-fast-gates: NOT APPLICABLE ($counts, $($notApplicableRows.Count) not applicable)." -ForegroundColor DarkGray
+    exit 0
+}
+if ($notApplicableRows.Count -gt 0) { $counts += ", $($notApplicableRows.Count) not applicable" }
 $verdict = if ($split) { "PASS (every gate judging your set is green; $counts)." } else { "PASS (all fast gates green; $counts)." }
 if ($skippedRows.Count -gt 0 -and $showSummary) { $verdict += " $($skippedRows.Count) gate(s) NOT RUN - see the block above." }
 Write-Host "assert-fast-gates: $verdict" -ForegroundColor Green

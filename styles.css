@@ -1762,6 +1762,11 @@ footer p {
     line-height: 1;
     padding: 0.2rem;
     transition: var(--transition-smooth);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    min-height: 28px;
 }
 
 .detail-drawer-close:hover {
@@ -2031,6 +2036,11 @@ footer p {
     font-weight: 700;
     transition: var(--transition-smooth);
     padding: 0.1rem 0.3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    min-height: 28px;
 }
 
 .filter-pill-active .clear-filter-btn:hover {
@@ -2540,7 +2550,7 @@ html[data-theme="light"] .seg button[aria-pressed="true"] {
     text-align: right;
 }
 
-/* SITE-EXPERIENCE rule 17: on a touch screen the brand, theme toggle and footer links are at least 44 px. */
+/* SITE-EXPERIENCE rule 17 and ICON-RENDER rule 5: on a touch screen the brand, every glyph-only control and footer links are at least 44 px. */
 @media (pointer: coarse) {
     .brand {
         min-height: 44px;
@@ -2548,6 +2558,11 @@ html[data-theme="light"] .seg button[aria-pressed="true"] {
     .theme-btn {
         min-width: 44px;
         height: 44px;
+    }
+    .filter-pill-active .clear-filter-btn,
+    .detail-drawer-close {
+        min-width: 44px;
+        min-height: 44px;
     }
     .footer-bottom a {
         display: inline-flex;

@@ -4,7 +4,7 @@
 <resources>
     <string name="calculator_action_add">Hinzufügen</string>
     <string name="calculator_action_backspace">Rücktaste</string>
-    <string name="calculator_action_clear">Löschen</string>
+    <string name="calculator_action_clear">Leeren</string>
     <string name="calculator_action_clear_entry">Freie Einfahrt</string>
     <string name="calculator_action_clear_history">Verlauf löschen</string>
     <string name="calculator_action_decimal">Komma</string>

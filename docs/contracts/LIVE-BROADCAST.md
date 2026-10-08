@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.07 05:04</sub>
+<sub class="doc-stamp">26.10.07 12:50</sub>
 
 # Pointer - `LIVE-BROADCAST`
 
 | | |
 | --- | --- |
 | **Id** | `LIVE-BROADCAST` |
-| **Version** | 0.17, draft - amendment 13 is [PROPOSED]: PC producer, HTTP MPEG-TS video, `RELAY`/`TUNNEL` endpoints through `DEVICE-EXCHANGE`, receivers and cast. Owner: this product |
+| **Version** | 0.18, draft - amendment 13 is [PROPOSED]: PC producer, HTTP MPEG-TS video, `RELAY`/`TUNNEL` endpoints through `DEVICE-EXCHANGE`, receivers and cast. Owner: this product |
 | **Home** | `live-broadcast/README.md` in the shared contracts catalog |
 | **Role here** | producer - the phone and watch audio broadcast; also reads its own descriptor on import |
 
@@ -22,6 +22,8 @@
 - Video: deliver the first picture within the keyframe interval plus 1 s of a listener connecting, and
   request an IDR when a listener attaches (0.17 item I, `[CONTRACT]` for the RTSP kinds).
 - A producer with several sources names each `sourceId` as `<deviceSourceId>:<source>` (0.15 item G).
+- A `TUNNEL` endpoint's `inner` is never omitted: with no LAN address it keeps the scheme and the path on
+  `192.0.2.1` (0.18 item J); the relay upload gains no listener-attached notice (item K).
 
 ## Where it lives here
 

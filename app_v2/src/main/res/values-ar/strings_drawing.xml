@@ -3,7 +3,7 @@
      Untranslated keys are absent on purpose - Android falls back to English (S1190, ADR-6). -->
 <resources>
     <string name="draw_color_custom_cd">لون مخصص</string>
-    <string name="draw_overflow_save_inplace">يحفظ</string>
+    <string name="draw_overflow_save_inplace">حفظ</string>
     <string name="draw_overflow_save_new">حفظ باسم..</string>
     <string name="draw_overflow_settings">إعدادات</string>
     <string name="draw_overflow_undo_all">تراجع عن الكل</string>

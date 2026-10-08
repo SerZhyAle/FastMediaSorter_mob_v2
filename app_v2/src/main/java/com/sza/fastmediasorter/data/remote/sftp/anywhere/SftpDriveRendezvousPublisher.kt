@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.cloud.GoogleDriveSftpRendezvousDataSource
 import com.sza.fastmediasorter.data.remote.sftp.server.SftpServerIdentityStore
 import com.sza.fastmediasorter.data.repository.settings.SftpRendezvousIdentityStore
+import com.sza.fastmediasorter.data.repository.settings.SftpServerSettingsStore
 import com.sza.fastmediasorter.domain.model.SftpPairingPayload
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import com.sza.fastmediasorter.domain.model.SftpRendezvousRequest
@@ -18,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -31,6 +33,10 @@ import javax.inject.Singleton
  * consumer asks. On stop the device record turns `offline` and the resource record stays, because a stopped
  * share is listed as offline, not as gone (section 9 rule 3).
  *
+ * The record carries `access` - the endpoints and the password - only while the user has opted in to it
+ * (section 15 item X); otherwise it lists the share without them, and a change of the opt-in rewrites it at
+ * the next poll, so turning it off takes the password back off Drive.
+ *
  * Rendezvous only - nothing is relayed through Drive. With no `drive.appdata` token the store answers
  * every call with a failure and the loop just retries at the announce interval, so a device without a
  * Google account pays one silent token lookup per interval and nothing else.
@@ -39,6 +45,7 @@ import javax.inject.Singleton
 class SftpDriveRendezvousPublisher @Inject constructor(
     private val store: GoogleDriveSftpRendezvousDataSource,
     private val identityStore: SftpServerIdentityStore,
+    private val settings: SftpServerSettingsStore,
     private val ids: SftpRendezvousIdentityStore,
     @ApplicationScope private val appScope: CoroutineScope,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -75,15 +82,16 @@ class SftpDriveRendezvousPublisher @Inject constructor(
         cleanUp(deviceId, binding.retiredResourceId)
         val handled = HashSet<String>()
         var lastAttemptMs: Long? = null
-        var published: List<String>? = null
+        var published: Publication? = null
         while (currentCoroutineContext().isActive) {
             val now = System.currentTimeMillis()
-            val hosts = addresses()
+            val shared = settings.driveAccessShared.first()
+            val current = Publication(shared, if (shared) addresses() else emptyList())
             val due = lastAttemptMs == null || now - lastAttemptMs >= ANNOUNCE_INTERVAL_MS
-            val changed = published != null && hosts != published
+            val changed = published != null && current != published
             val asked = published != null && wasAsked(deviceId, handled)
             if (due || changed || asked) {
-                published = hosts.takeIf { announce(deviceId, binding.resourceId, port, it, now) }
+                published = current.takeIf { announce(deviceId, binding.resourceId, port, it, now) }
                 lastAttemptMs = now
             }
             delay(POLL_INTERVAL_MS)
@@ -94,21 +102,16 @@ class SftpDriveRendezvousPublisher @Inject constructor(
         deviceId: String,
         resourceId: String,
         port: Int,
-        hosts: List<String>,
+        publication: Publication,
         now: Long,
     ): Boolean {
         Timber.d("S4110: publisher writes the device and resource records on Drive")
+        Timber.d("S4129: resource record access follows the Drive opt-in")
         val deviceWritten = writeDevice(deviceId, SftpRendezvousDevice.PRESENCE_ONLINE, now)
-        // A phone with no LAN address has nothing a consumer could dial; its device record alone says it is up.
-        if (!deviceWritten || hosts.isEmpty()) return deviceWritten
-        val credentials = identityStore.clientCredentials()
-        val descriptor = SftpPairingPayload(
-            hosts = hosts,
-            port = port,
-            username = credentials.username,
-            password = credentials.password,
-            hostKeyFingerprint = credentials.hostKeyFingerprint,
-        ).encode()
+        // A shared phone with no LAN address has nothing a consumer could dial; its device record alone says it
+        // is up. An unshared record carries no address anyway, so it is written regardless.
+        if (!deviceWritten || (publication.shared && publication.hosts.isEmpty())) return deviceWritten
+        val descriptor = if (publication.shared) descriptor(port, publication.hosts) else null
         val resource = SftpRendezvousResource(
             resourceId = resourceId,
             deviceId = deviceId,
@@ -120,9 +123,20 @@ class SftpDriveRendezvousPublisher @Inject constructor(
             ttlSeconds = RECORD_TTL_SECONDS,
         )
         return store.writeResource(resource)
-            .onSuccess { Timber.i("SftpDriveRendezvousPublisher: published %d endpoint(s)", hosts.size) }
+            .onSuccess { Timber.i("SftpDriveRendezvousPublisher: published %d endpoint(s)", publication.hosts.size) }
             .onFailure { Timber.i("SftpDriveRendezvousPublisher: resource record skipped (%s)", it.message) }
             .isSuccess
+    }
+
+    private suspend fun descriptor(port: Int, hosts: List<String>): String {
+        val credentials = identityStore.clientCredentials()
+        return SftpPairingPayload(
+            hosts = hosts,
+            port = port,
+            username = credentials.username,
+            password = credentials.password,
+            hostKeyFingerprint = credentials.hostKeyFingerprint,
+        ).encode()
     }
 
     private suspend fun writeDevice(deviceId: String, presence: String, now: Long): Boolean {
@@ -171,6 +185,9 @@ class SftpDriveRendezvousPublisher @Inject constructor(
         handled.addAll(fresh.map { it.name })
         return fresh.isNotEmpty()
     }
+
+    /** What the last successful announce put on Drive: whether `access` went with it, and its endpoints. */
+    private data class Publication(val shared: Boolean, val hosts: List<String>)
 
     companion object {
         // Start values; the rung 3 device test measures battery against discovery delay before they freeze.

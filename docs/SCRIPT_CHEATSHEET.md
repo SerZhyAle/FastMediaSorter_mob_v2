@@ -2451,6 +2451,19 @@ scripts/docs/generate-subject-index.ps1
   Exit: 0 - subject index generated successfully or -Check verified; 1 - input file missing, output outdated on -Check, or Liquid template error
 ```
 
+### import-icon-names.ps1
+Import the reference product's names for every icon meaning in the languages beyond en, ru and uk.
+
+```
+scripts/docs/import-icon-names.ps1
+  Import the reference product's names for every icon meaning in the languages beyond en, ru and uk.
+  Params:
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -DryRun              [SwitchParameter]
+  Exit: 0 - the import ran (or, under -DryRun, was computed); counts and every refusal and tie are printed.; 1 - the vocabulary or a string resource could not be parsed; nothing is written.; 2 - could not verify: no catalog root, no iconography/vocabulary.jsonl inside it, or no locales_config.xml.
+```
+
 ### migrate-locale-addresses.ps1
 Moves every published docs/ address with a legacy locale suffix to the one hyphen form and repoints every reference to it (S4101).
 
@@ -3213,7 +3226,7 @@ scripts/quality/assert-codex-transcript-hygiene.ps1
   Advisory closing-gate (S3141): judge the Codex session transcript that authored the given ticket against the bounded-read protocol, and flag it if it did not follow one.
   Params:
     -Id  (req)  [String]
-  Exit: 0 - not applicable (wrong runtime, or no rollout found), or applicable with zero findings.; 2 - measure-codex-transcript.ps1 itself could not verify (its own exit 2).; 3 - applicable, and one or more findings (advisory).
+  Exit: 0 - NOT APPLICABLE on a Claude Code process (S4130), nothing inspected when no rollout
 ```
 
 ### assert-contract-pointers.ps1
@@ -4272,7 +4285,7 @@ scripts/quality/assert-no-release-probes.ps1
   Params:
     -Module  (req)  [String]  {app_v2|wear}
     -Quiet          [SwitchParameter]
-  Exit: 0 - no probes found in the module's src/main.; 1 - one or more probes found; the release must not proceed.; 2 - cannot verify: the module directory is absent, or the shared harness library is unavailable.
+  Exit: 0 - no probes found in the module's src/main; or, with -Module app_v2, NOT APPLICABLE (S4130).; 1 - one or more probes found; the release must not proceed.; 2 - cannot verify: the module directory is absent, or the shared harness library is unavailable.
 ```
 
 ### assert-no-secrets.ps1
@@ -4564,7 +4577,7 @@ scripts/quality/assert-release-scope-gates.ps1
     -Help                 [SwitchParameter]
     -ReuseFinding         [SwitchParameter]
     -OnlyGroups           [String[]] = @()
-  Exit: 0 every gate passed (or reused this session's own green run under -ReuseFinding).; 1 at least one gate found a defect. The release does not ship until it is fixed.; 2 cannot verify - a gate script is missing from scripts/quality/.
+  Exit: 0 every gate passed (or reused this session's own green run under -ReuseFinding). (S4130,
 ```
 
 ### assert-release-tree-binding.ps1
@@ -4916,6 +4929,19 @@ scripts/quality/assert-stream-asset-revisions.ps1
     -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
   Exit: 0 every `default` pinned asset is still produced by the publisher.; 1 a pinned asset marked `default` would stop being published - the run is refused.; 2 the gate itself cannot run: the publisher is missing, the markers are absent, the
+```
+
+### assert-stream-facet-values.ps1
+Contract gate: every language and country cell of the published stream catalog is a fixed point of the publisher's fold (STREAM-BANK 2.3, amendment O).
+
+```
+scripts/quality/assert-stream-facet-values.ps1
+  Contract gate: every language and country cell of the published stream catalog is a fixed point of the publisher's fold (STREAM-BANK 2.3, amendment O).
+  Params:
+    -CatalogPath         [String]
+    -RepoRoot            [String]
+    -Quiet               [SwitchParameter]
+  Exit: 0 every language and country cell is a fixed point of the fold.; 1 at least one cell is not; the offenders are printed.; 2 invalid input: the catalog has no `language` or `country` column, or cannot be parsed.; 3 could not verify: the catalog file or the facet module is absent.
 ```
 
 ### assert-string-format.ps1
@@ -6372,6 +6398,16 @@ scripts/quality/assert-site-origins.tests/Run-Tests.ps1
   Exit: 0 every case passed; 1 at least one case failed
 ```
 
+## scripts\quality\assert-stream-facet-values.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-stream-facet-values.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
 ## scripts\quality\assert-suite-tracked.tests
 
 ### Run-Tests.ps1
@@ -6946,6 +6982,15 @@ The record behind a red script verdict - one row per failing invocation (S3288).
 ```
 scripts/quality/lib/tool-failure-journal.ps1
   The record behind a red script verdict - one row per failing invocation (S3288).
+  (no param block)
+```
+
+### verdict-word.ps1
+S4130: reads the NOT APPLICABLE verdict word off a child check's output - contract CHECK-VERDICT 0.12, section 10 item A.
+
+```
+scripts/quality/lib/verdict-word.ps1
+  S4130: reads the NOT APPLICABLE verdict word off a child check's output - contract CHECK-VERDICT 0.12, section 10 item A.
   (no param block)
 ```
 
@@ -8530,6 +8575,15 @@ Stream publisher module: candidate discovery from Radio Browser mirrors and offi
 ```
 scripts/streams/modules/StreamPublisher.Discovery.ps1
   Stream publisher module: candidate discovery from Radio Browser mirrors and official IPTV sources.
+  (no param block)
+```
+
+### StreamPublisher.Facets.ps1
+Language and country folding for the stream catalog publisher (STREAM-BANK 2.3, amendment O).
+
+```
+scripts/streams/modules/StreamPublisher.Facets.ps1
+  Language and country folding for the stream catalog publisher (STREAM-BANK 2.3, amendment O).
   (no param block)
 ```
 

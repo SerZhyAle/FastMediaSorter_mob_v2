@@ -51,7 +51,7 @@
     <string name="keybinding_label_audio_subtitle_delay">字幕延迟</string>
     <string name="keybinding_label_audio_volume_down">音量调低</string>
     <string name="keybinding_label_audio_volume_up">音量调高</string>
-    <string name="keybinding_label_browser_back">后退</string>
+    <string name="keybinding_label_browser_back">返回</string>
     <string name="keybinding_label_browser_context_menu">上下文菜单</string>
     <string name="keybinding_label_browser_multi_select">多选</string>
     <string name="keybinding_label_browser_search">搜索</string>
@@ -86,7 +86,7 @@
     <string name="keybinding_label_sorting_copy">复制</string>
     <string name="keybinding_label_sorting_create_folder">创建文件夹</string>
     <string name="keybinding_label_sorting_delete">删除</string>
-    <string name="keybinding_label_sorting_favourite">最喜欢的</string>
+    <string name="keybinding_label_sorting_favourite">加入收藏</string>
     <string name="keybinding_label_sorting_file_ops">文件操作</string>
     <string name="keybinding_label_sorting_move">移动</string>
     <string name="keybinding_label_sorting_op_slot_1">操作槽 1</string>

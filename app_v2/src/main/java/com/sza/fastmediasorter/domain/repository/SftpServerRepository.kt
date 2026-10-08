@@ -21,6 +21,11 @@ interface SftpServerRepository {
     suspend fun pairingPayload(): SftpPairingPayload?
 
     suspend fun setEnabled(enabled: Boolean)
+
+    /** The user's opt-in to put the share's address and password on Google Drive; off by default. */
+    val driveAccessShared: Flow<Boolean>
+    suspend fun setDriveAccessShared(shared: Boolean)
+
     suspend fun setPort(port: Int)
     suspend fun setAuthMode(mode: SftpServerAuthMode)
     suspend fun setAuthorizedKeys(lines: List<String>)

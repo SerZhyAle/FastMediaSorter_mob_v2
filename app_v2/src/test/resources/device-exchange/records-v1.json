@@ -8,7 +8,7 @@
     "Members are written in one fixed order: the wrapper as schemaVersion, type, writtenAt, ttlSeconds, record; each record body as listed in its vector.",
     "Timestamps are written UTC with milliseconds and Z, and read with or without milliseconds.",
     "A broadcast descriptor is carried verbatim as a JSON object, never as a string.",
-    "Every tolerated text decodes and re-encodes to its canonical text: unknown members are dropped, an unknown presence reads offline, a plays pair with a blank member and an out-of-range publicPort are dropped.",
+    "Every tolerated text decodes and re-encodes to its canonical text: unknown members are dropped, an unknown presence reads offline, a plays pair with a blank member and an out-of-range publicPort are dropped, a resource without access decodes with no descriptor (section 15 item X: listed, cannot be attached).",
     "Every skipped text decodes to nothing and is never an error."
   ],
   "valid": [
@@ -82,6 +82,11 @@
       "name": "public-port-out-of-range-dropped",
       "text": "{\"schemaVersion\":1,\"type\":\"resource\",\"writtenAt\":\"2026-10-07T12:00:00.000Z\",\"ttlSeconds\":1800,\"record\":{\"resourceId\":\"EBESExQVFhcYGRobHB0eHw\",\"deviceId\":\"AAECAwQFBgcICQoLDA0ODw\",\"kind\":\"sftp-share\",\"name\":\"Pixel 8\",\"updatedAt\":\"2026-10-07T12:00:00.000Z\",\"access\":{\"descriptor\":\"FMSSFTP1:h=192.168.1.23&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk\"},\"publicPort\":70000}}",
       "canonical": "{\"schemaVersion\":1,\"type\":\"resource\",\"writtenAt\":\"2026-10-07T12:00:00.000Z\",\"ttlSeconds\":1800,\"record\":{\"resourceId\":\"EBESExQVFhcYGRobHB0eHw\",\"deviceId\":\"AAECAwQFBgcICQoLDA0ODw\",\"kind\":\"sftp-share\",\"name\":\"Pixel 8\",\"updatedAt\":\"2026-10-07T12:00:00.000Z\",\"access\":{\"descriptor\":\"FMSSFTP1:h=192.168.1.23&p=2022&u=fms&pw=k7PmQ2wXr9TzS4vGnHb3JdLe&fp=SHA256%3A8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk\"}}}"
+    },
+    {
+      "name": "resource-without-access",
+      "text": "{\"schemaVersion\":1,\"type\":\"resource\",\"writtenAt\":\"2026-10-07T12:00:00.000Z\",\"ttlSeconds\":1800,\"record\":{\"resourceId\":\"EBESExQVFhcYGRobHB0eHw\",\"deviceId\":\"AAECAwQFBgcICQoLDA0ODw\",\"kind\":\"sftp-share\",\"name\":\"Pixel 8\"}}",
+      "canonical": "{\"schemaVersion\":1,\"type\":\"resource\",\"writtenAt\":\"2026-10-07T12:00:00.000Z\",\"ttlSeconds\":1800,\"record\":{\"resourceId\":\"EBESExQVFhcYGRobHB0eHw\",\"deviceId\":\"AAECAwQFBgcICQoLDA0ODw\",\"kind\":\"sftp-share\",\"name\":\"Pixel 8\",\"updatedAt\":\"2026-10-07T12:00:00.000Z\"}}"
     }
   ],
   "skipped": [
@@ -116,10 +121,6 @@
     {
       "name": "broadcast-without-mode",
       "text": "{\"schemaVersion\":1,\"type\":\"broadcast\",\"writtenAt\":\"2026-10-07T12:00:00.000Z\",\"ttlSeconds\":120,\"record\":{\"broadcastId\":\"ICEiIyQlJicoKSorLC0uLw\",\"deviceId\":\"AAECAwQFBgcICQoLDA0ODw\",\"descriptor\":{\"schemaVersion\":1,\"url\":\"http://192.168.1.97:8768/live-audio.aac\",\"mode\":\"AUDIO_ONLY\"}}}"
-    },
-    {
-      "name": "resource-without-access",
-      "text": "{\"schemaVersion\":1,\"type\":\"resource\",\"writtenAt\":\"2026-10-07T12:00:00.000Z\",\"ttlSeconds\":1800,\"record\":{\"resourceId\":\"EBESExQVFhcYGRobHB0eHw\",\"deviceId\":\"AAECAwQFBgcICQoLDA0ODw\",\"kind\":\"sftp-share\",\"name\":\"Pixel 8\"}}"
     },
     {
       "name": "wrapper-without-ttl",

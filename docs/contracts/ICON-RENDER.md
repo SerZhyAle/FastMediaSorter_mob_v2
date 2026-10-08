@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.07 04:59</sub>
+<sub class="doc-stamp">26.10.07 12:50</sub>
 
 # Pointer - `ICON-RENDER`
 
 | | |
 | --- | --- |
 | **Id** | `ICON-RENDER` |
-| **Version** | 0.17, draft. Owner: this product |
+| **Version** | 0.18, draft. Owner: this product |
 | **Home** | `iconography/README.md` sections 3 and 10 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
@@ -14,7 +14,10 @@
 - A glyph takes its colour from the theme role its record names; never a baked white or black.
 - Every glyph stays legible on light, dark and all six accent themes (3 : 1 against its surface).
 - A toggle shows its state, a live transport control shows its action.
-- Direction glyphs mirror in right-to-left layouts; media transport never does.
+- Direction glyphs mirror in right-to-left layouts; media transport never does. Paging the pages and
+  chapters of a document is direction and shows the mirrored form (0.18, rule 7), S4126.
+- On the web a glyph-only control is at least 28 CSS px under a fine pointer and 44 under
+  `(pointer: coarse)` (0.18, rule 5), S4127; Android keeps 48 dp.
 - One drawing at every size tier (16, 20, 24, 32, 40, 48); a plate changes the scale, never the shape.
 - A glyph-only control carries its meaning's canonical name as its accessible name.
 - Every edition's launcher icon is adaptive and has a monochrome layer.

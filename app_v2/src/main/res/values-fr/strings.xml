@@ -20,7 +20,7 @@
     <string name="error_queued_move_permission_denied">\"%1$s\" a été copié vers la destination, mais la copie locale n\'a pas pu être supprimée - autorisation refusée.</string>
     <string name="control">Contrôle</string>
     <string name="save">Enregistrer</string>
-    <string name="undo">Annuler</string>
+    <string name="undo">Défaire</string>
     <string name="cancel">Annuler</string>
     <string name="sign_in">Se connecter</string>
     <string name="ok">OK</string>
@@ -644,7 +644,7 @@
     <string name="background_music">Musique de fond</string>
     <string name="no_music_selected">Aucune musique sélectionnée</string>
     <string name="select_music_file">Sélectionner un fichier musical</string>
-    <string name="action_clear">Effacer</string>
+    <string name="action_clear">Vider</string>
     <string name="exif_info_section">Métadonnées EXIF</string>
     <string name="exif_datetime_label">Prise le : %1$s</string>
     <string name="exif_orientation_label">Orientation : %1$s</string>
@@ -923,7 +923,7 @@
     <string name="panel_copy_to">Copier vers..</string>
     <string name="panel_move_to">Déplacer vers..</string>
     <string name="more_options">Plus d\'actions</string>
-    <string name="move_up">Monter</string>
+    <string name="move_up">Remonter</string>
     <string name="move_down">Descendre</string>
     <string name="drag_handle_description">Glisser pour réorganiser</string>
     <string name="error_operation_title_copy">Impossible de copier</string>
@@ -1559,7 +1559,7 @@
     <string name="setting_camera_open_for_editing_title">Ouvrir la photo prise pour l\'éditer</string>
     <string name="setting_camera_open_for_editing_desc">Ouvrir la photo enregistrée dans l\'éditeur de dessin juste après la prise de vue.</string>
     <string name="perm_group_optional">Autorisations facultatives</string>
-    <string name="cmd_video_capture">Enregistrer la vidéo</string>
+    <string name="cmd_video_capture">Enregistrer une vidéo</string>
     <string name="setting_video_capture_enable_title">Activer l\'enregistrement vidéo</string>
     <string name="setting_video_capture_enable_desc">Afficher une commande pour enregistrer une vidéo directement dans la source actuelle.</string>
     <string name="setting_video_capture_open_in_player_title">Ouvrir la vidéo enregistrée dans le lecteur</string>
@@ -2086,7 +2086,7 @@
     <string name="companion_import_action">Importer</string>
     <string name="companion_import_password_required">Saisissez le mot de passe de ce serveur.</string>
     <string name="companion_qr_scan_hint">Pointez l\'appareil photo vers le code QR du compagnon</string>
-    <string name="companion_qr_scan_torch">Lampe torche</string>
+    <string name="companion_qr_scan_torch">Flash</string>
     <string name="vr_cinema_program_title">Cinéma VR</string>
     <string name="setting_gesture_zone_left_top_title">Bord gauche - bande supérieure</string>
     <string name="setting_gesture_zone_left_bottom_title">Bord gauche - bande inférieure</string>
@@ -2504,7 +2504,7 @@
     <string name="perm_desc_nearby_wifi_devices">Permet au Moniteur réseau d\'afficher les détails du réseau Wi-Fi auquel vous êtes connecté. Rien ne quitte l\'appareil.</string>
     <string name="perm_title_bluetooth_connect">Bluetooth</string>
     <string name="perm_desc_bluetooth_connect">Permet au Moniteur réseau d\'afficher l\'état de l\'adaptateur Bluetooth et les noms des appareils jumelés. Rien ne quitte l\'appareil.</string>
-    <string name="network_monitor_title">Moniteur de réseau</string>
+    <string name="network_monitor_title">Moniteur réseau</string>
     <string name="settings_enable_network_monitor">Moniteur réseau</string>
     <string name="settings_enable_network_monitor_summary">Ajoute un programme de diagnostic qui affiche la connexion, le signal et les détails du réseau.</string>
     <string name="launcher_app_action_launch">Ouvrir</string>
@@ -2778,10 +2778,10 @@
     <string name="network_monitor_history_empty">Aucune mesure pour l\'instant. Effectuez une recherche sur Internet et elle apparaîtra ici.</string>
     <string name="network_monitor_history_export">Exporter</string>
     <string name="network_monitor_history_export_failed">Le fichier n\'a pas pu être préparé ; libérez de l\'espace et réessayez.</string>
-    <string name="network_monitor_history_clear">Effacer</string>
+    <string name="network_monitor_history_clear">Vider</string>
     <string name="network_monitor_history_clear_title">Effacer l\'historique des mesures</string>
     <string name="network_monitor_history_clear_message">Cette opération efface toutes les mesures enregistrées sur cet appareil. Exportez-les d\'abord si vous en avez encore besoin.</string>
-    <string name="network_monitor_history_clear_confirm">Effacer</string>
+    <string name="network_monitor_history_clear_confirm">Vider</string>
     <string name="network_monitor_history_outcome_ok">a répondu</string>
     <string name="network_monitor_history_outcome_failed">pas de réponse</string>
     <string name="network_monitor_history_kind_speed_test">Vitesse</string>
@@ -2994,7 +2994,7 @@
     <string name="network_monitor_action_traceroute">Traceroute</string>
     <string name="network_monitor_console_heading">Sortie console</string>
     <string name="network_monitor_console_empty">Les résultats s\'afficheront ici..</string>
-    <string name="network_monitor_action_clear">Effacer</string>
+    <string name="network_monitor_action_clear">Vider</string>
     <string name="network_monitor_action_copy">Copier</string>
     <string name="network_monitor_subnet_scan_heading">Analyse du sous-réseau</string>
     <string name="network_monitor_section_resource_speed">Débit des ressources</string>

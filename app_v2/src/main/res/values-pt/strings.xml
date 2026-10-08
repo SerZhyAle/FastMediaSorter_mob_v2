@@ -97,7 +97,7 @@
     <string name="copied_n_file_s">%1$d arquivo(s) copiado(s)</string>
     <string name="moved_n_file_s">%1$d arquivo(s) movido(s)</string>
     <string name="apply">Aplicar</string>
-    <string name="filter">Filtro</string>
+    <string name="filter">Filtrar</string>
     <string name="refresh">Atualizar</string>
     <string name="copy_resource">Copiar configurações do recurso</string>
     <string name="exit">Sair</string>
@@ -233,7 +233,7 @@
     <string name="enable_favorites">Ativar Favoritos</string>
     <string name="favorite">Favorito</string>
     <string name="more_actions">Mais ações</string>
-    <string name="slideshow">Apresentação</string>
+    <string name="slideshow">Apresentação de slides</string>
     <string name="starting_slideshow_for">Iniciando a apresentação de %1$s..</string>
     <string name="slideshow_keep_awake">A tela permanecerá ligada durante a apresentação</string>
     <string name="google_lens">Google Lens</string>
@@ -762,7 +762,7 @@
     <string name="language_english">Inglês</string>
     <string name="language_russian">Russo</string>
     <string name="language_ukrainian">Ucraniano</string>
-    <string name="continue_reading">Continuar Lendo</string>
+    <string name="continue_reading">Continuar lendo</string>
     <string name="sort_mode_manual">Ordem manual</string>
     <string name="sort_mode_name_asc">Nome (A-Z)</string>
     <string name="sort_mode_name_desc">Nome (Z-A)</string>
@@ -1045,7 +1045,7 @@
     <string name="activity_main_tvScanDetail_text">0 arquivos analisados</string>
     <string name="activity_main_tvScanProgress_text">Analisando os recursos..</string>
     <string name="activity_player_btnDelete_text">Excluir</string>
-    <string name="activity_player_btnSlideShow_text">Apresentação</string>
+    <string name="activity_player_btnSlideShow_text">Apresentação de slides</string>
     <string name="activity_player_unified_btnOcrImage_text">OCR</string>
     <string name="activity_player_unified_btnOcrImageCmd_text">OCR</string>
     <string name="activity_player_unified_btnOcrPdfCmd_text">OCR</string>
@@ -1968,7 +1968,7 @@
     <string name="streams_view_list">Vista em lista</string>
     <string name="screenshot_gesture_action_crop_and_share">Recortar a captura de ecrã e partilhar</string>
     <string name="share_to_pick_resource">Selecionar recurso..</string>
-    <string name="draw_tool_crop">Cortar</string>
+    <string name="draw_tool_crop">Recortar</string>
     <string name="draw_crop_frame_desc">Quadro de seleção de culturas</string>
     <string name="draw_crop_failed">Não foi possível recortar a imagem.</string>
     <string name="stream_wait_buffering">Em buffer..</string>
@@ -2085,7 +2085,7 @@
     <string name="companion_import_action">Importar</string>
     <string name="companion_import_password_required">Digite a senha deste servidor.</string>
     <string name="companion_qr_scan_hint">Aponte a câmera para o código QR do aplicativo complementar</string>
-    <string name="companion_qr_scan_torch">Lanterna</string>
+    <string name="companion_qr_scan_torch">Flash</string>
     <string name="vr_cinema_program_title">Cinema de Realidade Virtual</string>
     <string name="setting_gesture_zone_left_top_title">Borda esquerda - banda superior</string>
     <string name="setting_gesture_zone_left_bottom_title">Borda esquerda - banda inferior</string>

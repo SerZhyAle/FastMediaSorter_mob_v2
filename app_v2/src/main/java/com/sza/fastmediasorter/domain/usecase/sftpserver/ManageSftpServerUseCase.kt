@@ -30,6 +30,10 @@ class ManageSftpServerUseCase @Inject constructor(
 
     suspend fun setEnabled(enabled: Boolean) = repository.setEnabled(enabled)
 
+    val driveAccessShared: Flow<Boolean> get() = repository.driveAccessShared
+
+    suspend fun setDriveAccessShared(shared: Boolean) = repository.setDriveAccessShared(shared)
+
     /**
      * Returns false, changing nothing, for a port outside
      * [SftpServerConfig.MIN_PORT]..[SftpServerConfig.MAX_PORT].

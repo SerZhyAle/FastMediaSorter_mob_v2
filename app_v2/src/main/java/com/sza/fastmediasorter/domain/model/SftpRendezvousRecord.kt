@@ -54,7 +54,9 @@ data class SftpRendezvousPlayPair(val mode: String, val transport: String)
 
 /**
  * DEVICE-EXCHANGE 6.2 for kind `sftp-share`. [descriptor] is an `FMSSFTP1` or `FMSSFTP2` code and carries
- * the share's password by design, so it is never logged; [shareId] is the outsider capability of 5.4 and
+ * the share's password by design, so it is never logged. It is null when the producer has not opted in to
+ * putting `access` on Drive (section 15 item X): such a share is listed but cannot be attached from the
+ * record alone. [shareId] is the outsider capability of 5.4 and
  * stays out of logs for the same reason. [root] is `access.root` of amendment O, [publicPort] the
  * third-party port of `ANYWHERE-ACCESS` 5.5, [presence] the producing device's.
  */
@@ -63,7 +65,7 @@ data class SftpRendezvousResource(
     val deviceId: String,
     val kind: String,
     val name: String,
-    val descriptor: String,
+    val descriptor: String?,
     val updatedAtMs: Long,
     override val writtenAtMs: Long,
     override val ttlSeconds: Long,

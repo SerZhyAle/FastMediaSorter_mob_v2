@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 12:24</sub>
+<sub class="doc-stamp">26.10.07 12:50</sub>
 
 # Pointer - `ICON-EXTERNAL`
 
 | | |
 | --- | --- |
 | **Id** | `ICON-EXTERNAL` |
-| **Version** | 0.11, draft. Owner: this product |
+| **Version** | 0.12, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 4 in the shared contracts catalog |
 | **Role here** | owner; phone, launcher and watch |
 
@@ -20,6 +20,8 @@
 - A downloaded picture that is missing, not yet loaded, refused or broken falls back to a picture made
   from the item's own data, or to the glyph of what it stands for - never a blank box, never an error
   glyph. The fallback keeps the picture's place, size and accessible description.
+- The images inside a document the user opened - a book, a PDF, a comic - are local content, not downloaded
+  pictures; a missing or broken one shows `content.image` with the source's alt text (0.12, rule 3), S4128.
 - A language is shown by its own name (endonym), optionally with its code - never by a flag image or
   a flag emoji, in any picker, list, chip or manual (rule 6). A country stays outside the rule.
 - A new surface that shows a downloaded picture enters the surface inventory in the ticket that

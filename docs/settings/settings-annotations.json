@@ -2003,6 +2003,11 @@
     "ru": "Показывает код подключения без данных сервера обмена - для FastMediaSorter, слишком старого для нового кода; такой код работает только в локальной сети.",
     "uk": "Показує код підключення без даних сервера обміну - для FastMediaSorter, надто старого для нового коду; такий код працює лише в локальній мережі."
   },
+  "rowSftpDriveAccess": {
+    "en": "Puts the SFTP server's address, login and password in your Google Drive app folder so your devices on the same Google account can connect; off by default, and while off those devices see the share but cannot connect to it.",
+    "ru": "Записывает адрес, логин и пароль SFTP-сервера в папку приложения на вашем Google Диске, чтобы ваши устройства с тем же аккаунтом Google могли подключиться; по умолчанию выключено, и тогда эти устройства видят ресурс, но подключиться к нему не могут.",
+    "uk": "Записує адресу, логін і пароль SFTP-сервера в папку застосунку на вашому Google Диску, щоб ваші пристрої з тим самим обліковим записом Google могли підключитися; типово вимкнено, і тоді ці пристрої бачать ресурс, але підключитися до нього не можуть."
+  },
   "rowSftpExchangeEnabled": {
     "en": "Lets the SFTP server register on your exchange server so devices in any network can reach it; off keeps the server local-network only.",
     "ru": "Разрешает SFTP-серверу регистрироваться на вашем сервере обмена, чтобы к нему подключались устройства из любой сети; выключено - сервер доступен только в локальной сети.",

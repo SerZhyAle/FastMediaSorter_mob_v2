@@ -19,9 +19,10 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
- * Binds the "Access from anywhere" part of the SFTP server card: the exchange server the embedded
- * server registers on (contract ANYWHERE-ACCESS section 5), its credential, the share link and the
- * registration status.
+ * Binds the "Access from anywhere" part of the SFTP server card: the opt-in that lets the share's
+ * address and password reach the user's Google Drive (DEVICE-EXCHANGE section 15 item X), the exchange
+ * server the embedded server registers on (contract ANYWHERE-ACCESS section 5), its credential, the share
+ * link and the registration status.
  *
  * Off by default, and with the toggle off the card is the LAN-only server it always was. The password
  * field is never filled back from storage: it is write-only, and an empty field keeps the stored one.
@@ -35,6 +36,13 @@ class SftpExchangeSettingsPanelManager(
     private val context get() = fragment.requireContext()
 
     fun bind() {
+        binding.rowSftpDriveAccess.setOnCheckedChangeListener { checked ->
+            Timber.d("S4129: Drive access opt-in toggled")
+            launchInView { manageSftpServer.setDriveAccessShared(checked) }
+        }
+        fragment.collectOnLifecycle(manageSftpServer.driveAccessShared) { shared ->
+            binding.rowSftpDriveAccess.setCheckedSilently(shared)
+        }
         binding.rowSftpExchangeEnabled.setOnCheckedChangeListener { checked ->
             launchInView { manageSftpServer.setExchangeEnabled(checked) }
         }

@@ -38,7 +38,7 @@
     <string name="vr_fops_choose_move_target">¿Adónde mudarse?</string>
     <string name="vr_fops_close">Cerrar</string>
     <string name="vr_fops_copy_to">Copiar a..</string>
-    <string name="vr_fops_delete">Borrar</string>
+    <string name="vr_fops_delete">Eliminar</string>
     <string name="vr_fops_info">Acerca del archivo</string>
     <string name="vr_fops_move_to">Convidar a..</string>
     <string name="vr_fops_no_recent">No hay destinos recientes</string>

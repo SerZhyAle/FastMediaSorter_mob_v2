@@ -147,12 +147,20 @@ class SftpRendezvousDirectory @Inject constructor(
 
     // The newest record wins when two resources carry one host key, e.g. a share recreated on a phone whose
     // old record has not been removed yet.
+    // A share whose producer kept `access` off Drive has no pin and no address here, so it is counted as
+    // listed but cannot be attached, and never indexed.
     private fun index(snapshot: GoogleDriveSftpRendezvousDataSource.Snapshot): Map<String, Producer> {
         val devices = snapshot.devices.associateBy { it.record.deviceId }
-        return snapshot.resources
+        val (attachable, withoutAccess) = snapshot.resources.partition { it.record.descriptor != null }
+        if (withoutAccess.isNotEmpty()) {
+            Timber.d("S4129: consumer lists a share without access and cannot attach it")
+            Timber.i("SftpRendezvousDirectory: %d share(s) listed without access, cannot attach", withoutAccess.size)
+        }
+        return attachable
             .sortedBy { it.record.updatedAtMs }
             .mapNotNull { resource ->
-                val payload = SftpPairingPayload.decode(resource.record.descriptor) ?: return@mapNotNull null
+                val descriptor = resource.record.descriptor ?: return@mapNotNull null
+                val payload = SftpPairingPayload.decode(descriptor) ?: return@mapNotNull null
                 val pin = SshFingerprintNormalizer.canonical(payload.hostKeyFingerprint) ?: return@mapNotNull null
                 val endpoints = payload.hosts.map { HostPort(it, payload.port) }
                 pin to Producer(resource, devices[resource.record.deviceId], endpoints)

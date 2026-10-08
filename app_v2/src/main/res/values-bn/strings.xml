@@ -20,7 +20,7 @@
     <string name="error_queued_move_permission_denied">\"%1$s\" গন্তব্যে কপি করা হয়েছে, কিন্তু স্থানীয় কপিটি মুছে ফেলা যায়নি - অনুমতি প্রত্যাখ্যাত হয়েছে।</string>
     <string name="control">নিয়ন্ত্রণ</string>
     <string name="save">সংরক্ষণ করুন</string>
-    <string name="undo">পূর্বাবস্থায় ফিরুন</string>
+    <string name="undo">পূর্বাবস্থায় ফেরান</string>
     <string name="cancel">বাতিল করুন</string>
     <string name="sign_in">সাইন ইন করুন</string>
     <string name="ok">ঠিক আছে</string>
@@ -524,7 +524,7 @@
     <string name="tooltip_touch_zones_message">ফুলস্ক্রিন মোডে জেসচার নিয়ন্ত্রণের জন্য 9টি অদৃশ্য জোন (3×3 গ্রিড)। Left/Center/Right এবং Top/Middle/Bottom সমন্বয় নেভিগেশন, ফাইল অপারেশন এবং প্যানেল নিয়ন্ত্রণের মতো বিভিন্ন অ্যাকশন ট্রিগার করে।</string>
     <string name="tooltip_safe_mode_title">নিরাপদ মোড</string>
     <string name="tooltip_safe_mode_message">ধ্বংসাত্মক অপারেশনের আগে নিশ্চিত করুন। চালু থাকলে, ভুলবশত তথ্য হারানো ঠেকাতে অ্যাপ ফাইল মোছা বা সরানোর আগে নিশ্চিতকরণ চায়।</string>
-    <string name="tooltip_favorites_title">প্রিয়</string>
+    <string name="tooltip_favorites_title">পছন্দসমূহ</string>
     <string name="tooltip_favorites_message">দ্রুত অ্যাক্সেসের জন্য গুরুত্বপূর্ণ ফাইল প্রিয় হিসেবে চিহ্নিত করুন। প্রিয় ফাইল আলাদা তালিকায় দেখা যায় এবং হোম স্ক্রিন উইজেটে যোগ করা যায়।</string>
     <string name="tooltip_prevent_sleep_title">ঘুম আটকান</string>
     <string name="tooltip_prevent_sleep_message">মিডিয়া ফাইল দেখার সময় পর্দা চালু রাখে। চালানো বা দেখার সেশনের সময় ডিভাইসকে ঘুমিয়ে পড়া বা আবছা হওয়া থেকে আটকায়।</string>
@@ -754,7 +754,7 @@
     <string name="tab_smb_resources">SMB</string>
     <string name="tab_ftp_sftp_resources">S/FTP</string>
     <string name="tab_cloud_resources">ক্লাউড</string>
-    <string name="tab_favorites">পছন্দসই</string>
+    <string name="tab_favorites">পছন্দসমূহ</string>
     <string name="rewind_10_seconds">১০ সেকেন্ড পিছনে যান</string>
     <string name="forward_10_seconds">১০ সেকেন্ড এগিয়ে যান</string>
     <string name="language_default">ডিফল্ট</string>
@@ -1062,7 +1062,7 @@
     <string name="dialog_integration_test_chipCloudProviders_text">ক্লাউড প্রদানকারী</string>
     <string name="dialog_integration_test_chipThreeDVr_text">3DVR সুইপ</string>
     <string name="dialog_integration_test_chipFailedOnly_text">শুধু ব্যর্থ</string>
-    <string name="dialog_integration_test_chipFavorites_text">প্রিয়</string>
+    <string name="dialog_integration_test_chipFavorites_text">পছন্দসমূহ</string>
     <string name="dialog_integration_test_chipGif_text">GIF</string>
     <string name="dialog_integration_test_chipImage_text">ছবি</string>
     <string name="dialog_integration_test_chipLocal_text">স্থানীয়</string>
@@ -1433,7 +1433,7 @@
     <string name="reset_all_body">প্রতিটি বাইন্ডিং কারখানার ডিফল্টে পুনঃস্থাপন করবেন? এটি ফেরানো যাবে না।</string>
     <string name="reset_confirm_button">পুনঃস্থাপন</string>
     <string name="reset_cancel_button">বাতিল</string>
-    <string name="black_screen_button_title">কালো পর্দা</string>
+    <string name="black_screen_button_title">কালো স্ক্রিন</string>
     <string name="cd_pick_resource_icon">সম্পদ আইকন বাছাই করুন</string>
     <string name="icon_picker_title">একটি আইকন বেছে নিন</string>
     <string name="icon_set_music">সঙ্গীত</string>
@@ -1559,7 +1559,7 @@
     <string name="setting_video_capture_open_in_player_title">রেকর্ড করা ভিডিও প্লেয়ারে খুলুন</string>
     <string name="setting_video_capture_open_in_player_desc">রেকর্ডিং সংরক্ষিত হওয়ার পর সেটি প্লেয়ারে খুলুন। ডিফল্টে বন্ধ।</string>
     <string name="resource_menu_open">খুলুন</string>
-    <string name="resource_menu_launch">চালান</string>
+    <string name="resource_menu_launch">চালু করুন</string>
     <string name="resource_menu_move_to_top">একদম উপরে সরান</string>
     <string name="resource_menu_move_to_bottom">একদম নিচে সরান</string>
     <string name="delivery_offer_message_unknown_size">এই ফিচারটির জন্য একটি ছোট অতিরিক্ত ডাউনলোড প্রয়োজন। এখনই নিন?</string>
@@ -1912,7 +1912,7 @@
     <string name="app_launch_panel_route_calculator">ক্যালকুলেটর</string>
     <string name="app_launch_panel_route_game">মিনি-গেম</string>
     <string name="app_launch_panel_route_streams">স্ট্রিম</string>
-    <string name="app_launch_panel_route_favorites">পছন্দ</string>
+    <string name="app_launch_panel_route_favorites">পছন্দসমূহ</string>
     <string name="app_launch_panel_os_settings">সেটিংস</string>
     <string name="app_launch_panel_os_wifi">Wi-Fi</string>
     <string name="app_launch_panel_os_bluetooth">Bluetooth</string>
@@ -2206,7 +2206,7 @@
     <string name="launcher_menu_shutdown_confirm_message">Android সিস্টেম পাওয়ার মেনু খুলবে। ডিভাইস বন্ধ করতে সেখানে পাওয়ার অফ বেছে নিন।</string>
     <string name="launcher_menu_exit_confirm_title">লঞ্চার মোড থেকে বের হবেন?</string>
     <string name="launcher_menu_exit_confirm_message">আপনার ডিভাইস আগের হোম স্ক্রিনে ফিরে যাবে। আপনার ডেস্কটপ সংরক্ষিত থাকবে, তাই আপনি যেকোনো সময় আবার এই মোড চালু করতে পারবেন।</string>
-    <string name="launcher_menu_exit_confirm_action">প্রস্থান</string>
+    <string name="launcher_menu_exit_confirm_action">প্রস্থান করুন</string>
     <string name="launcher_tray_network_wifi">Wi-Fi</string>
     <string name="launcher_tray_network_cellular">মোবাইল নেটওয়ার্ক</string>
     <string name="launcher_tray_network_ethernet">তারযুক্ত নেটওয়ার্ক</string>
@@ -2771,10 +2771,10 @@
     <string name="network_monitor_history_empty">এখনো কোনো পরিমাপ পাওয়া যায়নি। ইন্টারনেট স্ক্রিনে একবার দেখে নিন, তাহলে এটি এখানে দেখা যাবে।</string>
     <string name="network_monitor_history_export">রপ্তানি</string>
     <string name="network_monitor_history_export_failed">ফাইলটি প্রস্তুত করা যায়নি - কিছু জায়গা খালি করে আবার চেষ্টা করুন।</string>
-    <string name="network_monitor_history_clear">পরিষ্কার</string>
+    <string name="network_monitor_history_clear">পরিষ্কার করুন</string>
     <string name="network_monitor_history_clear_title">পরিমাপের ইতিহাস মুছে ফেলুন</string>
     <string name="network_monitor_history_clear_message">এটি এই ডিভাইস থেকে সমস্ত সংরক্ষিত পরিমাপ মুছে ফেলবে। আপনার যদি এখনও সেগুলোর প্রয়োজন হয়, তবে প্রথমে এক্সপোর্ট করুন।</string>
-    <string name="network_monitor_history_clear_confirm">পরিষ্কার</string>
+    <string name="network_monitor_history_clear_confirm">পরিষ্কার করুন</string>
     <string name="network_monitor_history_outcome_ok">উত্তর দেওয়া হয়েছে</string>
     <string name="network_monitor_history_outcome_failed">কোন উত্তর নেই</string>
     <string name="network_monitor_history_kind_speed_test">গতি</string>
@@ -2987,7 +2987,7 @@
     <string name="network_monitor_action_traceroute">ট্রেসারউট</string>
     <string name="network_monitor_console_heading">কনসোল আউটপুট</string>
     <string name="network_monitor_console_empty">ফলাফল এখানে প্রদর্শিত হবে..</string>
-    <string name="network_monitor_action_clear">পরিষ্কার</string>
+    <string name="network_monitor_action_clear">পরিষ্কার করুন</string>
     <string name="network_monitor_action_copy">কপি</string>
     <string name="network_monitor_subnet_scan_heading">সাবনেট স্ক্যান</string>
     <string name="network_monitor_section_resource_speed">সম্পদ গতি</string>
@@ -3625,7 +3625,7 @@
     <string name="data_transfer_row_subtitle">সেটিংস, পছন্দের তালিকা, পিন করা স্ট্রিম ও রিসোর্স - কোনও ফাইলে বা Google Drive-এ</string>
     <string name="data_transfer_dialog_title">ডেটা ইমপোর্ট ও এক্সপোর্ট করুন</string>
     <string name="data_transfer_kind_settings">সেটিংস</string>
-    <string name="data_transfer_kind_favorites">পছন্দের তালিকা</string>
+    <string name="data_transfer_kind_favorites">পছন্দসমূহ</string>
     <string name="data_transfer_kind_streams">পিন করা স্ট্রিম</string>
     <string name="data_transfer_kind_resources">রিসোর্স</string>
     <string name="data_transfer_direction_export">এক্সপোর্ট</string>

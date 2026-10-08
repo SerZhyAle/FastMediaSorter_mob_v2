@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 12:24</sub>
+<sub class="doc-stamp">26.10.07 12:50</sub>
 
 # Pointer - `CHECK-VERDICT`
 
 | | |
 | --- | --- |
 | **Id** | `CHECK-VERDICT` |
-| **Version** | 0.11, draft; wire carrier: process exit code (0/1/2/3, plus the reserved non-verdict 4) plus one verdict line. Owner: this product |
+| **Version** | 0.12, draft; wire carrier: process exit code (0/1/2/3, plus the reserved non-verdict 4) plus one verdict line. Owner: this product |
 | **Home** | `automated-checks/README.md` section 2, in the shared contracts catalog |
 | **Role here** | owner and reference implementation |
 
@@ -27,6 +27,11 @@
   PASS WITH ADVISORIES, then PASS (rule 14).
 - A wrapper of a product command maps each of its outcomes to `0`, `1`, `2` or `3` on purpose
   (rule 15).
+- A check whose work the caller deliberately switched off exits `0` and ends `<subject>: NOT APPLICABLE`;
+  one whose work was requested and did not run stays `2` (0.12, section 10 item A). An aggregator whose
+  quoted children all answered it answers it, and counts such a child with the skipped.
+- Only a change set the caller declared narrows a finding to the advisory class; a set a check derives
+  for itself does not (0.12, section 10 item B).
 
 ## Where it lives here
 

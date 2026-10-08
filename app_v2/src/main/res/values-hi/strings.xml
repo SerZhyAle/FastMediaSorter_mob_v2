@@ -230,8 +230,8 @@
     <string name="small_controls">संक्षिप्त प्लेयर बटन</string>
     <string name="compact_elements">संक्षिप्त तत्व</string>
     <string name="enable_favorites">पसंदीदा चालू करें</string>
-    <string name="favorite">पसंदीदा</string>
-    <string name="more_actions">और क्रियाएं</string>
+    <string name="favorite">पसंदीदा बनाएं</string>
+    <string name="more_actions">अधिक कार्रवाइयां</string>
     <string name="slideshow">स्लाइडशो</string>
     <string name="starting_slideshow_for">%1$s के लिए स्लाइडशो शुरू हो रहा है..</string>
     <string name="slideshow_keep_awake">स्लाइडशो के दौरान स्क्रीन चालू रहेगी</string>
@@ -1433,7 +1433,7 @@
     <string name="reset_all_body">हर बाइंडिंग फ़ैक्टरी डिफ़ॉल्ट पर रीसेट करें? इसे पूर्ववत नहीं किया जा सकता।</string>
     <string name="reset_confirm_button">रीसेट करें</string>
     <string name="reset_cancel_button">रद्द करें</string>
-    <string name="black_screen_button_title">काला स्क्रीन</string>
+    <string name="black_screen_button_title">काली स्क्रीन</string>
     <string name="cd_pick_resource_icon">संसाधन आइकन चुनें</string>
     <string name="icon_picker_title">एक आइकन चुनें</string>
     <string name="icon_set_music">संगीत</string>
@@ -1559,7 +1559,7 @@
     <string name="setting_video_capture_open_in_player_title">रिकॉर्ड किया वीडियो प्लेयर में खोलें</string>
     <string name="setting_video_capture_open_in_player_desc">रिकॉर्डिंग सहेजे जाने के बाद उसे प्लेयर में खोलें। डिफ़ॉल्ट रूप से बंद।</string>
     <string name="resource_menu_open">खोलें</string>
-    <string name="resource_menu_launch">चलाएं</string>
+    <string name="resource_menu_launch">चालू करें</string>
     <string name="resource_menu_move_to_top">सबसे ऊपर ले जाएं</string>
     <string name="resource_menu_move_to_bottom">सबसे नीचे ले जाएं</string>
     <string name="delivery_offer_message_unknown_size">इस फ़ीचर के लिए एक छोटा सा अतिरिक्त डाउनलोड करना होगा। क्या आप इसे अभी डाउनलोड करना चाहते हैं?</string>
@@ -1882,7 +1882,7 @@
     <string name="streams_shortcut_channel_missing">यह स्ट्रीम अब आपकी सूची में नहीं है</string>
     <string name="streams_add_to_home_screen">होम स्क्रीन पर जोड़ें</string>
     <string name="streams_shortcut_unsupported">आपका लॉन्चर होम-स्क्रीन शॉर्टकट का समर्थन नहीं करता</string>
-    <string name="streams_more_actions">और क्रियाएं</string>
+    <string name="streams_more_actions">अधिक कार्रवाइयां</string>
     <string name="disable_nine_zone_tracking">9-ज़ोन ट्रैकिंग को अक्षम करें</string>
     <string name="three_zone_layout_explanation">9-ज़ोन ग्रिड बंद होने पर, प्लेयर 3 ज़ोन का उपयोग करता है: पिछला / ज़ूम / अगला। फ़ाइल संबंधी कार्यों के लिए कमांड पैनल खोलने के लिए बाईं ओर टैप करें।</string>
     <string name="edit_app_launch_panel_title">संपादन पैनल</string>
@@ -1962,7 +1962,7 @@
     <string name="streams_view_list">सूची दृश्य</string>
     <string name="screenshot_gesture_action_crop_and_share">स्क्रीनशॉट क्रॉप करें और साझा करें</string>
     <string name="share_to_pick_resource">संसाधन चुनें..</string>
-    <string name="draw_tool_crop">काटना</string>
+    <string name="draw_tool_crop">क्रॉप करें</string>
     <string name="draw_crop_frame_desc">फसल चयन फ्रेम</string>
     <string name="draw_crop_failed">छवि को क्रॉप नहीं किया जा सका</string>
     <string name="stream_wait_buffering">बफ़र हो रहा है..</string>
@@ -1986,7 +1986,7 @@
     <string name="setting_show_streams_panel_summary">पिन किए गए चैनल संसाधन सूची के ऊपर क्षैतिज पट्टी के रूप में दिखाएँ, स्ट्रीम के शॉर्टकट के साथ।</string>
     <string name="panel_remove_title">पैनल से हटा दें?</string>
     <string name="panel_remove_program_message">%1$s छिपा दिए जाएंगे। आप सेटिंग्स में जाकर इसे वापस चालू कर सकते हैं।</string>
-    <string name="camera_control_send_to">इसे भेजें..</string>
+    <string name="camera_control_send_to">यहां भेजें..</string>
     <string name="camera_settings_title">कैमरा समायोजित करें</string>
     <string name="camera_setting_timer">सेल्फ़-टाइमर</string>
     <string name="camera_setting_grid">ग्रिड</string>
@@ -2788,7 +2788,7 @@
     <string name="background_operation_bar_description">पृष्ठभूमि में कार्य प्रगति पर है</string>
     <string name="launcher_action_all_apps">सभी ऐप</string>
     <string name="launcher_action_black_screen">काली स्क्रीन</string>
-    <string name="launcher_gadget_altitude">ऊँचाई</string>
+    <string name="launcher_gadget_altitude">ऊंचाई</string>
     <string name="launcher_gadget_altitude_description">समुद्र तल से ऊँचाई: %1$s</string>
     <string name="launcher_gadget_altitude_unknown">अभी ऊँचाई नहीं है</string>
     <string name="launcher_gadget_satellites">उपग्रह</string>
@@ -3499,7 +3499,7 @@
     <string name="tourist_tile_steps">कदम</string>
     <string name="tourist_tile_trip_distance">ट्रिप दूरी</string>
     <string name="tourist_tile_sun_time">सूर्य / दिन का प्रकाश</string>
-    <string name="tourist_action_open_map">मैप</string>
+    <string name="tourist_action_open_map">मानचित्र</string>
     <string name="tourist_action_share_location">शेयर करें</string>
     <string name="tourist_action_reset_trip">ट्रिप रीसेट करें</string>
     <string name="tourist_unit_steps">कदम</string>
@@ -3519,7 +3519,7 @@
     <string name="wear_slideshow_custom_value">कस्टम वैल्यू दर्ज करें</string>
     <string name="setting_enable_tourist_desc">स्पीड, ऊंचाई, कंपास और निर्देशांक वाला नेविगेशन और टेलीमेट्री पैनल</string>
     <string name="tourist_tile_weather">मौसम</string>
-    <string name="tourist_tile_dew_point">ओस बिंदु</string>
+    <string name="tourist_tile_dew_point">ओसांक</string>
     <string name="tourist_action_reset_tile">रीसेट</string>
     <string name="tourist_detail_speed">अधिकतम: %1$.1f %2$s • ट्रिप: %3$.2f %4$s</string>
     <string name="tourist_detail_altitude">MSL / GPS ऊंचाई</string>

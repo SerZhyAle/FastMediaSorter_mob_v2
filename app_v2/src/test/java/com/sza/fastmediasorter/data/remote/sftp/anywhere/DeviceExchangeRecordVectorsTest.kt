@@ -89,6 +89,15 @@ class DeviceExchangeRecordVectorsTest {
     }
 
     @Test
+    fun `a resource without access is listed with no descriptor`() {
+        val text = list("tolerated").first { it.text("name") == "resource-without-access" }.text("text")
+        val resource = SftpRendezvousCodec.decode(text) as SftpRendezvousResource
+        assertNull(resource.descriptor)
+        assertNull(resource.root)
+        assertEquals("Pixel 8", resource.name)
+    }
+
+    @Test
     fun `the broadcast keeps its descriptor verbatim and out of logs`() {
         val broadcast = SftpRendezvousCodec.decode(valid("broadcast-audio-lan-relay-tunnel")) as SftpRendezvousBroadcast
         val descriptor = JsonParser.parseString(broadcast.descriptorJson).asJsonObject

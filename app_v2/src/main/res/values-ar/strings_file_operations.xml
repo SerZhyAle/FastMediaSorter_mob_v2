@@ -61,7 +61,7 @@
     <string name="export_settings_confirm_message">هل تريد إنشاء ملف تصدير بالإعدادات الحالية؟</string>
     <string name="export_settings_confirm_title">إعدادات التصدير</string>
     <string name="export_success">تم تصدير الإعدادات إلى Downloads/FastMediaSorter_export.xml</string>
-    <string name="delete">يمسح</string>
+    <string name="delete">حذف</string>
     <string name="delete_action_cannot_be_undone_title">لا يمكن التراجع عن هذا الإجراء</string>
     <string name="delete_by_size_analyze">تحليل</string>
     <string name="delete_by_size_confirm_btn">حذف الملفات</string>

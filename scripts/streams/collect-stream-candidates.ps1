@@ -325,6 +325,7 @@ $Schema = @(
 )
 
 . (Join-Path $PSScriptRoot 'modules/StreamPublisher.Common.ps1')
+. (Join-Path $PSScriptRoot 'modules/StreamPublisher.Facets.ps1')
 . (Join-Path $PSScriptRoot 'modules/StreamPublisher.Probes.ps1')
 . (Join-Path $PSScriptRoot 'modules/StreamPublisher.Discovery.ps1')
 . (Join-Path $PSScriptRoot 'modules/StreamPublisher.Artwork.ps1')

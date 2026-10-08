@@ -160,13 +160,15 @@ object SftpRendezvousCodec {
         addProperty(KEY_NAME, resource.name)
         addProperty(KEY_UPDATED_AT, Iso8601Utc.format(resource.updatedAtMs))
         resource.presence?.let { addProperty(KEY_PRESENCE, it) }
-        add(
-            KEY_ACCESS,
-            JsonObject().apply {
-                addProperty(KEY_DESCRIPTOR, resource.descriptor)
-                resource.root?.let { addProperty(KEY_ROOT, it) }
-            }
-        )
+        resource.descriptor?.let { descriptor ->
+            add(
+                KEY_ACCESS,
+                JsonObject().apply {
+                    addProperty(KEY_DESCRIPTOR, descriptor)
+                    resource.root?.let { addProperty(KEY_ROOT, it) }
+                }
+            )
+        }
         resource.shareId?.let { addProperty(KEY_SHARE_ID, it) }
         resource.publicPort?.let { addProperty(KEY_PUBLIC_PORT, it) }
     }
@@ -218,15 +220,18 @@ object SftpRendezvousCodec {
         return SftpRendezvousReceiver(receiver.strings(KEY_MODES), receiver.strings(KEY_TRANSPORTS), plays)
     }
 
+    /**
+     * A record without `access.descriptor` still decodes: its producer kept the credentials off Drive
+     * (section 15 item X), so the share is listed and cannot be attached from this record.
+     */
     private fun decodeResource(body: JsonObject, writtenAt: Long, ttl: Long): SftpRendezvousResource? {
-        val kind = body.string(KEY_KIND)
+        val isShare = body.string(KEY_KIND) == SftpRendezvousResource.KIND_SFTP_SHARE
         val name = body.string(KEY_NAME)
-        val resourceId = body.string(KEY_RESOURCE_ID)?.takeIf { it.isNotBlank() && name != null }
+        val resourceId = body.string(KEY_RESOURCE_ID)?.takeIf { it.isNotBlank() && name != null && isShare }
         val deviceId = body.string(KEY_DEVICE_ID)?.takeIf { it.isNotBlank() }
+        if (resourceId == null || deviceId == null) return null
         val access = body.get(KEY_ACCESS) as? JsonObject
-        val descriptor = access?.string(KEY_DESCRIPTOR)
-            ?.takeIf { it.isNotBlank() && kind == SftpRendezvousResource.KIND_SFTP_SHARE }
-        if (resourceId == null || deviceId == null || descriptor == null) return null
+        val descriptor = access?.string(KEY_DESCRIPTOR)?.takeIf(String::isNotBlank)
         return SftpRendezvousResource(
             resourceId = resourceId,
             deviceId = deviceId,
@@ -238,7 +243,7 @@ object SftpRendezvousCodec {
             ttlSeconds = ttl,
             shareId = body.string(KEY_SHARE_ID)?.takeIf(String::isNotBlank),
             publicPort = body.long(KEY_PUBLIC_PORT)?.takeIf { it in 1..MAX_PORT }?.toInt(),
-            root = access.string(KEY_ROOT)?.takeIf(String::isNotBlank),
+            root = access?.string(KEY_ROOT)?.takeIf { descriptor != null && it.isNotBlank() },
             presence = body.get(KEY_PRESENCE)?.let { body.presence() },
         )
     }

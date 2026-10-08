@@ -1481,6 +1481,14 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowSftpExchangeEnabled",
+    "feature": "settings_sftp_exchange_enable_title",
+    "drawable": "ic_cloud",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowSftpServerEnabled",
     "feature": "settings_sftp_server_enable_title",
     "drawable": "ic_resource_sftp",

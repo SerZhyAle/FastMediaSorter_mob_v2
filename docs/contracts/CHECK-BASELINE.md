@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 12:24</sub>
+<sub class="doc-stamp">26.10.07 12:50</sub>
 
 # Pointer - `CHECK-BASELINE`
 
 | | |
 | --- | --- |
 | **Id** | `CHECK-BASELINE` |
-| **Version** | 0.10, draft. Owner: this product |
+| **Version** | 0.11, draft. Owner: this product |
 | **Home** | `automated-checks/README.md` section 3, in the shared contracts catalog |
 | **Role here** | owner |
 
@@ -14,6 +14,7 @@
 - A baseline may fall and never rise; a class exposed to a wholesale re-freeze is judged by identifier
   set, not by count.
 - Accepting new debt is an explicit act with a reason and a journal row, reviewable in a diff.
+- A file of metric acceptance bounds is not a baseline and is not declared as one (0.11, section 8).
 
 ## Where it lives here
 

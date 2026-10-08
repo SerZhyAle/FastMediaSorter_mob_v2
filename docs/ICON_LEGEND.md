@@ -135,6 +135,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_mirror.svg" alt="ic_mirror" width="24" height="24"> | Mirror |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Statistics |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen video recording |
+| <img src="icons/svg/ic_cloud.svg" alt="ic_cloud" width="24" height="24"> | Exchange server |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | SFTP server |
 | <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Show "Black Screen" button |
 | <img src="icons/svg/ic_resource_cloud.svg" alt="ic_resource_cloud" width="24" height="24"> | In cloud resources |

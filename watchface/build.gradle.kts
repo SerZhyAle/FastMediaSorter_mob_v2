@@ -86,6 +86,8 @@ android {
         // of flags for the same reason.
         debug {
             isMinifyEnabled = true
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-DEBUG"
         }
         release {
             isMinifyEnabled = true
@@ -100,3 +102,44 @@ android {
         }
     }
 }
+
+// S4134: build-time substitution for debug watch face.
+// Generates a copy of watchface.xml for the debug build type with <Launch target>
+// pointing to the debug watch app (com.sza.fastmediasorter.debug).
+abstract class GenerateDebugWatchfaceXmlTask : DefaultTask() {
+    @get:InputFile
+    abstract val inputXml: RegularFileProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun generate() {
+        val inFile = inputXml.get().asFile
+        val content = inFile.readText()
+        val targetOld = "target=\"com.sza.fastmediasorter/com.sza.fastmediasorter.wear.MainActivity\""
+        val targetNew = "target=\"com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.MainActivity\""
+        if (!content.contains(targetOld)) {
+            throw GradleException("Could not find expected Launch target in ${inFile.path}")
+        }
+        val replaced = content.replace(targetOld, targetNew)
+        val rawDir = outputDir.get().asFile.resolve("raw")
+        rawDir.mkdirs()
+        rawDir.resolve("watchface.xml").writeText(replaced)
+    }
+}
+
+val generateDebugWatchfaceXml = tasks.register<GenerateDebugWatchfaceXmlTask>("generateDebugWatchfaceXml") {
+    inputXml.set(file("src/main/res/raw/watchface.xml"))
+    outputDir.set(layout.buildDirectory.dir("generated/res/watchfaceDebug"))
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("debug")) { variant ->
+        variant.sources.res?.addGeneratedSourceDirectory(
+            generateDebugWatchfaceXml,
+            GenerateDebugWatchfaceXmlTask::outputDir
+        )
+    }
+}
+

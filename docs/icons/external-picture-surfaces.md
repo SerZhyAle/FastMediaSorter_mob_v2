@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.24 10:47</sub>
+<sub class="doc-stamp">26.10.07 13:55</sub>
 
 # Surfaces that show an external picture
 
@@ -20,6 +20,7 @@ surface opened - is the remaining evidence.
 - **Now-playing sheet artwork** - `ui/player/NowPlayingBottomSheetFragment.kt`. Loading and failure: `ic_audio`. Holds.
 - **Audio slideshow background photo** - `ui/player/helpers/AudioSlideshowPhotoModeManager.kt`. Stands for `content.image`. Failure: the previous photo stays; with none, `ic_image` on the dark surface (`AudioArtworkPlaceholder.imageOnDarkSurface`). Fixed by S3444 - was blank.
 - **PDF page strip** - `ui/player/helpers/PdfThumbnailAdapter.kt`. Stands for a page. Loading: spinner. Failure: `ic_document`. Fixed by S3444 - the spinner never stopped.
+- **EPUB reader inline images** - `ui/player/helpers/EpubResourceContentHelper.kt`. Local content inside the book (rule 3). Not found in the book, blank `src`, or failed to decode: the `content.image` glyph (the `ic_image` path as inline SVG in the reader's text colour) with the image's alt text. Fixed by S4128 - was the WebView's broken-image box. PDF pages are rasterised whole by `PdfRenderer`, so they carry no separate image slot.
 - **Streams grid tile** - `ui/streams/StreamGridAdapter.kt`. Stands for `content.stream`. The media-kind glyph (`ic_audio`/`ic_video`) is painted first; captured frame, atlas preview, logo, favicon or flag overwrite it. Holds.
 - **Streams list row favicon** - `ui/streams/StreamSourceAdapter.kt`. Stands for `content.stream`. Failure: the country flag; with no country, the media-kind glyph as on the grid. Fixed by S3444 - the slot was left empty.
 - **Home-panel stream chip** - `ui/main/helpers/StreamPanelChannelAdapter.kt`. No tile: the channel's own name, a picture made from the item's own data. Holds.

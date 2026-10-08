@@ -40,6 +40,10 @@
 #        "post-change: PASS" or "post-change: PASS WITH ADVISORIES (n)" -
 #        the latter means a gate found something it could not attribute to
 #        this change, and the caller is expected to read the listed names.
+#        (S4130, CHECK-VERDICT 0.12) A gate child that exits 0 under
+#        "<subject>: NOT APPLICABLE" is counted with the skipped, never the
+#        passed; when no step passed and one answered that word, the line reads
+#        "post-change: NOT APPLICABLE (..)", still exit 0 and never a pass.
 #     1  a gate failed. Something was inspected and judged defective. The run
 #        does NOT stop at that gate (S1598): every remaining gate still runs, and
 #        the full list, each with the command that reproduces it alone, is followed
@@ -1925,6 +1929,13 @@ elseif ($closureReuse) {
     Send-PostChangeChatVerdict -Verdict "PASS (reused from $($closureReuse.RunId)), $elapsedMs ms"
     Write-Host ("post-change: PASS (REUSED from run $($closureReuse.RunId), $($closureReuse.AgeSec)s ago over " +
         "$($closureReuse.Files) unchanged file(s); gate batch not re-run, $elapsedMs ms)") -ForegroundColor Green
+}
+elseif ($script:PassedCount -eq 0 -and $script:NotApplicableCount -gt 0) {
+    # S4130: CHECK-VERDICT 0.12 item A - every step that answered said NOT APPLICABLE, so nothing was
+    # inspected. Exit 0, but never the word PASS, and never a ledger record a later run could reuse.
+    Send-PostChangeChatVerdict -Verdict "NOT APPLICABLE, $elapsedMs ms"
+    Write-Host ("post-change: NOT APPLICABLE ($resolvedChangeType, $elapsedMs ms, 0 passed, " +
+        "$($script:SkippedSteps.Count) skipped, $($script:NotApplicableCount) not applicable)") -ForegroundColor DarkGray
 }
 else {
     Send-PostChangeChatVerdict -Verdict "PASS, $elapsedMs ms"

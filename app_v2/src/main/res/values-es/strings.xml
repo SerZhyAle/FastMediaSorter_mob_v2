@@ -97,7 +97,7 @@
     <string name="copied_n_file_s">Se copiaron %1$d archivo(s)</string>
     <string name="moved_n_file_s">Se movieron %1$d archivo(s)</string>
     <string name="apply">Aplicar</string>
-    <string name="filter">Filtro</string>
+    <string name="filter">Filtrar</string>
     <string name="refresh">Actualizar</string>
     <string name="copy_resource">Copiar configuración del recurso</string>
     <string name="exit">Salir</string>
@@ -2085,7 +2085,7 @@
     <string name="companion_import_action">Importar</string>
     <string name="companion_import_password_required">Introduce la contraseña de este servidor.</string>
     <string name="companion_qr_scan_hint">Apunta la cámara al código QR de la app complementaria</string>
-    <string name="companion_qr_scan_torch">Linterna</string>
+    <string name="companion_qr_scan_torch">Flash</string>
     <string name="vr_cinema_program_title">Cine de realidad virtual</string>
     <string name="setting_gesture_zone_left_top_title">Borde izquierdo - banda superior</string>
     <string name="setting_gesture_zone_left_bottom_title">Borde izquierdo - banda inferior</string>
@@ -2795,7 +2795,7 @@
     <string name="launcher_share_place_not_added">No se pudo añadir el lugar al launcher.</string>
     <string name="background_operation_bar_description">Operación en segundo plano en curso</string>
     <string name="launcher_action_all_apps">Todas las aplicaciones</string>
-    <string name="launcher_action_black_screen">Pantalla en negro</string>
+    <string name="launcher_action_black_screen">Pantalla negra</string>
     <string name="launcher_gadget_altitude">Altitud</string>
     <string name="launcher_gadget_altitude_description">Altitud sobre el nivel del mar: %1$s</string>
     <string name="launcher_gadget_altitude_unknown">Aún no hay altitud</string>

@@ -51,7 +51,7 @@
     <string name="keybinding_label_audio_subtitle_delay">उपशीर्षक विलंब</string>
     <string name="keybinding_label_audio_volume_down">नीची मात्रा</string>
     <string name="keybinding_label_audio_volume_up">आवाज बढ़ाएं</string>
-    <string name="keybinding_label_browser_back">पीछे</string>
+    <string name="keybinding_label_browser_back">वापस</string>
     <string name="keybinding_label_browser_context_menu">संदर्भ मेनू</string>
     <string name="keybinding_label_browser_multi_select">बहु-चयन</string>
     <string name="keybinding_label_browser_search">खोज</string>
@@ -83,10 +83,10 @@
     <string name="keybinding_label_playback_speed_reset">गति रीसेट करें</string>
     <string name="keybinding_label_playback_speed_up">गति बढ़ाना</string>
     <string name="keybinding_label_playback_stop">रुकना</string>
-    <string name="keybinding_label_sorting_copy">प्रतिलिपि</string>
+    <string name="keybinding_label_sorting_copy">कॉपी करें</string>
     <string name="keybinding_label_sorting_create_folder">फ़ोल्डर बनाएँ</string>
     <string name="keybinding_label_sorting_delete">मिटाना</string>
-    <string name="keybinding_label_sorting_favourite">पसंदीदा</string>
+    <string name="keybinding_label_sorting_favourite">पसंदीदा बनाएं</string>
     <string name="keybinding_label_sorting_file_ops">फ़ाइल संचालन</string>
     <string name="keybinding_label_sorting_move">ले जाएं</string>
     <string name="keybinding_label_sorting_op_slot_1">ऑपरेशन स्लॉट 1</string>
@@ -110,7 +110,7 @@
     <string name="keybinding_label_system_toggle_controls">टॉगल नियंत्रण</string>
     <string name="keybinding_label_system_toggle_info">टॉगल जानकारी</string>
     <string name="keybinding_label_system_toggle_overlay">ओवरले टॉगल करें</string>
-    <string name="keybinding_label_system_undo">पूर्ववत</string>
+    <string name="keybinding_label_system_undo">पूर्ववत करें</string>
     <string name="keybinding_label_view_aspect_ratio">आस्पेक्ट अनुपात</string>
     <string name="keybinding_label_view_fit_screen">फिट स्क्रीन</string>
     <string name="keybinding_label_view_fullscreen">पूर्ण स्क्रीन</string>
@@ -160,7 +160,7 @@
     <string name="kbm_help_nav_home_end">पहला/आखिरी आइटम</string>
     <string name="kbm_help_nav_page">एक पेज छोड़ें</string>
     <string name="kbm_help_op_context_menu">संदर्भ मेनू</string>
-    <string name="kbm_help_op_copy">प्रतिलिपि</string>
+    <string name="kbm_help_op_copy">कॉपी करें</string>
     <string name="kbm_help_op_create_folder">फ़ोल्डर बनाएँ</string>
     <string name="kbm_help_op_create_group">समूह बनाना</string>
     <string name="kbm_help_op_delete">मिटाना</string>

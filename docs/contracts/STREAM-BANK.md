@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.03 05:10</sub>
+<sub class="doc-stamp">26.10.07 17:11</sub>
 
 # Pointer - `STREAM-BANK`
 
 | | |
 | --- | --- |
 | **Id** | `STREAM-BANK` |
-| **Version** | 2.2, active. Owner: this product |
+| **Version** | 2.3, active. Owner: this product |
 | **Home** | `stream-catalog/README.md` in the shared contracts catalog |
 | **Role here** | producer (the publish script) and consumer (the phone and watch importers) |
 
@@ -20,6 +20,9 @@
   updated, moved or deleted by a refresh (rule 5).
 - A blank `is_live` is "not stated": it may read as `false` only while no surface shows or filters on
   it (rule 13).
+- Producer and importers emit only vocabulary languages (one entry per language, `english` when a non-blank
+  cell names none, blank stays blank) and assigned ISO 3166-1 alpha-2 country codes, an unassigned value
+  being blank (rule 14, item O).
 - Treat `access` as opaque: blank means open, any other value is a restriction the app does not model
   (rule 10, item E).
 - Bounds-check every atlas index and degrade to no-thumbnail; derive sheet geometry from the image

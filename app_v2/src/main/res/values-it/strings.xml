@@ -20,7 +20,7 @@
     <string name="error_queued_move_permission_denied">\"%1$s\" è stato copiato nella destinazione, ma non è stato possibile eliminare la copia locale - autorizzazione negata.</string>
     <string name="control">Controllo</string>
     <string name="save">Salva</string>
-    <string name="undo">Annulla</string>
+    <string name="undo">Disfare</string>
     <string name="cancel">Annulla</string>
     <string name="sign_in">Accedi</string>
     <string name="ok">OK</string>
@@ -424,7 +424,7 @@
     <string name="copy_to_clipboard">Copia negli appunti</string>
     <string name="copied_to_clipboard">Copiato negli appunti</string>
     <string name="translation_result_title">Traduzione</string>
-    <string name="lyrics">Testo</string>
+    <string name="lyrics">Testi</string>
     <string name="searching_lyrics">Ricerca testo in corso..</string>
     <string name="lyrics_not_found">Testo non trovato</string>
     <string name="error_timeout_lyrics">Richiesta scaduta. Controlla la connessione internet e riprova.</string>
@@ -762,7 +762,7 @@
     <string name="language_english">Inglese</string>
     <string name="language_russian">Russo</string>
     <string name="language_ukrainian">Ucraino</string>
-    <string name="continue_reading">Continua lettura</string>
+    <string name="continue_reading">Continua a leggere</string>
     <string name="sort_mode_manual">Ordine manuale</string>
     <string name="sort_mode_name_asc">Nome (A-Z)</string>
     <string name="sort_mode_name_desc">Nome (Z-A)</string>
@@ -1559,7 +1559,7 @@
     <string name="setting_camera_open_for_editing_title">Apri la foto scattata per la modifica</string>
     <string name="setting_camera_open_for_editing_desc">Apri la foto salvata nell\'editor di disegno subito dopo lo scatto.</string>
     <string name="perm_group_optional">Autorizzazioni facoltative</string>
-    <string name="cmd_video_capture">Registra il video</string>
+    <string name="cmd_video_capture">Registra un video</string>
     <string name="setting_video_capture_enable_title">Attiva la registrazione video</string>
     <string name="setting_video_capture_enable_desc">Mostra un comando per registrare video direttamente nella risorsa attuale.</string>
     <string name="setting_video_capture_open_in_player_title">Apri il video registrato nel lettore</string>
@@ -2086,7 +2086,7 @@
     <string name="companion_import_action">Importa</string>
     <string name="companion_import_password_required">Inserisci la password per questo server.</string>
     <string name="companion_qr_scan_hint">Inquadra con la fotocamera il codice QR del companion</string>
-    <string name="companion_qr_scan_torch">Torcia</string>
+    <string name="companion_qr_scan_torch">Flash</string>
     <string name="vr_cinema_program_title">Cinema VR</string>
     <string name="setting_gesture_zone_left_top_title">Bordo sinistro - fascia superiore</string>
     <string name="setting_gesture_zone_left_bottom_title">Bordo sinistro - fascia inferiore</string>

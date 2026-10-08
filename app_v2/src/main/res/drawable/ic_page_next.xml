@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- media.next as document paging: mirrors under RTL because the next page lies to the left (ICON-RENDER rule 7). Transport keeps ic_skip_next, which never mirrors. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal"
+    android:autoMirrored="true">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
+</vector>

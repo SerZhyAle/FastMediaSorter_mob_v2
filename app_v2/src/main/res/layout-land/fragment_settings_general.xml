@@ -648,7 +648,7 @@
                         android:focusable="true"
                         android:clickable="true"
                         android:nextFocusUp="@id/btnSftpServerShowQr"
-                        android:nextFocusDown="@id/rowSftpExchangeEnabled"
+                        android:nextFocusDown="@id/rowSftpDriveAccess"
                         android:text="@string/settings_sftp_server_legacy_qr"
                         android:visibility="gone" />
 
@@ -669,12 +669,24 @@
                         android:text="@string/settings_sftp_exchange_title" />
 
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowSftpExchangeEnabled"
+                        android:id="@+id/rowSftpDriveAccess"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:focusable="true"
                         android:clickable="true"
                         android:nextFocusUp="@id/btnSftpServerShowQr"
+                        android:nextFocusDown="@id/rowSftpExchangeEnabled"
+                        app:str_icon="@drawable/ic_cloud"
+                        app:str_title="@string/settings_sftp_drive_access_title"
+                        app:str_subtitle="@string/settings_sftp_drive_access_subtitle" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowSftpExchangeEnabled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:nextFocusUp="@id/rowSftpDriveAccess"
                         android:nextFocusDown="@id/etSftpExchangeHost"
                         app:str_icon="@drawable/ic_cloud"
                         app:str_title="@string/settings_sftp_exchange_enable_title"

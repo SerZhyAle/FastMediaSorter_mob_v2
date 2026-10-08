@@ -64,7 +64,6 @@ name-substitution|app_v2|touch_zones_overlay_zonePrevious_text|uk
 name-substitution|app_v2|vr_overlay_btn_next|ru
 unmapped|app_v2|ic_save_frame
 unmapped|app_v2|ic_send_note
-unmapped|app_v2|ic_send_note_brush
 unmapped|app_v2|ic_vinyl_record
 unmapped|app_v2|ic_widget_camera_quick_capture
 unmapped|app_v2|ic_widget_camera_quick_capture_accent

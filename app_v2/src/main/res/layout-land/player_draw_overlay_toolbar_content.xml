@@ -41,7 +41,7 @@
                 android:layout_height="@dimen/player_cmd_button_size"
                 android:contentDescription="@string/draw_tool_selector_cd"
                 android:padding="8dp"
-                android:src="@drawable/ic_draw_overlay" />
+                android:src="@drawable/ic_send_note_brush" />
 
             <View
                 android:id="@+id/color_black"

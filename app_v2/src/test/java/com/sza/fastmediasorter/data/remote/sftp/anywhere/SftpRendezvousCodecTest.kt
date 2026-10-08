@@ -93,10 +93,19 @@ class SftpRendezvousCodecTest {
     }
 
     @Test
+    fun `a share without access is listed with no descriptor and re-encoded without access`() {
+        val noAccess = """{"resourceId":"r","deviceId":"d","kind":"sftp-share","name":"n"}"""
+        val decoded = SftpRendezvousCodec.decode(wrap("resource", noAccess)) as SftpRendezvousResource
+        assertNull(decoded.descriptor)
+        assertNull(decoded.root)
+        assertFalse(SftpRendezvousCodec.encode(decoded).contains("\"access\""))
+    }
+
+    @Test
     fun `missing required members, a bad timestamp and garbage are refused`() {
         assertNull(SftpRendezvousCodec.decode(wrap("device", """{"deviceName":"n","product":"fms-android"}""")))
-        val noAccess = """{"resourceId":"r","deviceId":"d","kind":"sftp-share","name":"n"}"""
-        assertNull(SftpRendezvousCodec.decode(wrap("resource", noAccess)))
+        val noDevice = """{"resourceId":"r","kind":"sftp-share","name":"n","access":{"descriptor":"x"}}"""
+        assertNull(SftpRendezvousCodec.decode(wrap("resource", noDevice)))
         val request = """{"toDeviceId":"d","action":"announce"}"""
         assertNull(SftpRendezvousCodec.decode(wrap("request", request, writtenAt = "yesterday")))
         assertNull(SftpRendezvousCodec.decode("{not json"))

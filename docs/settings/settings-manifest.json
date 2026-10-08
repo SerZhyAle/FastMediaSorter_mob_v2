@@ -2021,6 +2021,16 @@
       "titleUk": "Захищати секретні екрани"
     },
     {
+      "key": "rowSftpDriveAccess",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Share access through Google Drive",
+      "titleRu": "Доступ через Google Диск",
+      "titleUk": "Доступ через Google Диск"
+    },
+    {
       "key": "rowSftpExchangeEnabled",
       "sectionId": "general",
       "destination": "GENERAL",

@@ -4,6 +4,7 @@ $ExistingCsv = ''
 $PublishTag = 'test-tag'
 $MaxAtlasBytes = 1024
 . (Join-Path $PSScriptRoot '..\streams\modules\StreamPublisher.Common.ps1')
+. (Join-Path $PSScriptRoot '..\streams\modules\StreamPublisher.Facets.ps1')
 . $modulePath
 
 Describe 'StreamPublisher.Delivery' {

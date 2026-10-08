@@ -20,7 +20,7 @@
     <string name="error_queued_move_permission_denied">„%1$s“ wurde an das Ziel kopiert, aber die lokale Kopie konnte nicht gelöscht werden - Zugriff verweigert.</string>
     <string name="control">Steuerung</string>
     <string name="save">Speichern</string>
-    <string name="undo">Rückgängig</string>
+    <string name="undo">Rückgängig machen</string>
     <string name="cancel">Abbrechen</string>
     <string name="sign_in">Anmelden</string>
     <string name="ok">OK</string>
@@ -66,7 +66,7 @@
     <string name="camera_ocr_camera_error">Kamera konnte nicht starten oder kein Foto aufnehmen</string>
     <string name="camera_ocr_engine_error">Übersetzungsmodul ist derzeit nicht verfügbar</string>
     <string name="camera_ocr_crop_retry">Wiederholen</string>
-    <string name="camera_ocr_crop_confirm">Anwenden</string>
+    <string name="camera_ocr_crop_confirm">Übernehmen</string>
     <string name="camera_ocr_crop_frame_desc">Zuschneiderahmen</string>
     <string name="copying_files">Kopieren..</string>
     <string name="copied_n_files">%1$d Dateien kopiert.</string>
@@ -150,7 +150,7 @@
     <string name="error_details_server">Server</string>
     <string name="error_details_port">Port</string>
     <string name="error_details_type">Fehlertyp</string>
-    <string name="error_details_message">Meldung</string>
+    <string name="error_details_message">Nachricht</string>
     <string name="error_details_timeout">Zeitüberschreitung</string>
     <string name="filter_label_name_short">Name</string>
     <string name="filter_label_size_short">Größe</string>
@@ -643,7 +643,7 @@
     <string name="background_music">Hintergrundmusik</string>
     <string name="no_music_selected">Keine Musik ausgewählt</string>
     <string name="select_music_file">Musikdatei auswählen</string>
-    <string name="action_clear">Entfernen</string>
+    <string name="action_clear">Leeren</string>
     <string name="exif_info_section">EXIF-Metadaten</string>
     <string name="exif_datetime_label">Aufgenommen: %1$s</string>
     <string name="exif_orientation_label">Ausrichtung: %1$s</string>
@@ -1104,7 +1104,7 @@
     <string name="to_begin">Zum Anfang</string>
     <string name="to_end">Zum Schluss</string>
     <string name="zoom_out">Herauszoomen</string>
-    <string name="zoom_in">Vergrößern</string>
+    <string name="zoom_in">Heranzoomen</string>
     <string name="translate_page">Seite übersetzen</string>
     <string name="decrease_translation_font">Übersetzung verkleinern</string>
     <string name="increase_translation_font">Übersetzung vergrößern</string>
@@ -1416,8 +1416,8 @@
     <string name="wear_import_dismiss">Verwerfen</string>
     <string name="wear_now_playing_title">Läuft gerade auf der Uhr</string>
     <string name="wear_playback_play_pause">Wiedergabe / Pause</string>
-    <string name="wear_playback_next">Weiter</string>
-    <string name="wear_playback_previous">Zurück</string>
+    <string name="wear_playback_next">Nächste</string>
+    <string name="wear_playback_previous">Vorherige</string>
     <string name="mic_recording_button_content_desc">Mikrofon: Audio aufnehmen</string>
     <string name="mic_recording_hold_hint">Zum Aufnehmen festhalten.</string>
     <string name="mic_recording_filename_title">Aufnahme speichern</string>
@@ -1915,7 +1915,7 @@
     <string name="app_launch_panel_route_streams">Streams</string>
     <string name="app_launch_panel_route_favorites">Favoriten</string>
     <string name="app_launch_panel_os_settings">Einstellungen</string>
-    <string name="app_launch_panel_os_wifi">Wi-Fi</string>
+    <string name="app_launch_panel_os_wifi">WLAN</string>
     <string name="app_launch_panel_os_bluetooth">Bluetooth</string>
     <string name="app_launch_panel_os_display">Anzeige</string>
     <string name="app_launch_panel_os_sound">Töne</string>
@@ -2207,7 +2207,7 @@
     <string name="launcher_menu_shutdown_confirm_message">Das Android-Systemmenü zum Ausschalten wird geöffnet. Wählen Sie dort Ausschalten, um das Gerät auszuschalten.</string>
     <string name="launcher_menu_exit_confirm_title">Launcher-Modus verlassen?</string>
     <string name="launcher_menu_exit_confirm_message">Dein Gerät kehrt zum vorherigen Startbildschirm zurück. Dein Desktop bleibt erhalten, sodass du den Modus jederzeit wieder aktivieren kannst.</string>
-    <string name="launcher_menu_exit_confirm_action">Verlassen</string>
+    <string name="launcher_menu_exit_confirm_action">Beenden</string>
     <string name="launcher_tray_network_wifi">WLAN</string>
     <string name="launcher_tray_network_cellular">Mobilfunknetz</string>
     <string name="launcher_tray_network_ethernet">Kabelnetzwerk</string>
@@ -2772,10 +2772,10 @@
     <string name="network_monitor_history_empty">Es liegen noch keine Messwerte vor. Führen Sie eine Überprüfung im Internet durch, dann werden sie hier angezeigt.</string>
     <string name="network_monitor_history_export">Export</string>
     <string name="network_monitor_history_export_failed">Die Datei konnte nicht vorbereitet werden - schaffen Sie Speicherplatz frei und versuchen Sie es erneut.</string>
-    <string name="network_monitor_history_clear">Löschen</string>
+    <string name="network_monitor_history_clear">Leeren</string>
     <string name="network_monitor_history_clear_title">Messverlauf löschen</string>
     <string name="network_monitor_history_clear_message">Dadurch werden alle gespeicherten Messwerte von diesem Gerät gelöscht. Exportieren Sie die Daten zuerst, falls Sie sie noch benötigen.</string>
-    <string name="network_monitor_history_clear_confirm">Löschen</string>
+    <string name="network_monitor_history_clear_confirm">Leeren</string>
     <string name="network_monitor_history_outcome_ok">beantwortet</string>
     <string name="network_monitor_history_outcome_failed">Keine Antwort</string>
     <string name="network_monitor_history_kind_speed_test">Geschwindigkeit</string>
@@ -3686,8 +3686,8 @@
     <string name="sftp_pin_host_key">Hostschlüssel anheften</string>
     <string name="sftp_host_key_pinned_toast">Fingerabdruck des Server-Hostschlüssels angeheftet</string>
     <string name="dim_clock_notifications_overflow_cd">Weitere Benachrichtigungen: %1$d</string>
-    <string name="previous_item">Zurück</string>
-    <string name="next_item">Weiter</string>
+    <string name="previous_item">Vorherige</string>
+    <string name="next_item">Nächste</string>
     <string name="sftp_server_channel_name">SFTP-Server</string>
     <string name="sftp_server_notification_title">SFTP-Server ist aktiv</string>
     <string name="sftp_server_notification_starting">Wird gestartet..</string>

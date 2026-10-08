@@ -39,7 +39,7 @@
     <string name="welcome_recommended_badge">(अनुशंसित)</string>
     <string name="welcome_title_1">FastMediaSorter में आपका स्वागत है!</string>
     <string name="sysinfo_field_abis">ABI</string>
-    <string name="sysinfo_field_android_version">एंड्रॉइड</string>
+    <string name="sysinfo_field_android_version">Android</string>
     <string name="sysinfo_field_api_level">API स्तर</string>
     <string name="sysinfo_field_app_version">संस्करण</string>
     <string name="sysinfo_field_battery_health">स्थिति</string>

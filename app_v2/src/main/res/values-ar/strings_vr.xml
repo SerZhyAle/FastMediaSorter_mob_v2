@@ -36,9 +36,9 @@
     <string name="vr_fops_choose_copy_target">أين يمكن نسخها؟</string>
     <string name="vr_fops_choose_folder">اختر مجلدًا آخر..</string>
     <string name="vr_fops_choose_move_target">إلى أين ننتقل؟</string>
-    <string name="vr_fops_close">يغلق</string>
+    <string name="vr_fops_close">إغلاق</string>
     <string name="vr_fops_copy_to">انسخ إلى..</string>
-    <string name="vr_fops_delete">يمسح</string>
+    <string name="vr_fops_delete">حذف</string>
     <string name="vr_fops_info">ملف حول</string>
     <string name="vr_fops_move_to">انتقل إلى ..</string>
     <string name="vr_fops_no_recent">لا توجد وجهات حديثة</string>

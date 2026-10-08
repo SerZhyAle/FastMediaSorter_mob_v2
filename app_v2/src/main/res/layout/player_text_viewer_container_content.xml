@@ -60,7 +60,7 @@
             android:id="@+id/btnTextPagePrev"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_skip_previous"
+            android:src="@drawable/ic_page_previous"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/previous_item"
             app:tint="@color/selector_player_button_tint" />
@@ -78,7 +78,7 @@
             android:id="@+id/btnTextPageNext"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_skip_next"
+            android:src="@drawable/ic_page_next"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/next_item"
             app:tint="@color/selector_player_button_tint" />

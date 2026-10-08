@@ -230,7 +230,7 @@
     <string name="small_controls">紧凑控件</string>
     <string name="compact_elements">紧凑元素</string>
     <string name="enable_favorites">启用收藏</string>
-    <string name="favorite">收藏</string>
+    <string name="favorite">加入收藏</string>
     <string name="more_actions">更多操作</string>
     <string name="slideshow">幻灯片</string>
     <string name="starting_slideshow_for">正在为 %1$s 启动幻灯片..</string>
@@ -2004,7 +2004,7 @@
     <string name="camera_setting_wb_fluorescent">荧光灯</string>
     <string name="camera_setting_wb_warm_fluorescent">暖色荧光灯</string>
     <string name="camera_setting_wb_daylight">日光</string>
-    <string name="camera_setting_wb_cloudy">阴天</string>
+    <string name="camera_setting_wb_cloudy">多云</string>
     <string name="camera_setting_wb_twilight">黄昏</string>
     <string name="camera_setting_wb_shade">阴影</string>
     <string name="screen_recording_menu_label">屏幕录像</string>
@@ -2229,7 +2229,7 @@
     <string name="launcher_edit_kind_app">应用</string>
     <string name="launcher_edit_kind_feature">应用功能</string>
     <string name="launcher_edit_kind_resource">我的资源</string>
-    <string name="launcher_edit_kind_stream">直播源</string>
+    <string name="launcher_edit_kind_stream">流媒体</string>
     <string name="launcher_edit_kind_os">Android 设置</string>
     <string name="launcher_edit_kind_gadget">小组件</string>
     <string name="launcher_edit_pick_stream_title">选择一个直播源</string>
@@ -2498,7 +2498,7 @@
     <string name="perm_title_bluetooth_connect">蓝牙</string>
     <string name="perm_desc_bluetooth_connect">让“网络监视器”显示蓝牙适配器状态和已配对设备的名称。不会离开设备。</string>
     <string name="network_monitor_title">网络监控</string>
-    <string name="settings_enable_network_monitor">网络监视器</string>
+    <string name="settings_enable_network_monitor">网络监控</string>
     <string name="settings_enable_network_monitor_summary">添加一个诊断程序，显示连接、信号和网络详情。</string>
     <string name="launcher_app_action_launch">打开</string>
     <string name="launcher_app_action_to_desktop">添加到桌面</string>
@@ -2638,7 +2638,7 @@
     <string name="network_monitor_section_bluetooth">蓝牙</string>
     <string name="network_monitor_section_gnss">卫星</string>
     <string name="network_monitor_section_internet">互联网</string>
-    <string name="network_monitor_section_history">历史</string>
+    <string name="network_monitor_section_history">历史记录</string>
     <string name="network_monitor_status_available">可用的</string>
     <string name="network_monitor_status_no_hardware">此设备上没有此类硬件</string>
     <string name="network_monitor_status_no_permission">未获许可</string>
@@ -2951,7 +2951,7 @@
     <string name="launcher_menu_power_menu_unavailable">无障碍服务已关闭，因此无法打开系统电源菜单。请开启它以使用此操作。</string>
     <string name="launcher_signal_dismiss">关闭</string>
     <string name="launcher_signal_dismiss_all">全部忽略</string>
-    <string name="widget_stream_launch_label">流</string>
+    <string name="widget_stream_launch_label">流媒体</string>
     <string name="widget_stream_launch_description">从主屏幕打开已保存的频道</string>
     <string name="stream_open_on_watch_opened">正在手表上播放</string>
     <string name="stream_open_on_watch_app_closed">已保存到手表 - 打开手表应用即可播放</string>
@@ -3257,7 +3257,7 @@
     <string name="mirror_backlight_button">前置手电筒</string>
     <string name="mirror_flip_button">翻转图像</string>
     <string name="mirror_photo_button">拍照</string>
-    <string name="mirror_video_button">录像</string>
+    <string name="mirror_video_button">录制视频</string>
     <string name="mirror_zoom_button">缩放 %1$sx</string>
     <string name="mirror_no_front_camera">此设备没有前置摄像头，因此无法打开镜子</string>
     <string name="launcher_settings_screen_timeout_subtitle_no_lock">桌面空闲时将屏幕变黑。此版本无法锁定设备。</string>
@@ -3488,7 +3488,7 @@
     <string name="watch_listen_state_recording">录制中</string>
     <string name="wear_sync_removed">已从手表移除 %d 个资源</string>
     <string name="wear_sync_settings_no_ack">手表未确认设置，可能已关机或超出范围。</string>
-    <string name="tourist_info_title">旅行者</string>
+    <string name="tourist_info_title">游客</string>
     <string name="tourist_info_panel_desc">实时导航与遥测仪表盘</string>
     <string name="tourist_tile_speed">速度</string>
     <string name="tourist_tile_altitude">海拔</string>
@@ -3778,7 +3778,7 @@
     <string name="wear_face_slot_opt_blood_pressure">血压</string>
     <string name="wear_face_slot_opt_broadcast">广播</string>
     <string name="wear_face_slot_opt_stopwatch">秒表</string>
-    <string name="wear_face_slot_opt_tourist">旅行</string>
+    <string name="wear_face_slot_opt_tourist">游客</string>
     <string name="wear_face_slot_opt_clipboard">剪贴板</string>
     <string name="wear_face_slot_opt_favourites_count">收藏数量</string>
     <string name="wear_face_slot_opt_last_resource">最近打开的资源</string>

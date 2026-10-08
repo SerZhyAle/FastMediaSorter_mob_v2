@@ -4,7 +4,7 @@
 <resources>
     <string name="calculator_action_add">Ajouter</string>
     <string name="calculator_action_backspace">Retour arrière</string>
-    <string name="calculator_action_clear">Effacer</string>
+    <string name="calculator_action_clear">Vider</string>
     <string name="calculator_action_clear_entry">Entrée dégagée</string>
     <string name="calculator_action_clear_history">Histoire claire</string>
     <string name="calculator_action_decimal">Point décimal</string>

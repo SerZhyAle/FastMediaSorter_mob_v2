@@ -171,7 +171,7 @@ object SearchableOptionPickerController {
 
     private object OptionDiffCallback : DiffUtil.ItemCallback<Option>() {
         override fun areItemsTheSame(oldItem: Option, newItem: Option): Boolean =
-            oldItem.id == newItem.id
+            oldItem.rowKey == newItem.rowKey
 
         override fun areContentsTheSame(oldItem: Option, newItem: Option): Boolean =
             oldItem == newItem

@@ -51,7 +51,7 @@
     <string name="warning_files_may_remain_in_source">کچھ فائلیں اب بھی ماخذ فولڈر میں موجود ہو سکتی ہیں۔ براہ کرم ماخذ اور منزل دونوں کی جانچ کریں۔ متاثرہ: %1$d۔</string>
     <string name="please_wait">براہ کرم انتظار کریں..</string>
     <string name="favorites">پسندیدہ</string>
-    <string name="resource">ریسورس</string>
+    <string name="resource">وسیلہ</string>
     <string name="media_type">میڈیا کی قسم</string>
     <string name="camera_ocr_result_header">OCR ترجمے کا نتیجہ</string>
     <string name="camera_ocr_pane_translation">ترجمہ</string>
@@ -230,7 +230,7 @@
     <string name="small_controls">کمپیکٹ پلیئر بٹن</string>
     <string name="compact_elements">کمپیکٹ عناصر</string>
     <string name="enable_favorites">پسندیدہ فعال کریں</string>
-    <string name="favorite">پسندیدہ</string>
+    <string name="favorite">پسندیدہ بنائیں</string>
     <string name="more_actions">مزید اعمال</string>
     <string name="slideshow">سلائیڈ شو</string>
     <string name="starting_slideshow_for">%1$s کے لیے سلائیڈ شو شروع ہو رہا ہے..</string>
@@ -385,7 +385,7 @@
     <string name="cb_cloud_read_only_mode_desc">فائل کارروائیوں کو روکتا ہے (کاپی، منتقلی، حذف)</string>
     <string name="cb_cloud_picker_add_as_destination_desc">اس کلاؤڈ فولڈر کو فوری ترتیب کی منزل کے طور پر نشان زد کریں</string>
     <string name="cb_cloud_picker_scan_subdirectories_desc">تمام نیسٹڈ ذیلی فولڈرز میں میڈیا فائلیں تلاش کریں</string>
-    <string name="virtual_camera_photos">کیمرہ کی تصاویر</string>
+    <string name="virtual_camera_photos">کیمرے کی تصاویر</string>
     <string name="network_delete_warning">فائلیں نیٹ ورک مقام سے مستقل طور پر حذف ہو جائیں گی</string>
     <string name="save_audio_metadata_locally">ڈاؤن لوڈ شدہ میڈیا ڈیٹا مقامی طور پر محفوظ کریں</string>
     <string name="save_audio_metadata_locally_desc">کورز اور میٹا ڈیٹا انٹرنیٹ سے دوبارہ ڈاؤن لوڈ کیے بغیر</string>
@@ -1560,7 +1560,7 @@
     <string name="setting_video_capture_open_in_player_title">ریکارڈ کی گئی ویڈیو پلیئر میں کھولیں</string>
     <string name="setting_video_capture_open_in_player_desc">ریکارڈنگ محفوظ ہونے کے بعد اسے پلیئر میں کھولیں۔ طے شدہ طور پر بند۔</string>
     <string name="resource_menu_open">کھولیں</string>
-    <string name="resource_menu_launch">چلائیں</string>
+    <string name="resource_menu_launch">چالو کریں</string>
     <string name="resource_menu_move_to_top">بالکل اوپر لے جائیں</string>
     <string name="resource_menu_move_to_bottom">بالکل نیچے لے جائیں</string>
     <string name="delivery_offer_message">اس خصوصیت کو ایک اضافی ڈاؤن لوڈ کی ضرورت ہے (تقریباً %1$s)۔ اب حاصل کریں؟</string>
@@ -1847,7 +1847,7 @@
     <string name="streams_catalog_empty">کیٹلاگ خالی یا دستیاب نہیں</string>
     <string name="streams_search_hint">تلاش</string>
     <string name="streams_filter">فلٹر</string>
-    <string name="streams_sort">ترتیب</string>
+    <string name="streams_sort">ترتیب دیں</string>
     <string name="streams_sort_name">نام کے لحاظ سے</string>
     <string name="streams_sort_topic">موضوع کے لحاظ سے</string>
     <string name="streams_sort_language">زبان کے لحاظ سے</string>
@@ -1934,7 +1934,7 @@
     <string name="app_launch_panel_picker_resource_title">ذریعہ چنیں</string>
     <string name="app_launch_panel_route_disabled_hint">بند - آن کرنے کے لیے ٹیپ کریں</string>
     <string name="app_launch_panel_sub_feature">ایپ کی خصوصیت</string>
-    <string name="app_launch_panel_sub_resource">ذریعہ</string>
+    <string name="app_launch_panel_sub_resource">وسیلہ</string>
     <string name="app_launch_panel_reset">پینل دوبارہ ترتیب دیں</string>
     <string name="app_launch_panel_reset_confirm_title">پینل دوبارہ ترتیب دیں؟</string>
     <string name="app_launch_panel_reset_confirm_message">پینل ایپس اور شارٹ کٹس کے اس طے شدہ سیٹ پر واپس آ جاتا ہے جو انسٹال کے وقت بنایا گیا تھا۔</string>
@@ -1964,7 +1964,7 @@
     <string name="streams_view_list">فہرست منظر</string>
     <string name="screenshot_gesture_action_crop_and_share">اسکرین شاٹ کراپ کر کے شیئر کریں</string>
     <string name="share_to_pick_resource">وسیلہ منتخب کریں..</string>
-    <string name="draw_tool_crop">کراپ</string>
+    <string name="draw_tool_crop">کراپ کریں</string>
     <string name="draw_crop_frame_desc">انتخاب کے فریم کو تراشیں۔</string>
     <string name="draw_crop_failed">تصویر کو تراش نہیں سکا</string>
     <string name="stream_wait_buffering">بفرنگ..</string>
@@ -2773,10 +2773,10 @@
     <string name="network_monitor_history_empty">ابھی تک کوئی پیمائش نہیں۔ انٹرنیٹ اسکرین پر ایک چیک چلائیں اور یہ یہاں ظاہر ہوگا۔</string>
     <string name="network_monitor_history_export">برآمد کریں۔</string>
     <string name="network_monitor_history_export_failed">فائل تیار نہیں کی جا سکی - کچھ جگہ خالی کریں اور دوبارہ کوشش کریں۔</string>
-    <string name="network_monitor_history_clear">صاف</string>
+    <string name="network_monitor_history_clear">صاف کریں</string>
     <string name="network_monitor_history_clear_title">پیمائش کی تاریخ کو صاف کریں۔</string>
     <string name="network_monitor_history_clear_message">یہ اس آلہ سے ہر ذخیرہ شدہ پیمائش کو ہٹا دیتا ہے۔ اگر آپ کو اب بھی ان کی ضرورت ہو تو پہلے برآمد کریں۔</string>
-    <string name="network_monitor_history_clear_confirm">صاف</string>
+    <string name="network_monitor_history_clear_confirm">صاف کریں</string>
     <string name="network_monitor_history_outcome_ok">جواب دیا</string>
     <string name="network_monitor_history_outcome_failed">کوئی جواب نہیں</string>
     <string name="network_monitor_history_kind_speed_test">رفتار</string>
@@ -2989,7 +2989,7 @@
     <string name="network_monitor_action_traceroute">ٹریسروٹ</string>
     <string name="network_monitor_console_heading">کنسول آؤٹ پٹ</string>
     <string name="network_monitor_console_empty">نتائج یہاں ظاہر ہوں گے..</string>
-    <string name="network_monitor_action_clear">صاف</string>
+    <string name="network_monitor_action_clear">صاف کریں</string>
     <string name="network_monitor_action_copy">کاپی</string>
     <string name="network_monitor_subnet_scan_heading">سب نیٹ اسکین</string>
     <string name="network_monitor_section_resource_speed">وسائل کی رفتار</string>
@@ -3497,7 +3497,7 @@
     <string name="tourist_info_panel_desc">ریئل ٹائم نیویگیشن اور ٹیلی میٹری ڈیش بورڈ</string>
     <string name="tourist_tile_speed">رفتار</string>
     <string name="tourist_tile_altitude">بلندی</string>
-    <string name="tourist_tile_compass">کمپاس</string>
+    <string name="tourist_tile_compass">قطب نما</string>
     <string name="tourist_tile_coordinates">کوآرڈینیٹس</string>
     <string name="tourist_tile_satellites">سیٹلائٹس</string>
     <string name="tourist_tile_steps">قدم</string>

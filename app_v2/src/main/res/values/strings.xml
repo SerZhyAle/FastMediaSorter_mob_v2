@@ -4418,4 +4418,6 @@
     <string name="settings_sftp_server_legacy_qr">Code for older app versions</string>
     <string name="error_sftp_peer_tunnel_not_registered">The device sharing this folder is not connected to its exchange server right now. Check that its SFTP server is running with Access from anywhere switched on.</string>
     <string name="error_sftp_peer_unreachable_here">The device sharing this folder is online, but it cannot be reached from this network. Connect both devices to the same Wi-Fi, or set up Access from anywhere with an exchange server.</string>
+    <string name="settings_sftp_drive_access_title">Share access through Google Drive</string>
+    <string name="settings_sftp_drive_access_subtitle">Puts this server\'s address, login and password in your Google Drive app folder so your devices on the same Google account can connect. Off: they see the share but cannot connect to it.</string>
 </resources>

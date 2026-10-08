@@ -104,7 +104,7 @@
     <string name="refresh">تحديث</string>
     <string name="copy_resource">نسخ إعدادات المورد</string>
     <string name="exit">خروج</string>
-    <string name="sort">فرز</string>
+    <string name="sort">ترتيب</string>
     <string name="toggle_view">العرض</string>
     <string name="toggle_view_short">قائمة/شبكة</string>
     <string name="select_all_short">الكل</string>
@@ -154,7 +154,7 @@
     <string name="error_details_server">الخادم</string>
     <string name="error_details_port">المنفذ</string>
     <string name="error_details_type">نوع الخطأ</string>
-    <string name="error_details_message">الرسالة</string>
+    <string name="error_details_message">رسالة</string>
     <string name="error_details_timeout">المهلة</string>
     <string name="filter_label_name_short">الاسم</string>
     <string name="filter_label_size_short">الحجم</string>
@@ -235,7 +235,7 @@
     <string name="compact_elements">عناصر مدمجة</string>
     <string name="enable_favorites">تفعيل المفضلة</string>
     <string name="favorite">مفضّلة</string>
-    <string name="more_actions">إجراءات إضافية</string>
+    <string name="more_actions">المزيد من الإجراءات</string>
     <string name="slideshow">عرض الشرائح</string>
     <string name="starting_slideshow_for">بدء عرض الشرائح لـ %1$s..</string>
     <string name="slideshow_keep_awake">ستبقى الشاشة مضاءة أثناء عرض الشرائح</string>
@@ -572,7 +572,7 @@
     <string name="save_frame_saved_to_resource">تم حفظ الإطار في: %s</string>
     <string name="save_frame_error">فشل حفظ الإطار</string>
     <string name="save_frame_no_video">لا يوجد فيديو قيد التشغيل</string>
-    <string name="menu_crop">قص</string>
+    <string name="menu_crop">اقتصاص</string>
     <string name="menu_crop_to_file">قص إلى ملف</string>
     <string name="menu_compress_copy">نسخة مضغوطة</string>
     <string name="dialog_crop_filename_hint">اسم الملف</string>
@@ -925,7 +925,7 @@
     <string name="heic_not_supported_on_device">يتطلب %1$s الإصدار %2$s أو أحدث لعرضه على هذا الجهاز.</string>
     <string name="panel_copy_to">نسخ إلى..</string>
     <string name="panel_move_to">نقل إلى..</string>
-    <string name="more_options">خيارات إضافية</string>
+    <string name="more_options">المزيد من الإجراءات</string>
     <string name="move_up">نقل لأعلى</string>
     <string name="move_down">نقل لأسفل</string>
     <string name="drag_handle_description">اسحب لإعادة الترتيب</string>
@@ -1387,7 +1387,7 @@
     <string name="protected_file_unsupported">هذا الملف محمي ولا يمكن فتحه داخل التطبيق.</string>
     <string name="action_open">يفتح</string>
     <string name="app_updated_to">تم التحديث إلى %1$s</string>
-    <string name="action_translate_selection">يترجم</string>
+    <string name="action_translate_selection">ترجمة</string>
     <string name="action_search_google">ابحث في جوجل</string>
     <string name="action_read_aloud_selection">اقرأ بصوت عالٍ</string>
     <string name="music_restarted_after_error">تم استئناف تشغيل الموسيقى بعد حدوث خطأ</string>
@@ -1488,7 +1488,7 @@
         <item quantity="other">%d ملفات تعريف الارتباط</item>
     </plurals>
     <string name="webview_auth_save_button">حفظ التفويض</string>
-    <string name="webview_auth_cancel_button">يلغي</string>
+    <string name="webview_auth_cancel_button">إلغاء</string>
     <string name="webview_auth_url_prompt">أدخل عنوان URL (https://..)</string>
     <string name="webview_auth_invalid_url">عنوان URL غير صالح - يجب أن يبدأ بـ http:// أو https://</string>
     <string name="auth_add_picker_title">اختر موردًا</string>
@@ -1579,7 +1579,7 @@
     <string name="setting_video_capture_open_in_player_title">فتح الفيديو المسجَّل في المشغّل</string>
     <string name="setting_video_capture_open_in_player_desc">بعد حفظ التسجيل، افتحه في المشغّل. معطّل افتراضيًا.</string>
     <string name="resource_menu_open">فتح</string>
-    <string name="resource_menu_launch">تشغيل</string>
+    <string name="resource_menu_launch">تنفيذ</string>
     <string name="resource_menu_move_to_top">نقل إلى أعلى القائمة</string>
     <string name="resource_menu_move_to_bottom">نقل إلى أسفل القائمة</string>
     <string name="delivery_offer_message_unknown_size">هذه الميزة تتطلب تنزيلًا إضافيًا بسيطًا. هل تريد تنزيلها الآن؟</string>
@@ -1884,7 +1884,7 @@
     <string name="streams_filter_category">الفئة</string>
     <string name="streams_filter_language">اللغة</string>
     <string name="streams_filter_country">البلد</string>
-    <string name="streams_filter_media_audio">صوت</string>
+    <string name="streams_filter_media_audio">الصوت</string>
     <string name="streams_filter_media_video">فيديو</string>
     <string name="streams_filter_clear">مسح عوامل التصفية</string>
     <string name="streams_picker_search_hint">اكتب للبحث</string>
@@ -1902,7 +1902,7 @@
     <string name="streams_shortcut_channel_missing">لم يعد هذا البث في قائمتك</string>
     <string name="streams_add_to_home_screen">إضافة إلى الشاشة الرئيسية</string>
     <string name="streams_shortcut_unsupported">المشغّل لديك لا يدعم اختصارات الشاشة الرئيسية</string>
-    <string name="streams_more_actions">إجراءات أخرى</string>
+    <string name="streams_more_actions">المزيد من الإجراءات</string>
     <string name="disable_nine_zone_tracking">تعطيل تتبع المناطق التسع</string>
     <string name="three_zone_layout_explanation">عند إيقاف تشغيل شبكة المناطق التسع، يستخدم اللاعب ثلاث مناطق: السابق / التكبير / التالي. انقر على الحافة اليسرى لفتح لوحة الأوامر الخاصة بإجراءات الملفات.</string>
     <string name="edit_app_launch_panel_title">لوحة التحرير</string>
@@ -1934,7 +1934,7 @@
     <string name="app_launch_panel_route_streams">البث</string>
     <string name="app_launch_panel_route_favorites">المفضّلة</string>
     <string name="app_launch_panel_os_settings">الإعدادات</string>
-    <string name="app_launch_panel_os_wifi">Wi-Fi</string>
+    <string name="app_launch_panel_os_wifi">واي فاي</string>
     <string name="app_launch_panel_os_bluetooth">Bluetooth</string>
     <string name="app_launch_panel_os_display">الشاشة</string>
     <string name="app_launch_panel_os_sound">الصوت</string>
@@ -2091,7 +2091,7 @@
     <string name="sftp_share_omit_password">لا تُدرج كلمة المرور</string>
     <string name="sftp_share_private_network_warning">هذا الخادم موجود على شبكتك المحلية - لا يمكن للمستلم الاتصال إلا من نفس الشبكة.</string>
     <string name="sftp_share_export_failed">تعذر إنشاء ملف الوصول.</string>
-    <string name="sftp_share_export_action">يشارك</string>
+    <string name="sftp_share_export_action">مشاركة</string>
     <string name="companion_import_title">استيراد الوصول</string>
     <string name="companion_import_confirm_message">إضافة مورد SFTP \"%1$s\" على %2$s مع %3$d مجلد؟</string>
     <string name="companion_import_no_fingerprint_warning">لم يتم التحقق من هذا الخادم - لا تتصل إلا إذا كنت تثق بالمُرسِل.</string>
@@ -2297,7 +2297,7 @@
     <string name="launcher_scheduled_op_failed">فشلت العملية</string>
     <string name="streams_edit_type_label">النوع</string>
     <string name="streams_edit_type_auto">تلقائي</string>
-    <string name="streams_edit_type_audio">صوت</string>
+    <string name="streams_edit_type_audio">الصوت</string>
     <string name="streams_edit_type_video">فيديو</string>
     <string name="streams_error_duplicate_url">يوجد بث بهذا العنوان بالفعل</string>
     <string name="settings_streams_smart_buffering">تخزين مؤقت فائق الذكاء للبث</string>
@@ -2658,7 +2658,7 @@
     <string name="network_monitor_section_bluetooth">بلوتوث</string>
     <string name="network_monitor_section_gnss">الأقمار الصناعية</string>
     <string name="network_monitor_section_internet">إنترنت</string>
-    <string name="network_monitor_section_history">تاريخ</string>
+    <string name="network_monitor_section_history">السجل</string>
     <string name="network_monitor_status_available">متاح</string>
     <string name="network_monitor_status_no_hardware">لا يوجد مثل هذا الجهاز على هذا الجهاز</string>
     <string name="network_monitor_status_no_permission">لم يتم منح الإذن</string>
@@ -2789,7 +2789,7 @@
     <string name="network_monitor_result_resource_failed">لم يستجب المورد - تحقق من عنوانه وبيانات اعتماده، ثم حاول مرة أخرى.</string>
     <string name="network_monitor_result_resource_missing">هذا المورد لم يعد موجوداً. اختر مورداً آخر.</string>
     <string name="network_monitor_history_empty">لم تُجرَ أي قياسات بعد. قم بإجراء فحص على شاشة الإنترنت وستظهر هنا.</string>
-    <string name="network_monitor_history_export">يصدّر</string>
+    <string name="network_monitor_history_export">تصدير</string>
     <string name="network_monitor_history_export_failed">تعذر إعداد الملف - قم بإخلاء بعض المساحة وحاول مرة أخرى.</string>
     <string name="network_monitor_history_clear">مسح</string>
     <string name="network_monitor_history_clear_title">امسح سجل القياسات</string>
@@ -2797,7 +2797,7 @@
     <string name="network_monitor_history_clear_confirm">مسح</string>
     <string name="network_monitor_history_outcome_ok">تمت الإجابة</string>
     <string name="network_monitor_history_outcome_failed">لا يوجد جواب</string>
-    <string name="network_monitor_history_kind_speed_test">سرعة</string>
+    <string name="network_monitor_history_kind_speed_test">السرعة</string>
     <string name="network_monitor_history_kind_resource_check">فحص الموارد</string>
     <string name="network_monitor_history_kind_external_ip">عنوان خارجي</string>
     <string name="network_monitor_history_kind_subnet_scan">مسح الشبكة</string>
@@ -2820,7 +2820,7 @@
     <string name="launcher_gadget_search_hint">البحث في الويب</string>
     <string name="launcher_gadget_search_description">حقل البحث في الويب</string>
     <string name="launcher_gadget_search_no_browser">لا يوجد متصفّح لفتح البحث. ثبّت متصفّحًا وحاول مرة أخرى.</string>
-    <string name="launcher_gadget_map">رسم خريطة</string>
+    <string name="launcher_gadget_map">الخريطة</string>
     <string name="launcher_gadget_map_actions">خريطة موقعك الحالي. انقر لفتح تطبيق الخريطة</string>
     <string name="launcher_gadget_map_no_permission">تم إيقاف إذن الموقع</string>
     <string name="launcher_gadget_map_unavailable">الوظيفة غير متاحة حالياً</string>
