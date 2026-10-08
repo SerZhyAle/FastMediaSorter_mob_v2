@@ -73,10 +73,11 @@ import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.StandardWearChip
 import com.sza.fastmediasorter.wear.ui.common.StandardWearToggleChip
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
-import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_UNTITLED_ANCHOR
+import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearChoiceGridFit
 import com.sza.fastmediasorter.wear.ui.common.WearDialogListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
+import com.sza.fastmediasorter.wear.ui.common.WearListSnapToTop
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateExtraAction
@@ -84,6 +85,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.rememberWearDialogListState
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearBandEdgeOffset
+import com.sza.fastmediasorter.wear.ui.common.wearBoundedViewportInset
 import com.sza.fastmediasorter.wear.ui.common.wearChoiceRows
 import com.sza.fastmediasorter.wear.ui.common.wearChordInset
 import com.sza.fastmediasorter.wear.ui.common.wearFlowChoiceRows
@@ -195,11 +197,11 @@ fun StreamsScreen(
     viewModel: StreamsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    // The channel rows are the first items on this screen, so the second row is item 1 (S2466). The
-    // counter row S2568 moved into the list is conditional, so a fixed titled anchor would be wrong
-    // whenever it is absent - it opens one row higher when it is there, which is where it is read.
+    // S4136: the list opens on its first item. The counter S2568 moved into the list is item 0 and
+    // carries the only statement of how much the query left, so an anchor of 1 - which S2466 meant for
+    // lists that open straight into data - scrolled it out under the pinned toolbar at rest.
     val listState =
-        rememberWearListState(initialCenterItemIndex = WEAR_LIST_UNTITLED_ANCHOR, positionKey = WearRoutes.STREAMS)
+        rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR, positionKey = WearRoutes.STREAMS)
     val stateScrollState = rememberScrollState()
 
     // S1954: the player is the other place a channel can be marked, and coming back from it does not
@@ -373,6 +375,7 @@ private fun StreamsMainContent(
         val columns = GridColumnFit.columnsFor(uiState.viewMode, maxWidth.value.toInt())
         val screenInsets = wearScreenInsets()
         val stillArriving = uiState.isLoading && uiState.displayChannels.isEmpty()
+        WearListSnapToTop(state = listState, active = !uiState.showsStateBlock && !stillArriving)
 
         // S2273: the pinned row keeps its width and moves down instead. `toolbarTop` is the first
         // height at which the glass is [TOOLBAR_BAND_WIDTH] wide, `toolbarSideInset` is the padding
@@ -408,7 +411,11 @@ private fun StreamsMainContent(
                 // S2049 wired the crown here by hand, this screen being the first list to get it;
                 // S2763 found that made it one of two out of forty and moved the hookup into
                 // WearListColumn, so the modifier below no longer carries it.
-                modifier = Modifier.fillMaxSize(),
+                // S4136: the viewport ends where a full-width row still fits the glass; without it the
+                // second row at rest stood in the bottom arc, 236.6 px from the centre against 227.
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = wearBoundedViewportInset()),
                 state = listState,
                 // S1945: start rule is owned by WearListColumn (S2466).
                 contentPadding = PaddingValues(
@@ -553,6 +560,8 @@ private fun StreamsStateBlock(
         },
         onBack = actions.onBack,
         onRetry = if (failed) actions.onRefresh else null,
+        // S4136: the pinned row leaves this block a short box, shorter than the message in body1.
+        dense = true,
         extraActions = when {
             failed -> emptyList()
             narrowed -> listOf(

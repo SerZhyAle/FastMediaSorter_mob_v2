@@ -102,8 +102,18 @@
     Skip the user-like layer - the scroll pass and the catalog's `inputs` (typed text, opened value
     pickers) - and walk only screens and expand nodes, the pre-2026-10-03 behaviour.
 
+.PARAMETER Detach
+    Re-launch this walk in a hidden console of its own and wait for it, forwarding every other
+    parameter. Use it for any run started from an agent or a background task: the launching console
+    can disappear mid-run, and from then on no child process starts (four runs died that way on
+    2026-10-03, after 8 to 62 minutes). The walk's console output lands in `walk-console.log` and
+    `walk-console.err.log` in -OutDir, and this process exits with the walk's own exit code.
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/devtest/ui-sweep-walk.ps1 -Subset quick -DeviceId emulator-5554
+
+.EXAMPLE
+    pwsh -NoProfile -File scripts/devtest/ui-sweep-walk.ps1 -Subset quick -DeviceId emulator-5554 -Detach -OutDir temp/S2380/runs/20261008-quick/sweep
 
 .NOTES
     Exit codes:
@@ -133,6 +143,7 @@ param(
     [switch]$Lean,
     [switch]$SkipSetup,
     [int]$RehomeAfterUnreachable = 2,
+    [switch]$Detach,
     [switch]$Json
 )
 
@@ -168,7 +179,10 @@ $result = [ordered]@{
 # PowerShell holds read-only - produced a stack trace and no verdict at all. 2, not 1: a crash is
 # "the walk never got to judge", never "the app is broken here".
 trap {
-    Write-Error "ui-sweep-walk: the run stopped on an unhandled error: $($_.Exception.Message)" -ErrorAction Continue
+    # The line, because the message alone does not say which of eighty functions threw it: the four
+    # 2026-10-03 crashes printed only "No process is on the other end of the pipe".
+    $where = "$(Split-Path -Leaf $_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)"
+    Write-Error "ui-sweep-walk: the run stopped on an unhandled error at ${where}: $($_.Exception.Message)" -ErrorAction Continue
     exit 2
 }
 
@@ -180,6 +194,43 @@ function Stop-Run {
     if ($Json) { [pscustomobject]$result | ConvertTo-Json -Depth 8 -Compress }
     else { Write-Error "ui-sweep-walk: $Reason" -ErrorAction Continue }
     exit $Code
+}
+
+# Console notes, the timeline, adb.ps1 child calls and node-tree reads live in a sibling file,
+# dot-sourced so they share this script's scope ($script:dev, $adbWrapper, $repoRoot, Stop-Run).
+. (Join-Path $PSScriptRoot 'lib/ui-sweep-device-io.ps1')
+
+if ($Detach) {
+    # A console of its own: Start-Process without -NoNewWindow gives the child a new hidden console,
+    # so the walk no longer shares the fate of the one it was launched from.
+    $detachOut = if ([System.IO.Path]::IsPathRooted($OutDir)) { $OutDir } else { Join-Path $repoRoot $OutDir }
+    New-Item -ItemType Directory -Path $detachOut -Force | Out-Null
+    $forward = [System.Collections.Generic.List[string]]::new()
+    $forward.AddRange([string[]]@('-NoProfile', '-File', ('"{0}"' -f $PSCommandPath)))
+    foreach ($name in $PSBoundParameters.Keys) {
+        if ($name -eq 'Detach') { continue }
+        $value = $PSBoundParameters[$name]
+        if ($value -is [System.Management.Automation.SwitchParameter]) {
+            if ($value.IsPresent) { $forward.Add("-$name") }
+            continue
+        }
+        # Start-Process joins the list with spaces and quotes nothing, so every value is quoted here.
+        $forward.Add("-$name")
+        $forward.Add(('"{0}"' -f $value))
+    }
+    $consoleLog = Join-Path $detachOut 'walk-console.log'
+    $consoleErr = Join-Path $detachOut 'walk-console.err.log'
+    $child = Start-Process -FilePath ([Environment]::ProcessPath) -ArgumentList $forward -WindowStyle Hidden `
+        -RedirectStandardOutput $consoleLog -RedirectStandardError $consoleErr -PassThru
+    # Touching Handle now is what keeps ExitCode readable after the exit; without it a process
+    # object from Start-Process can report no exit code at all.
+    $null = $child.Handle
+    Write-Note "ui-sweep-walk: detached as PID $($child.Id); console log $consoleLog"
+    # WaitForExit on the process alone: Start-Process -Wait also waits for every descendant, and the
+    # adb server a child may start outlives the walk by design.
+    $child.WaitForExit()
+    Write-Note "ui-sweep-walk: detached walk exited $($child.ExitCode); see $consoleLog and $consoleErr"
+    exit $child.ExitCode
 }
 
 foreach ($required in @($adbWrapper, $benchScript, $Matrix, $Profiles, $Screens)) {
@@ -297,45 +348,6 @@ $script:timelinePath = Join-Path $outPath 'timeline.jsonl'
 
 $script:dev = $null
 
-# The timeline: one JSON line per device action, screenshot and screen boundary, stamped to the
-# millisecond. A walk only collects; a reader studies the frames later and finds the moment each one
-# belongs to by timestamp, so what led up to a frame (the taps, the typing, the scroll before it) is
-# read from here and nothing needs to be judged while the walk runs.
-function Write-Timeline {
-    param([string]$Kind, [string]$Detail, [hashtable]$Extra)
-    if (-not $script:timelinePath) { return }
-    $line = [ordered]@{ t = (Get-Date).ToString('yyyy-MM-ddTHH:mm:ss.fffzzz'); kind = $Kind; detail = $Detail }
-    if ($Extra) { foreach ($k in $Extra.Keys) { $line[$k] = $Extra[$k] } }
-    Add-Content -LiteralPath $script:timelinePath -Value ($line | ConvertTo-Json -Compress) -Encoding UTF8
-}
-
-function Invoke-AdbVerb {
-    param([Parameter(Mandatory)][string[]]$Arguments)
-    $callArgs = @($Arguments)
-    if ($script:dev) { $callArgs += @('-DeviceId', $script:dev) }
-    $output = & pwsh -NoProfile -File $adbWrapper @callArgs 2>&1
-    $exit = $LASTEXITCODE
-    Write-Timeline -Kind 'adb' -Detail ($Arguments -join ' ') -Extra @{ exit = $exit; device = $script:dev }
-    return [pscustomobject]@{ Exit = $exit; Output = (($output | ForEach-Object { $_.ToString() }) -join "`n") }
-}
-
-function Invoke-AdbJson {
-    # One -Json verb call, parsed. Returns $null when the verb failed or printed nothing parseable.
-    param([Parameter(Mandatory)][string[]]$Arguments)
-    $call = Invoke-AdbVerb -Arguments $Arguments
-    if ($call.Exit -ne 0) { return $null }
-    $line = ($call.Output -split "`r?`n" | Where-Object { $_.StartsWith('{') } | Select-Object -First 1)
-    if (-not $line) { return $null }
-    try { $obj = $line | ConvertFrom-Json } catch { return $null }
-    if ($obj.data) { return $obj.data }
-    return $obj
-}
-
-function Invoke-Shell {
-    param([Parameter(Mandatory)][string]$Command)
-    return (Invoke-AdbVerb -Arguments @('shell', '-Cmd', $Command))
-}
-
 # --- string resources ----------------------------------------------------------------------------
 
 $script:resCache = @{}
@@ -404,109 +416,6 @@ function Get-MarkerTexts {
     if ($localized) { $markers += $localized }
     if ($Record.expect -and -not $markers.Contains([string]$Record.expect)) { $markers += [string]$Record.expect }
     return ,$markers
-}
-
-# --- tree reading --------------------------------------------------------------------------------
-
-$script:adbExe = $null
-
-function Read-UiDumpFast {
-    # The same payload shape as the uidump verb (label, desc, resId, resIdShort per node plus the
-    # saved XML), without the verb's own process start and node parsing. Measured emulator-5560,
-    # 2026-10-03: 2 s here against 6-8 s through the wrapper, and a hunt reads the tree after every
-    # swipe. Returns $null on any problem so the caller falls back to the verb.
-    if (-not $script:dev) { return $null }
-    if (-not $script:adbExe) {
-        $candidate = Join-Path $env:LOCALAPPDATA 'Android\Sdk\platform-tools\adb.exe'
-        if (-not (Test-Path -LiteralPath $candidate)) { return $null }
-        $script:adbExe = $candidate
-    }
-    try {
-        $raw = (& $script:adbExe -s $script:dev exec-out uiautomator dump /dev/tty 2>$null | Out-String)
-        $start = $raw.IndexOf('<?xml')
-        $end = $raw.LastIndexOf('</hierarchy>')
-        if ($start -lt 0 -or $end -lt 0) { return $null }
-        $xmlText = $raw.Substring($start, $end - $start + '</hierarchy>'.Length)
-        $scratch = Join-Path $repoRoot 'temp/scratch'
-        New-Item -ItemType Directory -Path $scratch -Force | Out-Null
-        $file = Join-Path $scratch ("uitree_{0}_{1}.xml" -f $script:dev, (Get-Date -Format 'yyyyMMdd_HHmmss_fff'))
-        [System.IO.File]::WriteAllText($file, $xmlText, [System.Text.UTF8Encoding]::new($false))
-        $nodes = [System.Collections.Generic.List[object]]::new()
-        foreach ($m in [regex]::Matches($xmlText, '<node [^>]*>')) {
-            $tag = $m.Value
-            $text = [System.Net.WebUtility]::HtmlDecode(([regex]::Match($tag, ' text="([^"]*)"')).Groups[1].Value)
-            $desc = [System.Net.WebUtility]::HtmlDecode(([regex]::Match($tag, ' content-desc="([^"]*)"')).Groups[1].Value)
-            if (-not $text -and -not $desc) { continue }
-            $rid = ([regex]::Match($tag, ' resource-id="([^"]*)"')).Groups[1].Value
-            $nodes.Add([pscustomobject]@{
-                label = $text; desc = $desc; resId = $rid
-                resIdShort = if ($rid -like '*/*') { $rid.Substring($rid.LastIndexOf('/') + 1) } else { $rid }
-            })
-        }
-        if ($nodes.Count -eq 0) { return $null }
-        return [pscustomobject]@{ file = $file; nodes = @($nodes) }
-    }
-    catch { return $null }
-}
-
-function Read-UiDump {
-    # One tree dump. Returns the parsed verb payload (nodes + the saved XML file) or $null.
-    $fast = Read-UiDumpFast
-    if ($fast) {
-        Write-Timeline -Kind 'dump' -Detail 'fast' -Extra @{ nodes = @($fast.nodes).Count; device = $script:dev }
-        return $fast
-    }
-    $dump = Invoke-AdbJson -Arguments @('uidump', '-Json')
-    if (-not $dump -or -not $dump.nodes -or @($dump.nodes).Count -eq 0) { return $null }
-    return $dump
-}
-
-function Get-Haystack {
-    # Two sources, because they are not the same set. The parsed node list carries only nodes that
-    # draw text or a description, so a CONTAINER - a tab strip, a section header - is in the raw tree
-    # and in none of those nodes; the raw XML is therefore read for its resource-ids as well. An
-    # `expectId` matched against the parsed list alone made a screen that was open read as never
-    # reached: measured emulator-5554 2026-09-20, `tabResourceTypes` is in the start screen's tree
-    # and in none of its 45 parsed nodes, so the walk refused the whole matrix from the start screen.
-    param($Dump)
-    $parts = @($Dump.nodes | ForEach-Object { "$($_.label) $($_.desc) $($_.resId)" })
-    if ($Dump.file -and (Test-Path -LiteralPath $Dump.file)) {
-        try {
-            $raw = Get-Content -LiteralPath $Dump.file -Raw -Encoding UTF8
-            $parts += @([regex]::Matches($raw, 'resource-id="([^"]+)"') |
-                ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
-        } catch {
-            # The parsed nodes stay the haystack - which is exactly what the walk matched against
-            # before this second source existed, so an unreadable dump file loses no ground.
-        }
-    }
-    return ($parts -join "`n")
-}
-
-function Test-HaystackHasToken {
-    param([string]$Haystack, [string]$Token)
-    return ($null -ne $Haystack -and $Haystack -match [regex]::Escape($Token))
-}
-
-function Get-CheckedState {
-    # The checked state of the switch inside a toggle row, read from the raw XML dump the tree verb
-    # saves: the parsed nodes carry no checked attribute, and the sweep must READ a toggle before
-    # tapping it - a blind tap flips a switch that may already be in the target position.
-    param([Parameter(Mandatory)][string]$DumpFile, [Parameter(Mandatory)][string]$RowId)
-    try { $xml = [xml](Get-Content -LiteralPath $DumpFile -Raw -Encoding UTF8) } catch { return $null }
-    $rows = @($xml.SelectNodes("//*[@resource-id]") | Where-Object {
-        $_.GetAttribute('resource-id') -match ('/' + [regex]::Escape($RowId) + '$')
-    })
-    if ($rows.Count -eq 0) { return $null }
-    $row = $rows[0]
-    # checkable="true", not merely [@checked]: uiautomator writes checked="false" on EVERY node, so the
-    # first descendant - the row's title text - answered for the switch and a row that was ON read OFF.
-    $checkedNode = @($row.SelectNodes(".//*[@checkable='true']")) | Select-Object -First 1
-    if (-not $checkedNode) {
-        if ($row.HasAttribute('checked')) { return ($row.GetAttribute('checked') -eq 'true') }
-        return $null
-    }
-    return ($checkedNode.GetAttribute('checked') -eq 'true')
 }
 
 # --- scrolling -----------------------------------------------------------------------------------
@@ -1114,7 +1023,15 @@ function Invoke-SetToggleRow {
     $checked = Get-CheckedState -DumpFile $dump.file -RowId $RowId
     if ($null -eq $checked) { return "no readable checked state on '$RowId'" }
     if ($checked -ne $Want) {
-        $tap = Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', $RowId, '-Exact')
+        # The switch, not the row: a row's centre lands on whatever sits mid-width, and on a 360 dp
+        # bench that is the row's help button, so the tap opened the mini-game's help and left the
+        # switch off (rowEmbeddedGame, emulator-5570, 2026-10-08).
+        $point = Get-ToggleTapPoint -DumpFile $dump.file -RowId $RowId
+        $tap = if ($point) {
+            Write-Timeline -Kind 'tap' -Detail "$RowId switch" -Extra @{ x = $point.X; y = $point.Y; device = $script:dev }
+            Invoke-Shell "input tap $($point.X) $($point.Y)"
+        }
+        else { Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', $RowId, '-Exact') }
         if ($tap.Exit -ne 0) { return "tapping '$RowId' failed: $($tap.Output)" }
         Start-Sleep -Milliseconds $SettleMs
         $after = Read-UiDump
@@ -1207,7 +1124,7 @@ function Invoke-CatalogEntrySteps {
         # below the fold. A card already drawing the folder name means the resource exists.
         $mainDump = Read-UiDump
         if ($mainDump -and (Test-HaystackHasToken (Get-Haystack $mainDump) $seedFolderName)) {
-            Write-Host "setup: $($Entry.id) skipped - Main already lists '$seedFolderName'"
+            Write-Note "setup: $($Entry.id) skipped - Main already lists '$seedFolderName'"
             return $null
         }
     }
@@ -1273,16 +1190,22 @@ function Invoke-SafFolderPick {
         # until S3354 made it dismiss the dialog first, so a build older than that fix lists nothing
         # after the pick - the resource-list screens then fail as observed defects, not silently.
         @{ name = 'browse-with-saf'; ids = @('btnBrowseWithSAF', 'btnRoot') },
+        # The breadcrumb, read before anything scrolls: the picker reopened three levels down
+        # (Download > FastMediaSorter_Test > Docs) and the 'Show roots' hunt scrolled the list, which
+        # collapsed the app bar and took the breadcrumb with it - so 'Download' was on screen when
+        # the picker opened and gone by the time it was looked for (emulator-5570, 2026-10-08).
+        # Cap 0: this step taps what is already there or nothing.
+        @{ name = 'breadcrumb-download'; labels = @('Download'); exact = $true; optional = $true; cap = 0; skipWhenAt = $true; skipWhenInDownload = $true },
         # Optional: the picker opens on the device root already listing Download, DCIM and the rest,
         # so the roots drawer is needed only when it opens somewhere else - Recent, or a folder a
         # previous grant left it in. Refusing here would refuse a picker showing the destination.
         # The picker reopens where the last grant left it, so both navigation steps are skipped when
         # the breadcrumb already ends in the seed folder (emulator-5560, 2026-09-24: it opened inside
         # FastMediaSorter_UiSweep and the walk refused, looking for Download).
-        @{ name = 'show-roots'; labels = @('Show roots'); optional = $true; skipWhenAt = $true },
+        @{ name = 'show-roots'; labels = @('Show roots'); optional = $true; skipWhenAt = $true; skipWhenInDownload = $true },
         # Both spellings: the roots drawer says 'Downloads', the file list says 'Download', and which
         # of the two the walk meets depends on the step above it having been needed at all.
-        @{ name = 'downloads'; labels = @('Download', 'Downloads'); skipWhenAt = $true },
+        @{ name = 'downloads'; labels = @('Download', 'Downloads'); skipWhenAt = $true; skipWhenInDownload = $true },
         @{ name = 'seed-folder'; labels = @($FolderName); skipWhenAt = $true },
         @{ name = 'use-this-folder'; labels = @('USE THIS FOLDER', 'SELECT FOLDER') },
         # The grant dialog the system raises after the folder is chosen - 'Allow <app> to access
@@ -1297,11 +1220,17 @@ function Invoke-SafFolderPick {
     $trace = [System.Collections.Generic.List[string]]::new()
     $tracePath = Join-Path $outPath 'saf-folder-pick.log'
     $atSeed = $false
+    $inDownload = $false
     foreach ($step in $steps) {
         if ($step.skipWhenAt -and $atSeed) {
             $trace.Add("$($step.name): skipped - the picker already stands in $FolderName")
             continue
         }
+        if ($step.skipWhenInDownload -and $inDownload) {
+            $trace.Add("$($step.name): skipped - the picker already stands in Download")
+            continue
+        }
+        $cap = if ($null -ne $step.cap) { [int]$step.cap } else { $MaxScrolls }
         $tap = $null
         $ids = @(if ($step.ids) { $step.ids } elseif ($step.id) { @($step.id) } else { @() })
         if ($ids.Count -gt 0) {
@@ -1309,13 +1238,13 @@ function Invoke-SafFolderPick {
             # bare tap-id exits 8 on a screen that is working. Several ids are alternatives, tried in
             # order - the first one the screen actually carries wins.
             foreach ($id in $ids) {
-                $tap = Invoke-ReachControl -Record @{ resourceId = $id } -Cap $MaxScrolls
+                $tap = Invoke-ReachControl -Record @{ resourceId = $id } -Cap $cap
                 if ($tap.Exit -eq 0) { break }
             }
         }
         else {
             foreach ($label in $step.labels) {
-                $tap = Invoke-ReachControl -Record @{ label = $label; exactLabel = $step.exact } -Cap $MaxScrolls
+                $tap = Invoke-ReachControl -Record @{ label = $label; exactLabel = $step.exact } -Cap $cap
                 if ($tap.Exit -eq 0) { break }
             }
         }
@@ -1336,6 +1265,8 @@ function Invoke-SafFolderPick {
             $titles = @($after.nodes | Where-Object { $_.resIdShort -eq 'header_title' } | ForEach-Object { [string]$_.label })
             $atSeed = (($crumbs.Count -gt 0 -and $crumbs[-1] -eq $FolderName) -or
                 @($titles | Where-Object { $_.EndsWith(" $FolderName") }).Count -gt 0)
+            $inDownload = (($crumbs.Count -gt 0 -and $crumbs[-1] -in @('Download', 'Downloads')) -or
+                @($titles | Where-Object { $_ -match ' Downloads?$' }).Count -gt 0)
         }
     }
     $trace -join [Environment]::NewLine | Set-Content -LiteralPath $tracePath -Encoding UTF8
@@ -1347,12 +1278,19 @@ function Invoke-Setup {
     # one resource configured. A setup step that fails names its refusal; only the secure toggle's
     # failure changes how the catalog is walked (its four surfaces get refused-secure), the rest
     # surface later as honest screen outcomes.
-    param([string]$Serial)
+    param([string]$Serial, $Language)
     $script:dev = $Serial
     # Before the first hunt: the swipe geometry defaults to 1080x2400 until read, and on a 720x1280
     # bench that swipe starts below the screen, scrolls nothing, and every setup row reads as absent
     # (emulator-5560, 2026-09-24, rowSecureSensitiveScreens and headerStreams both).
     Read-ScreenSize
+    # Setup reaches tabs and rows by label, so the app is put in the language those labels are
+    # resolved in before anything is tapped. Without it setup inherited whatever locale an earlier
+    # run or a person left behind: the app stood in Russian and setup looked for 'General'
+    # (emulator-5570, 2026-10-08).
+    $script:lang = if ($Language -is [string]) { @{ id = $Language; resFolder = 'values'; appLocale = $Language } } else { $Language }
+    $langReason = Set-Language -Locale $script:lang.appLocale
+    if ($langReason) { return "setup could not put the app in its first combination's language: $langReason" }
     # The system picker runs in its own task, so stopping the app leaves a picker an aborted run
     # opened standing on top, and the relaunch never reaches Main (emulator-5560, 2026-09-24).
     Invoke-Shell 'am force-stop com.google.android.documentsui' | Out-Null
@@ -1366,7 +1304,7 @@ function Invoke-Setup {
         if ($reason) {
             if ($entry.id -eq 'setup-disable-secure-screens') {
                 $script:secureAvailable = $false
-                Write-Host "setup: secure toggle unreachable - the four secure surfaces will be refused ($reason)" -ForegroundColor Yellow
+                Write-Note "setup: secure toggle unreachable - the four secure surfaces will be refused ($reason)" -Color Yellow
                 # Back to a known position for the next setup entry: force-stop and relaunch rather
                 # than guessing how many BACK presses the failed navigation left outstanding.
                 Invoke-AdbVerb -Arguments @('stop') | Out-Null
@@ -1401,11 +1339,11 @@ function Invoke-Teardown {
         $script:pos.Clear()
         foreach ($entry in @($screensDoc.teardown)) {
             $reason = Invoke-CatalogEntrySteps -Entry $entry
-            if ($reason) { Write-Host "teardown: $($entry.id) failed: $reason" -ForegroundColor Yellow }
+            if ($reason) { Write-Note "teardown: $($entry.id) failed: $reason" -Color Yellow }
         }
     }
     catch {
-        Write-Host "teardown: interrupted: $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Note "teardown: interrupted: $($_.Exception.Message)" -Color Yellow
     }
 }
 
@@ -1840,8 +1778,10 @@ $runStarted = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
 # Two walks on one device share the remote tree path, so each deletes the other's dump between dump and
 # pull and both read "the pull produced no file" (emulator-5560, 2026-09-24: an orphaned walk from a
 # dead session ran under a fresh one for twenty minutes and every symptom pointed at the device).
+# The parent is excluded: under -Detach it is this same walk, waiting for it.
+$parentPid = (Get-CimInstance Win32_Process -Filter "ProcessId=$PID" -ErrorAction SilentlyContinue).ParentProcessId
 $otherWalks = @(Get-CimInstance Win32_Process -Filter "Name='pwsh.exe'" -ErrorAction SilentlyContinue |
-    Where-Object { $_.ProcessId -ne $PID -and $_.CommandLine -match 'ui-sweep-walk\.ps1' })
+    Where-Object { $_.ProcessId -ne $PID -and $_.ProcessId -ne $parentPid -and $_.CommandLine -match 'ui-sweep-walk\.ps1' })
 if ($otherWalks.Count -gt 0) {
     Stop-Run 2 ("another ui-sweep-walk is already running (PID $(@($otherWalks.ProcessId) -join ', ')) - two walks " +
         "on one bench corrupt each other's tree reads; wait for it to exit")
@@ -1855,7 +1795,10 @@ foreach ($p in $profileValues) {
     try {
         $null = Invoke-AdbVerb -Arguments @('state-begin')
         $loc = Invoke-Shell "cmd locale get-app-locales $pkg"
-        $script:localeOriginal[$serial] = if ($loc.Exit -eq 0) { $loc.Output.Trim() } else { '' }
+        # The answer is a sentence - "Locales for <pkg> for user 0 are [ru]" - and only the bracketed
+        # list is a locale; storing the sentence made teardown send it back verbatim as the locale
+        # (emulator-5570, 2026-10-08). An empty list is "no per-app locale"; $null is "never read".
+        $script:localeOriginal[$serial] = if ($loc.Exit -eq 0 -and $loc.Output -match '\[([^\]]*)\]') { $Matches[1].Trim() } else { $null }
 
         if ($SkipSetup) {
             # The app keeps the settings setup flips, so a device that has been through setup once is
@@ -1866,11 +1809,12 @@ foreach ($p in $profileValues) {
             $null = Wait-ForMainScreen
         }
         elseif (-not $Only) {
-            $setupReason = Invoke-Setup -Serial $serial
+            $firstLanguage = @($combinations | Where-Object { $_.profile -eq $profileId })[0].language
+            $setupReason = Invoke-Setup -Serial $serial -Language $firstLanguage
             if ($setupReason -and $Lean) {
                 # A collecting walk takes what the app shows in the state it is in: a setup step that
                 # did not stick costs the screens behind it, not the whole run, and the timeline says which.
-                Write-Host "setup: $setupReason - continuing, lean mode collects what is reachable" -ForegroundColor Yellow
+                Write-Note "setup: $setupReason - continuing, lean mode collects what is reachable" -Color Yellow
                 Write-Timeline -Kind 'setup-failed' -Detail $setupReason -Extra @{ device = $serial }
                 $script:dev = $serial
                 $null = Wait-ForMainScreen
@@ -1897,7 +1841,7 @@ foreach ($p in $profileValues) {
                         shot = $null; tree = $null; expanded = @(); rehomed = $false
                     })
                 }
-                if (-not $Json) { Write-Host "walk: combination $key -> refused-state ($stateReason)" -ForegroundColor Yellow }
+                if (-not $Json) { Write-Note "walk: combination $key -> refused-state ($stateReason)" -Color Yellow }
                 continue
             }
 
@@ -1912,7 +1856,7 @@ foreach ($p in $profileValues) {
                         shot = $null; tree = $null; expanded = @(); rehomed = $false
                     })
                 }
-                if (-not $Json) { Write-Host "walk: combination $key -> refused-state (no start screen)" -ForegroundColor Yellow }
+                if (-not $Json) { Write-Note "walk: combination $key -> refused-state (no start screen)" -Color Yellow }
                 continue
             }
 
@@ -1926,7 +1870,7 @@ foreach ($p in $profileValues) {
             if (-not $Json) {
                 $soFar = @($script:rows | Where-Object { $_.combination -eq $key })
                 $observed = @($soFar | Where-Object { $_.outcome -eq 'observed' }).Count
-                Write-Host "walk: combination $key done - $observed/$($walkScreens.Count) observed" -ForegroundColor Cyan
+                Write-Note "walk: combination $key done - $observed/$($walkScreens.Count) observed" -Color Cyan
             }
         }
     }
@@ -1941,6 +1885,10 @@ foreach ($p in $profileValues) {
             $original = $script:localeOriginal[$serial]
             if ($original) {
                 $null = Invoke-Shell "cmd locale set-app-locales $pkg --locales $original"
+            }
+            elseif ($null -ne $original) {
+                # Without --locales the command sets the empty list: back to following the system.
+                $null = Invoke-Shell "cmd locale set-app-locales $pkg"
             }
         }
         $null = Invoke-Shell 'settings put system accelerometer_rotation 1'
@@ -1997,6 +1945,6 @@ $result['journal'] = $journalPath
 
 if ($Json) { [pscustomobject]$result | ConvertTo-Json -Depth 8 -Compress }
 else {
-    Write-Host ("ui-sweep-walk: observed $($counts.observed), failed $($counts.failed), unreachable $($counts.unreachable), manual $($counts.manual), skipped $($counts.skipped), refusedState $($counts.refusedState), refusedSecure $($counts.refusedSecure), rehomes $script:rehomeCount; rows $rowCount/$expectedRows; journal $journalPath") -ForegroundColor Cyan
+    Write-Note ("ui-sweep-walk: observed $($counts.observed), failed $($counts.failed), unreachable $($counts.unreachable), manual $($counts.manual), skipped $($counts.skipped), refusedState $($counts.refusedState), refusedSecure $($counts.refusedSecure), rehomes $script:rehomeCount; rows $rowCount/$expectedRows; journal $journalPath") -Color Cyan
 }
 exit $verdict

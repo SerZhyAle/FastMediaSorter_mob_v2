@@ -811,6 +811,19 @@ scripts/builders/build-vr-release.ps1
     -VersionCode         [Int32]
 ```
 
+### build-watchface-debug.ps1
+Build, verify, and optionally install the debug watch face APK (:watchface) (S4134).
+
+```
+scripts/builders/build-watchface-debug.ps1
+  Build, verify, and optionally install the debug watch face APK (:watchface) (S4134).
+  Params:
+    -Install          [SwitchParameter]
+    -DeviceId         [String]
+    -NoBuild          [SwitchParameter]
+  Exit: 0 - build and verification succeeded (and install succeeded if requested); 1 - verification failed, artifact missing, or invalid parameters; 2 - build lock wait timed out; 3 - JVM / toolchain start failure
+```
+
 ### build-watchface-release.ps1
 Build the signed Play bundle of the watch face (:watchface) and prove its signature (S4009).
 
@@ -1620,6 +1633,7 @@ scripts/devtest/ui-sweep-walk.ps1
     -Lean                           [SwitchParameter]
     -SkipSetup                      [SwitchParameter]
     -RehomeAfterUnreachable         [Int32] = 2
+    -Detach                         [SwitchParameter]
     -Json                           [SwitchParameter]
   Exit: 0 - every declared combination walked: every row observed or legitimately skipped; 1 - at least one product defect observed - a screen opened and its expected token was absent; 2 - could not verify: at least one row is unreachable, manual or a run-level refusal
 ```
@@ -1907,6 +1921,15 @@ Shared target-device resolver for the builders that install what they just built
 ```
 scripts/devtest/lib/target-device.ps1
   Shared target-device resolver for the builders that install what they just built (S3169).
+  (no param block)
+```
+
+### ui-sweep-device-io.ps1
+S2380 - the device I/O layer of the phone UI sweep: console notes, the timeline, the adb.ps1 child calls, and the node-tree reads.
+
+```
+scripts/devtest/lib/ui-sweep-device-io.ps1
+  S2380 - the device I/O layer of the phone UI sweep: console notes, the timeline, the adb.ps1 child calls, and the node-tree reads.
   (no param block)
 ```
 
