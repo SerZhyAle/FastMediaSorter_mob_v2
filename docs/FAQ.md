@@ -5,7 +5,7 @@ permalink: /docs/FAQ.html
 lang: en
 ---
 
-<sub class="doc-stamp">26.10.06 16:15</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 <div lang="en" markdown="1">
 
@@ -264,7 +264,7 @@ Availability depends on the edition and device class. ML Kit translation is allo
 ### Why is translation sometimes slower?
 The first use of a language loads its text model, and large or detailed pictures take longer to read. Later runs on the same language start faster.
 
-### What is lens-style translation mode?
+### How do I show the translation right over the original text?
 The overlay places translated blocks over the image; standard mode shows separate text. Find **Translation result in blocks** under **Settings → Media → Other** on supported devices.
 
 ---

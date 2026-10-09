@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.07.28 15:57</sub>
+<sub class="doc-stamp">26.10.09 14:27</sub>
 
 # Free Promotion Plan
 
@@ -53,8 +53,8 @@ Spread these out. Posting everywhere in one day looks like a campaign and gets t
 - **Habr.** Long-form only; a feature list gets downvoted. The prepared text leads with the
   engineering problem, which is the right shape.
 - **4PDA.** Expects a direct APK link alongside the Play link, and an active thread afterwards.
-- **AlternativeTo.** Add the app as an alternative to the tools it actually replaces - Solid
-  Explorer, VLC, Moon+ Reader, AndFTP. Do not list unrelated popular apps to farm visibility.
+- **AlternativeTo.** Our listing names no competitor product (owner, 2026-10-09; canon PROMOTION section 1
+  rule 4); the site's own users link alternatives. No links in the description.
 
 ---
 

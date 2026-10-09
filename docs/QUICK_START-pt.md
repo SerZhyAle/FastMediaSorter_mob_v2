@@ -3,7 +3,7 @@ layout: default
 title: "🚀 Guia de Início Rápido - FastMediaSorter v2"
 permalink: /docs/QUICK_START-pt.html
 ---
-<sub class="doc-stamp">26.09.24 20:16</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
@@ -166,7 +166,7 @@ Toque em **"+"** → **Armazenamento na Nuvem**
 
 - Ative em **Configurações** → **Mídia** → **Outros**
 - Toque no botão **Traduzir** (A→文) ao visualizar Imagens/PDF/Texto
-- **Modo estilo lente:** Ative "Sobreposição estilo lente" nas configurações para traduções no próprio local do texto, ao estilo do Google Lens
+- **Tradução sobre a imagem:** Ative "Resultado da tradução em blocos" nas configurações para que cada linha traduzida apareça sobre o texto original, na própria imagem
 
 ### E-books EPUB
 

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.07.28 15:56</sub>
+<sub class="doc-stamp">26.10.09 14:27</sub>
 
 PLATFORM: Reddit - r/androidapps
 URL: https://www.reddit.com/r/androidapps/
@@ -16,7 +16,7 @@ Developer here. FastMediaSorter v2 is an all-in-one media management app for And
 
 **What it replaces (for my own use case):**
 
-Before building this I was juggling: Solid Explorer for file management, VLC for video, a separate music app, Moon+ for EPUB, Adobe Reader for PDF, and AndFTP for SFTP access. Now it's one app.
+Before building this I was juggling a file manager, a video player, a separate music app, an EPUB reader, a PDF reader and an SFTP client. Now it's one app.
 
 **Core capabilities:**
 

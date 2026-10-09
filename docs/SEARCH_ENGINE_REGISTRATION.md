@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.07.28 15:49</sub>
+<sub class="doc-stamp">26.10.09 17:25</sub>
 
 # Search Engine Registration - Operator Runbook
 
@@ -57,6 +57,9 @@ The site is already verified here - the `google-site-verification` tag is in pla
 2. Make sure the property is the **URL prefix** type for
    `https://serzhyale.github.io/FastMediaSorter_mob_v2/`. A domain property cannot work here (DNS).
 3. Go to **Sitemaps**, submit `sitemap.xml`, and check it reports "Success" with a page count.
+   If it stays on "Couldn't fetch" while a URL inspection live test of the same address passes,
+   submit `sitemap-pages.xml` instead - the deploy workflow publishes it as a copy of `sitemap.xml`,
+   so the content is identical and only the address is new.
 4. Use **URL inspection** on the home page and request indexing. Do this once for the Russian and
    Ukrainian home pages too - they are separate URLs.
 5. Come back after a few days and read **Pages** (indexing report). Anything under "Not indexed"

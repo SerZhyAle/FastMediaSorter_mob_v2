@@ -2,7 +2,7 @@
 page_id: tools.inline-translation
 title: Translating Extracted Text
 nav_title: Translating text on screen
-description: How to translate a picture, a PDF page, an EPUB chapter or recognized text fully offline, choose the source and target language, switch between a translation card and a Google Lens-style overlay painted over the original words, adjust the font, and what happens on a device translation is not licensed for.
+description: How to translate a picture, a PDF page, an EPUB chapter or recognized text fully offline, choose the source and target language, switch between a translation card and an overlay painted over the original words, adjust the font, and what happens on a device translation is not licensed for.
 category: OCR, Drawing & Sharing
 category_slug: tools
 ticket: S2957
@@ -27,15 +27,15 @@ steps:
       Open the three-dots menu and tap **Translate** (in landscape the button may sit right on the command panel bar). After "Translation started.." the recognized lines come back translated, in one of two looks depending on the **Translation result in blocks** setting:
 
       - **Off** - the translation appears in a card of its own, below or over the picture, kept separate from the original.
-      - **On** - each translated line is painted directly over the original words on an opaque plate, Google Lens style, so the picture reads in your language in place. A line whose words sit far apart - text on both sides of a photo, separate speech bubbles - is split and translated as separate pieces instead of one strip across the picture. A plate that reaches the bottom of the screen grows upward instead of being cut off, and a translation taller than the whole screen shrinks its type first, so it is always fully drawn.
+      - **On** - each translated line is painted directly over the original words on an opaque plate, so the picture reads in your language in place. A line whose words sit far apart - text on both sides of a photo, separate speech bubbles - is split and translated as separate pieces instead of one strip across the picture. A plate that reaches the bottom of the screen grows upward instead of being cut off, and a translation taller than the whole screen shrinks its type first, so it is always fully drawn.
     image_bookmark:
       shot_id: tools.image-translation-overlay
       device_profile: phone
       screen_state: image-translate-lens-overlay
       alt: Translated text painted directly over the original words on a photographed sign, each line on its own solid plate
-      caption: "Translated text in place of the original, Lens style."
-      title: "Screenshot: Lens-style image translation"
-      desc: A photographed shop sign with the Lens-style translation overlay on, each recognized line replaced by an opaque plate with the translated words.
+      caption: "Translated text painted in place of the original, line by line."
+      title: "Screenshot: translation painted over a picture"
+      desc: A photographed shop sign with the translation overlay on, each recognized line replaced by an opaque plate with the translated words.
     callout:
       type: warning
       title: No overlay on a guessed language
@@ -123,6 +123,6 @@ next_recipes:
     description: Install the Translation Module and OCR language models, or remove them again.
 ---
 
-<sub class="doc-stamp">26.10.07 03:44</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
-Recognized text, a PDF page, an EPUB chapter or a text file reads in your language with one tap, entirely on the phone - as a card of its own, or painted right over the original words like Google Lens.
+Recognized text, a PDF page, an EPUB chapter or a text file reads in your language with one tap, entirely on the phone - as a card of its own, or painted right over the original words.

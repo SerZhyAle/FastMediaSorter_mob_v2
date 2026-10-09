@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.05.18 17:59</sub>
+<sub class="doc-stamp">26.10.09 14:27</sub>
 
 https://alternativeto.net/
 
@@ -11,7 +11,7 @@ NOTE: AlternativeTo description is plain text, ~300-500 words. You also need to 
   - Platform tags (Android)
   - License (Freeware / Proprietary / Open Source)
   - Categories (see below)
-  - "Alternatives to" field - list apps FMS is an alternative to
+  - "Alternatives to" field - left to the site's own users: we name no competitor (canon PROMOTION section 1 rule 4)
 
 ---
 NAME:
@@ -38,20 +38,8 @@ CATEGORIES (select all that apply on AlternativeTo):
 - PDF Reader
 - NAS Client
 
-"ALTERNATIVES TO" - list these apps so your listing appears as an alternative:
-- VLC for Android
-- Solid Explorer File Manager
-- MiXplorer
-- X-plore File Manager
-- MX Player
-- ES File Explorer
-- Google Photos (Android)
-- Simple Gallery
-- Moon+ Reader
-- Librera Reader
-- AndFTP
-- CX File Explorer
-- FE File Explorer
+"ALTERNATIVES TO" - not filled by us. Our listing names no competitor product (owner, 2026-10-09; canon PROMOTION
+section 1 rule 4); AlternativeTo users link alternatives themselves.
 
 ---
 DESCRIPTION (paste into the AlternativeTo description field):

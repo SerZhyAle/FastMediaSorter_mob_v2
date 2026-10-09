@@ -3,7 +3,7 @@ layout: default
 title: "FastMediaSorter v2"
 permalink: /docs/README-pt.html
 ---
-<sub class="doc-stamp">26.09.30 11:23</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
@@ -157,7 +157,7 @@ Imagens em tamanho completo:
 - 📄 **Visualizador de Documentos:** Visualizador integrado para arquivos de texto (.txt, .md, .log, .json, .xml) e documentos PDF, com zoom, panorâmica e navegação por gestos.
 - 📚 **Leitor de E-books EPUB:** Leitor de EPUB nativo com navegação por capítulos, sumário, controle de tamanho de fonte, busca dentro do livro e suporte a tema claro/escuro. Funciona com arquivos locais e de rede.
 - 📥 **Baixar e Abrir:** Baixe arquivos de rede (SMB/SFTP/FTP) para o armazenamento local e abra-os em apps externos com acompanhamento de progresso.
-- 🌐 **Tradução Automática:** Traduza instantaneamente o texto de imagens, PDFs e arquivos de texto totalmente no dispositivo: o **Tesseract** lê o texto em alfabetos latino e cirílico, e o Google ML Kit o traduz. Compatível com o modo padrão e com o **modo de sobreposição estilo lente** para traduções no próprio local do texto.
+- 🌐 **Tradução Automática:** Traduza instantaneamente o texto de imagens, PDFs e arquivos de texto totalmente no dispositivo: o **Tesseract** lê o texto em alfabetos latino e cirílico, e o Google ML Kit o traduz. Mostra a tradução como texto separado ou como **blocos desenhados sobre o texto original**, na própria imagem.
 - 📱 **Suporte a Widgets:** Mais de uma dezena de widgets de tela inicial cobrindo uma ampla variedade - atalhos de recursos, players de mídia, captura pela câmera, calculadoras, tarefas agendadas, favoritos, minijogos e muito mais. Veja a seleção completa no seletor de widgets do seu launcher.
 - 🏠 **Modo Tela Inicial:** Deixe o app ser a tela inicial do seu dispositivo (versões Standard e noLegal): uma área de trabalho própria com atalhos de recursos que abrem direto em navegação, slideshow ou reprodução, gadgets redimensionáveis como relógio e previsão do tempo, células de contato que não exigem permissão de contatos, uma grade de apps e uma barra de tarefas. Desative a qualquer momento e o Android restaura sua tela inicial anterior.
 - ⏰ **Operações de Arquivo Agendadas:** Automatize operações de arquivo (Copiar/Mover/Excluir) usando regras baseadas em horário, com filtros flexíveis e execução em segundo plano.
@@ -235,7 +235,7 @@ Pasta de Downloads bagunçada? Abra-a no painel de fontes, configure botões de 
 
 Instale o FastMediaSorter na sua central multimídia ou rádio automotivo com Android. Adicione pastas de música de um pendrive USB ou cartão SD - ou use o recurso virtual integrado **Toda a Música** para acessar instantaneamente toda a sua coleção sem nenhuma configuração. Os botões físicos de mídia (controles do volante, botões de volume) funcionam perfeitamente pelo serviço de áudio em segundo plano: play/pause, próxima/anterior faixa, tudo sem tocar na tela. O app lembra a posição de reprodução e retoma automaticamente na inicialização.
 
-Com a tela **Streams** ativada, a mesma central multimídia também toca estações de rádio pela internet diretamente via dados móveis ou Wi-Fi - sem precisar de um app separado como TuneIn ou RadioDroid. Adicione qualquer URL de rádio, ou importe um catálogo de estações selecionado a partir da tela Extensions. O mini-controle fixo mostra o nome da faixa ICY atual enquanto a lista de estações permanece visível.
+Com a tela **Streams** ativada, a mesma central multimídia também toca estações de rádio pela internet diretamente via dados móveis ou Wi-Fi - sem precisar de um app de rádio separado. Adicione qualquer URL de rádio, ou importe um catálogo de estações selecionado a partir da tela Extensions. O mini-controle fixo mostra o nome da faixa ICY atual enquanto a lista de estações permanece visível.
 
 ### 11. 📺 Central de Mídia em uma Android TV Box
 

@@ -3,7 +3,7 @@ layout: default
 title: "🚀 Quick Start Guide - FastMediaSorter v2"
 permalink: /docs/QUICK_START.html
 ---
-<sub class="doc-stamp">26.09.26 10:02</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 # 🚀 Quick Start Guide - FastMediaSorter v2
 
@@ -164,7 +164,7 @@ Tap **"+"** → **Cloud Storage**
 
 - Enable in **Settings** → **Media** → **Other**
 - Tap **Translate** button (A→文) when viewing Images/PDF/Text
-- **Lens-style mode:** Enable "Lens-style overlay" in settings for Google Lens-like in-place translations
+- **Translation over the picture:** Turn on "Translation result in blocks" in settings to paint each translated line over the original text, right on the image
 
 ### EPUB E-Books
 

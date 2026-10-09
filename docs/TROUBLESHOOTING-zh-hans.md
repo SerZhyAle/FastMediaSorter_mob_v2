@@ -3,7 +3,7 @@ layout: default
 title: "🔧 Troubleshooting Guide"
 permalink: /docs/TROUBLESHOOTING-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.24 20:16</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
@@ -175,7 +175,7 @@ FastMediaSorter v2 的最新故障排查指南。当问题与所选的构建路�
 **解决方法：**
 1. 点按顶部工具栏中的 **ⓘ（Info）**按钮
 2. 点按 **"Open in External Player"**
-3. 选择一个专门的播放器（例如 VLC、MX Player）
+3. 选择一个专门的播放器
 
 这会使用 *Secondary Player* 功能，将不受支持的编解码器交给其他应用处理。
 

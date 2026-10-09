@@ -3,7 +3,7 @@ layout: default
 title: "🔧 সমস্যা সমাধান গাইড"
 permalink: /docs/TROUBLESHOOTING-bn.html
 ---
-<sub class="doc-stamp">26.09.24 20:17</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
@@ -175,7 +175,7 @@ FastMediaSorter v2-এর জন্য বর্তমান সমস্যা 
 **সমাধান:**
 1. উপরের টুলবারে **ⓘ (Info)** বাটনে ট্যাপ করুন
 2. **"Open in External Player"** ট্যাপ করুন
-3. একটি বিশেষায়িত প্লেয়ার নির্বাচন করুন (যেমন, VLC, MX Player)
+3. একটি বিশেষায়িত প্লেয়ার নির্বাচন করুন
 
 এটি অসমর্থিত কোডেক অন্য অ্যাপে হস্তান্তর করতে *Secondary Player* বৈশিষ্ট্য ব্যবহার করে।
 

@@ -5,7 +5,7 @@ permalink: /docs/FAQ-es.html
 lang: es
 ---
 
-<sub class="doc-stamp">26.10.06 14:51</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 <div lang="es" markdown="1">
 
@@ -266,7 +266,7 @@ Depende de edición/dispositivo. Traducción ML Kit solo en teléfonos, tabletas
 ### ¿Por qué la traducción a veces es más lenta?
 El primer uso de un idioma carga su modelo de texto, y las imágenes grandes o muy detalladas tardan más en leerse. Las siguientes ejecuciones con el mismo idioma empiezan más rápido.
 
-### ¿Qué es el modo de traducción estilo lente?
+### ¿Cómo muestro la traducción directamente sobre el texto original?
 La superposición pone bloques traducidos sobre la imagen; el modo estándar muestra texto separado. En dispositivos compatibles: **Ajustes → Multimedia → Traducción, digitalización (OCR) → Resultado de la traducción en bloques**.
 
 ---

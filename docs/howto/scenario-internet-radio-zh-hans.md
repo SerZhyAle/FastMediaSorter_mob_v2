@@ -3,7 +3,7 @@ layout: default
 title: "网络电台与串流 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.25 02:18</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
@@ -15,7 +15,7 @@ permalink: /docs/howto/scenario-internet-radio-zh-hans.html
 
 FastMediaSorter 内置了专门的串流界面，用于网络音频和视频源。添加任意网络电台网址、导入 .m3u 播放列表，或浏览精选电台目录 - 无需单独安装电台应用。在 Android 车机、音频播放器、手机和平板上都能出色运行。
 
-> **可以替代：** TuneIn、Shoutcast app、Online Radio、RadioDroid、VLC 网络串流、IPTV 播放器。
+> **可以替代：** 单独的网络电台或串流播放应用。
 
 ---
 

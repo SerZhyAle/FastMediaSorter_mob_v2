@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.08.07 18:57</sub>
+<sub class="doc-stamp">26.10.09 14:27</sub>
 
 https://xdaforums.com/t/app-8-0-fastmediasorter-v2-multi-protocol-media-manager-smb-sftp-ftp-cloud.4785566/
 
@@ -30,7 +30,7 @@ Storage Support
 Player & Viewer
 - ExoPlayer-based video/audio with background playback and Sleep Timer
 - Full EPUB & PDF reader with themes and in-app translation
-- OCR + AR translation overlay for images and PDFs ("Google Lens"-style, offline-capable)
+- OCR + AR translation overlay for images and PDFs (painted over the original text, offline-capable)
 
 Organization
 - Scheduled file operations (cron-style, runs in background)

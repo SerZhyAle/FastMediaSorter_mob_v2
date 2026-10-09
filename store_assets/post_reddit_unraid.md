@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.05.18 17:59</sub>
+<sub class="doc-stamp">26.10.09 14:27</sub>
 
 PLATFORM: Reddit - r/unraid
 URL: https://www.reddit.com/r/unraid/
@@ -17,8 +17,8 @@ Dev here. Built this specifically because I couldn't find an Android app that tr
 **The Unraid workflow this solves:**
 
 Most of us have Unraid user shares set up for media - `/mnt/user/Media`, `/mnt/user/Photos`, etc. Accessing those from Android typically means:
-- VLC (can browse SMB but no file management)
-- Solid Explorer (file management but its video player is garbage)
+- a video player (can browse SMB but no file management)
+- a file manager (file management, but playback goes to another app)
 - Separate cloud app for offsite copies
 
 FastMediaSorter handles all of this in one app.
@@ -49,7 +49,7 @@ FastMediaSorter handles all of this in one app.
 **Not in scope:**
 - No Unraid-specific features (no array monitoring, no plugin integration, no Community Applications)
 - No DLNA/UPnP
-- No media server mode (Plex/Emby client)
+- No media-server client mode
 - This is direct SMB access only
 
 **Download:**

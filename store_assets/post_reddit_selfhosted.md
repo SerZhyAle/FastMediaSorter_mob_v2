@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.08.07 18:57</sub>
+<sub class="doc-stamp">26.10.09 14:27</sub>
 
 https://www.reddit.com/r/selfhosted/comments/1slh5us/i_built_an_android_app_specifically_for_managing/
 
@@ -17,7 +17,7 @@ BODY:
 
 I'm the developer. Sharing because this community's use case is exactly what the app is designed for.
 
-**The problem I kept running into:** most Android apps either handle local files well or network files passingly, but not both. VLC can play from SMB but can't manage files. Solid Explorer can manage SMB files but its media player is an afterthought. Google Photos doesn't touch a NAS at all.
+**The problem I kept running into:** most Android apps either handle local files well or network files passingly, but not both. Video players can play from SMB but can't manage files. File managers can manage SMB files but treat playback as an afterthought. Cloud photo galleries don't touch a NAS at all.
 
 So I built FastMediaSorter over the last two years - an app where SMB/NAS is a first-class citizen, not a plugin.
 
@@ -35,7 +35,7 @@ So I built FastMediaSorter over the last two years - an app where SMB/NAS is a f
 - Wear OS companion: browse NAS and control playback from watch
 
 **What it's NOT:**
-- Not a Plex/Jellyfin client (no media server, direct SMB access only)
+- Not a media-server client (no media server, direct SMB access only)
 - No video transcoding
 - No DLNA
 - Equalizer is system-level only

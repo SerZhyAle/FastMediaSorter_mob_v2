@@ -462,7 +462,7 @@ _Reached from the on-screen translation overlay, not from Settings._
 |---|---|
 | Font Family | Chooses the font family used to render translated text. |
 | Font Size | Chooses the font size used to render translated text. |
-| Translation result in blocks | Shows the translation result as opaque blocks over the original text, matching Google Lens style. |
+| Translation result in blocks | Shows the translation result as opaque blocks painted over the original text, line by line. |
 
 ## Network Monitor
 

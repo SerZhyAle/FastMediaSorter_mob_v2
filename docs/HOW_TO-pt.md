@@ -3,7 +3,7 @@ layout: default
 title: "📖 Guias Práticos"
 permalink: /docs/HOW_TO-pt.html
 ---
-<sub class="doc-stamp">26.09.26 10:42</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
@@ -221,7 +221,7 @@ Estas seções são intencionalmente mais variadas do que os blocos de referênc
 
 **Quando isso ajuda**
 
-- Rádios automotivos Android, players de áudio e media boxes onde você quer rádio pela internet sem um aplicativo separado (TuneIn, RadioDroid, streams de rede do VLC).
+- Rádios automotivos Android, players de áudio e media boxes onde você quer rádio pela internet sem um aplicativo separado.
 - Uso tipo IPTV-lite: streams HLS/DASH VOD tocam no player em tela cheia.
 
 **Evite isto**
@@ -1044,7 +1044,7 @@ Os arquivos excluídos vão para pastas `.trash/` e permanecem lá até serem es
 
 **Disponível para:** arquivos SMB, SFTP, FTP
 
-**Caso de uso:** você quer abrir um documento, foto ou vídeo da sua unidade de rede em um aplicativo externo especializado (por exemplo, MS Office, Adobe Acrobat, VLC Player).
+**Caso de uso:** você quer abrir um documento, foto ou vídeo da sua unidade de rede em um aplicativo externo especializado (por exemplo, um pacote de escritório, um leitor de PDF ou um player de vídeo).
 
 **Passos:**
 
@@ -1079,8 +1079,8 @@ Os arquivos excluídos vão para pastas `.trash/` e permanecem lá até serem es
 **Exemplos de uso:**
 
 - Editar um documento de rede no MS Word
-- Reproduzir um vídeo de rede no VLC Player
-- Visualizar um PDF de rede no Adobe Acrobat
+- Reproduzir um vídeo de rede em um player de vídeo dedicado
+- Visualizar um PDF de rede em um leitor de PDF dedicado
 - Compartilhar uma foto de rede via aplicativos de mensagens
 
 ---

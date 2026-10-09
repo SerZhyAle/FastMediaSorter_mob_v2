@@ -5,7 +5,7 @@ permalink: /docs/FAQ-de.html
 lang: de
 ---
 
-<sub class="doc-stamp">26.10.06 14:51</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 <div lang="de" markdown="1">
 
@@ -266,7 +266,7 @@ Verfügbarkeit hängt von Edition/Geräteklasse ab. ML-Kit-Übersetzung ist hier
 ### Warum ist die Übersetzung manchmal langsamer?
 Die erste Nutzung einer Sprache lädt ihr Textmodell, und große oder detaillierte Bilder brauchen länger zum Lesen. Spätere Durchläufe mit derselben Sprache starten schneller.
 
-### Was ist der lupenartige Übersetzungsmodus?
+### Wie zeige ich die Übersetzung direkt über dem Originaltext an?
 Das Overlay legt Übersetzungsblöcke über das Bild; Standardmodus zeigt separaten Text. Auf unterstützten Geräten: **Einstellungen → Medien → Übersetzung, Texterkennung (OCR) → Übersetzungsergebnis in Blöcken**.
 
 ---

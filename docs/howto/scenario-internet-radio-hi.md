@@ -3,7 +3,7 @@ layout: default
 title: "इंटरनेट रेडियो और स्ट्रीम - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-hi.html
 ---
-<sub class="doc-stamp">26.09.25 02:17</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
@@ -15,7 +15,7 @@ permalink: /docs/howto/scenario-internet-radio-hi.html
 
 FastMediaSorter में इंटरनेट ऑडियो और वीडियो सोर्स के लिए एक समर्पित Streams स्क्रीन है. कोई भी इंटरनेट रेडियो URL जोड़ें, एक .m3u प्लेलिस्ट इम्पोर्ट करें, या एक क्यूरेटेड स्टेशन कैटलॉग ब्राउज़ करें - किसी अलग रेडियो ऐप की ज़रूरत नहीं. Android कार हेड यूनिट, ऑडियो प्लेयर, फोन और टैबलेट पर बेहतरीन काम करता है.
 
-> **इसकी जगह लेता है:** TuneIn, Shoutcast app, Online Radio, RadioDroid, VLC network streams, IPTV players.
+> **इसकी जगह लेता है:** इंटरनेट रेडियो या स्ट्रीम चलाने का अलग ऐप.
 
 ---
 

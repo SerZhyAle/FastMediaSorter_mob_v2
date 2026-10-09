@@ -3,7 +3,7 @@ layout: default
 title: "🔧 समस्या निवारण गाइड"
 permalink: /docs/TROUBLESHOOTING-hi.html
 ---
-<sub class="doc-stamp">26.09.24 20:15</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
@@ -175,7 +175,7 @@ FastMediaSorter v2 के लिए मौजूदा समस्या नि
 **समाधान:**
 1. ऊपर के टूलबार में **ⓘ (Info)** बटन टैप करें
 2. **"Open in External Player"** टैप करें
-3. एक विशेष प्लेयर चुनें (जैसे, VLC, MX Player)
+3. एक विशेष प्लेयर चुनें
 
 यह असमर्थित कोडेक को अन्य ऐप को सौंपने के लिए *Secondary Player* सुविधा का उपयोग करता है.
 

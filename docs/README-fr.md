@@ -3,7 +3,7 @@ layout: default
 title: "FastMediaSorter v2"
 permalink: /docs/README-fr.html
 ---
-<sub class="doc-stamp">26.09.30 11:23</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
@@ -157,7 +157,7 @@ Images en pleine taille :
 - 📄 **Visionneuse de documents :** visionneuse intégrée pour les fichiers texte (.txt, .md, .log, .json, .xml) et les documents PDF avec zoom, panoramique et navigation gestuelle.
 - 📚 **Liseuse EPUB :** liseuse EPUB native avec navigation par chapitre, table des matières, réglage de la taille de police, recherche dans le livre et prise en charge des thèmes clair/sombre. Fonctionne avec les fichiers locaux et réseau.
 - 📥 **Téléchargement et ouverture :** téléchargez les fichiers réseau (SMB/SFTP/FTP) vers le stockage local et ouvrez-les dans des applications externes avec suivi de la progression.
-- 🌐 **Traduction automatique :** traduisez instantanément le texte des images, PDF et fichiers texte, entièrement sur l'appareil : **Tesseract** lit le texte en écriture latine et cyrillique, et Google ML Kit le traduit. Prend en charge le mode standard et le **mode superposition façon loupe** pour des traductions en place.
+- 🌐 **Traduction automatique :** traduisez instantanément le texte des images, PDF et fichiers texte, entièrement sur l'appareil : **Tesseract** lit le texte en écriture latine et cyrillique, et Google ML Kit le traduit. Affiche la traduction soit comme texte séparé, soit sous forme de **blocs posés sur le texte d'origine**, directement sur l'image.
 - 📱 **Prise en charge des widgets :** plus d'une douzaine de widgets d'écran d'accueil couvrant un large éventail - raccourcis vers les ressources, lecteurs multimédias, capture photo, calculatrices, tâches planifiées, favoris, mini-jeux, et plus encore. Parcourez la sélection complète dans le sélecteur de widgets de votre launcher.
 - 🏠 **Mode écran d'accueil :** laissez l'application devenir l'écran d'accueil de votre appareil (builds Standard et noLegal) : son propre bureau avec des raccourcis de ressources qui ouvrent directement le mode parcourir, diaporama ou lecture, des gadgets redimensionnables comme une horloge et la météo, des cellules de contact ne nécessitant aucune permission de contacts, une grille d'applications, et une barre des tâches. Désactivez-le à tout moment et Android restaure votre écran d'accueil précédent.
 - ⏰ **Opérations planifiées sur les fichiers :** automatisez les opérations sur les fichiers (Copier/Déplacer/Supprimer) via des règles basées sur le temps, avec des filtres flexibles et une exécution en arrière-plan.
@@ -235,7 +235,7 @@ Le dossier des téléchargements est encombré ? Ouvrez-le dans le panneau des s
 
 Installez FastMediaSorter sur votre autoradio ou unité centrale Android. Ajoutez des dossiers musicaux d'une clé USB ou d'une carte SD - ou utilisez la ressource virtuelle intégrée **Toute la musique** pour accéder instantanément à toute votre collection sans aucune configuration. Les boutons multimédias matériels (commandes au volant, molettes de volume) fonctionnent parfaitement via le service audio en arrière-plan : lecture/pause, morceau suivant/précédent, tout cela sans toucher l'écran. L'application mémorise la position de lecture et reprend automatiquement au démarrage.
 
-Avec l'écran **Flux** activé, le même autoradio diffuse également des stations de radio Internet directement via les données mobiles ou le Wi-Fi - sans avoir besoin d'une application TuneIn ou RadioDroid séparée. Ajoutez n'importe quelle URL de radio, ou importez un catalogue de stations sélectionné depuis l'écran Extensions. Le mini-contrôle collant affiche le nom du morceau ICY en cours pendant que la liste des stations reste visible.
+Avec l'écran **Flux** activé, le même autoradio diffuse également des stations de radio Internet directement via les données mobiles ou le Wi-Fi - sans avoir besoin d'une application radio séparée. Ajoutez n'importe quelle URL de radio, ou importez un catalogue de stations sélectionné depuis l'écran Extensions. Le mini-contrôle collant affiche le nom du morceau ICY en cours pendant que la liste des stations reste visible.
 
 ### 11. 📺 Centre multimédia sur un boîtier Android TV
 

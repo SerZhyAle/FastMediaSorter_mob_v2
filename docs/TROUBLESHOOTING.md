@@ -3,7 +3,7 @@ layout: default
 title: "🔧 Troubleshooting Guide"
 permalink: /docs/TROUBLESHOOTING.html
 ---
-<sub class="doc-stamp">26.09.24 18:35</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 # 🔧 Troubleshooting Guide
 
@@ -173,7 +173,7 @@ Current troubleshooting guide for FastMediaSorter v2. Use the canonical flavor m
 **Solution:**
 1. Tap the **ⓘ (Info)** button in top toolbar
 2. Tap **"Open in External Player"**
-3. Select a specialized player (e.g., VLC, MX Player)
+3. Select a specialized player
 
 This uses the *Secondary Player* feature to hand off unsupported codecs to other apps.
 

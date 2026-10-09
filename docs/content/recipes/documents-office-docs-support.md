@@ -17,7 +17,7 @@ ingredients:
   - "FastMediaSorter in an edition with the reader: Standard, noLegal, Legacy, VR or FOSS. The Lite and Photos editions do not open documents."
   - "An EPUB book without copy protection. Books locked by a shop's copy protection (DRM) open only in that shop's app."
   - "**Support EPUB e-books** and **Support Office documents** switched on in **Settings**, the **Media** tab, **Documents**."
-  - "For Office files in Standard, Legacy and VR: an office app on the phone, for example Microsoft Word, Google Docs or WPS Office."
+  - "For Office files in Standard, Legacy and VR: an office app installed on the phone."
   - "For translation: an edition with translation (all of the above except FOSS) and **Enable Translation** switched on in **Settings**."
 steps:
   - number: 1
@@ -140,6 +140,6 @@ next_recipes:
     description: See which edition opens which kinds of files.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 Read EPUB books with the font, size, colors and margins you like, jump between chapters, search a whole book, listen to it or translate it - and open Word, Excel and PowerPoint files with one tap, in the way your edition offers.

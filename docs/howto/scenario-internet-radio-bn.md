@@ -3,7 +3,7 @@ layout: default
 title: "ইন্টারনেট রেডিও ও স্ট্রিম - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-bn.html
 ---
-<sub class="doc-stamp">26.09.25 02:17</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
@@ -15,7 +15,7 @@ permalink: /docs/howto/scenario-internet-radio-bn.html
 
 FastMediaSorter-এ ইন্টারনেট অডিও ও ভিডিও সোর্সের জন্য একটা নিবেদিত Streams স্ক্রিন আছে। যেকোনো ইন্টারনেট রেডিও URL যোগ করুন, একটা .m3u প্লেলিস্ট ইমপোর্ট করুন, বা একটা কিউরেটেড স্টেশন ক্যাটালগ ব্রাউজ করুন - আলাদা কোনো রেডিও অ্যাপের দরকার নেই। অ্যান্ড্রয়েড কার হেড ইউনিট, অডিও প্লেয়ার, ফোন এবং ট্যাবলেটে দারুণভাবে কাজ করে।
 
-> **প্রতিস্থাপন করে:** TuneIn, Shoutcast অ্যাপ, Online Radio, RadioDroid, VLC নেটওয়ার্ক স্ট্রিম, IPTV প্লেয়ার।
+> **প্রতিস্থাপন করে:** ইন্টারনেট রেডিও বা স্ট্রিম চালানোর আলাদা অ্যাপ।
 
 ---
 

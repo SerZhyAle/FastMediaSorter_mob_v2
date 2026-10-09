@@ -3,7 +3,7 @@ layout: default
 title: "🔧 Guide de dépannage"
 permalink: /docs/TROUBLESHOOTING-fr.html
 ---
-<sub class="doc-stamp">26.09.24 20:11</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
@@ -175,7 +175,7 @@ Guide de dépannage actuel pour FastMediaSorter v2. Utilisez la grille de flavor
 **Solution :**
 1. Touchez le bouton **ⓘ (Info)** dans la barre d'outils supérieure
 2. Touchez **« Ouvrir dans un lecteur externe »**
-3. Sélectionnez un lecteur spécialisé (par ex., VLC, MX Player)
+3. Sélectionnez un lecteur spécialisé
 
 Cela utilise la fonctionnalité *Lecteur secondaire* pour confier les codecs non pris en charge à d'autres applications.
 

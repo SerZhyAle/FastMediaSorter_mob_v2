@@ -3,7 +3,7 @@ layout: default
 title: "Интернет-радио и Трансляции - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-ru.html
 ---
-<sub class="doc-stamp">26.09.24 06:25</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 # 📻 Интернет-радио и Трансляции
 
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-internet-radio-ru.html
 
 FastMediaSorter содержит отдельный экран Трансляций для интернет-аудио и видеотрансляций. Добавьте URL любого интернет-радио, импортируйте .m3u-плейлист или просмотрите каталог станций - без отдельного приложения. Отлично работает на Android-магнитолах, аудиоплеерах, телефонах и планшетах.
 
-> **Заменяет:** TuneIn, Shoutcast, Online Radio, RadioDroid, VLC сетевые потоки, IPTV-плееры.
+> **Заменяет:** отдельное приложение интернет-радио или плеер трансляций.
 
 ---
 

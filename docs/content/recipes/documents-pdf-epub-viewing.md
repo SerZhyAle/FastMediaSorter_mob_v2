@@ -136,7 +136,7 @@ steps:
 
       Tap the card to switch it between a small card in the corner and the full screen. The cross on the card closes it. A word translated from the selected text opens in the same card.
 
-      If you switch on **Translation result in blocks** in the **On-screen translation** settings, the translation is laid over the original lines instead, like in Google Lens, and the buttons on the bar make that text smaller or larger. More about languages and options: [translating text on screen](page:tools.inline-translation).
+      If you switch on **Translation result in blocks** in the **On-screen translation** settings, the translation is laid over the original lines instead, and the buttons on the bar make that text smaller or larger. More about languages and options: [translating text on screen](page:tools.inline-translation).
     image_bookmark:
       shot_id: documents.pdf-translation-card
       device_profile: phone
@@ -186,6 +186,6 @@ next_recipes:
     description: Choose languages and the look of offline translation.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 Open a PDF with one tap, turn pages by swiping, find a page by its picture, read at night in dark colors, copy, search, listen to and translate the text, and save the pages as pictures or print them - all in the built-in [reader](term:reader).

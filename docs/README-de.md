@@ -3,7 +3,7 @@ layout: default
 title: "FastMediaSorter v2"
 permalink: /docs/README-de.html
 ---
-<sub class="doc-stamp">26.09.30 11:23</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
@@ -157,7 +157,7 @@ Bilder in voller Größe:
 - 📄 **Dokumentenbetrachter:** Integrierter Betrachter für Textdateien (.txt, .md, .log, .json, .xml) und PDF-Dokumente mit Zoom, Verschieben und Gestennavigation.
 - 📚 **EPUB-E-Book-Reader:** Nativer EPUB-Reader mit Kapitelnavigation, Inhaltsverzeichnis, Schriftgrößenregelung, Suche im Buch und Unterstützung für dunkles/helles Theme. Funktioniert mit lokalen und Netzwerkdateien.
 - 📥 **Herunterladen & Öffnen:** Netzwerkdateien (SMB/SFTP/FTP) auf den lokalen Speicher herunterladen und mit Fortschrittsanzeige in externen Apps öffnen.
-- 🌐 **Automatische Übersetzung:** Text aus Bildern, PDFs und Textdateien vollständig auf dem Gerät sofort übersetzen: **Tesseract** liest den Text in lateinischer und kyrillischer Schrift, und Google ML Kit übersetzt ihn. Unterstützt sowohl den Standardmodus als auch den **lupenartigen Überlagerungsmodus** für Übersetzungen direkt an Ort und Stelle.
+- 🌐 **Automatische Übersetzung:** Text aus Bildern, PDFs und Textdateien vollständig auf dem Gerät sofort übersetzen: **Tesseract** liest den Text in lateinischer und kyrillischer Schrift, und Google ML Kit übersetzt ihn. Zeigt die Übersetzung entweder als separaten Text oder als **Blöcke direkt über dem Originaltext** im Bild.
 - 📱 **Widget-Unterstützung:** Über ein Dutzend Startbildschirm-Widgets mit breiter Abdeckung - Ressourcen-Verknüpfungen, Medienplayer, Kamera-Aufnahme, Rechner, geplante Aufgaben, Favoriten, Minispiele und mehr. Die vollständige Auswahl findest du in der Widget-Auswahl deines Launchers.
 - 🏠 **Startbildschirm-Modus:** Lass die App den Startbildschirm deines Geräts sein (Standard- und noLegal-Builds): ein eigener Desktop mit Ressourcen-Verknüpfungen, die direkt in Browse, Diashow oder Wiedergabe öffnen, größenveränderbare Gadgets wie Uhr und Wetter, Kontaktkacheln, die keine Kontakte-Berechtigung benötigen, ein App-Raster und eine Taskleiste. Jederzeit abschaltbar - Android stellt danach deinen vorherigen Startbildschirm wieder her.
 - ⏰ **Geplante Dateioperationen:** Dateioperationen (Kopieren/Verschieben/Löschen) mit zeitbasierten Regeln, flexiblen Filtern und Hintergrundausführung automatisieren.
@@ -235,7 +235,7 @@ Ist dein Downloads-Ordner unübersichtlich? Öffne ihn im Quellenpanel, richte Z
 
 Installiere FastMediaSorter auf deiner Android-basierten Autostereoanlage oder Kopfeinheit. Füge USB-Stick- oder SD-Karten-Musikordner hinzu - oder nutze die eingebaute virtuelle Ressource **Alle Musik**, um sofort ohne Einrichtung auf deine gesamte Sammlung zuzugreifen. Hardware-Medientasten (Lenkradsteuerung, Lautstärkeregler) funktionieren nahtlos über den Hintergrund-Audiodienst: Play/Pause, nächster/vorheriger Titel, alles ohne den Bildschirm zu berühren. Die App merkt sich die Wiedergabeposition und setzt beim Start automatisch fort.
 
-Mit aktiviertem **Streams**-Bildschirm spielt dieselbe Kopfeinheit auch Internetradiosender direkt über mobile Daten oder Wi-Fi ab - ohne separate TuneIn- oder RadioDroid-App. Füge eine beliebige Radio-URL hinzu oder importiere einen kuratierten Senderkatalog vom Extensions-Bildschirm. Die angeheftete Mini-Steuerung zeigt den aktuellen ICY-Titelnamen, während die Senderliste sichtbar bleibt.
+Mit aktiviertem **Streams**-Bildschirm spielt dieselbe Kopfeinheit auch Internetradiosender direkt über mobile Daten oder Wi-Fi ab - ohne separate Radio-App. Füge eine beliebige Radio-URL hinzu oder importiere einen kuratierten Senderkatalog vom Extensions-Bildschirm. Die angeheftete Mini-Steuerung zeigt den aktuellen ICY-Titelnamen, während die Senderliste sichtbar bleibt.
 
 ### 11. 📺 Medienzentrale auf einer Android-TV-Box
 

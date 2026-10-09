@@ -3,7 +3,7 @@ layout: default
 title: "🔧 دليل استكشاف الأخطاء وإصلاحها"
 permalink: /docs/TROUBLESHOOTING-ar.html
 ---
-<sub class="doc-stamp">26.09.24 20:24</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
@@ -175,7 +175,7 @@ permalink: /docs/TROUBLESHOOTING-ar.html
 **الحل:**
 1. اضغط زر **ⓘ (معلومات)** في شريط الأدوات العلوي
 2. اضغط **"فتح في مشغّل خارجي"**
-3. اختر مشغّلًا متخصصًا (مثل VLC، MX Player)
+3. اختر مشغّلًا متخصصًا
 
 يستخدم هذا ميزة *المشغّل الثانوي* لتسليم الترميزات غير المدعومة إلى تطبيقات أخرى.
 

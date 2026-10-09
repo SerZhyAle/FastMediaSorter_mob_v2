@@ -3,7 +3,7 @@ layout: default
 title: "📖 Guides pratiques"
 permalink: /docs/HOW_TO-fr.html
 ---
-<sub class="doc-stamp">26.09.26 10:42</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
@@ -221,7 +221,7 @@ Ces sections sont volontairement plus variées que les blocs de référence de b
 
 **Quand c'est utile**
 
-- Autoradios Android, lecteurs audio et boîtiers multimédias où vous voulez la radio Internet sans application séparée (TuneIn, RadioDroid, flux réseau VLC).
+- Autoradios Android, lecteurs audio et boîtiers multimédias où vous voulez la radio Internet sans application séparée.
 - Usage IPTV léger : les flux VOD HLS/DASH se lisent dans le lecteur plein écran.
 
 **À éviter**
@@ -1044,7 +1044,7 @@ Les fichiers supprimés vont dans des dossiers `.trash/` et y restent jusqu'à c
 
 **Disponible pour :** fichiers SMB, SFTP, FTP
 
-**Cas d'usage :** vous voulez ouvrir un document, une photo ou une vidéo depuis votre lecteur réseau dans une application externe spécialisée (par ex. MS Office, Adobe Acrobat, VLC Player).
+**Cas d'usage :** vous voulez ouvrir un document, une photo ou une vidéo depuis votre lecteur réseau dans une application externe spécialisée (par ex. une suite bureautique, un lecteur PDF ou un lecteur vidéo).
 
 **Étapes :**
 
@@ -1079,8 +1079,8 @@ Les fichiers supprimés vont dans des dossiers `.trash/` et y restent jusqu'à c
 **Exemples d'usage :**
 
 - Modifier un document réseau dans MS Word
-- Lire une vidéo réseau dans VLC Player
-- Consulter un PDF réseau dans Adobe Acrobat
+- Lire une vidéo réseau dans un lecteur vidéo dédié
+- Consulter un PDF réseau dans un lecteur PDF dédié
 - Partager une photo réseau via une application de messagerie
 
 ---

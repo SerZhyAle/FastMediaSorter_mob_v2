@@ -21,6 +21,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,6 +48,7 @@ import com.sza.fastmediasorter.wear.ui.common.rememberCloseAppAction
 import com.sza.fastmediasorter.wear.ui.common.rememberMinimizeAppAction
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
+import com.sza.fastmediasorter.wear.ui.common.wearBoundedViewportInset
 import com.sza.fastmediasorter.wear.ui.icon.WearResourceIconRegistry
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
@@ -105,7 +107,7 @@ fun HomeScreen(
                 uiState.lastUsedResources.isEmpty() &&
                 uiState.sections.size <= 1
             WearListColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(vertical = homeViewportInset()),
                 state = listState,
                 centered = shortList
             ) {
@@ -180,6 +182,17 @@ fun HomeScreen(
         HomePhoneInstallPrompts(viewModel)
     }
 }
+
+/**
+ * S4137: where the Home viewport ends at the top and the bottom - the offset at which a full-width row
+ * still fits the glass.
+ *
+ * Unbounded, the opening frame laid the recent-channel row at the top arc and the last tile at the
+ * bottom one: 200.1 and 198.7 px from the centre against 192 on the 192 dp review emulator, 232.8 and
+ * 251.4 against 227 on the 227 dp one (`clip-check -Strict`). Same remedy S4136 applied to Streams.
+ */
+@Composable
+private fun homeViewportInset(): Dp = wearBoundedViewportInset()
 
 private fun ScalingLazyListScope.sectionItems(
     sections: List<HomeSection>,

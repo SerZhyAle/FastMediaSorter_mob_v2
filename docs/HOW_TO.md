@@ -3,7 +3,7 @@ layout: default
 title: "📖 How-To Guides"
 permalink: /docs/HOW_TO.html
 ---
-<sub class="doc-stamp">26.09.26 10:42</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 # 📖 How-To Guides
 
@@ -219,7 +219,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **When It Helps**
 
-- Android car stereos, audio players, and media boxes where you want internet radio without a separate app (TuneIn, RadioDroid, VLC network streams).
+- Android car stereos, audio players, and media boxes where you want internet radio without a separate app.
 - IPTV-lite use: HLS/DASH VOD streams play in the fullscreen player.
 
 **Avoid This**
@@ -1042,7 +1042,7 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 
 **Available for:** SMB, SFTP, FTP files
 
-**Use case:** You want to open a document, photo, or video from your network drive in a specialized external app (e.g., MS Office, Adobe Acrobat, VLC Player).
+**Use case:** You want to open a document, photo, or video from your network drive in a specialized external app (e.g., an office suite, a PDF reader or a video player).
 
 **Steps:**
 
@@ -1077,8 +1077,8 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 **Example use cases:**
 
 - Edit a network document in MS Word
-- Play network video in VLC Player
-- View network PDF in Adobe Acrobat
+- Play network video in a dedicated video player
+- View network PDF in a dedicated PDF reader
 - Share network photo via messaging apps
 
 ---

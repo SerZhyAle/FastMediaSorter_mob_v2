@@ -3,7 +3,7 @@ layout: default
 title: "📖 Anleitungen"
 permalink: /docs/HOW_TO-de.html
 ---
-<sub class="doc-stamp">26.09.26 10:42</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
@@ -221,7 +221,7 @@ Diese Abschnitte sind bewusst vielfältiger gestaltet als die Kernreferenz-Blöc
 
 **Wann es hilft**
 
-- Android-Autoradios, Audioplayer und Media-Boxen, bei denen Sie Internetradio ohne separate App möchten (TuneIn, RadioDroid, VLC-Netzwerkstreams).
+- Android-Autoradios, Audioplayer und Media-Boxen, bei denen Sie Internetradio ohne separate App möchten.
 - IPTV-Lite-Nutzung: HLS/DASH-VOD-Streams spielen im Vollbild-Player.
 
 **Das sollten Sie vermeiden**
@@ -1044,7 +1044,7 @@ Gelöschte Dateien wandern in `.trash/`-Ordner und bleiben dort, bis sie manuell
 
 **Verfügbar für:** SMB-, SFTP-, FTP-Dateien
 
-**Anwendungsfall:** Sie möchten ein Dokument, Foto oder Video von Ihrem Netzwerklaufwerk in einer spezialisierten externen App öffnen (z. B. MS Office, Adobe Acrobat, VLC Player).
+**Anwendungsfall:** Sie möchten ein Dokument, Foto oder Video von Ihrem Netzwerklaufwerk in einer spezialisierten externen App öffnen (z. B. eine Office-Suite, einen PDF-Reader oder einen Videoplayer).
 
 **Schritte:**
 
@@ -1079,8 +1079,8 @@ Gelöschte Dateien wandern in `.trash/`-Ordner und bleiben dort, bis sie manuell
 **Beispiel-Anwendungsfälle:**
 
 - Ein Netzwerkdokument in MS Word bearbeiten
-- Ein Netzwerkvideo im VLC Player abspielen
-- Ein Netzwerk-PDF in Adobe Acrobat anzeigen
+- Ein Netzwerkvideo in einem eigenen Videoplayer abspielen
+- Ein Netzwerk-PDF in einem eigenen PDF-Reader anzeigen
 - Ein Netzwerkfoto über Messaging-Apps teilen
 
 ---

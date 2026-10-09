@@ -3,7 +3,7 @@ layout: default
 title: "Internet Radio & Streams - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio.html
 ---
-<sub class="doc-stamp">26.09.24 06:25</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 # 📻 Internet Radio & Streams
 
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-internet-radio.html
 
 FastMediaSorter includes a dedicated Streams screen for internet audio and video sources. Add any internet radio URL, import an .m3u playlist, or browse a curated station catalog - no separate radio app needed. Works great on Android car head units, audio players, phones, and tablets.
 
-> **Replaces:** TuneIn, Shoutcast app, Online Radio, RadioDroid, VLC network streams, IPTV players.
+> **Replaces:** a separate internet radio or stream player app.
 
 ---
 

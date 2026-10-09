@@ -3,7 +3,7 @@ layout: default
 title: "🚀 त्वरित आरंभ मार्गदर्शिका - FastMediaSorter v2"
 permalink: /docs/QUICK_START-hi.html
 ---
-<sub class="doc-stamp">26.09.24 20:10</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
@@ -166,7 +166,7 @@ FastMediaSorter v2 रोज़मर्रा के फोन और टैब
 
 - **सेटिंग्स** → **मीडिया** → **Other** में सक्षम करें
 - इमेज/PDF/टेक्स्ट देखते समय **Translate** बटन (A→文) टैप करें
-- **लेंस-स्टाइल मोड:** Google Lens जैसे इन-प्लेस अनुवाद के लिए सेटिंग्स में "Lens-style overlay" सक्षम करें
+- **चित्र पर ही अनुवाद:** हर अनूदित पंक्ति को सीधे चित्र पर मूल पाठ के ऊपर दिखाने के लिए सेटिंग्स में "ब्लॉकों में अनुवाद परिणाम" सक्षम करें
 
 ### EPUB ई-बुक
 

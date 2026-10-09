@@ -3,7 +3,7 @@ layout: default
 title: "🔧 Guía de solución de problemas"
 permalink: /docs/TROUBLESHOOTING-es.html
 ---
-<sub class="doc-stamp">26.09.24 20:14</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="es" dir="ltr" markdown="1">
 
@@ -175,7 +175,7 @@ Guía de solución de problemas actual para FastMediaSorter v2. Usa la cuadrícu
 **Solución:**
 1. Toca el botón **ⓘ (Info)** en la barra de herramientas superior
 2. Toca **"Abrir en reproductor externo"**
-3. Selecciona un reproductor especializado (por ejemplo, VLC, MX Player)
+3. Selecciona un reproductor especializado
 
 Esto usa la función *Reproductor secundario* para delegar los códecs no compatibles en otras apps.
 

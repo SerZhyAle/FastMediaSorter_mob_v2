@@ -3,7 +3,7 @@ layout: default
 title: "FastMediaSorter v2"
 permalink: /docs/README-it.html
 ---
-<sub class="doc-stamp">26.09.30 11:23</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 <div lang="it" dir="ltr" markdown="1">
 
@@ -157,7 +157,7 @@ Immagini a dimensione intera:
 - 📄 **Visualizzatore di documenti:** visualizzatore integrato per file di testo (.txt, .md, .log, .json, .xml) e documenti PDF con zoom, panoramica e navigazione a gesti.
 - 📚 **Lettore di e-book EPUB:** lettore EPUB nativo con navigazione tra i capitoli, indice, controllo della dimensione del carattere, ricerca nel libro e supporto ai temi chiaro/scuro. Funziona con file locali e di rete.
 - 📥 **Scarica e apri:** scarica i file di rete (SMB/SFTP/FTP) nell'archivio locale e aprili in app esterne con monitoraggio dell'avanzamento.
-- 🌐 **Traduzione automatica:** traduci istantaneamente il testo da immagini, PDF e file di testo interamente sul dispositivo: **Tesseract** legge il testo in caratteri latini e cirillici, e Google ML Kit lo traduce. Supporta sia la modalità standard che la **modalità overlay in stile lente** per traduzioni sul posto.
+- 🌐 **Traduzione automatica:** traduci istantaneamente il testo da immagini, PDF e file di testo interamente sul dispositivo: **Tesseract** legge il testo in caratteri latini e cirillici, e Google ML Kit lo traduce. Mostra la traduzione come testo separato oppure come **blocchi disegnati sopra il testo originale**, direttamente sull'immagine.
 - 📱 **Supporto ai widget:** oltre una dozzina di widget per la schermata Home che coprono un'ampia gamma - scorciatoie alle risorse, player multimediali, acquisizione dalla fotocamera, calcolatrici, attività pianificate, preferiti, mini-giochi e altro. Sfoglia l'intera selezione nel selettore widget del tuo launcher.
 - 🏠 **Modalità schermata Home:** lascia che l'app sia la schermata Home del tuo dispositivo (build Standard e noLegal): un proprio desktop con scorciatoie alle risorse che aprono direttamente in modalità sfoglia, presentazione o riproduzione, gadget ridimensionabili come orologio e meteo, celle di contatto che non richiedono il permesso sui contatti, una griglia di app e una taskbar. Disattivala in qualsiasi momento e Android ripristina la tua schermata Home precedente.
 - ⏰ **Operazioni sui file pianificate:** automatizza le operazioni sui file (Copia/Sposta/Elimina) usando regole basate sul tempo con filtri flessibili ed esecuzione in background.
@@ -235,7 +235,7 @@ Cartella Download disordinata? Aprila nel pannello sorgente, configura i pulsant
 
 Installa FastMediaSorter sulla tua autoradio o unità centrale Android. Aggiungi cartelle musicali da chiavetta USB o scheda SD - oppure usa la risorsa virtuale integrata **Tutta la musica** per accedere istantaneamente all'intera collezione senza alcuna configurazione. I pulsanti multimediali hardware (comandi al volante, manopole del volume) funzionano perfettamente tramite il servizio audio in background: play/pausa, traccia successiva/precedente, tutto senza toccare lo schermo. L'app ricorda la posizione di riproduzione e riprende automaticamente all'avvio.
 
-Con la schermata **Streams** attivata, la stessa unità centrale riproduce anche stazioni radio Internet direttamente tramite dati mobili o Wi-Fi - senza bisogno di un'app separata come TuneIn o RadioDroid. Aggiungi qualsiasi URL radio, oppure importa un catalogo di stazioni curato dalla schermata Estensioni. Il mini-controllo fisso mostra il nome della traccia ICY corrente mentre l'elenco delle stazioni resta visibile.
+Con la schermata **Streams** attivata, la stessa unità centrale riproduce anche stazioni radio Internet direttamente tramite dati mobili o Wi-Fi - senza bisogno di un'app radio separata. Aggiungi qualsiasi URL radio, oppure importa un catalogo di stazioni curato dalla schermata Estensioni. Il mini-controllo fisso mostra il nome della traccia ICY corrente mentre l'elenco delle stazioni resta visibile.
 
 ### 11. 📺 Media center su un box Android TV
 

@@ -5,7 +5,7 @@ permalink: /docs/FAQ-fr.html
 lang: fr
 ---
 
-<sub class="doc-stamp">26.10.06 14:51</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 <div lang="fr" markdown="1">
 
@@ -266,7 +266,7 @@ Selon édition/appareil. Traduction ML Kit uniquement sur téléphones, tablette
 ### Pourquoi la traduction est-elle parfois plus lente ?
 La première utilisation d'une langue charge son modèle de texte, et les images volumineuses ou détaillées prennent plus de temps à lire. Les exécutions suivantes dans la même langue démarrent plus vite.
 
-### Qu'est-ce que le mode de traduction façon loupe ?
+### Comment afficher la traduction directement sur le texte d'origine ?
 Le mode superposé affiche des blocs traduits sur l’image ; le mode standard montre un texte séparé. Sur appareils compatibles : **Paramètres → Médias → Traduction, numérisation (OCR) → Résultat de la traduction en blocs**.
 
 ---

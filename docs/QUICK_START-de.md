@@ -3,7 +3,7 @@ layout: default
 title: "🚀 Quick Start Guide - FastMediaSorter v2"
 permalink: /docs/QUICK_START-de.html
 ---
-<sub class="doc-stamp">26.09.24 20:12</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
@@ -166,7 +166,7 @@ Tippe auf **"+"** → **Cloud-Speicher**
 
 - Aktivieren in **Einstellungen** → **Medien** → **Sonstiges**
 - Tippe auf die Schaltfläche **Übersetzen** (A→文), wenn du Bilder/PDF/Text ansiehst
-- **Lupenartiger Modus:** Aktiviere "Lupenartiges Overlay" in den Einstellungen für Übersetzungen direkt an Ort und Stelle wie bei Google Lens
+- **Übersetzung direkt im Bild:** Aktiviere "Übersetzungsergebnis in Blöcken" in den Einstellungen, damit jede übersetzte Zeile direkt im Bild über den Originaltext gelegt wird
 
 ### EPUB-E-Books
 

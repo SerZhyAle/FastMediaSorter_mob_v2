@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.08.07 18:57</sub>
+<sub class="doc-stamp">26.10.09 14:27</sub>
 
 https://news.ycombinator.com/
 
@@ -19,7 +19,7 @@ FIRST COMMENT (posted by you immediately after submission):
 
 I built this over the past two years because I couldn't find an Android app that treated network storage (SMB/NAS) and cloud storage as first-class citizens alongside local files.
 
-The core problem: apps in this space either do file management well (Solid Explorer, MiXplorer) but delegate media playback to other apps, or do playback well (VLC) but have minimal file management. Nothing does both natively across all storage types.
+The core problem: apps in this space either do file management well but delegate media playback to other apps, or do playback well but have minimal file management. Nothing does both natively across all storage types.
 
 FastMediaSorter combines:
 
@@ -40,6 +40,6 @@ The most technically interesting part was making the media player work seamlessl
 Play Store: https://play.google.com/store/apps/details?id=com.sza.fastmediasorter
 APK: https://drive.google.com/drive/folders/1_U47It406WWQKaXkGGzNVPcKE4OPV0Jp
 
-Limitations worth being upfront about: no DLNA/UPnP, no media server mode (Plex/Jellyfin client), no video transcoding, system-level EQ only.
+Limitations worth being upfront about: no DLNA/UPnP, no media-server client mode, no video transcoding, system-level EQ only.
 
 Happy to discuss the SMB/ExoPlayer integration or the scheduling implementation.

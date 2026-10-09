@@ -3,7 +3,7 @@ layout: default
 title: "📖 Guías prácticas"
 permalink: /docs/HOW_TO-es.html
 ---
-<sub class="doc-stamp">26.09.26 10:42</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="es" dir="ltr" markdown="1">
 
@@ -221,7 +221,7 @@ Estas secciones son deliberadamente más variadas que los bloques de referencia 
 
 **Cuándo ayuda**
 
-- Autorradios Android, reproductores de audio y cajas multimedia donde quieres radio por Internet sin una app aparte (TuneIn, RadioDroid, emisiones de red de VLC).
+- Autorradios Android, reproductores de audio y cajas multimedia donde quieres radio por Internet sin una app aparte.
 - Uso tipo IPTV ligero: las emisiones VOD de HLS/DASH se reproducen en el reproductor a pantalla completa.
 
 **Evita esto**
@@ -1044,7 +1044,7 @@ Los archivos eliminados van a carpetas `.trash/` y permanecen ahí hasta que se 
 
 **Disponible para:** archivos SMB, SFTP, FTP
 
-**Caso de uso:** quieres abrir un documento, una foto o un vídeo de tu unidad de red en una app externa especializada (por ejemplo, MS Office, Adobe Acrobat, VLC Player).
+**Caso de uso:** quieres abrir un documento, una foto o un vídeo de tu unidad de red en una app externa especializada (por ejemplo, una suite ofimática, un lector de PDF o un reproductor de vídeo).
 
 **Pasos:**
 
@@ -1079,8 +1079,8 @@ Los archivos eliminados van a carpetas `.trash/` y permanecen ahí hasta que se 
 **Ejemplos de uso:**
 
 - Editar un documento de red en MS Word
-- Reproducir un vídeo de red en VLC Player
-- Ver un PDF de red en Adobe Acrobat
+- Reproducir un vídeo de red en un reproductor de vídeo dedicado
+- Ver un PDF de red en un lector de PDF dedicado
 - Compartir una foto de red por apps de mensajería
 
 ---

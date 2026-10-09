@@ -1845,9 +1845,9 @@
     "uk": "Вибирає мову, якою перекладається розпізнаний текст."
   },
   "switchLensStyle": {
-    "en": "Shows the translation result as opaque blocks over the original text, matching Google Lens style.",
-    "ru": "Показывает результат перевода непрозрачными блоками поверх исходного текста, в стиле Google Lens.",
-    "uk": "Показує результат перекладу непрозорими блоками поверх вихідного тексту, у стилі Google Lens."
+    "en": "Shows the translation result as opaque blocks painted over the original text, line by line.",
+    "ru": "Показывает результат перевода непрозрачными блоками поверх исходного текста, строка за строкой.",
+    "uk": "Показує результат перекладу непрозорими блоками поверх вихідного тексту, рядок за рядком."
   },
   "wearAutoRotation": {
     "en": "Lets the watch screen follow the wrist. Watch-only: the row is absent on a watch with no rotation sensor.",

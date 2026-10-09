@@ -3,7 +3,7 @@ layout: default
 title: "🔧 Troubleshooting Guide"
 permalink: /docs/TROUBLESHOOTING-ur.html
 ---
-<sub class="doc-stamp">26.09.24 20:18</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
@@ -175,7 +175,7 @@ FastMediaSorter v2 کے لیے موجودہ ٹربل شوٹنگ گائیڈ۔ ج�
 **حل:**
 1. اوپری ٹول بار میں **ⓘ (Info)** بٹن ٹیپ کریں
 2. **"Open in External Player"** ٹیپ کریں
-3. ایک مخصوص پلیئر منتخب کریں (مثلاً، VLC، MX Player)
+3. ایک مخصوص پلیئر منتخب کریں
 
 یہ غیر معاون کوڈیکس کو دوسری ایپس کے حوالے کرنے کے لیے *Secondary Player* خصوصیت استعمال کرتا ہے۔
 

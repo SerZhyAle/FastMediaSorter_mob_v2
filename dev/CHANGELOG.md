@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.08 22:56</sub>
+<sub class="doc-stamp">26.10.09 17:28</sub>
 
 # Development Changelog
 
@@ -36105,3 +36105,12 @@ Format: | datetime | file | target | description |
 | 2026-10-08 22:56:52 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/streams/StreamsScreen.kt` | `S4136` | S4136: Streams list opens on its counter under the pinned toolbar, dialog and Streams list viewports are bounded so no row rests in the glass arc, filtered-empty message fits its box [set of 3: wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/WearListColumn.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/WearStateBlock.kt] [branch: DEBUG-v045] |
 | 2026-10-08 22:57:29 | `PLAN/S4137_bugfix-wear-home-small-round-clipping.md` | `S4137` | Capture Draft S4137 bugfix-wear-home-small-round-clipping [branch: DEBUG-v045] |
 | 2026-10-08 23:01:03 | `PLAN/S4138_bugfix-watch-appops-empty-attribution-tag.md` | `S4138` | Capture Draft S4138 bugfix-watch-appops-empty-attribution-tag [branch: DEBUG-v045] |
+| 2026-10-08 23:08:00 | `PLAN/S4139_wear-dark-screen-tap-time-brightness.md` | `S4139` | Capture Draft S4139 wear-dark-screen-tap-time-brightness [branch: DEBUG-v045] |
+| 2026-10-08 23:09:57 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/home/HomeScreen.kt` | `S4137` | S4137: Wear Home list viewport bounded by wearBoundedViewportInset so no row rests in the glass arc on 192 dp and 227 dp round [branch: DEBUG-v045] |
+| 2026-10-08 23:10:28 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/home/HomeScreen.kt` | `S4137` | Wear Home list viewport bounded by wearBoundedViewportInset so no full-width row is laid out past the round glass chord [branch: DEBUG-v045] |
+| 2026-10-08 23:14:51 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/home/HomeScreen.kt` | `spec-all` | S4137: Home list viewport bounded by wearBoundedViewportInset; clip-check -Strict CLEAN at rest on 192 dp and 227 dp round [branch: DEBUG-v045] |
+| 2026-10-08 23:14:53 | `PLAN/S4137_bugfix-wear-home-small-round-clipping.md` | `spec-all` | S4137 trivial path closed; status -> Verified [branch: DEBUG-v045] |
+| 2026-10-08 23:16:29 | `PLAN/S4138_bugfix-watch-appops-empty-attribution-tag.md` | `S4138` | Watch AppOps empty attributionTag diagnosed as Android 16 audio-server noise; no code change; status -> Verified [branch: DEBUG-v045] |
+| 2026-10-08 23:24:56 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/WearDimOverlay.kt` | `S4139` | Watch dark sheet shows time and date above the tap point for one second; window brightness lowest while dark, full during a tap response, restored on exit [branch: DEBUG-v045] |
+| 2026-10-08 23:50:24 | `documentation/assets/images/capture/main-menu-quick-capture.png` | `S3541` | S3541 documentation screenshots: reviewed figures promoted in two rounds, pages regenerated, spec progress 2026-10-08 [set of 129: documentation/assets/images/capture/settings-screen-recording-toggle.png, documentation/assets/images/getting-started/main-screen-command-bar.png, documentation/assets/images/getting-started/main-screen-resource-menu.png, documentation/assets/images/launcher/desktop-edit-mode.png, documentation/assets/images/launcher/desktop-grid-dock.png, documentation/assets/images/launcher/desktop-long-press-menu.png, +122 more] [branch: DEBUG-v045] |
+| 2026-10-09 17:28:18 | `.github/workflows/jekyll-gh-pages.yml` | `site/sitemap-pages` | Pages workflow publishes sitemap-pages.xml as a build-time copy of sitemap.xml; runbook note for the Search Console Couldn't-fetch fallback [set of 2: docs/SEARCH_ENGINE_REGISTRATION.md] [branch: DEBUG-v045] |

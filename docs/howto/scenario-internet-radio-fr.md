@@ -3,7 +3,7 @@ layout: default
 title: "Radio internet et flux - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-fr.html
 ---
-<sub class="doc-stamp">26.09.25 02:15</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
@@ -15,7 +15,7 @@ permalink: /docs/howto/scenario-internet-radio-fr.html
 
 FastMediaSorter inclut un écran Flux dédié pour les sources audio et vidéo internet. Ajoutez n'importe quelle URL de radio internet, importez une playlist .m3u, ou parcourez un catalogue de stations sélectionnées - sans application radio séparée. Fonctionne très bien sur les autoradios Android, lecteurs audio, téléphones et tablettes.
 
-> **Remplace :** TuneIn, l'application Shoutcast, Online Radio, RadioDroid, les flux réseau VLC, les lecteurs IPTV.
+> **Remplace :** une application séparée de radio Internet ou de lecture de flux.
 
 ---
 

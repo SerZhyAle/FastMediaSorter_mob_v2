@@ -3,7 +3,7 @@ layout: default
 title: "🚀 Guide de démarrage rapide - FastMediaSorter v2"
 permalink: /docs/QUICK_START-fr.html
 ---
-<sub class="doc-stamp">26.09.24 20:10</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
@@ -166,7 +166,7 @@ Touchez **« + »** → **Stockage cloud**
 
 - Activez-la dans **Paramètres** → **Médias** → **Autre**
 - Touchez le bouton **Traduire** (A→文) en visionnant des images/PDF/texte
-- **Mode façon loupe :** activez « Superposition façon loupe » dans les paramètres pour des traductions en place façon Google Lens
+- **Traduction sur l’image :** activez « Résultat de la traduction en blocs » dans les paramètres pour afficher chaque ligne traduite par-dessus le texte d’origine, directement sur l’image
 
 ### Livres électroniques EPUB
 

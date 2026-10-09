@@ -3,7 +3,7 @@ layout: default
 title: "🚀 Quick Start Guide - FastMediaSorter v2"
 permalink: /docs/QUICK_START-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.24 20:15</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
@@ -166,7 +166,7 @@ FastMediaSorter v2 提供**面向日常手机和平板的五个版本** - Standa
 
 - 在 **设置** → **媒体** → **其他** 中启用
 - 在查看图片/PDF/文本时点按 **Translate** 按钮（A→文）
-- **镜头式模式：** 在设置中启用 "Lens-style overlay"，获得类似 Google Lens 的原位翻译
+- **在图片上直接显示译文：** 在设置中启用 "翻译结果以块的形式呈现"，每行译文会直接绘制在图片中原文的上方
 
 ### EPUB 电子书
 

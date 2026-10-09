@@ -3,7 +3,7 @@ layout: default
 title: "FastMediaSorter v2"
 permalink: /docs/README-es.html
 ---
-<sub class="doc-stamp">26.09.30 11:23</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 <div lang="es" dir="ltr" markdown="1">
 
@@ -157,7 +157,7 @@ Imágenes a tamaño completo:
 - 📄 **Visor de documentos:** visor integrado para archivos de texto (.txt, .md, .log, .json, .xml) y documentos PDF con zoom, desplazamiento y navegación por gestos.
 - 📚 **Lector de libros electrónicos EPUB:** lector EPUB nativo con navegación por capítulos, tabla de contenidos, control del tamaño de fuente, búsqueda dentro del libro y compatibilidad con tema claro/oscuro. Funciona con archivos locales y de red.
 - 📥 **Descargar y abrir:** descarga archivos de red (SMB/SFTP/FTP) al almacenamiento local y ábrelos en aplicaciones externas con seguimiento del progreso.
-- 🌐 **Traducción automática:** traduce al instante el texto de imágenes, PDF y archivos de texto, todo en el propio dispositivo: **Tesseract** lee el texto en escritura latina y cirílica, y Google ML Kit lo traduce. Admite tanto el modo estándar como el **modo de superposición estilo lente** para traducciones en el mismo lugar.
+- 🌐 **Traducción automática:** traduce al instante el texto de imágenes, PDF y archivos de texto, todo en el propio dispositivo: **Tesseract** lee el texto en escritura latina y cirílica, y Google ML Kit lo traduce. Muestra la traducción como texto aparte o como **bloques pintados sobre el texto original**, en la propia imagen.
 - 📱 **Compatibilidad con widgets:** más de una docena de widgets de pantalla de inicio que cubren una amplia gama - accesos directos a recursos, reproductores multimedia, captura de cámara, calculadoras, tareas programadas, favoritos, minijuegos y más. Explora la selección completa en el selector de widgets de tu lanzador.
 - 🏠 **Modo pantalla de inicio:** deja que la app sea la pantalla de inicio de tu dispositivo (compilaciones Standard y noLegal): su propio escritorio con accesos directos a recursos que abren directamente en explorar, presentación o reproducción, gadgets redimensionables como un reloj y el tiempo, celdas de contacto que no necesitan permiso de contactos, una cuadrícula de apps y una barra de tareas. Desactívalo cuando quieras y Android restaura tu pantalla de inicio anterior.
 - ⏰ **Operaciones de archivo programadas:** automatiza operaciones de archivo (copiar/mover/eliminar) mediante reglas basadas en tiempo con filtros flexibles y ejecución en segundo plano.
@@ -235,7 +235,7 @@ Ve tus series favoritas guardadas en tu PC o en la nube directamente en tu telé
 
 Instala FastMediaSorter en tu radio o unidad central de coche con Android. Añade carpetas de música desde una unidad USB o una tarjeta SD - o usa el recurso virtual integrado **Toda la música** para acceder al instante a toda tu colección sin ninguna configuración. Los botones multimedia de hardware (controles del volante, ruedas de volumen) funcionan sin problemas a través del servicio de audio en segundo plano: reproducir/pausa, pista siguiente/anterior, todo sin tocar la pantalla. La app recuerda la posición de reproducción y la reanuda automáticamente al iniciarse.
 
-Con la pantalla **Streams** activada, la misma unidad central también reproduce emisoras de radio por Internet directamente a través de los datos móviles o el Wi-Fi - sin necesidad de una app aparte como TuneIn o RadioDroid. Añade cualquier URL de radio o importa un catálogo curado de emisoras desde la pantalla Extensiones. El mini-control fijo muestra el nombre de la pista ICY actual mientras la lista de emisoras permanece visible.
+Con la pantalla **Streams** activada, la misma unidad central también reproduce emisoras de radio por Internet directamente a través de los datos móviles o el Wi-Fi - sin necesidad de una app de radio aparte. Añade cualquier URL de radio o importa un catálogo curado de emisoras desde la pantalla Extensiones. El mini-control fijo muestra el nombre de la pista ICY actual mientras la lista de emisoras permanece visible.
 
 ### 11. 📺 Centro multimedia en una caja Android TV
 

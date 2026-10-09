@@ -3,7 +3,7 @@ layout: default
 title: "🚀 Quick Start Guide - FastMediaSorter v2"
 permalink: /docs/QUICK_START-ur.html
 ---
-<sub class="doc-stamp">26.09.24 20:16</sub>
+<sub class="doc-stamp">26.10.09 14:52</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
@@ -166,7 +166,7 @@ FastMediaSorter v2 روزمرہ فونز اور ٹیبلٹس کے لیے **پا�
 
 - **Settings** → **Media** → **Other** میں فعال کریں
 - تصاویر/PDF/متن دیکھتے وقت **Translate** بٹن (A→文) ٹیپ کریں
-- **Lens-style موڈ:** Google Lens جیسے اِن پلیس ترجموں کے لیے سیٹنگز میں "Lens-style overlay" فعال کریں
+- **تصویر پر ہی ترجمہ:** ہر ترجمہ شدہ سطر کو براہِ راست تصویر پر اصل متن کے اوپر دکھانے کے لیے سیٹنگز میں "ترجمہ کے نتیجے میں بلاکس" فعال کریں
 
 ### EPUB ای بکس
 

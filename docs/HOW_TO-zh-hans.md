@@ -3,7 +3,7 @@ layout: default
 title: "📖 操作指南"
 permalink: /docs/HOW_TO-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.26 10:42</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
@@ -221,7 +221,7 @@ permalink: /docs/HOW_TO-zh-hans.html
 
 **适用场景**
 
-- 想在 Android 车载主机、音频播放器和媒体盒上收听网络电台，而无需单独的应用（TuneIn、RadioDroid、VLC 网络流）。
+- 想在 Android 车载主机、音频播放器和媒体盒上收听网络电台，而无需单独的应用。
 - 轻量 IPTV 用途：HLS/DASH 点播流可在全屏播放器中播放。
 
 **避免这样做**
@@ -1044,7 +1044,7 @@ FileDO 容器是一个带 `.fd-sec` 扩展名的文件，其中锁着另一个�
 
 **适用于：** SMB、SFTP、FTP 文件
 
-**使用场景：** 你想在专门的外部应用（例如 MS Office、Adobe Acrobat、VLC Player）中打开来自网络驱动器的文档、照片或视频。
+**使用场景：** 你想在专门的外部应用（例如办公套件、PDF 阅读器或视频播放器）中打开来自网络驱动器的文档、照片或视频。
 
 **步骤：**
 
@@ -1079,8 +1079,8 @@ FileDO 容器是一个带 `.fd-sec` 扩展名的文件，其中锁着另一个�
 **示例用例：**
 
 - 在 MS Word 中编辑网络文档
-- 在 VLC Player 中播放网络视频
-- 在 Adobe Acrobat 中查看网络 PDF
+- 在专门的视频播放器中播放网络视频
+- 在专门的 PDF 阅读器中查看网络 PDF
 - 通过消息应用分享网络照片
 
 ---

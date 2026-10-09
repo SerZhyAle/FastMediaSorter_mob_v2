@@ -3,7 +3,7 @@ layout: default
 title: "🔧 Guida alla risoluzione dei problemi"
 permalink: /docs/TROUBLESHOOTING-it.html
 ---
-<sub class="doc-stamp">26.09.24 20:18</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="it" dir="ltr" markdown="1">
 
@@ -175,7 +175,7 @@ Guida attuale alla risoluzione dei problemi per FastMediaSorter v2. Usa la matri
 **Soluzione:**
 1. Tocca il pulsante **ⓘ (Info)** nella barra degli strumenti superiore
 2. Tocca **"Apri in player esterno"**
-3. Seleziona un player specializzato (ad es. VLC, MX Player)
+3. Seleziona un player specializzato
 
 Questo usa la funzione *Player secondario* per passare i codec non supportati ad altre app.
 

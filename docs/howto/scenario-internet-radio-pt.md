@@ -3,7 +3,7 @@ layout: default
 title: "Rádio pela Internet e Streams - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-pt.html
 ---
-<sub class="doc-stamp">26.09.25 02:17</sub>
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
@@ -15,7 +15,7 @@ permalink: /docs/howto/scenario-internet-radio-pt.html
 
 O FastMediaSorter inclui uma tela dedicada de Streams para fontes de áudio e vídeo pela internet. Adicione qualquer URL de rádio pela internet, importe uma playlist .m3u ou navegue por um catálogo de estações selecionado - sem precisar de um app de rádio separado. Funciona muito bem em rádios automotivos Android, players de áudio, celulares e tablets.
 
-> **Substitui:** TuneIn, app Shoutcast, Online Radio, RadioDroid, streams de rede do VLC, players de IPTV.
+> **Substitui:** um app separado de rádio pela internet ou de reprodução de streams.
 
 ---
 
