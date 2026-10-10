@@ -1,6 +1,8 @@
 <#
-Run-Tests.ps1 - contract tests for assert-stream-facet-values.ps1 (S4133).
+.SYNOPSIS
+Contract tests for assert-stream-facet-values.ps1 (S4133).
 
+.DESCRIPTION
 Every case writes a throwaway catalog under the system temp directory and runs the gate against it with
 the live facet module, so no case depends on what the real catalog carries this minute.
 

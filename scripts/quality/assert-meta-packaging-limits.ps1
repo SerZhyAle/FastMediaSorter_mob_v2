@@ -1,7 +1,9 @@
 #requires -Version 7.0
 <#
-  assert-meta-packaging-limits.ps1 (S3364)
+.SYNOPSIS
+  Measures a built VR-flavor APK against the Meta VRC packaging limits (S3364).
 
+.DESCRIPTION
   Measures a built VR-flavor APK against the Meta VRC packaging limits recorded in
   store-prepublish-thresholds.psd1 (verified 2026-09-21): APK size vs MetaMaxApkBytes,
   expansion file size vs MetaMaxObbBytes, minimum signature scheme MetaMinSignatureScheme

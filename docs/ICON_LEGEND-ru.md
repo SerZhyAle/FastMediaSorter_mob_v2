@@ -135,6 +135,7 @@ permalink: /docs/ICON_LEGEND-ru.html
 | <img src="icons/svg/ic_mirror.svg" alt="ic_mirror" width="24" height="24"> | Зеркало |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Статистика |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Видеозапись экрана |
+| <img src="icons/svg/ic_cloud.svg" alt="ic_cloud" width="24" height="24"> | Доступ через Google Диск |
 | <img src="icons/svg/ic_cloud.svg" alt="ic_cloud" width="24" height="24"> | Сервер обмена |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | SFTP-сервер |
 | <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Показывать кнопку «Чёрный экран» |

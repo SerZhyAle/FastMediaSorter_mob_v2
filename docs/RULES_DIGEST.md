@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.07 01:35</sub>
+<sub class="doc-stamp">26.10.10 12:39</sub>
 
 # Rules Digest (Свод правил)
 
@@ -305,7 +305,7 @@ runtimes, which must follow `docs/NON_CLAUDE_RUNTIME_RULES.md` manually.
 
 ## 9. FastMediaSorter complete quality-gate inventory
 
-There are 166 `scripts/quality/assert-*.ps1` entry points. This is the complete
+There are 168 `scripts/quality/assert-*.ps1` entry points. This is the complete
 filename inventory, retained here for automation research; the gate-placement
 registry and each script define its exact trigger and refusal scope. These names
 are an FMS implementation map, not a portable rule list.
@@ -348,27 +348,28 @@ assert-docs-coverage                      assert-resource-icon-parity
 assert-docs-crosslinks                    assert-retired-dependency-names
 assert-docs-external-content              assert-rtl-layout-attrs
 assert-docs-external-links                assert-rule-digest-sync
-assert-docs-portal-ui-ux                  assert-script-cheatsheet-sync
-assert-docs-screenshots                   assert-script-described
-assert-docs-search                        assert-script-file-size
-assert-docs-termbase                      assert-script-parses
-assert-docs-translation-freshness         assert-script-references
-assert-document-registry-coverage         assert-sdk-pin-claims
-assert-dotsource-tracked                  assert-security-posture
-assert-enum-persistence-contract          assert-sensitive-settings-annotated
-assert-exit-contract                      assert-settings-catalog-complete
-assert-fast-gates                         assert-settings-doc-sync
-assert-fdsec-vectors-provenance           assert-shared-test-flavor-scope
-assert-fgs-notifications                  assert-showcase-inventory
-assert-file-line-ceiling                  assert-site-addresses
-assert-fileop-journal-pairing             assert-site-facts
-assert-flavor-binding-coverage            assert-site-family-map
-assert-flavor-count-prose                 assert-site-languages-current
-assert-flavor-flags-not-growing           assert-site-origins
-assert-flavor-matrix-docs                 assert-source-gates
-assert-focus-highlight                    assert-spec-catalog-valid
-assert-focus-parity                       assert-splash-brand-sync
-assert-gate-count-prose                   assert-stream-asset-revisions
+assert-docs-hub-shell                     assert-script-cheatsheet-sync
+assert-docs-portal-ui-ux                  assert-script-described
+assert-docs-screenshots                   assert-script-file-size
+assert-docs-search                        assert-script-parses
+assert-docs-termbase                      assert-script-references
+assert-docs-translation-freshness         assert-sdk-pin-claims
+assert-document-registry-coverage         assert-security-posture
+assert-dotsource-tracked                  assert-sensitive-settings-annotated
+assert-enum-persistence-contract          assert-settings-catalog-complete
+assert-exit-contract                      assert-settings-doc-sync
+assert-fast-gates                         assert-shared-test-flavor-scope
+assert-fdsec-vectors-provenance           assert-showcase-inventory
+assert-fgs-notifications                  assert-site-addresses
+assert-file-line-ceiling                  assert-site-facts
+assert-fileop-journal-pairing             assert-site-family-map
+assert-flavor-binding-coverage            assert-site-languages-current
+assert-flavor-count-prose                 assert-site-origins
+assert-flavor-flags-not-growing           assert-source-gates
+assert-flavor-matrix-docs                 assert-spec-catalog-valid
+assert-focus-highlight                    assert-splash-brand-sync
+assert-focus-parity                       assert-stream-asset-revisions
+assert-gate-count-prose                   assert-stream-facet-values
 assert-gate-hints-sync                    assert-string-format
 assert-gate-placement                     assert-suite-tracked
 assert-gate-timing-claims                 assert-swallowed-cancellation
