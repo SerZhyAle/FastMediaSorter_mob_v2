@@ -17,7 +17,10 @@
                   forwarder, every sibling-site address is listed, and the help-link resolver's pages,
                   translated languages and their siblings match the page manifest and the published set.
                   A new holder is one glob in the list's `holders` record; a new address one `address`
-                  record naming its holders. The site root is written '/'.
+                  record naming its holders. The site root is written '/'. An `external` record names
+                  an address another product links to (its holders are product names, not files here):
+                  the gate cannot read that product's source, so it holds only that the address still
+                  answers a published page and is not a forwarder - a rename is refused naming them.
 
       not-found   404.html: the file exists, declares /404.html, is noindex, offers the search, the
                   portal home and the landing, carries the en/ru/uk blocks and builds every address
@@ -231,16 +234,17 @@ function Test-HeldAddressRecordShape($Record, [int]$Number) {
         'holders' { @('files') }
         'address' { @('address', 'holders') }
         'sibling' { @('address', 'holders') }
+        'external' { @('address', 'holders') }
         'resolver' { @('holder', 'manifest', 'languages') }
         default { $null }
     }
-    if ($null -eq $required) { $findings.Add("$where has kind '$kind'; expected holders, address, sibling or resolver."); return $false }
+    if ($null -eq $required) { $findings.Add("$where has kind '$kind'; expected holders, address, sibling, external or resolver."); return $false }
     foreach ($field in $required) {
         if ($names -notcontains $field) { $findings.Add("$where ($kind) lacks '$field'."); return $false }
     }
-    if ($kind -in 'address', 'sibling') {
+    if ($kind -in 'address', 'sibling', 'external') {
         $address = [string]$Record.address
-        if ($kind -eq 'address' -and ($address -match '^(https?:|//)' -or $address -match '[#?]' -or ($address.StartsWith('/') -and $address -ne '/'))) {
+        if ($kind -in 'address', 'external' -and ($address -match '^(https?:|//)' -or $address -match '[#?]' -or ($address.StartsWith('/') -and $address -ne '/'))) {
             $findings.Add("$where address '$address' must be site-relative without a scheme, fragment or query (the site root is '/').")
             return $false
         }
@@ -324,7 +328,26 @@ function Test-HeldAddresses {
         }
     }
 
+    Test-ExternalRecords -Records @($valid | Where-Object { $_.kind -eq 'external' }) -Published $published -Redirects $redirects
     foreach ($record in @($valid | Where-Object { $_.kind -eq 'resolver' })) { Test-ResolverRecord -Record $record -Published $published }
+}
+
+# An external holder is another product whose source this repository cannot read, so the gate cannot
+# confirm the link is still carried; it holds the other half - the address must keep answering a page.
+function Test-ExternalRecords($Records, $Published, $Redirects) {
+    $seen = @{}
+    foreach ($record in $Records) {
+        $address = [string]$record.address
+        if ($seen.ContainsKey($address)) { $findings.Add("held-addresses: external '$address' is listed twice."); continue }
+        $seen[$address] = $true
+        $holders = (@($record.holders) | ForEach-Object { [string]$_ }) -join ', '
+        $normalized = if ($address -eq '/') { 'index.html' } elseif ($address.EndsWith('/')) { $address + 'index.html' } else { $address }
+        if ($Redirects.ContainsKey($normalized)) {
+            $findings.Add("held-addresses: '$address' is held by $holders (another product) but is now a forwarder; restore the page at this address - the holders link here.")
+        } elseif (-not $Published.ContainsKey($normalized)) {
+            $findings.Add("held-addresses: '$address' is held by $holders (another product) but answers no published page; restore the page at this address - the holders link here.")
+        }
+    }
 }
 
 function Test-ResolverRecord($Record, $Published) {

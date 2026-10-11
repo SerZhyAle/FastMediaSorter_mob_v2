@@ -33,4 +33,14 @@ object NoLegalCapabilityModule {
     @IntoSet
     @CompiledCapabilities
     fun provideWatchCameraStandby(): String = CapabilityAvailability.CAP_WATCH_CAMERA_STANDBY
+
+    /**
+     * S4150: the watch heart-rate and body-temperature tiles of the Tourist dashboard. The Play build
+     * declares no health features (`store_assets/PLAY_DATA_SAFETY_HEALTH.md`), so only this flavor
+     * contributes the id and every other build never offers the tiles.
+     */
+    @Provides
+    @IntoSet
+    @CompiledCapabilities
+    fun provideWatchHealth(): String = CapabilityAvailability.CAP_WATCH_HEALTH
 }

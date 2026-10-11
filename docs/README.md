@@ -4,7 +4,7 @@ title: "FastMediaSorter v2"
 permalink: /docs/README.html
 ---
 
-<sub class="doc-stamp">26.10.09 14:52</sub>
+<sub class="doc-stamp">26.10.10 14:48</sub>
 
 # FastMediaSorter v2 🚀
 
@@ -19,6 +19,8 @@ permalink: /docs/README.html
 Installing the APK directly? Android warns about a package it has not seen before - [why the warning appears, and what to tap](INSTALL_TRUST.md).
 
 **📘 User documentation:** [step-by-step guides for every feature, with search](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/)
+
+**🔁 Media exchange portal:** [which way fits you to move and open media between your own phone, watch, TV, VR headset and Windows PC](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/)
 
 ## About the Project
 

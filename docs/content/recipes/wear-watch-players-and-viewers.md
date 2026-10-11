@@ -93,7 +93,7 @@ steps:
     id: player-screen-off
     title: "Turning the screen off while it keeps playing"
     text: |
-      The audio player, and an audio stream, offer their own **Screen off**: the display goes dark while the sound keeps going, and one tap brings the picture and controls straight back. A single tap on the dark screen otherwise just sends a thin ring spreading out from the touch point and fading away, so a stray touch in your pocket does not wake it by accident; a double tap, a long press or the watch's own button all bring it back properly.
+      The audio player, and an audio stream, offer their own **Screen off**: the display goes dark while the sound keeps going, and one tap brings the picture and controls straight back. A single tap on the dark screen otherwise only sends a thin ring spreading out from the touch point and shows the time and date above it for one second, so a stray touch in your pocket does not wake it by accident; a double tap, a long press or the watch's own button all bring it back properly.
 
       The video player does not offer this - going dark during a video would hide the one thing its screen is open for.
     image_bookmark:
@@ -174,6 +174,6 @@ next_recipes:
     description: The Chromecast session the watch's Show on TV hands off to.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.10 14:39</sub>
 
 A tour of the watch app's three players - image, video and audio - plus its text document reader and sending what's on the watch to a TV.

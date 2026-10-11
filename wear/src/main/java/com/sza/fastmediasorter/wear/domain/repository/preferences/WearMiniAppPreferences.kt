@@ -50,4 +50,8 @@ interface WearMiniAppPreferences {
     /** S3555: the measurement in progress, opaque here - `WearStopwatchSnapshot` owns its format. */
     val stopwatchSession: Flow<String?>
     suspend fun setStopwatchSession(value: String?)
+
+    /** S4146: the Tourist trip and its pressure samples, opaque here - WearTripSnapshotCodec owns the format. */
+    val touristTrip: Flow<String?>
+    suspend fun setTouristTrip(value: String?)
 }

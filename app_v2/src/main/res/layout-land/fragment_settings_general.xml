@@ -1345,6 +1345,8 @@
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnHowToGuides" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/how_to_guides" app:icon="@drawable/ic_book" app:iconSize="@dimen/settings_icon_size" />
 
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnMediaExchangePortal" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/media_exchange_portal_link" app:icon="@drawable/ic_swap_horizontal" app:iconSize="@dimen/settings_icon_size" />
+
                         <!-- S0994: PC-side companion publish-folders guide; hidden when companion import unavailable (lite/vr). -->
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnCompanionPublishGuide" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/companion_publish_folders_guide" app:icon="@drawable/ic_open_in_browse" app:iconSize="@dimen/settings_icon_size" />
 
@@ -1355,7 +1357,7 @@
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnOpenWelcome" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/open_welcome_tutorial" app:icon="@drawable/ic_image" app:iconSize="@dimen/settings_icon_size" />
 
                         <!-- Flow distributes buttons across lines based on available width -->
-                        <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowDocLinks" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_horizontalGap="@dimen/settings_margin_standard" app:flow_verticalGap="@dimen/margin_tiny" app:constraint_referenced_ids="btnUserGuide,btnHowToGuides,btnCompanionPublishGuide,btnPrivacyPolicy,btnOpenSourceLicenses,btnOpenWelcome" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
+                        <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowDocLinks" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_horizontalGap="@dimen/settings_margin_standard" app:flow_verticalGap="@dimen/margin_tiny" app:constraint_referenced_ids="btnUserGuide,btnHowToGuides,btnMediaExchangePortal,btnCompanionPublishGuide,btnPrivacyPolicy,btnOpenSourceLicenses,btnOpenWelcome" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -8,6 +8,7 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
+import com.sza.fastmediasorter.core.security.PrivateDiagnosticValues
 import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +41,8 @@ object LogExportHelper {
     private const val ARCHIVE_FILE_CEILING_BYTES = 16 * MIB
     private const val ARCHIVE_HEAD_BYTES = 1 * MIB
     private const val ARCHIVE_TAIL_BYTES = 7 * MIB
+    private const val REDACTED_COPY_PREFIX = "redacted_"
+    private const val LINE_END = "\n"
 
     /**
      * Package all log files into a ZIP and share via Intent. The ZIP is built on [Dispatchers.IO];
@@ -84,7 +87,7 @@ object LogExportHelper {
             if (cacheZip.exists()) cacheZip.delete()
 
             ZipOutputStream(FileOutputStream(cacheZip)).use { zos: ZipOutputStream ->
-                writeEntries(zos, logFiles)
+                writeEntries(zos, logFiles, context.cacheDir)
             }
             cacheZip
         } catch (e: Exception) {
@@ -102,7 +105,7 @@ object LogExportHelper {
             if (logFiles.isEmpty()) return@withContext ExportResult.NoLogs
 
             context.contentResolver.openOutputStream(destUri)?.use { out ->
-                ZipOutputStream(BufferedOutputStream(out)).use { zos -> writeEntries(zos, logFiles) }
+                ZipOutputStream(BufferedOutputStream(out)).use { zos -> writeEntries(zos, logFiles, context.cacheDir) }
             } ?: return@withContext ExportResult.Error(context.getString(R.string.save_logs_failed))
 
             ExportResult.SaveSuccess
@@ -114,11 +117,38 @@ object LogExportHelper {
         }
     }
 
-    private fun writeEntries(zos: ZipOutputStream, files: List<File>) {
+    private fun writeEntries(zos: ZipOutputStream, files: List<File>, scratchDir: File) {
         files.filter { it.exists() }.forEach { file ->
             zos.putNextEntry(ZipEntry(file.name))
-            writeBounded(file, zos)
+            writeRedacted(file, zos, scratchDir)
             zos.closeEntry()
+        }
+    }
+
+    /**
+     * DIAGNOSTIC-REPORT section 10 redacts the exchange account values again at export: a line written before
+     * a value became known to [PrivateDiagnosticValues] still carries it. The redacted copy is cut by
+     * [writeBounded] afterwards, because section 8 C puts redaction before truncation; with nothing
+     * registered the file is packed as it is.
+     */
+    internal fun writeRedacted(file: File, out: OutputStream, scratchDir: File) {
+        if (PrivateDiagnosticValues.isEmpty) {
+            writeBounded(file, out)
+            return
+        }
+        val copy = File(scratchDir, REDACTED_COPY_PREFIX + file.name)
+        try {
+            copy.bufferedWriter().use { writer ->
+                file.bufferedReader().useLines { lines ->
+                    lines.forEach { line ->
+                        writer.write(PrivateDiagnosticValues.redact(line))
+                        writer.write(LINE_END)
+                    }
+                }
+            }
+            writeBounded(copy, out)
+        } finally {
+            copy.delete()
         }
     }
 

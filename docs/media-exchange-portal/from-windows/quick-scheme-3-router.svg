@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 720" width="100%" height="100%" style="background:#091217; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;">
+  <defs>
+    <filter id="cardShadow3" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+    <marker id="arrowEm" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#10b981" />
+    </marker>
+    <marker id="arrowCy" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#38bdf8" />
+    </marker>
+  </defs>
+
+  <!-- Top Title Bar -->
+  <g transform="translate(50, 35)">
+    <rect width="1000" height="60" rx="10" fill="#132a24" stroke="#10b981" stroke-width="1.5"/>
+    <text x="30" y="27" fill="#34d399" font-size="12" font-weight="700" letter-spacing="1.5">СХЕМА 3 · ВНУТРЕННЯЯ СЕТЬ И РОУТЕР (АВТОНОМНЫЙ РЕЖИМ)</text>
+    <text x="30" y="48" fill="#f8fafc" font-size="18" font-weight="700">Домашнее хранилище: прямой Wi-Fi обмен + доступ снаружи через роутер</text>
+    <rect x="730" y="14" width="240" height="32" rx="6" fill="#047857"/>
+    <text x="850" y="35" fill="#ffffff" font-size="12" font-weight="600" text-anchor="middle">Без сторонних серверов</text>
+  </g>
+
+  <!-- Connection Lines (Behind Nodes) -->
+  <!-- Outside Phone to Router -->
+  <path d="M 330 250 L 440 310" fill="none" stroke="#38bdf8" stroke-width="3.5" marker-end="url(#arrowCy)"/>
+  <!-- Router to Home PC Storage -->
+  <path d="M 680 340 L 780 340" fill="none" stroke="#10b981" stroke-width="4" marker-end="url(#arrowEm)"/>
+
+  <!-- Local Devices to Router -->
+  <path d="M 330 450 L 440 380" fill="none" stroke="#10b981" stroke-width="3" marker-end="url(#arrowEm)"/>
+  <path d="M 560 480 L 560 550" fill="none" stroke="#10b981" stroke-width="3" marker-end="url(#arrowEm)"/>
+
+  <!-- ============================================================ -->
+  <!-- CENTER NODE: HOME ROUTER -->
+  <!-- ============================================================ -->
+  <g transform="translate(440, 180)" filter="url(#cardShadow3)">
+    <rect width="240" height="300" rx="14" fill="#0b241c" stroke="#10b981" stroke-width="2.5"/>
+    <rect width="240" height="48" rx="14" fill="#059669"/>
+    <rect width="240" height="16" y="32" fill="#059669"/>
+    <text x="120" y="30" fill="#ffffff" font-size="15" font-weight="700" text-anchor="middle">ДОМАШНИЙ РОУТЕР</text>
+    <text x="120" y="68" fill="#34d399" font-size="11" font-weight="600" text-anchor="middle">Шлюз домашней сети</text>
+
+    <!-- Block 1 -->
+    <rect x="15" y="82" width="210" height="78" rx="8" fill="#061c16"/>
+    <text x="25" y="100" fill="#34d399" font-size="10.5" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="25" y="118" fill="#f8fafc" font-size="11">• Раздаёт домашний Wi-Fi</text>
+    <text x="25" y="135" fill="#f8fafc" font-size="11">• Перенаправляет порт 2222</text>
+    <text x="25" y="150" fill="#f8fafc" font-size="11">  с интернета на домашний ПК</text>
+
+    <!-- Block 2: Router setup -->
+    <rect x="15" y="170" width="210" height="118" rx="8" fill="#061c16"/>
+    <text x="25" y="188" fill="#fbbf24" font-size="10.5" font-weight="700">ЧТО НАСТРАИВАТЬ В РОУТЕРЕ:</text>
+    <text x="25" y="206" fill="#ffffff" font-size="11" font-weight="600">1. Зафиксировать IP ПК:</text>
+    <text x="35" y="222" fill="#cbd5e1" font-size="10.5">Привязать MAC к 192.168.1.100</text>
+    <text x="25" y="242" fill="#ffffff" font-size="11" font-weight="600">2. Пробросить порт (Port Forward):</text>
+    <text x="35" y="258" fill="#38bdf8" font-size="10.5">Внешний 2222 ➔ на 192.168.1.100</text>
+    <text x="25" y="276" fill="#94a3b8" font-size="10">(один порт на каждый сервер)</text>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- LEFT NODES: OUTSIDE VS LOCAL CLIENTS -->
+  <!-- ============================================================ -->
+  <!-- Node: Outside Phone (Internet / 4G / 5G) -->
+  <g transform="translate(50, 150)" filter="url(#cardShadow3)">
+    <rect width="280" height="180" rx="12" fill="#132a24" stroke="#38bdf8" stroke-width="2"/>
+    <rect width="280" height="34" rx="12" fill="#0369a1"/>
+    <rect width="280" height="12" y="22" fill="#0369a1"/>
+    <text x="15" y="23" fill="#ffffff" font-size="13" font-weight="700">📱 Смартфон Снаружи (Интернет/4G)</text>
+
+    <text x="15" y="55" fill="#38bdf8" font-size="10.5" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="15" y="73" fill="#f8fafc" font-size="11.5">• Открывает домашние диски в поездке</text>
+    <text x="15" y="90" fill="#f8fafc" font-size="11.5">• Скидывает новые фото прямо на ПК</text>
+
+    <line x1="15" y1="102" x2="265" y2="102" stroke="#1d483c"/>
+
+    <text x="15" y="120" fill="#fbbf24" font-size="10.5" font-weight="700">ЧТО НАСТРАИВАТЬ:</text>
+    <text x="15" y="138" fill="#cbd5e1" font-size="11">В приложении ввести адрес роутера:</text>
+    <text x="15" y="154" fill="#38bdf8" font-size="11.5" font-family="monospace">myhome.example.net:2222</text>
+    <text x="15" y="170" fill="#94a3b8" font-size="10">(или публичный IP провайдера)</text>
+  </g>
+
+  <!-- Node: Local Phone at Home -->
+  <g transform="translate(50, 360)" filter="url(#cardShadow3)">
+    <rect width="280" height="165" rx="12" fill="#132a24" stroke="#10b981" stroke-width="2"/>
+    <rect width="280" height="34" rx="12" fill="#047857"/>
+    <rect width="280" height="12" y="22" fill="#047857"/>
+    <text x="15" y="23" fill="#ffffff" font-size="13" font-weight="700">📱 Телефон Дома (По Wi-Fi)</text>
+
+    <text x="15" y="55" fill="#34d399" font-size="10.5" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="15" y="73" fill="#f8fafc" font-size="11.5">• Мгновенный просмотр без задержек</text>
+    <text x="15" y="90" fill="#f8fafc" font-size="11.5">• Максимальная скорость домашней сети</text>
+    <text x="15" y="107" fill="#f8fafc" font-size="11.5">• Не расходует трафик интернета</text>
+
+    <line x1="15" y1="118" x2="265" y2="118" stroke="#1d483c"/>
+    <text x="15" y="136" fill="#34d399" font-size="10.5" font-weight="700">ЧТО НАСТРАИВАТЬ:</text>
+    <text x="15" y="154" fill="#cbd5e1" font-size="11">Просто сканировать QR-код с экрана ПК</text>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- RIGHT NODE: HOME PC STORAGE (SFTP SERVER) -->
+  <!-- ============================================================ -->
+  <g transform="translate(780, 180)" filter="url(#cardShadow3)">
+    <rect width="270" height="310" rx="14" fill="#0b241c" stroke="#10b981" stroke-width="2.5"/>
+    <rect width="270" height="48" rx="14" fill="#065f46"/>
+    <rect width="270" height="16" y="32" fill="#065f46"/>
+    <text x="135" y="30" fill="#ffffff" font-size="14" font-weight="700" text-anchor="middle">🗄️ ДОМАШНЕЕ ХРАНИЛИЩЕ</text>
+    <text x="135" y="68" fill="#34d399" font-size="11" font-weight="600" text-anchor="middle">ПК Windows (SFTP-сервер)</text>
+
+    <!-- Block 1 -->
+    <rect x="15" y="82" width="240" height="96" rx="8" fill="#061c16"/>
+    <text x="25" y="100" fill="#34d399" font-size="10.5" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="25" y="118" fill="#f8fafc" font-size="11.5">• Хранит все фото, 4K видео и архивы</text>
+    <text x="25" y="135" fill="#f8fafc" font-size="11.5">• Раздаёт, пока ПК включён</text>
+    <text x="25" y="152" fill="#f8fafc" font-size="11.5">• Отдаёт файлы без сторонних облаков</text>
+    <text x="25" y="168" fill="#a7f3d0" font-size="10.5">• Полная приватность ваших данных</text>
+
+    <!-- Block 2: Setup on PC -->
+    <rect x="15" y="190" width="240" height="106" rx="8" fill="#061c16"/>
+    <text x="25" y="208" fill="#fbbf24" font-size="10.5" font-weight="700">ЧТО НАСТРАИВАТЬ НА ПК:</text>
+    <text x="25" y="226" fill="#cbd5e1" font-size="11">1. В Share Manager выбрать папки</text>
+    <text x="25" y="244" fill="#cbd5e1" font-size="11">2. Порт по умолчанию: <tspan fill="#38bdf8" font-weight="700">2222</tspan></text>
+    <text x="25" y="262" fill="#cbd5e1" font-size="11">3. Нажать кнопку «Поделиться»</text>
+    <text x="25" y="280" fill="#94a3b8" font-size="10.5">(получить QR-код для телефона)</text>
+  </g>
+
+  <!-- Bottom Node: Smart TV & Laptops -->
+  <g transform="translate(440, 550)" filter="url(#cardShadow3)">
+    <rect width="240" height="85" rx="10" fill="#132a24" stroke="#10b981" stroke-width="1.5"/>
+    <text x="20" y="24" fill="#34d399" font-size="12" font-weight="700">📺 Телевизор и ноутбуки дома</text>
+    <text x="20" y="44" fill="#f8fafc" font-size="11">• Прямое слайд-шоу 4K видео на ТВ</text>
+    <text x="20" y="60" fill="#f8fafc" font-size="11">• Ноутбук монтирует диски хранилища</text>
+    <text x="20" y="76" fill="#94a3b8" font-size="10">• Работает даже если интернет отключен</text>
+  </g>
+
+  <!-- Bottom Summary Strip -->
+  <g transform="translate(50, 655)">
+    <rect width="1000" height="42" rx="8" fill="#0b171c" stroke="#132a24"/>
+    <text x="25" y="26" fill="#34d399" font-size="11" font-weight="700">ИТОГ АВТОНОМНОГО РЕЖИМА:</text>
+    <text x="210" y="26" fill="#cbd5e1" font-size="11.5">В роутере пробросили 1 порт (2222) на адрес ПК ➔ дома все летает на скорости сети, а с улицы входите по адресу роутера.</text>
+  </g>
+</svg>

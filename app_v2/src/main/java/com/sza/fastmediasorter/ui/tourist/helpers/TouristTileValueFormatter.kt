@@ -7,6 +7,9 @@ import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.UnitScale
 import com.sza.fastmediasorter.domain.model.UnitSystem
+import com.sza.fastmediasorter.domain.model.tourist.ElevationSource
+import com.sza.fastmediasorter.domain.model.tourist.GpsAccuracyGrade
+import com.sza.fastmediasorter.domain.model.tourist.PressureTrend
 import com.sza.fastmediasorter.domain.model.weather.WeatherCondition
 import java.util.Locale
 
@@ -98,6 +101,119 @@ class TouristTileValueFormatter(
         )
     }
 
+    /** S4145: hPa on the metric scale, inches of mercury on the imperial one (ADR-4). */
+    fun pressure(hectopascals: Float?): TileValue {
+        val unit = unitLabel(R.string.tourist_unit_hpa, R.string.tourist_unit_inhg)
+        val value = hectopascals ?: return TileValue(NO_VALUE, unit)
+        return when (system) {
+            UnitSystem.METRIC -> TileValue(decimal(value.toDouble(), NO_DECIMALS), unit)
+            UnitSystem.IMPERIAL ->
+                TileValue(decimal(UnitScale.hectopascalsToInchesOfMercury(value.toDouble()), TWO_DECIMALS), unit)
+        }
+    }
+
+    fun elevation(metres: Double?): TileValue = altitude(metres)
+
+    fun gpsAccuracy(metres: Float?): TileValue = altitude(metres?.toDouble())
+
+    fun windSpeed(kmh: Double?): TileValue {
+        val unit = unitLabel(R.string.tourist_unit_kmh, R.string.tourist_unit_mph)
+        val value = kmh ?: return TileValue(NO_VALUE, unit)
+        return TileValue(decimal(convertSpeed(value), NO_DECIMALS), unit)
+    }
+
+    fun visibility(metres: Double?): TileValue {
+        val unit = unitLabel(R.string.tourist_unit_km, R.string.tourist_unit_miles)
+        val value = metres ?: return TileValue(NO_VALUE, unit)
+        val converted = when (system) {
+            UnitSystem.METRIC -> UnitScale.metresToKilometres(value)
+            UnitSystem.IMPERIAL -> UnitScale.metresToMiles(value)
+        }
+        return TileValue(decimal(converted, ONE_DECIMAL), unit)
+    }
+
+    /** Minutes and seconds per kilometre or mile; no value at a standstill, where pace is infinite. */
+    fun pace(kmh: Float?): TileValue {
+        val unit = unitLabel(R.string.tourist_unit_min_per_km, R.string.tourist_unit_min_per_mi)
+        val speed = kmh?.toDouble() ?: 0.0
+        val minutes = when (system) {
+            UnitSystem.METRIC -> UnitScale.paceMinutesPerKilometre(speed)
+            UnitSystem.IMPERIAL -> UnitScale.paceMinutesPerMile(speed)
+        } ?: return TileValue(NO_VALUE, unit)
+        val totalSeconds = Math.round(minutes * SECONDS_PER_MINUTE)
+        val text = String.format(
+            Locale.getDefault(),
+            PACE_PATTERN,
+            totalSeconds / SECONDS_PER_MINUTE,
+            totalSeconds % SECONDS_PER_MINUTE,
+        )
+        return TileValue(text, unit)
+    }
+
+    /** `h:mm:ss`; hours are not capped, a multi-day trip simply shows more of them. */
+    fun duration(millis: Long?): String {
+        val total = millis?.div(MILLIS_PER_SECOND) ?: return NO_TIME
+        return String.format(
+            Locale.getDefault(),
+            DURATION_PATTERN,
+            total / SECONDS_PER_HOUR,
+            total % SECONDS_PER_HOUR / SECONDS_PER_MINUTE,
+            total % SECONDS_PER_MINUTE,
+        )
+    }
+
+    fun percent(value: Number?): TileValue =
+        TileValue(value?.let { decimal(it.toDouble(), NO_DECIMALS) } ?: NO_VALUE, string(R.string.tourist_unit_percent))
+
+    fun slope(percent: Float?): TileValue = percent(percent)
+
+    fun lux(value: Float?): TileValue =
+        TileValue(value?.let { decimal(it.toDouble(), NO_DECIMALS) } ?: NO_VALUE, string(R.string.tourist_unit_lux))
+
+    fun microtesla(value: Float?): TileValue = TileValue(
+        value?.let { decimal(it.toDouble(), NO_DECIMALS) } ?: NO_VALUE,
+        string(R.string.tourist_unit_microtesla),
+    )
+
+    fun cadence(stepsPerMinute: Int?): TileValue =
+        TileValue(stepsPerMinute?.toString() ?: NO_VALUE, string(R.string.tourist_unit_steps_per_minute))
+
+    fun heartRate(bpm: Int?): TileValue = TileValue(bpm?.toString() ?: NO_VALUE, string(R.string.tourist_unit_bpm))
+
+    fun degrees(value: Float?): TileValue =
+        TileValue(value?.let { decimal(it.toDouble(), NO_DECIMALS) } ?: NO_VALUE, string(R.string.tourist_unit_degrees))
+
+    fun uvIndex(value: Double?): TileValue = TileValue(value?.let { decimal(it, ONE_DECIMAL) } ?: NO_VALUE, "")
+
+    /** Compass point from resources, so a locale can use its own letters (strategic §3.2). */
+    fun cardinal(azimuth: Float?): String {
+        val degrees = azimuth ?: return ""
+        val normalized = (degrees % FULL_CIRCLE + FULL_CIRCLE) % FULL_CIRCLE
+        val index = ((normalized + HALF_SECTOR) / SECTOR).toInt() % CARDINAL_RES.size
+        return string(CARDINAL_RES[index])
+    }
+
+    fun gpsGrade(grade: GpsAccuracyGrade?): String? = when (grade) {
+        GpsAccuracyGrade.GOOD -> string(R.string.tourist_gps_accuracy_good)
+        GpsAccuracyGrade.MEDIUM -> string(R.string.tourist_gps_accuracy_medium)
+        GpsAccuracyGrade.POOR -> string(R.string.tourist_gps_accuracy_poor)
+        null -> null
+    }
+
+    fun trend(trend: PressureTrend): String = when (trend) {
+        PressureTrend.RISING -> string(R.string.tourist_trend_rising)
+        PressureTrend.STEADY -> string(R.string.tourist_trend_steady)
+        PressureTrend.FALLING -> string(R.string.tourist_trend_falling)
+    }
+
+    fun elevationSource(source: ElevationSource?): String = when (source) {
+        ElevationSource.BAROMETER -> string(R.string.tourist_elevation_source_barometer)
+        ElevationSource.GPS -> string(R.string.tourist_elevation_source_gps)
+        null -> ""
+    }
+
+    private fun string(@StringRes res: Int): String = context.getString(res)
+
     /**
      * Below the large unit the reading switches to the small one on both scales - metres under a
      * kilometre, feet under a mile - because a walk reads as a row of zeroes otherwise.
@@ -143,11 +259,29 @@ class TouristTileValueFormatter(
 
     private data class TripReading(val value: Double, val unit: String, val decimals: String)
 
-    private companion object {
+    companion object {
         const val NO_VALUE = "--"
-        const val NO_TIME = "--:--"
-        const val NO_DECIMALS = "%.0f"
-        const val ONE_DECIMAL = "%.1f"
-        const val TWO_DECIMALS = "%.2f"
+        private const val NO_TIME = "--:--"
+        private const val NO_DECIMALS = "%.0f"
+        private const val ONE_DECIMAL = "%.1f"
+        private const val TWO_DECIMALS = "%.2f"
+        private const val PACE_PATTERN = "%d:%02d"
+        private const val DURATION_PATTERN = "%d:%02d:%02d"
+        private const val MILLIS_PER_SECOND = 1000L
+        private const val SECONDS_PER_MINUTE = 60L
+        private const val SECONDS_PER_HOUR = 3600L
+        private const val FULL_CIRCLE = 360f
+        private const val HALF_SECTOR = 22.5f
+        private const val SECTOR = 45f
+        private val CARDINAL_RES = intArrayOf(
+            R.string.tourist_cardinal_n,
+            R.string.tourist_cardinal_ne,
+            R.string.tourist_cardinal_e,
+            R.string.tourist_cardinal_se,
+            R.string.tourist_cardinal_s,
+            R.string.tourist_cardinal_sw,
+            R.string.tourist_cardinal_w,
+            R.string.tourist_cardinal_nw,
+        )
     }
 }

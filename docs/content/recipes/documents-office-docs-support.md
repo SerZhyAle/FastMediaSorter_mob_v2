@@ -29,6 +29,8 @@ steps:
       Books from a [network folder](term:network-folder) or [cloud storage](term:cloud-storage) are downloaded first and then open the same way. To collect all your books, PDFs and notes in one list, add the [All Documents](term:all-documents) resource on the [main screen](term:main-screen).
 
       If a book is protected, you will see "This file is protected and cannot be opened inside the app." - open it in the app of the shop you bought it from.
+
+      A picture missing from the book, or one that cannot be read, shows as a picture sign with the book's own description of it instead of a broken box.
     image_bookmark:
       shot_id: documents.epub-chapter-view
       device_profile: phone
@@ -140,6 +142,6 @@ next_recipes:
     description: See which edition opens which kinds of files.
 ---
 
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.10 14:38</sub>
 
 Read EPUB books with the font, size, colors and margins you like, jump between chapters, search a whole book, listen to it or translate it - and open Word, Excel and PowerPoint files with one tap, in the way your edition offers.

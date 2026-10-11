@@ -1371,6 +1371,16 @@
       "titleUk": "RUN INTEGRATION TESTS"
     },
     {
+      "key": "btnMediaExchangePortal",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Media exchange between devices",
+      "titleRu": "Обмен медиа между устройствами",
+      "titleUk": "Обмін медіа між пристроями"
+    },
+    {
       "key": "btnOpenSourceLicenses",
       "sectionId": "general",
       "destination": "GENERAL",

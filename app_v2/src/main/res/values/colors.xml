@@ -595,6 +595,12 @@
     <color name="tourist_tile_bg_sun_time">#FFF8E1</color>
     <color name="tourist_tile_bg_weather">#E1F5FE</color>
     <color name="tourist_tile_bg_dew_point">#E0F2F1</color>
+    <!-- S4145: the twenty newer tiles take the colour of their group. -->
+    <color name="tourist_tile_bg_group_pressure">#E8EAF6</color>
+    <color name="tourist_tile_bg_group_trip">#F3E5F5</color>
+    <color name="tourist_tile_bg_group_navigation">#E0F7F4</color>
+    <color name="tourist_tile_bg_group_environment">#FFFDE0</color>
+    <color name="tourist_tile_bg_group_weather">#E3F2FD</color>
 
     <!-- S3252: minigame board entity palette. game_player/game_kryvavitsa/game_shadow are the
          deliberate brand hues for the three actor types (owner quiz decision 2026-09-18) - fixed

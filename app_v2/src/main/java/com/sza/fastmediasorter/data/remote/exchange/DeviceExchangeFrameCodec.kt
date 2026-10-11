@@ -13,29 +13,29 @@ import java.nio.ByteBuffer
  */
 object DeviceExchangeFrameCodec {
 
-    /**
-     * The limit of 7.1 as written. Contract question 14.6.1 (a larger frame after `welcome`, or a paged
-     * directory) may change it; this constant is the only place that knows the number.
-     */
+    /** The limit of 7.1 until the stream is authenticated (`welcome` or `enrolled` included). */
     const val MAX_FRAME_BODY = 16_384
+
+    /** The limit of 7.1 after `welcome` or `enrolled`, in both directions (section 15, item T). */
+    const val MAX_FRAME_BODY_AUTHENTICATED = 262_144
     private const val LENGTH_BYTES = 4
 
-    fun frame(envelope: DeviceExchangeEnvelope): ByteArray {
+    fun frame(envelope: DeviceExchangeEnvelope, maxBody: Int = MAX_FRAME_BODY): ByteArray {
         val body = envelope.encode().toByteArray(Charsets.UTF_8)
-        if (body.size > MAX_FRAME_BODY) throw DeviceExchangeWireException("envelope above the frame limit")
+        if (body.size > maxBody) throw DeviceExchangeWireException("envelope above the frame limit")
         return ByteBuffer.allocate(LENGTH_BYTES + body.size).putInt(body.size).put(body).array()
     }
 
-    fun write(output: OutputStream, envelope: DeviceExchangeEnvelope) {
-        output.write(frame(envelope))
+    fun write(output: OutputStream, envelope: DeviceExchangeEnvelope, maxBody: Int = MAX_FRAME_BODY) {
+        output.write(frame(envelope, maxBody))
         output.flush()
     }
 
     /**
-     * Reads the next envelope. Null at a clean end of stream before a frame starts; a zero or oversized
-     * length, a truncated body or an invalid envelope throws [DeviceExchangeWireException].
+     * Reads the next envelope. Null at a clean end of stream before a frame starts; a zero length, one above
+     * [maxBody], a truncated body or an invalid envelope throws [DeviceExchangeWireException].
      */
-    fun read(input: InputStream): DeviceExchangeEnvelope? {
+    fun read(input: InputStream, maxBody: Int = MAX_FRAME_BODY): DeviceExchangeEnvelope? {
         val data = DataInputStream(input)
         val first = data.read()
         if (first < 0) return null
@@ -43,7 +43,7 @@ object DeviceExchangeFrameCodec {
         val body = try {
             data.readFully(rest)
             val length = ByteBuffer.wrap(byteArrayOf(first.toByte()) + rest).int
-            if (length !in 1..MAX_FRAME_BODY) throw DeviceExchangeWireException("frame length out of range")
+            if (length !in 1..maxBody) throw DeviceExchangeWireException("frame length out of range")
             ByteArray(length).also(data::readFully)
         } catch (truncated: EOFException) {
             throw DeviceExchangeWireException("stream ended inside a frame", truncated)

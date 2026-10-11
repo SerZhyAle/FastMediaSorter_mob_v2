@@ -5,6 +5,9 @@
 .DESCRIPTION
     # Subject: scripts/docs/lib/held-addresses.ps1, scripts/docs/lib/site-addresses.ps1
 
+    Since S4141 also the `external` record kind (an address another product links to, held only
+    against the published set) and the nested `_config.yml` exclude of the published-address helper.
+
     Subject: the dimension that compares docs/site-held-addresses.jsonl with the sources that hold the
     site's addresses, and the dimension that holds every language suffix to its group's declared form. Each case builds a small site in a temporary directory (two portal pages with ru/uk
     siblings, one Kotlin holder with a prefix constant, one resolver, a list that describes them), runs the
@@ -186,6 +189,36 @@ try {
     Remove-Item -LiteralPath (Join-Path $site 'docs/site-address-groups.json')
     $r = Invoke-Gate $site 'locale-scheme'
     Assert-That ($r.Exit -eq 2 -and $r.Output -match 'COULD NOT VERIFY') 'locale-scheme exits 2 and says COULD NOT VERIFY when the declaration is missing'
+
+    Write-Host 'case: external holder - address answers'
+    $site = New-Site; $sites.Add($site)
+    Write-Text $site 'docs/portal/index.md' "---`npermalink: /docs/portal/`n---`n# P`n"
+    Write-List $site @('{"kind":"external","address":"docs/portal/","holders":["FMS_W","StreamsPlayer"]}')
+    $r = Invoke-Gate $site
+    Assert-That ($r.Exit -eq 0) 'gate passes an external address that answers a page, with no in-repo holder'
+
+    Write-Host 'case: external holder - page renamed'
+    $site = New-Site; $sites.Add($site)
+    Write-Text $site 'docs/portal/index.md' "---`npermalink: /docs/portal/start.html`n---`n# P`n"
+    Write-List $site @('{"kind":"external","address":"docs/portal/","holders":["FMS_W","StreamsPlayer"]}')
+    $r = Invoke-Gate $site
+    Assert-That ($r.Exit -eq 1 -and $r.Output -match "'docs/portal/' is held by FMS_W, StreamsPlayer \(another product\) but answers no published page") 'gate refuses renaming a page another product links to, naming the holders'
+
+    Write-Host 'case: external holder - page moved behind a forwarder'
+    $site = New-Site; $sites.Add($site)
+    Write-Text $site 'docs/portal/old.html' "<html></html>`n"
+    Write-Text $site 'docs/site-redirects.jsonl' ('{"from_path":"docs/portal/old.html","to_path":"index.html","reason":"t","ticket":"S0001","date":"2026-10-10"}' + "`n")
+    Write-List $site @('{"kind":"external","address":"docs/portal/old.html","holders":["FMS_W"]}')
+    $r = Invoke-Gate $site
+    Assert-That ($r.Exit -eq 1 -and $r.Output -match "'docs/portal/old\.html' is held by FMS_W \(another product\) but is now a forwarder") 'gate refuses an external address turned into a forwarder'
+
+    Write-Host 'case: nested _config.yml exclude is not a published page'
+    $site = New-Site; $sites.Add($site)
+    Write-Text $site '_config.yml' "exclude:`n  - docs/portal/README.md`n"
+    Write-Text $site 'docs/portal/README.md' "# brief`n"
+    Write-List $site @('{"kind":"external","address":"docs/portal/README.html","holders":["FMS_W"]}')
+    $r = Invoke-Gate $site
+    Assert-That ($r.Exit -eq 1 -and $r.Output -match "'docs/portal/README\.html' is held by FMS_W \(another product\) but answers no published page") 'a file excluded by a nested _config.yml path is not counted as published'
 
     Write-Host 'case: the list is missing'
     $site = New-Site; $sites.Add($site)

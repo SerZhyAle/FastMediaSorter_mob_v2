@@ -166,6 +166,9 @@ function Get-PublishedAddresses {
             }
         }
     }
+    # Jekyll also takes a nested path ('docs/media-exchange-portal/README.md'); a top-level name test
+    # alone would count such a file as published.
+    $nestedExclude = @($exclude | Where-Object { $_.Contains('/') })
     $addresses = @{}
     $top = Get-ChildItem -LiteralPath $root -Force | Where-Object { $_.Name -notmatch '^[._]' -and -not $exclude.Contains($_.Name) }
     foreach ($entry in $top) {
@@ -175,6 +178,7 @@ function Get-PublishedAddresses {
         } else { @($entry) }
         foreach ($file in $files) {
             $rel = $file.FullName.Substring($root.Length + 1).Replace('\', '/')
+            if (@($nestedExclude | Where-Object { $rel -ieq $_ -or $rel.StartsWith("$_/", [StringComparison]::OrdinalIgnoreCase) }).Count -gt 0) { continue }
             $isPage = $file.Extension -in '.md', '.markdown', '.html'
             $permalink = if ($isPage) { Read-FrontMatterPermalink -FullName $file.FullName } else { $null }
             $address = if ($permalink) { $permalink.TrimStart('/') }

@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.ui.tourist.helpers.TouristActionsManager
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristHeroTileManager
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristPermissionManager
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristSecondaryTilesAdapter
+import com.sza.fastmediasorter.ui.tourist.helpers.TouristTileContentManager
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristTileValueFormatter
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -56,18 +57,15 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
             unitSystemProvider.value
         }
 
-        heroTileManager = TouristHeroTileManager(binding, valueFormatter) { focusedTile ->
-            when (focusedTile) {
-                TouristTileType.SPEED -> viewModel.resetSpeedAndTrip()
-                TouristTileType.STEPS -> viewModel.resetSteps()
-                TouristTileType.TRIP_DISTANCE -> viewModel.resetTrip()
-                else -> {}
-            }
+        val contentManager = TouristTileContentManager(this, valueFormatter)
+
+        heroTileManager = TouristHeroTileManager(binding, contentManager) { focusedTile ->
+            viewModel.resetFor(focusedTile)
         }
         actionsManager = TouristActionsManager(this)
         permissionManager = TouristPermissionManager(this, binding) { permissionLauncher.launch(it) }
 
-        secondaryTilesAdapter = TouristSecondaryTilesAdapter(valueFormatter) { tileType ->
+        secondaryTilesAdapter = TouristSecondaryTilesAdapter(contentManager) { tileType ->
             viewModel.selectTile(tileType)
         }
 
@@ -87,14 +85,7 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
             actionsManager.shareLocation(state.latitude, state.longitude)
         }
 
-        binding.btnResetTrip.setOnClickListener {
-            val state = viewModel.state.value
-            when (state.focusedTile) {
-                TouristTileType.SPEED -> viewModel.resetSpeedAndTrip()
-                TouristTileType.STEPS -> viewModel.resetSteps()
-                else -> viewModel.resetTrip()
-            }
-        }
+        binding.btnResetTrip.setOnClickListener { viewModel.resetFor(viewModel.state.value.focusedTile) }
 
         // S3216: the dashboard is where the owner already is when something goes wrong outdoors, so
         // the distress signal is one tap from it rather than back through the programs menu.

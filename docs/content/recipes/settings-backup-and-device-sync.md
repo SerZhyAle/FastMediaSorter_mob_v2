@@ -105,6 +105,7 @@ tips:
   - "**Not sure which group a setting lives in?** The search overlay in [Finding your way around Settings](page:settings.settings-overview-and-search) finds it by keyword."
   - "**Back up before a big change.** A settings file or a Google Drive backup takes a few seconds; do one before resetting the phone or moving to a new one."
   - "**Looking for the resource side of sharing?** [Sharing and Backing Up Your Resources](page:storage.sharing-and-backing-up-resources) covers exporting resources to a file, PINs included, and importing a ready configuration from the Windows companion."
+  - "**Want one shared box for all your own devices?** The [media exchange portal](../../docs/media-exchange-portal/clouds.html) shows how Google Drive, Dropbox and OneDrive sit next to the other ways of moving media between your devices."
 next_recipes:
   - title: Privacy, saved sign-ins and error reports
     url: page:settings.privacy-and-network-security
@@ -123,6 +124,6 @@ next_recipes:
     description: Every backup and export option of the app on one page.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Pack every setting into a file or a Google Drive backup, export and import just your Favorites, move exactly one kind of data with the unified menu, and keep a paired [watch](term:watch)'s settings and resources in step with the phone - synced both ways, with only the resources you chose along for the ride.

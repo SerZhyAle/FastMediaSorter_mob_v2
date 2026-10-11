@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4145: the level gauge's ring on the Tourist focused card; the bubble moves inside it. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <stroke
+        android:width="@dimen/tourist_level_ring_stroke"
+        android:color="?attr/colorOnSurfaceVariant" />
+</shape>

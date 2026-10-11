@@ -200,5 +200,62 @@
                 'foss'         = 'foss'
             }
         }
+        @{
+            Id     = 'exchange-portal-editions-en'
+            Path   = 'docs/media-exchange-portal/editions.md'
+            Anchor = '## Which edition has what'
+            Axis   = 'FlagRows'
+            Glyphs = @{ True = @('yes'); False = @('no'); Absent = @('n/a') }
+            RowMap = @{
+                "network folders (smb, sftp, ftp) and the phone's sftp server" = 'SUPPORT_LOCAL_NETWORK'
+                'clouds (google drive, dropbox, onedrive)'                      = 'SUPPORT_CLOUD'
+                'going live from this device'                                   = 'SUPPORT_BROADCAST_SOURCE'
+                'playing live broadcasts and internet streams'                  = 'SUPPORT_STREAMS'
+                'chromecast'                                                    = 'SUPPORT_CAST'
+                'watch companion'                                               = 'SUPPORT_WEAR_COMPANION'
+            }
+            ColMap = @{
+                'standard' = 'standard'; 'nolegal' = 'noLegal'; 'lite' = 'lite'; 'photos' = 'photos'
+                'legacy'   = 'legacy'; 'vr' = 'vr'; 'xr' = 'xr'; 'foss' = 'foss'
+            }
+        }
+        @{
+            Id     = 'exchange-portal-editions-ru'
+            Path   = 'docs/media-exchange-portal/editions-ru.md'
+            Anchor = '## В какой редакции что есть'
+            Axis   = 'FlagRows'
+            Glyphs = @{ True = @('да'); False = @('нет'); Absent = @('н/д') }
+            RowMap = @{
+                'сетевые папки (smb, sftp, ftp) и sftp-сервер телефона' = 'SUPPORT_LOCAL_NETWORK'
+                'облака (google диск, dropbox, onedrive)'               = 'SUPPORT_CLOUD'
+                'выход в эфир с этого устройства'                       = 'SUPPORT_BROADCAST_SOURCE'
+                'воспроизведение живых трансляций и интернет-потоков'   = 'SUPPORT_STREAMS'
+                'chromecast'                                            = 'SUPPORT_CAST'
+                'компаньон для часов'                                   = 'SUPPORT_WEAR_COMPANION'
+            }
+            ColMap = @{
+                'standard' = 'standard'; 'nolegal' = 'noLegal'; 'lite' = 'lite'; 'photos' = 'photos'
+                'legacy'   = 'legacy'; 'vr' = 'vr'; 'xr' = 'xr'; 'foss' = 'foss'
+            }
+        }
+        @{
+            Id     = 'exchange-portal-editions-uk'
+            Path   = 'docs/media-exchange-portal/editions-uk.md'
+            Anchor = '## У якій редакції що є'
+            Axis   = 'FlagRows'
+            Glyphs = @{ True = @('так'); False = @('ні'); Absent = @('н/д') }
+            RowMap = @{
+                'мережеві теки (smb, sftp, ftp) і sftp-сервер телефона' = 'SUPPORT_LOCAL_NETWORK'
+                'хмари (google диск, dropbox, onedrive)'                = 'SUPPORT_CLOUD'
+                'вихід в ефір з цього пристрою'                         = 'SUPPORT_BROADCAST_SOURCE'
+                'відтворення прямих трансляцій та інтернет-потоків'     = 'SUPPORT_STREAMS'
+                'chromecast'                                            = 'SUPPORT_CAST'
+                'компаньйон для годинника'                              = 'SUPPORT_WEAR_COMPANION'
+            }
+            ColMap = @{
+                'standard' = 'standard'; 'nolegal' = 'noLegal'; 'lite' = 'lite'; 'photos' = 'photos'
+                'legacy'   = 'legacy'; 'vr' = 'vr'; 'xr' = 'xr'; 'foss' = 'foss'
+            }
+        }
     )
 }

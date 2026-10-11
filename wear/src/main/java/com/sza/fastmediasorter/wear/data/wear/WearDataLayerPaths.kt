@@ -80,6 +80,31 @@ object WearDataLayerPaths {
     /** Message, watch → phone. Carries favorites delta payload. */
     const val FAVORITES_DELTA = "/fms/watch/favorites_delta"
 
+    /**
+     * Data Item, watch to phone. Carries the Tourist heart rate and body temperature (S4150).
+     *
+     * State, not an event: the phone keeps only the latest report and judges its age by arrival time.
+     * Sent only while the Tourist screen here already runs the sensors, so the phone never wakes them.
+     * Mirrored verbatim from the phone module's copy of this object - the two must not drift.
+     */
+    const val TOURIST_HEALTH = "/fms/watch/tourist_health"
+
+    /**
+     * Data Item, watch to phone. Asks for the Tourist weather at a rounded watch position (S4152).
+     *
+     * Sent only while the Tourist screen here is open; its timestamp field makes every request a change,
+     * so the phone hears it even at an unchanged position. Mirrored verbatim from the phone module.
+     */
+    const val TOURIST_WEATHER_REQUEST = "/fms/watch/tourist_weather_request"
+
+    /**
+     * Data Item, phone to watch. Answers [TOURIST_WEATHER_REQUEST] with the weather details (S4152).
+     *
+     * State, not an event: Tourist reads the latest answer on opening and judges its age by the
+     * observation time inside it. Mirrored verbatim from the phone module.
+     */
+    const val TOURIST_WEATHER = "/fms/phone/tourist_weather"
+
     /** Message, watch → phone. Requests a paired-phone resource page. */
     const val PHONE_RESOURCE_BROWSE_REQUEST = "/fms/watch/phone_resource/browse"
 
@@ -390,4 +415,13 @@ object WearDataLayerPaths {
 
     /** eventType value for SEND_TO_RECEIVERS envelopes (S2142). */
     const val EVENT_SEND_TO_RECEIVERS = "SEND_TO_RECEIVERS"
+
+    /** eventType value for TOURIST_HEALTH envelopes (S4150). */
+    const val EVENT_TOURIST_HEALTH = "TOURIST_HEALTH"
+
+    /** eventType value for TOURIST_WEATHER_REQUEST envelopes (S4152). */
+    const val EVENT_TOURIST_WEATHER_REQUEST = "TOURIST_WEATHER_REQUEST"
+
+    /** eventType value for TOURIST_WEATHER envelopes (S4152). */
+    const val EVENT_TOURIST_WEATHER = "TOURIST_WEATHER"
 }

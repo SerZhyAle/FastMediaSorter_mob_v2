@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.remote.sftp.anywhere
 import com.jcraft.jsch.Proxy
 import com.jcraft.jsch.Session
 import com.jcraft.jsch.SocketFactory
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.domain.model.SftpTunnelAddress
 import timber.log.Timber
 import java.io.IOException
@@ -11,13 +12,14 @@ import java.io.OutputStream
 import java.net.Socket
 
 /**
- * The consumer side of contract ANYWHERE-ACCESS section 6.4 as a JSch [Proxy]: the SSH session to a
+ * The outsider consumer of contract DEVICE-EXCHANGE 5.4 and 7.5 as a JSch [Proxy]: the SSH session to a
  * tunnel address (see [SftpTunnelAddress]) runs over a stream to the exchange server that asked for the
  * share by its id and was handed over to raw bytes. Everything above the stream - the host-key pin,
  * authentication, SFTP - is unchanged, so the tunnel is just one more path to the same server.
  *
- * The exchange server's certificate is not pinned here: the SSH host key is the identity anchor on every
- * transport, and TLS only keeps the share id out of plain sight.
+ * A pairing code carries no certificate fingerprint for its exchange server, so the server must pass the
+ * platform trust store (contract DEVICE-EXCHANGE section 15, item V): a self-signed deployment is refused
+ * here until its fingerprint reaches the device by a connection string or an accepted prompt.
  */
 class ExchangeTunnelProxy(
     private val connector: ExchangeConnector,
@@ -28,19 +30,13 @@ class ExchangeTunnelProxy(
 
     override fun connect(socketFactory: SocketFactory?, host: String?, port: Int, timeout: Int) {
         Timber.d("S4094: consumer tunnel connect")
-        val opened = connector.connect(parts.exchangeHost, port, null)
-        try {
-            val request = ExchangeEnvelope(ExchangeEnvelope.TYPE_CONNECT, shareId = parts.shareId)
-            ExchangeFrameCodec.write(opened.output, request)
-            val answer = ExchangeFrameCodec.read(opened.input)
-            if (answer?.type != ExchangeEnvelope.TYPE_CONNECTED) {
-                throw ExchangeTunnelUnavailableException(answer?.reason)
-            }
-        } catch (e: IOException) {
-            opened.close()
-            throw e
-        }
-        connection = opened
+        connection = DeviceExchangeAccountClient.connectByShareId(
+            connector = connector,
+            host = parts.exchangeHost,
+            port = port,
+            shareId = parts.shareId,
+            trust = ExchangeTrust.Verified(pinned = null),
+        )
     }
 
     override fun getInputStream(): InputStream = checkNotNull(connection) { "tunnel not connected" }.input
@@ -63,8 +59,8 @@ class ExchangeTunnelProxy(
 }
 
 /**
- * The exchange server has no live registration for the share (unknown, ended or full - contract section
- * 6.4 answers all three alike), or it closed the stream before answering. Kept apart from transport,
+ * The exchange server has no live registration for the share (unknown, ended or full - contract DEVICE-EXCHANGE
+ * 7.5 answers all three alike), or it closed the stream before answering. Kept apart from transport,
  * authentication and host-key failures (`SHARE-SESSION` rule 7).
  */
 class ExchangeTunnelUnavailableException(reason: String?) :

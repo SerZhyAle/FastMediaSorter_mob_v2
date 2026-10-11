@@ -89,8 +89,12 @@ class ResolveWearLaunchAddressUseCase @Inject constructor(
         WearDestinationId.NETWORK_MONITOR ->
             capabilities.offersDeviceDiagnostics && capabilities.offersNearbyDeviceState
 
-        WearDestinationId.SYSTEM_INFO,
-        WearDestinationId.TOURIST -> capabilities.offersDeviceDiagnostics
+        WearDestinationId.SYSTEM_INFO -> capabilities.offersDeviceDiagnostics
+
+        // S4147: the same pair the Apps catalog asks for - the dashboard reports activity as well as
+        // the device, and the store policy files its route under health.
+        WearDestinationId.TOURIST ->
+            capabilities.offersHealthFeatures && capabilities.offersDeviceDiagnostics
 
         WearDestinationId.VOICE_RECORDER,
         WearDestinationId.BROADCAST -> capabilities.offersVoiceRecording

@@ -106,6 +106,7 @@ tips:
   - "**Nothing plays on the PC?** Check that StreamsPlayer and the watch are on the same Wi-Fi network - the broadcast never reaches beyond it."
   - "**Watch screen off during a broadcast?** Double tap it, press and hold, or use the watch's own button - the broadcast itself keeps running the whole time."
   - "**A long call is draining the watch?** Broadcasting with the screen on costs about a third of the battery an hour - dim the screen or keep it on the charger."
+  - "**Want a phone or a watch to go on air for your other devices?** The [media exchange portal](../../docs/media-exchange-portal/live-broadcast.html) explains the routes between devices and marks what is not available yet."
 next_recipes:
   - title: Syncing the phone and the watch
     url: page:wear.companion-data-sync
@@ -124,6 +125,6 @@ next_recipes:
     description: Everything else waiting in the watch's Programs grid.
 ---
 
-<sub class="doc-stamp">26.10.07 03:42</sub>
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Listen to your paired [watch](term:watch)'s microphone from the phone, [broadcast](term:live-broadcast) the watch's own microphone to listeners on the same Wi-Fi or into a Windows PC, and send a live broadcast from the phone straight to the watch.

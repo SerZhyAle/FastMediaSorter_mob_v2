@@ -124,6 +124,11 @@
     "ru": "Открывает системный экран доступа к уведомлениям. Показывается, только пока строка чужих уведомлений лаунчера включена, а системный доступ не выдан.",
     "uk": "Відкриває системний екран доступу до сповіщень. Показується, лише поки рядок чужих сповіщень лаунчера ввімкнено, а системний доступ не надано."
   },
+  "btnMediaExchangePortal": {
+    "en": "Opens the media exchange portal: which way of connecting your devices fits you - the home network, the exchange server or live broadcast - and what works today.",
+    "ru": "Открывает портал обмена медиа: какой способ соединения устройств вам подходит - домашняя сеть, сервер обмена или живая трансляция - и что работает уже сегодня.",
+    "uk": "Відкриває портал обміну медіа: який спосіб з'єднання пристроїв вам підходить - домашня мережа, сервер обміну чи жива трансляція - і що працює вже сьогодні."
+  },
   "btnOpenAccessibilitySettings": {
     "en": "Opens the Android accessibility settings, where you grant the service that powers silent screenshot capture via the edge gesture. Shown only where the silent-capture method is available.",
     "ru": "Открывает системные настройки специальных возможностей, где выдаётся разрешение службе, обеспечивающей тихий захват экрана краевым жестом. Показывается только там, где доступен тихий способ захвата.",

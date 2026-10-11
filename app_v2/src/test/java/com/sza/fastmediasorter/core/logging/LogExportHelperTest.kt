@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.core.logging
 
 import android.content.Context
+import com.sza.fastmediasorter.core.security.PrivateDiagnosticValues
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -32,6 +34,12 @@ class LogExportHelperTest {
         // S1806: the export now walks the log directory itself, so a report left there by one case
         // would leak into the next one - including the case that asserts an empty set produces none.
         LoggingHelper.getLogsDirectory(context).listFiles()?.forEach { it.delete() }
+        PrivateDiagnosticValues.clear()
+    }
+
+    @After
+    fun clearRegisteredValues() {
+        PrivateDiagnosticValues.clear()
     }
 
     @Test
@@ -125,6 +133,31 @@ class LogExportHelperTest {
         val expected = "HEAD\n[Diag] LOG TRUNCATED | dropped_middle_bytes=12" +
             " | kept_head_bytes=4 | kept_tail_bytes=4\nTAIL"
         assertEquals(expected, out.toString(Charsets.UTF_8.name()))
+    }
+
+    // DIAGNOSTIC-REPORT 0.13, section 10: a value learned after the line was written is still redacted at export.
+    @Test
+    fun `a registered exchange value is redacted again when the bundle is packed`() {
+        val file = File(context.cacheDir, "session_exchange.txt").apply {
+            writeText("I/Tunnel: unreachable relay.example.net\nI/Tunnel: retry\n")
+        }
+        PrivateDiagnosticValues.register("relay.example.net")
+        val out = ByteArrayOutputStream()
+
+        LogExportHelper.writeRedacted(file, out, context.cacheDir)
+
+        assertEquals("I/Tunnel: unreachable [REDACTED]\nI/Tunnel: retry\n", out.toString(Charsets.UTF_8.name()))
+        assertTrue("the original log was changed", file.readText().contains("relay.example.net"))
+    }
+
+    @Test
+    fun `with nothing registered the export packs the file byte for byte`() {
+        val file = File(context.cacheDir, "session_plain.txt").apply { writeText("no trailing newline") }
+        val out = ByteArrayOutputStream()
+
+        LogExportHelper.writeRedacted(file, out, context.cacheDir)
+
+        assertEquals("no trailing newline", out.toString(Charsets.UTF_8.name()))
     }
 
     private fun writeWatchReport(name: String): File {

@@ -5,94 +5,92 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
+import com.sza.fastmediasorter.domain.model.tourist.isOffered
 import com.sza.fastmediasorter.domain.usecase.tourist.ObserveTouristDashboardUseCase
+import com.sza.fastmediasorter.domain.usecase.tourist.ObserveWatchTouristHealthUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
  * S2922/S2995/S3011: ViewModel for the Tourist dashboard, managing live sensor telemetry and the hero focus tile.
+ *
+ * S4145: the dashboard flow is subscribed only while the screen collects [state]. Launching it in `init`
+ * kept every sensor, the position listener and the weather loop alive for as long as the ViewModel - that
+ * is, while the screen sat stopped in the back stack - and each new sensor multiplied that cost.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TouristInfoViewModel @Inject constructor(
     private val observeTouristDashboardUseCase: ObserveTouristDashboardUseCase,
     private val savedStateHandle: SavedStateHandle,
+    observeWatchTouristHealthUseCase: ObserveWatchTouristHealthUseCase,
 ) : ViewModel() {
 
-    private val initialFocus: TouristTileType =
+    private val focus = MutableStateFlow(
         savedStateHandle.get<String>(KEY_FOCUSED_TILE)
             ?.let { runCatching { TouristTileType.valueOf(it) }.getOrNull() }
-            ?: TouristTileType.SPEED
+            ?: TouristTileType.SPEED,
+    )
 
-    private val _state = MutableStateFlow(TouristDashboardState(focusedTile = initialFocus))
-    val state: StateFlow<TouristDashboardState> = _state.asStateFlow()
+    /** Bumped when a grant changed: the flow reads grants and binds listeners only when subscribed. */
+    private val restartToken = MutableStateFlow(0)
 
-    private var dashboardJob: Job? = null
+    private val sensorState = MutableStateFlow(TouristDashboardState(focusedTile = focus.value))
 
-    init {
-        startDashboard()
-    }
+    val state: StateFlow<TouristDashboardState> = restartToken
+        .flatMapLatest { observeTouristDashboardUseCase(focus.value) }
+        // Merged before sensorState: selectTile judges a tap against it, and a watch tile is offered only here.
+        .combine(observeWatchTouristHealthUseCase()) { sensor, watch -> sensor.copy(watch = watch) }
+        .onEach { sensorState.value = it }
+        .combine(focus) { sensor, focused -> sensor.copy(focusedTile = effectiveFocus(sensor, focused)) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), sensorState.value)
 
-    /**
-     * The dashboard flow reads the grants and binds its location listeners when it is subscribed, so a
-     * grant made while this screen is open only takes effect after a re-subscription.
-     */
     fun refreshPermissions() {
-        val current = _state.value
+        val current = sensorState.value
         val locationChanged =
             observeTouristDashboardUseCase.hasLocationPermission() != current.hasLocationPermission
         val activityChanged =
             observeTouristDashboardUseCase.hasActivityRecognitionPermission() !=
                 current.hasActivityRecognitionPermission
         if (locationChanged || activityChanged) {
-            startDashboard()
-        }
-    }
-
-    private fun startDashboard() {
-        dashboardJob?.cancel()
-        dashboardJob = viewModelScope.launch {
-            observeTouristDashboardUseCase(_state.value.focusedTile).collectLatest { sensorState ->
-                _state.update { current ->
-                    val focus = if (current.focusedTile == TouristTileType.STEPS && !sensorState.stepsAvailable) {
-                        TouristTileType.SPEED
-                    } else {
-                        current.focusedTile
-                    }
-                    sensorState.copy(focusedTile = focus)
-                }
-            }
+            restartToken.update { it + 1 }
         }
     }
 
     fun selectTile(tileType: TouristTileType) {
-        if (tileType == TouristTileType.STEPS && !_state.value.stepsAvailable) return
+        if (!tileType.isOffered(sensorState.value)) return
         savedStateHandle[KEY_FOCUSED_TILE] = tileType.name
-        _state.update { it.copy(focusedTile = tileType) }
+        focus.value = tileType
     }
 
     fun resetTrip() {
-        observeTouristDashboardUseCase.resetTripDistance()
-        _state.update { it.copy(tripDistanceMeters = 0.0) }
-    }
-
-    fun resetSpeedAndTrip() {
-        observeTouristDashboardUseCase.resetMaxSpeedAndTrip()
-        _state.update { it.copy(maxSpeedKmh = 0f, tripDistanceMeters = 0.0) }
+        viewModelScope.launch { observeTouristDashboardUseCase.resetTrip() }
     }
 
     fun resetSteps() {
         observeTouristDashboardUseCase.resetSteps()
-        _state.update { it.copy(stepsCount = 0L) }
     }
+
+    /** Steps keep their own counter; every other tile belongs to the trip, which resets as a whole. */
+    fun resetFor(tile: TouristTileType) {
+        if (tile == TouristTileType.STEPS) resetSteps() else resetTrip()
+    }
+
+    private fun effectiveFocus(sensor: TouristDashboardState, focused: TouristTileType): TouristTileType =
+        if (focused.isOffered(sensor)) focused else TouristTileType.SPEED
 
     companion object {
         private const val KEY_FOCUSED_TILE = "tourist_focused_tile"
+        private const val STOP_TIMEOUT_MS = 5_000L
     }
 }

@@ -36,6 +36,7 @@ import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
 import com.sza.fastmediasorter.util.CaptureFileNamer
@@ -438,6 +439,9 @@ class BroadcastControlManager @Inject constructor(
         }
 
         binding.btnBroadcastHelp.setOnClickListener { openViewerGuide(activity) }
+        binding.btnBroadcastPortal.setOnClickListener {
+            MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.LIVE_BROADCAST)
+        }
     }
 
     /** S3175: the guide the broadcaster forwards to whoever receives the link, QR or file. */

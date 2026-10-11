@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.07 12:50</sub>
+<sub class="doc-stamp">26.10.11 03:19</sub>
 
 # Pointer - `ICON-SET`
 
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` |
-| **Version** | 0.28, draft. Owner: this product |
+| **Version** | 0.30, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 2 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
@@ -13,11 +13,14 @@
 
 - A control that stands for a meaning in the vocabulary draws that meaning's glyph and carries its
   canonical EN/RU/UK name; a label may add the object, never another meaning's word.
-- A new meaning enters the vocabulary before the code that shows it ships.
+- A new meaning enters the vocabulary before the code that shows it ships - or, since 0.30 (section 15),
+  the product draws it to the catalog's style, ships it under its proposed id and files
+  `PROPOSAL-<date>-<topic>.md` in the same change, marked provisional in its own glyph list until the
+  owner folds it in. A meaning that exists is drawn with its own glyph, never a second one.
 - A language beyond en/ru/uk has one wording per meaning: this product's own string where it has one
-  (rule 3, 0.28); the import is open, S4131.
-- `tool.brush` (a brush) and `feature.drawing` (the drawing editor) are two meanings; the app still draws
-  one pencil for both, S4125.
+  (rule 3, 0.28); the import was made by S4131 and the diverging translations it refused were reconciled by S4132.
+- `tool.brush` (a brush) and `feature.drawing` (the drawing editor) are two meanings: the brush tool draws
+  the brush and the drawing editor draws the free-hand loop (S4125).
 - The documentation and the site show the meaning's glyph beside its name - never an emoji, never a
   picture chosen to decorate the page.
 - The glyphs, looks, `palette.json`, `CATALOG.md` and `gallery.html` are regenerated from this

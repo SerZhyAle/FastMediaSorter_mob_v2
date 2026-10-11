@@ -71,12 +71,22 @@ steps:
       caption: "The pairing code, ready to scan from another device."
       title: "Screenshot: SFTP server pairing QR"
       desc: Settings, General tab, Share over SFTP card, server running, pairing QR code revealed below the Hide pairing code button.
+  - number: 6
+    id: reach-from-anywhere
+    title: Reach the phone from another network
+    text: |
+      In the same card, the **Access from anywhere** section can register the phone's server on an exchange server, so devices on any network reach it without a VPN or port forwarding. Switch on **Exchange server** - "Reach this server from any network through your exchange server" - fill in the **Exchange server address**, the **Exchange server port** and the **Exchange server password** (at least 10 characters with upper- and lower-case Latin letters and digits), and tap **Save server**. The status line moves from "Only reachable on the local network" to "Reachable from anywhere through" and the server's name once the exchange server accepts the phone. The section is off by default.
+
+      A pairing code shown afterwards carries the exchange server too: a phone that scans it falls back to the relayed connection when no direct address answers, still checking the same host key. **New access link** makes every code shared earlier stop opening this server. No public exchange server is running yet; what works today instead is on the [media exchange portal](../../docs/media-exchange-portal/exchange-server.html).
+
+      **Signed in to Google Drive on both devices?** Switch on **Share access through Google Drive** in the same card - it is off by default. While the server runs, the phone then keeps its current address and sign-in details in the app's private space of your Drive, so another device on the same Google account opens the paired share at its new address after a network change, without scanning the code again - as long as it can reach the phone at all.
 outcome: |
   The phone shares exactly the folders you picked, with everyone else needing either a password or an accepted SSH key to get in, and pairing another FastMediaSorter takes one scan instead of typing an address by hand. A tap on Stop, in the app or the notification, ends it.
 tips:
   - "**Bringing in a PC's folders instead?** [Sharing PC folders with Fast Media Sorter for Windows](page:network.windows-companion) covers the same pairing idea from the other side."
   - "**Setting up a server by typing its address yourself?** [Connecting SFTP and FTP servers](page:network.sftp-ftp-servers) covers that manual route, on either end of the connection."
   - "**New to SSH keys?** The [OpenSSH](https://www.openssh.com/) project's own documentation explains how a key pair works if the wording here is unfamiliar."
+  - "**Want to reach your own storage from outside your home?** The [media exchange portal](../../docs/media-exchange-portal/home-network.html) walks through the home network way step by step and says what works today."
 next_recipes:
   - title: Sharing PC Folders with Fast Media Sorter for Windows
     url: page:network.windows-companion
@@ -95,6 +105,6 @@ next_recipes:
     description: The overview of every kind of network and cloud place this app can open.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Share folders straight from this phone over SFTP - pick them with the folder picker, sign in with a password or an SSH key, and pair another FastMediaSorter in one scan instead of typing an address.

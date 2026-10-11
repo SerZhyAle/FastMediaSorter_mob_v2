@@ -12,7 +12,7 @@ class ResetWearTouristTripUseCase @Inject constructor(
     private val touristRepository: WearTouristRepository,
 ) {
 
-    operator fun invoke() {
+    suspend operator fun invoke() {
         touristRepository.resetTrip()
     }
 }

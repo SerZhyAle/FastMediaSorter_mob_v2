@@ -99,6 +99,21 @@ class WearLogBufferTest {
         )
     }
 
+    // DIAGNOSTIC-REPORT 0.13, section 10: the key and shape half; the watch holds no exchange account to register.
+    @Test
+    fun `the exchange account keys and the pin shape are redacted the same way as on the phone`() {
+        val pin = "SHA256:" + "B".repeat(FINGERPRINT_BASE64_LENGTH)
+        val masked = WearSecretMasker.sanitize(
+            """{"login":"alice","pairingCode":"7KQ2M9XA"} certFingerprint=ab12 presented $pin relogin=false""",
+        )
+
+        assertEquals(
+            """{"login":"[REDACTED]","pairingCode":"[REDACTED]"} certFingerprint=[REDACTED]""" +
+                " presented SHA256:[REDACTED] relogin=false",
+            masked,
+        )
+    }
+
     @Test
     fun `concurrent appends leave the buffer readable and within the ceiling`() {
         val threads = Executors.newFixedThreadPool(THREAD_COUNT)
@@ -125,5 +140,6 @@ class WearLogBufferTest {
         const val THREAD_COUNT = 8
         const val APPENDS_PER_THREAD = 200
         const val AWAIT_SECONDS = 10L
+        const val FINGERPRINT_BASE64_LENGTH = 43
     }
 }

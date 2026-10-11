@@ -49,6 +49,7 @@ tips:
   - "**Moved to a new phone?** OneDrive keeps its sign-in in a place the app cannot carry over automatically, so you sign in to OneDrive once more there - see the new-phone notes in [Adding network folders and cloud storage as sources](page:storage.network-and-cloud-sources)."
   - "**Looking for Google Drive?** It gets its own page, with account binding and the cross-device transfer queue that rides on it - see [Google Drive Integration](page:network.cloud-google-drive)."
   - "**Adding network folders and cloud storage in general** is covered from the top in [Adding network folders and cloud storage as sources](page:storage.network-and-cloud-sources)."
+  - "**Want one shared box for all your own devices?** The [media exchange portal](../../docs/media-exchange-portal/clouds.html) shows how Google Drive, Dropbox and OneDrive sit next to the other ways of moving media between your devices."
 next_recipes:
   - title: Google Drive Integration
     url: page:network.cloud-google-drive
@@ -67,6 +68,6 @@ next_recipes:
     description: The full backup and restore picture for your settings and resources.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Sign in to Dropbox and OneDrive to add their folders as resources next to your local and Google Drive ones, with the same simple sign-in, sign-out and plain-spoken error messages for both [cloud providers](term:cloud-provider).

@@ -71,6 +71,7 @@ tips:
   - "**Looking for Dropbox or OneDrive instead?** See [Dropbox and OneDrive](page:network.cloud-dropbox-onedrive)."
   - "**Want the full backup and restore picture?** [Backing up your settings and keeping devices in sync](page:settings.backup-and-device-sync) covers the file-based backup too, not only Drive."
   - "**Adding network folders and cloud storage in general** is covered from the top in [Adding network folders and cloud storage as sources](page:storage.network-and-cloud-sources)."
+  - "**Want one shared box for all your own devices?** The [media exchange portal](../../docs/media-exchange-portal/clouds.html) shows how Google Drive, Dropbox and OneDrive sit next to the other ways of moving media between your devices."
 next_recipes:
   - title: Dropbox and OneDrive
     url: page:network.cloud-dropbox-onedrive
@@ -89,6 +90,6 @@ next_recipes:
     description: The overview of every kind of place you can add as a resource.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Sign in to Google Drive once and it opens folders as resources, backs up your settings, and moves files and settings between your own devices through a private Drive queue - all from the same [Google Account](term:google-drive) connection, which keeps working across app updates.

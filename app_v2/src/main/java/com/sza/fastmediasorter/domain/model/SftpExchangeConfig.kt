@@ -25,7 +25,16 @@ data class SftpExchangeConfig(
     /** The `host:port` form the `FMSSFTP2` descriptor carries as `x`; an IPv6 literal goes in brackets. */
     fun endpoint(): String = (if (':' in host) "[$host]" else host) + ":$port"
 
+    // DIAGNOSTIC-REPORT section 10 and rule 3: the generated form printed the address, password, share id and pin.
+    override fun toString(): String =
+        "SftpExchangeConfig(enabled=$enabled, host=${hidden(host)}, port=$port, password=${hidden(password)}, " +
+            "shareId=${hidden(shareId)}, pinnedCertificate=${hidden(pinnedCertificate)})"
+
     companion object {
+        private const val HIDDEN = "[REDACTED]"
+
+        // An absent value stays visible as absent: "no pin" is diagnostic, the pin itself is not.
+        private fun hidden(value: String?): String? = if (value.isNullOrEmpty()) value else HIDDEN
         const val DEFAULT_PORT = 44_022
         const val MAX_PORT = 65_535
     }

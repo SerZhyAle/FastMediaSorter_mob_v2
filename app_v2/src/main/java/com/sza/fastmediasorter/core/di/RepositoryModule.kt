@@ -6,8 +6,10 @@ import com.sza.fastmediasorter.core.serialization.InstantTypeAdapter
 import com.sza.fastmediasorter.data.detector.RealDeviceProfileDetector
 import com.sza.fastmediasorter.data.game.GameStateRepositoryImpl
 import com.sza.fastmediasorter.data.local.ContentMediaAddressResolver
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeTokenStore
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnector
-import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpExchangeConfigSource
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpExchangeProducerProvider
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpExchangeProducerSource
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.TlsExchangeConnector
 import com.sza.fastmediasorter.data.repository.DischargeRateBatteryRuntimeEstimator
 import com.sza.fastmediasorter.data.repository.FavoritesRepositoryImpl
@@ -26,8 +28,8 @@ import com.sza.fastmediasorter.data.repository.StorageVolumeRepositoryImpl
 import com.sza.fastmediasorter.data.repository.StorageVolumeSource
 import com.sza.fastmediasorter.data.repository.StreamingCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl
+import com.sza.fastmediasorter.data.repository.settings.KeystoreDeviceExchangeTokenStore
 import com.sza.fastmediasorter.data.repository.settings.MainListSessionStore
-import com.sza.fastmediasorter.data.repository.settings.SftpExchangeSettingsStore
 import com.sza.fastmediasorter.data.repository.streams.RealStreamFrameIngestor
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearDeliveredResourceStore
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearResourceIdAliasStore
@@ -270,5 +272,9 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindSftpExchangeConfigSource(impl: SftpExchangeSettingsStore): SftpExchangeConfigSource
+    abstract fun bindSftpExchangeProducerSource(impl: SftpExchangeProducerProvider): SftpExchangeProducerSource
+
+    @Binds
+    @Singleton
+    abstract fun bindDeviceExchangeTokenStore(impl: KeystoreDeviceExchangeTokenStore): DeviceExchangeTokenStore
 }

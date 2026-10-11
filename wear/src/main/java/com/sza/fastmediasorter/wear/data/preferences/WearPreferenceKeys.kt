@@ -119,6 +119,7 @@ internal object WearPreferenceKeys {
     val STOPWATCH_PARTICIPANT_COUNT = intPreferencesKey("wear_stopwatch_participant_count")
     val STOPWATCH_LAST_RESULT = stringPreferencesKey("wear_stopwatch_last_result")
     val STOPWATCH_SESSION = stringPreferencesKey("wear_stopwatch_session")
+    val TOURIST_TRIP = stringPreferencesKey("wear_tourist_trip")
     val AUTO_ROTATION_ENABLED = booleanPreferencesKey("wear_auto_rotation_enabled")
     val APP_LANGUAGE = stringPreferencesKey("wear_app_language")
     val VOICE_NOTE_SEND_POLICY = stringPreferencesKey("wear_voice_note_send_policy")

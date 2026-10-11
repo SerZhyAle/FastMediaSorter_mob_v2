@@ -63,7 +63,7 @@ steps:
     id: narrow-with-filters
     title: Narrow it down with filters
     text: |
-      Tap **Filter** to open rows for **Category**, **Language**, **Country** and **Topic** - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country's flag-and-code chip sits before its language chip in the list. Values are normalized behind the scenes, so aliases and typos in the source data fold into one option and nothing unrecognized gets hidden.
+      Tap **Filter** to open rows for **Category**, **Language**, **Country** and **Topic** - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country's flag-and-code chip sits before its language chip in the list. The Language list holds only real languages, one entry each however the catalog spells them - regional variants and typos fold into one. The Country list holds only real countries, by full name with a flag, in alphabetical order, with the countries of your interface language first. A filter you saved earlier whose value no longer exists goes back to **All**.
 
       Two small icons beside the search box split the list by media kind in one tap - **Audio**, **Video**, or **Own** for channels you added yourself - and agree with whatever the Filter dialog already has selected. The filter button carries a **Filter active** mark when something is on; **Clear filters** in the dialog drops it all at once.
     image_bookmark:
@@ -207,6 +207,6 @@ next_recipes:
     description: What happens once you actually tap a channel and playback starts.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.10 14:38</sub>
 
 The [catalog](term:catalog) is how [Streams](term:streams-screen) goes from empty to thousands of [channels](term:channel) worth browsing: download it, keep it fresh, then find your way around with filters, curated collections, sorting and a list that remembers exactly where you left it.

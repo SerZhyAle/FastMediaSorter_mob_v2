@@ -87,6 +87,8 @@ steps:
 
       At the start, swiping up opens [All apps](term:all-apps) - once you have reached the bottom of the desktop - and swiping down opens the Android notification shade. Left and right have no action, so on a desktop with several screens they turn the pages.
 
+      When swiping down opens the shade, where the swipe starts decides what you get: from the left half of the screen the notifications, from the right half Quick Settings.
+
       A swipe works when it starts on an empty spot, on a shortcut, on a section heading or on the taskbar. On a gadget, the gadget keeps its own gestures - a map still pans and a list still scrolls. More gestures are in [Customizing navigation gestures and shortcuts](page:launcher.desktop-gestures-and-shortcuts).
     image_bookmark:
       shot_id: launcher.settings-gestures
@@ -141,6 +143,6 @@ next_recipes:
     description: What a long press offers on apps, channels and gadgets.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.10 14:37</sub>
 
 Once the [desktop](term:desktop) holds the things you use, arranging them is a matter of a few long presses. This page covers moving and resizing squares, sections you can fold, several screens, the four swipes and the lock that keeps it all in place.

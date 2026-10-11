@@ -1003,6 +1003,9 @@
     <dimen name="tourist_tile_padding">10dp</dimen>
     <dimen name="tourist_compass_rose_size">120dp</dimen>
     <dimen name="tourist_compass_rose_size_land">140dp</dimen>
+    <dimen name="tourist_level_ring_size">120dp</dimen>
+    <dimen name="tourist_level_bubble_size">24dp</dimen>
+    <dimen name="tourist_level_ring_stroke">2dp</dimen>
     <dimen name="tourist_primary_text_size">56sp</dimen>
     <dimen name="tourist_primary_text_size_land">64sp</dimen>
     <dimen name="tourist_coords_text_size">36sp</dimen>

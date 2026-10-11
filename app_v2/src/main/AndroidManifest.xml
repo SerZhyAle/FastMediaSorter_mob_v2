@@ -334,10 +334,11 @@
 
         <!-- S1796: no orientation|screenSize in configChanges - the glow layout is orientation-agnostic,
              but absorbing the change would keep stale insets on the corner controls after a rotation. -->
-        <!-- S1733: a transparent host for the system-information report, so a launcher cell or a panel
-             tile can open it with no screen of ours behind it. Not exported: the report describes the
-             user's own device and is meant to be read here, not handed to another app. -->
-        <activity android:name=".ui.systeminfo.SystemInfoActivity" android:exported="false" android:label="@string/settings_system_info_title" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <!-- S1733: the system-information report, opened from a launcher cell or a panel tile. Not exported:
+             the report describes the user's own device and is meant to be read here, not handed to another
+             app. S4151: an opaque window - since S2774 it is a full-screen report, and the translucent host
+             theme of its dialog days let the launcher show through the text. -->
+        <activity android:name=".ui.systeminfo.SystemInfoActivity" android:exported="false" android:label="@string/settings_system_info_title" android:theme="@style/Theme.FastMediaSorter.NoActionBar" android:excludeFromRecents="true" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <activity android:name=".ui.flashlight.FrontFlashlightActivity" android:exported="false" android:label="@string/front_flashlight_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
         <activity android:name=".ui.flashlight.FlashlightToggleActivity" android:exported="false" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" android:theme="@style/Theme.FastMediaSorter.Transparent" />

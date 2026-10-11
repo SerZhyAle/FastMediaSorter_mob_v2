@@ -124,6 +124,10 @@ class PhoneWearListenerService : WearableListenerService() {
     // decision - and this class has no room for another function either way.
     @Inject lateinit var wearDeleteRequestHandler: WearDeleteRequestHandler
 
+    @Inject lateinit var wearTouristHealthReceiver: WearTouristHealthReceiver
+
+    @Inject lateinit var wearTouristWeatherRequestHandler: WearTouristWeatherRequestHandler
+
     // S2462: built from the injected Gson rather than injected itself - it carries no state and no
     // dependency of its own, so a Hilt binding would be ceremony around a constructor call.
     private val settingsPayloadDecoder: WearSettingsPayloadDecoder by lazy {
@@ -392,6 +396,10 @@ class PhoneWearListenerService : WearableListenerService() {
         when (event.dataItem.uri.path) {
             WearDataLayerPaths.PLAYBACK_STATE -> handlePlaybackState(payloadBytes)
             WearDataLayerPaths.SETTINGS_REPORT -> handleSettingsReport(payloadBytes, receivedAtEpochMillis)
+            WearDataLayerPaths.TOURIST_HEALTH -> wearTouristHealthReceiver.handle(payloadBytes, receivedAtEpochMillis)
+            WearDataLayerPaths.TOURIST_WEATHER_REQUEST -> applicationScope.launch {
+                wearTouristWeatherRequestHandler.handle(payloadBytes)
+            }
         }
     }
 

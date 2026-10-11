@@ -3,7 +3,7 @@ layout: default
 title: "Step-by-Step Guides - FastMediaSorter v2"
 permalink: /docs/howto/
 ---
-<sub class="doc-stamp">26.09.30 08:53</sub>
+<sub class="doc-stamp">26.10.10 14:48</sub>
 
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Step-by-Step Guides
 
@@ -25,6 +25,7 @@ Practical walkthroughs for real-world use cases. No prior experience needed - ev
 - <img src="../icons/doc/ic_image.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I have an old tablet and want to turn it into a photo frame"_ → [Digital Photo Frame](scenario-photo-frame.md)
 - <img src="../icons/doc/ic_profile_car_head_unit.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I have an Android car stereo and want to play my music from a USB or phone"_ → [In-Car Music Player](scenario-car-music.md)
 - <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want FastMedia on my smartwatch and do not know where to start"_ → [Put FastMedia on Your Watch](wear-install.md) • [Wear OS Web Portal](../wear/index.md)
+- <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want to move media between my own devices and do not know which way fits me"_ → [Media Exchange Portal](../media-exchange-portal/index.md)
 - <img src="../icons/doc/ic_audio.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want to listen to my music collection or phone tracks on my smartwatch"_ → [Music on Smartwatch](scenario-watch-music.md)
 - <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want to connect my smartwatch directly to my PC or NAS network share"_ → [Connect Watch to Network Shares](scenario-watch-network.md)
 - <img src="../icons/doc/ic_stream.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want to watch live TV channels on my smartwatch"_ → [TV on Your Smartwatch](scenario-watch-tv.md)

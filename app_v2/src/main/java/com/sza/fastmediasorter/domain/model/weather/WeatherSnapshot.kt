@@ -105,4 +105,25 @@ data class WeatherSnapshot(
     val dewPoint: Double? = null,
     val sunrise: LocalTime? = null,
     val sunset: LocalTime? = null,
+    val details: WeatherDetails = WeatherDetails(),
+)
+
+/**
+ * S4145: the extra current values the Tourist dashboard shows; the desktop gadgets ignore them.
+ *
+ * [apparentTemperature] rides [WeatherSnapshot.unit] like the dew point. Wind is always km/h and visibility
+ * always metres, whatever the unit: they are converted at display, so a unit flip adds no refetch reason
+ * (strategic ADR-3). Every field null means the provider did not send it or the cache entry predates S4145.
+ */
+data class WeatherDetails(
+    val apparentTemperature: Double? = null,
+    val relativeHumidityPercent: Int? = null,
+    val windSpeedKmh: Double? = null,
+    val windGustsKmh: Double? = null,
+    val windDirectionDegrees: Int? = null,
+    val uvIndex: Double? = null,
+    val precipitationProbabilityPercent: Int? = null,
+    val cloudCoverPercent: Int? = null,
+    val visibilityMetres: Double? = null,
+    val pressureMslHpa: Double? = null,
 )

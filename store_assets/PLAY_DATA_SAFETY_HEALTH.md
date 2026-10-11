@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.12 05:55</sub>
+<sub class="doc-stamp">26.10.11 00:21</sub>
 
 # Play Console - Data safety & Health apps section (S2995)
 
@@ -25,6 +25,7 @@ This document records the engineering guarantee that the `standard` product flav
 | **Body Sensor / Heart Rate** (`BODY_SENSOR`) | `wear` | **No** (withheld via `WearRestrictedCapabilities`) | Yes | Heart rate sensor diagnostics |
 | **Steps Gadget** (`StepsGadget`) | `app_v2` | **No** (withheld via `isAvailable()`) | Yes | Desktop step counter widget |
 | **Tourist Dashboard Steps** | `app_v2` | **No** (disabled in `ObserveTouristDashboardUseCase`) | Yes | Steps tile & telemetry |
+| **Tourist watch heart rate / body temperature tiles** | `app_v2` + `wear` | **No** (no `CAP_WATCH_HEALTH` outside noLegal; the watch sender checks `offersHealthFeatures`) | Yes | Readings the watch Tourist sends to the phone (S4150) |
 
 ---
 
@@ -42,6 +43,8 @@ All health permissions (`BODY_SENSORS`, `health.READ_HEART_RATE`, `ACTIVITY_RECO
 - `NoLegalWearRestrictedCapabilities`: `offersHealthFeatures = true`, `offersBodySensorDiagnostics = true`.
 - `WearAppCatalog`: filters out health apps in `standard`.
 - `ResolveWearLaunchAddressUseCase`: refuses destination resolution for health targets in `standard`.
+- `NoLegalCapabilityModule`: alone contributes `CAP_WATCH_HEALTH`, so the phone Tourist watch tiles are absent in `standard`.
+- `PublishTouristHealthUseCase`: sends nothing when `offersHealthFeatures = false`.
 - `MainActivity`: omits health screen routes from the navigation graph in `standard`.
 - `StepsGadget`: `isAvailable() = false` in `standard`.
 - `ObserveTouristDashboardUseCase`: step telemetry collection skipped in `standard`.

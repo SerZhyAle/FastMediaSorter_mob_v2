@@ -113,6 +113,7 @@ tips:
   - "**A red or unavailable network resource** usually means the computer is asleep or the phone left the home Wi-Fi. Wake the computer and pull down the list to refresh."
   - "**Everything in one move to a new phone.** Besides the automatic cloud sign-in, you can carry all resources, including network passwords, in a backup file - see [Sharing and backing up your resources](page:storage.sharing-and-backing-up-resources)."
   - "**Copying between the phone and the network** works in both directions - see [Copying, moving and deleting files](page:storage.file-copy-move-delete)."
+  - "**Not sure which way of connecting your own devices fits you?** The [media exchange portal](../../docs/media-exchange-portal/) compares the home network, the exchange server and live broadcast, and shows which program does what on each device."
 next_recipes:
   - title: Connecting SMB/Windows shares
     url: page:network.smb-samba-shares
@@ -131,6 +132,6 @@ next_recipes:
     description: The phone's own folders, memory cards and USB drives.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Add a shared folder on a home computer or NAS, an FTP or SFTP server, or a Google Drive, Dropbox or OneDrive folder as a resource, switch whole groups of them off, and let the app's caches keep them quick.

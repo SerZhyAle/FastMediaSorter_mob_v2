@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.model.weather.WeatherCondition
+import com.sza.fastmediasorter.domain.model.weather.WeatherDetails
 import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
 import com.sza.fastmediasorter.domain.model.weather.WeatherSnapshot
 import com.sza.fastmediasorter.domain.model.weather.WeatherUnit
@@ -128,8 +129,44 @@ class WeatherRepositoryImpl @Inject constructor(
             dewPoint = prefs.getFloat(key + SUFFIX_DEW_POINT, Float.NaN).takeIf { !it.isNaN() }?.toDouble(),
             sunrise = readLocalTime(key + SUFFIX_SUNRISE),
             sunset = readLocalTime(key + SUFFIX_SUNSET),
+            details = readDetails(key),
         )
     }
+
+    /** S4145: absent for every entry written before this ticket, so each field degrades to null on its own. */
+    private fun readDetails(key: String): WeatherDetails = WeatherDetails(
+        apparentTemperature = readDouble(key + SUFFIX_APPARENT),
+        relativeHumidityPercent = readInt(key + SUFFIX_HUMIDITY),
+        windSpeedKmh = readDouble(key + SUFFIX_WIND_SPEED),
+        windGustsKmh = readDouble(key + SUFFIX_WIND_GUSTS),
+        windDirectionDegrees = readInt(key + SUFFIX_WIND_DIRECTION),
+        uvIndex = readDouble(key + SUFFIX_UV_INDEX),
+        precipitationProbabilityPercent = readInt(key + SUFFIX_PRECIPITATION),
+        cloudCoverPercent = readInt(key + SUFFIX_CLOUD_COVER),
+        visibilityMetres = readDouble(key + SUFFIX_VISIBILITY),
+        pressureMslHpa = readDouble(key + SUFFIX_PRESSURE_MSL),
+    )
+
+    private fun writeDetails(editor: SharedPreferences.Editor, key: String, details: WeatherDetails) {
+        editor
+            .putFloat(key + SUFFIX_APPARENT, details.apparentTemperature.toStoredFloat())
+            .putInt(key + SUFFIX_HUMIDITY, details.relativeHumidityPercent ?: NO_INT)
+            .putFloat(key + SUFFIX_WIND_SPEED, details.windSpeedKmh.toStoredFloat())
+            .putFloat(key + SUFFIX_WIND_GUSTS, details.windGustsKmh.toStoredFloat())
+            .putInt(key + SUFFIX_WIND_DIRECTION, details.windDirectionDegrees ?: NO_INT)
+            .putFloat(key + SUFFIX_UV_INDEX, details.uvIndex.toStoredFloat())
+            .putInt(key + SUFFIX_PRECIPITATION, details.precipitationProbabilityPercent ?: NO_INT)
+            .putInt(key + SUFFIX_CLOUD_COVER, details.cloudCoverPercent ?: NO_INT)
+            .putFloat(key + SUFFIX_VISIBILITY, details.visibilityMetres.toStoredFloat())
+            .putFloat(key + SUFFIX_PRESSURE_MSL, details.pressureMslHpa.toStoredFloat())
+    }
+
+    private fun Double?.toStoredFloat(): Float = this?.toFloat() ?: Float.NaN
+
+    private fun readDouble(prefKey: String): Double? =
+        prefs.getFloat(prefKey, Float.NaN).takeIf { !it.isNaN() }?.toDouble()
+
+    private fun readInt(prefKey: String): Int? = prefs.getInt(prefKey, NO_INT).takeIf { it != NO_INT }
 
     /** A stamp this app wrote, so a corrupt one is a bug elsewhere - it degrades, it does not throw. */
     private fun readLocalTime(prefKey: String): LocalTime? =
@@ -145,6 +182,7 @@ class WeatherRepositoryImpl @Inject constructor(
             .putFloat(key + SUFFIX_DEW_POINT, snapshot.dewPoint?.toFloat() ?: Float.NaN)
             .putString(key + SUFFIX_SUNRISE, snapshot.sunrise?.toString())
             .putString(key + SUFFIX_SUNSET, snapshot.sunset?.toString())
+            .also { writeDetails(it, key, snapshot.details) }
             .apply()
     }
 
@@ -165,5 +203,16 @@ class WeatherRepositoryImpl @Inject constructor(
         const val SUFFIX_DEW_POINT = "_dew"
         const val SUFFIX_SUNRISE = "_sunrise"
         const val SUFFIX_SUNSET = "_sunset"
+        const val SUFFIX_APPARENT = "_feels"
+        const val SUFFIX_HUMIDITY = "_hum"
+        const val SUFFIX_WIND_SPEED = "_wind"
+        const val SUFFIX_WIND_GUSTS = "_gust"
+        const val SUFFIX_WIND_DIRECTION = "_wdir"
+        const val SUFFIX_UV_INDEX = "_uv"
+        const val SUFFIX_PRECIPITATION = "_pop"
+        const val SUFFIX_CLOUD_COVER = "_cloud"
+        const val SUFFIX_VISIBILITY = "_vis"
+        const val SUFFIX_PRESSURE_MSL = "_msl"
+        const val NO_INT = Int.MIN_VALUE
     }
 }

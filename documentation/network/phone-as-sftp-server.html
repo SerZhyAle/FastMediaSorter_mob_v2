@@ -94,6 +94,13 @@ layout: null
           "name": "Pair another FastMediaSorter with a scan",
           "text": "While the server is running, tap Show pairing code to reveal a QR code - \u0022Pairing code: scan it in FastMediaSorter on another device\u0022 - and Hide pairing code to put it away again. The code is rebuilt fresh every time you show it, so it always carries the server\u0027s current address and password. On the other device, open Add Resource, the SFTP / FTP card, and tap Import by barcode - the same scanner that reads a Windows companion code also recognizes this one. A message confirms the form was filled in: \u0022Connection details filled in from the pairing code - check them and save,\u0022 with the host, port, username, password or key and the server\u0027s host key already in place, suggested as \u0022Device server 192.168.1.42.\u0022 Review it and save - the host key is pinned from that first scan, so a later attempt from a different machine using the same address is refused rather than silently accepted. A damaged or incomplete code is called out too: \u0022This code is not a complete FastMediaSorter pairing code - show it again on the server phone and rescan.\u0022",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server.html#pair-by-qr"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 6,
+          "name": "Reach the phone from another network",
+          "text": "In the same card, the Access from anywhere section can register the phone\u0027s server on an exchange server, so devices on any network reach it without a VPN or port forwarding. Switch on Exchange server - \u0022Reach this server from any network through your exchange server\u0022 - fill in the Exchange server address, the Exchange server port and the Exchange server password (at least 10 characters with upper- and lower-case Latin letters and digits), and tap Save server. The status line moves from \u0022Only reachable on the local network\u0022 to \u0022Reachable from anywhere through\u0022 and the server\u0027s name once the exchange server accepts the phone. The section is off by default. A pairing code shown afterwards carries the exchange server too: a phone that scans it falls back to the relayed connection when no direct address answers, still checking the same host key. New access link makes every code shared earlier stop opening this server. No public exchange server is running yet; what works today instead is on the media exchange portal. Signed in to Google Drive on both devices? Switch on Share access through Google Drive in the same card - it is off by default. While the server runs, the phone then keeps its current address and sign-in details in the app\u0027s private space of your Drive, so another device on the same Google account opens the paired share at its new address after a network change, without scanning the code again - as long as it can reach the phone at all.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server.html#reach-from-anywhere"
         }
       ]
     }
@@ -134,7 +141,7 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp">26.10.07 01:10</div>
+<div class="doc-stamp">26.10.10 14:45</div>
     <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Header Chrome -->
@@ -513,6 +520,19 @@ layout: null
                     </div>
                 </div>
 
+                <!-- Step 6 -->
+                <div class="doc-step" id="reach-from-anywhere">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">6</span>
+                        <h2 class="doc-step-title">Reach the phone from another network</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>In the same card, the <strong>Access from anywhere</strong> section can register the phone's server on an exchange server, so devices on any network reach it without a VPN or port forwarding. Switch on <strong>Exchange server</strong> - "Reach this server from any network through your exchange server" - fill in the <strong>Exchange server address</strong>, the <strong>Exchange server port</strong> and the <strong>Exchange server password</strong> (at least 10 characters with upper- and lower-case Latin letters and digits), and tap <strong>Save server</strong>. The status line moves from "Only reachable on the local network" to "Reachable from anywhere through" and the server's name once the exchange server accepts the phone. The section is off by default.</p>
+                        <p>A pairing code shown afterwards carries the exchange server too: a phone that scans it falls back to the relayed connection when no direct address answers, still checking the same host key. <strong>New access link</strong> makes every code shared earlier stop opening this server. No public exchange server is running yet; what works today instead is on the <a href="../../docs/media-exchange-portal/exchange-server.html" class="doc-link">media exchange portal</a>.</p>
+                        <p><strong>Signed in to Google Drive on both devices?</strong> Switch on <strong>Share access through Google Drive</strong> in the same card - it is off by default. While the server runs, the phone then keeps its current address and sign-in details in the app's private space of your Drive, so another device on the same Google account opens the paired share at its new address after a network change, without scanning the code again - as long as it can reach the phone at all.</p>
+                    </div>
+                </div>
+
                 <h2 id="outcome">What You Get</h2>
                 <div class="doc-callout doc-callout-note">
                         <p>The phone shares exactly the folders you picked, with everyone else needing either a password or an accepted SSH key to get in, and pairing another FastMediaSorter takes one scan instead of typing an address by hand. A tap on Stop, in the app or the notification, ends it.</p>
@@ -524,6 +544,7 @@ layout: null
                         <li><strong>Bringing in a PC's folders instead?</strong> <a href="windows-companion.html" class="doc-link">Sharing PC folders with Fast Media Sorter for Windows</a> covers the same pairing idea from the other side.</li>
                         <li><strong>Setting up a server by typing its address yourself?</strong> <a href="sftp-ftp-servers.html" class="doc-link">Connecting SFTP and FTP servers</a> covers that manual route, on either end of the connection.</li>
                         <li><strong>New to SSH keys?</strong> The <a href="https://www.openssh.com/" target="_blank" rel="noopener" class="doc-link-external">OpenSSH</a> project's own documentation explains how a key pair works if the wording here is unfamiliar.</li>
+                        <li><strong>Want to reach your own storage from outside your home?</strong> The <a href="../../docs/media-exchange-portal/home-network.html" class="doc-link">media exchange portal</a> walks through the home network way step by step and says what works today.</li>
                     </ul>
                 </div>
 
@@ -562,6 +583,7 @@ layout: null
                         <li><a href="#choose-login" class="doc-toc-link">3. Decide how people sign in</a></li>
                         <li><a href="#change-while-running" class="doc-toc-link">4. Change a setting without losing the connection</a></li>
                         <li><a href="#pair-by-qr" class="doc-toc-link">5. Pair another FastMediaSorter with a scan</a></li>
+                        <li><a href="#reach-from-anywhere" class="doc-toc-link">6. Reach the phone from another network</a></li>
                         <li><a href="#outcome" class="doc-toc-link">What You Get</a></li>
                         <li><a href="#tips" class="doc-toc-link">Tips and Troubleshooting</a></li>
                     </ul>

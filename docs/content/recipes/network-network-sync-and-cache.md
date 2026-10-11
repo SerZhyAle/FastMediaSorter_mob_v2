@@ -59,6 +59,7 @@ tips:
   - "**Wondering how the app keeps network folders fast in the first place?** [Adding network folders and cloud storage as sources](page:storage.network-and-cloud-sources) explains the file-list and thumbnail caches this sync feeds."
   - "**Streaming cache is a separate setting.** How long a played video is kept ready for offline resume lives in the same overview page, not here."
   - "**Connecting the folders themselves?** See [Connecting SMB/Windows Shares](page:network.smb-samba-shares) and [Connecting SFTP and FTP Servers](page:network.sftp-ftp-servers)."
+  - "**Not sure which way of connecting your own devices fits you?** The [media exchange portal](../../docs/media-exchange-portal/) compares the home network, the exchange server and live broadcast, and shows which program does what on each device."
 next_recipes:
   - title: Adding network folders and cloud storage as sources
     url: page:storage.network-and-cloud-sources
@@ -77,6 +78,6 @@ next_recipes:
     description: See the connection itself when a sync or a stream is not behaving.
 ---
 
-<sub class="doc-stamp">26.10.07 03:43</sub>
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Turn on a background schedule so network and cloud folders stay current on their own, preload their thumbnails ahead of time, and let a playing network video keep the full connection to itself while previews wait their turn.

@@ -118,7 +118,7 @@ class SftpServerController @Inject constructor(
      */
     fun restartTunnel() {
         val running = mutableState.value as? SftpServerState.Running ?: return
-        tunnelManager.start(running.port, advertisedAddresses().map { "$it:${running.port}" })
+        tunnelManager.start(running.port, advertisedAddresses())
         rendezvousPublisher.start(running.port, ::advertisedAddresses)
     }
 
@@ -154,7 +154,7 @@ class SftpServerController @Inject constructor(
                 startOrRelease(instance)
                 server = instance
                 watchRoots()
-                tunnelManager.start(instance.port, advertisedAddresses().map { "$it:${instance.port}" })
+                tunnelManager.start(instance.port, advertisedAddresses())
                 rendezvousPublisher.start(instance.port, ::advertisedAddresses)
                 Timber.i("SftpServerController: listening on port %d", instance.port)
                 SftpServerState.Running(instance.port, advertisedAddresses())

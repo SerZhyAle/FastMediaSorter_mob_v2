@@ -71,6 +71,19 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- S4145: the card and the thirty-tile grid scroll as one page; the action bar stays pinned below. -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollTouristPage"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
     <!-- Hero Focus Tile Card -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardHeroTile"
@@ -196,7 +209,49 @@
                     android:layout_gravity="center"
                     android:contentDescription="@null"
                     android:visibility="gone"
-                    tools:src="@drawable/ic_compass" />
+                    android:src="@drawable/ic_compass" />
+            </FrameLayout>
+
+            <!-- S4145: the wind / course / trend arrow and the level gauge; at most one is visible. -->
+            <FrameLayout
+                android:id="@+id/layoutHeroVisual"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_medium"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/ivHeroDirectionArrow"
+                    android:layout_width="@dimen/tourist_compass_rose_size"
+                    android:layout_height="@dimen/tourist_compass_rose_size"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_upward"
+                    android:visibility="gone"
+                    app:tint="?attr/colorOnSurface" />
+
+                <FrameLayout
+                    android:id="@+id/layoutHeroLevel"
+                    android:layout_width="@dimen/tourist_level_ring_size"
+                    android:layout_height="@dimen/tourist_level_ring_size"
+                    android:layout_gravity="center"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:id="@+id/ivHeroLevelRing"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@null"
+                        android:src="@drawable/bg_tourist_level_ring" />
+
+                    <ImageView
+                        android:id="@+id/ivHeroLevelBubble"
+                        android:layout_width="@dimen/tourist_level_bubble_size"
+                        android:layout_height="@dimen/tourist_level_bubble_size"
+                        android:layout_gravity="center"
+                        android:contentDescription="@null"
+                        android:src="@drawable/bg_tourist_level_bubble" />
+                </FrameLayout>
             </FrameLayout>
 
             <TextView
@@ -214,12 +269,14 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvSecondaryTiles"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
         android:clipToPadding="false"
+        android:nestedScrollingEnabled="false"
         android:paddingStart="@dimen/margin_normal"
         android:paddingEnd="@dimen/margin_normal"
         android:paddingBottom="@dimen/margin_normal" />
+    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <!-- Action Bar -->
     <androidx.constraintlayout.widget.ConstraintLayout

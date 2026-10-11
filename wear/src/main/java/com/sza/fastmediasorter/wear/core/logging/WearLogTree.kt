@@ -67,9 +67,10 @@ class WearLogTree(private val minPriority: Int) : Timber.Tree() {
  * S1802: watch-side credential masking.
  *
  * The phone has its own masker in `core/security`, but the two modules share no code, so the rules are
- * restated here rather than reached for: DIAGNOSTIC-REPORT rule 3 as section 7 (0.11) and section 8 C (0.12)
- * spell it, matched by the shape of the text rather than by a bare key name. A change here belongs in the
- * phone's `SecretMasker` too.
+ * restated here rather than reached for: DIAGNOSTIC-REPORT rule 3 as section 7 (0.11), section 8 C (0.12) and
+ * the key and shape half of section 10 (0.13) spell it, matched by the shape of the text rather than by a bare
+ * key name. The watch holds no exchange account, so the phone's live-value registry has no counterpart here.
+ * A change here belongs in the phone's `SecretMasker` too.
  */
 internal object WearSecretMasker {
 
@@ -80,10 +81,10 @@ internal object WearSecretMasker {
 
     // Matched as a key-name SUFFIX, so `accessPin`, `X-Amz-Signature`, `client_secret` and `refresh_token` count.
     private const val SECRET_SUFFIXES = "password|passwd|pwd|secret|token|apikey|api_key|authorization" +
-        "|signature|credential|pin|wmsauthsign|hdnts|hdnea"
+        "|signature|credential|pin|wmsauthsign|hdnts|hdnea|fingerprint|pairingcode"
 
     // Too generic for a suffix (`bypass`, `cachePolicy`): only a key that is exactly one of these counts.
-    private const val SECRET_EXACT = "pass|auth|policy|key-pair-id"
+    private const val SECRET_EXACT = "pass|auth|policy|key-pair-id|login|pinnedcertificate"
     private const val AUTH_SCHEMES = "bearer|basic|digest|negotiate"
     private const val KEY_CHAR = """[A-Za-z0-9_.\-]"""
 
@@ -112,6 +113,9 @@ internal object WearSecretMasker {
     // The package directory names the app; contract rule 3 substitutes the personal directory of a path.
     private val APP_DATA_PATH = Regex("""/data/(?:user(?:_de)?/\d+|data)/[A-Za-z0-9_.]+""")
 
+    // The exchange pin form: `SHA256:` and the unpadded base64 of a 32-byte digest, found under any key or none.
+    private val CERT_FINGERPRINT = Regex("""(?<![A-Za-z0-9+/])(SHA256:)[A-Za-z0-9+/]{43}(?![A-Za-z0-9+/=])""")
+
     fun sanitize(text: String): String {
         val withoutUserinfo = URI_USERINFO.replace(text) { match -> "${match.groupValues[1]}$REDACTED@" }
         val withoutValues = SECRET_VALUE.replace(withoutUserinfo) { match ->
@@ -125,6 +129,9 @@ internal object WearSecretMasker {
         val withoutPathAccounts = PATH_CREDENTIALS.replace(withoutValues) { match ->
             "${match.groupValues[1]}$REDACTED/$REDACTED"
         }
-        return withoutPathAccounts.replace(APP_DATA_PATH, APP_DATA)
+        val withoutFingerprints = CERT_FINGERPRINT.replace(withoutPathAccounts) { match ->
+            "${match.groupValues[1]}$REDACTED"
+        }
+        return withoutFingerprints.replace(APP_DATA_PATH, APP_DATA)
     }
 }

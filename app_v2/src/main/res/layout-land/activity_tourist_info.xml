@@ -88,11 +88,18 @@
             android:paddingEnd="@dimen/padding_small"
             android:paddingBottom="@dimen/margin_normal">
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardHeroTile"
+            <!-- S4145: a card with an arrow or level gauge can outgrow a short landscape column. -->
+            <androidx.core.widget.NestedScrollView
+                android:id="@+id/scrollTouristPage"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
+                android:fillViewport="true">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardHeroTile"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 app:cardCornerRadius="@dimen/tourist_card_corner_radius"
                 app:cardElevation="@dimen/tourist_card_elevation"
                 app:strokeWidth="@dimen/tourist_card_stroke_width"
@@ -209,7 +216,49 @@
                             android:layout_gravity="center"
                             android:contentDescription="@null"
                             android:visibility="gone"
-                            tools:src="@drawable/ic_compass" />
+                            android:src="@drawable/ic_compass" />
+                    </FrameLayout>
+
+                    <!-- S4145: the wind / course / trend arrow and the level gauge; at most one is visible. -->
+                    <FrameLayout
+                        android:id="@+id/layoutHeroVisual"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:id="@+id/ivHeroDirectionArrow"
+                            android:layout_width="@dimen/tourist_compass_rose_size"
+                            android:layout_height="@dimen/tourist_compass_rose_size"
+                            android:layout_gravity="center"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_arrow_upward"
+                            android:visibility="gone"
+                            app:tint="?attr/colorOnSurface" />
+
+                        <FrameLayout
+                            android:id="@+id/layoutHeroLevel"
+                            android:layout_width="@dimen/tourist_level_ring_size"
+                            android:layout_height="@dimen/tourist_level_ring_size"
+                            android:layout_gravity="center"
+                            android:visibility="gone">
+
+                            <ImageView
+                                android:id="@+id/ivHeroLevelRing"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:contentDescription="@null"
+                                android:src="@drawable/bg_tourist_level_ring" />
+
+                            <ImageView
+                                android:id="@+id/ivHeroLevelBubble"
+                                android:layout_width="@dimen/tourist_level_bubble_size"
+                                android:layout_height="@dimen/tourist_level_bubble_size"
+                                android:layout_gravity="center"
+                                android:contentDescription="@null"
+                                android:src="@drawable/bg_tourist_level_bubble" />
+                        </FrameLayout>
                     </FrameLayout>
 
                     <TextView
@@ -222,6 +271,7 @@
                         tools:text="Max: 0.0 km/h • Trip: 0.00 km" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+            </androidx.core.widget.NestedScrollView>
 
             <!-- Action Bar -->
             <androidx.constraintlayout.widget.ConstraintLayout

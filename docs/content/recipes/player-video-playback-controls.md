@@ -45,6 +45,8 @@ steps:
       - Turn the phone sideways and the player goes full screen by itself; turn it back upright and the command panel returns. The video keeps playing.
 
       While a video plays, the top buttons hide together with the bottom playback controls. Tap the picture to bring them back. This works in portrait and landscape, both inside the app and when opening a video from another app. Change the embedded player's delay with **Player panel auto-hide duration (s)** in **Settings**, the **Player** tab - anything from 1 to 600 seconds.
+
+      A file another app hands over does not open alone: the player reads the folder it lies in, so next, previous, random and the slideshow carry on through the files next to it.
   - number: 3
     id: touch-zones
     title: Tap and swipe instead of hunting for buttons
@@ -163,6 +165,6 @@ next_recipes:
     description: Play the video on your TV.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.10 14:37</sub>
 
 Play videos full screen or with the command panel, move between them with taps and swipes, zoom in, resume where you stopped, save still frames as pictures and sort your videos while you watch.

@@ -91,6 +91,7 @@ tips:
   - "**Setting a server up by hand instead?** [Connecting SFTP and FTP servers](page:network.sftp-ftp-servers) covers entering a host, username and SSH key yourself."
   - "**Want to share from the phone instead?** [Turning the phone into an SFTP server](page:network.phone-as-sftp-server) covers the other direction - this phone as the one being connected to."
   - "**A companion folder is still a network resource underneath.** The overview in [Adding network folders and cloud storage as sources](page:storage.network-and-cloud-sources) covers the caches and thumbnails that keep any network place quick."
+  - "**Sharing a PC's folders with your phone?** The [media exchange portal](../../docs/media-exchange-portal/windows-servers.html) says what the Windows program does for exchange and how a phone pairs with it."
 next_recipes:
   - title: Connecting SFTP and FTP Servers
     url: page:network.sftp-ftp-servers
@@ -109,6 +110,6 @@ next_recipes:
     description: The overview of every kind of network and cloud place this app can open.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Fast Media Sorter for Windows publishes PC folders so this app opens them with no server address to type - bring them in with a file or a QR scan, and the connection follows the phone off the home network and back.

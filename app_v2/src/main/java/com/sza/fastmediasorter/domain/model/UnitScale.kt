@@ -23,6 +23,8 @@ object UnitScale {
     private const val KILOMETRES_PER_MILE = 1.609344
     private const val FAHRENHEIT_PER_CELSIUS = 1.8
     private const val FAHRENHEIT_AT_ZERO_CELSIUS = 32.0
+    private const val HECTOPASCALS_PER_INCH_OF_MERCURY = 33.8638866667
+    private const val MINUTES_PER_HOUR = 60.0
 
     /** Year first, 24-hour clock. */
     const val PATTERN_DATE_METRIC: String = "yyyy-MM-dd"
@@ -88,4 +90,16 @@ object UnitScale {
     fun metresToKilometres(metres: Double): Double = metres / METRES_PER_KILOMETRE
 
     fun metresToMiles(metres: Double): Double = metres / METRES_PER_MILE
+
+    /** S4145: atmospheric pressure follows the metric/imperial switch, so imperial reads inches of mercury. */
+    fun hectopascalsToInchesOfMercury(hectopascals: Double): Double =
+        hectopascals / HECTOPASCALS_PER_INCH_OF_MERCURY
+
+    /** S4145: minutes per kilometre; null at a standstill, where a pace has no finite value. */
+    fun paceMinutesPerKilometre(kmh: Double): Double? =
+        if (kmh > 0.0) MINUTES_PER_HOUR / kmh else null
+
+    /** S4145: minutes per mile; null at a standstill, where a pace has no finite value. */
+    fun paceMinutesPerMile(kmh: Double): Double? =
+        if (kmh > 0.0) MINUTES_PER_HOUR / kmhToMph(kmh) else null
 }

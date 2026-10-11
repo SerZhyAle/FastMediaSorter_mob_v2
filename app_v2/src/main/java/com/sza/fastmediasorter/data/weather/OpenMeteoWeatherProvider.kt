@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.weather
 
 import com.sza.fastmediasorter.domain.model.weather.WeatherCondition
+import com.sza.fastmediasorter.domain.model.weather.WeatherDetails
 import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
 import com.sza.fastmediasorter.domain.model.weather.WeatherSnapshot
 import com.sza.fastmediasorter.domain.model.weather.WeatherUnit
@@ -91,12 +92,32 @@ class OpenMeteoWeatherProvider @Inject constructor(
                 dewPoint = current.optDouble(KEY_DEW_POINT, Double.NaN).takeIf { !it.isNaN() },
                 sunrise = daily.todayLocalTime(KEY_SUNRISE),
                 sunset = daily.todayLocalTime(KEY_SUNSET),
+                details = parseDetails(current),
             )
         }
     } catch (e: JSONException) {
         Timber.w(e, "Open-Meteo current weather malformed")
         null
     }
+
+    /** S4145: each field on its own, so one the provider skipped this cycle costs only that tile. */
+    private fun parseDetails(current: JSONObject): WeatherDetails = WeatherDetails(
+        apparentTemperature = current.optionalDouble(KEY_APPARENT_TEMPERATURE),
+        relativeHumidityPercent = current.optionalInt(KEY_HUMIDITY),
+        windSpeedKmh = current.optionalDouble(KEY_WIND_SPEED),
+        windGustsKmh = current.optionalDouble(KEY_WIND_GUSTS),
+        windDirectionDegrees = current.optionalInt(KEY_WIND_DIRECTION),
+        uvIndex = current.optionalDouble(KEY_UV_INDEX),
+        precipitationProbabilityPercent = current.optionalInt(KEY_PRECIPITATION_PROBABILITY),
+        cloudCoverPercent = current.optionalInt(KEY_CLOUD_COVER),
+        visibilityMetres = current.optionalDouble(KEY_VISIBILITY),
+        pressureMslHpa = current.optionalDouble(KEY_PRESSURE_MSL),
+    )
+
+    private fun JSONObject.optionalDouble(key: String): Double? =
+        if (isNull(key)) null else optDouble(key, Double.NaN).takeIf { !it.isNaN() }
+
+    private fun JSONObject.optionalInt(key: String): Int? = optionalDouble(key)?.toInt()
 
     /**
      * S1907: today's value from a `daily` array, which is index 0 because the response starts at today.
@@ -152,7 +173,9 @@ class OpenMeteoWeatherProvider @Inject constructor(
         const val PARAM_LANGUAGE = "language"
         const val PARAM_FORMAT = "format"
 
-        const val CURRENT_FIELDS = "temperature_2m,weather_code,is_day,dew_point_2m"
+        const val CURRENT_FIELDS = "temperature_2m,weather_code,is_day,dew_point_2m," +
+            "apparent_temperature,relative_humidity_2m,cloud_cover,pressure_msl,wind_speed_10m," +
+            "wind_direction_10m,wind_gusts_10m,uv_index,visibility,precipitation_probability"
         const val DAILY_FIELDS = "sunrise,sunset"
         const val TIMEZONE_AUTO = "auto"
         const val ISO_TIME_SEPARATOR = "T"
@@ -171,6 +194,16 @@ class OpenMeteoWeatherProvider @Inject constructor(
         const val KEY_DEW_POINT = "dew_point_2m"
         const val KEY_SUNRISE = "sunrise"
         const val KEY_SUNSET = "sunset"
+        const val KEY_APPARENT_TEMPERATURE = "apparent_temperature"
+        const val KEY_HUMIDITY = "relative_humidity_2m"
+        const val KEY_CLOUD_COVER = "cloud_cover"
+        const val KEY_PRESSURE_MSL = "pressure_msl"
+        const val KEY_WIND_SPEED = "wind_speed_10m"
+        const val KEY_WIND_DIRECTION = "wind_direction_10m"
+        const val KEY_WIND_GUSTS = "wind_gusts_10m"
+        const val KEY_UV_INDEX = "uv_index"
+        const val KEY_VISIBILITY = "visibility"
+        const val KEY_PRECIPITATION_PROBABILITY = "precipitation_probability"
         const val KEY_RESULTS = "results"
         const val KEY_NAME = "name"
         const val KEY_LATITUDE = "latitude"

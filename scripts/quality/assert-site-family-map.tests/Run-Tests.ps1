@@ -119,6 +119,11 @@ try {
     Invoke-Case 'a source URL the map lacks fails' $f 1 'links https://example.github.io/z, which the map does not list'
 
     $f = New-Fixture
+    Edit-File (Join-Path $f.Root 'scripts/site/family-footer.json') '"name": "Tool A"' '"name": "Tool Aa"'
+    & pwsh -NoProfile -File $Renderer -Root $f.Root -Quiet | Out-Null
+    Invoke-Case 'a source name differing from the map Tool cell fails' $f 1 "names https://example.github.io/a 'Tool Aa', but the map's Tool cell reads 'Tool A'"
+
+    $f = New-Fixture
     Edit-File (Join-Path $f.Root '_config.yml') '/this' '/renamed'
     Invoke-Case 'a canonical address differing from the map fails' $f 1 'FAIL [SELF]'
 

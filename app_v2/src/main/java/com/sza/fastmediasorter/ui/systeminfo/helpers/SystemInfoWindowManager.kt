@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.core.systeminfo.SystemInfoReport
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.ActivitySystemInfoBinding
 import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
+import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
@@ -42,13 +43,21 @@ class SystemInfoWindowManager @Inject constructor(
     suspend fun gather(context: Context): SystemInfoReport = systemInfoDialogManager.gather(context)
 
     fun bind(activity: AppCompatActivity, binding: ActivitySystemInfoBinding) {
+        binding.root.applySystemBarInsetPadding()
         binding.systemInfoToolbar.setUpNavigation(activity)
-        binding.systemInfoCopy.setOnClickListener { currentReport?.let(::copyReport) }
-        binding.systemInfoShare.setOnClickListener { currentReport?.let { share(activity, it.fullText) } }
-        binding.systemInfoSave.setOnClickListener {
-            val report = currentReport ?: return@setOnClickListener
-            activity.lifecycleScope.launch { saveReport(report) }
+        binding.systemInfoToolbar.setOnMenuItemClickListener { item -> onAction(activity, item.itemId) }
+    }
+
+    private fun onAction(activity: AppCompatActivity, itemId: Int): Boolean {
+        Timber.d("S4161: System information toolbar action $itemId")
+        val report = currentReport
+        when (itemId) {
+            R.id.action_system_info_copy -> report?.let(::copyReport)
+            R.id.action_system_info_save -> report?.let { activity.lifecycleScope.launch { saveReport(it) } }
+            R.id.action_system_info_share -> report?.let { share(activity, it.fullText) }
+            else -> return false
         }
+        return true
     }
 
     fun render(container: LinearLayout, report: SystemInfoReport) {

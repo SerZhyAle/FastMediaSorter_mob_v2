@@ -3,19 +3,26 @@ package com.sza.fastmediasorter.ui.tourist
 import androidx.lifecycle.SavedStateHandle
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
+import com.sza.fastmediasorter.domain.model.tourist.WatchHealthStats
 import com.sza.fastmediasorter.domain.usecase.tourist.ObserveTouristDashboardUseCase
+import com.sza.fastmediasorter.domain.usecase.tourist.ObserveWatchTouristHealthUseCase
 import com.sza.fastmediasorter.testing.MainDispatcherRule
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
 /**
  * S3011: verifies that the Tourist dashboard ViewModel respects stepsAvailable from state.
+ * S4145: the dashboard flow runs only while the state has a collector.
+ * S4150: a watch tile is accepted only when the build offers watch health.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class TouristInfoViewModelTest {
@@ -27,11 +34,36 @@ class TouristInfoViewModelTest {
     private val observeTouristDashboardUseCase = mockk<ObserveTouristDashboardUseCase>(relaxed = true).also {
         every { it(any()) } returns flow
     }
+    private val watchFlow = MutableStateFlow(WatchHealthStats())
+    private val observeWatchHealth = mockk<ObserveWatchTouristHealthUseCase>().also {
+        every { it() } returns watchFlow
+    }
 
     @Test
-    fun `selectTile STEPS ignored when stepsAvailable is false`() {
-        val savedStateHandle = SavedStateHandle()
-        val viewModel = TouristInfoViewModel(observeTouristDashboardUseCase, savedStateHandle)
+    fun `selectTile WATCH_HEART_RATE ignored when the build does not offer watch health`() = runTest {
+        val viewModel = TouristInfoViewModel(observeTouristDashboardUseCase, SavedStateHandle(), observeWatchHealth)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
+
+        viewModel.selectTile(TouristTileType.WATCH_HEART_RATE)
+
+        assertEquals(TouristTileType.SPEED, viewModel.state.value.focusedTile)
+    }
+
+    @Test
+    fun `selectTile WATCH_HEART_RATE accepted when watch health is offered`() = runTest {
+        watchFlow.value = WatchHealthStats(offered = true)
+        val viewModel = TouristInfoViewModel(observeTouristDashboardUseCase, SavedStateHandle(), observeWatchHealth)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
+
+        viewModel.selectTile(TouristTileType.WATCH_HEART_RATE)
+
+        assertEquals(TouristTileType.WATCH_HEART_RATE, viewModel.state.value.focusedTile)
+    }
+
+    @Test
+    fun `selectTile STEPS ignored when stepsAvailable is false`() = runTest {
+        val viewModel = TouristInfoViewModel(observeTouristDashboardUseCase, SavedStateHandle(), observeWatchHealth)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
 
         viewModel.selectTile(TouristTileType.STEPS)
 
@@ -39,10 +71,10 @@ class TouristInfoViewModelTest {
     }
 
     @Test
-    fun `selectTile STEPS accepted when stepsAvailable is true`() {
+    fun `selectTile STEPS accepted when stepsAvailable is true`() = runTest {
         flow.value = TouristDashboardState(stepsAvailable = true)
-        val savedStateHandle = SavedStateHandle()
-        val viewModel = TouristInfoViewModel(observeTouristDashboardUseCase, savedStateHandle)
+        val viewModel = TouristInfoViewModel(observeTouristDashboardUseCase, SavedStateHandle(), observeWatchHealth)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
 
         viewModel.selectTile(TouristTileType.STEPS)
 
@@ -50,12 +82,29 @@ class TouristInfoViewModelTest {
     }
 
     @Test
-    fun `selectTile ALTITUDE accepted unconditionally`() {
-        val savedStateHandle = SavedStateHandle()
-        val viewModel = TouristInfoViewModel(observeTouristDashboardUseCase, savedStateHandle)
+    fun `selectTile ALTITUDE accepted unconditionally`() = runTest {
+        val viewModel = TouristInfoViewModel(observeTouristDashboardUseCase, SavedStateHandle(), observeWatchHealth)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
 
         viewModel.selectTile(TouristTileType.ALTITUDE)
 
         assertEquals(TouristTileType.ALTITUDE, viewModel.state.value.focusedTile)
+    }
+
+    @Test
+    fun `selectTile PRESSURE ignored without a barometer`() = runTest {
+        val viewModel = TouristInfoViewModel(observeTouristDashboardUseCase, SavedStateHandle(), observeWatchHealth)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
+
+        viewModel.selectTile(TouristTileType.PRESSURE)
+
+        assertEquals(TouristTileType.SPEED, viewModel.state.value.focusedTile)
+    }
+
+    @Test
+    fun `dashboard flow is not subscribed without a collector`() {
+        TouristInfoViewModel(observeTouristDashboardUseCase, SavedStateHandle(), observeWatchHealth)
+
+        verify(exactly = 0) { observeTouristDashboardUseCase(any()) }
     }
 }

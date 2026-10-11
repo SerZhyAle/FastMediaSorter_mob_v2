@@ -83,19 +83,30 @@ object SftpRendezvousCodec {
     fun filePrefix(type: String): String = "$FILE_PREFIX$type-"
 
     fun encode(record: SftpRendezvousRecord): String {
-        val (type, body) = when (record) {
-            is SftpRendezvousDevice -> TYPE_DEVICE to deviceBody(record)
-            is SftpRendezvousResource -> TYPE_RESOURCE to resourceBody(record)
-            is SftpRendezvousBroadcast -> TYPE_BROADCAST to broadcastBody(record)
-            is SftpRendezvousRequest -> TYPE_REQUEST to requestBody(record)
+        val type = when (record) {
+            is SftpRendezvousDevice -> TYPE_DEVICE
+            is SftpRendezvousResource -> TYPE_RESOURCE
+            is SftpRendezvousBroadcast -> TYPE_BROADCAST
+            is SftpRendezvousRequest -> TYPE_REQUEST
         }
         return JsonObject().apply {
             addProperty(KEY_SCHEMA, SCHEMA_VERSION)
             addProperty(KEY_TYPE, type)
             addProperty(KEY_WRITTEN_AT, Iso8601Utc.format(record.writtenAtMs))
             addProperty(KEY_TTL, record.ttlSeconds)
-            add(KEY_RECORD, body)
+            add(KEY_RECORD, body(record))
         }.toString()
+    }
+
+    /**
+     * The section 6 record body alone, without the Drive wrapper - what an exchange server envelope carries
+     * (`publish {resource}`, `broadcast-start {broadcast}`), so both stores carry one body (ADR-1 of S4116).
+     */
+    fun body(record: SftpRendezvousRecord): JsonObject = when (record) {
+        is SftpRendezvousDevice -> deviceBody(record)
+        is SftpRendezvousResource -> resourceBody(record)
+        is SftpRendezvousBroadcast -> broadcastBody(record)
+        is SftpRendezvousRequest -> requestBody(record)
     }
 
     /** Null for anything this build cannot use: refused, skipped, damaged or foreign. */

@@ -14,12 +14,19 @@ object WearUnitScale {
     private const val METRES_PER_KILOMETRE = 1000.0
     private const val METRES_PER_MILE = 1609.344
     private const val METRES_PER_FOOT = 0.3048
+    private const val HPA_PER_INHG = 33.8639
+    private const val FAHRENHEIT_PER_CELSIUS = 1.8
+    private const val FAHRENHEIT_AT_ZERO_CELSIUS = 32.0
 
     fun kmhToMph(kmh: Double): Double = kmh / KILOMETRES_PER_MILE
+
+    fun celsiusToFahrenheit(celsius: Double): Double = celsius * FAHRENHEIT_PER_CELSIUS + FAHRENHEIT_AT_ZERO_CELSIUS
 
     fun metresToFeet(metres: Double): Double = metres / METRES_PER_FOOT
 
     fun metresToKilometres(metres: Double): Double = metres / METRES_PER_KILOMETRE
 
     fun metresToMiles(metres: Double): Double = metres / METRES_PER_MILE
+
+    fun hpaToInHg(hpa: Double): Double = hpa / HPA_PER_INHG
 }

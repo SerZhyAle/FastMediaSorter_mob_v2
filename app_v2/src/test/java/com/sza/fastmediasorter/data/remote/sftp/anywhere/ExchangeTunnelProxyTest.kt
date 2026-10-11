@@ -1,8 +1,11 @@
 package com.sza.fastmediasorter.data.remote.sftp.anywhere
 
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeFrameCodec
 import com.sza.fastmediasorter.domain.model.SftpTunnelAddress
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Test
 import java.net.ServerSocket
@@ -11,14 +14,17 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
-/** The consumer leg of contract ANYWHERE-ACCESS section 6.4 against a fake exchange server on loopback. */
+/** The outsider consumer of contract DEVICE-EXCHANGE 7.5 against a fake exchange server on loopback. */
 class ExchangeTunnelProxyTest {
 
     private val exchange = ServerSocket(0)
     private val parts = SftpTunnelAddress.Parts(SHARE_ID, "127.0.0.1")
+    private val trusts = mutableListOf<ExchangeTrust>()
     private val connector = object : ExchangeConnector {
-        override fun connect(host: String, port: Int, pinnedCertificate: String?): ExchangeConnection =
-            ExchangeConnection(Socket(host, port), "SHA256:fake")
+        override fun connect(host: String, port: Int, trust: ExchangeTrust): ExchangeConnection {
+            trusts += trust
+            return ExchangeConnection(Socket(host, port), "SHA256:fake")
+        }
     }
 
     @After
@@ -28,11 +34,14 @@ class ExchangeTunnelProxyTest {
 
     @Test
     fun `an accepted connect hands the stream over to raw bytes`() {
-        val asked = ArrayBlockingQueue<ExchangeEnvelope>(1)
+        val asked = ArrayBlockingQueue<DeviceExchangeEnvelope>(1)
         thread(isDaemon = true) {
             exchange.accept().use { socket ->
-                asked.put(checkNotNull(ExchangeFrameCodec.read(socket.getInputStream())))
-                ExchangeFrameCodec.write(socket.getOutputStream(), ExchangeEnvelope(ExchangeEnvelope.TYPE_CONNECTED))
+                asked.put(checkNotNull(DeviceExchangeFrameCodec.read(socket.getInputStream())))
+                DeviceExchangeFrameCodec.write(
+                    socket.getOutputStream(),
+                    DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_CONNECTED),
+                )
                 val banner = ByteArray(BANNER.length)
                 var offset = 0
                 while (offset < banner.size) {
@@ -54,19 +63,21 @@ class ExchangeTunnelProxyTest {
         proxy.close()
 
         val request = checkNotNull(asked.poll(WAIT_SECONDS, TimeUnit.SECONDS))
-        assertEquals(ExchangeEnvelope.TYPE_CONNECT, request.type)
-        assertEquals(SHARE_ID, request.shareId)
+        assertEquals(DeviceExchangeEnvelope.TYPE_CONNECT, request.type)
+        assertEquals(SHARE_ID, request.string("shareId"))
+        assertNull(request.string("deviceToken"))
         assertEquals(BANNER, String(echoed))
+        assertEquals(listOf<ExchangeTrust>(ExchangeTrust.Verified(null)), trusts)
     }
 
     @Test
     fun `an unavailable share is its own failure`() {
         thread(isDaemon = true) {
             exchange.accept().use { socket ->
-                ExchangeFrameCodec.read(socket.getInputStream())
-                ExchangeFrameCodec.write(
+                DeviceExchangeFrameCodec.read(socket.getInputStream())
+                DeviceExchangeFrameCodec.write(
                     socket.getOutputStream(),
-                    ExchangeEnvelope(ExchangeEnvelope.TYPE_REFUSED, reason = ExchangeEnvelope.REASON_UNAVAILABLE),
+                    DeviceExchangeEnvelope.refused(DeviceExchangeEnvelope.REASON_UNAVAILABLE),
                 )
             }
         }

@@ -117,6 +117,7 @@ tips:
   - "**Want the phone to be the server instead?** See [Turning the phone into an SFTP server](page:network.phone-as-sftp-server)."
   - "**Testing an SFTP or FTP resource from your watch?** The watch's own **Test** button really connects and reports the server's actual reason on failure - see [Opening the phone's and network folders on the watch](page:wear.phone-and-network-folders-on-watch)."
   - "**Everything in one move to a new phone.** Resources added here, including keys and pinned fingerprints, travel in the same backup as the rest of your resources - see [Sharing and backing up your resources](page:storage.sharing-and-backing-up-resources)."
+  - "**Want to reach your own storage from outside your home?** The [media exchange portal](../../docs/media-exchange-portal/home-network.html) walks through the home network way step by step and says what works today."
 next_recipes:
   - title: Connecting SMB/Windows shares
     url: page:network.smb-samba-shares
@@ -135,6 +136,6 @@ next_recipes:
     description: The PC-side companion that publishes folders as ready-made SFTP resources.
 ---
 
-<sub class="doc-stamp">26.10.07 03:42</sub>
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Add an FTP or SFTP server by address, sign in with a password or an SSH key, let the app confirm the server's identity once and re-check it on every visit, and hand a folder to someone else - or receive one from them - as a single shared file. Testing the same kind of resource from a paired [watch](term:watch) is covered too.

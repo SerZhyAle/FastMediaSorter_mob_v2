@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.hardware.GeomagneticField
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -14,13 +15,23 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.core.content.ContextCompat
+import com.sza.fastmediasorter.wear.di.ApplicationScope
 import com.sza.fastmediasorter.wear.domain.bodysensor.heartRatePermission
 import com.sza.fastmediasorter.wear.domain.repository.WearTouristRepository
 import com.sza.fastmediasorter.wear.domain.tourist.TouristMetricType
+import com.sza.fastmediasorter.wear.domain.tourist.WearCadenceMeter
+import com.sza.fastmediasorter.wear.domain.tourist.WearElevationSource
+import com.sza.fastmediasorter.wear.domain.tourist.WearPressureSample
 import com.sza.fastmediasorter.wear.domain.tourist.WearSolarCalculator
 import com.sza.fastmediasorter.wear.domain.tourist.WearTouristState
+import com.sza.fastmediasorter.wear.domain.tourist.WearTouristTripTracker
+import com.sza.fastmediasorter.wear.domain.tourist.WearTripMotionPolicy
+import com.sza.fastmediasorter.wear.domain.tourist.WearTripSnapshot
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
@@ -31,16 +42,17 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
 
 private const val UPDATE_THROTTLE_MS = 500L
 private const val AGE_TICK_INTERVAL_MS = 1_000L
+private const val PRESSURE_SAMPLE_INTERVAL_MS = 1_000L
 private const val MIN_LOCATION_TIME_MS = 1_000L
 private const val MIN_LOCATION_DISTANCE_M = 1.0f
 private const val MS_TO_KMH = 3.6f
+private const val MILLIS_PER_SECOND = 1_000.0
 private const val ROTATION_MATRIX_SIZE = 9
 private const val ORIENTATION_ANGLES_SIZE = 3
 private const val FULL_ROTATION_DEGREES = 360.0
@@ -48,57 +60,69 @@ private const val CARDINAL_OFFSET_DEGREES = 22.5f
 private const val CARDINAL_SECTOR_DEGREES = 45f
 private const val CARDINAL_SECTORS_COUNT = 8
 private const val TEMPERATURE_TOKEN = "temperature"
+private const val MIN_SATELLITES_FOR_FIX = 4
+
+/** The last GPS altitude with what the barometer needs to judge it as an anchor. */
+private data class GpsAltitudeFix(
+    val altitudeMeters: Double,
+    val verticalAccuracyMeters: Float?,
+    val isEllipsoid: Boolean,
+)
 
 /**
  * S3007: Android implementation of [WearTouristRepository] aggregating GPS, GNSS, orientation,
  * pressure and step sensors on Wear OS.
+ *
+ * S4146: the trip belongs to [WearTouristTripTracker]; this class only feeds it - GPS fixes with a
+ * trusted accuracy for distance, the barometer (or GPS) for elevation - and copies its snapshot into
+ * the state once a second.
  */
 @Singleton
 class AndroidWearTouristRepository @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val tripTracker: WearTouristTripTracker,
+    private val environmentSensors: WearTouristEnvironmentSensors,
+    @ApplicationScope private val appScope: CoroutineScope,
 ) : WearTouristRepository {
 
-    private val accumulatedTripMeters = AtomicReference(0.0)
-    private val maxSpeedKmh = AtomicReference(0f)
     private val baseStepCount = AtomicLong(-1L)
     private val sessionSteps = AtomicLong(0L)
+    private val cadenceMeter = WearCadenceMeter()
 
     @Volatile
-    private var lastLocation: Location? = null
+    private var lastGpsLocation: Location? = null
 
-    // The anchor is dropped with the meters: kept, the first fix after a reset would add the leg
-    // walked before the reset to the new trip.
-    override fun resetTrip() {
-        lastLocation = null
-        accumulatedTripMeters.set(0.0)
-        maxSpeedKmh.set(0f)
+    @Volatile
+    private var lastAltitudeFix: GpsAltitudeFix? = null
+
+    @Volatile
+    private var lastPressureAtMillis = 0L
+
+    // The anchor is dropped with the trip: kept, the first fix after a reset would add the leg walked
+    // before the reset to the new trip.
+    override suspend fun resetTrip() {
+        lastGpsLocation = null
+        tripTracker.reset()
+        Timber.d("S4146: trip reset - distance, time, ascent and descent zeroed")
     }
 
     override fun resetSteps() {
         baseStepCount.set(-1L)
         sessionSteps.set(0L)
+        cadenceMeter.clear()
     }
 
     @OptIn(FlowPreview::class)
     override fun observeTelemetry(): Flow<WearTouristState> = callbackFlow {
+        tripTracker.ensureLoaded()
+        Timber.d("S4146: tourist telemetry subscribed, stored trip loaded")
+        // A new subscription is a return to the screen: its first fix only anchors, so the walk done
+        // while the section was closed is never added as a straight line.
+        lastGpsLocation = null
         val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
 
-        var currentState = WearTouristState(
-            focusedMetric = TouristMetricType.SPEED,
-            tripDistanceMeters = accumulatedTripMeters.get(),
-            maxSpeedKmh = maxSpeedKmh.get(),
-            stepCount = sessionSteps.get(),
-            hasLocationPermission = hasLocationPermission(),
-            // Heading comes from the rotation vector alone (registerSensors), so only that sensor may
-            // claim a compass; accelerometer plus magnetometer would show one that never points.
-            hasCompassSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) != null,
-            hasPressureSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PRESSURE) != null,
-            hasStepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null ||
-                sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR) != null,
-            hasHeartRateSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_HEART_RATE) != null,
-            hasBodyTemperatureSensor = resolveTemperatureSensor(sensorManager) != null,
-        )
+        var currentState = initialState(sensorManager)
 
         val updateAndEmit: ((WearTouristState) -> WearTouristState) -> Unit = { transform ->
             currentState = transform(currentState)
@@ -111,32 +135,73 @@ class AndroidWearTouristRepository @Inject constructor(
 
         val sensorListener = createSensorListener(updateAndEmit)
         registerSensors(sensorManager, sensorListener)
+        val environmentListener = environmentSensors.register(sensorManager, updateAndEmit)
 
         trySend(currentState)
 
         val ticker = launch {
             while (isActive) {
                 delay(AGE_TICK_INTERVAL_MS)
+                val trip = tripTracker.snapshot.value
+                val grade = tripTracker.slopePercent()
                 updateAndEmit { prev ->
-                    prev.copy(
+                    withTrip(prev, trip, grade).copy(
                         hasLocationPermission = hasLocationPermission(),
-                        tripDistanceMeters = accumulatedTripMeters.get(),
-                        maxSpeedKmh = maxSpeedKmh.get(),
                         stepCount = sessionSteps.get(),
                     )
                 }
+                tripTracker.persistIfDue(System.currentTimeMillis())
             }
         }
 
         awaitClose {
+            Timber.d("S4146: tourist telemetry released, sensors unregistered")
             ticker.cancel()
             sensorManager?.unregisterListener(sensorListener)
+            environmentSensors.unregister(sensorManager, environmentListener)
             locationManager?.removeUpdates(locationListener)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && gnssCallback != null) {
-                locationManager?.unregisterGnssStatusCallback(gnssCallback)
-            }
+            locationManager?.unregisterGnssStatusCallback(gnssCallback)
+            // The flow's own scope is already cancelled here, so the last write rides the process scope.
+            appScope.launch { tripTracker.persist() }
         }
     }.sample(UPDATE_THROTTLE_MS)
+
+    private fun initialState(sensorManager: SensorManager?): WearTouristState {
+        val environment = environmentSensors.capabilities(sensorManager)
+        return withTrip(WearTouristState(), tripTracker.snapshot.value, tripTracker.slopePercent()).copy(
+            focusedMetric = TouristMetricType.SPEED,
+            stepCount = sessionSteps.get(),
+            hasLocationPermission = hasLocationPermission(),
+            // Heading comes from the rotation vector alone (registerSensors), so only that sensor may
+            // claim a compass; accelerometer plus magnetometer would show one that never points.
+            hasCompassSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) != null,
+            hasPressureSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PRESSURE) != null,
+            hasStepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null ||
+                sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR) != null,
+            hasHeartRateSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_HEART_RATE) != null,
+            hasBodyTemperatureSensor = resolveTemperatureSensor(sensorManager) != null,
+            hasLightSensor = environment.hasLight,
+            hasMagneticSensor = environment.hasMagnetic,
+            hasLevelSensor = environment.hasLevel,
+        )
+    }
+
+    /** Average speed is distance over moving time, not over clock time: a lunch stop does not slow it. */
+    private fun withTrip(state: WearTouristState, trip: WearTripSnapshot, grade: Float?): WearTouristState {
+        val movingSeconds = trip.movingMillis / MILLIS_PER_SECOND
+        val average = if (movingSeconds > 0.0) (trip.distanceMeters / movingSeconds * MS_TO_KMH).toFloat() else 0f
+        return state.copy(
+            tripDistanceMeters = trip.distanceMeters,
+            maxSpeedKmh = trip.maxSpeedKmh,
+            avgSpeedKmh = average,
+            tripStartedAtMillis = trip.startedAtMillis,
+            movingMillis = trip.movingMillis,
+            gainMeters = trip.gainMeters,
+            lossMeters = trip.lossMeters,
+            elevationSource = trip.elevationSource,
+            gradePercent = grade,
+        )
+    }
 
     private fun createLocationListener(
         updateAndEmit: ((WearTouristState) -> WearTouristState) -> Unit,
@@ -144,18 +209,11 @@ class AndroidWearTouristRepository @Inject constructor(
         return object : LocationListener {
             override fun onLocationChanged(location: Location) {
                 val speed = if (location.hasSpeed()) location.speed * MS_TO_KMH else null
-                if (speed != null && speed > maxSpeedKmh.get()) {
-                    maxSpeedKmh.set(speed)
+                val accuracy = if (location.hasAccuracy()) location.accuracy else null
+                val isGps = location.provider == LocationManager.GPS_PROVIDER
+                if (isGps) {
+                    onGpsFix(location, speed, accuracy, updateAndEmit)
                 }
-
-                lastLocation?.let { prev ->
-                    val dist = prev.distanceTo(location).toDouble()
-                    if (dist > 0.0) {
-                        val newDist = accumulatedTripMeters.updateAndGet { it + dist }
-                        updateAndEmit { it.copy(tripDistanceMeters = newDist) }
-                    }
-                }
-                lastLocation = location
 
                 val solar = WearSolarCalculator.calculateSunriseSunset(
                     latitude = location.latitude,
@@ -167,8 +225,6 @@ class AndroidWearTouristRepository @Inject constructor(
                         latitude = location.latitude,
                         longitude = location.longitude,
                         speedKmh = speed ?: prev.speedKmh,
-                        maxSpeedKmh = maxSpeedKmh.get(),
-                        altitudeMeters = if (location.hasAltitude()) location.altitude else prev.altitudeMeters,
                         sunriseMillis = solar.sunriseMillis,
                         sunsetMillis = solar.sunsetMillis,
                         isDaylight = solar.isDaylight,
@@ -185,10 +241,72 @@ class AndroidWearTouristRepository @Inject constructor(
         }
     }
 
+    /**
+     * Only GPS fixes feed the trip: a network fix is a cell or Wi-Fi guess hundreds of metres wide, and
+     * mixed into the track it adds zig-zags as distance. A fix outside the trusted accuracy neither adds
+     * distance nor becomes the next anchor.
+     */
+    private fun onGpsFix(
+        location: Location,
+        speed: Float?,
+        accuracy: Float?,
+        updateAndEmit: ((WearTouristState) -> WearTouristState) -> Unit,
+    ) {
+        val now = System.currentTimeMillis()
+        val trusted = WearTripMotionPolicy.isTrustedFix(accuracy)
+        val previous = lastGpsLocation
+        val delta = if (trusted && previous != null) previous.distanceTo(location).toDouble() else 0.0
+        tripTracker.onMotion(speed, delta, accuracy, now)
+        if (trusted) lastGpsLocation = location
+
+        val altitudeFix = readAltitude(location)
+        lastAltitudeFix = altitudeFix ?: lastAltitudeFix
+        if (altitudeFix != null && trusted) {
+            tripTracker.onElevation(altitudeFix.altitudeMeters, WearElevationSource.GPS)
+        }
+        val moving = WearTripMotionPolicy.isMoving(speed, accuracy)
+        val declination = GeomagneticField(
+            location.latitude.toFloat(),
+            location.longitude.toFloat(),
+            (altitudeFix?.altitudeMeters ?: 0.0).toFloat(),
+            now,
+        ).declination
+        updateAndEmit { prev ->
+            prev.copy(
+                altitudeMeters = altitudeFix?.altitudeMeters ?: prev.altitudeMeters,
+                gpsAltitudeIsEllipsoid = altitudeFix?.isEllipsoid ?: prev.gpsAltitudeIsEllipsoid,
+                gpsAccuracyMeters = accuracy,
+                courseDegrees = if (moving && location.hasBearing()) location.bearing else null,
+                declinationDegrees = declination,
+            )
+        }
+    }
+
+    /** Height above sea level exists only from API 34; below it the WGS84 ellipsoid height is all there is. */
+    private fun readAltitude(location: Location): GpsAltitudeFix? {
+        val hasMsl = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && location.hasMslAltitude()
+        return when {
+            hasMsl -> GpsAltitudeFix(
+                altitudeMeters = location.mslAltitudeMeters,
+                verticalAccuracyMeters = if (location.hasMslAltitudeAccuracy()) {
+                    location.mslAltitudeAccuracyMeters
+                } else {
+                    null
+                },
+                isEllipsoid = false,
+            )
+            location.hasAltitude() -> GpsAltitudeFix(
+                altitudeMeters = location.altitude,
+                verticalAccuracyMeters = if (location.hasVerticalAccuracy()) location.verticalAccuracyMeters else null,
+                isEllipsoid = true,
+            )
+            else -> null
+        }
+    }
+
     private fun createGnssCallback(
         updateAndEmit: ((WearTouristState) -> WearTouristState) -> Unit,
-    ): GnssStatus.Callback? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return null
+    ): GnssStatus.Callback {
         return object : GnssStatus.Callback() {
             override fun onSatelliteStatusChanged(status: GnssStatus) {
                 val total = status.satelliteCount
@@ -200,7 +318,7 @@ class AndroidWearTouristRepository @Inject constructor(
                     it.copy(
                         satelliteCount = total,
                         usedSatellites = used,
-                        hasGpsFix = used >= 4,
+                        hasGpsFix = used >= MIN_SATELLITES_FOR_FIX,
                     )
                 }
             }
@@ -216,7 +334,7 @@ class AndroidWearTouristRepository @Inject constructor(
     private fun registerLocationAndGnss(
         locationManager: LocationManager?,
         locationListener: LocationListener,
-        gnssCallback: GnssStatus.Callback?,
+        gnssCallback: GnssStatus.Callback,
     ) {
         if (!hasLocationPermission() || locationManager == null) return
         try {
@@ -240,9 +358,7 @@ class AndroidWearTouristRepository @Inject constructor(
                 ?: locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
             lastKnown?.let { locationListener.onLocationChanged(it) }
 
-            gnssCallback?.let {
-                locationManager.registerGnssStatusCallback(context.mainExecutor, it)
-            }
+            locationManager.registerGnssStatusCallback(gnssCallback, Handler(Looper.getMainLooper()))
         } catch (e: SecurityException) {
             Timber.w(e, "Location permission not granted or revoked during registration")
         }
@@ -271,14 +387,7 @@ class AndroidWearTouristRepository @Inject constructor(
                             )
                         }
                     }
-                    Sensor.TYPE_PRESSURE -> {
-                        val pressureHpa = event.values[0]
-                        val alt = SensorManager.getAltitude(
-                            SensorManager.PRESSURE_STANDARD_ATMOSPHERE,
-                            pressureHpa,
-                        ).toDouble()
-                        updateAndEmit { it.copy(altitudeMeters = alt) }
-                    }
+                    Sensor.TYPE_PRESSURE -> onPressure(event.values[0], updateAndEmit)
                     Sensor.TYPE_STEP_COUNTER -> {
                         val rawSteps = event.values[0].toLong()
                         if (baseStepCount.get() < 0) {
@@ -286,12 +395,9 @@ class AndroidWearTouristRepository @Inject constructor(
                         }
                         val steps = (rawSteps - baseStepCount.get()).coerceAtLeast(0L)
                         sessionSteps.set(steps)
-                        updateAndEmit { it.copy(stepCount = steps) }
+                        onSteps(steps, updateAndEmit)
                     }
-                    Sensor.TYPE_STEP_DETECTOR -> {
-                        val steps = sessionSteps.incrementAndGet()
-                        updateAndEmit { it.copy(stepCount = steps) }
-                    }
+                    Sensor.TYPE_STEP_DETECTOR -> onSteps(sessionSteps.incrementAndGet(), updateAndEmit)
                     Sensor.TYPE_HEART_RATE -> {
                         val bpm = event.values[0].roundToInt()
                         if (bpm > 0) {
@@ -303,6 +409,39 @@ class AndroidWearTouristRepository @Inject constructor(
             }
 
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+        }
+    }
+
+    private fun onSteps(steps: Long, updateAndEmit: ((WearTouristState) -> WearTouristState) -> Unit) {
+        val cadence = cadenceMeter.onSteps(steps, System.currentTimeMillis())
+        updateAndEmit { it.copy(stepCount = steps, cadenceStepsPerMinute = cadence) }
+    }
+
+    /**
+     * The barometer reports many times a second; one reading a second is plenty for altitude and
+     * trend, and keeps the slope window spanning ground rather than a fraction of a second.
+     */
+    private fun onPressure(pressureHpa: Float, updateAndEmit: ((WearTouristState) -> WearTouristState) -> Unit) {
+        val now = System.currentTimeMillis()
+        if (now - lastPressureAtMillis < PRESSURE_SAMPLE_INTERVAL_MS) return
+        lastPressureAtMillis = now
+        tripTracker.onPressure(WearPressureSample(now, pressureHpa))
+        val fix = lastAltitudeFix
+        val baro = tripTracker.baroAltitude(
+            pressureHpa = pressureHpa,
+            gpsAltitudeM = fix?.altitudeMeters,
+            gpsVerticalAccuracyM = fix?.verticalAccuracyMeters,
+            gpsAltitudeIsEllipsoid = fix?.isEllipsoid ?: true,
+        )
+        tripTracker.onElevation(baro.metres, WearElevationSource.BAROMETER)
+        val trend = tripTracker.pressureTrend(now)
+        updateAndEmit {
+            it.copy(
+                pressureHpa = pressureHpa,
+                pressureTrend = trend,
+                baroAltitudeMeters = baro.metres,
+                baroAltitudeApproximate = baro.approximate,
+            )
         }
     }
 

@@ -31,6 +31,7 @@ _Generated from the app. Do not edit by hand._
 | Import Settings from File | Loads app settings from a previously exported file, replacing the current configuration. |
 | Import Test Setup | Imports a predefined test configuration used for QA and integration testing. |
 | RUN INTEGRATION TESTS | Runs the app's built-in integration test suite. |
+| Media exchange between devices | Opens the media exchange portal: which way of connecting your devices fits you - the home network, the exchange server or live broadcast - and what works today. |
 | Open Source Licenses | Shows the licenses for open-source libraries used in the app. |
 | Welcome Tutorial | Reopens the welcome tutorial screen shown on first launch. |
 | Permissions & Access | Opens the permissions and access management screen where you can review and adjust what the app can access. |

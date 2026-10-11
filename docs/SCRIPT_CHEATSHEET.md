@@ -2546,6 +2546,20 @@ scripts/docs/render-settings-reference.ps1
   Exit: 0 - the four reference pages were written.; 4 - Code.Scripts is held by another session: nothing was written, the place
 ```
 
+### render-usage-schemes.ps1
+S4140 - render the usage-scheme illustrations (exchange server, live broadcast, home network) as SVG in every documented language.
+
+```
+scripts/docs/render-usage-schemes.ps1
+  S4140 - render the usage-scheme illustrations (exchange server, live broadcast, home network) as SVG in every documented language.
+  Params:
+    -Check           [SwitchParameter]
+    -Lang            [String[]]
+    -OutDir          [String] = 'docs/media-exchange-portal/diagrams'
+    -Preview         [String]
+  Exit: 0 rendered (or, with -Check, everything on disk is current); 1 -Check found a missing or stale picture; 2 invalid input: label files disagree on keys, a key is missing or unused, or a drawing failed
+```
+
 ### render-wear-icon-legend.ps1
 S3442 - render the watch icon legend: every glyph the watch draws, beside its ICON-SET name.
 
@@ -2752,6 +2766,26 @@ scripts/docs/stamp-doc-dates.tests/Run-Tests.ps1
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
   Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: the library or the script is missing
+```
+
+## scripts\docs\usage-schemes
+
+### Diagrams.ps1
+the usage-scheme illustrations (S4140), one function per picture.
+
+```
+scripts/docs/usage-schemes/Diagrams.ps1
+  the usage-scheme illustrations (S4140), one function per picture.
+  (no param block)
+```
+
+### SvgKit.ps1
+drawing primitives for the usage-scheme illustrations (S4140).
+
+```
+scripts/docs/usage-schemes/SvgKit.ps1
+  drawing primitives for the usage-scheme illustrations (S4140).
+  (no param block)
 ```
 
 ## scripts\document_registry
@@ -4178,9 +4212,11 @@ scripts/quality/assert-memory-budget.ps1
 ```
 
 ### assert-meta-packaging-limits.ps1
+Measures a built VR-flavor APK against the Meta VRC packaging limits (S3364).
 
 ```
 scripts/quality/assert-meta-packaging-limits.ps1
+  Measures a built VR-flavor APK against the Meta VRC packaging limits (S3364).
   Params:
     -ApkPath         [String]
     -ObbPath         [String]
@@ -5154,9 +5190,11 @@ scripts/quality/assert-watchface-listing-live.ps1
 ```
 
 ### assert-wear-64bit-abi.ps1
+Asserts that a built wear APK carries the arm64-v8a ABI required by Google Play (S3364).
 
 ```
 scripts/quality/assert-wear-64bit-abi.ps1
+  Asserts that a built wear APK carries the arm64-v8a ABI required by Google Play (S3364).
   Params:
     -ApkPath         [String]
     -Gate            [SwitchParameter]
@@ -5190,9 +5228,11 @@ scripts/quality/assert-wear-mirrored-strings.ps1
 ```
 
 ### assert-wear-phone-identity-parity.ps1
+Asserts the phone and wear modules share one applicationId and one signing key (S3364).
 
 ```
 scripts/quality/assert-wear-phone-identity-parity.ps1
+  Asserts the phone and wear modules share one applicationId and one signing key (S3364).
   Params:
     -PhoneApplicationIdOverride         [String]
     -WearApplicationIdOverride          [String]
@@ -6424,9 +6464,11 @@ scripts/quality/assert-site-origins.tests/Run-Tests.ps1
 ## scripts\quality\assert-stream-facet-values.tests
 
 ### Run-Tests.ps1
+Contract tests for assert-stream-facet-values.ps1 (S4133).
 
 ```
 scripts/quality/assert-stream-facet-values.tests/Run-Tests.ps1
+  Contract tests for assert-stream-facet-values.ps1 (S4133).
   (no param block)
   Exit: 0 every case passed; 1 at least one case failed
 ```

@@ -3,7 +3,7 @@ layout: default
 title: "Пошаговые сценарии - FastMediaSorter v2"
 permalink: /docs/howto/index-ru.html
 ---
-<sub class="doc-stamp">26.09.30 08:53</sub>
+<sub class="doc-stamp">26.10.10 14:48</sub>
 
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Пошаговые сценарии
 
@@ -25,6 +25,7 @@ permalink: /docs/howto/index-ru.html
 - <img src="../icons/doc/ic_image.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Есть старый планшет - хочу сделать из него фоторамку»_ → [Цифровая фоторамка](scenario-photo-frame-ru.md)
 - <img src="../icons/doc/ic_profile_car_head_unit.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«У меня Android-магнитола в машине, хочу слушать свою музыку»_ → [Музыка в автомобиле](scenario-car-music-ru.md)
 - <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу FastMedia на смарт-часах и не знаю, с чего начать»_ → [Поставить FastMedia на часы](wear-install-ru.md) • [Веб-портал Wear OS](../wear/index-ru.md)
+- <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу переносить медиа между своими устройствами и не знаю, какой способ мне подходит»_ → [Портал обмена медиа](../media-exchange-portal/index-ru.md)
 - <img src="../icons/doc/ic_audio.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу слушать свою музыку или треки с телефона на смарт-часах»_ → [Музыка на смарт-часах](scenario-watch-music-ru.md)
 - <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу подключить смарт-часы напрямую к общей папке ПК или NAS»_ → [Подключение часов к сетевым ресурсам](scenario-watch-network-ru.md)
 - <img src="../icons/doc/ic_stream.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу смотреть телеканалы на смарт-часах»_ → [Телевизор на смарт-часах](scenario-watch-tv-ru.md)

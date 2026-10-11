@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.core.view.setPadding
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
@@ -18,6 +19,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 
 /**
@@ -69,24 +71,44 @@ class InputHelpDialogFragment : DialogFragment() {
             }
         }
 
-        val link = TextView(ctx).apply {
-            setPadding(0, (16 * density).toInt(), 0, 0)
-            setTextColor(MaterialColors.getColor(this, androidx.appcompat.R.attr.colorPrimary))
-            text = ctx.getString(R.string.docs_help_open_page)
-            isFocusable = true
-            setBackgroundResource(selectableBackgroundRes())
-            setOnClickListenerDebounced {
+        root.addView(
+            buildLink(R.string.docs_help_open_page, topPaddingDp = LINK_TOP_PADDING_DP, density = density) {
                 val url = InputHelpLinkResolver.urlFor(surface, LocaleHelper.getLanguage(ctx))
                 DocsPageOpenManager.open(requireActivity(), url)
             }
+        )
+        // S4143: the surfaces that ask the user to choose HOW to reach a source also get the portal page
+        // that compares the ways; the recipe link above stays, it answers the how-to question.
+        MediaExchangePortalLinks.pageFor(surface)?.let { page ->
+            val portalLink = buildLink(
+                R.string.media_exchange_portal_open,
+                topPaddingDp = PORTAL_LINK_TOP_PADDING_DP,
+                density = density,
+            ) {
+                MediaExchangePortalLinks.open(requireActivity(), page)
+            }
+            root.addView(portalLink)
         }
-        root.addView(link)
 
         return MaterialAlertDialogBuilder(ctx)
             .setTitle(R.string.kbm_help_title)
             .setView(scroll)
             .setPositiveButton(R.string.ok) { d, _ -> d.dismiss() }
             .create()
+    }
+
+    private fun buildLink(
+        @StringRes textRes: Int,
+        topPaddingDp: Int,
+        density: Float,
+        onClick: () -> Unit,
+    ): TextView = TextView(requireContext()).apply {
+        setPadding(0, (topPaddingDp * density).toInt(), 0, 0)
+        setTextColor(MaterialColors.getColor(this, androidx.appcompat.R.attr.colorPrimary))
+        setText(textRes)
+        isFocusable = true
+        setBackgroundResource(selectableBackgroundRes())
+        setOnClickListenerDebounced { onClick() }
     }
 
     private fun selectableBackgroundRes(): Int {
@@ -123,6 +145,8 @@ class InputHelpDialogFragment : DialogFragment() {
     companion object {
         private const val TAG = "input_help_dialog"
         private const val ARG_SURFACE = "surface"
+        private const val LINK_TOP_PADDING_DP = 16
+        private const val PORTAL_LINK_TOP_PADDING_DP = 8
 
         /** Show the F1 help dialog for [surface]. */
         fun show(fm: FragmentManager, surface: UiSurface) {

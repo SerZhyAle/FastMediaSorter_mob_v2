@@ -4,7 +4,7 @@ title: "FastMediaSorter v2"
 permalink: /docs/README-uk.html
 ---
 
-<sub class="doc-stamp">26.10.09 14:25</sub>
+<sub class="doc-stamp">26.10.10 14:48</sub>
 
 # FastMediaSorter v2 🚀
 
@@ -19,6 +19,8 @@ permalink: /docs/README-uk.html
 Встановлюєте APK напряму? Android попереджає про пакет, який бачить уперше, - [чому з'являється попередження і що натискати](INSTALL_TRUST-uk.md).
 
 **📘 Документація користувача (англійською):** [покрокові інструкції до всіх функцій, з пошуком](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/)
+
+**🔁 Портал обміну медіа:** [який спосіб підходить, щоб переносити й відкривати медіа між власними телефоном, годинником, ТВ, VR-шоломом і ПК з Windows](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/index-uk.html)
 
 ## Про проект
 

@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.ui.settings.fragments.OpenSourceLicensesFragment
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
@@ -42,6 +43,9 @@ class GeneralSettingsLinkButtonsSetupHelper(
                 else -> "$DOCS_ROOT/HOW_TO.html"
             }
             openUrl(url, fragment.getString(R.string.settings_no_browser_for_docs))
+        }
+        binding.btnMediaExchangePortal.setOnClickListener {
+            MediaExchangePortalLinks.open(fragment.requireActivity(), MediaExchangePortalLinks.Page.START)
         }
         // S0994: PC-side companion publish-folders guide, shown only when companion import is
         // available (lite/vr hide it).

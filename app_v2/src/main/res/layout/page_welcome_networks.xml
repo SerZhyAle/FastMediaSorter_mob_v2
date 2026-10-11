@@ -200,6 +200,19 @@
                     app:icon="@drawable/ic_open_in_browse"
                     app:iconGravity="start" />
 
+                <!-- S4143: the media exchange portal. Shown whenever any remote source group exists
+                     (network or cloud); WelcomeRemoteSourcesController owns its visibility. -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnMediaExchangePortal"
+                    style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:text="@string/media_exchange_portal_link"
+                    app:icon="@drawable/ic_swap_horizontal"
+                    app:iconGravity="start" />
+
             </LinearLayout>
 
         </ScrollView>

@@ -32,6 +32,7 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.tourist.TouristMetricType
 import com.sza.fastmediasorter.wear.domain.tourist.WearTouristState
+import com.sza.fastmediasorter.wear.domain.tourist.isOffered
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
@@ -78,12 +79,17 @@ fun TouristScreen(
         }
     }
 
-    // A watch without a temperature sensor drops the metric entirely rather than showing a dash.
-    val secondaryMetrics = remember(telemetry.focusedMetric, telemetry.hasBodyTemperatureSensor) {
-        TouristMetricType.values().filter { metric ->
-            metric != telemetry.focusedMetric &&
-                (metric != TouristMetricType.BODY_TEMPERATURE || telemetry.hasBodyTemperatureSensor)
-        }
+    // A watch without the sensor drops the metric entirely rather than showing a dash or a zero.
+    val secondaryMetrics = remember(
+        telemetry.focusedMetric,
+        telemetry.hasBodyTemperatureSensor,
+        telemetry.hasPressureSensor,
+        telemetry.hasStepSensor,
+        telemetry.hasLevelSensor,
+        telemetry.hasLightSensor,
+        telemetry.hasMagneticSensor,
+    ) {
+        TouristMetricType.entries.filter { it != telemetry.focusedMetric && it.isOffered(telemetry) }
     }
 
     val promoteMetric: (TouristMetricType) -> Unit = { metricType ->

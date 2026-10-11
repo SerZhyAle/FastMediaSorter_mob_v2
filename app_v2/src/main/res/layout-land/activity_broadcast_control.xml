@@ -366,6 +366,18 @@
                     android:nextFocusUp="@id/btnCopyUrl"
                     android:text="@string/broadcast_share_help"
                     app:icon="@drawable/ic_info" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnBroadcastPortal"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:minHeight="@dimen/touch_target_min_height"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:nextFocusUp="@id/btnBroadcastHelp"
+                    android:text="@string/broadcast_portal_help"
+                    app:icon="@drawable/ic_live_broadcast" />
             </LinearLayout>
 
         </LinearLayout>

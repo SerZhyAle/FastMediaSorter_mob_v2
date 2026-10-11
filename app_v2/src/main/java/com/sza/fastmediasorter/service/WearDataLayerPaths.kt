@@ -76,6 +76,31 @@ object WearDataLayerPaths {
     /** Data Item, watch → phone. Carries current playback state. */
     const val PLAYBACK_STATE = "/fms/watch/playback_state"
 
+    /**
+     * Data Item, watch to phone. Carries the watch Tourist heart rate and body temperature (S4150).
+     *
+     * State, not an event: the phone keeps only the latest report and judges its age by arrival time.
+     * The watch sends it only while its Tourist screen already runs the sensors, so the phone never
+     * wakes them. Covered by the `/fms/watch` listener prefix; mirrored verbatim in the watch module.
+     */
+    const val TOURIST_HEALTH = "/fms/watch/tourist_health"
+
+    /**
+     * Data Item, watch to phone. Asks for the Tourist weather at a rounded watch position (S4152).
+     *
+     * Sent only while the watch Tourist is open; its timestamp field makes every request a change, so the
+     * phone hears it even at an unchanged position. Mirrored verbatim in the watch module.
+     */
+    const val TOURIST_WEATHER_REQUEST = "/fms/watch/tourist_weather_request"
+
+    /**
+     * Data Item, phone to watch. Answers [TOURIST_WEATHER_REQUEST] with the weather details (S4152).
+     *
+     * State, not an event: the watch reads the latest answer on opening Tourist and judges its age by the
+     * observation time inside it. Mirrored verbatim in the watch module.
+     */
+    const val TOURIST_WEATHER = "/fms/phone/tourist_weather"
+
     /** Message, phone → watch. Carries remote playback command. */
     const val PLAYBACK_CMD = "/fms/phone/playback_cmd"
 
@@ -403,4 +428,13 @@ object WearDataLayerPaths {
 
     /** eventType value for STREAM_TRANSFER envelopes. */
     const val EVENT_STREAM_TRANSFER = "STREAM_TRANSFER"
+
+    /** eventType value for TOURIST_HEALTH envelopes (S4150). */
+    const val EVENT_TOURIST_HEALTH = "TOURIST_HEALTH"
+
+    /** eventType value for TOURIST_WEATHER_REQUEST envelopes (S4152). */
+    const val EVENT_TOURIST_WEATHER_REQUEST = "TOURIST_WEATHER_REQUEST"
+
+    /** eventType value for TOURIST_WEATHER envelopes (S4152). */
+    const val EVENT_TOURIST_WEATHER = "TOURIST_WEATHER"
 }

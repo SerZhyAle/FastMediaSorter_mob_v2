@@ -1,17 +1,17 @@
-<sub class="doc-stamp">26.10.07 12:50</sub>
+<sub class="doc-stamp">26.10.11 01:45</sub>
 
 # Pointer - `DEVICE-EXCHANGE`
 
 | | |
 | --- | --- |
 | **Id** | `DEVICE-EXCHANGE` |
-| **Version** | 0.17, draft - [PROPOSED] in full, nothing ships against it yet. Owner: FastMediaSorter Android |
+| **Version** | 0.18, draft - [PROPOSED] in full, nothing ships against it yet. Owner: FastMediaSorter Android |
 | **Home** | `device-exchange/README.md` in the shared contracts catalog |
 | **Role here** | owner; phone - resource producer and consumer, broadcaster, receiver, enrolls the watch; watch - audio broadcaster and receiver. The exchange server is FMS_W's to implement |
 
 ## What this repository owes it once implementations exist
 
-- Enroll once per installation and keep only the device token, in Keystore-backed storage; never store the
+- Enroll once per account entry and keep only its device token, in Keystore-backed storage; never store the
   account password.
 - Pin the exchange server's certificate on first contact and refuse a changed one, as a host-key mismatch.
 - Publish the embedded SFTP server's share as a `sftp-share` resource with a stable `resourceId`; reach an
@@ -26,6 +26,13 @@
 - Every outsider `connect` is TLS only; there is no plain fallback (item V).
 - A share's `access` reaches Drive only with the user's explicit opt-in, off by default and worded to name
   Google; a Drive record without `access` is listed and cannot be attached (item X).
+- Read and write the `FMSEXCH1` connection string by its content - paste, `.fmsexch` file, QR - with the
+  WHATWG form-urlencoded canonical bytes, and replay `vectors/connection-string-v1.json` (section 5.5).
+- Hold several account entries, a `deviceId` each, identified by address and login; bind an attached resource
+  to that identity and its `resourceId`; removing an entry revokes its own device (section 16, items AA, AB).
+- Publish and broadcast through one outgoing entry; leaving it as a producer unpublishes and keeps the entry;
+  declare every role at `enroll` (item AC).
+- Play the exchange endpoints of any server a broadcast descriptor names, with no entry for it (item AF).
 
 ## Where it will live here
 
@@ -37,3 +44,8 @@
 
 - S4116 - the owner's input, the contract outcome and the work this repository owes.
 - S4129 - the Drive opt-in and the listing of a record without `access`.
+- S4153 - the owner's decision on the 2026-10-10 proposals and the 0.18 fold, with the vector file.
+- S4154, S4155, S4156, S4157, S4158 - the connection-string codec, its intake, account entries, the producer
+  entry's join and leave, the watch through the phone's entry.
+- S4160 - receiving a broadcast from any exchange server its descriptor names, and the broadcast's own share
+  carrying its exchange endpoints.

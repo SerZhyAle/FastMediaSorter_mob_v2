@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.09 14:52</sub>
+<sub class="doc-stamp">26.10.10 14:48</sub>
 
 # FastMediaSorter v2 🚀
 
@@ -331,6 +331,8 @@ Downloads folder cluttered? Open it in the source panel, set up destination butt
 **🌐 Official Website:** [https://serzhyale.github.io/FastMediaSorter_mob_v2/](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
 
 **📘 User Documentation:** [step-by-step guides for every feature, with search](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/)
+
+**🔁 Media Exchange Portal:** [which way fits you to move and open media between your own phone, watch, TV, VR headset and Windows PC](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/)
 
 ### Canonical Sources (Single Source of Truth)
 

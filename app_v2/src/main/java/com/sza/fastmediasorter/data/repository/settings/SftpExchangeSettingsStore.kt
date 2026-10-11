@@ -8,8 +8,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.security.PrivateDiagnosticValues
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
-import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpExchangeConfigSource
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.SftpExchangeConfig
 import com.sza.fastmediasorter.domain.model.SftpShareId
 import kotlinx.coroutines.CoroutineDispatcher
@@ -33,7 +34,7 @@ import javax.inject.Singleton
 class SftpExchangeSettingsStore @Inject constructor(
     private val dataStore: DataStore<Preferences>,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
-) : SftpExchangeConfigSource {
+) {
 
     // Narrowed to these keys and deduplicated before the Keystore decrypt, as in SftpServerSettingsStore:
     // an unrelated setting write must not re-run a binder call on the collector's thread.
@@ -44,7 +45,7 @@ class SftpExchangeSettingsStore @Inject constructor(
         .flowOn(ioDispatcher)
 
     /** The current configuration; generates and stores the share id the first time it is needed. */
-    override suspend fun snapshot(): SftpExchangeConfig {
+    suspend fun snapshot(): SftpExchangeConfig {
         val current = values.first()
         if (SftpShareId.isValid(current.shareId)) return current
         val generated = SftpShareId.generate()
@@ -52,11 +53,34 @@ class SftpExchangeSettingsStore @Inject constructor(
         return values.first()
     }
 
+    /**
+     * The account entry the share is published through (contract DEVICE-EXCHANGE 5.2), or null while no
+     * login is set. Its `deviceId` is created once, before the first enrollment, and kept with the entry.
+     * The `schemaVersion` 1 password is not part of it: the server password is never sent on the v2 wire.
+     */
+    suspend fun accountEntry(): DeviceExchangeAccountEntry? {
+        val stored = dataStore.data.first()
+        val host = stored[keyHost]?.takeIf(String::isNotBlank)
+        val login = stored[keyLogin]?.takeIf(DeviceExchangeAccountEntry::isValidLogin)
+        if (host == null || login == null) return null
+        edit { if (!SftpShareId.isValid(it[keyDeviceId])) it[keyDeviceId] = SftpShareId.generate() }
+        val deviceId = requireNotNull(dataStore.data.first()[keyDeviceId])
+        PrivateDiagnosticValues.register(host, login, stored[keyPinnedCertificate])
+        return DeviceExchangeAccountEntry(
+            host = host,
+            port = stored[keyPort] ?: SftpExchangeConfig.DEFAULT_PORT,
+            login = login,
+            deviceId = deviceId,
+            pinnedCertificate = stored[keyPinnedCertificate],
+        )
+    }
+
     suspend fun setEnabled(enabled: Boolean) = edit { it[keyEnabled] = enabled }
 
     /** A new address is a new server: the old certificate pin would refuse it, so it is dropped. */
     suspend fun setServer(host: String, port: Int) {
         require(port in 1..SftpExchangeConfig.MAX_PORT) { "Exchange server port out of range: $port" }
+        PrivateDiagnosticValues.register(host)
         edit {
             if (it[keyHost] != host.trim() || it[keyPort] != port) it.remove(keyPinnedCertificate)
             it[keyHost] = host.trim()
@@ -74,7 +98,7 @@ class SftpExchangeSettingsStore @Inject constructor(
     /** Revokes every code shared so far: the old id stops opening tunnels (contract section 6.2). */
     suspend fun rotateShareId() = edit { it[keyShareId] = SftpShareId.generate() }
 
-    override suspend fun pinCertificate(fingerprint: String) = edit { it[keyPinnedCertificate] = fingerprint }
+    suspend fun pinCertificate(fingerprint: String) = edit { it[keyPinnedCertificate] = fingerprint }
 
     suspend fun clearCertificatePin() = edit { it.remove(keyPinnedCertificate) }
 
@@ -82,23 +106,36 @@ class SftpExchangeSettingsStore @Inject constructor(
         dataStore.edit { block(it) }
     }
 
-    private fun readStored(preferences: Preferences): StoredExchangeValues = StoredExchangeValues(
-        enabled = preferences[keyEnabled],
-        host = preferences[keyHost],
-        port = preferences[keyPort],
-        passwordEncrypted = preferences[keyPasswordEncrypted],
-        shareId = preferences[keyShareId],
-        pinnedCertificate = preferences[keyPinnedCertificate],
-    )
+    // Every read of the account values feeds the log redaction (DIAGNOSTIC-REPORT section 10), so a value
+    // is known to the sink from the first time the app looks at it, not only from the first enrollment.
+    private fun readStored(preferences: Preferences): StoredExchangeValues {
+        PrivateDiagnosticValues.register(
+            preferences[keyHost],
+            preferences[keyLogin],
+            preferences[keyPinnedCertificate],
+        )
+        return StoredExchangeValues(
+            enabled = preferences[keyEnabled],
+            host = preferences[keyHost],
+            port = preferences[keyPort],
+            passwordEncrypted = preferences[keyPasswordEncrypted],
+            shareId = preferences[keyShareId],
+            pinnedCertificate = preferences[keyPinnedCertificate],
+        )
+    }
 
-    private fun decode(stored: StoredExchangeValues): SftpExchangeConfig = SftpExchangeConfig(
-        enabled = stored.enabled ?: false,
-        host = stored.host.orEmpty(),
-        port = stored.port ?: SftpExchangeConfig.DEFAULT_PORT,
-        password = stored.passwordEncrypted?.let(CryptoHelper::decrypt)?.takeUnless(String::isEmpty),
-        shareId = stored.shareId.orEmpty(),
-        pinnedCertificate = stored.pinnedCertificate,
-    )
+    private fun decode(stored: StoredExchangeValues): SftpExchangeConfig {
+        val password = stored.passwordEncrypted?.let(CryptoHelper::decrypt)?.takeUnless(String::isEmpty)
+        PrivateDiagnosticValues.register(password)
+        return SftpExchangeConfig(
+            enabled = stored.enabled ?: false,
+            host = stored.host.orEmpty(),
+            port = stored.port ?: SftpExchangeConfig.DEFAULT_PORT,
+            password = password,
+            shareId = stored.shareId.orEmpty(),
+            pinnedCertificate = stored.pinnedCertificate,
+        )
+    }
 
     private data class StoredExchangeValues(
         val enabled: Boolean?,
@@ -116,5 +153,7 @@ class SftpExchangeSettingsStore @Inject constructor(
         val keyPasswordEncrypted = stringPreferencesKey("sftp_exchange_password_enc")
         val keyShareId = stringPreferencesKey("sftp_exchange_share_id")
         val keyPinnedCertificate = stringPreferencesKey("sftp_exchange_certificate_pin")
+        val keyLogin = stringPreferencesKey("sftp_exchange_login")
+        val keyDeviceId = stringPreferencesKey("sftp_exchange_device_id")
     }
 }

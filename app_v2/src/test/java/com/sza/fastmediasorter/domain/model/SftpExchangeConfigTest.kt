@@ -44,4 +44,16 @@ class SftpExchangeConfigTest {
         assertEquals("[2001:db8::7]:44022", usable.copy(host = "2001:db8::7").endpoint())
         assertTrue(SftpPairingPayload.isHostPort(usable.copy(host = "2001:db8::7").endpoint()))
     }
+
+    // DIAGNOSTIC-REPORT 0.13 section 10 and rule 3: the address, password, share id and pin never print.
+    @Test
+    fun `toString hides the account values and keeps absence visible`() {
+        val text = usable.copy(pinnedCertificate = "SHA256:pin").toString()
+
+        listOf("relay.example.net", "Passw0rdTest", "q3Vb7YtK0xP2mN9sLfR4wA", "SHA256:pin").forEach { value ->
+            assertFalse("$value printed", text.contains(value))
+        }
+        assertTrue(text.contains("port=44022"))
+        assertTrue(usable.toString().contains("pinnedCertificate=null"))
+    }
 }

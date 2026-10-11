@@ -114,6 +114,12 @@ class CapabilityAvailability @Inject constructor(
     fun isWatchCameraStandbyAvailable(): Boolean = CAP_WATCH_CAMERA_STANDBY in compiled
 
     /**
+     * Whether the Tourist dashboard may show the watch's heart rate and body temperature (S4150).
+     * Compiled in by `noLegal` alone: the Play build is declared as having no health features.
+     */
+    fun isWatchHealthAvailable(): Boolean = CAP_WATCH_HEALTH in compiled
+
+    /**
      * Whether the embedded SFTP server may be offered: the flavor ships local-network sources
      * (absent in `lite`) AND the device runs API 26+. MINA SSHD is built on `java.nio.file`, which
      * Android gained in API 26, so the minSdk-23 flavors (`legacy`, `foss`) hide the feature on
@@ -148,5 +154,6 @@ class CapabilityAvailability @Inject constructor(
         const val CAP_NEWPIPE = "newpipe"
         const val CAP_CLOUD = "cloud"
         const val CAP_WATCH_CAMERA_STANDBY = "watch_camera_standby"
+        const val CAP_WATCH_HEALTH = "watch_health"
     }
 }

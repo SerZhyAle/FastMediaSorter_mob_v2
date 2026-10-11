@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.07 12:50</sub>
+<sub class="doc-stamp">26.10.11 03:19</sub>
 
 # Pointer - `ICON-RENDER`
 
 | | |
 | --- | --- |
 | **Id** | `ICON-RENDER` |
-| **Version** | 0.18, draft. Owner: this product |
+| **Version** | 0.19, draft. Owner: this product |
 | **Home** | `iconography/README.md` sections 3 and 10 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
@@ -18,6 +18,8 @@
   chapters of a document is direction and shows the mirrored form (0.18, rule 7), S4126.
 - On the web a glyph-only control is at least 28 CSS px under a fine pointer and 44 under
   `(pointer: coarse)` (0.18, rule 5), S4127; Android keeps 48 dp.
+- The colour look of a dialog's answer buttons (0.19, section 14) is a Windows desktop surface; the
+  phone and the watch are untouched by it and keep the mono look on a command button.
 - One drawing at every size tier (16, 20, 24, 32, 40, 48); a plate changes the scale, never the shape.
 - A glyph-only control carries its meaning's canonical name as its accessible name.
 - Every edition's launcher icon is adaptive and has a monochrome layer.
