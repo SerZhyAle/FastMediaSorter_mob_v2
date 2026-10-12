@@ -147,7 +147,7 @@
     <string name="welcome_streams_catalog_failed">Catálogo no descargado: puede añadir emisiones manualmente</string>
     <string name="welcome_func_gestures">Activar gestos</string>
     <string name="welcome_func_gestures_summary">Deslice desde el borde izquierdo: menú, captura de pantalla, captura silenciosa</string>
-    <string name="welcome_networks_companion_note">¿Tiene contenido en un PC con Windows? Fast Media Sorter para Windows comparte esas carpetas aquí en un par de clics, sin configurar ningún servidor.</string>
+    <string name="welcome_networks_companion_note">¿Tiene contenido en un PC con Windows? Fast Media Sorter &amp; Sharing for Windows comparte esas carpetas aquí en un par de clics, sin configurar ningún servidor.</string>
     <string name="welcome_networks_companion_button">Obtener la aplicación de Windows</string>
     <string name="welcome_networks_example_smb">Por ejemplo: una carpeta compartida en un PC con Windows, un NAS como Synology o QNAP, o un disco USB conectado al router.</string>
     <string name="welcome_networks_example_ftp">Por ejemplo: una cuenta de hosting por FTP, su propio servidor doméstico por SFTP, o una cámara que sube fotos a una carpeta FTP.</string>

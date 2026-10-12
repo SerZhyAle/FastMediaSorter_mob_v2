@@ -687,7 +687,7 @@
                         android:focusable="true"
                         android:clickable="true"
                         android:nextFocusUp="@id/rowSftpDriveAccess"
-                        android:nextFocusDown="@id/etSftpExchangeHost"
+                        android:nextFocusDown="@id/btnSftpExchangeChangeOutgoing"
                         app:str_icon="@drawable/ic_cloud"
                         app:str_title="@string/settings_sftp_exchange_enable_title"
                         app:str_subtitle="@string/settings_sftp_exchange_enable_subtitle" />
@@ -701,86 +701,51 @@
                         android:textIsSelectable="true"
                         android:text="@string/settings_sftp_exchange_status_off" />
 
+                    <!-- The publish switch names the outgoing entry; the entries themselves live on "My devices". -->
+                    <TextView
+                        android:id="@+id/textSftpExchangeOutgoing"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:text="@string/settings_sftp_exchange_outgoing_none" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSftpExchangeChangeOutgoing"
+                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/margin_small"
+                            android:focusable="true"
+                            android:clickable="true"
+                            android:nextFocusUp="@id/rowSftpExchangeEnabled"
+                            android:nextFocusRight="@id/btnSftpExchangeMyDevices"
+                            android:nextFocusDown="@id/btnSftpExchangeNewLink"
+                            android:text="@string/settings_sftp_exchange_change" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSftpExchangeMyDevices"
+                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:focusable="true"
+                            android:clickable="true"
+                            android:nextFocusUp="@id/rowSftpExchangeEnabled"
+                            android:nextFocusLeft="@id/btnSftpExchangeChangeOutgoing"
+                            android:nextFocusDown="@id/btnSftpExchangeNewLink"
+                            android:text="@string/exchange_devices_title" />
+                    </LinearLayout>
+
                     <LinearLayout
                         android:id="@+id/containerSftpExchangeFields"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:visibility="gone">
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/tilSftpExchangeHost"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/margin_small"
-                            android:hint="@string/settings_sftp_exchange_host_hint">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etSftpExchangeHost"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:focusable="true"
-                                android:clickable="true"
-                                android:nextFocusUp="@id/rowSftpExchangeEnabled"
-                                android:nextFocusDown="@id/etSftpExchangePort"
-                                android:imeOptions="actionNext"
-                                android:inputType="textUri|textNoSuggestions" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/tilSftpExchangePort"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/margin_small"
-                            android:hint="@string/settings_sftp_exchange_port_hint">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etSftpExchangePort"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:focusable="true"
-                                android:clickable="true"
-                                android:nextFocusUp="@id/etSftpExchangeHost"
-                                android:nextFocusDown="@id/etSftpExchangePassword"
-                                android:imeOptions="actionNext"
-                                android:inputType="number"
-                                android:maxLength="5" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/tilSftpExchangePassword"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/margin_small"
-                            android:hint="@string/settings_sftp_exchange_password_hint"
-                            app:endIconMode="password_toggle"
-                            app:helperText="@string/settings_sftp_exchange_password_rule">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etSftpExchangePassword"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:focusable="true"
-                                android:clickable="true"
-                                android:nextFocusUp="@id/etSftpExchangePort"
-                                android:nextFocusDown="@id/btnSftpExchangeSave"
-                                android:imeOptions="actionDone"
-                                android:inputType="textPassword" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnSftpExchangeSave"
-                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:focusable="true"
-                            android:clickable="true"
-                            android:nextFocusUp="@id/etSftpExchangePassword"
-                            android:nextFocusDown="@id/btnSftpExchangeNewLink"
-                            android:text="@string/settings_sftp_exchange_save" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnSftpExchangeNewLink"
@@ -789,21 +754,9 @@
                             android:layout_height="wrap_content"
                             android:focusable="true"
                             android:clickable="true"
-                            android:nextFocusUp="@id/btnSftpExchangeSave"
-                            android:nextFocusDown="@id/btnSftpExchangeTrustAgain"
+                            android:nextFocusUp="@id/btnSftpExchangeChangeOutgoing"
                             android:text="@string/settings_sftp_exchange_new_link"
                             app:icon="@drawable/ic_refresh" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnSftpExchangeTrustAgain"
-                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:focusable="true"
-                            android:clickable="true"
-                            android:nextFocusUp="@id/btnSftpExchangeNewLink"
-                            android:text="@string/settings_sftp_exchange_trust_again"
-                            android:visibility="gone" />
                     </LinearLayout>
 
                 </LinearLayout>
@@ -858,6 +811,17 @@
                         app:ssr_showHelp="true"
                         app:ssr_helpTitle="@string/tooltip_saved_authorizations_title"
                         app:ssr_helpMessage="@string/tooltip_saved_authorizations_message"
+                        app:ssr_navMode="true" />
+
+                    <!-- The exchange account entries live on their own screen: resources, broadcasts, the watch and cast share them. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                        android:id="@+id/row_my_devices"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="@dimen/margin_large"
+                        android:layout_marginBottom="@dimen/margin_normal"
+                        app:ssr_title="@string/exchange_devices_title"
+                        app:ssr_subtitle="@string/exchange_devices_summary"
                         app:ssr_navMode="true" />
 
                     <!-- Default User and Password (landscape: packed to the left edge instead of spread across the wide row). -->

@@ -1,10 +1,10 @@
 package com.sza.fastmediasorter.data.remote.sftp.anywhere
 
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
-import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeFrameCodec
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeTokenStore
+import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.SftpRendezvousResource
 import com.sza.fastmediasorter.domain.model.SftpTunnelState
 import kotlinx.coroutines.Dispatchers
@@ -13,6 +13,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.InputStream
@@ -204,6 +205,35 @@ class SftpServerTunnelManagerTest {
         assertEquals(DeviceExchangeEnvelope.TYPE_UNPUBLISH, unpublish.type)
         assertEquals(RESOURCE_ID, unpublish.string("resourceId"))
         assertEquals(DeviceExchangeEnvelope.TYPE_BYE, poll(farewell).type)
+        assertEquals(SftpTunnelState.Off, manager.state.value)
+    }
+
+    @Test
+    fun `withdraw unpublishes on the live stream and reports that the server was told`() = withManager { manager ->
+        val farewell = ArrayBlockingQueue<DeviceExchangeEnvelope>(2)
+        thread(isDaemon = true) {
+            exchange.accept().use { stream ->
+                read(stream)
+                write(stream, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+                read(stream)
+                write(stream, published(0))
+                farewell.put(read(stream))
+                farewell.put(read(stream))
+            }
+        }
+
+        manager.start(localServer.localPort, emptyList())
+        withTimeout(WAIT_SECONDS * MILLIS) { manager.state.first { it is SftpTunnelState.Registered } }
+
+        assertTrue(manager.withdraw())
+        assertEquals(DeviceExchangeEnvelope.TYPE_UNPUBLISH, poll(farewell).type)
+        assertEquals(DeviceExchangeEnvelope.TYPE_BYE, poll(farewell).type)
+        assertEquals(SftpTunnelState.Off, manager.state.value)
+    }
+
+    @Test
+    fun `withdraw with nothing published ends locally at once`() = withManager { manager ->
+        assertFalse(manager.withdraw())
         assertEquals(SftpTunnelState.Off, manager.state.value)
     }
 

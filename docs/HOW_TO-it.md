@@ -109,7 +109,7 @@ Se una funzione è contrassegnata con "✗", scegli la build **Standard** o **XR
 
 Queste sezioni sono volutamente più varie dei blocchi di riferimento principali più avanti. Ogni scenario combina un percorso rapido con il contesto, i compromessi e le situazioni in cui FastMediaSorter è particolarmente efficace.
 
-> **⭐ In evidenza: porta le cartelle del tuo PC sul telefono con una sola scansione.** Avvia il companion gratuito [Fast Media Sorter per Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) sul PC, scegli le cartelle con i tuoi video, musica, documenti o foto, e l'app mostra un codice sullo schermo. Sul telefono, tocca **Aggiungi**, scegli **Importa tramite codice a barre**, punta la fotocamera sul codice - le cartelle del PC vengono collegate all'istante, senza digitare indirizzo, porta o password. Guida completa: [Aprire le cartelle del PC scansionando un codice](howto/scenario-companion-share-it.md) &bull; ricetta rapida: [Importare una condivisione Companion di Windows](#how-to-import-a-windows-companion-share).
+> **⭐ In evidenza: porta le cartelle del tuo PC sul telefono con una sola scansione.** Avvia il companion gratuito [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) sul PC, scegli le cartelle con i tuoi video, musica, documenti o foto, e l'app mostra un codice sullo schermo. Sul telefono, tocca **Aggiungi**, scegli **Importa tramite codice a barre**, punta la fotocamera sul codice - le cartelle del PC vengono collegate all'istante, senza digitare indirizzo, porta o password. Guida completa: [Aprire le cartelle del PC scansionando un codice](howto/scenario-companion-share-it.md) &bull; ricetta rapida: [Importare una condivisione Companion di Windows](#how-to-import-a-windows-companion-share).
 
 > **⌚ Smartwatch Wear OS:** usi un orologio Wear OS? Consulta le nostre guide passo passo per [Ascoltare musica sul tuo orologio](howto/scenario-watch-music-it.md) e [Collegare lo smartwatch a NAS e condivisioni PC](howto/scenario-watch-network-it.md).
 
@@ -556,13 +556,13 @@ Queste sezioni sono volutamente più varie dei blocchi di riferimento principali
 
 ## Come importare una condivisione Companion di Windows {#how-to-import-a-windows-companion-share}
 
-**Cos'è:** il companion è una funzione di [Fast Media Sorter per Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) (in precedenza FastMediaSorter LITE) - il sorter multimediale gratuito per Windows dello stesso autore. Condivide le cartelle scelte del PC tramite SFTP ed esporta una connessione già pronta - nessuna configurazione manuale del server, nessuna digitazione di host/porta/chiave sul telefono. La porti sul telefono **scansionando un codice QR** sullo schermo del PC, oppure **importando un file `.fmscfg`**.
+**Cos'è:** il companion è una funzione di [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) - il sorter multimediale gratuito per Windows dello stesso autore. Condivide le cartelle scelte del PC tramite SFTP ed esporta una connessione già pronta - nessuna configurazione manuale del server, nessuna digitazione di host/porta/chiave sul telefono. La porti sul telefono **scansionando un codice QR** sullo schermo del PC, oppure **importando un file `.fmscfg`**.
 
 **Disponibile in:** Standard, Photos, Legacy, XR/noLegal (la scansione del codice a barre richiede una fotocamera; il metodo con file funziona ovunque, VR incluso)
 
 > Preferisci una versione guidata, ricca di screenshot? Vedi la guida allo scenario [Aprire le cartelle del PC scansionando un codice](howto/scenario-companion-share-it.md).
 
-**Ottenere Fast Media Sorter per Windows:**
+**Ottenere Fast Media Sorter & Sharing for Windows:**
 
 - Sito web: [serzhyale.github.io/FastMediaSorter_Lite](https://serzhyale.github.io/FastMediaSorter_Lite/)
 - Pubblicazione delle cartelle (guida): [Come pubblicare le cartelle del PC su Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html)
@@ -572,7 +572,7 @@ Queste sezioni sono volutamente più varie dei blocchi di riferimento principali
 
 **Sul PC:**
 
-1. Installa e avvia **Fast Media Sorter per Windows**, apri la scheda **Condividi** nelle impostazioni.
+1. Installa e avvia **Share Manager - Fast Media Sorter & Sharing**, apri la scheda **Condividi** nelle impostazioni.
 2. Scegli la o le cartelle da condividere - l'app avvia da sola il server SFTP, genera le chiavi e configura l'avvio automatico.
 3. Mostra un **codice QR** sullo schermo. Può anche **Salvare .fmscfg** se preferisci un file.
 

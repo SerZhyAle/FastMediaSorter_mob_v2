@@ -31,9 +31,9 @@ permalink: /docs/README-hi.html
 
 ## Windows संस्करण 🖥️
 
-डेस्कटॉप समाधान चाहिए? **Fast Media Sorter for Windows** (पहले FastMediaSorter LITE) देखें - इमेज और वीडियो फ़ाइलों को तेज़ी से सॉर्ट करने, देखने और प्रबंधित करने के लिए एक हल्का Windows Forms ऐप्लिकेशन:
+डेस्कटॉप समाधान चाहिए? **Fast Media Sorter & Sharing for Windows** देखें - इमेज और वीडियो फ़ाइलों को तेज़ी से सॉर्ट करने, देखने और प्रबंधित करने के लिए एक हल्का Windows Forms ऐप्लिकेशन:
 
-🔗 **[Fast Media Sorter for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
+🔗 **[Fast Media Sorter & Sharing for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
 
 📄 [PC फ़ोल्डर को Android पर कैसे पब्लिश करें](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html) - अपने PC फ़ोल्डर को SFTP के ज़रिए ऐप के साथ शेयर करें (फ़ोन पर companion import / QR स्कैन).
 

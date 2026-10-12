@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.service
 
 import com.sza.fastmediasorter.domain.model.WearClipboardTextAck
+import com.sza.fastmediasorter.domain.model.WearExchangeHandoverAck
 import com.sza.fastmediasorter.domain.model.WearFileTransferAck
 import com.sza.fastmediasorter.domain.model.WearListenAckPayload
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
@@ -94,6 +95,18 @@ object WearSyncEvents {
     suspend fun emitAck(json: String) = _ackFlow.emit(json)
 
     suspend fun emitClipboardTextAck(ack: WearClipboardTextAck) = _clipboardTextAckFlow.emit(ack)
+
+    /**
+     * S4158: the watch's answer to an exchange hand-over - enrolled, or refused with a reason.
+     *
+     * No replay, for [clipboardTextAckFlow]'s reason: the watch enrolls without a human in the loop, and a
+     * replayed answer would be a previous hand-over's verdict shown against a fresh one.
+     */
+    private val _exchangeHandoverAckFlow =
+        MutableSharedFlow<WearExchangeHandoverAck>(extraBufferCapacity = 4)
+    val exchangeHandoverAckFlow: SharedFlow<WearExchangeHandoverAck> = _exchangeHandoverAckFlow.asSharedFlow()
+
+    suspend fun emitExchangeHandoverAck(ack: WearExchangeHandoverAck) = _exchangeHandoverAckFlow.emit(ack)
 
     suspend fun emitScreenshotAck(ack: WearScreenshotRequestAck) = _screenshotAckFlow.emit(ack)
 

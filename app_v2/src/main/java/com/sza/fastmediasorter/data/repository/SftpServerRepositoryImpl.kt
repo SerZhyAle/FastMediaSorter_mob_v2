@@ -59,13 +59,9 @@ class SftpServerRepositoryImpl @Inject constructor(
 
     override suspend fun setExchangeEnabled(enabled: Boolean) = exchangeStore.setEnabled(enabled)
 
-    override suspend fun setExchangeServer(host: String, port: Int) = exchangeStore.setServer(host, port)
-
-    override suspend fun setExchangePassword(password: String): Boolean = exchangeStore.setPassword(password)
-
     override suspend fun rotateShareId() = exchangeStore.rotateShareId()
 
-    override suspend fun trustExchangeServerAgain() = exchangeStore.clearCertificatePin()
+    override suspend fun withdrawExchangePublication(): Boolean = tunnelManager.withdraw()
 
     override fun applyExchangeSettings() = controller.restartTunnel()
 

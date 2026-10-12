@@ -107,7 +107,7 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 
 These sections are intentionally more varied than the core reference blocks below. Each scenario mixes a fast path with context, trade-offs, and the situations where FastMediaSorter is especially strong.
 
-> **⭐ Featured: bring your PC's folders to your phone with one scan.** Run the free [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) companion on your PC, pick the folders with your videos, music, documents, or photos, and it shows a code on screen. On the phone, tap **Add**, choose **Import by barcode**, point the camera at the code - the PC folders are connected instantly, with no address, port, or password typing. Full walkthrough: [Open PC Folders by Scanning a Code](howto/scenario-companion-share.md) &bull; quick recipe: [Import a Windows Companion Share](#how-to-import-a-windows-companion-share).
+> **⭐ Featured: bring your PC's folders to your phone with one scan.** Run the free [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) companion on your PC, pick the folders with your videos, music, documents, or photos, and it shows a code on screen. On the phone, tap **Add**, choose **Import by barcode**, point the camera at the code - the PC folders are connected instantly, with no address, port, or password typing. Full walkthrough: [Open PC Folders by Scanning a Code](howto/scenario-companion-share.md) &bull; quick recipe: [Import a Windows Companion Share](#how-to-import-a-windows-companion-share).
 
 > **⌚ Wear OS Smartwatches:** Using a Wear OS watch? See our step-by-step guides for [Listen to Music on Your Watch](howto/scenario-watch-music.md) and [Connect Smartwatch to NAS & PC Shares](howto/scenario-watch-network.md).
 
@@ -554,13 +554,13 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## How to Import a Windows Companion Share
 
-**What it is:** the companion is a feature of [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) (formerly FastMediaSorter LITE) - the free Windows media sorter from the same author. It shares chosen PC folders over SFTP and exports a ready-made connection - no manual server setup, no host/port/key typing on the phone. You bring it to the phone by **scanning a QR code** on the PC screen, or by **importing a `.fmscfg` file**.
+**What it is:** the companion is a feature of [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) - the free Windows media sorter from the same author. It shares chosen PC folders over SFTP and exports a ready-made connection - no manual server setup, no host/port/key typing on the phone. You bring it to the phone by **scanning a QR code** on the PC screen, or by **importing a `.fmscfg` file**.
 
 **Available in:** Standard, Photos, Legacy, XR/noLegal (barcode scan needs a camera; the file method works everywhere, including VR)
 
 > Prefer a guided, screenshot-friendly version? See the scenario guide [Open PC Folders by Scanning a Code](howto/scenario-companion-share.md).
 
-**Get Fast Media Sorter for Windows:**
+**Get Fast Media Sorter & Sharing for Windows:**
 
 - Website: [serzhyale.github.io/FastMediaSorter_Lite](https://serzhyale.github.io/FastMediaSorter_Lite/)
 - Publishing folders (guide): [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html)
@@ -570,7 +570,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **On the PC:**
 
-1. Install and run **Fast Media Sorter for Windows**, open the **Share** tab in settings.
+1. Install and run **Share Manager - Fast Media Sorter & Sharing**, open the **Share** tab in settings.
 2. Pick the folder(s) to share - the app starts the SFTP server, generates keys and sets up autostart by itself.
 3. It shows a **QR code** on screen. It can also **Save .fmscfg** if you prefer a file.
 

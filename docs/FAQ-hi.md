@@ -120,7 +120,7 @@ Android डिफ़ॉल्ट Home और शुरुआती विंड�
 - **FTP:** कम सुरक्षित, पुराना प्रोटोकॉल (पोर्ट 21)
 
 ### क्या मैं PC फ़ोल्डर ऐप के साथ शेयर कर सकता हूँ?
-**हाँ** - Fast Media Sorter for Windows चुने गए PC फ़ोल्डर को SFTP पर पब्लिश करता है और एक QR कोड / `.fmscfg` कॉन्फ़िग दिखाता है. फोन पर, Add Resource स्क्रीन पर **Import from companion** या **Scan QR code** इस्तेमाल करें. PC-साइड गाइड देखें: [PC फ़ोल्डर को Android पर कैसे पब्लिश करें](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html).
+**हाँ** - Fast Media Sorter & Sharing for Windows चुने गए PC फ़ोल्डर को SFTP पर पब्लिश करता है और एक QR कोड / `.fmscfg` कॉन्फ़िग दिखाता है. फोन पर, Add Resource स्क्रीन पर **Import from companion** या **Scan QR code** इस्तेमाल करें. PC-साइड गाइड देखें: [PC फ़ोल्डर को Android पर कैसे पब्लिश करें](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html).
 
 [संस्करण सुविधा सूची (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 

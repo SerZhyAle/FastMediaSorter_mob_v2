@@ -147,7 +147,7 @@
     <string name="welcome_streams_catalog_failed">सूची डाउनलोड नहीं हुई - आप स्ट्रीम स्वयं जोड़ सकते हैं</string>
     <string name="welcome_func_gestures">जेस्चर चालू करें</string>
     <string name="welcome_func_gestures_summary">बाएँ किनारे से स्वाइप करें: मेन्यू, स्क्रीनशॉट, मौन स्क्रीनशॉट</string>
-    <string name="welcome_networks_companion_note">मीडिया किसी Windows PC पर है? Fast Media Sorter for Windows उन फ़ोल्डरों को दो क्लिक में यहाँ साझा कर देता है - किसी सर्वर सेटअप की ज़रूरत नहीं।</string>
+    <string name="welcome_networks_companion_note">मीडिया किसी Windows PC पर है? Fast Media Sorter &amp; Sharing for Windows उन फ़ोल्डरों को दो क्लिक में यहाँ साझा कर देता है - किसी सर्वर सेटअप की ज़रूरत नहीं।</string>
     <string name="welcome_networks_companion_button">Windows ऐप लें</string>
     <string name="welcome_networks_example_smb">उदाहरण के लिए: Windows PC पर साझा फ़ोल्डर, Synology या QNAP जैसा NAS, या राउटर में लगी USB डिस्क।</string>
     <string name="welcome_networks_example_ftp">उदाहरण के लिए: FTP पर होस्टिंग खाता, SFTP पर आपका अपना होम सर्वर, या ऐसा कैमरा जो फ़ोटो FTP फ़ोल्डर में भेजता है।</string>

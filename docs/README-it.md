@@ -31,9 +31,9 @@ Questo manuale segue ora lo stesso vocabolario pubblico dell'inventario delle fu
 
 ## Versione Windows 🖥️
 
-Cerchi una soluzione desktop? Dai un'occhiata a **Fast Media Sorter for Windows** (in precedenza FastMediaSorter LITE) - un'applicazione Windows Forms leggera per ordinare, visualizzare e gestire rapidamente file immagine e video:
+Cerchi una soluzione desktop? Dai un'occhiata a **Fast Media Sorter & Sharing for Windows** - un'applicazione Windows Forms leggera per ordinare, visualizzare e gestire rapidamente file immagine e video:
 
-🔗 **[Fast Media Sorter for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
+🔗 **[Fast Media Sorter & Sharing for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
 
 📄 [Come pubblicare le cartelle del PC su Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html) - condividi le cartelle del tuo PC con l'app tramite SFTP (importazione companion / scansione QR sul telefono).
 

@@ -116,5 +116,14 @@ data class ResourceEntity(
     // S1378: StorageVolumeInfo.id this resource lives on; null = not bound to any volume, which is what
     // every pre-v45 row keeps. A removable-volume resource stays ResourceType.LOCAL (ADR-1).
     @ColumnInfo(name = "storage_volume_id", defaultValue = "NULL")
-    val storageVolumeId: String? = null
+    val storageVolumeId: String? = null,
+
+    // S4156: the exchange account entry this resource was attached through, by identity rather than a local
+    // id, so removing and re-adding the entry gets it back (contract DEVICE-EXCHANGE item AA). Both null =
+    // a resource that never came from the exchange directory.
+    @ColumnInfo(name = "exchange_account", defaultValue = "NULL")
+    val exchangeAccount: String? = null,
+
+    @ColumnInfo(name = "exchange_resource_id", defaultValue = "NULL")
+    val exchangeResourceId: String? = null
 )

@@ -1,4 +1,4 @@
-<#
+﻿<#
 Run-Tests.ps1 - contract tests for assert-gate-placement.ps1 (S2870).
 
 Every case builds a throwaway repository root under the system temp directory and runs the gate
@@ -297,6 +297,32 @@ $root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alp
 Write-ClassMap -Root $root -Classes $allClasses -WorkflowPaths 'app_v2/**'
 Assert-Case -Name 'a path filter that cannot cover a whole-tree input fails' -Expected 1 `
     -Result (Invoke-Gate -Root $root) -MustContain "does not cover input '**'"
+
+# --- S4169: a gate named in an argv lib but only pooled fails per-ticket ------------------------
+$root = New-Fixture -GateFiles @('assert-alpha.ps1') `
+    -InPostChange @() `
+    -Records @((New-Record -Gate 'assert-alpha.ps1' -Scope 'per-ticket'))
+Set-Content -LiteralPath (Join-Path $root 'scripts/quality/lib/post-change-gate-argvs.ps1') -Encoding utf8 -Value @(
+    '#requires -Version 7.0'
+    '$argvAlpha = @(''-NoProfile'', ''-File'', ''scripts/quality/assert-alpha.ps1'', ''-Gate'')'
+)
+Set-Content -LiteralPath (Join-Path $root 'scripts/post-change.ps1') -Encoding utf8 -Value @(
+    '#requires -Version 7.0'
+    '. (Join-Path $PSScriptRoot ''quality/lib/post-change-gate-argvs.ps1'')'
+    'Start-PooledGate @argvAlpha'
+)
+Assert-Case -Name 'gate named in an argv lib but only pooled fails per-ticket (S4169)' -Expected 1 `
+    -Result (Invoke-Gate -Root $root) -MustContain 'post-change.ps1 does not reference it'
+
+# --- S4169: a gate named in an argv lib and consumed by Invoke-GateChild passes per-ticket -------
+Set-Content -LiteralPath (Join-Path $root 'scripts/post-change.ps1') -Encoding utf8 -Value @(
+    '#requires -Version 7.0'
+    '. (Join-Path $PSScriptRoot ''quality/lib/post-change-gate-argvs.ps1'')'
+    'Start-PooledGate @argvAlpha'
+    'Invoke-GateChild @argvAlpha'
+)
+Assert-Case -Name 'gate named in an argv lib and consumed passes per-ticket (S4169)' -Expected 0 `
+    -Result (Invoke-Gate -Root $root)
 
 foreach ($f in $fixtures) { Remove-Item -LiteralPath $f -Recurse -Force -ErrorAction SilentlyContinue }
 

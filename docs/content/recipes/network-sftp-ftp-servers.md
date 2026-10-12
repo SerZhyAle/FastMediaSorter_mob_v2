@@ -95,7 +95,7 @@ steps:
     callout:
       type: tip
       title: This is also how a shared PC folder arrives
-      text: "A folder shared from [Fast Media Sorter for Windows](term:windows-companion) uses the same file format and the same import dialog - see [Sharing PC folders with Fast Media Sorter for Windows](page:network.windows-companion)."
+      text: "A folder shared from [Fast Media Sorter & Sharing for Windows](term:windows-companion) uses the same file format and the same import dialog - see [Sharing PC folders with Fast Media Sorter & Sharing for Windows](page:network.windows-companion)."
   - number: 7
     id: quietly-resilient
     title: A few things the app handles quietly
@@ -129,7 +129,7 @@ next_recipes:
     badge: Network
     badge_type: docs
     description: Share folders from your own phone instead of connecting to someone else's.
-  - title: Sharing PC folders with Fast Media Sorter for Windows
+  - title: Sharing PC folders with Fast Media Sorter & Sharing for Windows
     url: page:network.windows-companion
     badge: Network
     badge_type: docs

@@ -1,6 +1,6 @@
 package com.sza.fastmediasorter.core.security
 
-import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeCredential
+import com.sza.fastmediasorter.domain.model.DeviceExchangeCredential
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

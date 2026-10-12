@@ -120,7 +120,7 @@ Android ডিফল্ট Home ও প্রারম্ভিক উইন্�
 - **FTP:** কম সুরক্ষিত, পুরনো প্রোটোকল (পোর্ট 21)
 
 ### আমি কি পিসি ফোল্ডার অ্যাপের সাথে শেয়ার করতে পারি?
-**হ্যাঁ** - Fast Media Sorter for Windows বেছে নেওয়া পিসি ফোল্ডার SFTP-এর মাধ্যমে প্রকাশ করে এবং একটি QR কোড / `.fmscfg` কনফিগ দেখায়। ফোনে, Add Resource স্ক্রিনে **Import from companion** বা **Scan QR code** ব্যবহার করুন। পিসি-সাইড গাইড দেখুন: [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html)। Standard, Photos, Legacy, XR/noLegal-এ উপলব্ধ।
+**হ্যাঁ** - Fast Media Sorter & Sharing for Windows বেছে নেওয়া পিসি ফোল্ডার SFTP-এর মাধ্যমে প্রকাশ করে এবং একটি QR কোড / `.fmscfg` কনফিগ দেখায়। ফোনে, Add Resource স্ক্রিনে **Import from companion** বা **Scan QR code** ব্যবহার করুন। পিসি-সাইড গাইড দেখুন: [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html)। Standard, Photos, Legacy, XR/noLegal-এ উপলব্ধ।
 
 [সংস্করণ সুবিধা তালিকা (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 

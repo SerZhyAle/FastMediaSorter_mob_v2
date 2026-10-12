@@ -37,6 +37,7 @@ class SystemInfoActivity : AppCompatActivity() {
         // as in BaseActivity, or the report would not match the other full-screen screens.
         ColorThemePrefs.applyThemeOverlay(this)
         Timber.d("S4151: SystemInfoActivity opened on an opaque window")
+        Timber.d("S4165: SystemInfoActivity opened with interactive card UI")
         binding = ActivitySystemInfoBinding.inflate(layoutInflater)
         setContentView(binding.root)
         systemInfoWindowManager.bind(this, binding)
@@ -45,8 +46,8 @@ class SystemInfoActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val report = systemInfoWindowManager.gather(this@SystemInfoActivity)
             if (isFinishing || isDestroyed) return@launch
-            systemInfoWindowManager.render(binding.systemInfoContent, report)
-            binding.systemInfoContent.getChildAt(0)?.requestFocus()
+            systemInfoWindowManager.render(binding, report)
+            binding.systemInfoSearchView.requestFocus()
         }
     }
 

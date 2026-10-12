@@ -106,9 +106,9 @@ Zero-byte thumbnails, a non-blocking open-source licences list, an accessibility
 
 ## Windows Version 🖥️
 
-Looking for a desktop solution? Check out **Fast Media Sorter for Windows** (formerly FastMediaSorter LITE) - a lightweight Windows Forms application for quickly sorting, viewing, and managing image and video files:
+Looking for a desktop solution? Check out **Fast Media Sorter & Sharing for Windows** - a lightweight Windows Forms application for quickly sorting, viewing, and managing image and video files:
 
-🔗 **[Fast Media Sorter for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
+🔗 **[Fast Media Sorter & Sharing for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
 
 📄 [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html) - share your PC folders with the app over SFTP (companion import / QR scan on the phone).
 

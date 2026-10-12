@@ -30,7 +30,7 @@ steps:
     callout:
       type: tip
       title: Prefer not to touch Windows sharing at all?
-      text: "[Fast Media Sorter for Windows](term:windows-companion) shares chosen folders in a couple of clicks and pairs by QR code, without turning on Windows' own network sharing. See [Sharing PC folders with Fast Media Sorter for Windows](page:network.windows-companion)."
+      text: "[Fast Media Sorter & Sharing for Windows](term:windows-companion) shares chosen folders in a couple of clicks and pairs by QR code, without turning on Windows' own network sharing. See [Sharing PC folders with Fast Media Sorter & Sharing for Windows](page:network.windows-companion)."
   - number: 2
     id: find-and-add
     title: Find your computer and add the shared folder
@@ -105,7 +105,7 @@ next_recipes:
     badge: Network
     badge_type: docs
     description: Server addresses, SSH keys, and pinning a server's identity.
-  - title: Sharing PC folders with Fast Media Sorter for Windows
+  - title: Sharing PC folders with Fast Media Sorter & Sharing for Windows
     url: page:network.windows-companion
     badge: Network
     badge_type: docs

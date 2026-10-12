@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 12:24</sub>
+<sub class="doc-stamp">26.10.12 22:34</sub>
 
 # Pointer - `SHARE-SESSION`
 
 | | |
 | --- | --- |
 | **Id** | `SHARE-SESSION` |
-| **Version** | 1.1, active. Owner: FMS Companion (the worker holds the server guarantees) |
+| **Version** | 1.2, active. Owner: FMS Companion (the worker holds the server guarantees) |
 | **Home** | `remote-folder-access/README.md` in the shared contracts catalog |
 | **Role here** | client - the SFTP connection to a folder shared by the companion |
 
@@ -19,6 +19,9 @@ The client rules of section 2 of the contract (rules 6-10):
 - Bound the reconnect - a few backed-off attempts, never an unbounded loop.
 - Treat keepalive as an optimization, never as the thing holding the session open.
 - Release the old connection before taking a new slot.
+- A PIN-protected root (1.2, additive) answers only the SSH `keyboard-interactive` proof
+  `Resource`/`Password`/`PIN` and scopes the proven connection to that one root; the ordinary password
+  login reaches only unprotected roots. Every rule above is unchanged by 1.2.
 
 ## Where it lives here
 

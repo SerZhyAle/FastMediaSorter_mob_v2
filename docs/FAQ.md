@@ -118,7 +118,7 @@ Files open on demand, but viewing, thumbnails or playback may download data into
 - **FTP:** Less secure, older protocol (port 21)
 
 ### Can I share PC folders with the app?
-**Yes** - Fast Media Sorter for Windows publishes chosen PC folders over SFTP and shows a QR code / `.fmscfg` config. On the phone, use **Import from companion** or **Scan QR code** on the Add Resource screen. See the PC-side guide: [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html).
+**Yes** - Fast Media Sorter & Sharing for Windows publishes chosen PC folders over SFTP and shows a QR code / `.fmscfg` config. On the phone, use **Import from companion** or **Scan QR code** on the Add Resource screen. See the PC-side guide: [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html).
 
 [Edition capability matrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 

@@ -357,6 +357,16 @@
       "note": "S4029: walkable in both flavors again. The route is registered behind offersRemoteSources and the tiles it assigns are declared in wear/src/main, so the store build has both the page and its targets."
     },
     {
+      "id": "settings-exchange-servers",
+      "name": "Settings - Exchange servers",
+      "label": "Exchange servers",
+      "expect": "No servers yet.",
+      "screen": "WearExchangeServersScreen",
+      "expectRes": "wear_exchange_servers_empty",
+      "backAfter": 1,
+      "note": "S4158: registered in both flavors. The sweep's clean watch holds no exchange entry, so the empty-state text is drawn on the first frame and on no other settings page; the title repeats the chip label and is useless as a marker."
+    },
+    {
       "id": "settings-about",
       "name": "Settings - About",
       "label": "About",

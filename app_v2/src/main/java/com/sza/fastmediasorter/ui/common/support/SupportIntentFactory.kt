@@ -87,10 +87,10 @@ object SupportIntentFactory {
         else -> DOCS_BASE_EN
     }
 
-    /** S0994: single source for the LITE companion publish-folders guide (EN-only page). */
+    /** S0994: single source for the Windows Share Manager publish-folders guide (EN-only page). */
     fun companionPublishGuideUrl(): String = COMPANION_PUBLISH_GUIDE_URL
 
-    /** Landing page of the Windows companion ("Fast Media Sorter for Windows"). */
+    /** Landing page of the Windows companion ("Fast Media Sorter & Sharing for Windows"). */
     fun companionHomeUrl(): String = COMPANION_HOME_URL
 
     /** S1883: locale-aware URL for the "put FastMedia on your watch" guide. */

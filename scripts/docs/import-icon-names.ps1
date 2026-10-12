@@ -3,6 +3,8 @@
     Import the reference product's names for every icon meaning in the languages beyond en, ru and uk.
 
 .DESCRIPTION
+    Manual tool: import localized icon names into the shared contracts catalog when its vocabulary changes.
+
     ICON-SET section 2 rule 3 gives every language beyond the three authored ones one wording per meaning:
     FastMediaSorter Android's own, read from its string resources where it ships the language and names the
     meaning. This script makes that import into iconography/vocabulary.jsonl of the shared contracts catalog.

@@ -48,6 +48,7 @@ enum class TouristTileType(
     VISIBILITY,
     WATCH_HEART_RATE(fromWatch = true),
     WATCH_BODY_TEMPERATURE(fromWatch = true),
+    STOPWATCH,
 }
 
 /**

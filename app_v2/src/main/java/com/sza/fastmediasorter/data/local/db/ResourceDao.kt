@@ -193,6 +193,19 @@ abstract class ResourceDao {
     @Query("SELECT * FROM resources WHERE icon_id IS NULL")
     abstract suspend fun findResourcesWithoutIcon(): List<ResourceEntity>
 
+    @Query(
+        "SELECT * FROM resources WHERE exchange_account = :account AND exchange_resource_id = :exchangeResourceId " +
+            "LIMIT 1"
+    )
+    abstract suspend fun getByExchangeBinding(account: String, exchangeResourceId: String): ResourceEntity?
+
+    @Query("SELECT * FROM resources WHERE exchange_account = :account")
+    abstract suspend fun getByExchangeAccount(account: String): List<ResourceEntity>
+
+    /** An entry's address was edited in place: its attachments follow it (contract item AA). */
+    @Query("UPDATE resources SET exchange_account = :to WHERE exchange_account = :from")
+    abstract suspend fun rebindExchangeAccount(from: String, to: String): Int
+
     /**
      * Batch-update displayOrder for a reordered list in a single transaction.
      * Each pair is (resourceId, newDisplayOrder). Used by drag-to-reorder.

@@ -67,5 +67,10 @@ data class StreamSourceEntity(
     // re-scanned broadcast refreshes the row the user already pinned instead of inserting a second one.
     // Null on every row that no device named itself for - manual entries, catalog imports, and every
     // row that existed before MIGRATION_57_58.
-    val sourceDeviceId: String? = null
+    val sourceDeviceId: String? = null,
+
+    // S4160: the descriptor's `endpoints` list as BroadcastEndpointCodec writes it, LAN first, then the
+    // exchange endpoints of DEVICE-EXCHANGE 7.7. Null for every row that is not a broadcast with an explicit
+    // list; such a row plays its [url], as every row did before MIGRATION_61_62.
+    val broadcastEndpoints: String? = null
 )

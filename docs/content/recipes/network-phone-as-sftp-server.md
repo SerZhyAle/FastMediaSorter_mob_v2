@@ -83,12 +83,12 @@ steps:
 outcome: |
   The phone shares exactly the folders you picked, with everyone else needing either a password or an accepted SSH key to get in, and pairing another FastMediaSorter takes one scan instead of typing an address by hand. A tap on Stop, in the app or the notification, ends it.
 tips:
-  - "**Bringing in a PC's folders instead?** [Sharing PC folders with Fast Media Sorter for Windows](page:network.windows-companion) covers the same pairing idea from the other side."
+  - "**Bringing in a PC's folders instead?** [Sharing PC folders with Fast Media Sorter & Sharing for Windows](page:network.windows-companion) covers the same pairing idea from the other side."
   - "**Setting up a server by typing its address yourself?** [Connecting SFTP and FTP servers](page:network.sftp-ftp-servers) covers that manual route, on either end of the connection."
   - "**New to SSH keys?** The [OpenSSH](https://www.openssh.com/) project's own documentation explains how a key pair works if the wording here is unfamiliar."
   - "**Want to reach your own storage from outside your home?** The [media exchange portal](../../docs/media-exchange-portal/home-network.html) walks through the home network way step by step and says what works today."
 next_recipes:
-  - title: Sharing PC Folders with Fast Media Sorter for Windows
+  - title: Sharing PC Folders with Fast Media Sorter & Sharing for Windows
     url: page:network.windows-companion
     badge: Network
     badge_type: docs

@@ -199,6 +199,10 @@ class StreamSourceRepository @Inject constructor(
     suspend fun getBySourceDeviceId(deviceId: String): StreamSourceEntity? =
         dao.getBySourceDeviceId(deviceId)
 
+    /** S4160: replace the stored endpoint list of one broadcast row, nothing else. */
+    suspend fun refreshBroadcastEndpoints(id: String, endpoints: String?) =
+        dao.updateBroadcastEndpoints(id, endpoints)
+
     /** S2868: replace the display title of one row, nothing else. */
     suspend fun renameSource(id: String, title: String) = dao.updateTitle(id, title)
 

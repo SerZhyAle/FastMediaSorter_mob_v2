@@ -1,6 +1,6 @@
 package com.sza.fastmediasorter.data.remote.sftp.server
 
-import com.sza.fastmediasorter.data.repository.settings.SftpExchangeSettingsStore
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpExchangeProducerSource
 import com.sza.fastmediasorter.domain.model.SftpPairingPayload
 import com.sza.fastmediasorter.domain.model.SftpServerState
 import javax.inject.Inject
@@ -11,15 +11,16 @@ import javax.inject.Singleton
  * stored login and host-key fingerprint. The host private key stays in [SftpServerIdentityStore]; only
  * its fingerprint leaves.
  *
- * With a usable exchange server configured the code also carries its endpoint and the share id, which
- * makes it a `FMSSFTP2` code (contract ANYWHERE-ACCESS section 4.1); otherwise it is the `FMSSFTP1`
- * code it always was.
+ * While the share is published through the outgoing exchange entry the code also carries that server's
+ * address and the share id, which makes it a `FMSSFTP2` code (contract ANYWHERE-ACCESS section 4.1); otherwise
+ * it is the `FMSSFTP1` code it always was. The address is the last announced `publicEndpoint` (item AA), else
+ * the held one.
  */
 @Singleton
 class SftpPairingPayloadFactory @Inject constructor(
     private val controller: SftpServerController,
     private val identityStore: SftpServerIdentityStore,
-    private val exchangeSettings: SftpExchangeSettingsStore,
+    private val producerSource: SftpExchangeProducerSource,
 ) {
 
     /** Null while the server is not running or the phone has no LAN address to offer. */
@@ -28,19 +29,21 @@ class SftpPairingPayloadFactory @Inject constructor(
         val hosts = running?.let { controller.advertisedAddresses().ifEmpty { it.addresses } }.orEmpty()
         if (running == null || hosts.isEmpty()) return null
         val credentials = identityStore.clientCredentials()
-        val exchange = exchangeSettings.snapshot().takeIf { it.isUsable }
+        val producer = producerSource.producer()
         return SftpPairingPayload(
             hosts = hosts,
             port = running.port,
             username = credentials.username,
             password = credentials.password,
             hostKeyFingerprint = credentials.hostKeyFingerprint,
-            exchangeEndpoint = exchange?.endpoint(),
-            shareId = exchange?.shareId,
+            exchangeEndpoint = producer?.entry?.let { it.publicEndpoint ?: heldEndpoint(it.host, it.port) },
+            shareId = producer?.shareId,
         )
     }
 
     /** The `FMSSFTP1` form of [create], for recipients whose app predates the v2 code (contract section 8.2). */
     suspend fun createLegacy(): SftpPairingPayload? =
         create()?.copy(exchangeEndpoint = null, shareId = null, driveChannel = false)
+
+    private fun heldEndpoint(host: String, port: Int): String = (if (':' in host) "[$host]" else host) + ":$port"
 }

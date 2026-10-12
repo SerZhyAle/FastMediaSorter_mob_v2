@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.usecase.intake.DispatchIntakeTextUseCase
 import com.sza.fastmediasorter.ui.addresource.helpers.AddResourceSftpQrCoordinator
 import com.sza.fastmediasorter.ui.addresource.helpers.CreatedResourcePinManager
 import com.sza.fastmediasorter.ui.addresource.helpers.CreatedResourcePlacementManager
@@ -115,7 +116,9 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         uri?.let { viewModel.importCompanionConfig(it) }
     }
 
-    private val sftpQrCoordinator by lazy { AddResourceSftpQrCoordinator(this, viewModel::setSftpPairingTunnel) }
+    private val sftpQrCoordinator by lazy {
+        AddResourceSftpQrCoordinator(this, DispatchIntakeTextUseCase(), viewModel::setSftpPairingTunnel)
+    }
 
     // S0988: camera QR scan returns the raw companion payload; the parser/import path is shared.
     private val companionQrScanLauncher = registerForActivityResult(

@@ -31,9 +31,9 @@ permalink: /docs/README-bn.html
 
 ## Windows সংস্করণ 🖥️
 
-একটি ডেস্কটপ সমাধান খুঁজছেন? দেখুন **Fast Media Sorter for Windows** (আগে FastMediaSorter LITE নামে পরিচিত) - ছবি ও ভিডিও ফাইল দ্রুত সাজানো, দেখা এবং পরিচালনার জন্য একটি হালকা Windows Forms অ্যাপ্লিকেশন:
+একটি ডেস্কটপ সমাধান খুঁজছেন? দেখুন **Fast Media Sorter & Sharing for Windows** - ছবি ও ভিডিও ফাইল দ্রুত সাজানো, দেখা এবং পরিচালনার জন্য একটি হালকা Windows Forms অ্যাপ্লিকেশন:
 
-🔗 **[Fast Media Sorter for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
+🔗 **[Fast Media Sorter & Sharing for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
 
 📄 [Android-এ পিসি ফোল্ডার প্রকাশ করার উপায়](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html) - SFTP-এর মাধ্যমে আপনার পিসি ফোল্ডার অ্যাপের সাথে শেয়ার করুন (ফোনে companion ইমপোর্ট / QR স্ক্যান)।
 

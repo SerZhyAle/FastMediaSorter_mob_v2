@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.databinding.ItemStreamSourceBinding
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.ui.browse.InlinePlaybackAnimator
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
+import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastEndpointManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamTopicRubricCatalog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -159,7 +160,8 @@ class StreamSourceAdapter(
 
         fun bind(source: StreamSourceEntity, isPlaying: Boolean) {
             binding.tvTitle.text = StreamTitleFormatter.display(source.title)
-            binding.tvUrl.text = source.url
+            binding.tvUrl.text =
+                StreamBroadcastEndpointManager.caption(binding.root.context, source.broadcastEndpoints) ?: source.url
             binding.ivKind.setImageResource(kindIcon(source.mediaKind))
             bindFavicon(source)
             bindPlayStatus(playOutcomes[source.id])

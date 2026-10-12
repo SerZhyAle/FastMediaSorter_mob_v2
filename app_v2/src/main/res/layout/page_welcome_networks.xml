@@ -173,8 +173,8 @@
                     android:textColor="?attr/colorOnSurface"
                     android:textAppearance="@style/TextAppearance.FastMediaSorter.Welcome.Hint" />
 
-                <!-- Windows companion promo: Fast Media Sorter for Windows publishes PC folders over
-                     SMB/SFTP so they show up as network sources here. WelcomeRemoteSourcesController
+                <!-- Windows companion promo: Fast Media Sorter &amp; Sharing for Windows publishes PC folders over
+                     SFTP so they show up as network sources here. WelcomeRemoteSourcesController
                      hides both views on flavors without local-network support (same gate as the
                      SMB/(S)FTP rows). Ids mirror the landscape variant (CLAUDE.md Rule 11). -->
                 <TextView

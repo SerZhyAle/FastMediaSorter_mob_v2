@@ -21,7 +21,7 @@ Vous exécutez un petit programme d'assistance sur votre PC Windows, vous choisi
 
 ## Le programme d'assistance
 
-Le "compagnon" est une fonctionnalité intégrée de **[Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** (anciennement FastMediaSorter LITE) - le trieur de médias Windows gratuit du même auteur. Lorsque vous partagez des dossiers avec lui, il :
+Le "compagnon" est une fonctionnalité intégrée de **[Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** - le trieur de médias Windows gratuit du même auteur. Lorsque vous partagez des dossiers avec lui, il :
 
 - Démarre un serveur SFTP privé pour ces seuls dossiers sur votre PC.
 - Génère ses propres clés et configure le démarrage automatique, afin que le partage soit là la prochaine fois aussi.
@@ -39,7 +39,7 @@ Le "compagnon" est une fonctionnalité intégrée de **[Fast Media Sorter for Wi
 
 ## Ce dont vous aurez besoin
 
-- Un PC Windows avec **Fast Media Sorter for Windows** installé
+- Un PC Windows avec **Fast Media Sorter & Sharing for Windows** installé
 - Votre téléphone et votre PC sur le **même réseau Wi-Fi** (même routeur)
 - Pour le chemin le plus rapide : une **caméra** sur le téléphone pour scanner le code (un chemin par fichier est disponible si la caméra n'est pas disponible)
 
@@ -47,7 +47,7 @@ Le "compagnon" est une fonctionnalité intégrée de **[Fast Media Sorter for Wi
 
 ## Étape 1 - Partager les dossiers sur le PC
 
-1. Installez et lancez **Fast Media Sorter for Windows**, puis ouvrez l'onglet **Partage** dans les paramètres.
+1. Installez et lancez **Share Manager - Fast Media Sorter & Sharing**, puis ouvrez l'onglet **Partage** dans les paramètres.
 2. Choisissez le(s) dossier(s) que vous voulez sur le téléphone - Films, Musique, Documents, Photos, n'importe quoi.
 3. L'application démarre le serveur SFTP, génère les clés et configure le démarrage automatique toute seule. Rien d'autre à configurer.
 4. Elle affiche maintenant un **code QR** sur l'écran du PC. Laissez cette fenêtre ouverte pour l'étape 2.

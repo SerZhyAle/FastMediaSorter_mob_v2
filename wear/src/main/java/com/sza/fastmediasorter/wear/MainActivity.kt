@@ -132,6 +132,7 @@ import com.sza.fastmediasorter.wear.ui.common.testlaunch.WearTestLaunchOverride
 import com.sza.fastmediasorter.wear.ui.common.testlaunch.WearTestLaunchOverrideReader
 import com.sza.fastmediasorter.wear.ui.common.testlaunch.rememberWearTestScreenMetrics
 import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
+import com.sza.fastmediasorter.wear.ui.exchange.WearExchangeServersScreen
 import com.sza.fastmediasorter.wear.ui.favourites.FavouritesScreen
 import com.sza.fastmediasorter.wear.ui.fdsec.FdSecCredentialScreen
 import com.sza.fastmediasorter.wear.ui.folder.WearFolderWalkScreen
@@ -1094,6 +1095,10 @@ private fun NavGraphBuilder.settingsRoutes(
         PermissionsSettingsScreen()
     }
 
+    composable(SettingsRoutes.EXCHANGE_SERVERS) {
+        WearExchangeServersScreen()
+    }
+
     composable(SettingsRoutes.ABOUT) {
         AboutSettingsScreen()
     }
@@ -1362,7 +1367,7 @@ private fun NavGraphBuilder.miniAppRoutes(
         // S3362: guarded rather than raw, because the distress signal now answers to a capability of
         // its own - the two travel together in both shipped flavors, but nothing here enforces that.
         composable(WearRoutes.TOURIST) {
-            TouristScreen(onLaunchSos = { navigateGuarded(navController, WearRoutes.SOS) })
+            TouristRoute(navController)
         }
     }
 
@@ -1690,4 +1695,16 @@ private fun NavGraphBuilder.tileRoutes(navController: NavHostController) {
     ) {
         TileTargetPickerScreen(navController = navController)
     }
+}
+
+/** S4186: the Tourist route body, held apart so [miniAppRoutes] stays under the length ceiling. */
+@Composable
+private fun TouristRoute(navController: NavHostController) {
+    TouristScreen(
+        onLaunchSos = { navigateGuarded(navController, WearRoutes.SOS) },
+        onLaunchStopwatch = {
+            Timber.d("S4186: stopwatch tile launched from wear tourist")
+            navigateGuarded(navController, WearRoutes.STOPWATCH)
+        },
+    )
 }

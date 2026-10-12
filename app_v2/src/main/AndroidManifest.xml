@@ -409,6 +409,7 @@
         <!-- S1549: no orientation|screenSize - the session list is re-read from its ViewModel on recreation,
              which is what makes the layout-land variant apply. -->
         <activity android:name=".ui.settings.auth.AuthSessionsActivity" android:exported="false" android:label="@string/setting_saved_authorizations_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
+        <activity android:name=".ui.exchange.MyDevicesActivity" android:exported="false" android:label="@string/exchange_devices_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
         <!-- S0473 Phase 04: opt-in statistics dashboard launched from General settings (visible only when the toggle is on). -->
         <activity android:name=".ui.statistics.StatisticsActivity" android:exported="false" android:label="@string/statistics_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
@@ -899,6 +900,45 @@
                 <data android:mimeType="application/vnd.fms.companion-config+json" />
             </intent-filter>
         </activity>
+
+        <!-- S4155: exchange connection string intake receiver. VIEW (.fmsexch) + SEND (text/plain).
+             Transparent host: shows the quick sign-in dialog over the calling app; invalid strings are rejected. -->
+        <activity android:name=".ui.exchange.ExchangeSignInActivity" android:exported="true" android:excludeFromRecents="true" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|locale|layoutDirection|density" android:theme="@style/Theme.FastMediaSorter.Transparent">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/vnd.fms.exchange-connection+text" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.fmsexch" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/*" />
+            </intent-filter>
+        </activity>
+
 
         <!-- S0988: in-app camera QR scan for the companion config; internal (started for a result
              from AddResource), never exported. -->

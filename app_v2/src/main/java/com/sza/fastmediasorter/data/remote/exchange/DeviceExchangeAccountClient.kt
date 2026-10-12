@@ -8,6 +8,12 @@ import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnection
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnector
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTrust
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTunnelUnavailableException
+import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.DeviceExchangeCredential
+import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollResult
+import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollment
+import com.sza.fastmediasorter.domain.model.DeviceExchangePairingCode
+import com.sza.fastmediasorter.domain.model.DeviceExchangeWelcome
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import java.io.Closeable
 import java.io.IOException
@@ -106,7 +112,7 @@ class DeviceExchangeAccountClient @Inject constructor(
         val hello = helloEnvelope(entry, token, keepaliveSeconds)
         val answer = ask(connection, hello, DeviceExchangeFrameCodec.MAX_FRAME_BODY)
         if (answer?.type == DeviceExchangeEnvelope.TYPE_WELCOME) {
-            return DeviceExchangeSession(connection, DeviceExchangeWelcome.from(answer))
+            return DeviceExchangeSession(connection, answer.toWelcome())
         }
         connection.close()
         throw helloFailure(entry, answer)
@@ -118,6 +124,93 @@ class DeviceExchangeAccountClient @Inject constructor(
         if (reason == DeviceExchangeEnvelope.REASON_DEVICE_REVOKED) tokens.forget(entry)
         return reason?.let(::DeviceExchangeRefusedException)
             ?: DeviceExchangeWireException("hello was not answered with welcome")
+    }
+
+    /**
+     * Revokes [entry]'s own device (item AB): `hello`, then `revoke` with its own `deviceId`, then the stream is
+     * closed without `bye`. 7.4 gives `revoke` no answer, so nothing is awaited beyond the flushed write; the
+     * device's records leave the directory with it, so no `unpublish` is sent first.
+     *
+     * @throws IOException when the server cannot be reached, refuses the token or the write fails.
+     */
+    suspend fun revokeOwnDevice(entry: DeviceExchangeAccountEntry) {
+        openAuthenticated(entry).use { session ->
+            session.send(
+                DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_REVOKE) {
+                    addProperty(KEY_DEVICE_ID, entry.deviceId)
+                }
+            )
+        }
+    }
+
+    /**
+     * Revokes another device of [entry]'s account (5.2, 7.4): any enrolled device may, and revoke is the only
+     * recovery from a lost one. No answer exists; the device leaves the directory by a `changed` push.
+     *
+     * @throws IOException when the server cannot be reached, refuses the token or the write fails.
+     */
+    suspend fun revokeDevice(entry: DeviceExchangeAccountEntry, deviceId: String) {
+        openAuthenticated(entry).use { session ->
+            session.send(
+                DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_REVOKE) { addProperty(KEY_DEVICE_ID, deviceId) }
+            )
+        }
+    }
+
+    /**
+     * The account's whole directory (7.4) on a stream of its own, which replaces a producer's control stream for
+     * a moment exactly as [requestPairingCode] does.
+     *
+     * @throws DeviceExchangeRefusedException when the server refused the request.
+     * @throws IOException when the server cannot be reached, refuses the token or answers anything else.
+     */
+    suspend fun listDirectory(entry: DeviceExchangeAccountEntry): DeviceExchangeDirectory =
+        openAuthenticated(entry).use { session ->
+            session.send(DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_LIST))
+            val answer = awaitAnswer(session, DIRECTORY_ANSWERS)
+            when (answer?.type) {
+                DeviceExchangeEnvelope.TYPE_DIRECTORY -> DeviceExchangeDirectory.from(answer)
+                DeviceExchangeEnvelope.TYPE_REFUSED -> throw DeviceExchangeRefusedException(
+                    answer.string(DeviceExchangeEnvelope.KEY_REASON) ?: REASON_UNKNOWN
+                )
+                else -> throw DeviceExchangeWireException("list was not answered with directory")
+            }
+        }
+
+    /**
+     * Asks [entry]'s server for a one-time pairing code (5.3, 7.4) on a stream of its own. That stream becomes the
+     * device's control stream and so replaces a producer's for a moment (7.3); it closes without `bye`, and the
+     * tunnel manager's reconnect loop takes the control stream back with the published resource carried over.
+     *
+     * @throws DeviceExchangeRefusedException when the server refused the request.
+     * @throws IOException when the server cannot be reached, refuses the token or answers anything else.
+     */
+    suspend fun requestPairingCode(entry: DeviceExchangeAccountEntry): DeviceExchangePairingCode =
+        openAuthenticated(entry).use { session ->
+            session.send(DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_PAIRING_REQUEST))
+            pairingAnswer(awaitAnswer(session, PAIRING_ANSWERS))
+        }
+
+    // The new control stream may carry a push meant for the one it replaced; only the answer counts.
+    private fun awaitAnswer(session: DeviceExchangeSession, answers: Set<String>): DeviceExchangeEnvelope? {
+        var answer = session.receive()
+        var skipped = 0
+        while (answer != null && answer.type !in answers && skipped < MAX_UNRELATED_ENVELOPES) {
+            answer = session.receive()
+            skipped++
+        }
+        return answer
+    }
+
+    private fun pairingAnswer(answer: DeviceExchangeEnvelope?): DeviceExchangePairingCode {
+        val code = answer?.takeIf { it.type == DeviceExchangeEnvelope.TYPE_PAIRING_CODE }?.string(KEY_CODE)
+        val reason = answer?.takeIf { it.type == DeviceExchangeEnvelope.TYPE_REFUSED }
+            ?.let { it.string(DeviceExchangeEnvelope.KEY_REASON) ?: REASON_UNKNOWN }
+        return when {
+            code != null -> DeviceExchangePairingCode(code, answer.string(KEY_EXPIRES_AT))
+            reason != null -> throw DeviceExchangeRefusedException(reason)
+            else -> throw DeviceExchangeWireException("pairing-request was not answered with pairing-code")
+        }
     }
 
     /** The producer's data stream for one `open` (7.5): `hello`, then `attach {tunnelId}`, then raw bytes. */
@@ -152,7 +245,7 @@ class DeviceExchangeAccountClient @Inject constructor(
             ?.let { it.string(DeviceExchangeEnvelope.KEY_REASON) ?: REASON_UNKNOWN }
         return when {
             token != null -> if (tokens.save(entry, token)) {
-                DeviceExchangeEnrollResult.Enrolled(DeviceExchangeWelcome.from(answer))
+                DeviceExchangeEnrollResult.Enrolled(answer.toWelcome())
             } else {
                 DeviceExchangeEnrollResult.Refused(DeviceExchangeEnrollResult.REASON_TOKEN_NOT_STORED)
             }
@@ -199,6 +292,8 @@ class DeviceExchangeAccountClient @Inject constructor(
         const val KEY_TUNNEL_ID = "tunnelId"
         const val KEY_RESOURCE_ID = "resourceId"
         const val KEY_SHARE_ID = "shareId"
+        const val KEY_BROADCAST_ID = "broadcastId"
+        const val KEY_SCHEME = "scheme"
         const val KEY_KEEPALIVE_SECONDS = "keepaliveSeconds"
         const val REASON_UNKNOWN = "unknown"
 
@@ -213,6 +308,13 @@ class DeviceExchangeAccountClient @Inject constructor(
         private const val KEY_PLATFORM = "platform"
         private const val KEY_ROLES = "roles"
         private const val KEY_RECEIVER = "receiver"
+        private const val KEY_CODE = "code"
+        private const val KEY_EXPIRES_AT = "expiresAt"
+        private const val MAX_UNRELATED_ENVELOPES = 8
+        private val PAIRING_ANSWERS =
+            setOf(DeviceExchangeEnvelope.TYPE_PAIRING_CODE, DeviceExchangeEnvelope.TYPE_REFUSED)
+        private val DIRECTORY_ANSWERS =
+            setOf(DeviceExchangeEnvelope.TYPE_DIRECTORY, DeviceExchangeEnvelope.TYPE_REFUSED)
 
         /**
          * An outsider tunnel by share id (5.4, 7.5): no `hello`, TLS only since 0.17 (item V). [trust] pins the
@@ -228,6 +330,27 @@ class DeviceExchangeAccountClient @Inject constructor(
             val connection = connector.connect(host, port, trust)
             val request = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_CONNECT) {
                 addProperty(KEY_SHARE_ID, shareId)
+            }
+            return requestTunnel(connection, request, DeviceExchangeFrameCodec.MAX_FRAME_BODY)
+        }
+
+        /**
+         * An outsider tunnel to a live broadcast (7.5): `connect {broadcastId, scheme}`, no `hello`, TLS only
+         * (item V). Any deployment a descriptor names is reachable this way with no entry for it (item AF);
+         * [trust] carries the endpoint's `certFingerprint`, else the platform trust store decides.
+         */
+        fun connectByBroadcastId(
+            connector: ExchangeConnector,
+            host: String,
+            port: Int,
+            broadcastId: String,
+            scheme: String,
+            trust: ExchangeTrust,
+        ): ExchangeConnection {
+            val connection = connector.connect(host, port, trust)
+            val request = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_CONNECT) {
+                addProperty(KEY_BROADCAST_ID, broadcastId)
+                addProperty(KEY_SCHEME, scheme)
             }
             return requestTunnel(connection, request, DeviceExchangeFrameCodec.MAX_FRAME_BODY)
         }

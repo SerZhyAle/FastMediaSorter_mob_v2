@@ -714,6 +714,19 @@
       "notes": "S4152. Watch noLegal only (Tourist is sideload-only on the watch); the phone answers in standard and noLegal. The watch asks on the first fix, then at most every 15 min or after moving more than 2 km, with the position rounded to two decimals."
     },
     {
+      "id": "J15",
+      "slug": "phone-hands-exchange-entry-to-watch",
+      "group": "J",
+      "channels": [
+        "/fms/phone/exchange_handover",
+        "/fms/watch/exchange_handover_ack"
+      ],
+      "logMarker": "/fms/watch/exchange_handover_ack",
+      "requiresPair": true,
+      "expectation": "Connect watch on a server card of the phone's My devices: the watch enrolls into that account with a pairing code, the server lists the watch as a device of the account, the watch's Settings > Exchange servers shows the server, and the phone states the outcome in words - enrolled, refused with the reason, no watch, or no answer.",
+      "notes": "S4158. Needs a live exchange server (FMS_W) and an enrolled phone entry; the phone's menu item arrives with S4116 phase 04. Refusal reasons from the watch: malformed, unsupported_version, code_expired, certificate_untrusted, certificate_changed, unreachable, token-not-stored, or the server's own 7.10 reason."
+    },
+    {
       "id": "K1",
       "slug": "companion-off-mid-scenario",
       "group": "K",

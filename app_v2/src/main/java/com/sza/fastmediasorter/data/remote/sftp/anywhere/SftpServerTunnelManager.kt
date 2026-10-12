@@ -3,11 +3,11 @@ package com.sza.fastmediasorter.data.remote.sftp.anywhere
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
-import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeNotEnrolledException
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeRefusedException
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeSession
+import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.SftpRendezvousResource
 import com.sza.fastmediasorter.domain.model.SftpTunnelState
 import kotlinx.coroutines.CoroutineDispatcher
@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.Closeable
 import java.io.IOException
@@ -67,22 +68,35 @@ class SftpServerTunnelManager @Inject constructor(
         Timber.d("S4094: tunnel manager start")
         // No unpublish on a restart: the new control stream replaces the old one on the server (7.3) and
         // publishes the same resource again, which a late unpublish on the old stream could undo.
-        stopLocked(unpublish = false)
+        detachLocked(unpublish = false)
         job = appScope.launch(ioDispatcher) { run(localPort, hosts) }
     }
 
     @Synchronized
-    fun stop() = stopLocked(unpublish = true)
+    fun stop() {
+        detachLocked(unpublish = true)?.let { farewell -> appScope.launch(ioDispatcher) { unpublish(farewell) } }
+    }
 
-    private fun stopLocked(unpublish: Boolean) {
+    /**
+     * Leaves as a producer (contract DEVICE-EXCHANGE item AC): stops publishing and sends `unpublish` and `bye`
+     * on the live control stream. True when both were written; false when nothing was live or the write failed.
+     * Nothing is retried, so a false answer means the leave ended on this device only.
+     */
+    suspend fun withdraw(): Boolean {
+        val farewell = synchronized(this) { detachLocked(unpublish = true) } ?: return false
+        return withContext(ioDispatcher) { unpublish(farewell) }
+    }
+
+    /** Ends the producer and closes every stream; returns the publication still to unpublish, if asked for. */
+    private fun detachLocked(unpublish: Boolean): Publication? {
         job?.cancel()
         job = null
         // The farewell needs its stream open, so it is taken out of the set closed below.
         val farewell = published.getAndSet(null)?.takeIf { unpublish }
         farewell?.let { openStreams.remove(it.session.connection) }
         closeAll()
-        farewell?.let { appScope.launch(ioDispatcher) { unpublish(it) } }
         mutableState.value = SftpTunnelState.Off
+        return farewell
     }
 
     // Tunnels are children of this scope, not of one session: a control stream that drops and comes back
@@ -229,12 +243,13 @@ class SftpServerTunnelManager @Inject constructor(
     }
 
     // Going offline on purpose: the resource leaves the directory now instead of after a missed window.
-    private fun unpublish(publication: Publication) {
+    private fun unpublish(publication: Publication): Boolean {
         val removal = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_UNPUBLISH) {
             addProperty(DeviceExchangeAccountClient.KEY_RESOURCE_ID, publication.resourceId)
         }
-        if (sendQuietly(publication.session, removal)) sendQuietly(publication.session, BYE)
+        val sent = sendQuietly(publication.session, removal) && sendQuietly(publication.session, BYE)
         close(publication.session.connection)
+        return sent
     }
 
     private suspend fun tunnel(entry: DeviceExchangeAccountEntry, tunnelId: String, localPort: Int) {

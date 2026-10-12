@@ -14,5 +14,14 @@ data class BroadcastEndpointDto(
     @SerializedName("sampleRate") val sampleRate: Int? = null,
     @SerializedName("bitrate") val bitrate: Int? = null,
     @SerializedName("isLive") val isLive: Boolean? = null,
-    @SerializedName("targetLatencyMs") val targetLatencyMs: Long? = null
+    @SerializedName("targetLatencyMs") val targetLatencyMs: Long? = null,
+    /**
+     * S4160/S4177: the LAN URL a `TUNNEL` endpoint reaches;
+     * the consumer swaps its host and port (`LIVE-BROADCAST` J).
+     */
+    @SerializedName("inner") val inner: String? = null,
+    /**
+     * S4160/S4177: the exchange server certificate pin, written only for a self-signed deployment (7.7).
+     */
+    @SerializedName("certFingerprint") val certFingerprint: String? = null,
 )

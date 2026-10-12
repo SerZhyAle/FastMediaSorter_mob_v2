@@ -1,7 +1,5 @@
 package com.sza.fastmediasorter.domain.usecase.sftpserver
 
-import com.sza.fastmediasorter.domain.model.SftpExchangeConfig
-import com.sza.fastmediasorter.domain.model.SftpExchangePasswordPolicy
 import com.sza.fastmediasorter.domain.model.SftpServerAuthMode
 import com.sza.fastmediasorter.domain.model.SftpServerClientCredentials
 import com.sza.fastmediasorter.domain.model.SftpServerConfig
@@ -54,39 +52,13 @@ class ManageSftpServerUseCase @Inject constructor(
 
     suspend fun regeneratePassword(): Boolean = repository.regeneratePassword()
 
-    val exchangeConfig: Flow<SftpExchangeConfig> get() = repository.exchangeConfig
     val tunnelState: StateFlow<SftpTunnelState> get() = repository.tunnelState
 
     /** The `FMSSFTP1` code of the running server, or null while none can be made. */
     suspend fun legacyPairingCode(): String? = repository.legacyPairingPayload()?.encode()
 
-    suspend fun setExchangeEnabled(enabled: Boolean) {
-        repository.setExchangeEnabled(enabled)
-        repository.applyExchangeSettings()
-    }
-
-    /** Returns false, changing nothing, for a blank host or a port outside 1..65535. */
-    suspend fun setExchangeServer(host: String, port: Int): Boolean {
-        if (host.isBlank() || port !in 1..SftpExchangeConfig.MAX_PORT) return false
-        repository.setExchangeServer(host, port)
-        repository.applyExchangeSettings()
-        return true
-    }
-
-    /** Returns false, storing nothing, for a password below the owner's floor or a refused Keystore write. */
-    suspend fun setExchangePassword(password: String): Boolean {
-        val stored = SftpExchangePasswordPolicy.accepts(password) && repository.setExchangePassword(password)
-        if (stored) repository.applyExchangeSettings()
-        return stored
-    }
-
     suspend fun rotateShareId() {
         repository.rotateShareId()
-        repository.applyExchangeSettings()
-    }
-
-    suspend fun trustExchangeServerAgain() {
-        repository.trustExchangeServerAgain()
         repository.applyExchangeSettings()
     }
 }

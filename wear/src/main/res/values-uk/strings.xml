@@ -1043,4 +1043,14 @@
     <string name="wear_tourist_metric_visibility">Видимість</string>
     <string name="wear_tourist_detail_wind_gusts">%1$s, пориви %2$s</string>
     <string name="wear_tourist_unit_fahrenheit">°F</string>
+    <string name="wear_exchange_servers_title">Сервери обміну</string>
+    <string name="wear_exchange_servers_empty">Серверів поки немає. На телефоні відкрийте сервер у «Моїх пристроях» і виберіть «Підключити годинник».</string>
+    <string name="wear_exchange_login">Логін: %1$s</string>
+    <string name="wear_exchange_outgoing_label">Вихідний</string>
+    <string name="wear_exchange_make_outgoing">Зробити вихідним</string>
+    <string name="wear_exchange_remove">Прибрати</string>
+    <string name="wear_exchange_remove_confirm">Прибрати цей сервер з годинника?</string>
+    <string name="wear_exchange_removing">Прибираємо..</string>
+    <string name="wear_exchange_removed_revoked">Прибрано. Цього годинника більше немає у списку сервера.</string>
+    <string name="wear_exchange_removed_locally">Прибрано лише з годинника: сервер недоступний. Відкличте годинник з телефона.</string>
 </resources>

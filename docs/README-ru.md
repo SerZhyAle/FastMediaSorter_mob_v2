@@ -112,9 +112,9 @@ FastMediaSorter - полноценная оболочка Android-устройс
 
 ## Версия для Windows 🖥️
 
-Ищете решение для настольного компьютера? Попробуйте **Fast Media Sorter for Windows** (ранее FastMediaSorter LITE) - лёгкое приложение Windows Forms для быстрой сортировки, просмотра и управления изображениями и видео:
+Ищете решение для настольного компьютера? Попробуйте **Fast Media Sorter & Sharing for Windows** - лёгкое приложение Windows Forms для быстрой сортировки, просмотра и управления изображениями и видео:
 
-🔗 **[Fast Media Sorter for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
+🔗 **[Fast Media Sorter & Sharing for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
 
 📄 [Как опубликовать папки ПК для Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html) - поделитесь папками ПК с приложением по SFTP (companion-импорт / скан QR на телефоне).
 

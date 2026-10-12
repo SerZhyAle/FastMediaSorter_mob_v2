@@ -147,7 +147,7 @@
     <string name="welcome_streams_catalog_failed">Catalogue non téléchargé - vous pouvez ajouter des flux à la main</string>
     <string name="welcome_func_gestures">Activer les gestes</string>
     <string name="welcome_func_gestures_summary">Balayez depuis le bord gauche : menu, capture d\'écran, capture silencieuse</string>
-    <string name="welcome_networks_companion_note">Des médias sur un PC Windows ? Fast Media Sorter pour Windows partage ces dossiers ici en deux clics, sans configurer de serveur.</string>
+    <string name="welcome_networks_companion_note">Des médias sur un PC Windows ? Fast Media Sorter &amp; Sharing for Windows partage ces dossiers ici en deux clics, sans configurer de serveur.</string>
     <string name="welcome_networks_companion_button">Obtenir l\'application Windows</string>
     <string name="welcome_networks_example_smb">Par exemple : un dossier partagé sur un PC Windows, un NAS comme Synology ou QNAP, ou un disque USB branché sur votre routeur.</string>
     <string name="welcome_networks_example_ftp">Par exemple : un compte d\'hébergement en FTP, votre propre serveur domestique en SFTP, ou un appareil photo qui envoie ses images dans un dossier FTP.</string>

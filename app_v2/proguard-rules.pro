@@ -717,4 +717,15 @@
 -keepclassmembernames enum com.sza.fastmediasorter.ui.settings.helpers.SzaResourcesImporter$Outcome {
     <fields>;
 }
+# S4178: two enums flagged by assert-enum-persistence-contract during S4170 validation.
+# ElevationSource is written to DataStore as .name by TouristTripRepositoryImpl and restored
+# by matching the stored string, so an R8 rename silently drops a trip's elevation origin.
+# MediaExchangePortalLinks$Page is credited by the gate's .name receiver resolution; the rule
+# satisfies the contract rather than a durable store.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.tourist.ElevationSource {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks$Page {
+    <fields>;
+}
 

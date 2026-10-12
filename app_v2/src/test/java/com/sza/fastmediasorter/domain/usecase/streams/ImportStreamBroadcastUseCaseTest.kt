@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.domain.usecase.streams
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorParser
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorSerializer
+import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
+import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.stats.StatsEvent
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -183,21 +186,85 @@ class ImportStreamBroadcastUseCaseTest {
         assertEquals("Kitchen watch", dao.getByUrl(FIRST_URL)?.title)
     }
 
+    // S4160: the descriptor's endpoint list is the channel's way in from any network.
+
+    @Test
+    fun importWithExchangeEndpoints_keepsTheWholeListInOrder() = runTest {
+        val payload = serializer.serializeCompressed(watchDto(FIRST_URL, endpoints = exchangeEndpoints("a")))
+        val result = importUseCase(payload)
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Success, result)
+        val stored = BroadcastEndpointCodec.decode(dao.getByUrl(FIRST_URL)?.broadcastEndpoints)
+        assertEquals(listOf("HTTP", "RELAY", "TUNNEL"), stored?.map { it.transport })
+        assertEquals(FINGERPRINT, stored?.get(1)?.certFingerprint)
+        assertEquals(FIRST_URL, stored?.get(2)?.inner)
+    }
+
+    @Test
+    fun importOfTheSourcesNextBroadcast_replacesTheStoredEndpoints() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL, endpoints = exchangeEndpoints("a"))))
+
+        val result = importUseCase(serializer.serialize(watchDto(FIRST_URL, endpoints = exchangeEndpoints("b"))))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        assertEquals(1, dao.observeAll().first().size)
+        val stored = BroadcastEndpointCodec.decode(dao.getByUrl(FIRST_URL)?.broadcastEndpoints)
+        assertEquals(true, stored?.get(1)?.url?.contains("/v2/b/b/"))
+    }
+
+    @Test
+    fun importWithoutAnEndpointList_leavesTheColumnNull() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL)))
+
+        assertNull(dao.getByUrl(FIRST_URL)?.broadcastEndpoints)
+    }
+
+    @Test
+    fun importWithEndpointsAndNoSourceId_refreshesTheRowOfTheSameAddress() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL, sourceId = null, endpoints = exchangeEndpoints("a"))))
+
+        val result = importUseCase(
+            serializer.serialize(watchDto(FIRST_URL, sourceId = null, endpoints = exchangeEndpoints("b")))
+        )
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        assertEquals(1, dao.observeAll().first().size)
+    }
+
+    private fun exchangeEndpoints(broadcastId: String) = listOf(
+        BroadcastEndpointDto(url = FIRST_URL, transport = "HTTP"),
+        BroadcastEndpointDto(
+            url = "https://exchange.example.org:8443/v2/b/$broadcastId/stream",
+            transport = "RELAY",
+            targetLatencyMs = 2000,
+            certFingerprint = FINGERPRINT,
+        ),
+        BroadcastEndpointDto(
+            url = "fmsx://exchange.example.org:8443/b/$broadcastId/http",
+            transport = "TUNNEL",
+            inner = FIRST_URL,
+            certFingerprint = FINGERPRINT,
+        ),
+    )
+
     private fun watchDto(
         url: String,
         sourceId: String? = WATCH_ID,
         title: String = "Galaxy Watch",
+        endpoints: List<BroadcastEndpointDto>? = null,
     ) = BroadcastDescriptorDto(
         schemaVersion = 1,
         url = url,
         title = title,
         mode = "AUDIO_ONLY",
-        sourceId = sourceId
+        sourceId = sourceId,
+        endpoints = endpoints,
     )
 
     private companion object {
         const val WATCH_ID = "6f1a8f0e-0f4e-4a2b-9d1c-2b7f1a8f0e00"
         const val FIRST_URL = "http://192.168.1.77:41000/live-audio.aac"
         const val SECOND_URL = "http://192.168.1.77:52311/live-audio.aac"
+        const val FINGERPRINT = "SHA256:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU"
     }
 }

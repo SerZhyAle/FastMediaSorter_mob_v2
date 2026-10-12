@@ -138,6 +138,29 @@ class BroadcastDescriptorSerializerTest {
     }
 
     @Test
+    fun v2DescriptorWithTunnelEndpointSerializesInnerAndCertFingerprint() {
+        val dto = BroadcastDescriptorDto(
+            url = URL,
+            title = TITLE,
+            endpoints = listOf(
+                BroadcastEndpointDto(
+                    url = "fmsx://exchange.example/b/broadcast123/http",
+                    transport = "TUNNEL",
+                    inner = "http://192.168.1.50:8080/stream",
+                    certFingerprint = "aa:bb:cc:dd",
+                    isLive = true
+                )
+            )
+        )
+        val json = parse(serializer.serialize(dto))
+        val endpoints = json.getAsJsonArray("endpoints").map { it.asJsonObject }
+        assertEquals(1, endpoints.size)
+        assertEquals("TUNNEL", endpoints[0].get("transport").asString)
+        assertEquals("http://192.168.1.50:8080/stream", endpoints[0].get("inner").asString)
+        assertEquals("aa:bb:cc:dd", endpoints[0].get("certFingerprint").asString)
+    }
+
+    @Test
     fun compressedPrefixMatchesPhoneBarcodePrefixConstant() {
         assertEquals("FMSBCAST1:", BroadcastDescriptorSerializer.COMPRESSED_PREFIX)
     }

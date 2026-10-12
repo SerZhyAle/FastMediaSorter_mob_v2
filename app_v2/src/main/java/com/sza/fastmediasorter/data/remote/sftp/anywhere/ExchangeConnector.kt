@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.remote.sftp.anywhere
 
 import com.sza.fastmediasorter.core.security.PrivateDiagnosticValues
+import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeCertificateFingerprint
 import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
@@ -8,10 +9,8 @@ import java.io.OutputStream
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.security.KeyStore
-import java.security.MessageDigest
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
-import java.util.Base64
 import javax.inject.Inject
 import javax.inject.Singleton
 import javax.net.ssl.HttpsURLConnection
@@ -151,9 +150,10 @@ class TlsExchangeConnector @Inject constructor() : ExchangeConnector {
         private const val TLS = "TLS"
         private const val CONNECT_TIMEOUT_MS = 15_000
 
-        /** `SHA256:` plus the unpadded base64 digest of the leaf DER - the family's host-key text form. */
-        fun certificateFingerprint(der: ByteArray): String =
-            "SHA256:" + Base64.getEncoder().withoutPadding()
-                .encodeToString(MessageDigest.getInstance("SHA-256").digest(der))
+        /**
+         * `SHA256:` plus the unpadded base64 digest of the leaf DER - the family's host-key text form. Encoded
+         * without `java.util.Base64` so a descriptor's pin is checkable on the API 23 `legacy` build (S4160).
+         */
+        fun certificateFingerprint(der: ByteArray): String = ExchangeCertificateFingerprint.of(der)
     }
 }

@@ -29,7 +29,7 @@ steps:
     callout:
       type: tip
       title: Не хотите настраивать общий доступ Windows вручную?
-      text: "[Fast Media Sorter for Windows](term:windows-companion) позволяет открыть доступ к выбранным папкам в пару кликов и подключается через QR-код без включения системного общего доступа Windows. См. [Раздача папок с ПК через Fast Media Sorter for Windows](page:network.windows-companion)."
+      text: "[Fast Media Sorter & Sharing for Windows](term:windows-companion) позволяет открыть доступ к выбранным папкам в пару кликов и подключается через QR-код без включения системного общего доступа Windows. См. [Раздача папок с ПК через Fast Media Sorter & Sharing for Windows](page:network.windows-companion)."
   - number: 2
     id: find-and-add
     title: Найдите компьютер и добавьте сетевую папку
@@ -104,7 +104,7 @@ next_recipes:
     badge: Network
     badge_type: docs
     description: Адреса серверов, SSH-ключи и проверка подлинности узлов.
-  - title: Раздача папок с ПК через Fast Media Sorter for Windows
+  - title: Раздача папок с ПК через Fast Media Sorter & Sharing for Windows
     url: page:network.windows-companion
     badge: Network
     badge_type: docs

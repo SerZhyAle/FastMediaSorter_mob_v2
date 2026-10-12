@@ -31,9 +31,9 @@ permalink: /docs/README-ar.html
 
 ## نسخة Windows 🖥️
 
-تبحث عن حل لسطح المكتب؟ جرّب **Fast Media Sorter for Windows** (المعروف سابقًا باسم FastMediaSorter LITE) - تطبيق Windows Forms خفيف لفرز ملفات الصور والفيديو وعرضها وإدارتها بسرعة:
+تبحث عن حل لسطح المكتب؟ جرّب **Fast Media Sorter & Sharing for Windows** - تطبيق Windows Forms خفيف لفرز ملفات الصور والفيديو وعرضها وإدارتها بسرعة:
 
-🔗 **[Fast Media Sorter for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
+🔗 **[Fast Media Sorter & Sharing for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
 
 📄 [كيفية نشر مجلدات الكمبيوتر إلى Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html) - شارك مجلدات الكمبيوتر مع التطبيق عبر SFTP (استيراد عبر المرافق / مسح رمز QR على الهاتف).
 

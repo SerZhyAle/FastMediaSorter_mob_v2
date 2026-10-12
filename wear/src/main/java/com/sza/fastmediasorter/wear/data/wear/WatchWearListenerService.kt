@@ -156,6 +156,9 @@ class WatchWearListenerService : WearableListenerService() {
     // S3764: Lazy for S2626's reason - only a phone battery packet needs the store and the refresh.
     @Inject lateinit var phoneBatteryReceiver: dagger.Lazy<PhoneBatteryReportReceiver>
 
+    // S4158: Lazy for S2626's reason - only a hand-over needs the encrypted store and the TLS client.
+    @Inject lateinit var exchangeHandoverReceiver: dagger.Lazy<WearExchangeHandoverReceiver>
+
     // S2915: every handler below launches on the application-owned scope. The platform destroys this
     // service shortly after the callback returns, and the service-owned scope this used to cancel in
     // onDestroy took every job still in flight with it - a cancelled job reports nothing, so a slow
@@ -306,7 +309,7 @@ class WatchWearListenerService : WearableListenerService() {
     }
 
     /**
-     * S3216: the phone's two distress-signal commands.
+     * S3216: the phone's two distress-signal commands, and since S4158 the exchange hand-over.
      *
      * Split off rather than added to the dispatch above, which is already at detekt's complexity
      * ceiling, and it is also where an unrecognised route now ends - the log line that used to sit on
@@ -323,6 +326,11 @@ class WatchWearListenerService : WearableListenerService() {
                 Timber.i("SOS: the phone asks this watch to stop signalling")
                 sosSyncBus.requestStop()
             }
+
+            // S4158: joins this tail because the dispatch above sits at detekt's complexity ceiling; launched
+            // inline, as the receiver is what a handler function would delegate to anyway.
+            WearDataLayerPaths.EXCHANGE_HANDOVER ->
+                applicationScope.launch { exchangeHandoverReceiver.get().handle(event.sourceNodeId, event.data) }
 
             else -> Timber.d("WatchWearListenerService: unhandled message path ${event.path}")
         }

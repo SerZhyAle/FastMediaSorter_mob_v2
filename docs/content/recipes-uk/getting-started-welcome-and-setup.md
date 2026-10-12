@@ -78,7 +78,7 @@ steps:
     callout:
       type: tip
       title: У вашій мережі вже є ПК з Windows?
-      text: "[Fast Media Sorter for Windows](term:windows-companion) розшарить обрані папки ПК сюди за кілька кліків, без налаштування сервера - на цій сторінці для цього є кнопка **Завантажити для Windows**."
+      text: "[Fast Media Sorter & Sharing for Windows](term:windows-companion) розшарить обрані папки ПК сюди за кілька кліків, без налаштування сервера - на цій сторінці для цього є кнопка **Завантажити для Windows**."
   - number: 4
     id: functionality
     title: "Сторінка 4: виберіть, що застосунок може робити"

@@ -120,7 +120,7 @@ Ficheiros abrem a pedido, mas visualização, miniaturas ou reprodução podem d
 - **FTP:** Menos seguro, protocolo mais antigo (porta 21)
 
 ### Posso compartilhar pastas do PC com o app?
-**Sim** - o Fast Media Sorter for Windows publica as pastas do PC escolhidas via SFTP e mostra um código QR / arquivo de configuração `.fmscfg`. No telefone, use **Importar do companion** ou **Ler código QR** na tela Adicionar Recurso. Veja o guia do lado do PC: [Como publicar pastas do PC no Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html).
+**Sim** - o Fast Media Sorter & Sharing for Windows publica as pastas do PC escolhidas via SFTP e mostra um código QR / arquivo de configuração `.fmscfg`. No telefone, use **Importar do companion** ou **Ler código QR** na tela Adicionar Recurso. Veja o guia do lado do PC: [Como publicar pastas do PC no Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html).
 
 [Matriz de funções (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 

@@ -147,7 +147,7 @@
     <string name="welcome_streams_catalog_failed">لم يُنزَّل الدليل - يمكنك إضافة البثوث يدويًا</string>
     <string name="welcome_func_gestures">تفعيل الإيماءات</string>
     <string name="welcome_func_gestures_summary">اسحب من الحافة اليسرى: القائمة، لقطة الشاشة، لقطة صامتة</string>
-    <string name="welcome_networks_companion_note">وسائطك على حاسوب يعمل بنظام Windows؟ يشارك تطبيق Fast Media Sorter for Windows تلك المجلدات هنا بنقرتين، دون إعداد أي خادم.</string>
+    <string name="welcome_networks_companion_note">وسائطك على حاسوب يعمل بنظام Windows؟ يشارك تطبيق Fast Media Sorter &amp; Sharing for Windows تلك المجلدات هنا بنقرتين، دون إعداد أي خادم.</string>
     <string name="welcome_networks_companion_button">احصل على تطبيق Windows</string>
     <string name="welcome_networks_example_smb">مثلًا: مجلد مشترك على حاسوب Windows، أو جهاز NAS مثل Synology أو QNAP، أو قرص USB موصول بالموجّه.</string>
     <string name="welcome_networks_example_ftp">مثلًا: حساب استضافة عبر FTP، أو خادمك المنزلي عبر SFTP، أو كاميرا ترفع الصور إلى مجلد FTP.</string>

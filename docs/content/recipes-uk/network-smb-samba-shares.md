@@ -29,7 +29,7 @@ steps:
     callout:
       type: tip
       title: Не хочете чіпати спільний доступ Windows узагалі?
-      text: "[Fast Media Sorter for Windows](term:windows-companion) відкриває обрані папки за кілька кліків і спарюється за QR-кодом, не вмикаючи власний мережевий спільний доступ Windows. Див. [Поширення папок ПК через Fast Media Sorter для Windows](page:network.windows-companion)."
+      text: "[Fast Media Sorter & Sharing for Windows](term:windows-companion) відкриває обрані папки за кілька кліків і спарюється за QR-кодом, не вмикаючи власний мережевий спільний доступ Windows. Див. [Поширення папок ПК через Fast Media Sorter для Windows](page:network.windows-companion)."
   - number: 2
     id: find-and-add
     title: Знайдіть свій комп'ютер і додайте спільну папку

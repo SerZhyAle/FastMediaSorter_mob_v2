@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -63,7 +64,16 @@ class StopwatchViewModel @Inject constructor(
         // The tool's options are edited from two surfaces (§6.4), so the screen follows the store
         // rather than reading it once: a change made in Settings reaches an open stopwatch.
         viewModelScope.launch {
-            observeStopwatchSettings().collect { settings -> applySettings(settings) }
+            var autostartPending = true
+            observeStopwatchSettings().collect { settings ->
+                applySettings(settings)
+                // Wait for the saved region count; later settings edits must respect a user's stop.
+                if (autostartPending) {
+                    autostartPending = false
+                    startAll()
+                    Timber.d("S4180: phone stopwatch autostart participants=%d", _state.value.participantCount)
+                }
+            }
         }
     }
 

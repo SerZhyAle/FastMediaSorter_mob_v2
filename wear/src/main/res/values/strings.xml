@@ -1041,4 +1041,14 @@
     <string name="wear_tourist_metric_visibility">Visibility</string>
     <string name="wear_tourist_detail_wind_gusts">%1$s, gusts %2$s</string>
     <string name="wear_tourist_unit_fahrenheit">°F</string>
+    <string name="wear_exchange_servers_title">Exchange servers</string>
+    <string name="wear_exchange_servers_empty">No servers yet. On the phone, open a server in My devices and choose Connect watch.</string>
+    <string name="wear_exchange_login">Login: %1$s</string>
+    <string name="wear_exchange_outgoing_label">Outgoing</string>
+    <string name="wear_exchange_make_outgoing">Make outgoing</string>
+    <string name="wear_exchange_remove">Remove</string>
+    <string name="wear_exchange_remove_confirm">Remove this server from the watch?</string>
+    <string name="wear_exchange_removing">Removing..</string>
+    <string name="wear_exchange_removed_revoked">Removed. The server no longer lists this watch.</string>
+    <string name="wear_exchange_removed_locally">Removed from the watch only: the server could not be reached. Revoke the watch from the phone.</string>
 </resources>

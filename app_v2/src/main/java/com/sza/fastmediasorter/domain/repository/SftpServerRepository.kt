@@ -40,16 +40,15 @@ interface SftpServerRepository {
     val tunnelState: StateFlow<SftpTunnelState>
 
     suspend fun setExchangeEnabled(enabled: Boolean)
-    suspend fun setExchangeServer(host: String, port: Int)
-
-    /** False when the password could not be stored. */
-    suspend fun setExchangePassword(password: String): Boolean
 
     /** Issues a new share id; every code shared before stops opening this server. */
     suspend fun rotateShareId()
 
-    /** Forgets the pinned exchange certificate, so the next registration trusts the one presented. */
-    suspend fun trustExchangeServerAgain()
+    /**
+     * Leaves as a producer: unpublishes on the live control stream and stops publishing. True when the server
+     * was told, false when the leave ended on this device only; never retried.
+     */
+    suspend fun withdrawExchangePublication(): Boolean
 
     /** Re-registers with the current exchange settings while the server runs; nothing otherwise. */
     fun applyExchangeSettings()

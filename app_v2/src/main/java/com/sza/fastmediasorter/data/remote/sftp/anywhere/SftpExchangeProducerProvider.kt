@@ -1,10 +1,11 @@
 package com.sza.fastmediasorter.data.remote.sftp.anywhere
 
 import android.os.Build
-import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.data.remote.sftp.server.SftpServerIdentityStore
+import com.sza.fastmediasorter.data.repository.settings.DeviceExchangeAccountStore
 import com.sza.fastmediasorter.data.repository.settings.SftpExchangeSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.SftpRendezvousIdentityStore
+import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.SftpPairingPayload
 import com.sza.fastmediasorter.domain.model.SftpRendezvousResource
 import com.sza.fastmediasorter.domain.model.SftpShareId
@@ -18,7 +19,7 @@ data class SftpExchangeProducer(val entry: DeviceExchangeAccountEntry, val share
 /** What the tunnel manager publishes, and through which account entry. */
 interface SftpExchangeProducerSource {
 
-    /** Null while publishing is off, no account entry is set up or the share id is not usable. */
+    /** Null while publishing is off, no entry is the outgoing one or the share id is not usable. */
     suspend fun producer(): SftpExchangeProducer?
 
     /**
@@ -29,20 +30,21 @@ interface SftpExchangeProducerSource {
 }
 
 /**
- * Builds the publication from the stored exchange settings and the embedded server's identity. The record
+ * Builds the publication from the outgoing entry, the publish switch and the embedded server's identity. The record
  * keeps the `resourceId` the Drive channel uses for the same share, so one share is one resource in both
  * stores (contract DEVICE-EXCHANGE section 4).
  */
 @Singleton
 class SftpExchangeProducerProvider @Inject constructor(
     private val settings: SftpExchangeSettingsStore,
+    private val accounts: DeviceExchangeAccountStore,
     private val identityStore: SftpServerIdentityStore,
     private val ids: SftpRendezvousIdentityStore,
 ) : SftpExchangeProducerSource {
 
     override suspend fun producer(): SftpExchangeProducer? {
         val config = settings.snapshot()
-        val entry = settings.accountEntry()
+        val entry = accounts.outgoing()
         return if (config.enabled && entry != null && SftpShareId.isValid(config.shareId)) {
             SftpExchangeProducer(entry, config.shareId)
         } else {

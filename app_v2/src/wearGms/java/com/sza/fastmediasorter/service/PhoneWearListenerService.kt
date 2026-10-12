@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.data.wear.WearIncomingFileRegistry
 import com.sza.fastmediasorter.data.wear.WearSendToNotifier
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
+import com.sza.fastmediasorter.domain.model.WearExchangeHandoverCodec
 import com.sza.fastmediasorter.domain.model.WearFavoritesDeltaPayload
 import com.sza.fastmediasorter.domain.model.WearFileReceiveAck
 import com.sza.fastmediasorter.domain.model.WearFileTransferAck
@@ -183,6 +184,11 @@ class PhoneWearListenerService : WearableListenerService() {
                 applicationScope.launch { wearClipboardTextReceiver.publishAck(event.data) }
             WearDataLayerPaths.SCREENSHOT_REQUEST_ACK ->
                 applicationScope.launch { wearScreenshotAckReceiver.publishAck(event.data) }
+            WearDataLayerPaths.EXCHANGE_HANDOVER_ACK ->
+                applicationScope.launch {
+                    WearExchangeHandoverCodec.parseAck(event.data, gson)
+                        ?.let { WearSyncEvents.emitExchangeHandoverAck(it) }
+                }
             else -> onTransferMessageReceived(event)
         }
     }

@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `DEVICE-EXCHANGE` |
-| **Version** | 0.18, draft - [PROPOSED] in full, nothing ships against it yet. Owner: FastMediaSorter Android |
+| **Version** | 0.19, draft - original resource PIN amendment accepted 2026-10-12. Owner: FastMediaSorter Android |
 | **Home** | `device-exchange/README.md` in the shared contracts catalog |
 | **Role here** | owner; phone - resource producer and consumer, broadcaster, receiver, enrolls the watch; watch - audio broadcaster and receiver. The exchange server is FMS_W's to implement |
 
@@ -49,3 +49,15 @@
   entry's join and leave, the watch through the phone's entry.
 - S4160 - receiving a broadcast from any exchange server its descriptor names, and the broadcast's own share
   carrying its exchange endpoints.
+
+## Original resource PIN boundary (Windows specification 216)
+
+The original resource PIN is separate from exchange enrollment, certificate pinning and the account
+password. This Android build takes section 17 AJ's explicit unsupported path: any protection marker,
+including malformed or unknown protection, remains locked. The rendezvous codec removes all access
+material, preserves the protection fact through Drive wrapper schema 2, and the directory excludes it
+from legacy attachment import. The phone does not advertise pin-v1 or claim SSH PIN authorization;
+Wear's device/broadcast directory does not implement protected-folder attachment either.
+
+ResourceProtectionTest exercises known, future and malformed protection plus protected Drive round trips.
+A native Android resource PIN entry flow and physical phone/Wear acceptance are not claimed by this change.

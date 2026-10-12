@@ -14,7 +14,21 @@
         app:navigationIcon="@drawable/ic_arrow_back"
         app:menu="@menu/menu_system_info" />
 
-    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <LinearLayout android:id="@+id/system_info_content" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
-    </ScrollView>
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/systemInfoSearchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurfaceVariant"
+        android:queryHint="@string/sysinfo_search_hint"
+        app:iconifiedByDefault="false"
+        app:queryHint="@string/sysinfo_search_hint" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/systemInfoRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/margin_large" />
+
 </LinearLayout>

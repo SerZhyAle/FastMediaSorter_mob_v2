@@ -73,6 +73,14 @@ class TouristActionsManager(
         tryStartActivity(AppLaunchPanelRouteIntents.sos(context))
     }
 
+    /**
+     * S4182: opens the stopwatch from the Tourist dashboard tile.
+     */
+    fun launchStopwatch() {
+        timber.log.Timber.d("S4182: stopwatch tile launched from tourist")
+        tryStartActivity(AppLaunchPanelRouteIntents.stopwatch(context))
+    }
+
     private fun tryStartActivity(intent: Intent, onFallback: (() -> Unit)? = null) {
         runCatching {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

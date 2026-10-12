@@ -135,6 +135,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     @Inject
     lateinit var networkContextAnalyzer: com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 
+    // S4160: a channel imported from a broadcast descriptor resolves its endpoint list before it plays.
+    @Inject
+    lateinit var broadcastEndpoints: com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastEndpointManager
+
     // S0668: decodes a tile index into a 32 px bitmap, re-reading the atlas file on each (re)decode so
     // invalidate() after an import picks up the new atlas. Lazy so it is built after Hilt field injection.
     private val faviconSlicer by lazy { FaviconAtlasSlicer { faviconAtlasStore.atlasFile() } }
@@ -1169,6 +1173,20 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             // both of which funnel through onPlay.
             !viewModel.hasNetworkForStream ->
                 Toast.makeText(this, R.string.streams_error_no_network, Toast.LENGTH_SHORT).show()
+            broadcastEndpoints.needsResolution(source.broadcastEndpoints) ->
+                playBroadcast(source)
+            else -> startPlayback(source)
+        }
+    }
+
+    private fun playBroadcast(source: StreamSourceEntity) {
+        broadcastEndpoints.play(lifecycleScope, this, source.id, source.url, source.broadcastEndpoints) { url ->
+            startPlayback(source.copy(url = url))
+        }
+    }
+
+    private fun startPlayback(source: StreamSourceEntity) {
+        when {
             source.mediaKind == "AUDIO" -> {
                 if (viewModel.settings.value.streamsVisualizeAsMusic) {
                     launchVisualizerStream(source)
@@ -1225,6 +1243,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     /** S1152: record this radio station as the last active stream, so a cold start resumes it. */
     private fun persistStreamResume(source: StreamSourceEntity) {
+        // S4160: a descriptor's broadcast is handed over per broadcast and plays through a resolved address, so a
+        // cold start has nothing durable to reopen.
+        if (broadcastEndpoints.needsResolution(source.broadcastEndpoints)) return
         viewModel.persistStreamResume(source)
     }
 
@@ -1305,7 +1326,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * S1509: removal is offered only when the device had a network - otherwise the user's own dead
      * link, not the channel, is what failed, and the dialog says so instead of proposing a deletion.
      */
-    private fun showStreamUnavailable(source: StreamSourceEntity) {
+    private fun showStreamUnavailable(played: StreamSourceEntity) {
+        // S4160: removal and retry act on the stored row; a retry of a broadcast resolves from the top again.
+        val source = played.copy(url = broadcastEndpoints.storedUrl(played.id, played.url))
         // S1509: one connectivity sample drives both the recorded outcome and the dialog, so the row
         // bullet and the buttons can never disagree about what just happened.
         val hasNetwork = viewModel.hasNetworkForStream
@@ -1316,7 +1339,13 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             activity = this,
             channelTitle = source.title,
             offline = !hasNetwork,
-            onRetry = { inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled()) },
+            onRetry = {
+                if (broadcastEndpoints.needsResolution(source.broadcastEndpoints)) {
+                    playBroadcast(source)
+                } else {
+                    inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled())
+                }
+            },
             onRemove = { viewModel.onRemove(source) },
             onDismiss = {},
         )

@@ -109,7 +109,7 @@ Wenn eine Funktion mit „✗" markiert ist, wählen Sie den **Standard**- oder 
 
 Diese Abschnitte sind bewusst vielfältiger gestaltet als die Kernreferenz-Blöcke weiter unten. Jedes Szenario verbindet einen schnellen Weg mit Kontext, Kompromissen und den Situationen, in denen FastMediaSorter besonders stark ist.
 
-> **⭐ Empfehlung: Holen Sie die Ordner Ihres PCs mit einem Scan aufs Handy.** Starten Sie den kostenlosen Begleiter [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) auf Ihrem PC, wählen Sie die Ordner mit Ihren Videos, Musik, Dokumenten oder Fotos aus, und er zeigt einen Code auf dem Bildschirm an. Tippen Sie auf dem Handy auf **Hinzufügen**, wählen Sie **Per Barcode importieren**, richten Sie die Kamera auf den Code - die PC-Ordner werden sofort verbunden, ohne Adresse, Port oder Passwort einzutippen. Vollständige Anleitung: [PC-Ordner durch Scannen eines Codes öffnen](howto/scenario-companion-share-de.md) &bull; Kurzrezept: [Eine Windows-Companion-Freigabe importieren](#how-to-import-a-windows-companion-share).
+> **⭐ Empfehlung: Holen Sie die Ordner Ihres PCs mit einem Scan aufs Handy.** Starten Sie den kostenlosen Begleiter [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) auf Ihrem PC, wählen Sie die Ordner mit Ihren Videos, Musik, Dokumenten oder Fotos aus, und er zeigt einen Code auf dem Bildschirm an. Tippen Sie auf dem Handy auf **Hinzufügen**, wählen Sie **Per Barcode importieren**, richten Sie die Kamera auf den Code - die PC-Ordner werden sofort verbunden, ohne Adresse, Port oder Passwort einzutippen. Vollständige Anleitung: [PC-Ordner durch Scannen eines Codes öffnen](howto/scenario-companion-share-de.md) &bull; Kurzrezept: [Eine Windows-Companion-Freigabe importieren](#how-to-import-a-windows-companion-share).
 
 > **⌚ Wear-OS-Smartwatches:** Nutzen Sie eine Wear-OS-Uhr? Sehen Sie sich unsere Schritt-für-Schritt-Anleitungen an: [Musik auf Ihrer Uhr hören](howto/scenario-watch-music-de.md) und [Smartwatch mit NAS- & PC-Freigaben verbinden](howto/scenario-watch-network-de.md).
 
@@ -556,13 +556,13 @@ Diese Abschnitte sind bewusst vielfältiger gestaltet als die Kernreferenz-Blöc
 
 ## Eine Windows-Companion-Freigabe importieren {#how-to-import-a-windows-companion-share}
 
-**Was es ist:** Der Companion ist eine Funktion von [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) (früher FastMediaSorter LITE) - dem kostenlosen Windows-Medien-Sortierer desselben Autors. Er gibt ausgewählte PC-Ordner über SFTP frei und exportiert eine fertige Verbindung - keine manuelle Servereinrichtung, keine Eingabe von Host/Port/Schlüssel auf dem Handy. Sie bringen sie aufs Handy, indem Sie einen **QR-Code** auf dem PC-Bildschirm scannen oder eine `.fmscfg`-Datei importieren.
+**Was es ist:** Der Companion ist eine Funktion von [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) - dem kostenlosen Windows-Medien-Sortierer desselben Autors. Er gibt ausgewählte PC-Ordner über SFTP frei und exportiert eine fertige Verbindung - keine manuelle Servereinrichtung, keine Eingabe von Host/Port/Schlüssel auf dem Handy. Sie bringen sie aufs Handy, indem Sie einen **QR-Code** auf dem PC-Bildschirm scannen oder eine `.fmscfg`-Datei importieren.
 
 **Verfügbar in:** Standard, Photos, Legacy, XR/noLegal (Barcode-Scan benötigt eine Kamera; die Dateimethode funktioniert überall, auch in VR)
 
 > Bevorzugen Sie eine geführte, screenshot-freundliche Version? Siehe die Szenario-Anleitung [PC-Ordner durch Scannen eines Codes öffnen](howto/scenario-companion-share-de.md).
 
-**Fast Media Sorter for Windows holen:**
+**Fast Media Sorter & Sharing for Windows holen:**
 
 - Website: [serzhyale.github.io/FastMediaSorter_Lite](https://serzhyale.github.io/FastMediaSorter_Lite/)
 - Ordner veröffentlichen (Anleitung): [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html)
@@ -572,7 +572,7 @@ Diese Abschnitte sind bewusst vielfältiger gestaltet als die Kernreferenz-Blöc
 
 **Auf dem PC:**
 
-1. Installieren und starten Sie **Fast Media Sorter for Windows**, öffnen Sie den Tab **Freigabe** in den Einstellungen.
+1. Installieren und starten Sie **Share Manager - Fast Media Sorter & Sharing**, öffnen Sie den Tab **Freigabe** in den Einstellungen.
 2. Wählen Sie die freizugebenden Ordner - die App startet den SFTP-Server, erzeugt Schlüssel und richtet den Autostart von selbst ein.
 3. Sie zeigt einen **QR-Code** auf dem Bildschirm an. Sie kann auch **.fmscfg speichern**, wenn Sie eine Datei bevorzugen.
 

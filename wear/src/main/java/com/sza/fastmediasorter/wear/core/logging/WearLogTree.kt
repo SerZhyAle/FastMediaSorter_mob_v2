@@ -69,7 +69,8 @@ class WearLogTree(private val minPriority: Int) : Timber.Tree() {
  * The phone has its own masker in `core/security`, but the two modules share no code, so the rules are
  * restated here rather than reached for: DIAGNOSTIC-REPORT rule 3 as section 7 (0.11), section 8 C (0.12) and
  * the key and shape half of section 10 (0.13) spell it, matched by the shape of the text rather than by a bare
- * key name. The watch holds no exchange account, so the phone's live-value registry has no counterpart here.
+ * key name. The phone's live-value registry has no counterpart here: the watch's exchange entries (S4158) never
+ * hand a host, login, code or token to a log line, and log only the class of a connect failure.
  * A change here belongs in the phone's `SecretMasker` too.
  */
 internal object WearSecretMasker {

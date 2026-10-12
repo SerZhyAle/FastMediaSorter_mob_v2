@@ -94,7 +94,7 @@ steps:
     callout:
       type: tip
       title: Так же подключаются папки с компьютера
-      text: "Папки, опубликованные через [Fast Media Sorter for Windows](term:windows-companion), используют тот же формат файла конфигурации и тот же диалог импорта - см. [Раздача папок с ПК через Fast Media Sorter for Windows](page:network.windows-companion)."
+      text: "Папки, опубликованные через [Fast Media Sorter & Sharing for Windows](term:windows-companion), используют тот же формат файла конфигурации и тот же диалог импорта - см. [Раздача папок с ПК через Fast Media Sorter & Sharing for Windows](page:network.windows-companion)."
   - number: 7
     id: quietly-resilient
     title: Забота о стабильности без лишних вопросов
@@ -128,7 +128,7 @@ next_recipes:
     badge: Network
     badge_type: docs
     description: Раздача папок с собственного телефона вместо подключения к чужим серверам.
-  - title: Раздача папок с ПК через Fast Media Sorter for Windows
+  - title: Раздача папок с ПК через Fast Media Sorter & Sharing for Windows
     url: page:network.windows-companion
     badge: Network
     badge_type: docs

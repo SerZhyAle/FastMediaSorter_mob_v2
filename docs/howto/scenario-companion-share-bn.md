@@ -21,7 +21,7 @@ permalink: /docs/howto/scenario-companion-share-bn.html
 
 ## হেল্পার প্রোগ্রাম
 
-"companion" হলো একই লেখকের তৈরি বিনামূল্যের Windows মিডিয়া সর্টার **[Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** (আগে FastMediaSorter LITE নামে পরিচিত)-এর একটা বিল্ট-ইন ফিচার। আপনি যখন এটা দিয়ে ফোল্ডার শেয়ার করেন, তখন এটা:
+"companion" হলো একই লেখকের তৈরি বিনামূল্যের Windows মিডিয়া সর্টার **[Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)**-এর একটা বিল্ট-ইন ফিচার। আপনি যখন এটা দিয়ে ফোল্ডার শেয়ার করেন, তখন এটা:
 
 - শুধু ওই ফোল্ডারগুলোর জন্য আপনার পিসিতে একটা প্রাইভেট SFTP সার্ভার চালু করে।
 - নিজস্ব কী তৈরি করে এবং অটোস্টার্ট সেট করে দেয়, যাতে পরের বারও শেয়ারটা থাকে।
@@ -39,7 +39,7 @@ permalink: /docs/howto/scenario-companion-share-bn.html
 
 ## আপনার যা যা লাগবে
 
-- **Fast Media Sorter for Windows** ইনস্টল করা একটা Windows পিসি
+- **Fast Media Sorter & Sharing for Windows** ইনস্টল করা একটা Windows পিসি
 - আপনার ফোন এবং পিসি **একই Wi-Fi নেটওয়ার্কে** (একই রাউটার)
 - সবচেয়ে দ্রুত পথের জন্য: কোড স্ক্যান করার জন্য একটা ফোন **ক্যামেরা** (ক্যামেরা না থাকলে একটা ফাইল-ভিত্তিক পথও আছে)
 
@@ -47,7 +47,7 @@ permalink: /docs/howto/scenario-companion-share-bn.html
 
 ## ধাপ ১ - পিসিতে ফোল্ডারগুলো শেয়ার করুন
 
-1. **Fast Media Sorter for Windows** ইনস্টল করে চালান, তারপর সেটিংসে **Share** ট্যাব খুলুন।
+1. **Share Manager - Fast Media Sorter & Sharing** ইনস্টল করে চালান, তারপর সেটিংসে **Share** ট্যাব খুলুন।
 2. ফোনে চান এমন ফোল্ডার(গুলো) বেছে নিন - Movies, Music, Documents, Photos, যা খুশি।
 3. অ্যাপটা SFTP সার্ভার চালু করে, কী তৈরি করে, এবং নিজে থেকেই অটোস্টার্ট সেট করে দেয়। আর কিছু কনফিগার করার নেই।
 4. এটা এখন পিসির স্ক্রিনে একটা **QR কোড** দেখায়। ধাপ ২-এর জন্য ওই উইন্ডোটা খোলা রাখুন।

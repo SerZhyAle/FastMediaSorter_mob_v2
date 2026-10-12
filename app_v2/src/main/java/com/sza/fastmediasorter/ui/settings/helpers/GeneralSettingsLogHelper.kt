@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.ui.common.support.SupportDestination
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.ui.dialog.DestinationPickerDialog
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
+import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
 import com.sza.fastmediasorter.ui.systeminfo.helpers.SystemInfoDialogManager
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
@@ -83,12 +84,8 @@ class GeneralSettingsLogHelper(
     }
 
     fun showSystemInfoDialog() {
-        fragment.viewLifecycleOwner.lifecycleScope.launch {
-            val context = fragment.requireContext()
-            val report = systemInfoDialogManager.gather(context)
-            if (!fragment.isAdded || fragment.view == null) return@launch
-            systemInfoDialogManager.show(fragment.requireContext(), report)
-        }
+        val context = fragment.requireContext()
+        fragment.startActivity(SystemInfoActivity.createIntent(context))
     }
 
     fun shareLogs() {

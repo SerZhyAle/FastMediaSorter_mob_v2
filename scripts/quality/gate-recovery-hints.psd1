@@ -13,6 +13,10 @@
 # editing the facade's output logic.
 
 @{
+    'code-domain-writers-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-code-domain-writers.ps1'
+        Fix   = 'Adopt scripts/utils/code-lock-scope.ps1 in each registered writer and use the helper required by its manifest class; register a new writer rather than raising the ratchet baseline.'
+    }
     'ticket-log-audit' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1'
         Fix   = 'Each listed File:Line holds a ticket id in a permanent log, or a probe whose ticket left BlockNeedUserTest - delete the Timber line, or flip the ticket back if the device test is still pending.'

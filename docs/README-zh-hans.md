@@ -31,9 +31,9 @@ permalink: /docs/README-zh-hans.html
 
 ## Windows 版本 🖥️
 
-在寻找桌面解决方案？看看 **Fast Media Sorter for Windows**（前身为 FastMediaSorter LITE）- 一款轻量级的 Windows Forms 应用程序，用于快速整理、查看和管理图片与视频文件：
+在寻找桌面解决方案？看看 **Fast Media Sorter & Sharing for Windows**- 一款轻量级的 Windows Forms 应用程序，用于快速整理、查看和管理图片与视频文件：
 
-🔗 **[Fast Media Sorter for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
+🔗 **[Fast Media Sorter & Sharing for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
 
 📄 [如何将电脑文件夹发布到 Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html) - 通过 SFTP 将你电脑上的文件夹与应用共享（在手机上使用伴侣导入 / 扫描二维码）。
 

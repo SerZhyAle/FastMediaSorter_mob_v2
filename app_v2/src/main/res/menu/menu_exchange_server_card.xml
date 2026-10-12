@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_exchange_edit_address"
+        android:title="@string/exchange_devices_menu_edit_address" />
+    <item
+        android:id="@+id/action_exchange_make_outgoing"
+        android:title="@string/exchange_devices_menu_make_outgoing" />
+    <item
+        android:id="@+id/action_exchange_connect_watch"
+        android:title="@string/exchange_devices_menu_connect_watch" />
+    <item
+        android:id="@+id/action_exchange_share"
+        android:title="@string/exchange_devices_menu_share" />
+    <item
+        android:id="@+id/action_exchange_auto_attach"
+        android:checkable="true"
+        android:title="@string/exchange_devices_menu_auto_attach" />
+    <item
+        android:id="@+id/action_exchange_remove"
+        android:title="@string/exchange_devices_menu_remove" />
+</menu>

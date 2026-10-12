@@ -108,7 +108,7 @@ permalink: /docs/HOW_TO-ur.html
 
 یہ حصے نیچے دیے گئے بنیادی حوالہ بلاکس کے مقابلے میں جان بوجھ کر زیادہ متنوع ہیں۔ ہر منظرنامہ ایک تیز راستے کو سیاق و سباق، مصالحتوں اور ان حالات کے ساتھ ملاتا ہے جہاں FastMediaSorter خاص طور پر مضبوط ہے۔
 
-> **⭐ نمایاں: ایک اسکین سے اپنے PC کے فولڈرز اپنے فون تک لائیں۔** اپنے PC پر مفت [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) کمپینیئن چلائیں، اپنی ویڈیوز، موسیقی، دستاویزات یا تصاویر والے فولڈرز منتخب کریں، اور یہ اسکرین پر ایک کوڈ دکھاتا ہے۔ فون پر **Add** پر ٹیپ کریں، **Import by barcode** منتخب کریں، کیمرہ کوڈ کی طرف رکھیں - PC کے فولڈرز فوراً منسلک ہو جاتے ہیں، بغیر کسی ایڈریس، پورٹ یا پاس ورڈ ٹائپ کیے۔ مکمل واک تھرو: [کوڈ اسکین کر کے PC فولڈرز کھولیں](howto/scenario-companion-share-ur.md) &bull; فوری نسخہ: [Windows کمپینیئن شیئر درآمد کریں](#how-to-import-a-windows-companion-share)۔
+> **⭐ نمایاں: ایک اسکین سے اپنے PC کے فولڈرز اپنے فون تک لائیں۔** اپنے PC پر مفت [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) کمپینیئن چلائیں، اپنی ویڈیوز، موسیقی، دستاویزات یا تصاویر والے فولڈرز منتخب کریں، اور یہ اسکرین پر ایک کوڈ دکھاتا ہے۔ فون پر **Add** پر ٹیپ کریں، **Import by barcode** منتخب کریں، کیمرہ کوڈ کی طرف رکھیں - PC کے فولڈرز فوراً منسلک ہو جاتے ہیں، بغیر کسی ایڈریس، پورٹ یا پاس ورڈ ٹائپ کیے۔ مکمل واک تھرو: [کوڈ اسکین کر کے PC فولڈرز کھولیں](howto/scenario-companion-share-ur.md) &bull; فوری نسخہ: [Windows کمپینیئن شیئر درآمد کریں](#how-to-import-a-windows-companion-share)۔
 
 > **⌚ Wear OS اسمارٹ واچز:** Wear OS واچ استعمال کر رہے ہیں؟ ہماری قدم بہ قدم گائیڈز دیکھیں [اپنی واچ پر موسیقی سنیں](howto/scenario-watch-music-ur.md) اور [اسمارٹ واچ کو NAS اور PC شیئرز سے منسلک کریں](howto/scenario-watch-network-ur.md)۔
 
@@ -552,13 +552,13 @@ permalink: /docs/HOW_TO-ur.html
 
 ## Windows کمپینیئن شیئر درآمد کریں {#how-to-import-a-windows-companion-share}
 
-**یہ کیا ہے:** کمپینیئن [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) (سابقہ FastMediaSorter LITE) کی ایک خصوصیت ہے - وہی مصنف کا مفت Windows میڈیا سورٹر۔ یہ منتخب کردہ PC فولڈرز کو SFTP کے ذریعے شیئر کرتا ہے اور ایک تیار کنکشن ایکسپورٹ کرتا ہے - نہ کوئی دستی سرور سیٹ اپ، نہ فون پر ہوسٹ/پورٹ/کی ٹائپ کرنا۔ آپ اسے PC اسکرین پر **QR کوڈ اسکین کر کے**، یا **`.fmscfg` فائل درآمد کر کے** فون پر لاتے ہیں۔
+**یہ کیا ہے:** کمپینیئن [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) کی ایک خصوصیت ہے - وہی مصنف کا مفت Windows میڈیا سورٹر۔ یہ منتخب کردہ PC فولڈرز کو SFTP کے ذریعے شیئر کرتا ہے اور ایک تیار کنکشن ایکسپورٹ کرتا ہے - نہ کوئی دستی سرور سیٹ اپ، نہ فون پر ہوسٹ/پورٹ/کی ٹائپ کرنا۔ آپ اسے PC اسکرین پر **QR کوڈ اسکین کر کے**، یا **`.fmscfg` فائل درآمد کر کے** فون پر لاتے ہیں۔
 
 **دستیاب ہے:** Standard, Photos, Legacy, XR/noLegal (بارکوڈ اسکین کے لیے کیمرہ درکار ہے؛ فائل کا طریقہ ہر جگہ کام کرتا ہے، بشمول VR)
 
 > رہنمائی شدہ، اسکرین شاٹس والا ورژن چاہیے؟ منظرنامہ گائیڈ دیکھیں [کوڈ اسکین کر کے PC فولڈرز کھولیں](howto/scenario-companion-share-ur.md)۔
 
-**Fast Media Sorter for Windows حاصل کریں:**
+**Fast Media Sorter & Sharing for Windows حاصل کریں:**
 
 - ویب سائٹ: [serzhyale.github.io/FastMediaSorter_Lite](https://serzhyale.github.io/FastMediaSorter_Lite/)
 - فولڈرز شائع کرنا (گائیڈ): [PC فولڈرز کو Android پر کیسے شائع کریں](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html)
@@ -568,7 +568,7 @@ permalink: /docs/HOW_TO-ur.html
 
 **PC پر:**
 
-1. **Fast Media Sorter for Windows** انسٹال کریں اور چلائیں، ترتیبات میں **Share** ٹیب کھولیں۔
+1. **Share Manager - Fast Media Sorter & Sharing** انسٹال کریں اور چلائیں، ترتیبات میں **Share** ٹیب کھولیں۔
 2. شیئر کرنے کے لیے فولڈر(ز) منتخب کریں - ایپ خود SFTP سرور شروع کرتی ہے، کیز بناتی ہے اور آٹو اسٹارٹ سیٹ اپ کرتی ہے۔
 3. یہ اسکرین پر ایک **QR کوڈ** دکھاتی ہے۔ اگر آپ فائل ترجیح دیں تو یہ **Save .fmscfg** بھی کر سکتی ہے۔
 

@@ -185,6 +185,15 @@ object WearDataLayerPaths {
     const val CLIPBOARD_TEXT_FROM_PHONE_ACK = "/fms/watch/clipboard_text_ack"
 
     /**
+     * Message, phone → watch. One exchange account entry with a fresh pairing code, for this watch to enroll
+     * into the same account without a password (S4158). Mirrored verbatim from the phone module's copy.
+     */
+    const val EXCHANGE_HANDOVER = "/fms/phone/exchange_handover"
+
+    /** Message, watch → phone. Answers one hand-over - enrolled, or refused with a reason. */
+    const val EXCHANGE_HANDOVER_ACK = "/fms/watch/exchange_handover_ack"
+
+    /**
      * Message, phone → watch. Asks this watch for a picture of its own screen (S3110).
      *
      * The image never rides this route: a Data Layer message is capped at 100 KB, so the answer sends

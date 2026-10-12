@@ -79,7 +79,7 @@ steps:
     callout:
       type: tip
       title: Already have a Windows PC on the network?
-      text: "[Fast Media Sorter for Windows](term:windows-companion) shares chosen PC folders here in a couple of clicks, no server setup needed - this page has a **Get the Windows app** button for it."
+      text: "[Fast Media Sorter & Sharing for Windows](term:windows-companion) shares chosen PC folders here in a couple of clicks, no server setup needed - this page has a **Get the Windows app** button for it."
   - number: 4
     id: functionality
     title: "Page 4: choose what the app can do"

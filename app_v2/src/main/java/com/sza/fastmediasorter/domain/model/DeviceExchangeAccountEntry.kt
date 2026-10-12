@@ -1,4 +1,4 @@
-package com.sza.fastmediasorter.data.remote.exchange
+package com.sza.fastmediasorter.domain.model
 
 import com.google.gson.JsonObject
 import com.sza.fastmediasorter.core.security.PrivateDiagnosticValues
@@ -18,6 +18,12 @@ data class DeviceExchangeAccountEntry(
     val deviceId: String,
     /** The leaf fingerprint the user accepted for a server the platform does not trust; null otherwise. */
     val pinnedCertificate: String?,
+    /** Attach every new resource of this account without asking (item AD); off until the user turns it on. */
+    val autoAttach: Boolean = false,
+    /** The last `welcome.publicEndpoint`; offered as an address edit when it differs, never applied silently. */
+    val publicEndpoint: String? = null,
+    /** The device publishes and broadcasts through this entry; on at most one entry (item AC). */
+    val outgoing: Boolean = false,
 ) {
 
     /** Host lower-cased, port and login compared case-insensitively (5.1); the device token is kept under it. */
@@ -27,7 +33,8 @@ data class DeviceExchangeAccountEntry(
     // DIAGNOSTIC-REPORT section 10: host, login and pin are private; the generated form would print all three.
     override fun toString(): String =
         "DeviceExchangeAccountEntry(host=$REDACTED, port=$port, login=$REDACTED, deviceId=$deviceId, " +
-            "pinnedCertificate=${pinnedCertificate?.let { REDACTED }})"
+            "pinnedCertificate=${pinnedCertificate?.let { REDACTED }}, autoAttach=$autoAttach, " +
+            "publicEndpoint=${publicEndpoint?.let { REDACTED }}, outgoing=$outgoing)"
 
     companion object {
         private val LOGIN = Regex("[A-Za-z0-9._-]{3,64}")
@@ -63,7 +70,24 @@ data class DeviceExchangeEnrollment(
     val productVersion: String,
     val roles: List<String>,
     val receiver: JsonObject? = null,
-)
+) {
+
+    companion object {
+        const val ROLE_RESOURCE_PRODUCER = "resource-producer"
+        const val ROLE_RESOURCE_CONSUMER = "resource-consumer"
+        const val ROLE_BROADCASTER = "broadcaster"
+
+        /**
+         * Every role this product may take on an entry, declared at `enroll` ahead of use (item AC), so making the
+         * entry the outgoing one later needs no second enrollment and no password.
+         */
+        fun declaredRoles(producer: Boolean, broadcaster: Boolean): List<String> = listOfNotNull(
+            ROLE_RESOURCE_CONSUMER,
+            ROLE_RESOURCE_PRODUCER.takeIf { producer },
+            ROLE_BROADCASTER.takeIf { broadcaster },
+        )
+    }
+}
 
 /** The members of `welcome`, which `enrolled` carries as well (7.2). */
 data class DeviceExchangeWelcome(
@@ -83,24 +107,6 @@ data class DeviceExchangeWelcome(
         "DeviceExchangeWelcome(account=${account?.let { REDACTED }}, " +
             "publicEndpoint=${publicEndpoint?.let { REDACTED }}, keepaliveSeconds=$keepaliveSeconds, " +
             "features=$features, serverVersion=$serverVersion)"
-
-    companion object {
-        fun from(envelope: DeviceExchangeEnvelope): DeviceExchangeWelcome = DeviceExchangeWelcome(
-            account = envelope.string(KEY_ACCOUNT),
-            publicEndpoint = envelope.string(KEY_PUBLIC_ENDPOINT),
-            keepaliveSeconds = envelope.int(KEY_KEEPALIVE_SECONDS),
-            features = envelope.members.get(KEY_FEATURES)?.takeIf { it.isJsonArray }?.asJsonArray
-                ?.mapNotNull { element -> element.takeIf { it.isJsonPrimitive }?.asString }
-                .orEmpty(),
-            serverVersion = envelope.string(KEY_SERVER_VERSION),
-        )
-
-        private const val KEY_ACCOUNT = "account"
-        private const val KEY_PUBLIC_ENDPOINT = "publicEndpoint"
-        private const val KEY_KEEPALIVE_SECONDS = "keepaliveSeconds"
-        private const val KEY_FEATURES = "features"
-        private const val KEY_SERVER_VERSION = "serverVersion"
-    }
 }
 
 /** How an enrollment ended; only [Enrolled] stored a token. */
@@ -127,8 +133,34 @@ sealed interface DeviceExchangeEnrollResult {
     }
 }
 
-/** The server answered `refused`; [reason] is a 7.10 reason or `unknown`. */
-class DeviceExchangeRefusedException(val reason: String) : IOException("exchange server refused: $reason")
+/**
+ * A one-time pairing code of 5.3 - single use, valid for minutes - that another device enrolls with instead of
+ * the password. [expiresAt] is the server's text, carried on unread. Neither member is ever stored or logged.
+ */
+class DeviceExchangePairingCode(val code: String, val expiresAt: String?) {
+    init {
+        PrivateDiagnosticValues.register(code)
+    }
 
-/** The entry holds no device token: it was never enrolled, or its token was revoked and forgotten. */
-class DeviceExchangeNotEnrolledException : IOException("no device token for this exchange account entry")
+    override fun toString(): String = "DeviceExchangePairingCode(code=$REDACTED, expiresAt=$expiresAt)"
+}
+
+/** How an in-place address edit ended (contract DEVICE-EXCHANGE item AA). */
+sealed interface DeviceExchangeAddressChange {
+
+    data class Changed(val entry: DeviceExchangeAccountEntry) : DeviceExchangeAddressChange
+
+    /** Another entry already holds the new address with this login; one device holds one entry per identity. */
+    data object IdentityTaken : DeviceExchangeAddressChange
+
+    /** The secret store refused the token under the new identity; nothing was changed. */
+    data object TokenNotMoved : DeviceExchangeAddressChange
+}
+
+/** How removing an entry ended (item AB); both forget the token and the entry and keep every resource. */
+enum class DeviceExchangeRemoval {
+    REVOKED,
+
+    /** The server was not reached: the old device stays in the account's list until another device revokes it. */
+    FORGOTTEN_LOCALLY,
+}

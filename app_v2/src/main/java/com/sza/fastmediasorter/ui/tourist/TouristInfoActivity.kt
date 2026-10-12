@@ -93,8 +93,10 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
 
         binding.cardHeroTile.setOnClickListener {
             val state = viewModel.state.value
-            if (state.focusedTile == TouristTileType.COORDINATES) {
-                actionsManager.copyCoordinates(state.latitude, state.longitude)
+            when (state.focusedTile) {
+                TouristTileType.COORDINATES -> actionsManager.copyCoordinates(state.latitude, state.longitude)
+                TouristTileType.STOPWATCH -> actionsManager.launchStopwatch()
+                else -> Unit
             }
         }
     }

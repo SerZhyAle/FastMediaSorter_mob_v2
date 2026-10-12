@@ -118,7 +118,7 @@ FastMediaSorter поєднує відтворення медіа та керув
 - **FTP:** Менш безпечний, старий протокол (порт 21)
 
 ### Чи можна поділитися папками ПК із застосунком?
-**Так** - Fast Media Sorter for Windows публікує вибрані папки ПК через SFTP і показує QR-код / конфіг `.fmscfg`. На телефоні використайте **Імпорт із companion** або **Сканувати QR-код** на екрані додавання ресурсу. PC-інструкція: [Як опублікувати папки ПК для Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html).
+**Так** - Fast Media Sorter & Sharing for Windows публікує вибрані папки ПК через SFTP і показує QR-код / конфіг `.fmscfg`. На телефоні використайте **Імпорт із companion** або **Сканувати QR-код** на екрані додавання ресурсу. PC-інструкція: [Як опублікувати папки ПК для Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html).
 
 [Матриця можливостей редакцій (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 

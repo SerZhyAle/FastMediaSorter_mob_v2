@@ -94,7 +94,7 @@ steps:
     callout:
       type: tip
       title: Так само надходить і спільна папка з ПК
-      text: "Папка, якою поділилися з [Fast Media Sorter for Windows](term:windows-companion), використовує той самий формат файлу й той самий діалог імпорту - див. [Поширення папок ПК через Fast Media Sorter для Windows](page:network.windows-companion)."
+      text: "Папка, якою поділилися з [Fast Media Sorter & Sharing for Windows](term:windows-companion), використовує той самий формат файлу й той самий діалог імпорту - див. [Поширення папок ПК через Fast Media Sorter для Windows](page:network.windows-companion)."
   - number: 7
     id: quietly-resilient
     title: Кілька речей, які застосунок владнає мовчки

@@ -1481,6 +1481,26 @@
       "titleUk": "Зберегти логи"
     },
     {
+      "key": "btnSftpExchangeChangeOutgoing",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Change",
+      "titleRu": "Изменить",
+      "titleUk": "Змінити"
+    },
+    {
+      "key": "btnSftpExchangeMyDevices",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "My devices",
+      "titleRu": "Мои устройства",
+      "titleUk": "Мої пристрої"
+    },
+    {
       "key": "btnSftpExchangeNewLink",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1489,26 +1509,6 @@
       "titleEn": "New access link",
       "titleRu": "Новая ссылка доступа",
       "titleUk": "Нове посилання доступу"
-    },
-    {
-      "key": "btnSftpExchangeSave",
-      "sectionId": "general",
-      "destination": "GENERAL",
-      "layout": "fragment_settings_general",
-      "kind": "BUTTON",
-      "titleEn": "Save server",
-      "titleRu": "Сохранить сервер",
-      "titleUk": "Зберегти сервер"
-    },
-    {
-      "key": "btnSftpExchangeTrustAgain",
-      "sectionId": "general",
-      "destination": "GENERAL",
-      "layout": "fragment_settings_general",
-      "kind": "BUTTON",
-      "titleEn": "Trust the server again",
-      "titleRu": "Снова доверять серверу",
-      "titleUk": "Знову довіряти серверу"
     },
     {
       "key": "btnSftpServerAddRoot",
@@ -2149,6 +2149,16 @@
       "titleEn": "Unit system",
       "titleRu": "Система единиц",
       "titleUk": "Система одиниць"
+    },
+    {
+      "key": "row_my_devices",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SELECTION_ROW",
+      "titleEn": "My devices",
+      "titleRu": "Мои устройства",
+      "titleUk": "Мої пристрої"
     },
     {
       "key": "row_saved_authorizations",

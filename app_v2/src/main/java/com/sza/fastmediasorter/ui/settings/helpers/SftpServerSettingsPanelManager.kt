@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.model.SftpServerAuthMode
 import com.sza.fastmediasorter.domain.model.SftpServerConfig
 import com.sza.fastmediasorter.domain.model.SftpServerFailure
 import com.sza.fastmediasorter.domain.model.SftpServerState
+import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeProducerUseCase
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageSftpServerUseCase
 import com.sza.fastmediasorter.service.SftpServerService
 import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
@@ -44,6 +45,7 @@ class SftpServerSettingsPanelManager(
     private val fragment: Fragment,
     private val binding: FragmentSettingsGeneralBinding,
     private val manageSftpServer: ManageSftpServerUseCase,
+    manageExchangeProducer: ManageExchangeProducerUseCase,
     private val capabilityAvailability: CapabilityAvailability,
     private val mediaCapabilities: MediaCapabilities,
     private val launchRootPicker: (Intent) -> Unit,
@@ -61,7 +63,8 @@ class SftpServerSettingsPanelManager(
     // The code the QR image shows now: a tap on the button of the code already shown hides it.
     private var shownCode: String? = null
 
-    private val exchangePanel = SftpExchangeSettingsPanelManager(fragment, binding, manageSftpServer)
+    private val exchangePanel =
+        SftpExchangeSettingsPanelManager(fragment, binding, manageSftpServer, manageExchangeProducer)
 
     /** Hides the card when the server cannot run here; returns whether the card is shown. */
     fun bind(): Boolean {

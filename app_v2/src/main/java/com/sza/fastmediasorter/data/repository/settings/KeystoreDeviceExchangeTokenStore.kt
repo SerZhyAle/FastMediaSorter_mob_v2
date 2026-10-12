@@ -6,8 +6,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sza.fastmediasorter.core.security.PrivateDiagnosticValues
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
-import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeTokenStore
+import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import kotlinx.coroutines.flow.first
 import java.security.MessageDigest
 import javax.inject.Inject

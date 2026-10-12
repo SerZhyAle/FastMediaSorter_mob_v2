@@ -11,5 +11,9 @@ object SettingsRoutes {
 
     /** S3226: the permissions of an install past its first run - shown only where a build asks for any. */
     const val PERMISSIONS = "settings/permissions"
+
+    /** S4158: the exchange servers this watch joined from the phone - view, outgoing mark, removal. */
+    const val EXCHANGE_SERVERS = "settings/exchange_servers"
+
     const val ABOUT = "settings/about"
 }

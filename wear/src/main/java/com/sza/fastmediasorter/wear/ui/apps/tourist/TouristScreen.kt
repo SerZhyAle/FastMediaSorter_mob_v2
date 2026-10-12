@@ -48,6 +48,7 @@ private val TILE_SPACING = 4.dp
 @Composable
 fun TouristScreen(
     onLaunchSos: () -> Unit,
+    onLaunchStopwatch: () -> Unit,
     viewModel: TouristViewModel = hiltViewModel(),
     listState: ScalingLazyListState = rememberWearListState(positionKey = WearRoutes.TOURIST),
 ) {
@@ -128,6 +129,7 @@ fun TouristScreen(
                 onToggleAthleteMode = { viewModel.toggleAthleteMode() },
                 onLockScreen = { viewModel.setScreenLocked(true) },
                 onLaunchSos = onLaunchSos,
+                onLaunchStopwatch = onLaunchStopwatch,
             )
         }
 
@@ -155,6 +157,7 @@ private fun TouristDashboardContent(
     onToggleAthleteMode: () -> Unit,
     onLockScreen: () -> Unit,
     onLaunchSos: () -> Unit,
+    onLaunchStopwatch: () -> Unit,
 ) {
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -216,23 +219,47 @@ private fun TouristDashboardContent(
             }
 
             item {
-                FlowRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = TILE_SPACING),
-                    horizontalArrangement = Arrangement.spacedBy(TILE_SPACING, Alignment.CenterHorizontally),
-                    verticalArrangement = Arrangement.spacedBy(TILE_SPACING),
-                ) {
-                    secondaryMetrics.forEach { metricType ->
-                        TouristSecondaryCard(
-                            metricType = metricType,
-                            state = telemetry,
-                            isMetric = isMetricSystem,
-                            onClick = { onSelectMetric(metricType) },
-                        )
-                    }
-                }
+                TouristTileCloud(
+                    telemetry = telemetry,
+                    isMetricSystem = isMetricSystem,
+                    secondaryMetrics = secondaryMetrics,
+                    onSelectMetric = onSelectMetric,
+                    onLaunchStopwatch = onLaunchStopwatch,
+                )
             }
         }
+    }
+}
+
+/** S4186: the wrapping cloud of secondary metric tiles, closed by the program-launch tiles. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TouristTileCloud(
+    telemetry: WearTouristState,
+    isMetricSystem: Boolean,
+    secondaryMetrics: List<TouristMetricType>,
+    onSelectMetric: (TouristMetricType) -> Unit,
+    onLaunchStopwatch: () -> Unit,
+) {
+    FlowRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = TILE_SPACING),
+        horizontalArrangement = Arrangement.spacedBy(TILE_SPACING, Alignment.CenterHorizontally),
+        verticalArrangement = Arrangement.spacedBy(TILE_SPACING),
+    ) {
+        secondaryMetrics.forEach { metricType ->
+            TouristSecondaryCard(
+                metricType = metricType,
+                state = telemetry,
+                isMetric = isMetricSystem,
+                onClick = { onSelectMetric(metricType) },
+            )
+        }
+        TouristLaunchCard(
+            label = stringResource(R.string.wear_app_stopwatch),
+            iconRes = R.drawable.ic_stopwatch,
+            onClick = onLaunchStopwatch,
+        )
     }
 }

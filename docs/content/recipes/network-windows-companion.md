@@ -1,8 +1,8 @@
 ---
 page_id: network.windows-companion
-title: Sharing PC Folders with Fast Media Sorter for Windows
-nav_title: Fast Media Sorter for Windows
-description: How Fast Media Sorter for Windows publishes folders from a PC so this app opens them without any manual server setup, how to bring them in by file or by scanning a QR code, why the connection follows you off the home network, and what to do when a shared folder cannot be reached.
+title: Sharing PC Folders with Fast Media Sorter & Sharing for Windows
+nav_title: Fast Media Sorter & Sharing
+description: How Fast Media Sorter & Sharing for Windows publishes folders from a PC so this app opens them without any manual server setup, how to bring them in by file or by scanning a QR code, why the connection follows you off the home network, and what to do when a shared folder cannot be reached.
 category: Network & Cloud
 category_slug: network
 ticket: S2950
@@ -11,20 +11,20 @@ availability_note: Import by file - Standard, noLegal, Photos, Legacy, VR (not L
 recipe_number: "03"
 canonical_url: documentation/network/windows-companion.html
 why: |
-  Family videos live on the PC under the TV, not on the phone, and setting up a shared folder by hand - server address, username, password, port - is exactly the kind of chore you'd rather skip. Fast Media Sorter for Windows is a small program for that PC: point it at a folder, and this app opens that folder with nothing more to type in.
+  Family videos live on the PC under the TV, not on the phone, and setting up a shared folder by hand - server address, username, password, port - is exactly the kind of chore you'd rather skip. Fast Media Sorter & Sharing for Windows is a small program for that PC: point it at a folder, and this app opens that folder with nothing more to type in.
 
   This page covers the companion side of things: bringing a shared folder in, keeping the connection working as you leave the house, and what the app tells you when it cannot reach the PC. Setting up a server folder by hand instead is [Connecting SFTP and FTP servers](page:network.sftp-ftp-servers); the reverse direction - sharing folders from this phone instead - is [Turning the phone into an SFTP server](page:network.phone-as-sftp-server).
 ingredients:
   - "This app in any [edition](term:edition) except Lite and FOSS - see the narrower notes on each step below."
-  - "[Fast Media Sorter for Windows](term:windows-companion) installed on the PC, with at least one folder already shared from it."
+  - "[Fast Media Sorter & Sharing for Windows](term:windows-companion) installed on the PC, with at least one folder already shared from it."
   - "Either the config file it saved, or its QR code and a phone with a camera."
   - "To reach the folder away from home: the PC's owner has already set up port forwarding on the router, or turned on the companion program's own internet access."
 steps:
   - number: 1
     id: meet-companion
-    title: Meet Fast Media Sorter for Windows
+    title: Meet Fast Media Sorter & Sharing for Windows
     text: |
-      [Fast Media Sorter for Windows](term:windows-companion) is a program for the PC, not for the phone: its whole job is picking a folder or two and publishing them so this app can open them, no NAS and no typing a server address by hand. The first-time [welcome wizard](term:welcome-wizard)'s Network sources page already mentions it, with a short note - "Media on a Windows PC? Fast Media Sorter for Windows shares those folders here in a couple of clicks - no server setup needed." - next to a **Get the Windows app** button that opens its site.
+      [Fast Media Sorter & Sharing for Windows](term:windows-companion) is a program for the PC, not for the phone: its whole job is picking a folder or two and publishing them so this app can open them, no NAS and no typing a server address by hand. The first-time [welcome wizard](term:welcome-wizard)'s Network sources page already mentions it, with a short note - "Media on a Windows PC? Fast Media Sorter & Sharing for Windows shares those folders here in a couple of clicks - no server setup needed." - next to a **Get the Windows app** button that opens its site.
 
       Whatever it shares arrives here as an ordinary [SFTP](term:sftp) [resource](term:resource), read-only or writable, sitting on the main screen next to everything else - there is no separate "companion folder" type to learn.
   - number: 2
@@ -112,4 +112,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.10 14:45</sub>
 
-Fast Media Sorter for Windows publishes PC folders so this app opens them with no server address to type - bring them in with a file or a QR scan, and the connection follows the phone off the home network and back.
+Fast Media Sorter & Sharing for Windows publishes PC folders so this app opens them with no server address to type - bring them in with a file or a QR scan, and the connection follows the phone off the home network and back.

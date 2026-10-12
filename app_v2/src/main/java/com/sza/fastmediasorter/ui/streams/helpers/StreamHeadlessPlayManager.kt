@@ -140,12 +140,16 @@ class StreamHeadlessPlayManager @Inject constructor(
         /**
          * Whether [source] can play without a screen at all. Every false arm is a case strategic §3.1
          * pins to today's behaviour - open the Streams screen and let it decide.
+         *
+         * S4160: a channel imported with an endpoint list never qualifies - its address is resolved, and a
+         * refused certificate or an ended broadcast explained, by the Streams screen.
          */
         fun qualifiesForHeadlessPlay(
             source: StreamSourceEntity,
             backgroundAudioEnabled: Boolean,
             hasNetwork: Boolean,
-        ): Boolean = source.mediaKind == AUDIO_MEDIA_KIND && backgroundAudioEnabled && hasNetwork
+        ): Boolean = source.mediaKind == AUDIO_MEDIA_KIND && backgroundAudioEnabled && hasNetwork &&
+            source.broadcastEndpoints == null
 
         private const val AUDIO_MEDIA_KIND = "AUDIO"
 

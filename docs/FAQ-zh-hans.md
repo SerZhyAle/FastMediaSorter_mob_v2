@@ -120,7 +120,7 @@ FastMediaSorter 集成媒体播放与本地、网络、云端文件管理。桌�
 - **FTP：** 安全性较低，较老的协议（端口 21）
 
 ### 我能把电脑上的文件夹共享给应用吗？
-**可以** - Fast Media Sorter for Windows 会通过 SFTP 发布选定的电脑文件夹，并显示一个二维码 / `.fmscfg` 配置文件。在手机上，在 Add Resource 界面使用 **Import from companion** 或 **Scan QR code**。参见电脑端指南：[如何将电脑文件夹发布到 Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html)。适用于 Standard、Photos、Legacy、XR/noLegal。
+**可以** - Fast Media Sorter & Sharing for Windows 会通过 SFTP 发布选定的电脑文件夹，并显示一个二维码 / `.fmscfg` 配置文件。在手机上，在 Add Resource 界面使用 **Import from companion** 或 **Scan QR code**。参见电脑端指南：[如何将电脑文件夹发布到 Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html)。适用于 Standard、Photos、Legacy、XR/noLegal。
 
 [版本功能矩阵（EN）](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 

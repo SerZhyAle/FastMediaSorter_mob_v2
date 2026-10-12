@@ -1,11 +1,16 @@
 package com.sza.fastmediasorter.data.remote.exchange
 
 import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeCertificateChangedException
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnection
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnector
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTrust
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTunnelUnavailableException
+import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.DeviceExchangeCredential
+import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollResult
+import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollment
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -171,6 +176,32 @@ class DeviceExchangeAccountClientTest {
     }
 
     @Test
+    fun `revoking the own device sends its deviceId and closes without bye`() = runBlocking {
+        tokens.save(entry, TOKEN)
+        val asked = ArrayBlockingQueue<DeviceExchangeEnvelope>(2)
+        val closedClean = ArrayBlockingQueue<Boolean>(1)
+        thread(isDaemon = true) {
+            server.accept().use { socket ->
+                asked.put(checkNotNull(DeviceExchangeFrameCodec.read(socket.getInputStream())))
+                DeviceExchangeFrameCodec.write(
+                    socket.getOutputStream(),
+                    DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME)
+                )
+                asked.put(checkNotNull(DeviceExchangeFrameCodec.read(socket.getInputStream())))
+                closedClean.put(DeviceExchangeFrameCodec.read(socket.getInputStream()) == null)
+            }
+        }
+
+        client.revokeOwnDevice(entry)
+
+        assertEquals(DeviceExchangeEnvelope.TYPE_HELLO, asked.poll(WAIT_SECONDS, TimeUnit.SECONDS)?.type)
+        val revoke = checkNotNull(asked.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+        assertEquals(DeviceExchangeEnvelope.TYPE_REVOKE, revoke.type)
+        assertEquals(DEVICE_ID, revoke.string("deviceId"))
+        assertEquals(true, closedClean.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+    }
+
+    @Test
     fun `a tunnel by resourceId splices bytes end to end`() = runBlocking {
         tokens.save(entry, TOKEN)
         val asked = ArrayBlockingQueue<DeviceExchangeEnvelope>(2)
@@ -252,6 +283,116 @@ class DeviceExchangeAccountClientTest {
         }
     }
 
+    @Test
+    fun `a pairing code is asked for after hello and read past an unrelated push`() = runBlocking {
+        tokens.save(entry, TOKEN)
+        val asked = serveAfterWelcome(
+            DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_CHANGED),
+            DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_PAIRING_CODE) {
+                addProperty("code", PAIRING_CODE)
+                addProperty("expiresAt", EXPIRES_AT)
+            },
+        )
+
+        val issued = client.requestPairingCode(entry)
+
+        assertEquals(DeviceExchangeEnvelope.TYPE_HELLO, asked.poll(WAIT_SECONDS, TimeUnit.SECONDS)?.type)
+        assertEquals(DeviceExchangeEnvelope.TYPE_PAIRING_REQUEST, asked.poll(WAIT_SECONDS, TimeUnit.SECONDS)?.type)
+        assertEquals(PAIRING_CODE, issued.code)
+        assertEquals(EXPIRES_AT, issued.expiresAt)
+        assertFalse(issued.toString().contains(PAIRING_CODE))
+    }
+
+    @Test
+    fun `a refused pairing request carries its reason`() {
+        runBlocking { tokens.save(entry, TOKEN) }
+        serveAfterWelcome(DeviceExchangeEnvelope.refused(DeviceExchangeEnvelope.REASON_RATE_LIMITED))
+
+        val failure = assertThrows(DeviceExchangeRefusedException::class.java) {
+            runBlocking { client.requestPairingCode(entry) }
+        }
+
+        assertEquals(DeviceExchangeEnvelope.REASON_RATE_LIMITED, failure.reason)
+    }
+
+    @Test
+    fun `the directory lists the account devices past an unrelated push`() = runBlocking {
+        tokens.save(entry, TOKEN)
+        val asked = serveAfterWelcome(
+            DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_CHANGED),
+            DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_DIRECTORY) {
+                addProperty("revision", 7)
+                add(
+                    "devices",
+                    JsonArray().apply {
+                        add(deviceRecord(DEVICE_ID, "Pixel", "online"))
+                        add(deviceRecord(OTHER_DEVICE_ID, "Desk PC", "offline"))
+                        add(JsonObject().apply { addProperty("deviceName", "no id") })
+                    },
+                )
+            },
+        )
+
+        val directory = client.listDirectory(entry)
+
+        assertEquals(DeviceExchangeEnvelope.TYPE_HELLO, asked.poll(WAIT_SECONDS, TimeUnit.SECONDS)?.type)
+        assertEquals(DeviceExchangeEnvelope.TYPE_LIST, asked.poll(WAIT_SECONDS, TimeUnit.SECONDS)?.type)
+        assertEquals(7L, directory.revision)
+        assertEquals(listOf(DEVICE_ID, OTHER_DEVICE_ID), directory.devices.map { it.deviceId })
+        assertTrue(directory.devices[0].isOnline)
+        assertFalse(directory.devices[1].isOnline)
+    }
+
+    @Test
+    fun `a refused list carries its reason`() {
+        runBlocking { tokens.save(entry, TOKEN) }
+        serveAfterWelcome(DeviceExchangeEnvelope.refused(DeviceExchangeEnvelope.REASON_UNSUPPORTED))
+
+        val failure = assertThrows(DeviceExchangeRefusedException::class.java) {
+            runBlocking { client.listDirectory(entry) }
+        }
+
+        assertEquals(DeviceExchangeEnvelope.REASON_UNSUPPORTED, failure.reason)
+    }
+
+    @Test
+    fun `revoking another device names that device`() = runBlocking {
+        tokens.save(entry, TOKEN)
+        val asked = serveAfterWelcome()
+
+        client.revokeDevice(entry, OTHER_DEVICE_ID)
+
+        assertEquals(DeviceExchangeEnvelope.TYPE_HELLO, asked.poll(WAIT_SECONDS, TimeUnit.SECONDS)?.type)
+        val revoke = checkNotNull(asked.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+        assertEquals(DeviceExchangeEnvelope.TYPE_REVOKE, revoke.type)
+        assertEquals(OTHER_DEVICE_ID, revoke.string("deviceId"))
+    }
+
+    private fun deviceRecord(deviceId: String, name: String, presence: String) = JsonObject().apply {
+        addProperty("deviceId", deviceId)
+        addProperty("deviceName", name)
+        addProperty("product", "fms-android")
+        addProperty("presence", presence)
+    }
+
+    /** Welcomes `hello`, reads the next envelope and answers it with [answers] in order. */
+    private fun serveAfterWelcome(vararg answers: DeviceExchangeEnvelope): ArrayBlockingQueue<DeviceExchangeEnvelope> {
+        val asked = ArrayBlockingQueue<DeviceExchangeEnvelope>(2)
+        thread(isDaemon = true) {
+            server.accept().use { socket ->
+                asked.put(checkNotNull(DeviceExchangeFrameCodec.read(socket.getInputStream())))
+                DeviceExchangeFrameCodec.write(
+                    socket.getOutputStream(),
+                    DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME)
+                )
+                asked.put(checkNotNull(DeviceExchangeFrameCodec.read(socket.getInputStream())))
+                answers.forEach { DeviceExchangeFrameCodec.write(socket.getOutputStream(), it) }
+                socket.getInputStream().read()
+            }
+        }
+        return asked
+    }
+
     /** Answers the first envelope of one connection with [answer] and hands that envelope to the test. */
     private fun serveOnce(
         answer: (DeviceExchangeEnvelope) -> DeviceExchangeEnvelope?
@@ -309,12 +450,15 @@ class DeviceExchangeAccountClientTest {
 
     private companion object {
         const val DEVICE_ID = "AAAAAAAAAAAAAAAAAAAAAA"
+        const val OTHER_DEVICE_ID = "CCCCCCCCCCCCCCCCCCCCCC"
         const val TOKEN = "tok3n-of-thirty-two-bytes-base64url-xxxxxx"
         const val PASSWORD = "Passw0rdTest"
         const val PIN = "SHA256:pinned"
         const val RESOURCE_ID = "q3Vb7YtK0xP2mN9sLfR4wA"
         const val SHARE_ID = "BBBBBBBBBBBBBBBBBBBBBB"
         const val PAYLOAD = "SSH-2.0-test\r\n"
+        const val PAIRING_CODE = "7KQ2M9XA"
+        const val EXPIRES_AT = "2026-10-11T12:10:00Z"
         const val WAIT_SECONDS = 10L
     }
 }

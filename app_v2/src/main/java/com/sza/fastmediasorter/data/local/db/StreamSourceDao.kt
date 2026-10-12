@@ -104,6 +104,10 @@ interface StreamSourceDao {
     @Query("UPDATE stream_sources SET url = :url, identityKey = :identityKey WHERE id = :id")
     suspend fun updateSourceAddress(id: String, url: String, identityKey: String)
 
+    /** S4160: the endpoint list of a broadcast row, replaced as a whole by the source's next descriptor. */
+    @Query("UPDATE stream_sources SET broadcastEndpoints = :endpoints WHERE id = :id")
+    suspend fun updateBroadcastEndpoints(id: String, endpoints: String?)
+
     /** S2868: title-only write; the caller decides whether the stored title may be replaced at all. */
     @Query("UPDATE stream_sources SET title = :title WHERE id = :id")
     suspend fun updateTitle(id: String, title: String)

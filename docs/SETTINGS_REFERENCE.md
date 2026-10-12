@@ -42,9 +42,9 @@ _Generated from the app. Do not edit by hand._
 | Reset SMB | Clears all saved SMB network connection credentials and configurations. |
 | Restore settings from Google Drive | Restores app settings from a backup stored in your Google Drive account. |
 | Save Debug Logs | Saves the current debug log to a file on the device for sharing or inspection. |
+| Change | Picks which of your exchange servers the share is published through; the line above names the current outgoing server. |
+| My devices | Opens My devices, where you add, move, share and remove your exchange servers. |
 | New access link | Issues a new access link: every code shared before stops opening this server through the exchange server. |
-| Save server | Saves the exchange server address, port and password; the password needs at least 10 characters with upper- and lower-case Latin letters and digits. |
-| Trust the server again | Shown when the exchange server presented a different certificate: trusts the certificate it presents next. |
 | Add folder | Picks a folder through the system picker and adds it to the folders the server shares. |
 | Code for older app versions | Shows the pairing code without the exchange server part, for a FastMediaSorter too old to read the new code; it connects on the local network only. |
 | New password | Replaces the server login password with a new random one; clients need the new password afterwards. |
@@ -98,7 +98,7 @@ _Generated from the app. Do not edit by hand._
 | Show resource actions in menu ⋮ | Off adds shortcut buttons for the frequent resource actions (edit, duplicate, move, delete) directly on the row. The ⋮ menu with the full action list is always available either way. |
 | Secure sensitive screens | Blocks screenshots and the Recents preview on screens that show passwords (add/edit resource, credentials in Settings, the login WebView, and the credential QR). On by default. |
 | Share access through Google Drive | Puts the SFTP server's address, login and password in your Google Drive app folder so your devices on the same Google account can connect; off by default, and while off those devices see the share but cannot connect to it. |
-| Exchange server | Lets the SFTP server register on your exchange server so devices in any network can reach it; off keeps the server local-network only. |
+| Exchange server | Publishes the SFTP share through your outgoing exchange server so your devices in any network can reach it; with no outgoing server chosen it asks for one first, and off keeps the share local-network only. |
 | SFTP server | Starts or stops the SFTP server; while it runs a notification with a Stop action stays in the shade. |
 | Show hidden files | Shows files and folders whose names begin with a dot (hidden by convention). |
 | Programs panel | Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu. |
@@ -109,6 +109,7 @@ _Generated from the app. Do not edit by hand._
 | Local network (Ethernet) SMB | Enables adding local-network SMB shares (NAS, PC) as remote resources. |
 | Wi-Fi only preload | Restricts thumbnail preloading to Wi-Fi connections only, saving mobile data. |
 | Unit system | Chooses the measurement system the desktop weather and dew-point gadgets read: metric shows degrees Celsius, US shows degrees Fahrenheit. Metric by default; changing it refreshes the reading rather than converting the one already shown. |
+| My devices | Opens My devices: your exchange servers, the devices of each account, revoking a lost device and issuing a pairing code. |
 | Saved authorizations | Opens the list of saved sign-ins to remote sources so you can review or remove them. |
 | Color theme | Selects the color theme applied across the app interface. |
 

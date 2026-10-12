@@ -540,7 +540,7 @@ function Build-HomePairing {
         [void]$sb.Append((New-SvgText -X $cx -Y ($cardTop + 192) -Key $side.t -Size 26 -Fill $p.text -Weight '700' -Anchor middle))
         [void]$sb.Append((New-SvgRect -X ($x + 30) -Y ($cardTop + 335) -W ($cardW - 60) -H 2 -Fill $p.panelStroke -Rx 1))
         if ($side.end -eq 'pc') {
-            [void]$sb.Append((New-SvgText -X $cx -Y ($cardTop + 270) -Raw 'D:\Media' -Size 24 -Fill $ac -Anchor middle -Mono -Weight '700'))
+            [void]$sb.Append((New-SvgText -X $cx -Y ($cardTop + 270) -Key 'home.pair.pc.share' -Size 24 -Fill $ac -Anchor middle -Mono -Weight '700'))
             [void]$sb.Append((New-SvgText -X $cx -Y ($cardTop + 304) -Key 'home.pair.pc.sftp' -Size 18 -Fill $p.muted -Anchor middle -Mono))
             [void]$sb.Append((New-SvgIcon -Name 'qr' -X ($cx - 40) -Y ($cardTop + 358) -Size 80 -Fill $p.text))
             [void]$sb.Append((New-SvgText -X $cx -Y ($cardTop + 470) -Key 'home.pair.pc.qr' -Size 20 -Fill $p.muted -Anchor middle))

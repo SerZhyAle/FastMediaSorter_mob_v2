@@ -61,7 +61,7 @@ shows, where it came from, what it may and may not claim, and where it belongs o
 The portal must say which of these is not shipped yet, or wait until it is. Status checked 2026-10-10.
 
 - Broadcasting from a Windows PC is drawn as present by the owner's decision (`broadcast-simple`,
-  `broadcast-scheme`, `broadcast-cast` and the Windows broadcast card). Fast Media Sorter for Windows does
+  `broadcast-scheme`, `broadcast-cast` and the Windows broadcast card). Fast Media Sorter & Sharing for Windows does
   not broadcast and has no implementation of it yet; it is planned for after the first check of the
   exchange server. Live-broadcast playback that ships on Windows today is StreamsPlayer. The viewer of the
   development tree can listen live to a phone or watch broadcast, but real-device acceptance has not run,
@@ -92,7 +92,7 @@ All addresses come from documentation ranges and never point at a real host:
 ## Selection
 
 The first selection compared picture by picture the 13 generated here with the 15 in
-`P:\WINDOWS\FastMediaSorter_Lite\assets\diagrams` (Fast Media Sorter for Windows, 2026-10). `home-pairing`
+`P:\WINDOWS\FastMediaSorter_Lite\assets\diagrams` (Fast Media Sorter & Sharing for Windows, 2026-10). `home-pairing`
 was added afterwards (picture 15).
 
 - **Selected for the portal: 15** - 12 generated pictures in three languages, 3 Windows quick schemes in
@@ -120,7 +120,7 @@ was added afterwards (picture 15).
 - Shows: eight devices on an oval around a glowing exchange hub - phone, watch, TV, VR headset, laptop,
   Windows PC, router, phone acting as a server - joined to the hub by dotted lines coloured by role.
 - Title: "One family of apps, every device"; subtitle names FastMediaSorter on phones, TV, watch and VR and
-  Fast Media Sorter for Windows on PCs.
+  Fast Media Sorter & Sharing for Windows on PCs.
 - Use: the portal's cover image and its social preview; the picture every product shows first when it
   links to the portal.
 - Why selected: the only picture that names every product of the family at once, with no technical detail
@@ -227,7 +227,7 @@ was added afterwards (picture 15).
   many listeners), the 2-second buffer (a slow listener skips ahead, never falls behind), Cast routing, a
   tunnel for players that need RTSP or HTTP, a log without stream ids.
 - Shows, right ("Listening and watching"): an Android phone (Streams, player, recording), a Wear OS watch
-  (audio broadcasts), an Android TV (accepts Cast), a Windows PC (Fast Media Sorter for Windows,
+  (audio broadcasts), an Android TV (accepts Cast), a Windows PC (Fast Media Sorter & Sharing for Windows,
   StreamsPlayer).
 - A dashed purple arc over the server: same Wi-Fi, direct to the broadcaster, lowest delay. A dashed blue
   line from the server to the TV: Cast.
@@ -275,7 +275,7 @@ was added afterwards (picture 15).
   `sftp://myhome.example.net:2222`, and a public address card - a static IP or a dynamic DNS name.
 - Shows, centre: the router - WAN `203.0.113.25`; port forwarding `TCP 2222 -> 192.168.1.20:2222` and
   `TCP 2223 -> 192.168.1.42:2222`; reserved DHCP addresses for the PC and the phone.
-- Shows, right (home network `192.168.1.0/24`): a media PC running Fast Media Sorter for Windows with SFTP on
+- Shows, right (home network `192.168.1.0/24`): a media PC running Fast Media Sorter & Sharing for Windows with SFTP on
   `192.168.1.20:2222` and folders on `D:\Media`; a phone acting as a server on `192.168.1.42:2222`; a phone,
   an Android TV and a Windows laptop at home connecting directly at full local speed.
 - Legend and notes: blue from the internet to the public address, green forwarded by the router, dashed
@@ -293,7 +293,7 @@ was added afterwards (picture 15).
 - Style: presentation slide, 1920 x 1080, six cards in two rows.
 - Shows:
   1. Fix the storage address - reserve `192.168.1.20` in the router's DHCP settings.
-  2. Turn on the SFTP server - Fast Media Sorter for Windows shares folders, a phone shares its own from
+  2. Turn on the SFTP server - Fast Media Sorter & Sharing for Windows shares folders, a phone shares its own from
      Settings.
   3. Forward one port - TCP 2222 from the internet to `192.168.1.20:2222`, one port per server.
   4. Get a public address - a static IP from the provider or a free dynamic DNS name.

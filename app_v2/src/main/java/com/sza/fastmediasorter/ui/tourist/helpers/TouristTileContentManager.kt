@@ -11,7 +11,7 @@ import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
  * here rather than showing a placeholder (strategic §5.3).
  */
 class TouristTileContentManager(
-    context: Context,
+    private val context: Context,
     formatter: TouristTileValueFormatter,
 ) {
 
@@ -54,7 +54,20 @@ class TouristTileContentManager(
         TouristTileType.VISIBILITY -> weather.visibility(state)
         TouristTileType.WATCH_HEART_RATE -> watch.heartRate(state)
         TouristTileType.WATCH_BODY_TEMPERATURE -> watch.bodyTemperature(state)
+        TouristTileType.STOPWATCH -> stopwatch()
     }
+
+    private fun stopwatch(): TouristTileContent = tileContent(
+        context = context,
+        iconRes = com.sza.fastmediasorter.R.drawable.ic_stopwatch,
+        labelRes = com.sza.fastmediasorter.R.string.tourist_tile_stopwatch,
+        reading = TouristTileValueFormatter.TileValue(
+            context.getString(com.sza.fastmediasorter.R.string.tourist_action_open),
+            "",
+        ),
+        detail = context.getString(com.sza.fastmediasorter.R.string.tourist_detail_stopwatch),
+        backgroundRes = com.sza.fastmediasorter.R.color.tourist_tile_bg_group_trip,
+    )
 
     /** Every tile of the trip resets the whole trip; steps keep their own counter. */
     fun supportsReset(tile: TouristTileType): Boolean = tile in RESETTABLE

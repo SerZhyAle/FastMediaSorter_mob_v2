@@ -17,13 +17,16 @@
     encrypted against the hardware-backed Android Keystore, and Keystore keys do not
     migrate to another device in either direction. Transferred rows arrive
     undecryptable, so transferring them buys nothing and moves credential material.
+    The network_credentials table lives in fastmediasorter_v2.db. Rules cannot exclude
+    individual tables, so resources, favorites, playback positions and other state in
+    that shared database are also omitted from cloud backup and device transfer.
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- Encrypted credentials - Keystore key cannot be restored -->
-        <exclude domain="database" path="network_credentials.db" />
-        <exclude domain="database" path="network_credentials.db-shm" />
-        <exclude domain="database" path="network_credentials.db-wal" />
+        <!-- Shared database containing credentials - Keystore key cannot be restored -->
+        <exclude domain="database" path="fastmediasorter_v2.db" />
+        <exclude domain="database" path="fastmediasorter_v2.db-shm" />
+        <exclude domain="database" path="fastmediasorter_v2.db-wal" />
 
         <!-- DataStore preferences - device-specific settings and encrypted default password -->
         <exclude domain="file" path="datastore/" />
@@ -42,10 +45,10 @@
     </cloud-backup>
 
     <device-transfer>
-        <!-- Encrypted credentials - Keystore key cannot be restored -->
-        <exclude domain="database" path="network_credentials.db" />
-        <exclude domain="database" path="network_credentials.db-shm" />
-        <exclude domain="database" path="network_credentials.db-wal" />
+        <!-- Shared database containing credentials - Keystore key cannot be restored -->
+        <exclude domain="database" path="fastmediasorter_v2.db" />
+        <exclude domain="database" path="fastmediasorter_v2.db-shm" />
+        <exclude domain="database" path="fastmediasorter_v2.db-wal" />
 
         <!-- DataStore preferences - device-specific settings and encrypted default password -->
         <exclude domain="file" path="datastore/" />

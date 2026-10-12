@@ -151,7 +151,9 @@ class SftpRendezvousDirectory @Inject constructor(
     // listed but cannot be attached, and never indexed.
     private fun index(snapshot: GoogleDriveSftpRendezvousDataSource.Snapshot): Map<String, Producer> {
         val devices = snapshot.devices.associateBy { it.record.deviceId }
-        val (attachable, withoutAccess) = snapshot.resources.partition { it.record.descriptor != null }
+        val (attachable, withoutAccess) = snapshot.resources.partition {
+            it.record.descriptor != null && !it.record.pinProtected
+        }
         if (withoutAccess.isNotEmpty()) {
             Timber.d("S4129: consumer lists a share without access and cannot attach it")
             Timber.i("SftpRendezvousDirectory: %d share(s) listed without access, cannot attach", withoutAccess.size)

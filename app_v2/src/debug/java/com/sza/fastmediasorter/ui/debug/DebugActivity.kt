@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.core.debug.DebugFeatureFlags
 import com.sza.fastmediasorter.core.debug.DebugToolsBootstrap
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -195,7 +196,7 @@ class DebugActivity : AppCompatActivity() {
 
             runCatching {
                 ColorThemePrefs.reset(applicationContext)
-            }
+            }.onFailure { it.rethrowIfCancellation() }
 
             runCatching {
                 LocaleHelper.resetLanguage(applicationContext)

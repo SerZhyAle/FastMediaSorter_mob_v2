@@ -1832,6 +1832,175 @@ scripts/devtest/devtest-encoding.tests/Run-Tests.ps1
   Exit: 0 - all audited devtest/utils scripts contain OutputEncoding configuration.; 1 - at least one audited script is missing OutputEncoding configuration.
 ```
 
+## scripts\devtest\dynamic-audit
+
+### da.ps1
+Facade of the S4166 dynamic-audit stand: emulator guard, verified backup, restore, recovery and fixtures.
+
+```
+scripts/devtest/dynamic-audit/da.ps1
+  Facade of the S4166 dynamic-audit stand: emulator guard, verified backup, restore, recovery and fixtures.
+  Params:
+    -Verb              (req)  [String]  {Preflight|Backup|VerifyBackup|BeginMutation|Restore|Recover|Fixture|Status|BuildInventory|BuildMatrix|BuildUCards|Calibrate|Control|Access|Scene|Heavy}
+    -Serial                   [String]
+    -Package                  [String] = 'com.sza.fastmediasorter.debug'
+    -Set                      [String] = 'small'  {small|n1000|n10000}
+    -RemoteDir                [String]
+    -Reason                   [String] = 'scene run'
+    -RunId                    [String]
+    -Seed                     [Int32] = 4166
+    -ColdStarts               [Int32] = 10  {range 1..1000}
+    -WarmStarts               [Int32] = 10  {range 1..1000}
+    -KeyProbes                [Int32] = 30  {range 1..100000}
+    -KeyBlocks                [Int32] = 3  {range 1..100}
+    -KeyPeriodMs              [Int32] = 1000  {range 200..60000}
+    -ProbePeriodMs            [Int32] = 200  {range 20..60000}
+    -CalibrationTicks         [Int32] = 150  {range 10..100000}
+    -TransportProbes          [Int32] = 40  {range 5..10000}
+    -SamplerCostSec           [Int32] = 20  {range 5..3600}
+    -InjectFault              [String] = 'none'  {none|late-tick|sampler-gap}
+    -StandFix                 [String]
+    -Screen                   [String] = 'current screen'
+    -Scene                    [String]  {C01|C02|C03|C07|C15}
+    -Fault                    [String]
+    -FreshBackup              [SwitchParameter]
+  Exit: 0 - ok; 1 - finding (a fixture tree differs from its manifest; a scene broke an invariant, recorded a candidate
+```
+
+## scripts\devtest\dynamic-audit\da-access.tests
+
+### Run-Tests.ps1
+Contract suite of lib/da-access.ps1 (S4166 phase 06), run without a device or an emulator.
+
+```
+scripts/devtest/dynamic-audit/da-access.tests/Run-Tests.ps1
+  Contract suite of lib/da-access.ps1 (S4166 phase 06), run without a device or an emulator.
+  (no param block)
+  Exit: 0 - every case passed; 1 - a case failed
+```
+
+## scripts\devtest\dynamic-audit\da.tests
+
+### Run-Tests.ps1
+Contract suite of the S4166 dynamic-audit stand, run without a device.
+
+```
+scripts/devtest/dynamic-audit/da.tests/Run-Tests.ps1
+  Contract suite of the S4166 dynamic-audit stand, run without a device.
+  (no param block)
+  Exit: 0 - every case passed; 1 - a case failed
+```
+
+## scripts\devtest\dynamic-audit\lib
+
+### da-access.ps1
+Understanding and access layer of the S4166 dynamic-audit stand: switch cards, the owner's protocol, accessibility, RTL and text-size preconditions, message-copy review.
+
+```
+scripts/devtest/dynamic-audit/lib/da-access.ps1
+  Understanding and access layer of the S4166 dynamic-audit stand: switch cards, the owner's protocol, accessibility, RTL and text-size preconditions, message-copy review.
+  (no param block)
+```
+
+### da-common.ps1
+Shared library of the S4166 dynamic-audit stand: exit codes, monotonic clock, adb process wrappers, JSON IO, paths.
+
+```
+scripts/devtest/dynamic-audit/lib/da-common.ps1
+  Shared library of the S4166 dynamic-audit stand: exit codes, monotonic clock, adb process wrappers, JSON IO, paths.
+  (no param block)
+```
+
+### da-emulator.ps1
+Emulator-only target guard and emulator lifecycle of the S4166 dynamic-audit stand.
+
+```
+scripts/devtest/dynamic-audit/lib/da-emulator.ps1
+  Emulator-only target guard and emulator lifecycle of the S4166 dynamic-audit stand.
+  (no param block)
+```
+
+### da-fault.ps1
+Fault catalogue reader and emulator fault injectors of the S4166 dynamic-audit stand (scene C15).
+
+```
+scripts/devtest/dynamic-audit/lib/da-fault.ps1
+  Fault catalogue reader and emulator fault injectors of the S4166 dynamic-audit stand (scene C15).
+  (no param block)
+```
+
+### da-fixture.ps1
+Deterministic synthetic fixture sets and the independent tree hash of the S4166 dynamic-audit stand.
+
+```
+scripts/devtest/dynamic-audit/lib/da-fixture.ps1
+  Deterministic synthetic fixture sets and the independent tree hash of the S4166 dynamic-audit stand.
+  (no param block)
+```
+
+### da-inventory.ps1
+Builds the S4166 dynamic-audit coverage data: manifest, capability list, scenes, budgets, matrix.
+
+```
+scripts/devtest/dynamic-audit/lib/da-inventory.ps1
+  Builds the S4166 dynamic-audit coverage data: manifest, capability list, scenes, budgets, matrix.
+  (no param block)
+```
+
+### da-probe.ps1
+Start, input, frame and adb-transport probes of the S4166 dynamic-audit stand, plus the scheduled probe loop.
+
+```
+scripts/devtest/dynamic-audit/lib/da-probe.ps1
+  Start, input, frame and adb-transport probes of the S4166 dynamic-audit stand, plus the scheduled probe loop.
+  (no param block)
+```
+
+### da-sampler.ps1
+Out-of-process 1 Hz resource sampler of the S4166 dynamic-audit stand, bound to a process id and its start identity.
+
+```
+scripts/devtest/dynamic-audit/lib/da-sampler.ps1
+  Out-of-process 1 Hz resource sampler of the S4166 dynamic-audit stand, bound to a process id and its start identity.
+  (no param block)
+```
+
+### da-scenes.ps1
+Scene registry, mutation envelope, scene runs and heavy-run sequence of the S4166 dynamic-audit stand (lifecycle scenes C01, C02, C03 and file-operation scenes C07, C15).
+
+```
+scripts/devtest/dynamic-audit/lib/da-scenes.ps1
+  Scene registry, mutation envelope, scene runs and heavy-run sequence of the S4166 dynamic-audit stand (lifecycle scenes C01, C02, C03 and file-operation scenes C07, C15).
+  (no param block)
+```
+
+### da-state.ps1
+Verified backup, restore, durable restore checkpoint and next-start recovery of the S4166 dynamic-audit stand.
+
+```
+scripts/devtest/dynamic-audit/lib/da-state.ps1
+  Verified backup, restore, durable restore checkpoint and next-start recovery of the S4166 dynamic-audit stand.
+  (no param block)
+```
+
+### da-stats.ps1
+Statistics and run-validity library of the S4166 dynamic-audit stand: percentiles, block-bootstrap slope, budget verdict, validity.
+
+```
+scripts/devtest/dynamic-audit/lib/da-stats.ps1
+  Statistics and run-validity library of the S4166 dynamic-audit stand: percentiles, block-bootstrap slope, budget verdict, validity.
+  (no param block)
+```
+
+### da-ui.ps1
+UI driver, accessibility-event capture, app navigation and SAF resource registration of the S4166 dynamic-audit stand; used by the scenes of lib/da-scenes.ps1.
+
+```
+scripts/devtest/dynamic-audit/lib/da-ui.ps1
+  UI driver, accessibility-event capture, app navigation and SAF resource registration of the S4166 dynamic-audit stand; used by the scenes of lib/da-scenes.ps1.
+  (no param block)
+```
+
 ## scripts\devtest\lib
 
 ### adb-log-filter.ps1
@@ -3650,6 +3819,24 @@ scripts/quality/assert-dotsource-tracked.ps1
     -Quiet                [SwitchParameter]
     -Help                 [SwitchParameter]
   Exit: 0 every judged dot-source target is in the git index (or none was judged), or -Gate was absent.; 1 at least one judged target is not in the index, and -Gate was passed.; 2 cannot verify - git absent, the target is not a git work tree, or the discovery root is unreadable.
+```
+
+### assert-dynamic-audit-coverage.ps1
+S4166: validate the coverage contract of the deep dynamic audit - the capability manifest, the scene catalog and the property matrix against the inventories the CLAUDE.md pointer chain names.
+
+```
+scripts/quality/assert-dynamic-audit-coverage.ps1
+  S4166: validate the coverage contract of the deep dynamic audit - the capability manifest, the scene catalog and the property matrix against the inventories the CLAUDE.md pointer chain names.
+  Params:
+    -Validate          [SwitchParameter]
+    -SelfTest          [SwitchParameter]
+    -AuditRoot         [String]
+    -RepoRoot          [String]
+    -StateRoot         [String]
+    -Limit             [Int32] = 20
+    -Quiet             [SwitchParameter]
+    -Gate              [SwitchParameter]
+  Exit: 0 complete coverage, no open or inconclusive cell, every measured cell passes an approved budget,
 ```
 
 ### assert-enum-persistence-contract.ps1
@@ -6087,6 +6274,18 @@ scripts/quality/assert-dotsource-tracked.tests/Run-Tests.ps1
   Subject: scripts/quality/assert-dotsource-tracked.ps1
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (git absent, or the sandbox could not be built).
+```
+
+## scripts\quality\assert-dynamic-audit-coverage.tests
+
+### Run-Tests.ps1
+Contract tests for assert-dynamic-audit-coverage.ps1 (S4166).
+
+```
+scripts/quality/assert-dynamic-audit-coverage.tests/Run-Tests.ps1
+  Contract tests for assert-dynamic-audit-coverage.ps1 (S4166).
+  (no param block)
+  Exit: 0 every case passed (a skipped live case does not fail the suite); 1 at least one case failed
 ```
 
 ## scripts\quality\assert-enum-persistence-contract.tests

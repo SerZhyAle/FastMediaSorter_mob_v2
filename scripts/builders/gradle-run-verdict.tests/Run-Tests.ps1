@@ -352,6 +352,129 @@ try {
 }
 
 Write-Host ""
+# The client exits while a descendant still owns stdout/stderr. An EOF-based capture would wait
+# for that descendant; file redirection must report the client's own exit code immediately.
+if ($IsWindows) {
+    $captureSandbox = Join-Path $repoRoot "temp/scratch/gradle-capture-$PID"
+    New-Item -ItemType Directory -Path $captureSandbox -Force | Out-Null
+    $descendantId = $null
+    try {
+        $fastBuilder = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts/builders/check-standard-fast.ps1') -Raw
+        Assert-That 'the fast builder uses file capture for every attempt' `
+            ($fastBuilder -match 'Invoke-GradleClientWithFileOutput' -and
+                $fastBuilder -notmatch '& "\$projectRoot\\gradlew.bat"') 'fast builder still captures a native pipe'
+        $pidPath = Join-Path $captureSandbox 'descendant.pid'
+        $spawnerPath = Join-Path $captureSandbox 'spawn.ps1'
+        $escapedPidPath = $pidPath.Replace("'", "''")
+        @"
+`$info = [System.Diagnostics.ProcessStartInfo]::new()
+`$info.FileName = (Get-Process -Id `$PID).Path
+`$info.UseShellExecute = `$false
+`$info.CreateNoWindow = `$true
+`$info.ArgumentList.Add('-NoProfile')
+`$info.ArgumentList.Add('-Command')
+`$info.ArgumentList.Add('Start-Sleep -Seconds 30')
+`$descendant = [System.Diagnostics.Process]::Start(`$info)
+[System.IO.File]::WriteAllText('$escapedPidPath', [string]`$descendant.Id)
+`$descendant.Dispose()
+"@ | Set-Content -LiteralPath $spawnerPath -Encoding utf8
+        $wrapperPath = Join-Path $captureSandbox 'fake gradlew.bat'
+        @'
+@echo off
+echo argument="%~1"
+echo empty=[%~2]
+1>&2 echo fixture stderr
+pwsh -NoProfile -File "%~dp0spawn.ps1"
+echo BUILD SUCCESSFUL
+<nul set /p "=unterminated"
+exit /b %~3
+'@ | Set-Content -LiteralPath $wrapperPath -Encoding ascii
+        $driverPath = Join-Path $captureSandbox 'driver.ps1'
+        $helperPath = Join-Path $repoRoot 'scripts/builders/gradle-run-verdict.ps1'
+        $logPath = Join-Path $captureSandbox 'client output.log'
+        $resultPath = Join-Path $captureSandbox 'result.json'
+        $driver = @'
+param($Helper, $Wrapper, $Log, $Result, $Code)
+. $Helper
+$verdict = Invoke-GradleClientWithFileOutput -GradleWrapper $Wrapper `
+    -Arguments @('space & percent%PATH% bang! caret^', '', $Code) -LogPath $Log
+$verdict | ConvertTo-Json | Set-Content -LiteralPath $Result
+'@
+        $driver | Set-Content -LiteralPath $driverPath -Encoding utf8
+        foreach ($expectedExit in @(0, 7)) {
+            $driverInfo = [System.Diagnostics.ProcessStartInfo]::new()
+            $driverInfo.FileName = (Get-Process -Id $PID).Path
+            $driverInfo.UseShellExecute = $false
+            $driverInfo.CreateNoWindow = $true
+            foreach ($token in @('-NoProfile', '-File', $driverPath, $helperPath, $wrapperPath,
+                    $logPath, $resultPath, [string]$expectedExit)) {
+                $driverInfo.ArgumentList.Add($token)
+            }
+            $driverProcess = [System.Diagnostics.Process]::Start($driverInfo)
+            try {
+                $returned = $driverProcess.WaitForExit(5000)
+                if (Test-Path -LiteralPath $pidPath) {
+                    $descendantId = [int](Get-Content -LiteralPath $pidPath -Raw)
+                }
+                Assert-That "client exit $expectedExit returns while output holder lives" $returned 'capture waited for EOF'
+                if (-not $returned) { $driverProcess.Kill(); continue }
+                $descendantId = [int](Get-Content -LiteralPath $pidPath -Raw)
+                $holder = Get-Process -Id $descendantId -ErrorAction SilentlyContinue
+                Assert-That 'the inherited-output holder remains alive' ($null -ne $holder) 'holder exited or was killed'
+                $captured = Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
+                Assert-That 'client exit code is preserved' ($captured.ExitCode -eq $expectedExit) "exit=$($captured.ExitCode)"
+                Assert-That 'spaces and shell metacharacters stay literal' `
+                    ($captured.Lines -contains 'argument="space & percent%PATH% bang! caret^"') 'argument was changed'
+                Assert-That 'an empty argument survives' ($captured.Lines -contains 'empty=[]') 'empty argument lost'
+                Assert-That 'stderr is captured with stdout' ($captured.Lines -contains 'fixture stderr') 'stderr lost'
+                Assert-That 'an unterminated final line is captured' ($captured.Lines -contains 'unterminated') 'tail lost'
+                Assert-That 'persistent log contains the verdict' `
+                    ((Get-Content -LiteralPath $logPath -Raw) -match 'BUILD SUCCESSFUL') 'log lost'
+            }
+            finally {
+                $driverProcess.Dispose()
+                if ($descendantId) {
+                    Stop-Process -Id $descendantId -Force -ErrorAction SilentlyContinue
+                    $descendantId = $null
+                }
+            }
+        }
+
+        # Reproduce the original native pipeline in isolation so its EOF wait cannot hang the suite.
+        $legacyDriver = Join-Path $captureSandbox 'legacy.ps1'
+        @'
+param($Wrapper)
+& $Wrapper 'plain' '' '0' 2>&1 | ForEach-Object { [string]$_ | Out-Null }
+'@ | Set-Content -LiteralPath $legacyDriver -Encoding utf8
+        $legacyInfo = [System.Diagnostics.ProcessStartInfo]::new()
+        $legacyInfo.FileName = (Get-Process -Id $PID).Path
+        $legacyInfo.UseShellExecute = $false
+        $legacyInfo.CreateNoWindow = $true
+        foreach ($token in @('-NoProfile', '-File', $legacyDriver, $wrapperPath)) {
+            $legacyInfo.ArgumentList.Add($token)
+        }
+        $legacyProcess = [System.Diagnostics.Process]::Start($legacyInfo)
+        try {
+            $legacyReturned = $legacyProcess.WaitForExit(3000)
+            $descendantId = [int](Get-Content -LiteralPath $pidPath -Raw)
+            Assert-That 'the previous native pipeline reproduces the EOF wait' `
+                (-not $legacyReturned) 'the native pipeline did not reproduce the wait'
+        }
+        finally {
+            if (-not $legacyProcess.HasExited) { $legacyProcess.Kill() }
+            $legacyProcess.Dispose()
+            if ($descendantId) {
+                Stop-Process -Id $descendantId -Force -ErrorAction SilentlyContinue
+                $descendantId = $null
+            }
+        }
+    }
+    finally {
+        if ($descendantId) { Stop-Process -Id $descendantId -Force -ErrorAction SilentlyContinue }
+        Remove-Item -LiteralPath $captureSandbox -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 Write-Host "passed=$script:pass failed=$script:fail" -ForegroundColor $(if ($script:fail) { 'Red' } else { 'Green' })
 if ($script:fail -gt 0) { exit 1 }
 exit 0

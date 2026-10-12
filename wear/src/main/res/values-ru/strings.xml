@@ -1043,4 +1043,14 @@
     <string name="wear_tourist_metric_visibility">Видимость</string>
     <string name="wear_tourist_detail_wind_gusts">%1$s, порывы %2$s</string>
     <string name="wear_tourist_unit_fahrenheit">°F</string>
+    <string name="wear_exchange_servers_title">Серверы обмена</string>
+    <string name="wear_exchange_servers_empty">Серверов пока нет. На телефоне откройте сервер в «Моих устройствах» и выберите «Подключить часы».</string>
+    <string name="wear_exchange_login">Логин: %1$s</string>
+    <string name="wear_exchange_outgoing_label">Исходящий</string>
+    <string name="wear_exchange_make_outgoing">Сделать исходящим</string>
+    <string name="wear_exchange_remove">Убрать</string>
+    <string name="wear_exchange_remove_confirm">Убрать этот сервер с часов?</string>
+    <string name="wear_exchange_removing">Убираем..</string>
+    <string name="wear_exchange_removed_revoked">Убрано. Этих часов больше нет в списке сервера.</string>
+    <string name="wear_exchange_removed_locally">Убрано только с часов: сервер недоступен. Отзовите часы с телефона.</string>
 </resources>

@@ -102,6 +102,16 @@ class TouristInfoViewModelTest {
     }
 
     @Test
+    fun `selectTile STOPWATCH accepted unconditionally`() = runTest {
+        val viewModel = TouristInfoViewModel(observeTouristDashboardUseCase, SavedStateHandle(), observeWatchHealth)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
+
+        viewModel.selectTile(TouristTileType.STOPWATCH)
+
+        assertEquals(TouristTileType.STOPWATCH, viewModel.state.value.focusedTile)
+    }
+
+    @Test
     fun `dashboard flow is not subscribed without a collector`() {
         TouristInfoViewModel(observeTouristDashboardUseCase, SavedStateHandle(), observeWatchHealth)
 

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.PermMedia
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Slideshow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -268,6 +269,7 @@ private fun labelResFor(route: String): Int = when (route) {
     SettingsRoutes.OTHER -> R.string.settings_group_other
     SettingsRoutes.TILE_TARGETS -> R.string.wear_tile_targets_title
     SettingsRoutes.PERMISSIONS -> R.string.wear_settings_permissions_title
+    SettingsRoutes.EXCHANGE_SERVERS -> R.string.wear_exchange_servers_title
     SettingsRoutes.ABOUT -> R.string.about
     else -> R.string.settings
 }
@@ -279,6 +281,7 @@ private fun iconFor(route: String) = when (route) {
     SettingsRoutes.OTHER -> Icons.Filled.MoreHoriz
     SettingsRoutes.TILE_TARGETS -> Icons.Filled.Dashboard
     SettingsRoutes.PERMISSIONS -> Icons.Filled.Security
+    SettingsRoutes.EXCHANGE_SERVERS -> Icons.Filled.Share
     SettingsRoutes.ABOUT -> Icons.Filled.Info
     else -> Icons.Filled.Settings
 }

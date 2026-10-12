@@ -29,6 +29,7 @@ import java.util.TimeZone
 object SftpRendezvousCodec {
 
     const val SCHEMA_VERSION = 1
+    private const val PROTECTED_SCHEMA_VERSION = 2
     const val MAX_RECORD_BYTES = 16 * 1_024
 
     const val TYPE_DEVICE = "device"
@@ -62,6 +63,8 @@ object SftpRendezvousCodec {
     private const val KEY_RESOURCE_ID = "resourceId"
     private const val KEY_KIND = "kind"
     private const val KEY_NAME = "name"
+    private const val KEY_PROTECTION = "protection"
+    private const val KEY_SCHEME = "scheme"
     private const val KEY_ACCESS = "access"
     private const val KEY_DESCRIPTOR = "descriptor"
     private const val KEY_ROOT = "root"
@@ -90,7 +93,14 @@ object SftpRendezvousCodec {
             is SftpRendezvousRequest -> TYPE_REQUEST
         }
         return JsonObject().apply {
-            addProperty(KEY_SCHEMA, SCHEMA_VERSION)
+            addProperty(
+                KEY_SCHEMA,
+                if (record is SftpRendezvousResource && record.pinProtected) {
+                    PROTECTED_SCHEMA_VERSION
+                } else {
+                    SCHEMA_VERSION
+                },
+            )
             addProperty(KEY_TYPE, type)
             addProperty(KEY_WRITTEN_AT, Iso8601Utc.format(record.writtenAtMs))
             addProperty(KEY_TTL, record.ttlSeconds)
@@ -109,6 +119,17 @@ object SftpRendezvousCodec {
         is SftpRendezvousRequest -> requestBody(record)
     }
 
+    /**
+     * A section 6 record body as an exchange server envelope carries it (`directory`, `changed`), without the
+     * Drive wrapper. The server's own presence is the clock, so no `writtenAt` or `ttlSeconds` applies.
+     */
+    fun decodeBody(type: String, body: JsonObject): SftpRendezvousRecord? = when (type) {
+        TYPE_DEVICE -> decodeDevice(body, 0L, 0L)
+        TYPE_RESOURCE -> decodeResource(body, 0L, 0L)
+        TYPE_BROADCAST -> decodeBroadcast(body, 0L, 0L)
+        else -> null
+    }
+
     /** Null for anything this build cannot use: refused, skipped, damaged or foreign. */
     fun decode(raw: String): SftpRendezvousRecord? {
         if (raw.toByteArray(Charsets.UTF_8).size > MAX_RECORD_BYTES) return null
@@ -118,11 +139,16 @@ object SftpRendezvousCodec {
     }
 
     private fun decodeWrapper(wrapper: JsonObject): SftpRendezvousRecord? {
-        val schema = wrapper.long(KEY_SCHEMA)?.takeIf { it in 1..SCHEMA_VERSION }
+        val schema = wrapper.long(KEY_SCHEMA)?.takeIf { it in SCHEMA_VERSION..PROTECTED_SCHEMA_VERSION }
         val ttl = wrapper.long(KEY_TTL)
         val writtenAt = wrapper.string(KEY_WRITTEN_AT)?.takeIf { schema != null }?.let(Iso8601Utc::parse)
         val body = (wrapper.get(KEY_RECORD) as? JsonObject)?.takeIf { ttl != null }
-        if (writtenAt == null || ttl == null || body == null) return null
+        val invalidProtectedWrapper = schema == PROTECTED_SCHEMA_VERSION.toLong() &&
+            (wrapper.string(KEY_TYPE) != TYPE_RESOURCE || body?.has(KEY_PROTECTION) != true)
+        val missingFields = writtenAt == null || ttl == null || body == null
+        if (missingFields || invalidProtectedWrapper) {
+            return null
+        }
         return when (wrapper.string(KEY_TYPE)) {
             TYPE_DEVICE -> decodeDevice(body, writtenAt, ttl)
             TYPE_RESOURCE -> decodeResource(body, writtenAt, ttl)
@@ -171,7 +197,10 @@ object SftpRendezvousCodec {
         addProperty(KEY_NAME, resource.name)
         addProperty(KEY_UPDATED_AT, Iso8601Utc.format(resource.updatedAtMs))
         resource.presence?.let { addProperty(KEY_PRESENCE, it) }
-        resource.descriptor?.let { descriptor ->
+        if (resource.pinProtected) {
+            add(KEY_PROTECTION, JsonObject().apply { addProperty(KEY_SCHEME, resource.protectionScheme) })
+        }
+        resource.descriptor?.takeUnless { resource.pinProtected }?.let { descriptor ->
             add(
                 KEY_ACCESS,
                 JsonObject().apply {
@@ -180,8 +209,8 @@ object SftpRendezvousCodec {
                 }
             )
         }
-        resource.shareId?.let { addProperty(KEY_SHARE_ID, it) }
-        resource.publicPort?.let { addProperty(KEY_PUBLIC_PORT, it) }
+        resource.shareId?.takeUnless { resource.pinProtected }?.let { addProperty(KEY_SHARE_ID, it) }
+        resource.publicPort?.takeUnless { resource.pinProtected }?.let { addProperty(KEY_PUBLIC_PORT, it) }
     }
 
     private fun broadcastBody(broadcast: SftpRendezvousBroadcast) = JsonObject().apply {
@@ -241,7 +270,10 @@ object SftpRendezvousCodec {
         val resourceId = body.string(KEY_RESOURCE_ID)?.takeIf { it.isNotBlank() && name != null && isShare }
         val deviceId = body.string(KEY_DEVICE_ID)?.takeIf { it.isNotBlank() }
         if (resourceId == null || deviceId == null) return null
-        val access = body.get(KEY_ACCESS) as? JsonObject
+        // Presence, including malformed or future protection, closes every alternate access path.
+        // No pin-v1 capability is advertised until this client implements the SSH proof.
+        val protected = body.has(KEY_PROTECTION)
+        val access = (body.get(KEY_ACCESS) as? JsonObject)?.takeUnless { protected }
         val descriptor = access?.string(KEY_DESCRIPTOR)?.takeIf(String::isNotBlank)
         return SftpRendezvousResource(
             resourceId = resourceId,
@@ -249,11 +281,13 @@ object SftpRendezvousCodec {
             kind = SftpRendezvousResource.KIND_SFTP_SHARE,
             name = name.orEmpty(),
             descriptor = descriptor,
+            pinProtected = protected,
+            protectionScheme = (body.get(KEY_PROTECTION) as? JsonObject)?.string(KEY_SCHEME),
             updatedAtMs = body.string(KEY_UPDATED_AT)?.let(Iso8601Utc::parse) ?: writtenAt,
             writtenAtMs = writtenAt,
             ttlSeconds = ttl,
-            shareId = body.string(KEY_SHARE_ID)?.takeIf(String::isNotBlank),
-            publicPort = body.long(KEY_PUBLIC_PORT)?.takeIf { it in 1..MAX_PORT }?.toInt(),
+            shareId = body.string(KEY_SHARE_ID)?.takeIf { !protected && it.isNotBlank() },
+            publicPort = body.long(KEY_PUBLIC_PORT)?.takeIf { !protected && it in 1..MAX_PORT }?.toInt(),
             root = access?.string(KEY_ROOT)?.takeIf { descriptor != null && it.isNotBlank() },
             presence = body.get(KEY_PRESENCE)?.let { body.presence() },
         )

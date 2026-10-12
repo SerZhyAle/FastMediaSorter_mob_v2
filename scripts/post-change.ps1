@@ -1,4 +1,4 @@
-# Combined post-change runner.
+﻿# Combined post-change runner.
 # Chains the applicable mechanical post-change steps for a given change type.
 #
 # Usage:
@@ -1435,6 +1435,16 @@ if ($runsScriptCheatsheetGate) {
 }
 else {
     Skip-Step "script-cheatsheet-sync-gate" "not applicable - no changed file is a repo script or the script cheatsheet"
+}
+
+if ($runsCodeDomainWritersGate) {
+    # S4169: project-wide gate without per-file delta support, so $ratchetRunner (advisory
+    # under -ScopeToFile, fatal otherwise). S2635 pooled the gate at line 1175 but omitted
+    # consuming the verdict.
+    & $ratchetRunner "code-domain-writers-gate" { Invoke-GateChild @argvCodeDomainWriters }
+}
+else {
+    Skip-Step "code-domain-writers-gate" "not applicable - no changed file is a repo script or the code-domain writer registry"
 }
 
 # S2870: the gate-placement registry against where the gates are actually wired. It runs HERE, in

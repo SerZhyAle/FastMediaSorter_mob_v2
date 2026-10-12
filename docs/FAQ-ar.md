@@ -120,7 +120,7 @@ lang: ar
 - **FTP:** أقل أمانًا، بروتوكول أقدم (منفذ 21)
 
 ### هل يمكنني مشاركة مجلدات الكمبيوتر مع التطبيق؟
-**نعم** - ينشر Fast Media Sorter for Windows مجلدات الكمبيوتر المختارة عبر SFTP ويعرض رمز QR / إعداد `.fmscfg`. على الهاتف، استخدم **استيراد من المرافق** أو **مسح رمز QR** في شاشة إضافة مورد. راجع دليل جانب الكمبيوتر: [كيفية نشر مجلدات الكمبيوتر إلى Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html).
+**نعم** - ينشر Fast Media Sorter & Sharing for Windows مجلدات الكمبيوتر المختارة عبر SFTP ويعرض رمز QR / إعداد `.fmscfg`. على الهاتف، استخدم **استيراد من المرافق** أو **مسح رمز QR** في شاشة إضافة مورد. راجع دليل جانب الكمبيوتر: [كيفية نشر مجلدات الكمبيوتر إلى Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html).
 
 [مصفوفة الإصدارات (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 

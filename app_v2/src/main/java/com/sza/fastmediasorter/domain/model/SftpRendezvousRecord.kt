@@ -73,6 +73,9 @@ data class SftpRendezvousResource(
     val publicPort: Int? = null,
     val root: String? = null,
     val presence: String? = null,
+    /** This client cannot prove an original resource PIN and must not use any alternate access path. */
+    val pinProtected: Boolean = false,
+    val protectionScheme: String? = null,
 ) : SftpRendezvousRecord {
 
     override fun toString(): String =

@@ -2,9 +2,11 @@ package com.sza.fastmediasorter.domain.usecase.streams
 
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorParser
+import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase.AddResult
+import timber.log.Timber
 import javax.inject.Inject
 
 class ImportStreamBroadcastUseCase @Inject constructor(
@@ -23,13 +25,20 @@ class ImportStreamBroadcastUseCase @Inject constructor(
     private suspend fun resolveImport(dto: BroadcastDescriptorDto): ImportResult {
         val offered = dto.title?.trim()?.takeIf { it.isNotEmpty() }
         val deviceId = dto.sourceId?.trim()?.takeIf { it.isNotEmpty() }
+        // S4160: the whole list is kept, so a broadcast reachable through an exchange server plays outside the
+        // broadcaster's LAN; a descriptor with no explicit list leaves the column null and plays its url.
+        val endpoints = BroadcastEndpointCodec.encode(dto.endpoints)
+        Timber.d("S4160: descriptor import keeps an endpoint list")
         val known = deviceId?.let { repository.getBySourceDeviceId(it) }
+            ?: endpoints?.let { repository.getByUrl(dto.url.trim()) }
         return if (known == null) {
-            addNew(dto.url, offered ?: FALLBACK_TITLE, sourceDeviceId = deviceId)
+            addNew(dto.url, offered ?: FALLBACK_TITLE, sourceDeviceId = deviceId, endpoints = endpoints)
         } else {
-            refresh(known, dto.url, offered)
+            refresh(known, Offer(dto.url, offered, endpoints))
         }
     }
+
+    private class Offer(val url: String, val title: String?, val endpoints: String?)
 
     /**
      * S2813: one broadcasting device owns one row, so a device whose address moved refreshes that row
@@ -39,14 +48,19 @@ class ImportStreamBroadcastUseCase @Inject constructor(
      * S2868: the same visit may also carry a better name. A row created before the watch named itself
      * through the node still reads its model code, so it is renamed - but only while its title is one
      * this code generated; a title the user typed is never overwritten.
+     *
+     * S4160: a source's next broadcast carries a new `broadcastId`, so its endpoint list replaces the
+     * stored one silently - the descriptor is the grant, and one hand-over reaches one broadcast (item AF).
      */
-    private suspend fun refresh(known: StreamSourceEntity, scannedUrl: String, offered: String?): ImportResult {
-        val trimmed = scannedUrl.trim()
+    private suspend fun refresh(known: StreamSourceEntity, offer: Offer): ImportResult {
+        val trimmed = offer.url.trim()
         val moved = trimmed != known.url
-        val renamed = offered != null && offered != known.title && isGeneratedTitle(known.title)
+        val renamed = offer.title != null && offer.title != known.title && isGeneratedTitle(known.title)
+        val rerouted = offer.endpoints != known.broadcastEndpoints
         if (moved) repository.refreshSourceAddress(id = known.id, url = trimmed)
-        if (renamed) repository.renameSource(id = known.id, title = requireNotNull(offered))
-        return if (moved || renamed) ImportResult.Updated else ImportResult.Duplicate
+        if (renamed) repository.renameSource(id = known.id, title = requireNotNull(offer.title))
+        if (rerouted) repository.refreshBroadcastEndpoints(id = known.id, endpoints = offer.endpoints)
+        return if (moved || renamed || rerouted) ImportResult.Updated else ImportResult.Duplicate
     }
 
     private fun isGeneratedTitle(title: String): Boolean {
@@ -54,8 +68,15 @@ class ImportStreamBroadcastUseCase @Inject constructor(
         return stored.isEmpty() || stored == FALLBACK_TITLE || MODEL_CODE.matches(stored)
     }
 
-    private suspend fun addNew(url: String, title: String, sourceDeviceId: String?): ImportResult =
-        when (addStreamSourceUseCase(url = url, title = title, sourceDeviceId = sourceDeviceId)) {
+    private suspend fun addNew(url: String, title: String, sourceDeviceId: String?, endpoints: String?): ImportResult =
+        when (
+            addStreamSourceUseCase(
+                url = url,
+                title = title,
+                sourceDeviceId = sourceDeviceId,
+                broadcastEndpoints = endpoints,
+            )
+        ) {
             AddResult.Success -> ImportResult.Success
             AddResult.Duplicate -> ImportResult.Duplicate
             AddResult.InvalidUrl -> ImportResult.InvalidUrl
