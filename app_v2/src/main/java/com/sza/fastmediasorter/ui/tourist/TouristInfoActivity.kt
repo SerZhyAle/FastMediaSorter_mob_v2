@@ -96,6 +96,7 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
             when (state.focusedTile) {
                 TouristTileType.COORDINATES -> actionsManager.copyCoordinates(state.latitude, state.longitude)
                 TouristTileType.STOPWATCH -> actionsManager.launchStopwatch()
+                TouristTileType.COUNTER -> actionsManager.launchCounter()
                 else -> Unit
             }
         }

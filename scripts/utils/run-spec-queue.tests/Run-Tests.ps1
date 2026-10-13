@@ -409,6 +409,146 @@ if (-not $hasOutcomeResolver) {
 }
 
 Write-Host ''
+Write-Host 'run-spec-queue tests - the spec declares its own complexity (S4193)' -ForegroundColor Cyan
+
+# Select-ModelFor and its reader are lifted out of the runner the way the S2698 functions are: the
+# runner ranks and launches from its top level. The specs are throwaway files under a sandbox root,
+# so what is asserted is the answer the runner would give for a header it found on disk.
+$complexityProbeBody = @'
+param(
+    [Parameter(Mandatory)][string]$Runner,
+    [Parameter(Mandatory)][string]$Sandbox,
+    [Parameter(Mandatory)][string]$ProfileLib
+)
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+# Set BEFORE the dot-source: Get-SzaProjectRoot caches the value for the life of the process.
+$env:SZA_PROJECT_ROOT = $Sandbox
+. $ProfileLib
+$ast = [System.Management.Automation.Language.Parser]::ParseFile($Runner, [ref]$null, [ref]$null)
+foreach ($name in @('Get-TicketComplexity', 'Select-ModelFor')) {
+    $fn = $ast.FindAll({
+            param($n)
+            $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq $name
+        }, $true)
+    if ($fn.Count -eq 0) { throw "function $name not found in $Runner" }
+    . ([scriptblock]::Create($fn[0].Extent.Text))
+}
+$RepoRoot = $Sandbox
+$StrongModel = 'opus'
+$CheapModel = 'sonnet'
+$ModelPolicy = 'shape'
+
+function New-Ticket([string]$Status, [string]$File, $Tier) {
+    [pscustomobject]@{ id = 'S9100'; status = $Status; tier = $Tier; file = $File }
+}
+
+$out = [ordered]@{}
+$out.light            = Select-ModelFor -Ticket (New-Ticket 'Draft' 'PLAN/S9101_light.md' 3)
+$out.medium           = Select-ModelFor -Ticket (New-Ticket 'Draft' 'PLAN/S9102_medium.md' 3)
+$out.hardOverTier1    = Select-ModelFor -Ticket (New-Ticket 'Draft' 'PLAN/S9103_hard.md' 1)
+$out.hardImplemented  = Select-ModelFor -Ticket (New-Ticket 'Implemented' 'PLAN/S9103_hard.md' 4)
+$out.lightImplemented = Select-ModelFor -Ticket (New-Ticket 'BlockNeedUserTest' 'PLAN/S9101_light.md' 4)
+$out.lightQuestions   = Select-ModelFor -Ticket (New-Ticket 'BlockQuestions' 'PLAN/S9101_light.md' 1)
+$out.noLineTier1      = Select-ModelFor -Ticket (New-Ticket 'Draft' 'PLAN/S9104_noline.md' 1)
+$out.noLineTier3      = Select-ModelFor -Ticket (New-Ticket 'Draft' 'PLAN/S9104_noline.md' 3)
+$out.garbageTier1     = Select-ModelFor -Ticket (New-Ticket 'Draft' 'PLAN/S9105_garbage.md' 1)
+$out.russianHard      = Select-ModelFor -Ticket (New-Ticket 'Draft' 'PLAN/S9106_russian.md' 1)
+$out.missingFile      = Select-ModelFor -Ticket (New-Ticket 'Draft' 'PLAN/S9199_absent.md' 1)
+$out.levelRead        = Get-TicketComplexity -Ticket (New-Ticket 'Draft' 'PLAN/S9102_medium.md' 3)
+
+# The revision path: the same ticket, the same process, the header rewritten between two launches.
+$revised = Join-Path $Sandbox 'PLAN/S9107_revised.md'
+$out.beforeRevision = Select-ModelFor -Ticket (New-Ticket 'Approved' 'PLAN/S9107_revised.md' 3)
+$text = [System.IO.File]::ReadAllText($revised).Replace('**Complexity:** light - ', '**Complexity:** hard - revised from light: ')
+[System.IO.File]::WriteAllText($revised, $text)
+$out.afterRevision = Select-ModelFor -Ticket (New-Ticket 'Approved' 'PLAN/S9107_revised.md' 3)
+
+# The policy that ignores the line.
+$ModelPolicy = 'tiered'
+$out.tieredIgnoresLine = Select-ModelFor -Ticket (New-Ticket 'Draft' 'PLAN/S9101_light.md' 1)
+$out | ConvertTo-Json -Depth 4 -Compress
+'@
+
+function New-ComplexitySandbox {
+    $sandbox = Join-Path $repoRoot 'temp/S4193/sandbox'
+    if (Test-Path -LiteralPath $sandbox) { Remove-Item -LiteralPath $sandbox -Recurse -Force }
+    New-Item -ItemType Directory -Path (Join-Path $sandbox 'PLAN') -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $sandbox 'temp') -Force | Out-Null
+
+    # Pinned, never inherited: the live profile is a tunable, and these cases assert the mechanism.
+    $sandboxProfile = Get-Content -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Raw | ConvertFrom-Json
+    $sandboxProfile.runner | Add-Member -NotePropertyName complexityModels -Force `
+        -NotePropertyValue ([pscustomobject]@{ light = 'haiku'; medium = 'sonnet'; hard = 'opus' })
+    $sandboxProfile | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $sandbox '.sza-profile.json') -Encoding UTF8
+
+    $header = { param($line) "# spec`n`n**Ticket:** S9100`n**Status:** Draft`n**Tier:** 3 - Moderate`n**Verify:** build - x`n$line`n`n---`n" }
+    Set-Content -LiteralPath (Join-Path $sandbox 'PLAN/S9101_light.md') -Value (& $header '**Complexity:** light - one known line') -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $sandbox 'PLAN/S9102_medium.md') -Value (& $header '**Complexity:** medium - one feature') -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $sandbox 'PLAN/S9103_hard.md') -Value (& $header '**Complexity:** hard - a decision is part of it') -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $sandbox 'PLAN/S9104_noline.md') -Value (& $header '') -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $sandbox 'PLAN/S9105_garbage.md') -Value (& $header '**Complexity:** hrad - typo') -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $sandbox 'PLAN/S9106_russian.md') -Value (& $header '**Complexity:** сложный - решение внутри работы') -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $sandbox 'PLAN/S9107_revised.md') -Value (& $header '**Complexity:** light - first guess') -Encoding UTF8
+    return $sandbox
+}
+
+$complexityRunner = $null
+try {
+    . (Join-Path $repoRoot 'scripts/utils/agent-lock-domains.ps1')
+    $complexityRunner = Get-SzaHarnessScript 'batch/run-spec-queue.ps1'
+} catch {
+    $complexityRunner = $null
+}
+$hasComplexityRule = $complexityRunner -and (Test-Path -LiteralPath $complexityRunner) -and
+    (Select-String -LiteralPath $complexityRunner -Pattern 'function Get-TicketComplexity' -Quiet)
+if (-not $hasComplexityRule) {
+    Write-Host '  SKIP S4193 complexity routing (14 cases) - the resolved harness predates the fix.' -ForegroundColor DarkGray
+    Write-Host '        Run with SZA_HARNESS_ROOT pointed at the canon checkout to execute them.' -ForegroundColor DarkGray
+    $skipped += 14
+} else {
+    $complexitySandbox = $null
+    try {
+        $complexitySandbox = New-ComplexitySandbox
+        $probePathC = Join-Path $complexitySandbox 'complexity-probe.ps1'
+        Set-Content -LiteralPath $probePathC -Value $complexityProbeBody -Encoding UTF8
+        $profileLibC = Get-SzaHarnessScript '_profile.ps1'
+        $rawC = & pwsh -NoProfile -File $probePathC -Runner $complexityRunner -Sandbox $complexitySandbox -ProfileLib $profileLibC 2>&1 | Out-String
+        try { $rc = $rawC | ConvertFrom-Json } catch { throw "complexity probe returned no JSON:`n$rawC" }
+
+        Assert-Case -Name 'the reader returns the normalised level of the header line' `
+            -Ok ($rc.levelRead -eq 'medium') -Detail "expected: medium | actual: $($rc.levelRead)"
+        Assert-Case -Name 'light launches haiku' -Ok ($rc.light -eq 'haiku') -Detail "expected: haiku | actual: $($rc.light)"
+        Assert-Case -Name 'medium launches sonnet' -Ok ($rc.medium -eq 'sonnet') -Detail "expected: sonnet | actual: $($rc.medium)"
+        Assert-Case -Name 'hard launches opus even at tier 1, which the tier rule would send to sonnet' `
+            -Ok ($rc.hardOverTier1 -eq 'opus') -Detail "expected: opus | actual: $($rc.hardOverTier1)"
+        Assert-Case -Name 'hard in a code-complete status is capped at the cheap model' `
+            -Ok ($rc.hardImplemented -eq 'sonnet') -Detail "expected: sonnet | actual: $($rc.hardImplemented)"
+        Assert-Case -Name 'light in a code-complete status still lowers to haiku' `
+            -Ok ($rc.lightImplemented -eq 'haiku') -Detail "expected: haiku | actual: $($rc.lightImplemented)"
+        Assert-Case -Name 'BlockQuestions stays strong whatever the level' `
+            -Ok ($rc.lightQuestions -eq 'opus') -Detail "expected: opus | actual: $($rc.lightQuestions)"
+        Assert-Case -Name 'no line at tier 1 keeps the shape rule answer' `
+            -Ok ($rc.noLineTier1 -eq 'sonnet') -Detail "expected: sonnet | actual: $($rc.noLineTier1)"
+        Assert-Case -Name 'no line at tier 3 keeps the status-first answer' `
+            -Ok ($rc.noLineTier3 -eq 'opus') -Detail "expected: opus | actual: $($rc.noLineTier3)"
+        Assert-Case -Name 'an unrecognised value is no declaration, so a typo never becomes a model' `
+            -Ok ($rc.garbageTier1 -eq 'sonnet') -Detail "expected: sonnet (the tier-1 answer) | actual: $($rc.garbageTier1)"
+        Assert-Case -Name 'the Russian word is accepted for a hand-edited line' `
+            -Ok ($rc.russianHard -eq 'opus') -Detail "expected: opus | actual: $($rc.russianHard)"
+        Assert-Case -Name 'a spec file that is not on disk falls through rather than failing' `
+            -Ok ($rc.missingFile -eq 'sonnet') -Detail "expected: sonnet | actual: $($rc.missingFile)"
+        Assert-Case -Name 'a header rewritten between two launches is obeyed by the second' `
+            -Ok ($rc.beforeRevision -eq 'haiku' -and $rc.afterRevision -eq 'opus') `
+            -Detail "expected: haiku then opus | actual: $($rc.beforeRevision) then $($rc.afterRevision)"
+        Assert-Case -Name '-ModelPolicy tiered does not read the line' `
+            -Ok ($rc.tieredIgnoresLine -eq 'opus') -Detail "expected: opus | actual: $($rc.tieredIgnoresLine)"
+    } finally {
+        if ($complexitySandbox) { Remove-Item -LiteralPath $complexitySandbox -Recurse -Force -ErrorAction SilentlyContinue }
+    }
+}
+
+Write-Host ''
 if ($failures -gt 0) {
     Write-Host ("run-spec-queue tests: FAIL ({0} of {1} case(s))" -f $failures, $caseCount) -ForegroundColor Red
     exit 1

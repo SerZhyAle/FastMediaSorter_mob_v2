@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.11 18:16</sub>
+<sub class="doc-stamp">26.10.13 14:51</sub>
 
 # FastMediaSorter v2: OPS & Guidelines
 
@@ -2482,7 +2482,7 @@ step-12 build and step 12a; a refusal stops the release before any store sees it
 
 [`docs/FLAVOR_MATRIX.md`](FLAVOR_MATRIX.md) is the canonical, generated answer to "which capability is available in which flavor" - rendered from the `productFlavors` block by `scripts/docs/generate-flavor-matrix.ps1`, together with the machine-readable `docs/flavors/flavor-matrix.json`. The two tables below are a working summary of it and are checked against it cell by cell by `scripts/quality/assert-flavor-matrix-docs.ps1` (in `.\a.ps1 fg` and in `post-change.ps1`), so an inverted marker fails instead of drifting. Change `app_v2/build.gradle.kts`, then regenerate; never fix a disagreement by editing the generated table.
 
-That gate reads glyph table CELLS and, by its own manifest, never looks at prose - which is how the seventh flavor `foss` left thirteen documents and `a.ps1`'s help text still saying six, twice over after S1392. The sentences are covered by `scripts/quality/assert-flavor-count-prose.ps1` (in `.\a.ps1 fg`), which resolves two lexical claims against the same generated JSON: a numeral standing next to a flavor noun under an all-quantifier, and a list presented as the complete set - a `-Flavor A|B|C` value list, or a parenthesised name list right after an all-quantifier. A deliberate subset is not a finding, so naming four flavors that carry Streams stays legal. When a sentence only means "every flavor", drop the number rather than correcting it: text with no count cannot go stale.
+That gate reads glyph table CELLS and, by its own manifest, never looks at prose - which is how the seventh flavor `foss` left thirteen documents and `a.ps1`'s help text still saying six, twice over after S1392. Prose is not gated: a sentence that means "every flavor" carries no number and no complete list - it points at `docs/FLAVOR_MATRIX.md` instead, because text with no count cannot go stale. S2445 once gated flavor counts in prose; S4190 retired that gate together with the counts, after it and its two sibling prose-count gates were red in a quarter of all `fg` runs on other sessions' work.
 
 ### Core feature matrix
 
@@ -2831,3 +2831,13 @@ Steps:
 ### ADR log
 
 _(no rotations have happened yet - first entry will land here.)_
+
+## Dynamic audit stand (S4166)
+
+Verbs, parameters and exit codes: `scripts/devtest/dynamic-audit/da.ps1` (its header is the only home). Raw runs, backups and dumps stay under the ticket scratch root; only anonymised aggregates reach `PLAN/S4166_deep-dynamic-audit/`.
+
+- **The stand is external to the app.** Controller, probes and sampler run on the host and read the emulator through adb; an in-app timer measures only what the app reports about itself, so a timestamp from the app is correlation, never the measurement. The adb round trip is measured separately by the calibration verb and is never presented as a UI ping.
+- **Every mutating verb is refused without a verified backup.** A run that writes into the app's data, its external directory or the shared Download tree starts with a durable restore checkpoint and ends with a restore compared against the backup manifest. A missing or unverified backup, or a restore left pending by a killed run, exits 2 before anything is touched; the next start runs the pending restore first.
+- **Measured backup cost.** On Pixel_9 API 35 the debug build's private directory was 355 files, 308 MB as a tar; the capture took 7.0 s and a restore of it 21-29 s. 51 restores of that one backup were recorded across the first-pass runs, each compared with the manifest.
+- **The restore timeout must cover a deletion, not only a copy.** A 10000-item fixture set is ten thousand FUSE deletions: the removal of the stand's fixture root ran into the 120 s default adb timeout (measured 120197 ms on 2026-10-13), left the root on the device and failed the restore comparison. The removal now has its own long timeout and fails the restore step on a non-zero exit instead of being judged only by the later comparison.
+- **Emulator only.** Every device verb accepts only an `emulator-*` serial whose kernel reports `ro.kernel.qemu=1`; the stand cannot run against a phone listed in `docs/DEVICE_FLEET.md`.

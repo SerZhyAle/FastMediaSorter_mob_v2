@@ -23,13 +23,25 @@ import javax.net.ssl.X509TrustManager
 interface WearExchangeConnector {
 
     /**
-     * [pinned] is the leaf the phone's user accepted, null where the platform trusts the server.
+     * [pinned] is the leaf the phone's user accepted, null where the platform trusts the server. [readTimeoutMs]
+     * is [NO_READ_TIMEOUT] for a control stream, which is silent between keepalives and judged by their window.
      *
      * @throws WearExchangeCertificateUntrustedException when the platform refuses and nothing is pinned.
      * @throws WearExchangeCertificateChangedException when the server presented another leaf than [pinned].
      * @throws IOException when the server cannot be reached.
      */
-    fun connect(host: String, port: Int, pinned: String?): WearExchangeConnection
+    fun connect(
+        host: String,
+        port: Int,
+        pinned: String?,
+        readTimeoutMs: Int = ENROLL_READ_TIMEOUT_MS,
+    ): WearExchangeConnection
+
+    companion object {
+        // Enrollment is one question and one answer; a server silent this long is treated as unreachable.
+        const val ENROLL_READ_TIMEOUT_MS = 20_000
+        const val NO_READ_TIMEOUT = 0
+    }
 }
 
 class WearExchangeConnection(val socket: Socket) : Closeable {
@@ -65,14 +77,16 @@ object WearExchangeTrustDecision {
 @Singleton
 class TlsWearExchangeConnector @Inject constructor() : WearExchangeConnector {
 
-    override fun connect(host: String, port: Int, pinned: String?): WearExchangeConnection {
+    override fun connect(host: String, port: Int, pinned: String?, readTimeoutMs: Int): WearExchangeConnection {
         val inspector = InspectingTrustManager(platformTrustManager())
         val context = SSLContext.getInstance(TLS).apply { init(null, arrayOf(inspector), null) }
         val socket = context.socketFactory.createSocket() as SSLSocket
         try {
             socket.connect(InetSocketAddress(host, port), CONNECT_TIMEOUT_MS)
-            socket.soTimeout = READ_TIMEOUT_MS
+            // The handshake is bounded even for a control stream, whose own reads wait for the keepalive window.
+            socket.soTimeout = WearExchangeConnector.ENROLL_READ_TIMEOUT_MS
             socket.startHandshake()
+            socket.soTimeout = readTimeoutMs
         } catch (e: IOException) {
             socket.close()
             throw e
@@ -121,9 +135,6 @@ class TlsWearExchangeConnector @Inject constructor() : WearExchangeConnector {
     companion object {
         private const val TLS = "TLS"
         private const val CONNECT_TIMEOUT_MS = 15_000
-
-        // Enrollment is one question and one answer; a server silent this long is treated as unreachable.
-        private const val READ_TIMEOUT_MS = 20_000
 
         /** `SHA256:` plus the unpadded base64 digest of the leaf DER - the form the phone entry pins. */
         fun certificateFingerprint(der: ByteArray): String =

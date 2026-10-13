@@ -16,7 +16,7 @@
     change that had touched none of them. The fix went into that one gate as a private line.
 
     Observed again 2026-09-02 (S2333), from a worktree left behind six days earlier: all 30
-    findings of assert-sdk-pin-claims and all 74 of assert-retired-dependency-names came from
+    findings of the SDK-pin prose gate (retired by S4190) and all 74 of assert-retired-dependency-names came from
     the copy, none from the working tree, and the two gates spent 69 s between them walking
     19705 extra files. check-typo-lint was silently double-counting every .kt in the tree.
 

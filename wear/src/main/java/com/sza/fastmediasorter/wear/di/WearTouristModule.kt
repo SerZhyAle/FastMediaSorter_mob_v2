@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.wear.di
 
 import com.sza.fastmediasorter.wear.data.tourist.AndroidWearTouristRepository
 import com.sza.fastmediasorter.wear.data.tourist.DataLayerWearTouristWeatherRepository
+import com.sza.fastmediasorter.wear.data.tourist.PreferencesWearTouristCounterRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearTouristCounterRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearTouristRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearTouristWeatherRepository
 import dagger.Binds
@@ -28,4 +30,10 @@ abstract class WearTouristModule {
     abstract fun bindWearTouristWeatherRepository(
         impl: DataLayerWearTouristWeatherRepository,
     ): WearTouristWeatherRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindWearTouristCounterRepository(
+        impl: PreferencesWearTouristCounterRepository,
+    ): WearTouristCounterRepository
 }

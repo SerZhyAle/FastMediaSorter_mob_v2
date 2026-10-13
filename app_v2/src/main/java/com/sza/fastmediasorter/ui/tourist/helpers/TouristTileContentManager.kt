@@ -55,7 +55,17 @@ class TouristTileContentManager(
         TouristTileType.WATCH_HEART_RATE -> watch.heartRate(state)
         TouristTileType.WATCH_BODY_TEMPERATURE -> watch.bodyTemperature(state)
         TouristTileType.STOPWATCH -> stopwatch()
+        TouristTileType.COUNTER -> counter(state)
     }
+
+    private fun counter(state: TouristDashboardState): TouristTileContent = tileContent(
+        context = context,
+        iconRes = com.sza.fastmediasorter.R.drawable.ic_add,
+        labelRes = com.sza.fastmediasorter.R.string.tourist_tile_counter,
+        reading = TouristTileValueFormatter.TileValue(state.counterValue.toString(), ""),
+        detail = context.getString(com.sza.fastmediasorter.R.string.tourist_detail_counter),
+        backgroundRes = com.sza.fastmediasorter.R.color.tourist_tile_bg_group_trip,
+    )
 
     private fun stopwatch(): TouristTileContent = tileContent(
         context = context,

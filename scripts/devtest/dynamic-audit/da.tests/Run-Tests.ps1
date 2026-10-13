@@ -27,6 +27,17 @@
     heavy-run sequence with stubs: step order, restore in finally after a scene failure, no mutation after
     a refused preflight, an outside-the-run change reported as a finding.
 
+    Cycles and analysis (lib/da-cycle.ps1, lib/da-stats.ps1): cycle phases and segments, the browse header
+    parser, the size-filter split, the padded tiny JPEG, the cycle runner with stubs (cold start, setup, every
+    cycle closed at its quiescence point with an indexed sample, warm-up rows, warm start, no forced GC), the
+    plateau and retained-growth decisions, the run analysis (warm-up excluded, unobserved metric open, budget
+    finding, invalid run refused) and the Analyze and Cycle verbs through the facade.
+
+    Report (lib/da-report.ps1): the latest valid run per key, an invalid run producing no cell, the measured cell's
+    required fields, open properties left open, finding-card severity rules (candidate hypothesis below rung T,
+    hypothesis budget capped at P2), the export manifest and evidence hash, and a canary test - synthetic secrets
+    assembled from fragments at run time must not survive into the exported aggregates or the report.
+
     Every artefact is written under a fresh directory in the system temp folder and removed at the end;
     the real state directory under temp/S4166 is never read or written.
 
@@ -54,6 +65,8 @@ $daFacade = Join-Path $daStandDir 'da.ps1'
 . (Join-Path $PSScriptRoot '..\lib\da-fault.ps1')
 . (Join-Path $PSScriptRoot '..\lib\da-ui.ps1')
 . (Join-Path $PSScriptRoot '..\lib\da-scenes.ps1')
+. (Join-Path $PSScriptRoot '..\lib\da-cycle.ps1')
+. (Join-Path $PSScriptRoot '..\lib\da-report.ps1')
 
 $script:daPassed = 0
 $script:daFailed = [System.Collections.Generic.List[string]]::new()
@@ -433,7 +446,10 @@ try {
     Assert-Case 'crash and ANR signals of the package only' ($sig.Count -eq 2 -and $sig[0].kind -eq 'crash' -and $sig[1].kind -eq 'anr')
     Assert-Case 'scene verdict 2/1/0' ((Get-DaSceneVerdict -Valid $false) -eq 2 -and (Get-DaSceneVerdict -Valid $true) -eq 2 -and (Get-DaSceneVerdict -Valid $true -Invariants @([pscustomobject]@{ holds = $false })) -eq 1 -and (Get-DaSceneVerdict -Valid $true -Findings @([pscustomobject]@{ title = 'x' })) -eq 1 -and (Get-DaSceneVerdict -Valid $true -Invariants @([pscustomobject]@{ holds = $true })) -eq 0)
     $reg = Get-DaSceneRegistry
-    Assert-Case 'registry holds C01 C02 C03 C07 C15 with existing runners' ((@($reg.Keys) -join ',') -eq 'C01,C02,C03,C07,C15' -and @($reg.Values | Where-Object { -not (Get-Command $_.runner -ErrorAction SilentlyContinue) }).Count -eq 0 -and $reg.C15.fault -and -not $reg.C01.fault)
+    Assert-Case 'registry holds C01 C02 C03 C07 C15 C05 C06 C12 C14 C16 with existing runners' ((@($reg.Keys) -join ',') -eq 'C01,C02,C03,C07,C15,C05,C06,C12,C14,C16' -and @($reg.Values | Where-Object { -not (Get-Command $_.runner -ErrorAction SilentlyContinue) }).Count -eq 0 -and $reg.C15.fault -and -not $reg.C01.fault)
+    $cyc = @($reg.Values | Where-Object { $_.cycle })
+    Assert-Case 'every cycle scene names an existing setup and cycle function and a quiescence point' ($cyc.Count -eq 5 -and @($cyc | Where-Object { -not (Get-Command $_.cycle -ErrorAction SilentlyContinue) -or -not (Get-Command $_.setup -ErrorAction SilentlyContinue) -or $_.quiescence -notin 'main', 'browse' }).Count -eq 0)
+    Assert-Case 'only C12 and C16 have a watch variant' ((@($reg.Keys | Where-Object { $reg[$_].watch }) -join ',') -eq 'C12,C16')
 
     # 25. envelope: restore after a failing body, no restore after a refused checkpoint, a failed restore wins
     $script:envLog = [System.Collections.Generic.List[string]]::new()
@@ -486,6 +502,144 @@ try {
     Assert-Case 'facade Scene refuses a phone serial with exit 2' ($LASTEXITCODE -eq 2 -and ($out -join ' ') -match 'DEVICE_FLEET\.md') ($out -join ' ')
     $out = & pwsh -NoProfile -File $daFacade -Verb Heavy -Scene C15 -Fault F07 -Serial '192.168.1.5:5555' 2>&1
     Assert-Case 'facade Heavy refuses a network serial with exit 2' ($LASTEXITCODE -eq 2) ($out -join ' ')
+
+    # 28. cycle bookkeeping helpers, the size-filter split, the browse header parser, the padded tiny JPEG
+    Assert-Case 'cycle phases: warm-up then measured' ((Get-DaCyclePhase -Index 3 -WarmupCycles 3) -eq 'warm-up' -and (Get-DaCyclePhase -Index 4 -WarmupCycles 3) -eq 'measured' -and (Get-DaCyclePhase -Index 1) -eq 'measured')
+    Assert-Case 'cycle segments: C14 n1000 then n10000, C16 foreground then background, watch and others main' ((Get-DaCycleSegment -Scene C14 -Index 10 -Cycles 20) -eq 'n1000' -and (Get-DaCycleSegment -Scene C14 -Index 11 -Cycles 20) -eq 'n10000' -and (Get-DaCycleSegment -Scene C16 -Index 11 -Cycles 20) -eq 'background' -and (Get-DaCycleSegment -Scene C16 -Index 11 -Cycles 20 -Watch) -eq 'main' -and (Get-DaCycleSegment -Scene C05 -Index 20 -Cycles 20) -eq 'main')
+    Assert-Case 'browse header count with grouped digits' ((ConvertFrom-DaResourceHeader -Text "dst (1$([char]0x00A0)000 files) $([char]0x2022) content://x") -eq 1000 -and (ConvertFrom-DaResourceHeader -Text 'src (29 files)') -eq 29 -and $null -eq (ConvertFrom-DaResourceHeader -Text 'Loading'))
+    $vis = Get-DaExpectedVisible -Manifest ([pscustomobject]@{ items = @([pscustomobject]@{ path = 'a.jpg'; size = 998 }, [pscustomobject]@{ path = 'b.jpg'; size = 1195 }, [pscustomobject]@{ path = 'c.mp4'; size = 71202 }, [pscustomobject]@{ path = 'd.mp4'; size = 300000 }, [pscustomobject]@{ path = 'e.txt'; size = 0 }) })
+    Assert-Case 'size filter hides small images and videos only' ((@($vis.Visible) -join ',') -eq 'b.jpg,d.mp4,e.txt' -and $vis.Hidden.Count -eq 2)
+    $tinyPath = Join-Path $daSuiteRoot 'tiny.jpg'
+    New-DaFixtureJpeg -Path $tinyPath -Width 16 -Height 16 -Random ([System.Random]::new(5)) -Shapes 2
+    $tinyBefore = (Get-Item -LiteralPath $tinyPath).Length
+    Add-DaJpegComment -Path $tinyPath
+    $tinyBytes = [System.IO.File]::ReadAllBytes($tinyPath)
+    $decodes = $false
+    try { $img = [System.Drawing.Image]::FromFile($tinyPath); $decodes = ($img.Width -eq 16); $img.Dispose() } catch { $decodes = $false }
+    Assert-Case 'padded tiny JPEG clears the 1 KiB filter and still decodes' ($tinyBefore -lt 1024 -and $tinyBytes.Length -ge 1024 -and $tinyBytes[0] -eq 0xFF -and $tinyBytes[1] -eq 0xD8 -and $tinyBytes[2] -eq 0xFF -and $tinyBytes[3] -eq 0xFE -and $decodes) "$tinyBefore -> $($tinyBytes.Length), decodes $decodes"
+
+    # 29. cycle runner with stubs: cold start, setup, warm-up and measured rows with index and point, warm start, no forced GC
+    $cycDir = Join-Path $daSuiteRoot 'cycle-run'
+    [void][System.IO.Directory]::CreateDirectory($cycDir)
+    $cctx = @{
+        Serial = 'emulator-5554'; Package = 'p'; Scene = 'T99'; RunId = 'c1'; RunDir = $cycDir; Watch = $false; CorrelationId = 'x'
+        CyclePlan = @{ Cycles = 5; WarmupCycles = 2; IdleSec = 1; HeapSnapshot = $false }
+        Actions = [System.Collections.Generic.List[object]]::new(); Invariants = [System.Collections.Generic.List[object]]::new(); Open = [System.Collections.Generic.List[object]]::new()
+        Notes = [System.Collections.Generic.List[string]]::new(); Findings = [System.Collections.Generic.List[object]]::new()
+    }
+    $script:cycleCalls = [System.Collections.Generic.List[string]]::new()
+    & {
+        function Get-DaSceneRegistry { [ordered]@{ T99 = [ordered]@{ runner = 'Invoke-DaCycleScene'; cycle = 'Invoke-StubCycle'; setup = 'Invoke-StubSetup'; quiescence = 'main'; watch = $false; atomic = @('T99.a') } } }
+        function Invoke-StubSetup { param($Ctx) $script:cycleCalls.Add('setup'); $true }
+        function Invoke-StubCycle { param($Ctx, $Index, $Segment) $script:cycleCalls.Add("cycle$Index"); [ordered]@{ ok = $true; timings = [ordered]@{ stepMs = 100 * $Index } } }
+        function Invoke-DaSceneAction { param($Ctx, $Name, $Atomic, $Body) $Ctx.Actions.Add($Name); & $Body }
+        function Get-DaLaunchComponent { 'p/.Main' }
+        function Measure-DaStart { param($Serial, $Package, $Component, $Mode) $script:cycleCalls.Add("start-$Mode"); [ordered]@{ mode = $Mode; outcome = 'ok'; totalTimeMs = 500 } }
+        function Wait-DaQuiescence { param($Ctx, $Point, $QuietMs) $script:cycleCalls.Add("quiet-$Point"); [ordered]@{ point = $Point; reached = $true; quietMs = $QuietMs; alive = $true; pid = 42; startTicks = 7; sample = [ordered]@{ hostMonoMs = 1000 * $script:cycleCalls.Count; threads = 40; meminfo = [ordered]@{ totalPssKb = 50000 } } } }
+        Invoke-DaCycleScene -Ctx $cctx
+    }
+    $crow = @([System.IO.File]::ReadAllLines((Join-Path $cycDir 'cycles.jsonl')) | ForEach-Object { $_ | ConvertFrom-Json })
+    $cyRows = @($crow | Where-Object { $_.type -eq 'cycle' })
+    Assert-Case 'cycle runner order: cold start, setup, cycles each closed at quiescence, warm start' (($script:cycleCalls -join ',') -eq 'start-cold,setup,cycle1,quiet-main,cycle2,quiet-main,cycle3,quiet-main,cycle4,quiet-main,cycle5,quiet-main,start-warm') ($script:cycleCalls -join ',')
+    Assert-Case 'cycle rows carry index, phase and the point; warm-up excluded by phase' ($cyRows.Count -eq 5 -and (@($cyRows.index) -join ',') -eq '1,2,3,4,5' -and (@($cyRows.phase) -join ',') -eq 'warm-up,warm-up,measured,measured,measured' -and @($cyRows | Where-Object { -not $_.point -or $null -eq $_.pointMonoMs }).Count -eq 0)
+    Assert-Case 'cold and warm starts are separate rows and no cycle forces a GC' ((@($crow | Where-Object { $_.type -eq 'start' } | ForEach-Object { $_.phase }) -join ',') -eq 'cold,warm' -and -not @($cyRows | Where-Object { $_.forcedGc }).Count)
+    Assert-Case 'one process through every cycle is recorded as an invariant' (@($cctx.Invariants | Where-Object { $_.id -eq 'process-survives-every-cycle' -and $_.holds }).Count -eq 1)
+
+    # 30. growth decision and run analysis: plateau, retained growth, warm-up excluded, unobserved metric open
+    $gx = [double[]](1..17); $rnd = [System.Random]::new(7)
+    $flat = [double[]]@($gx | ForEach-Object { 50000 + $rnd.Next(-40, 41) })
+    Assert-Case 'flat series is a plateau' ((Get-DaGrowthDecision -Y $flat -Cycle $gx).decision -eq 'plateau')
+    $ramp = [double[]]@($gx | ForEach-Object { 50000 + 600 * $_ + $rnd.Next(-40, 41) })
+    Assert-Case 'steady climb is retained growth' ((Get-DaGrowthDecision -Y $ramp -Cycle $gx).decision -eq 'retained-growth')
+    $cache = [double[]]@($gx | ForEach-Object { 50000 + 800 * [math]::Min($_, 6) + $rnd.Next(-40, 41) })
+    Assert-Case 'growth that stops is a plateau' ((Get-DaGrowthDecision -Y $cache -Cycle $gx).decision -eq 'plateau') (Get-DaGrowthDecision -Y $cache -Cycle $gx).reason
+    Assert-Case 'two points are insufficient' ((Get-DaGrowthDecision -Y ([double[]](1, 2)) -Cycle ([double[]](1, 2))).decision -eq 'insufficient')
+    $mkRun = {
+        param($dir, [scriptblock]$pss, [bool]$valid)
+        [void][System.IO.Directory]::CreateDirectory($dir)
+        Write-DaJson -Path (Join-Path $dir 'scene.json') -InputObject ([ordered]@{ runId = (Split-Path -Leaf $dir); scene = 'C05'; variant = 'standard'; valid = $valid; invalidReason = if ($valid) { $null } else { 'sampler gaps' }; cyclePlan = @{ Cycles = 20; WarmupCycles = 3 } })
+        $r2 = [System.Random]::new(11)
+        $lines = @([ordered]@{ type = 'start'; phase = 'cold'; index = 0; start = @{ outcome = 'ok'; totalTimeMs = 900 } } | ConvertTo-Json -Compress -Depth 8)
+        foreach ($i in 1..20) {
+            $phase = if ($i -le 3) { 'warm-up' } else { 'measured' }
+            $pt = [ordered]@{ hostMonoMs = 60000 * $i; vmRssKb = 120000 + $r2.Next(-30, 31); threads = 40 + $r2.Next(-1, 2); fdCount = $null; meminfo = [ordered]@{ totalPssKb = (& $pss $i $r2); views = 300 } }
+            $lines += ([ordered]@{ type = 'cycle'; index = $i; phase = $phase; segment = 'main'; pointMonoMs = 60000 * $i; point = $pt; forcedGc = $false; result = [ordered]@{ ok = $true; timings = [ordered]@{ openMs = 1000 + $i } } } | ConvertTo-Json -Compress -Depth 8)
+        }
+        [System.IO.File]::WriteAllLines((Join-Path $dir 'cycles.jsonl'), [string[]]$lines)
+    }
+    $runFlat = Join-Path $daSuiteRoot 'run-flat'
+    & $mkRun $runFlat { param($i, $r) if ($i -le 3) { 30000 + 5000 * $i } else { 50000 + $r.Next(-40, 41) } } $true
+    $an = Invoke-DaRunAnalysis -RunDir $runFlat
+    $pssOut = $an.Analysis.segments['main'].metrics['totalPssKb']
+    Assert-Case 'warm-up rise excluded: plateau, 17 measured points, code 0' ($an.Code -eq 0 -and $pssOut.decision -eq 'plateau' -and $pssOut.n -eq 17 -and $an.Analysis.warmupExcluded -eq 3) "$($an.Code) $($pssOut.decision) n=$($pssOut.n) $($an.Reason)"
+    Assert-Case 'an unobserved metric is open, never zero' (@($an.Analysis.open | Where-Object { $_.metric -eq 'fdCount' }).Count -eq 1 -and $an.Analysis.segments['main'].metrics['fdCount'].state -eq 'open')
+    Assert-Case 'analysis records seed, units, budgets and timing distributions' ($an.Analysis.bootstrap.seed -eq 4166 -and $pssOut.unit -eq 'KiB' -and $pssOut.slopePerCycle.blockLength -ge 1 -and $an.Analysis.segments['main'].timings['openMs'].distribution.count -eq 17 -and (Test-Path -LiteralPath (Join-Path $runFlat 'analysis.json')))
+    $runGrow = Join-Path $daSuiteRoot 'run-grow'
+    & $mkRun $runGrow { param($i, $r) 50000 + 700 * $i + $r.Next(-40, 41) } $true
+    $an = Invoke-DaRunAnalysis -RunDir $runGrow
+    Assert-Case 'retained growth over the per-cycle budget is a finding' ($an.Code -eq 1 -and @($an.Analysis.result.retainedGrowth) -contains 'main/totalPssKb' -and @($an.Analysis.result.budgetFails) -contains 'main/totalPssKb per-cycle') $an.Reason
+    $runBad = Join-Path $daSuiteRoot 'run-invalid'
+    & $mkRun $runBad { param($i, $r) 50000 } $false
+    $an = Invoke-DaRunAnalysis -RunDir $runBad
+    Assert-Case 'invalid run gives 2 and no verdicts' ($an.Code -eq 2 -and @($an.Analysis.verdicts).Count -eq 0)
+
+    # 31. facade: Analyze reads a run without a device; Cycle is guarded like every device verb
+    $out = & pwsh -NoProfile -File $daFacade -Verb Analyze -RunDir $runGrow 2>&1
+    Assert-Case 'facade Analyze reports retained growth with exit 1' ($LASTEXITCODE -eq 1 -and ($out -join ' ') -match 'retained growth: main/totalPssKb') ($out -join ' ')
+    $out = & pwsh -NoProfile -File $daFacade -Verb Analyze -RunDir (Join-Path $daSuiteRoot 'no-such-run') 2>&1
+    Assert-Case 'facade Analyze of a missing run exits 2' ($LASTEXITCODE -eq 2) ($out -join ' ')
+    $out = & pwsh -NoProfile -File $daFacade -Verb Cycle -Scene C05 -Serial 'RFCR110NBQJ' 2>&1
+    Assert-Case 'facade Cycle refuses a phone serial with exit 2' ($LASTEXITCODE -eq 2 -and ($out -join ' ') -match 'DEVICE_FLEET\.md') ($out -join ' ')
+
+    # 32. report: Update-DaMatrix, finding cards, redaction with canary secrets, export manifest
+    $canaries = @(('gh' + 'p_') + ('Q' * 24) + '9z', ('AK' + 'IA') + ('7' * 14), ('pass' + 'word') + '=' + 'Hunter' + '2' + 'Xy', ('canary.user' + '@') + 'example' + '.org', 'C:' + '\Users\' + 'CanaryOwner' + '\secret.txt', 'https://' + 'host.test/p?' + 'tok' + 'en=abc')
+    $repRoot = Join-Path $daSuiteRoot 'report-repo'
+    $repRuns = Join-Path $repRoot 'runs'
+    $repAudit = Join-Path $repRoot 'PLAN/S4166_deep-dynamic-audit/audit'
+    [void][System.IO.Directory]::CreateDirectory($repAudit)
+    $mkScene = {
+        param($id, [bool]$valid, [bool]$holds, $findings)
+        $d = Join-Path $repRuns $id
+        Write-DaJson -Path (Join-Path $d 'scene.json') -InputObject ([ordered]@{
+                kind = 'scene'; runId = $id; scene = 'C12'; fault = $null; variant = 'standard'; valid = $valid; invalidReason = if ($valid) { $null } else { 'sampler gaps' }
+                startedAt = '2026-10-13T10:00:00Z'; cyclePlan = @{ Cycles = 20; WarmupCycles = 3 }
+                build = @{ package = 'p.debug'; versionName = '1-DEBUG'; versionCode = '1'; apkSha256 = 'ab' * 32 }; device = @{ kind = 'emulator'; avd = 'Pixel_9'; api = 35 }
+                calibration = @{ runId = 'cal1' }; fixture = @{ set = 'small' }
+                actions = @([ordered]@{ name = 'c1-storm'; atomic = 'C12.held-key'; result = @{ ok = $true } }, [ordered]@{ name = 'c1-tap'; atomic = 'C12.repeated-command'; result = @{ ok = $true } })
+                invariants = @([ordered]@{ id = 'process-survives'; atomic = 'C12.held-key'; holds = $holds; detail = "pid same $($canaries -join ' ')" })
+                open = @(); findings = $findings
+            })
+    }
+    $f1 = [ordered]@{ id = 'f1'; atomic = 'C12.held-key'; severityGuess = 'P1'; rung = 'V'; expected = 'process survives'; detail = "crashed; clipboard held $($canaries -join ' ')" }
+    & $mkScene '261013-100000-aaaa' $true $true @()
+    & $mkScene '261013-110000-bbbb' $true $false @($f1)
+    & $mkScene '261013-120000-cccc' $false $true @()
+    $mtx = [ordered]@{ schemaVersion = 1; cells = @(); sceneCells = @(
+            foreach ($p in 'O', 'E', 'S', 'L', 'U') { [ordered]@{ key = "C12|C12.held-key|standard|en/keyboard/default|$p"; scene = 'C12'; atomic = 'C12.held-key'; variant = 'standard'; context = 'en/keyboard/default'; property = $p; status = 'open'; reason = 'r'; owner = 'o'; nextStep = 'n' } }
+        ) }
+    $mtx = ($mtx | ConvertTo-Json -Depth 10 | ConvertFrom-Json -AsHashtable)
+    $recs = Get-DaRunRecords -RunsRoot $repRuns
+    $upd = Update-DaMatrix -Matrix $mtx -Records $recs -BudgetVersion 'h1' -EvidenceRel 'PLAN/S4166_deep-dynamic-audit/audit/evidence'
+    $eCell = @($upd.Matrix['sceneCells'] | Where-Object { $_['property'] -eq 'E' })[0]
+    Assert-Case 'report: latest valid run wins, invalid run produces no cell' ($upd.Runs.Count -eq 1 -and $upd.Runs[0].runId -eq '261013-110000-bbbb' -and $upd.Selection.Invalid.Count -eq 1 -and $upd.Selection.Superseded.Count -eq 1) "$($upd.Runs.Count) $($upd.Selection.Invalid.Count)"
+    Assert-Case 'report: measured cell carries run, method, unit, n, budget version, evidence and a separate verdict' ($eCell['status'] -eq 'measured' -and $eCell['verdict'] -eq 'fail' -and $eCell['run'] -eq '261013-110000-bbbb' -and $eCell['n'] -eq 1 -and $eCell['budgetVersion'] -eq 'h1' -and $eCell['evidence'] -eq 'ev-261013-110000-bbbb' -and -not $eCell.Contains('reason')) ($eCell | ConvertTo-Json -Compress)
+    Assert-Case 'report: unmeasured properties stay open' (@($upd.Matrix['sceneCells'] | Where-Object { $_['status'] -eq 'open' }).Count -eq 4)
+    Assert-Case 'report: a context the matrix does not carry is unmatched, not forced' ($upd.Unmatched.Count -eq 0)
+    $card = $upd.Cards[0]
+    Assert-Case 'report: P1 on rung V stays a candidate hypothesis' ($card.severity -eq 'P1' -and $card.standing -eq 'candidate hypothesis')
+    $capped = New-DaFindingCard -Finding ([ordered]@{ id = 'f2'; atomic = 'C12.held-key'; severityGuess = 'P0'; rung = 'T'; detail = 'x' }) -Record $recs[1] -BudgetOnly
+    Assert-Case 'report: a hypothesis-budget exceedance alone caps the card at P2' ($capped.severity -eq 'P2' -and $capped.standing -eq 'confirmed')
+    $exp = Export-DaAggregate -AuditRoot $repAudit -RepoRoot $repRoot -Update $upd -Who 'suite'
+    $md = Format-DaReport -Update $upd -Counts (Get-DaCoverageCounts -Matrix $upd.Matrix) -ValidatorLines @('-Validate exit 1 - assert-dynamic-audit-coverage: FAIL')
+    $exported = (@(Get-ChildItem -LiteralPath (Join-Path $repRoot 'PLAN') -Recurse -File | ForEach-Object { [System.IO.File]::ReadAllText($_.FullName) }) -join "`n") + "`n" + $md
+    $tells = @($canaries[0], $canaries[1], ('Hunter' + '2' + 'Xy'), ('canary.user' + '@'), 'CanaryOwner', ('tok' + 'en=abc'))
+    $leaks = @($tells | Where-Object { $exported.Contains($_) })
+    Assert-Case 'report: no canary secret survives into the export or the report' ($leaks.Count -eq 0 -and $exported.Contains('<redacted>')) "leaked: $($leaks.Count)"
+    $man = Read-DaJson -Path (Join-Path $repAudit 'export-manifest.json')
+    $ev = Read-DaJson -Path (Join-Path $repAudit 'evidence.json')
+    Assert-Case 'report: export manifest names who, what, where and when; evidence hash matches the file' (@($man.entries).Count -eq 1 -and $man.entries[0].who -eq 'suite' -and $man.entries[0].when -and $exp.EvidenceCount -eq 1 -and (Get-DaFileSha256 -Path (Join-Path $repRoot $ev.evidence[0].uri)) -eq $ev.evidence[0].sha256)
+    Assert-Case 'report: the report states that no complete check exists' ($md -match 'No complete successful check exists' -and $md -match 'assert-dynamic-audit-coverage: ')
+    Assert-Case 'report: stand context maps the held key to keyboard and the watch geometry to its AVD' ((Get-DaStandContext -Atomic 'C12.held-key') -eq 'en/keyboard/default' -and (Get-DaStandContext -Atomic 'C16.watch-idle' -Avd 'Wear_OS_Large_Round') -eq 'en/touch/large-round' -and $null -eq (Get-DaStandContext -Atomic 'C12.watch-key-storm' -Avd 'Pixel_9'))
 }
 catch {
     $script:daFailed.Add("suite error: $($_.Exception.Message) at $($_.InvocationInfo.ScriptLineNumber)")

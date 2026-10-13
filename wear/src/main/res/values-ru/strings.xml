@@ -1053,4 +1053,22 @@
     <string name="wear_exchange_removing">Убираем..</string>
     <string name="wear_exchange_removed_revoked">Убрано. Этих часов больше нет в списке сервера.</string>
     <string name="wear_exchange_removed_locally">Убрано только с часов: сервер недоступен. Отзовите часы с телефона.</string>
+    <string name="wear_tourist_counter">Счётчик</string>
+    <string name="wear_tourist_counter_extra_steps">Больше шагов</string>
+    <string name="wear_tourist_counter_start">Начальное число</string>
+    <string name="wear_tourist_counter_start_invalid">Введите целое число от 0</string>
+    <string name="wear_tourist_counter_reset">Сбросить</string>
+    <string name="wear_tourist_counter_reset_confirm">Сбросить счётчик?</string>
+    <string name="wear_tourist_counter_reset_message">Текущий отсчёт сохранится в истории.</string>
+    <string name="wear_tourist_counter_history">История</string>
+    <string name="wear_tourist_counter_history_empty">Завершённых отсчётов пока нет</string>
+    <string name="wear_tourist_counter_clear_history">Очистить историю</string>
+    <string name="wear_tourist_counter_clear_history_confirm">Очистить историю счётчика?</string>
+    <string name="wear_tourist_counter_add_one">Прибавить один</string>
+    <string name="wear_tourist_counter_subtract_one">Отнять один</string>
+    <string name="wear_exchange_cast_channel_name">Предложения трансляций</string>
+    <string name="wear_exchange_cast_title">Вам предлагают трансляцию</string>
+    <string name="wear_exchange_cast_text">Другое устройство вашего аккаунта хочет включить свою трансляцию на этих часах</string>
+    <string name="wear_exchange_cast_play">Слушать</string>
+    <string name="wear_exchange_cast_decline">Отклонить</string>
 </resources>

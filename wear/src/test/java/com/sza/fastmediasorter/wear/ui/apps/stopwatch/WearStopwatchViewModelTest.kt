@@ -65,7 +65,8 @@ class WearStopwatchViewModelTest {
         viewModel.onStartOrLap(0)
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { updateStopwatch(any(), any()) }
+        // One for the autostart on open, one for the tap.
+        coVerify(exactly = 2) { updateStopwatch(any(), any()) }
     }
 
     @Test

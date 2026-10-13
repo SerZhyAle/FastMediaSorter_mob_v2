@@ -4485,4 +4485,25 @@
     <string name="stream_broadcast_trust_refused">The certificate of %1$s does not match the broadcast description, so the broadcast was not played.</string>
     <string name="stream_broadcast_ended">This broadcast has ended or cannot be reached right now.</string>
     <string name="stream_broadcast_through_server">Through server: %1$s</string>
+    <string name="settings_streams_cast_play_at_once">Play casts at once</string>
+    <string name="settings_streams_cast_play_at_once_summary">A broadcast your other device sends here starts without the Accept question</string>
+    <string name="tourist_tile_counter">Counter</string>
+    <string name="tourist_detail_counter">Tap to count</string>
+    <string name="tourist_counter_step_plus">+%1$d</string>
+    <string name="tourist_counter_step_minus">-%1$d</string>
+    <string name="tourist_counter_plus_one_description">Add one</string>
+    <string name="tourist_counter_minus_one_description">Subtract one</string>
+    <string name="tourist_counter_extra_steps">More buttons: +3 to +1000</string>
+    <string name="tourist_counter_set_start">Starting number</string>
+    <string name="tourist_counter_reset">Reset</string>
+    <string name="tourist_counter_start_label">Starting number: %1$s</string>
+    <string name="tourist_counter_session_label">Counting since %1$s</string>
+    <string name="tourist_counter_start_invalid">Enter a whole number from 0</string>
+    <string name="tourist_counter_reset_title">Reset the counter?</string>
+    <string name="tourist_counter_reset_message">The counter returns to %1$s. The current count is saved to history.</string>
+    <string name="tourist_counter_history">History</string>
+    <string name="tourist_counter_history_empty">No finished counts yet</string>
+    <string name="tourist_counter_history_period">%1$s - %2$s</string>
+    <string name="tourist_counter_clear_history">Clear</string>
+    <string name="tourist_counter_clear_history_title">Clear the counter history?</string>
 </resources>

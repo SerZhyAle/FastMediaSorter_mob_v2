@@ -207,6 +207,34 @@ function New-DaFixtureJpeg {
     finally { $g.Dispose(); $bmp.Dispose() }
 }
 
+function Add-DaJpegComment {
+    <#
+    .SYNOPSIS
+        Inserts a JPEG comment segment (FF FE) right after SOI; the image data is untouched and the file stays a valid JPEG.
+    .DESCRIPTION
+        A 16x16 JPEG is about 650 bytes and the app's default image size filter hides images below 1 KiB, so the
+        large sets would list as empty; the comment lifts every tiny image above the filter deterministically.
+    .PARAMETER Path
+        JPEG file rewritten in place.
+    .PARAMETER Bytes
+        Comment payload length.
+    #>
+    param([Parameter(Mandatory)][string]$Path, [ValidateRange(1, 65533)][int]$Bytes = 1100)
+    $b = [System.IO.File]::ReadAllBytes($Path)
+    if ($b.Length -lt 4 -or $b[0] -ne 0xFF -or $b[1] -ne 0xD8) { throw "not a JPEG: $Path" }
+    $text = [System.Text.Encoding]::ASCII.GetBytes(('S4166 dynamic-audit fixture padding. ' * ([int][math]::Ceiling($Bytes / 37.0) + 1)).Substring(0, $Bytes))
+    $len = $text.Length + 2
+    $ms = [System.IO.MemoryStream]::new()
+    try {
+        $ms.Write($b, 0, 2)
+        $ms.Write([byte[]](0xFF, 0xFE, (($len -shr 8) -band 0xFF), ($len -band 0xFF)), 0, 4)
+        $ms.Write($text, 0, $text.Length)
+        $ms.Write($b, 2, $b.Length - 2)
+        [System.IO.File]::WriteAllBytes($Path, $ms.ToArray())
+    }
+    finally { $ms.Dispose() }
+}
+
 function New-DaFixtureVideo {
     <#
     .SYNOPSIS
@@ -324,7 +352,9 @@ function New-DaFixtureSet {
     else {
         $n = if ($Name -eq 'n1000') { 1000 } else { 10000 }
         for ($i = 1; $i -le $n; $i++) {
-            New-DaFixtureJpeg -Path (& $add ('tiny_{0:D5}.jpg' -f $i) 'jpeg-tiny') -Width 16 -Height 16 -Random $rng -Shapes 2
+            $tiny = & $add ('tiny_{0:D5}.jpg' -f $i) 'jpeg-tiny-padded'
+            New-DaFixtureJpeg -Path $tiny -Width 16 -Height 16 -Random $rng -Shapes 2
+            Add-DaJpegComment -Path $tiny
         }
     }
 

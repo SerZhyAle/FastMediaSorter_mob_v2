@@ -78,6 +78,8 @@ fun TouristSecondaryCard(
 /**
  * S4186: a tile that opens another program instead of promoting a metric, so it carries no value.
  * Shaped like [TouristSecondaryCard] to wrap in the same cloud.
+ *
+ * S4185: an optional [value] follows the label, so the counter tile shows its count before it is opened.
  */
 @Composable
 fun TouristLaunchCard(
@@ -85,6 +87,7 @@ fun TouristLaunchCard(
     @DrawableRes iconRes: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    value: String? = null,
 ) {
     Row(
         modifier = modifier
@@ -92,7 +95,9 @@ fun TouristLaunchCard(
             .clip(RoundedCornerShape(CARD_CORNER))
             .background(MaterialTheme.colors.surface)
             .clickable(onClick = onClick)
-            .semantics(mergeDescendants = true) { contentDescription = label }
+            .semantics(mergeDescendants = true) {
+                contentDescription = if (value == null) label else "$label, $value"
+            }
             .padding(vertical = CARD_V_PADDING, horizontal = CARD_H_PADDING),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(LABEL_VALUE_GAP),
@@ -109,5 +114,13 @@ fun TouristLaunchCard(
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colors.onSurface,
         )
+        if (value != null) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.body2,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colors.onSurface,
+            )
+        }
     }
 }

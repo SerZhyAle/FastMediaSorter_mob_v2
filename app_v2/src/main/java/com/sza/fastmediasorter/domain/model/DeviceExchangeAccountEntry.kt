@@ -76,16 +76,19 @@ data class DeviceExchangeEnrollment(
         const val ROLE_RESOURCE_PRODUCER = "resource-producer"
         const val ROLE_RESOURCE_CONSUMER = "resource-consumer"
         const val ROLE_BROADCASTER = "broadcaster"
+        const val ROLE_RECEIVER = "receiver"
 
         /**
          * Every role this product may take on an entry, declared at `enroll` ahead of use (item AC), so making the
          * entry the outgoing one later needs no second enrollment and no password.
          */
-        fun declaredRoles(producer: Boolean, broadcaster: Boolean): List<String> = listOfNotNull(
-            ROLE_RESOURCE_CONSUMER,
-            ROLE_RESOURCE_PRODUCER.takeIf { producer },
-            ROLE_BROADCASTER.takeIf { broadcaster },
-        )
+        fun declaredRoles(producer: Boolean, broadcaster: Boolean, receiver: Boolean = false): List<String> =
+            listOfNotNull(
+                ROLE_RESOURCE_CONSUMER,
+                ROLE_RESOURCE_PRODUCER.takeIf { producer },
+                ROLE_BROADCASTER.takeIf { broadcaster },
+                ROLE_RECEIVER.takeIf { receiver },
+            )
     }
 }
 

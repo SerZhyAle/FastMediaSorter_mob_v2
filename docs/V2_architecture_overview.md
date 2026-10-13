@@ -5,7 +5,7 @@ permalink: /docs/V2_architecture_overview.html
 lang: en
 ---
 
-<sub class="doc-stamp">26.10.06 14:18</sub>
+<sub class="doc-stamp">26.10.13 14:51</sub>
 
 # Architecture Overview
 
@@ -21,7 +21,7 @@ ViewModels expose observable state and events. Use cases coordinate operations. 
 
 ## Modules
 
-- `app_v2`: the main application and its eight declared phone/headset flavors; XML layouts and ViewBinding with existing Compose surfaces.
+- `app_v2`: the main application and its declared phone/headset flavors (`docs/FLAVOR_MATRIX.md`); XML layouts and ViewBinding with existing Compose surfaces.
 - `wear`: the Wear OS application, implemented in Compose, with `standard` and `noLegal` flavors.
 - `watchface`: a separate resource-only Watch Face Format v4 application for Wear OS 6 / API 36 and later.
 - `lint-rules`: custom build-time lint checks.

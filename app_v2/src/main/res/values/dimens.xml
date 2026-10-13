@@ -1010,6 +1010,9 @@
     <dimen name="tourist_primary_text_size_land">64sp</dimen>
     <dimen name="tourist_coords_text_size">36sp</dimen>
     <dimen name="tourist_coords_text_size_land">32sp</dimen>
+    <!-- S4184: the tally counter is tapped blind, so +1 is a thumb-sized target and -1 a smaller one. -->
+    <dimen name="tourist_counter_plus_height">120dp</dimen>
+    <dimen name="tourist_counter_minus_width">96dp</dimen>
 
     <!-- S3256: Dim screen clock and status overlay dimensions -->
     <dimen name="launcher_cell_outline_width">1dp</dimen>

@@ -48,6 +48,7 @@ import com.sza.fastmediasorter.ui.player.helpers.BackgroundAudioExitDialog
 import com.sza.fastmediasorter.ui.player.standalone.AudioStandaloneActivity
 import com.sza.fastmediasorter.ui.streams.helpers.StreamAtlasPromptManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastImportManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamDeviceBroadcastsManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamHealthProbeManager
@@ -86,6 +87,10 @@ import javax.inject.Inject
 class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     private val viewModel: StreamsViewModel by viewModels()
+
+    // S4116: the broadcasts of the user's other devices, a section of its own beside the catalog.
+    private val deviceBroadcastsViewModel: StreamsDeviceBroadcastsViewModel by viewModels()
+    private lateinit var deviceBroadcasts: StreamDeviceBroadcastsManager
 
     // S0668: favicon sprite-atlas sidecar (atlas PNG + url->index map) persisted by the catalog import.
     @Inject
@@ -594,6 +599,15 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             pinnedGridMode = pinnedGridModeManager,
             mainGridMode = gridModeManager,
         )
+        deviceBroadcasts = StreamDeviceBroadcastsManager(
+            section = binding.streamsDevicesSection,
+            header = binding.streamsDevicesHeader,
+            chevron = binding.ivDevicesChevron,
+            status = binding.tvDevicesStatus,
+            list = binding.streamsDevicesList,
+            onToggle = deviceBroadcastsViewModel::toggle,
+            onChosen = deviceBroadcastsViewModel::onBroadcastChosen,
+        )
     }
 
     private fun setupToolbarCommands() {
@@ -923,6 +937,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         }
         // S1502: the status bullet travels beside the list, not inside it - a finished probe repaints
         // the affected rows only, instead of re-emitting the catalog through the filter/sort pass.
+        collectOnLifecycle(deviceBroadcastsViewModel.available) { deviceBroadcasts.setAvailable(it) }
+        collectOnLifecycle(deviceBroadcastsViewModel.state) { deviceBroadcasts.render(it) }
+        collectOnLifecycle(deviceBroadcastsViewModel.messages) { messageRes ->
+            Toast.makeText(this, messageRes, Toast.LENGTH_LONG).show()
+        }
         collectOnLifecycle(viewModel.playOutcomes) { outcomes ->
             adapter.playOutcomes = outcomes
             pinnedAdapter.playOutcomes = outcomes
@@ -1558,6 +1577,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     override fun onStart() {
         super.onStart()
+        deviceBroadcastsViewModel.onScreenStarted()
         // S1154: the atlas may have been installed from the Extensions Manager while this screen sat in
         // the background - pick it up on return instead of waiting for the next catalog import.
         // S1445: either container counts as installed - a fresh install carries the pack and no sheet.
@@ -1574,6 +1594,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     override fun onStop() {
+        deviceBroadcastsViewModel.onScreenStopped()
         // S0700: a backgrounded screen aborts any in-flight reachability sweep.
         cancelHealthProbe()
         // S0699: remember where the user left the list so the next open lands on the same channel.

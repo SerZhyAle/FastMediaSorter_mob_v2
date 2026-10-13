@@ -49,6 +49,7 @@ private val TILE_SPACING = 4.dp
 fun TouristScreen(
     onLaunchSos: () -> Unit,
     onLaunchStopwatch: () -> Unit,
+    onLaunchCounter: () -> Unit,
     viewModel: TouristViewModel = hiltViewModel(),
     listState: ScalingLazyListState = rememberWearListState(positionKey = WearRoutes.TOURIST),
 ) {
@@ -130,6 +131,8 @@ fun TouristScreen(
                 onLockScreen = { viewModel.setScreenLocked(true) },
                 onLaunchSos = onLaunchSos,
                 onLaunchStopwatch = onLaunchStopwatch,
+                onLaunchCounter = onLaunchCounter,
+                counterValue = state.counterValue,
             )
         }
 
@@ -158,6 +161,8 @@ private fun TouristDashboardContent(
     onLockScreen: () -> Unit,
     onLaunchSos: () -> Unit,
     onLaunchStopwatch: () -> Unit,
+    onLaunchCounter: () -> Unit,
+    counterValue: Long,
 ) {
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -225,6 +230,8 @@ private fun TouristDashboardContent(
                     secondaryMetrics = secondaryMetrics,
                     onSelectMetric = onSelectMetric,
                     onLaunchStopwatch = onLaunchStopwatch,
+                    onLaunchCounter = onLaunchCounter,
+                    counterValue = counterValue,
                 )
             }
         }
@@ -232,6 +239,7 @@ private fun TouristDashboardContent(
 }
 
 /** S4186: the wrapping cloud of secondary metric tiles, closed by the program-launch tiles. */
+@Suppress("LongParameterList")
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TouristTileCloud(
@@ -240,6 +248,8 @@ private fun TouristTileCloud(
     secondaryMetrics: List<TouristMetricType>,
     onSelectMetric: (TouristMetricType) -> Unit,
     onLaunchStopwatch: () -> Unit,
+    onLaunchCounter: () -> Unit,
+    counterValue: Long,
 ) {
     FlowRow(
         modifier = Modifier
@@ -260,6 +270,12 @@ private fun TouristTileCloud(
             label = stringResource(R.string.wear_app_stopwatch),
             iconRes = R.drawable.ic_stopwatch,
             onClick = onLaunchStopwatch,
+        )
+        TouristLaunchCard(
+            label = stringResource(R.string.wear_tourist_counter),
+            iconRes = R.drawable.ic_tourist_counter,
+            onClick = onLaunchCounter,
+            value = counterValue.toString(),
         )
     }
 }

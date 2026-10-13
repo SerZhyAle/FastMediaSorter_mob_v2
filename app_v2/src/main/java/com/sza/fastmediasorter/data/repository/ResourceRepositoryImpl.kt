@@ -615,7 +615,9 @@ class ResourceRepositoryImpl @Inject constructor(
             altAccessPaths = parseAltPaths(altAccessPaths), // S1006
             accessNote = accessNote, // S1014
             isHidden = isHidden, // S1009: propagate hidden flag entity -> domain
-            storageVolumeId = storageVolumeId // S1378: propagate volume binding entity -> domain
+            storageVolumeId = storageVolumeId, // S1378: propagate volume binding entity -> domain
+            exchangeAccount = exchangeAccount,
+            exchangeResourceId = exchangeResourceId,
         )
     }
 
@@ -677,7 +679,9 @@ class ResourceRepositoryImpl @Inject constructor(
             altAccessPaths = serializeAltPaths(altAccessPaths), // S1006
             accessNote = accessNote, // S1014
             isHidden = isHidden, // S1009: propagate hidden flag domain -> entity
-            storageVolumeId = storageVolumeId // S1378: propagate volume binding domain -> entity
+            storageVolumeId = storageVolumeId, // S1378: propagate volume binding domain -> entity
+            exchangeAccount = exchangeAccount,
+            exchangeResourceId = exchangeResourceId,
         )
     }
 

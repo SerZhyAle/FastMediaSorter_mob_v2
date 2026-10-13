@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
 import com.sza.fastmediasorter.domain.model.tourist.isOffered
+import com.sza.fastmediasorter.domain.usecase.tourist.ObserveTouristCounterUseCase
 import com.sza.fastmediasorter.domain.usecase.tourist.ObserveTouristDashboardUseCase
 import com.sza.fastmediasorter.domain.usecase.tourist.ObserveWatchTouristHealthUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +15,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -34,6 +37,7 @@ class TouristInfoViewModel @Inject constructor(
     private val observeTouristDashboardUseCase: ObserveTouristDashboardUseCase,
     private val savedStateHandle: SavedStateHandle,
     observeWatchTouristHealthUseCase: ObserveWatchTouristHealthUseCase,
+    observeTouristCounterUseCase: ObserveTouristCounterUseCase,
 ) : ViewModel() {
 
     private val focus = MutableStateFlow(
@@ -51,6 +55,9 @@ class TouristInfoViewModel @Inject constructor(
         .flatMapLatest { observeTouristDashboardUseCase(focus.value) }
         // Merged before sensorState: selectTile judges a tap against it, and a watch tile is offered only here.
         .combine(observeWatchTouristHealthUseCase()) { sensor, watch -> sensor.copy(watch = watch) }
+        .combine(observeTouristCounterUseCase().map { it.value }.distinctUntilChanged()) { sensor, count ->
+            sensor.copy(counterValue = count)
+        }
         .onEach { sensorState.value = it }
         .combine(focus) { sensor, focused -> sensor.copy(focusedTile = effectiveFocus(sensor, focused)) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), sensorState.value)

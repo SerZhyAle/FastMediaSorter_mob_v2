@@ -98,6 +98,11 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     lateinit var flashlightShortcutCoordinator:
         dagger.Lazy<com.sza.fastmediasorter.core.notification.FlashlightShortcutCoordinator>
 
+    /** S4116: receives casts from the user's other devices while an exchange server is the outgoing one. */
+    @Inject
+    lateinit var exchangeCastCoordinator:
+        dagger.Lazy<com.sza.fastmediasorter.domain.exchange.ExchangeCastCoordinator>
+
     @Inject
     lateinit var playbackPositionRepository: dagger.Lazy<com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository>
 
@@ -301,6 +306,9 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         // its collector starts. Off the main thread because the first read opens the settings store.
         applicationScope.launch(Dispatchers.IO) {
             flashlightShortcutCoordinator.get().start()
+        }
+        applicationScope.launch(Dispatchers.IO) {
+            exchangeCastCoordinator.get().start()
         }
 
         // S0213 Pillar C: connect the release-safe degradation signal to MemoryEnduranceTracker so

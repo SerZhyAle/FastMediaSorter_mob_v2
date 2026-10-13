@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.broadcast
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.os.Build
+import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeBroadcastAnnouncer
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +20,8 @@ import javax.inject.Singleton
 
 @Singleton
 class BroadcastSourceControllerImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val exchangeAnnouncer: ExchangeBroadcastAnnouncer,
 ) : BroadcastSourceController {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -43,6 +45,11 @@ class BroadcastSourceControllerImpl @Inject constructor(
     ) { audioState, videoState ->
         if (videoState !is BroadcastState.Idle) videoState else audioState
     }.stateIn(scope, SharingStarted.Eagerly, BroadcastState.Idle)
+
+    init {
+        // S4116: a live broadcast is announced through the outgoing exchange entry, when the user has one.
+        exchangeAnnouncer.follow(state)
+    }
 
     override val listenerCount: StateFlow<Int> = combine(
         BroadcastCaptureService.listenerCount,

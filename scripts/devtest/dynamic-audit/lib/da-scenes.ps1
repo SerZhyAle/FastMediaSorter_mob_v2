@@ -2,7 +2,8 @@
 <#
 .SYNOPSIS
     Scene registry, mutation envelope, scene runs and heavy-run sequence of the S4166 dynamic-audit stand
-    (lifecycle scenes C01, C02, C03 and file-operation scenes C07, C15).
+    (lifecycle scenes C01, C02, C03, file-operation scenes C07, C15, load and growth cycle scenes C05, C06,
+    C12, C14, C16).
 
 .DESCRIPTION
     Dot-source after lib/da-common.ps1, da-emulator.ps1, da-fixture.ps1, da-state.ps1, da-stats.ps1,
@@ -29,6 +30,14 @@
     checkpoint, fixture publish, calibration check, one scene with at most one fault, the outside-the-run
     invariant, Restore-DaBackup in finally, heavy.json. Every step is a hook so the sequence and the
     restore-on-failure path are tested without a device.
+
+    CYCLE SCENES (lib/da-cycle.ps1). C05, C06, C12, C14 and C16 run through Invoke-DaCycleScene (the Cycle verb runs it in the
+    heavy-run sequence): a measured cold start, the scene's setup, N cycles each closed at the scene's
+    quiescence point (the main screen with no dialog and 3 s without input, the open list for C16, the
+    launcher for its background half, the watch app on a watch) with one meminfo sample, then a warm start.
+    The first cycles are the explicit warm-up part. cycles.jsonl carries every cycle's index, phase, segment,
+    monotonic interval and sample; no garbage collection is forced, and a heap snapshot is diagnostic and
+    taken only after the window. C12 and C16 also run on the watch build.
 #>
 
 # ----------------------------------------------------------------------------------------- tree invariants
@@ -463,6 +472,8 @@ function Complete-DaSceneRecord {
         runId              = $Ctx.RunId
         scene              = $Ctx.Scene
         fault              = if ($Ctx.Fault) { $Ctx.Fault } else { $null }
+        cyclePlan          = if ($Ctx.CyclePlan) { $Ctx.CyclePlan } else { $null }
+        cycleFile          = if ($Ctx.CyclePlan) { 'cycles.jsonl' } else { $null }
         variant            = $Ctx.Variant
         correlationId      = $Ctx.CorrelationId
         build              = [ordered]@{ package = $subject.package; versionName = $subject.versionName; versionCode = $subject.versionCode; apkSha256 = $subject.apkSha256; hostApk = $subject.hostApk }
@@ -1241,7 +1252,35 @@ function Get-DaSceneRegistry {
             actions = @('publish-fixture', 'register-resources', 'copy-one', 'copy-repeat', 'move-one', 'rename-one', 'rename-unedited-apply', 'rename-cancel', 'delete-cancel', 'delete-confirm', 'undo-offered', 'cancel-copy-back-key') }
         C15 = [ordered]@{ title = 'The C07 operations with one injected fault from audit/faults.json'; runner = 'Invoke-DaSceneC15'; fixture = $true; fault = $true
             actions = @('publish-fixture', 'register-resources', 'one fault-specific operation sequence per catalogue entry') }
+        C05 = [ordered]@{ title = 'Open a 1000-item folder, sort, filter, search, change the source'; runner = 'Invoke-DaCycleScene'; fixture = $true; fault = $false; cycle = 'Invoke-DaSceneCycleC05'; setup = 'Initialize-DaSceneC05'
+            quiescence = 'main'; watch = $false; atomic = @('C05.open-large-folder', 'C05.sort', 'C05.filter', 'C05.search', 'C05.change-source')
+            actions = @('cold-start', 'setup', 'cycle-N: open-large-folder, sort, filter, search, change-source', 'quiescence: main screen, no input 3 s, one meminfo sample', 'warm-start') }
+        C06 = [ordered]@{ title = 'View and page images; play a clip with pause, play, seek and stop'; runner = 'Invoke-DaCycleScene'; fixture = $true; fault = $false; cycle = 'Invoke-DaSceneCycleC06'; setup = 'Initialize-DaSceneC06'
+            quiescence = 'main'; watch = $false; atomic = @('C06.view-image', 'C06.page-swipe', 'C06.play-video', 'C06.transport-controls')
+            actions = @('cold-start', 'setup', 'cycle-N: view-image, page-swipe, play-video with media keys', 'quiescence: main screen, no input 3 s, one meminfo sample', 'warm-start') }
+        C12 = [ordered]@{ title = 'Input storm: held key, repeated command, rapid switching, rapid open and close; watch key storm'; runner = 'Invoke-DaCycleScene'; fixture = $true; fault = $false; cycle = 'Invoke-DaSceneCycleC12'; setup = 'Initialize-DaSceneC12'
+            quiescence = 'main'; watch = $true; atomic = @('C12.held-key', 'C12.repeated-command', 'C12.rapid-switching', 'C12.rapid-open-close', 'C12.watch-key-storm')
+            actions = @('cold-start', 'setup', 'cycle-N: storm, key probe', 'quiescence: main screen (watch: app in front), no input 3 s, one meminfo sample', 'warm-start') }
+        C14 = [ordered]@{ title = 'Large inputs: 1k then 10k items, long, Unicode and RTL names, corrupt media'; runner = 'Invoke-DaCycleScene'; fixture = $true; fault = $false; cycle = 'Invoke-DaSceneCycleC14'; setup = 'Initialize-DaSceneC14'
+            quiescence = 'main'; watch = $false; atomic = @('C14.items-1k', 'C14.items-10k', 'C14.long-names', 'C14.unicode-names', 'C14.rtl-names', 'C14.corrupt-media', 'C14.large-lists')
+            actions = @('cold-start', 'setup', 'cycle-1: special names and corrupt media', 'cycle-N: open the large folder, scroll to its end', 'quiescence: main screen, no input 3 s, one meminfo sample', 'warm-start') }
+        C16 = [ordered]@{ title = 'Long idle with the list open, then in the background; watch idle'; runner = 'Invoke-DaCycleScene'; fixture = $true; fault = $false; cycle = 'Invoke-DaSceneCycleC16'; setup = 'Initialize-DaSceneC16'
+            quiescence = 'browse'; watch = $true; atomic = @('C16.idle-foreground', 'C16.idle-background', 'C16.watch-idle')
+            actions = @('cold-start', 'setup', 'cycle-N: IdleSec without input (first half in front, second half behind the launcher)', 'quiescence: the end of the idle window itself, one meminfo sample', 'warm-start') }
     }
+}
+
+function Initialize-DaSceneC12 {
+    <#
+    .SYNOPSIS
+        C12 setup: on the phone the small set in src, registered and opened; on the watch the app is brought to the front.
+    .PARAMETER Ctx
+        Scene context.
+    #>
+    param([Parameter(Mandatory)][hashtable]$Ctx)
+    if ($Ctx.Watch) { return [bool](Wait-DaQuiescence -Ctx $Ctx -Point watch -QuietMs 0).reached }
+    if (-not (Initialize-DaOpsScene -Ctx $Ctx)) { return $false }
+    return (Open-DaResource -Serial $Ctx.Serial -Package $Ctx.Package -Name $Ctx.Resources.Src)
 }
 
 function Get-DaVariantName {
@@ -1252,7 +1291,9 @@ function Get-DaVariantName {
         Get-DaSubject output.
     #>
     param([Parameter(Mandatory)]$Subject)
-    if ([string]$Subject.hostApk -match '/noLegal/' -or [string]$Subject.versionName -match 'NoLegal') { return 'noLegal' }
+    $noLegal = ([string]$Subject.hostApk -match '/noLegal/' -or [string]$Subject.versionName -match 'NoLegal')
+    if ([string]$Subject.formFactor -eq 'watch') { if ($noLegal) { return 'wear-noLegal' } else { return 'wear-standard' } }
+    if ($noLegal) { return 'noLegal' }
     return 'standard'
 }
 
@@ -1272,15 +1313,25 @@ function Invoke-DaScene {
         Run id.
     .PARAMETER Fixture
         Fixture record already published by the caller (heavy run).
+    .PARAMETER CyclePlan
+        For a cycle scene: Cycles, WarmupCycles, IdleSec, HeapSnapshot; omitted means one cycle and no warm-up.
     #>
-    param([Parameter(Mandatory)][string]$Serial, [Parameter(Mandatory)][string]$Package, [Parameter(Mandatory)][string]$Scene, [string]$Fault, [Parameter(Mandatory)][string]$RunId, $Fixture)
+    param([Parameter(Mandatory)][string]$Serial, [Parameter(Mandatory)][string]$Package, [Parameter(Mandatory)][string]$Scene, [string]$Fault, [Parameter(Mandatory)][string]$RunId, $Fixture, [hashtable]$CyclePlan)
     $reg = Get-DaSceneRegistry
     if (-not $reg.Contains($Scene)) { throw "scene $Scene is not registered" }
     $entry = $reg[$Scene]
     if ($Fault -and -not $entry.fault) { throw "scene $Scene takes no fault" }
     $subject = Get-DaSubject -Serial $Serial -Package $Package
     if (-not $subject.installed) { throw "$Package is not installed" }
+    $watch = ([string]$subject.formFactor -eq 'watch')
+    if ($watch -and -not $entry.watch) { throw "scene $Scene has no watch variant" }
     $ctx = New-DaSceneContext -Serial $Serial -Package $Package -Scene $Scene -RunId $RunId -Fault $Fault -Variant (Get-DaVariantName -Subject $subject)
+    $ctx.Watch = $watch
+    if ($entry.cycle) {
+        $plan = @{ Cycles = 1; WarmupCycles = 0; IdleSec = 60; HeapSnapshot = $false }
+        if ($CyclePlan) { foreach ($k in @($CyclePlan.Keys)) { $plan[$k] = $CyclePlan[$k] } }
+        $ctx.CyclePlan = $plan
+    }
     if ($Fixture) { $ctx.Fixture = $Fixture }
     $null = Invoke-DaAdb -Serial $Serial -Arguments @('logcat', '-c')
     $cond = Get-DaDeviceConditions -Serial $Serial
@@ -1330,9 +1381,11 @@ function Invoke-DaHeavyRun {
         Hashtable of scriptblocks replacing steps (Preflight, Backup, Checkpoint, Publish, Calibration, Outside, Scene, Restore) - the device-free suite.
     .PARAMETER RunsRoot
         Directory receiving runs/<runId>/heavy.json; defaults to the scratch runs directory.
+    .PARAMETER CyclePlan
+        Passed to Invoke-DaScene for a cycle scene (the Cycle verb).
     #>
     param([Parameter(Mandatory)][string]$Serial, [Parameter(Mandatory)][string]$Package, [Parameter(Mandatory)][string]$Scene, [string]$Fault, [string]$RunId,
-        [switch]$FreshBackup, [hashtable]$Hooks = @{}, [string]$RunsRoot)
+        [switch]$FreshBackup, [hashtable]$Hooks = @{}, [string]$RunsRoot, [hashtable]$CyclePlan)
     $codes = Get-DaExitCode
     if (-not $RunId) { $RunId = New-DaRunId }
     if (-not $RunsRoot) { $RunsRoot = (Get-DaPaths).Runs }
@@ -1358,12 +1411,12 @@ function Invoke-DaHeavyRun {
             [pscustomobject]@{ Code = 0; Reason = "calibration $($cal.runId) at $($cal.at)" }
         }
         Outside     = { Get-DaOutsideSnapshot -Serial $Serial -RunId $RunId }
-        Scene       = { param($fixture) Invoke-DaScene -Serial $Serial -Package $Package -Scene $Scene -Fault $Fault -RunId $RunId -Fixture $fixture }
+        Scene       = { param($fixture) Invoke-DaScene -Serial $Serial -Package $Package -Scene $Scene -Fault $Fault -RunId $RunId -Fixture $fixture -CyclePlan $CyclePlan }
     }
     foreach ($k in @($Hooks.Keys)) { $h[$k] = $Hooks[$k] }
     $finish = {
         param($code, $reason, $restored)
-        $rec = [ordered]@{ schemaVersion = 1; kind = 'heavy'; runId = $RunId; scene = $Scene; fault = if ($Fault) { $Fault } else { $null }; freshBackup = [bool]$FreshBackup
+        $rec = [ordered]@{ schemaVersion = 1; kind = 'heavy'; runId = $RunId; scene = $Scene; fault = if ($Fault) { $Fault } else { $null }; freshBackup = [bool]$FreshBackup; cyclePlan = $CyclePlan
             code = [int]$code; reason = $reason; restored = $restored; steps = $steps.ToArray(); finishedAt = (Get-Date).ToUniversalTime().ToString('o') }
         Write-DaJson -Path (Join-Path $runDir 'heavy.json') -InputObject $rec -Durable
         [pscustomobject]@{ Code = [int]$code; Reason = $reason; RecordPath = (Join-Path $runDir 'heavy.json'); Steps = $steps.ToArray() }

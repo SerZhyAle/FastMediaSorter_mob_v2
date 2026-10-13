@@ -3681,6 +3681,16 @@
       "titleUk": "Трансляції"
     },
     {
+      "key": "rowCastPlayAtOnce",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Play casts at once",
+      "titleRu": "Воспроизводить сразу",
+      "titleUk": "Відтворювати одразу"
+    },
+    {
       "key": "rowCatalogRefresh",
       "sectionId": "streams",
       "destination": "MEDIA",

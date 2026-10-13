@@ -32,6 +32,39 @@ class WearExchangeWireTest {
     }
 
     @Test
+    fun `typed accessors read numbers, booleans and objects`() {
+        val read = WearExchangeEnvelope.decode(
+            """{"schemaVersion":2,"type":"cast-offer","n":30,"ok":true,"broadcast":{"mode":"AUDIO_ONLY"}}"""
+        )
+
+        assertEquals(30, read.int("n"))
+        assertEquals(true, read.boolean("ok"))
+        assertEquals("AUDIO_ONLY", read.obj("broadcast")?.get("mode")?.asString)
+        assertNull(read.int("ok"))
+        assertNull(read.obj("n"))
+    }
+
+    @Test
+    fun `an authenticated frame may exceed the enroll limit`() {
+        val big = "x".repeat(WearExchangeFrameCodec.MAX_FRAME_BODY)
+        val envelope = WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_CAST_OFFER) { addProperty("pad", big) }
+        val out = ByteArrayOutputStream()
+
+        assertThrows(WearExchangeWireException::class.java) { WearExchangeFrameCodec.write(out, envelope) }
+        WearExchangeFrameCodec.write(out, envelope, WearExchangeFrameCodec.AUTHENTICATED_MAX_FRAME_BODY)
+        val bytes = out.toByteArray()
+
+        assertThrows(WearExchangeWireException::class.java) {
+            WearExchangeFrameCodec.read(ByteArrayInputStream(bytes))
+        }
+        val read = WearExchangeFrameCodec.read(
+            ByteArrayInputStream(bytes),
+            WearExchangeFrameCodec.AUTHENTICATED_MAX_FRAME_BODY,
+        )
+        assertEquals(big, read?.string("pad"))
+    }
+
+    @Test
     fun `another schemaVersion ends the stream`() {
         assertThrows(WearExchangeWireException::class.java) {
             WearExchangeEnvelope.decode("""{"schemaVersion":1,"type":"welcome"}""")

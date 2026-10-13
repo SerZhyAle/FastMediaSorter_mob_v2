@@ -265,6 +265,8 @@
               phones/tablets in non-freeform mode.
             -->
             <layout android:defaultWidth="1920dp" android:defaultHeight="1080dp" android:gravity="center" android:minWidth="400dp" android:minHeight="300dp" />
+            <!-- Android 15+ desktop windowing (Googlebook) offers "New Window" for this activity; older systems ignore it, and Browse/Player already open their own windows via FLAG_ACTIVITY_NEW_DOCUMENT. -->
+            <property android:name="android.window.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI" android:value="true" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -383,6 +385,8 @@
         <!-- S2922: Tourist dashboard sub-program - real-time telemetry and navigation tiles.
              No orientation|screenSize in configChanges so rotation inflates layout-land variant. -->
         <activity android:name=".ui.tourist.TouristInfoActivity" android:exported="false" android:label="@string/tourist_info_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <!-- S4184: the Tourist tally counter, opened from its dashboard tile; rotation inflates layout-land. -->
+        <activity android:name=".ui.tourist.counter.TouristCounterActivity" android:exported="false" android:label="@string/tourist_tile_counter" android:configChanges="keyboardHidden" android:parentActivityName=".ui.tourist.TouristInfoActivity" />
 
         <activity android:name=".ui.cameraocr.CameraOcrTranslateActivity" android:exported="false" android:label="@string/setting_camera_ocr_translation_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:theme="@style/Theme.FastMediaSorter" />
         <!-- S0754: portrait-locked host; overlay controls rotate by sensor while the layout stays fixed. -->
@@ -705,6 +709,9 @@
              android:noHistory is safe here, unlike the S1174 capture trampolines above: this one awaits no
              activity result, so nothing can be delivered to it after it is finished. -->
         <activity android:name=".widget.StreamPlayLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+
+        <!-- S4116: Accept / Decline of a cast offered by another device of the account (DEVICE-EXCHANGE 7.8) -->
+        <activity android:name=".ui.exchange.ExchangeCastOfferActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
 
         <!-- Quick Camera Capture: per-widget target configuration activity (S0369) -->
         <activity android:name=".widget.CameraQuickCaptureConfigActivity" android:exported="true">

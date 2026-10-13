@@ -20,7 +20,12 @@ class WearExchangeAccountClientTest {
     private val server = ServerSocket(0)
     private val pins = mutableListOf<String?>()
     private val connector = object : WearExchangeConnector {
-        override fun connect(host: String, port: Int, pinned: String?): WearExchangeConnection {
+        override fun connect(
+            host: String,
+            port: Int,
+            pinned: String?,
+            readTimeoutMs: Int,
+        ): WearExchangeConnection {
             pins += pinned
             return WearExchangeConnection(Socket(host, port))
         }
@@ -65,7 +70,7 @@ class WearExchangeAccountClientTest {
     @Test
     fun `a refused certificate is told apart from an unreachable server`() {
         val refusing = object : WearExchangeConnector {
-            override fun connect(host: String, port: Int, pinned: String?): WearExchangeConnection =
+            override fun connect(host: String, port: Int, pinned: String?, readTimeoutMs: Int): WearExchangeConnection =
                 throw WearExchangeCertificateChangedException()
         }
 

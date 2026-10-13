@@ -1053,4 +1053,22 @@
     <string name="wear_exchange_removing">Прибираємо..</string>
     <string name="wear_exchange_removed_revoked">Прибрано. Цього годинника більше немає у списку сервера.</string>
     <string name="wear_exchange_removed_locally">Прибрано лише з годинника: сервер недоступний. Відкличте годинник з телефона.</string>
+    <string name="wear_tourist_counter">Лічильник</string>
+    <string name="wear_tourist_counter_extra_steps">Більше кроків</string>
+    <string name="wear_tourist_counter_start">Початкове число</string>
+    <string name="wear_tourist_counter_start_invalid">Введіть ціле число від 0</string>
+    <string name="wear_tourist_counter_reset">Скинути</string>
+    <string name="wear_tourist_counter_reset_confirm">Скинути лічильник?</string>
+    <string name="wear_tourist_counter_reset_message">Поточний відлік збережеться в історії.</string>
+    <string name="wear_tourist_counter_history">Історія</string>
+    <string name="wear_tourist_counter_history_empty">Завершених відліків поки немає</string>
+    <string name="wear_tourist_counter_clear_history">Очистити історію</string>
+    <string name="wear_tourist_counter_clear_history_confirm">Очистити історію лічильника?</string>
+    <string name="wear_tourist_counter_add_one">Додати один</string>
+    <string name="wear_tourist_counter_subtract_one">Відняти один</string>
+    <string name="wear_exchange_cast_channel_name">Пропозиції трансляцій</string>
+    <string name="wear_exchange_cast_title">Вам пропонують трансляцію</string>
+    <string name="wear_exchange_cast_text">Інший пристрій вашого акаунта хоче увімкнути свою трансляцію на цьому годиннику</string>
+    <string name="wear_exchange_cast_play">Слухати</string>
+    <string name="wear_exchange_cast_decline">Відхилити</string>
 </resources>

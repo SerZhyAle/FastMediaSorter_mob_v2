@@ -23,6 +23,7 @@ class LauncherPrimaryWindowManagerTest {
     @Before
     fun setUp() {
         every { contract.isAvailableInBuild } returns true
+        every { roleManager.isHomeRoleOfferable() } returns true
         manager = LauncherPrimaryWindowManager(contract, roleManager, startWindowManager)
     }
 
@@ -158,5 +159,38 @@ class LauncherPrimaryWindowManagerTest {
             LauncherPrimaryWindow.recommendedFor(DeviceProfileType.OTHER)
         )
         assertEquals(LauncherPrimaryWindow.RESOURCE_MANAGER, LauncherPrimaryWindow.recommendedFor(null))
+    }
+
+    @Test
+    fun `applyChoice with HOME_SCREEN applies the desktop where the role is not offerable`() {
+        every { roleManager.isHomeRoleOfferable() } returns false
+
+        manager.applyChoice(LauncherPrimaryWindow.HOME_SCREEN)
+
+        verify(exactly = 0) { roleManager.markAsHomeCandidate() }
+        verify(exactly = 0) { roleManager.markRoleRequestPending() }
+        verify { startWindowManager.setEnabled(true) }
+        verify { roleManager.disableMode() }
+    }
+
+    @Test
+    fun `getCurrentChoice reads a stored home flag as DESKTOP where the role is not offerable`() {
+        every { roleManager.isHomeRoleOfferable() } returns false
+        every { roleManager.readState() } returns LauncherRoleManager.LauncherModeState(
+            roleRequestPending = false,
+            homeRoleHeld = false,
+            modeEnabled = true,
+        )
+        every { startWindowManager.isEnabled() } returns false
+
+        assertEquals(LauncherPrimaryWindow.DESKTOP, manager.getCurrentChoice())
+    }
+
+    @Test
+    fun `availableChoices excludes HOME_SCREEN where the role is not offerable`() {
+        assertEquals(LauncherPrimaryWindow.entries, manager.availableChoices())
+
+        every { roleManager.isHomeRoleOfferable() } returns false
+        assertFalse(LauncherPrimaryWindow.HOME_SCREEN in manager.availableChoices())
     }
 }

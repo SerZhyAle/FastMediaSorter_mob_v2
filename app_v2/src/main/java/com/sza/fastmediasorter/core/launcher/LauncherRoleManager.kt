@@ -46,6 +46,8 @@ class LauncherRoleManager @Inject constructor(
         return LauncherModeState(roleRequestPending, homeRoleHeld, isModeEnabled())
     }
 
+    fun isHomeRoleOfferable(): Boolean = HomeRoleOfferability.isOfferable(context)
+
     /** True when the HOME component is enabled, i.e. the app is a home-screen candidate. */
     fun isModeEnabled(): Boolean {
         val component = contract.homeComponent(context) ?: return false

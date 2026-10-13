@@ -49,6 +49,7 @@ enum class TouristTileType(
     WATCH_HEART_RATE(fromWatch = true),
     WATCH_BODY_TEMPERATURE(fromWatch = true),
     STOPWATCH,
+    COUNTER,
 }
 
 /**

@@ -13,7 +13,8 @@ import java.nio.ByteBuffer
 
 /**
  * S4158: one envelope of the exchange-server wire of contract DEVICE-EXCHANGE section 7 (`schemaVersion` 2), the
- * subset the watch speaks to enroll and to revoke itself. Mirrored from the phone's `DeviceExchangeEnvelope` -
+ * subset the watch speaks to enroll, revoke itself, hold a control stream, upload a broadcast and answer a cast.
+ * Mirrored from the phone's `DeviceExchangeEnvelope` -
  * the two modules share no code, so the contract is the only thing keeping them equal.
  */
 data class WearExchangeEnvelope(
@@ -22,6 +23,12 @@ data class WearExchangeEnvelope(
 ) {
 
     fun string(key: String): String? = primitive(key)?.takeIf(JsonPrimitive::isString)?.asString
+
+    fun int(key: String): Int? = primitive(key)?.takeIf(JsonPrimitive::isNumber)?.asString?.toIntOrNull()
+
+    fun boolean(key: String): Boolean? = primitive(key)?.takeIf(JsonPrimitive::isBoolean)?.asBoolean
+
+    fun obj(key: String): JsonObject? = members.get(key)?.takeIf(JsonElement::isJsonObject)?.asJsonObject
 
     private fun primitive(key: String): JsonPrimitive? =
         members.get(key)?.takeIf(JsonElement::isJsonPrimitive)?.asJsonPrimitive
@@ -49,6 +56,16 @@ data class WearExchangeEnvelope(
         const val TYPE_REFUSED = "refused"
         const val TYPE_BYE = "bye"
         const val TYPE_REVOKE = "revoke"
+        const val TYPE_KEEPALIVE = "keepalive"
+        const val TYPE_BROADCAST_START = "broadcast-start"
+        const val TYPE_BROADCAST_STARTED = "broadcast-started"
+        const val TYPE_BROADCAST_UPDATE = "broadcast-update"
+        const val TYPE_BROADCAST_END = "broadcast-end"
+        const val TYPE_UPLOAD = "upload"
+        const val TYPE_UPLOAD_ACCEPTED = "upload-accepted"
+        const val TYPE_CAST_OFFER = "cast-offer"
+        const val TYPE_CAST_ANSWER = "cast-answer"
+        const val TYPE_CAST_STOP = "cast-stop"
 
         const val REASON_ID_COLLISION = "id-collision"
         const val KEY_REASON = "reason"
@@ -82,22 +99,24 @@ data class WearExchangeEnvelope(
 
 /**
  * The framing of contract DEVICE-EXCHANGE section 7.1: a 4-byte unsigned big-endian length, then that many bytes
- * of one UTF-8 JSON object. The watch only enrolls and revokes, so the unauthenticated limit is the only one.
+ * of one UTF-8 JSON object - at most [MAX_FRAME_BODY] until the stream is authenticated (`welcome` or `enrolled`
+ * included) and [AUTHENTICATED_MAX_FRAME_BODY] after it, in both directions.
  */
 object WearExchangeFrameCodec {
 
     const val MAX_FRAME_BODY = 16_384
+    const val AUTHENTICATED_MAX_FRAME_BODY = 262_144
     private const val LENGTH_BYTES = 4
 
-    fun write(output: OutputStream, envelope: WearExchangeEnvelope) {
+    fun write(output: OutputStream, envelope: WearExchangeEnvelope, maxBody: Int = MAX_FRAME_BODY) {
         val body = envelope.encode().toByteArray(Charsets.UTF_8)
-        if (body.size > MAX_FRAME_BODY) throw WearExchangeWireException("envelope above the frame limit")
+        if (body.size > maxBody) throw WearExchangeWireException("envelope above the frame limit")
         output.write(ByteBuffer.allocate(LENGTH_BYTES + body.size).putInt(body.size).put(body).array())
         output.flush()
     }
 
     /** The next envelope, or null at a clean end of the stream before a frame starts. */
-    fun read(input: InputStream): WearExchangeEnvelope? {
+    fun read(input: InputStream, maxBody: Int = MAX_FRAME_BODY): WearExchangeEnvelope? {
         val data = DataInputStream(input)
         val first = data.read()
         if (first < 0) return null
@@ -105,7 +124,7 @@ object WearExchangeFrameCodec {
         val body = try {
             data.readFully(rest)
             val length = ByteBuffer.wrap(byteArrayOf(first.toByte()) + rest).int
-            if (length !in 1..MAX_FRAME_BODY) throw WearExchangeWireException("frame length out of range")
+            if (length !in 1..maxBody) throw WearExchangeWireException("frame length out of range")
             ByteArray(length).also(data::readFully)
         } catch (truncated: EOFException) {
             throw WearExchangeWireException("stream ended inside a frame", truncated)

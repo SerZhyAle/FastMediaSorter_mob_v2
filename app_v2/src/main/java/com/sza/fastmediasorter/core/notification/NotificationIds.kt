@@ -82,6 +82,9 @@ object NotificationIds {
     /** Installed/failed notification of the deliverable download worker, one slot per deliverable set. */
     val DELIVERABLE_DOWNLOAD_RESULTS: IntRange = IntRange(start = 7600, endInclusive = 7699)
 
+    /** S4116: a cast offered by another device of the account, one slot per broadcast id. */
+    val EXCHANGE_CAST: IntRange = IntRange(start = 7700, endInclusive = 7799)
+
     /** MediaProjection screenshot capture service. */
     const val SCREEN_CAPTURE = 0x4053
 

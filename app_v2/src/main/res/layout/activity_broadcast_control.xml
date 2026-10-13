@@ -233,6 +233,23 @@
                 android:text="@string/stream_action_send_to_watch"
                 app:icon="@drawable/ic_watch" />
 
+            <!-- S4116: cast this broadcast to other devices of the account; shown while an exchange server carries it. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCastToDevices"
+                style="@style/Widget.FastMediaSorter.Button.Tonal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:visibility="gone"
+                android:focusable="true"
+                android:clickable="true"
+                android:nextFocusUp="@+id/btnScreenOff"
+                android:nextFocusDown="@+id/btnStopBroadcast"
+                android:text="@string/exchange_cast_send"
+                app:icon="@drawable/ic_cast" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnStopBroadcast"
                 style="@style/Widget.FastMediaSorter.Button.Destructive"

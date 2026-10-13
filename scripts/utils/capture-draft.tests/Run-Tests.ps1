@@ -26,6 +26,7 @@ $sources = @(
     '.claude/templates/compact-bugfix-spec.md',
     'scripts/spec_catalog/insert.ps1',
     'scripts/spec_catalog/search.ps1',
+    'scripts/spec_catalog/update.ps1',
     'scripts/add_to_dev_log.ps1'
 )
 foreach ($rel in @('scripts/utils/capture-draft.ps1') + $sources) {
@@ -117,6 +118,17 @@ try {
     $r = Invoke-Subject @('-Slug', 'bugfix-verify-bad', '-Text', 'x', '-Verify', 'sometimes')
     Assert-That 'a malformed -Verify exits 2' ($r.Code -eq 2) "exit $($r.Code): $($r.Out)"
 
+    # S4193. Every capture carries a complexity level: the runner reads it at each launch, and a
+    # ticket without one would never reach the post-research checkpoint that revises it.
+    $r = Invoke-Subject @('-Slug', 'complexity-default-line', '-Text', 'x')
+    $spec = Get-SpecText $r.Out
+    Assert-That 'a capture with no -Complexity writes the default medium line under Tier' ($r.Code -eq 0 -and $spec -and $spec -match '(?m)^\*\*Tier:\*\* [^\r\n]+\r?\n\*\*Complexity:\*\* medium - not assessed at capture\r?$') "exit $($r.Code): $($r.Out)"
+    $r = Invoke-Subject @('-Slug', 'bugfix-complexity-with-verify', '-Text', 'x', '-Verify', 'build - known fix', '-Complexity', 'light - one known line')
+    $spec = Get-SpecText $r.Out
+    Assert-That '-Complexity lands directly after the Verify line' ($r.Code -eq 0 -and $spec -and $spec -match '(?m)^\*\*Verify:\*\* build - known fix\r?\n\*\*Complexity:\*\* light - one known line\r?$') "exit $($r.Code): $($r.Out)"
+    $r = Invoke-Subject @('-Slug', 'bugfix-complexity-bad', '-Text', 'x', '-Complexity', 'trivial - nope')
+    Assert-That 'a malformed -Complexity exits 2' ($r.Code -eq 2) "exit $($r.Code): $($r.Out)"
+
     # S3782. One open batch per name: the second capture appends, a closed one is never touched.
     $before = @(Get-Content -LiteralPath $catalog | Where-Object { $_ }).Count
     $r1 = Invoke-Subject @('-Slug', 'bugfix-audit-device-player', '-Text', 'first slice findings', '-AppendToOpen')
@@ -125,6 +137,11 @@ try {
     $spec = Get-SpecText $r1.Out
     $firstId = [regex]::Match($r1.Out, '^(S\d{4}) ', 'Multiline').Groups[1].Value
     Assert-That '-AppendToOpen creates once, then appends into the open ticket' ($r1.Code -eq 0 -and $r2.Code -eq 0 -and $after -eq ($before + 1) -and $r2.Out -match "^$firstId .* - appended \(Draft\)" -and $spec -match '(?s)first slice findings.*\*\*Дописано:\*\* \d{4}-\d{2}-\d{2}\s+second slice findings\s+---\s+## 1\.') "r1 $($r1.Code): $($r1.Out) | r2 $($r2.Code): $($r2.Out)"
+
+    $r = Invoke-Subject @('-Slug', 'parked-finding-idea', '-Text', 'out-of-scope symptom', '-Parked')
+    $parkedId = [regex]::Match($r.Out, '^(S\d{4}) ', 'Multiline').Groups[1].Value
+    $parkedRow = @(Get-Content -LiteralPath $catalog | Where-Object { $_ -match "`"id`":`"$parkedId`"" } | Select-Object -Last 1)
+    Assert-That '-Parked leaves the ticket in BlockQuestions with the untriaged marker and date (S4190)' ($r.Code -eq 0 -and $r.Out -match '- BlockQuestions \(parked, untriaged\)\.' -and $parkedRow.Count -eq 1 -and $parkedRow[0] -match '"status":"BlockQuestions"' -and $parkedRow[0] -match 'Parked finding, untriaged' -and $parkedRow[0] -match 'parked: \d{2}-\d{2}-\d{2}') "exit $($r.Code): $($r.Out) | row: $parkedRow"
 
     $closedBatch = '{"id":"S9991","name":"bugfix-audit-device-browse","status":"BlockNeedUserTest","priority":90,"tier":3,"file":"PLAN/S9991_bugfix-audit-device-browse.md","created":"2026-01-01","updated":"2026-01-02"}'
     Add-Content -LiteralPath $catalog -Value $closedBatch

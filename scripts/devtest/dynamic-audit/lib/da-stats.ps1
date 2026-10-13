@@ -24,6 +24,11 @@
       Test-DaRunValidity       names every invalid-run cause against the thresholds of a calibration
                                record; returns the refused exit code when any cause is present
       Get-DaPairedSummary      pairwise differences (subject minus control) of a metric by pair index
+      Get-DaGrowthDecision     plateau versus retained growth at the measured cycle points: retained only when
+                               the slope interval is above zero over the whole window and its second half
+      Invoke-DaRunAnalysis     the Analyze verb: validity, per-segment distributions, slopes with intervals,
+                               the plateau decision and the B09/B10 budget verdicts into analysis.json; a
+                               metric never observed is open, never zero
 
     WHY THRESHOLDS COME FROM THE CALIBRATION RECORD. The spec fixes that the invalid-run limits are
     calibrated on the base and written down BEFORE the application is checked. A call site that carried
@@ -370,4 +375,229 @@ function Get-DaPairedSummary {
         if ($p.ContainsKey($Subject) -and $p.ContainsKey($Control)) { $diffs.Add($p[$Subject] - $p[$Control]) }
     }
     return [ordered]@{ metric = $Metric; subject = $Subject; control = $Control; pairs = $diffs.Count; difference = (Get-DaPercentiles -Values $diffs.ToArray()) }
+}
+
+function Get-DaGrowthBudgets {
+    <#
+    .SYNOPSIS
+        Growth budgets of the first pass, copied from audit/budgets.json B09 and B10 (hypothesis h1): memory 0.1 MiB per cycle and 1 MiB per hour on the upper 95 percent bound, objects 1 per hour and a plateau band of 2.
+    #>
+    return [ordered]@{
+        memoryKiBPerCycle = 102.4
+        memoryKiBPerHour  = 1024.0
+        objectsPerHour    = 1.0
+        plateauBand       = 2.0
+        source            = 'PLAN/S4166_deep-dynamic-audit/audit/budgets.json B09, B10 (version h1, hypothesis)'
+    }
+}
+
+function Get-DaGrowthDecision {
+    <#
+    .SYNOPSIS
+        Plateau versus retained growth of one metric at the measured cycle points; returns {decision; reason; whole; secondHalf}.
+    .DESCRIPTION
+        retained-growth  the 95 percent slope interval over cycles lies above zero over the whole window AND over
+                         its second half - the metric keeps climbing after warm-up;
+        plateau          no growth detected over the whole window, or growth only in its first half (a bounded
+                         cache filling up, then flat);
+        insufficient     fewer than 3 points in the window.
+        The decision holds only inside the observed window; it never claims absence beyond it.
+    .PARAMETER Y
+        Metric at the measured cycle points, warm-up already excluded.
+    .PARAMETER Cycle
+        Cycle index of each point.
+    .PARAMETER Time
+        Time of each point in hours from the first measured point.
+    .PARAMETER Seed
+        Bootstrap seed; the fixed default when negative.
+    #>
+    param([Parameter(Mandatory)][AllowEmptyCollection()][double[]]$Y, [Parameter(Mandatory)][AllowEmptyCollection()][double[]]$Cycle, [double[]]$Time, [int]$Seed = -1)
+    $n = $Y.Length
+    $out = [ordered]@{ decision = 'insufficient'; reason = "only $n measured points"; whole = $null; secondHalf = $null }
+    if ($n -lt 3) { return $out }
+    $out.whole = Get-DaSlopeCI -Y $Y -Cycle $Cycle -Time $Time -Seed $Seed
+    $from = [int][math]::Floor($n / 2)
+    if ($n - $from -lt 3) { $from = $n - 3 }
+    $yy = [double[]]$Y[$from..($n - 1)]
+    $cc = [double[]]$Cycle[$from..($n - 1)]
+    $tt = if ($Time -and $Time.Length -eq $n) { [double[]]$Time[$from..($n - 1)] } else { $null }
+    $out.secondHalf = Get-DaSlopeCI -Y $yy -Cycle $cc -Time $tt -Seed $Seed
+    $w = $out.whole.cycle
+    $h = $out.secondHalf.cycle
+    $r3 = { param($x) if ($null -eq $x) { 'n/a' } else { [math]::Round([double]$x, 3) } }
+    if ($null -eq $w.slope) { $out.reason = "no slope: $(@($w.flags) -join ',')"; return $out }
+    if ($w.growth -ne 'growing') {
+        $out.decision = 'plateau'
+        $out.reason = "whole-window slope $(& $r3 $w.slope) per cycle, interval [$(& $r3 $w.lower), $(& $r3 $w.upper)] includes or lies below zero"
+        return $out
+    }
+    if ($null -ne $h.slope -and $h.growth -ne 'growing') {
+        $out.decision = 'plateau'
+        $out.reason = "growth only in the first half: second-half interval [$(& $r3 $h.lower), $(& $r3 $h.upper)] includes or lies below zero"
+        return $out
+    }
+    $out.decision = 'retained-growth'
+    $out.reason = "slope interval above zero over the whole window [$(& $r3 $w.lower), $(& $r3 $w.upper)] and over its second half [$(& $r3 $h.lower), $(& $r3 $h.upper)]"
+    return $out
+}
+
+function Get-DaCycleMetricDefinitions {
+    <#
+    .SYNOPSIS
+        The resource metrics read at every cycle point: name, unit, class (memory or objects) and the property path in the sample row.
+    #>
+    return @(
+        [ordered]@{ name = 'totalPssKb'; unit = 'KiB'; class = 'memory'; path = 'meminfo.totalPssKb' }
+        [ordered]@{ name = 'javaPssKb'; unit = 'KiB'; class = 'memory'; path = 'meminfo.javaPssKb' }
+        [ordered]@{ name = 'nativePssKb'; unit = 'KiB'; class = 'memory'; path = 'meminfo.nativePssKb' }
+        [ordered]@{ name = 'graphicsPssKb'; unit = 'KiB'; class = 'memory'; path = 'meminfo.graphicsPssKb' }
+        [ordered]@{ name = 'vmRssKb'; unit = 'KiB'; class = 'memory'; path = 'vmRssKb' }
+        [ordered]@{ name = 'threads'; unit = 'threads'; class = 'objects'; path = 'threads' }
+        [ordered]@{ name = 'fdCount'; unit = 'descriptors'; class = 'objects'; path = 'fdCount' }
+        [ordered]@{ name = 'views'; unit = 'views'; class = 'objects'; path = 'meminfo.views' }
+        [ordered]@{ name = 'activities'; unit = 'activities'; class = 'objects'; path = 'meminfo.activities' }
+        [ordered]@{ name = 'appContexts'; unit = 'contexts'; class = 'objects'; path = 'meminfo.appContexts' }
+        [ordered]@{ name = 'localBinders'; unit = 'binders'; class = 'objects'; path = 'meminfo.localBinders' }
+        [ordered]@{ name = 'proxyBinders'; unit = 'binders'; class = 'objects'; path = 'meminfo.proxyBinders' }
+    )
+}
+
+function Get-DaPathValue {
+    <#
+    .SYNOPSIS
+        Value at a dotted property path of an object, or $null. Pure.
+    .PARAMETER Object
+        Source object.
+    .PARAMETER Path
+        Dotted path such as meminfo.totalPssKb.
+    #>
+    param($Object, [Parameter(Mandatory)][string]$Path)
+    $v = $Object
+    foreach ($part in $Path.Split('.')) {
+        if ($null -eq $v) { return $null }
+        $v = $v.$part
+    }
+    return $v
+}
+
+function Get-DaSegmentAnalysis {
+    <#
+    .SYNOPSIS
+        Metrics and timings of one segment's measured cycle points; returns {Segment; Verdicts; Open}.
+    .PARAMETER Name
+        Segment name.
+    .PARAMETER Points
+        Measured cycle rows of the segment (warm-up excluded), in cycle order.
+    .PARAMETER Budgets
+        Get-DaGrowthBudgets output.
+    #>
+    param([Parameter(Mandatory)][string]$Name, [Parameter(Mandatory)][object[]]$Points, [Parameter(Mandatory)]$Budgets)
+    $verdicts = [System.Collections.Generic.List[object]]::new()
+    $open = [System.Collections.Generic.List[object]]::new()
+    $t0 = [double]$Points[0].pointMonoMs
+    $segOut = [ordered]@{ points = $Points.Count; cycles = @($Points | ForEach-Object { [int]$_.index }); windowMs = [double]$Points[-1].pointMonoMs - $t0; metrics = [ordered]@{}; timings = [ordered]@{} }
+    foreach ($m in (Get-DaCycleMetricDefinitions)) {
+        $pairs = @(foreach ($r in $Points) { $v = Get-DaPathValue -Object $r.point -Path $m.path; if ($null -ne $v) { [pscustomobject]@{ y = [double]$v; c = [double]$r.index; t = ([double]$r.pointMonoMs - $t0) / 3600000.0 } } })
+        if (-not $pairs.Count) {
+            $open.Add([ordered]@{ segment = $Name; metric = $m.name; reason = "not observed at any cycle point ($($m.path) empty)" })
+            $segOut.metrics[$m.name] = [ordered]@{ unit = $m.unit; class = $m.class; state = 'open' }
+            continue
+        }
+        $y = [double[]]@($pairs.y); $c = [double[]]@($pairs.c); $t = [double[]]@($pairs.t)
+        $dec = Get-DaGrowthDecision -Y $y -Cycle $c -Time $t
+        $mo = [ordered]@{
+            unit = $m.unit; class = $m.class; state = 'measured'; n = $y.Length; distribution = Get-DaPercentiles -Values $y -MinValidForP99 1000
+            decision = $dec.decision; reason = $dec.reason; slopePerCycle = if ($dec.whole) { $dec.whole.cycle } else { $null }
+            slopePerHour = if ($dec.whole) { $dec.whole.time } else { $null }; secondHalf = if ($dec.secondHalf) { $dec.secondHalf.cycle } else { $null }; budget = @()
+        }
+        if ($dec.whole) {
+            $axes = if ($m.class -eq 'memory') { @(@('per-cycle', $dec.whole.cycle, $Budgets.memoryKiBPerCycle, 'KiB/cycle'), @('per-hour', $dec.whole.time, $Budgets.memoryKiBPerHour, 'KiB/hour')) } else { @(, @('per-hour', $dec.whole.time, $Budgets.objectsPerHour, "$($m.unit)/hour")) }
+            foreach ($b in $axes) {
+                $ax = $b[1]
+                $v = Get-DaBudgetVerdict -Lower $(if ($ax) { $ax.lower }) -Upper $(if ($ax) { $ax.upper }) -Budget ([double]$b[2])
+                $v.axis = $b[0]; $v.unit = $b[3]; $v.window = "segment $Name, cycles $($c[0])..$($c[-1]), $([math]::Round($t[-1] * 60, 2)) min"
+                $mo.budget += $v
+                $verdicts.Add([ordered]@{ segment = $Name; metric = $m.name; axis = $b[0]; verdict = $v.verdict; upper = $v.upper; budget = $v.budget; unit = $b[3] })
+            }
+            if ($m.class -eq 'objects') {
+                $med = [double]$mo.distribution.p50
+                $dev = [double](@($y | ForEach-Object { [math]::Abs($_ - $med) }) | Measure-Object -Maximum).Maximum
+                $band = if ($dev -le $Budgets.plateauBand) { 'pass' } else { 'fail' }
+                $mo.budget += [ordered]@{ verdict = $band; axis = 'plateau-band'; budget = $Budgets.plateauBand; observed = $dev; unit = $m.unit; scope = 'observed-window'; reason = "largest distance from the median $med at a cycle point" }
+                $verdicts.Add([ordered]@{ segment = $Name; metric = $m.name; axis = 'plateau-band'; verdict = $band; upper = $dev; budget = $Budgets.plateauBand; unit = $m.unit })
+            }
+        }
+        $segOut.metrics[$m.name] = $mo
+    }
+    $names = [System.Collections.Generic.List[string]]::new()
+    foreach ($r in $Points) { if ($r.result -and $r.result.timings) { foreach ($p in $r.result.timings.PSObject.Properties) { if (-not $names.Contains($p.Name)) { $names.Add($p.Name) } } } }
+    foreach ($tn in $names) {
+        $vals = [double[]]@($Points | ForEach-Object { if ($_.result -and $_.result.timings) { $_.result.timings.$tn } } | Where-Object { $null -ne $_ })
+        $segOut.timings[$tn] = [ordered]@{ unit = 'ms'; distribution = Get-DaPercentiles -Values $vals -Timeouts ($Points.Count - $vals.Length) -MinValidForP99 1000; note = 'a cycle without a value counts as a timeout in the tail' }
+    }
+    return [pscustomobject]@{ Segment = $segOut; Verdicts = $verdicts.ToArray(); Open = $open.ToArray() }
+}
+
+function Invoke-DaRunAnalysis {
+    <#
+    .SYNOPSIS
+        Analysis of one cycle run directory (scene.json and cycles.jsonl); writes analysis.json beside them and returns {Code; Reason; Path; Analysis}.
+    .DESCRIPTION
+        Validity first: the scene record's own verdict (calibration, sampler gaps, power and frequency changes,
+        abort) and at least 3 measured cycle points per segment; an invalid run gives code 2 and no verdicts.
+        Per segment and metric: the distribution at the measured cycle points (warm-up excluded), the slope over
+        cycles and over time with its block-bootstrap interval (seed, block length and repeat count recorded),
+        the plateau or retained-growth decision and the budget verdicts of Get-DaGrowthBudgets for the observed
+        window. A metric never observed is 'open', never zero. The scene's own timings are summarised per
+        segment. Code 1 when any budget verdict is fail or any decision is retained-growth, 0 otherwise.
+    .PARAMETER RunDir
+        Run directory.
+    #>
+    param([Parameter(Mandatory)][string]$RunDir)
+    $codes = Get-DaExitCode
+    $scene = Read-DaJson -Path (Join-Path $RunDir 'scene.json')
+    $cyclesPath = Join-Path $RunDir 'cycles.jsonl'
+    if (-not $scene -or -not (Test-Path -LiteralPath $cyclesPath)) { return [pscustomobject]@{ Code = $codes.Refused; Reason = "no scene.json or cycles.jsonl in $RunDir"; Path = $null; Analysis = $null } }
+    $rows = @([System.IO.File]::ReadAllLines($cyclesPath, [System.Text.UTF8Encoding]::new($false)) | Where-Object { $_.Trim() } | ForEach-Object { $_ | ConvertFrom-Json -Depth 64 })
+    $cycleRows = @($rows | Where-Object { $_.type -eq 'cycle' })
+    $measured = @($cycleRows | Where-Object { $_.phase -eq 'measured' -and $_.point })
+    $budgets = Get-DaGrowthBudgets
+    $boot = Get-DaBootstrapDefaults
+    $causes = [System.Collections.Generic.List[string]]::new()
+    if (-not $scene.valid) { $causes.Add("scene record invalid: $($scene.invalidReason)") }
+    $segments = [ordered]@{}
+    foreach ($r in $measured) { $k = [string]$r.segment; if (-not $segments.Contains($k)) { $segments[$k] = [System.Collections.Generic.List[object]]::new() }; $segments[$k].Add($r) }
+    if (-not $segments.Count) { $causes.Add('no measured cycle point') }
+    foreach ($k in $segments.Keys) { if ($segments[$k].Count -lt 3) { $causes.Add("segment $k has $($segments[$k].Count) measured points (minimum 3)") } }
+    $valid = ($causes.Count -eq 0)
+    $result = [ordered]@{
+        schemaVersion = 1; kind = 'cycle-analysis'; runId = $scene.runId; scene = $scene.scene; variant = $scene.variant; build = $scene.build; device = $scene.device
+        valid = $valid; invalidReasons = $causes.ToArray(); cyclePlan = $scene.cyclePlan
+        warmupExcluded = @($cycleRows | Where-Object { $_.phase -eq 'warm-up' }).Count; measuredPoints = $measured.Count
+        starts = @($rows | Where-Object { $_.type -eq 'start' } | ForEach-Object { [ordered]@{ phase = $_.phase; outcome = $_.start.outcome; totalTimeMs = $_.start.totalTimeMs; launchState = $_.start.launchState } })
+        bootstrap = [ordered]@{ seed = $boot.seed; repeats = $boot.repeats; confidence = $boot.confidence; blockLength = 'ceil(n^(1/3)) per series, recorded per slope' }
+        budgets = $budgets; forcedGc = [bool]@($cycleRows | Where-Object { $_.forcedGc }).Count; segments = [ordered]@{}; verdicts = @(); open = @()
+    }
+    $verdicts = [System.Collections.Generic.List[object]]::new()
+    $open = [System.Collections.Generic.List[object]]::new()
+    if ($valid) {
+        foreach ($k in $segments.Keys) {
+            $sa = Get-DaSegmentAnalysis -Name $k -Points @($segments[$k]) -Budgets $budgets
+            $result.segments[$k] = $sa.Segment
+            foreach ($v in $sa.Verdicts) { $verdicts.Add($v) }
+            foreach ($o in $sa.Open) { $open.Add($o) }
+        }
+    }
+    $result.verdicts = $verdicts.ToArray()
+    $result.open = $open.ToArray()
+    $growth = @(foreach ($k in $result.segments.Keys) { foreach ($mn in $result.segments[$k].metrics.Keys) { if ($result.segments[$k].metrics[$mn].decision -eq 'retained-growth') { "$k/$mn" } } })
+    $fails = @($verdicts | Where-Object { $_.verdict -eq 'fail' } | ForEach-Object { "$($_.segment)/$($_.metric) $($_.axis)" })
+    $code = if (-not $valid) { $codes.Refused } elseif ($growth.Count -or $fails.Count) { $codes.Finding } else { $codes.Ok }
+    $result.result = [ordered]@{ code = $code; retainedGrowth = $growth; budgetFails = $fails; inconclusive = @($verdicts | Where-Object { $_.verdict -eq 'inconclusive' }).Count }
+    $path = Join-Path $RunDir 'analysis.json'
+    Write-DaJson -Path $path -InputObject $result -Durable
+    $reason = if (-not $valid) { "invalid run: $($causes -join '; ')" } else {
+        "$($scene.scene) $($scene.variant) run $($scene.runId): $($measured.Count) measured points in $($segments.Count) segment(s); retained growth: $(if ($growth.Count) { $growth -join ', ' } else { 'none' }); budget fails: $(if ($fails.Count) { $fails -join ', ' } else { 'none' }); $($result.result.inconclusive) inconclusive; $($open.Count) open; record $path"
+    }
+    return [pscustomobject]@{ Code = $code; Reason = $reason; Path = $path; Analysis = $result }
 }

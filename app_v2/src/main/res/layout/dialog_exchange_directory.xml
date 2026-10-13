@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/dialog_padding_large"
+    android:paddingTop="@dimen/margin_small">
+
+    <TextView
+        android:id="@+id/textExchangeDirectoryStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:accessibilityLiveRegion="polite"
+        android:text="@string/exchange_devices_list_loading"
+        android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvExchangeDirectory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:nextFocusDown="@id/btnExchangeDirectoryMyDevices" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnExchangeDirectoryMyDevices"
+        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:clickable="true"
+        android:focusable="true"
+        android:nextFocusUp="@id/rvExchangeDirectory"
+        android:text="@string/exchange_devices_title" />
+</LinearLayout>

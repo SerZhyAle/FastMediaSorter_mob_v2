@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4116: one live broadcast of another device in the streams list section; a tap imports it as a channel. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.FastMediaSorter.Item.Row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/touch_target_min_height"
+    android:background="@drawable/item_focus_selector"
+    android:orientation="vertical"
+    android:gravity="center_vertical"
+    android:clickable="true"
+    android:focusable="true">
+
+    <TextView
+        android:id="@+id/tvBroadcastTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Title"
+        android:textColor="?attr/colorOnSurface" />
+
+    <TextView
+        android:id="@+id/tvBroadcastDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Subtitle"
+        android:textColor="?attr/colorOnSurfaceVariant" />
+</LinearLayout>

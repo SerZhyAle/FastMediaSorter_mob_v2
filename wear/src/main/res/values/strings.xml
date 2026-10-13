@@ -1051,4 +1051,22 @@
     <string name="wear_exchange_removing">Removing..</string>
     <string name="wear_exchange_removed_revoked">Removed. The server no longer lists this watch.</string>
     <string name="wear_exchange_removed_locally">Removed from the watch only: the server could not be reached. Revoke the watch from the phone.</string>
+    <string name="wear_tourist_counter">Counter</string>
+    <string name="wear_tourist_counter_extra_steps">More steps</string>
+    <string name="wear_tourist_counter_start">Starting number</string>
+    <string name="wear_tourist_counter_start_invalid">Enter a whole number from 0</string>
+    <string name="wear_tourist_counter_reset">Reset</string>
+    <string name="wear_tourist_counter_reset_confirm">Reset the counter?</string>
+    <string name="wear_tourist_counter_reset_message">The current count is saved to history.</string>
+    <string name="wear_tourist_counter_history">History</string>
+    <string name="wear_tourist_counter_history_empty">No finished counts yet</string>
+    <string name="wear_tourist_counter_clear_history">Clear history</string>
+    <string name="wear_tourist_counter_clear_history_confirm">Clear the counter history?</string>
+    <string name="wear_tourist_counter_add_one">Add one</string>
+    <string name="wear_tourist_counter_subtract_one">Subtract one</string>
+    <string name="wear_exchange_cast_channel_name">Broadcast offers</string>
+    <string name="wear_exchange_cast_title">Broadcast offered</string>
+    <string name="wear_exchange_cast_text">Another device of your account wants to play its broadcast on this watch</string>
+    <string name="wear_exchange_cast_play">Listen</string>
+    <string name="wear_exchange_cast_decline">Decline</string>
 </resources>

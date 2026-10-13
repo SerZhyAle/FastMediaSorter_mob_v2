@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/counterRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.sza.fastmediasorter.ui.common.widget.StandardToolbar
+        android:id="@+id/toolbar"
+        style="@style/Widget.FastMediaSorter.Toolbar.Flat"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:title="@string/tourist_tile_counter" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollCounter"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/padding_normal">
+
+            <TextView
+                android:id="@+id/tvCounterValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:accessibilityLiveRegion="polite"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textColor="?attr/colorOnSurface"
+                android:textAppearance="?attr/textAppearanceDisplayLarge"
+                android:textStyle="bold"
+                tools:text="128" />
+
+            <TextView
+                android:id="@+id/tvCounterStart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="@string/tourist_counter_start_label" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_large"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnMinusOne"
+                    style="@style/Widget.FastMediaSorter.Button.Tonal"
+                    android:layout_width="@dimen/tourist_counter_minus_width"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="@string/tourist_counter_minus_one_description"
+                    android:focusable="true"
+                    android:nextFocusRight="@id/btnPlusOne"
+                    tools:text="-1" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPlusOne"
+                    style="@style/Widget.FastMediaSorter.Button.Filled"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/tourist_counter_plus_height"
+                    android:layout_marginStart="@dimen/margin_normal"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/tourist_counter_plus_one_description"
+                    android:focusable="true"
+                    android:nextFocusLeft="@id/btnMinusOne"
+                    tools:text="+1"
+                    android:textAppearance="?attr/textAppearanceHeadlineLarge">
+
+                    <requestFocus />
+                </com.google.android.material.button.MaterialButton>
+            </LinearLayout>
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/switchExtraSteps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_normal"
+                android:focusable="true"
+                app:str_icon="@drawable/ic_add"
+                app:str_title="@string/tourist_counter_extra_steps" />
+
+            <include
+                android:id="@+id/extraSteps"
+                layout="@layout/include_tourist_counter_extra_steps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_normal"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnStartValue"
+                    style="@style/Widget.FastMediaSorter.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:focusable="true"
+                    android:text="@string/tourist_counter_set_start" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnReset"
+                    style="@style/Widget.FastMediaSorter.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_normal"
+                    android:layout_weight="1"
+                    android:focusable="true"
+                    android:text="@string/tourist_counter_reset" />
+            </LinearLayout>
+
+            <include
+                android:id="@+id/history"
+                layout="@layout/include_tourist_counter_history"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_large" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

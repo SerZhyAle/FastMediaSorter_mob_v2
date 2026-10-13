@@ -170,7 +170,8 @@ object SftpRendezvousCodec {
         addProperty(KEY_UPDATED_AT, Iso8601Utc.format(device.updatedAtMs))
     }
 
-    private fun receiverBody(receiver: SftpRendezvousReceiver) = JsonObject().apply {
+    /** The 6.1 `receiver` object, also what `enroll` declares (7.2). */
+    fun receiverBody(receiver: SftpRendezvousReceiver): JsonObject = JsonObject().apply {
         add(KEY_MODES, stringArray(receiver.modes))
         add(KEY_TRANSPORTS, stringArray(receiver.transports))
         receiver.plays?.let { plays ->

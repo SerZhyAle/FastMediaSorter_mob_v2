@@ -17,14 +17,19 @@ class LauncherPrimaryWindowManager @Inject constructor(
     val isAvailable: Boolean
         get() = contract.isAvailableInBuild
 
+    fun availableChoices(): List<LauncherPrimaryWindow> =
+        LauncherPrimaryWindow.choicesFor(roleManager.isHomeRoleOfferable())
+
     fun getCurrentChoice(): LauncherPrimaryWindow {
         if (!contract.isAvailableInBuild) {
             return LauncherPrimaryWindow.RESOURCE_MANAGER
         }
         val roleState = roleManager.readState()
-        val isHome = roleState.homeRoleHeld || roleState.roleRequestPending || roleState.modeEnabled
+        val storedHome = roleState.homeRoleHeld || roleState.roleRequestPending || roleState.modeEnabled
         return when {
-            isHome -> LauncherPrimaryWindow.HOME_SCREEN
+            // A home flag stored where the role is unreachable (Googlebook) reads as the desktop; no migration.
+            storedHome && !roleManager.isHomeRoleOfferable() -> LauncherPrimaryWindow.DESKTOP
+            storedHome -> LauncherPrimaryWindow.HOME_SCREEN
             startWindowManager.isEnabled() -> LauncherPrimaryWindow.DESKTOP
             else -> LauncherPrimaryWindow.RESOURCE_MANAGER
         }
@@ -32,7 +37,12 @@ class LauncherPrimaryWindowManager @Inject constructor(
 
     fun applyChoice(choice: LauncherPrimaryWindow) {
         if (!contract.isAvailableInBuild) return
-        when (choice) {
+        val effective = if (choice == LauncherPrimaryWindow.HOME_SCREEN && !roleManager.isHomeRoleOfferable()) {
+            LauncherPrimaryWindow.DESKTOP
+        } else {
+            choice
+        }
+        when (effective) {
             LauncherPrimaryWindow.HOME_SCREEN -> {
                 startWindowManager.setEnabled(true)
                 roleManager.markAsHomeCandidate()

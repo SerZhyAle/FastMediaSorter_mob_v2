@@ -35,7 +35,7 @@
     CompanionNames = @{ wear = 'FastMedia Wear' }
 
     # Where the gate looks for a claim about the editions. Site-facing text only: developer documents
-    # state the matrix's own count and are held by assert-flavor-count-prose.ps1. A pattern is a path
+    # point at docs/FLAVOR_MATRIX.md instead of stating a count (S4190). A pattern is a path
     # relative to the repository root; `**` crosses directories, `*` does not.
     Surfaces  = @(
         'index*.html'

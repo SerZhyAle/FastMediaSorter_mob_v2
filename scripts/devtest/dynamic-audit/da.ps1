@@ -48,8 +48,23 @@
                      restore checkpoint, fixture publish, calibration check, one scene with at most one fault,
                      the outside-the-run invariant, Restore-DaBackup in finally, runs/<runId>/heavy.json; a
                      killed run leaves the durable checkpoint for -Verb Recover
+      Cycle          a load and growth scene (C05, C06, C12, C14, C16) inside the heavy-run sequence: a measured
+                     cold start, the scene setup, -Cycles cycles of which the first -WarmupCycles are the
+                     explicit warm-up part, each closed at the scene's quiescence point with one meminfo sample,
+                     then a warm start; runs/<runId>/cycles.jsonl carries the cycle index of every sample.
+                     Refused without the verified backup. No garbage collection is forced; -HeapSnapshot adds a
+                     diagnostic heap dump into the private directory after the measured window
+      Analyze        reads one cycle run (scene.json, cycles.jsonl) and writes analysis.json: validity, per
+                     segment and metric the distribution, the slope over cycles and over time with its
+                     95 percent block-bootstrap interval, the plateau or retained-growth decision and the
+                     B09/B10 budget verdicts for the observed window; a metric never observed is open (no
+                     device access)
+      Report         consolidates the latest valid run of each scene, variant, fault and device into measured scene
+                     cells of the matrix, writes redacted per-run aggregates, runs.json, evidence.json and the export
+                     manifest into the audit folder, runs the coverage validator (-Validate and -SelfTest) and renders
+                     reports/first-pass-report.md; capability cells stay open (no device access)
 
-    Calibrate, Control, Scene and Heavy run inside the mutation envelope: verified-backup precondition, restore
+    Calibrate, Control, Scene, Heavy and Cycle run inside the mutation envelope: verified-backup precondition, restore
     checkpoint, and a full Restore at the end whatever the outcome (a failed restore makes the verdict 2).
 
     Every verb that touches a device runs Assert-DaEmulatorTarget first: only a serial matching
@@ -60,10 +75,26 @@
 
 .PARAMETER Verb
     Preflight, Backup, VerifyBackup, BeginMutation, Restore, Recover, Fixture, Status, BuildInventory,
-    BuildMatrix, BuildUCards, Calibrate, Control, Access, Scene or Heavy.
+    BuildMatrix, BuildUCards, Calibrate, Control, Access, Scene, Heavy, Cycle, Analyze or Report.
 
 .PARAMETER Scene
-    For -Verb Scene and -Verb Heavy: the registered scene id (C01, C02, C03, C07, C15).
+    For -Verb Scene and -Verb Heavy: the registered scene id (C01, C02, C03, C07, C15, C05, C06, C12, C14, C16).
+    For -Verb Cycle: one of the cycle scenes C05, C06, C12, C14, C16 (C12 and C16 also on a watch).
+
+.PARAMETER Cycles
+    For -Verb Cycle: cycles of the run, warm-up included. Default 20.
+
+.PARAMETER WarmupCycles
+    For -Verb Cycle: leading cycles that form the explicit warm-up part. Default 3.
+
+.PARAMETER IdleSec
+    For -Verb Cycle, scene C16: seconds without input per cycle. Default 60.
+
+.PARAMETER HeapSnapshot
+    For -Verb Cycle: after the measured window, take a diagnostic heap dump into the private directory.
+
+.PARAMETER RunDir
+    For -Verb Analyze: the run directory; defaults to runs/<RunId>.
 
 .PARAMETER Fault
     For scene C15: one fault id from PLAN/S4166_deep-dynamic-audit/audit/faults.json (F01..).
@@ -90,7 +121,8 @@
     For -Verb BeginMutation: what is about to mutate the device.
 
 .PARAMETER RunId
-    Run id for Backup, BeginMutation, Fixture, Calibrate, Control, Scene or Heavy; generated when empty.
+    Run id for Backup, BeginMutation, Fixture, Calibrate, Control, Scene, Heavy or Cycle; generated when empty.
+    For Analyze: the run to read.
 
 .PARAMETER Seed
     For -Verb Control: seed of the interleaved run order (System.Random). Default 4166.
@@ -147,18 +179,31 @@
 .EXAMPLE
     pwsh -NoProfile -File scripts/devtest/dynamic-audit/da.ps1 -Verb Heavy -Scene C15 -Fault F07
 
+.EXAMPLE
+    pwsh -NoProfile -File scripts/devtest/dynamic-audit/da.ps1 -Verb Cycle -Scene C05 -Cycles 20 -WarmupCycles 3
+
+.EXAMPLE
+    pwsh -NoProfile -File scripts/devtest/dynamic-audit/da.ps1 -Verb Analyze -RunId 261013-120000-abcd
+
+.EXAMPLE
+    pwsh -NoProfile -File scripts/devtest/dynamic-audit/da.ps1 -Verb Report
+
 .NOTES
     Exit codes:
       0 - ok
       1 - finding (a fixture tree differs from its manifest; a scene broke an invariant, recorded a candidate
-          finding, or changed something outside its run directory)
+          finding, or changed something outside its run directory; an analysis found retained growth or a
+          failed budget; a Report whose coverage validator found an open, inconclusive or failed cell, which is
+          the expected first-pass outcome)
       2 - cannot verify or refused (not an emulator, no verified backup, restore pending, restore incomplete,
           tool failure, no calibration record, an invalid calibration, control or scene run, a repeat after an
-          invalid run without -StandFix, a scene aborted by an error)
+          invalid run without -StandFix, a scene aborted by an error, an analysis of an invalid run or of
+          fewer than 3 measured cycle points per segment, a Report whose audit data cannot be read or whose
+          coverage validator could not verify)
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)][ValidateSet('Preflight', 'Backup', 'VerifyBackup', 'BeginMutation', 'Restore', 'Recover', 'Fixture', 'Status', 'BuildInventory', 'BuildMatrix', 'BuildUCards', 'Calibrate', 'Control', 'Access', 'Scene', 'Heavy')]
+    [Parameter(Mandatory)][ValidateSet('Preflight', 'Backup', 'VerifyBackup', 'BeginMutation', 'Restore', 'Recover', 'Fixture', 'Status', 'BuildInventory', 'BuildMatrix', 'BuildUCards', 'Calibrate', 'Control', 'Access', 'Scene', 'Heavy', 'Cycle', 'Analyze', 'Report')]
     [string]$Verb,
     [string]$Serial,
     [ValidatePattern('^[A-Za-z][A-Za-z0-9_.]+$')][string]$Package = 'com.sza.fastmediasorter.debug',
@@ -179,9 +224,14 @@ param(
     [ValidateSet('none', 'late-tick', 'sampler-gap')][string]$InjectFault = 'none',
     [string]$StandFix,
     [string]$Screen = 'current screen',
-    [ValidateSet('C01', 'C02', 'C03', 'C07', 'C15')][string]$Scene,
+    [ValidateSet('C01', 'C02', 'C03', 'C07', 'C15', 'C05', 'C06', 'C12', 'C14', 'C16')][string]$Scene,
     [ValidatePattern('^(F\d{2})?$')][string]$Fault,
-    [switch]$FreshBackup
+    [switch]$FreshBackup,
+    [ValidateRange(1, 1000)][int]$Cycles = 20,
+    [ValidateRange(0, 999)][int]$WarmupCycles = 3,
+    [ValidateRange(1, 3600)][int]$IdleSec = 60,
+    [switch]$HeapSnapshot,
+    [string]$RunDir
 )
 
 $ErrorActionPreference = 'Stop'
@@ -198,6 +248,8 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib\da-fault.ps1')
 . (Join-Path $PSScriptRoot 'lib\da-ui.ps1')
 . (Join-Path $PSScriptRoot 'lib\da-scenes.ps1')
+. (Join-Path $PSScriptRoot 'lib\da-cycle.ps1')
+. (Join-Path $PSScriptRoot 'lib\da-report.ps1')
 
 $daCodes = Get-DaExitCode
 $daCode = $daCodes.Refused
@@ -232,6 +284,24 @@ try {
         $daBuilt = Invoke-DaBuildInventory -RepoRoot $daPaths.RepoRoot
         $daCode = $daCodes.Ok
         $daDetail = "wrote $(@($daBuilt.Written).Count) audit data files from the live inventories"
+    }
+    elseif ($Verb -eq 'Analyze') {
+        $daRunDir = if ($RunDir) { $RunDir } elseif ($RunId) { Join-Path (Get-DaPaths).Runs $RunId } else { $null }
+        if (-not $daRunDir) {
+            $daCode = $daCodes.Refused
+            $daDetail = 'Analyze needs -RunId or -RunDir'
+        }
+        else {
+            $daResult = Invoke-DaRunAnalysis -RunDir $daRunDir
+            $daCode = [int]$daResult.Code
+            $daDetail = $daResult.Reason
+        }
+    }
+    elseif ($Verb -eq 'Report') {
+        $daPaths = Get-DaPaths
+        $daResult = Invoke-DaReport -RepoRoot $daPaths.RepoRoot -RunsRoot $daPaths.Runs
+        $daCode = [int]$daResult.Code
+        $daDetail = $daResult.Reason
     }
     elseif ($Verb -eq 'BuildUCards') {
         $daPaths = Get-DaPaths
@@ -348,6 +418,23 @@ try {
                     }
                     if ($Verb -eq 'Scene') { $daResult = Invoke-DaSceneRun -Serial $daSerial -Package $Package -Scene $Scene -Fault $Fault -RunId $RunId }
                     else { $daResult = Invoke-DaHeavyRun -Serial $daSerial -Package $Package -Scene $Scene -Fault $Fault -RunId $RunId -FreshBackup:$FreshBackup }
+                    $daCode = [int]$daResult.Code
+                    $daDetail = "$daSerial - $($daResult.Reason)"
+                }
+                'Cycle' {
+                    $daEntry = if ($Scene) { (Get-DaSceneRegistry)[$Scene] } else { $null }
+                    if (-not $daEntry -or -not $daEntry.cycle) {
+                        $daCode = $daCodes.Refused
+                        $daDetail = "$daSerial - Cycle needs one of the cycle scenes (C05, C06, C12, C14, C16)"
+                        break
+                    }
+                    if ($WarmupCycles -ge $Cycles) {
+                        $daCode = $daCodes.Refused
+                        $daDetail = "$daSerial - -WarmupCycles $WarmupCycles leaves no measured cycle of $Cycles"
+                        break
+                    }
+                    $daPlan = @{ Cycles = $Cycles; WarmupCycles = $WarmupCycles; IdleSec = $IdleSec; HeapSnapshot = [bool]$HeapSnapshot }
+                    $daResult = Invoke-DaHeavyRun -Serial $daSerial -Package $Package -Scene $Scene -RunId $RunId -FreshBackup:$FreshBackup -CyclePlan $daPlan
                     $daCode = [int]$daResult.Code
                     $daDetail = "$daSerial - $($daResult.Reason)"
                 }

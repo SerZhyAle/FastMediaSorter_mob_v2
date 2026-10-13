@@ -403,6 +403,11 @@
       "note2": "This screen spent one day in screens[] - added 2026-09-12 on finding it had shipped in the store flavor with no walk entry at all, and moved here hours later when the same finding was ruled on. Both halves are the same discovery: nothing had ever opened it."
     },
     {
+      "screen": "TouristCounterScreen",
+      "reason": "absent-from-this-flavor",
+      "note": "S4185: reached only from its tile on TouristScreen, so the flavor gate that withholds the parent above withholds this one with it."
+    },
+    {
       "screen": "MotionHistoryScreen",
       "reason": "absent-from-this-flavor",
       "note": "S2995, same gate as MotionMonitorScreen above: this screen is reached only from it, so withholding the parent from the store build withholds this one with it. Classified here rather than under needs-seeded-content because the flavor decides it first - a seeded history would still have no route into the standard build."

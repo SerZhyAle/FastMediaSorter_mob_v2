@@ -5,7 +5,7 @@ permalink: /docs/V2_architecture_overview-uk.html
 lang: uk
 ---
 
-<sub class="doc-stamp">26.10.06 21:33</sub>
+<sub class="doc-stamp">26.10.13 14:51</sub>
 
 <div lang="uk" markdown="1">
 
@@ -23,7 +23,7 @@ ViewModel надає спостережуваний стан і події. Use 
 
 ## Модулі
 
-- `app_v2`: основний застосунок і вісім варіантів телефона/гарнітури; XML, ViewBinding та наявні поверхні Compose.
+- `app_v2`: основний застосунок і його варіанти для телефона та гарнітури (`docs/FLAVOR_MATRIX.md`); XML, ViewBinding та наявні поверхні Compose.
 - `wear`: застосунок Wear OS на Compose, редакції `standard` і `noLegal`.
 - `watchface`: окремий ресурсний пакет Watch Face Format v4 для Wear OS 6 / API 36 і новіших.
 - `lint-rules`: перевірки Android lint під час збірки.

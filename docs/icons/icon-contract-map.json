@@ -55,6 +55,7 @@
     "ic_quick_launch": "feature.quick-launch",
     "wear:ic_app_calculator": "feature.calculator",
     "wear:ic_app_game": "feature.game",
+    "wear:ic_tourist_counter": "action.add",
     "wear:ic_open_in_new": "nav.open-external",
     "wear:ic_complication_alarm": "system.alarm",
     "wear:ic_complication_battery": "system.battery",

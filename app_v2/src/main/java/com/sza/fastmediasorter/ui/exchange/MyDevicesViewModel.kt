@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
 
@@ -167,6 +168,7 @@ class MyDevicesViewModel @Inject constructor(
     }
 
     fun signIn(request: ExchangeSignInRequest, acceptedPin: String? = null) {
+        Timber.d("S4116: My devices sign-in requested")
         signInState.value = ExchangeSignInState.InProgress
         viewModelScope.launch {
             val result = accounts.signIn(
@@ -274,6 +276,7 @@ class MyDevicesViewModel @Inject constructor(
     }
 
     fun connectWatch(entry: DeviceExchangeAccountEntry) {
+        Timber.d("S4158: Connect watch chosen on a server card")
         post(MyDevicesMessage(R.string.exchange_devices_watch_progress))
         viewModelScope.launch { post(watchMessage(connectWatchToEntry(entry))) }
     }

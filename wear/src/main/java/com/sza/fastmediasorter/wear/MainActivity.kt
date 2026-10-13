@@ -106,6 +106,7 @@ import com.sza.fastmediasorter.wear.ui.apps.sos.SosScreen
 import com.sza.fastmediasorter.wear.ui.apps.stopwatch.WearStopwatchScreen
 import com.sza.fastmediasorter.wear.ui.apps.systeminfo.SystemInfoScreen
 import com.sza.fastmediasorter.wear.ui.apps.tourist.TouristScreen
+import com.sza.fastmediasorter.wear.ui.apps.tourist.counter.TouristCounterScreen
 import com.sza.fastmediasorter.wear.ui.apps.waterflashlight.WaterFlashlightScreen
 import com.sza.fastmediasorter.wear.ui.brand.BrandFrameScreen
 import com.sza.fastmediasorter.wear.ui.broadcast.WearBroadcastQrScreen
@@ -1366,9 +1367,7 @@ private fun NavGraphBuilder.miniAppRoutes(
         // every other screen here does - the screen holds no navigation controller of its own.
         // S3362: guarded rather than raw, because the distress signal now answers to a capability of
         // its own - the two travel together in both shipped flavors, but nothing here enforces that.
-        composable(WearRoutes.TOURIST) {
-            TouristRoute(navController)
-        }
+        touristRoutes(navController)
     }
 
     // S3109: the watch's text clipboard, and the action that hands it to the paired phone.
@@ -1697,6 +1696,19 @@ private fun NavGraphBuilder.tileRoutes(navController: NavHostController) {
     }
 }
 
+/**
+ * S4185: Tourist and the counter it opens. The counter is reached only from its Tourist tile, so it is
+ * registered wherever Tourist is; held apart so [miniAppRoutes] stays under the length ceiling.
+ */
+private fun NavGraphBuilder.touristRoutes(navController: NavHostController) {
+    composable(WearRoutes.TOURIST) {
+        TouristRoute(navController)
+    }
+    composable(WearRoutes.TOURIST_COUNTER) {
+        TouristCounterScreen()
+    }
+}
+
 /** S4186: the Tourist route body, held apart so [miniAppRoutes] stays under the length ceiling. */
 @Composable
 private fun TouristRoute(navController: NavHostController) {
@@ -1706,5 +1718,6 @@ private fun TouristRoute(navController: NavHostController) {
             Timber.d("S4186: stopwatch tile launched from wear tourist")
             navigateGuarded(navController, WearRoutes.STOPWATCH)
         },
+        onLaunchCounter = { navigateGuarded(navController, WearRoutes.TOURIST_COUNTER) },
     )
 }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/margin_large"
+    android:paddingTop="@dimen/margin_normal"
+    android:paddingEnd="@dimen/margin_large">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutStartValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/tourist_counter_set_start">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editStartValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionDone"
+            android:inputType="number"
+            android:maxLength="9"
+            android:maxLines="1" />
+    </com.google.android.material.textfield.TextInputLayout>
+</FrameLayout>

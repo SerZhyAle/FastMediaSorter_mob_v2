@@ -1018,6 +1018,21 @@
       "note": "S3365 scan surfacing: renders tourist info only for a configured destination."
     },
     {
+      "activity": "TouristCounterActivity",
+      "reason": "needs-seeded-content",
+      "note": "S4184: opened only from the Counter hero card of the Tourist dashboard, whose host TouristInfoActivity is itself excluded needs-seeded-content."
+    },
+    {
+      "activity": "ExchangeCastOfferActivity",
+      "reason": "arg-external",
+      "note": "S4116: transparent target of a cast notification's Accept or Decline; it needs the offer extras and finishes at once."
+    },
+    {
+      "activity": "ExchangeSignInActivity",
+      "reason": "arg-external",
+      "note": "S4155: transparent receiver of an exchange connection string from a file or shared text; nothing to show without that input."
+    },
+    {
       "activity": "WatchListenLaunchActivity",
       "reason": "arg-external",
       "note": "S3365 scan surfacing: launch shim taking the record argument; forwards into the watch session."

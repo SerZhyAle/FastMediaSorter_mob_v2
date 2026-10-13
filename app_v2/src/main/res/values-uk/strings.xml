@@ -4407,4 +4407,25 @@
     <string name="stream_broadcast_trust_refused">Сертифікат сервера %1$s не збігається з описом трансляції, тому трансляцію не відтворено.</string>
     <string name="stream_broadcast_ended">Ця трансляція завершилася або зараз недоступна.</string>
     <string name="stream_broadcast_through_server">Через сервер: %1$s</string>
+    <string name="settings_streams_cast_play_at_once">Відтворювати одразу</string>
+    <string name="settings_streams_cast_play_at_once_summary">Трансляція, яку ваш інший пристрій передає сюди, починається без питання «Прийняти»</string>
+    <string name="tourist_tile_counter">Лічильник</string>
+    <string name="tourist_detail_counter">Натисніть, щоб рахувати</string>
+    <string name="tourist_counter_step_plus">+%1$d</string>
+    <string name="tourist_counter_step_minus">-%1$d</string>
+    <string name="tourist_counter_plus_one_description">Додати один</string>
+    <string name="tourist_counter_minus_one_description">Відняти один</string>
+    <string name="tourist_counter_extra_steps">Більше кнопок: від +3 до +1000</string>
+    <string name="tourist_counter_set_start">Початкове число</string>
+    <string name="tourist_counter_reset">Скинути</string>
+    <string name="tourist_counter_start_label">Початкове число: %1$s</string>
+    <string name="tourist_counter_session_label">Лік триває з %1$s</string>
+    <string name="tourist_counter_start_invalid">Введіть ціле число від 0</string>
+    <string name="tourist_counter_reset_title">Скинути лічильник?</string>
+    <string name="tourist_counter_reset_message">Лічильник повернеться до %1$s. Поточний лік збережеться в історії.</string>
+    <string name="tourist_counter_history">Історія</string>
+    <string name="tourist_counter_history_empty">Завершених відліків поки немає</string>
+    <string name="tourist_counter_history_period">%1$s - %2$s</string>
+    <string name="tourist_counter_clear_history">Очистити</string>
+    <string name="tourist_counter_clear_history_title">Очистити історію лічильника?</string>
 </resources>

@@ -23,6 +23,12 @@ interface SftpExchangeProducerSource {
     suspend fun producer(): SftpExchangeProducer?
 
     /**
+     * The entry the device publishes and broadcasts through (item AC), whether or not the share is published; a
+     * broadcast needs it with publishing off.
+     */
+    suspend fun outgoingEntry(): DeviceExchangeAccountEntry? = producer()?.entry
+
+    /**
      * The share's section 6.2 record as [producer] publishes it, with the direct endpoints of the server on
      * [port] at [hosts]; null while the server has no host key to describe.
      */
@@ -41,6 +47,8 @@ class SftpExchangeProducerProvider @Inject constructor(
     private val identityStore: SftpServerIdentityStore,
     private val ids: SftpRendezvousIdentityStore,
 ) : SftpExchangeProducerSource {
+
+    override suspend fun outgoingEntry(): DeviceExchangeAccountEntry? = accounts.outgoing()
 
     override suspend fun producer(): SftpExchangeProducer? {
         val config = settings.snapshot()

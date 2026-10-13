@@ -245,8 +245,12 @@ class WearPlaybackService : MediaSessionService() {
                 isPlaying = true
             )
         )
-        val file = playbackSetManager.currentSet.value?.current
-        val title = file?.title?.takeIf { it.isNotBlank() }
+        // A handed title names an item outside the playback set - a cast broadcast - so the set's current file,
+        // whatever it is, must not lend it a title or artwork.
+        val handedTitle = intent.getStringExtra(EXTRA_TITLE)
+        val file = if (handedTitle == null) playbackSetManager.currentSet.value?.current else null
+        val title = handedTitle
+            ?: file?.title?.takeIf { it.isNotBlank() }
             ?: file?.name
             ?: getString(R.string.wear_background_playback)
         val artist = file?.artist?.takeIf { it.isNotBlank() }
@@ -423,6 +427,7 @@ class WearPlaybackService : MediaSessionService() {
         private const val EXTRA_POSITION_MS = "com.sza.fastmediasorter.wear.extra.POSITION_MS"
         private const val EXTRA_STREAM_MEDIA_KIND = "com.sza.fastmediasorter.wear.extra.STREAM_MEDIA_KIND"
         private const val EXTRA_FILE_ID = "com.sza.fastmediasorter.wear.extra.FILE_ID"
+        private const val EXTRA_TITLE = "com.sza.fastmediasorter.wear.extra.TITLE"
 
         /** The id the audio screen uses for "no file", so a session with none matches no screen. */
         const val NO_FILE_ID = -1L
@@ -432,7 +437,8 @@ class WearPlaybackService : MediaSessionService() {
             fileId: Long,
             mediaUri: String,
             positionMs: Long,
-            streamMediaKind: String?
+            streamMediaKind: String?,
+            title: String? = null
         ): Intent =
             Intent(context, WearPlaybackService::class.java)
                 .setAction(ACTION_START)
@@ -440,6 +446,7 @@ class WearPlaybackService : MediaSessionService() {
                 .putExtra(EXTRA_MEDIA_URI, mediaUri)
                 .putExtra(EXTRA_POSITION_MS, positionMs)
                 .putExtra(EXTRA_STREAM_MEDIA_KIND, streamMediaKind)
+                .putExtra(EXTRA_TITLE, title)
 
         fun stopIntent(context: Context): Intent =
             Intent(context, WearPlaybackService::class.java).setAction(ACTION_STOP)

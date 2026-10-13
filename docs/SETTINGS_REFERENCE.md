@@ -90,7 +90,7 @@ _Generated from the app. Do not edit by hand._
 | Settings | Chooses app settings as the data set to export or import. |
 | Pinned streams | Chooses the pinned stream list as the data set to export or import. |
 | Language/Язык/Мова | Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. |
-| Primary startup window | Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the main screen. |
+| Primary startup window | Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the main screen. On a Googlebook the device home screen is not offered and the in-app desktop is the default. |
 | System launcher settings | Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density. |
 | Statistics | Opens the usage statistics screen. |
 | Power saving mode | Chooses when power saving mode is activated: off, on, or automatically when battery drops below 30%. |
@@ -180,6 +180,7 @@ _Available in: Standard, Legacy, VR, FOSS_
 |---|---|
 | Clear play marks | Clears the green and red play marks on all channels. The channels themselves stay. |
 | Streams | Opens the Streams screen for internet audio, video and RTSP sources, where you can add or import streams and play them. |
+| Play casts at once | When another of your devices casts a broadcast to this phone through your exchange server, accepts it without the Accept question; the notification then only opens the player. Off by default. |
 | Updating the channel list | Chooses when the app refreshes the channel list - only when you ask, by offering an update when you open Streams, or automatically on Wi-Fi. |
 | Audio language for streams | Picks the audio language the app prefers when a stream offers several. A channel that you set a language for yourself keeps its own choice. |
 | Show by default | Sets which channels the Streams screen shows by default - all of them, only audio, or only video. |
@@ -360,7 +361,7 @@ _Settings -> General -> System launcher settings_
 | App to launch | Sets the target of the upward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback. |
 | Notifications from other apps on the top bar | Shows one icon per other app that has pending notifications in the launcher top bar, with how many it has. Their title, text and attachments are never read. On by default and inert until the system grants notification access. |
 | Lock desktop | Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable. |
-| Change home screen | Opens Android's default-launcher chooser to switch the system home screen. |
+| Change home screen | Opens Android's default-launcher chooser to switch the system home screen. Hidden on Googlebook and XR, where the system does not let another app become the home screen. |
 | Hide system status bar | Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar. |
 | Screen timeout | Turns the screen off after a chosen period of inactivity on the launcher desktop - locking the device where a system lock is reachable, or showing a black screen where it is not. On by default after 30 seconds; presets of 5 to 300 seconds, a custom number of seconds, or never (off). Car head unit and photo-frame profiles start with never. |
 | Screen timeout when on charge | Turns the screen off after a chosen period of inactivity while the charger is connected, wired or wireless. It replaces the ordinary screen timeout for as long as power is attached; off by default, so a charging device keeps the desktop lit. Same choices as the screen timeout above: presets of 5 to 300 seconds, a custom number of seconds, or never (off). |

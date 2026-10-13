@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.tourist.TouristMetricType
 import com.sza.fastmediasorter.wear.domain.tourist.WearTouristState
 import com.sza.fastmediasorter.wear.domain.tourist.WearWeatherPosition
+import com.sza.fastmediasorter.wear.domain.usecase.ObserveWearTouristCounterUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ObserveWearTouristDashboardUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ObserveWearTouristWeatherUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishTouristHealthUseCase
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.sample
@@ -56,6 +58,7 @@ class TouristViewModel @Inject constructor(
     preferencesRepository: WearPreferencesRepository,
     private val publishTouristHealthUseCase: PublishTouristHealthUseCase,
     observeWeatherUseCase: ObserveWearTouristWeatherUseCase,
+    observeCounterUseCase: ObserveWearTouristCounterUseCase,
 ) : ViewModel() {
 
     private val selectedMetric = MutableStateFlow(TouristMetricType.SPEED)
@@ -94,12 +97,14 @@ class TouristViewModel @Inject constructor(
         selectedMetric,
         preferencesRepository.unitSystem,
         localState,
-    ) { telemetry, metric, unitSystem, local ->
+        observeCounterUseCase().map { it.value },
+    ) { telemetry, metric, unitSystem, local, counterValue ->
         TouristUiState(
             telemetry = telemetry.copy(focusedMetric = metric),
             isMetricSystem = unitSystem == UnitSystem.METRIC,
             isAthleteMode = local.isAthleteMode,
             isScreenLocked = local.isScreenLocked,
+            counterValue = counterValue,
         )
     }.stateIn(
         scope = viewModelScope,

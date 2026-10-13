@@ -457,6 +457,7 @@ data class BackupSettings(
         // The source device id is deliberately absent, because it addresses one phone (see
         // BackupSettingsCoverageTest).
         val streamsVisualizeAsMusic: Boolean? = null,
+        val streamsCastPlayAtOnce: Boolean? = null,
         val broadcastStreamTitle: String? = null,
         val broadcastBitRateBps: Int? = null,
         val broadcastPort: Int? = null,

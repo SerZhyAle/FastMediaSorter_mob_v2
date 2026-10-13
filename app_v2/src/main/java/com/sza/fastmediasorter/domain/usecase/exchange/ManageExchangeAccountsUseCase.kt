@@ -2,12 +2,14 @@ package com.sza.fastmediasorter.domain.usecase.exchange
 
 import android.content.Context
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectory
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeNotEnrolledException
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeRefusedException
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpRendezvousCodec
 import com.sza.fastmediasorter.data.repository.DeviceExchangeAccountRepository
 import com.sza.fastmediasorter.data.repository.settings.BroadcastSettingsStore
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
@@ -17,6 +19,7 @@ import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollResult
 import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollment
 import com.sza.fastmediasorter.domain.model.DeviceExchangePairingCode
 import com.sza.fastmediasorter.domain.model.DeviceExchangeRemoval
+import com.sza.fastmediasorter.domain.model.ExchangeCastRules
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringCodec
 import com.sza.fastmediasorter.domain.model.ExchangeEndpoint
 import com.sza.fastmediasorter.domain.model.ExchangeServerCall
@@ -96,14 +99,24 @@ class ManageExchangeAccountsUseCase @Inject constructor(
     fun connectionString(entry: DeviceExchangeAccountEntry): String? =
         accounts.connectionString(entry)?.let(ExchangeConnectionStringCodec::encode)
 
-    private fun enrollment() = DeviceExchangeEnrollment(
-        deviceName = BroadcastSettingsStore.defaultDeviceTitle(context),
-        productVersion = BuildConfig.VERSION_NAME,
-        roles = DeviceExchangeEnrollment.declaredRoles(
-            producer = capabilityAvailability.isSftpServerAvailable(mediaCapabilities),
-            broadcaster = broadcastSource.isAvailable,
-        ),
-    )
+    // A build with the streams player receives broadcasts and casts (7.8), so it declares what it plays.
+    private fun enrollment(): DeviceExchangeEnrollment {
+        val receiver = capabilityAvailability.isStreamsAvailable()
+        return DeviceExchangeEnrollment(
+            deviceName = BroadcastSettingsStore.defaultDeviceTitle(context),
+            productVersion = BuildConfig.VERSION_NAME,
+            roles = DeviceExchangeEnrollment.declaredRoles(
+                producer = capabilityAvailability.isSftpServerAvailable(mediaCapabilities),
+                broadcaster = broadcastSource.isAvailable,
+                receiver = receiver,
+            ),
+            receiver = if (receiver) {
+                SftpRendezvousCodec.receiverBody(ExchangeCastRules.phoneReceiver(BroadcastMode.entries.map { it.name }))
+            } else {
+                null
+            },
+        )
+    }
 
     private suspend fun <T> call(block: suspend () -> T): ExchangeServerCall<T> = try {
         ExchangeServerCall.Done(block())

@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.ui.welcome
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.core.compat.DesktopPlatformProbe
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.launcher.HomeRoleOfferability
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.data.model.DetectionConfidence
 import com.sza.fastmediasorter.data.model.DeviceProfile
@@ -96,7 +98,7 @@ class WelcomeViewModel @Inject constructor(
                 recommended
             }
             if (!hasExplicitPrimaryWindowChoice && selectedPrimaryWindow == null) {
-                selectedPrimaryWindow = LauncherPrimaryWindow.recommendedFor(selected)
+                selectedPrimaryWindow = recommendPrimaryWindow(selected)
             }
             updateState {
                 it.copy(
@@ -115,7 +117,7 @@ class WelcomeViewModel @Inject constructor(
     fun onProfileSelected(type: DeviceProfileType) {
         updateState { it.copy(selectedProfile = type) }
         if (!hasExplicitPrimaryWindowChoice) {
-            selectedPrimaryWindow = LauncherPrimaryWindow.recommendedFor(type)
+            selectedPrimaryWindow = recommendPrimaryWindow(type)
         }
         Timber.i("Device profile manually selected in Welcome: $type")
     }
@@ -387,8 +389,16 @@ class WelcomeViewModel @Inject constructor(
 
     fun getRecommendedPrimaryWindow(): LauncherPrimaryWindow {
         val profile = state.value.selectedProfile ?: state.value.recommendedProfile
-        return LauncherPrimaryWindow.recommendedFor(profile)
+        return recommendPrimaryWindow(profile)
     }
+
+    // Googlebook: no HOME role, and the in-app desktop is the default for every profile.
+    private fun recommendPrimaryWindow(profile: DeviceProfileType?): LauncherPrimaryWindow =
+        LauncherPrimaryWindow.recommendedFor(
+            profile,
+            homeRoleOfferable = HomeRoleOfferability.isOfferable(context),
+            desktopPlatform = DesktopPlatformProbe.isPcFormFactor(context),
+        )
 
     fun getSelectedPrimaryWindow(): LauncherPrimaryWindow {
         return selectedPrimaryWindow ?: getRecommendedPrimaryWindow()

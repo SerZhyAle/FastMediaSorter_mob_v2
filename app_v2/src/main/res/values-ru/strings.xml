@@ -4422,4 +4422,25 @@
     <string name="stream_broadcast_trust_refused">Сертификат сервера %1$s не совпадает с описанием трансляции, поэтому трансляция не воспроизведена.</string>
     <string name="stream_broadcast_ended">Эта трансляция закончилась или сейчас недоступна.</string>
     <string name="stream_broadcast_through_server">Через сервер: %1$s</string>
+    <string name="settings_streams_cast_play_at_once">Воспроизводить сразу</string>
+    <string name="settings_streams_cast_play_at_once_summary">Трансляция, которую ваше другое устройство передаёт сюда, начинается без вопроса «Принять»</string>
+    <string name="tourist_tile_counter">Счётчик</string>
+    <string name="tourist_detail_counter">Нажмите, чтобы считать</string>
+    <string name="tourist_counter_step_plus">+%1$d</string>
+    <string name="tourist_counter_step_minus">-%1$d</string>
+    <string name="tourist_counter_plus_one_description">Прибавить один</string>
+    <string name="tourist_counter_minus_one_description">Отнять один</string>
+    <string name="tourist_counter_extra_steps">Больше кнопок: от +3 до +1000</string>
+    <string name="tourist_counter_set_start">Начальное число</string>
+    <string name="tourist_counter_reset">Сбросить</string>
+    <string name="tourist_counter_start_label">Начальное число: %1$s</string>
+    <string name="tourist_counter_session_label">Счёт идёт с %1$s</string>
+    <string name="tourist_counter_start_invalid">Введите целое число от 0</string>
+    <string name="tourist_counter_reset_title">Сбросить счётчик?</string>
+    <string name="tourist_counter_reset_message">Счётчик вернётся к %1$s. Текущий счёт сохранится в истории.</string>
+    <string name="tourist_counter_history">История</string>
+    <string name="tourist_counter_history_empty">Завершённых отсчётов пока нет</string>
+    <string name="tourist_counter_history_period">%1$s - %2$s</string>
+    <string name="tourist_counter_clear_history">Очистить</string>
+    <string name="tourist_counter_clear_history_title">Очистить историю счётчика?</string>
 </resources>

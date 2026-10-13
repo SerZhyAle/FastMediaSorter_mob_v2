@@ -58,5 +58,11 @@ if (-not (@($forwarded) -match '^-ModelPolicy$')) {
     }
 }
 
-& $pwshExe -NoProfile -File $runnerScript -Instance mono -PromptTemplate '/spec-all -m {id}' @policyArgs @forwarded
+# -Quiet keeps each child's stdout and stderr in temp/spec-queue/<id>.log, the only record of why a
+# child exited non-zero: the journal row carries the exit code alone (S4191). A forwarded -Quiet is
+# not repeated, since a parameter bound twice fails the call.
+$quietArgs = @()
+if (-not (@($forwarded) -match '^-Quiet(:.*)?$')) { $quietArgs = @('-Quiet') }
+
+& $pwshExe -NoProfile -File $runnerScript -Instance mono -PromptTemplate '/spec-all -m {id}' @policyArgs @quietArgs @forwarded
 exit $LASTEXITCODE

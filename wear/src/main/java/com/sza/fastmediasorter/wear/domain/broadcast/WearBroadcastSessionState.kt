@@ -69,7 +69,16 @@ class WearBroadcastSessionStateHolder {
 
     val state: StateFlow<WearBroadcastSessionState> = mutableState.asStateFlow()
 
+    private val mutableLanListeners = MutableStateFlow(0)
+
+    /** People listening on the LAN right now; the exchange announcer lowers the relay cap by it. */
+    val lanListeners: StateFlow<Int> = mutableLanListeners.asStateFlow()
+
     fun publish(next: WearBroadcastSessionState) {
         mutableState.value = next
+    }
+
+    fun publishLanListeners(count: Int) {
+        mutableLanListeners.value = count
     }
 }

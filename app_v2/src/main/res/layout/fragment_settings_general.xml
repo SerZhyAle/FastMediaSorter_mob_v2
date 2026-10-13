@@ -830,14 +830,16 @@
 
                 <LinearLayout android:id="@+id/containerAppData" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <!-- Debug Logs Export -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <!-- Debug Logs Export. Flow chip group: a linear row squeezed the second button at a large font scale. -->
+                    <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShareLogs" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/share_debug_logs" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_share" />
+                        <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowDebugLogs" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_verticalBias="0" app:flow_horizontalGap="@dimen/margin_small" app:flow_verticalGap="@dimen/margin_tiny" app:constraint_referenced_ids="btnShareLogs,btnSaveLogs" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShareLogs" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/share_debug_logs" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_share" />
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnSaveLogs" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/save_debug_logs" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_save" />
 
-                    </LinearLayout>
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <!-- Settings backup group: file export/import + Google Drive backup/restore (all operate on settings, kept adjacent). -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
@@ -1240,12 +1242,12 @@
 
         </LinearLayout>
 
-        <!-- PERMISSIONS + SYSTEM INFO ROW - permissions navigates to PermissionsManagementFragment; system info opens the System info dialog -->
-        <LinearLayout
+        <!-- PERMISSIONS + SYSTEM INFO ROW - permissions navigates to PermissionsManagementFragment; system info opens the System info dialog.
+             Flow, not a horizontal LinearLayout: at a large font scale the two labels no longer fit side by side, and a linear row
+             squeezed the second button to icon width and stacked its label one character per line. -->
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
             android:layout_marginHorizontal="@dimen/margin_small"
             android:layout_marginTop="@dimen/margin_tiny"
             android:layout_marginBottom="@dimen/margin_tiny">
@@ -1255,7 +1257,6 @@
                 style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/margin_small"
                 android:text="@string/settings_category_permissions"
                 app:icon="@drawable/ic_lock"
                 app:iconGravity="start" />
@@ -1269,7 +1270,21 @@
                 app:icon="@drawable/ic_info"
                 app:iconGravity="start" />
 
-        </LinearLayout>
+            <androidx.constraintlayout.helper.widget.Flow
+                android:id="@+id/flowPermissionsSystemInfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:constraint_referenced_ids="btnPermissionsManagement,btnSystemInfo"
+                app:flow_wrapMode="chain"
+                app:flow_horizontalStyle="packed"
+                app:flow_horizontalBias="0"
+                app:flow_horizontalGap="@dimen/margin_small"
+                app:flow_verticalGap="@dimen/margin_tiny"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <!-- ABOUT SECTION (heading removed - content sits flush under permissions section) -->
         <LinearLayout

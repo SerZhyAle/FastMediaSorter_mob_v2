@@ -144,6 +144,7 @@ internal object BackupSettingsGroupMapper {
         streamingCacheTtlDays = settings.streamingCacheTtlDays,
         prefetchCacheMultiplier = settings.prefetchCacheMultiplier.name,
         streamsVisualizeAsMusic = settings.streamsVisualizeAsMusic,
+        streamsCastPlayAtOnce = settings.streamsCastPlayAtOnce,
         // S3222: the backup DTO keeps the flat names it was written with - the fold happened in the
         // settings model, and a restore must still read a file produced by an older build.
         broadcastStreamTitle = settings.broadcast.streamTitle,
@@ -387,7 +388,6 @@ internal object BackupSettingsGroupMapper {
                 .toEnumOr(streamingCacheCleanupMode),
             streamingCacheTtlDays = backup.streamingCacheTtlDays,
             prefetchCacheMultiplier = backup.prefetchCacheMultiplier.toEnumOr(prefetchCacheMultiplier),
-            streamsVisualizeAsMusic = backup.streamsVisualizeAsMusic ?: streamsVisualizeAsMusic,
             enableBroadcasting = backup.enableBroadcasting ?: enableBroadcasting,
             broadcast = broadcast.copy(
                 streamTitle = backup.broadcastStreamTitle ?: broadcast.streamTitle,
@@ -407,8 +407,14 @@ internal object BackupSettingsGroupMapper {
                 videoFps = backup.broadcastVideoFps ?: broadcast.videoFps,
                 videoBitrateBps = backup.broadcastVideoBitrateBps ?: broadcast.videoBitrateBps,
             )
-        )
+        ).applyStreamToggles(backup)
     }
+
+    // The optional streams toggles, apart so applyStreams stays under the complexity ceiling.
+    private fun AppSettings.applyStreamToggles(backup: BackupSettings.Streams): AppSettings = copy(
+        streamsVisualizeAsMusic = backup.streamsVisualizeAsMusic ?: streamsVisualizeAsMusic,
+        streamsCastPlayAtOnce = backup.streamsCastPlayAtOnce ?: streamsCastPlayAtOnce,
+    )
 
     private fun AppSettings.applyAppearance(backup: BackupSettings.Appearance?): AppSettings {
         if (backup == null) return this

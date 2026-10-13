@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.11 01:45</sub>
+<sub class="doc-stamp">26.10.13 13:16</sub>
 
 # Pointer - `DEVICE-EXCHANGE`
 
@@ -49,15 +49,20 @@
   entry's join and leave, the watch through the phone's entry.
 - S4160 - receiving a broadcast from any exchange server its descriptor names, and the broadcast's own share
   carrying its exchange endpoints.
+- S4172 - the 0.19 read (section 17) and this product's registry row.
 
-## Original resource PIN boundary (Windows specification 216)
+## Original resource PIN boundary (section 17, items AG to AL)
 
 The original resource PIN is separate from exchange enrollment, certificate pinning and the account
-password. This Android build takes section 17 AJ's explicit unsupported path: any protection marker,
-including malformed or unknown protection, remains locked. The rendezvous codec removes all access
-material, preserves the protection fact through Drive wrapper schema 2, and the directory excludes it
-from legacy attachment import. The phone does not advertise pin-v1 or claim SSH PIN authorization;
-Wear's device/broadcast directory does not implement protected-folder attachment either.
+password. The embedded SFTP server's roots are folders picked in its own settings and carry no access PIN,
+so this producer publishes no `protection` (item AG's truth rule, 14.5 item O). The phone consumer takes
+item AJ's explicit unsupported path: any protection marker, including malformed or unknown protection,
+remains locked. The rendezvous codec removes all access material, preserves the protection fact through
+Drive wrapper schema 2, and the directory excludes it from legacy attachment import. The phone does not
+advertise `pin-v1` or claim SSH PIN authorization; the per-root proof waits on the amendment item AK owes
+to `SHARE-SESSION` and `WORKER-IPC`. Wear's exchange client decodes no resource record, so it attaches
+nothing protected.
 
 ResourceProtectionTest exercises known, future and malformed protection plus protected Drive round trips.
-A native Android resource PIN entry flow and physical phone/Wear acceptance are not claimed by this change.
+`vectors/protection-v1.json` is not replayed here yet, and item AL's joint negative-access run has not run
+for this client pair.

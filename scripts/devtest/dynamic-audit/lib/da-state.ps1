@@ -738,7 +738,10 @@ function Restore-DaBackup {
     & $step 'stand-objects' {
         $c = $comp['stand-objects']
         if ($c -and -not $c.present -and (Test-DaRemoteDir -Serial $Serial -Path $c.devicePath)) {
-            $null = Invoke-DaAdb -Serial $Serial -Arguments @('shell', "rm -rf '$($c.devicePath)'"); return 'removed stand-created fixture root'
+            # A published n10000 set is ten thousand FUSE deletions; the 120 s default timed out mid-delete and left the root behind.
+            $rm = Invoke-DaAdb -Serial $Serial -Arguments @('shell', "rm -rf '$($c.devicePath)'") -TimeoutMs 1800000
+            if ($rm.ExitCode -ne 0) { throw "removing $($c.devicePath) failed (exit $($rm.ExitCode), timed out $($rm.TimedOut)): $($rm.Stderr)" }
+            return 'removed stand-created fixture root'
         }
         'unchanged'
     }

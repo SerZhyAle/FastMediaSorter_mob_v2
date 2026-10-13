@@ -217,6 +217,28 @@ try {
         if ($result.ExitCode -ne 0) { return "expected exit 0, got $($result.ExitCode)" }
         if ($result.Text -notmatch 'long domain holds\s*:\s*n/a') { return "the hold line is not n/a: $($result.Text)" }
     }
+
+    Assert-Case 'T10 outcomes group by model and catalog tier and count a run the next run found Partial' {
+        $root = New-FixtureRoot -RunRows @(
+            '{"id":"S0010","model":"sonnet","policy":"shape","statusBefore":"Approved","moved":true,"minutes":6,"finishedAt":"2026-06-01T10:00:00"}',
+            '{"id":"S0010","model":"opus","policy":"shape","statusBefore":"Partial","moved":true,"minutes":9,"finishedAt":"2026-06-01T12:00:00"}',
+            '{"id":"S0011","model":"sonnet","policy":"shape","statusBefore":"Approved","moved":false,"minutes":4,"finishedAt":"2026-06-01T13:00:00"}',
+            '{"id":"S0012","model":"opus","policy":"shape","statusBefore":"Draft","moved":true,"minutes":20,"finishedAt":"2026-06-01T14:00:00"}'
+        )
+        $script:roots += $root
+        New-Item -ItemType Directory -Path (Join-Path $root 'PLAN') -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $root 'PLAN/spec-catalog.jsonl') -Encoding UTF8 -Value @(
+            '{"id":"S0010","tier":2}', '{"id":"S0011","tier":2}'
+        )
+        $json = (Invoke-Summary @('-Root', $root, '-Since', '2026-05-01', '-Until', '2026-07-01', '-Json')).Text | ConvertFrom-Json
+        $sonnet2 = @($json.outcomes | Where-Object { $_.Model -eq 'sonnet' -and $_.Tier -eq '2' })
+        if ($sonnet2.Count -ne 1) { return 'no sonnet / tier 2 row' }
+        if ($sonnet2[0].Runs -ne 2) { return "expected 2 sonnet tier-2 runs, got $($sonnet2[0].Runs)" }
+        if ($sonnet2[0].MovedShare -ne 50) { return "expected 50 % moved, got $($sonnet2[0].MovedShare)" }
+        if ($sonnet2[0].Returned -ne 1) { return "expected 1 returned run, got $($sonnet2[0].Returned)" }
+        $unknownTier = @($json.outcomes | Where-Object { $_.Model -eq 'opus' -and $_.Tier -eq '?' })
+        if ($unknownTier.Count -ne 1 -or $unknownTier[0].Runs -ne 1) { return 'a ticket missing from the catalog did not land under tier ?' }
+    }
 }
 finally {
     foreach ($root in $roots) {

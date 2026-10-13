@@ -34,6 +34,7 @@ object StreamsSettingsStore {
     // S1144: global default track languages for stream playback; a per-channel preference overrides them.
     private val KEY_DEFAULT_AUDIO_LANGUAGE = stringPreferencesKey("streams_default_audio_language")
     private val KEY_DEFAULT_SUBTITLE_LANGUAGE = stringPreferencesKey("streams_default_subtitle_language")
+    private val KEY_CAST_PLAY_AT_ONCE = booleanPreferencesKey("streams_cast_play_at_once")
 
     /** Streams fields read from DataStore, ready for [AppSettings]. */
     data class Values(
@@ -46,6 +47,7 @@ object StreamsSettingsStore {
         val streamsVisualizeAsMusic: Boolean,
         val streamsDefaultAudioLanguage: StreamTrackLanguage,
         val streamsDefaultSubtitleLanguage: StreamTrackLanguage,
+        val streamsCastPlayAtOnce: Boolean,
     )
 
     fun read(preferences: Preferences): Values = Values(
@@ -58,6 +60,7 @@ object StreamsSettingsStore {
         streamsVisualizeAsMusic = preferences[KEY_VISUALIZE_AS_MUSIC] ?: false,
         streamsDefaultAudioLanguage = StreamTrackLanguage.fromName(preferences[KEY_DEFAULT_AUDIO_LANGUAGE]),
         streamsDefaultSubtitleLanguage = StreamTrackLanguage.fromName(preferences[KEY_DEFAULT_SUBTITLE_LANGUAGE]),
+        streamsCastPlayAtOnce = preferences[KEY_CAST_PLAY_AT_ONCE] ?: false,
     )
 
     fun write(preferences: MutablePreferences, settings: AppSettings) {
@@ -70,5 +73,6 @@ object StreamsSettingsStore {
         preferences[KEY_VISUALIZE_AS_MUSIC] = settings.streamsVisualizeAsMusic
         preferences[KEY_DEFAULT_AUDIO_LANGUAGE] = settings.streamsDefaultAudioLanguage.name
         preferences[KEY_DEFAULT_SUBTITLE_LANGUAGE] = settings.streamsDefaultSubtitleLanguage.name
+        preferences[KEY_CAST_PLAY_AT_ONCE] = settings.streamsCastPlayAtOnce
     }
 }

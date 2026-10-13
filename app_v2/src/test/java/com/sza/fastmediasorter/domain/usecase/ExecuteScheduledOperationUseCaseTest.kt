@@ -68,6 +68,9 @@ class ExecuteScheduledOperationUseCaseTest {
             // so a relaxed mock records the events and asserts nothing about them.
             mockk(relaxed = true),
             MutationRecorder(journal, pathNormalizer),
+            // The real archiver: a local-to-local run never touches Context (only error strings and
+            // content:// reads do), so these tests assert the ZIP that actually lands on disk.
+            ArchiveFilesUseCase(mockk(relaxed = true), mockk(relaxed = true)),
         )
     }
 
@@ -381,5 +384,67 @@ class ExecuteScheduledOperationUseCaseTest {
 
         assertTrue(result.permissionRequired)
         assertTrue(recorded(1L).isEmpty())
+    }
+
+    // -- S4173: ARCHIVE --------------------------------------------------------
+
+    private fun archiveOperation(sourceType: ResourceType, sourcePath: String, targetType: ResourceType) {
+        scheduledRepo.setOperations(
+            listOf(
+                createScheduledOperation(
+                    id = 1L,
+                    sourceResourceId = 1L,
+                    targetResourceId = 2L,
+                    operationType = ScheduledOpType.ARCHIVE,
+                    fileTypeMask = FileTypeFlags.IMAGES
+                )
+            )
+        )
+        resourceRepo.setResources(
+            listOf(
+                createMediaResource(id = 1L, name = "Camera", type = sourceType, path = sourcePath),
+                createMediaResource(id = 2L, type = targetType, path = targetDir.absolutePath),
+            )
+        )
+    }
+
+    @Test
+    fun `archive packs local files into one zip and keeps the sources`() = runTest {
+        val srcDir = tempFolder.newFolder("src")
+        val sources = listOf("a.jpg", "b.jpg").map { File(srcDir, it).apply { writeText(it) } }
+        archiveOperation(ResourceType.LOCAL, srcDir.absolutePath, ResourceType.LOCAL)
+        stubFiles(sources.map { createMediaFile(name = it.name, path = it.absolutePath, type = MediaType.IMAGE) })
+
+        val result = useCase(1L)
+
+        assertTrue(result.errors.toString(), result.isSuccess)
+        assertEquals(2, result.filesProcessed)
+        val zips = targetDir.listFiles { f -> f.name.endsWith(".zip") }.orEmpty()
+        assertEquals(1, zips.size)
+        assertTrue(zips.single().name.startsWith("Camera_"))
+        assertTrue(sources.all { it.exists() })
+        coVerify(exactly = 0) { fileOperationUseCase.execute(any()) }
+        assertTrue(recorded(1L).isEmpty())
+    }
+
+    @Test
+    fun `archive rejects a network source and creates no zip`() = runTest {
+        archiveOperation(ResourceType.SMB, "smb://host/share", ResourceType.LOCAL)
+
+        val result = useCase(1L)
+
+        assertFalse(result.isSuccess)
+        assertEquals("Archive source must be a local resource", result.errors.single())
+        assertTrue(targetDir.listFiles().orEmpty().isEmpty())
+    }
+
+    @Test
+    fun `archive rejects a network target`() = runTest {
+        archiveOperation(ResourceType.LOCAL, "/src", ResourceType.SMB)
+
+        val result = useCase(1L)
+
+        assertFalse(result.isSuccess)
+        assertEquals("Archive target must be a local folder", result.errors.single())
     }
 }

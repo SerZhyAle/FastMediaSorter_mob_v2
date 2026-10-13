@@ -33,8 +33,8 @@
                    page, in its own language, are the ones the build gives. A page not yet generated
                    is not judged here - generate-docs-pages.ps1 -Check reports it
 
-    A surface is a site-facing text only (the `Surfaces` of the declaration): developer documents state
-    the matrix's own count and belong to assert-flavor-count-prose.ps1. The generated search index is
+    A surface is a site-facing text only (the `Surfaces` of the declaration): developer documents point
+    at docs/FLAVOR_MATRIX.md instead of stating a count (S4190). The generated search index is
     not scanned; it is derived from the pages. HTML is read as text, tags replaced by a space.
 
     PER-TICKET by Rule 33, wired beside assert-site-origins.ps1: a count typed into a page is wrong the

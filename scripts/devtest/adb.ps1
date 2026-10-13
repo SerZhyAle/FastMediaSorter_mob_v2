@@ -551,12 +551,35 @@ function Invoke-AdbBounded {
 # That artifact was twice read as a rendering failure and cost a P90 ticket, so `shot` reports the
 # flag next to the file instead of leaving the reader to guess. Every probe is best-effort: a
 # screenshot must never fail on account of its own diagnostics.
+# S4190: the screen signature an agent's walk is judged by. `shot` and `uidump` print it as WINDOW and
+# LAYOUT lines, and .claude/hooks/observe-device-walk-progress.ps1 counts consecutive calls that carry
+# the same one - an exploratory walk on 2026-10-03 scrolled one screen for two hours. Printing only,
+# never an exit code: ui-sweep-walk, dynamic-audit and other scripts call these verbs and must keep theirs.
+function Get-FocusedWindowName {
+    param([string]$DumpsysWindow)
+    $m = [regex]::Match($DumpsysWindow, 'mCurrentFocus=Window\{\w+ u\d+ ([^}\s]+)\}')
+    if ($m.Success) { return $m.Groups[1].Value }
+    return ''
+}
+
+# Resource ids, not labels or bounds: scrolling a list changes the visible text and positions but not
+# which views exist, and "the same screen scrolled" is exactly what the walk guard has to recognise.
+function Get-ScreenLayoutSignature {
+    param([object[]]$Nodes)
+    $ids = @($Nodes | ForEach-Object { [string]$_.resId } | Where-Object { $_ } | Sort-Object -Unique)
+    if ($ids.Count -eq 0) { return '' }
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes(($ids -join '|'))
+    $hash = [System.Security.Cryptography.SHA1]::HashData($bytes)
+    return ([System.BitConverter]::ToString($hash) -replace '-', '').Substring(0, 12).ToLower()
+}
+
 function Test-SecureFocusedWindow {
     param([string]$Id)
     # `dumpsys window`, not `dumpsys window windows`: on Android 15 only the former prints the
     # mCurrentFocus line, and it carries the per-window "Window #N .." blocks as well, so one call
     # answers both halves.
     $raw = (Invoke-Adb $Id @('shell', 'dumpsys', 'window') -AllowFail) -join "`n"
+    $script:FocusedWindowName = Get-FocusedWindowName $raw
     $focus = [regex]::Match($raw, 'mCurrentFocus=Window\{(\w+)')
     if (-not $focus.Success) { return $false }
     $focusHash = $focus.Groups[1].Value
@@ -1298,8 +1321,10 @@ switch ($Verb.ToLowerInvariant()) {
                 $treeNodes = ([regex]'<node\b').Matches($treeRead.xml).Count
             }
         }
-        if ($Json) { Emit-Ok @{ id = $id; file = $local; secureWindow = $secureWindow; treeFile = $treeFile; treeNodes = $treeNodes } }
+        $window = [string]$script:FocusedWindowName
+        if ($Json) { Emit-Ok @{ id = $id; file = $local; secureWindow = $secureWindow; treeFile = $treeFile; treeNodes = $treeNodes; window = $window } }
         Write-Host "SHOT $local" -ForegroundColor Green
+        Write-Output "WINDOW $window"
         if ($secureWindow) {
             Write-Host "NOTE the focused window carries FLAG_SECURE - this capture is expected to be" -ForegroundColor Yellow
             Write-Host "     black (or zero-byte). That is the flag working, not a rendering failure." -ForegroundColor Yellow
@@ -1426,11 +1451,15 @@ switch ($Verb.ToLowerInvariant()) {
         $script:result.device = $id
         $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
         $nodes = @(Get-UiNodes (Get-UiTree $id $file -Stable))
+        $layout = Get-ScreenLayoutSignature $nodes
+        $window = Get-FocusedWindowName ((Invoke-Adb $id @('shell', 'dumpsys', 'window') -AllowFail) -join "`n")
         if (-not $Ids) { $nodes = @($nodes | Where-Object { $_.labelled }) }
         # -Grep spans the identifier too, so the same regex serves both ways of naming a target.
         if ($Grep) { $nodes = @($nodes | Where-Object { $_.label -match $Grep -or $_.resId -match $Grep }) }
-        if ($Json) { Emit-Ok @{ id = $id; file = $file; count = $nodes.Count; nodes = @($nodes) } }
+        if ($Json) { Emit-Ok @{ id = $id; file = $file; count = $nodes.Count; nodes = @($nodes); window = $window; layout = $layout } }
         Write-Host "TREE $file" -ForegroundColor Green
+        Write-Output "WINDOW $window"
+        Write-Output "LAYOUT $layout"
         foreach ($n in $nodes) {
             # The label is the product of this verb, so it goes to the success stream and survives a
             # redirect; the file path and the count are decoration and stay on information (S1183).

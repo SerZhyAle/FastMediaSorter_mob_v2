@@ -1841,7 +1841,7 @@ Facade of the S4166 dynamic-audit stand: emulator guard, verified backup, restor
 scripts/devtest/dynamic-audit/da.ps1
   Facade of the S4166 dynamic-audit stand: emulator guard, verified backup, restore, recovery and fixtures.
   Params:
-    -Verb              (req)  [String]  {Preflight|Backup|VerifyBackup|BeginMutation|Restore|Recover|Fixture|Status|BuildInventory|BuildMatrix|BuildUCards|Calibrate|Control|Access|Scene|Heavy}
+    -Verb              (req)  [String]  {Preflight|Backup|VerifyBackup|BeginMutation|Restore|Recover|Fixture|Status|BuildInventory|BuildMatrix|BuildUCards|Calibrate|Control|Access|Scene|Heavy|Cycle|Analyze|Report}
     -Serial                   [String]
     -Package                  [String] = 'com.sza.fastmediasorter.debug'
     -Set                      [String] = 'small'  {small|n1000|n10000}
@@ -1861,9 +1861,14 @@ scripts/devtest/dynamic-audit/da.ps1
     -InjectFault              [String] = 'none'  {none|late-tick|sampler-gap}
     -StandFix                 [String]
     -Screen                   [String] = 'current screen'
-    -Scene                    [String]  {C01|C02|C03|C07|C15}
+    -Scene                    [String]  {C01|C02|C03|C07|C15|C05|C06|C12|C14|C16}
     -Fault                    [String]
     -FreshBackup              [SwitchParameter]
+    -Cycles                   [Int32] = 20  {range 1..1000}
+    -WarmupCycles             [Int32] = 3  {range 0..999}
+    -IdleSec                  [Int32] = 60  {range 1..3600}
+    -HeapSnapshot             [SwitchParameter]
+    -RunDir                   [String]
   Exit: 0 - ok; 1 - finding (a fixture tree differs from its manifest; a scene broke an invariant, recorded a candidate
 ```
 
@@ -1908,6 +1913,15 @@ Shared library of the S4166 dynamic-audit stand: exit codes, monotonic clock, ad
 ```
 scripts/devtest/dynamic-audit/lib/da-common.ps1
   Shared library of the S4166 dynamic-audit stand: exit codes, monotonic clock, adb process wrappers, JSON IO, paths.
+  (no param block)
+```
+
+### da-cycle.ps1
+Load and growth cycle scenes of the S4166 dynamic-audit stand: C05, C06, C12, C14, C16 and the cycle runner.
+
+```
+scripts/devtest/dynamic-audit/lib/da-cycle.ps1
+  Load and growth cycle scenes of the S4166 dynamic-audit stand: C05, C06, C12, C14, C16 and the cycle runner.
   (no param block)
 ```
 
@@ -1956,6 +1970,15 @@ scripts/devtest/dynamic-audit/lib/da-probe.ps1
   (no param block)
 ```
 
+### da-report.ps1
+S4166 dynamic-audit stand: consolidation of run records into matrix cells, finding cards, redacted export and the first-pass report.
+
+```
+scripts/devtest/dynamic-audit/lib/da-report.ps1
+  S4166 dynamic-audit stand: consolidation of run records into matrix cells, finding cards, redacted export and the first-pass report.
+  (no param block)
+```
+
 ### da-sampler.ps1
 Out-of-process 1 Hz resource sampler of the S4166 dynamic-audit stand, bound to a process id and its start identity.
 
@@ -1966,11 +1989,11 @@ scripts/devtest/dynamic-audit/lib/da-sampler.ps1
 ```
 
 ### da-scenes.ps1
-Scene registry, mutation envelope, scene runs and heavy-run sequence of the S4166 dynamic-audit stand (lifecycle scenes C01, C02, C03 and file-operation scenes C07, C15).
+Scene registry, mutation envelope, scene runs and heavy-run sequence of the S4166 dynamic-audit stand (lifecycle scenes C01, C02, C03, file-operation scenes C07, C15, load and growth cycle scenes C05, C06, C12, C14, C16).
 
 ```
 scripts/devtest/dynamic-audit/lib/da-scenes.ps1
-  Scene registry, mutation envelope, scene runs and heavy-run sequence of the S4166 dynamic-audit stand (lifecycle scenes C01, C02, C03 and file-operation scenes C07, C15).
+  Scene registry, mutation envelope, scene runs and heavy-run sequence of the S4166 dynamic-audit stand (lifecycle scenes C01, C02, C03, file-operation scenes C07, C15, load and growth cycle scenes C05, C06, C12, C14, C16).
   (no param block)
 ```
 
@@ -3882,7 +3905,7 @@ scripts/quality/assert-fast-gates.ps1
     -FailOnSkipped         [SwitchParameter]
     -ThrottleLimit         [Int32] = 0  {range 0..64}
     -ShowPasses            [SwitchParameter]
-  Exit: 0 every gate passed; or, with -ChangedFiles, every gate that judged the changed set
+  Exit: 30 of 36, scoped runs in 0 of 10.
 ```
 
 ### assert-fdsec-vectors-provenance.ps1
@@ -3955,19 +3978,6 @@ scripts/quality/assert-flavor-binding-coverage.ps1
   Exit: 0 - every unconditionally injected type has a binding in every flavor, or findings were reported
 ```
 
-### assert-flavor-count-prose.ps1
-Fail when prose or a script's help text claims a flavor count, or a complete flavor list, that the generated flavor matrix disagrees with.
-
-```
-scripts/quality/assert-flavor-count-prose.ps1
-  Fail when prose or a script's help text claims a flavor count, or a complete flavor list, that the generated flavor matrix disagrees with.
-  Params:
-    -Gate             [SwitchParameter]
-    -Quiet            [SwitchParameter]
-    -RepoRoot         [String] = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
-  Exit: 0 - every quantified flavor claim matches the matrix (or findings exist without -Gate).; 1 - at least one claim contradicts the matrix, and -Gate was passed.; 2 - could not verify: docs/flavors/flavor-matrix.json is absent or declares no flavors, so
-```
-
 ### assert-flavor-flags-not-growing.ps1
 Ratchet gate: the number of flavor-flag reads in src/main must never grow.
 
@@ -4019,22 +4029,6 @@ scripts/quality/assert-focus-parity.ps1
   Params:
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
-```
-
-### assert-gate-count-prose.ps1
-S2935: fail when a document states a gate population the live tree disagrees with - the fast-gate count in docs/BUILD_TEST_FAST_PATH.md, and the assert-*.ps1 inventory in section 9 of docs/RULES_DIGEST.md.
-
-```
-scripts/quality/assert-gate-count-prose.ps1
-  S2935: fail when a document states a gate population the live tree disagrees with - the fast-gate count in docs/BUILD_TEST_FAST_PATH.md, and the assert-*.ps1 inventory in section 9 of docs/RULES_DIGEST.md.
-  Params:
-    -Gate                  [SwitchParameter]
-    -Quiet                 [SwitchParameter]
-    -RunnerPath            [String]
-    -DocPath               [String]
-    -DigestPath            [String]
-    -GateDirectory         [String]
-  Exit: 0 - both documented populations match the live tree, or a finding exists and -Gate was absent.; 1 - a documented population contradicts the live tree, and -Gate was passed.; 2 - could not verify: a file or the gate directory is absent, the runner does not parse, it
 ```
 
 ### assert-gate-hints-sync.ps1
@@ -4964,18 +4958,6 @@ scripts/quality/assert-script-references.ps1
   Exit: 0 - every finding is in the baseline, or -Report was given; 1 - an unreferenced script that is not in the baseline appeared, a memory path resolves to
 ```
 
-### assert-sdk-pin-claims.ps1
-Fail when a document or agent definition claims an SDK pin value the build files disagree with.
-
-```
-scripts/quality/assert-sdk-pin-claims.ps1
-  Fail when a document or agent definition claims an SDK pin value the build files disagree with.
-  Params:
-    -Gate          [SwitchParameter]
-    -Quiet         [SwitchParameter]
-  Exit: 0 - every scanned claim matches the build files (or mismatches found without -Gate).; 1 - at least one claim contradicts the build files, and -Gate was passed.; 2 - could not verify: the build file or its pin could not be read, so nothing was compared.
-```
-
 ### assert-security-posture.ps1
 Assert docs/SECURITY_POSTURE.md still describes what the app declares and links (S3380).
 
@@ -5625,6 +5607,7 @@ scripts/quality/detekt-scoped.ps1
     -CacheRoot            [String] = (Join-Path $env:USERPROFILE '.gradle/caches/modules-2/files-2.1')
     -Fix                  [SwitchParameter]
     -VerdictPath          [String]
+    -ReportDir            [String]
     -Json                 [SwitchParameter]
   Exit: 0 - the analyser ran and found nothing new in the named files (or there were none to check).; 1 - the analyser ran and found at least one new finding; each is printed. Never returned in
 ```
@@ -6323,18 +6306,6 @@ scripts/quality/assert-fast-gates.tests/Run-Tests.ps1
   Params:
     -Help         [SwitchParameter]
   Exit: 0 every case passed.; 1 at least one case failed.; 2 cannot verify - the subject script is missing.
-```
-
-## scripts\quality\assert-flavor-count-prose.tests
-
-### Run-Tests.ps1
-Run-Tests.ps1 (S2919) - regression suite for assert-flavor-count-prose.ps1.
-
-```
-scripts/quality/assert-flavor-count-prose.tests/Run-Tests.ps1
-  Run-Tests.ps1 (S2919) - regression suite for assert-flavor-count-prose.ps1.
-  (no param block)
-  Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
 ## scripts\quality\assert-gate-placement.tests
@@ -8965,6 +8936,20 @@ scripts/utils/archive-temp.ps1
   Exit: 0 - completed (or dry run completed); 1 - a move failed; 2 - could not verify: repo root or spec catalog CLI not found
 ```
 
+### archive-untriaged-drafts.ps1
+S4190: list, and archive past their deadline, the agent-parked findings nobody triaged.
+
+```
+scripts/utils/archive-untriaged-drafts.ps1
+  S4190: list, and archive past their deadline, the agent-parked findings nobody triaged.
+  Params:
+    -Days                  [Int32] = 14
+    -List                  [SwitchParameter]
+    -RepoRoot              [String]
+    -ArchiveScript         [String]
+  Exit: 0 - listed, or every expired ticket archived (including none).; 1 - archive.ps1 refused at least one id; its output is printed.; 2 - could not verify: the catalog journal is absent or unreadable.
+```
+
 ### archive-vscode-cruft.ps1
 Reclaims disk space from VSCode / VSCode Insiders user data and Claude Code transcripts.
 
@@ -9047,9 +9032,11 @@ scripts/utils/capture-draft.ps1
     -DedupQuery                   [String] = ''
     -AllowClosedDuplicate         [SwitchParameter]
     -Verify                       [String] = ''
+    -Complexity                   [String] = ''
     -AppendToOpen                 [SwitchParameter]
+    -Parked                       [SwitchParameter]
     -RepoRoot                     [String] = ''
-  Exit: 0 ticket created or text appended, or -WhatIf finished its dedup report.; 1 the catalog refused the insert or the spec file could not be written.; 2 bad invocation - invalid slug, no text or both text forms, missing attachment or template.; 3 refused - the dedup query hit a ticket in a closed status; pass -AllowClosedDuplicate for a
+  Exit: 0 ticket created or text appended, or -WhatIf finished its dedup report.; 1 the catalog refused the insert, the spec file could not be written, or -Parked could not
 ```
 
 ### check-typo-lint.ps1
@@ -10218,6 +10205,18 @@ Test suite for scripts/utils/archive-temp.ps1 (S3037).
 scripts/utils/archive-temp.tests/Run-Tests.ps1
   Test suite for scripts/utils/archive-temp.ps1 (S3037).
   (no param block)
+```
+
+## scripts\utils\archive-untriaged-drafts.tests
+
+### Run-Tests.ps1
+Contract suite for scripts/utils/archive-untriaged-drafts.ps1 (S4190).
+
+```
+scripts/utils/archive-untriaged-drafts.tests/Run-Tests.ps1
+  Contract suite for scripts/utils/archive-untriaged-drafts.ps1 (S4190).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\utils\capture-draft.tests

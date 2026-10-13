@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.scanner.WearWatchMediaScanner
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.testing.createMediaResource
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -170,6 +171,20 @@ class ResourceRepositoryImplTest {
         repo.addResource(createMediaResource(destinationOrder = null))
 
         assertEquals(-1, captured.captured.destinationOrder)
+    }
+
+    @Test
+    fun `an edit carries the exchange binding through`() = runTest {
+        coEvery { dao.getResourceByIdSync(1L) } returns
+            entity().copy(exchangeAccount = "exchange.example:7443/user", exchangeResourceId = "r1")
+        val captured = slot<ResourceEntity>()
+
+        repo.updateResource(repo.getResourceById(1L)!!.copy(name = "Renamed"))
+
+        coVerify { dao.update(capture(captured)) }
+
+        assertEquals("exchange.example:7443/user", captured.captured.exchangeAccount)
+        assertEquals("r1", captured.captured.exchangeResourceId)
     }
 
     @Test

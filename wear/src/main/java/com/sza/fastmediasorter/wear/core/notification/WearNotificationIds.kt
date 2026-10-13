@@ -31,4 +31,7 @@ object WearNotificationIds {
 
     /** S3529: stopwatch ongoing activity notification for Wear OS compliance. */
     const val STOPWATCH_ONGOING = 4206
+
+    /** Another device of an exchange account offers its broadcast to this watch and waits for an answer. */
+    const val EXCHANGE_CAST_OFFER = 4207
 }

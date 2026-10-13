@@ -39,6 +39,7 @@ data class TouristDashboardState(
     val weatherDetails: TouristWeatherDetails = TouristWeatherDetails(),
     val availableCapabilities: Set<SensorCapability> = emptySet(),
     val watch: WatchHealthStats = WatchHealthStats(),
+    val counterValue: Long = 0L,
 )
 
 /**

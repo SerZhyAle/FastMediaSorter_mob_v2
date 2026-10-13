@@ -5,12 +5,14 @@ import android.util.Log
 import com.sza.fastmediasorter.wear.core.logging.WearLogTree
 import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
 import com.sza.fastmediasorter.wear.data.bodysensor.HeartRateSessionManager
+import com.sza.fastmediasorter.wear.data.exchange.WearAppVisibility
 import com.sza.fastmediasorter.wear.data.power.WearPowerStateObserver
 import com.sza.fastmediasorter.wear.data.wear.WearForegroundWindowHolder
 import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.DrainPendingVoiceNotesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.RefreshVoiceNoteTitlesUseCase
+import com.sza.fastmediasorter.wear.service.helpers.WearExchangeRuntime
 import dagger.Lazy
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CancellationException
@@ -60,6 +62,12 @@ class FastMediaSorterWearApp : Application() {
      */
     @Inject lateinit var heartRateSessionManager: HeartRateSessionManager
 
+    /** Not `Lazy`: it must count the first started activity, and registering it is its whole cost. */
+    @Inject lateinit var appVisibility: WearAppVisibility
+
+    /** Lazy, so the encrypted entry store it reads is not opened on the main thread during process start. */
+    @Inject lateinit var exchangeRuntime: Lazy<WearExchangeRuntime>
+
     /**
      * Outlives every screen by construction: the drain must finish even if the user closes the app
      * while it is running. Never cancelled - an Application has no end short of the process ending.
@@ -91,6 +99,7 @@ class FastMediaSorterWearApp : Application() {
         registerActivityLifecycleCallbacks(powerStateObserver)
         registerActivityLifecycleCallbacks(foregroundWindowHolder)
         registerActivityLifecycleCallbacks(heartRateSessionManager)
+        registerActivityLifecycleCallbacks(appVisibility)
 
         // S1814: apply persisted app language on startup
         applicationScope.launch(Dispatchers.Main.immediate) {
@@ -115,6 +124,8 @@ class FastMediaSorterWearApp : Application() {
 
         // S2047: reset live playback flag on startup so a killed process doesn't leave stale complication state
         applicationScope.launch { nowPlayingRepository.get().clearPlayingFlag() }
+
+        applicationScope.launch { exchangeRuntime.get().start() }
 
         Timber.d("FastMediaSorter Wear OS app started")
     }

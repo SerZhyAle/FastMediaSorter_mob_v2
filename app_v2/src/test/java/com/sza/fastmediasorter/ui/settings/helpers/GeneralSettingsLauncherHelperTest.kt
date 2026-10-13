@@ -58,6 +58,8 @@ class GeneralSettingsLauncherHelperTest {
         every { fragment.requireContext() } returns mockk(relaxed = true)
         every { fragment.activity } returns activity
         every { XrDeviceProbe.isXrDevice(any()) } returns false
+        every { launcherPrimaryWindowManager.availableChoices() } returns LauncherPrimaryWindow.entries
+        every { fragment.resources.getStringArray(any()) } returns arrayOf("Home", "Desktop", "Main")
 
         helper = GeneralSettingsLauncherHelper(
             binding = binding,
@@ -162,6 +164,28 @@ class GeneralSettingsLauncherHelperTest {
         verify { launcherPrimaryWindowManager.applyChoice(LauncherPrimaryWindow.RESOURCE_MANAGER) }
         verify(exactly = 0) { launcherRoleManager.enableModeForRequest() }
         verify { rowLauncherSettings.isEnabled = false }
+    }
+
+    @Test
+    fun `without the HOME role the row lists two choices and maps positions to them`() = runTest(
+        dispatcherRule.testDispatcher
+    ) {
+        every { launcherPrimaryWindowManager.availableChoices() } returns
+            listOf(LauncherPrimaryWindow.DESKTOP, LauncherPrimaryWindow.RESOURCE_MANAGER)
+        val listenerSlot = slot<(Int) -> Unit>()
+        every { rowLauncherPrimaryWindow.setOnItemSelectedListener(capture(listenerSlot)) } returns Unit
+
+        helper.setup()
+        advanceUntilIdle()
+
+        verify { rowLauncherPrimaryWindow.setEntries(listOf("Desktop", "Main")) }
+        verify { rowLauncherPrimaryWindow.setSelection(0) }
+
+        listenerSlot.captured.invoke(0)
+        advanceUntilIdle()
+
+        verify { launcherPrimaryWindowManager.applyChoice(LauncherPrimaryWindow.DESKTOP) }
+        verify(exactly = 0) { launcherRoleManager.enableModeForRequest() }
     }
 
     @Test

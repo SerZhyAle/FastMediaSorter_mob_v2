@@ -5,7 +5,7 @@ permalink: /docs/V2_architecture_overview-ru.html
 lang: ru
 ---
 
-<sub class="doc-stamp">26.10.06 21:33</sub>
+<sub class="doc-stamp">26.10.13 14:51</sub>
 
 <div lang="ru" markdown="1">
 
@@ -23,7 +23,7 @@ ViewModel предоставляет наблюдаемое состояние �
 
 ## Модули
 
-- `app_v2`: основное приложение и восемь вариантов телефона/гарнитуры; XML, ViewBinding и существующие поверхности Compose.
+- `app_v2`: основное приложение и его варианты для телефона и гарнитуры (`docs/FLAVOR_MATRIX.md`); XML, ViewBinding и существующие поверхности Compose.
 - `wear`: приложение Wear OS на Compose, редакции `standard` и `noLegal`.
 - `watchface`: отдельный ресурсный пакет Watch Face Format v4 для Wear OS 6 / API 36 и новее.
 - `lint-rules`: проверки Android lint при сборке.

@@ -10,4 +10,6 @@ data class TouristUiState(
     val isMetricSystem: Boolean = true,
     val isAthleteMode: Boolean = false,
     val isScreenLocked: Boolean = false,
+    /** S4185: the counter's current count, shown on its launch tile. */
+    val counterValue: Long = 0L,
 )

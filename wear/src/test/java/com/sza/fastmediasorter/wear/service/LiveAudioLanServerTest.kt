@@ -98,6 +98,18 @@ class LiveAudioLanServerTest {
         )
     }
 
+    /** The relay upload connects from the watch's own address: it holds a slot but is not a person. */
+    @Test
+    fun aConnectionFromTheServersOwnAddressIsNotAHumanListener() {
+        val endpoint = server.start(scope, source)
+        val client = connect(endpoint.port)
+
+        readHead(client)
+        awaitCondition("The self-connection was never admitted") { server.listenerCount == 1 }
+
+        assertEquals(0, server.humanListeners.value)
+    }
+
     /** S2509 strategic §6 question 5: the owner chose broadcast semantics over one known listener. */
     @Test
     fun everyListenerUpToTheLimitIsServedAtOnce() {

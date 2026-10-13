@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.broadcast.helpers
 
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.domain.usecase.broadcast.EncodeBroadcastDescriptorUseCase
+import com.sza.fastmediasorter.domain.usecase.broadcast.ResolveBroadcastShareDescriptorUseCase
 import javax.inject.Inject
 
 /**
@@ -9,11 +10,14 @@ import javax.inject.Inject
  * apart here dropped the endpoint list, the live markers and the source id on the wire.
  */
 class BroadcastShareManager @Inject constructor(
-    private val encodeUseCase: EncodeBroadcastDescriptorUseCase
+    private val encodeUseCase: EncodeBroadcastDescriptorUseCase,
+    private val resolveShareDescriptor: ResolveBroadcastShareDescriptorUseCase,
 ) {
-    fun generateQrPayload(live: BroadcastState.Live): String = encodeUseCase.compress(live.descriptor)
+    fun generateQrPayload(live: BroadcastState.Live): String =
+        encodeUseCase.compress(resolveShareDescriptor(live.descriptor))
 
-    fun generateJsonPayload(live: BroadcastState.Live): String = encodeUseCase.serializeJson(live.descriptor)
+    fun generateJsonPayload(live: BroadcastState.Live): String =
+        encodeUseCase.serializeJson(resolveShareDescriptor(live.descriptor))
 
     fun generateShareLink(live: BroadcastState.Live): String =
         BroadcastShareLinkFactory.create(generateQrPayload(live))

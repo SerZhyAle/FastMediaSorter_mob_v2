@@ -1270,14 +1270,14 @@
     "uk": "Блокує вхід у режим редагування робочого стола довгим натисканням; вхід через меню «Пуск» лишається доступним."
   },
   "rowLauncherPrimaryWindow": {
-    "en": "Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the main screen.",
-    "ru": "Выбирает, что открывается при запуске FastMediaSorter или нажатии кнопки «Домой»: домашний экран устройства, рабочий стол внутри приложения без смены системного домашнего экрана или главный экран.",
-    "uk": "Вибирає, що відкривається під час запуску FastMediaSorter або натискання кнопки «Додому»: домашній екран пристрою, робочий стіл усередині застосунку без заміни системного домашнього екрана або головний екран."
+    "en": "Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the main screen. On a Googlebook the device home screen is not offered and the in-app desktop is the default.",
+    "ru": "Выбирает, что открывается при запуске FastMediaSorter или нажатии кнопки «Домой»: домашний экран устройства, рабочий стол внутри приложения без смены системного домашнего экрана или главный экран. На Googlebook домашнего экрана устройства в списке нет, по умолчанию выбран рабочий стол.",
+    "uk": "Вибирає, що відкривається під час запуску FastMediaSorter або натискання кнопки «Додому»: домашній екран пристрою, робочий стіл усередині застосунку без заміни системного домашнього екрана або головний екран. На Googlebook домашнього екрана пристрою у списку немає, за замовчуванням вибрано робочий стіл."
   },
   "rowLauncherOpenHomeSettings": {
-    "en": "Opens Android's default-launcher chooser to switch the system home screen.",
-    "ru": "Открывает системный выбор лаунчера по умолчанию для смены домашнего экрана.",
-    "uk": "Відкриває системний вибір лаунчера за замовчуванням для зміни домашнього екрана."
+    "en": "Opens Android's default-launcher chooser to switch the system home screen. Hidden on Googlebook and XR, where the system does not let another app become the home screen.",
+    "ru": "Открывает системный выбор лаунчера по умолчанию для смены домашнего экрана. Скрыта на Googlebook и XR: там система не даёт другому приложению стать домашним экраном.",
+    "uk": "Відкриває системний вибір лаунчера за замовчуванням для зміни домашнього екрана. Прихована на Googlebook і XR: там система не дає іншому застосунку стати домашнім екраном."
   },
   "rowLauncherReplaceStatusArea": {
     "en": "Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar.",
@@ -1758,6 +1758,11 @@
     "en": "Opens an audio stream in the full-screen visualizer player instead of the inline mini-control when tapped.",
     "ru": "Открывает аудиотрансляцию в полноэкранном проигрывателе с визуализацией вместо нижней мини-панели при нажатии.",
     "uk": "Відкриває аудіотрансляцію у повноекранному програвачі з візуалізацією замість нижньої міні-панелі при натисканні."
+  },
+  "rowCastPlayAtOnce": {
+    "en": "When another of your devices casts a broadcast to this phone through your exchange server, accepts it without the Accept question; the notification then only opens the player. Off by default.",
+    "ru": "Когда другое ваше устройство передаёт трансляцию на этот телефон через ваш сервер обмена, принимает её без вопроса «Принять»; уведомление тогда только открывает проигрыватель. По умолчанию выключено.",
+    "uk": "Коли інший ваш пристрій передає трансляцію на цей телефон через ваш сервер обміну, приймає її без питання «Прийняти»; сповіщення тоді лише відкриває програвач. Типово вимкнено."
   },
   "rowWallpaperPalette": {
     "en": "Selects the color palette for procedural wave and particle animations on the launcher desktop and audio player empty state: Dynamic (multicolor), Greenish, Pinkish, or Blueish.",

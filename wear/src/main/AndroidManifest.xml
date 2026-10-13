@@ -315,6 +315,11 @@
             </intent-filter>
         </service>
 
+        <!-- The Listen and Decline actions of an exchange cast offer; only this app's own notification sends them. -->
+        <receiver
+            android:name=".service.WearExchangeCastActionReceiver"
+            android:exported="false" />
+
         <!-- S1955: Wear OS Tile Service for Network Resource tile -->
         <service
             android:name=".tile.WearResourceTileService"

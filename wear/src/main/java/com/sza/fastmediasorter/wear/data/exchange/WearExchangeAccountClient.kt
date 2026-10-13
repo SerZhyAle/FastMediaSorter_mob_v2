@@ -12,7 +12,7 @@ data class WearExchangeDeviceProfile(val deviceName: String, val productVersion:
 /**
  * S4158: the two exchanges the watch has with a server in this version - `enroll` with a pairing code (5.3) and
  * the revocation of its own device when an entry is removed (item AB). Neither keeps a stream open: the control
- * streams of the watch come with S4116 phase 08. Every call blocks on the network and belongs on an IO dispatcher.
+ * streams are `WearExchangeControlStreams`'. Every call blocks on the network and belongs on an IO dispatcher.
  */
 @Singleton
 class WearExchangeAccountClient @Inject constructor(

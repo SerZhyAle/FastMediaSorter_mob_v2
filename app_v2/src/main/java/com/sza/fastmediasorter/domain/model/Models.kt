@@ -273,7 +273,11 @@ data class MediaResource(
     val altAccessPaths: List<HostPort> = emptyList(), // S1006: reachable-endpoint fallback candidates (companion LAN + WAN); empty = single-path
     val accessNote: String? = null, // S1014: companion connectivity guidance shown on connection failure; null = none
     val isHidden: Boolean = false, // S1009: resource hidden from visible surfaces (FK-only)
-    val storageVolumeId: String? = null // S1378: StorageVolumeInfo.id this resource lives on; null = unbound
+    val storageVolumeId: String? = null, // S1378: StorageVolumeInfo.id this resource lives on; null = unbound
+    // Contract DEVICE-EXCHANGE 9.2: the store a resource was attached from (an entry identity or "drive") and the
+    // producer's resourceId. Both null = not attached from a directory; an edit must carry them through.
+    val exchangeAccount: String? = null,
+    val exchangeResourceId: String? = null,
 ) {
     fun isAudioOnly(): Boolean {
         return !allFiles && supportedMediaTypes.size == 1 && supportedMediaTypes.contains(MediaType.AUDIO)

@@ -57,6 +57,10 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
         bindSwitch(binding.rowVisualizeAsMusic) { isChecked ->
             viewModel.updateSettings { it.copy(streamsVisualizeAsMusic = isChecked) }
         }
+        // S4116: off keeps the receiver's default of asking before a cast plays (DEVICE-EXCHANGE 7.8).
+        bindSwitch(binding.rowCastPlayAtOnce) { isChecked ->
+            viewModel.updateSettings { it.copy(streamsCastPlayAtOnce = isChecked) }
+        }
 
         // S2787: second entry point to the app-wide PiP flag, mirroring PlaybackSettingsFragment.
         // Same API 31+ gate as the original row; the shared settings Flow keeps the two copies in sync.
@@ -133,6 +137,7 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
             setSwitchChecked(binding.rowEnableStreams, settings.enableStreams)
             setSwitchChecked(binding.rowSmartBuffering, settings.streamsSmartBuffering)
             setSwitchChecked(binding.rowVisualizeAsMusic, settings.streamsVisualizeAsMusic)
+            setSwitchChecked(binding.rowCastPlayAtOnce, settings.streamsCastPlayAtOnce)
             setSwitchChecked(binding.rowStreamsEnablePip, settings.enablePictureInPicture)
             withSettingsUpdate {
                 setDropdownSelection(binding.rowDefaultSort, settings.streamsDefaultSort.ordinal)

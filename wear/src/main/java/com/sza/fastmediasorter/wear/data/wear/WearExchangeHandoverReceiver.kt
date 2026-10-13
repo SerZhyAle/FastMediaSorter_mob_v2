@@ -28,6 +28,7 @@ class WearExchangeHandoverReceiver @Inject constructor(
 ) {
 
     suspend fun handle(nodeId: String, data: ByteArray) {
+        Timber.d("S4158: exchange hand-over received on the watch")
         val ack = when (val parsed = WearExchangeHandoverCodec.parse(data, gson)) {
             WearExchangeHandoverParseResult.Malformed -> refusal(requestId = "", WearExchangeHandoverReasons.MALFORMED)
             is WearExchangeHandoverParseResult.UnsupportedVersion -> {

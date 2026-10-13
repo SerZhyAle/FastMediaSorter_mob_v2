@@ -140,6 +140,11 @@ object WearRoutes {
     const val TOURIST = "tourist_info"
 
     /**
+     * S4185: the Tourist tally counter, opened from its tile on [TOURIST] and registered beside it.
+     */
+    const val TOURIST_COUNTER = "tourist_counter"
+
+    /**
      * S3109: the watch's text clipboard and its send action.
      *
      * S3216 recorded that it needs no permission and so shipped in both flavors. S3362 corrected the
