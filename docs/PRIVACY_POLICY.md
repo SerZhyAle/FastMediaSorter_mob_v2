@@ -5,7 +5,7 @@ permalink: /docs/PRIVACY_POLICY.html
 ---
 # Privacy Policy for FastMediaSorter
 
-**Last updated: September 30, 2026**
+**Last updated: October 13, 2026**
 
 ## Overview
 
@@ -127,6 +127,48 @@ Cloud access is subject to each provider's privacy policy:
 - [Google Privacy Policy](https://policies.google.com/privacy)
 - [Microsoft Privacy Statement](https://privacy.microsoft.com/privacystatement)
 - [Dropbox Privacy Policy](https://www.dropbox.com/privacy)
+
+## Google User Data
+
+This section describes exactly what FastMediaSorter does with data it receives from your Google Account when you sign in to Google Drive. It applies to every edition of the app that offers Google Drive.
+
+### Limited Use disclosure
+
+FastMediaSorter's use and transfer to any other app of information received from Google APIs will adhere to the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including the Limited Use requirements.
+
+### Permissions the app asks Google for, and why
+
+- **See, edit, create and delete your Google Drive files** (`drive`): FastMediaSorter is a file manager. You pick any folder of your Drive, and the app lists it, shows its photos, videos, audio and documents, and copies, moves, renames or deletes the files you choose. It also saves the backup file you create in Settings to the folder My Drive / FastMediaSorter. A narrower permission cannot do this, because it would let the app see only files it created itself or files you pick one by one.
+- **See and download your Google Drive files** (`drive.readonly`): used to fetch preview pictures (thumbnails) of the files in the folder you are looking at.
+- **The app's own hidden folder in your Drive** (`drive.appdata`): a private space that only FastMediaSorter and its companion apps can read. It holds files you send from one of your devices to another, until the other device accepts them, and the small records your devices use to find each other. You cannot see this folder in Drive, and no other app can read it.
+- **Your email address, name and profile picture** (`email`, `profile`, `openid`): shown on the Settings card so you can see which Google Account is connected.
+
+### What the app does with this data
+
+- It reads only what you open: the folders you browse and the files you view, copy, move, rename, delete or back up. The permission covers your whole Drive because you may open any folder, but the app never scans, indexes or reads folders you have not opened.
+- Every action is started by you, either directly or as a scheduled operation you set up yourself. Apart from those, the app only checks the hidden app folder described above for files and records sent between your devices.
+- Google user data is used only to provide these features inside the app. It is not used for advertising, it is not sold, and it is not used to build user profiles.
+- Google user data is not used to train or improve any artificial intelligence or machine learning model.
+- No person reads your Google user data. The developer has no access to it at all.
+
+### Where it is stored
+
+- File contents, file names, folder lists and thumbnails go directly between your device and Google's servers over an encrypted (HTTPS) connection. The developer runs no server, and no proxy or third party sits in between.
+- On your device the app keeps the sign-in token in encrypted storage, cached thumbnails and a cache of file names and sizes of the folders you opened, all inside the app's private storage.
+- Copies of files you download or move to your device are saved where you chose to put them.
+
+### Sharing
+
+- Google user data is never sent to the developer and is never shared with, transferred to or sold to anyone.
+- The only exception is a file you send yourself: when you share a file to another app, the file goes to the app you picked, and only that file.
+
+### Keeping and deleting it
+
+- The sign-in token is kept until you sign out in Settings, remove the app's access in your Google Account, or uninstall the app. Each of these deletes it.
+- Cached thumbnails and file lists are deleted by Settings -> Clear Cache or by uninstalling the app.
+- Files in the hidden app folder are deleted when the receiving device accepts them. You can delete the whole hidden folder at any time in Google Drive on the web: Settings -> Manage apps -> FastMediaSorter -> Options -> Delete hidden app data.
+- Removing the app's access at [Manage Permissions](https://myaccount.google.com/permissions) stops all further access at once.
+- To ask a question or request help with deleting data, write to <sza@ukr.net>.
 
 ## Network Access
 
