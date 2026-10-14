@@ -17,6 +17,7 @@
 #   * metric values equal the fixture decimals unscaled - the unit is not stated by Google (research 6),
 #     so no layer below the verdict may interpret it,
 #   * the console link of an error issue survives normalisation,
+#   * each issue's sample stack is fetched by its cluster id and renders under its line (S4207),
 #   * the recorded SERVICE_DISABLED body yields the activation URL, and a PERMISSION_DENIED names the
 #     Play Console permission - the two things the owner has to do,
 #   * a refusal prints nothing on stdout and the wrapper returns 2, not 1,
@@ -129,6 +130,64 @@ Assert-That 'R-CID the cluster id survives normalisation as the last segment of 
     ($snap.errorIssues[0].clusterId -and $issueName.EndsWith("/$($snap.errorIssues[0].clusterId)") -and
      $snap.errorIssues[0].clusterId -notmatch '/') `
     "name=$issueName clusterId=$($snap.errorIssues[0].clusterId)"
+
+# --- R-STACK: one sample stack per issue through the shipped stack_of() and fetch_issue_reports() (S4207) ---
+$stackCheck = Invoke-ReaderPython @"
+import datetime as dt
+raw = json.load(open(r'$rawGreen', encoding='utf-8'))
+args = m.parse_args(['--fixture', r'$rawGreen'])
+now = dt.datetime(2026, 9, 11, 8, 0, tzinfo=dt.timezone.utc)
+frames = '\n'.join(['  at a.B.f%d (B.java:%d)' % (i, i) for i in range(12)])
+text = 'Exception java.lang.IllegalStateException: boom\n\n' + frames
+raw['errorReports'] = {'synthetic0001': {'errorReports': [{'reportText': text}]}}
+with_stack = m.normalize(raw, args, now)['errorIssues'][0]['stack']
+raw['errorReports'] = {}
+without = m.normalize(raw, args, now)['errorIssues'][0]['stack']
+
+class Call:
+    def __init__(self, log, params):
+        self.log, self.params = log, params
+    def execute(self):
+        self.log.append(self.params)
+        return {'errorReports': []}
+
+class Reports:
+    def __init__(self, log):
+        self.log = log
+    def search(self, **params):
+        return Call(self.log, params)
+
+class Errors:
+    def __init__(self, log):
+        self.log = log
+    def reports(self):
+        return Reports(self.log)
+
+class Vitals:
+    def __init__(self):
+        self.log = []
+    def errors(self):
+        return Errors(self.log)
+
+vitals = Vitals()
+issues = {'errorIssues': [{'name': 'apps/p/errorIssues/abc123'}, {'name': ''}]}
+got = m.fetch_issue_reports(vitals, 'apps/p', issues, dt.date(2026, 8, 14), dt.date(2026, 9, 11))
+print(json.dumps({'withStack': with_stack, 'without': without, 'calls': vitals.log, 'keys': sorted(got)}))
+"@
+$withStack = @($stackCheck.withStack)
+Assert-That 'R-STACK1 the stack is the exception line plus the top 8 frames, blank lines dropped; no report gives none' `
+    ($withStack.Count -eq 9 -and $withStack[0] -eq 'Exception java.lang.IllegalStateException: boom' -and
+     $withStack[1] -eq 'at a.B.f0 (B.java:0)' -and $withStack[8] -eq 'at a.B.f7 (B.java:7)' -and
+     @($stackCheck.without).Count -eq 0) `
+    "stack=$($withStack -join ' | ') without=$(@($stackCheck.without).Count)"
+
+$calls = @($stackCheck.calls)
+Assert-That 'R-STACK2 one reports.search per named issue, filtered by its cluster id over the UTC window' `
+    ($calls.Count -eq 1 -and $calls[0].filter -eq 'errorIssueId = "abc123"' -and $calls[0].pageSize -eq 1 -and
+     $calls[0].parent -eq 'apps/p' -and $calls[0].interval_startTime_day -eq 14 -and
+     $calls[0].interval_endTime_day -eq 11 -and $calls[0].interval_endTime_timeZone_id -eq 'UTC' -and
+     (@($stackCheck.keys) -join ',') -eq 'abc123') `
+    "calls=$($calls | ConvertTo-Json -Compress -Depth 4) keys=$(@($stackCheck.keys) -join ',')"
 
 # --- R5..R6: refusal classification through the shipped describe_http_error() ---
 $lines = Invoke-ReaderPython @"
@@ -350,6 +409,17 @@ try {
 
     $code = Invoke-Watch @('-DocRoot', $root, '-SnapshotPath', $greenSnap, '-Check')
     Assert-That 'W3 an identical second run under -Check is current (exit 0)' ($code -eq 0) "exit=$code"
+
+    $stacked = $baseJson | ConvertFrom-Json
+    $stacked.errorIssues[0].stack = @('Exception java.lang.IllegalStateException: boom', 'at a.B.f (B.java:1)')
+    $stackedSnap = Join-Path $sandboxRoot 'snapshot-stacked.json'
+    Set-Content -LiteralPath $stackedSnap -Value ($stacked | ConvertTo-Json -Depth 20) -Encoding utf8NoBOM
+    $stackRoot = New-DocRoot 'w-stack'
+    $code = Invoke-Watch @('-DocRoot', $stackRoot, '-SnapshotPath', $stackedSnap, '-NoFile')
+    $stackInside = Get-Inside (Get-Content -LiteralPath (Join-Path $stackRoot $stateRel) -Raw) $stateMarkers
+    Assert-That 'W-STACK each stack line renders as a nested code bullet under its issue (S4207)' `
+        ($code -eq 0 -and $stackInside.Contains("[console](") -and
+         $stackInside.Contains("`n  - ``at a.B.f (B.java:1)``")) "exit=$code"
 
     $changed = $baseJson | ConvertFrom-Json
     Set-FreshMetric $changed 'crashRate' 'overall' 'userPerceivedCrashRate28dUserWeighted' 0.006

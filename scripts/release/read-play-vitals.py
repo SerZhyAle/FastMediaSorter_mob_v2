@@ -34,10 +34,14 @@ Snapshot, schema 1:
         "bitmapMemory":{"freshUntil": .., "byRamBucketAppState": [row]}
       },
       "errorIssues": [{"name", "type", "cause", "location", "errorReportCount", "distinctUsers",
-                       "issueUri", "lastAppVersionCode"}],
+                       "issueUri", "lastAppVersionCode", "stack"}],
       "anomalies":   [{"name", "metricSet", "metric", "value", "dimensions", "startDate", "endDate"}]
     }
     row = {"date": "YYYY-MM-DD", "dims": {name: value}, "metrics": {name: float}}
+
+`stack` is the exception line and the top STACK_FRAMES frames of one sample report from
+`errors.reports.search`, or [] when no report came back. `errors.issues.search` carries only cause and
+location, never the caller a fix needs (S4207).
 
 Exit codes:
   0 - every call succeeded and the snapshot was printed
@@ -68,6 +72,7 @@ MEMORY_SETS = {
 }
 RATE_BREAKDOWNS = {"overall": [], "byVersionCode": ["versionCode"], "byDeviceModel": ["deviceModel"]}
 MEMORY_DIMENSIONS = ["deviceRamBucket", "appState"]
+STACK_FRAMES = 8
 
 
 class ReaderError(Exception):
@@ -145,6 +150,35 @@ def api_date(value):
     return {"year": value.year, "month": value.month, "day": value.day, "timeZone": {"id": DAILY_ZONE}}
 
 
+def interval_params(start, end):
+    """The UTC-midnight interval the error resources take as flattened query parameters."""
+    return {
+        "interval_startTime_year": start.year, "interval_startTime_month": start.month,
+        "interval_startTime_day": start.day, "interval_startTime_hours": 0,
+        "interval_startTime_timeZone_id": "UTC",
+        "interval_endTime_year": end.year, "interval_endTime_month": end.month,
+        "interval_endTime_day": end.day, "interval_endTime_hours": 0,
+        "interval_endTime_timeZone_id": "UTC",
+    }
+
+
+def cluster_of(name):
+    """The console cluster id from apps/{package}/errorIssues/{clusterId}, or None for an empty name."""
+    return (name or "").rsplit("/", 1)[-1] or None
+
+
+def fetch_issue_reports(vitals, app, issues_response, start, end):
+    """One sample report per issue, keyed by cluster id - the only place the API exposes stack frames."""
+    reports = {}
+    for issue in (issues_response or {}).get("errorIssues", []) or []:
+        cluster = cluster_of(issue.get("name"))
+        if not cluster:
+            continue
+        reports[cluster] = vitals.errors().reports().search(
+            parent=app, filter=f'errorIssueId = "{cluster}"', pageSize=1, **interval_params(start, end)).execute()
+    return reports
+
+
 def paged(call_factory, key):
     """Collect every page of a list/search/query response into one {key: [...]} dict."""
     items = []
@@ -207,18 +241,14 @@ def fetch_raw(service, args):
             "parent": app,
             "orderBy": "distinctUsers desc",
             "pageSize": max(1, args.top_issues),
-            "interval_startTime_year": start.year, "interval_startTime_month": start.month,
-            "interval_startTime_day": start.day, "interval_startTime_hours": 0,
-            "interval_startTime_timeZone_id": "UTC",
-            "interval_endTime_year": end.year, "interval_endTime_month": end.month,
-            "interval_endTime_day": end.day, "interval_endTime_hours": 0,
-            "interval_endTime_timeZone_id": "UTC",
+            **interval_params(start, end),
         }
         if token:
             params["pageToken"] = token
         return vitals.errors().issues().search(**params)
     # One page is the whole answer: the list is ordered and only the top of it reaches a ticket.
     raw["errorIssues"] = issues(None).execute()
+    raw["errorReports"] = fetch_issue_reports(vitals, app, raw["errorIssues"], start, end)
 
     since = f'"{start.isoformat()}T00:00:00Z"'
 
@@ -261,14 +291,23 @@ def last_data_date(get_response):
     return (fresh_end(get_response) - dt.timedelta(days=1)).isoformat()
 
 
-def normalize_issue(issue):
+def stack_of(report_response):
+    """The exception line and the top STACK_FRAMES frames of the first sample report; [] when none."""
+    reports = (report_response or {}).get("errorReports", []) or []
+    if not reports:
+        return []
+    lines = [line.strip() for line in (reports[0].get("reportText") or "").splitlines() if line.strip()]
+    return lines[: 1 + STACK_FRAMES]
+
+
+def normalize_issue(issue, report_response=None):
     last = issue.get("lastAppVersion") or {}
     return {
         "name": issue.get("name"),
         # The Play console cluster id, the only exact key two reads of the same crash share (S3286).
-        # `name` is apps/{package}/errorIssues/{clusterId}; a name without a slash yields the whole
-        # string, which is harmless because the dedup only ever matches an id against itself.
-        "clusterId": (issue.get("name") or "").rsplit("/", 1)[-1] or None,
+        # A name without a slash yields the whole string, which is harmless because the dedup only
+        # ever matches an id against itself.
+        "clusterId": cluster_of(issue.get("name")),
         "type": issue.get("type"),
         "cause": issue.get("cause"),
         "location": issue.get("location"),
@@ -276,6 +315,7 @@ def normalize_issue(issue):
         "distinctUsers": int(issue.get("distinctUsers", 0) or 0),
         "issueUri": issue.get("issueUri"),
         "lastAppVersionCode": str(last.get("versionCode")) if last.get("versionCode") is not None else None,
+        "stack": stack_of(report_response),
     }
 
 
@@ -314,7 +354,9 @@ def normalize(raw, args, now_utc):
             "freshUntil": last_data_date(freshness[key]),
             "byRamBucketAppState": normalize_rows(queries.get(f"{key}.byRamBucketAppState")),
         }
-    issues = [normalize_issue(i) for i in ((raw.get("errorIssues") or {}).get("errorIssues", []) or [])]
+    reports = raw.get("errorReports") or {}
+    issues = [normalize_issue(i, reports.get(cluster_of(i.get("name"))))
+              for i in ((raw.get("errorIssues") or {}).get("errorIssues", []) or [])]
     return {
         "schema": 1,
         "source": "fixture" if args.fixture else "api",

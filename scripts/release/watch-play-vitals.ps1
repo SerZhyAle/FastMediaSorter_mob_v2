@@ -232,10 +232,7 @@ if ($issues.Count -eq 0) {
     $vitalsBody.Add('Top error issues: none reported in the window.')
 } else {
     $vitalsBody.Add("Top error issues by distinct users ($($issues.Count)):")
-    foreach ($issue in $issues) {
-        $vitalsBody.Add(('- `{0}` {1} at `{2}` - {3} users, {4} reports, last versionCode {5} - [console]({6})' -f $issue.type,
-            $issue.cause, $issue.location, $issue.distinctUsers, $issue.errorReportCount, $issue.lastAppVersionCode, $issue.issueUri))
-    }
+    foreach ($issue in $issues) { $vitalsBody.AddRange((Get-PlayVitalsIssueLines -Issue $issue)) }
 }
 
 $sets = $snapshot.sets
