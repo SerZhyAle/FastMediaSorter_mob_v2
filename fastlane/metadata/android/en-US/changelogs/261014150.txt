@@ -1,0 +1,8 @@
+• Tourist dashboard grows - pressure, altitude, trip, course, wind and UV tiles.
+• Tally counter - count with taps and keep a dated history.
+• Stopwatch tile in Tourist - start, stop and reset on the dashboard.
+• Stopwatch autostart - opens already running on phone and watch.
+• System information cards - search, expand and copy sections.
+• Googlebook support - new-window actions are on by default.
+• Cleaner stream filters - one entry per language, countries with flags.
+..
