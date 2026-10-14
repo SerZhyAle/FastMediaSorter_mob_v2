@@ -40,6 +40,8 @@ data class TouristDashboardState(
     val availableCapabilities: Set<SensorCapability> = emptySet(),
     val watch: WatchHealthStats = WatchHealthStats(),
     val counterValue: Long = 0L,
+    val stopwatchElapsedMillis: Long = 0L,
+    val stopwatchRunning: Boolean = false,
 )
 
 /**

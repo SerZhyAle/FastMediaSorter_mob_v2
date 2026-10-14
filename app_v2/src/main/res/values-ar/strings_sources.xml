@@ -77,4 +77,7 @@
     <string name="dropbox_select_folder">حدد المجلد</string>
     <string name="dropbox_sign_in">سجّل الدخول باستخدام Dropbox</string>
     <string name="dropbox_signed_in">تم تسجيل الدخول: %1$s</string>
+    <string name="media_exchange_portal_link">تبادل الوسائط بين الأجهزة</string>
+    <string name="media_exchange_portal_open">فتح بوابة تبادل الوسائط</string>
+    <string name="broadcast_portal_help">كيف تعمل الإذاعة بين الأجهزة</string>
 </resources>

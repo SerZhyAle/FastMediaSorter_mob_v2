@@ -4393,7 +4393,6 @@
     <string name="tourist_tile_watch_heart_rate">Пульс (годинник)</string>
     <string name="tourist_tile_watch_body_temperature">Температура тіла (годинник)</string>
     <string name="tourist_tile_stopwatch">Секундомір</string>
-    <string name="tourist_action_open">Відкрити</string>
     <string name="tourist_detail_stopwatch">Замір часу та кіл</string>
     <string name="tourist_unit_bpm">уд/хв</string>
     <string name="tourist_status_open_watch_tourist">Відкрийте «Турист» на годиннику</string>
@@ -4428,4 +4427,9 @@
     <string name="tourist_counter_history_period">%1$s - %2$s</string>
     <string name="tourist_counter_clear_history">Очистити</string>
     <string name="tourist_counter_clear_history_title">Очистити історію лічильника?</string>
+    <string name="error_network_pin_refused">Заблоковано: PIN-код не прийнято. Введіть його знову в «Мої пристрої».</string>
+    <string name="tourist_stopwatch_action_start">Пуск</string>
+    <string name="tourist_stopwatch_action_stop">Стоп</string>
+    <string name="tourist_stopwatch_action_reset">Скинути</string>
+    <string name="tourist_stopwatch_action_open_full">Відкрити секундомер</string>
 </resources>

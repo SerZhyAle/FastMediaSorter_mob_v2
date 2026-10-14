@@ -73,16 +73,28 @@ data class SftpRendezvousResource(
     val publicPort: Int? = null,
     val root: String? = null,
     val presence: String? = null,
-    /** This client cannot prove an original resource PIN and must not use any alternate access path. */
+    /** The producer locked the root with its original PIN (17 item AG); the record carries the fact, never a key. */
     val pinProtected: Boolean = false,
     val protectionScheme: String? = null,
 ) : SftpRendezvousRecord {
+
+    /**
+     * The `Resource` field of the `pin-v1` proof: the virtual root name without its slashes. Null whenever this
+     * record cannot be proven - not protected, a scheme this build does not know, no `access`, or no usable root.
+     */
+    val proofRoot: String?
+        get() = root?.trim('/')?.takeIf {
+            pinProtected && protectionScheme == PROTECTION_PIN_V1 && descriptor != null && it.isNotEmpty()
+        }
 
     override fun toString(): String =
         "SftpRendezvousResource(resourceId=$resourceId, deviceId=$deviceId, kind=$kind, name=$name)"
 
     companion object {
         const val KIND_SFTP_SHARE = "sftp-share"
+
+        /** The one protection scheme of DEVICE-EXCHANGE 17 item AG: the root demands its original PIN everywhere. */
+        const val PROTECTION_PIN_V1 = "pin-v1"
     }
 }
 

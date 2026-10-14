@@ -4,9 +4,11 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import com.sza.fastmediasorter.data.local.db.ResourceDao
+import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeTokenStore
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeResourcePinStore
 import com.sza.fastmediasorter.data.repository.settings.DeviceExchangeAccountStore
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAddressChange
@@ -16,6 +18,7 @@ import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollment
 import com.sza.fastmediasorter.domain.model.DeviceExchangeRemoval
 import com.sza.fastmediasorter.domain.model.DeviceExchangeWelcome
 import com.sza.fastmediasorter.domain.model.ExchangeEndpoint
+import com.sza.fastmediasorter.domain.model.ResourceType
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -36,12 +39,13 @@ class DeviceExchangeAccountRepositoryTest {
     private val store = DeviceExchangeAccountStore(InMemoryPreferencesStore())
     private val tokens = MemoryTokens()
     private val client = mockk<DeviceExchangeAccountClient>()
+    private val pins = mockk<ExchangeResourcePinStore>(relaxed = true)
     private val resourceDao = mockk<ResourceDao>(relaxed = true)
     private val enrollment = DeviceExchangeEnrollment("Pixel", "2.6.0", listOf("resource-consumer"))
     private val password = DeviceExchangeCredential.Password("secret-value")
 
     private fun TestScope.repository() =
-        DeviceExchangeAccountRepository(client, store, tokens, resourceDao, StandardTestDispatcher(testScheduler))
+        DeviceExchangeAccountRepository(client, store, tokens, pins, resourceDao, StandardTestDispatcher(testScheduler))
 
     @Test
     fun `re-enrolling the same identity keeps the deviceId and the entry count`() = runTest {
@@ -123,6 +127,21 @@ class DeviceExchangeAccountRepositoryTest {
     }
 
     @Test
+    fun `an address change carries the PIN of every bound resource to the new identity`() = runTest {
+        val entry = held(SERVER_A)
+        tokens.save(entry, TOKEN)
+        coEvery { resourceDao.getAllResourcesSync() } returns listOf(
+            bound(entry.identity, "r1"),
+            bound(entry.identity, "r2"),
+            bound("elsewhere:1/someone", "r3"),
+        )
+
+        val moved = (repository().changeAddress(entry, SERVER_B) as DeviceExchangeAddressChange.Changed).entry
+
+        coVerify { pins.move(entry.identity, moved.identity, listOf("r1", "r2")) }
+    }
+
+    @Test
     fun `an address held by another entry of the same login is refused`() = runTest {
         val entry = held(SERVER_A)
         held(SERVER_B, deviceId = OTHER_DEVICE)
@@ -174,6 +193,15 @@ class DeviceExchangeAccountRepositoryTest {
         assertEquals(PIN, text.fingerprint)
         assertNull(text.loginHint)
     }
+
+    private fun bound(account: String, resourceId: String) = ResourceEntity(
+        id = 1L,
+        name = "R",
+        path = "sftp://192.168.1.5:2222/Private",
+        type = ResourceType.SFTP,
+        exchangeAccount = account,
+        exchangeResourceId = resourceId,
+    )
 
     private suspend fun held(endpoint: ExchangeEndpoint, deviceId: String = DEVICE) =
         DeviceExchangeAccountEntry(endpoint.host, endpoint.port, LOGIN, deviceId, null).also { store.put(it) }

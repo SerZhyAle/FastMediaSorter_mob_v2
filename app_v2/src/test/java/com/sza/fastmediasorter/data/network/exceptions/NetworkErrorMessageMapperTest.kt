@@ -41,6 +41,14 @@ class NetworkErrorMessageMapperTest {
     }
 
     @Test
+    fun `a refused resource PIN maps to its own message and not to re-pairing`() {
+        val refused = NetworkPinRefusedException()
+
+        assertEquals(R.string.error_network_pin_refused, NetworkErrorMessageMapper.toMessageRes(refused))
+        assertEquals(R.string.error_network_pin_refused, NetworkErrorMessageMapper.toMessageRes(refused as Throwable))
+    }
+
+    @Test
     fun `SFTP permission denied status keeps the access-denied message`() {
         assertEquals(ACCESS_DENIED, contextAware(NetworkAccessDeniedException("permission denied"), ResourceType.SFTP))
     }

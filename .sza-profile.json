@@ -72,7 +72,7 @@
       { "pattern": "^(\\.sza-profile\\.json|\\.sza-canon\\.json)$", "domain": "Code.Scripts" },
       { "pattern": "^a\\.ps1$", "domain": "Code.Scripts" },
       { "pattern": "^(play|fastlane|store_assets|delivery|maestro|meta)/", "domain": "Code.Scripts" },
-      { "pattern": "^(index|nolegal)[^/]*\\.html$", "domain": "Code.Scripts" },
+      { "pattern": "^(index|nolegal|404)[^/]*\\.html$", "domain": "Code.Scripts" },
       { "pattern": "^(styles\\.css|sitemap\\.xml|robots\\.txt|_config\\.yml|_typos\\.toml)$", "domain": "Code.Scripts" },
       { "pattern": "^(GEMINI\\.md|LICENSE|THIRD_PARTY_LICENSES\\.md)$", "domain": "Code.Scripts" },
       { "pattern": "^(favicon[^/]*|icon\\.png|apple-touch-icon\\.png)$", "domain": "Code.Scripts" },

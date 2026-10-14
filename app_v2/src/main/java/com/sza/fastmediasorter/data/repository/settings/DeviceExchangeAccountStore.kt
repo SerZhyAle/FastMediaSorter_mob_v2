@@ -115,6 +115,7 @@ class DeviceExchangeAccountStore @Inject constructor(
             autoAttach = json.flag(KEY_AUTO_ATTACH),
             publicEndpoint = publicEndpoint,
             outgoing = json.flag(KEY_OUTGOING),
+            pinCapable = json.flag(KEY_PIN_CAPABLE),
         )
     }
 
@@ -130,6 +131,7 @@ class DeviceExchangeAccountStore @Inject constructor(
                     addProperty(KEY_AUTO_ATTACH, entry.autoAttach)
                     entry.publicEndpoint?.let { addProperty(KEY_PUBLIC_ENDPOINT, it) }
                     if (entry.outgoing) addProperty(KEY_OUTGOING, true)
+                    if (entry.pinCapable) addProperty(KEY_PIN_CAPABLE, true)
                 }
             )
         }
@@ -151,5 +153,6 @@ class DeviceExchangeAccountStore @Inject constructor(
         const val KEY_AUTO_ATTACH = "autoAttach"
         const val KEY_PUBLIC_ENDPOINT = "publicEndpoint"
         const val KEY_OUTGOING = "outgoing"
+        const val KEY_PIN_CAPABLE = "pinCapable"
     }
 }

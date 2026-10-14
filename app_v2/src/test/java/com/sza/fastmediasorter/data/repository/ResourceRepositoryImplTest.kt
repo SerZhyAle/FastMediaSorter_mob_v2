@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.data.repository
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeResourcePinStore
+import com.sza.fastmediasorter.domain.model.ExchangeBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -40,6 +42,7 @@ class ResourceRepositoryImplTest {
     private lateinit var smbOperations: SmbOperationsUseCase
     private lateinit var storageVolumeRepository: StorageVolumeRepository
     private lateinit var wearWatchMediaScanner: WearWatchMediaScanner
+    private lateinit var exchangePins: ExchangeResourcePinStore
     private lateinit var repo: ResourceRepositoryImpl
 
     @Before
@@ -49,6 +52,7 @@ class ResourceRepositoryImplTest {
         smbOperations = mockk(relaxed = true)
         storageVolumeRepository = mockk(relaxed = true)
         wearWatchMediaScanner = mockk(relaxed = true)
+        exchangePins = mockk(relaxed = true)
         coEvery { credentialsRepository.getAllCredentials() } returns flowOf(emptyList())
         // S1378: these paths bind no resource to a volume, so the availability pass short-circuits
         // and never reaches the registry - relaxed mock is enough.
@@ -60,7 +64,8 @@ class ResourceRepositoryImplTest {
             storageVolumeRepository,
             wearWatchMediaScanner,
             // S2502: the edit-stamp store. Relaxed - these tests assert on the DAO, not on stamping.
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            exchangePins,
         )
     }
 
@@ -79,6 +84,26 @@ class ResourceRepositoryImplTest {
         supportedMediaTypesFlags = flags,
         profile = profile,
     )
+
+    @Test
+    fun `deleting a bound resource forgets the PIN of its binding`() = runTest {
+        coEvery { dao.getResourceByIdSync(1L) } returns
+            entity(type = ResourceType.SFTP).copy(exchangeAccount = "server:1/user", exchangeResourceId = "r1")
+
+        repo.deleteResource(1L)
+
+        coVerify { exchangePins.forget(ExchangeBinding("server:1/user", "r1")) }
+        coVerify { dao.deleteById(1L) }
+    }
+
+    @Test
+    fun `deleting an unbound resource touches no PIN`() = runTest {
+        coEvery { dao.getResourceByIdSync(1L) } returns entity()
+
+        repo.deleteResource(1L)
+
+        coVerify(exactly = 0) { exchangePins.forget(any()) }
+    }
 
     @Test
     fun `toDomain decodes the full media-type flag bitmask`() = runTest {

@@ -77,4 +77,7 @@
     <string name="dropbox_select_folder">Seleziona la cartella</string>
     <string name="dropbox_sign_in">Accedi con Dropbox</string>
     <string name="dropbox_signed_in">Accesso effettuato: %1$s</string>
+    <string name="media_exchange_portal_link">Scambio di media tra dispositivi</string>
+    <string name="media_exchange_portal_open">Apri il portale dello scambio di media</string>
+    <string name="broadcast_portal_help">Come funziona la trasmissione tra dispositivi</string>
 </resources>

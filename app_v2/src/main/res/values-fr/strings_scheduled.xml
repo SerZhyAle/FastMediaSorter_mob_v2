@@ -96,4 +96,5 @@
     <string name="scheduled_ops_cond_contradiction">Aucun fichier ne peut respecter ces limites - élargissez-en une</string>
     <string name="scheduled_op_last_success">Dernier succès : %1$s</string>
     <string name="scheduled_op_last_success_never">Aucune exécution réussie pour l’instant</string>
+    <string name="scheduled_ops_op_archive">Archiver</string>
 </resources>

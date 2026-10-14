@@ -167,8 +167,8 @@ if ($pathMode) {
         exit 4
     }
     $blocks = foreach ($m in $hits) {
-        $pre = ($m.Context.PreContext -join "`n")
-        $post = ($m.Context.PostContext -join "`n")
+        $pre = if ($null -ne $m.Context) { $m.Context.PreContext -join "`n" } else { '' }
+        $post = if ($null -ne $m.Context) { $m.Context.PostContext -join "`n" } else { '' }
         "--- $($m.Path):$($m.LineNumber) ---`n$pre`n$($m.Line)`n$post"
     }
     $text = ($blocks -join "`n`n")

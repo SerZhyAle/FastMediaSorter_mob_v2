@@ -96,4 +96,5 @@
     <string name="scheduled_op_last_success">آخر نجاح: %1$s</string>
     <string name="scheduled_op_last_success_never">لا توجد عملية ناجحة بعد</string>
     <string name="scheduled_op_filter_conditions">+ شروط</string>
+    <string name="scheduled_ops_op_archive">أرشفة</string>
 </resources>

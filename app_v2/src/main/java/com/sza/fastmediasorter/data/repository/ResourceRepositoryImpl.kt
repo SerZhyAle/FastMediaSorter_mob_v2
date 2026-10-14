@@ -3,7 +3,9 @@ package com.sza.fastmediasorter.data.repository
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeResourcePinStore
 import com.sza.fastmediasorter.data.repository.wear.WearResourceStampStore
+import com.sza.fastmediasorter.domain.model.ExchangeBinding
 import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -38,7 +40,9 @@ class ResourceRepositoryImpl @Inject constructor(
     // flavors with no Wear companion bind the inert wearStub twin instead.
     private val wearWatchMediaScanner: WearWatchMediaScanner,
     // S2502: records when each resource was last edited, which is what the watch exchange ranks by.
-    private val wearResourceStampStore: WearResourceStampStore
+    private val wearResourceStampStore: WearResourceStampStore,
+    // DEVICE-EXCHANGE 17 item AI: a removed resource takes its cached PIN with it.
+    private val exchangePins: ExchangeResourcePinStore,
 ) : ResourceRepository {
 
     override fun getAllResources(): Flow<List<MediaResource>> {
@@ -103,7 +107,7 @@ class ResourceRepositoryImpl @Inject constructor(
             }
         }
     }
-    
+
     override suspend fun getResourceById(id: Long): MediaResource? {
         val entity = resourceDao.getResourceByIdSync(id) ?: return null
         val accountId = entity.credentialsId?.let { credentialsRepository.getByCredentialId(it)?.accountId }
@@ -115,7 +119,7 @@ class ResourceRepositoryImpl @Inject constructor(
         val accountId = entity.credentialsId?.let { credentialsRepository.getByCredentialId(it)?.accountId }
         return entity.toDomain(accountId)
     }
-    
+
     override fun getResourcesByType(type: ResourceType): Flow<List<MediaResource>> {
         return combine(
             resourceDao.getResourcesByType(type),
@@ -141,7 +145,7 @@ class ResourceRepositoryImpl @Inject constructor(
             }
         }.map { applyVolumeAvailability(it) }
     }
-    
+
     override suspend fun getFilteredResources(
         filterByType: Set<ResourceType>?,
         filterByMediaType: Set<MediaType>?,
@@ -153,14 +157,14 @@ class ResourceRepositoryImpl @Inject constructor(
             // Append * for prefix matching (e.g. "vid" -> "vid*")
             val ftsQuery = "$filterByName*"
             Timber.d("getFilteredResources: Using FTS search with query='$ftsQuery'")
-            
+
             val searchResults = withContext(Dispatchers.IO) {
                 resourceDao.searchResourcesFts(ftsQuery)
             }
-            
+
             val credentials = credentialsRepository.getAllCredentials().first()
             val credMap = credentials.associateBy { it.credentialId }
-            
+
             // Apply other filters in memory (fast enough for <10k items)
             return searchResults.asSequence()
                 .map { entity ->
@@ -172,14 +176,14 @@ class ResourceRepositoryImpl @Inject constructor(
                     if (filterByType != null && filterByType.isNotEmpty()) {
                         if (resource.type !in filterByType) return@filter false
                     }
-                    
+
                     // Filter by Media Type
                     if (filterByMediaType != null && filterByMediaType.isNotEmpty()) {
                         // Check intersection of supported types
                         val hasCommonType = resource.supportedMediaTypes.any { it in filterByMediaType }
                         if (!hasCommonType) return@filter false
                     }
-                    
+
                     true
                 }
                 .toList()
@@ -193,14 +197,14 @@ class ResourceRepositoryImpl @Inject constructor(
         // Standard SQL query for non-search filtering
         val whereConditions = mutableListOf<String>()
         val args = mutableListOf<Any>()
-        
+
         // Filter by resource type
         if (filterByType != null && filterByType.isNotEmpty()) {
             val placeholders = filterByType.joinToString(",") { "?" }
             whereConditions.add("type IN ($placeholders)")
             args.addAll(filterByType.map { it.name })
         }
-        
+
         // Filter by media types (using bitwise AND on supportedMediaTypesFlags)
         if (filterByMediaType != null && filterByMediaType.isNotEmpty()) {
             // Calculate required flags
@@ -213,12 +217,12 @@ class ResourceRepositoryImpl @Inject constructor(
             if (MediaType.PDF in filterByMediaType) requiredFlags = requiredFlags or 0b00100000
             if (MediaType.EPUB in filterByMediaType) requiredFlags = requiredFlags or 0b01000000
             if (MediaType.OFFICE_DOCUMENT in filterByMediaType) requiredFlags = requiredFlags or 0b10000000
-            
+
             // Resource matches if ANY of the selected media types are supported
             whereConditions.add("(supportedMediaTypesFlags & ?) > 0")
             args.add(requiredFlags)
         }
-        
+
         // Filter by name substring
         if (filterByName != null && filterByName.isNotBlank()) {
             whereConditions.add("(name LIKE ? OR path LIKE ?)")
@@ -226,13 +230,13 @@ class ResourceRepositoryImpl @Inject constructor(
             args.add(pattern)
             args.add(pattern)
         }
-        
+
         val whereClause = if (whereConditions.isNotEmpty()) {
             "WHERE " + whereConditions.joinToString(" AND ")
         } else {
             ""
         }
-        
+
         val orderBy = when (sortMode) {
             SortMode.MANUAL -> "ORDER BY displayOrder ASC"
             SortMode.NAME_ASC -> "ORDER BY name COLLATE NOCASE ASC"
@@ -253,11 +257,11 @@ class ResourceRepositoryImpl @Inject constructor(
             SortMode.DATE_TAKEN_DESC -> "ORDER BY name COLLATE NOCASE DESC"
             SortMode.RANDOM -> "ORDER BY RANDOM()" // SQL random ordering
         }
-        
+
         val sql = "SELECT * FROM resources $whereClause $orderBy"
-        
+
         Timber.d("getFilteredResources: SQL=$sql, args=$args")
-        
+
         val query = SimpleSQLiteQuery(sql, args.toTypedArray())
         val entities = withContext(Dispatchers.IO) {
             resourceDao.getResourcesRaw(query)
@@ -301,7 +305,7 @@ class ResourceRepositoryImpl @Inject constructor(
             SortMode.RANDOM -> Comparator { _, _ -> 0 }
         }
     }
-    
+
     // S2502: the repository is the single point every resource edit passes through, so stamping here
     // covers every screen, dialog and bulk operation without enumerating them - and no later surface
     // can add an untracked edit path. The watch importer overwrites this stamp with the merged one
@@ -317,7 +321,7 @@ class ResourceRepositoryImpl @Inject constructor(
         resourceDao.update(entity)
         wearResourceStampStore.stampEdit(entity.id.toString())
     }
-    
+
     override suspend fun swapResourceDisplayOrders(resource1: MediaResource, resource2: MediaResource) {
         resourceDao.swapDisplayOrders(
             id1 = resource1.id,
@@ -331,9 +335,11 @@ class ResourceRepositoryImpl @Inject constructor(
         val orders = resources.mapIndexed { index, resource -> resource.id to index }
         resourceDao.updateAllDisplayOrders(orders)
     }
-    
+
     override suspend fun deleteResource(resourceId: Long) {
+        val bound = resourceDao.getResourceByIdSync(resourceId)?.exchangeBinding()
         resourceDao.deleteById(resourceId)
+        bound?.let { exchangePins.forget(it) }
         // S2502: a stamp whose resource is gone would otherwise sit in the map for the life of the
         // install, and a reused row id would inherit an edit time that belongs to something else.
         wearResourceStampStore.forget(resourceId.toString())
@@ -346,9 +352,17 @@ class ResourceRepositoryImpl @Inject constructor(
             resourceDao.deleteById(resourceId)
         }
     }
-    
+
     override suspend fun deleteAllResources() {
+        val bound = resourceDao.getAllResourcesSync().mapNotNull { it.exchangeBinding() }
         resourceDao.deleteAll()
+        bound.forEach { exchangePins.forget(it) }
+    }
+
+    private fun ResourceEntity.exchangeBinding(): ExchangeBinding? {
+        val account = exchangeAccount
+        val resourceId = exchangeResourceId
+        return if (account != null && resourceId != null) ExchangeBinding(account, resourceId) else null
     }
 
     override suspend fun updateIcon(resourceId: Long, iconId: String?) {
@@ -435,14 +449,14 @@ class ResourceRepositoryImpl @Inject constructor(
             }
         }
     }
-    
+
     private suspend fun testSmbConnection(resource: MediaResource): Result<String> {
         val credentialsId = resource.credentialsId
         if (credentialsId == null) {
             Timber.w("SMB resource has no credentials ID")
             return Result.failure(Exception("No credentials configured for this SMB resource"))
         }
-        
+
         // Get connection info from credentials
         val connectionInfoResult = smbOperationsUseCase.getConnectionInfo(credentialsId)
         if (connectionInfoResult.isFailure) {
@@ -450,7 +464,7 @@ class ResourceRepositoryImpl @Inject constructor(
             Timber.e(error, "Failed to get SMB connection info")
             return Result.failure(error ?: Exception("Failed to get connection info"))
         }
-        
+
         val connectionInfo = connectionInfoResult.getOrNull()
             ?: return Result.failure(Exception("Connection info is null after successful result"))
 
@@ -462,7 +476,7 @@ class ResourceRepositoryImpl @Inject constructor(
         if (effectiveShareName != connectionInfo.shareName) {
             Timber.w(
                 "testSmbConnection: credentials shareName='${connectionInfo.shareName}' " +
-                "differs from path shareName='$effectiveShareName' - using path value"
+                    "differs from path shareName='$effectiveShareName' - using path value"
             )
         }
 
@@ -476,33 +490,33 @@ class ResourceRepositoryImpl @Inject constructor(
             port = connectionInfo.port
         )
     }
-    
+
     private suspend fun testSftpConnection(resource: MediaResource): Result<String> {
         val credentialsId = resource.credentialsId
         if (credentialsId == null) {
             Timber.w("SFTP resource has no credentials ID")
             return Result.failure(Exception("No credentials configured for this SFTP resource"))
         }
-        
+
         // Get SFTP connection info from credentials
         val credentialsEntity = credentialsRepository.getByCredentialId(credentialsId)
         if (credentialsEntity == null) {
             Timber.w("SFTP credentials not found: $credentialsId")
             return Result.failure(Exception("Credentials not found"))
         }
-        
+
         // Parse SFTP path using utility (handles optional ports)
         val path = resource.path
         val pathInfo = SftpPathUtils.parseSftpPath(path)
-        
+
         if (pathInfo == null) {
             Timber.w("Invalid SFTP path format: $path")
             return Result.failure(Exception("Invalid SFTP path format"))
         }
-        
+
         val host = pathInfo.host
         val port = pathInfo.port
-        
+
         // Test SFTP connection (with password or private key)
         val privateKey = credentialsEntity.decryptedSshPrivateKey
         return smbOperationsUseCase.testSftpConnection(
@@ -513,33 +527,33 @@ class ResourceRepositoryImpl @Inject constructor(
             privateKey = privateKey
         ).map { it.message }
     }
-    
+
     private suspend fun testFtpConnection(resource: MediaResource): Result<String> {
         val credentialsId = resource.credentialsId
         if (credentialsId == null) {
             Timber.w("FTP resource has no credentials ID")
             return Result.failure(Exception("No credentials configured for this FTP resource"))
         }
-        
+
         val credentialsEntity = credentialsRepository.getByCredentialId(credentialsId)
-        
+
         if (credentialsEntity == null) {
             Timber.w("FTP credentials not found for ID: $credentialsId")
             return Result.failure(Exception("FTP credentials not found"))
         }
-        
+
         // Parse FTP path using utility (handles optional ports)
         val path = resource.path
         val pathInfo = FtpPathUtils.parseFtpPath(path)
-        
+
         if (pathInfo == null) {
             Timber.w("Invalid FTP path format: $path")
             return Result.failure(Exception("Invalid FTP path format"))
         }
-        
+
         val host = pathInfo.host
         val port = pathInfo.port
-        
+
         // Test FTP connection
         return smbOperationsUseCase.testFtpConnection(
             host = host,
@@ -548,7 +562,7 @@ class ResourceRepositoryImpl @Inject constructor(
             password = credentialsEntity.password
         )
     }
-    
+
     private fun ResourceEntity.toDomain(accountId: String? = null): MediaResource {
         val mediaTypes = mutableSetOf<MediaType>()
         if (supportedMediaTypesFlags and 0b0001 != 0) mediaTypes.add(MediaType.IMAGE)
@@ -559,14 +573,14 @@ class ResourceRepositoryImpl @Inject constructor(
         if (supportedMediaTypesFlags and 0b00100000 != 0) mediaTypes.add(MediaType.PDF)
         if (supportedMediaTypesFlags and 0b01000000 != 0) mediaTypes.add(MediaType.EPUB)
         if (supportedMediaTypesFlags and 0b10000000 != 0) mediaTypes.add(MediaType.OFFICE_DOCUMENT)
-        
+
         // Normalize path: replace backslashes with forward slashes for SMB paths
         val normalizedPath = if (type == ResourceType.SMB) {
             path.replace('\\', '/')
         } else {
             path
         }
-        
+
         return MediaResource(
             id = id,
             name = name,
@@ -631,7 +645,7 @@ class ResourceRepositoryImpl @Inject constructor(
         if (MediaType.PDF in supportedMediaTypes) flags = flags or 0b00100000
         if (MediaType.EPUB in supportedMediaTypes) flags = flags or 0b01000000
         if (MediaType.OFFICE_DOCUMENT in supportedMediaTypes) flags = flags or 0b10000000
-        
+
         return ResourceEntity(
             id = id,
             name = name,
@@ -662,8 +676,8 @@ class ResourceRepositoryImpl @Inject constructor(
             displayOrder = displayOrder,
             scanSubdirectories = scanSubdirectories,
             disableThumbnails = disableThumbnails,
-            allFiles = allFiles,  // CRITICAL FIX: Added missing allFiles field mapping
-            showHiddenFiles = showHiddenFiles,  // Show hidden files (depends on allFiles)
+            allFiles = allFiles, // CRITICAL FIX: Added missing allFiles field mapping
+            showHiddenFiles = showHiddenFiles, // Show hidden files (depends on allFiles)
             showSubfoldersAsItems = showSubfoldersAsItems,
             rememberFileList = rememberFileList,
             accessPin = accessPin,

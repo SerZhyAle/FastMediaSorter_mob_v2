@@ -110,6 +110,19 @@ class SftpConnectionFailureCacheTest {
         assertSame(failure, cache.recentFailure(info(password = "second-secret")))
     }
 
+    @Test
+    fun `a proof root is part of the endpoint identity and its PIN is not`() {
+        val cache = SftpConnectionFailureCache()
+        val failure = SocketTimeoutException()
+        val music = info().copy(rootProof = SftpRootProof("Music", "4711"))
+
+        cache.record(music, failure)
+
+        assertSame(failure, cache.recentFailure(music.copy(rootProof = SftpRootProof("Music", "9999"))))
+        assertNull(cache.recentFailure(info()))
+        assertNull(cache.recentFailure(info().copy(rootProof = SftpRootProof("Photos", "4711"))))
+    }
+
     private fun info(
         host: String = "host",
         port: Int = 22,

@@ -684,6 +684,18 @@
       "note": "The row is drawn only while AppSettings.enableStatistics is on, which is its default."
     },
     {
+      "id": "my-devices",
+      "name": "My devices",
+      "resourceId": "row_my_devices",
+      "section": "headerAuthorization",
+      "from": "settings-general",
+      "expect": "Add server",
+      "expectRes": "exchange_devices_add_server",
+      "expectId": "btnExchangeAddServer",
+      "backAfter": 1,
+      "note": "S4199: the toolbar title \"My devices\" is NOT the marker - the General row that opens the screen carries the same string, so a tap that missed would still match. The Add server button is drawn on the screen in every state, empty or populated, and its id exists on no other layout. The row is hidden only on a flavor without local-network sources, which the sweep (pinned to standard) never runs."
+    },
+    {
       "id": "wear-companion",
       "name": "Wear companion",
       "label": "@string/wear_companion",
@@ -1094,6 +1106,7 @@
     "keybinding-remap": "KeybindingRemapActivity",
     "auth-sessions": "AuthSessionsActivity",
     "statistics": "StatisticsActivity",
+    "my-devices": "MyDevicesActivity",
     "wear-companion": "WearCompanionActivity",
     "wear-resource-selection": "WearResourceSelectionActivity",
     "calculator": "CalculatorActivity",
@@ -1129,14 +1142,14 @@
     "translation": "player-translation-settings"
   },
   "_coverage": [
-    "Activities: dev/ACTIVITY_CATALOG/app_v2.jsonl holds 60 records. 24 are walked by the `screens` list",
+    "Activities: dev/ACTIVITY_CATALOG/app_v2.jsonl holds 70 records. 26 are walked by the `screens` list",
     "above (some screens are dialogs hosted by an already-counted activity, so screens > activities),",
-    "and 36 are named in `excluded`. 24 + 36 = 60, with no record in both lists and none in neither.",
+    "and 44 are named in `excluded`. 26 + 44 = 70, with no record in both lists and none in neither.",
     "",
-    "Settings sections: docs/settings/settings-manifest.json holds 17 distinct sectionId values.",
-    "16 are covered by a walk entry - 9 as settings pages, 7 as dialogs and screens, two of those",
-    "seven (camera, translation) from their host screen rather than from the settings entry, because",
-    "no settings path to them exists. 2 are named in `excludedSettingsSections`. 16 + 2 = 18.",
+    "Settings sections: docs/settings/settings-manifest.json holds 19 distinct sectionId values.",
+    "17 are covered by a walk entry through `_sectionCoverage`, two of those (camera, translation) from",
+    "their host screen rather than from the settings entry, because no settings path to them exists.",
+    "2 are named in `excludedSettingsSections`. 17 + 2 = 19.",
     "",
     "The step 03.4 gate re-derives both sums from the source files rather than trusting this note."
   ]

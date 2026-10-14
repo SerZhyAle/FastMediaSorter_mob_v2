@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.remote.sftp.anywhere
 
 import com.sza.fastmediasorter.core.security.PrivateDiagnosticValues
 import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeCertificateFingerprint
+import timber.log.Timber
 import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
@@ -92,20 +93,35 @@ class TlsExchangeConnector @Inject constructor() : ExchangeConnector {
             val address = InetSocketAddress(host, port)
             // DIAGNOSTIC-REPORT section 10: a connect failure names the address in its message, by name and by IP.
             PrivateDiagnosticValues.register(host, address.address?.hostAddress)
+            Timber.d("Exchange connect: %s:%d resolved=%s", host, port, address.address?.hostAddress)
             socket.connect(address, CONNECT_TIMEOUT_MS)
+            Timber.d("Exchange connect: TCP established to %s:%d, starting TLS handshake", host, port)
             socket.startHandshake()
         } catch (e: IOException) {
+            // The class and message are what tells a refused port, a timeout and a failed handshake apart.
+            Timber.w(e, "Exchange connect failed before any envelope (%s:%d, %s)", host, port, e.javaClass.simpleName)
             socket.close()
             throw e
         }
         val presented = inspector.presented
         if (presented == null) {
+            Timber.w("Exchange connect: handshake finished with no certificate (%s:%d)", host, port)
             socket.close()
             throw IOException("exchange server presented no certificate")
         }
         val platformTrusted = inspector.chainTrusted &&
             HttpsURLConnection.getDefaultHostnameVerifier().verify(host, socket.session)
         val verdict = ExchangeTrustDecision.decide(trust, platformTrusted, presented)
+        Timber.d(
+            "Exchange connect: TLS %s %s, presented=%s pinned=%s chainTrusted=%s platformTrusted=%s verdict=%s",
+            socket.session.protocol,
+            socket.session.cipherSuite,
+            presented,
+            (trust as? ExchangeTrust.Verified)?.pinned,
+            inspector.chainTrusted,
+            platformTrusted,
+            verdict,
+        )
         if (verdict != ExchangeTrustDecision.Verdict.ACCEPT) socket.close()
         return when (verdict) {
             ExchangeTrustDecision.Verdict.ACCEPT -> ExchangeConnection(socket, presented)

@@ -97,4 +97,5 @@
     <string name="scheduled_op_last_success">সর্বশেষ সফল: %1$s</string>
     <string name="scheduled_op_last_success_never">এখনও কোনো সফল রান নেই</string>
     <string name="scheduled_op_filter_conditions">+ শর্ত</string>
+    <string name="scheduled_ops_op_archive">আর্কাইভ</string>
 </resources>

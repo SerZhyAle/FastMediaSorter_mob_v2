@@ -77,4 +77,7 @@
     <string name="dropbox_select_folder">Seleccionar carpeta</string>
     <string name="dropbox_sign_in">Iniciar sesión con Dropbox</string>
     <string name="dropbox_signed_in">Sesión iniciada: %1$s</string>
+    <string name="media_exchange_portal_link">Intercambio multimedia entre dispositivos</string>
+    <string name="media_exchange_portal_open">Abrir el portal de intercambio multimedia</string>
+    <string name="broadcast_portal_help">Cómo funciona la difusión entre dispositivos</string>
 </resources>

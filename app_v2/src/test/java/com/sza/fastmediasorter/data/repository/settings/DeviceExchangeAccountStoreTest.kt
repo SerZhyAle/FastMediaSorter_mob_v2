@@ -48,10 +48,20 @@ class DeviceExchangeAccountStoreTest {
             pinnedCertificate = PIN,
             publicEndpoint = "exchange.example.org:8443",
             outgoing = true,
+            pinCapable = true,
         )
         store.put(full)
 
         assertEquals(full, DeviceExchangeAccountStore(dataStore).entry(full.identity))
+    }
+
+    @Test
+    fun `an entry stored before the capability existed reads as not capable`() = runTest {
+        store.put(entry(HOST_A, LOGIN_ONE, DEVICE_1))
+
+        val held = store.entry(entry(HOST_A, LOGIN_ONE, DEVICE_1).identity)
+
+        assertEquals(false, held?.pinCapable)
     }
 
     @Test

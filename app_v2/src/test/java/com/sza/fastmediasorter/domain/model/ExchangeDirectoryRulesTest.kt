@@ -75,6 +75,25 @@ class ExchangeDirectoryRulesTest {
     }
 
     @Test
+    fun `a pin-v1 lock is attachable with a PIN only when its access and its root arrived`() {
+        val pinned = resource("r4", "pc", "Private", descriptor = "FMSSFTP1:h=a").copy(
+            pinProtected = true,
+            protectionScheme = SftpRendezvousResource.PROTECTION_PIN_V1,
+            root = "/Private",
+        )
+
+        val required = ExchangeListedResource(SERVER, pinned, true)
+        val withheld = ExchangeListedResource(SERVER, pinned.copy(descriptor = null), true)
+        val noRoot = ExchangeListedResource(SERVER, pinned.copy(root = null), true)
+        val future = ExchangeListedResource(SERVER, pinned.copy(protectionScheme = "future"), true)
+
+        assertEquals(ExchangeResourceAccess.PIN_REQUIRED, required.access)
+        assertEquals(ExchangeResourceAccess.PIN_NO_ACCESS, withheld.access)
+        assertEquals(ExchangeResourceAccess.PIN_LOCKED, noRoot.access)
+        assertEquals(ExchangeResourceAccess.PIN_LOCKED, future.access)
+    }
+
+    @Test
     fun `an offline producer leaves the attachment unavailable`() {
         val offline = resource("r1", "pc", "Photos").copy(presence = SftpRendezvousDevice.PRESENCE_OFFLINE)
         val listing = listingOf(offline)

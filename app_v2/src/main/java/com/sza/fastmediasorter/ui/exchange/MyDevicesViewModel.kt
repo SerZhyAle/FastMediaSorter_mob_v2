@@ -178,6 +178,7 @@ class MyDevicesViewModel @Inject constructor(
                 request.pairingCode,
                 acceptedPin
             )
+            Timber.d("My devices sign-in result: %s", result.javaClass.simpleName)
             signInState.value = when (result) {
                 is DeviceExchangeEnrollResult.Enrolled -> ExchangeSignInState.Done(request.endpoint)
                 is DeviceExchangeEnrollResult.CertificateUntrusted ->
@@ -188,6 +189,8 @@ class MyDevicesViewModel @Inject constructor(
                     ExchangeSignInState.Failed(MyDevicesMessage(ExchangeRefusalText.of(result.reason)))
                 is DeviceExchangeEnrollResult.Unreachable ->
                     ExchangeSignInState.Failed(MyDevicesMessage(R.string.exchange_devices_status_unreachable))
+                is DeviceExchangeEnrollResult.NoAnswer ->
+                    ExchangeSignInState.Failed(MyDevicesMessage(R.string.exchange_devices_status_unanswered))
             }
         }
     }

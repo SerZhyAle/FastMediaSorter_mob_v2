@@ -99,7 +99,7 @@
     <string name="exchange_directory_resource_attached">Підключено</string>
     <string name="exchange_directory_resource_offline">Пристрій не в мережі</string>
     <string name="exchange_directory_resource_no_access">Пристрій не передає сюди свою адресу</string>
-    <string name="exchange_directory_resource_locked">Захищено PIN-кодом. Ця версія поки не вміє його відкрити</string>
+    <string name="exchange_directory_resource_locked">Закрито способом, якого ця версія не знає. Оновіть застосунок, щоб відкрити</string>
     <string name="exchange_directory_attached_section">Підключені раніше</string>
     <string name="exchange_directory_no_longer_published">Більше не публікується</string>
     <string name="exchange_directory_unavailable">Зараз недоступно</string>
@@ -131,4 +131,17 @@
     <string name="exchange_cast_result_timeout">%1$s не відповів</string>
     <string name="exchange_cast_result_unsupported">%1$s не може відтворити цю трансляцію</string>
     <string name="exchange_cast_result_refused">Сервер не передав запит на %1$s</string>
+    <string name="exchange_devices_status_unanswered">Сервер не відповів</string>
+    <string name="exchange_directory_resource_pin">Захищено PIN-кодом</string>
+    <string name="exchange_directory_resource_pin_needed">Підключено - потрібен PIN-код</string>
+    <string name="exchange_directory_resource_pin_sign_in">Захищено PIN-кодом. Увійдіть на цей сервер знову, щоб відкрити</string>
+    <string name="exchange_pin_title">PIN-код для «%1$s»</string>
+    <string name="exchange_pin_message">Введіть PIN-код цього ресурсу. Його перевіряє пристрій, що ним ділиться, і він зберігається тут у зашифрованому вигляді.</string>
+    <string name="exchange_pin_hint">PIN-код</string>
+    <string name="exchange_pin_skip">Пропустити</string>
+    <string name="exchange_pin_checking">Перевіряємо..</string>
+    <string name="exchange_pin_refused">Заблоковано: PIN-код не прийнято. Перевірте його й спробуйте знову</string>
+    <string name="exchange_pin_unreachable">Зараз пристрій недоступний - переконайтеся, що він у мережі, і спробуйте знову</string>
+    <string name="exchange_pin_failed">Не вдалося підключити ресурс. Спробуйте пізніше</string>
+    <string name="exchange_pin_empty">Введіть PIN-код</string>
 </resources>

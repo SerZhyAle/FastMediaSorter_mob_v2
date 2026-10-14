@@ -59,6 +59,7 @@ class SftpClient @Inject constructor(
     private val networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor,
     private val pinRegistry: SftpHostKeyPinRegistry,
     private val rendezvousVerdicts: SftpRendezvousVerdicts,
+    private val proofRegistry: SftpRootProofRegistry,
 ) {
 
     companion object {
@@ -73,7 +74,9 @@ class SftpClient @Inject constructor(
         val password: String = "",
         val privateKey: String? = null,
         val passphrase: String? = null,
-        val expectedFingerprint: String? = null
+        val expectedFingerprint: String? = null,
+        /** The `pin-v1` proof of a protected root (SHARE-SESSION 1.2); filled by [SftpRootProofRegistry]. */
+        val rootProof: SftpRootProof? = null,
     )
 
     private val pool = SftpConnectionPool(onFirstUseHostKey = pinRegistry::recordFirstUse)
@@ -99,13 +102,15 @@ class SftpClient @Inject constructor(
     /** S0195: trigger network lifecycle bootstrap on first SFTP use. */
     private suspend fun <T> withConnection(
         callerInfo: SftpConnectionInfo,
+        remotePath: String?,
         replayable: Boolean = true,
         block: suspend (ChannelSftp) -> Result<T>
     ): Result<T> {
         lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("SFTP")
-        // The pinned info flows on into the idle-disconnect arm so invalidation hits the same pool key.
-        val info = pinRegistry.withPin(callerInfo)
+        // The pinned info flows on into the idle-disconnect arm so invalidation hits the same pool key. The
+        // path decides whether the operation lies under a protected root and so needs its own proven session.
+        val info = proofRegistry.withProof(pinRegistry.withPin(callerInfo), remotePath)
         val transportKey = rememberTransportKey(info)
         idleDisconnectPolicy.touch(transportKey)
         // S0219 Pillar C: rearm the idle timer on every completion path (success or failure), not
@@ -115,6 +120,7 @@ class SftpClient @Inject constructor(
         // A producer online on Drive that answered on no address gets its own verdict (ANYWHERE-ACCESS 7).
         return try {
             rendezvousVerdicts.annotate(info.host, info.port, pool.withConnection(info, replayable, block))
+                .also { proofRegistry.noteOutcome(info, it) }
         } catch (e: CancellationException) {
             cancelled = true
             throw e
@@ -130,15 +136,19 @@ class SftpClient @Inject constructor(
     // ExoPlayer connection management lives in SftpConnectionPool.
     /** S0195: trigger network lifecycle bootstrap on first SFTP use. */
     @Throws(IOException::class)
-    fun getConnectionForExoPlayer(connectionInfo: SftpConnectionInfo): SftpConnectionPool.ExoPlayerConnection {
+    fun getConnectionForExoPlayer(
+        connectionInfo: SftpConnectionInfo,
+        remotePath: String? = null,
+    ): SftpConnectionPool.ExoPlayerConnection {
         lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("SFTP")
-        val pinned = pinRegistry.withPinBlocking(connectionInfo)
+        val pinned = proofRegistry.withProofBlocking(pinRegistry.withPinBlocking(connectionInfo), remotePath)
         val transportKey = rememberTransportKey(pinned)
         idleDisconnectPolicy.touch(transportKey)
         val connection = try {
             pool.getConnectionForExoPlayer(pinned)
         } catch (e: IOException) {
+            proofRegistry.noteFailure(pinned, e)
             throw rendezvousVerdicts.annotate(pinned.host, pinned.port, e)
         }
         return connection.also { armTransport(pinned) }
@@ -149,16 +159,19 @@ class SftpClient @Inject constructor(
      * entrypoints again. Refresh the idle timer from the DataSource itself so the transport is not
      * considered idle in the middle of a long-running ExoPlayer session.
      */
-    fun touchPlaybackTransport(host: String, port: Int, username: String) {
-        val connectionInfo = SftpConnectionInfo(host = host, port = port, username = username)
+    fun touchPlaybackTransport(host: String, port: Int, username: String, remotePath: String? = null) {
+        val connectionInfo = proofRegistry.withProofBlocking(
+            SftpConnectionInfo(host = host, port = port, username = username),
+            remotePath,
+        )
         val transportKey = rememberTransportKey(connectionInfo)
         idleDisconnectPolicy.touch(transportKey)
     }
 
-    /** S0067: close all pooled SFTP sessions (UI lifecycle hook). */
-    suspend fun disconnectAllPool() {
+    /** UI retirement defers socket closure until active transfers and streams release their borrows. */
+    suspend fun disconnectUiPool() {
         disarmAllTrackedTransports()
-        pool.disconnectAll()
+        pool.disconnectAll(preserveActiveBorrowers = true)
     }
 
     fun releaseExoPlayerConnection(channel: ChannelSftp? = null, broken: Boolean = false) =
@@ -175,7 +188,7 @@ class SftpClient @Inject constructor(
         remotePath: String = "/",
         recursive: Boolean = true,
         includeDirectories: Boolean = false
-    ): Result<List<SftpFileListing>> = withConnection(connectionInfo) { channel ->
+    ): Result<List<SftpFileListing>> = withConnection(connectionInfo, remotePath) { channel ->
         // S0219: SftpException/IOException now propagate so SftpConnectionPool runs the
         // dead-transport retry (S0147). CancellationException re-throw is preserved
         // explicitly per S0205 to keep the intent visible at the call site.
@@ -183,7 +196,7 @@ class SftpClient @Inject constructor(
             val allFiles = mutableListOf<SftpFileListing>()
             if (recursive) {
                 val skipped = mutableListOf<String>()
-                listFilesRecursive(channel, remotePath, allFiles, skipped)
+                SftpListingWalker.listFilesRecursive(channel, remotePath, allFiles, skipped)
                 if (skipped.isNotEmpty()) {
                     Timber.w(
                         "SFTP: listed ${allFiles.size} file(s) under '$remotePath', " +
@@ -191,91 +204,11 @@ class SftpClient @Inject constructor(
                     )
                 }
             } else {
-                listFilesSingleLevel(channel, remotePath, allFiles, includeDirectories)
+                SftpListingWalker.listFilesSingleLevel(channel, remotePath, allFiles, includeDirectories)
             }
             Result.success(allFiles)
         } catch (e: CancellationException) {
             throw e
-        }
-    }
-
-    // List files in single directory level (non-recursive)
-    private fun listFilesSingleLevel(
-        channel: ChannelSftp,
-        remotePath: String,
-        results: MutableList<SftpFileListing>,
-        includeDirectories: Boolean = false
-    ) {
-        val entries = channel.ls(remotePath) as Vector<ChannelSftp.LsEntry>
-
-        entries.forEach { entry ->
-            if (entry.filename != "." && entry.filename != "..") {
-                val fullPath = if (remotePath.endsWith("/")) {
-                    remotePath + entry.filename
-                } else {
-                    "$remotePath/${entry.filename}"
-                }
-
-                if (entry.attrs.isDir && !includeDirectories) {
-                    // Skip directories in scan mode (caller does not want them)
-                    return@forEach
-                }
-
-                results.add(
-                    SftpFileListing(
-                        path = fullPath,
-                        size = entry.attrs.size,
-                        isDirectory = entry.attrs.isDir,
-                        modifiedDate = entry.attrs.mTime.toLong() * 1000L
-                    )
-                )
-            }
-        }
-    }
-
-    // List files recursively in all subdirectories
-    private fun listFilesRecursive(
-        channel: ChannelSftp,
-        remotePath: String,
-        results: MutableList<SftpFileListing>,
-        skipped: MutableList<String>,
-        isRoot: Boolean = true
-    ) {
-        val entries = try {
-            channel.ls(remotePath) as Vector<ChannelSftp.LsEntry>
-        } catch (e: SftpException) {
-            // S2315: one unreadable subdirectory used to abort the whole walk, so a share with a
-            // single ACL-broken folder reported zero files and read as an empty resource. The root
-            // is different: failing there means the resource itself is gone, which the caller must
-            // see as an error rather than as an empty folder.
-            if (isRoot) throw e
-            skipped.add(remotePath)
-            Timber.w("SFTP: skipping unreadable directory '$remotePath' - ${e.message}")
-            return
-        }
-
-        entries.forEach { entry ->
-            if (entry.filename != "." && entry.filename != "..") {
-                val fullPath = if (remotePath.endsWith("/")) {
-                    remotePath + entry.filename
-                } else {
-                    "$remotePath/${entry.filename}"
-                }
-
-                if (entry.attrs.isDir) {
-                    // Recursively scan subdirectory - directory itself is not added to results
-                    listFilesRecursive(channel, fullPath, results, skipped, isRoot = false)
-                } else {
-                    results.add(
-                        SftpFileListing(
-                            path = fullPath,
-                            size = entry.attrs.size,
-                            isDirectory = false,
-                            modifiedDate = entry.attrs.mTime.toLong() * 1000L
-                        )
-                    )
-                }
-            }
         }
     }
 
@@ -285,7 +218,7 @@ class SftpClient @Inject constructor(
         remotePath: String,
         maxBytes: Long = Long.MAX_VALUE
     ): Result<ByteArray> {
-        val firstResult = withConnection(connectionInfo) { channel ->
+        val firstResult = withConnection(connectionInfo, remotePath) { channel ->
             try {
                 val outputStream = java.io.ByteArrayOutputStream()
                 if (maxBytes < Long.MAX_VALUE) {
@@ -344,7 +277,7 @@ class SftpClient @Inject constructor(
             Timber.d("SFTP: Invalidating connection and retrying: $remotePath")
             disconnectTransport(connectionInfo)
 
-            withConnection(connectionInfo) { channel ->
+            withConnection(connectionInfo, remotePath) { channel ->
                 try {
                     val outputStream = java.io.ByteArrayOutputStream()
                     channel.get(remotePath).use { inputStream ->
@@ -379,7 +312,7 @@ class SftpClient @Inject constructor(
         length: Long,
         allowRetry: Boolean = true
     ): Result<ByteArray> {
-        val firstResult = withConnection(connectionInfo) { channel ->
+        val firstResult = withConnection(connectionInfo, remotePath) { channel ->
             try {
                 val buffer = ByteArray(length.toInt())
                 // Use get(path, offset) to start reading directly from offset position
@@ -432,7 +365,7 @@ class SftpClient @Inject constructor(
             Timber.d("SFTP: Invalidating connection and retrying readFileBytesRange: $remotePath")
             disconnectTransport(connectionInfo)
 
-            withConnection(connectionInfo) { channel ->
+            withConnection(connectionInfo, remotePath) { channel ->
                 try {
                     val buffer = ByteArray(length.toInt())
                     // Retry must preserve direct-offset semantics; skip(offset) replays the failing path.
@@ -532,7 +465,7 @@ class SftpClient @Inject constructor(
         request: DownloadRequest,
         sink: RewindableDownloadSink,
         attempt: Int
-    ): Result<Unit> = withConnection(request.connectionInfo) { channel ->
+    ): Result<Unit> = withConnection(request.connectionInfo, request.remotePath) { channel ->
         val remotePath = request.remotePath
         val fileSize = request.fileSize
         try {
@@ -579,7 +512,7 @@ class SftpClient @Inject constructor(
         connectionInfo: SftpConnectionInfo,
         remotePath: String,
         data: ByteArray
-    ): Result<Unit> = withConnection(connectionInfo) { channel ->
+    ): Result<Unit> = withConnection(connectionInfo, remotePath) { channel ->
         // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
         val parentDir = remotePath.substringBeforeLast('/', "")
         if (parentDir.isNotEmpty()) {
@@ -599,7 +532,7 @@ class SftpClient @Inject constructor(
         fileSize: Long = 0,
         progressCallback: ByteProgressCallback? = null,
         verifyLength: Boolean = false
-    ): Result<Unit> = withConnection(connectionInfo, replayable = false) { channel ->
+    ): Result<Unit> = withConnection(connectionInfo, remotePath, replayable = false) { channel ->
         // S4033: exceptions propagate so SftpConnectionPool drops a dead transport, but this mutation
         // is never replayed - its reply may have been lost after the server already acted.
         val parentDir = remotePath.substringBeforeLast('/', "")
@@ -627,7 +560,7 @@ class SftpClient @Inject constructor(
     suspend fun stat(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
-    ): Result<SftpFileAttributes> = withConnection(connectionInfo) { channel ->
+    ): Result<SftpFileAttributes> = withConnection(connectionInfo, remotePath) { channel ->
         // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
         val attrs = channel.stat(remotePath)
         Result.success(
@@ -644,7 +577,7 @@ class SftpClient @Inject constructor(
     suspend fun exists(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
-    ): Result<Boolean> = withConnection(connectionInfo) { channel ->
+    ): Result<Boolean> = withConnection(connectionInfo, remotePath) { channel ->
         // S0219: only SSH_FX_NO_SUCH_FILE is a benign protocol response (path missing).
         // All other SftpException ids, any IOException, and CancellationException propagate
         // so SftpConnectionPool can run the dead-transport retry (S0147) and coroutine
@@ -660,7 +593,7 @@ class SftpClient @Inject constructor(
     suspend fun mkdir(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
-    ): Result<Unit> = withConnection(connectionInfo, replayable = false) { channel ->
+    ): Result<Unit> = withConnection(connectionInfo, remotePath, replayable = false) { channel ->
         // S4033: exceptions propagate so SftpConnectionPool drops a dead transport, but this mutation
         // is never replayed - its reply may have been lost after the server already acted.
         channel.mkdir(remotePath)
@@ -671,7 +604,7 @@ class SftpClient @Inject constructor(
     suspend fun deleteFile(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
-    ): Result<Unit> = withConnection(connectionInfo, replayable = false) { channel ->
+    ): Result<Unit> = withConnection(connectionInfo, remotePath, replayable = false) { channel ->
         // S4033: exceptions propagate so SftpConnectionPool drops a dead transport, but this mutation
         // is never replayed - its reply may have been lost after the server already acted.
         channel.rm(remotePath)
@@ -682,7 +615,7 @@ class SftpClient @Inject constructor(
     suspend fun deleteDirectory(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
-    ): Result<Unit> = withConnection(connectionInfo, replayable = false) { channel ->
+    ): Result<Unit> = withConnection(connectionInfo, remotePath, replayable = false) { channel ->
         // S4033: exceptions propagate so SftpConnectionPool drops a dead transport, but this mutation
         // is never replayed - its reply may have been lost after the server already acted.
         // Helper function for recursion within the same channel
@@ -711,7 +644,7 @@ class SftpClient @Inject constructor(
         connectionInfo: SftpConnectionInfo,
         oldPath: String,
         newPath: String
-    ): Result<Unit> = withConnection(connectionInfo, replayable = false) { channel ->
+    ): Result<Unit> = withConnection(connectionInfo, oldPath, replayable = false) { channel ->
         // S4033: exceptions propagate so SftpConnectionPool drops a dead transport, but this mutation
         // is never replayed - its reply may have been lost after the server already acted.
         channel.rename(oldPath, newPath)
@@ -758,6 +691,17 @@ class SftpClient @Inject constructor(
     ): Result<String?> =
         SftpConnectionTester.testConnection(host, port, username, password, expectedFingerprint)
 
+    /**
+     * Opens a session of its own that proves [root] with [pin] and stats the root: the check an attach runs
+     * before a protected resource is added (DEVICE-EXCHANGE 17 item AJ). A refused proof is a
+     * [com.sza.fastmediasorter.data.network.exceptions.NetworkPinRefusedException]; success leaves the proven
+     * session pooled for the first real operation.
+     */
+    suspend fun verifyRootProof(connectionInfo: SftpConnectionInfo, root: String, pin: String): Result<Unit> {
+        val proofInfo = connectionInfo.copy(rootProof = SftpRootProof(root, pin))
+        return exists(proofInfo, "/$root").map { }
+    }
+
     suspend fun testConnectionWithPrivateKey(
         host: String,
         port: Int = 22,
@@ -781,7 +725,7 @@ class SftpClient @Inject constructor(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
     ): Result<java.io.InputStream> {
-        val pinned = pinRegistry.withPin(connectionInfo)
+        val pinned = proofRegistry.withProof(pinRegistry.withPin(connectionInfo), remotePath)
         val transportKey = rememberTransportKey(pinned)
         idleDisconnectPolicy.touch(transportKey)
         // S0219 Pillar C: rearm idle timer on every non-cancellation completion path.
@@ -790,7 +734,7 @@ class SftpClient @Inject constructor(
         // the stream is open regardless of the idle timer.
         var cancelled = false
         return try {
-            pool.openInputStream(pinned, remotePath)
+            pool.openInputStream(pinned, remotePath).also { proofRegistry.noteOutcome(pinned, it) }
         } catch (e: CancellationException) {
             cancelled = true
             throw e
@@ -802,8 +746,10 @@ class SftpClient @Inject constructor(
     }
     // Create directory on SFTP server
 
+    // A proven session is its own transport: another root's idle timer must not tear it down.
     private fun transportKey(connectionInfo: SftpConnectionInfo): String {
-        return "sftp@${connectionInfo.host}:${connectionInfo.port}:${connectionInfo.username}"
+        val root = connectionInfo.rootProof?.root?.let { "#$it" }.orEmpty()
+        return "sftp@${connectionInfo.host}:${connectionInfo.port}:${connectionInfo.username}$root"
     }
 
     private fun rememberTransportKey(connectionInfo: SftpConnectionInfo): String {

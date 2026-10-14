@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.data.detector.RealDeviceProfileDetector
 import com.sza.fastmediasorter.data.game.GameStateRepositoryImpl
 import com.sza.fastmediasorter.data.local.ContentMediaAddressResolver
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeTokenStore
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeResourcePinStore
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnector
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpExchangeProducerProvider
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpExchangeProducerSource
@@ -29,6 +30,7 @@ import com.sza.fastmediasorter.data.repository.StorageVolumeSource
 import com.sza.fastmediasorter.data.repository.StreamingCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.settings.KeystoreDeviceExchangeTokenStore
+import com.sza.fastmediasorter.data.repository.settings.KeystoreExchangeResourcePinStore
 import com.sza.fastmediasorter.data.repository.settings.MainListSessionStore
 import com.sza.fastmediasorter.data.repository.streams.RealStreamFrameIngestor
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearDeliveredResourceStore
@@ -277,4 +279,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindDeviceExchangeTokenStore(impl: KeystoreDeviceExchangeTokenStore): DeviceExchangeTokenStore
+
+    @Binds
+    @Singleton
+    abstract fun bindExchangeResourcePinStore(impl: KeystoreExchangeResourcePinStore): ExchangeResourcePinStore
 }

@@ -23,6 +23,8 @@ object NetworkErrorMessageMapper {
         is NetworkServerErrorException -> R.string.error_network_server_error
         is NetworkTimeoutException -> R.string.error_network_timeout
         is ScanTimeoutException -> R.string.error_scan_timeout
+        // The more specific refusal first: it is a NetworkAccessDeniedException too.
+        is NetworkPinRefusedException -> R.string.error_network_pin_refused
         is NetworkAccessDeniedException -> R.string.error_network_access_denied
         is NetworkHostKeyChangedException -> R.string.error_network_host_key_changed
         is NetworkFileNotFoundException -> R.string.error_network_not_found

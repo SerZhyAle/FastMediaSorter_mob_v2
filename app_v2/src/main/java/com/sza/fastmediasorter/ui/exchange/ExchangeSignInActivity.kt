@@ -29,14 +29,15 @@ class ExchangeSignInActivity : AppCompatActivity() {
     }
 
     private val viewModel: MyDevicesViewModel by viewModels()
-    private val launchers: ExchangeIntakeLaunchers by lazy {
-        ExchangeIntakeLaunchers(
-            this,
-            onText = { text -> dialogs.applyIntakeText(text) },
-            onFile = { result -> dialogs.applyIntakeFile(result) },
-            readUri = { uri -> viewModel.readConnectionFile(contentResolver, uri) },
-        )
-    }
+
+    // Eager on purpose: registerForActivityResult throws once the lifecycle has reached STARTED, so the
+    // launchers cannot wait for the first use of `dialogs` (a late onNewIntent or state render would hit it).
+    private val launchers: ExchangeIntakeLaunchers = ExchangeIntakeLaunchers(
+        this,
+        onText = { text -> dialogs.applyIntakeText(text) },
+        onFile = { result -> dialogs.applyIntakeFile(result) },
+        readUri = { uri -> viewModel.readConnectionFile(contentResolver, uri) },
+    )
     private val dialogs: MyDevicesDialogManager by lazy {
         MyDevicesDialogManager(this, viewModel, launchers)
     }

@@ -252,7 +252,9 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             listOf(applicationScope)
         }
 
-    private val firstFrameSignal by lazy { FirstFrameSignal() }
+    // S4206: eagerly initialized to eliminate lazy delegate overhead and avoid NPE risk
+    // during concurrent early startup.
+    private val firstFrameSignal = FirstFrameSignal()
     
     // Track if app is in foreground
     @Volatile

@@ -23,6 +23,15 @@ class NetworkAuthRejectedException(message: String = "Authentication rejected", 
     NetworkAccessDeniedException(message, cause)
 
 /**
+ * DEVICE-EXCHANGE 17 item AH: the producer refused the original PIN of a protected root. A subtype of
+ * [NetworkAccessDeniedException] so generic access-denied handling and "never retry an authentication verdict"
+ * apply, but never of [NetworkAuthRejectedException]: the share is not deleted and no re-pairing helps - the
+ * PIN has to be entered again. The refusal carries nothing finer than "locked".
+ */
+class NetworkPinRefusedException(cause: Throwable? = null) :
+    NetworkAccessDeniedException("The PIN of the resource was not accepted", cause)
+
+/**
  * S1055: the pinned server host key no longer matches the one recorded at pairing (possible
  * impersonation / MITM). Security-critical: a direct [NetworkException] subtype (never a
  * [NetworkConnectionLostException]), so it is non-transient by construction and is never auto-retried

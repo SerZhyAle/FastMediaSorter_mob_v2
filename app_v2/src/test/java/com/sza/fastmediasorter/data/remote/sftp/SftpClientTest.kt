@@ -22,6 +22,7 @@ class SftpClientTest {
             mockk<NetworkStateMonitor>(relaxed = true),
             mockk<SftpHostKeyPinRegistry>(relaxed = true),
             com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpRendezvousVerdicts(),
+            mockk<SftpRootProofRegistry>(relaxed = true),
         )
 
         val info = SftpClient.SftpConnectionInfo(host = "anyhost", port = 22, username = "u", password = "p")

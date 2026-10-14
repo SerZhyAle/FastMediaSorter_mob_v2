@@ -59,9 +59,15 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
 
         val contentManager = TouristTileContentManager(this, valueFormatter)
 
-        heroTileManager = TouristHeroTileManager(binding, contentManager) { focusedTile ->
-            viewModel.resetFor(focusedTile)
-        }
+        heroTileManager = TouristHeroTileManager(
+            binding,
+            contentManager,
+            onResetClicked = { focusedTile -> viewModel.resetFor(focusedTile) },
+            // S4202: the STOPWATCH tile runs inline; the row's three buttons are its whole control surface.
+            onStopwatchToggleClicked = { viewModel.toggleStopwatch() },
+            onStopwatchResetClicked = { viewModel.resetStopwatch() },
+            onStopwatchOpenClicked = { actionsManager.launchStopwatch() },
+        )
         actionsManager = TouristActionsManager(this)
         permissionManager = TouristPermissionManager(this, binding) { permissionLauncher.launch(it) }
 
@@ -95,7 +101,8 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
             val state = viewModel.state.value
             when (state.focusedTile) {
                 TouristTileType.COORDINATES -> actionsManager.copyCoordinates(state.latitude, state.longitude)
-                TouristTileType.STOPWATCH -> actionsManager.launchStopwatch()
+                // S4202: STOPWATCH dropped from here - the tile is a stopwatch itself, and launching the
+                // full program moved to the row's dedicated button.
                 TouristTileType.COUNTER -> actionsManager.launchCounter()
                 else -> Unit
             }

@@ -4408,7 +4408,6 @@
     <string name="tourist_tile_watch_heart_rate">Пульс (часы)</string>
     <string name="tourist_tile_watch_body_temperature">Температура тела (часы)</string>
     <string name="tourist_tile_stopwatch">Секундомер</string>
-    <string name="tourist_action_open">Открыть</string>
     <string name="tourist_detail_stopwatch">Замер времени и кругов</string>
     <string name="tourist_unit_bpm">уд/мин</string>
     <string name="tourist_status_open_watch_tourist">Откройте «Турист» на часах</string>
@@ -4443,4 +4442,9 @@
     <string name="tourist_counter_history_period">%1$s - %2$s</string>
     <string name="tourist_counter_clear_history">Очистить</string>
     <string name="tourist_counter_clear_history_title">Очистить историю счётчика?</string>
+    <string name="error_network_pin_refused">Заперто: PIN-код не принят. Введите его снова в «Мои устройства».</string>
+    <string name="tourist_stopwatch_action_start">Пуск</string>
+    <string name="tourist_stopwatch_action_stop">Стоп</string>
+    <string name="tourist_stopwatch_action_reset">Сброс</string>
+    <string name="tourist_stopwatch_action_open_full">Открыть секундомер</string>
 </resources>

@@ -15,11 +15,16 @@ import java.util.Locale
  *
  * S4145: what a tile shows comes from [TouristTileContentManager], the same source the grid reads; this
  * class only decides which of the card's pictures - coordinates, compass rose, arrow or level - is shown.
+ * S4202: it also owns the STOPWATCH tile's controls row - visibility, the toggle's label and icon - while
+ * the actions themselves stay callbacks, so no stopwatch logic lives in the activity.
  */
 class TouristHeroTileManager(
     private val binding: ActivityTouristInfoBinding,
     private val contentManager: TouristTileContentManager,
     private val onResetClicked: (TouristTileType) -> Unit = {},
+    private val onStopwatchToggleClicked: () -> Unit = {},
+    private val onStopwatchResetClicked: () -> Unit = {},
+    private val onStopwatchOpenClicked: () -> Unit = {},
 ) {
 
     fun bind(state: TouristDashboardState, context: Context) {
@@ -36,15 +41,47 @@ class TouristHeroTileManager(
         binding.tvHeroTitle.setText(content.labelRes)
         binding.tvHeroPrimaryValue.text = content.value
         binding.tvHeroPrimaryUnit.text = content.unit
+        binding.tvHeroCompassHeading.text = content.value
+        binding.tvHeroCompassCardinal.text = content.unit
         binding.tvHeroSecondaryDetail.text = content.detail.orEmpty()
 
-        bindVisual(content.visual, context)
+        bindStopwatchControls(state, tile)
+
+        val isCompass = tile == TouristTileType.COMPASS
+        if (isCompass && binding.layoutHeroCompass.visibility != View.VISIBLE) {
+            Timber.d("S4183: Tourist compass focused; rose left, heading right, equal halves")
+        }
+        bindVisual(content.visual, isCompass, context)
     }
 
-    private fun bindVisual(visual: HeroVisual, context: Context) {
-        binding.layoutHeroTextMetrics.visibility = if (visual is HeroVisual.Coordinates) View.GONE else View.VISIBLE
+    /**
+     * The toggle is one button that changes its label and icon with the running flag, because start and
+     * stop are the same control on a primitive single-player stopwatch; the row stays hidden for every
+     * other tile so their card height is unchanged.
+     */
+    private fun bindStopwatchControls(state: TouristDashboardState, tile: TouristTileType) {
+        val isStopwatch = tile == TouristTileType.STOPWATCH
+        binding.layoutHeroStopwatch.visibility = if (isStopwatch) View.VISIBLE else View.GONE
+        if (!isStopwatch) return
+
+        if (state.stopwatchRunning) {
+            binding.btnStopwatchToggle.setText(R.string.tourist_stopwatch_action_stop)
+            binding.btnStopwatchToggle.setIconResource(R.drawable.ic_stop)
+        } else {
+            binding.btnStopwatchToggle.setText(R.string.tourist_stopwatch_action_start)
+            binding.btnStopwatchToggle.setIconResource(R.drawable.ic_play)
+        }
+        binding.btnStopwatchToggle.setOnClickListener { onStopwatchToggleClicked() }
+        binding.btnStopwatchReset.setOnClickListener { onStopwatchResetClicked() }
+        binding.btnStopwatchOpen.setOnClickListener { onStopwatchOpenClicked() }
+    }
+
+    private fun bindVisual(visual: HeroVisual, isCompass: Boolean, context: Context) {
+        binding.layoutHeroTextMetrics.visibility =
+            if (visual is HeroVisual.Coordinates || isCompass) View.GONE else View.VISIBLE
         binding.layoutHeroCoords.visibility = if (visual is HeroVisual.Coordinates) View.VISIBLE else View.GONE
-        binding.ivHeroCompassRose.visibility = if (visual is HeroVisual.CompassRose) View.VISIBLE else View.GONE
+        binding.layoutHeroCompass.visibility = if (isCompass) View.VISIBLE else View.GONE
+        binding.ivHeroCompassRose.rotation = if (visual is HeroVisual.CompassRose) -visual.azimuthDegrees else 0f
         binding.layoutHeroVisual.visibility =
             if (visual is HeroVisual.Arrow || visual is HeroVisual.Level) View.VISIBLE else View.GONE
         binding.ivHeroDirectionArrow.visibility = if (visual is HeroVisual.Arrow) View.VISIBLE else View.GONE
@@ -52,7 +89,7 @@ class TouristHeroTileManager(
 
         when (visual) {
             is HeroVisual.Coordinates -> bindCoordinates(visual)
-            is HeroVisual.CompassRose -> binding.ivHeroCompassRose.rotation = -visual.azimuthDegrees
+            is HeroVisual.CompassRose -> Unit
             is HeroVisual.Arrow -> binding.ivHeroDirectionArrow.rotation = visual.rotationDegrees
             is HeroVisual.Level -> bindLevel(visual, context)
             HeroVisual.None -> Unit

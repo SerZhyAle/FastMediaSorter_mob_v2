@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollment
 import com.sza.fastmediasorter.domain.model.DeviceExchangePairingCode
 import com.sza.fastmediasorter.domain.model.DeviceExchangeWelcome
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
+import timber.log.Timber
 import java.io.Closeable
 import java.io.IOException
 import javax.inject.Inject
@@ -78,9 +79,28 @@ class DeviceExchangeAccountClient @Inject constructor(
         enrollment: DeviceExchangeEnrollment,
     ): DeviceExchangeEnrollResult = try {
         val trust = ExchangeTrust.Verified(entry.pinnedCertificate)
+        Timber.d(
+            "Exchange enroll: %s:%d login=%s deviceId=%s pinned=%s credential=%s roles=%s product=%s",
+            entry.host,
+            entry.port,
+            entry.login,
+            entry.deviceId,
+            entry.pinnedCertificate,
+            credential.javaClass.simpleName,
+            enrollment.roles,
+            enrollment.productVersion,
+        )
         val answer = connector.connect(entry.host, entry.port, trust).use { stream ->
-            DeviceExchangeFrameCodec.write(stream.output, enrollEnvelope(entry, credential, enrollment))
+            // Never the password or the token: the envelope's type and size are enough to place a refusal.
+            val request = enrollEnvelope(entry, credential, enrollment)
+            DeviceExchangeFrameCodec.write(stream.output, request)
+            Timber.d("Exchange enroll: %s envelope written, waiting for the answer", request.type)
             DeviceExchangeFrameCodec.read(stream.input).also { answer ->
+                Timber.d(
+                    "Exchange enroll: answer type=%s reason=%s",
+                    answer?.type,
+                    answer?.string(DeviceExchangeEnvelope.KEY_REASON),
+                )
                 // The enrolled stream is authenticated and would become the control stream; this one only enrolls.
                 if (answer?.type == DeviceExchangeEnvelope.TYPE_ENROLLED) {
                     DeviceExchangeFrameCodec.write(
@@ -92,6 +112,7 @@ class DeviceExchangeAccountClient @Inject constructor(
         }
         enrollAnswer(entry, answer)
     } catch (e: IOException) {
+        Timber.w(e, "Exchange enroll failed with %s: %s", e.javaClass.simpleName, e.message)
         connectFailure(e)
     }
 
@@ -250,7 +271,10 @@ class DeviceExchangeAccountClient @Inject constructor(
                 DeviceExchangeEnrollResult.Refused(DeviceExchangeEnrollResult.REASON_TOKEN_NOT_STORED)
             }
             reason != null -> DeviceExchangeEnrollResult.Refused(reason)
-            else -> DeviceExchangeEnrollResult.Unreachable(DeviceExchangeWireException("enroll was not answered"))
+            else -> {
+                Timber.w("Exchange enroll: no enrolled or refused answer (answer type=%s)", answer?.type)
+                DeviceExchangeEnrollResult.NoAnswer(DeviceExchangeWireException("enroll was not answered"))
+            }
         }
     }
 
@@ -258,6 +282,9 @@ class DeviceExchangeAccountClient @Inject constructor(
         is ExchangeCertificateUntrustedException -> DeviceExchangeEnrollResult.CertificateUntrusted(failure.presented)
         is ExchangeCertificateChangedException ->
             DeviceExchangeEnrollResult.CertificateChanged(failure.pinned, failure.presented)
+        // A frame that breaks 7.1 after our own envelope went out is the server answering badly, not a host
+        // that could not be reached (18 item AN).
+        is DeviceExchangeWireException -> DeviceExchangeEnrollResult.NoAnswer(failure)
         else -> DeviceExchangeEnrollResult.Unreachable(failure)
     }
 
@@ -277,6 +304,10 @@ class DeviceExchangeAccountClient @Inject constructor(
         addProperty(KEY_PRODUCT_VERSION, enrollment.productVersion)
         addProperty(KEY_PLATFORM, SftpRendezvousDevice.PLATFORM_ANDROID)
         add(KEY_ROLES, JsonArray().apply { enrollment.roles.forEach(::add) })
+        if (enrollment.capabilities.isNotEmpty()) {
+            Timber.d("S4201: enroll declares capabilities")
+            add(KEY_CAPABILITIES, JsonArray().apply { enrollment.capabilities.forEach(::add) })
+        }
         enrollment.receiver?.let { add(KEY_RECEIVER, it) }
     }
 
@@ -307,6 +338,7 @@ class DeviceExchangeAccountClient @Inject constructor(
         private const val KEY_PRODUCT_VERSION = "productVersion"
         private const val KEY_PLATFORM = "platform"
         private const val KEY_ROLES = "roles"
+        private const val KEY_CAPABILITIES = "capabilities"
         private const val KEY_RECEIVER = "receiver"
         private const val KEY_CODE = "code"
         private const val KEY_EXPIRES_AT = "expiresAt"

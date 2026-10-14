@@ -45,15 +45,24 @@ object ExchangeCastRules {
     private const val ROLE_RECEIVER = "receiver"
 
     /**
+     * The most `receiver.plays` pairs the FMS_W exchange server accepts in an `enroll`; the contract states no
+     * number, and one pair above it is a silently closed stream, never a `refused`.
+     */
+    const val MAX_PLAYS_PAIRS = 8
+
+    /**
      * The phone plays every `LIVE-BROADCAST` mode on every endpoint transport it implements, so its `plays` is the
-     * full product of the two lists; it is still written out, so a broadcaster reading only `plays` matches it.
+     * full product of the two lists; it is written out, so a broadcaster reading only `plays` matches it, as long
+     * as the product fits [MAX_PLAYS_PAIRS]. Above it `plays` is dropped: item E reads the two lists as that same
+     * product, and a server that finds more pairs than it accepts closes the whole `enroll` with no answer.
      */
     fun phoneReceiver(modes: List<String>): SftpRendezvousReceiver {
         val transports = listOf(TRANSPORT_HTTP, TRANSPORT_RTSP, TRANSPORT_RELAY, TRANSPORT_TUNNEL)
+        val playsPairs = modes.flatMap { mode -> transports.map { SftpRendezvousPlayPair(mode, it) } }
         return SftpRendezvousReceiver(
             modes = modes,
             transports = transports,
-            plays = modes.flatMap { mode -> transports.map { SftpRendezvousPlayPair(mode, it) } },
+            plays = playsPairs.takeIf { it.size <= MAX_PLAYS_PAIRS },
         )
     }
 

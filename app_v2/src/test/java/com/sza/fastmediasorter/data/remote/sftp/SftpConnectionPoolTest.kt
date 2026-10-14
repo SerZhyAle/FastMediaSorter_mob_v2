@@ -2,12 +2,14 @@ package com.sza.fastmediasorter.data.remote.sftp
 
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSchException
+import com.sza.fastmediasorter.data.network.exceptions.NetworkPinRefusedException
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -177,6 +179,37 @@ class SftpConnectionPoolTest {
     }
 
     /** Returns the throwable the guard rethrows, failing the test if it lets the handshake through. */
+    @Test
+    fun `a refused PIN is a verdict that never heals on retry`() {
+        assertTrue(SftpConnectionPool.stopsReconnect(NetworkPinRefusedException()))
+    }
+
+    @Test
+    fun `a proven root gets a session key of its own`() {
+        val plain = info()
+        val music = plain.copy(rootProof = SftpRootProof("Music", "4711"))
+        val photos = plain.copy(rootProof = SftpRootProof("Photos", "4711"))
+
+        with(SftpConnectionPool.Companion) {
+            assertNotEquals(plain.sessionKey(), music.sessionKey())
+            assertNotEquals(music.sessionKey(), photos.sessionKey())
+            assertEquals(music.sessionKey(), music.copy().sessionKey())
+        }
+    }
+
+    @Test
+    fun `a failure recorded for one root does not short-circuit another root or the password login`() {
+        val pool = SftpConnectionPool()
+        val music = info().copy(rootProof = SftpRootProof("Music", "4711"))
+        val failure = unreachable()
+
+        pool.applyHandshakeOutcomeForTest(music, failure)
+
+        assertSame(failure, guardFailure(pool, music))
+        assertPasses(pool, info())
+        assertPasses(pool, info().copy(rootProof = SftpRootProof("Photos", "4711")))
+    }
+
     private fun guardFailure(pool: SftpConnectionPool, info: SftpClient.SftpConnectionInfo): Throwable =
         runCatching { pool.failFastIfRecentlyUnreachableForTest(info) }.exceptionOrNull()
             ?: throw AssertionError("expected the recent-failure guard to short-circuit ${info.host}")

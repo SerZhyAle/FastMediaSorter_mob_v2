@@ -77,4 +77,7 @@
     <string name="dropbox_select_folder">फ़ोल्डर चुनें</string>
     <string name="dropbox_sign_in">ड्रॉपबॉक्स से साइन इन करें</string>
     <string name="dropbox_signed_in">लॉग इन: %1$s</string>
+    <string name="media_exchange_portal_link">डिवाइस के बीच मीडिया एक्सचेंज</string>
+    <string name="media_exchange_portal_open">मीडिया एक्सचेंज पोर्टल खोलें</string>
+    <string name="broadcast_portal_help">डिवाइस के बीच ब्रॉडकास्टिंग कैसे काम करती है</string>
 </resources>

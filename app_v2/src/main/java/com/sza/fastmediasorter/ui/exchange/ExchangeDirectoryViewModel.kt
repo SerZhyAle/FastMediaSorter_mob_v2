@@ -3,11 +3,13 @@ package com.sza.fastmediasorter.ui.exchange
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.AttachmentPin
 import com.sza.fastmediasorter.domain.model.ExchangeAttachResult
 import com.sza.fastmediasorter.domain.model.ExchangeAttachmentState
 import com.sza.fastmediasorter.domain.model.ExchangeBinding
 import com.sza.fastmediasorter.domain.model.ExchangeDirectoryView
 import com.sza.fastmediasorter.domain.model.ExchangeListedResource
+import com.sza.fastmediasorter.domain.model.ExchangePinAttempt
 import com.sza.fastmediasorter.domain.model.ExchangeResourceAccess
 import com.sza.fastmediasorter.domain.usecase.exchange.AttachExchangeResourcesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,9 +33,18 @@ sealed interface ExchangeDirectoryRow {
         val item: ExchangeListedResource,
         val attached: Boolean,
         val checked: Boolean,
+        /** Attached, and its owner wants the PIN again (17 item AI). */
+        val pinNeeded: Boolean = false,
+        /** Protected, its access withheld because this entry never declared `pin-v1`: signing in again fixes it. */
+        val signInNeeded: Boolean = false,
     ) : ExchangeDirectoryRow {
         val binding: ExchangeBinding get() = ExchangeBinding(item.sourceKey, item.record.resourceId)
-        val checkable: Boolean get() = !attached && item.access == ExchangeResourceAccess.ATTACHABLE
+        val checkable: Boolean
+            get() = !attached &&
+                (item.access == ExchangeResourceAccess.ATTACHABLE || item.access == ExchangeResourceAccess.PIN_REQUIRED)
+
+        /** A tap on an attached resource that waits for its PIN opens the prompt. */
+        val asksPin: Boolean get() = attached && pinNeeded
     }
 
     data object AttachedHeader : ExchangeDirectoryRow
@@ -55,9 +66,28 @@ sealed interface ExchangeDirectoryState {
     ) : ExchangeDirectoryState
 }
 
+/** Where the PIN request stands; the PIN itself is never part of a state (17 item AI). */
+enum class ExchangePinPhase { IDLE, CHECKING, REFUSED, UNREACHABLE, FAILED }
+
+/** What the PIN dialog shows. [renewing] is a resource that is already attached and asks for its PIN again. */
+sealed interface ExchangePinPrompt {
+    data object None : ExchangePinPrompt
+
+    /** [ticket] tells one request from the next one for a resource of the same name. */
+    data class Asking(
+        val resourceName: String,
+        val renewing: Boolean,
+        val ticket: Int,
+        val phase: ExchangePinPhase = ExchangePinPhase.IDLE,
+    ) : ExchangePinPrompt
+}
+
 /**
  * The "From my devices" dialog of the add-resource wizard (S4116 phase 05, strategic 6.3): the account's resources
  * by device with presence, marks, and attach. The directory is watched only between [open] and [close].
+ *
+ * A protected resource is attached through the PIN prompt (S4201): after the unprotected marks are attached,
+ * each protected one asks for its PIN in list order; a skipped one stays unattached.
  */
 @HiltViewModel
 class ExchangeDirectoryViewModel @Inject constructor(
@@ -67,6 +97,9 @@ class ExchangeDirectoryViewModel @Inject constructor(
     private val _state = MutableStateFlow<ExchangeDirectoryState>(ExchangeDirectoryState.Closed)
     val state: StateFlow<ExchangeDirectoryState> = _state.asStateFlow()
 
+    private val _pinPrompt = MutableStateFlow<ExchangePinPrompt>(ExchangePinPrompt.None)
+    val pinPrompt: StateFlow<ExchangePinPrompt> = _pinPrompt.asStateFlow()
+
     private val _messages = Channel<MyDevicesMessage>(Channel.BUFFERED)
     val messages: Flow<MyDevicesMessage> = _messages.receiveAsFlow()
 
@@ -74,10 +107,19 @@ class ExchangeDirectoryViewModel @Inject constructor(
     private val selection = MutableStateFlow<Set<ExchangeBinding>>(emptySet())
     private var watch: Job? = null
 
+    // Set before the collector starts: a listing that is already there is delivered while launch is still running.
+    private var watching = false
+    private var proving: Job? = null
+    private val waiting = ArrayDeque<ExchangeBinding>()
+    private var promptFor: ExchangeBinding? = null
+    private var renewing = false
+    private var tickets = 0
+
     fun open() {
         watch?.cancel()
         selection.value = emptySet()
         _state.value = ExchangeDirectoryState.Loading
+        watching = true
         watch = viewModelScope.launch {
             directory.observe().collect { fresh ->
                 view = fresh
@@ -89,6 +131,11 @@ class ExchangeDirectoryViewModel @Inject constructor(
     fun close() {
         watch?.cancel()
         watch = null
+        watching = false
+        proving?.cancel()
+        waiting.clear()
+        promptFor = null
+        _pinPrompt.value = ExchangePinPrompt.None
         view = ExchangeDirectoryView.EMPTY
         selection.value = emptySet()
         _state.value = ExchangeDirectoryState.Closed
@@ -119,12 +166,79 @@ class ExchangeDirectoryViewModel @Inject constructor(
         attach(items)
     }
 
+    /** Presents [pin] for the resource the prompt is open for; the PIN is not kept here. */
+    fun submitPin(pin: String) {
+        val binding = promptFor
+        val item = binding?.let { view.listing.resource(it.sourceKey, it.resourceId) }
+        if (item == null) {
+            skipPin()
+        } else if (pin.isNotEmpty() && proving?.isActive != true) {
+            setPhase(ExchangePinPhase.CHECKING)
+            proving = viewModelScope.launch { present(item, binding, pin) }
+        }
+    }
+
+    /** Drops the open prompt; the resource stays unattached, or keeps asking from the list. */
+    fun skipPin() {
+        proving?.cancel()
+        nextPrompt()
+    }
+
+    /** A tap on an attached resource that waits for its PIN. */
+    fun askPin(row: ExchangeDirectoryRow.Resource) {
+        if (!row.asksPin || proving?.isActive == true) return
+        waiting.clear()
+        promptFor = row.binding
+        renewing = true
+        _pinPrompt.value = ExchangePinPrompt.Asking(row.item.record.name, renewing = true, ticket = ++tickets)
+    }
+
     private fun attach(items: List<ExchangeListedResource>) {
         viewModelScope.launch {
-            report(directory.attach(items))
+            val result = directory.attach(items)
+            report(result)
             selection.value = emptySet()
             view = directory.sync(view.listing)
             render()
+            waiting.addAll(result.needPin)
+            if (_pinPrompt.value == ExchangePinPrompt.None) nextPrompt()
+        }
+    }
+
+    private suspend fun present(item: ExchangeListedResource, binding: ExchangeBinding, pin: String) {
+        val outcome = if (renewing) directory.renewPin(item, pin) else directory.attachProtected(item, pin)
+        when (outcome) {
+            ExchangePinAttempt.ACCEPTED -> {
+                if (!renewing) {
+                    _messages.trySend(MyDevicesMessage(R.string.exchange_directory_attached_result, listOf(1)))
+                }
+                selection.update { it - binding }
+                view = directory.sync(view.listing)
+                render()
+                nextPrompt()
+            }
+            ExchangePinAttempt.REFUSED -> setPhase(ExchangePinPhase.REFUSED)
+            ExchangePinAttempt.UNREACHABLE -> setPhase(ExchangePinPhase.UNREACHABLE)
+            ExchangePinAttempt.FAILED -> setPhase(ExchangePinPhase.FAILED)
+        }
+    }
+
+    // A resource the listing no longer shows cannot be proven, so its prompt is dropped without asking.
+    private fun nextPrompt() {
+        var next = waiting.removeFirstOrNull()
+        while (next != null && view.listing.resource(next.sourceKey, next.resourceId) == null) {
+            next = waiting.removeFirstOrNull()
+        }
+        promptFor = next
+        renewing = false
+        val name = next?.let { view.listing.resource(it.sourceKey, it.resourceId)?.record?.name }
+        _pinPrompt.value = name?.let { ExchangePinPrompt.Asking(it, renewing = false, ticket = ++tickets) }
+            ?: ExchangePinPrompt.None
+    }
+
+    private fun setPhase(phase: ExchangePinPhase) {
+        _pinPrompt.update { current ->
+            if (current is ExchangePinPrompt.Asking) current.copy(phase = phase) else current
         }
     }
 
@@ -139,10 +253,13 @@ class ExchangeDirectoryViewModel @Inject constructor(
 
     private fun attachable(): List<ExchangeListedResource> = view.listing.devices
         .flatMap { it.resources }
-        .filter { it.access == ExchangeResourceAccess.ATTACHABLE && !view.isAttached(it) }
+        .filter {
+            (it.access == ExchangeResourceAccess.ATTACHABLE || it.access == ExchangeResourceAccess.PIN_REQUIRED) &&
+                !view.isAttached(it)
+        }
 
     private fun render() {
-        if (watch == null) return
+        if (!watching) return
         val chosen = selection.value
         val listed = view.listing.devices.flatMap { device ->
             listOf<ExchangeDirectoryRow>(
@@ -151,14 +268,7 @@ class ExchangeDirectoryViewModel @Inject constructor(
                     product = device.device?.product,
                     online = device.online,
                 )
-            ) + device.resources.map { item ->
-                val attached = view.isAttached(item)
-                ExchangeDirectoryRow.Resource(
-                    item,
-                    attached,
-                    ExchangeBinding(item.sourceKey, item.record.resourceId) in chosen
-                )
-            }
+            ) + device.resources.map { item -> resourceRow(item, chosen) }
         }
         // A listed attachment is already its own row above; only the ones the listing lacks need one here.
         val elsewhere = view.attachments
@@ -170,6 +280,19 @@ class ExchangeDirectoryViewModel @Inject constructor(
             unreachable = view.listing.unreachableSources.size,
             pending = view.listing.pending,
             anyAttachable = attachable().isNotEmpty(),
+        )
+    }
+
+    private fun resourceRow(item: ExchangeListedResource, chosen: Set<ExchangeBinding>): ExchangeDirectoryRow.Resource {
+        val binding = ExchangeBinding(item.sourceKey, item.record.resourceId)
+        val attached = view.isAttached(item)
+        return ExchangeDirectoryRow.Resource(
+            item = item,
+            attached = attached,
+            checked = binding in chosen,
+            pinNeeded = attached && view.attachment(binding)?.pin == AttachmentPin.NEEDED,
+            signInNeeded = item.access == ExchangeResourceAccess.PIN_NO_ACCESS &&
+                item.sourceKey in view.signInSources,
         )
     }
 }

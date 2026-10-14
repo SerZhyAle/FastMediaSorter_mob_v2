@@ -14,6 +14,7 @@ internal class SftpConnectionFailureCache(
         val port: Int,
         val username: String,
         val expectedFingerprint: String?,
+        val proofRoot: String?,
     )
 
     private data class Entry(val throwable: Throwable, val recordedAtMs: Long)
@@ -54,7 +55,7 @@ internal class SftpConnectionFailureCache(
     fun clearAll() = entries.clear()
 
     private fun SftpClient.SftpConnectionInfo.toKey() =
-        Key(host, port, username, expectedFingerprint)
+        Key(host, port, username, expectedFingerprint, rootProof?.root)
 
     private fun hasSocketConnectCause(throwable: Throwable): Boolean {
         var current: Throwable? = throwable

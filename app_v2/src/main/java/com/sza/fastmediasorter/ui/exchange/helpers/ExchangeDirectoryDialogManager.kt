@@ -27,9 +27,11 @@ class ExchangeDirectoryDialogManager(
 
     private var dialog: AlertDialog? = null
     private var binding: DialogExchangeDirectoryBinding? = null
+    private val pinPrompt = ExchangePinPromptManager(activity, viewModel::submitPin, viewModel::skipPin)
 
     init {
         activity.collectOnLifecycle(viewModel.state, block = ::render)
+        activity.collectOnLifecycle(viewModel.pinPrompt, block = pinPrompt::render)
         activity.collectOnLifecycle(viewModel.messages) { message ->
             Toast.makeText(activity, MyDevicesDialogManager.resolve(activity, message), Toast.LENGTH_LONG).show()
         }
@@ -71,7 +73,8 @@ class ExchangeDirectoryDialogManager(
         }
         view.textExchangeDirectoryStatus.isVisible = status != null
         status?.let(view.textExchangeDirectoryStatus::setText)
-        view.rvExchangeDirectory.adapter = ExchangeDirectoryAdapter(loaded?.rows.orEmpty(), viewModel::toggle)
+        view.rvExchangeDirectory.adapter =
+            ExchangeDirectoryAdapter(loaded?.rows.orEmpty(), viewModel::toggle, viewModel::askPin)
         val canAttach = loaded?.anyAttachable == true
         dialog?.getButton(DialogInterface.BUTTON_POSITIVE)?.isEnabled = canAttach
         dialog?.getButton(DialogInterface.BUTTON_NEUTRAL)?.isEnabled = canAttach

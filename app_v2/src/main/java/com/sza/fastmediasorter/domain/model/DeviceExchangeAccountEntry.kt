@@ -24,6 +24,11 @@ data class DeviceExchangeAccountEntry(
     val publicEndpoint: String? = null,
     /** The device publishes and broadcasts through this entry; on at most one entry (item AC). */
     val outgoing: Boolean = false,
+    /**
+     * The enrollment that holds the current token declared `pin-v1` (17 item AG). Without it the server withholds
+     * the access of a protected resource, so only a new enrollment - a sign-in again - can change it.
+     */
+    val pinCapable: Boolean = false,
 ) {
 
     /** Host lower-cased, port and login compared case-insensitively (5.1); the device token is kept under it. */
@@ -34,7 +39,7 @@ data class DeviceExchangeAccountEntry(
     override fun toString(): String =
         "DeviceExchangeAccountEntry(host=$REDACTED, port=$port, login=$REDACTED, deviceId=$deviceId, " +
             "pinnedCertificate=${pinnedCertificate?.let { REDACTED }}, autoAttach=$autoAttach, " +
-            "publicEndpoint=${publicEndpoint?.let { REDACTED }}, outgoing=$outgoing)"
+            "publicEndpoint=${publicEndpoint?.let { REDACTED }}, outgoing=$outgoing, pinCapable=$pinCapable)"
 
     companion object {
         private val LOGIN = Regex("[A-Za-z0-9._-]{3,64}")
@@ -70,9 +75,13 @@ data class DeviceExchangeEnrollment(
     val productVersion: String,
     val roles: List<String>,
     val receiver: JsonObject? = null,
+    /** Declared at `enroll` only (17 item AG); the server keeps it with the device record. */
+    val capabilities: List<String> = listOf(CAPABILITY_PIN_V1),
 ) {
 
     companion object {
+        /** The capability to attach a protected resource: ask for the PIN, present it, take a refusal. */
+        const val CAPABILITY_PIN_V1 = "pin-v1"
         const val ROLE_RESOURCE_PRODUCER = "resource-producer"
         const val ROLE_RESOURCE_CONSUMER = "resource-consumer"
         const val ROLE_BROADCASTER = "broadcaster"
@@ -130,6 +139,13 @@ sealed interface DeviceExchangeEnrollResult {
     }
 
     data class Unreachable(val cause: IOException) : DeviceExchangeEnrollResult
+
+    /**
+     * The handshake completed and the `enroll` was written, but the stream closed or answered nothing the
+     * contract names (18 item AN). A server that refuses a member out of bounds drops the stream like this, so
+     * it is not an unreachable host and the user must not be told it is.
+     */
+    data class NoAnswer(val cause: IOException) : DeviceExchangeEnrollResult
 
     companion object {
         const val REASON_TOKEN_NOT_STORED = "token-not-stored"

@@ -28,7 +28,13 @@ enum class ExchangeResourceAccess {
     /** The producer kept `access` off this store, so the record names the share but cannot reach it. */
     NO_ACCESS,
 
-    /** Item AG: this client does not make the PIN proof yet, so the resource is listed locked, never imported. */
+    /** Item AG: a `pin-v1` lock with its access described - attaches only through the PIN proof (item AJ). */
+    PIN_REQUIRED,
+
+    /** A `pin-v1` lock whose access did not arrive: the producer is offline, or this entry never declared `pin-v1`. */
+    PIN_NO_ACCESS,
+
+    /** A lock this build cannot prove - an unknown or malformed scheme, or no usable root - listed, never attached. */
     PIN_LOCKED,
 }
 
@@ -41,6 +47,9 @@ data class ExchangeListedResource(
 
     val access: ExchangeResourceAccess
         get() = when {
+            record.proofRoot != null -> ExchangeResourceAccess.PIN_REQUIRED
+            record.pinProtected && record.protectionScheme == SftpRendezvousResource.PROTECTION_PIN_V1 &&
+                record.descriptor == null -> ExchangeResourceAccess.PIN_NO_ACCESS
             record.pinProtected -> ExchangeResourceAccess.PIN_LOCKED
             record.descriptor == null -> ExchangeResourceAccess.NO_ACCESS
             else -> ExchangeResourceAccess.ATTACHABLE

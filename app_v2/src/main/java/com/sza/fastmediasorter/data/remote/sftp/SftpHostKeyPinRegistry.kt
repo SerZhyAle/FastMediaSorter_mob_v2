@@ -209,7 +209,7 @@ class SftpHostKeyPinRegistry @Inject constructor(
                 }
                 .minOfOrNull { it.id }
 
-        private fun addressesOf(entity: ResourceEntity): List<String> {
+        internal fun addressesOf(entity: ResourceEntity): List<String> {
             val primary = SftpPathUtils.parseSftpPath(entity.path)?.let { key(it.host, it.port) }
             val alternates = entity.altAccessPaths.orEmpty().split(';').mapNotNull { raw -> parseAltPath(raw.trim()) }
             return (listOfNotNull(primary) + alternates).distinct()

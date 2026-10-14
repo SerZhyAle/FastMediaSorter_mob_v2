@@ -5,30 +5,72 @@ import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 /** The binding of an attached resource (contract DEVICE-EXCHANGE 9.2 and 9.8): its store key and `resourceId`. */
 data class ExchangeBinding(val sourceKey: String, val resourceId: String)
 
+/** Whether an attached resource holds the PIN its owner asks for (17 items AI and AJ). */
+enum class AttachmentPin {
+    /** Not protected, or nothing says it is. */
+    NONE,
+
+    /** The stored PIN was accepted at its last use. */
+    SAVED,
+
+    /** No PIN is stored, or the owner refused the stored one: it has to be entered again. */
+    NEEDED,
+}
+
 /** One resource attached from the directory, as the directory surface shows it now. */
 data class ExchangeAttachment(
     val localId: Long,
     val name: String,
     val binding: ExchangeBinding,
     val state: ExchangeAttachmentState,
+    val pin: AttachmentPin = AttachmentPin.NONE,
 )
 
-/** The directory surface's whole input: the listing and the resources already attached from it. */
+/**
+ * The directory surface's whole input: the listing, the resources already attached from it, and the account
+ * entries that never declared `pin-v1` ([signInSources]) - for those the server withholds a protected
+ * resource's access until the device signs in again.
+ */
 data class ExchangeDirectoryView(
     val listing: ExchangeDirectoryListing,
     val attachments: List<ExchangeAttachment>,
+    val signInSources: Set<String> = emptySet(),
 ) {
 
     fun isAttached(item: ExchangeListedResource): Boolean =
         attachments.any { it.binding == ExchangeBinding(item.sourceKey, item.record.resourceId) }
+
+    fun attachment(binding: ExchangeBinding): ExchangeAttachment? = attachments.firstOrNull { it.binding == binding }
 
     companion object {
         val EMPTY = ExchangeDirectoryView(ExchangeDirectoryListing.EMPTY, emptyList())
     }
 }
 
-/** How many of the asked resources were attached; [failed] names those whose access could not be used. */
-data class ExchangeAttachResult(val attached: Int, val alreadyAttached: Int, val failed: Int)
+/**
+ * How many of the asked resources were attached; [failed] names those whose access could not be used, and
+ * [needPin] those that wait for their PIN - they are never attached without the proof (17 item AJ).
+ */
+data class ExchangeAttachResult(
+    val attached: Int,
+    val alreadyAttached: Int,
+    val failed: Int,
+    val needPin: List<ExchangeBinding> = emptyList(),
+)
+
+/** How presenting a PIN for one protected resource ended; none of them leaves a PIN the owner did not accept. */
+enum class ExchangePinAttempt {
+    ACCEPTED,
+
+    /** The owner answered "locked": the PIN is wrong, or was changed. */
+    REFUSED,
+
+    /** No address of the resource answered, so nothing was proven either way. */
+    UNREACHABLE,
+
+    /** The access was unusable, the secret store refused the PIN, or the resource could not be added. */
+    FAILED,
+}
 
 /** The defaults a new resource takes from the app settings, as the add-resource wizard applies them. */
 data class ExchangeResourceDefaults(
@@ -52,6 +94,8 @@ object ExchangeAttachPlanner {
         val pin: String,
         val path: String,
         val altPaths: List<HostPort>,
+        /** The `Resource` field of the PIN proof (17 item AH); null for an unprotected share. */
+        val proofRoot: String? = null,
     ) {
         val credentialHosts: List<HostPort>
             get() = listOf(HostPort(payload.hosts.first(), payload.port)) + altPaths
@@ -60,12 +104,15 @@ object ExchangeAttachPlanner {
     }
 
     /**
-     * Null when the record carries no usable access: none at all, a locked record, or a code this build cannot
-     * read. [entryEndpoint] is the server of the entry that listed it, which reaches the share by its `shareId`
-     * when the code names no exchange of its own.
+     * Null when the record carries no usable access: none at all, a lock this build cannot prove, or a code this
+     * build cannot read. A `pin-v1` record answers with its access and [Access.proofRoot]; whether the PIN is at
+     * hand is the caller's business. [entryEndpoint] is the server of the entry that listed it, which reaches the
+     * share by its `shareId` when the code names no exchange of its own.
      */
     fun access(item: ExchangeListedResource, entryEndpoint: HostPort?): Access? {
-        val descriptor = item.record.descriptor?.takeIf { item.access == ExchangeResourceAccess.ATTACHABLE }
+        val usable = item.access == ExchangeResourceAccess.ATTACHABLE ||
+            item.access == ExchangeResourceAccess.PIN_REQUIRED
+        val descriptor = item.record.descriptor?.takeIf { usable }
         val payload = descriptor?.let(SftpPairingPayload::decode)?.takeIf { it.hosts.isNotEmpty() }
         val pin = payload?.let { SshFingerprintNormalizer.canonical(it.hostKeyFingerprint) }
         if (payload == null || pin == null) return null
@@ -76,6 +123,7 @@ object ExchangeAttachPlanner {
             pin = pin,
             path = "$SCHEME${payload.hosts.first()}:${payload.port}$root",
             altPaths = payload.hosts.drop(1).map { HostPort(it, payload.port) } + listOfNotNull(tunnel),
+            proofRoot = item.record.proofRoot,
         )
     }
 

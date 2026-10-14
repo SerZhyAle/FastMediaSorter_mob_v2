@@ -90,6 +90,7 @@ class DeviceExchangeAccountClientTest {
         assertEquals(DEVICE_ID, enroll.string("deviceId"))
         assertEquals("fms-android", enroll.string("product"))
         assertEquals("android", enroll.string("platform"))
+        assertEquals(listOf("pin-v1"), enroll.members.getAsJsonArray("capabilities").map { it.asString })
         val welcome = (result as DeviceExchangeEnrollResult.Enrolled).welcome
         assertEquals("exchange.example.net:44022", welcome.publicEndpoint)
         assertEquals(listOf("directory", "tunnel"), welcome.features)

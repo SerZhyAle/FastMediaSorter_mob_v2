@@ -201,7 +201,9 @@ object SftpRendezvousCodec {
         if (resource.pinProtected) {
             add(KEY_PROTECTION, JsonObject().apply { addProperty(KEY_SCHEME, resource.protectionScheme) })
         }
-        resource.descriptor?.takeUnless { resource.pinProtected }?.let { descriptor ->
+        // A lock this build cannot prove never re-publishes the access material it was handed.
+        val open = !resource.pinProtected || resource.protectionScheme == SftpRendezvousResource.PROTECTION_PIN_V1
+        resource.descriptor?.takeIf { open }?.let { descriptor ->
             add(
                 KEY_ACCESS,
                 JsonObject().apply {
@@ -210,8 +212,8 @@ object SftpRendezvousCodec {
                 }
             )
         }
-        resource.shareId?.takeUnless { resource.pinProtected }?.let { addProperty(KEY_SHARE_ID, it) }
-        resource.publicPort?.takeUnless { resource.pinProtected }?.let { addProperty(KEY_PUBLIC_PORT, it) }
+        resource.shareId?.takeIf { open }?.let { addProperty(KEY_SHARE_ID, it) }
+        resource.publicPort?.takeIf { open }?.let { addProperty(KEY_PUBLIC_PORT, it) }
     }
 
     private fun broadcastBody(broadcast: SftpRendezvousBroadcast) = JsonObject().apply {
@@ -271,10 +273,12 @@ object SftpRendezvousCodec {
         val resourceId = body.string(KEY_RESOURCE_ID)?.takeIf { it.isNotBlank() && name != null && isShare }
         val deviceId = body.string(KEY_DEVICE_ID)?.takeIf { it.isNotBlank() }
         if (resourceId == null || deviceId == null) return null
-        // Presence, including malformed or future protection, closes every alternate access path.
-        // No pin-v1 capability is advertised until this client implements the SSH proof.
+        // Presence of `protection`, malformed or future included, closes every access path - except for the one
+        // scheme this client proves (17 item AG): its access is kept, and the proof alone decides the attach.
         val protected = body.has(KEY_PROTECTION)
-        val access = (body.get(KEY_ACCESS) as? JsonObject)?.takeUnless { protected }
+        val scheme = (body.get(KEY_PROTECTION) as? JsonObject)?.string(KEY_SCHEME)
+        val open = !protected || scheme == SftpRendezvousResource.PROTECTION_PIN_V1
+        val access = (body.get(KEY_ACCESS) as? JsonObject)?.takeIf { open }
         val descriptor = access?.string(KEY_DESCRIPTOR)?.takeIf(String::isNotBlank)
         return SftpRendezvousResource(
             resourceId = resourceId,
@@ -283,12 +287,12 @@ object SftpRendezvousCodec {
             name = name.orEmpty(),
             descriptor = descriptor,
             pinProtected = protected,
-            protectionScheme = (body.get(KEY_PROTECTION) as? JsonObject)?.string(KEY_SCHEME),
+            protectionScheme = scheme,
             updatedAtMs = body.string(KEY_UPDATED_AT)?.let(Iso8601Utc::parse) ?: writtenAt,
             writtenAtMs = writtenAt,
             ttlSeconds = ttl,
-            shareId = body.string(KEY_SHARE_ID)?.takeIf { !protected && it.isNotBlank() },
-            publicPort = body.long(KEY_PUBLIC_PORT)?.takeIf { !protected && it in 1..MAX_PORT }?.toInt(),
+            shareId = body.string(KEY_SHARE_ID)?.takeIf { open && it.isNotBlank() },
+            publicPort = body.long(KEY_PUBLIC_PORT)?.takeIf { open && it in 1..MAX_PORT }?.toInt(),
             root = access?.string(KEY_ROOT)?.takeIf { descriptor != null && it.isNotBlank() },
             presence = body.get(KEY_PRESENCE)?.let { body.presence() },
         )

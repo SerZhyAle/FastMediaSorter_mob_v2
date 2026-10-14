@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectory
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeTokenStore
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeResourcePinStore
 import com.sza.fastmediasorter.data.repository.settings.DeviceExchangeAccountStore
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAddressChange
@@ -36,6 +37,7 @@ class DeviceExchangeAccountRepository @Inject constructor(
     private val client: DeviceExchangeAccountClient,
     private val store: DeviceExchangeAccountStore,
     private val tokens: DeviceExchangeTokenStore,
+    private val pins: ExchangeResourcePinStore,
     private val resourceDao: ResourceDao,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
@@ -73,14 +75,18 @@ class DeviceExchangeAccountRepository @Inject constructor(
             pinnedCertificate = pin ?: held.pinnedCertificate,
         ) ?: fresh
         var enrolled = candidate
+        Timber.d("Exchange enrollment: %s:%d login=%s heldEntry=%s", endpoint.host, endpoint.port, login, held != null)
         var result = withContext(ioDispatcher) { client.enroll(candidate, credential, enrollment) }
         if (held == null && result.isIdCollision()) {
+            Timber.d("Exchange enrollment: id-collision, retrying with a new deviceId")
             enrolled = candidate.copy(deviceId = SftpShareId.generate())
             result = withContext(ioDispatcher) { client.enroll(enrolled, credential, enrollment) }
         }
         if (result is DeviceExchangeEnrollResult.Enrolled) {
-            store.put(enrolled.copy(publicEndpoint = result.welcome.publicEndpoint))
+            val pinCapable = DeviceExchangeEnrollment.CAPABILITY_PIN_V1 in enrollment.capabilities
+            store.put(enrolled.copy(publicEndpoint = result.welcome.publicEndpoint, pinCapable = pinCapable))
         }
+        Timber.d("Exchange enrollment finished: %s", result.javaClass.simpleName)
         return result
     }
 
@@ -103,6 +109,11 @@ class DeviceExchangeAccountRepository @Inject constructor(
         }
         if (outcome is DeviceExchangeAddressChange.Changed && moved.identity != entry.identity) {
             tokens.forget(entry)
+            // The PINs follow the binding in the same branch, or every protected resource would ask again.
+            val bound = resourceDao.getAllResourcesSync()
+                .filter { it.exchangeAccount == entry.identity }
+                .mapNotNull { it.exchangeResourceId }
+            pins.move(entry.identity, moved.identity, bound)
             resourceDao.rebindExchangeAccount(entry.identity, moved.identity)
         }
         if (outcome is DeviceExchangeAddressChange.Changed) store.replace(entry.identity, moved)

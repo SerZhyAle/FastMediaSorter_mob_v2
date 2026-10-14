@@ -4471,7 +4471,6 @@
     <string name="tourist_tile_watch_heart_rate">Heart rate (watch)</string>
     <string name="tourist_tile_watch_body_temperature">Body temperature (watch)</string>
     <string name="tourist_tile_stopwatch">Stopwatch</string>
-    <string name="tourist_action_open">Open</string>
     <string name="tourist_detail_stopwatch">Measure time and laps</string>
     <string name="tourist_unit_bpm">bpm</string>
     <string name="tourist_status_open_watch_tourist">Open Tourist on your watch</string>
@@ -4506,4 +4505,9 @@
     <string name="tourist_counter_history_period">%1$s - %2$s</string>
     <string name="tourist_counter_clear_history">Clear</string>
     <string name="tourist_counter_clear_history_title">Clear the counter history?</string>
+    <string name="error_network_pin_refused">Locked: the PIN was not accepted. Enter it again in My devices.</string>
+    <string name="tourist_stopwatch_action_start">Start</string>
+    <string name="tourist_stopwatch_action_stop">Stop</string>
+    <string name="tourist_stopwatch_action_reset">Reset</string>
+    <string name="tourist_stopwatch_action_open_full">Open stopwatch</string>
 </resources>

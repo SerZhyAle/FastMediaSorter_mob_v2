@@ -99,7 +99,7 @@
     <string name="exchange_directory_resource_attached">Подключено</string>
     <string name="exchange_directory_resource_offline">Устройство не в сети</string>
     <string name="exchange_directory_resource_no_access">Устройство не передаёт сюда свой адрес</string>
-    <string name="exchange_directory_resource_locked">Защищено PIN-кодом. Эта версия пока не умеет его открыть</string>
+    <string name="exchange_directory_resource_locked">Закрыто способом, который эта версия не знает. Обновите приложение, чтобы открыть</string>
     <string name="exchange_directory_attached_section">Подключённые ранее</string>
     <string name="exchange_directory_no_longer_published">Больше не публикуется</string>
     <string name="exchange_directory_unavailable">Сейчас недоступно</string>
@@ -131,4 +131,17 @@
     <string name="exchange_cast_result_timeout">%1$s не ответило</string>
     <string name="exchange_cast_result_unsupported">%1$s не может воспроизвести эту трансляцию</string>
     <string name="exchange_cast_result_refused">Сервер не передал запрос на %1$s</string>
+    <string name="exchange_devices_status_unanswered">Сервер не ответил</string>
+    <string name="exchange_directory_resource_pin">Защищено PIN-кодом</string>
+    <string name="exchange_directory_resource_pin_needed">Подключён - нужен PIN-код</string>
+    <string name="exchange_directory_resource_pin_sign_in">Защищено PIN-кодом. Войдите на этот сервер заново, чтобы открыть</string>
+    <string name="exchange_pin_title">PIN-код для «%1$s»</string>
+    <string name="exchange_pin_message">Введите PIN-код этого ресурса. Он проверяется на устройстве, которое его раздаёт, и хранится здесь в зашифрованном виде.</string>
+    <string name="exchange_pin_hint">PIN-код</string>
+    <string name="exchange_pin_skip">Пропустить</string>
+    <string name="exchange_pin_checking">Проверяем..</string>
+    <string name="exchange_pin_refused">Заперто: PIN-код не принят. Проверьте его и попробуйте снова</string>
+    <string name="exchange_pin_unreachable">Сейчас не удаётся связаться с устройством - проверьте, что оно в сети, и попробуйте снова</string>
+    <string name="exchange_pin_failed">Не удалось подключить ресурс. Попробуйте позже</string>
+    <string name="exchange_pin_empty">Введите PIN-код</string>
 </resources>

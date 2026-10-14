@@ -34,14 +34,16 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
     private val multimodalInputSurface: UiSurface = UiSurface.SETTINGS
 
     private val viewModel: MyDevicesViewModel by viewModels()
-    private val launchers: ExchangeIntakeLaunchers by lazy {
-        ExchangeIntakeLaunchers(
-            this,
-            onText = { text -> dialogs.applyIntakeText(text) },
-            onFile = { result -> dialogs.applyIntakeFile(result) },
-            readUri = { uri -> viewModel.readConnectionFile(contentResolver, uri) },
-        )
-    }
+
+    // Eager on purpose: BaseActivity runs setupViews() after the first frame, when the activity is already
+    // RESUMED, and registerForActivityResult throws once the lifecycle has reached STARTED. The lambdas below
+    // read `dialogs` and `viewModel` only when a result arrives, so construction order does not matter.
+    private val launchers: ExchangeIntakeLaunchers = ExchangeIntakeLaunchers(
+        this,
+        onText = { text -> dialogs.applyIntakeText(text) },
+        onFile = { result -> dialogs.applyIntakeFile(result) },
+        readUri = { uri -> viewModel.readConnectionFile(contentResolver, uri) },
+    )
     private val dialogs: MyDevicesDialogManager by lazy { MyDevicesDialogManager(this, viewModel, launchers) }
     private val adapter: ExchangeServerCardAdapter by lazy {
         ExchangeServerCardAdapter(

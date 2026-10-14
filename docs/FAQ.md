@@ -54,6 +54,9 @@ Choose **Exit launcher mode** in the desktop Start menu, select another primary 
 ### Why did my tablet go back to its old home screen after a restart?
 First check Android's default Home app and the app's primary startup window. Choose **Always** if offered. Firmware policies, an app update or a reset of defaults can change this selection; a restart alone does not identify the cause. Include the device model and Android version when reporting it.
 
+### Does it work on a Googlebook?
+Yes. On a Googlebook the **Open in new window** actions and the file-operations overflow menu are on by default, and Android 15 and newer offers **New Window** for the app from the system UI. Android admits only its own launcher there, so **Device home screen** is not offered under **Primary startup window**, the in-app desktop is the default, and the button that changes the system home screen is hidden.
+
 ### Can I put my own folders and playlists on the desktop?
 Yes - that is what the desktop is for. Long-press an empty square and choose **Add an item..**, then pick what you want: one of your folders, a radio stream, an app, a person, or a gadget like the clock or the weather. The new cell lands on the square you pressed, and for a folder you also choose whether it opens in browse, slideshow or play mode. To move things around afterwards, choose **Edit the desktop** from the same long-press menu. See [HOW_TO](HOW_TO.html#how-to-use-the-app-as-your-home-screen) for the full walkthrough.
 

@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDen
 import com.sza.fastmediasorter.data.network.exceptions.NetworkAccessDeniedException
 import com.sza.fastmediasorter.data.network.exceptions.NetworkErrorClassifier
 import com.sza.fastmediasorter.data.network.exceptions.NetworkHostKeyChangedException
+import com.sza.fastmediasorter.data.network.exceptions.NetworkPinRefusedException
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTunnelProxy
 import com.sza.fastmediasorter.domain.model.SftpTunnelAddress.forLog
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
@@ -95,11 +96,14 @@ class SftpConnectionPool(
 
     // S0046: expectedFingerprint is part of the pool key so a pinned and an unpinned session for
     // the same host:port:user are pooled separately and never share a host-key verification policy.
-    private data class ConnectionKey(
+    // DEVICE-EXCHANGE 17 item AH: a proven connection sees one root only, so the root joins the key and a
+    // session proven for one root is never shared with the password login or with another root of the server.
+    internal data class ConnectionKey(
         val host: String,
         val port: Int,
         val username: String,
-        val expectedFingerprint: String? = null
+        val expectedFingerprint: String? = null,
+        val proofRoot: String? = null
     )
 
     /** Unified pool - one entry per (host, port, user) for both PLAYBACK and FILE_OPS. */
@@ -152,7 +156,7 @@ class SftpConnectionPool(
         replayable: Boolean = true,
         block: suspend (ChannelSftp) -> Result<T>
     ): Result<T> = withContext(Dispatchers.IO) {
-        val key = ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint)
+        val key = info.sessionKey()
         try {
             connectionSemaphore.acquire()
             try {
@@ -351,7 +355,7 @@ class SftpConnectionPool(
 
     suspend fun invalidate(info: SftpClient.SftpConnectionInfo) {
         clearUnreachable(info)
-        invalidateSession(ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint))
+        invalidateSession(info.sessionKey())
     }
 
     private suspend fun invalidateSession(key: ConnectionKey) {
@@ -481,12 +485,7 @@ class SftpConnectionPool(
     @WorkerThread
     @Throws(IOException::class)
     fun getConnectionForExoPlayer(connectionInfo: SftpClient.SftpConnectionInfo): ExoPlayerConnection {
-        val key = ConnectionKey(
-            connectionInfo.host,
-            connectionInfo.port,
-            connectionInfo.username,
-            connectionInfo.expectedFingerprint
-        )
+        val key = connectionInfo.sessionKey()
         try {
             connectionSemaphore.acquire()
             val pooled = getOrCreateSessionBlocking(key, connectionInfo)
@@ -690,7 +689,7 @@ class SftpConnectionPool(
         remotePath: String
     ): Result<java.io.InputStream> = handingOffCloseable { handOff ->
         withContext(Dispatchers.IO) {
-            val key = ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint)
+            val key = info.sessionKey()
             try {
                 connectionSemaphore.acquire()
                 var handedOff = false
@@ -782,17 +781,24 @@ class SftpConnectionPool(
 
     // ── Disconnect all ───────────────────────────────────────────────────────────────────────────
 
-    suspend fun disconnectAll() = withContext(Dispatchers.IO) {
+    /** UI teardown preserves active borrowers; shutdown and network handover still force socket closure. */
+    suspend fun disconnectAll(preserveActiveBorrowers: Boolean = false) = withContext(Dispatchers.IO) {
         connectionFailureCache.clearAll()
         synchronized(pooledSessions) {
             stopPeriodicSweep()
-            pooledSessions.values.forEach { pooled ->
+            val retired = pooledSessions.values.toList()
+            // Remove before checking the count so a concurrent final release sees an orphan.
+            pooledSessions.clear()
+            retired.forEach { pooled ->
+                if (preserveActiveBorrowers && pooled.activeBorrowCount.get() > 0) {
+                    Timber.d("S4198: SFTP UI teardown deferred; activeBorrows=${pooled.activeBorrowCount.get()}")
+                    return@forEach
+                }
                 try {
                     pooled.pooledChannels.forEach { try { it.channel.disconnect() } catch (_: Exception) {} }
                     pooled.session.disconnect()
                 } catch (_: Exception) {}
             }
-            pooledSessions.clear()
         }
     }
 
@@ -834,7 +840,17 @@ class SftpConnectionPool(
 
     private fun applyAuth(session: Session, info: SftpClient.SftpConnectionInfo) {
         val strictHostKeyChecking = installPinnedHostKeyOrPermissive(session, info)
-        if (info.privateKey != null) {
+        val proof = info.rootProof
+        if (proof != null) {
+            // The only method a protected root accepts (SHARE-SESSION 1.2); no stored password is offered, so
+            // the ordinary password login can never be mistaken for the proof.
+            Timber.d("S4201: keyboard-interactive proof session")
+            session.userInfo = SftpRootProofUserInfo(proof, info.password)
+            val config = java.util.Properties()
+            config["StrictHostKeyChecking"] = strictHostKeyChecking
+            config["PreferredAuthentications"] = "keyboard-interactive"
+            session.setConfig(config)
+        } else if (info.privateKey != null) {
             if (info.passphrase != null) {
                 session.userInfo = object : com.jcraft.jsch.UserInfo {
                     override fun getPassphrase(): String = info.passphrase
@@ -885,6 +901,9 @@ class SftpConnectionPool(
     }
 
     companion object {
+        internal fun SftpClient.SftpConnectionInfo.sessionKey() =
+            ConnectionKey(host, port, username, expectedFingerprint, rootProof?.root)
+
         private const val CONNECTION_TIMEOUT = 10_000
         internal const val STREAM_CHANNEL_CONNECT_TIMEOUT_MS = CONNECTION_TIMEOUT
         internal const val SESSION_CONNECT_TIMEOUT_MS = CONNECTION_TIMEOUT
@@ -967,13 +986,32 @@ private fun connectSession(
     try {
         session.connect(SftpConnectionPool.SESSION_CONNECT_TIMEOUT_MS)
     } catch (e: JSchException) {
-        val pinned = session.hostKeyRepository as? PinnedHostKeyRepository
-        val offered = pinned?.offeredFingerprint ?: throw e
-        throw HostKeyMismatchException(expected = pinned.expectedCanonical, actual = offered)
+        throw connectFailure(session, info, e)
     }
     if (info.expectedFingerprint != null) return
     SshFingerprintNormalizer.fromBase64Key(session.hostKey?.key)
         ?.let { onFirstUseHostKey(info.host, info.port, it) }
+}
+
+/**
+ * What a failed handshake means: a pin rejection is a [HostKeyMismatchException] carrying both fingerprints, the
+ * failed authentication of a proof session is the owner's "locked" - the PIN is wrong or was changed - and
+ * anything else stays the JSch failure it was.
+ */
+private fun connectFailure(
+    session: Session,
+    info: SftpClient.SftpConnectionInfo,
+    failure: JSchException,
+): Exception {
+    val pinned = session.hostKeyRepository as? PinnedHostKeyRepository
+    val offered = pinned?.offeredFingerprint
+    return when {
+        offered != null && pinned != null ->
+            HostKeyMismatchException(expected = pinned.expectedCanonical, actual = offered)
+        info.rootProof != null && failure.message?.startsWith("Auth", ignoreCase = true) == true ->
+            NetworkPinRefusedException(failure)
+        else -> failure
+    }
 }
 
 /** The stream channel lives outside the pooled channel list; its borrow is counted instead. */

@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.13 13:16</sub>
+<sub class="doc-stamp">26.10.14 01:28</sub>
 
 # Pointer - `DEVICE-EXCHANGE`
 
 | | |
 | --- | --- |
 | **Id** | `DEVICE-EXCHANGE` |
-| **Version** | 0.19, draft - original resource PIN amendment accepted 2026-10-12. Owner: FastMediaSorter Android |
+| **Version** | 0.20, draft - receiver declaration bounds and the unanswered enroll, 2026-10-14 (section 18). Owner: FastMediaSorter Android |
 | **Home** | `device-exchange/README.md` in the shared contracts catalog |
 | **Role here** | owner; phone - resource producer and consumer, broadcaster, receiver, enrolls the watch; watch - audio broadcaster and receiver. The exchange server is FMS_W's to implement |
 
@@ -33,6 +33,8 @@
 - Publish and broadcast through one outgoing entry; leaving it as a producer unpublishes and keeps the entry;
   declare every role at `enroll` (item AC).
 - Play the exchange endpoints of any server a broadcast descriptor names, with no entry for it (item AF).
+- Attach a `pin-v1` resource only through the PIN proof, keep the PIN only in the Keystore-backed store and never
+  in a log, and list any other protection locked (items AG to AJ).
 
 ## Where it will live here
 
@@ -50,19 +52,28 @@
 - S4160 - receiving a broadcast from any exchange server its descriptor names, and the broadcast's own share
   carrying its exchange endpoints.
 - S4172 - the 0.19 read (section 17) and this product's registry row.
+- S4200 - the bounds of an `enroll` (section 18, items AM and AN) and the unanswered-enroll result.
+- S4201 - the PIN proof, its entry and its storage (section 17, items AG to AJ).
 
-## Original resource PIN boundary (section 17, items AG to AL)
+## Original resource PIN (section 17, items AG to AL)
 
 The original resource PIN is separate from exchange enrollment, certificate pinning and the account
-password. The embedded SFTP server's roots are folders picked in its own settings and carry no access PIN,
-so this producer publishes no `protection` (item AG's truth rule, 14.5 item O). The phone consumer takes
-item AJ's explicit unsupported path: any protection marker, including malformed or unknown protection,
-remains locked. The rendezvous codec removes all access material, preserves the protection fact through
-Drive wrapper schema 2, and the directory excludes it from legacy attachment import. The phone does not
-advertise `pin-v1` or claim SSH PIN authorization; the per-root proof waits on the amendment item AK owes
-to `SHARE-SESSION` and `WORKER-IPC`. Wear's exchange client decodes no resource record, so it attaches
-nothing protected.
+password. The phone consumer implements the `pin-v1` capability of item AJ:
 
-ResourceProtectionTest exercises known, future and malformed protection plus protected Drive round trips.
-`vectors/protection-v1.json` is not replayed here yet, and item AL's joint negative-access run has not run
-for this client pair.
+- It declares `pin-v1` at `enroll` and remembers that the held token's enrollment did, so an entry enrolled
+  before it is told to sign in again - the server withholds a protected resource's `access` otherwise.
+- It keeps the `access` of a `pin-v1` record and lists every other scheme locked, never attached and never
+  treated as unprotected; a protected resource is attached only through the proof.
+- The PIN is asked from the user once per resource and proved at the producer by SSH `keyboard-interactive`
+  (`Resource`, `Password`, `PIN`, `SHARE-SESSION` 1.2) on a session of its own per root. It is kept only after
+  the producer accepted it, Keystore-encrypted per binding (entry identity and `resourceId`) in the preferences
+  store that backup excludes, moved with an address change, and cleared with the resource or when it is no
+  longer published (item AI). No log line, record or envelope carries it.
+- The embedded SFTP server's roots are folders picked in its own settings and carry no access PIN, so this
+  producer publishes no `protection` (item AG's truth rule, 14.5 item O). Wear's exchange client decodes no
+  resource record, so it attaches nothing protected.
+
+`vectors/protection-v1.json` is replayed by `ProtectionVectorsTest` and the Drive wrapper of a protected record
+by `ResourceProtectionTest`. Item AL's joint negative-access run - a wrong PIN, a changed PIN, another root's
+credentials, a device without `pin-v1` - has not run for this client pair, so the registry row stays
+unverified for it.

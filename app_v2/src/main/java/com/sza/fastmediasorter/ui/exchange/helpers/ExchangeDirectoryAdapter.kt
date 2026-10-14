@@ -15,10 +15,12 @@ import com.sza.fastmediasorter.ui.exchange.ExchangeDirectoryRow
 /**
  * The rows of "From my devices": a device line with presence in words, never colour alone (S4116 3.3), then its
  * resources with a mark for those that can be attached, then the attached resources the listing no longer shows.
+ * A protected resource names its PIN in words (S4201); an attached one that waits for its PIN opens the prompt.
  */
 class ExchangeDirectoryAdapter(
     private val rows: List<ExchangeDirectoryRow>,
     private val onToggle: (ExchangeDirectoryRow.Resource, Boolean) -> Unit,
+    private val onPinNeeded: (ExchangeDirectoryRow.Resource) -> Unit,
 ) : RecyclerView.Adapter<ExchangeDirectoryAdapter.Holder>() {
 
     override fun getItemCount(): Int = rows.size
@@ -71,18 +73,30 @@ class ExchangeDirectoryAdapter(
             binding.checkExchangeDirectory.isVisible = true
             binding.checkExchangeDirectory.isChecked = row.attached || row.checked
             binding.checkExchangeDirectory.isEnabled = row.checkable
-            if (!row.checkable) return
+            if (!row.checkable && !row.asksPin) return
             binding.rowExchangeDirectory.isClickable = true
             binding.rowExchangeDirectory.isFocusable = true
-            binding.rowExchangeDirectory.setOnClickListener { onToggle(row, !row.checked) }
+            binding.rowExchangeDirectory.setOnClickListener {
+                if (row.asksPin) onPinNeeded(row) else onToggle(row, !row.checked)
+            }
         }
 
-        private fun resourceText(row: ExchangeDirectoryRow.Resource): Int = when {
-            row.attached -> R.string.exchange_directory_resource_attached
-            row.item.access == ExchangeResourceAccess.PIN_LOCKED -> R.string.exchange_directory_resource_locked
-            row.item.access == ExchangeResourceAccess.NO_ACCESS -> R.string.exchange_directory_resource_no_access
-            !row.item.online -> R.string.exchange_directory_resource_offline
-            else -> R.string.exchange_devices_device_online
+        private fun resourceText(row: ExchangeDirectoryRow.Resource): Int {
+            val access = row.item.access
+            val online = row.item.online
+            return when {
+                row.asksPin -> R.string.exchange_directory_resource_pin_needed
+                row.attached -> R.string.exchange_directory_resource_attached
+                access == ExchangeResourceAccess.PIN_LOCKED -> R.string.exchange_directory_resource_locked
+                access == ExchangeResourceAccess.NO_ACCESS -> R.string.exchange_directory_resource_no_access
+                access == ExchangeResourceAccess.PIN_NO_ACCESS && online && row.signInNeeded ->
+                    R.string.exchange_directory_resource_pin_sign_in
+                access == ExchangeResourceAccess.PIN_NO_ACCESS && online ->
+                    R.string.exchange_directory_resource_no_access
+                !online -> R.string.exchange_directory_resource_offline
+                access == ExchangeResourceAccess.PIN_REQUIRED -> R.string.exchange_directory_resource_pin
+                else -> R.string.exchange_devices_device_online
+            }
         }
 
         private fun stateText(state: ExchangeAttachmentState): Int = when (state) {

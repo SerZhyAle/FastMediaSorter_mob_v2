@@ -78,6 +78,24 @@ class ExchangeCastTest {
     }
 
     @Test
+    fun `the phone declares no plays above the server cap and still covers every pair`() {
+        val modes = listOf("AUDIO_ONLY", "VIDEO_AUDIO", "VIDEO_ONLY")
+
+        val receiver = ExchangeCastRules.phoneReceiver(modes)
+
+        assertEquals(null, receiver.plays)
+        assertEquals(modes, receiver.modes)
+        assertTrue(ExchangeCastRules.covers(receiver, listOf(ExchangeEndpointPair("VIDEO_ONLY", "TUNNEL"))))
+    }
+
+    @Test
+    fun `the phone writes plays out while the product fits the server cap`() {
+        val receiver = ExchangeCastRules.phoneReceiver(listOf("VIDEO_AUDIO", "AUDIO_ONLY"))
+
+        assertEquals(ExchangeCastRules.MAX_PLAYS_PAIRS, receiver.plays?.size)
+    }
+
+    @Test
     fun `plays decides coverage when present, else the two lists`() {
         val pairs = SftpRendezvousReceiver(
             modes = listOf("AUDIO_ONLY", "VIDEO_AUDIO"),

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.12 22:34</sub>
+<sub class="doc-stamp">26.10.14 01:28</sub>
 
 # Pointer - `SHARE-SESSION`
 
@@ -28,3 +28,5 @@ The client rules of section 2 of the contract (rules 6-10):
 - `app_v2/.../data/remote/sftp/SftpConnectionPool.kt` and `SftpClient.kt` - reconnect and classification.
 - `app_v2/.../data/network/exceptions/NetworkErrorClassifier.kt` and `NetworkErrorMessageMapper.kt` -
   the four failure classes as the user meets them.
+- `app_v2/.../data/remote/sftp/SftpRootProofRegistry.kt` and `SftpRootProofUserInfo.kt` - the root-scoped
+  `keyboard-interactive` proof of a protected root, one session per root, never shared with the password login.

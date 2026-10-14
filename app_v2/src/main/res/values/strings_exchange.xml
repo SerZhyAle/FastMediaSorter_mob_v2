@@ -99,7 +99,7 @@
     <string name="exchange_directory_resource_attached">Attached</string>
     <string name="exchange_directory_resource_offline">The device is offline</string>
     <string name="exchange_directory_resource_no_access">The device does not share its address here</string>
-    <string name="exchange_directory_resource_locked">Protected by a PIN. This version cannot open it yet</string>
+    <string name="exchange_directory_resource_locked">Locked in a way this version does not know. Update the app to open it</string>
     <string name="exchange_directory_attached_section">Attached earlier</string>
     <string name="exchange_directory_no_longer_published">No longer published</string>
     <string name="exchange_directory_unavailable">Unavailable right now</string>
@@ -131,4 +131,17 @@
     <string name="exchange_cast_result_timeout">%1$s did not answer</string>
     <string name="exchange_cast_result_unsupported">%1$s cannot play this broadcast</string>
     <string name="exchange_cast_result_refused">The server did not pass the request to %1$s</string>
+    <string name="exchange_devices_status_unanswered">The server did not answer</string>
+    <string name="exchange_directory_resource_pin">Protected by a PIN</string>
+    <string name="exchange_directory_resource_pin_needed">Attached - PIN needed</string>
+    <string name="exchange_directory_resource_pin_sign_in">Protected by a PIN. Sign in to this server again to open it</string>
+    <string name="exchange_pin_title">PIN for %1$s</string>
+    <string name="exchange_pin_message">Enter the PIN set for this resource. It is checked on the device that shares it and kept here, encrypted.</string>
+    <string name="exchange_pin_hint">PIN</string>
+    <string name="exchange_pin_skip">Skip</string>
+    <string name="exchange_pin_checking">Checking..</string>
+    <string name="exchange_pin_refused">Locked: the PIN was not accepted. Check it and try again</string>
+    <string name="exchange_pin_unreachable">Cannot reach the device now - make sure it is online and try again</string>
+    <string name="exchange_pin_failed">Could not attach this resource. Try again later</string>
+    <string name="exchange_pin_empty">Enter the PIN</string>
 </resources>

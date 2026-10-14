@@ -2,9 +2,8 @@ package com.sza.fastmediasorter.data.cloud.helpers
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.security.EncryptedPrefsOpener
 import com.sza.fastmediasorter.data.identity.transfer.TransferableSignInWriter
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInProviderKeys
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInRecord
@@ -45,22 +44,10 @@ class DropboxCredentialsManager @Inject constructor(
     private var legacyPlaintextPurged = false
 
     /**
-     * EncryptedSharedPreferences only. A `create(..)` failure propagates out of this lazy and is
-     * caught by whichever accessor touched it - never downgraded to unencrypted storage.
+     * EncryptedSharedPreferences only - never downgraded to unencrypted storage. A keyset the Keystore master
+     * key no longer decrypts is reset once by [EncryptedPrefsOpener], so the store is not dead on every access.
      */
-    private val prefs: SharedPreferences by lazy {
-        val masterKey = MasterKey.Builder(context)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-
-        EncryptedSharedPreferences.create(
-            context,
-            PREFS_NAME,
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-    }
+    private val prefs: SharedPreferences by lazy { EncryptedPrefsOpener.open(context, PREFS_NAME) }
 
     /** Save under the legacy single-account key and, when the account is known, the per-account key. */
     fun saveCredentials(credentialsJson: String, accountEmail: String? = null) {

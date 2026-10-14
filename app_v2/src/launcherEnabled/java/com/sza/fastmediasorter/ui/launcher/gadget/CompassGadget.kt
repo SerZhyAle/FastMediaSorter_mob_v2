@@ -72,7 +72,6 @@ private class CompassGadgetView(
      * checked the grant, which is why the location flow is not even started without one.
      */
     override suspend fun CoroutineScope.onActive() {
-        Timber.d("S4183: compass gadget active - needle left half, degrees right half, fixed split")
         val granted = hasLocationPermission()
         val altitudes: Flow<Double?> = if (granted) {
             observeMotion().map { it.altitudeMeters }.onStart { emit(null) }
