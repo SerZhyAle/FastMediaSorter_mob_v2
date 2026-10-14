@@ -36297,3 +36297,5 @@ Format: | datetime | file | target | description |
 | 2026-10-14 14:53:42 | `maestro/smoke/stream_playback.yaml` | `S4209` | stream_playback.yaml reads the pause action and buffering state instead of the position the live-video profile hides; own-facet and first-run-hint handling for a clean install [branch: DEBUG-v045] |
 | 2026-10-14 14:54:07 | `maestro/smoke/stream_playback.yaml` | `S4209` | Stream playback flow reads pause action and buffering state; own facet and first-run hint handled for a clean install [branch: DEBUG-v045] |
 | 2026-10-14 14:54:08 | `PLAN/S4209_bugfix-maestro-stream-playback-position-oracle.md` | `S4209` | Triage: oracle replaced, app contract kept; Verified on emulator [branch: DEBUG-v045] |
+| 2026-10-14 15:10:25 | `PLAN/S4204_release-45-defer-exchange-server.md` | `S4204` | Exchange-server records withheld from the release 45 notes; carrier section added to S4203 [branch: DEBUG-v045] |
+| 2026-10-14 15:10:46 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and showcase update for v2.61.0141.503 - plateau merge from DEBUG-v045 [branch: DEBUG-v045] |
