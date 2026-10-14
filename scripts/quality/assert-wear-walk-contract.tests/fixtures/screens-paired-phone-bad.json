@@ -1,0 +1,42 @@
+{
+  "_comment": [
+    "Fixture: S4210 - the three ways a paired-phone marker is declared wrong. On a row the catalog adds",
+    "unconditionally it would skip a screen every unpaired run can reach; with no homeSection it names no",
+    "row to be judged against; as a string the walk does not read it at all."
+  ],
+  "screens": [
+    {
+      "id": "alpha-unbound",
+      "name": "Alpha on an unconditional row",
+      "expect": "Hello",
+      "screen": "AlphaScreen",
+      "expectRes": "good_marker",
+      "homeSection": "APPS",
+      "requiresPairedPhone": true
+    },
+    {
+      "id": "alpha-no-section",
+      "name": "Alpha with no row",
+      "expect": "Hello",
+      "screen": "AlphaScreen",
+      "expectRes": "good_marker",
+      "requiresPairedPhone": true
+    },
+    {
+      "id": "alpha-not-boolean",
+      "name": "Alpha with a string marker",
+      "expect": "Hello",
+      "screen": "AlphaScreen",
+      "expectRes": "good_marker",
+      "homeSection": "RESOURCES",
+      "requiresPairedPhone": "true"
+    }
+  ],
+  "excluded": [
+    {
+      "screen": "BetaScreen",
+      "reason": "not-a-destination",
+      "note": "Fixture: nested helper."
+    }
+  ]
+}

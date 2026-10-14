@@ -267,8 +267,11 @@ if ($install.Exit -ne 0) { Stop-Run 1 "install failed: $($install.Output)" }
 # a permission gate in front of the home list on a fresh install, so without this the run would walk
 # a screen that asks for access instead of the app - and the OS dialog behind it needs taps that
 # belong to the platform, not to anything this release is being judged on.
+# POST_NOTIFICATIONS joins them from the same API level: the stopwatch starts its participants on
+# open (S4180) and asks for it at once, so the walk met the OS dialog on that screen, recorded the
+# stopwatch `manual` behind a foreign window and, still standing on it, lost every entry after it.
 $grantTargets = if ($sdk -ge $MEDIA_PERMISSION_SDK) {
-    @('android.permission.READ_MEDIA_AUDIO', 'android.permission.READ_MEDIA_VIDEO', 'android.permission.READ_MEDIA_IMAGES')
+    @('android.permission.READ_MEDIA_AUDIO', 'android.permission.READ_MEDIA_VIDEO', 'android.permission.READ_MEDIA_IMAGES', 'android.permission.POST_NOTIFICATIONS')
 } else {
     @('android.permission.READ_EXTERNAL_STORAGE')
 }

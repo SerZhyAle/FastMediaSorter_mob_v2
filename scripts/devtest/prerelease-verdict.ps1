@@ -41,7 +41,10 @@
   failure. S2767: an `unreachable` screen - one the walk never opened - is counted and reported on
   its own line and blocks the PASS exactly as a `failed` one does. S2782: a screen's `shapeExit` is
   read too, split by lib/clip-shape-outcome.ps1 into `offGlass`, which fails the walk beside
-  `failed`, and `shapeUnchecked`, which blocks it beside `manual`. Absent: the phone sweep, unchanged.
+  `failed`, and `shapeUnchecked`, which blocks it beside `manual`. S4210: a `phoneBound` screen - one
+  that needs a paired phone, met on a run with none - is counted and printed beside the coverage, and
+  weighed by nothing: by owner decision 2026-10-14 the watch verdict rests on the two reviewed
+  emulators, which cannot be paired. Absent: the phone sweep, unchanged.
 
 .PARAMETER Json
   Emit a single JSON verdict object instead of human-readable lines.
@@ -328,6 +331,10 @@ if ($WalkResults) {
         # entry, and weighed by nothing below - the capability gating decided this row is absent, which
         # is the artifact behaving as designed rather than a screen anyone failed to judge.
         outOfFlavor = @($walkScreens | Where-Object { $_.outcome -eq 'outOfFlavor' }).Count
+        # S4210: a row drawn only while a paired phone answers, met on a run with none. Counted for
+        # the same accounting reason as outOfFlavor and weighed by nothing below: the owner ruled
+        # 2026-10-14 that the verdict rests on the emulators, and an emulator cannot be paired.
+        phoneBound  = @($walkScreens | Where-Object { $_.outcome -eq 'phoneBound' }).Count
         # A WO-V16 violation: the screen opened and showed what it should, and part of it cannot fit
         # on the glass at any scroll position. That is a defect, so it joins `failed` below.
         offGlass    = @($shapeClasses | Where-Object { $_ -eq 'finding' }).Count
@@ -383,6 +390,10 @@ else {
         if ($walkBreakdown.outOfFlavor -gt 0) {
             Write-Host ("  coverage {0} declared entry(ies) withheld from the installed flavor, not walked" -f `
                 $walkBreakdown.outOfFlavor) -ForegroundColor Cyan
+        }
+        if ($walkBreakdown.phoneBound -gt 0) {
+            Write-Host ("  coverage {0} declared screen(s) not walked because no phone is paired; the verdict rests on the reviewed emulators by owner decision 2026-10-14" -f `
+                $walkBreakdown.phoneBound) -ForegroundColor Cyan
         }
     }
     $word = if (-not $pass) { 'FAIL' }

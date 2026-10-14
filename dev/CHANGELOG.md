@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.14 14:53</sub>
+<sub class="doc-stamp">26.10.14 17:19</sub>
 
 # Development Changelog
 
@@ -36299,3 +36299,6 @@ Format: | datetime | file | target | description |
 | 2026-10-14 14:54:08 | `PLAN/S4209_bugfix-maestro-stream-playback-position-oracle.md` | `S4209` | Triage: oracle replaced, app contract kept; Verified on emulator [branch: DEBUG-v045] |
 | 2026-10-14 15:10:25 | `PLAN/S4204_release-45-defer-exchange-server.md` | `S4204` | Exchange-server records withheld from the release 45 notes; carrier section added to S4203 [branch: DEBUG-v045] |
 | 2026-10-14 15:10:46 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and showcase update for v2.61.0141.503 - plateau merge from DEBUG-v045 [branch: DEBUG-v045] |
+| 2026-10-14 15:58:15 | `PLAN/S4210_bugfix-wear-walk-phone-bound-entries-need-a-pair.md` | `S4210` | Capture Draft S4210 bugfix-wear-walk-phone-bound-entries-need-a-pair [branch: DEBUG-v046] |
+| 2026-10-14 16:21:01 | `scripts/devtest/wear-prerelease-screens.json` | `S4210` | wear walk records phone-bound screens as phoneBound on an unpaired emulator [set of 11: scripts/devtest/wear-prerelease-walk.ps1, scripts/devtest/prerelease-verdict.ps1, scripts/devtest/wear-prerelease-walk.tests/Run-Tests.ps1, scripts/quality/assert-wear-walk-contract.ps1, scripts/quality/assert-wear-walk-contract.tests/Run-Tests.ps1, scripts/quality/assert-wear-walk-contract.tests/fixtures/src/HomeSectionCatalog.kt, +4 more] [branch: DEBUG-v046] |
+| 2026-10-14 17:19:51 | `scripts/devtest/wear-prerelease-walk.ps1` | `S4210` | wear walk: reach a first-row control after the reset, parse a dump behind a NOTE line; prepare grants POST_NOTIFICATIONS [set of 2: scripts/devtest/wear-prerelease-prepare.ps1] [branch: DEBUG-v046] |

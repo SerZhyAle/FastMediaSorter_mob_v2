@@ -1691,7 +1691,8 @@ scripts/devtest/wear-prerelease-walk.ps1
     -SkipLogAudit                   [SwitchParameter]
     -SkipShapeCheck                 [SwitchParameter]
     -Json                           [SwitchParameter]
-  Exit: 0 every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing; 1 at least one screen failed or was unreachable, an OFF-GLASS finding was recorded, or the
+    -AdbWrapper                     [String]
+  Exit: 0 every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing.; 1 at least one screen failed or was unreachable, an OFF-GLASS finding was recorded, or the
 ```
 
 ### wear-shape-bench.ps1
@@ -5478,7 +5479,7 @@ scripts/quality/assert-wear-walk-contract.ps1
     -WearSource                 [String]
     -WearGradleFile             [String]
     -BaselineFile               [String]
-  Exit: 0 divergences are at or below the baseline (or -Gate was not passed).; 1 divergences exceed the baseline, or -UpdateBaseline was asked to raise it.; 2 could not verify: the screen list, the strings file or the wear source tree is missing or; 4 Code.Scripts is held by another session, so no baseline was written. The queue place is held -
+  Exit: 0 divergences are at or below the baseline (or -Gate was not passed).; 1 divergences exceed the baseline, or -UpdateBaseline was asked to raise it.; 2 could not verify: the screen list, the strings file or the wear source tree is missing or
 ```
 
 ### assert-wear-wire-nullability.ps1

@@ -12,7 +12,7 @@
     the dump and the tap sends a coordinate into the neighbouring row, which is exactly how two taps
     in one earlier watch sweep hit the wrong control (CLAUDE.md section 9).
 
-    Six outcomes per screen, and the difference between them matters more than the count:
+    Seven outcomes per screen, and the difference between them matters more than the count:
       observed    - the expected token was in the UI dump.
       failed      - the screen opened and the expected token was not on it. A product defect.
       unreachable - the control that opens the screen was never found, so the screen was never
@@ -34,6 +34,16 @@
                  `WearRestrictedCapabilities`, so there is no control on the glass and never was.
                  Told apart from `skipped` because that one is about this run's starting state and
                  may resolve on the next run; this one is about the artifact and never will.
+      phoneBound  - an entry declaring `requiresPairedPhone`, met in a run with no phone paired (S4210).
+                 Since S4011 HomeSectionCatalog draws the Resources, Phone and Phone camera rows only
+                 while a connected phone answers with FastMediaSorter, and an emulator cannot be paired.
+                 The walk reads Home once, at the first such entry, and calls the run unpaired when
+                 Home shows the companion hint - matched by its resource-id and by the
+                 wear_companion_hint_* value of every locale under wear/src/main/res, so the device
+                 language does not matter. Handled exactly like `outOfFlavor`: never tapped, never
+                 hunted, no position moved, no backAfter spent, and scored by nothing - the owner
+                 ruled on 2026-10-14 that the release verdict rests on the two reviewed emulators
+                 alone. A paired run, or one whose Home could not be read, walks the entry normally.
 
     A destination is never recognised by its own title alone. Most watch screens repeat the label of
     the chip that opened them - the Home chip "Apps" opens a screen titled "Apps" - so a title match
@@ -63,12 +73,18 @@
 .PARAMETER Json
     Emit the result object instead of the human lines.
 
+.PARAMETER AdbWrapper
+    The device wrapper every verb goes through. Default: scripts/devtest/adb.ps1. The regression suite
+    points it at a scripted fake watch, which is the only way to prove an entry was never hunted for
+    without a watch on the desk.
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/devtest/wear-prerelease-walk.ps1 -DeviceId 192.168.1.166:46551
 
 .NOTES
     Exit codes:
-      0  every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing
+      0  every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing.
+         An `outOfFlavor` or `phoneBound` entry was never walked and does not cost this code (S3358, S4210)
       1  at least one screen failed or was unreachable, an OFF-GLASS finding was recorded, or the
          log audit reported a finding. A finding on an entry whose `acceptedOffGlass.flavors` names
          the installed flavor is recorded `shapeAccepted` and does not set this code (S3189)
@@ -120,7 +136,9 @@ param(
 
     [switch]$SkipShapeCheck,
 
-    [switch]$Json
+    [switch]$Json,
+
+    [string]$AdbWrapper
 )
 
 $ErrorActionPreference = 'Stop'
@@ -130,7 +148,7 @@ $ErrorActionPreference = 'Stop'
 $APP_PACKAGE = 'com.sza.fastmediasorter'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$adbWrapper = Join-Path $repoRoot 'scripts/devtest/adb.ps1'
+if (-not $AdbWrapper) { $AdbWrapper = Join-Path $repoRoot 'scripts/devtest/adb.ps1' }
 $logAudit = Join-Path $repoRoot 'scripts/devtest/prerelease-log-audit.ps1'
 . (Join-Path $PSScriptRoot 'lib/wear-wakefulness.ps1')
 . (Join-Path $PSScriptRoot 'lib/clip-shape-outcome.ps1')
@@ -147,6 +165,9 @@ $result = [ordered]@{
     screenSize    = $null
     flavor        = $null
     batteryPct    = $null
+    # S4210: { paired, evidence } once a requiresPairedPhone entry made the walk read Home for the
+    # companion hint; $null when no entry needed the answer or it could not be read.
+    phonePairing  = $null
     screens       = @()
     counts        = $null
     coverage      = $null
@@ -168,7 +189,7 @@ function Stop-Run {
     exit $Code
 }
 
-if (-not (Test-Path -LiteralPath $adbWrapper)) { Stop-Run 2 "required script not found: $adbWrapper" }
+if (-not (Test-Path -LiteralPath $AdbWrapper)) { Stop-Run 2 "required script not found: $AdbWrapper" }
 if (-not (Test-Path -LiteralPath $ScreenList)) { Stop-Run 2 "screen list not found: $ScreenList" }
 
 try { $screens = @((Get-Content -LiteralPath $ScreenList -Raw | ConvertFrom-Json).screens) }
@@ -183,7 +204,7 @@ function Invoke-AdbVerb {
     param([Parameter(Mandatory)][string[]]$Arguments)
     $callArgs = @($Arguments)
     if ($DeviceId) { $callArgs += @('-DeviceId', $DeviceId) }
-    $output = & pwsh -NoProfile -File $adbWrapper @callArgs 2>&1
+    $output = & pwsh -NoProfile -File $AdbWrapper @callArgs 2>&1
     return [pscustomobject]@{ Exit = $LASTEXITCODE; Output = ($output -join "`n") }
 }
 
@@ -341,7 +362,14 @@ function Read-UiNodes {
     $dump = Invoke-AdbVerb -Arguments @('uidump', '-Json')
     if ($dump.Exit -ne 0) { return $null }
     $tree = $null
-    try { $tree = $dump.Output | ConvertFrom-Json } catch { return $null }
+    # S4210: on a screen with a live readout (the stopwatch, since it starts on open) the wrapper
+    # prints a one-line NOTE ahead of the JSON when the tree never settles. The tree is in the payload
+    # all the same, so the parse starts at the first brace instead of discarding a readable dump -
+    # which scored the stopwatch `manual (no usable dump)` and lost the entries after it.
+    $raw = [string]($dump.Output | Out-String)
+    $brace = $raw.IndexOf('{')
+    if ($brace -gt 0) { $raw = $raw.Substring($brace) }
+    try { $tree = $raw | ConvertFrom-Json } catch { return $null }
     if (-not $tree) { return $null }
     # The wrapper puts a verb's payload under `data`, not at the top level.
     $nodes = @(if ($null -ne $tree.data -and $null -ne $tree.data.nodes) { $tree.data.nodes } else { $tree.nodes })
@@ -408,6 +436,8 @@ $rows = @()
 $position = @()
 $consecutiveUnreachable = 0
 $rehomeCount = 0
+# S4210 - set once Home has answered whether a phone is paired; the answer itself is in $result.
+$phonePairingDecided = $false
 
 function Invoke-ReachControl {
     # Tap one control, scrolling to it when it is not on screen yet. A watch list shows three or four
@@ -442,6 +472,11 @@ function Invoke-ReachControl {
         # many times it scrolls - and which ones those are depends on where the last one stopped, which
         # is precisely the run-to-run divergence the declared list exists to remove.
         Reset-ListToTop -Cap $Cap -SettleFor $SettleFor
+        # S4210: the control may be the first row. The hunt below swipes BEFORE it reaches, so a row
+        # that is on screen only at the very top was scrolled out of view without ever being tried -
+        # which is what an unpaired watch's Home does to `Local`, now that the phone rows above it are
+        # withheld and the list rests centred on Apps.
+        if ($Cap -gt 0) { $tap = & $reach }
     }
     # Then hunt downwards from the top, one swipe and one reach at a time. An `optional` entry passes
     # 0 here and so is reached for exactly once, where it stands, and never hunted.
@@ -539,6 +574,91 @@ function Get-ForeignWindowPackage {
     return $pkg
 }
 
+# --- Paired phone (S4210) ------------------------------------------------------------------------
+
+function Get-WalkCompanionHintTokens {
+    # Every string that identifies the S4011 companion hint on Home, read from the module rather than
+    # written here: the hint's resource-id, which survives any locale, and the value of
+    # wear_companion_hint_connect / wear_companion_hint_install in every values* folder. The walk
+    # runs in whatever language the watch is set to, and an English-only token would call a Russian
+    # unpaired emulator paired and send the walk hunting for rows the catalog never drew.
+    param([Parameter(Mandatory)][string]$WearRoot)
+
+    $tokens = [System.Collections.Generic.List[string]]::new()
+    $tagFile = Join-Path $WearRoot 'src/main/java/com/sza/fastmediasorter/wear/ui/testing/WearTestTags.kt'
+    if (Test-Path -LiteralPath $tagFile) {
+        $tag = [regex]::Match((Get-Content -LiteralPath $tagFile -Raw), 'WEAR_HOME_COMPANION_HINT\s*=\s*"([^"]+)"')
+        if ($tag.Success) { $tokens.Add($tag.Groups[1].Value) }
+    }
+
+    $hintNames = @('wear_companion_hint_connect', 'wear_companion_hint_install')
+    $resRoot = Join-Path $WearRoot 'src/main/res'
+    $valueDirs = @(Get-ChildItem -LiteralPath $resRoot -Directory -Filter 'values*' -ErrorAction SilentlyContinue)
+    foreach ($file in @($valueDirs | ForEach-Object { Get-ChildItem -LiteralPath $_.FullName -Filter 'strings*.xml' -File })) {
+        $xml = $null
+        # One malformed locale must not cost the others their channel; the strings gates judge the
+        # file itself, and a missing token here only moves this run toward walking the entry.
+        try { $xml = [xml](Get-Content -LiteralPath $file.FullName -Raw) } catch { continue }
+        foreach ($node in @($xml.SelectNodes('/resources/string[@name]'))) {
+            if ($hintNames -notcontains $node.GetAttribute('name')) { continue }
+            $value = $node.InnerText.Trim()
+            if ($value.Length -ge 2 -and $value.StartsWith('"') -and $value.EndsWith('"')) {
+                $value = $value.Substring(1, $value.Length - 2)
+            }
+            # aapt drops the escaping backslash, so the glass shows the bare character.
+            $value = $value -replace '\\([''"@?\\])', '$1'
+            if ($value) { $tokens.Add($value) }
+        }
+    }
+    return @($tokens | Select-Object -Unique)
+}
+
+function Test-WalkCompanionHintShown {
+    # $true when a flattened tree carries any companion-hint token. Ordinal and whole-token, the same
+    # substring rule the walk applies to an entry's `expect`.
+    param([string]$Haystack, [string[]]$Tokens)
+    if ([string]::IsNullOrEmpty($Haystack)) { return $false }
+    foreach ($token in @($Tokens)) {
+        if ($token -and $Haystack.Contains($token)) { return $true }
+    }
+    return $false
+}
+
+function Resolve-WalkPhonePairing {
+    # Read Home for the companion hint and say whether a phone is paired. Returns an ordered map:
+    # paired = $false when the hint is on Home, $true when Home was read to its end without it, and
+    # $null when the question could not be answered - which the caller treats as paired, so an
+    # unreadable Home walks the entry and reports what it finds, never silences it.
+    #
+    # The hint sits under the last section row, below the fold on a 192 dp face, so the first tree
+    # read is not enough; the list is scrolled down until the hint shows or the list stops moving. It
+    # is not scrolled back: the next entry's reach already restarts from the top when its control is
+    # not where it stands.
+    #
+    # A phone whose companion state has not been answered yet draws neither the rows nor the hint,
+    # which this reads as paired. That errs toward walking the entry and scoring it `unreachable`,
+    # the pre-S4210 behaviour, rather than toward a silent pass.
+    param([int]$SettleFor)
+
+    $tokens = @(Get-WalkCompanionHintTokens -WearRoot (Join-Path $repoRoot 'wear'))
+    if ($tokens.Count -eq 0) {
+        return [ordered]@{ paired = $null; evidence = 'no companion-hint token resolved from wear/src/main' }
+    }
+    Start-Sleep -Milliseconds $SettleFor
+    if (-not (Test-WalkDisplayAwake)) {
+        return [ordered]@{ paired = $null; evidence = 'the display was not awake when Home was to be read' }
+    }
+    $hintShown = { param($seen) Test-WalkCompanionHintShown -Haystack $seen -Tokens $tokens }
+    $seen = Invoke-ScrollUntilSettled -Swipe $swipe -Cap $MaxScrolls -SettleFor $SettleFor -StopWhen $hintShown
+    if ($null -eq $seen) {
+        return [ordered]@{ paired = $null; evidence = 'the Home tree could not be read' }
+    }
+    if (& $hintShown $seen) {
+        return [ordered]@{ paired = $false; evidence = 'Home shows the companion hint: no phone answers with FastMediaSorter' }
+    }
+    return [ordered]@{ paired = $true; evidence = 'Home carries no companion hint down to the end of its list' }
+}
+
 foreach ($screen in $screens) {
     $row = [ordered]@{
         id       = $screen.id
@@ -573,6 +693,32 @@ foreach ($screen in $screens) {
         $rows += [pscustomobject]$row
         if (-not $Json) { Write-Host "walk: $($screen.id) -> outOfFlavor ($($result.flavor))" -ForegroundColor DarkGray }
         continue
+    }
+
+    # S4210 - the same shape for a row that exists only while a paired phone answers. An emulator
+    # cannot be paired, and by owner decision 2026-10-14 the release verdict rests on the two reviewed
+    # emulators alone, so on an unpaired run these entries are recorded and never reached for: before
+    # this branch each one spent about 100 s of scroll hunting for a row HomeSectionCatalog had not
+    # drawn, then the re-home that followed turned the next entries `unreachable` too.
+    #
+    # Home is read once, at the first such entry that finds the walk standing on Home, because that is
+    # the only screen the hint is drawn on. An answer that could not be obtained is retried at the next
+    # marked entry and, until then, walks the entry: the fallback is the pre-S4210 behaviour.
+    $requiresPairedPhone = ($screen.requiresPairedPhone -is [bool]) -and $screen.requiresPairedPhone
+    if ($requiresPairedPhone) {
+        if (-not $phonePairingDecided -and @($position).Count -eq 0) {
+            $pairingSettleMs = if ($null -ne $screen.settleMs) { [int]$screen.settleMs } else { $SettleMs }
+            $result.phonePairing = Resolve-WalkPhonePairing -SettleFor $pairingSettleMs
+            $phonePairingDecided = ($null -ne $result.phonePairing.paired)
+            if (-not $Json) { Write-Host "walk: phone pairing - $($result.phonePairing.evidence)" -ForegroundColor DarkGray }
+        }
+        if ($phonePairingDecided -and $result.phonePairing.paired -eq $false) {
+            $row.outcome = 'phoneBound'
+            $row.detail = 'drawn only while a paired phone answers with FastMediaSorter, and Home shows the companion hint; not walked - the verdict rests on the reviewed emulators (owner decision 2026-10-14)'
+            $rows += [pscustomobject]$row
+            if (-not $Json) { Write-Host "walk: $($screen.id) -> phoneBound (no paired phone)" -ForegroundColor DarkGray }
+            continue
+        }
     }
 
     # Settle before reaching for the control too: the previous entry's BACK is still animating when
@@ -856,6 +1002,10 @@ $result.counts = [ordered]@{
     # seven screens out of twenty-eight has to say where the other twenty-one went, or a narrow run
     # and a broken one print the same line.
     outOfFlavor    = @($rows | Where-Object { $_.outcome -eq 'outOfFlavor' }).Count
+    # S4210: reported, never scored, for the reason outOfFlavor is - the row is not on the glass. Here
+    # it is the run's missing phone rather than the artifact, and the owner ruled 2026-10-14 that the
+    # verdict does not wait for a paired run.
+    phoneBound     = @($rows | Where-Object { $_.outcome -eq 'phoneBound' }).Count
     shapeFailures  = $shapeFailuresCount
     shapeUnchecked = $shapeUncheckedCount
     shapeAccepted  = $shapeAcceptedCount
@@ -918,6 +1068,6 @@ $result.ok = ($verdict -eq 0)
 if ($Json) { [pscustomobject]$result | ConvertTo-Json -Depth 8 -Compress }
 else {
     $batteryNote = if ($null -ne $result.batteryPct) { "battery $($result.batteryPct)%; " } else { '' }
-    Write-Host ("wear-prerelease-walk: ${batteryNote}observed $($result.counts.observed), failed $($result.counts.failed), unreachable $($result.counts.unreachable), manual $($result.counts.manual), outOfFlavor $($result.counts.outOfFlavor), shapeFailures $shapeFailuresCount, shapeUnchecked $shapeUncheckedCount, shapeAccepted $shapeAcceptedCount ($($result.flavor)), rehomes $rehomeCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
+    Write-Host ("wear-prerelease-walk: ${batteryNote}observed $($result.counts.observed), failed $($result.counts.failed), unreachable $($result.counts.unreachable), manual $($result.counts.manual), outOfFlavor $($result.counts.outOfFlavor), phoneBound $($result.counts.phoneBound), shapeFailures $shapeFailuresCount, shapeUnchecked $shapeUncheckedCount, shapeAccepted $shapeAcceptedCount ($($result.flavor)), rehomes $rehomeCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
 }
 exit $verdict

@@ -26,6 +26,15 @@
                written the long way). `homeSection` and `wearApp`, when declared, name a member of
                `HomeSectionId` / `WearAppId`. Catches a typo that would silence an entry in every
                flavor - the opposite of, and the same size as, the fault this check arrived with.
+      phone  - S4210. `requiresPairedPhone`, when declared, is a JSON boolean, and when true the entry
+               names a `homeSection` whose row HomeSectionCatalog adds only under a condition that
+               reads the phone companion state (S4011: RESOURCES, PHONE, PHONE_CAMERA today). The walk
+               records such an entry `phoneBound` and never opens it on an unpaired run, so the marker
+               on a row the catalog draws without the phone would leave a reachable screen unjudged on
+               every emulator sweep. The set is read from the catalog's `if (..) { add(HomeSection(id
+               = HomeSectionId.X` blocks and from the helpers whose body reads `phoneCompanion`. When
+               an entry needs the set and the read finds no catalog, or no such row in it, the gate
+               answers 2: an extractor that stopped matching is not a wrong marker.
 
     What this gate CANNOT see, stated so nobody reads a PASS as more than it is: a string that is
     alive AND rendered, but by a different screen than the entry opens. That is `settings-system-info`
@@ -98,7 +107,8 @@
       0  divergences are at or below the baseline (or -Gate was not passed).
       1  divergences exceed the baseline, or -UpdateBaseline was asked to raise it.
       2  could not verify: the screen list, the strings file or the wear source tree is missing or
-         unreadable. Never conflated with 1 - "found a defect" and "did not look" are different answers.
+         unreadable, or an entry declares requiresPairedPhone and HomeSectionCatalog's phone-bound rows
+         could not be read. Never conflated with 1 - "found a defect" and "did not look" are different answers.
       4  Code.Scripts is held by another session, so no baseline was written. The queue place is held -
          wait for the turn in the background and rerun (S2635).
 #>
@@ -204,9 +214,12 @@ $screenNames = [System.Collections.Generic.HashSet[string]]::new()
 # presented set from one that belongs to a neighbour's unfinished work.
 $screenFile = @{}
 $sourceText = [System.Text.StringBuilder]::new()
+# S4210: the one file the phone check reads its row set from, captured during the same pass.
+$homeCatalogText = $null
 foreach ($file in Get-ChildItem -LiteralPath $wearSource -Recurse -Filter '*.kt' -File) {
     $text = Get-Content -LiteralPath $file.FullName -Raw
     [void]$sourceText.AppendLine($text)
+    if ($null -eq $homeCatalogText -and $text -match '(?m)^object HomeSectionCatalog\b') { $homeCatalogText = $text }
     # PascalCase only: a composable is a screen, `fun Modifier.applyScreen(..)` is not, and counting
     # the helper made the module look like it had 39 screens instead of 38.
     foreach ($m in [regex]::Matches($text, 'fun\s+([A-Z][A-Za-z0-9_]*Screen)\s*\(')) {
@@ -242,6 +255,44 @@ function Get-EnumMembers {
 
 $homeSectionIds = Get-EnumMembers -Source $allSource -Name 'HomeSectionId'
 $wearAppIds = Get-EnumMembers -Source $allSource -Name 'WearAppId'
+
+function Get-CompanionBoundSections {
+    # S4210 - the HomeSectionId rows HomeSectionCatalog adds only under a condition that reads the
+    # phone companion state, directly or through a no-argument Boolean helper whose body does. Read
+    # as structure, not evaluated: whether a flavor DRAWS the row is the boundary tests' question, and
+    # this only answers whether the row waits for the phone at all.
+    #
+    # A helper's body is its expression up to the first line that is not indented past the
+    # declaration, which is how the catalog writes `showsPhoneRows()` and `showsResources()`.
+    param([string]$CatalogText)
+    if (-not $CatalogText) { return @() }
+    $helpers = @([regex]::Matches(
+        $CatalogText, 'fun\s+(?:[A-Za-z0-9_]+\.)?([a-z][A-Za-z0-9_]*)\s*\(\s*\)\s*:\s*Boolean\s*=([^\r\n]*(?:\r?\n[ ]{8,}[^\r\n]*)*)'
+    ) | Where-Object { $_.Groups[2].Value -match '\bphoneCompanion\b' } | ForEach-Object { $_.Groups[1].Value })
+    $conditionPattern = '\bphoneCompanion\b'
+    if ($helpers.Count -gt 0) {
+        $conditionPattern += '|\b(?:' + (@($helpers | ForEach-Object { [regex]::Escape($_) }) -join '|') + ')\s*\('
+    }
+    $bound = foreach ($add in [regex]::Matches(
+        $CatalogText, 'if\s*\(([^\r\n]*)\)\s*\{\s*add\(\s*HomeSection\(\s*id\s*=\s*HomeSectionId\.([A-Z][A-Z0-9_]*)')) {
+        if ($add.Groups[1].Value -match $conditionPattern) { $add.Groups[2].Value }
+    }
+    return @($bound | Where-Object { $_ } | Select-Object -Unique)
+}
+
+# Only an entry that declares the marker needs the set, so a fixture tree with no catalog - and the
+# module itself, should the marker ever go - is judged exactly as before S4210.
+$markedEntries = @($entries | Where-Object {
+    ($_.PSObject.Properties.Name -contains 'requiresPairedPhone') -and ($_.requiresPairedPhone -is [bool]) -and $_.requiresPairedPhone
+})
+$companionBoundSections = @()
+if ($markedEntries.Count -gt 0) {
+    if (-not $homeCatalogText) { Stop-Unverifiable "an entry declares requiresPairedPhone, and no 'object HomeSectionCatalog' was found under $wearSource" }
+    $companionBoundSections = @(Get-CompanionBoundSections -CatalogText $homeCatalogText)
+    if ($companionBoundSections.Count -eq 0) {
+        Stop-Unverifiable "an entry declares requiresPairedPhone, and no HomeSectionCatalog row was found added under a phoneCompanion condition - the extractor no longer matches the catalog's shape"
+    }
+}
 
 $divergences = @()
 
@@ -312,6 +363,24 @@ foreach ($entry in $entries) {
         $value = [string]$entry.($binding.Field)
         if (@($binding.Members) -cnotcontains $value) {
             Add-Divergence -Text "$id : $($binding.Field) '$value' is not a member of $($binding.Enum) in the wear module" -Screen $screen -Id $entryId
+        }
+    }
+
+    # S4210 - the paired-phone marker silences an entry on every unpaired run, which is every emulator
+    # sweep the release verdict rests on. It is accepted only on a row that really waits for the phone.
+    if ($entry.PSObject.Properties.Name -contains 'requiresPairedPhone') {
+        $marker = $entry.requiresPairedPhone
+        if ($marker -isnot [bool]) {
+            Add-Divergence -Text "$id : 'requiresPairedPhone' must be a JSON boolean, found '$marker' - the walk reads only true as the marker" -Screen $screen -Id $entryId
+        }
+        elseif ($marker) {
+            $section = if ($entry.PSObject.Properties.Name -contains 'homeSection') { [string]$entry.homeSection } else { $null }
+            if (-not $section) {
+                Add-Divergence -Text "$id : 'requiresPairedPhone' needs a 'homeSection' naming the phone-bound Home row the entry is reached through" -Screen $screen -Id $entryId
+            }
+            elseif ($companionBoundSections -cnotcontains $section) {
+                Add-Divergence -Text "$id : 'requiresPairedPhone' is set on homeSection '$section', which HomeSectionCatalog adds without reading the phone companion (phone-bound rows: $($companionBoundSections -join ', ')) - the walk would skip a screen an unpaired run can reach" -Screen $screen -Id $entryId
+            }
         }
     }
 }
