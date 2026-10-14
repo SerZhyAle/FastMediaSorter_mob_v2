@@ -126,7 +126,6 @@ class SftpEndpointResolver @Inject constructor(
      */
     private suspend fun rendezvousRetry(group: CandidateGroup): HostPort? {
         val pin = group.pin ?: return null
-        Timber.d("S4110: every stored candidate failed, retrying with Drive-announced addresses")
         rendezvous.refreshAfterFailure()
         val fresh = rendezvous.endpointsFor(pin) - group.endpoints.toSet()
         val winner = if (fresh.isEmpty()) null else probe(fresh, pin)

@@ -61,7 +61,6 @@ class ExchangeRelayUploader @Inject constructor(
     /** Uploads the MPEG-TS the video session publishes into [feed] as broadcast [broadcastId] through [entry]. */
     @Synchronized
     fun startVideo(entry: DeviceExchangeAccountEntry, broadcastId: String, feed: ExchangeVideoRelayFeed) {
-        Timber.d("S4116: video relay upload starting")
         stopLocked()
         job = appScope.launch(ioDispatcher) { uploadUntilStopped(entry, broadcastId, Source.Ts(feed)) }
     }

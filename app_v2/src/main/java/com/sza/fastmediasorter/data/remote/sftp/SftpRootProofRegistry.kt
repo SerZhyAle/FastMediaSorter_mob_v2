@@ -92,7 +92,6 @@ class SftpRootProofRegistry @Inject constructor(
         return if (root == null || pin == null) {
             info
         } else {
-            Timber.d("S4201: proof handed to a protected-root session")
             handedOut[sessionKey(info, root.name)] = root.binding
             info.copy(rootProof = SftpRootProof(root.name, pin))
         }

@@ -89,7 +89,6 @@ class SftpServerTunnelManager @Inject constructor(
     /** Starts (or restarts) publishing a server listening on [localPort] and reachable directly at [hosts]. */
     @Synchronized
     fun start(localPort: Int, hosts: List<String>) {
-        Timber.d("S4094: tunnel manager start")
         share = ShareTarget(localPort, hosts)
         // No farewell on a restart: the new control stream replaces the old one on the server (7.3) and sends
         // the same records again, which a late unpublish on the old stream could undo.
@@ -222,7 +221,6 @@ class SftpServerTunnelManager @Inject constructor(
         var failure: IOException? = null
         val session = openOrNull(entry) { failure = it } ?: return openFailure(failure, record != null)
         track(session.connection)
-        Timber.d("S4094: registered on the exchange server")
         val control = LiveControl(session)
         return try {
             serve(tunnels, control, entry, record, sharePort)
@@ -401,7 +399,6 @@ class SftpServerTunnelManager @Inject constructor(
     }
 
     private suspend fun tunnel(entry: DeviceExchangeAccountEntry, tunnelId: String, localPort: Int) {
-        Timber.d("S4094: tunnel opened by the exchange server")
         var data: ExchangeConnection? = null
         var local: Socket? = null
         try {

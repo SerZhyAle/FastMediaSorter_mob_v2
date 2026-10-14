@@ -80,7 +80,6 @@ class WearExchangeCastCoordinator @Inject constructor(
     }
 
     private fun onOffer(event: WearExchangeControlEvent) {
-        Timber.d("S4194: cast offer received on a control stream")
         val endpoint = WearExchangeRelayEndpoint.fromOffer(event.envelope)
         val broadcastId = endpoint?.broadcastId
             ?: event.envelope.string(KEY_BROADCAST_ID)
@@ -164,7 +163,6 @@ class WearExchangeCastCoordinator @Inject constructor(
             return
         }
         val url = endpoint.loopbackUrl(bridge.port)
-        Timber.d("S4194: cast playback starting through the pinning loopback proxy")
         current = Playing(offer.broadcastId, url, bridge)
         mutablePlaying.value = true
         val intent = WearPlaybackService.startIntent(

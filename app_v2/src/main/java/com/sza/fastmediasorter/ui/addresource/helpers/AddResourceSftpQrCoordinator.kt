@@ -33,7 +33,6 @@ class AddResourceSftpQrCoordinator(
         return when (val dispatch = dispatchIntakeText.dispatch(payload)) {
             is IntakeTextDispatch.ShareCode -> {
                 val pairing = dispatch.payload
-                Timber.d("S4094: pairing code scanned")
                 rememberTunnel(SftpTunnelAddress.fromPairing(pairing))
                 apply(pairing)
                 Toast.makeText(activity, R.string.add_resource_sftp_pairing_filled, Toast.LENGTH_LONG).show()

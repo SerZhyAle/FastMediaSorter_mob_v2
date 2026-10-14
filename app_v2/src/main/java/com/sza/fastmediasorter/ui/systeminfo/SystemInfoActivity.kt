@@ -36,8 +36,6 @@ class SystemInfoActivity : AppCompatActivity() {
         // S4151: the saved colour theme must reach the window background before the layout inflates,
         // as in BaseActivity, or the report would not match the other full-screen screens.
         ColorThemePrefs.applyThemeOverlay(this)
-        Timber.d("S4151: SystemInfoActivity opened on an opaque window")
-        Timber.d("S4165: SystemInfoActivity opened with interactive card UI")
         binding = ActivitySystemInfoBinding.inflate(layoutInflater)
         setContentView(binding.root)
         systemInfoWindowManager.bind(this, binding)

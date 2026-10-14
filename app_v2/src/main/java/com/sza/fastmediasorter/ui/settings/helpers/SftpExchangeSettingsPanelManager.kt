@@ -48,7 +48,6 @@ class SftpExchangeSettingsPanelManager(
 
     fun bind() {
         binding.rowSftpDriveAccess.setOnCheckedChangeListener { checked ->
-            Timber.d("S4129: Drive access opt-in toggled")
             launchInView { manageSftpServer.setDriveAccessShared(checked) }
         }
         fragment.collectOnLifecycle(manageSftpServer.driveAccessShared) { shared ->

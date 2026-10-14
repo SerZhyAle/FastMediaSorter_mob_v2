@@ -28,7 +28,6 @@ class ImportStreamBroadcastUseCase @Inject constructor(
         // S4160: the whole list is kept, so a broadcast reachable through an exchange server plays outside the
         // broadcaster's LAN; a descriptor with no explicit list leaves the column null and plays its url.
         val endpoints = BroadcastEndpointCodec.encode(dto.endpoints)
-        Timber.d("S4160: descriptor import keeps an endpoint list")
         val known = deviceId?.let { repository.getBySourceDeviceId(it) }
             ?: endpoints?.let { repository.getByUrl(dto.url.trim()) }
         return if (known == null) {

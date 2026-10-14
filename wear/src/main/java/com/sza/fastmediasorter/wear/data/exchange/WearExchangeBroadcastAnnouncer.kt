@@ -87,7 +87,6 @@ class WearExchangeBroadcastAnnouncer @Inject constructor(
                 addProperty(KEY_MAX_LISTENERS, cap)
             }
             if (streams.send(announced.entry.identity, envelope)) {
-                Timber.d("S4194: broadcast announced on the exchange server")
                 Timber.i("WearExchangeBroadcastAnnouncer: %s, cap %d, relay %b", type, cap, relay)
                 announced.sentGeneration = stream.generation
                 announced.sentCap = cap

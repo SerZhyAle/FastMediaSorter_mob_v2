@@ -94,7 +94,6 @@ class WearExchangeRelayUploader @Inject constructor(
             val answer = session.receive()
             val accepted = answer?.type == WearExchangeEnvelope.TYPE_UPLOAD_ACCEPTED
             if (accepted) {
-                Timber.d("S4194: relay upload accepted")
                 mutableAccepted.value = broadcastId
                 val writer = WearExchangeRelayChunkWriter(session.connection.output)
                 forward(sourceUrl, writer)

@@ -95,7 +95,6 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
         entry: DeviceExchangeAccountEntry,
     ): Announcement {
         if (current != null) end()
-        Timber.d("S4116: broadcast announced through the exchange")
         val started = Announcement(key, SftpShareId.generate(), System.currentTimeMillis())
         current = started
         val source = loopbackSource(live.descriptor)

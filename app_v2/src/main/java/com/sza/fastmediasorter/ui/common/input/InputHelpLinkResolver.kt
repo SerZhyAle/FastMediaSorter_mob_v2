@@ -74,7 +74,6 @@ object InputHelpLinkResolver {
             page.path
         }
         val url = SITE_BASE + path
-        timber.log.Timber.d("S4101: help address for ${page.pageId} in $language is $url")
         return url
     }
 

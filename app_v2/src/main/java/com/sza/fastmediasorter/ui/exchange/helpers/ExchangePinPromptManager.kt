@@ -41,7 +41,6 @@ class ExchangePinPromptManager(
     }
 
     private fun show(prompt: ExchangePinPrompt.Asking) {
-        Timber.d("S4201: PIN prompt shown")
         dismiss()
         val view = DialogExchangePinBinding.inflate(LayoutInflater.from(activity))
         view.etExchangePin.doAfterTextChanged { view.tilExchangePin.error = null }

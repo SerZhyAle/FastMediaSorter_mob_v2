@@ -44,7 +44,6 @@ class StreamBroadcastEndpointManager @Inject constructor(
     ): Job = scope.launch {
         val stored = storedUrl(id, url)
         val playback = resolvePlayback(stored, endpoints)
-        Timber.d("S4160: broadcast channel resolved to ${playback.javaClass.simpleName}")
         when (playback) {
             is Playback.Playable -> {
                 storedUrls[id] = stored

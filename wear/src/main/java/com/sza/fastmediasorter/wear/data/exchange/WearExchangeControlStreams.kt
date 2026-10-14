@@ -133,7 +133,6 @@ class WearExchangeControlStreams @Inject constructor(
     }
 
     private suspend fun serve(identity: String, session: WearExchangeSession): Outcome = coroutineScope {
-        Timber.d("S4194: control stream welcomed by the exchange server")
         val generation = generations.incrementAndGet()
         sessions[identity] = session
         val stream = WearExchangeLiveStream(identity, generation, session.welcome.publicEndpoint)

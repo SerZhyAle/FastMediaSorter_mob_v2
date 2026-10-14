@@ -83,7 +83,6 @@ class AttachExchangeResourcesUseCase @Inject constructor(
      * item is not attached here: its binding comes back in [ExchangeAttachResult.needPin].
      */
     suspend fun attach(items: List<ExchangeListedResource>): ExchangeAttachResult {
-        Timber.d("S4116: attach from my devices")
         return attach(items, accounts.entries.first())
     }
 
@@ -92,7 +91,6 @@ class AttachExchangeResourcesUseCase @Inject constructor(
      * its own; only an accepted PIN is kept and only then is the resource added (17 item AJ).
      */
     suspend fun attachProtected(item: ExchangeListedResource, pin: String): ExchangePinAttempt {
-        Timber.d("S4201: protected resource attach with a PIN")
         val access = usableAccess(item)
         val proven = access?.let { verifyPin(it, pin) } ?: ExchangePinAttempt.FAILED
         return if (access != null && proven == ExchangePinAttempt.ACCEPTED) keepAndAdd(item, access, pin) else proven
@@ -100,7 +98,6 @@ class AttachExchangeResourcesUseCase @Inject constructor(
 
     /** Replaces the PIN of an attached resource once the owner accepts the new one (17 item AI). */
     suspend fun renewPin(item: ExchangeListedResource, pin: String): ExchangePinAttempt {
-        Timber.d("S4201: PIN renewal for an attached resource")
         val binding = ExchangeBinding(item.sourceKey, item.record.resourceId)
         // No usable access means the owner is offline: nothing was proven either way.
         val proven = usableAccess(item)?.let { verifyPin(it, pin) } ?: ExchangePinAttempt.UNREACHABLE

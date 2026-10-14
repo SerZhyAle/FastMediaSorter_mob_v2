@@ -66,7 +66,6 @@ object MediaExchangePortalLinks {
 
     /** Opens [page] in the device language; an offline or browserless device gets the fallback dialog. */
     fun open(activity: FragmentActivity, page: Page) {
-        Timber.d("S4143: portal link opens ${page.name}")
         DocsPageOpenManager.open(activity, urlFor(page, LocaleHelper.getLanguage(activity)))
     }
 }

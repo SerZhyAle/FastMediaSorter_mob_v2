@@ -68,7 +68,6 @@ class StreamsDeviceBroadcastsViewModel @Inject constructor(
     }
 
     fun onBroadcastChosen(item: ExchangeDeviceBroadcast) {
-        Timber.d("S4116: device broadcast chosen in the streams list")
         if (!item.playable) {
             _messages.trySend(R.string.streams_device_broadcast_unsupported)
             return

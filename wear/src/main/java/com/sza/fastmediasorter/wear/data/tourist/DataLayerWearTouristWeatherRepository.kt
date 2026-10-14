@@ -81,7 +81,6 @@ class DataLayerWearTouristWeatherRepository @Inject constructor(
                 setUrgent()
             }
             Wearable.getDataClient(context).putDataItem(request.asPutDataRequest()).await()
-            Timber.d("S4152: weather request sent %s", position)
         }.onFailure { e ->
             e.rethrowIfCancellation()
             Timber.w(e, "Tourist weather request not sent to the phone")

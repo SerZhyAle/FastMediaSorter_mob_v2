@@ -227,7 +227,6 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
                 .toList(),
         )
         languageIds = languageOptions.map { it.id }
-        Timber.d("S4133: quick picker language options=${languageOptions.size}")
         val languages = listOf(allOf(R.string.streams_filter_language)) + languageOptions.map { it.label }
 
         val topicAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, topics).apply {

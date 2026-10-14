@@ -1715,7 +1715,6 @@ private fun TouristRoute(navController: NavHostController) {
     TouristScreen(
         onLaunchSos = { navigateGuarded(navController, WearRoutes.SOS) },
         onLaunchStopwatch = {
-            Timber.d("S4186: stopwatch tile launched from wear tourist")
             navigateGuarded(navController, WearRoutes.STOPWATCH)
         },
         onLaunchCounter = { navigateGuarded(navController, WearRoutes.TOURIST_COUNTER) },

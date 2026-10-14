@@ -608,7 +608,6 @@ class StreamsViewModel @Inject constructor(
         val dropCountry = country != null && state.facets.countries.isNotEmpty() &&
             country !in state.facets.countries
         if (!dropLanguage && !dropCountry) return
-        Timber.d("S4133: dropped vanished facet selection language=$dropLanguage country=$dropCountry")
         _filter.update { current ->
             current.copy(
                 language = if (dropLanguage) null else current.language,

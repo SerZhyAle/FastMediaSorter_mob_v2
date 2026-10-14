@@ -29,7 +29,6 @@ class ExchangeTunnelProxy(
     private var connection: ExchangeConnection? = null
 
     override fun connect(socketFactory: SocketFactory?, host: String?, port: Int, timeout: Int) {
-        Timber.d("S4094: consumer tunnel connect")
         connection = DeviceExchangeAccountClient.connectByShareId(
             connector = connector,
             host = parts.exchangeHost,

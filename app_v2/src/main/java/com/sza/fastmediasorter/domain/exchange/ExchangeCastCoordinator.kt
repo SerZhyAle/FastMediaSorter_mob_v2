@@ -125,13 +125,11 @@ class ExchangeCastCoordinator @Inject constructor(
 
     /** Sends one `cast` of the announced broadcast per receiver (7.8); the number actually written. */
     suspend fun cast(receiverDeviceIds: List<String>): Int = withContext(ioDispatcher) {
-        Timber.d("S4116: cast sent to chosen receivers")
         val broadcastId = announcer.announcedBroadcastId ?: return@withContext 0
         receiverDeviceIds.count { tunnel.sendControl(DeviceExchangeCastCodec.cast(broadcastId, it)) }
     }
 
     private suspend fun onOffer(offer: ExchangeCastOffer) {
-        Timber.d("S4116: cast offer received")
         val dto = (parser.parseDetailed(offer.record.descriptorJson) as? BroadcastDescriptorParser.ParseOutcome.Valid)
             ?.dto
         if (dto != null) importBroadcast(offer.record.descriptorJson)

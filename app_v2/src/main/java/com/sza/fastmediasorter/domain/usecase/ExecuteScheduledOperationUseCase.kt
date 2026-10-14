@@ -484,7 +484,6 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         log: (String) -> Unit,
         addError: (String) -> Unit
     ): Int {
-        Timber.d("S4173: scheduled ARCHIVE run op=$operationId files=${files.size} target=$targetDir")
         var archivedCount = 0
         archiveFilesUseCase(files.map { it.path }, buildArchiveName(sourceName), targetDir).collect { progress ->
             when (progress) {

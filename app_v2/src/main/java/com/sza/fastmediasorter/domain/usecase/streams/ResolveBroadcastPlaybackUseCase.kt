@@ -39,7 +39,6 @@ class ResolveBroadcastPlaybackUseCase @Inject constructor(
     /** [url] and [endpoints] are the stored row's `url` and `broadcastEndpoints` columns. */
     suspend operator fun invoke(url: String, endpoints: String?): Playback {
         if (endpoints == null) return Playback.Playable(url)
-        Timber.d("S4160: resolving the endpoint list of a broadcast channel")
         return withContext(ioDispatcher) { resolve(url, endpoints) }
     }
 

@@ -65,7 +65,6 @@ class CloudToCloudTransferHelper(
         if (sourceInfo.provider == destInfo.provider) {
             val result = cloudAuthHelper.executeWithAutoReauth(sourceInfo.provider) { client ->
                 val sourceName = sourceDisplayNameOrNull(client, sourceInfo)
-                Timber.d("S4197: copyCloudToCloud native copy name '$sourceName'")
                 client.copyFile(sourceInfo.fileId, destInfo.folderId ?: "root", sourceName)
             }
 

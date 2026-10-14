@@ -30,7 +30,6 @@ class WearTouristHealthReceiver @Inject constructor(
             repository.publish(
                 WatchHealthReading(payload.heartRateBpm, payload.bodyTemperatureCelsius, receivedAtEpochMillis),
             )
-            Timber.d("S4150: health received hr=%s t=%s", payload.heartRateBpm, payload.bodyTemperatureCelsius)
         } catch (e: JsonParseException) {
             Timber.w(e, "Watch Tourist health report not decodable - reading dropped")
         } catch (e: IllegalArgumentException) {

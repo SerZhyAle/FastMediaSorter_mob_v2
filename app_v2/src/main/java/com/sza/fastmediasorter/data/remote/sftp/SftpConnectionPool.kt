@@ -791,7 +791,6 @@ class SftpConnectionPool(
             pooledSessions.clear()
             retired.forEach { pooled ->
                 if (preserveActiveBorrowers && pooled.activeBorrowCount.get() > 0) {
-                    Timber.d("S4198: SFTP UI teardown deferred; activeBorrows=${pooled.activeBorrowCount.get()}")
                     return@forEach
                 }
                 try {
@@ -844,7 +843,6 @@ class SftpConnectionPool(
         if (proof != null) {
             // The only method a protected root accepts (SHARE-SESSION 1.2); no stored password is offered, so
             // the ordinary password login can never be mistaken for the proof.
-            Timber.d("S4201: keyboard-interactive proof session")
             session.userInfo = SftpRootProofUserInfo(proof, info.password)
             val config = java.util.Properties()
             config["StrictHostKeyChecking"] = strictHostKeyChecking

@@ -27,7 +27,6 @@ class TouristCounterViewModel @Inject constructor(
     }
 
     fun reset() {
-        timber.log.Timber.d("S4184: counter reset confirmed")
         viewModelScope.launch { updateTouristCounterUseCase.reset() }
     }
 

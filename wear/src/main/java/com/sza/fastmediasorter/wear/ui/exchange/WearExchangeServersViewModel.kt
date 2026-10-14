@@ -60,7 +60,6 @@ class WearExchangeServersViewModel @Inject constructor(
     }
 
     fun remove(entry: WearExchangeEntry) {
-        Timber.d("S4158: watch removes an exchange entry")
         mutableOverlay.value = WearExchangeServersOverlay.Removing
         viewModelScope.launch {
             val removal = accounts.remove(entry)

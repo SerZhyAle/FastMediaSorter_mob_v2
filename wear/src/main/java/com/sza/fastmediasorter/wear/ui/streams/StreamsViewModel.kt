@@ -239,7 +239,6 @@ class StreamsViewModel @Inject constructor(
     private fun dropVanishedLanguageSelection(languages: List<StreamFacetValue>) {
         val selected = _uiState.value.selectedLanguage ?: return
         if (languages.isNotEmpty() && languages.none { it.id.equals(selected, ignoreCase = true) }) {
-            Timber.d("S4133: wear dropped vanished language selection")
             setSelectedLanguage(null)
         }
     }

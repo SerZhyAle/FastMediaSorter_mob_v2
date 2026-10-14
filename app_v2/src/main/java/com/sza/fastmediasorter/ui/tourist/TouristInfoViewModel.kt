@@ -120,7 +120,6 @@ class TouristInfoViewModel @Inject constructor(
 
     /** S4202: start when stopped, freeze when running - one toggle button on the STOPWATCH tile. */
     fun toggleStopwatch() {
-        Timber.d("S4202: stopwatch toggle, running=%s", stopwatchRunning.value)
         if (stopwatchRunning.value) {
             stopwatchAccumulatedMillis = currentElapsed()
             stopwatchRunning.value = false
@@ -137,7 +136,6 @@ class TouristInfoViewModel @Inject constructor(
 
     /** S4202: zeroes the reading and leaves the stopwatch stopped. */
     fun resetStopwatch() {
-        Timber.d("S4202: stopwatch reset")
         stopwatchAccumulatedMillis = 0L
         stopwatchStartMark = 0L
         stopwatchRunning.value = false

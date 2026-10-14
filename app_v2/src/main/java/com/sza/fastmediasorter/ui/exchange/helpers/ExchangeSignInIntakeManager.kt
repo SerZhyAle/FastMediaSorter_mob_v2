@@ -56,7 +56,6 @@ class ExchangeSignInIntakeManager(
     }
 
     private fun fill(value: ExchangeConnectionString) {
-        Timber.d("S4155: intake filled sign-in form for endpoint=${value.endpoint}")
         filled = value
         binding.etExchangeSignInAddress.setText(value.endpoint.toString())
         value.loginHint?.let { binding.etExchangeSignInLogin.setText(it) }

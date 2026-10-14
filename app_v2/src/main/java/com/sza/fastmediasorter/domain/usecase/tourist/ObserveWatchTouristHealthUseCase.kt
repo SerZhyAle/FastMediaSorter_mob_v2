@@ -27,7 +27,6 @@ class ObserveWatchTouristHealthUseCase @Inject constructor(
 
     operator fun invoke(): Flow<WatchHealthStats> {
         val offered = capabilityAvailability.isWatchHealthAvailable()
-        Timber.d("S4150: watch health tiles offered=%s", offered)
         if (!offered) return flowOf(WatchHealthStats())
         return combine(repository.latest, clockTicks()) { reading, now -> reading.toStats(offered = true, now) }
             .distinctUntilChanged()

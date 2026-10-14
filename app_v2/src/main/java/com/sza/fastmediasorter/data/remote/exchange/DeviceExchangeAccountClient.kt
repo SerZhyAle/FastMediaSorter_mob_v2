@@ -305,7 +305,6 @@ class DeviceExchangeAccountClient @Inject constructor(
         addProperty(KEY_PLATFORM, SftpRendezvousDevice.PLATFORM_ANDROID)
         add(KEY_ROLES, JsonArray().apply { enrollment.roles.forEach(::add) })
         if (enrollment.capabilities.isNotEmpty()) {
-            Timber.d("S4201: enroll declares capabilities")
             add(KEY_CAPABILITIES, JsonArray().apply { enrollment.capabilities.forEach(::add) })
         }
         enrollment.receiver?.let { add(KEY_RECEIVER, it) }

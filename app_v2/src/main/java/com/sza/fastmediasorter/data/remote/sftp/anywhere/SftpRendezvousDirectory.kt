@@ -88,7 +88,6 @@ class SftpRendezvousDirectory @Inject constructor(
         if (!isOlderThan(intervalMs)) return
         refreshLock.withLock {
             if (!isOlderThan(intervalMs)) return@withLock
-            Timber.d("S4110: consumer refreshes the Drive device-exchange records")
             lastRefreshMs = nowMs()
             store.snapshot()
                 .onSuccess { snapshot ->
@@ -111,7 +110,6 @@ class SftpRendezvousDirectory @Inject constructor(
         when {
             producer == null -> Timber.i("SftpRendezvousDirectory: no Drive record names this share")
             isLive(producer, now) -> {
-                Timber.d("S4110: producer online but unreachable from this network")
                 verdicts.markUnreachableFromHere(endpoints)
             }
             else -> askToAnnounce(producer.resource.record.deviceId, now)
@@ -153,7 +151,6 @@ class SftpRendezvousDirectory @Inject constructor(
         val devices = snapshot.devices.associateBy { it.record.deviceId }
         val (attachable, withoutAccess) = snapshot.resources.partition { it.record.descriptor != null }
         if (withoutAccess.isNotEmpty()) {
-            Timber.d("S4129: consumer lists a share without access and cannot attach it")
             Timber.i("SftpRendezvousDirectory: %d share(s) listed without access, cannot attach", withoutAccess.size)
         }
         return attachable

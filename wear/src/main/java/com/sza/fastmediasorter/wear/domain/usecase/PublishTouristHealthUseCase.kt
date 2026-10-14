@@ -44,7 +44,6 @@ class PublishTouristHealthUseCase @Inject constructor(
                 setUrgent()
             }
             Wearable.getDataClient(context).putDataItem(request.asPutDataRequest()).await()
-            Timber.d("S4150: tourist health published hr=%s temp=%s", heartRateBpm, bodyTemperatureCelsius)
         }.onFailure { e ->
             e.rethrowIfCancellation()
             Timber.w(e, "Tourist health report not sent to the phone")

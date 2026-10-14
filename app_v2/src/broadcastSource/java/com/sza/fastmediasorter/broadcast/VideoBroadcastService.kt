@@ -529,7 +529,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
     // listener sees nothing until the encoder's next scheduled keyframe (LIVE-BROADCAST consumer rule 1).
     override fun onClientConnected(client: ServerClient) {
         cameraServer?.requestKeyFrame()
-        Timber.d("S4124: keyframe requested on PLAY from %s", client.getAddress())
         publishListenerCount()
     }
 

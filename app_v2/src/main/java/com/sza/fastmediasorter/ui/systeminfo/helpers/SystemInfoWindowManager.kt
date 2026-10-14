@@ -102,7 +102,6 @@ class SystemInfoWindowManager @Inject constructor(
     }
 
     private fun onAction(activity: AppCompatActivity, binding: ActivitySystemInfoBinding, itemId: Int): Boolean {
-        Timber.d("S4161: System information toolbar action $itemId")
         val report = currentReport
         when (itemId) {
             R.id.action_system_info_copy -> report?.let(::copyReport)

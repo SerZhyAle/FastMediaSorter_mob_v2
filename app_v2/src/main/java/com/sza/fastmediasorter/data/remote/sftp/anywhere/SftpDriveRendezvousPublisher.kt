@@ -105,8 +105,6 @@ class SftpDriveRendezvousPublisher @Inject constructor(
         publication: Publication,
         now: Long,
     ): Boolean {
-        Timber.d("S4110: publisher writes the device and resource records on Drive")
-        Timber.d("S4129: resource record access follows the Drive opt-in")
         val deviceWritten = writeDevice(deviceId, SftpRendezvousDevice.PRESENCE_ONLINE, now)
         // A shared phone with no LAN address has nothing a consumer could dial; its device record alone says it
         // is up. An unshared record carries no address anyway, so it is written regardless.
