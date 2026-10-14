@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.25 02:50</sub>
+
 # Document registry - how a page gets announced
 
 `docs/DOCUMENT_REGISTRY.jsonl` is the source of truth for maintained documents and site pages.

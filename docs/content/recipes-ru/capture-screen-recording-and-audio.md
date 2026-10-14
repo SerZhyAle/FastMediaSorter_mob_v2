@@ -6,7 +6,6 @@ description: Как записать видео с экрана со звуко�
 category: Камера и запись экрана
 category_slug: capture
 ticket: S2956
-flavor: Редакции Standard и noLegal
 recipe_number: "4"
 canonical_url: documentation/capture/screen-recording-and-audio-ru.html
 why: |
@@ -103,5 +102,7 @@ next_recipes:
     badge_type: other
     description: Все возможности встроенной камеры помимо быстрого запуска видеосъемки жестом.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Запускайте запись экрана со звуком из меню «Программы» или боковым свайпом, управляйте процессом через угловой индикатор, системное уведомление или повторный жест и используйте ту же систему жестов для видеосъемки на камеру или быстрых аудиозаметок.

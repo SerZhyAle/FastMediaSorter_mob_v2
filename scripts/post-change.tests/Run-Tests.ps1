@@ -717,6 +717,39 @@ Assert-Barrier 'one unverified' 2 0 2 'post-change: COULD NOT VERIFY (1 gate(s):
 Assert-Barrier 'queued reads as unverified' 4 0 2 'post-change: COULD NOT VERIFY (1 gate(s): gate-x; Script)'
 Assert-Barrier 'fail outranks unverified' 2 1 1 'post-change: FAIL (1 gate(s): gate-y; 1 not verified: gate-x; Script)'
 Assert-Barrier 'unknown code reads as fail' 7 0 1 'post-change: FAIL (1 gate(s): gate-x; Script)'
+
+# --- S4130: CHECK-VERDICT 0.12 item A - a child that exits 0 under NOT APPLICABLE ----------------
+# Counted with the skipped, never the passed, through both wrappers that read a child's exit 0.
+$naHarness = Join-Path $barrierDir 'na-harness.ps1'
+@"
+`$root = '$repoRoot'
+`$ShowPasses = `$false
+`$ShowSkips = `$false
+`$resolvedChangeType = 'Script'
+function Write-GateTelemetryRecord { param(`$Runner, `$Gate, `$Status, `$ExitCode, `$ElapsedMs) }
+. (Join-Path `$root 'scripts/quality/lib/post-change-step-runners.ps1')
+function Send-PostChangeChatVerdict { param(`$Verdict) }
+`$script:ProtocolPath = Join-Path '$barrierDir' ('protocol-' + `$PID + '.log')
+Invoke-Gate 'gate-na' { Write-Host 'gate-na: NOT APPLICABLE (-Module app_v2)'; `$global:LASTEXITCODE = 0 }
+Invoke-AdvisoryStep 'advisory-na' { Write-Host 'advisory-na: NOT APPLICABLE (runtime)'; `$global:LASTEXITCODE = 0 }
+Invoke-Gate 'gate-lowercase' { Write-Host ('gate-lowercase: not' + ' applicable - prose'); `$global:LASTEXITCODE = 0 }
+Invoke-Gate 'gate-pass' { Write-Host 'gate-pass: PASS'; `$global:LASTEXITCODE = 0 }
+Test-FatalFindings
+Write-Host ("counts: passed=`$(`$script:PassedCount) skipped=`$(`$script:SkippedSteps.Count) na=`$(`$script:NotApplicableCount)")
+exit 0
+"@ | Set-Content -LiteralPath $naHarness -Encoding utf8
+$naOut = @(& pwsh -NoProfile -File $naHarness 6>&1 2>$null | ForEach-Object { "$_" })
+$naLast = @($naOut | Where-Object { $_.Trim() }) | Select-Object -Last 1
+if ($LASTEXITCODE -ne 0) { throw "S4130 not-applicable harness: expected exit 0, got $LASTEXITCODE. Output: $($naOut -join ' | ')" }
+# The lowercase prose line is not the closed-set word, so that child stays a pass.
+if ($naLast -ne 'counts: passed=2 skipped=2 na=2') {
+    throw "S4130 not-applicable harness: '$naLast', expected 'counts: passed=2 skipped=2 na=2'."
+}
+$facadeText = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts/post-change.ps1') -Raw
+if ($facadeText -notmatch 'PassedCount -eq 0 -and \$script:NotApplicableCount -gt 0' -or
+    $facadeText -notmatch 'post-change: NOT APPLICABLE \(') {
+    throw 'S4130: post-change.ps1 no longer answers NOT APPLICABLE when no step passed and one answered it.'
+}
 Remove-Item -LiteralPath $barrierDir -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Output "post-change tests: PASS ($($labels.Count) routed labels with hints)"

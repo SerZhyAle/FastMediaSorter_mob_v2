@@ -6,7 +6,9 @@ description: How to browse your phone's folders and favorites from the watch, ad
 category: Wear OS Watch
 category_slug: wear
 ticket: S2966
-flavor: Phone side - Standard and noLegal; browsing the phone, adding a network resource and everything else on this page - the full watch version (sideload only). Testing an already-saved connection also works in the Google Play watch app.
+availability: companion:wear
+devices: watch
+availability_note: Phone side - Standard and noLegal; browsing the phone, adding a network resource and everything else on this page - the full watch version (sideload only). Testing an already-saved connection also works in the Google Play watch app.
 recipe_number: "08"
 canonical_url: documentation/wear/phone-and-network-folders-on-watch.html
 why: |
@@ -153,6 +155,7 @@ tips:
   - "**Adding a network folder needs the full watch app.** The free Google Play version can still test a source that's already there - just not add one or browse the phone."
   - "**A folder full of odd files?** \"This resource holds only file kinds the watch cannot show\" means exactly that - open it on the phone instead, nothing was switched off."
   - "**Want the whole library, not one folder?** Send more resources over from [syncing the phone and the watch](page:wear.companion-data-sync)."
+  - "**Not sure which way of connecting your own devices fits you?** The [media exchange portal](../../docs/media-exchange-portal/) compares the home network, the exchange server and live broadcast, and shows which program does what on each device."
 next_recipes:
   - title: Syncing the phone and the watch
     url: page:wear.companion-data-sync
@@ -170,5 +173,7 @@ next_recipes:
     badge_type: docs
     description: Pin your favorite network folder one swipe from the watch face.
 ---
+
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Browse your [phone](term:phone)'s folders and your [network resources](term:network-resource) right from the watch, add a new one by hand, and copy, move or send a file between the two devices - or add the watch itself as a resource on the phone.

@@ -1,8 +1,10 @@
 ---
 layout: default
 title: "Керування в іммерсивному VR"
-permalink: /docs/VR_CONTROLS_UK.html
+permalink: /docs/VR_CONTROLS-uk.html
 ---
+
+<sub class="doc-stamp">26.10.09 14:26</sub>
 
 # Керування в іммерсивному VR
 
@@ -115,7 +117,7 @@ VR-редакції: контролери Meta Quest Touch Plus / Touch Pro, Blu
 
 Чотири рівні звичних конвенцій складені один на одного, щоб кожен міг
 користуватися своїм звичним набором: Norton Commander F-клавіші
-(первинний шар), Windows / MPC-HC / VLC, YouTube-браузерний стиль,
+(первинний шар), настільні плеєри Windows, YouTube-браузерний стиль,
 стандартні медіа-клавіші BT-пультів.
 
 ### F-клавіші (Norton Commander)
@@ -132,7 +134,7 @@ VR-редакції: контролери Meta Quest Touch Plus / Touch Pro, Blu
 | **F8** | Видалити (з підтвердженням). |
 | **F10** | Вихід у 2D-панель. |
 
-### Windows / VLC / MPC-HC
+### Настільні плеєри Windows
 
 | Клавіша | Дія |
 |---|---|

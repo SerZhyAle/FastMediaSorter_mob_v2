@@ -518,7 +518,7 @@ class ImageDrawOverlayManager(
     }
 
     private fun iconForTool(tool: DrawTool): Int = when (tool) {
-        DrawTool.BRUSH -> com.sza.fastmediasorter.R.drawable.ic_draw_overlay
+        DrawTool.BRUSH -> com.sza.fastmediasorter.R.drawable.ic_send_note_brush
         DrawTool.RECTANGLE -> com.sza.fastmediasorter.R.drawable.ic_draw_rect
         DrawTool.OVAL -> com.sza.fastmediasorter.R.drawable.ic_draw_oval
         DrawTool.ERASER -> com.sza.fastmediasorter.R.drawable.ic_eraser

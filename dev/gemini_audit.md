@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.05.20 12:56</sub>
+
 # Gemini Audit: Optimizing Research and Development in FastMediaSorter v2
 
 *Date:* 2026-05-20

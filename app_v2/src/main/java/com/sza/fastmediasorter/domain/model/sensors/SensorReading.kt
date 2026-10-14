@@ -48,12 +48,18 @@ data class CompassReading(
  * [distanceDeltaMeters] is the distance since the previous sample, not a running total - the total
  * belongs to the series that accumulates it, because only that layer knows when it was last reset
  * (strategic ADR-2).
+ *
+ * S4145: the accuracy pair and the bearing default to null so the launcher gadgets, which never read
+ * them, keep building readings unchanged; the Tourist trip needs them to judge a fix.
  */
 data class MotionReading(
     val speedKmh: Float?,
     val altitudeMeters: Double?,
     val distanceDeltaMeters: Double,
     val takenAtMillis: Long,
+    val horizontalAccuracyMeters: Float? = null,
+    val verticalAccuracyMeters: Float? = null,
+    val bearingDegrees: Float? = null,
 ) {
     companion object {
 
@@ -86,5 +92,29 @@ data class MotionReading(
  */
 data class StepReading(
     val stepsSinceBoot: Long,
+    val takenAtMillis: Long,
+)
+
+/** S4145: station pressure as the barometer reports it, before any altitude conversion. */
+data class PressureReading(
+    val hectopascals: Float,
+    val takenAtMillis: Long,
+)
+
+data class LightReading(
+    val lux: Float,
+    val takenAtMillis: Long,
+)
+
+/** S4145: field strength as one magnitude; [accuracy] is the platform's own confidence in it. */
+data class MagneticFieldReading(
+    val microtesla: Float,
+    val accuracy: SensorAccuracy,
+    val takenAtMillis: Long,
+)
+
+data class LevelReading(
+    val pitchDegrees: Float,
+    val rollDegrees: Float,
     val takenAtMillis: Long,
 )

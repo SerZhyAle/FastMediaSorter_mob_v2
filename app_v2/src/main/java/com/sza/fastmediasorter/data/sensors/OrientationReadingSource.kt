@@ -31,49 +31,116 @@ class OrientationReadingSource @Inject constructor(
 
     fun readings(): Flow<CompassReading> {
         val manager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
-        val sensor = manager?.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+        val rotation = manager?.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+        val accelerometer = manager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        val magnetometer = manager?.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
         // One return rather than a guard-return per condition: detekt caps a function at two
         // (ReturnCount), and this shape recurs in every source of this ticket.
-        return if (manager == null || sensor == null) {
-            emptyFlow()
-        } else {
-            callbackFlow {
-                // Reused across events on purpose: both callbacks arrive on one handler thread,
-                // and a fresh pair of arrays per sample would allocate on every sensor tick.
-                val rotationMatrix = FloatArray(ROTATION_MATRIX_SIZE)
-                val orientation = FloatArray(ORIENTATION_SIZE)
-                var accuracy = SensorAccuracy.UNRELIABLE
-                var lastEmittedAtMillis = 0L
+        // S4149: the raw pair branch mirrors hasCompass in DeviceSensorAvailabilityRepositoryImpl -
+        // the capability promises a heading without the fused sensor, so the source must deliver
+        // one there too, or the tile is offered and never reads.
+        return when {
+            manager == null -> emptyFlow()
+            rotation != null -> fusedReadings(manager, rotation)
+            accelerometer != null && magnetometer != null ->
+                rawPairReadings(manager, accelerometer, magnetometer)
+            else -> emptyFlow()
+        }
+    }
 
-                val listener = object : SensorEventListener {
-                    override fun onSensorChanged(event: SensorEvent) {
-                        val now = System.currentTimeMillis()
-                        if (now - lastEmittedAtMillis < MIN_UPDATE_INTERVAL_MS) return
-                        lastEmittedAtMillis = now
+    private fun fusedReadings(manager: SensorManager, sensor: Sensor): Flow<CompassReading> =
+        callbackFlow {
+            // Reused across events on purpose: both callbacks arrive on one handler thread,
+            // and a fresh pair of arrays per sample would allocate on every sensor tick.
+            val rotationMatrix = FloatArray(ROTATION_MATRIX_SIZE)
+            val orientation = FloatArray(ORIENTATION_SIZE)
+            var accuracy = SensorAccuracy.UNRELIABLE
+            var lastEmittedAtMillis = 0L
 
-                        SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
-                        SensorManager.getOrientation(rotationMatrix, orientation)
-                        trySend(
-                            CompassReading(
-                                azimuthDegrees = toBearing(orientation[AZIMUTH_INDEX]),
-                                accuracy = accuracy,
-                                // Altitude belongs to the position fix, not to orientation - the
-                                // compass tile combines the two streams itself.
-                                altitudeMeters = null,
-                                takenAtMillis = now,
-                            ),
-                        )
-                    }
+            val listener = object : SensorEventListener {
+                override fun onSensorChanged(event: SensorEvent) {
+                    val now = System.currentTimeMillis()
+                    if (now - lastEmittedAtMillis < MIN_UPDATE_INTERVAL_MS) return
+                    lastEmittedAtMillis = now
 
-                    override fun onAccuracyChanged(changed: Sensor?, status: Int) {
-                        accuracy = SensorAccuracy.fromPlatformStatus(status)
-                    }
+                    SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+                    trySend(toReading(rotationMatrix, orientation, accuracy, now))
                 }
 
-                manager.registerListener(listener, sensor, UPDATE_INTERVAL_MICROS)
-                awaitClose { manager.unregisterListener(listener) }
-            }.conflate()
+                override fun onAccuracyChanged(changed: Sensor?, status: Int) {
+                    accuracy = SensorAccuracy.fromPlatformStatus(status)
+                }
+            }
+
+            manager.registerListener(listener, sensor, UPDATE_INTERVAL_MICROS)
+            awaitClose { manager.unregisterListener(listener) }
+        }.conflate()
+
+    private fun rawPairReadings(
+        manager: SensorManager,
+        accelerometer: Sensor,
+        magnetometer: Sensor,
+    ): Flow<CompassReading> = callbackFlow {
+        val gravity = FloatArray(VECTOR_SIZE)
+        val geomagnetic = FloatArray(VECTOR_SIZE)
+        val rotationMatrix = FloatArray(ROTATION_MATRIX_SIZE)
+        val orientation = FloatArray(ORIENTATION_SIZE)
+        var hasGravity = false
+        var hasGeomagnetic = false
+        var accuracy = SensorAccuracy.UNRELIABLE
+        var lastEmittedAtMillis = 0L
+
+        // One listener for both sensors: the single unregister in awaitClose drops the pair, so
+        // neither registration can outlive the collector on its own.
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+                    event.values.copyInto(gravity, endIndex = VECTOR_SIZE)
+                    hasGravity = true
+                } else {
+                    event.values.copyInto(geomagnetic, endIndex = VECTOR_SIZE)
+                    hasGeomagnetic = true
+                }
+                val now = System.currentTimeMillis()
+                val due = hasGravity && hasGeomagnetic &&
+                    now - lastEmittedAtMillis >= MIN_UPDATE_INTERVAL_MS
+                // getRotationMatrix refuses in free fall or in a field too weak to orient by;
+                // skipping that sample beats emitting a heading computed from garbage.
+                if (due && SensorManager.getRotationMatrix(rotationMatrix, null, gravity, geomagnetic)) {
+                    lastEmittedAtMillis = now
+                    trySend(toReading(rotationMatrix, orientation, accuracy, now))
+                }
+            }
+
+            override fun onAccuracyChanged(changed: Sensor?, status: Int) {
+                // Heading error comes from the magnetometer; accelerometer accuracy says nothing
+                // about whether the compass needs calibrating.
+                if (changed?.type == Sensor.TYPE_MAGNETIC_FIELD) {
+                    accuracy = SensorAccuracy.fromPlatformStatus(status)
+                }
+            }
         }
+
+        manager.registerListener(listener, accelerometer, UPDATE_INTERVAL_MICROS)
+        manager.registerListener(listener, magnetometer, UPDATE_INTERVAL_MICROS)
+        awaitClose { manager.unregisterListener(listener) }
+    }.conflate()
+
+    private fun toReading(
+        rotationMatrix: FloatArray,
+        orientation: FloatArray,
+        accuracy: SensorAccuracy,
+        takenAtMillis: Long,
+    ): CompassReading {
+        SensorManager.getOrientation(rotationMatrix, orientation)
+        return CompassReading(
+            azimuthDegrees = toBearing(orientation[AZIMUTH_INDEX]),
+            accuracy = accuracy,
+            // Altitude belongs to the position fix, not to orientation - the
+            // compass tile combines the two streams itself.
+            altitudeMeters = null,
+            takenAtMillis = takenAtMillis,
+        )
     }
 
     /** Platform azimuth is radians in -PI..PI; a tile wants degrees in 0..360. */
@@ -85,6 +152,7 @@ class OrientationReadingSource @Inject constructor(
     private companion object {
         const val ROTATION_MATRIX_SIZE = 9
         const val ORIENTATION_SIZE = 3
+        const val VECTOR_SIZE = 3
         const val AZIMUTH_INDEX = 0
         const val FULL_CIRCLE_DEGREES = 360f
         const val MIN_UPDATE_INTERVAL_MS = 1000L

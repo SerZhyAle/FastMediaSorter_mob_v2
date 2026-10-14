@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
 
 private val MESSAGE_PADDING = 16.dp
+private val DENSE_MESSAGE_PADDING = 4.dp
 private val ACTION_SPACING = 8.dp
 
 /** The three things a browse screen can have instead of content. Loading is not one of them. */
@@ -94,7 +95,12 @@ internal fun stateActionsFor(kind: WearStateKind, hasRetry: Boolean): List<WearS
  * the content actually on the glass (S2754). While this block replaces a list, the list's own state
  * is standing still, so an indicator left bound to it reports a position nothing here can move -
  * which is what Google Play rejected the watch build for.
+ * @param dense for a host that pins a control row above the block, which leaves it a box shorter than a
+ * five-line message in body1 (S4136): the message drops to caption1 with a small vertical padding.
  */
+// Eight parameters is the detekt threshold, and `dense` is the one a pinned-header host needs: a Compose
+// block's parameters ARE its API, and every other caller keeps its defaults (same trade as WearListColumn).
+@Suppress("LongParameterList")
 @Composable
 fun WearStateBlock(
     kind: WearStateKind,
@@ -103,7 +109,8 @@ fun WearStateBlock(
     message: String? = null,
     onRetry: (() -> Unit)? = null,
     extraActions: List<WearStateExtraAction> = emptyList(),
-    scrollState: ScrollState = rememberScrollState()
+    scrollState: ScrollState = rememberScrollState(),
+    dense: Boolean = false
 ) {
     val text = message ?: defaultMessageFor(kind)
     val retryLabel = stringResource(R.string.retry)
@@ -136,7 +143,7 @@ fun WearStateBlock(
             ) {
                 Text(
                     text = text,
-                    style = MaterialTheme.typography.body1,
+                    style = if (dense) MaterialTheme.typography.caption1 else MaterialTheme.typography.body1,
                     color = if (kind == WearStateKind.ERROR) {
                         MaterialTheme.colors.error
                     } else {
@@ -144,7 +151,10 @@ fun WearStateBlock(
                     },
                     textAlign = TextAlign.Center,
                     modifier = Modifier
-                        .padding(MESSAGE_PADDING)
+                        .padding(
+                            horizontal = MESSAGE_PADDING,
+                            vertical = if (dense) DENSE_MESSAGE_PADDING else MESSAGE_PADDING
+                        )
                         .semantics { contentDescription = text }
                 )
                 if (actions.contains(WearStateAction.RETRY)) {

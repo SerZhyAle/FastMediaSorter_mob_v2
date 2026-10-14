@@ -3,6 +3,8 @@ layout: default
 title: "إطار الصور الرقمي على الجهاز اللوحي - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-ar.html
 ---
+<sub class="doc-stamp">26.09.25 02:23</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 # 🖼️ إطار الصور الرقمي على الجهاز اللوحي

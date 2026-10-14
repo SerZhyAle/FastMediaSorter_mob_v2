@@ -23,7 +23,8 @@ $manifestPages = @{}
 Get-Content $pageManifestPath | ForEach-Object {
     if (-not [string]::IsNullOrWhiteSpace($_)) {
         $p = ConvertFrom-Json $_
-        if ($p.page_id) {
+        # A withdrawn page (is_published false) is neither indexed nor listed as a planned topic.
+        if ($p.page_id -and $p.is_published -ne $false) {
             $manifestPages[$p.page_id] = $p
         }
     }
@@ -38,7 +39,9 @@ if (Test-Path $docRoot) {
     
     foreach ($file in $htmlFiles) {
         $content = Get-Content $file.FullName -Raw
-        $relPath = (Resolve-Path $file.FullName -Relative).Replace('\', '/').TrimStart('./')
+        # A forwarder page answers an old address and must never be offered as a search result.
+        if ($content -match '<meta\s+name="fms-forwarder"') { continue }
+        $relPath =(Resolve-Path $file.FullName -Relative).Replace('\', '/').TrimStart('./')
 
         # Extract title
         $titleMatch = [regex]::Match($content, '<title>([^<]+)</title>', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)

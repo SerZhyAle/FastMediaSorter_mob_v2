@@ -19,7 +19,7 @@
   "sideloadFlavor": "noLegal",
 
   "standardAllowlist": {
-    "$comment": "The whole surface the store build offers. Nothing outside this list may appear in the standard merged manifest. S3555: POST_NOTIFICATIONS carries the stopwatch's WO-V4 indicator. S4029: media, microphone, network, radios, foreground location, foreground services and every entry-point component returned from the noLegal-only categories; each is listed under the capability it serves. An entry point survives hiding its screen, so a withheld command is also refused where it arrives - WatchWearListenerService refuses the distress-signal start and ResolveWearLaunchAddressUseCase refuses a withheld destination.",
+    "$comment": "The whole surface the store build offers. Nothing outside this list may appear in the standard merged manifest. S3555: POST_NOTIFICATIONS carries the stopwatch's WO-V4 indicator. S4029: media, microphone, network, radios, foreground location, foreground services and every entry-point component returned from the noLegal-only categories; each is listed under the capability it serves. An entry point survives hiding its screen, so a withheld command is also refused where it arrives - WatchWearListenerService refuses the distress-signal start and ResolveWearLaunchAddressUseCase refuses a withheld destination. S4085: WearExchangeCastActionReceiver is the non-exported target of the Listen and Decline buttons of a cast-offer notification; it starts playback only after the owner's tap, so it serves the already-allowed broadcast capability.",
     "permissions": [
       "android.permission.VIBRATE",
       "android.permission.WAKE_LOCK",
@@ -60,6 +60,7 @@
       ".tile.WearFavouritesTileService",
       ".tile.WearSectionsTileService",
       ".data.wear.WatchWearListenerService",
+      ".service.WearExchangeCastActionReceiver",
       ".complication.WearClockStyleComplicationService",
       ".complication.WearFacePhotoComplicationService",
       ".complication.WearScreenOffComplicationService",

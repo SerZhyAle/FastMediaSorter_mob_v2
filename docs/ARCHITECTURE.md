@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.13 14:51</sub>
+
 # FastMediaSorter v2: Architecture & Flow
 
 **Framework**: Android Native (Kotlin 1.9+, Java 17).
@@ -5,7 +7,7 @@
 
 ## Module Structure
 - `root/`
-  - `app_v2/`: Kotlin, View System + Material3, `compileSdk 37` (S2884).
+  - `app_v2/`: Kotlin, View System + Material3; SDK levels in the CLAUDE.md pins block (generated from the build files).
   - `wear/`: Wear OS, Compose.
   - `dev/`: Scripts, specs.
   - `dev/archive/`: READ-ONLY archive.

@@ -23,7 +23,7 @@
     backtick spans, link and image targets, page:/term: targets, bare URLs, HTML comments and HTML
     tags are skipped. A recipe keeps its prose inside a YAML front matter, so there the snake_case
     keys and every whole line of a machine key (page_id, shot_id, url and the like) are skipped too:
-    the key 'flavor:' opens every recipe and an id such as 'built-in-mini-apps' is not prose. A
+    the key 'availability:' holds build terms and an id such as 'built-in-mini-apps' is not prose. A
     literal synonym matches case-insensitively on letter boundaries with an optional plural s/es;
     an entry prefixed 're:' is a .NET regex. An entry of the form 'word => replacement' names the
     word to suggest instead of the record's canonical name - a British spelling such as
@@ -462,7 +462,7 @@ $keepNewlines = [Text.RegularExpressions.MatchEvaluator] { param($m) $m.Value -r
 # A recipe page is a YAML front matter whose values are the prose. Keys are lowercase snake_case,
 # so a capitalised "Note:" opening a prose line inside a block scalar survives.
 $frontMatterPattern = [regex]::new('(?s)\A---[ \t]*\r?\n.*?\n---[ \t]*(?=\r?\n|\z)')
-$machineKeyLinePattern = [regex]::new('(?m)^[ \t]*(?:-[ \t]+)?(?:page_id|category_slug|canonical_url|shot_id|screen_state|device_profile|url|badge_type|ticket|recipe_number|id|number)[ \t]*:[^\r\n]*')
+$machineKeyLinePattern = [regex]::new('(?m)^[ \t]*(?:-[ \t]+)?(?:page_id|availability|devices|category_slug|canonical_url|shot_id|screen_state|device_profile|url|badge_type|ticket|recipe_number|id|number)[ \t]*:[^\r\n]*')
 $yamlKeyPattern = [regex]::new('(?m)^([ \t]*(?:-[ \t]+)?)[a-z_][a-z0-9_]*[ \t]*:(?=\s|\z)')
 $pageTargetPattern = [regex]::new('(?<![\p{L}\p{N}_])(?:page|term):[\w.-]+')
 $frontMatterEvaluator = [Text.RegularExpressions.MatchEvaluator] {

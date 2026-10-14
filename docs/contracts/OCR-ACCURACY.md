@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.23 16:06</sub>
+
 # Pointer - `OCR-ACCURACY`
 
 | | |

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.11 12:56</sub>
+
 # Standard Production Release Readiness Gate
 
 Canonical readiness contract for the **standard** Google Play production build (signed `standardRelease` AAB). This document is the single source of truth for what must be proven before publishing to Production. It is an engineer/operator gate, not a marketing surface.

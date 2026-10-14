@@ -200,6 +200,16 @@ Assert-Equal 'A1 exit 1 on a finding' 1 $a.Exit
 Assert-Match 'A2 names the rule' 'ReturnCount' $a.Output
 Assert-Match 'A3 names file, line and column' 'fixture\.kt:\d+:\d+' $a.Output
 
+Write-Host 'A-R: -ReportDir keeps the report out of the shared directory (S4190)'
+$privateReports = Join-Path $rootA 'temp/private-reports'
+$sharedReport = Join-Path $rootA 'temp/detekt-scoped/app_v2.xml'
+if (Test-Path -LiteralPath $sharedReport) { Remove-Item -LiteralPath $sharedReport -Force }
+$ar = & pwsh -NoProfile -File $runner -RepoRoot $rootA -ChangedFiles $fixtureRel -ReportDir 'temp/private-reports' 2>&1 | Out-String
+Assert-Equal 'AR1 exit 1 on the same finding' 1 $LASTEXITCODE
+Assert-Match 'AR2 still names the rule' 'ReturnCount' $ar
+Assert-Equal 'AR3 report written to the private directory' $true (Test-Path -LiteralPath (Join-Path $privateReports 'app_v2.xml'))
+Assert-Equal 'AR4 shared report not written' $false (Test-Path -LiteralPath $sharedReport)
+
 Write-Host 'B: a clean file passes'
 $rootB = New-FakeRepo 'b-clean' $clean
 $b = Invoke-Runner $rootB @($fixtureRel)

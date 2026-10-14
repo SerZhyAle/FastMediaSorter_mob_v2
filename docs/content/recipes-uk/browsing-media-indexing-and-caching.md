@@ -6,7 +6,6 @@ description: Чому мініатюри й списки папок завант
 category: Перегляд та сортування
 category_slug: browsing
 ticket: S2948
-flavor: Усі редакції
 recipe_number: "04"
 canonical_url: documentation/browsing/media-indexing-and-caching-uk.html
 why: |
@@ -114,5 +113,7 @@ next_recipes:
     badge_type: docs
     description: Вибирайте кілька файлів одразу й виконуйте дії над усіма разом.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Браузер файлів](term:file-browser) завантажує мініатюри у фоні, запам'ятовує папку між відвідинами й оновлюється сам, коли файли на пристрої змінюються - тож папка відкривається швидко й лишається точною, навіть коли в ній тисячі файлів.

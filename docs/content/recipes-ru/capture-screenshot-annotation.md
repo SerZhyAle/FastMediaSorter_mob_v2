@@ -6,7 +6,6 @@ description: Как делать снимки экрана боковым жес
 category: Камера и запись экрана
 category_slug: capture
 ticket: S2956
-flavor: Редакции Standard и noLegal
 recipe_number: "3"
 canonical_url: documentation/capture/screenshot-annotation-ru.html
 why: |
@@ -110,5 +109,7 @@ next_recipes:
     badge_type: other
     description: Способы передачи созданных снимков через меню отправки и системный диалог.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Включите сенсорные зоны по краям экрана, назначьте действие на свайп, и создание скриншота станет делом одного жеста из любого приложения - с тихим сохранением, переходом к рисованию, переводом текста или быстрой отправкой.

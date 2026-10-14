@@ -83,6 +83,8 @@ function Get-Permalink([string]$fullName) {
     finally { $reader.Dispose() }
 }
 
+# A nested exclude ('docs/media-exchange-portal/README.md') is honoured as Jekyll does.
+$nestedExclude = @($exclude | Where-Object { $_.Contains('/') })
 $addresses = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 $pageAddress = @{}
 $addressFiles = @{}
@@ -94,6 +96,7 @@ foreach ($top in $topEntries) {
     } else { @($top) }
     foreach ($f in $files) {
         $rel = $f.FullName.Substring($repoRoot.Length + 1).Replace('\', '/')
+        if (@($nestedExclude | Where-Object { $rel -ieq $_ -or $rel.StartsWith("$_/", [StringComparison]::OrdinalIgnoreCase) }).Count -gt 0) { continue }
         $isPage = $f.Extension -in '.md', '.markdown', '.html'
         $permalink = if ($isPage) { Get-Permalink $f.FullName } else { $null }
         $address = if ($permalink) { $permalink.TrimStart('/') }

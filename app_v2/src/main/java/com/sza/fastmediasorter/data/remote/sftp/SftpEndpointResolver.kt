@@ -6,8 +6,13 @@ import com.jcraft.jsch.JSchException
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTunnelProxy
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpRendezvousDirectory
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpRendezvousVerdicts
 import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SftpTunnelAddress
+import com.sza.fastmediasorter.domain.model.SftpTunnelAddress.forLog
 import com.sza.fastmediasorter.utils.SftpPathUtils
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import kotlinx.coroutines.Dispatchers
@@ -36,16 +41,26 @@ import javax.inject.Singleton
  * Credentials for every candidate exist (the importer saves one row per host:port), and the host key is
  * the same server key on every address; [SftpHostKeyPinRegistry] maps each candidate and the mDNS
  * winner to the resource's pin, so a resolved endpoint is verified exactly like the primary.
+ *
+ * A pinned group also takes the addresses its producer announced on the user's Drive (S4110,
+ * [SftpRendezvousDirectory]); such an address has no credential row of its own, so the callers fall back
+ * to the row of the address they asked for.
  */
 @Singleton
 class SftpEndpointResolver @Inject constructor(
     private val resourceDao: ResourceDao,
     private val mdnsDiscovery: CompanionMdnsDiscovery,
-    networkStateMonitor: NetworkStateMonitor
+    networkStateMonitor: NetworkStateMonitor,
+    private val rendezvous: SftpRendezvousDirectory,
+    private val verdicts: SftpRendezvousVerdicts,
 ) : NetworkStateMonitor.NetworkChangeCallback {
 
     // Reachable winner per requested "host:port" for the current network epoch. Cleared on network change.
     private val winnerByRequested = ConcurrentHashMap<String, HostPort>()
+
+    // A pinned group nobody answered for keeps its fallback only briefly: the producer may announce a new
+    // address on Drive within minutes, and a per-epoch cache would hide it until the next network change.
+    private val fallbackUntilMs = ConcurrentHashMap<String, Long>()
 
     init {
         networkStateMonitor.registerCallback(this)
@@ -58,7 +73,7 @@ class SftpEndpointResolver @Inject constructor(
      */
     suspend fun resolve(host: String, port: Int): HostPort {
         val requestedKey = key(host, port)
-        winnerByRequested[requestedKey]?.let { return it }
+        cachedWinner(requestedKey)?.let { return it }
 
         val requested = HostPort(host, port)
         val group = candidatesFor(requested)
@@ -68,13 +83,54 @@ class SftpEndpointResolver @Inject constructor(
             return requested
         }
 
-        val winner = probe(candidates, group.pin) ?: candidates.first()
+        val answered = probe(candidates, group.pin) ?: rendezvousRetry(group)
+        val winner = answered ?: candidates.first()
         // LAN-DISCOVERY rule 5: a discovered endpoint that lost the race is re-resolved once, not trusted.
         if (group.discovered != null && group.pin != null && winner != group.discovered) {
             mdnsDiscovery.onEndpointUnreachable(group.pin)
         }
-        // Cache under every candidate key so a later resolve by any address in the group is a hit.
-        candidates.forEach { winnerByRequested[key(it.host, it.port)] = winner }
+        remember(group, winner, answered != null)
+        return winner
+    }
+
+    private fun cachedWinner(requestedKey: String): HostPort? {
+        val until = fallbackUntilMs[requestedKey]
+        if (until != null && System.currentTimeMillis() >= until) {
+            fallbackUntilMs.remove(requestedKey)
+            winnerByRequested.remove(requestedKey)
+        }
+        return winnerByRequested[requestedKey]
+    }
+
+    /** Caches under every candidate key so a later resolve by any address in the group is a hit. */
+    private fun remember(group: CandidateGroup, winner: HostPort, answered: Boolean) {
+        val keys = group.endpoints.map { key(it.host, it.port) }
+        keys.forEach { winnerByRequested[it] = winner }
+        when {
+            answered -> {
+                keys.forEach(fallbackUntilMs::remove)
+                verdicts.clear(group.endpoints)
+            }
+            group.pin != null -> {
+                val until = System.currentTimeMillis() + PINNED_FALLBACK_CACHE_MS
+                keys.forEach { fallbackUntilMs[it] = until }
+            }
+        }
+    }
+
+    /**
+     * Contract ANYWHERE-ACCESS section 7: every stored candidate of a pinned group failed, so read the
+     * Drive rendezvous once more - a producer whose address changed may have announced the new one since
+     * the last background refresh. A new address is raced on the same pin; when none answers either, the
+     * directory records the verdict or asks the producer to announce again.
+     */
+    private suspend fun rendezvousRetry(group: CandidateGroup): HostPort? {
+        val pin = group.pin ?: return null
+        Timber.d("S4110: every stored candidate failed, retrying with Drive-announced addresses")
+        rendezvous.refreshAfterFailure()
+        val fresh = rendezvous.endpointsFor(pin) - group.endpoints.toSet()
+        val winner = if (fresh.isEmpty()) null else probe(fresh, pin)
+        if (winner == null) rendezvous.onNoCandidateAnswered(pin, group.endpoints + fresh)
         return winner
     }
 
@@ -99,12 +155,15 @@ class SftpEndpointResolver @Inject constructor(
     fun resolveCached(host: String, port: Int): HostPort =
         winnerByRequested[key(host, port)] ?: HostPort(host, port)
 
-    override fun onNetworkChanged() {
-        winnerByRequested.clear()
-    }
+    override fun onNetworkChanged() = forgetEpoch()
 
-    override fun onNetworkLost() {
+    override fun onNetworkLost() = forgetEpoch()
+
+    private fun forgetEpoch() {
         winnerByRequested.clear()
+        fallbackUntilMs.clear()
+        verdicts.clearAll()
+        rendezvous.invalidate()
     }
 
     /** A resource's candidate endpoints and the canonical host-key pin they must all present. */
@@ -112,9 +171,10 @@ class SftpEndpointResolver @Inject constructor(
 
     /** Builds the candidate group (primary + alternates) that owns [requested], or a singleton group. */
     private suspend fun candidatesFor(requested: HostPort): CandidateGroup {
-        val group = resourceDao.getAllResourcesSync()
-            .asSequence()
-            .filter { it.type == ResourceType.SFTP }
+        val sftp = resourceDao.getAllResourcesSync().filter { it.type == ResourceType.SFTP }
+        // Only a pinned resource can use a Drive-announced address, so only one makes Drive worth asking.
+        if (sftp.any { it.hostKeyFingerprint != null }) rendezvous.refreshInBackground()
+        val group = sftp.asSequence()
             .mapNotNull { entity -> groupOf(entity) }
             .firstOrNull { requested in it.endpoints }
         return group ?: CandidateGroup(listOf(requested), pin = null)
@@ -127,7 +187,11 @@ class SftpEndpointResolver @Inject constructor(
         // local candidate, ahead of the config's own addresses - covers a missing/stale LAN address.
         val pin = entity.hostKeyFingerprint?.let { SshFingerprintNormalizer.canonical(it) }
         val discovered = pin?.let { mdnsDiscovery.endpointForFingerprint(it) }
-        val all = (listOfNotNull(discovered) + primary + parseAltPaths(entity.altAccessPaths)).distinct()
+        // Drive-announced addresses go last: the stored ones are the pairing's own, the announced ones
+        // only cover an address that changed since (contract ANYWHERE-ACCESS section 7).
+        val announced = pin?.let { rendezvous.endpointsFor(it) }.orEmpty()
+        val stored = listOfNotNull(discovered) + primary + parseAltPaths(entity.altAccessPaths)
+        val all = (stored + announced).distinct()
         // Resolve when there is a genuine choice (a discovered LAN endpoint or a stored alternate).
         return if (all.size > 1) CandidateGroup(all, pin, discovered) else null
     }
@@ -166,8 +230,14 @@ class SftpEndpointResolver @Inject constructor(
      * reused by another device (DHCP) accepts the socket, and winning on that alone made the real
      * connect fail as a host-key mismatch while a valid path existed.
      */
+    // A tunnel address is no TCP endpoint of its own: only the SSH handshake through the exchange
+    // server proves it, so an unpinned tunnel candidate is never raced on a bare socket.
     private suspend fun isReachable(endpoint: HostPort, pin: String?): Boolean = withContext(Dispatchers.IO) {
-        if (pin == null) acceptsTcp(endpoint) else presentsPinnedKey(endpoint, pin)
+        when {
+            pin != null -> presentsPinnedKey(endpoint, pin)
+            SftpTunnelAddress.isTunnel(endpoint.host) -> false
+            else -> acceptsTcp(endpoint)
+        }
     }
 
     private fun acceptsTcp(endpoint: HostPort): Boolean = try {
@@ -176,7 +246,7 @@ class SftpEndpointResolver @Inject constructor(
         }
         true
     } catch (e: IOException) {
-        Timber.d("SFTP endpoint probe failed for ${endpoint.host}:${endpoint.port}: ${e.message}")
+        Timber.d("SFTP endpoint probe failed for ${forLog(endpoint.host)}:${endpoint.port}: ${e.message}")
         false
     }
 
@@ -187,13 +257,16 @@ class SftpEndpointResolver @Inject constructor(
     private fun presentsPinnedKey(endpoint: HostPort, pin: String): Boolean {
         val verdict = KeyExchangeProbe(PinnedHostKeyRepository(pin))
         val session = JSch().getSession(PROBE_USER, endpoint.host, endpoint.port)
+        ExchangeTunnelProxy.attachIfTunnel(session, endpoint.host)
         session.setHostKeyRepository(verdict)
         session.setConfig("StrictHostKeyChecking", "yes")
         try {
             session.connect(PROBE_TIMEOUT_MS)
         } catch (e: JSchException) {
             // Expected on every path: the probe's own rejection aborts even a matching handshake.
-            if (!verdict.matched) Timber.d("SFTP endpoint key probe ${endpoint.host}:${endpoint.port}: ${e.message}")
+            if (!verdict.matched) {
+                Timber.d("SFTP endpoint key probe ${forLog(endpoint.host)}:${endpoint.port}: ${e.message}")
+            }
         } finally {
             session.disconnect()
         }
@@ -218,5 +291,6 @@ class SftpEndpointResolver @Inject constructor(
         private const val PROBE_TIMEOUT_MS = 2500
         private const val LAN_GRACE_MS = 600L
         private const val PROBE_USER = "fms-probe"
+        private const val PINNED_FALLBACK_CACHE_MS = 60_000L
     }
 }

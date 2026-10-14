@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.08 20:21</sub>
+
 # Curated stream collections - the two source files
 
 S2669. A collection is a named, ordered group of streams from `../streams.csv`. One stream may belong

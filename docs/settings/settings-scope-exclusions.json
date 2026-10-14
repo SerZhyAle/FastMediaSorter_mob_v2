@@ -30,5 +30,9 @@
   "dialog_slideshow_settings": {
     "category": "unsupported-widget",
     "reason": "Hosts one recognized persisted toggle (cbPlayToEnd) but its primary setting (playback interval) is a Slider widget LayoutSettingsSearchSource.kindFromTag does not recognize; cataloging now would document an incomplete, misleading subset. Revisit once Slider/CheckBox widget kinds are supported."
+  },
+  "activity_tourist_counter": {
+    "category": "session-scoped",
+    "reason": "The tally counter keeps its running count, start value, history and whether the extra-step row is expanded as one TouristCounterState in its own repository preferences, not in AppSettings. switchExtraSteps discloses the +3/+5/+10 row of that one counter; it is not an app-wide preference and no settings screen leads to it."
   }
 }

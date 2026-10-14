@@ -3,6 +3,8 @@ layout: default
 title: "نسخ احتياطي مجدول للكاميرا إلى الكمبيوتر - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-ar.html
 ---
+<sub class="doc-stamp">26.09.25 02:14</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 # 📷 نسخ احتياطي مجدول للكاميرا إلى الكمبيوتر

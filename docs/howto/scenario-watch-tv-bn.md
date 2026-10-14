@@ -3,6 +3,8 @@ layout: default
 title: "আপনার স্মার্টওয়াচে টিভি চ্যানেল দেখুন - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-bn.html
 ---
+<sub class="doc-stamp">26.09.25 02:23</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_stream.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> আপনার স্মার্টওয়াচে টিভি চ্যানেল দেখুন

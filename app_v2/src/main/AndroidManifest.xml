@@ -265,6 +265,8 @@
               phones/tablets in non-freeform mode.
             -->
             <layout android:defaultWidth="1920dp" android:defaultHeight="1080dp" android:gravity="center" android:minWidth="400dp" android:minHeight="300dp" />
+            <!-- Android 15+ desktop windowing (Googlebook) offers "New Window" for this activity; older systems ignore it, and Browse/Player already open their own windows via FLAG_ACTIVITY_NEW_DOCUMENT. -->
+            <property android:name="android.window.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI" android:value="true" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -334,10 +336,11 @@
 
         <!-- S1796: no orientation|screenSize in configChanges - the glow layout is orientation-agnostic,
              but absorbing the change would keep stale insets on the corner controls after a rotation. -->
-        <!-- S1733: a transparent host for the system-information report, so a launcher cell or a panel
-             tile can open it with no screen of ours behind it. Not exported: the report describes the
-             user's own device and is meant to be read here, not handed to another app. -->
-        <activity android:name=".ui.systeminfo.SystemInfoActivity" android:exported="false" android:label="@string/settings_system_info_title" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <!-- S1733: the system-information report, opened from a launcher cell or a panel tile. Not exported:
+             the report describes the user's own device and is meant to be read here, not handed to another
+             app. S4151: an opaque window - since S2774 it is a full-screen report, and the translucent host
+             theme of its dialog days let the launcher show through the text. -->
+        <activity android:name=".ui.systeminfo.SystemInfoActivity" android:exported="false" android:label="@string/settings_system_info_title" android:theme="@style/Theme.FastMediaSorter.NoActionBar" android:excludeFromRecents="true" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <activity android:name=".ui.flashlight.FrontFlashlightActivity" android:exported="false" android:label="@string/front_flashlight_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
         <activity android:name=".ui.flashlight.FlashlightToggleActivity" android:exported="false" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" android:theme="@style/Theme.FastMediaSorter.Transparent" />
@@ -382,6 +385,8 @@
         <!-- S2922: Tourist dashboard sub-program - real-time telemetry and navigation tiles.
              No orientation|screenSize in configChanges so rotation inflates layout-land variant. -->
         <activity android:name=".ui.tourist.TouristInfoActivity" android:exported="false" android:label="@string/tourist_info_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <!-- S4184: the Tourist tally counter, opened from its dashboard tile; rotation inflates layout-land. -->
+        <activity android:name=".ui.tourist.counter.TouristCounterActivity" android:exported="false" android:label="@string/tourist_tile_counter" android:configChanges="keyboardHidden" android:parentActivityName=".ui.tourist.TouristInfoActivity" />
 
         <activity android:name=".ui.cameraocr.CameraOcrTranslateActivity" android:exported="false" android:label="@string/setting_camera_ocr_translation_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:theme="@style/Theme.FastMediaSorter" />
         <!-- S0754: portrait-locked host; overlay controls rotate by sensor while the layout stays fixed. -->
@@ -408,6 +413,7 @@
         <!-- S1549: no orientation|screenSize - the session list is re-read from its ViewModel on recreation,
              which is what makes the layout-land variant apply. -->
         <activity android:name=".ui.settings.auth.AuthSessionsActivity" android:exported="false" android:label="@string/setting_saved_authorizations_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
+        <activity android:name=".ui.exchange.MyDevicesActivity" android:exported="false" android:label="@string/exchange_devices_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
         <!-- S0473 Phase 04: opt-in statistics dashboard launched from General settings (visible only when the toggle is on). -->
         <activity android:name=".ui.statistics.StatisticsActivity" android:exported="false" android:label="@string/statistics_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
@@ -704,6 +710,9 @@
              activity result, so nothing can be delivered to it after it is finished. -->
         <activity android:name=".widget.StreamPlayLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
 
+        <!-- S4116: Accept / Decline of a cast offered by another device of the account (DEVICE-EXCHANGE 7.8) -->
+        <activity android:name=".ui.exchange.ExchangeCastOfferActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+
         <!-- Quick Camera Capture: per-widget target configuration activity (S0369) -->
         <activity android:name=".widget.CameraQuickCaptureConfigActivity" android:exported="true">
             <intent-filter>
@@ -898,6 +907,45 @@
                 <data android:mimeType="application/vnd.fms.companion-config+json" />
             </intent-filter>
         </activity>
+
+        <!-- S4155: exchange connection string intake receiver. VIEW (.fmsexch) + SEND (text/plain).
+             Transparent host: shows the quick sign-in dialog over the calling app; invalid strings are rejected. -->
+        <activity android:name=".ui.exchange.ExchangeSignInActivity" android:exported="true" android:excludeFromRecents="true" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|locale|layoutDirection|density" android:theme="@style/Theme.FastMediaSorter.Transparent">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/vnd.fms.exchange-connection+text" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.fmsexch" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/*" />
+            </intent-filter>
+        </activity>
+
 
         <!-- S0988: in-app camera QR scan for the companion config; internal (started for a result
              from AddResource), never exported. -->

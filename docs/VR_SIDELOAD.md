@@ -4,6 +4,8 @@ title: "VR Sideloading Guide"
 permalink: /docs/VR_SIDELOAD.html
 ---
 
+<sub class="doc-stamp">26.09.10 21:57</sub>
+
 # VR Sideloading Guide
 
 How to install the working immersive VR build (`noLegal`) on Meta Quest without using a store.

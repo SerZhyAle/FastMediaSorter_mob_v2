@@ -3,6 +3,8 @@ layout: default
 title: "NAS / ونڈوز شیئر (SMB) سے جڑیں - FastMediaSorter v2"
 permalink: /docs/howto/scenario-smb-setup-ur.html
 ---
+<sub class="doc-stamp">26.09.25 02:25</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # 🖥️ گھر کے NAS / Windows شیئر (SMB) سے جڑیں

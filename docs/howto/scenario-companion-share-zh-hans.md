@@ -3,6 +3,8 @@ layout: default
 title: "扫描一个二维码打开电脑文件夹 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-zh-hans.html
 ---
+<sub class="doc-stamp">26.09.25 02:16</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> 扫描一个二维码打开电脑文件夹
@@ -19,7 +21,7 @@ permalink: /docs/howto/scenario-companion-share-zh-hans.html
 
 ## 辅助程序
 
-“伴侣”是**[Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)**（原名 FastMediaSorter LITE）内置的一项功能 - 出自同一位作者的免费 Windows 媒体整理工具。当您用它共享文件夹时，它会：
+“伴侣”是**[Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)**内置的一项功能 - 出自同一位作者的免费 Windows 媒体整理工具。当您用它共享文件夹时，它会：
 
 - 只为这些文件夹在您的电脑上启动一个私有 SFTP 服务器。
 - 自动生成密钥并设置开机自启，让共享在下次启动时依然存在。
@@ -37,7 +39,7 @@ permalink: /docs/howto/scenario-companion-share-zh-hans.html
 
 ## 你需要准备什么
 
-- 一台安装了 **Fast Media Sorter for Windows** 的电脑
+- 一台安装了 **Fast Media Sorter & Sharing for Windows** 的电脑
 - 手机和电脑连接到**同一个 Wi-Fi 网络**（同一台路由器）
 - 最快的方式：手机**摄像头**用于扫码（如果没有摄像头，也可以使用基于文件的方式）
 
@@ -45,7 +47,7 @@ permalink: /docs/howto/scenario-companion-share-zh-hans.html
 
 ## 第 1 步 - 在电脑上共享文件夹
 
-1. 安装并运行 **Fast Media Sorter for Windows**，然后在设置中打开**共享**选项卡。
+1. 安装并运行 **Share Manager - Fast Media Sorter & Sharing**，然后在设置中打开**共享**选项卡。
 2. 选择您想要在手机上访问的文件夹 - 电影、音乐、文档、照片，任何内容都可以。
 3. 应用会自动启动 SFTP 服务器、生成密钥并设置开机自启。无需其他配置。
 4. 此时电脑屏幕上会显示一个**二维码**。请保持该窗口打开，用于第 2 步。

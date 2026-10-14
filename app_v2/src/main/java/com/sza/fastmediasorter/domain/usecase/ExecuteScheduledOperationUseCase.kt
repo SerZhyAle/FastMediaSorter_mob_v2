@@ -38,6 +38,9 @@ data class ScheduledExecutionResult(
     val statusString: String get() = if (isSuccess) "OK" else "ERROR: ${errors.first()}"
 }
 
+// One collaborator per operation type plus the shared scan/log/journal seams; grouping them into a holder
+// object would hide the Hilt wiring without reducing what this executor genuinely depends on.
+@Suppress("LongParameterList")
 @Singleton
 class ExecuteScheduledOperationUseCase @Inject constructor(
     private val scheduledOperationRepository: ScheduledOperationRepository,
@@ -49,6 +52,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     private val refreshResourceFileCountsUseCase: RefreshResourceFileCountsUseCase,
     private val statsSink: StatsSink,
     private val mutationRecorder: MutationRecorder,
+    private val archiveFilesUseCase: ArchiveFilesUseCase,
 ) {
     // S2598: Locale.US, not the interface language - this stamp goes into a persisted log line that
     // outlives a language change, and an Arabic or Bengali interface would render its digits in a script
@@ -99,6 +103,15 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
 
         val srcLabel = "${sourceResource.name} [${sourceResource.type.name}]"
         val dstLabel = targetResource?.let { "${it.name} [${it.type.name}]" } ?: "-"
+
+        if (operation.operationType == ScheduledOpType.ARCHIVE) {
+            val archiveScopeError = archiveScopeError(sourceResource, targetResource)
+            if (archiveScopeError != null) {
+                logOp(ts, opName, srcLabel, dstLabel, "ERROR: $archiveScopeError")
+                Timber.w("ScheduledOp[$operationId] $archiveScopeError")
+                return ScheduledExecutionResult(operationId, 0, listOf(archiveScopeError))
+            }
+        }
 
         return try {
             // Step 1: Load and filter source files.
@@ -234,6 +247,17 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                             setPermissionStop = { permissionStop = true }
                         )
                     }
+                }
+                ScheduledOpType.ARCHIVE -> {
+                    successCount = runArchive(
+                        files = filtered,
+                        sourceName = sourceResource.name,
+                        // archiveScopeError above already refused a null target.
+                        targetDir = requireNotNull(targetResource).path,
+                        operationId = operationId,
+                        log = { logOp(ts, opName, srcLabel, dstLabel, it) },
+                        addError = { errors.add(it) }
+                    )
                 }
             }
 
@@ -422,7 +446,8 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         target: MediaResource?
     ) {
         when (operationType) {
-            ScheduledOpType.COPY -> return
+            // ARCHIVE keeps every source and only adds one new ZIP, so like COPY there is nothing to reconcile.
+            ScheduledOpType.COPY, ScheduledOpType.ARCHIVE -> return
             ScheduledOpType.DELETE -> mutationRecorder.recordDelete(source.id, file.path, source.type)
             ScheduledOpType.MOVE -> {
                 if (target == null) return
@@ -436,6 +461,58 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                 )
             }
         }
+    }
+
+    /**
+     * ARCHIVE writes the ZIP through plain `File` I/O and [ArchiveFilesUseCase] skips every remote path,
+     * so a network source or a non-filesystem target would produce an empty or missing archive. Rejecting
+     * the run up front gives the log a clear cause instead.
+     */
+    private fun archiveScopeError(source: MediaResource, target: MediaResource?): String? = when {
+        source.type.isNetworkResource -> "Archive source must be a local resource"
+        target == null || target.type.isNetworkResource || PathUtils.isContentUri(target.path) ->
+            "Archive target must be a local folder"
+        else -> null
+    }
+
+    /** Packs [files] into one new ZIP in [targetDir]; sources are kept. Returns the archived file count. */
+    private suspend fun runArchive(
+        files: List<MediaFile>,
+        sourceName: String,
+        targetDir: String,
+        operationId: Long,
+        log: (String) -> Unit,
+        addError: (String) -> Unit
+    ): Int {
+        Timber.d("S4173: scheduled ARCHIVE run op=$operationId files=${files.size} target=$targetDir")
+        var archivedCount = 0
+        archiveFilesUseCase(files.map { it.path }, buildArchiveName(sourceName), targetDir).collect { progress ->
+            when (progress) {
+                is ArchiveProgress.Started ->
+                    Timber.d("ScheduledOp[$operationId] ARCHIVE started: ${progress.totalFiles} files")
+                is ArchiveProgress.FileDone ->
+                    Timber.d("ScheduledOp[$operationId] ARCHIVE OK ${progress.fileName}")
+                is ArchiveProgress.FileWarning -> log("SKIP: ${progress.fileName}: ${progress.reason}")
+                is ArchiveProgress.Success -> {
+                    archivedCount = progress.archivedCount
+                    log("OK: ${progress.archivePath}")
+                }
+                is ArchiveProgress.Error -> addError(progress.message)
+            }
+        }
+        return archivedCount
+    }
+
+    /**
+     * `<source>_<yyyyMMdd_HHmm>`; anything outside a filename-safe ASCII set becomes `_` so a resource name
+     * with slashes or colons cannot escape the target folder or break a FAT-formatted card.
+     * Locale.US for the same reason as [logDateFormat].
+     */
+    private fun buildArchiveName(sourceName: String): String {
+        val safeName = sourceName.replace(Regex("[^A-Za-z0-9._-]"), "_").trim('_', '.')
+            .ifEmpty { "scheduled_archive" }
+        val stamp = SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())
+        return "${safeName}_$stamp"
     }
 
     /** Appends one line to the user-visible operations log. */

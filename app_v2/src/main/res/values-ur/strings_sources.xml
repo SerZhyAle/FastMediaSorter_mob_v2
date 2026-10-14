@@ -77,4 +77,7 @@
     <string name="dropbox_select_folder">فولڈر منتخب کریں۔</string>
     <string name="dropbox_sign_in">ڈراپ باکس کے ساتھ سائن ان کریں۔</string>
     <string name="dropbox_signed_in">سائن ان ہوا: %1$s</string>
+    <string name="media_exchange_portal_link">آلات کے درمیان میڈیا کا تبادلہ</string>
+    <string name="media_exchange_portal_open">میڈیا تبادلہ پورٹل کھولیں</string>
+    <string name="broadcast_portal_help">آلات کے درمیان نشریات کیسے کام کرتی ہیں</string>
 </resources>

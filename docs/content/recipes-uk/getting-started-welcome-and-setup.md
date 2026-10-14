@@ -6,7 +6,7 @@ description: Як майстер привітання проводить вас 
 category: Перші кроки
 category_slug: getting-started
 ticket: S2946
-flavor: Усі редакції - набір сторінок залежить від редакції
+availability_note: Усі редакції - набір сторінок залежить від редакції
 recipe_number: "01"
 canonical_url: documentation/getting-started/welcome-and-setup-uk.html
 why: |
@@ -78,7 +78,7 @@ steps:
     callout:
       type: tip
       title: У вашій мережі вже є ПК з Windows?
-      text: "[Fast Media Sorter for Windows](term:windows-companion) розшарить обрані папки ПК сюди за кілька кліків, без налаштування сервера - на цій сторінці для цього є кнопка **Завантажити для Windows**."
+      text: "[Fast Media Sorter & Sharing for Windows](term:windows-companion) розшарить обрані папки ПК сюди за кілька кліків, без налаштування сервера - на цій сторінці для цього є кнопка **Завантажити для Windows**."
   - number: 4
     id: functionality
     title: "Сторінка 4: виберіть, що застосунок може робити"
@@ -177,5 +177,7 @@ next_recipes:
     badge_type: docs
     description: Встановлення застосунку, заставка першого запуску і карта того, що читати далі.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Майстер привітання запускається один раз, під час першого відкриття FastMediaSorter, і проводить вас через мову, тему, [профіль пристрою](term:device-profile), мережеві та хмарні джерела, можливості, дозволи та плеєр за замовчуванням - або ви можете одразу перейти в кінець кнопкою **Увімкнути все** на першій сторінці. Кожен зроблений вибір потім живе в [Налаштуваннях](term:settings), тож тут немає дверей в один бік.

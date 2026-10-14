@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
+import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
@@ -45,7 +46,9 @@ data class AddResourceState(
     val copyFromResource: MediaResource? = null,
     val foundNetworkHosts: List<NetworkHost> = emptyList(),
     val foundShares: List<String> = emptyList(),
-    val isScanningShares: Boolean = false
+    val isScanningShares: Boolean = false,
+    /** The tunnel candidate of the last scanned `FMSSFTP2` code; saved as an alternate path of the SFTP resource. */
+    val sftpPairingTunnel: HostPort? = null
 )
 
 sealed class AddResourceEvent {
@@ -688,6 +691,9 @@ class AddResourceViewModel @Inject constructor(
     // constructor field would break Hilt constructor wiring cleanliness, so re-reference
     // through the coordinator's own dependency chain instead.
     private val smbOperationsUseCaseLazy = smbOperationsUseCase
+
+    /** Remembers the tunnel of a scanned pairing code; a code without one clears it. */
+    fun setSftpPairingTunnel(tunnel: HostPort?) = updateState { it.copy(sftpPairingTunnel = tunnel) }
 
     /**
      * Narrow projection of this ViewModel's protected state/event API for coordinators.

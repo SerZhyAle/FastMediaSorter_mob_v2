@@ -69,10 +69,10 @@ class ConnectionGatesTest {
     @Test
     fun `sftp gate closeFor UI disconnects pool`() {
         val client = mockk<SftpClient>(relaxed = true)
-        coEvery { client.disconnectAllPool() } returns Unit
+        coEvery { client.disconnectUiPool() } returns Unit
         val gate = SftpConnectionGate(client, SftpRecreateTracker(), CoroutineScope(Dispatchers.Unconfined), ConnectionDiagnostics())
         gate.closeFor(ConsumerType.UI_PLAYER)
-        coVerify(exactly = 1) { client.disconnectAllPool() }
+        coVerify(exactly = 1) { client.disconnectUiPool() }
     }
 
     @Test
@@ -80,13 +80,13 @@ class ConnectionGatesTest {
         val client = mockk<SftpClient>(relaxed = true)
         val gate = SftpConnectionGate(client, SftpRecreateTracker(), CoroutineScope(Dispatchers.Unconfined), ConnectionDiagnostics())
         gate.closeFor(ConsumerType.BACKGROUND_WORKER)
-        coVerify(exactly = 0) { client.disconnectAllPool() }
+        coVerify(exactly = 0) { client.disconnectUiPool() }
     }
 
     @Test
     fun `sftp gate swallows disconnect failure`() {
         val client = mockk<SftpClient>()
-        coEvery { client.disconnectAllPool() } throws RuntimeException("boom")
+        coEvery { client.disconnectUiPool() } throws RuntimeException("boom")
         val gate = SftpConnectionGate(client, SftpRecreateTracker(), CoroutineScope(Dispatchers.Unconfined), ConnectionDiagnostics())
         // closeFor must not propagate the exception.
         gate.closeFor(ConsumerType.UI_OPERATION)

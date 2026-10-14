@@ -3,6 +3,8 @@ layout: default
 title: "Regarder des chaînes de télévision sur votre montre connectée - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-fr.html
 ---
+<sub class="doc-stamp">26.09.25 02:18</sub>
+
 <div lang="fr" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_stream.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Regarder des chaînes de télévision sur votre montre connectée

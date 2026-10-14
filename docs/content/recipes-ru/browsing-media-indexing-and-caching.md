@@ -6,7 +6,6 @@ description: Почему миниатюры и списки папок загр
 category: Просмотр медиафайлов и сортировка
 category_slug: browsing
 ticket: S2948
-flavor: Все редакции
 recipe_number: "04"
 canonical_url: documentation/browsing/media-indexing-and-caching-ru.html
 why: |
@@ -114,5 +113,7 @@ next_recipes:
     badge_type: docs
     description: Выделение нескольких файлов и совместные операции над ними.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Файловый браузер](term:file-browser) подгружает миниатюры в фоне, запоминает структуру папок между сеансами и автоматически обновляет список при изменениях на диске - обеспечивая быстрый старт и плавную работу даже в папках с тысячами файлов.

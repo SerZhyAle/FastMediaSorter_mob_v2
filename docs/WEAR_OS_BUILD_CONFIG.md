@@ -3,6 +3,8 @@ layout: default
 title: "Wear OS Build Configuration Summary"
 permalink: /docs/WEAR_OS_BUILD_CONFIG.html
 ---
+<sub class="doc-stamp">26.09.11 13:40</sub>
+
 # Wear OS Build Configuration Summary
 
 **Originally written**: January 27, 2026

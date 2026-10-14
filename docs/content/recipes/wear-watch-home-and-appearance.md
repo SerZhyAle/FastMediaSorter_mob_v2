@@ -6,7 +6,9 @@ description: How the watch app's home screen is laid out - sections, recent shor
 category: Wear OS Watch
 category_slug: wear
 ticket: S2966
-flavor: Home screen, navigation and most of Settings - both watch versions; the Permissions screen, color scheme and background synced from the phone - shown only where the build declares the matching access; the Original layout switch - the full watch version (sideload only)
+availability: companion:wear
+devices: watch
+availability_note: Home screen, navigation and most of Settings - both watch versions; the Permissions screen, color scheme and background synced from the phone - shown only where the build declares the matching access; the Original layout switch - the full watch version (sideload only)
 recipe_number: "06"
 canonical_url: documentation/wear/watch-home-and-appearance.html
 why: |
@@ -73,7 +75,7 @@ steps:
 
       The home screen's own bottom row carries two more commands: **Settings**, and beside it **Close app**, which ends the watch app outright rather than leaving it running in the background - the next launch starts fresh at the home screen.
 
-      From nearly any screen, a moon-shaped **Screen off** button sits opposite the back arrow, at the right edge. Tap it and the display goes dark without stopping whatever it was doing; a single tap on the dark screen only sends a thin ring spreading out from where you touched and fading away, so brushing the watch face by accident does not wake it. To bring the screen back: double tap, press and hold, or use the watch's own button.
+      From nearly any screen, a moon-shaped **Screen off** button sits opposite the back arrow, at the right edge. Tap it and the display goes dark without stopping whatever it was doing; a single tap on the dark screen does not wake it - it sends a thin ring spreading out from where you touched and shows the current time and date above that spot for one second, so you can check the time and leave the watch dark. During that answer the screen is at full brightness; while dark it sits at the lowest, and it returns to its earlier brightness once you bring the screen back. To bring the screen back: double tap, press and hold, or use the watch's own button.
     image_bookmark:
       shot_id: wear.home-navigation-controls
       device_profile: watch
@@ -142,6 +144,8 @@ steps:
       Open **Settings** and every screen in it lays its controls out in rows of two or three wherever the display is wide enough - the same rule the file lists use for grid columns - so a short label sits two or three to a row while a longer one keeps the whole width to itself; nothing ever shrinks past a comfortable tap size. Every switch across these screens shares one look, and every icon target in the settings grid sits on a plain, see-through background rather than a filled button - a lighter, more watch-like plate than an ordinary settings list. Text across the watch app, settings included, is drawn from one consistent scale, so a setting label and, say, a reading on the athlete card come out at matching sizes.
 
       Every set of buttons on the watch follows the same rule too: a menu or an action row - from a permission page's Allow and Skip to a settings action - centers itself and sizes to its content, each entry with its own icon, instead of stretching to fill the screen.
+
+      On a watch with a rotation sensor, **Settings** > **Other** carries an **Auto rotation** switch of the watch app's own. Turn it off and the screen stops turning with your wrist, without touching any system setting of the watch.
 
       On the phone side, everything about the watch - the button that opens Wear Companion, its panel tile, its launcher shortcut - lives behind one master switch in a single collapsible **Wear OS** group on the Management tab; turn it off, and the whole companion disappears from the phone at once.
     image_bookmark:
@@ -231,5 +235,7 @@ next_recipes:
     badge_type: docs
     description: Set the watch's colors, background and more from the phone.
 ---
+
+<sub class="doc-stamp">26.10.10 14:39</sub>
 
 A tour of the watch app's home screen - its sections, its recent and now-playing rows, [Favorites](term:favorites) - along with the clock, the back button, the first-run walk, and the Settings behind how it all looks.

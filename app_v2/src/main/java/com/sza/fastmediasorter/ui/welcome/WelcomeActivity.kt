@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.input.TvNavAction
+import com.sza.fastmediasorter.core.launcher.HomeRoleOfferability
 import com.sza.fastmediasorter.core.launcher.LauncherPrimaryWindowManager
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -334,8 +335,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     private fun setupViewPager() {
         // S2310: a build that ships the home surface is pitched as a device shell, not as a media
         // organizer. The same capability that decides the launcher toggle below picks the copy, so
-        // the page can never promise a home screen the build does not compile in (S1388).
-        val shellPitch = launcherModeContract.isAvailableInBuild
+        // the page can never promise a home screen the build does not compile in (S1388). A device
+        // that forbids the HOME role (Googlebook, XR) gets the media pitch: the shell copy asks the
+        // user to take a role the platform refuses.
+        val shellPitch = launcherModeContract.isAvailableInBuild && HomeRoleOfferability.isOfferable(this)
         val streamsInPitch = capabilityAvailability.isStreamsAvailable()
         val wearInPitch = mediaCapabilities.supportsWearCompanion
 

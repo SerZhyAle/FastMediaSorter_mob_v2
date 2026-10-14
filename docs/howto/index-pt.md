@@ -3,6 +3,8 @@ layout: default
 title: "Guias Passo a Passo - FastMediaSorter v2"
 permalink: /docs/howto/index-pt.html
 ---
+<sub class="doc-stamp">26.09.25 02:11</sub>
+
 <div lang="pt" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Guias Passo a Passo

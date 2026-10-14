@@ -11,8 +11,6 @@
          <meta name="yandex-verification" content="..." /> -->
     <meta name="description"
         content="O Fast Media Sorter é um shell completo para o seu dispositivo Android: tela inicial, reprodutor de mídia, transmissões ao vivo, inicialização de apps, companion para o relógio, monitoramento do dispositivo e um gerenciador de arquivos completo para armazenamento local, de rede e na nuvem.">
-    <meta name="keywords"
-        content="launcher Android, substituto da tela inicial Android, reprodutor de mídia Android, player de IPTV Android, companion Wear OS, gerenciador de arquivos Android, organizador de mídia Android, app organizador de fotos, organizador de vídeos Android, cliente SMB Android, navegador NAS Android, cliente SFTP Android, cliente FTP Android, gerenciador de arquivos na nuvem Android, gerenciador do Google Drive Android, Dropbox Android, app de slideshow de fotos, tablet porta-retrato digital, reprodutor de áudio Android, leitor de EPUB Android, tradução por OCR Android, media player Android para som automotivo, app para central multimídia automotiva Android, organizador de arquivos Android, operações em lote de arquivos Android, media player Android para TV box, player Android para set-top box, app de mídia para smart TV, alternativa ao Kodi Android">
     <meta name="author" content="SerZhyAle">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#0a0f0a">
@@ -115,6 +113,8 @@
 </head>
 
 <body>
+<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.11 02:15</div>
+    <a class="skip-link" href="#main-content">Skip to content</a>
 
     <!-- SZA Web Kit sticky header -->
     <header class="site-header">
@@ -125,7 +125,7 @@
             <a href="index.html" data-lang="en">EN</a>
             <a href="index-uk.html" data-lang="ua">UA</a>
         </div>
-        <button class="theme-btn" id="themeBtn" aria-label="Mudar para o tema claro" title="Alternar tema">◐</button>
+        <button class="theme-btn" id="themeBtn" aria-label="Mudar para o tema claro" title="Alternar tema"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
         <a class="btn btn-primary btn-sm" href="#get">Instalar</a>
     </header>
 
@@ -149,7 +149,7 @@
 
     <!-- GitHub Corner -->
     <aside class="source-link">
-    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
+    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" tabindex="-1" target="_blank"
         aria-label="Ver código-fonte no GitHub">
         <svg width="80" height="80" viewBox="0 0 250 250"
             style="fill:var(--color-standard); color:var(--acc-ink); position: absolute; top: 0; border: 0; right: 0;"
@@ -167,9 +167,15 @@
 
     <main id="main-content">
     <header class="hero" id="top">
-        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
+        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.35" data-speed="0.5"></canvas>
         <div class="hero-inner">
-            <p class="kicker">Android - shell para dispositivo</p>
+            <div class="identity">
+                <img class="product-icon" src="icon.png" width="104" height="104" alt="">
+                <div>
+                    <p class="product-name">Fast Media Sorter &amp; Organizer</p>
+                    <p class="kicker">Android - shell para dispositivo</p>
+                </div>
+            </div>
             <h1>Um shell completo para o seu dispositivo Android.</h1>
             <p class="subtitle">Tela inicial, mídia, transmissões, apps, relógio e arquivos - tudo em um só lugar.</p>
             <p class="whatfor">O Fast Media Sorter &amp; Organizer assume a tela inicial e se torna o ponto de partida de tudo: shell do dispositivo, reprodutor de mídia, transmissões ao vivo, inicialização de apps, um substituto para os apps padrão, um companion no relógio, monitoramento do dispositivo e um gerenciador de arquivos completo para armazenamento local, SMB/NAS, SFTP/FTP e unidades na nuvem.</p>
@@ -589,17 +595,17 @@
                         <h3><button type="button" class="scenario-select" disabled>Compartilhamento de Pasta do Windows (PC Companion)</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">Standard / Photos / Legacy</span></div>
-                    <p class="card-summary">Compartilhe uma pasta de um PC Windows direto com o app: o gratuito <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" target="_blank">Fast Media Sorter for Windows</a> executa um servidor SFTP seguro para isso - o pareamento é feito importando um único arquivo de configuração, sem digitar host/porta/chave manualmente.</p>
+                    <p class="card-summary">Compartilhe uma pasta de um PC Windows direto com o app: o gratuito <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" target="_blank">Fast Media Sorter &amp; Sharing for Windows</a> executa um servidor SFTP seguro para isso - o pareamento é feito importando um único arquivo de configuração, sem digitar host/porta/chave manualmente.</p>
                 </div>
                 <details class="card-details">
                     <summary>Detalhes</summary>
                     <ul class="detail-list">
-                        <li>Instale o Fast Media Sorter for Windows no PC: <a href="https://github.com/SerZhyAle/FastMediaSorter_Lite/releases/latest" target="_blank">versão no GitHub</a>, <code>winget install SerZhyAle.FastMediaSorter</code>, ou "FastMediaSorter LITE" na Microsoft Store (publicado sob seu nome anterior).</li>
+                        <li>Instale o Fast Media Sorter &amp; Sharing for Windows no PC: <a href="https://github.com/SerZhyAle/FastMediaSorter_Lite/releases/latest" target="_blank">versão no GitHub</a>, <code>winget install SerZhyAle.FastMediaSorter</code>, ou "FastMediaSorter LITE" na Microsoft Store (publicado sob seu nome anterior).</li>
                         <li>Escolha as pastas a compartilhar no PC - servidor, chaves e inicialização automática são configurados automaticamente.</li>
                         <li>No celular: Adicionar recurso &gt; SFTP/FTP &gt; Importar do companion e, em seguida, abra o arquivo .fmscfg exportado.</li>
                         <li>Guia passo a passo para o PC: <a href="https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html" target="_blank">Como publicar pastas para Android</a>.</li>
                     </ul>
-                    <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" class="card-footer" target="_blank">Obter o Fast Media Sorter for Windows</a>
+                    <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" class="card-footer" target="_blank">Obter o Fast Media Sorter &amp; Sharing for Windows</a>
                 </details>
             </article>
             <article class="card scenario-card" data-scenario="offline">
@@ -656,6 +662,7 @@
                     target="_blank" rel="noopener">IzzyOnDroid</a>
             </div>
             <p class="shell-links"><a href="#download">Outras edições APK e mostrador</a></p>
+            <p class="shell-links">Edições: <a href="#download">Lite</a> · <a href="#download">Photos</a> · <a href="#download">Legacy</a> · <a href="nolegal.html">noLegal</a> · <a href="documentation/vr/spatial-cinema-playback.html">VR</a> · <a href="docs/wear/">Wear OS</a> · <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">Mostrador</a></p>
             <ol class="quickstart">
                 <li>Instale uma edição adequada e abra o app.</li>
                 <li>No assistente de boas-vindas, ou depois em Configurações, Geral, Janela inicial principal, escolha Tela inicial do dispositivo e confirme quando o Android perguntar.</li>
@@ -693,7 +700,7 @@
             <summary>Catálogo completo de recursos</summary>
         <!-- What it Replaces -->
         <h2 class="section-title" id="replaces">Substitui Mais de uma Dezena de Apps</h2>
-        <p class="section-lead">O Fast Media Sorter reúne tela inicial, inicializador de apps, player de mídia, player de streams e gerenciador de arquivos. Em vez de apps separados para launcher, vídeo, música, galerias, leitura, pastas de rede e armazenamento em nuvem, você usa um único shell com um conjunto familiar de ações. Os apps abaixo são apenas referências conhecidas das funções, não um ranking comparativo.</p>
+        <p class="section-lead">O Fast Media Sorter reúne tela inicial, inicializador de apps, player de mídia, player de streams e gerenciador de arquivos. Em vez de apps separados para launcher, vídeo, música, galerias, leitura, pastas de rede e armazenamento em nuvem, você usa um único shell com um conjunto familiar de ações.</p>
         <div class="cards-grid replaces-grid">
             <article class="card">
                 <div class="card-title-row">
@@ -701,7 +708,7 @@
                     <h3>Tela inicial e dispositivo</h3>
                 </div>
                 <ul class="detail-list repl-list">
-                    <li><strong>Launcher / tela inicial</strong> <span class="repl-ref">(Nova Launcher, launcher de fábrica)</span> - uma área de trabalho com pastas, atalhos e gadgets ao vivo, uma barra de tarefas com menu Iniciar, apps fixados e recentes. <span class="repl-note">edição padrão</span></li>
+                    <li><strong>Launcher / tela inicial</strong> <span class="repl-ref">(launcher de fábrica)</span> - uma área de trabalho com pastas, atalhos e gadgets ao vivo, uma barra de tarefas com menu Iniciar, apps fixados e recentes. <span class="repl-note">edição padrão</span></li>
                     <li><strong>Gaveta de apps</strong> <span class="repl-ref">(lista de apps de fábrica)</span> - todos os apps instalados em uma lista pesquisável, agrupados por letra.</li>
                     <li><strong>Relógio, clima e bússola</strong> <span class="repl-ref">(apps de relógio e clima de fábrica)</span> - gadgets integrados de relógio, relógio mundial, clima, mapa, bússola e velocidade.</li>
                     <li><strong>Monitor do dispositivo</strong> <span class="repl-ref">(apps de informações do sistema)</span> - gadgets de rede, bateria, armazenamento e memória, além de uma lista ao vivo das conexões de rede.</li>
@@ -714,14 +721,14 @@
                     <h3>Visualização e Reprodução</h3>
                 </div>
                 <ul class="detail-list repl-list">
-                    <li><strong>Reprodutor de vídeo</strong> <span class="repl-ref">(MX Player, VLC)</span> - vídeo, Blu-ray TS/.m2ts, picture-in-picture, capturas de tela de quadros, transmissão via Chromecast.</li>
-                    <li><strong>Reprodutor de áudio</strong> <span class="repl-ref">(Poweramp, AIMP)</span> - reprodução em segundo plano, letras de música, MIDI, temporizador para dormir, visualizações, controles na notificação.</li>
-                    <li><strong>Galeria / visualizador de imagens</strong> <span class="repl-ref">(QuickPic, Google Photos)</span> - imagens e GIFs, recorte, filtros, rotação.</li>
-                    <li><strong>Leitor de PDF / EPUB</strong> <span class="repl-ref">(Adobe Reader, Moon+ Reader)</span> - livros, mapas de capítulos, temas, Leitura em Voz Alta (TTS).</li>
+                    <li><strong>Reprodutor de vídeo</strong> - vídeo, Blu-ray TS/.m2ts, picture-in-picture, capturas de tela de quadros, transmissão via Chromecast.</li>
+                    <li><strong>Reprodutor de áudio</strong> - reprodução em segundo plano, letras de música, MIDI, temporizador para dormir, visualizações, controles na notificação.</li>
+                    <li><strong>Galeria / visualizador de imagens</strong> - imagens e GIFs, recorte, filtros, rotação.</li>
+                    <li><strong>Leitor de PDF / EPUB</strong> - livros, mapas de capítulos, temas, Leitura em Voz Alta (TTS).</li>
                     <li><strong>Slideshow / porta-retrato digital</strong> - fotos em rotação com música de fundo, além de um widget de porta-retrato.</li>
-                    <li><strong>Central multimídia para TV</strong> <span class="repl-ref">(Kodi, Nova Video Player)</span> - navegação e reprodução amigáveis a D-pad, teclado, mouse, controle de jogos e controle remoto de TV.</li>
-                    <li><strong>Reprodutor de mídia VR</strong> <span class="repl-ref">(Pigasus, Skybox VR)</span> - estéreo SBS/OU, VR180, 360°, tela de cinema virtual. <span class="repl-note">edição VR</span></li>
-                    <li><strong>Rádio pela internet / player de IPTV</strong> <span class="repl-ref">(TuneIn, Online Radio, RadioDroid, VLC network)</span> - a tela Streams reproduz rádios http/https, fontes HLS/DASH e RTSP; mini-player embutido com informações ICY de reprodução atual; catálogo de estações selecionado.</li>
+                    <li><strong>Central multimídia para TV</strong> - navegação e reprodução amigáveis a D-pad, teclado, mouse, controle de jogos e controle remoto de TV.</li>
+                    <li><strong>Reprodutor de mídia VR</strong> - estéreo SBS/OU, VR180, 360°, tela de cinema virtual. <span class="repl-note">edição VR</span></li>
+                    <li><strong>Rádio pela internet / player de IPTV</strong> - a tela Streams reproduz rádios http/https, fontes HLS/DASH e RTSP; mini-player embutido com informações ICY de reprodução atual; catálogo de estações selecionado.</li>
                 </ul>
             </article>
             <article class="card">
@@ -734,7 +741,7 @@
                     <li><strong>Gravador de voz</strong> - notas de voz mais um widget de gravação rápida.</li>
                     <li><strong>Editor de desenho</strong> - tela de desenho, pincéis, formas, texto, cor e tamanho de pincel personalizados.
                     </li>
-                    <li><strong>Scanner de documentos / texto</strong> <span class="repl-ref">(Google Lens, CamScanner)</span> - OCR no dispositivo a partir da câmera, com recorte de área.</li>
+                    <li><strong>Scanner de documentos / texto</strong> - OCR no dispositivo a partir da câmera, com recorte de área.</li>
                 </ul>
             </article>
             <article class="card">
@@ -745,9 +752,9 @@
                 <ul class="detail-list repl-list">
                     <li><strong>Editor de texto / Markdown</strong> - edite .txt/.md com destaque de sintaxe e salvamento automático.
                     </li>
-                    <li><strong>Tradutor</strong> <span class="repl-ref">(Google Translate offline)</span> - tradução totalmente offline.</li>
+                    <li><strong>Tradutor</strong> - tradução totalmente offline.</li>
                     <li><strong>Calculadora</strong> - avaliação embutida de expressões a partir do texto selecionado. <span class="repl-note">básico</span></li>
-                    <li><strong>Transmitir para a TV</strong> <span class="repl-ref">(Google Home)</span> - Chromecast para vídeo e áudio.</li>
+                    <li><strong>Transmitir para a TV</strong> - Chromecast para vídeo e áudio.</li>
                     <li><strong>Ferramenta de backup de configurações</strong> - exporte e restaure a configuração do app, fontes, favoritos, agendamentos, senhas e logins. <span class="repl-note">apenas configuração do app</span></li>
                 </ul>
             </article>
@@ -757,13 +764,13 @@
                     <h3>Gerenciamento de Arquivos</h3>
                 </div>
                 <ul class="detail-list repl-list">
-                    <li><strong>Gerenciador de arquivos</strong> <span class="repl-ref">(Total Commander, ES File Explorer, Files by Google)</span> - arquivos locais, de rede e na nuvem em um só lugar.</li>
-                    <li><strong>Cliente FTP/SFTP/SMB</strong> <span class="repl-ref">(AndFTP, Solid Explorer)</span> - fontes de rede com chaves SSH e fixação de host-key.</li>
+                    <li><strong>Gerenciador de arquivos</strong> - arquivos locais, de rede e na nuvem em um só lugar.</li>
+                    <li><strong>Cliente FTP/SFTP/SMB</strong> - fontes de rede com chaves SSH e fixação de host-key.</li>
                     <li><strong>Clientes de nuvem</strong> <span class="repl-ref">(Google Drive, Dropbox, OneDrive)</span> - unidades na nuvem como fontes de mídia.</li>
-                    <li><strong>Localizador de duplicatas</strong> <span class="repl-ref">(Duplicate Files Fixer)</span> - mecanismo de 3 fases Tamanho -&gt; Hash -&gt; SHA-256.</li>
-                    <li><strong>Lixeira</strong> <span class="repl-ref">(Dumpster)</span> - exclusão reversível com restauração em um toque.</li>
-                    <li><strong>Extrator de arquivos compactados</strong> <span class="repl-ref">(ZArchiver)</span> - extração de ZIP, incluindo com senha. <span class="repl-note">básico</span></li>
-                    <li><strong>Gerenciador de downloads</strong> <span class="repl-ref">(1DM, ADM)</span> - cole um link e salve diretamente em uma pasta escolhida.</li>
+                    <li><strong>Localizador de duplicatas</strong> - mecanismo de 3 fases Tamanho -&gt; Hash -&gt; SHA-256.</li>
+                    <li><strong>Lixeira</strong> - exclusão reversível com restauração em um toque.</li>
+                    <li><strong>Extrator de arquivos compactados</strong> - extração de ZIP, incluindo com senha. <span class="repl-note">básico</span></li>
+                    <li><strong>Gerenciador de downloads</strong> - cole um link e salve diretamente em uma pasta escolhida.</li>
                     <li><strong>Agendador de tarefas</strong> - operações de arquivo agendadas.</li>
                 </ul>
             </article>
@@ -858,6 +865,22 @@
             <article class="card">
                 <div>
                     <div class="card-title-row">
+                        <h3>Media Exchange Portal</h3>
+                    </div>
+                    <p class="card-summary">Which way fits you for moving and opening media between your own phone, watch, TV, VR headset and Windows PC.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detalhes</summary>
+                    <ul class="detail-list">
+                        <li>Three ways to connect: your home network, the exchange server and live broadcast, with what works today.</li>
+                        <li>Which program does what on each device, and which edition has what.</li>
+                    </ul>
+                    <a href="docs/media-exchange-portal/" class="card-footer" target="_blank">Open the exchange portal</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
                         <h3>Edições e Espelhos do APK</h3>
                     </div>
                     <p class="card-summary">Notas sobre as edições mais espelhos ZIP no Google Drive para as versões compiladas.</p>
@@ -868,7 +891,7 @@
                         <li>Explica as diferenças entre edições e o espelho alternativo no Google Drive.</li>
                         <li>Downloads com um toque estão na seção Baixar Builds do APK abaixo.</li>
                     </ul>
-                    <a href="docs/DOWNLOADS_EN.html" class="card-footer" target="_blank">Abrir detalhes</a>
+                    <a href="docs/DOWNLOADS.html" class="card-footer" target="_blank">Abrir detalhes</a>
                 </details>
             </article>
         </div>
@@ -876,7 +899,7 @@
         <!-- Download APK Builds - live buttons from the latest GitHub Release (S0394) -->
         <h2 class="section-title" id="download">Baixar Builds do APK</h2>
         <p class="section-lead">O APK estável mais recente disponível para cada edição. As versões podem variar; veja os lançamentos no GitHub se sua edição não aparecer.</p>
-        <p class="section-lead">O Android avisa sobre um APK que ele ainda não viu. <a href="docs/INSTALL_TRUST_EN.html" target="_blank" rel="noopener">Por que o aviso aparece - e o que tocar</a>.</p>
+        <p class="section-lead">O Android avisa sobre um APK que ele ainda não viu. <a href="docs/INSTALL_TRUST.html" target="_blank" rel="noopener">Por que o aviso aparece - e o que tocar</a>.</p>
         <h3 class="edition-heading">Edições para headsets e relógios</h3>
         <div class="edition-download-grid">
             <article class="card edition-card" data-download-edition="noLegal">
@@ -1187,11 +1210,11 @@
             <h2 class="section-title">Mais ferramentas do SZA</h2>
             <div class="tools-grid">
                 <!-- family-footer:begin - rendered from scripts/site/family-footer.json by scripts/site/render-family-footer.ps1; edit the source, not this block -->
-                <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>organizador de mídia para PC e compartilhamento de pastas para Android</span></a> <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>conversor de ebooks para Windows</span></a> <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>corretor de layout de teclado para Windows</span></a> <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>CLI de armazenamento para Windows</span></a> <a href="https://serzhyale.github.io/StreamsPlayer/"><b>StreamsPlayer</b><span>reprodutor de streams para Windows</span></a> <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>lançador de bandeja para Windows</span></a> <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>metodologia de desenvolvimento com IA</span></a> <a href="https://sza.od.ua"><b>SZA</b><span>Hub do portfólio</span></a>
+                <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>organizador de mídia para PC e compartilhamento de pastas para Android</span></a> <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>conversor de ebooks para Windows</span></a> <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>corretor de layout de teclado para Windows</span></a> <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>CLI de armazenamento para Windows</span></a> <a href="https://serzhyale.github.io/StreamsPlayer/"><b>STREAMS Player</b><span>reprodutor de streams para Windows</span></a> <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>lançador de bandeja para Windows</span></a> <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>metodologia de desenvolvimento com IA</span></a> <a href="https://sza.od.ua"><b>SZA</b><span>Hub do portfólio</span></a>
                 <!-- family-footer:end -->
             </div>
             <div class="footer-bottom">
-                <span>&copy; 2024-2026 Serhii Zhyhunenko · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">Privacidade</a> · <a href="docs/TERMS_OF_SERVICE.html">Termos</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
+                <span>&copy; 2024-2026 <a href="https://sza.od.ua">Serhii Zhyhunenko</a> · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">Privacidade</a> · <a href="docs/TERMS_OF_SERVICE.html">Termos</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
             </div>
         </div>
     </footer>

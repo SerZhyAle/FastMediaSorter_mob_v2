@@ -6,7 +6,7 @@ description: How to switch on the opt-in Network Monitor program, read its summa
 category: Network & Cloud
 category_slug: network
 ticket: S2950
-flavor: Standard and noLegal editions only
+availability: SUPPORT_NETWORK_MONITOR
 recipe_number: "08"
 canonical_url: documentation/network/network-monitor.html
 why: |
@@ -103,5 +103,7 @@ next_recipes:
     badge_type: docs
     description: Network Monitor and the rest of the watch's built-in toolbox.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Switch on the opt-in Network Monitor, read its summary and its Wi-Fi, Mobile, Bluetooth and Satellites sections with their live charts, ping or trace a single address in Tools, measure one resource's real speed, and carry the same readings to a home-screen widget, a launcher gadget and your watch.

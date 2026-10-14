@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 720" width="100%" height="100%" style="background:#090d16; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;">
+  <defs>
+    <filter id="cardShadow2" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+    <marker id="arrowO" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#f97316" />
+    </marker>
+    <marker id="arrowC" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#38bdf8" />
+    </marker>
+  </defs>
+
+  <!-- Title Bar -->
+  <g transform="translate(50, 35)">
+    <rect width="1000" height="60" rx="10" fill="#1e293b" stroke="#f97316" stroke-width="1.5"/>
+    <text x="30" y="27" fill="#f97316" font-size="12" font-weight="700" letter-spacing="1.5">СХЕМА 2 · ВЕЩАНИЕ И ТРАНСЛЯЦИИ (LIVE BROADCAST &amp; CAST)</text>
+    <text x="30" y="48" fill="#f8fafc" font-size="18" font-weight="700">Трансляция экрана и звука со своего компьютера на телевизор, телефон и часы</text>
+    <rect x="760" y="14" width="210" height="32" rx="6" fill="#c2410c"/>
+    <text x="865" y="35" fill="#ffffff" font-size="12" font-weight="600" text-anchor="middle">Задержка не копится</text>
+  </g>
+
+  <!-- Connection Lines -->
+  <path d="M 330 240 L 430 300" fill="none" stroke="#f97316" stroke-width="3" marker-end="url(#arrowO)"/>
+  <path d="M 330 450 L 430 370" fill="none" stroke="#fbbf24" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrowO)"/>
+
+  <path d="M 670 290 L 780 200" fill="none" stroke="#38bdf8" stroke-width="3" marker-end="url(#arrowC)"/>
+  <path d="M 670 330 L 780 330" fill="none" stroke="#38bdf8" stroke-width="3" marker-end="url(#arrowC)"/>
+  <path d="M 670 370 L 780 460" fill="none" stroke="#a855f7" stroke-width="3" marker-end="url(#arrowC)"/>
+  <path d="M 550 490 L 550 560" fill="none" stroke="#38bdf8" stroke-width="2.5" marker-end="url(#arrowC)"/>
+
+  <!-- ============================================================ -->
+  <!-- CENTER NODE: FAN-OUT RELAY & CAST ROUTER -->
+  <!-- ============================================================ -->
+  <g transform="translate(430, 180)" filter="url(#cardShadow2)">
+    <rect width="240" height="310" rx="14" fill="#0f172a" stroke="#f97316" stroke-width="2.5"/>
+    <rect width="240" height="48" rx="14" fill="#ea580c"/>
+    <rect width="240" height="16" y="32" fill="#ea580c"/>
+    <text x="120" y="30" fill="#ffffff" font-size="14" font-weight="700" text-anchor="middle">РЕТРАНСЛЯТОР СЕРВЕРА</text>
+    <text x="120" y="68" fill="#f97316" font-size="11" font-weight="600" text-anchor="middle">Fan-Out Relay &amp; Cast</text>
+
+    <!-- Block 1 -->
+    <rect x="15" y="82" width="210" height="96" rx="8" fill="#1e293b"/>
+    <text x="25" y="102" fill="#f97316" font-size="11" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="25" y="122" fill="#f8fafc" font-size="11.5">• Принимает 1 поток с ПК</text>
+    <text x="25" y="139" fill="#f8fafc" font-size="11.5">• Раздаёт всем экранам сразу</text>
+    <text x="25" y="156" fill="#f8fafc" font-size="11.5">• Буфер 2 с: лаги не копятся</text>
+    <text x="25" y="170" fill="#38bdf8" font-size="10.5">• Маршрутизирует кнопку Cast</text>
+
+    <!-- Block 2 -->
+    <rect x="15" y="190" width="210" height="104" rx="8" fill="#1e293b"/>
+    <text x="25" y="210" fill="#34d399" font-size="11" font-weight="700">ЧТО НАСТРАИВАТЬ:</text>
+    <text x="25" y="230" fill="#f8fafc" font-size="11.5">• Работает автоматически</text>
+    <text x="25" y="247" fill="#94a3b8" font-size="11">• Ваш ПК не тормозит: канал</text>
+    <text x="25" y="264" fill="#94a3b8" font-size="11">  не тратится на каждого</text>
+    <text x="25" y="280" fill="#94a3b8" font-size="11">  зрителя отдельно</text>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- LEFT NODES: BROADCASTERS -->
+  <!-- ============================================================ -->
+  <!-- Node: Windows PC Broadcaster -->
+  <g transform="translate(50, 140)" filter="url(#cardShadow2)">
+    <rect width="280" height="195" rx="12" fill="#1e293b" stroke="#f97316" stroke-width="2"/>
+    <rect width="280" height="34" rx="12" fill="#c2410c"/>
+    <rect width="280" height="12" y="22" fill="#c2410c"/>
+    <text x="15" y="23" fill="#ffffff" font-size="13" font-weight="700">🖥️ ПК Windows (Вещатель)</text>
+
+    <text x="15" y="55" fill="#f97316" font-size="10.5" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="15" y="73" fill="#f8fafc" font-size="11.5">• Захватывает рабочий стол или окно</text>
+    <text x="15" y="90" fill="#f8fafc" font-size="11.5">• Захватывает системный звук + микрофон</text>
+    <text x="15" y="107" fill="#f8fafc" font-size="11.5">• Вещает живое видео в реальном времени</text>
+
+    <line x1="15" y1="120" x2="265" y2="120" stroke="#334155"/>
+
+    <text x="15" y="138" fill="#fbbf24" font-size="10.5" font-weight="700">ЧТО НАСТРАИВАТЬ:</text>
+    <text x="15" y="156" fill="#cbd5e1" font-size="11">1. Выбрать что транслировать (экран/звук)</text>
+    <text x="15" y="172" fill="#cbd5e1" font-size="11">2. Нажать «В эфир» или «Транслировать на ТВ»</text>
+  </g>
+
+  <!-- Node: Android Phone Broadcaster -->
+  <g transform="translate(50, 370)" filter="url(#cardShadow2)">
+    <rect width="280" height="155" rx="12" fill="#1e293b" stroke="#fbbf24" stroke-width="1.5"/>
+    <rect width="280" height="34" rx="12" fill="#b45309"/>
+    <rect width="280" height="12" y="22" fill="#b45309"/>
+    <text x="15" y="23" fill="#ffffff" font-size="13" font-weight="700">📱 Смартфон (Вещатель)</text>
+
+    <text x="15" y="55" fill="#fbbf24" font-size="10.5" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="15" y="73" fill="#f8fafc" font-size="11.5">• Стримит камеру, микрофон или экран</text>
+    <text x="15" y="90" fill="#f8fafc" font-size="11.5">• Отправляет картинку на большой экран</text>
+
+    <line x1="15" y1="102" x2="265" y2="102" stroke="#334155"/>
+    <text x="15" y="120" fill="#fbbf24" font-size="10.5" font-weight="700">ЧТО НАСТРАИВАТЬ:</text>
+    <text x="15" y="138" fill="#cbd5e1" font-size="11">В приложении нажать Cast ➔ выбрать ТВ</text>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- RIGHT NODES: RECEIVERS -->
+  <!-- ============================================================ -->
+  <!-- Node: Smart TV 4K -->
+  <g transform="translate(780, 130)" filter="url(#cardShadow2)">
+    <rect width="270" height="135" rx="12" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+    <rect width="270" height="32" rx="12" fill="#0284c7"/>
+    <rect width="270" height="12" y="20" fill="#0284c7"/>
+    <text x="15" y="22" fill="#ffffff" font-size="13" font-weight="700">📺 Smart TV (Телевизор)</text>
+
+    <text x="15" y="52" fill="#38bdf8" font-size="10.5" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="15" y="70" fill="#f8fafc" font-size="11.5">• Показывает видео и рабочий стол ПК</text>
+    <text x="15" y="87" fill="#f8fafc" font-size="11.5">• Играет звук трансляции (AAC)</text>
+
+    <text x="15" y="112" fill="#cbd5e1" font-size="11"><tspan fill="#34d399" font-weight="700">Настройка: </tspan>принять вызов Cast</text>
+  </g>
+
+  <!-- Node: Android Smartphone Receiver -->
+  <g transform="translate(780, 285)" filter="url(#cardShadow2)">
+    <rect width="270" height="120" rx="12" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+    <rect width="270" height="30" rx="12" fill="#0369a1"/>
+    <rect width="270" height="10" y="20" fill="#0369a1"/>
+    <text x="15" y="21" fill="#ffffff" font-size="12.5" font-weight="700">📱 Смартфон (Приёмник)</text>
+
+    <text x="15" y="50" fill="#38bdf8" font-size="10.5" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="15" y="68" fill="#f8fafc" font-size="11.5">• Смотрит живой эфир на ходу</text>
+    <text x="15" y="95" fill="#cbd5e1" font-size="11"><tspan fill="#34d399" font-weight="700">Настройка: </tspan>нажать кнопку «Смотреть эфир»</text>
+  </g>
+
+  <!-- Node: Wear OS Watch Receiver -->
+  <g transform="translate(780, 425)" filter="url(#cardShadow2)">
+    <rect width="270" height="120" rx="12" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+    <rect width="270" height="30" rx="12" fill="#7c3aed"/>
+    <rect width="270" height="10" y="20" fill="#7c3aed"/>
+    <text x="15" y="21" fill="#ffffff" font-size="12.5" font-weight="700">⌚ Android Часы (Wear OS)</text>
+
+    <text x="15" y="50" fill="#a855f7" font-size="10.5" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="15" y="68" fill="#f8fafc" font-size="11.5">• Принимает только звук с компьютера</text>
+    <text x="15" y="95" fill="#cbd5e1" font-size="11"><tspan fill="#34d399" font-weight="700">Настройка: </tspan>включить аудиовещание на часы</text>
+  </g>
+
+  <!-- Bottom Node: Second PC Receiver -->
+  <g transform="translate(430, 560)" filter="url(#cardShadow2)">
+    <rect width="240" height="75" rx="10" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+    <text x="20" y="26" fill="#38bdf8" font-size="12" font-weight="700">💻 Второй компьютер Windows</text>
+    <text x="20" y="46" fill="#f8fafc" font-size="11">• Просмотр трансляции во весь экран</text>
+    <text x="20" y="62" fill="#94a3b8" font-size="10.5">• Приёмник Cast с основного ПК или телефона</text>
+  </g>
+
+  <!-- Bottom Summary -->
+  <g transform="translate(50, 655)">
+    <rect width="1000" height="42" rx="8" fill="#0f172a" stroke="#1e293b"/>
+    <text x="25" y="26" fill="#f97316" font-size="11" font-weight="700">КАК ЭТО РАБОТАЕТ В 1 КЛИК:</text>
+    <text x="200" y="26" fill="#cbd5e1" font-size="11.5">На ПК нажали «Транслировать на ТВ» - телевизор спрашивает и начинает показ. Без шнуров HDMI.</text>
+  </g>
+</svg>

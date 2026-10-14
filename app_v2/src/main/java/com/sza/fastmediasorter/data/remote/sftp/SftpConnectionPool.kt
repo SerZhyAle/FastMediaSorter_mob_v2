@@ -11,6 +11,9 @@ import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDen
 import com.sza.fastmediasorter.data.network.exceptions.NetworkAccessDeniedException
 import com.sza.fastmediasorter.data.network.exceptions.NetworkErrorClassifier
 import com.sza.fastmediasorter.data.network.exceptions.NetworkHostKeyChangedException
+import com.sza.fastmediasorter.data.network.exceptions.NetworkPinRefusedException
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTunnelProxy
+import com.sza.fastmediasorter.domain.model.SftpTunnelAddress.forLog
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -93,11 +96,14 @@ class SftpConnectionPool(
 
     // S0046: expectedFingerprint is part of the pool key so a pinned and an unpinned session for
     // the same host:port:user are pooled separately and never share a host-key verification policy.
-    private data class ConnectionKey(
+    // DEVICE-EXCHANGE 17 item AH: a proven connection sees one root only, so the root joins the key and a
+    // session proven for one root is never shared with the password login or with another root of the server.
+    internal data class ConnectionKey(
         val host: String,
         val port: Int,
         val username: String,
-        val expectedFingerprint: String? = null
+        val expectedFingerprint: String? = null,
+        val proofRoot: String? = null
     )
 
     /** Unified pool - one entry per (host, port, user) for both PLAYBACK and FILE_OPS. */
@@ -150,7 +156,7 @@ class SftpConnectionPool(
         replayable: Boolean = true,
         block: suspend (ChannelSftp) -> Result<T>
     ): Result<T> = withContext(Dispatchers.IO) {
-        val key = ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint)
+        val key = info.sessionKey()
         try {
             connectionSemaphore.acquire()
             try {
@@ -251,11 +257,11 @@ class SftpConnectionPool(
             val ch = openChannelSafe(pooled)
             val pc = PooledChannel(ch, Mutex(), ChannelPurpose.FILE_OPS)
             pooled.pooledChannels.add(pc)
-            Timber.d("SFTP [FILE_OPS] new channel (total=${pooled.pooledChannels.size}) for ${info.host}")
+            Timber.d("SFTP [FILE_OPS] new channel (total=${pooled.pooledChannels.size}) for ${forLog(info.host)}")
             return@withLock pc
         }
 
-        Timber.d("SFTP [FILE_OPS] all channels busy for ${info.host}, reusing first")
+        Timber.d("SFTP [FILE_OPS] all channels busy for ${forLog(info.host)}, reusing first")
         pooled.pooledChannels.first { it.purpose == ChannelPurpose.FILE_OPS }
     }
 
@@ -296,6 +302,7 @@ class SftpConnectionPool(
             val jsch = JSch()
             applyIdentity(jsch, info, namePrefix = "key")
             val session = jsch.getSession(info.username, info.host, info.port)
+            ExchangeTunnelProxy.attachIfTunnel(session, info.host)
             applyAuth(session, info)
             session.timeout = SOCKET_TIMEOUT
             // Keep-alive lets JSch's own thread detect a half-open socket and fail the session,
@@ -323,7 +330,7 @@ class SftpConnectionPool(
             }
             pooled.pooledChannels.add(PooledChannel(firstCh, Mutex(), ChannelPurpose.FILE_OPS))
             synchronized(pooledSessions) { pooledSessions[key] = pooled }
-            Timber.d("SFTP new session for ${info.host}")
+            Timber.d("SFTP new session for ${forLog(info.host)}")
             return pooled
         }
     }
@@ -338,7 +345,7 @@ class SftpConnectionPool(
     private fun failFastIfRecentlyUnreachable(info: SftpClient.SftpConnectionInfo) {
         val recent = connectionFailureCache.recentFailure(info) ?: return
         // Owner ask: a reused refusal must stay distinguishable from a real connection attempt.
-        Timber.i("SFTP connect skipped for ${info.host}:${info.port} - recent connect failure reused")
+        Timber.i("SFTP connect skipped for ${forLog(info.host)}:${info.port} - recent connect failure reused")
         throw recent
     }
 
@@ -348,7 +355,7 @@ class SftpConnectionPool(
 
     suspend fun invalidate(info: SftpClient.SftpConnectionInfo) {
         clearUnreachable(info)
-        invalidateSession(ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint))
+        invalidateSession(info.sessionKey())
     }
 
     private suspend fun invalidateSession(key: ConnectionKey) {
@@ -416,7 +423,7 @@ class SftpConnectionPool(
                         try {
                             pooled.pooledChannels.forEach { try { it.channel.disconnect() } catch (_: Exception) {} }
                             pooled.session.disconnect()
-                            Timber.d("SFTP closed idle session for ${key.host}")
+                            Timber.d("SFTP closed idle session for ${forLog(key.host)}")
                         } catch (e: Exception) { Timber.w("SFTP error closing idle session: ${e.message}") }
                     }
                 }
@@ -478,12 +485,7 @@ class SftpConnectionPool(
     @WorkerThread
     @Throws(IOException::class)
     fun getConnectionForExoPlayer(connectionInfo: SftpClient.SftpConnectionInfo): ExoPlayerConnection {
-        val key = ConnectionKey(
-            connectionInfo.host,
-            connectionInfo.port,
-            connectionInfo.username,
-            connectionInfo.expectedFingerprint
-        )
+        val key = connectionInfo.sessionKey()
         try {
             connectionSemaphore.acquire()
             val pooled = getOrCreateSessionBlocking(key, connectionInfo)
@@ -527,11 +529,11 @@ class SftpConnectionPool(
             // retrying a doomed reconnect.
             connectionSemaphore.release()
             Thread.currentThread().interrupt()
-            Timber.d("SFTP [PLAYBACK] acquire cancelled (player teardown) host=${connectionInfo.host}")
+            Timber.d("SFTP [PLAYBACK] acquire cancelled (player teardown) host=${forLog(connectionInfo.host)}")
             throw InterruptedIOException("SFTP connection acquire cancelled").apply { initCause(e) }
         } catch (e: Exception) {
             connectionSemaphore.release()
-            Timber.e(e, "SFTP [PLAYBACK] failed to get connection for ${connectionInfo.host}")
+            Timber.e(e, "SFTP [PLAYBACK] failed to get connection for ${forLog(connectionInfo.host)}")
             throw IOException("Failed to establish SFTP connection: ${e.message}", e)
         }
     }
@@ -566,6 +568,7 @@ class SftpConnectionPool(
             val jsch = JSch()
             applyIdentity(jsch, info, namePrefix = "exoplayer_key")
             val session = jsch.getSession(info.username, info.host, info.port)
+            ExchangeTunnelProxy.attachIfTunnel(session, info.host)
             applyAuth(session, info)
             session.timeout = SOCKET_TIMEOUT
             // Keep-alive lets JSch's own thread detect a half-open socket and fail the session,
@@ -582,7 +585,7 @@ class SftpConnectionPool(
             clearUnreachable(info)
             val pooled = PooledConnection(session = session, jsch = jsch)
             synchronized(pooledSessions) { pooledSessions[key] = pooled }
-            Timber.d("SFTP [PLAYBACK] new unified session created - host=${info.host}")
+            Timber.d("SFTP [PLAYBACK] new unified session created - host=${forLog(info.host)}")
             return pooled
         }
     }
@@ -592,7 +595,7 @@ class SftpConnectionPool(
      * [getConnectionForExoPlayer] so that function stays within its throw budget.
      */
     private fun refusePlaybackSharing(host: String, playbackCount: Int): Nothing {
-        Timber.w("SFTP [PLAYBACK] all $playbackCount slot(s) busy for $host - refusing to share")
+        Timber.w("SFTP [PLAYBACK] all $playbackCount slot(s) busy for ${forLog(host)} - refusing to share")
         throw IOException("All SFTP playback channels are busy")
     }
 
@@ -625,7 +628,7 @@ class SftpConnectionPool(
     ): ExoPlayerConnection {
         pooled.activeBorrowCount.incrementAndGet()
         playbackOwners[channel] = pooled
-        Timber.d("SFTP [PLAYBACK] acquired ($how) - active=${pooled.activeBorrowCount.get()} host=$host")
+        Timber.d("SFTP [PLAYBACK] acquired ($how) - active=${pooled.activeBorrowCount.get()} host=${forLog(host)}")
         return ExoPlayerConnection(pooled.session, channel)
     }
 
@@ -686,7 +689,7 @@ class SftpConnectionPool(
         remotePath: String
     ): Result<java.io.InputStream> = handingOffCloseable { handOff ->
         withContext(Dispatchers.IO) {
-            val key = ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint)
+            val key = info.sessionKey()
             try {
                 connectionSemaphore.acquire()
                 var handedOff = false
@@ -778,17 +781,24 @@ class SftpConnectionPool(
 
     // ── Disconnect all ───────────────────────────────────────────────────────────────────────────
 
-    suspend fun disconnectAll() = withContext(Dispatchers.IO) {
+    /** UI teardown preserves active borrowers; shutdown and network handover still force socket closure. */
+    suspend fun disconnectAll(preserveActiveBorrowers: Boolean = false) = withContext(Dispatchers.IO) {
         connectionFailureCache.clearAll()
         synchronized(pooledSessions) {
             stopPeriodicSweep()
-            pooledSessions.values.forEach { pooled ->
+            val retired = pooledSessions.values.toList()
+            // Remove before checking the count so a concurrent final release sees an orphan.
+            pooledSessions.clear()
+            retired.forEach { pooled ->
+                if (preserveActiveBorrowers && pooled.activeBorrowCount.get() > 0) {
+                    Timber.d("S4198: SFTP UI teardown deferred; activeBorrows=${pooled.activeBorrowCount.get()}")
+                    return@forEach
+                }
                 try {
                     pooled.pooledChannels.forEach { try { it.channel.disconnect() } catch (_: Exception) {} }
                     pooled.session.disconnect()
                 } catch (_: Exception) {}
             }
-            pooledSessions.clear()
         }
     }
 
@@ -830,7 +840,17 @@ class SftpConnectionPool(
 
     private fun applyAuth(session: Session, info: SftpClient.SftpConnectionInfo) {
         val strictHostKeyChecking = installPinnedHostKeyOrPermissive(session, info)
-        if (info.privateKey != null) {
+        val proof = info.rootProof
+        if (proof != null) {
+            // The only method a protected root accepts (SHARE-SESSION 1.2); no stored password is offered, so
+            // the ordinary password login can never be mistaken for the proof.
+            Timber.d("S4201: keyboard-interactive proof session")
+            session.userInfo = SftpRootProofUserInfo(proof, info.password)
+            val config = java.util.Properties()
+            config["StrictHostKeyChecking"] = strictHostKeyChecking
+            config["PreferredAuthentications"] = "keyboard-interactive"
+            session.setConfig(config)
+        } else if (info.privateKey != null) {
             if (info.passphrase != null) {
                 session.userInfo = object : com.jcraft.jsch.UserInfo {
                     override fun getPassphrase(): String = info.passphrase
@@ -873,7 +893,7 @@ class SftpConnectionPool(
         val fingerprint = info.expectedFingerprint ?: return "no"
         val canonical = SshFingerprintNormalizer.canonical(fingerprint)
         if (canonical == null) {
-            Timber.w("SFTP host-key pin ignored: unparseable fingerprint for host=${info.host}")
+            Timber.w("SFTP host-key pin ignored: unparseable fingerprint for host=${forLog(info.host)}")
             return "no"
         }
         session.setHostKeyRepository(PinnedHostKeyRepository(canonical))
@@ -881,6 +901,9 @@ class SftpConnectionPool(
     }
 
     companion object {
+        internal fun SftpClient.SftpConnectionInfo.sessionKey() =
+            ConnectionKey(host, port, username, expectedFingerprint, rootProof?.root)
+
         private const val CONNECTION_TIMEOUT = 10_000
         internal const val STREAM_CHANNEL_CONNECT_TIMEOUT_MS = CONNECTION_TIMEOUT
         internal const val SESSION_CONNECT_TIMEOUT_MS = CONNECTION_TIMEOUT
@@ -963,13 +986,32 @@ private fun connectSession(
     try {
         session.connect(SftpConnectionPool.SESSION_CONNECT_TIMEOUT_MS)
     } catch (e: JSchException) {
-        val pinned = session.hostKeyRepository as? PinnedHostKeyRepository
-        val offered = pinned?.offeredFingerprint ?: throw e
-        throw HostKeyMismatchException(expected = pinned.expectedCanonical, actual = offered)
+        throw connectFailure(session, info, e)
     }
     if (info.expectedFingerprint != null) return
     SshFingerprintNormalizer.fromBase64Key(session.hostKey?.key)
         ?.let { onFirstUseHostKey(info.host, info.port, it) }
+}
+
+/**
+ * What a failed handshake means: a pin rejection is a [HostKeyMismatchException] carrying both fingerprints, the
+ * failed authentication of a proof session is the owner's "locked" - the PIN is wrong or was changed - and
+ * anything else stays the JSch failure it was.
+ */
+private fun connectFailure(
+    session: Session,
+    info: SftpClient.SftpConnectionInfo,
+    failure: JSchException,
+): Exception {
+    val pinned = session.hostKeyRepository as? PinnedHostKeyRepository
+    val offered = pinned?.offeredFingerprint
+    return when {
+        offered != null && pinned != null ->
+            HostKeyMismatchException(expected = pinned.expectedCanonical, actual = offered)
+        info.rootProof != null && failure.message?.startsWith("Auth", ignoreCase = true) == true ->
+            NetworkPinRefusedException(failure)
+        else -> failure
+    }
 }
 
 /** The stream channel lives outside the pooled channel list; its borrow is counted instead. */

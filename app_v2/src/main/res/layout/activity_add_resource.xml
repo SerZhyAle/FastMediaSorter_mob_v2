@@ -356,6 +356,59 @@
 
                 </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
 
+                <!-- S4116: resources other devices of the account publish (contract DEVICE-EXCHANGE 9.1). Shown with the
+                     SFTP card, since every listed resource attaches as an SFTP resource. -->
+                <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView
+                    android:id="@+id/cardMyDevices"
+                    android:layout_width="@dimen/match_constraint"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/resource_card_margin_bottom"
+                    android:layout_columnWeight="1"
+                    app:cardCornerRadius="@dimen/card_corner_radius"
+                    app:cardElevation="@dimen/card_elevation"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/padding_large"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="@dimen/resource_card_icon_size"
+                            android:layout_height="@dimen/resource_card_icon_size"
+                            android:layout_marginEnd="@dimen/resource_card_icon_margin_end"
+                            android:src="@drawable/ic_sync"
+                            android:contentDescription="@string/add_resource_my_devices" />
+
+                        <LinearLayout
+                            android:layout_width="@dimen/match_constraint"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/add_resource_my_devices"
+                                android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Title"
+                                android:textStyle="@string/text_style_bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/add_resource_my_devices_description"
+                                android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Subtitle"
+                                android:textColor="?android:textColorSecondary" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
+
                 <!-- S0991: import entry points appended inside the type grid so they auto-hide with it when a type/section opens. -->
                 <TextView
                     android:id="@+id/tvImportSectionTitle"

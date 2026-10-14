@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.06 22:14</sub>
+
 # Utility Scripts
 
 Development utilities and tools for FastMediaSorter v2.

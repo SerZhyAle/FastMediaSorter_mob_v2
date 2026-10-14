@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.30 17:30</sub>
+
 # On-demand delivery inventory (S0386)
 
 Human-readable index of the heavy payloads delivered on demand. The binaries themselves are **not**

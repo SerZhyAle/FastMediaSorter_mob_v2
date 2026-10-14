@@ -20,7 +20,8 @@ class AddStreamSourceUseCase @Inject constructor(
     suspend operator fun invoke(
         url: String,
         title: String?,
-        sourceDeviceId: String? = null
+        sourceDeviceId: String? = null,
+        broadcastEndpoints: String? = null,
     ): AddResult {
         val trimmedUrl = url.trim()
         val rejection = rejectionFor(trimmedUrl)
@@ -36,7 +37,8 @@ class AddStreamSourceUseCase @Inject constructor(
             // New manual items take the default order; pin-to-top handles promotion afterwards.
             sortIndex = 0,
             addedAt = System.currentTimeMillis(),
-            sourceDeviceId = sourceDeviceId?.trim()?.takeIf { it.isNotEmpty() }
+            sourceDeviceId = sourceDeviceId?.trim()?.takeIf { it.isNotEmpty() },
+            broadcastEndpoints = broadcastEndpoints,
         )
         repository.add(entity)
         statsSink.record(StatsEvent.StreamAdded)

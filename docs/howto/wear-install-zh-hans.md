@@ -3,6 +3,8 @@ layout: default
 title: "在手表上安装 FastMedia - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-zh-hans.html
 ---
+<sub class="doc-stamp">26.09.30 11:26</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> 在手表上安装 FastMedia

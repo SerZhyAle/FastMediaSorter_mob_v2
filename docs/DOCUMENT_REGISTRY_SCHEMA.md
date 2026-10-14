@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.08.12 12:45</sub>
+
 # Document Registry Schema
 
 `docs/DOCUMENT_REGISTRY.jsonl` is the source of truth for maintained project documents and public site pages. One JSON object per line describes one logical document group. Generated indexes must not be edited by hand.

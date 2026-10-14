@@ -23,7 +23,7 @@
     <string name="widget_capture_ocr_panel_description">الوصول السريع إلى صور الكاميرا وتقنية التعرف الضوئي على الأحرف (OCR) الخاصة بالكاميرا.</string>
     <string name="widget_capture_ocr_panel_label">التقاط الصور والتعرف الضوئي على الأحرف</string>
     <string name="widget_continue_reading_description">استئناف عرض الشرائح من آخر موضع</string>
-    <string name="widget_continue_reading_label">تابع القراءة</string>
+    <string name="widget_continue_reading_label">متابعة القراءة</string>
     <string name="widget_favorites_description">الوصول السريع إلى الملفات المفضلة</string>
     <string name="widget_favorites_label">المفضلة</string>
     <string name="widget_pin_not_supported">لا يدعم هذا الجهاز تثبيت الأدوات المصغّرة</string>

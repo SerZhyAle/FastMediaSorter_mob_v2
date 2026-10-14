@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.24 04:19</sub>
+
 # Icon documentation - conventions
 
 This folder holds the machine-generated icon system that lets the user docs show the

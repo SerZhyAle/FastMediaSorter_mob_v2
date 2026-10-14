@@ -2,10 +2,9 @@ package com.sza.fastmediasorter.identity
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.security.EncryptedPrefsOpener
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccount
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -18,8 +17,9 @@ import javax.inject.Singleton
  * Encrypted-only persistent store for the primary Google account binding (strategic S0200 §5.1).
  *
  * Modelled after `EncryptedCookieStore` - NEVER falls back to plaintext SharedPreferences on
- * Keystore failure. If encrypted-prefs initialization throws (e.g. corrupted Keystore,
- * unsupported device), the failure propagates to the caller and `CredentialManagerGoogleIdentityRepository`
+ * Keystore failure. A keyset the Keystore master key no longer decrypts is reset once by
+ * [EncryptedPrefsOpener], so the account is simply unbound instead of every restore failing; any other
+ * initialization failure still propagates to the caller and `CredentialManagerGoogleIdentityRepository`
  * surfaces it as `PrimaryGoogleAccountState.Error(IdentityFailureReason.UnknownError)`.
  *
  * The token strings themselves are not stored here - only the [PrimaryGoogleAccount] identity envelope.
@@ -31,18 +31,7 @@ class PrimaryGoogleAccountStore @Inject constructor(
     private val gson: Gson,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
-    private val prefs: SharedPreferences by lazy {
-        val masterKey = MasterKey.Builder(context)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-        EncryptedSharedPreferences.create(
-            context,
-            PREFS_NAME,
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-    }
+    private val prefs: SharedPreferences by lazy { EncryptedPrefsOpener.open(context, PREFS_NAME) }
 
     suspend fun load(): PrimaryGoogleAccount? = withContext(ioDispatcher) {
         val json = prefs.getString(KEY_ACCOUNT, null) ?: return@withContext null

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.13 14:51</sub>
+
 # FastMediaSorter v2: OPS & Guidelines
 
 ## BUILD COMMANDS (PowerShell)
@@ -1684,7 +1686,7 @@ The phone equivalent of the walk above, and deliberately not the same code (stra
 pwsh -NoProfile -File scripts/devtest/ui-sweep-bench.ps1 -Profile small-phone -Ensure
 pwsh -NoProfile -File scripts/devtest/ui-sweep-bench.ps1 -Profile small-phone -Assert -DeviceId emulator-5554
 pwsh -NoProfile -File scripts/devtest/ui-sweep-seed.ps1 -DeviceId emulator-5554
-pwsh -NoProfile -File scripts/devtest/ui-sweep-walk.ps1 -Subset quick -DeviceId emulator-5554
+pwsh -NoProfile -File scripts/devtest/ui-sweep-walk.ps1 -Subset quick -DeviceId emulator-5554 -Detach
 pwsh -NoProfile -File scripts/devtest/ui-sweep-compress.ps1 -CorpusDir temp/S2380/sweep -OutDir temp/S2380/sweep-compressed
 ```
 
@@ -1693,6 +1695,7 @@ pwsh -NoProfile -File scripts/devtest/ui-sweep-compress.ps1 -CorpusDir temp/S238
 - **Exit codes, and why 1 and 2 must not be merged.** `ui-sweep-bench.ps1`: 0 matched or created, 1 the attached device is not the declared profile, 2 could not look. `ui-sweep-walk.ps1`: 0 every combination walked, 1 at least one product defect - a screen opened and its expected token was absent, 2 could not verify - an unreachable control, an unconfirmed combination state, an unreadable tree, or the row-count identity failing. `ui-sweep-compress.ps1`: 0 compressed, 1 the corpus is present but unusable (no journal, output outside `temp/`), 2 no corpus found. "The app is broken here" and "the walk never got to judge" call for opposite reactions, on every one of the three.
 - **The walk's journal is read beside the corpus, never after it.** `temp/S2380/sweep/sweep-journal.json` carries one row per screen per combination with an explicit outcome - `observed`, `failed`, `unreachable`, `manual`, `skipped`, `refused-state`, `refused-secure` - and the run asserts rows equal screens times combinations before it scores itself. A proposal about a screen that never opened and one about a screen photographed in every combination are different claims.
 - **A refusal to reach the start screen writes down what it saw.** When `Wait-ForMainScreen` gives up, the walk persists the last tree it read as `temp/S2380/sweep/refusal-main-screen-NN.xml`, beside a `.txt` naming the markers it was looking for, the node count, the foreground activity and the window that held focus - and the failure reason carries that path. Read the tree, never the sentence: one and the same refusal text covers a wizard standing in front of the matrix, a marker not drawn at this width, and a launch that merely outran the wait budget, and S2380 diagnosed two of those three wrongly before the artifact existed.
+- **A walk started by an agent or a background task runs with `-Detach`.** The console it is launched from can disappear while the walk runs, and from that moment no child process starts: four quick runs on 2026-10-03 died 8 to 62 minutes in, and one of them spent its last twenty minutes recording every screen as unreachable because each `adb.ps1` call exited 0xC0000142 in 5 ms. `-Detach` re-launches the walk in a hidden console of its own and waits for it; without it, three loader failures in a row now stop the walk with exit 2 and that reason instead of a journal of a dead process.
 - **A frame name carries both the combination and the screen** (`<combination>__<screen>[__xNN]`), because that stem is the only link back once the frames leave the walk, and the review is required to name the combination for every observation. The `__xNN` suffix is a declared expand node captured on its own.
 - **Compression marks a dead frame, it never deletes one.** The three skip reasons - `zero-byte`, `near-black`, `unreadable` - come from `scripts/devtest/lib/frame-signal.ps1`, shared with `find-recent-screenshots.ps1` so the two paths cannot disagree about the same image, and a dropped frame stays in the raw corpus and appears in the manifest with its reason. Deleting it would make a screen that was photographed and came back empty look like a screen that was never swept - the opposite claim. `temp/S2380/sweep-compressed/sweep-manifest.json` plus the compressed frames are the review's whole input; `.claude/skills/screenshot-usability-audit/SKILL.md` reads them and knows nothing about the walk.
 - **Two device-state side effects outlive the run, and neither is visible in any script's output.** The seed leaves synthetic media under `/storage/emulated/0/Download/FastMediaSorter_UiSweep` registered in MediaStore, and the walk switches the app's secure-sensitive-screens setting off so `FLAG_SECURE` surfaces can be photographed at all, restoring it on every exit path including an aborted one. A run killed mid-way leaves both behind - check them before trusting the next run on that emulator.
@@ -2298,6 +2301,18 @@ disconnects. Contract suite: `scripts/builders/gradle-progress-watch.tests/Run-T
 The same shape as `fms.unitTestTimeoutMinutes` in `gradle.properties` (S2585) and for the same
 reason - a wrapper that waits forever holds its build domain forever.
 
+## DOCUMENT LAST-EDITED STAMP
+
+Every Markdown and HTML document carries one visible line, `yy.MM.dd HH:mm`, at its top: `<sub class="doc-stamp">` in Markdown (after the front matter and any leading HTML comment), a small `<div class="doc-stamp">` after `<body>` in HTML. `scripts/docs/stamp-doc-dates.ps1` writes it; the closure (`post-change.ps1`, step `doc-stamp`) runs it on every `.md`/`.html` of the changed set and on `dev/CHANGELOG.md`.
+
+- **The date is the file's own LastWriteTime**, floored to the minute, and the script restores that LastWriteTime after writing. A stamp older than the file's mtime therefore means "edited since", with no state kept anywhere else, and a second run over unchanged files writes nothing.
+- **An existing stamp is patched in place**, 14 bytes, never by rewriting the file: `dev/CHANGELOG.md` is 8.5 MB and another process appends rows to it, so a whole-file rewrite could drop one.
+- **Generated files are skipped by default.** A generator that re-renders its output and then compares it with the disk reports drift on a stamp it did not write. Marker in the first 1500 characters (`GENERATED by`, `Do not edit`), `documentation/**/*.html` and the translated landing pages count as generated; `-IncludeGenerated` overrides it for a generator that already ignores the stamp.
+- **Portal recipe pages are the exception.** `scripts/docs/generate-docs-pages.ps1` lifts the stamp out of the source recipe (`docs/content/recipes*/*.md`) before compiling and puts the same date into the page, so `-Check` stays deterministic and a regeneration never invents a newer date. `-StampOnly` refreshes the line on the existing pages without a render.
+- **Never stamped:** `PLAN/` (the catalog rewrites those headers), `temp/`, the read-only trees, `.claude/`, `.github/`, and `CLAUDE.md` / `AGENTS.md` / `GEMINI.md`, which every prompt re-reads.
+
+`-Check` lists what is missing or stale and exits 1; `-All` covers the whole documentation scope.
+
 ## BUILD TYPES
 
 | Type | minify | shrink | debuggable | appId suffix | notes |
@@ -2405,6 +2420,44 @@ The formula lives in exactly two places that are kept byte-compatible - `Get-Bui
 `scripts/utils/build-version-stamp.ps1` for scripts, and `gradle/build-version-stamp.gradle.kts`
 inside the build.
 
+## SITE ADDRESSES: NOT-FOUND PAGE, FORWARDERS, HELD ADDRESSES (S4097, S4101)
+
+Contract SITE-STRUCTURE 0.1 rules 8, 10, 11, 13, 15. Parameters and exit codes live in the script headers (`scripts/docs/generate-site-redirects.ps1`, `scripts/docs/retire-docs-page.ps1`, `scripts/docs/migrate-locale-addresses.ps1`, `scripts/quality/assert-site-addresses.ps1`); this section keeps only why they are shaped as they are.
+
+- **`404.html` is built with `relative_url` everywhere.** The host serves the one file for any missing address at any depth, so a relative `href` or `src` breaks on the second path segment. The language comes from the browser (`sza-lang`, then `navigator.language`) because the host cannot tell it; with scripts off the English block shows. The page is `noindex` and sits in a registry record with `indexable: false`, so its `permalink:` never reaches `sitemap.xml`.
+- **A forwarder is a static file with no front matter.** Jekyll copies it as it is, its path is its address, and it declares no permalink, so it never enters the sitemap. Its text comes from `Get-ForwarderHtml`, the one function both the generator and the gate compare against.
+- **The registry demands an exclusion row for a forwarder under `documentation/*/*.html`**, because `docs-corpus-pages` covers that glob and a file there must announce itself or be excluded. The rows are derived from `docs/site-redirects.jsonl` by the generator and checked by the gate, never written by hand.
+- **`is_published: false` in `docs/docs-pages-manifest.jsonl` means withdrawn.** The subject index and the search index skip such a page, and the search index also skips any file carrying the `fms-forwarder` marker; without both, a retired page stays findable as a "planned" topic.
+- **Measured when the gate was added:** 328 html files under `documentation/` were 315 recipe outputs plus 13 declared hubs, so the orphan check was green from the first run; none of the 10 removed capabilities left a page without live coverage rows, so the retirement check guards future removals only.
+- **Held addresses (S4101): the list is compared with the sources, not only checked.** `docs/site-held-addresses.jsonl` is judged both ways - an address a holder carries but the list lacks, and a listed address no holder carries, are both findings - because a list judged only from its own side goes stale unnoticed, which is how the comment about a Ukrainian portal outlived the page. Kotlin `val NAME = "https://.."` prefixes that the same file interpolates are expanded and not counted as addresses; an address built at run time (the help-link resolver) is the `resolver` record, judged by its `page(..)` calls, its `TRANSLATED_LANGUAGES` set and the manifest instead.
+- **An address another product links to is held one-sided (S4141).** The xternal record kind names product holders (FMS_W, StreamsPlayer, StreamsPlayer_mob for the media exchange portal) whose source this repository cannot read, so the both-ways comparison above is impossible for it; the gate keeps the half it can see - the address must still answer a published page and must not be a forwarder - and its refusal names the products, because a rename here breaks links nobody in this tree can fix.
+- **A held address may not be a forwarder.** A forwarder keeps an old release working; the current source holding one means a move was not followed through, so the finding names the target to repoint to.
+- **One suffix form, and why the freeze ended (S4101).** S1211 renamed the doc files to `-ru.md` but froze every `permalink:` because no forwarder existed. With forwarders available, `scripts/docs/migrate-locale-addresses.ps1` moved 54 addresses (46 `_RU/_UK`, 4 `.ru/.uk`, 2 wear `ICON_LEGEND`, 2 `_EN`) to `<name>-<lang>.html`, since the reference group already mixed `FAQ_RU.html` with `FAQ-ar.html`. The declaration is `docs/site-address-groups.json`; `locale-scheme` reads the languages from `_data/languages.yml`.
+- **Measured when the dimensions were added:** `held-addresses` 7.4 s (it reads about 3500 Kotlin files, so its trigger is a changed holder, never any `.kt`), `locale-scheme` 0.8 s over 1846 published addresses. The landing generator reported all ten generated pages stale before the move; regenerating them was part of it.
+
+## SITE THIRD-PARTY ORIGINS (S4098)
+
+Contract SITE-EXPERIENCE 0.1 rule 14. The declaration is `scripts/quality/site-origins.psd1`, the gate `scripts/quality/assert-site-origins.ps1`; parameters and exit codes live in the gate's header. This section keeps only why they are shaped as they are.
+
+- **A load counts, a link does not.** The rule is about requests a page makes on its own; an `<a href>` is a click the visitor chooses. Counting links would have declared GitHub, Google Play and every reference in the documentation, and the privacy page would have become a link list.
+- **The published set is derived, not listed.** The gate reads `_config.yml`'s `exclude:` and Jekyll's underscore and dot rules. The first sweep found three hosts the S4096 pass had missed - `img.shields.io`, `gitlab.com`, `raw.githubusercontent.com` - on the `docs/README*` pages, which a list of "site pages" written by hand did not hold.
+- **A theme can load a host no file names.** `jekyll-theme-cayman` loads Google Fonts on every `docs/*.md` page. A record with `Theme` counts as loaded while `_config.yml` names that theme, so the record goes stale when the theme is replaced, not before.
+- **The trust and privacy pages come from `install-trust.psd1`.** One list of those pages, read by both gates.
+- **Measured when the gate was added:** 1099 published files, 39 MB, 362 of them loading a third-party host. Six whole-file regex passes took 3.8 s; one pass for the loading tags, with every other pass gated by an ordinal probe, takes 1.9 s. That is why the trigger in `post-change-docs-corpus-gates.ps1` is a published page, stylesheet, script or template, and why the gate runs pooled.
+- **Not judged:** the hosts the AdSense script loads at run time, which no file names. The privacy pages say so instead of listing them.
+
+## SITE FACTS (S4100)
+
+Contract SITE-REPRESENTATION 0.1 rules 3 and 4. The declaration is `docs/flavors/public-editions.psd1`, the reader `scripts/docs/lib/site-facts.ps1`, the gate `scripts/quality/assert-site-facts.ps1`; parameters, dimensions and exit codes live in the gate's header. This section keeps only why they are shaped as they are.
+
+- **The matrix lists variants, the declaration says which are public.** `docs/flavors/flavor-matrix.json` holds eight variants and `xr` is one of them; the site names seven editions. Nothing said so, which made "7" look like a stale number. The declaration carries the decision (`Editions` with one display name each, `NotPublic` with a reason) and the matrix stays the owner of the variants: a variant named in neither list, or named but absent from the matrix, is a finding.
+- **Publishing an edition is one record moved.** Move it from `NotPublic` to `Editions`, give it a name, then fix every page the gate names. Nothing else lists the editions.
+- **A count is compared, not rendered into prose.** The number sits inside a sentence in three languages on several hundred pages; a template would have to own the grammar of each. Generators that print the count (`generate-glossary.ps1`) read it from `Get-SiteFacts`; prose is judged by the gate.
+- **Only 6 to 12 is judged.** "Five editions" is a subset on purpose; "eight variants" of the watch colour themes is a different noun and is not read.
+- **The minimum Android version is the mainline edition's `minSdk`.** `Mainline` names the edition whose minimum the landing quotes; `AndroidVersionFor` maps the API level and throws on one it does not know, so a new `minSdk` stops the gate until the mapping is extended. On a landing page every "Android N+" is judged; elsewhere only the dotted form, because "Android 13+" is a feature requirement.
+- **Per ticket by Rule 33.** The trigger in `post-change-docs-corpus-gates.ps1` is a landing page, a documentation page, a recipe, a document under `docs/`, the label script, the declaration or the matrix; the gate runs pooled and hints at `site-facts` in `gate-recovery-hints.psd1`.
+- **Rule 9 - the availability badge is derived from the build (S4107).** The English recipe names what its function depends on in `availability:` (a matrix flag, a main source set, `companion:<id>` or `all`; terms joined by a comma form a union, atoms joined by `+` an intersection) and `devices:` from a fixed list; `scripts/docs/lib/page-availability.ps1` renders the words for both the generator and the gate dimension `availability`. Not derived from `docs/ALL_FEATURES.jsonl`: its `flavors` lists are coarser than the build (43 of 47 "All editions" pages covered a capability with a narrower list), so a page's mark would follow the inventorys noise. Source sets count as the matrix because screen capture and OCR are gated by a mounted set and by no flag. Detail the badge cannot carry stays as `availability_note:` under the badge row; the free-text `flavor:` key is retired.
+
 ## RELEASE TREE BINDING (S4057)
 
 The release AAB is not the build CI tested. CI tests the DEBUG head that `/skill-release` pushes in
@@ -2429,7 +2482,7 @@ step-12 build and step 12a; a refusal stops the release before any store sees it
 
 [`docs/FLAVOR_MATRIX.md`](FLAVOR_MATRIX.md) is the canonical, generated answer to "which capability is available in which flavor" - rendered from the `productFlavors` block by `scripts/docs/generate-flavor-matrix.ps1`, together with the machine-readable `docs/flavors/flavor-matrix.json`. The two tables below are a working summary of it and are checked against it cell by cell by `scripts/quality/assert-flavor-matrix-docs.ps1` (in `.\a.ps1 fg` and in `post-change.ps1`), so an inverted marker fails instead of drifting. Change `app_v2/build.gradle.kts`, then regenerate; never fix a disagreement by editing the generated table.
 
-That gate reads glyph table CELLS and, by its own manifest, never looks at prose - which is how the seventh flavor `foss` left thirteen documents and `a.ps1`'s help text still saying six, twice over after S1392. The sentences are covered by `scripts/quality/assert-flavor-count-prose.ps1` (in `.\a.ps1 fg`), which resolves two lexical claims against the same generated JSON: a numeral standing next to a flavor noun under an all-quantifier, and a list presented as the complete set - a `-Flavor A|B|C` value list, or a parenthesised name list right after an all-quantifier. A deliberate subset is not a finding, so naming four flavors that carry Streams stays legal. When a sentence only means "every flavor", drop the number rather than correcting it: text with no count cannot go stale.
+That gate reads glyph table CELLS and, by its own manifest, never looks at prose - which is how the seventh flavor `foss` left thirteen documents and `a.ps1`'s help text still saying six, twice over after S1392. Prose is not gated: a sentence that means "every flavor" carries no number and no complete list - it points at `docs/FLAVOR_MATRIX.md` instead, because text with no count cannot go stale. S2445 once gated flavor counts in prose; S4190 retired that gate together with the counts, after it and its two sibling prose-count gates were red in a quarter of all `fg` runs on other sessions' work.
 
 ### Core feature matrix
 
@@ -2484,7 +2537,7 @@ Cast is disabled in `vr` (Horizon OS lacks the Google Play Services Cast module)
 
 ## DATABASE
 
-Room schema version: 60 (`@Database(version = ..)` in `AppDatabase.kt` is the source of truth - read it rather than this line).
+Room schema version: 62 (`@Database(version = ..)` in `AppDatabase.kt` is the source of truth - read it rather than this line).
 Library: `room-runtime:2.7.0`.
 Migrations: one `MigrationNNToNN.kt` file per step in `data/local/db/`, registered in `core/di/DatabaseModule.kt`.
 Exported schemas: `app_v2/schemas/<db-class>/<version>.json`, generated by the build and committed.
@@ -2778,3 +2831,13 @@ Steps:
 ### ADR log
 
 _(no rotations have happened yet - first entry will land here.)_
+
+## Dynamic audit stand (S4166)
+
+Verbs, parameters and exit codes: `scripts/devtest/dynamic-audit/da.ps1` (its header is the only home). Raw runs, backups and dumps stay under the ticket scratch root; only anonymised aggregates reach `PLAN/S4166_deep-dynamic-audit/`.
+
+- **The stand is external to the app.** Controller, probes and sampler run on the host and read the emulator through adb; an in-app timer measures only what the app reports about itself, so a timestamp from the app is correlation, never the measurement. The adb round trip is measured separately by the calibration verb and is never presented as a UI ping.
+- **Every mutating verb is refused without a verified backup.** A run that writes into the app's data, its external directory or the shared Download tree starts with a durable restore checkpoint and ends with a restore compared against the backup manifest. A missing or unverified backup, or a restore left pending by a killed run, exits 2 before anything is touched; the next start runs the pending restore first.
+- **Measured backup cost.** On Pixel_9 API 35 the debug build's private directory was 355 files, 308 MB as a tar; the capture took 7.0 s and a restore of it 21-29 s. 51 restores of that one backup were recorded across the first-pass runs, each compared with the manifest.
+- **The restore timeout must cover a deletion, not only a copy.** A 10000-item fixture set is ten thousand FUSE deletions: the removal of the stand's fixture root ran into the 120 s default adb timeout (measured 120197 ms on 2026-10-13), left the root on the device and failed the restore comparison. The removal now has its own long timeout and fails the restore step on a non-zero exit instead of being judged only by the later comparison.
+- **Emulator only.** Every device verb accepts only an `emulator-*` serial whose kernel reports `ro.kernel.qemu=1`; the stand cannot run against a phone listed in `docs/DEVICE_FLEET.md`.

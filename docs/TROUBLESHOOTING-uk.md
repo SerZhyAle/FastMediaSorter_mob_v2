@@ -1,8 +1,10 @@
 ---
 layout: default
 title: "🔧 Посібник з усунення несправностей"
-permalink: /docs/TROUBLESHOOTING_UK.html
+permalink: /docs/TROUBLESHOOTING-uk.html
 ---
+<sub class="doc-stamp">26.10.09 14:26</sub>
+
 # 🔧 Посібник з усунення несправностей
 
 Часті проблеми та рішення для FastMediaSorter v2.
@@ -171,7 +173,7 @@ permalink: /docs/TROUBLESHOOTING_UK.html
 **Рішення:**
 1. Натисніть кнопку **ⓘ (Інфо)** у верхній панелі
 2. Натисніть **"Відкрити у зовнішньому плеєрі"**
-3. Виберіть спеціалізований плеєр (наприклад, VLC, MX Player)
+3. Виберіть спеціалізований плеєр
 
 Це використовує функцію *Secondary Player* для передачі непідтримуваних кодеків іншим програмам.
 

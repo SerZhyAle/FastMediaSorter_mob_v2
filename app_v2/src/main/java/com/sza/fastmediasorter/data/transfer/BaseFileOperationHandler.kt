@@ -241,6 +241,7 @@ abstract class BaseFileOperationHandler(
                                 trashFolderCreated = true
                             } else {
                                 errors.add("Failed to write metadata for $parentPath")
+                                discardEmptyTrashSnapshot(strategy, batchTrash, parentPath)
                             }
                         } else {
                             errors.add("Failed to create trash folder $batchTrash")
@@ -286,6 +287,10 @@ abstract class BaseFileOperationHandler(
                             errors.add("Failed to $action ${file.name}: ${error.message}")
                         }
                     )
+                } catch (e: BatchDeletePermissionRequiredException) {
+                    // FileOperationUseCase turns this into PermissionRequired for the UI to launch; counted
+                    // as a per-file error here it never reaches the consent dialog and the delete just fails.
+                    throw e
                 } catch (e: Exception) {
                     e.rethrowIfCancellation()
                     Timber.e(e, "executeDelete: Exception deleting ${file.name}")
@@ -296,6 +301,25 @@ abstract class BaseFileOperationHandler(
 
         val resultPaths = if (operation.softDelete && trashedPaths.isNotEmpty()) trashedPaths else deletedPaths
         return@withContext buildDeleteResult(successCount, operation, resultPaths, errors, softDeleteFallbackPaths)
+    }
+
+    // A snapshot whose metadata could not be written never receives files, and leaving it makes an
+    // empty ".trash" appear next to the user's media. Best effort: the delete result must not change.
+    private suspend fun discardEmptyTrashSnapshot(
+        strategy: FileOperationStrategy,
+        snapshotPath: String,
+        parentPath: String
+    ) {
+        try {
+            strategy.deleteFile(snapshotPath)
+            val container = TrashFolderContract.buildContainerPath(parentPath)
+            if (strategy.listFiles(container).getOrNull()?.isEmpty() == true) {
+                strategy.deleteFile(container)
+            }
+        } catch (e: Exception) {
+            e.rethrowIfCancellation()
+            Timber.w(e, "executeDelete: could not discard empty trash snapshot $snapshotPath")
+        }
     }
 
     protected open suspend fun copyFile(sourcePath: String, destPath: String, overwrite: Boolean, progressCallback: ByteProgressCallback?): Result<String> {

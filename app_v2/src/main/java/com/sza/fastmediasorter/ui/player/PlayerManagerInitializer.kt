@@ -1022,11 +1022,13 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             activity.audioSlideshowPhotoModeManager
 
         // Wire FilenameOverlayAutoHideManager - controls auto-hide timing for tvFileNameOverlay. Use actual command-panel visibility rather than raw showCommandPanel state, because audio can force the panel visible while the ViewModel flag stays false.
+        // Both lambdas run from the manager's delayed runnable, and activityBinding throws once the
+        // activity is destroyed, so a destroyed host answers the safe value instead of reading it.
         activity.dialogAndUiStateManager.filenameOverlayManager = FilenameOverlayAutoHideManager(
             overlayView = activity.activityBinding.tvFileNameOverlay,
-            isFullscreen = { !activity.activityBinding.topCommandPanel.isVisible },
+            isFullscreen = { !activity.isDestroyed && !activity.activityBinding.topCommandPanel.isVisible },
             companionViews = {
-                if (!activity.activityBinding.topCommandPanel.isVisible) {
+                if (!activity.isDestroyed && !activity.activityBinding.topCommandPanel.isVisible) {
                     activity.playerVrLaunchManager?.overlayViewsForAutoHide().orEmpty()
                 } else {
                     emptyList()

@@ -745,15 +745,15 @@ scripts/builders/build-release.ps1
 ```
 
 ### build-sbom.ps1
-S3371: produce the CycloneDX SBOM for one module.
+Produce the CycloneDX SBOM for one module (S3371).
 
 ```
 scripts/builders/build-sbom.ps1
-  S3371: produce the CycloneDX SBOM for one module.
+  Produce the CycloneDX SBOM for one module (S3371).
   Params:
     -Module         [String] = 'app_v2'  {app_v2|wear}
     -OutDir         [String]
-  Exit: 0 - the SBOM was written; its path is printed.; 1 - the gradle task failed, or it reported success and wrote no file.; 2 - the module name is not one this repository has.; 4 - the module's build domain is held by another session (Enter-BuildLockOrExit).
+  Exit: 0 - a fresh SBOM was written; its path is printed.; 1 - Gradle failed, the report is absent, or report publication failed.; 2 - the Gradle wrapper or required SZA harness is unavailable.; 4 - the module's build domain is queued (Enter-BuildLockOrExit).
 ```
 
 ### build-standard-debug.ps1
@@ -809,6 +809,19 @@ scripts/builders/build-vr-release.ps1
     -DryRun              [SwitchParameter]
     -VersionName         [String]
     -VersionCode         [Int32]
+```
+
+### build-watchface-debug.ps1
+Build, verify, and optionally install the debug watch face APK (:watchface) (S4134).
+
+```
+scripts/builders/build-watchface-debug.ps1
+  Build, verify, and optionally install the debug watch face APK (:watchface) (S4134).
+  Params:
+    -Install          [SwitchParameter]
+    -DeviceId         [String]
+    -NoBuild          [SwitchParameter]
+  Exit: 0 - build and verification succeeded (and install succeeded if requested); 1 - verification failed, artifact missing, or invalid parameters; 2 - build lock wait timed out; 3 - JVM / toolchain start failure
 ```
 
 ### build-watchface-release.ps1
@@ -1117,6 +1130,17 @@ scripts/builders/build-queue-refusal.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2612) - contract suite for scripts/builders/build-queue-refusal.ps1.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\builders\build-sbom.tests
+
+### Run-Tests.ps1
+Hermetic regression suite for the module SBOM builder and licence configuration.
+
+```
+scripts/builders/build-sbom.tests/Run-Tests.ps1
+  Hermetic regression suite for the module SBOM builder and licence configuration.
+  (no param block)
 ```
 
 ## scripts\builders\device-build-mode.tests
@@ -1609,6 +1633,7 @@ scripts/devtest/ui-sweep-walk.ps1
     -Lean                           [SwitchParameter]
     -SkipSetup                      [SwitchParameter]
     -RehomeAfterUnreachable         [Int32] = 2
+    -Detach                         [SwitchParameter]
     -Json                           [SwitchParameter]
   Exit: 0 - every declared combination walked: every row observed or legitimately skipped; 1 - at least one product defect observed - a screen opened and its expected token was absent; 2 - could not verify: at least one row is unreachable, manual or a run-level refusal
 ```
@@ -1807,6 +1832,198 @@ scripts/devtest/devtest-encoding.tests/Run-Tests.ps1
   Exit: 0 - all audited devtest/utils scripts contain OutputEncoding configuration.; 1 - at least one audited script is missing OutputEncoding configuration.
 ```
 
+## scripts\devtest\dynamic-audit
+
+### da.ps1
+Facade of the S4166 dynamic-audit stand: emulator guard, verified backup, restore, recovery and fixtures.
+
+```
+scripts/devtest/dynamic-audit/da.ps1
+  Facade of the S4166 dynamic-audit stand: emulator guard, verified backup, restore, recovery and fixtures.
+  Params:
+    -Verb              (req)  [String]  {Preflight|Backup|VerifyBackup|BeginMutation|Restore|Recover|Fixture|Status|BuildInventory|BuildMatrix|BuildUCards|Calibrate|Control|Access|Scene|Heavy|Cycle|Analyze|Report}
+    -Serial                   [String]
+    -Package                  [String] = 'com.sza.fastmediasorter.debug'
+    -Set                      [String] = 'small'  {small|n1000|n10000}
+    -RemoteDir                [String]
+    -Reason                   [String] = 'scene run'
+    -RunId                    [String]
+    -Seed                     [Int32] = 4166
+    -ColdStarts               [Int32] = 10  {range 1..1000}
+    -WarmStarts               [Int32] = 10  {range 1..1000}
+    -KeyProbes                [Int32] = 30  {range 1..100000}
+    -KeyBlocks                [Int32] = 3  {range 1..100}
+    -KeyPeriodMs              [Int32] = 1000  {range 200..60000}
+    -ProbePeriodMs            [Int32] = 200  {range 20..60000}
+    -CalibrationTicks         [Int32] = 150  {range 10..100000}
+    -TransportProbes          [Int32] = 40  {range 5..10000}
+    -SamplerCostSec           [Int32] = 20  {range 5..3600}
+    -InjectFault              [String] = 'none'  {none|late-tick|sampler-gap}
+    -StandFix                 [String]
+    -Screen                   [String] = 'current screen'
+    -Scene                    [String]  {C01|C02|C03|C07|C15|C05|C06|C12|C14|C16}
+    -Fault                    [String]
+    -FreshBackup              [SwitchParameter]
+    -Cycles                   [Int32] = 20  {range 1..1000}
+    -WarmupCycles             [Int32] = 3  {range 0..999}
+    -IdleSec                  [Int32] = 60  {range 1..3600}
+    -HeapSnapshot             [SwitchParameter]
+    -RunDir                   [String]
+  Exit: 0 - ok; 1 - finding (a fixture tree differs from its manifest; a scene broke an invariant, recorded a candidate
+```
+
+## scripts\devtest\dynamic-audit\da-access.tests
+
+### Run-Tests.ps1
+Contract suite of lib/da-access.ps1 (S4166 phase 06), run without a device or an emulator.
+
+```
+scripts/devtest/dynamic-audit/da-access.tests/Run-Tests.ps1
+  Contract suite of lib/da-access.ps1 (S4166 phase 06), run without a device or an emulator.
+  (no param block)
+  Exit: 0 - every case passed; 1 - a case failed
+```
+
+## scripts\devtest\dynamic-audit\da.tests
+
+### Run-Tests.ps1
+Contract suite of the S4166 dynamic-audit stand, run without a device.
+
+```
+scripts/devtest/dynamic-audit/da.tests/Run-Tests.ps1
+  Contract suite of the S4166 dynamic-audit stand, run without a device.
+  (no param block)
+  Exit: 0 - every case passed; 1 - a case failed
+```
+
+## scripts\devtest\dynamic-audit\lib
+
+### da-access.ps1
+Understanding and access layer of the S4166 dynamic-audit stand: switch cards, the owner's protocol, accessibility, RTL and text-size preconditions, message-copy review.
+
+```
+scripts/devtest/dynamic-audit/lib/da-access.ps1
+  Understanding and access layer of the S4166 dynamic-audit stand: switch cards, the owner's protocol, accessibility, RTL and text-size preconditions, message-copy review.
+  (no param block)
+```
+
+### da-common.ps1
+Shared library of the S4166 dynamic-audit stand: exit codes, monotonic clock, adb process wrappers, JSON IO, paths.
+
+```
+scripts/devtest/dynamic-audit/lib/da-common.ps1
+  Shared library of the S4166 dynamic-audit stand: exit codes, monotonic clock, adb process wrappers, JSON IO, paths.
+  (no param block)
+```
+
+### da-cycle.ps1
+Load and growth cycle scenes of the S4166 dynamic-audit stand: C05, C06, C12, C14, C16 and the cycle runner.
+
+```
+scripts/devtest/dynamic-audit/lib/da-cycle.ps1
+  Load and growth cycle scenes of the S4166 dynamic-audit stand: C05, C06, C12, C14, C16 and the cycle runner.
+  (no param block)
+```
+
+### da-emulator.ps1
+Emulator-only target guard and emulator lifecycle of the S4166 dynamic-audit stand.
+
+```
+scripts/devtest/dynamic-audit/lib/da-emulator.ps1
+  Emulator-only target guard and emulator lifecycle of the S4166 dynamic-audit stand.
+  (no param block)
+```
+
+### da-fault.ps1
+Fault catalogue reader and emulator fault injectors of the S4166 dynamic-audit stand (scene C15).
+
+```
+scripts/devtest/dynamic-audit/lib/da-fault.ps1
+  Fault catalogue reader and emulator fault injectors of the S4166 dynamic-audit stand (scene C15).
+  (no param block)
+```
+
+### da-fixture.ps1
+Deterministic synthetic fixture sets and the independent tree hash of the S4166 dynamic-audit stand.
+
+```
+scripts/devtest/dynamic-audit/lib/da-fixture.ps1
+  Deterministic synthetic fixture sets and the independent tree hash of the S4166 dynamic-audit stand.
+  (no param block)
+```
+
+### da-inventory.ps1
+Builds the S4166 dynamic-audit coverage data: manifest, capability list, scenes, budgets, matrix.
+
+```
+scripts/devtest/dynamic-audit/lib/da-inventory.ps1
+  Builds the S4166 dynamic-audit coverage data: manifest, capability list, scenes, budgets, matrix.
+  (no param block)
+```
+
+### da-probe.ps1
+Start, input, frame and adb-transport probes of the S4166 dynamic-audit stand, plus the scheduled probe loop.
+
+```
+scripts/devtest/dynamic-audit/lib/da-probe.ps1
+  Start, input, frame and adb-transport probes of the S4166 dynamic-audit stand, plus the scheduled probe loop.
+  (no param block)
+```
+
+### da-report.ps1
+S4166 dynamic-audit stand: consolidation of run records into matrix cells, finding cards, redacted export and the first-pass report.
+
+```
+scripts/devtest/dynamic-audit/lib/da-report.ps1
+  S4166 dynamic-audit stand: consolidation of run records into matrix cells, finding cards, redacted export and the first-pass report.
+  (no param block)
+```
+
+### da-sampler.ps1
+Out-of-process 1 Hz resource sampler of the S4166 dynamic-audit stand, bound to a process id and its start identity.
+
+```
+scripts/devtest/dynamic-audit/lib/da-sampler.ps1
+  Out-of-process 1 Hz resource sampler of the S4166 dynamic-audit stand, bound to a process id and its start identity.
+  (no param block)
+```
+
+### da-scenes.ps1
+Scene registry, mutation envelope, scene runs and heavy-run sequence of the S4166 dynamic-audit stand (lifecycle scenes C01, C02, C03, file-operation scenes C07, C15, load and growth cycle scenes C05, C06, C12, C14, C16).
+
+```
+scripts/devtest/dynamic-audit/lib/da-scenes.ps1
+  Scene registry, mutation envelope, scene runs and heavy-run sequence of the S4166 dynamic-audit stand (lifecycle scenes C01, C02, C03, file-operation scenes C07, C15, load and growth cycle scenes C05, C06, C12, C14, C16).
+  (no param block)
+```
+
+### da-state.ps1
+Verified backup, restore, durable restore checkpoint and next-start recovery of the S4166 dynamic-audit stand.
+
+```
+scripts/devtest/dynamic-audit/lib/da-state.ps1
+  Verified backup, restore, durable restore checkpoint and next-start recovery of the S4166 dynamic-audit stand.
+  (no param block)
+```
+
+### da-stats.ps1
+Statistics and run-validity library of the S4166 dynamic-audit stand: percentiles, block-bootstrap slope, budget verdict, validity.
+
+```
+scripts/devtest/dynamic-audit/lib/da-stats.ps1
+  Statistics and run-validity library of the S4166 dynamic-audit stand: percentiles, block-bootstrap slope, budget verdict, validity.
+  (no param block)
+```
+
+### da-ui.ps1
+UI driver, accessibility-event capture, app navigation and SAF resource registration of the S4166 dynamic-audit stand; used by the scenes of lib/da-scenes.ps1.
+
+```
+scripts/devtest/dynamic-audit/lib/da-ui.ps1
+  UI driver, accessibility-event capture, app navigation and SAF resource registration of the S4166 dynamic-audit stand; used by the scenes of lib/da-scenes.ps1.
+  (no param block)
+```
+
 ## scripts\devtest\lib
 
 ### adb-log-filter.ps1
@@ -1896,6 +2113,15 @@ Shared target-device resolver for the builders that install what they just built
 ```
 scripts/devtest/lib/target-device.ps1
   Shared target-device resolver for the builders that install what they just built (S3169).
+  (no param block)
+```
+
+### ui-sweep-device-io.ps1
+S2380 - the device I/O layer of the phone UI sweep: console notes, the timeline, the adb.ps1 child calls, and the node-tree reads.
+
+```
+scripts/devtest/lib/ui-sweep-device-io.ps1
+  S2380 - the device I/O layer of the phone UI sweep: console notes, the timeline, the adb.ps1 child calls, and the node-tree reads.
   (no param block)
 ```
 
@@ -2285,6 +2511,15 @@ scripts/docs/check-settings-annotations.ps1
     -AnnotationsPath         [String] = (Join-Path $PSScriptRoot '..\..\docs\settings\settings-annotations.json')
 ```
 
+### DocumentationShell.ps1
+Build locale navigation and shared shell metadata for documentation pages.
+
+```
+scripts/docs/DocumentationShell.ps1
+  Build locale navigation and shared shell metadata for documentation pages.
+  (no param block)
+```
+
 ### export-doc-icon-pngs.ps1
 S0889 - export the docs/site icon assets (SVG + PNG) for every drawable named in docs/icons/doc-icon-map.json.
 
@@ -2329,6 +2564,7 @@ scripts/docs/generate-docs-pages.ps1
   Generator: Documentation HTML Pages Compiler
   Params:
     -Check              [SwitchParameter]
+    -StampOnly          [SwitchParameter]
     -Lang               [String] = "en"
     -ContentDir         [String]
     -OutputDir          [String] = "documentation"
@@ -2401,6 +2637,19 @@ scripts/docs/generate-site-languages.ps1
   Exit: 0 written; 1 a declared locale has no endonym entry in the table; 2 the XML is missing or unparseable, or declares no locale
 ```
 
+### generate-site-redirects.ps1
+Writes the forwarder page of every moved or retired address listed in docs/site-redirects.jsonl (S4097).
+
+```
+scripts/docs/generate-site-redirects.ps1
+  Writes the forwarder page of every moved or retired address listed in docs/site-redirects.jsonl (S4097).
+  Params:
+    -Check                [SwitchParameter]
+    -ManifestPath         [String]
+    -SiteRoot             [String]
+  Exit: 0 every forwarder was written, or -Check found them all current; 1 -Check found a missing or outdated forwarder; 2 could not verify: a record is malformed, or two records share a from_path
+```
+
 ### generate-subject-index.ps1
 Generator for the documentation A-Z subject index (S2969).
 
@@ -2417,6 +2666,32 @@ scripts/docs/generate-subject-index.ps1
   Exit: 0 - subject index generated successfully or -Check verified; 1 - input file missing, output outdated on -Check, or Liquid template error
 ```
 
+### import-icon-names.ps1
+Import the reference product's names for every icon meaning in the languages beyond en, ru and uk.
+
+```
+scripts/docs/import-icon-names.ps1
+  Import the reference product's names for every icon meaning in the languages beyond en, ru and uk.
+  Params:
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -DryRun              [SwitchParameter]
+  Exit: 0 - the import ran (or, under -DryRun, was computed); counts and every refusal and tie are printed.; 1 - the vocabulary or a string resource could not be parsed; nothing is written.; 2 - could not verify: no catalog root, no iconography/vocabulary.jsonl inside it, or no locales_config.xml.
+```
+
+### migrate-locale-addresses.ps1
+Moves every published docs/ address with a legacy locale suffix to the one hyphen form and repoints every reference to it (S4101).
+
+```
+scripts/docs/migrate-locale-addresses.ps1
+  Moves every published docs/ address with a legacy locale suffix to the one hyphen form and repoints every reference to it (S4101).
+  Params:
+    -WhatIf           [SwitchParameter]
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+    -Today            [String] = (Get-Date -Format 'yyyy-MM-dd')
+  Exit: 0 the moves were applied, or there was nothing to do (-WhatIf prints the plan and exits 0); 2 could not proceed: the root is not a checkout, a new address collides with a published page or with
+```
+
 ### OssDependencyParser.ps1
 S1495 - dependency coordinate parser for the OSS notice generator.
 
@@ -2428,6 +2703,15 @@ scripts/docs/OssDependencyParser.ps1
     -Census            [SwitchParameter]
     -CensusOut         [String]
   Exit: 0 parsed; 2 could not verify: build file missing, dependencies block not found,
+```
+
+### Read-DocumentationSearchIndex.ps1
+Read and validate a complete v1 or sharded v2 documentation search index.
+
+```
+scripts/docs/Read-DocumentationSearchIndex.ps1
+  Read and validate a complete v1 or sharded v2 documentation search index.
+  (no param block)
 ```
 
 ### render-icon-legend.ps1
@@ -2454,6 +2738,20 @@ scripts/docs/render-settings-reference.ps1
   Exit: 0 - the four reference pages were written.; 4 - Code.Scripts is held by another session: nothing was written, the place
 ```
 
+### render-usage-schemes.ps1
+S4140 - render the usage-scheme illustrations (exchange server, live broadcast, home network) as SVG in every documented language.
+
+```
+scripts/docs/render-usage-schemes.ps1
+  S4140 - render the usage-scheme illustrations (exchange server, live broadcast, home network) as SVG in every documented language.
+  Params:
+    -Check           [SwitchParameter]
+    -Lang            [String[]]
+    -OutDir          [String] = 'docs/media-exchange-portal/diagrams'
+    -Preview         [String]
+  Exit: 0 rendered (or, with -Check, everything on disk is current); 1 -Check found a missing or stale picture; 2 invalid input: label files disagree on keys, a key is missing or unused, or a drawing failed
+```
+
 ### render-wear-icon-legend.ps1
 S3442 - render the watch icon legend: every glyph the watch draws, beside its ICON-SET name.
 
@@ -2464,6 +2762,38 @@ scripts/docs/render-wear-icon-legend.ps1
     -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -CatalogRoot         [String]
   Exit: 0 - the legend pages and their SVGs were written.; 1 - a referenced, mapped drawable has no source file or cannot be converted; nothing was written.; 2 - the vocabulary or the declaration is missing or unreadable; nothing was written.; 4 - Code.Scripts is held by another session: nothing was written, the place in the queue is
+```
+
+### retire-docs-page.ps1
+Retires a documentation page together with the capability it described, and rebuilds every index that pointed at it in the same run (S4097).
+
+```
+scripts/docs/retire-docs-page.ps1
+  Retires a documentation page together with the capability it described, and rebuilds every index that pointed at it in the same run (S4097).
+  Params:
+    -PageId       (req)  [String]
+    -To                  [String]
+    -Ticket       (req)  [String]
+    -Reason              [String]
+    -SkipRebuild         [SwitchParameter]
+    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+  Exit: 0 the page was retired, or -WhatIf printed the plan; 1 a rebuild step failed (the file changes before it are already made); 2 could not resolve: unknown or already retired page, unknown successor, malformed Ticket, no copy found
+```
+
+### stamp-doc-dates.ps1
+Puts a "last edited" stamp (yy.MM.dd HH:mm) at the top of every Markdown and HTML document.
+
+```
+scripts/docs/stamp-doc-dates.ps1
+  Puts a "last edited" stamp (yy.MM.dd HH:mm) at the top of every Markdown and HTML document.
+  Params:
+    -Files                    [String[]]
+    -All                      [SwitchParameter]
+    -Check                    [SwitchParameter]
+    -Now                      [SwitchParameter]
+    -IncludeGenerated         [SwitchParameter]
+    -Quiet                    [SwitchParameter]
+  Exit: 0 every considered document is stamped and current (or was stamped now); 1 -Check found a missing or stale stamp; 2 no input given, or a file could not be read or written
 ```
 
 ### strip-landing-filter-emoji.ps1
@@ -2486,7 +2816,36 @@ scripts/docs/strip-landing-meta-icons.ps1
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 ```
 
+### update-docs-shell.ps1
+Normalize the hand-maintained documentation hubs using the shared portal shell.
+
+```
+scripts/docs/update-docs-shell.ps1
+  Normalize the hand-maintained documentation hubs using the shared portal shell.
+  Params:
+    -Check         [SwitchParameter]
+  Exit: 0 - every hub is current, or the requested shell updates were written.; 1 - Check found at least one stale shell.
+```
+
 ## scripts\docs\lib
+
+### doc-stamp.ps1
+Last-edited stamp for Markdown and HTML documents - shared by stamp-doc-dates.ps1 and by every
+
+```
+scripts/docs/lib/doc-stamp.ps1
+  Last-edited stamp for Markdown and HTML documents - shared by stamp-doc-dates.ps1 and by every
+  (no param block)
+```
+
+### held-addresses.ps1
+Helpers that read the addresses of the site held outside it - app sources, listings and READMEs (S4101).
+
+```
+scripts/docs/lib/held-addresses.ps1
+  Helpers that read the addresses of the site held outside it - app sources, listings and READMEs (S4101).
+  (no param block)
+```
 
 ### icon-contract-looks.ps1
 The palette and the decorated look of ICON-RENDER 0.10 section 10 items B, D and E, for the icon contract exporter.
@@ -2516,6 +2875,43 @@ scripts/docs/lib/icon-style-rules.ps1
   (no param block)
 ```
 
+### page-availability.ps1
+A function page's availability marker, derived from the build (SITE-REPRESENTATION 0.1 rule 9, S4107).
+
+```
+scripts/docs/lib/page-availability.ps1
+  A function page's availability marker, derived from the build (SITE-REPRESENTATION 0.1 rule 9, S4107).
+  (no param block)
+```
+
+### portal-glyphs.ps1
+Monochrome ICON-SET glyphs for the documentation portal, as inline SVG.
+
+```
+scripts/docs/lib/portal-glyphs.ps1
+  Monochrome ICON-SET glyphs for the documentation portal, as inline SVG.
+  (no param block)
+```
+
+### site-addresses.ps1
+Shared helpers of the site-address tooling: the redirect manifest, the forwarder page it produces and the sets of pages the site publishes (S4097).
+
+```
+scripts/docs/lib/site-addresses.ps1
+  Shared helpers of the site-address tooling: the redirect manifest, the forwarder page it produces and the sets of pages the site publishes (S4097).
+  (no param block)
+```
+
+### site-facts.ps1
+The site's product facts - public editions, their count and the Android version of a minSdk - read from their sources, never typed (SITE-REPRESENTATION 0.1 rules 3 and 4, S4100).
+
+```
+scripts/docs/lib/site-facts.ps1
+  The site's product facts - public editions, their count and the Android version of a minSdk - read from their sources, never typed (SITE-REPRESENTATION 0.1 rules 3 and 4, S4100).
+  (no param block)
+  Exit: 5 = @{ en = @('five'); ru = @('пять', 'пяти', 'пятью'); uk = @('п''ять', 'п''яти', 'п''ятьма') }; 6 = @{ en = @('six'); ru = @('шесть', 'шести', 'шестью'); uk = @('шість', 'шести', 'шістьма') }; 7 = @{ en = @('seven'); ru = @('семь', 'семи', 'семью'); uk = @('сім', 'семи', 'сімома', 'сімох') }; 8 = @{ en = @('eight'); ru = @('восемь', 'восьми', 'восемью'); uk = @('вісім', 'восьми', 'вісьмома', 'вісьмох') }; 9 = @{ en = @('nine'); ru = @('девять', 'девяти', 'девятью'); uk = @('дев''ять', 'дев''яти', 'дев''ятьма') }; 10 = @{ en = @('ten'); ru = @('десять', 'десяти', 'десятью'); uk = @('десять', 'десяти', 'десятьма') }; 11 = @{ en = @('eleven'); ru = @('одиннадцать', 'одиннадцати'); uk = @('одинадцять', 'одинадцяти') }; 12 = @{ en = @('twelve'); ru = @('двенадцать', 'двенадцати'); uk = @('дванадцять', 'дванадцяти') }
+```
+
 ### vectordrawable-svg.ps1
 Shared Android VectorDrawable -> web SVG converter (S0815 core, extracted S0889).
 
@@ -2536,6 +2932,52 @@ scripts/docs/oss-notices.tests/Run-Tests.ps1
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
   Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: parser or fixture missing, or the generator was queued
+```
+
+## scripts\docs\site-redirects.tests
+
+### Run-Tests.ps1
+S4097 - test suite for the forwarder generator, the retire command and the site-address gate.
+
+```
+scripts/docs/site-redirects.tests/Run-Tests.ps1
+  S4097 - test suite for the forwarder generator, the retire command and the site-address gate.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+  Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: a script under test or the real 404.html is missing
+```
+
+## scripts\docs\stamp-doc-dates.tests
+
+### Run-Tests.ps1
+Test suite for the last-edited stamp: scripts/docs/lib/doc-stamp.ps1 and stamp-doc-dates.ps1.
+
+```
+scripts/docs/stamp-doc-dates.tests/Run-Tests.ps1
+  Test suite for the last-edited stamp: scripts/docs/lib/doc-stamp.ps1 and stamp-doc-dates.ps1.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+  Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: the library or the script is missing
+```
+
+## scripts\docs\usage-schemes
+
+### Diagrams.ps1
+the usage-scheme illustrations (S4140), one function per picture.
+
+```
+scripts/docs/usage-schemes/Diagrams.ps1
+  the usage-scheme illustrations (S4140), one function per picture.
+  (no param block)
+```
+
+### SvgKit.ps1
+drawing primitives for the usage-scheme illustrations (S4140).
+
+```
+scripts/docs/usage-schemes/SvgKit.ps1
+  drawing primitives for the usage-scheme illustrations (S4140).
+  (no param block)
 ```
 
 ## scripts\document_registry
@@ -3033,7 +3475,7 @@ scripts/quality/assert-codex-transcript-hygiene.ps1
   Advisory closing-gate (S3141): judge the Codex session transcript that authored the given ticket against the bounded-read protocol, and flag it if it did not follow one.
   Params:
     -Id  (req)  [String]
-  Exit: 0 - not applicable (wrong runtime, or no rollout found), or applicable with zero findings.; 2 - measure-codex-transcript.ps1 itself could not verify (its own exit 2).; 3 - applicable, and one or more findings (advisory).
+  Exit: 0 - NOT APPLICABLE on a Claude Code process (S4130), nothing inspected when no rollout
 ```
 
 ### assert-contract-pointers.ps1
@@ -3243,14 +3685,16 @@ scripts/quality/assert-doc-pin-drift.ps1
 ```
 
 ### assert-docs-coverage.ps1
-Quality Gate: Assert 100% Feature Documentation Coverage
+Quality gate: every active feature is mapped to a documentation page that exists and is published.
 
 ```
 scripts/quality/assert-docs-coverage.ps1
-  Quality Gate: Assert 100% Feature Documentation Coverage
+  Quality gate: every active feature is mapped to a documentation page that exists and is published.
   Params:
+    -Root                  [String]
     -VerboseOutput         [SwitchParameter]
     -SummaryOnly           [SwitchParameter]
+  Exit: 0 - every check passed.; 1 - at least one finding, or the coverage or page manifest is missing.
 ```
 
 ### assert-docs-crosslinks.ps1
@@ -3260,11 +3704,12 @@ Quality Gate: Assert Documentation Cross-Links and Bookmarks
 scripts/quality/assert-docs-crosslinks.ps1
   Quality Gate: Assert Documentation Cross-Links and Bookmarks
   Params:
-    -Strict               [SwitchParameter]
-    -Path                 [String] = "documentation"
-    -LandingPages         [String] = "index*.html"
-    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-    -BaselinePath         [String] = (Join-Path $PSScriptRoot 'docs-crosslinks-baseline.txt')
+    -Strict                 [SwitchParameter]
+    -CheckFragments         [SwitchParameter]
+    -Path                   [String] = "documentation"
+    -LandingPages           [String] = "index*.html"
+    -RepoRoot               [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -BaselinePath           [String] = (Join-Path $PSScriptRoot 'docs-crosslinks-baseline.txt')
   Exit: 0 - every link resolves, or is a bookmark, or its target is baselined.; 1 - a new broken target, a stale baseline row, or the page manifest is missing.; 2 - -Strict and unwritten bookmarks remain.
 ```
 
@@ -3292,6 +3737,17 @@ scripts/quality/assert-docs-external-links.ps1
     -Quiet              [SwitchParameter]
     -TimeoutSec         [Int32] = 20
   Exit: 0 every external link answers, or answers with a non-fatal warning; 1 at least one external link is dead (404/410 or unresolvable host); 2 cannot verify: no link could be requested at all (no network), or the corpus is missing
+```
+
+### assert-docs-hub-shell.ps1
+Quality gate: the hand-maintained portal hubs carry a current shared shell (S4114).
+
+```
+scripts/quality/assert-docs-hub-shell.ps1
+  Quality gate: the hand-maintained portal hubs carry a current shared shell (S4114).
+  Params:
+    -Gate         [SwitchParameter]
+  Exit: 0 - every hub shell is current.; 1 - at least one hub is stale; run scripts/docs/update-docs-shell.ps1.; 2 - cannot verify: the shell script is missing or failed to run.
 ```
 
 ### assert-docs-portal-ui-ux.ps1
@@ -3388,6 +3844,24 @@ scripts/quality/assert-dotsource-tracked.ps1
   Exit: 0 every judged dot-source target is in the git index (or none was judged), or -Gate was absent.; 1 at least one judged target is not in the index, and -Gate was passed.; 2 cannot verify - git absent, the target is not a git work tree, or the discovery root is unreadable.
 ```
 
+### assert-dynamic-audit-coverage.ps1
+S4166: validate the coverage contract of the deep dynamic audit - the capability manifest, the scene catalog and the property matrix against the inventories the CLAUDE.md pointer chain names.
+
+```
+scripts/quality/assert-dynamic-audit-coverage.ps1
+  S4166: validate the coverage contract of the deep dynamic audit - the capability manifest, the scene catalog and the property matrix against the inventories the CLAUDE.md pointer chain names.
+  Params:
+    -Validate          [SwitchParameter]
+    -SelfTest          [SwitchParameter]
+    -AuditRoot         [String]
+    -RepoRoot          [String]
+    -StateRoot         [String]
+    -Limit             [Int32] = 20
+    -Quiet             [SwitchParameter]
+    -Gate              [SwitchParameter]
+  Exit: 0 complete coverage, no open or inconclusive cell, every measured cell passes an approved budget,
+```
+
 ### assert-enum-persistence-contract.ps1
 S1674: prevent R8 from renaming enum members persisted as durable strings.
 
@@ -3431,7 +3905,7 @@ scripts/quality/assert-fast-gates.ps1
     -FailOnSkipped         [SwitchParameter]
     -ThrottleLimit         [Int32] = 0  {range 0..64}
     -ShowPasses            [SwitchParameter]
-  Exit: 0 every gate passed; or, with -ChangedFiles, every gate that judged the changed set
+  Exit: 30 of 36, scoped runs in 0 of 10.
 ```
 
 ### assert-fdsec-vectors-provenance.ps1
@@ -3504,19 +3978,6 @@ scripts/quality/assert-flavor-binding-coverage.ps1
   Exit: 0 - every unconditionally injected type has a binding in every flavor, or findings were reported
 ```
 
-### assert-flavor-count-prose.ps1
-Fail when prose or a script's help text claims a flavor count, or a complete flavor list, that the generated flavor matrix disagrees with.
-
-```
-scripts/quality/assert-flavor-count-prose.ps1
-  Fail when prose or a script's help text claims a flavor count, or a complete flavor list, that the generated flavor matrix disagrees with.
-  Params:
-    -Gate             [SwitchParameter]
-    -Quiet            [SwitchParameter]
-    -RepoRoot         [String] = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
-  Exit: 0 - every quantified flavor claim matches the matrix (or findings exist without -Gate).; 1 - at least one claim contradicts the matrix, and -Gate was passed.; 2 - could not verify: docs/flavors/flavor-matrix.json is absent or declares no flavors, so
-```
-
 ### assert-flavor-flags-not-growing.ps1
 Ratchet gate: the number of flavor-flag reads in src/main must never grow.
 
@@ -3568,22 +4029,6 @@ scripts/quality/assert-focus-parity.ps1
   Params:
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
-```
-
-### assert-gate-count-prose.ps1
-S2935: fail when a document states a gate population the live tree disagrees with - the fast-gate count in docs/BUILD_TEST_FAST_PATH.md, and the assert-*.ps1 inventory in section 9 of docs/RULES_DIGEST.md.
-
-```
-scripts/quality/assert-gate-count-prose.ps1
-  S2935: fail when a document states a gate population the live tree disagrees with - the fast-gate count in docs/BUILD_TEST_FAST_PATH.md, and the assert-*.ps1 inventory in section 9 of docs/RULES_DIGEST.md.
-  Params:
-    -Gate                  [SwitchParameter]
-    -Quiet                 [SwitchParameter]
-    -RunnerPath            [String]
-    -DocPath               [String]
-    -DigestPath            [String]
-    -GateDirectory         [String]
-  Exit: 0 - both documented populations match the live tree, or a finding exists and -Gate was absent.; 1 - a documented population contradicts the live tree, and -Gate was passed.; 2 - could not verify: a file or the gate directory is absent, the runner does not parse, it
 ```
 
 ### assert-gate-hints-sync.ps1
@@ -3948,9 +4393,11 @@ scripts/quality/assert-memory-budget.ps1
 ```
 
 ### assert-meta-packaging-limits.ps1
+Measures a built VR-flavor APK against the Meta VRC packaging limits (S3364).
 
 ```
 scripts/quality/assert-meta-packaging-limits.ps1
+  Measures a built VR-flavor APK against the Meta VRC packaging limits (S3364).
   Params:
     -ApkPath         [String]
     -ObbPath         [String]
@@ -4078,7 +4525,7 @@ scripts/quality/assert-no-release-probes.ps1
   Params:
     -Module  (req)  [String]  {app_v2|wear}
     -Quiet          [SwitchParameter]
-  Exit: 0 - no probes found in the module's src/main.; 1 - one or more probes found; the release must not proceed.; 2 - cannot verify: the module directory is absent, or the shared harness library is unavailable.
+  Exit: 0 - no probes found in the module's src/main; or, with -Module app_v2, NOT APPLICABLE (S4130).; 1 - one or more probes found; the release must not proceed.; 2 - cannot verify: the module directory is absent, or the shared harness library is unavailable.
 ```
 
 ### assert-no-secrets.ps1
@@ -4225,11 +4672,11 @@ scripts/quality/assert-page-content.ps1
 ```
 
 ### assert-page-style.ps1
-S3453 conformance gate for contract PAGE-STYLE 1.2: language switcher, pre-paint resolver, locale row, kit stylesheet.
+S3453 conformance gate for contracts PAGE-STYLE 1.2 and PAGE-CONTENT 1.3: language switcher, pre-paint resolver, locale row, kit stylesheet, uncapped page width.
 
 ```
 scripts/quality/assert-page-style.ps1
-  S3453 conformance gate for contract PAGE-STYLE 1.2: language switcher, pre-paint resolver, locale row, kit stylesheet.
+  S3453 conformance gate for contracts PAGE-STYLE 1.2 and PAGE-CONTENT 1.3: language switcher, pre-paint resolver, locale row, kit stylesheet, uncapped page width.
   Params:
     -Root                [String]
     -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
@@ -4237,7 +4684,7 @@ scripts/quality/assert-page-style.ps1
     -Gate                [SwitchParameter]
     -Quiet               [SwitchParameter]
     -Help                [SwitchParameter]
-  Exit: 0 - every page passed every check.; 1 - at least one LANG, THEME, LOCALE or KIT finding.; 2 - cannot verify: the root, a page, the catalog, its registry or its reference kit is missing.
+  Exit: 0 - every page passed every check.; 1 - at least one LANG, THEME, LOCALE, KIT or WIDTH finding.; 2 - cannot verify: the root, a page, the catalog, its registry or its reference kit is missing.
 ```
 
 ### assert-perf-budget.ps1
@@ -4306,7 +4753,7 @@ scripts/quality/assert-positioning-consistency.ps1
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
     -Help          [SwitchParameter]
-  Exit: 0 - every surface names every pillar in canonical order.; 1 - at least one surface misses a pillar or names it out of order.; 2 - cannot verify: the root, a canonical file or a surface is missing, or the canonical
+  Exit: 0 - every surface names every pillar in canonical order.; 1 - at least one surface misses a pillar or names it out of order.; 2 - cannot verify: the root, a canonical file, a surface or the landing source catalog is
 ```
 
 ### assert-prerelease-content-gates.ps1
@@ -4370,7 +4817,7 @@ scripts/quality/assert-release-scope-gates.ps1
     -Help                 [SwitchParameter]
     -ReuseFinding         [SwitchParameter]
     -OnlyGroups           [String[]] = @()
-  Exit: 0 every gate passed (or reused this session's own green run under -ReuseFinding).; 1 at least one gate found a defect. The release does not ship until it is fixed.; 2 cannot verify - a gate script is missing from scripts/quality/.
+  Exit: 0 every gate passed (or reused this session's own green run under -ReuseFinding). (S4130,
 ```
 
 ### assert-release-tree-binding.ps1
@@ -4511,18 +4958,6 @@ scripts/quality/assert-script-references.ps1
   Exit: 0 - every finding is in the baseline, or -Report was given; 1 - an unreferenced script that is not in the baseline appeared, a memory path resolves to
 ```
 
-### assert-sdk-pin-claims.ps1
-Fail when a document or agent definition claims an SDK pin value the build files disagree with.
-
-```
-scripts/quality/assert-sdk-pin-claims.ps1
-  Fail when a document or agent definition claims an SDK pin value the build files disagree with.
-  Params:
-    -Gate          [SwitchParameter]
-    -Quiet         [SwitchParameter]
-  Exit: 0 - every scanned claim matches the build files (or mismatches found without -Gate).; 1 - at least one claim contradicts the build files, and -Gate was passed.; 2 - could not verify: the build file or its pin could not be read, so nothing was compared.
-```
-
 ### assert-security-posture.ps1
 Assert docs/SECURITY_POSTURE.md still describes what the app declares and links (S3380).
 
@@ -4589,6 +5024,44 @@ scripts/quality/assert-shared-test-flavor-scope.ps1
   Exit: 0 - no violation (or violations found without -Gate).; 1 - at least one violation, and -Gate was passed.; 2 - could not verify: the build file is unreadable, its mount map carries a line this gate
 ```
 
+### assert-showcase-inventory.ps1
+S4102 gate: every showcase and release-notes bullet names a shipped record of the capability inventory.
+
+```
+scripts/quality/assert-showcase-inventory.ps1
+  S4102 gate: every showcase and release-notes bullet names a shipped record of the capability inventory.
+  Params:
+    -Root          [String]
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+    -Help          [SwitchParameter]
+  Exit: 0 - every judged bullet is anchored to a shipped record and the locales agree.; 1 - at least one finding.; 2 - cannot verify: the root, the inventory or a required showcase / release-notes file is
+```
+
+### assert-site-addresses.ps1
+Holds the site's address rules: the not-found page, the forwarders of moved or retired pages, the retirement of a page together with its capability, the addresses held outside the site and the form of the language suffix (S4097, S4101).
+
+```
+scripts/quality/assert-site-addresses.ps1
+  Holds the site's address rules: the not-found page, the forwarders of moved or retired pages, the retirement of a page together with its capability, the addresses held outside the site and the form of the language suffix (S4097, S4101).
+  Params:
+    -Dimension         [String] = 'all'  {not-found|redirects|retirement|held-addresses|locale-scheme|all}
+    -RepoRoot          [String] = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+  Exit: 0 every requested dimension passed; 1 at least one finding; 2 could not verify: an input file is missing or unreadable, or an unknown dimension was named
+```
+
+### assert-site-facts.ps1
+Holds the site's product facts against their sources: the public editions are declared, the number of editions and the minimum Android version a page states are the ones the declaration and the build matrix give, and an edition is spelled one way everywhere (S4100).
+
+```
+scripts/quality/assert-site-facts.ps1
+  Holds the site's product facts against their sources: the public editions are declared, the number of editions and the minimum Android version a page states are the ones the declaration and the build matrix give, and an edition is spelled one way everywhere (S4100).
+  Params:
+    -Dimension         [String] = 'all'  {declaration|count|android-min|names|availability|all}
+    -Root              [String] = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+  Exit: 0 every requested dimension passed; 1 at least one finding; 2 could not verify: the matrix or the declaration is missing or unreadable, the root is absent, or
+```
+
 ### assert-site-family-map.ps1
 S3454 conformance gate for contract SITE-FAMILY-MAP 1.1: the footer grid and the one contact.
 
@@ -4615,6 +5088,20 @@ scripts/quality/assert-site-languages-current.ps1
     -Gate             [SwitchParameter]
     -Quiet            [SwitchParameter]
   Exit: 0 _data/languages.yml is current; 1 _data/languages.yml is missing or differs from a fresh render; 2 cannot verify: the generator is missing or refused to render (its own message is shown)
+```
+
+### assert-site-origins.ps1
+Holds the site's third-party origins: every host a published page contacts is declared, named on the privacy pages, and an advertising host loads only on the landing (S4098).
+
+```
+scripts/quality/assert-site-origins.ps1
+  Holds the site's third-party origins: every host a published page contacts is declared, named on the privacy pages, and an advertising host loads only on the landing (S4098).
+  Params:
+    -Dimension                [String] = 'all'  {declared|privacy|advertising|all}
+    -Root                     [String] = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+    -Declaration              [String]
+    -TrustDeclaration         [String]
+  Exit: 0 every requested dimension passed; 1 at least one finding; 2 could not verify: a declaration or _config.yml is missing or unreadable, or the root is absent
 ```
 
 ### assert-source-gates.ps1
@@ -4670,6 +5157,19 @@ scripts/quality/assert-stream-asset-revisions.ps1
     -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
   Exit: 0 every `default` pinned asset is still produced by the publisher.; 1 a pinned asset marked `default` would stop being published - the run is refused.; 2 the gate itself cannot run: the publisher is missing, the markers are absent, the
+```
+
+### assert-stream-facet-values.ps1
+Contract gate: every language and country cell of the published stream catalog is a fixed point of the publisher's fold (STREAM-BANK 2.3, amendment O).
+
+```
+scripts/quality/assert-stream-facet-values.ps1
+  Contract gate: every language and country cell of the published stream catalog is a fixed point of the publisher's fold (STREAM-BANK 2.3, amendment O).
+  Params:
+    -CatalogPath         [String]
+    -RepoRoot            [String]
+    -Quiet               [SwitchParameter]
+  Exit: 0 every language and country cell is a fixed point of the fold.; 1 at least one cell is not; the offenders are printed.; 2 invalid input: the catalog has no `language` or `country` column, or cannot be parsed.; 3 could not verify: the catalog file or the facet module is absent.
 ```
 
 ### assert-string-format.ps1
@@ -4859,9 +5359,11 @@ scripts/quality/assert-watchface-listing-live.ps1
 ```
 
 ### assert-wear-64bit-abi.ps1
+Asserts that a built wear APK carries the arm64-v8a ABI required by Google Play (S3364).
 
 ```
 scripts/quality/assert-wear-64bit-abi.ps1
+  Asserts that a built wear APK carries the arm64-v8a ABI required by Google Play (S3364).
   Params:
     -ApkPath         [String]
     -Gate            [SwitchParameter]
@@ -4895,9 +5397,11 @@ scripts/quality/assert-wear-mirrored-strings.ps1
 ```
 
 ### assert-wear-phone-identity-parity.ps1
+Asserts the phone and wear modules share one applicationId and one signing key (S3364).
 
 ```
 scripts/quality/assert-wear-phone-identity-parity.ps1
+  Asserts the phone and wear modules share one applicationId and one signing key (S3364).
   Params:
     -PhoneApplicationIdOverride         [String]
     -WearApplicationIdOverride          [String]
@@ -5103,6 +5607,7 @@ scripts/quality/detekt-scoped.ps1
     -CacheRoot            [String] = (Join-Path $env:USERPROFILE '.gradle/caches/modules-2/files-2.1')
     -Fix                  [SwitchParameter]
     -VerdictPath          [String]
+    -ReportDir            [String]
     -Json                 [SwitchParameter]
   Exit: 0 - the analyser ran and found nothing new in the named files (or there were none to check).; 1 - the analyser ran and found at least one new finding; each is printed. Never returned in
 ```
@@ -5672,6 +6177,16 @@ scripts/quality/assert-detekt.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\assert-docs-coverage.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-docs-coverage.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
 ## scripts\quality\assert-docs-crosslinks.tests
 
 ### Run-Tests.ps1
@@ -5744,6 +6259,18 @@ scripts/quality/assert-dotsource-tracked.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (git absent, or the sandbox could not be built).
 ```
 
+## scripts\quality\assert-dynamic-audit-coverage.tests
+
+### Run-Tests.ps1
+Contract tests for assert-dynamic-audit-coverage.ps1 (S4166).
+
+```
+scripts/quality/assert-dynamic-audit-coverage.tests/Run-Tests.ps1
+  Contract tests for assert-dynamic-audit-coverage.ps1 (S4166).
+  (no param block)
+  Exit: 0 every case passed (a skipped live case does not fail the suite); 1 at least one case failed
+```
+
 ## scripts\quality\assert-enum-persistence-contract.tests
 
 ### Run-Tests.ps1
@@ -5779,18 +6306,6 @@ scripts/quality/assert-fast-gates.tests/Run-Tests.ps1
   Params:
     -Help         [SwitchParameter]
   Exit: 0 every case passed.; 1 at least one case failed.; 2 cannot verify - the subject script is missing.
-```
-
-## scripts\quality\assert-flavor-count-prose.tests
-
-### Run-Tests.ps1
-Run-Tests.ps1 (S2919) - regression suite for assert-flavor-count-prose.ps1.
-
-```
-scripts/quality/assert-flavor-count-prose.tests/Run-Tests.ps1
-  Run-Tests.ps1 (S2919) - regression suite for assert-flavor-count-prose.ps1.
-  (no param block)
-  Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
 ## scripts\quality\assert-gate-placement.tests
@@ -5997,6 +6512,16 @@ scripts/quality/assert-play-listing-screenshot-geometry.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (the venv python or Pillow absent, or the source
 ```
 
+## scripts\quality\assert-positioning-consistency.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-positioning-consistency.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
 ## scripts\quality\assert-release-tree-binding.tests
 
 ### Run-Tests.ps1
@@ -6045,12 +6570,75 @@ scripts/quality/assert-shared-test-flavor-scope.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\assert-showcase-inventory.tests
+
+### Run-Tests.ps1
+Contract tests for assert-showcase-inventory.ps1.
+
+```
+scripts/quality/assert-showcase-inventory.tests/Run-Tests.ps1
+  Contract tests for assert-showcase-inventory.ps1.
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
+## scripts\quality\assert-site-addresses.tests
+
+### Run-Tests.ps1
+S4101 - test suite for the held-addresses and locale-scheme dimensions of scripts/quality/assert-site-addresses.ps1.
+
+```
+scripts/quality/assert-site-addresses.tests/Run-Tests.ps1
+  S4101 - test suite for the held-addresses and locale-scheme dimensions of scripts/quality/assert-site-addresses.ps1.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+  Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: the gate script is missing
+```
+
+## scripts\quality\assert-site-facts.tests
+
+### Run-Tests.ps1
+Contract tests for assert-site-facts.ps1.
+
+```
+scripts/quality/assert-site-facts.tests/Run-Tests.ps1
+  Contract tests for assert-site-facts.ps1.
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
 ## scripts\quality\assert-site-family-map.tests
 
 ### Run-Tests.ps1
+Contract tests for assert-site-family-map.ps1 and render-family-footer.ps1.
 
 ```
 scripts/quality/assert-site-family-map.tests/Run-Tests.ps1
+  Contract tests for assert-site-family-map.ps1 and render-family-footer.ps1.
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
+## scripts\quality\assert-site-origins.tests
+
+### Run-Tests.ps1
+Contract tests for assert-site-origins.ps1.
+
+```
+scripts/quality/assert-site-origins.tests/Run-Tests.ps1
+  Contract tests for assert-site-origins.ps1.
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
+## scripts\quality\assert-stream-facet-values.tests
+
+### Run-Tests.ps1
+Contract tests for assert-stream-facet-values.ps1 (S4133).
+
+```
+scripts/quality/assert-stream-facet-values.tests/Run-Tests.ps1
+  Contract tests for assert-stream-facet-values.ps1 (S4133).
   (no param block)
   Exit: 0 every case passed; 1 at least one case failed
 ```
@@ -6252,9 +6840,11 @@ scripts/quality/lib/absent-input.ps1
 ```
 
 ### android-string-format.ps1
+Library: parses Android string format specifiers and compares their contract across locales.
 
 ```
 scripts/quality/lib/android-string-format.ps1
+  Library: parses Android string format specifiers and compares their contract across locales.
   (no param block)
 ```
 
@@ -6340,9 +6930,11 @@ scripts/quality/lib/detekt-report.ps1
 ```
 
 ### doc-icon-gate-routing.ps1
+Library: decides whether a changed-file set routes the documentation icon gate.
 
 ```
 scripts/quality/lib/doc-icon-gate-routing.ps1
+  Library: decides whether a changed-file set routes the documentation icon gate.
   (no param block)
 ```
 
@@ -6393,9 +6985,11 @@ scripts/quality/lib/gate-pool.ps1
 ```
 
 ### gate-telemetry.ps1
+Library: appends gate and gate-batch execution records to temp/metrics/gate-executions.jsonl.
 
 ```
 scripts/quality/lib/gate-telemetry.ps1
+  Library: appends gate and gate-batch execution records to temp/metrics/gate-executions.jsonl.
   (no param block)
 ```
 
@@ -6623,6 +7217,15 @@ The record behind a red script verdict - one row per failing invocation (S3288).
 ```
 scripts/quality/lib/tool-failure-journal.ps1
   The record behind a red script verdict - one row per failing invocation (S3288).
+  (no param block)
+```
+
+### verdict-word.ps1
+S4130: reads the NOT APPLICABLE verdict word off a child check's output - contract CHECK-VERDICT 0.12, section 10 item A.
+
+```
+scripts/quality/lib/verdict-word.ps1
+  S4130: reads the NOT APPLICABLE verdict word off a child check's output - contract CHECK-VERDICT 0.12, section 10 item A.
   (no param block)
 ```
 
@@ -7207,6 +7810,15 @@ scripts/release/watch-play-vitals.tests/Run-Tests.ps1
 
 ## scripts\site
 
+### DownloadBindings.ps1
+Bind verified APK URLs after translation while keeping translation keys version-independent.
+
+```
+scripts/site/DownloadBindings.ps1
+  Bind verified APK URLs after translation while keeping translation keys version-independent.
+  (no param block)
+```
+
 ### generate-landing-pages.ps1
 Generates the landing page in every site language from index.html plus _data/landing/<slug>.json.
 
@@ -7245,6 +7857,18 @@ scripts/site/render-family-footer.ps1
     -Quiet         [SwitchParameter]
     -Help          [SwitchParameter]
   Exit: 0 - every page matches the source (after writing, or already).; 1 - -Check only: at least one page differs from the source or carries no markers.; 2 - cannot render: the root, the source or a page is missing, the source is malformed, or a
+```
+
+### update-download-manifest.ps1
+Refresh verified public APK fallbacks for the product's edition cards.
+
+```
+scripts/site/update-download-manifest.ps1
+  Refresh verified public APK fallbacks for the product's edition cards.
+  Params:
+    -ReleasesFile         [String]
+    -Root                 [String] = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+  Exit: 0 - verified manifest written.; 1 - release retrieval or validation failed; the previous manifest is untouched.
 ```
 
 ## scripts\spec_catalog
@@ -8145,44 +8769,65 @@ scripts/streams.tests/StreamPublisher.Probes.Tests.ps1
 ## scripts\streams\modules
 
 ### StreamPublisher.Artwork.ps1
+Stream publisher module: favicon download, sprite-atlas packing and artwork index for the stream catalog.
 
 ```
 scripts/streams/modules/StreamPublisher.Artwork.ps1
+  Stream publisher module: favicon download, sprite-atlas packing and artwork index for the stream catalog.
   (no param block)
 ```
 
 ### StreamPublisher.Collections.ps1
+Stream publisher module: composes curated stream collections from rules.json and overlay.json over the shipped bank.
 
 ```
 scripts/streams/modules/StreamPublisher.Collections.ps1
+  Stream publisher module: composes curated stream collections from rules.json and overlay.json over the shipped bank.
   (no param block)
 ```
 
 ### StreamPublisher.Common.ps1
+Stream publisher module: shared URL, name, topic, language and country normalisers used by every other module.
 
 ```
 scripts/streams/modules/StreamPublisher.Common.ps1
+  Stream publisher module: shared URL, name, topic, language and country normalisers used by every other module.
   (no param block)
 ```
 
 ### StreamPublisher.Delivery.ps1
+Stream publisher module: catalog maintenance, publish-time assertions and the publisher mode dispatch.
 
 ```
 scripts/streams/modules/StreamPublisher.Delivery.ps1
+  Stream publisher module: catalog maintenance, publish-time assertions and the publisher mode dispatch.
   (no param block)
 ```
 
 ### StreamPublisher.Discovery.ps1
+Stream publisher module: candidate discovery from Radio Browser mirrors and official IPTV sources.
 
 ```
 scripts/streams/modules/StreamPublisher.Discovery.ps1
+  Stream publisher module: candidate discovery from Radio Browser mirrors and official IPTV sources.
+  (no param block)
+```
+
+### StreamPublisher.Facets.ps1
+Language and country folding for the stream catalog publisher (STREAM-BANK 2.3, amendment O).
+
+```
+scripts/streams/modules/StreamPublisher.Facets.ps1
+  Language and country folding for the stream catalog publisher (STREAM-BANK 2.3, amendment O).
   (no param block)
 ```
 
 ### StreamPublisher.Probes.ps1
+Stream publisher module: liveness probes that classify each catalog row before pruning.
 
 ```
 scripts/streams/modules/StreamPublisher.Probes.ps1
+  Stream publisher module: liveness probes that classify each catalog row before pruning.
   (no param block)
 ```
 
@@ -8291,6 +8936,20 @@ scripts/utils/archive-temp.ps1
   Exit: 0 - completed (or dry run completed); 1 - a move failed; 2 - could not verify: repo root or spec catalog CLI not found
 ```
 
+### archive-untriaged-drafts.ps1
+S4190: list, and archive past their deadline, the agent-parked findings nobody triaged.
+
+```
+scripts/utils/archive-untriaged-drafts.ps1
+  S4190: list, and archive past their deadline, the agent-parked findings nobody triaged.
+  Params:
+    -Days                  [Int32] = 14
+    -List                  [SwitchParameter]
+    -RepoRoot              [String]
+    -ArchiveScript         [String]
+  Exit: 0 - listed, or every expired ticket archived (including none).; 1 - archive.ps1 refused at least one id; its output is printed.; 2 - could not verify: the catalog journal is absent or unreadable.
+```
+
 ### archive-vscode-cruft.ps1
 Reclaims disk space from VSCode / VSCode Insiders user data and Claude Code transcripts.
 
@@ -8373,9 +9032,11 @@ scripts/utils/capture-draft.ps1
     -DedupQuery                   [String] = ''
     -AllowClosedDuplicate         [SwitchParameter]
     -Verify                       [String] = ''
+    -Complexity                   [String] = ''
     -AppendToOpen                 [SwitchParameter]
+    -Parked                       [SwitchParameter]
     -RepoRoot                     [String] = ''
-  Exit: 0 ticket created or text appended, or -WhatIf finished its dedup report.; 1 the catalog refused the insert or the spec file could not be written.; 2 bad invocation - invalid slug, no text or both text forms, missing attachment or template.; 3 refused - the dedup query hit a ticket in a closed status; pass -AllowClosedDuplicate for a
+  Exit: 0 ticket created or text appended, or -WhatIf finished its dedup report.; 1 the catalog refused the insert, the spec file could not be written, or -Parked could not
 ```
 
 ### check-typo-lint.ps1
@@ -9544,6 +10205,18 @@ Test suite for scripts/utils/archive-temp.ps1 (S3037).
 scripts/utils/archive-temp.tests/Run-Tests.ps1
   Test suite for scripts/utils/archive-temp.ps1 (S3037).
   (no param block)
+```
+
+## scripts\utils\archive-untriaged-drafts.tests
+
+### Run-Tests.ps1
+Contract suite for scripts/utils/archive-untriaged-drafts.ps1 (S4190).
+
+```
+scripts/utils/archive-untriaged-drafts.tests/Run-Tests.ps1
+  Contract suite for scripts/utils/archive-untriaged-drafts.ps1 (S4190).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\utils\capture-draft.tests

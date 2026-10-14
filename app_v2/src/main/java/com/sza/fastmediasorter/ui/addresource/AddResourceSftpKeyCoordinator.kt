@@ -2,12 +2,12 @@ package com.sza.fastmediasorter.ui.addresource
 
 import android.content.Context
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.remote.sftp.HostKeyMismatchException
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
-import com.sza.fastmediasorter.data.remote.sftp.HostKeyMismatchException
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
@@ -56,10 +56,12 @@ internal class AddResourceSftpKeyCoordinator(
                 )
             bridge.emit(AddResourceEvent.ShowTestResult(message, false))
         } else {
-            bridge.emit(AddResourceEvent.ShowTestResult(
-                context.getString(R.string.addresource_connection_failed),
-                false
-            ))
+            bridge.emit(
+                AddResourceEvent.ShowTestResult(
+                    context.getString(R.string.addresource_connection_failed),
+                    false
+                )
+            )
         }
     }
 
@@ -154,6 +156,17 @@ internal class AddResourceSftpKeyCoordinator(
                 privateKey = privateKey
             ).onSuccess { credentialsId ->
                 Timber.d("Saved SFTP SSH key credentials with ID: $credentialsId")
+                // Credentials are looked up per host:port at connect time, so the tunnel address needs its own row.
+                val tunnel = bridge.stateValue.sftpPairingTunnel
+                tunnel?.let {
+                    smbOperationsUseCase.saveSftpCredentials(
+                        host = it.host,
+                        port = it.port,
+                        username = username,
+                        password = keyPassphrase ?: "",
+                        privateKey = privateKey
+                    )
+                }
 
                 val formattedRemotePath = if (remotePath.startsWith("/") || remotePath.isEmpty()) remotePath else "/$remotePath"
                 val path = "sftp://$host:$port$formattedRemotePath"
@@ -191,7 +204,8 @@ internal class AddResourceSftpKeyCoordinator(
                     showSubfoldersAsItems = showSubfoldersAsItems,
                     accessPin = accessPin?.ifBlank { null },
                     profile = profile,
-                    hostKeyFingerprint = canonicalFingerprint
+                    hostKeyFingerprint = canonicalFingerprint,
+                    altAccessPaths = listOfNotNull(tunnel)
                 )
 
                 addResourceUseCase.addMultiple(listOf(resource)).onSuccess { addResult ->
@@ -203,9 +217,15 @@ internal class AddResourceSftpKeyCoordinator(
                     )
 
                     if (scanSuccessful) {
-                        bridge.emit(AddResourceEvent.ShowMessage(context.getString(R.string.addresource_resource_added)))
+                        bridge.emit(
+                            AddResourceEvent.ShowMessage(context.getString(R.string.addresource_resource_added))
+                        )
                     } else {
-                        bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_resource_unavailable_after_add)))
+                        bridge.emit(
+                            AddResourceEvent.ShowError(
+                                context.getString(R.string.addresource_resource_unavailable_after_add)
+                            )
+                        )
                     }
                     bridge.emit(AddResourceEvent.ResourcesAdded(addResult.createdResourceIds))
                 }.onFailure { e ->

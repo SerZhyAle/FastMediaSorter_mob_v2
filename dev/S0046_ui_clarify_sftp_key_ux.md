@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.06.14 17:04</sub>
+
 # UI Clarification: S0046 - SFTP key-auth setup UX
 
 **Date:** 2026-06-14

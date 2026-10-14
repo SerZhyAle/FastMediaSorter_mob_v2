@@ -18,6 +18,13 @@ object InputHelpLinkResolver {
     private const val HTML_SUFFIX = ".html"
 
     /**
+     * UI languages whose `<name>-<lang>.html` sibling exists for every manifest page. The
+     * site-address gate (`assert-site-addresses.ps1`, dimension `held-addresses`) reads this
+     * declaration and refuses a page that lacks one of the siblings.
+     */
+    val TRANSLATED_LANGUAGES: Set<String> = setOf("ru", "uk")
+
+    /**
      * One portal page.
      *
      * @param translatedLanguages UI languages whose `<name>-<lang>.html` sibling is published
@@ -27,7 +34,7 @@ object InputHelpLinkResolver {
     data class DocsHelpPage(
         val pageId: String,
         val path: String,
-        val translatedLanguages: Set<String> = emptySet(),
+        val translatedLanguages: Set<String> = TRANSLATED_LANGUAGES,
     )
 
     private val MAIN_OVERVIEW = page("getting-started.main-screen-overview", "getting-started/main-screen-overview")
@@ -66,7 +73,9 @@ object InputHelpLinkResolver {
         } else {
             page.path
         }
-        return SITE_BASE + path
+        val url = SITE_BASE + path
+        timber.log.Timber.d("S4101: help address for ${page.pageId} in $language is $url")
+        return url
     }
 
     private fun page(pageId: String, slug: String): DocsHelpPage =

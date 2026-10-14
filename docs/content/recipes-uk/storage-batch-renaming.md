@@ -6,7 +6,6 @@ description: Як перейменувати один файл, папку чи 
 category: Джерела, призначення та операції з файлами
 category_slug: storage
 ticket: S2949
-flavor: Усі редакції
 recipe_number: "07"
 canonical_url: documentation/storage/batch-renaming-uk.html
 why: |
@@ -85,5 +84,7 @@ next_recipes:
     badge_type: other
     description: Розкладайте перейменовані фото по папках одним дотиком.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Перейменовуйте один файл, папку чи кілька файлів одразу в браузері файлів або в плеєрі - на телефоні, в мережевих папках і в хмарі - і скасовуйте перейменування кнопкою Скасувати.

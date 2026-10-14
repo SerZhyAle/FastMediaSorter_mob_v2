@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.30 08:05</sub>
+
 # Pre-publication testing tools and requirements for eight distribution channels
 
 > Mirror of `PLAN/S3363_store-prepublish-testing-requirements/research/01__store-prepublish-tools-and-requirements.md` (ticket S3363, researched 2026-09-21). That file is canonical - update both copies together. This mirror exists so the findings stay visible outside the ticket folder; the automated checks built on it are specced separately (store-prepublish-automated-checks).

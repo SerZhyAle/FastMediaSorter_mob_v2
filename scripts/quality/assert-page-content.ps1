@@ -10,6 +10,11 @@
     gate holds the points a pattern can judge; the acceptance test (an unfamiliar visitor can say what
     the product is) needs a human and is not judged here.
 
+    The documentation portal is held to the EMOJI half as well (SITE-EXPERIENCE rule 6, S4099): every
+    `documentation/**/*.html` page and every `documentation/assets/*.js` script. Before S4099 the gate
+    read the six landing pages only, and the portal carried an emoji in the search button of all 328
+    of its pages. ORDER is a landing contract and stays on the six landing pages.
+
     Two finding kinds, per page:
       EMOJI - a pictographic code point (U+1F000-U+1FAFF, U+2600-U+27BF, the U+FE0F presentation
               selector) anywhere in the file, markup and inline scripts alike, or its escaped form:
@@ -77,7 +82,19 @@ if (-not $Root) { $Root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot) 
 if (-not (Test-Path -LiteralPath $Root -PathType Container)) { Stop-CannotVerify "root not found: $Root" }
 $Root = (Resolve-Path -LiteralPath $Root).Path
 
-Write-Host "subject: root=$Root pages=$($pages.Count)"
+# SITE-EXPERIENCE rule 6 on the portal: EMOJI only. A tree without documentation/ has no portal to judge.
+$portalRoot = Join-Path $Root 'documentation'
+$portalFiles = @()
+if (Test-Path -LiteralPath $portalRoot -PathType Container) {
+    $portalFiles = @(Get-ChildItem -LiteralPath $portalRoot -Recurse -File -Include '*.html' |
+            Where-Object { $_.FullName -notmatch '[\\/]documentation[\\/]temp[\\/]' })
+    $portalAssets = Join-Path $portalRoot 'assets'
+    if (Test-Path -LiteralPath $portalAssets -PathType Container) {
+        $portalFiles += @(Get-ChildItem -LiteralPath $portalAssets -File -Filter '*.js')
+    }
+}
+
+Write-Host "subject: root=$Root pages=$($pages.Count) portal=$($portalFiles.Count)"
 
 $failures = [System.Collections.Generic.List[string]]::new()
 function Add-Finding([string]$kind, [string]$message) {
@@ -91,11 +108,7 @@ function Get-LineNumber([string]$text, [int]$index) {
     return ([regex]::Matches($text.Substring(0, $index), "`n")).Count + 1
 }
 
-foreach ($page in $pages) {
-    $full = Join-Path $Root $page
-    if (-not (Test-Path -LiteralPath $full -PathType Leaf)) { Stop-CannotVerify "page not found: $page" }
-    $html = Get-Content -LiteralPath $full -Raw -Encoding utf8
-
+function Test-Emoji([string]$page, [string]$html) {
     $offset = 0
     foreach ($rune in $html.EnumerateRunes()) {
         $v = $rune.Value
@@ -107,6 +120,19 @@ foreach ($page in $pages) {
     foreach ($m in [regex]::Matches($html, $escapedEmoji)) {
         Add-Finding 'EMOJI' ('{0}:{1}: escaped emoji {2}' -f $page, (Get-LineNumber $html $m.Index), $m.Value)
     }
+}
+
+foreach ($file in $portalFiles) {
+    $relative = [System.IO.Path]::GetRelativePath($Root, $file.FullName).Replace('\', '/')
+    Test-Emoji $relative (Get-Content -LiteralPath $file.FullName -Raw -Encoding utf8)
+}
+
+foreach ($page in $pages) {
+    $full = Join-Path $Root $page
+    if (-not (Test-Path -LiteralPath $full -PathType Leaf)) { Stop-CannotVerify "page not found: $page" }
+    $html = Get-Content -LiteralPath $full -Raw -Encoding utf8
+
+    Test-Emoji $page $html
 
     $header = [regex]::Match($html, '(?s)<header\b[^>]*class="site-header"[^>]*>(.*?)</header>')
     $h1s = [regex]::Matches($html, '<h1\b')
@@ -135,5 +161,5 @@ if ($failures.Count -gt 0) {
     if ($Quiet) { $failures | ForEach-Object { Write-Host "  $_" } }
     exit 1
 }
-Write-Host "assert-page-content: PASS ($($pages.Count) pages)" -ForegroundColor Green
+Write-Host "assert-page-content: PASS ($($pages.Count) pages, $($portalFiles.Count) portal files)" -ForegroundColor Green
 exit 0

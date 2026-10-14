@@ -173,8 +173,8 @@
                     android:textColor="?attr/colorOnSurface"
                     android:textAppearance="@style/TextAppearance.FastMediaSorter.Welcome.Hint" />
 
-                <!-- Windows companion promo: Fast Media Sorter for Windows publishes PC folders over
-                     SMB/SFTP so they show up as network sources here. WelcomeRemoteSourcesController
+                <!-- Windows companion promo: Fast Media Sorter &amp; Sharing for Windows publishes PC folders over
+                     SFTP so they show up as network sources here. WelcomeRemoteSourcesController
                      hides both views on flavors without local-network support (same gate as the
                      SMB/(S)FTP rows). Ids mirror the landscape variant (CLAUDE.md Rule 11). -->
                 <TextView
@@ -198,6 +198,19 @@
                     android:layout_marginTop="4dp"
                     android:text="@string/welcome_networks_companion_button"
                     app:icon="@drawable/ic_open_in_browse"
+                    app:iconGravity="start" />
+
+                <!-- S4143: the media exchange portal. Shown whenever any remote source group exists
+                     (network or cloud); WelcomeRemoteSourcesController owns its visibility. -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnMediaExchangePortal"
+                    style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:text="@string/media_exchange_portal_link"
+                    app:icon="@drawable/ic_swap_horizontal"
                     app:iconGravity="start" />
 
             </LinearLayout>

@@ -76,4 +76,7 @@
     <string name="dropbox_select_folder">Выбрать папку</string>
     <string name="dropbox_sign_in">Войти через Dropbox</string>
     <string name="dropbox_signed_in">Вход выполнен: %1$s</string>
+    <string name="media_exchange_portal_link">Обмен медиа между устройствами</string>
+    <string name="media_exchange_portal_open">Открыть портал обмена медиа</string>
+    <string name="broadcast_portal_help">Как работает трансляция между устройствами</string>
 </resources>

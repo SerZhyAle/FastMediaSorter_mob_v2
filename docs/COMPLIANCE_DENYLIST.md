@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.10 08:57</sub>
+
 # Compliance Deny-List
 
 This document defines the S0286 build-time guard for market flavors and the public feature inventory.

@@ -75,6 +75,15 @@ class ResolveWearLaunchAddressUseCaseTest {
         assertNull(withholdingUseCase(WearLaunchTarget.Destination(WearDestinationId.BODY_SENSOR)))
         assertNull(withholdingUseCase(WearLaunchTarget.Destination(WearDestinationId.BLOOD_PRESSURE)))
         assertNull(withholdingUseCase(WearLaunchTarget.Destination(WearDestinationId.MOTION_MONITOR)))
+        assertNull(withholdingUseCase(WearLaunchTarget.Destination(WearDestinationId.TOURIST)))
+    }
+
+    /** S4147: the catalog hides Tourist unless both answers allow it, so an outside caller must not reach it. */
+    @Test
+    fun `the tourist destination returns null when device diagnostics are withheld`() = runTest {
+        val withholdingUseCase = useCaseWith(FakeCapabilities(offersDeviceDiagnostics = false))
+
+        assertNull(withholdingUseCase(WearLaunchTarget.Destination(WearDestinationId.TOURIST)))
     }
 
     /**

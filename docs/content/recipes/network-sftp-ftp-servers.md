@@ -6,7 +6,8 @@ description: Adding a server by address, signing in with a password or an SSH ke
 category: Network & Cloud
 category_slug: network
 ticket: S2950
-flavor: SFTP and FTP - every edition except Lite. Signing in with an SSH key, pinning the server and sharing or importing access files - Standard, noLegal, Photos, Legacy and VR (not Lite, not FOSS); the watch's own connection test - Standard, noLegal, Lite, Photos, Legacy, VR and FOSS.
+availability: SUPPORT_LOCAL_NETWORK
+availability_note: SFTP and FTP - every edition except Lite. Signing in with an SSH key, pinning the server and sharing or importing access files - Standard, noLegal, Photos, Legacy and VR (not Lite, not FOSS); the watch's own connection test - Standard, noLegal, Lite, Photos, Legacy, VR and FOSS.
 recipe_number: "02"
 canonical_url: documentation/network/sftp-ftp-servers.html
 why: |
@@ -61,6 +62,14 @@ steps:
     title: The server's identity is checked every time, not just once
     text: |
       A pinned host key is verified on every connection this resource makes from then on - browsing, thumbnails, playback and its reconnects alike, not only when you press Test Connection. If a server ever answers with a different key than the one you pinned, the app refuses it outright: "This shared folder's server looks different from the one you paired with. Nothing was loaded, to keep you safe." That is what a genuine man-in-the-middle attempt looks like from the inside, and it is also exactly what happens, harmlessly, if a server was reinstalled and issued itself a new key - re-pin it once you are sure it is really the same place.
+    image_bookmark:
+      shot_id: network.sftp-host-key-mismatch
+      device_profile: phone
+      screen_state: browse-sftp-host-key-mismatch-error
+      alt: The message that the shared folder's server looks different from the one you paired with and nothing was loaded
+      caption: "A changed server key is refused, not accepted."
+      title: "Screenshot: Host key mismatch"
+      desc: Opening an SFTP resource whose server key differs from the pinned one.
   - number: 5
     id: share-access
     title: Send someone access to a folder you already added
@@ -86,13 +95,21 @@ steps:
     callout:
       type: tip
       title: This is also how a shared PC folder arrives
-      text: "A folder shared from [Fast Media Sorter for Windows](term:windows-companion) uses the same file format and the same import dialog - see [Sharing PC folders with Fast Media Sorter for Windows](page:network.windows-companion)."
+      text: "A folder shared from [Fast Media Sorter & Sharing for Windows](term:windows-companion) uses the same file format and the same import dialog - see [Sharing PC folders with Fast Media Sorter & Sharing for Windows](page:network.windows-companion)."
   - number: 7
     id: quietly-resilient
     title: A few things the app handles quietly
     text: |
       - **A folder scan that cannot finish says so.** Scanning an SFTP folder ends in bounded time even when the network changes mid-scan or a connection goes half-open - "The folder is taking too long to load. Check your network and try again." instead of a spinner that never stops.
       - **A server that was just unreachable is not retried the hard way every time.** For a short cooldown after a failed connection, the app answers fast instead of making every thumbnail or file wait through a full connection timeout again.
+    image_bookmark:
+      shot_id: network.sftp-folder-load-timeout
+      device_profile: phone
+      screen_state: browse-sftp-folder-load-timeout
+      alt: The file browser on an SFTP folder showing that the folder is taking too long to load, with the advice to check the network and try again
+      caption: "A scan that cannot finish says so instead of spinning."
+      title: "Screenshot: Folder load timeout"
+      desc: Browse on an SFTP resource after the network dropped mid-scan.
 outcome: |
   A server you reach by address - on your own network or anywhere on the internet - opens with a password or a key, its identity is confirmed once and checked on every visit after that, and handing someone else access to a folder, or receiving access to theirs, is one shared file away.
 tips:
@@ -100,6 +117,7 @@ tips:
   - "**Want the phone to be the server instead?** See [Turning the phone into an SFTP server](page:network.phone-as-sftp-server)."
   - "**Testing an SFTP or FTP resource from your watch?** The watch's own **Test** button really connects and reports the server's actual reason on failure - see [Opening the phone's and network folders on the watch](page:wear.phone-and-network-folders-on-watch)."
   - "**Everything in one move to a new phone.** Resources added here, including keys and pinned fingerprints, travel in the same backup as the rest of your resources - see [Sharing and backing up your resources](page:storage.sharing-and-backing-up-resources)."
+  - "**Want to reach your own storage from outside your home?** The [media exchange portal](../../docs/media-exchange-portal/home-network.html) walks through the home network way step by step and says what works today."
 next_recipes:
   - title: Connecting SMB/Windows shares
     url: page:network.smb-samba-shares
@@ -111,11 +129,13 @@ next_recipes:
     badge: Network
     badge_type: docs
     description: Share folders from your own phone instead of connecting to someone else's.
-  - title: Sharing PC folders with Fast Media Sorter for Windows
+  - title: Sharing PC folders with Fast Media Sorter & Sharing for Windows
     url: page:network.windows-companion
     badge: Network
     badge_type: docs
     description: The PC-side companion that publishes folders as ready-made SFTP resources.
 ---
+
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Add an FTP or SFTP server by address, sign in with a password or an SSH key, let the app confirm the server's identity once and re-check it on every visit, and hand a folder to someone else - or receive one from them - as a single shared file. Testing the same kind of resource from a paired [watch](term:watch) is covered too.

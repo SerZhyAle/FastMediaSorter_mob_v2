@@ -63,9 +63,10 @@ class CloudToCloudTransferHelper(
 
         // Same provider: native copy
         if (sourceInfo.provider == destInfo.provider) {
-            val fileName = sourcePath.substringAfterLast('/')
             val result = cloudAuthHelper.executeWithAutoReauth(sourceInfo.provider) { client ->
-                client.copyFile(sourceInfo.fileId, destInfo.folderId ?: "root", fileName)
+                val sourceName = sourceDisplayNameOrNull(client, sourceInfo)
+                Timber.d("S4197: copyCloudToCloud native copy name '$sourceName'")
+                client.copyFile(sourceInfo.fileId, destInfo.folderId ?: "root", sourceName)
             }
 
             return when (result) {
@@ -89,6 +90,10 @@ class CloudToCloudTransferHelper(
         val sourceClient = cloudAuthHelper.getCloudClient(sourceInfo.provider) ?: return null
         val destClient = cloudAuthHelper.getCloudClient(destInfo.provider) ?: return null
 
+        // The uploaded name must be the source's display name: the path's last segment is an id.
+        val fileName = sourceDisplayNameOrNull(sourceClient, sourceInfo)
+            ?: sourcePath.substringAfterLast('/')
+
         val tempFile = File.createTempFile("cloud_copy_", ".tmp", context.cacheDir)
 
         return try {
@@ -100,7 +105,6 @@ class CloudToCloudTransferHelper(
                 is CloudResult.Success -> {
                     Timber.d("copyCloudToCloud: Downloaded ${tempFile.length()} bytes from source to temp")
 
-                    val fileName = sourcePath.substringAfterLast('/')
                     val mimeType = CloudFileOperationPathUtils.getMimeType(fileName)
                     val uploadResult = FileInputStream(tempFile).use { inputStream ->
                         destClient.uploadFile(
@@ -131,6 +135,23 @@ class CloudToCloudTransferHelper(
             }
         } finally {
             tempFile.delete()
+        }
+    }
+
+    /**
+     * The source's display name from metadata - a source path's last segment is a provider file
+     * id, not a name. Null when the lookup fails; each caller owns its own degradation.
+     */
+    private suspend fun sourceDisplayNameOrNull(
+        client: CloudStorageClient,
+        sourceInfo: CloudPathParser.CloudPathInfo
+    ): String? {
+        return when (val metadata = client.getFileMetadata(sourceInfo.fileId)) {
+            is CloudResult.Success -> metadata.data.name
+            is CloudResult.Error -> {
+                Timber.w("copyCloudToCloud: no source metadata (${metadata.message})")
+                null
+            }
         }
     }
 

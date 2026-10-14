@@ -6,7 +6,7 @@ description: "Вхід у Google Drive і додавання папки з Ди�
 category: Мережеві папки та хмари
 category_slug: network
 ticket: S2950
-flavor: Редакції Standard, noLegal, Photos, Legacy та VR - не Lite, не FOSS. Потрібен акаунт Google.
+availability_note: Редакції Standard, noLegal, Photos, Legacy та VR - не Lite, не FOSS. Потрібен акаунт Google.
 recipe_number: "05"
 canonical_url: documentation/network/cloud-google-drive-uk.html
 why: |
@@ -70,6 +70,7 @@ tips:
   - "**Шукаєте Dropbox або OneDrive?** Див. [Dropbox і OneDrive](page:network.cloud-dropbox-onedrive)."
   - "**Хочете повну картину резервного копіювання й відновлення?** [Резервне копіювання налаштувань і синхронізація пристроїв](page:settings.backup-and-device-sync) охоплює й файлове резервне копіювання, а не лише Drive."
   - "**Додавання мережевих папок і хмарних сховищ загалом** описано від початку в рецепті [Додавання мережевих папок і хмарних сховищ як джерел](page:storage.network-and-cloud-sources)."
+  - "**Потрібна спільна «скринька» для всіх власних пристроїв?** [Портал обміну медіа](../../docs/media-exchange-portal/clouds-uk.html) показує, як Google Drive, Dropbox і OneDrive співвідносяться з іншими способами переносити медіа між пристроями."
 next_recipes:
   - title: Dropbox і OneDrive
     url: page:network.cloud-dropbox-onedrive
@@ -87,5 +88,7 @@ next_recipes:
     badge_type: other
     description: Огляд усіх видів місць, які можна додати як ресурс.
 ---
+
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Увійдіть у Google Drive один раз, і він відкриває папки як ресурси, резервно копіює ваші налаштування та переносить файли й налаштування між вашими пристроями через приватну чергу Drive - усе через те саме підключення [Google-акаунта](term:google-drive), яке продовжує працювати після оновлень застосунку.

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.24 10:42</sub>
+
 # Third-Party Brand Assets and Attributions
 
 This document records the third-party brand marks bundled in FastMediaSorter v2, their sources, licensing terms, and conformance notes under the `ICON-EXTERNAL` contract.

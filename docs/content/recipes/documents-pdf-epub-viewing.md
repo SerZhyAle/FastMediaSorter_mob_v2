@@ -6,7 +6,7 @@ description: How to open a PDF, turn and jump between pages, read in one long sc
 category: Documents & Text Editor
 category_slug: documents
 ticket: S2953
-flavor: Standard, noLegal, Legacy, VR and FOSS
+availability: SUPPORT_DOCUMENTS
 recipe_number: "01"
 canonical_url: documentation/documents/pdf-epub-viewing.html
 why: |
@@ -48,6 +48,7 @@ steps:
       - When you have zoomed in, swipe up or down with **two fingers** together. Spreading or pinching the fingers still zooms and does not turn the page.
       - Tap the page counter, for example **3 / 12**. In the **Go to page** window type the page number and tap **Go**.
       - Use the buttons at the edges of the bar to jump to the first or the last page. The jump-to-start button sits a little apart from the back arrow, so you will not lose your place by a slip of the finger.
+      - With the app in Arabic or Urdu, the page arrows point the other way, because the next page of a right-to-left document lies to the left. The same goes for the chapter arrows of the EPUB reader and the page arrows of the text viewer.
 
       Zoom in with two fingers as in any photo. When you turn the page, the reader keeps the same zoom and position, so a narrow column of small print stays readable page after page.
     callout:
@@ -136,7 +137,7 @@ steps:
 
       Tap the card to switch it between a small card in the corner and the full screen. The cross on the card closes it. A word translated from the selected text opens in the same card.
 
-      If you switch on **Translation result in blocks** in the **On-screen translation** settings, the translation is laid over the original lines instead, like in Google Lens, and the buttons on the bar make that text smaller or larger. More about languages and options: [translating text on screen](page:tools.inline-translation).
+      If you switch on **Translation result in blocks** in the **On-screen translation** settings, the translation is laid over the original lines instead, and the buttons on the bar make that text smaller or larger. More about languages and options: [translating text on screen](page:tools.inline-translation).
     image_bookmark:
       shot_id: documents.pdf-translation-card
       device_profile: phone
@@ -185,5 +186,7 @@ next_recipes:
     badge_type: docs
     description: Choose languages and the look of offline translation.
 ---
+
+<sub class="doc-stamp">26.10.10 14:38</sub>
 
 Open a PDF with one tap, turn pages by swiping, find a page by its picture, read at night in dark colors, copy, search, listen to and translate the text, and save the pages as pictures or print them - all in the built-in [reader](term:reader).

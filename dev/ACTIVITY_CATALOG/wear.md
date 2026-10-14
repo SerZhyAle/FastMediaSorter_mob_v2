@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.05.18 17:59</sub>
+
 # Activity Catalog - wear
 
 *Generated: 2026-05-09 15:08*

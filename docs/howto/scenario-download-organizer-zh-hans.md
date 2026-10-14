@@ -3,6 +3,8 @@ layout: default
 title: "下载整理器（快速分类）- FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-zh-hans.html
 ---
+<sub class="doc-stamp">26.09.25 02:17</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 🧹 下载整理器 - 一键分类文件

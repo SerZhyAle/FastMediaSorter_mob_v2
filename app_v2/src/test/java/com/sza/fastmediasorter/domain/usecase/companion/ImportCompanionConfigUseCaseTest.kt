@@ -4,6 +4,7 @@ import android.content.Context
 import com.sza.fastmediasorter.data.companion.CompanionConfigException
 import com.sza.fastmediasorter.data.companion.CompanionConfigParser
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
+import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.AddMultipleResult
@@ -172,7 +173,25 @@ class ImportCompanionConfigUseCaseTest {
         assertEquals(listOf("Home PC"), result.getOrThrow().addedNames)
     }
 
+    @Test
+    fun `a rendezvous tunnel path becomes a tunnel alternate with its own credential row`() = runTest {
+        val json = config(password = "secret").replace(
+            "\"port\":$PORT}]",
+            "\"port\":$PORT},{\"kind\":\"rendezvousTunnel\",\"host\":\"relay.example.net\",\"port\":44022," +
+                "\"shareId\":\"$SHARE_ID\"},{\"kind\":\"rendezvousTunnel\",\"host\":\"relay.example.net\"," +
+                "\"port\":44022}]",
+        )
+
+        assertTrue(useCase.importFromPayload(json).isSuccess)
+
+        val tunnelHost = "$SHARE_ID@relay.example.net"
+        assertEquals(listOf(HostPort(tunnelHost, 44022)), addedResources.captured.single().altAccessPaths)
+        coVerify { smbOperations.saveSftpCredentials(tunnelHost, 44022, "fms", "secret", null) }
+        coVerify(exactly = 0) { smbOperations.saveSftpCredentials("relay.example.net", any(), any(), any(), any()) }
+    }
+
     private companion object {
+        const val SHARE_ID = "q3Vb7YtK0xP2mN9sLfR4wA"
         const val HOST = "10.0.0.2"
         const val PORT = 2022
         const val CRED_ID = "cred-1"

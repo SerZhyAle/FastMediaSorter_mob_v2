@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 720" width="100%" height="100%" style="background:#090d16; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;">
+  <defs>
+    <filter id="cardShadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+    <marker id="arrowB" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#38bdf8" />
+    </marker>
+    <marker id="arrowG" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#34d399" />
+    </marker>
+    <marker id="arrowY" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#fbbf24" />
+    </marker>
+  </defs>
+
+  <!-- Top Title Bar -->
+  <g transform="translate(50, 35)">
+    <rect width="1000" height="60" rx="10" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+    <text x="30" y="27" fill="#38bdf8" font-size="12" font-weight="700" letter-spacing="1.5">СХЕМА 1 · РАБОТА ЧЕРЕЗ ИНТЕРНЕТ</text>
+    <text x="30" y="48" fill="#f8fafc" font-size="18" font-weight="700">Связь всех устройств через сервер обмена (Media Exchange Server)</text>
+    <rect x="730" y="14" width="240" height="32" rx="6" fill="#0369a1"/>
+    <text x="850" y="35" fill="#ffffff" font-size="12" font-weight="600" text-anchor="middle">Белый IP на ПК не требуется</text>
+  </g>
+
+  <!-- Connection Lines (Behind Nodes) -->
+  <!-- Left PC to Center Server -->
+  <path d="M 320 220 L 430 290" fill="none" stroke="#38bdf8" stroke-width="3" marker-end="url(#arrowB)"/>
+  <!-- Left Laptop to Center Server -->
+  <path d="M 320 460 L 430 390" fill="none" stroke="#38bdf8" stroke-width="3" marker-end="url(#arrowB)"/>
+
+  <!-- Center Server to Right Phone Client -->
+  <path d="M 670 290 L 780 210" fill="none" stroke="#34d399" stroke-width="3" marker-end="url(#arrowG)"/>
+  <!-- Center Server to/from Right Phone Server -->
+  <path d="M 670 340 L 780 340" fill="none" stroke="#fbbf24" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrowY)"/>
+  <!-- Center Server to TV -->
+  <path d="M 670 390 L 780 470" fill="none" stroke="#34d399" stroke-width="3" marker-end="url(#arrowG)"/>
+  <!-- Center Server to Watch -->
+  <path d="M 550 480 L 550 560" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-dasharray="4,4"/>
+
+  <!-- ============================================================ -->
+  <!-- CENTER NODE: MEDIA EXCHANGE SERVER -->
+  <!-- ============================================================ -->
+  <g transform="translate(430, 180)" filter="url(#cardShadow)">
+    <rect width="240" height="300" rx="14" fill="#0f172a" stroke="#38bdf8" stroke-width="2.5"/>
+    <!-- Header -->
+    <rect width="240" height="48" rx="14" fill="#0284c7"/>
+    <rect width="240" height="16" y="32" fill="#0284c7"/>
+    <text x="120" y="30" fill="#ffffff" font-size="15" font-weight="700" text-anchor="middle">СЕРВЕР ОБМЕНА</text>
+    <text x="120" y="68" fill="#38bdf8" font-size="11" font-weight="600" text-anchor="middle">В интернете (облачный узел)</text>
+
+    <!-- Block 1: What it does -->
+    <rect x="15" y="82" width="210" height="92" rx="8" fill="#1e293b"/>
+    <text x="25" y="102" fill="#38bdf8" font-size="11" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="25" y="122" fill="#f8fafc" font-size="11.5">• Соединяет устройства</text>
+    <text x="25" y="139" fill="#f8fafc" font-size="11.5">• Работает за NAT без настроек</text>
+    <text x="25" y="156" fill="#f8fafc" font-size="11.5">• Ведёт журнал авторизаций</text>
+
+    <!-- Block 2: Setup needed -->
+    <rect x="15" y="186" width="210" height="96" rx="8" fill="#1e293b"/>
+    <text x="25" y="206" fill="#34d399" font-size="11" font-weight="700">ЧТО НАСТРАИВАТЬ:</text>
+    <text x="25" y="226" fill="#f8fafc" font-size="11.5">• Сервер разворачивают один раз</text>
+    <text x="25" y="243" fill="#94a3b8" font-size="11">• На клиентах: просто войти</text>
+    <text x="25" y="260" fill="#94a3b8" font-size="11">  под одной учётной записью</text>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- LEFT NODES: WINDOWS MACHINES -->
+  <!-- ============================================================ -->
+  <!-- Node: Main Windows PC (Storage & Server) -->
+  <g transform="translate(50, 140)" filter="url(#cardShadow)">
+    <rect width="270" height="170" rx="12" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+    <rect width="270" height="34" rx="12" fill="#0369a1"/>
+    <rect width="270" height="12" y="22" fill="#0369a1"/>
+    <text x="15" y="23" fill="#ffffff" font-size="13" font-weight="700">🖥️ Компьютер Windows (Дома)</text>
+
+    <text x="15" y="55" fill="#38bdf8" font-size="10.5" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="15" y="73" fill="#f8fafc" font-size="11.5">• Раздаёт ваши папки по SFTP</text>
+    <text x="15" y="90" fill="#f8fafc" font-size="11.5">• Просмотрщик работает локально</text>
+
+    <line x1="15" y1="102" x2="255" y2="102" stroke="#334155"/>
+
+    <text x="15" y="120" fill="#fbbf24" font-size="10.5" font-weight="700">ЧТО НАСТРАИВАТЬ:</text>
+    <text x="15" y="138" fill="#cbd5e1" font-size="11">1. В Share Manager выбрать папки</text>
+    <text x="15" y="154" fill="#cbd5e1" font-size="11">2. Нажать кнопку «Запустить раздачу»</text>
+  </g>
+
+  <!-- Node: Remote Windows Laptop -->
+  <g transform="translate(50, 370)" filter="url(#cardShadow)">
+    <rect width="270" height="160" rx="12" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+    <rect width="270" height="34" rx="12" fill="#1e40af"/>
+    <rect width="270" height="12" y="22" fill="#1e40af"/>
+    <text x="15" y="23" fill="#ffffff" font-size="13" font-weight="700">💻 Ноутбук Windows (Вне дома)</text>
+
+    <text x="15" y="55" fill="#38bdf8" font-size="10.5" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="15" y="73" fill="#f8fafc" font-size="11.5">• Открывает домашние папки ПК</text>
+    <text x="15" y="90" fill="#f8fafc" font-size="11.5">• Скачивает и сортирует файлы</text>
+
+    <line x1="15" y1="102" x2="255" y2="102" stroke="#334155"/>
+
+    <text x="15" y="120" fill="#fbbf24" font-size="10.5" font-weight="700">ЧТО НАСТРАИВАТЬ:</text>
+    <text x="15" y="138" fill="#cbd5e1" font-size="11">Войти в свой аккаунт в программе</text>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- RIGHT NODES: ANDROID DEVICES & TV -->
+  <!-- ============================================================ -->
+  <!-- Node: Android Smartphone (Client) -->
+  <g transform="translate(780, 130)" filter="url(#cardShadow)">
+    <rect width="270" height="135" rx="12" fill="#1e293b" stroke="#34d399" stroke-width="2"/>
+    <rect width="270" height="32" rx="12" fill="#059669"/>
+    <rect width="270" height="12" y="20" fill="#059669"/>
+    <text x="15" y="22" fill="#ffffff" font-size="13" font-weight="700">📱 Смартфон Android (Клиент)</text>
+
+    <text x="15" y="52" fill="#34d399" font-size="10.5" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="15" y="70" fill="#f8fafc" font-size="11.5">• Просмотр фото и видео с ПК</text>
+    <text x="15" y="87" fill="#f8fafc" font-size="11.5">• Сортировка файлов на ходу</text>
+
+    <text x="15" y="112" fill="#cbd5e1" font-size="11"><tspan fill="#34d399" font-weight="700">Настройка: </tspan>открыть приложение и войти</text>
+  </g>
+
+  <!-- Node: Android Phone as SFTP Server -->
+  <g transform="translate(780, 285)" filter="url(#cardShadow)">
+    <rect width="270" height="145" rx="12" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
+    <rect width="270" height="32" rx="12" fill="#d97706"/>
+    <rect width="270" height="12" y="20" fill="#d97706"/>
+    <text x="15" y="22" fill="#ffffff" font-size="13" font-weight="700">📲 Смартфон-Раздатчик (Сервер)</text>
+
+    <text x="15" y="52" fill="#fbbf24" font-size="10.5" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="15" y="70" fill="#f8fafc" font-size="11.5">• Раздаёт фото камеры и загрузки</text>
+    <text x="15" y="87" fill="#f8fafc" font-size="11.5">• ПК может скачивать фото с телефона</text>
+
+    <line x1="15" y1="98" x2="255" y2="98" stroke="#334155"/>
+    <text x="15" y="115" fill="#fbbf24" font-size="10.5" font-weight="700">ЧТО НАСТРАИВАТЬ:</text>
+    <text x="15" y="132" fill="#cbd5e1" font-size="11">В приложении: «Включить SFTP-сервер»</text>
+  </g>
+
+  <!-- Node: Android TV -->
+  <g transform="translate(780, 450)" filter="url(#cardShadow)">
+    <rect width="270" height="120" rx="12" fill="#1e293b" stroke="#34d399" stroke-width="1.5"/>
+    <rect width="270" height="30" rx="12" fill="#047857"/>
+    <rect width="270" height="10" y="20" fill="#047857"/>
+    <text x="15" y="21" fill="#ffffff" font-size="12.5" font-weight="700">📺 Телевизор Smart TV</text>
+
+    <text x="15" y="50" fill="#34d399" font-size="10.5" font-weight="700">ЧТО ДЕЛАЕТ:</text>
+    <text x="15" y="68" fill="#f8fafc" font-size="11.5">• Слайд-шоу фото и видео с ПК</text>
+    <text x="15" y="95" fill="#cbd5e1" font-size="11"><tspan fill="#34d399" font-weight="700">Настройка: </tspan>открыть приложение на ТВ</text>
+  </g>
+
+  <!-- Bottom Node: Smartwatch -->
+  <g transform="translate(430, 560)" filter="url(#cardShadow)">
+    <rect width="240" height="75" rx="10" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+    <text x="20" y="26" fill="#c084fc" font-size="12" font-weight="700">⌚ Смарт-часы (Wear OS)</text>
+    <text x="20" y="46" fill="#f8fafc" font-size="11">• Прослушивание аудиопотоков</text>
+    <text x="20" y="62" fill="#94a3b8" font-size="10.5">• Получение медиа и потоков</text>
+  </g>
+
+  <!-- Bottom Explanatory Strip -->
+  <g transform="translate(50, 655)">
+    <rect width="1000" height="42" rx="8" fill="#0f172a" stroke="#1e293b"/>
+    <text x="25" y="26" fill="#38bdf8" font-size="11" font-weight="700">ИТОГ НАСТРОЙКИ:</text>
+    <text x="150" y="26" fill="#cbd5e1" font-size="11.5">На ПК нажали «Раздавать», на телефоне открыли приложение. Никаких настроек роутера и сложных параметров.</text>
+  </g>
+</svg>

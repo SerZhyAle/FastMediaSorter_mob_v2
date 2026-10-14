@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.25 23:33</sub>
+
 # Code Audit Protocol
 
 This protocol defines how FastMediaSorter audits Android code for correctness, readability, memory safety, lifecycle safety, concurrency safety, and performance.

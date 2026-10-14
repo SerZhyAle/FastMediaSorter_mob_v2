@@ -30,9 +30,6 @@
       - assert-flavor-matrix-docs    (S1392 doc flavor tables vs the generated capability snapshot)
       - assert-code-domain-writers   (S2635 a script writing a Code.* path without taking the domain)
       - assert-gate-placement        (S2870 the gate-placement registry vs where the gates are wired)
-- assert-sdk-pin-claims        (S1438 SDK pins stated in prose vs the build files)
-- assert-flavor-count-prose    (S2445 flavor counts and complete-set lists in prose vs the matrix)
-      - assert-gate-count-prose      (S2935 the fg gate count in prose vs the $gates table below)
       - assert-ctor-arg-slots        (S1470 primary constructors near the 255 argument-slot ceiling)
       - assert-packaging-excludes-parity (S1679 shared-library payload stripped in one module only)
       - assert-module-version-parity  (app_v2 / wear version fields under one applicationId)
@@ -92,7 +89,10 @@
       -ChangedFiles   Diff-scoped judgement. Forwarded to detekt AND to every gate in the
                       table that accepts the parameter (see $changedFilesAware below).
                       Omit it - as a release or CI run does - and every gate keeps its
-                      strict project-wide judgement.
+                      strict project-wide judgement. Alias -Files (S4190): an agent judging
+                      its own change passes its set, because a bare run judges every other
+                      session's work too - measured 2026-09-30..10-12, bare runs were red in
+                      30 of 36, scoped runs in 0 of 10.
       -FailOnSkipped  Count a gate that could not verify (child exit 3) as a failure. For a caller
                       that requires full coverage rather than "everything runnable here was green".
       -Sequential     Run the children one at a time, as before S2451.
@@ -132,9 +132,15 @@
     Exit codes:
       0  every gate passed; or, with -ChangedFiles, every gate that judged the changed set
          passed and only project-wide gates were red. A gate that exited 3 - it could not verify,
-         see below - does not affect this code unless -FailOnSkipped was passed.
-      1  at least one gate failed or is MISSING; with -ChangedFiles, at least one gate that
-         judged the changed set failed or is MISSING; or -FailOnSkipped and a gate was skipped.
+         see below - does not affect this code unless -FailOnSkipped was passed. (S4130,
+         CHECK-VERDICT 0.12) A child that exits 0 under "<gate>: NOT APPLICABLE" is counted with
+         the skipped, never with the passed, and -FailOnSkipped does not charge it; when every
+         child answered that word the line reads "assert-fast-gates: NOT APPLICABLE (..)".
+      1  at least one gate failed (child exit 1); with -ChangedFiles, at least one gate that
+         judged the changed set failed; or -FailOnSkipped and a gate was skipped.
+      2  no gate failed, but at least one red row never judged (S4192): MISSING, UNVERIFIED (child
+         exit 2 or any code outside 0/1/3/4) or QUEUED (child exit 4, behind a build lock); with
+         -ChangedFiles, only rows in the changed-set block count. The verdict reads COULD NOT VERIFY.
 
     Skipped gates (S3075):
       A child exit code of 3 means "this run judged nothing", not "this run found nothing wrong" -
@@ -156,6 +162,7 @@ param(
     [switch]$IncludeDetekt,
     [ValidateSet('app_v2', 'wear')]
     [string]$Module,
+    [Alias('Files')]
     [string[]]$ChangedFiles,
     [switch]$Sequential,
     [switch]$FailOnSkipped,
@@ -167,6 +174,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib/gate-telemetry.ps1')
+. (Join-Path $PSScriptRoot 'lib/verdict-word.ps1')
 
 # S2453: the batch's own wall clock, which is what `docs/BUILD_TEST_FAST_PATH.md` claims for
 # `a.ps1 fg` and what the caller waits on. Started before any gate so the record covers the
@@ -408,25 +416,6 @@ $gates = [ordered]@{
     # regenerate-lint-baseline dispatch and check-lint.ps1 -Regenerate rewrite wholesale. Reads the
     # committed lint-baseline.ids snapshots; no gradle daemon.
     'assert-lint-baseline-absorption.ps1'       = @()
-    # S1438: SDK pins stated in ORDINARY PROSE, which the managed-block gate above cannot see -
-    # an index line, an architecture bullet, an agent definition, agent memory. Eight copies said
-    # compileSdk 35 while Gradle compiled against 36, and an agent reading one concludes an API is
-    # unavailable. Reads the value from the build file every run, so it can never itself go stale.
-    'assert-sdk-pin-claims.ps1'                 = @('-Quiet')
-    # S2445: the same shape one axis over - the flavor COUNT stated in ordinary prose, which
-    # assert-flavor-matrix-docs cannot see because its manifest scopes it to glyph table cells.
-    # S0403's seventh flavor left thirteen documents and a.ps1's help text saying six, and the help
-    # text hid a working `-Flavor Foss` behind a six-name list. Second run of the drift S1392 opened.
-    # Only quantified claims are judged, so a deliberate subset ("standard/legacy/noLegal/vr - HLS")
-    # is not a finding. Reads the generated matrix JSON, no gradle daemon.
-    'assert-flavor-count-prose.ps1'             = @('-Quiet')
-    # S2935: the gate count the `fg` row of docs/BUILD_TEST_FAST_PATH.md states, against the table
-    # it is standing in. That count moves in whichever ticket adds a gate - a ticket about
-    # something else, written by someone with no reason to open that document - so it had gone
-    # fifteen revisions stale in silence, 45 against a live 61. Per-ticket by Rule 33 for the same
-    # reason: the only session that can fix it cheaply is the one adding the entry below. Reads
-    # this file by AST, no gradle daemon and no child process.
-    'assert-gate-count-prose.ps1'               = @('-Quiet')
     # S1259: android:id parity between layout-land and layout-w600dp siblings. w600dp beats
     # -land on wide landscape devices, so an id missing on one side is a latent findViewById
     # null (the recording-indicator include NPE). Static regex over 4 shared files, ~ms.
@@ -637,7 +626,9 @@ $runOne = {
     [pscustomobject]@{
         Index    = $item.Index
         Gate     = $item.Gate
-        Status   = switch ($code) { 0 { 'PASS' } 3 { 'SKIP' } default { 'FAIL' } }
+        # S4192: only exit 1 is a finding. 2 (could not verify), 4 (queued behind a lock) and any
+        # other code mean the gate never judged, and reading them as FAIL made a red row ambiguous.
+        Status   = switch ($code) { 0 { 'PASS' } 1 { 'FAIL' } 3 { 'SKIP' } 4 { 'QUEUED' } default { 'UNVERIFIED' } }
         ExitCode = $code
         Ms       = [int]$sw.Elapsed.TotalMilliseconds
         Output   = $captured
@@ -682,14 +673,19 @@ function Test-OutputNamesChangedFile {
     return $false
 }
 
+$redStatuses = @('FAIL', 'UNVERIFIED', 'QUEUED', 'MISSING')
 $results = [System.Collections.Generic.List[object]]::new()
 foreach ($r in (@($completed) + @($missing) | Sort-Object Index)) {
     if ($r.Output) {
         Write-Protocol $r.Output.TrimEnd()
-        if ($consoleVerbose -or $r.Status -eq 'FAIL') { Write-Host $r.Output.TrimEnd() }
+        if ($consoleVerbose -or $r.Status -in $redStatuses) { Write-Host $r.Output.TrimEnd() }
     }
+    # S4130: CHECK-VERDICT 0.12 item A - exit 0 under "<gate>: NOT APPLICABLE" is the caller's own
+    # deselection. Read off the verdict line here, in the parent, because a runspace does not see
+    # the dot-sourced reader; telemetry records it as SKIP, the class it is counted with.
+    if ($r.Status -eq 'PASS' -and (Test-NotApplicableVerdict -Lines @($r.Output))) { $r.Status = 'N/A' }
     $rowScope = $r.Scope
-    if ($rowScope -eq 'tree' -and $r.Status -eq 'FAIL' -and (Test-OutputNamesChangedFile -Output $r.Output)) {
+    if ($rowScope -eq 'tree' -and $r.Status -in $redStatuses -and (Test-OutputNamesChangedFile -Output $r.Output)) {
         $rowScope = 'set-named'
     }
     $r.Scope = $rowScope
@@ -700,7 +696,7 @@ foreach ($r in (@($completed) + @($missing) | Sort-Object Index)) {
     $telemetry = @{
         Runner    = 'assert-fast-gates'
         Gate      = $r.Gate
-        Status    = $r.Status
+        Status    = ($r.Status -eq 'N/A') ? 'SKIP' : $r.Status
         ExitCode  = $r.ExitCode
         ElapsedMs = $r.Ms
     }
@@ -716,8 +712,8 @@ if ($IncludeDetekt) {
     $detektOutput = & $pwshExe @detektArgs 2>&1 | Out-String
     $detektExitCode = [int]$LASTEXITCODE
     $sw.Stop()
-    $status = ($detektExitCode -eq 0) ? 'PASS' : 'FAIL'
-    Write-Line -Text $detektOutput.TrimEnd() -Console ($consoleVerbose -or $status -eq 'FAIL')
+    $status = switch ($detektExitCode) { 0 { 'PASS' } 1 { 'FAIL' } 4 { 'QUEUED' } default { 'UNVERIFIED' } }
+    Write-Line -Text $detektOutput.TrimEnd() -Console ($consoleVerbose -or $status -ne 'PASS')
     # Handed the changed set above, so under -ChangedFiles it narrows its findings to those files
     # and belongs to the set verdict.
     $detektScope = if ($split) { 'set' } else { 'tree' }
@@ -757,14 +753,17 @@ function Write-GateBlock {
     }
     # S3075: SKIP is not a failure and not a pass - the gate did not run, so it is reported in its
     # own block below and never contributes to a block's failure list.
-    return @($Rows | Where-Object { $_.Status -notin @('PASS', 'SKIP') })
+    return @($Rows | Where-Object { $_.Status -notin @('PASS', 'SKIP', 'N/A') })
 }
 
 # S3075: the skipped gates leave the two scope blocks entirely. Keeping them in place would make
 # every reader check the status column of a line that has nothing to say about the tree, and the
 # whole reason the split exists is that a summary nobody reads closely catches nothing.
 $skippedRows = @($results | Where-Object { $_.Status -eq 'SKIP' })
-$results = [System.Collections.Generic.List[object]]@($results | Where-Object { $_.Status -ne 'SKIP' })
+# S4130: a NOT APPLICABLE child leaves the scope blocks like a skip and is counted with the skipped,
+# but -FailOnSkipped never charges it - the caller switched its work off, nothing failed to run.
+$notApplicableRows = @($results | Where-Object { $_.Status -eq 'N/A' })
+$results = [System.Collections.Generic.List[object]]@($results | Where-Object { $_.Status -notin @('SKIP', 'N/A') })
 $passedCount = @($results | Where-Object { $_.Status -eq 'PASS' }).Count
 $anyRed = @($results | Where-Object { $_.Status -ne 'PASS' }).Count -gt 0
 $showSummary = $consoleVerbose -or $anyRed -or ($FailOnSkipped -and $skippedRows.Count -gt 0)
@@ -777,12 +776,16 @@ if ($split) {
     Write-Line -Text '' -Console $showSummary
     $treeFailures = @(Write-GateBlock -Title 'assert-fast-gates summary - THE TREE (advisory):' -Rows $treeRows)
     $failed = $setFailures.Count
+    $judgedFailures = $setFailures
 }
 else {
     $allFailures = @(Write-GateBlock -Title 'assert-fast-gates summary:' -Rows @($results))
     $treeFailures = @()
     $failed = $allFailures.Count
+    $judgedFailures = $allFailures
 }
+# S4192: a finding (exit 1) outranks a gate that never judged (exit 2), as in post-change.ps1.
+$defectCount = @($judgedFailures | Where-Object { $_.Status -eq 'FAIL' }).Count
 
 if ($skippedRows.Count -gt 0) {
     Write-Line -Text '' -Console $showSummary
@@ -790,6 +793,11 @@ if ($skippedRows.Count -gt 0) {
     Write-Line -Text '  Each line above printed the path it is missing. A gitignored root - PLAN/, .claude/ -' -Console $showSummary -Color Yellow
     Write-Line -Text '  is absent by design on a fresh clone, a release worktree and a CI runner; -FailOnSkipped' -Console $showSummary -Color Yellow
     Write-Line -Text '  makes these fatal for a caller that requires full coverage.' -Console $showSummary -Color Yellow
+}
+
+if ($notApplicableRows.Count -gt 0) {
+    Write-Line -Text '' -Console $showSummary
+    [void](Write-GateBlock -Title 'assert-fast-gates summary - NOT APPLICABLE (switched off by the caller):' -Rows $notApplicableRows)
 }
 
 $batchStopwatch.Stop()
@@ -810,18 +818,39 @@ if ($treeFailures.Count -gt 0) {
 
 if ($FailOnSkipped -and $skippedRows.Count -gt 0) {
     $failed += $skippedRows.Count
+    $defectCount += $skippedRows.Count
     Write-Host ("assert-fast-gates: -FailOnSkipped - {0} gate(s) could not be verified: {1}." -f
         $skippedRows.Count, (($skippedRows | ForEach-Object { $_.Gate }) -join ', ')) -ForegroundColor Red
 }
 
 if ($failed -gt 0) {
-    Write-GateBatchTelemetryRecord @batchArgs -ExitCode 1
-    Write-Host "assert-fast-gates: FAIL ($failed gate(s))." -ForegroundColor Red
+    $unverifiedCount = $failed - $defectCount
+    $runExitCode = ($defectCount -gt 0) ? 1 : 2
+    Write-GateBatchTelemetryRecord @batchArgs -ExitCode $runExitCode
+    if ($defectCount -gt 0) {
+        $unverifiedNote = ($unverifiedCount -gt 0) ? "; $unverifiedCount more could not verify" : ''
+        Write-Host "assert-fast-gates: FAIL ($failed gate(s)$unverifiedNote)." -ForegroundColor Red
+    }
+    else {
+        Write-Host "assert-fast-gates: COULD NOT VERIFY ($failed gate(s) could not verify, were queued or are missing - nothing was found wrong)." -ForegroundColor Yellow
+    }
     Write-Host "protocol: $protocolPath" -ForegroundColor DarkGray
-    exit 1
+    if (-not $split -and -not $env:CI) {
+        # S4190: a bare run judges other sessions' work as well; the scoped run says which red is yours.
+        Write-Host 'hint: this run judged the whole tree. For the verdict on YOUR change re-run with -Files "<your changed set>" - out-of-set red then reads as an advisory.' -ForegroundColor Yellow
+    }
+    exit $runExitCode
 }
 Write-GateBatchTelemetryRecord @batchArgs -ExitCode 0
-$counts = "$passedCount passed, $($skippedRows.Count) skipped"
+$skippedTotal = $skippedRows.Count + $notApplicableRows.Count
+$counts = "$passedCount passed, $skippedTotal skipped"
+# S4130: CHECK-VERDICT 0.12 rule 2.14 - every quoted child answered NOT APPLICABLE, so nothing was
+# inspected; exit 0 under that word, never PASS.
+if ($results.Count -eq 0 -and $skippedRows.Count -eq 0 -and $notApplicableRows.Count -gt 0) {
+    Write-Host "assert-fast-gates: NOT APPLICABLE ($counts, $($notApplicableRows.Count) not applicable)." -ForegroundColor DarkGray
+    exit 0
+}
+if ($notApplicableRows.Count -gt 0) { $counts += ", $($notApplicableRows.Count) not applicable" }
 $verdict = if ($split) { "PASS (every gate judging your set is green; $counts)." } else { "PASS (all fast gates green; $counts)." }
 if ($skippedRows.Count -gt 0 -and $showSummary) { $verdict += " $($skippedRows.Count) gate(s) NOT RUN - see the block above." }
 Write-Host "assert-fast-gates: $verdict" -ForegroundColor Green

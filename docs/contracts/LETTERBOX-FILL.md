@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.26 01:49</sub>
+
 # Pointer - `LETTERBOX-BARS`, `LETTERBOX-HALO`
 
 | | |

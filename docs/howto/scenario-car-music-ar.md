@@ -3,6 +3,8 @@ layout: default
 title: "مشغل الموسيقى في السيارة (وحدة رأس Android) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-ar.html
 ---
+<sub class="doc-stamp">26.09.25 02:16</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 # 🚗 مشغل الموسيقى في السيارة (وحدة رأس Android)

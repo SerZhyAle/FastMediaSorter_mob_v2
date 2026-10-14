@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.model.SftpServerAuthMode
 import com.sza.fastmediasorter.domain.model.SftpServerConfig
 import com.sza.fastmediasorter.domain.model.SftpServerFailure
 import com.sza.fastmediasorter.domain.model.SftpServerState
+import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeProducerUseCase
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageSftpServerUseCase
 import com.sza.fastmediasorter.service.SftpServerService
 import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
@@ -44,6 +45,7 @@ class SftpServerSettingsPanelManager(
     private val fragment: Fragment,
     private val binding: FragmentSettingsGeneralBinding,
     private val manageSftpServer: ManageSftpServerUseCase,
+    manageExchangeProducer: ManageExchangeProducerUseCase,
     private val capabilityAvailability: CapabilityAvailability,
     private val mediaCapabilities: MediaCapabilities,
     private val launchRootPicker: (Intent) -> Unit,
@@ -58,6 +60,12 @@ class SftpServerSettingsPanelManager(
     // A re-render replaces the rows, so the name lookups of the previous render are dropped with them.
     private var rootNamesJob: Job? = null
 
+    // The code the QR image shows now: a tap on the button of the code already shown hides it.
+    private var shownCode: String? = null
+
+    private val exchangePanel =
+        SftpExchangeSettingsPanelManager(fragment, binding, manageSftpServer, manageExchangeProducer)
+
     /** Hides the card when the server cannot run here; returns whether the card is shown. */
     fun bind(): Boolean {
         val available = capabilityAvailability.isSftpServerAvailable(mediaCapabilities)
@@ -70,6 +78,7 @@ class SftpServerSettingsPanelManager(
         ) { (config, state) ->
             render(config, state)
         }
+        exchangePanel.bind()
         return true
     }
 
@@ -120,7 +129,8 @@ class SftpServerSettingsPanelManager(
         binding.etSftpServerAuthorizedKeys.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) saveAuthorizedKeys()
         }
-        binding.btnSftpServerShowQr.setOnClickListener { toggleQr() }
+        binding.btnSftpServerShowQr.setOnClickListener { toggleQr { manageSftpServer.pairingCode() } }
+        binding.btnSftpServerLegacyQr.setOnClickListener { toggleQr { manageSftpServer.legacyPairingCode() } }
         binding.btnSftpServerNewPassword.setOnClickListener {
             launchInView { manageSftpServer.regeneratePassword() }
             notifyApplyIfRunning()
@@ -198,16 +208,21 @@ class SftpServerSettingsPanelManager(
         if (!running) hideQr()
     }
 
-    /** The code is rebuilt on every show, so it always carries the current address and password. */
-    private fun toggleQr() {
-        if (binding.imageSftpServerQr.isVisible) {
-            hideQr()
-            return
-        }
+    /**
+     * The code is rebuilt on every show, so it always carries the current address and password. The
+     * legacy button shows the same server's `FMSSFTP1` code in the same place; tapping the button of
+     * the code already on screen hides it.
+     */
+    private fun toggleQr(codeSource: suspend () -> String?) {
         launchInView {
-            val code = manageSftpServer.pairingCode() ?: return@launchInView
+            val code = codeSource()
+            if (code == null || (binding.imageSftpServerQr.isVisible && code == shownCode)) {
+                hideQr()
+                return@launchInView
+            }
             val sizePx = context.resources.getDimensionPixelSize(R.dimen.sftp_server_qr_size)
             val bitmap = withContext(Dispatchers.Default) { QrCodeEncoder.encode(code, sizePx) }
+            shownCode = code
             binding.imageSftpServerQr.setImageBitmap(bitmap)
             binding.imageSftpServerQr.isVisible = true
             binding.btnSftpServerShowQr.setText(R.string.settings_sftp_server_hide_qr)
@@ -215,6 +230,7 @@ class SftpServerSettingsPanelManager(
     }
 
     private fun hideQr() {
+        shownCode = null
         binding.imageSftpServerQr.isVisible = false
         binding.imageSftpServerQr.setImageDrawable(null)
         binding.btnSftpServerShowQr.setText(R.string.settings_sftp_server_show_qr)

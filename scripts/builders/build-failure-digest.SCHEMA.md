@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.05.31 02:37</sub>
+
 # Build Failure Digest - JSON Schema
 
 Reference for the JSON object emitted by `scripts/builders/build-failure-digest.ps1`

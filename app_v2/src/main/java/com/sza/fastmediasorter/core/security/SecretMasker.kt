@@ -11,8 +11,10 @@ package com.sza.fastmediasorter.core.security
  *
  * [sanitize] follows DIAGNOSTIC-REPORT rule 3 as section 7 (0.11) and section 8 C (0.12) spell it: a secret is
  * recognised by the shape of the text around it, not only by a bare key name, so a JSON blob, a query string or a
- * connection string under a harmless-looking key is still redacted field by field. The wear module restates the
- * same rules in `WearSecretMasker`; a change here belongs there too.
+ * connection string under a harmless-looking key is still redacted field by field. Section 10 (0.13) adds the
+ * exchange account values: a pairing code and a certificate fingerprint by key name and by the `SHA256:` shape, a
+ * login and a server address through [PrivateDiagnosticValues], since neither has a shape a pattern could find.
+ * The wear module restates the key and shape rules in `WearSecretMasker`; a change here belongs there too.
  */
 object SecretMasker {
 
@@ -26,10 +28,10 @@ object SecretMasker {
 
     // Matched as a key-name SUFFIX, so `accessPin`, `X-Amz-Signature`, `client_secret` and `refresh_token` count.
     private const val SECRET_SUFFIXES = "password|passwd|pwd|secret|token|apikey|api_key|authorization" +
-        "|signature|credential|pin|wmsauthsign|hdnts|hdnea"
+        "|signature|credential|pin|wmsauthsign|hdnts|hdnea|fingerprint|pairingcode"
 
     // Too generic for a suffix (`bypass`, `cachePolicy`): only a key that is exactly one of these counts.
-    private const val SECRET_EXACT = "pass|auth|policy|key-pair-id"
+    private const val SECRET_EXACT = "pass|auth|policy|key-pair-id|login|pinnedcertificate"
     private const val AUTH_SCHEMES = "bearer|basic|digest|negotiate"
     private const val KEY_CHAR = """[A-Za-z0-9_.\-]"""
 
@@ -58,6 +60,9 @@ object SecretMasker {
     // The package directory names the app; contract rule 3 substitutes the personal directory of a path.
     private val APP_DATA_PATH = Regex("""/data/(?:user(?:_de)?/\d+|data)/[A-Za-z0-9_.]+""")
 
+    // The exchange pin form: `SHA256:` and the unpadded base64 of a 32-byte digest, found under any key or none.
+    private val CERT_FINGERPRINT = Regex("""(?<![A-Za-z0-9+/])(SHA256:)[A-Za-z0-9+/]{43}(?![A-Za-z0-9+/=])""")
+
     /** Replace a value whole: `"mySecret123"` -> `"[REDACTED]"`. */
     fun maskFull(value: String?): String {
         if (value.isNullOrEmpty()) return EMPTY
@@ -84,8 +89,13 @@ object SecretMasker {
     }
 
     /** Redact every secret shape in free text; a key name and an HTTP auth scheme stay visible. */
-    fun sanitize(text: String): String =
-        maskAppData(maskPathCredentials(maskSecretValues(maskUserinfo(text))))
+    fun sanitize(text: String): String {
+        val withoutKnownValues = PrivateDiagnosticValues.redact(text)
+        return maskAppData(maskFingerprints(maskPathCredentials(maskSecretValues(maskUserinfo(withoutKnownValues)))))
+    }
+
+    private fun maskFingerprints(text: String): String =
+        text.replace(CERT_FINGERPRINT) { match -> "${match.groupValues[1]}$REDACTED" }
 
     private fun maskUserinfo(text: String): String =
         text.replace(URI_USERINFO) { match -> "${match.groupValues[1]}$REDACTED@" }

@@ -3,6 +3,8 @@ layout: default
 title: "📖 Guías prácticas"
 permalink: /docs/HOW_TO-es.html
 ---
+<sub class="doc-stamp">26.10.09 14:26</sub>
+
 <div lang="es" dir="ltr" markdown="1">
 
 # 📖 Guías prácticas
@@ -107,7 +109,7 @@ Si una función está marcada con "✗", elige la compilación **Standard** o **
 
 Estas secciones son deliberadamente más variadas que los bloques de referencia principal de más abajo. Cada escenario combina una vía rápida con contexto, compensaciones y las situaciones en las que FastMediaSorter destaca especialmente.
 
-> **⭐ Destacado: lleva las carpetas de tu PC al teléfono con un solo escaneo.** Ejecuta el compañero gratuito [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) en tu PC, elige las carpetas con tus vídeos, música, documentos o fotos, y mostrará un código en pantalla. En el teléfono, toca **Añadir**, elige **Importar por código de barras**, apunta la cámara al código - las carpetas del PC se conectan al instante, sin escribir dirección, puerto ni contraseña. Guía completa: [Abre carpetas del PC escaneando un código](howto/scenario-companion-share-es.md) &bull; receta rápida: [Importar un recurso compartido del compañero de Windows](#how-to-import-a-windows-companion-share).
+> **⭐ Destacado: lleva las carpetas de tu PC al teléfono con un solo escaneo.** Ejecuta el compañero gratuito [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) en tu PC, elige las carpetas con tus vídeos, música, documentos o fotos, y mostrará un código en pantalla. En el teléfono, toca **Añadir**, elige **Importar por código de barras**, apunta la cámara al código - las carpetas del PC se conectan al instante, sin escribir dirección, puerto ni contraseña. Guía completa: [Abre carpetas del PC escaneando un código](howto/scenario-companion-share-es.md) &bull; receta rápida: [Importar un recurso compartido del compañero de Windows](#how-to-import-a-windows-companion-share).
 
 > **⌚ Relojes inteligentes Wear OS:** ¿Usas un reloj Wear OS? Consulta nuestras guías paso a paso [Escuchar música en tu reloj](howto/scenario-watch-music-es.md) y [Conectar el reloj inteligente a NAS y recursos compartidos de PC](howto/scenario-watch-network-es.md).
 
@@ -219,7 +221,7 @@ Estas secciones son deliberadamente más variadas que los bloques de referencia 
 
 **Cuándo ayuda**
 
-- Autorradios Android, reproductores de audio y cajas multimedia donde quieres radio por Internet sin una app aparte (TuneIn, RadioDroid, emisiones de red de VLC).
+- Autorradios Android, reproductores de audio y cajas multimedia donde quieres radio por Internet sin una app aparte.
 - Uso tipo IPTV ligero: las emisiones VOD de HLS/DASH se reproducen en el reproductor a pantalla completa.
 
 **Evita esto**
@@ -554,13 +556,13 @@ Estas secciones son deliberadamente más variadas que los bloques de referencia 
 
 ## Cómo importar un recurso compartido del compañero de Windows {#how-to-import-a-windows-companion-share}
 
-**Qué es:** el compañero es una función de [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) (antes FastMediaSorter LITE) - el sorteador de medios gratuito para Windows del mismo autor. Comparte las carpetas del PC que elijas por SFTP y exporta una conexión ya preparada - sin configuración manual de servidor, sin escribir host, puerto ni clave en el teléfono. Lo llevas al teléfono **escaneando un código QR** en la pantalla del PC, o **importando un archivo `.fmscfg`**.
+**Qué es:** el compañero es una función de [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) - el sorteador de medios gratuito para Windows del mismo autor. Comparte las carpetas del PC que elijas por SFTP y exporta una conexión ya preparada - sin configuración manual de servidor, sin escribir host, puerto ni clave en el teléfono. Lo llevas al teléfono **escaneando un código QR** en la pantalla del PC, o **importando un archivo `.fmscfg`**.
 
 **Disponible en:** Standard, Photos, Legacy, XR/noLegal (escanear el código de barras necesita cámara; el método de archivo funciona en todas partes, incluida VR)
 
 > ¿Prefieres una versión guiada y con capturas de pantalla? Consulta la guía de escenario [Abre carpetas del PC escaneando un código](howto/scenario-companion-share-es.md).
 
-**Consigue Fast Media Sorter for Windows:**
+**Consigue Fast Media Sorter & Sharing for Windows:**
 
 - Sitio web: [serzhyale.github.io/FastMediaSorter_Lite](https://serzhyale.github.io/FastMediaSorter_Lite/)
 - Guía de publicación de carpetas: [Cómo publicar carpetas del PC en Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html)
@@ -570,7 +572,7 @@ Estas secciones son deliberadamente más variadas que los bloques de referencia 
 
 **En el PC:**
 
-1. Instala y ejecuta **Fast Media Sorter for Windows**, abre la pestaña **Compartir** en los ajustes.
+1. Instala y ejecuta **Share Manager - Fast Media Sorter & Sharing**, abre la pestaña **Compartir** en los ajustes.
 2. Elige la carpeta o carpetas a compartir - la app inicia el servidor SFTP, genera las claves y configura el inicio automático por sí sola.
 3. Muestra un **código QR** en pantalla. También puede **Guardar .fmscfg** si prefieres un archivo.
 
@@ -1042,7 +1044,7 @@ Los archivos eliminados van a carpetas `.trash/` y permanecen ahí hasta que se 
 
 **Disponible para:** archivos SMB, SFTP, FTP
 
-**Caso de uso:** quieres abrir un documento, una foto o un vídeo de tu unidad de red en una app externa especializada (por ejemplo, MS Office, Adobe Acrobat, VLC Player).
+**Caso de uso:** quieres abrir un documento, una foto o un vídeo de tu unidad de red en una app externa especializada (por ejemplo, una suite ofimática, un lector de PDF o un reproductor de vídeo).
 
 **Pasos:**
 
@@ -1077,8 +1079,8 @@ Los archivos eliminados van a carpetas `.trash/` y permanecen ahí hasta que se 
 **Ejemplos de uso:**
 
 - Editar un documento de red en MS Word
-- Reproducir un vídeo de red en VLC Player
-- Ver un PDF de red en Adobe Acrobat
+- Reproducir un vídeo de red en un reproductor de vídeo dedicado
+- Ver un PDF de red en un lector de PDF dedicado
 - Compartir una foto de red por apps de mensajería
 
 ---

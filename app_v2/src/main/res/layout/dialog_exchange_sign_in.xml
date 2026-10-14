@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/dialog_padding_large"
+        android:paddingTop="@dimen/margin_small">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilExchangeSignInIntake"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/exchange_signin_intake_hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etExchangeSignInIntake"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:imeOptions="actionGo|flagNoExtractUi"
+                android:inputType="textUri|textNoSuggestions"
+                android:maxLines="1"
+                android:nextFocusDown="@+id/btnExchangeSignInPaste" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExchangeSignInPaste"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusUp="@id/etExchangeSignInIntake"
+                android:nextFocusRight="@+id/btnExchangeSignInScan"
+                android:nextFocusDown="@+id/etExchangeSignInAddress"
+                android:text="@string/exchange_signin_paste" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExchangeSignInScan"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_small"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusUp="@id/etExchangeSignInIntake"
+                android:nextFocusLeft="@id/btnExchangeSignInPaste"
+                android:nextFocusRight="@+id/btnExchangeSignInFile"
+                android:nextFocusDown="@+id/etExchangeSignInAddress"
+                android:text="@string/exchange_signin_scan_qr" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExchangeSignInFile"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_small"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusUp="@id/etExchangeSignInIntake"
+                android:nextFocusLeft="@id/btnExchangeSignInScan"
+                android:nextFocusDown="@+id/etExchangeSignInAddress"
+                android:text="@string/exchange_signin_choose_file" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textExchangeSignInServer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:accessibilityLiveRegion="polite"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/textExchangeSignInPin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:visibility="gone" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilExchangeSignInAddress"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/exchange_devices_signin_address">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etExchangeSignInAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:imeOptions="actionNext|flagNoExtractUi"
+                android:inputType="textUri|textNoSuggestions"
+                android:nextFocusUp="@id/btnExchangeSignInPaste"
+                android:nextFocusDown="@id/etExchangeSignInLogin" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilExchangeSignInLogin"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:hint="@string/exchange_devices_signin_login">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etExchangeSignInLogin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:imeOptions="actionNext|flagNoExtractUi"
+                android:inputType="text|textNoSuggestions"
+                android:nextFocusUp="@id/etExchangeSignInAddress"
+                android:nextFocusDown="@id/etExchangeSignInSecret" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilExchangeSignInSecret"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:hint="@string/exchange_devices_signin_password"
+            app:endIconMode="password_toggle">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etExchangeSignInSecret"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:imeOptions="actionDone|flagNoExtractUi"
+                android:inputType="textPassword"
+                android:nextFocusUp="@id/etExchangeSignInLogin"
+                android:nextFocusDown="@id/checkExchangeSignInUseCode" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow
+            android:id="@+id/checkExchangeSignInUseCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:nextFocusUp="@id/etExchangeSignInSecret"
+            app:fcr_title="@string/exchange_devices_signin_use_code" />
+
+        <TextView
+            android:id="@+id/textExchangeSignInStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:accessibilityLiveRegion="polite"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:visibility="gone" />
+    </LinearLayout>
+</ScrollView>

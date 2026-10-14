@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.05.20 12:58</sub>
+
 # Claude Audit: Research and Development Speed/Quality
 
 Generated: 2026-05-20 12:48

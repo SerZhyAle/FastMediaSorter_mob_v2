@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.30 12:25</sub>
+
 # Watch face - Google Play source and owner runbook
 
 This tree is the Play source of the watch face app `com.sza.fastmediasorter.watchface` (S4009). The phone and watch app `com.sza.fastmediasorter` is a different Play app with its own tree, `play/listing/`.

@@ -1,11 +1,16 @@
 package com.sza.fastmediasorter.data.streams
 
+import com.sza.fastmediasorter.domain.streams.facets.StreamFacetFolding
 import java.util.Locale
 import javax.inject.Inject
 
 /**
  * Keeps catalog-origin facet identifiers stable when an older asset or a manually maintained source
- * still uses a known predecessor spelling. Unknown non-blank values stay visible for a newer catalog.
+ * still uses a known predecessor spelling. Category and topic keep an unknown non-blank value visible
+ * for a newer catalog; language and country fold to the closed sets of STREAM-BANK 2.3 (amendment O) -
+ * a language cell with nothing recognized reads `english`, a country that is not an assigned ISO 3166-1
+ * alpha-2 code is blank - so a bank imported from an older publish and a rewritten one converge on the
+ * same ids.
  */
 class StreamCatalogFacetNormalizer @Inject constructor() {
 
@@ -41,33 +46,9 @@ class StreamCatalogFacetNormalizer @Inject constructor() {
         else -> value.trim()
     }
 
-    private fun canonicalLanguages(value: String): String = value
-        .split(LANGUAGE_DELIMITERS)
-        .map(String::trim)
-        .filter(String::isNotBlank)
-        .map(::canonicalLanguage)
-        .distinct()
-        .joinToString(separator = ",")
+    private fun canonicalLanguages(value: String): String = StreamFacetFolding.foldLanguages(value)
 
-    private fun canonicalLanguage(value: String): String = when (normalized(value)) {
-        "american english", "british english", "english uk", "engilsh" -> "english"
-        "deutsch", "gernan", "gerrnan" -> "german"
-        "español argentino", "español internacional", "#spanish" -> "spanish"
-        "brazilian portuguese", "portuguese brazil", "português brasileiro",
-        "portugues do brasil", "português (br)",
-        -> "portuguese"
-        "bahasa indonesia" -> "indonesian"
-        "ภาษาไทย" -> "thai"
-        else -> normalized(value)
-    }
-
-    private fun canonicalCountry(value: String): String {
-        val trimmed = value.trim()
-        if (trimmed.length == COUNTRY_CODE_LENGTH && trimmed.all(Char::isLetter)) {
-            return trimmed.uppercase(Locale.ROOT)
-        }
-        return COUNTRY_ALIASES[normalized(trimmed)] ?: trimmed
-    }
+    private fun canonicalCountry(value: String): String = StreamFacetFolding.foldCountry(value)
 
     private fun normalized(value: String): String = value.trim().lowercase(Locale.ROOT)
 
@@ -77,18 +58,4 @@ class StreamCatalogFacetNormalizer @Inject constructor() {
         val language: String,
         val country: String,
     )
-
-    private companion object {
-        const val COUNTRY_CODE_LENGTH = 2
-        val LANGUAGE_DELIMITERS = Regex("[,;/|]")
-        val COUNTRY_ALIASES = mapOf(
-            "united states" to "US",
-            "usa" to "US",
-            "united kingdom" to "GB",
-            "uk" to "GB",
-            "germany" to "DE",
-            "ukraine" to "UA",
-            "russia" to "RU",
-        )
-    }
 }

@@ -54,6 +54,13 @@
     so a batch whose findings already carry file, line and fix direction is not researched again
     (S3782). Omitted -> no line, the pre-existing routing.
 
+.PARAMETER Complexity
+    Complexity level written as the `**Complexity:**` header line right after `**Verify:**` (after
+    `**Tier:**` when there is none), in the form `<light|medium|hard> - <one-line reason>`
+    (.claude/rules/spec-catalog.md "Complexity level"). The queue runner maps it to Haiku, Sonnet or
+    Opus for the NEXT pass (S4193). Always written: omitted -> `medium - not assessed at capture`, so
+    no captured ticket is without a level and the first pass's research is what confirms or revises it.
+
 .PARAMETER AppendToOpen
     Before creating anything, look for an open ticket - status Draft or Approved - named -Slug or
     -Slug-<n>. When one exists, the text is appended to its inbox block under a dated
@@ -62,13 +69,22 @@
     Approved is never appended to - a run may be implementing it - so a new one is created, under
     the first free name of -Slug, -Slug-2, -Slug-3.
 
+.PARAMETER Parked
+    S4190. The capture is an agent's auto-parked out-of-scope finding (CLAUDE.md 3.1), not a ticket the
+    owner asked for. After the insert the ticket moves to BlockQuestions with a status note carrying
+    'Parked finding, untriaged' and 'parked: yy-MM-dd', which keeps it out of the runner's automatic
+    ranking until /spec-sweep Phase D triages it; archive-untriaged-drafts.ps1 archives it after 14
+    days untriaged. Measured 2026-10-13: the runner attempted three fresh parked drafts within half an
+    hour of their capture, and 27% of September's tickets left no dev-log row.
+
 .PARAMETER RepoRoot
     Project root whose catalog receives the ticket. Defaults to this repository; the contract
     suite passes a fixture.
 
     Exit codes:
       0  ticket created or text appended, or -WhatIf finished its dedup report.
-      1  the catalog refused the insert or the spec file could not be written.
+      1  the catalog refused the insert, the spec file could not be written, or -Parked could not
+         move the new ticket to BlockQuestions.
       2  bad invocation - invalid slug, no text or both text forms, missing attachment or template.
       3  refused - the dedup query hit a ticket in a closed status; pass -AllowClosedDuplicate for a
          genuine regression.
@@ -88,7 +104,9 @@ param(
     [string]$DedupQuery = '',
     [switch]$AllowClosedDuplicate,
     [string]$Verify = '',
+    [string]$Complexity = '',
     [switch]$AppendToOpen,
+    [switch]$Parked,
     [string]$RepoRoot = ''
 )
 
@@ -115,6 +133,9 @@ if ($TextFile) {
 if ($Priority -gt 100) { Stop-BadInvocation "-Priority $Priority is above 100" }
 if ($Verify -and $Verify -notmatch '^(edit|build|emulator|device) - \S') {
     Stop-BadInvocation "-Verify '$Verify' is not '<edit|build|emulator|device> - <reason>'"
+}
+if ($Complexity -and $Complexity -notmatch '^(light|medium|hard) - \S') {
+    Stop-BadInvocation "-Complexity '$Complexity' is not '<light|medium|hard> - <reason>'"
 }
 
 $attachments = @($Attach -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
@@ -245,10 +266,14 @@ else {
     $body = $body.Replace('{{ID}}', $id).Replace('{{SLUG}}', $Slug).Replace('{{PRIORITY}}', [string]$Priority)
     $body = $body.Replace('{{DATE}}', $today).Replace('{{TIER}}', $tierLabels[$Tier]).Replace('{{ATTACHMENTS}}', $attachmentBlock)
 }
-if ($Verify) {
-    $verifyLine = "$nl**Verify:** $Verify"
-    $body = ([regex]'(?m)^\*\*Tier:\*\* [^\r\n]*').Replace($body, { param($m) $m.Value + $verifyLine }, 1)
-}
+# One insertion for both header lines so their order is fixed: Verify, then Complexity. A level is
+# written on every capture - the runner reads it at each launch, and a ticket with no line would be
+# routed by the older tier rule and never reach the post-research checkpoint that revises a level.
+$levelLine = if ($Complexity) { $Complexity } else { 'medium - not assessed at capture' }
+$headerLines = ''
+if ($Verify) { $headerLines += "$nl**Verify:** $Verify" }
+$headerLines += "$nl**Complexity:** $levelLine"
+$body = ([regex]'(?m)^\*\*Tier:\*\* [^\r\n]*').Replace($body, { param($m) $m.Value + $headerLines }, 1)
 $shownText = if ($Text) { $Text } else { '<нет текста>' }
 $body = $body.Replace('{{TEXT}}', $shownText)
 
@@ -263,5 +288,19 @@ catch {
 $logOut = & $pwshExe -NoProfile -File (Join-Path $RepoRoot 'scripts/add_to_dev_log.ps1') $specRel $id "Capture Draft $id $Slug" 2>&1 | Out-String
 if ($LASTEXITCODE -ne 0) { Write-Host "capture-draft: dev-log row not written (exit $LASTEXITCODE): $($logOut.Trim())" }
 
-Write-Host "$id $Slug - Draft. Captured: $($Text.Length) chars + $($attachments.Count) attachment(s)."
+$statusShown = 'Draft'
+if ($Parked) {
+    $deadline = (Get-Date).AddDays(14).ToString('yy-MM-dd')
+    $note = "Parked finding, untriaged (S4190): /spec-sweep Phase D promotes it with a **Triage:** line or archives it; " +
+        "archived automatically after $deadline if still untriaged. parked: $((Get-Date).ToString('yy-MM-dd'))"
+    $parkOut = & $pwshExe -NoProfile -File (Join-Path $RepoRoot 'scripts/spec_catalog/update.ps1') `
+        -Id $id -Status BlockQuestions -StatusNote $note 2>&1 | Out-String
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "capture-draft: $id was captured as Draft but could not be parked (exit $LASTEXITCODE): $($parkOut.Trim())"
+        exit 1
+    }
+    $statusShown = 'BlockQuestions (parked, untriaged)'
+}
+
+Write-Host "$id $Slug - $statusShown. Captured: $($Text.Length) chars + $($attachments.Count) attachment(s)."
 exit 0

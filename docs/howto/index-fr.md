@@ -3,6 +3,8 @@ layout: default
 title: "Guides étape par étape - FastMediaSorter v2"
 permalink: /docs/howto/index-fr.html
 ---
+<sub class="doc-stamp">26.09.25 02:11</sub>
+
 <div lang="fr" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Guides étape par étape

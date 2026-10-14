@@ -98,6 +98,16 @@
             app:str_title="@string/settings_streams_visualize_as_music"
             app:str_subtitle="@string/settings_streams_visualize_as_music_summary" />
 
+        <!-- S4116: a cast from another device of the user starts playing without the Accept question. -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowCastPlayAtOnce"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            app:str_title="@string/settings_streams_cast_play_at_once"
+            app:str_subtitle="@string/settings_streams_cast_play_at_once_summary" />
+
         <!-- S2787: mirror of the Playback-section PiP toggle - streams open the same PlayerActivity,
              so the flag governs them too. Outer wrapper preserved for the API 31+ visibility gate. -->
         <LinearLayout

@@ -5,7 +5,6 @@ description: Практический рецепт по воспроизведе
 category: Аудио и музыка
 category_slug: audio
 ticket: S2946
-flavor: Standard и NoLegal
 recipe_number: "01"
 canonical_url: documentation/sample-recipe-ru.html
 ingredients:
@@ -77,5 +76,7 @@ next_recipes:
     badge_type: docs
     description: Слушайте коллекцию музыки в высоком разрешении FLAC напрямую, не занимая память устройства.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Храните ли вы тысячи lossless FLAC-треков на SD-карте или альбомы на домашнем <span class="doc-link-term" data-term="NAS">NAS</span>-сервере, FastMediaSorter позволяет просматривать, воспроизводить и сортировать аудиоколлекцию, сохраняя исходную структуру каталогов.

@@ -6,7 +6,7 @@ description: Как включить и использовать встроен�
 category: Программы, статистика и диагностика
 category_slug: programs
 ticket: S2961
-flavor: Все редакции; калькулятор для часов с FastMedia Wear доступен в редакциях Standard и noLegal.
+availability_note: Все редакции; калькулятор для часов с FastMedia Wear доступен в редакциях Standard и noLegal.
 recipe_number: "02"
 canonical_url: documentation/programs/calculator-and-stopwatch-ru.html
 why: |
@@ -135,5 +135,7 @@ next_recipes:
     badge_type: docs
     description: Размещение виджетов калькулятора и секундомера на домашнем экране.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Две незаменимые повседневные [программы](term:program) входят в состав FastMediaSorter: калькулятор с живым расчетом по мере ввода и историей, а также многопользовательский секундомер до 4 участников. На этой странице описаны их функции, горячие клавиши и параметры настройки.

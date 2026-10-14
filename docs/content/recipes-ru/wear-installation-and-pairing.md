@@ -6,7 +6,7 @@ description: Как установить приложение FastMediaSorter н
 category: Часы Wear OS
 category_slug: wear
 ticket: S2964
-flavor: На телефоне (Wear-компаньон) - Standard и noLegal; приложение на часах - версия из Google Play или полная версия из APK
+availability_note: На телефоне (Wear-компаньон) - Standard и noLegal; приложение на часах - версия из Google Play или полная версия из APK
 recipe_number: "01"
 canonical_url: documentation/wear/installation-and-pairing-ru.html
 why: |
@@ -143,5 +143,7 @@ next_recipes:
     badge_type: docs
     description: Прослушивание музыки напрямую с часов - с телефоном или полностью автономно.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Установите [приложение для часов](term:watch-app) FastMediaSorter, включите [Wear-компаньон](term:wear-companion) на телефоне, откройте его окно и добавьте [часы](term:watch) в список ресурсов - первый шаг к использованию всех возможностей на вашем запястье.

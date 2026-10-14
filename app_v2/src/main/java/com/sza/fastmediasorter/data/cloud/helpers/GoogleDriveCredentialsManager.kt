@@ -2,9 +2,8 @@ package com.sza.fastmediasorter.data.cloud.helpers
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.security.EncryptedPrefsOpener
 import com.sza.fastmediasorter.data.identity.transfer.TransferableSignInWriter
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInProviderKeys
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInRecord
@@ -40,22 +39,11 @@ class GoogleDriveCredentialsManager @Inject constructor(
     }
 
     /**
-     * EncryptedSharedPreferences only. If `EncryptedSharedPreferences.create(..)` throws,
-     * the exception propagates - no plaintext fallback (strategic §5.1).
+     * EncryptedSharedPreferences only - never a plaintext fallback (strategic §5.1). A keyset the Keystore master
+     * key no longer decrypts is reset once by [EncryptedPrefsOpener]; the refresh token inside was unreadable
+     * either way, so the user signs in again instead of the Drive app-data token failing on every call.
      */
-    private val prefs: SharedPreferences by lazy {
-        val masterKey = MasterKey.Builder(context)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-
-        EncryptedSharedPreferences.create(
-            context,
-            PREFS_NAME,
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-    }
+    private val prefs: SharedPreferences by lazy { EncryptedPrefsOpener.open(context, PREFS_NAME) }
 
     /**
      * Save credentials to encrypted storage.

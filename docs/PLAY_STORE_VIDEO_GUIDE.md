@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.04.14 22:54</sub>
+
 # Google Play Console: Foreground Service Video Demonstration Guide
 
 To comply with Google Play policies for `FOREGROUND_SERVICE_DATA_SYNC` and `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, you must provide a video showing exactly why the app needs to run in the background.

@@ -3,6 +3,8 @@ layout: default
 title: "Download Organizer (Quick Sort) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer.html
 ---
+<sub class="doc-stamp">26.09.24 18:41</sub>
+
 # 🧹 Download Organizer - Sort Files with One Tap
 
 > **Level:** Beginner &bull; **Flavor:** Any (Standard, Lite, Photos, Legacy, VR, noLegal)

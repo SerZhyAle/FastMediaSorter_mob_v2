@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.06.21 16:03</sub>
+
 # TASK DEFINITION (Постановка задачи): S0588 - replenish-streams-catalog
 
 **Билет:** S0588  

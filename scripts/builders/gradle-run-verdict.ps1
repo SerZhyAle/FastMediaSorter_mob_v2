@@ -27,6 +27,84 @@ $script:GradleWorkerDeathPatterns = @(
     'Test process encountered an unexpected problem'
 )
 
+function Invoke-GradleClientWithFileOutput {
+    <#
+    .SYNOPSIS
+        Captures the client verdict without waiting for EOF from a long-lived descendant.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$GradleWrapper,
+        [AllowEmptyCollection()][AllowEmptyString()][string[]]$Arguments = @(),
+        [Parameter(Mandatory)][string]$LogPath,
+        [switch]$Quiet
+    )
+
+    $wrapperPath = [System.IO.Path]::GetFullPath($GradleWrapper)
+    $outputPath = [System.IO.Path]::GetFullPath($LogPath)
+    $tokens = @($wrapperPath, $outputPath) + $Arguments
+    if (@($tokens | Where-Object { $_ -match '["\r\n\x00]' }).Count -gt 0) {
+        throw 'Gradle command tokens cannot contain literal quotes, newlines or NUL.'
+    }
+
+    # cmd expands each environment reference once. Quoted references preserve spaces, percent
+    # signs and shell metacharacters without interpolating user arguments into executable syntax.
+    $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName = $env:ComSpec
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $startInfo.WorkingDirectory = Split-Path -Parent $wrapperPath
+    $startInfo.Environment['FMS_GRADLE_WRAPPER'] = $wrapperPath
+    $startInfo.Environment['FMS_GRADLE_OUTPUT'] = $outputPath
+    $references = for ($index = 0; $index -lt $Arguments.Count; $index++) {
+        if ($Arguments[$index].Length -eq 0) {
+            '""'
+            continue
+        }
+        $name = "FMS_GRADLE_ARG_$index"
+        $startInfo.Environment[$name] = $Arguments[$index]
+        '"%' + $name + '%"'
+    }
+    # Native file handles prevent the daemon from inheriting either the caller's output pipe or
+    # a managed redirection pipe whose asynchronous EOF wait could outlive the client.
+    $command = '"%FMS_GRADLE_WRAPPER%" ' + ($references -join ' ') +
+        ' >> "%FMS_GRADLE_OUTPUT%" 2>&1 < NUL'
+    $startInfo.Arguments = '/d /v:off /s /c "' + $command + '"'
+
+    $stream = [System.IO.FileStream]::new($outputPath, [System.IO.FileMode]::OpenOrCreate,
+        [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+    $null = $stream.Seek(0, [System.IO.SeekOrigin]::End)
+    $reader = [System.IO.StreamReader]::new($stream, [System.Text.Encoding]::UTF8)
+    $process = [System.Diagnostics.Process]::new()
+    $process.StartInfo = $startInfo
+    $lines = [System.Collections.Generic.List[string]]::new()
+    $pending = ''
+    try {
+        $null = $process.Start()
+        do {
+            $exited = $process.WaitForExit(100)
+            $pending += $reader.ReadToEnd()
+            while (($newline = $pending.IndexOf("`n")) -ge 0) {
+                $line = $pending.Substring(0, $newline).TrimEnd("`r")
+                $pending = $pending.Substring($newline + 1)
+                $lines.Add($line)
+                if (-not ($Quiet -and $line -match ' (UP-TO-DATE|NO-SOURCE|FROM-CACHE)$')) {
+                    Write-Host $line
+                }
+            }
+        } while (-not $exited)
+        if ($pending.Length -gt 0) {
+            $lines.Add($pending)
+            Write-Host $pending
+        }
+        return [pscustomobject]@{ ExitCode = $process.ExitCode; Lines = $lines.ToArray() }
+    }
+    finally {
+        $reader.Dispose()
+        $stream.Dispose()
+        $process.Dispose()
+    }
+}
+
 function Test-GradleWorkerDeath {
     <#
     .SYNOPSIS

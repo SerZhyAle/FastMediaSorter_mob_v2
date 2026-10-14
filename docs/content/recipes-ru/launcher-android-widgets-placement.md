@@ -6,7 +6,6 @@ description: Как размещать гаджеты и встроенные в
 category: "Лаунчер - Гаджеты и виджеты"
 category_slug: launcher
 ticket: S2959
-flavor: Редакции Standard и noLegal
 recipe_number: "02"
 canonical_url: documentation/launcher/android-widgets-placement-ru.html
 why: |
@@ -108,5 +107,7 @@ next_recipes:
     badge_type: docs
     description: Перемещение, сворачивание в папки, распределение по экранам и защита от случайных сдвигов.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Каждому [гаджету](term:gadget) требуется удобное место и правильный масштаб. В этом руководстве показано, как размещать гаджеты и виджеты на [рабочем столе](term:desktop) лаунчера, изменять их размеры, настраивать прозрачность подложки и сбрасывать рабочий стол к базовому набору.

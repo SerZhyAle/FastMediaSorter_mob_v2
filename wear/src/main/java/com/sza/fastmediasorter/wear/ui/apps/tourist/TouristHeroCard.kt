@@ -82,7 +82,10 @@ fun TouristHeroCard(
             ) {
                 when (state.focusedMetric) {
                     TouristMetricType.SPEED -> HeroSpeedView(state, isMetric)
-                    TouristMetricType.ALTITUDE -> HeroAltitudeView(state, isMetric)
+                    TouristMetricType.ALTITUDE -> {
+                        HeroAltitudeView(state, isMetric)
+                        HeroEllipsoidNote(state)
+                    }
                     TouristMetricType.COMPASS -> HeroCompassView(state)
                     TouristMetricType.COORDINATES -> HeroCoordinatesView(state)
                     TouristMetricType.SATELLITES -> HeroSatellitesView(state)
@@ -91,6 +94,28 @@ fun TouristHeroCard(
                     TouristMetricType.SUN_TIME -> HeroSunTimeView(state)
                     TouristMetricType.HEART_RATE -> HeroHeartRateView(state)
                     TouristMetricType.BODY_TEMPERATURE -> HeroBodyTemperatureView(state)
+                    TouristMetricType.PRESSURE,
+                    TouristMetricType.BAROMETRIC_ALTITUDE,
+                    TouristMetricType.ELEVATION_GAIN_LOSS,
+                    TouristMetricType.SLOPE,
+                    TouristMetricType.ELAPSED_TIME,
+                    TouristMetricType.MOVING_TIME,
+                    TouristMetricType.AVERAGE_PACE,
+                    TouristMetricType.CADENCE,
+                    TouristMetricType.GPS_ACCURACY,
+                    TouristMetricType.COURSE,
+                    TouristMetricType.DECLINATION,
+                    TouristMetricType.LEVEL,
+                    TouristMetricType.LIGHT,
+                    TouristMetricType.MAGNETIC_FIELD,
+                    TouristMetricType.WIND,
+                    TouristMetricType.FEELS_LIKE,
+                    TouristMetricType.HUMIDITY,
+                    TouristMetricType.UV_INDEX,
+                    TouristMetricType.PRECIPITATION_PROBABILITY,
+                    TouristMetricType.CLOUD_COVER,
+                    TouristMetricType.VISIBILITY,
+                    -> HeroExtraMetricView(state.focusedMetric, state, isMetric)
                 }
             }
         }

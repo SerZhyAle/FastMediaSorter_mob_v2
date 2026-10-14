@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.06.21 22:54</sub>
+
 # DESIGN SOLUTIONS (Дизайн решения): S0602 - default-player-toggles-nonfunctional-unsupported-flavors
 
 **Билет:** S0602  

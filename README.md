@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.10 14:48</sub>
+
 # FastMediaSorter v2 🚀
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple?style=flat-square&logo=kotlin)
@@ -28,37 +30,37 @@ Guides: [Desktop](documentation/launcher/desktop-grid-and-icons.html) · [Gadget
 
 ## What FastMediaSorter Replaces 🧩
 
-FastMediaSorter is a complete shell for an Android device - home screen, media player, live streams, app launching, a companion on the watch, device monitoring and a full file manager in one app. That one app covers what normally takes a dozen separate tools. The well-known apps below are listed only as recognizable references for each capability, not as comparisons.
+FastMediaSorter is a complete shell for an Android device - home screen, media player, live streams, app launching, a companion on the watch, device monitoring and a full file manager in one app. That one app covers what normally takes a dozen separate tools.
 
 **Home Screen & Apps**
 
-- **Launcher** (Nova Launcher, stock launcher) - the app becomes the home screen: a desktop of gadgets and widgets, a taskbar along the edge you prefer, weather, clock and sensor cells, and a desktop that locks itself. *(Standard / noLegal)*
+- **Launcher** (stock launcher) - the app becomes the home screen: a desktop of gadgets and widgets, a taskbar along the edge you prefer, weather, clock and sensor cells, and a desktop that locks itself. *(Standard / noLegal)*
 - **App drawer & quick launch** - every installed app on one screen, app shortcuts on a long press, and a quick-launch panel that mixes apps, tools, streams and resources. *(Standard / noLegal)*
 
 **Viewing & Playback**
 
-- **Video player** (MX Player, VLC) - video, Blu-ray TS/.m2ts, picture-in-picture, frame screenshots, Chromecast casting.
-- **Audio player** (Poweramp, AIMP) - background playback, lyrics, MIDI, sleep timer, visualizations, notification controls.
-- **Internet radio / IPTV player** (TuneIn, RadioDroid, Online Radio Box, VLC network streams, IPTV players) - Streams screen plays http/https radio with ICY metadata, HLS/DASH VOD, and RTSP; curated catalog included. *(Standard / Legacy / VR / noLegal; absent in Lite and Photos)*
-- **Gallery / image viewer** (QuickPic, Google Photos) - images and GIFs, crop, filters, rotate.
-- **PDF / EPUB reader** (Adobe Reader, Moon+ Reader) - books, chapter maps, themes, Read Aloud (TTS).
+- **Video player** - video, Blu-ray TS/.m2ts, picture-in-picture, frame screenshots, Chromecast casting.
+- **Audio player** - background playback, lyrics, MIDI, sleep timer, visualizations, notification controls.
+- **Internet radio / IPTV player** - Streams screen plays http/https radio with ICY metadata, HLS/DASH VOD, and RTSP; curated catalog included. *(Standard / Legacy / VR / noLegal; absent in Lite and Photos)*
+- **Gallery / image viewer** - images and GIFs, crop, filters, rotate.
+- **PDF / EPUB reader** - books, chapter maps, themes, Read Aloud (TTS).
 - **Slideshow / photo frame** - rotating photos with background music, plus a photo-frame widget.
-- **TV media center** (Kodi, Nova Video Player) - D-pad, keyboard, mouse, gamepad, and TV-remote-friendly browsing and playback.
-- **VR media player** (Pigasus, Skybox VR) - stereo SBS/OU, VR180, 360°, virtual cinema screen. *(VR edition)*
+- **TV media center** - D-pad, keyboard, mouse, gamepad, and TV-remote-friendly browsing and playback.
+- **VR media player** - stereo SBS/OU, VR180, 360°, virtual cinema screen. *(VR edition)*
 
 **Capture & Create**
 
 - **Camera** (stock camera) - photo and video straight to a chosen local, network, or cloud folder.
 - **Voice recorder** - voice notes plus a quick-record widget.
 - **Drawing editor** - canvas, brushes, shapes, text, custom brush color and size.
-- **Document / text scanner** (Google Lens, CamScanner) - on-device OCR from the camera with area crop.
+- **Document / text scanner** - on-device OCR from the camera with area crop.
 
 **Text & Utilities**
 
 - **Text / Markdown editor** - edit `.txt`/`.md` with syntax highlighting and auto-save.
-- **Translator** (Google Translate offline) - fully offline translation.
+- **Translator** - fully offline translation.
 - **Calculator** - built-in evaluation of expressions from selected text. *(basic)*
-- **Cast to TV** (Google Home) - Chromecast for both video and audio.
+- **Cast to TV** - Chromecast for both video and audio.
 - **Home-screen widget pack** - quick-launch and status widgets for recorder, camera OCR, scheduled tasks, now playing, and photo frame.
 - **Settings backup tool** - export and restore app setup, sources, favorites, schedules, passwords, and sign-ins. *(app setup only)*
 
@@ -69,24 +71,24 @@ FastMediaSorter is a complete shell for an Android device - home screen, media p
 
 **File Management**
 
-- **File manager** (Total Commander, ES File Explorer, Files by Google) - local, network, and cloud files in one place.
-- **FTP/SFTP/SMB client** (AndFTP, Solid Explorer) - network sources with SSH keys and host-key pinning.
+- **File manager** - local, network, and cloud files in one place.
+- **FTP/SFTP/SMB client** - network sources with SSH keys and host-key pinning.
 - **Cloud clients** (Google Drive, Dropbox, OneDrive) - cloud drives as media sources.
-- **Duplicate finder** (Duplicate Files Fixer) - 3-phase Size -> Hash -> SHA-256 engine.
-- **Recycle bin** (Dumpster) - soft delete with one-tap restore.
-- **Archive extractor** (ZArchiver) - ZIP extraction, including password-protected. *(basic)*
-- **Download manager** (1DM, ADM) - paste a link and save directly to a chosen folder.
+- **Duplicate finder** - 3-phase Size -> Hash -> SHA-256 engine.
+- **Recycle bin** - soft delete with one-tap restore.
+- **Archive extractor** - ZIP extraction, including password-protected. *(basic)*
+- **Download manager** - paste a link and save directly to a chosen folder.
 - **Task scheduler** - scheduled file operations.
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.61.0041.544 (October 2026)
+## What's New in v2.61.0141.503 (October 2026)
 
 **New:**
-Slow motion (0.1x and 0.3x) and pinch zoom in video, launcher places new apps in the Android apps section.
+More Tourist tiles, tally counter and stopwatch tile, searchable system information cards, Googlebook support, cleaner stream filters, mirrored page buttons for right-to-left languages, folder paging for files opened from other apps, SFTP address through Google Drive (opt-in), watch Tourist readings, dark screen clock and rotation switch.
 
 **Fixed:**
-Streams and network videos stopping while loading, video top buttons hiding, link downloads after closing the progress dialog, launcher notification icons.
+Delete confirmation on shared storage, cloud-to-cloud copy names, SFTP transfers in the background, Tourist compass without a fused sensor, saved network logins in Android backup, watch crashes on Wear OS API 28-29, watch lists on the round glass.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
@@ -104,9 +106,9 @@ Zero-byte thumbnails, a non-blocking open-source licences list, an accessibility
 
 ## Windows Version 🖥️
 
-Looking for a desktop solution? Check out **Fast Media Sorter for Windows** (formerly FastMediaSorter LITE) - a lightweight Windows Forms application for quickly sorting, viewing, and managing image and video files:
+Looking for a desktop solution? Check out **Fast Media Sorter & Sharing for Windows** - a lightweight Windows Forms application for quickly sorting, viewing, and managing image and video files:
 
-🔗 **[Fast Media Sorter for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
+🔗 **[Fast Media Sorter & Sharing for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
 
 📄 [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html) - share your PC folders with the app over SFTP (companion import / QR scan on the phone).
 
@@ -241,7 +243,7 @@ Full-size images:
 - 📄 **Document Viewer:** Built-in viewer for Text files (.txt, .md, .log, .json, .xml) and PDF documents with zoom, pan, and gesture navigation.
 - 📚 **EPUB E-Book Reader:** Native EPUB reader with chapter navigation, table of contents, font size control, in-book search, and dark/light theme support. Works with local and network files.
 - 📥 **Download & Open:** Download network files (SMB/SFTP/FTP) to local storage and open them in external apps with progress tracking.
-- 🌐 **Auto-Translation:** Instantly translate text from images, PDFs, and text files using a **Hybrid OCR System** (Google ML Kit + Tesseract) for superior accuracy in both Latin and Cyrillic scripts. Supports both standard and **lens-style overlay mode** for in-place translations.
+- 🌐 **Auto-Translation:** Instantly translate text from images, PDFs, and text files using a **Hybrid OCR System** (Google ML Kit + Tesseract) for superior accuracy in both Latin and Cyrillic scripts. Shows the translation either as separate text or as **blocks painted over the original text** right on the image.
 - 📱 **Widget Support:** Quick access to your favorite resources directly from your home screen with two widget types: **Resource Shortcut** (opens any saved resource instantly) and **Continue Reading** (launches slideshow mode immediately).
 - ⏰ **Scheduled File Operations:** Automate file operations (Copy/Move/Delete) using time-based rules with flexible filters and background execution.
 - 👆 **Advanced Gestures:** Smart zoom controls (2x/3x/4x) for images and intuitive touch zones for file navigation.
@@ -329,6 +331,8 @@ Downloads folder cluttered? Open it in the source panel, set up destination butt
 **🌐 Official Website:** [https://serzhyale.github.io/FastMediaSorter_mob_v2/](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
 
 **📘 User Documentation:** [step-by-step guides for every feature, with search](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/)
+
+**🔁 Media Exchange Portal:** [which way fits you to move and open media between your own phone, watch, TV, VR headset and Windows PC](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/)
 
 ### Canonical Sources (Single Source of Truth)
 

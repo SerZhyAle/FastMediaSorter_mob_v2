@@ -5,215 +5,126 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityTouristInfoBinding
-import com.sza.fastmediasorter.domain.model.sensors.SensorAccuracy
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
+import timber.log.Timber
 import java.util.Locale
 
 /**
  * S2922/S3000: binds the prominent Hero focus card on the Tourist dashboard.
  *
- * S3101: every reading with two scales goes through [TouristTileValueFormatter]; nothing here picks a
- * unit or a clock length of its own.
+ * S4145: what a tile shows comes from [TouristTileContentManager], the same source the grid reads; this
+ * class only decides which of the card's pictures - coordinates, compass rose, arrow or level - is shown.
+ * S4202: it also owns the STOPWATCH tile's controls row - visibility, the toggle's label and icon - while
+ * the actions themselves stay callbacks, so no stopwatch logic lives in the activity.
  */
 class TouristHeroTileManager(
     private val binding: ActivityTouristInfoBinding,
-    private val valueFormatter: TouristTileValueFormatter,
+    private val contentManager: TouristTileContentManager,
     private val onResetClicked: (TouristTileType) -> Unit = {},
+    private val onStopwatchToggleClicked: () -> Unit = {},
+    private val onStopwatchResetClicked: () -> Unit = {},
+    private val onStopwatchOpenClicked: () -> Unit = {},
 ) {
 
     fun bind(state: TouristDashboardState, context: Context) {
-        val card = binding.cardHeroTile
-        val btnReset = binding.btnHeroReset
-        val textGroup = binding.layoutHeroTextMetrics
-        val coordsGroup = binding.layoutHeroCoords
-        val compassRose = binding.ivHeroCompassRose
+        val tile = state.focusedTile
+        val content = contentManager.content(tile, state)
+        Timber.d("S4145: hero bound tile=%s value=%s detail=%s", tile, content.value, content.detail)
 
-        val bgColor = ContextCompat.getColor(context, getTileBackgroundColorRes(state.focusedTile))
-        card.setCardBackgroundColor(bgColor)
+        binding.cardHeroTile.setCardBackgroundColor(ContextCompat.getColor(context, content.backgroundRes))
+        binding.cardHeroTile.contentDescription = content.spokenDescription
+        binding.btnHeroReset.visibility = if (contentManager.supportsReset(tile)) View.VISIBLE else View.GONE
+        binding.btnHeroReset.setOnClickListener { onResetClicked(tile) }
 
-        val supportsReset = state.focusedTile == TouristTileType.SPEED ||
-            state.focusedTile == TouristTileType.STEPS ||
-            state.focusedTile == TouristTileType.TRIP_DISTANCE
-        btnReset.visibility = if (supportsReset) View.VISIBLE else View.GONE
-        btnReset.setOnClickListener { onResetClicked(state.focusedTile) }
+        binding.ivHeroIcon.setImageResource(content.iconRes)
+        binding.tvHeroTitle.setText(content.labelRes)
+        binding.tvHeroPrimaryValue.text = content.value
+        binding.tvHeroPrimaryUnit.text = content.unit
+        binding.tvHeroCompassHeading.text = content.value
+        binding.tvHeroCompassCardinal.text = content.unit
+        binding.tvHeroSecondaryDetail.text = content.detail.orEmpty()
 
-        textGroup.visibility = View.VISIBLE
-        coordsGroup.visibility = View.GONE
-        compassRose.visibility = View.GONE
+        bindStopwatchControls(state, tile)
 
-        bindTileContent(state, context)
-    }
-
-    private fun bindTileContent(state: TouristDashboardState, context: Context) {
-        when (state.focusedTile) {
-            TouristTileType.SPEED -> bindSpeedTile(state)
-            TouristTileType.ALTITUDE -> bindAltitudeTile(state, context)
-            TouristTileType.COMPASS -> bindCompassTile(state)
-            TouristTileType.COORDINATES -> bindCoordinatesTile(state)
-            TouristTileType.SATELLITES -> bindSatellitesTile(state, context)
-            TouristTileType.STEPS -> bindStepsTile(state)
-            TouristTileType.TRIP_DISTANCE -> bindTripDistanceTile(state)
-            TouristTileType.SUN_TIME -> bindSunTimeTile(state, context)
-            TouristTileType.WEATHER -> bindWeatherTile(state, context)
-            TouristTileType.DEW_POINT -> bindDewPointTile(state)
+        val isCompass = tile == TouristTileType.COMPASS
+        if (isCompass && binding.layoutHeroCompass.visibility != View.VISIBLE) {
+            Timber.d("S4183: Tourist compass focused; rose left, heading right, equal halves")
         }
+        bindVisual(content.visual, isCompass, context)
     }
 
-    private fun bindSpeedTile(state: TouristDashboardState) {
-        binding.ivHeroIcon.setImageResource(R.drawable.ic_speed)
-        binding.tvHeroTitle.setText(R.string.tourist_tile_speed)
-        val speed = valueFormatter.speed(state.speedKmh)
-        binding.tvHeroPrimaryValue.text = speed.value
-        binding.tvHeroPrimaryUnit.text = speed.unit
-        binding.tvHeroSecondaryDetail.text =
-            valueFormatter.speedDetail(state.maxSpeedKmh, state.tripDistanceMeters)
-    }
+    /**
+     * The toggle is one button that changes its label and icon with the running flag, because start and
+     * stop are the same control on a primitive single-player stopwatch; the row stays hidden for every
+     * other tile so their card height is unchanged.
+     */
+    private fun bindStopwatchControls(state: TouristDashboardState, tile: TouristTileType) {
+        val isStopwatch = tile == TouristTileType.STOPWATCH
+        binding.layoutHeroStopwatch.visibility = if (isStopwatch) View.VISIBLE else View.GONE
+        if (!isStopwatch) return
 
-    private fun bindAltitudeTile(state: TouristDashboardState, context: Context) {
-        binding.ivHeroIcon.setImageResource(R.drawable.ic_altitude)
-        binding.tvHeroTitle.setText(R.string.tourist_tile_altitude)
-        val altitude = valueFormatter.altitude(state.altitudeMeters)
-        binding.tvHeroPrimaryValue.text = altitude.value
-        binding.tvHeroPrimaryUnit.text = altitude.unit
-        val detailText = if (state.altitudeMeters != null) {
-            context.getString(R.string.tourist_detail_altitude)
+        if (state.stopwatchRunning) {
+            binding.btnStopwatchToggle.setText(R.string.tourist_stopwatch_action_stop)
+            binding.btnStopwatchToggle.setIconResource(R.drawable.ic_stop)
         } else {
-            context.getString(R.string.tourist_status_no_fix)
+            binding.btnStopwatchToggle.setText(R.string.tourist_stopwatch_action_start)
+            binding.btnStopwatchToggle.setIconResource(R.drawable.ic_play)
         }
-        binding.tvHeroSecondaryDetail.text = detailText
+        binding.btnStopwatchToggle.setOnClickListener { onStopwatchToggleClicked() }
+        binding.btnStopwatchReset.setOnClickListener { onStopwatchResetClicked() }
+        binding.btnStopwatchOpen.setOnClickListener { onStopwatchOpenClicked() }
     }
 
-    private fun bindCompassTile(state: TouristDashboardState) {
-        binding.ivHeroIcon.setImageResource(R.drawable.ic_compass)
-        binding.tvHeroTitle.setText(R.string.tourist_tile_compass)
-        val azimuth = state.azimuthDegrees
-        if (azimuth != null) {
-            binding.ivHeroCompassRose.visibility = View.VISIBLE
-            binding.ivHeroCompassRose.rotation = -azimuth
-            binding.tvHeroPrimaryValue.text = String.format(Locale.US, "%.0f°", azimuth)
-            binding.tvHeroPrimaryUnit.text = cardinalDirection(azimuth)
-            val accuracyRes = when (state.compassAccuracy) {
-                SensorAccuracy.HIGH -> R.string.tourist_accuracy_high
-                SensorAccuracy.MEDIUM -> R.string.tourist_accuracy_medium
-                SensorAccuracy.LOW -> R.string.tourist_accuracy_low
-                SensorAccuracy.UNRELIABLE -> R.string.tourist_accuracy_unreliable
-            }
-            binding.tvHeroSecondaryDetail.setText(accuracyRes)
-        } else {
-            binding.tvHeroPrimaryValue.text = "--"
-            binding.tvHeroPrimaryUnit.text = "°"
-            binding.tvHeroSecondaryDetail.setText(R.string.tourist_status_sensor_unavailable)
+    private fun bindVisual(visual: HeroVisual, isCompass: Boolean, context: Context) {
+        binding.layoutHeroTextMetrics.visibility =
+            if (visual is HeroVisual.Coordinates || isCompass) View.GONE else View.VISIBLE
+        binding.layoutHeroCoords.visibility = if (visual is HeroVisual.Coordinates) View.VISIBLE else View.GONE
+        binding.layoutHeroCompass.visibility = if (isCompass) View.VISIBLE else View.GONE
+        binding.ivHeroCompassRose.rotation = if (visual is HeroVisual.CompassRose) -visual.azimuthDegrees else 0f
+        binding.layoutHeroVisual.visibility =
+            if (visual is HeroVisual.Arrow || visual is HeroVisual.Level) View.VISIBLE else View.GONE
+        binding.ivHeroDirectionArrow.visibility = if (visual is HeroVisual.Arrow) View.VISIBLE else View.GONE
+        binding.layoutHeroLevel.visibility = if (visual is HeroVisual.Level) View.VISIBLE else View.GONE
+
+        when (visual) {
+            is HeroVisual.Coordinates -> bindCoordinates(visual)
+            is HeroVisual.CompassRose -> Unit
+            is HeroVisual.Arrow -> binding.ivHeroDirectionArrow.rotation = visual.rotationDegrees
+            is HeroVisual.Level -> bindLevel(visual, context)
+            HeroVisual.None -> Unit
         }
     }
 
-    private fun bindCoordinatesTile(state: TouristDashboardState) {
-        binding.ivHeroIcon.setImageResource(R.drawable.ic_map)
-        binding.tvHeroTitle.setText(R.string.tourist_tile_coordinates)
-        binding.layoutHeroTextMetrics.visibility = View.GONE
-        binding.layoutHeroCoords.visibility = View.VISIBLE
-        val lat = state.latitude
-        val lon = state.longitude
+    private fun bindCoordinates(visual: HeroVisual.Coordinates) {
+        val lat = visual.latitude
+        val lon = visual.longitude
         if (lat != null && lon != null) {
             binding.tvHeroLat.text = String.format(Locale.US, "Lat: %.4f°", lat)
             binding.tvHeroLon.text = String.format(Locale.US, "Lon: %.4f°", lon)
-            binding.tvHeroSecondaryDetail.setText(R.string.tourist_detail_coordinates)
         } else {
             binding.tvHeroLat.text = "Lat: --"
             binding.tvHeroLon.text = "Lon: --"
-            binding.tvHeroSecondaryDetail.setText(R.string.tourist_status_no_fix)
         }
     }
 
-    private fun bindSatellitesTile(state: TouristDashboardState, context: Context) {
-        binding.ivHeroIcon.setImageResource(R.drawable.ic_satellites)
-        binding.tvHeroTitle.setText(R.string.tourist_tile_satellites)
-        val used = state.satellitesUsed ?: 0
-        val total = state.satellitesTotal ?: 0
-        binding.tvHeroPrimaryValue.text = used.toString()
-        binding.tvHeroPrimaryUnit.text = "/ $total"
-        binding.tvHeroSecondaryDetail.text =
-            context.getString(R.string.tourist_detail_satellites, used, total)
+    /**
+     * The bubble floats to the high side, as in a spirit level; [FULL_SCALE_DEGREES] of tilt puts it on
+     * the ring, so a phone lying flat reads as centred and a steep slope pins it to the edge.
+     */
+    private fun bindLevel(visual: HeroVisual.Level, context: Context) {
+        val res = context.resources
+        val radius = (
+            res.getDimension(R.dimen.tourist_level_ring_size) - res.getDimension(R.dimen.tourist_level_bubble_size)
+            ) / 2f
+        binding.ivHeroLevelBubble.translationX = offset(-visual.rollDegrees, radius)
+        binding.ivHeroLevelBubble.translationY = offset(visual.pitchDegrees, radius)
     }
 
-    private fun bindStepsTile(state: TouristDashboardState) {
-        binding.ivHeroIcon.setImageResource(R.drawable.ic_steps)
-        binding.tvHeroTitle.setText(R.string.tourist_tile_steps)
-        binding.tvHeroPrimaryValue.text = state.stepsCount.toString()
-        binding.tvHeroPrimaryUnit.setText(R.string.tourist_unit_steps)
-        binding.tvHeroSecondaryDetail.setText(R.string.tourist_detail_steps)
-    }
-
-    private fun bindTripDistanceTile(state: TouristDashboardState) {
-        binding.ivHeroIcon.setImageResource(R.drawable.ic_route_distance)
-        binding.tvHeroTitle.setText(R.string.tourist_tile_trip_distance)
-        val trip = valueFormatter.tripDistance(state.tripDistanceMeters)
-        binding.tvHeroPrimaryValue.text = trip.value
-        binding.tvHeroPrimaryUnit.text = trip.unit
-        binding.tvHeroSecondaryDetail.setText(R.string.tourist_detail_trip_distance)
-    }
-
-    private fun bindSunTimeTile(state: TouristDashboardState, context: Context) {
-        binding.ivHeroIcon.setImageResource(if (state.isDaylight) R.drawable.ic_sunrise else R.drawable.ic_sunset)
-        binding.tvHeroTitle.setText(R.string.tourist_tile_sun_time)
-
-        val sunriseStr = valueFormatter.clockTime(state.sunriseMillis)
-        val sunsetStr = valueFormatter.clockTime(state.sunsetMillis)
-
-        if (state.isDaylight) {
-            binding.tvHeroPrimaryValue.text = sunsetStr
-            binding.tvHeroPrimaryUnit.setText(R.string.tourist_sunset)
-        } else {
-            binding.tvHeroPrimaryValue.text = sunriseStr
-            binding.tvHeroPrimaryUnit.setText(R.string.tourist_sunrise)
-        }
-        binding.tvHeroSecondaryDetail.text =
-            context.getString(R.string.tourist_detail_sun_time, sunriseStr, sunsetStr)
-    }
-
-    private fun bindWeatherTile(state: TouristDashboardState, context: Context) {
-        binding.ivHeroIcon.setImageResource(R.drawable.ic_info)
-        binding.tvHeroTitle.setText(R.string.tourist_tile_weather)
-        val temperature = valueFormatter.temperature(state.temperatureCelsius)
-        binding.tvHeroPrimaryValue.text = temperature.value
-        binding.tvHeroPrimaryUnit.text = temperature.unit
-        binding.tvHeroSecondaryDetail.text = valueFormatter.weatherCondition(state.weatherCondition)
-            ?: context.getString(R.string.tourist_status_sensor_unavailable)
-    }
-
-    private fun bindDewPointTile(state: TouristDashboardState) {
-        binding.ivHeroIcon.setImageResource(R.drawable.ic_info)
-        binding.tvHeroTitle.setText(R.string.tourist_tile_dew_point)
-        val dewPoint = valueFormatter.temperature(state.dewPointCelsius)
-        binding.tvHeroPrimaryValue.text = dewPoint.value
-        binding.tvHeroPrimaryUnit.text = dewPoint.unit
-        // S4068: the reading comes from Open-Meteo, whose CC BY 4.0 licence asks for this credit.
-        binding.tvHeroSecondaryDetail.setText(R.string.launcher_gadget_weather_attribution)
-    }
-
-    private fun getTileBackgroundColorRes(tileType: TouristTileType): Int = when (tileType) {
-        TouristTileType.SPEED -> R.color.tourist_tile_bg_speed
-        TouristTileType.ALTITUDE -> R.color.tourist_tile_bg_altitude
-        TouristTileType.COMPASS -> R.color.tourist_tile_bg_compass
-        TouristTileType.COORDINATES -> R.color.tourist_tile_bg_coordinates
-        TouristTileType.SATELLITES -> R.color.tourist_tile_bg_satellites
-        TouristTileType.STEPS -> R.color.tourist_tile_bg_steps
-        TouristTileType.TRIP_DISTANCE -> R.color.tourist_tile_bg_trip_distance
-        TouristTileType.SUN_TIME -> R.color.tourist_tile_bg_sun_time
-        TouristTileType.WEATHER -> R.color.tourist_tile_bg_weather
-        TouristTileType.DEW_POINT -> R.color.tourist_tile_bg_dew_point
-    }
-
-    private fun cardinalDirection(azimuth: Float): String {
-        val directions = arrayOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
-        val index = ((azimuth + HALF_SECTOR) % FULL_CIRCLE / SECTOR).toInt().coerceIn(0, MAX_CARDINAL_INDEX)
-        return directions[index]
-    }
+    private fun offset(degrees: Float, radius: Float): Float =
+        (degrees / FULL_SCALE_DEGREES).coerceIn(-1f, 1f) * radius
 
     private companion object {
-        private const val HALF_SECTOR = 22.5f
-        private const val SECTOR = 45f
-        private const val FULL_CIRCLE = 360
-        private const val MAX_CARDINAL_INDEX = 7
+        const val FULL_SCALE_DEGREES = 30f
     }
 }

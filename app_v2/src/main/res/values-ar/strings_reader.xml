@@ -36,7 +36,7 @@
     <string name="epub_e">EPUB (E)</string>
     <string name="epub_exit_fullscreen">تم الخروج من وضع ملء الشاشة</string>
     <string name="epub_file_not_found">هذا الملف بصيغة EPUB لم يعد متوفراً.</string>
-    <string name="epub_go_to_chapter_cancel">يلغي</string>
+    <string name="epub_go_to_chapter_cancel">إلغاء</string>
     <string name="epub_go_to_chapter_hint">رقم الفصل (1-%1$d)</string>
     <string name="epub_go_to_chapter_message">أدخل رقم الفصل (من 1 إلى %1$d)</string>
     <string name="epub_go_to_chapter_title">انتقل إلى الفصل</string>
@@ -60,8 +60,8 @@
     <string name="epub_text_empty_tts">لم يتم العثور على أي نص في الفصل</string>
     <string name="text_content_hint">محتوى النص</string>
     <string name="text_editing_large_file">لا تتوفر إمكانية التحرير للملفات التي تحتوي على صفحات متعددة</string>
-    <string name="text_editor_action_cancel">يلغي</string>
-    <string name="text_editor_action_save">يحفظ</string>
+    <string name="text_editor_action_cancel">إلغاء</string>
+    <string name="text_editor_action_save">حفظ</string>
     <string name="text_editor_action_save_close">حفظ وإغلاق</string>
     <string name="text_editor_action_save_send">حفظ وإرسال إلى..</string>
     <string name="text_editor_action_send_keep">إنشاء ملاحظة نصية في Keep</string>
@@ -74,7 +74,7 @@
     <string name="text_file_too_large">الملف كبير جدًا (%1$s). الحد الأقصى للحجم المدعوم هو %2$s.</string>
     <string name="text_file_upload_failed_after_local_save">تم حفظ الملف على هذا الجهاز، ولكن لم أتمكن من تحميله مرة أخرى إلى الخادم.</string>
     <string name="text_note_save_dialog_hint">اسم الملف</string>
-    <string name="text_note_save_dialog_ok">يحفظ</string>
+    <string name="text_note_save_dialog_ok">حفظ</string>
     <string name="text_note_save_dialog_title">حفظ الملاحظة</string>
     <string name="text_note_save_error_network">تعذر الوصول إلى المجلد. بقيت ملاحظتك على الجهاز - حاول مرة أخرى عند اتصالك بالإنترنت.</string>
     <string name="text_note_save_renamed_suffix">تم الحفظ باسم %1$s (الاسم مستخدم بالفعل)</string>

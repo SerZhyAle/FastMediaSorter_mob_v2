@@ -6,7 +6,6 @@ description: Як увімкнути робочий стіл FastMediaSorter, щ
 category: "Лаунчер: робочий стіл"
 category_slug: launcher
 ticket: S2958
-flavor: Редакції Standard і noLegal
 recipe_number: "01"
 canonical_url: documentation/launcher/desktop-grid-and-icons-uk.html
 why: |
@@ -160,5 +159,7 @@ next_recipes:
     badge_type: docs
     description: Кнопка «Пуск», нещодавні та закріплені застосунки й область стану.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Робочий стіл](term:desktop) FastMediaSorter - це сітка квадратів, де ви тримаєте те, чим користуєтесь щодня: застосунки, папки з медіа, радіоканали, годинник і погоду. Ця сторінка показує, як його увімкнути, що він містить із першої хвилини і як додати власні речі.

@@ -43,6 +43,11 @@ class DeviceSensorAvailabilityRepositoryImpl @Inject constructor(
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
                 declaresActivityRecognition() &&
                 hasSensor(Sensor.TYPE_STEP_COUNTER)
+        SensorCapability.BAROMETER -> hasSensor(Sensor.TYPE_PRESSURE)
+        SensorCapability.LIGHT -> hasSensor(Sensor.TYPE_LIGHT)
+        SensorCapability.MAGNETOMETER -> hasSensor(Sensor.TYPE_MAGNETIC_FIELD)
+        // Gravity is the filtered vector; a raw accelerometer gives the same tilt at rest.
+        SensorCapability.LEVEL -> hasSensor(Sensor.TYPE_GRAVITY) || hasSensor(Sensor.TYPE_ACCELEROMETER)
     }
 
     /**

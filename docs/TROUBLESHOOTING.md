@@ -3,6 +3,8 @@ layout: default
 title: "🔧 Troubleshooting Guide"
 permalink: /docs/TROUBLESHOOTING.html
 ---
+<sub class="doc-stamp">26.10.09 14:26</sub>
+
 # 🔧 Troubleshooting Guide
 
 Current troubleshooting guide for FastMediaSorter v2. Use the canonical flavor matrix in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) when the issue depends on the selected build path (Standard, Lite, Photos, Legacy, or XR / noLegal).
@@ -171,7 +173,7 @@ Current troubleshooting guide for FastMediaSorter v2. Use the canonical flavor m
 **Solution:**
 1. Tap the **ⓘ (Info)** button in top toolbar
 2. Tap **"Open in External Player"**
-3. Select a specialized player (e.g., VLC, MX Player)
+3. Select a specialized player
 
 This uses the *Secondary Player* feature to hand off unsupported codecs to other apps.
 

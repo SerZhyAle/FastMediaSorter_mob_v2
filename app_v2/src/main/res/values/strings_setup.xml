@@ -149,7 +149,7 @@
     <string name="welcome_streams_catalog_failed">Catalog not downloaded - you can add streams manually</string>
     <string name="welcome_func_gestures">Enable gestures</string>
     <string name="welcome_func_gestures_summary">Swipe from the left edge: menu, screenshot, silent screenshot</string>
-    <string name="welcome_networks_companion_note">Media on a Windows PC? Fast Media Sorter for Windows shares those folders here in a couple of clicks - no server setup needed.</string>
+    <string name="welcome_networks_companion_note">Media on a Windows PC? Fast Media Sorter &amp; Sharing for Windows shares those folders here in a couple of clicks - no server setup needed.</string>
     <string name="welcome_networks_companion_button">Get the Windows app</string>
     <string name="welcome_networks_example_smb">For example: a shared folder on a Windows PC, a NAS such as Synology or QNAP, or a USB disk plugged into your router.</string>
     <string name="welcome_networks_example_ftp">For example: a hosting account over FTP, your own home server over SFTP, or a camera that uploads photos to an FTP folder.</string>

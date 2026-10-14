@@ -3,6 +3,8 @@ layout: default
 title: "Приложение вместо домашнего экрана - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-ru.html
 ---
+<sub class="doc-stamp">26.09.24 20:50</sub>
+
 # 🖥️ Приложение вместо домашнего экрана
 
 > **Уровень:** новичок &bull; **Сборка:** Standard / noLegal

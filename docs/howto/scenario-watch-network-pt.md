@@ -3,6 +3,8 @@ layout: default
 title: "Conecte o Smartwatch a NAS e Compartilhamentos de PC - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-network-pt.html
 ---
+<sub class="doc-stamp">26.09.25 02:21</sub>
+
 <div lang="pt" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Conecte o Smartwatch a NAS e Compartilhamentos de PC

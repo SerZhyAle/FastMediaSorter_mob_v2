@@ -3,6 +3,8 @@ layout: default
 title: "Поставить FastMedia на часы - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-ru.html
 ---
+<sub class="doc-stamp">26.09.30 13:01</sub>
+
 # <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Поставить FastMedia на часы
 
 > **Уровень:** для начинающих &bull; **Время:** ~5 минут &bull; **Устройство:** часы на Wear OS, сопряжённые с телефоном Android

@@ -6,7 +6,8 @@ description: What exactly a FastMediaSorter backup carries, the few settings it 
 category: "General, Keyboard & TV"
 category_slug: general
 ticket: S2963
-flavor: All editions - backup and restore to a file work everywhere; the Google Drive backup needs Standard, noLegal, Photos, Legacy or VR with a Google account connected
+availability: all
+availability_note: All editions - backup and restore to a file work everywhere; the Google Drive backup needs Standard, noLegal, Photos, Legacy or VR with a Google account connected
 recipe_number: "01"
 canonical_url: documentation/general/backup-and-restore.html
 why: |
@@ -124,5 +125,7 @@ next_recipes:
     badge_type: docs
     description: Moving around the app without touching the screen.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Your settings, Favorites and resources can all go into a backup and come back again. This page is about the backup itself: where its buttons are, what it carries, what it leaves behind on purpose, and how an old backup restores.

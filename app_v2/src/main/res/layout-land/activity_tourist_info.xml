@@ -88,11 +88,18 @@
             android:paddingEnd="@dimen/padding_small"
             android:paddingBottom="@dimen/margin_normal">
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardHeroTile"
+            <!-- S4145: a card with an arrow or level gauge can outgrow a short landscape column. -->
+            <androidx.core.widget.NestedScrollView
+                android:id="@+id/scrollTouristPage"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
+                android:fillViewport="true">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardHeroTile"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 app:cardCornerRadius="@dimen/tourist_card_corner_radius"
                 app:cardElevation="@dimen/tourist_card_elevation"
                 app:strokeWidth="@dimen/tourist_card_stroke_width"
@@ -202,16 +209,146 @@
                                 tools:text="Lon: 37.6173°" />
                         </LinearLayout>
 
-                        <ImageView
-                            android:id="@+id/ivHeroCompassRose"
-                            android:layout_width="@dimen/tourist_compass_rose_size_land"
-                            android:layout_height="@dimen/tourist_compass_rose_size_land"
+                        <!-- Equal columns keep heading changes from moving the compass rose. -->
+                        <LinearLayout
+                            android:id="@+id/layoutHeroCompass"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
                             android:layout_gravity="center"
-                            android:contentDescription="@null"
-                            android:visibility="gone"
-                            tools:src="@drawable/ic_compass" />
+                            android:baselineAligned="false"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:layoutDirection="ltr"
+                            android:visibility="gone">
+
+                            <FrameLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1">
+
+                                <ImageView
+                                    android:id="@+id/ivHeroCompassRose"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/tourist_compass_rose_size_land"
+                                    android:layout_gravity="center"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_compass" />
+                            </FrameLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="center"
+                                android:orientation="vertical"
+                                android:layoutDirection="locale">
+
+                                <TextView
+                                    android:id="@+id/tvHeroCompassHeading"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textAppearance="@style/TextAppearance.FastMediaSorter.Tourist.CompassHeading"
+                                    android:textStyle="bold"
+                                    tools:text="359°" />
+
+                                <TextView
+                                    android:id="@+id/tvHeroCompassCardinal"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center"
+                                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    tools:text="NW" />
+                            </LinearLayout>
+                        </LinearLayout>
+
                     </FrameLayout>
 
+                    <!-- S4145: the wind / course / trend arrow and the level gauge; at most one is visible. -->
+                    <FrameLayout
+                        android:id="@+id/layoutHeroVisual"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:id="@+id/ivHeroDirectionArrow"
+                            android:layout_width="@dimen/tourist_compass_rose_size"
+                            android:layout_height="@dimen/tourist_compass_rose_size"
+                            android:layout_gravity="center"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_arrow_upward"
+                            android:visibility="gone"
+                            app:tint="?attr/colorOnSurface" />
+
+                        <FrameLayout
+                            android:id="@+id/layoutHeroLevel"
+                            android:layout_width="@dimen/tourist_level_ring_size"
+                            android:layout_height="@dimen/tourist_level_ring_size"
+                            android:layout_gravity="center"
+                            android:visibility="gone">
+
+                            <ImageView
+                                android:id="@+id/ivHeroLevelRing"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:contentDescription="@null"
+                                android:src="@drawable/bg_tourist_level_ring" />
+
+                            <ImageView
+                                android:id="@+id/ivHeroLevelBubble"
+                                android:layout_width="@dimen/tourist_level_bubble_size"
+                                android:layout_height="@dimen/tourist_level_bubble_size"
+                                android:layout_gravity="center"
+                                android:contentDescription="@null"
+                                android:src="@drawable/bg_tourist_level_bubble" />
+                        </FrameLayout>
+                    </FrameLayout>
+
+
+                    <!-- S4202: the STOPWATCH tile is itself a primitive stopwatch; the row is hidden for every other tile. -->
+                    <LinearLayout
+                        android:id="@+id/layoutHeroStopwatch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:visibility="gone"
+                        tools:visibility="gone">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnStopwatchToggle"
+                            style="@style/Widget.FastMediaSorter.Button.Tonal.Compact"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/margin_small"
+                            app:icon="@drawable/ic_play"
+                            android:text="@string/tourist_stopwatch_action_start"
+                            tools:text="Start" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnStopwatchReset"
+                            style="@style/Widget.FastMediaSorter.Button.Outlined.Compact"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/margin_small"
+                            app:icon="@drawable/ic_restore_defaults"
+                            android:text="@string/tourist_stopwatch_action_reset"
+                            tools:text="Reset" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnStopwatchOpen"
+                            style="@style/Widget.FastMediaSorter.Button.Tonal.Compact"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:icon="@drawable/ic_stopwatch"
+                            android:text="@string/tourist_stopwatch_action_open_full"
+                            tools:text="Open stopwatch" />
+                    </LinearLayout>
                     <TextView
                         android:id="@+id/tvHeroSecondaryDetail"
                         android:layout_width="match_parent"
@@ -222,6 +359,7 @@
                         tools:text="Max: 0.0 km/h • Trip: 0.00 km" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+            </androidx.core.widget.NestedScrollView>
 
             <!-- Action Bar -->
             <androidx.constraintlayout.widget.ConstraintLayout

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.08.07 18:57</sub>
+
 PLATFORM: Reddit - r/homelab
 URL: https://www.reddit.com/r/homelab/
 FORMAT: Reddit Markdown

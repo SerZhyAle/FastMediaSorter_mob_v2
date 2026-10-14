@@ -28,11 +28,18 @@ data class CompanionConfigDto(
 data class CompanionAccessPathDto(
     @SerializedName("kind") val kind: String?,
     @SerializedName("host") val host: String?,
-    @SerializedName("port") val port: Int?
+    @SerializedName("port") val port: Int?,
+    /**
+     * ANYWHERE-ACCESS section 4.2: set only on a [KIND_RENDEZVOUS_TUNNEL] path, whose host and port
+     * name the exchange server. They stay a valid endpoint because every reader shipped before the
+     * kind existed validates and tries each path as an SSH endpoint; such a path is written last.
+     */
+    @SerializedName("shareId") val shareId: String? = null
 ) {
     companion object {
         const val KIND_LAN = "lan"
         const val KIND_PORT_FORWARD = "portforward"
+        const val KIND_RENDEZVOUS_TUNNEL = "rendezvousTunnel"
     }
 }
 

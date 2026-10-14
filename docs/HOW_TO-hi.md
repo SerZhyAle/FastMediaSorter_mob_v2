@@ -3,6 +3,8 @@ layout: default
 title: "📖 कैसे-करें गाइड"
 permalink: /docs/HOW_TO-hi.html
 ---
+<sub class="doc-stamp">26.10.09 14:26</sub>
+
 <div lang="hi" dir="ltr" markdown="1">
 
 # 📖 कैसे-करें गाइड
@@ -106,7 +108,7 @@ permalink: /docs/HOW_TO-hi.html
 
 ये सेक्शन नीचे दिए गए मुख्य कार्य संदर्भ ब्लॉक की तुलना में जानबूझकर अधिक विविध हैं. हर परिदृश्य एक त्वरित मार्ग को संदर्भ, समझौतों (trade-offs), और उन स्थितियों के साथ मिलाता है जहाँ FastMediaSorter विशेष रूप से मज़बूत है.
 
-> **⭐ फीचर्ड: एक स्कैन में अपने PC के फ़ोल्डर अपने फोन पर लाएँ.** अपने PC पर मुफ़्त [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) कम्पेनियन चलाएँ, अपने वीडियो, संगीत, दस्तावेज़ या फ़ोटो वाले फ़ोल्डर चुनें, और यह स्क्रीन पर एक कोड दिखाता है. फोन पर, **Add** टैप करें, **Import by barcode** चुनें, कैमरे को उस कोड पर पॉइंट करें - PC के फ़ोल्डर बिना किसी एड्रेस, पोर्ट या पासवर्ड टाइप किए तुरंत जुड़ जाते हैं. पूरा वॉकथ्रू: [कोड स्कैन करके PC फ़ोल्डर खोलें](howto/scenario-companion-share-hi.md) &bull; त्वरित रेसिपी: [Windows Companion शेयर आयात करें](#how-to-import-a-windows-companion-share).
+> **⭐ फीचर्ड: एक स्कैन में अपने PC के फ़ोल्डर अपने फोन पर लाएँ.** अपने PC पर मुफ़्त [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) कम्पेनियन चलाएँ, अपने वीडियो, संगीत, दस्तावेज़ या फ़ोटो वाले फ़ोल्डर चुनें, और यह स्क्रीन पर एक कोड दिखाता है. फोन पर, **Add** टैप करें, **Import by barcode** चुनें, कैमरे को उस कोड पर पॉइंट करें - PC के फ़ोल्डर बिना किसी एड्रेस, पोर्ट या पासवर्ड टाइप किए तुरंत जुड़ जाते हैं. पूरा वॉकथ्रू: [कोड स्कैन करके PC फ़ोल्डर खोलें](howto/scenario-companion-share-hi.md) &bull; त्वरित रेसिपी: [Windows Companion शेयर आयात करें](#how-to-import-a-windows-companion-share).
 
 > **⌚ Wear OS स्मार्टवॉच:** Wear OS वॉच इस्तेमाल कर रहे हैं? हमारी चरण-दर-चरण गाइड देखें [अपनी वॉच पर संगीत सुनें](howto/scenario-watch-music-hi.md) और [स्मार्टवॉच को NAS और PC शेयर से कनेक्ट करें](howto/scenario-watch-network-hi.md).
 
@@ -218,7 +220,7 @@ permalink: /docs/HOW_TO-hi.html
 
 **यह कब मदद करता है**
 
-- Android कार स्टीरियो, ऑडियो प्लेयर और मीडिया बॉक्स जहाँ आप बिना किसी अलग ऐप (TuneIn, RadioDroid, VLC network streams) के इंटरनेट रेडियो चाहते हैं.
+- Android कार स्टीरियो, ऑडियो प्लेयर और मीडिया बॉक्स जहाँ आप बिना किसी अलग ऐप के इंटरनेट रेडियो चाहते हैं.
 - IPTV-lite उपयोग: HLS/DASH VOD स्ट्रीम फुलस्क्रीन प्लेयर में चलती हैं.
 
 **यह न करें**
@@ -551,13 +553,13 @@ permalink: /docs/HOW_TO-hi.html
 
 ## Windows Companion शेयर आयात करें {#how-to-import-a-windows-companion-share}
 
-**यह क्या है:** कम्पेनियन [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) (पहले FastMediaSorter LITE) की एक सुविधा है - उसी लेखक का मुफ़्त Windows मीडिया सॉर्टर. यह चुने गए PC फ़ोल्डर को SFTP पर शेयर करता है और एक तैयार कनेक्शन एक्सपोर्ट करता है - फोन पर कोई मैन्युअल सर्वर सेटअप नहीं, कोई host/port/key टाइप करने की ज़रूरत नहीं. आप इसे PC स्क्रीन पर **QR कोड स्कैन करके**, या **`.fmscfg` फ़ाइल आयात करके** फोन पर लाते हैं.
+**यह क्या है:** कम्पेनियन [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) की एक सुविधा है - उसी लेखक का मुफ़्त Windows मीडिया सॉर्टर. यह चुने गए PC फ़ोल्डर को SFTP पर शेयर करता है और एक तैयार कनेक्शन एक्सपोर्ट करता है - फोन पर कोई मैन्युअल सर्वर सेटअप नहीं, कोई host/port/key टाइप करने की ज़रूरत नहीं. आप इसे PC स्क्रीन पर **QR कोड स्कैन करके**, या **`.fmscfg` फ़ाइल आयात करके** फोन पर लाते हैं.
 
 **उपलब्ध है:** Standard, Photos, Legacy, XR/noLegal (बारकोड स्कैन के लिए कैमरा चाहिए; फ़ाइल वाला तरीका VR सहित हर जगह काम करता है)
 
 > गाइडेड, स्क्रीनशॉट-फ्रेंडली वर्शन चाहिए? परिदृश्य गाइड देखें [कोड स्कैन करके PC फ़ोल्डर खोलें](howto/scenario-companion-share-hi.md).
 
-**Fast Media Sorter for Windows पाएँ:**
+**Fast Media Sorter & Sharing for Windows पाएँ:**
 
 - वेबसाइट: [serzhyale.github.io/FastMediaSorter_Lite](https://serzhyale.github.io/FastMediaSorter_Lite/)
 - फ़ोल्डर पब्लिश करना (गाइड): [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html)
@@ -567,7 +569,7 @@ permalink: /docs/HOW_TO-hi.html
 
 **PC पर:**
 
-1. **Fast Media Sorter for Windows** इंस्टॉल और चलाएँ, सेटिंग्स में **Share** टैब खोलें.
+1. **Share Manager - Fast Media Sorter & Sharing** इंस्टॉल और चलाएँ, सेटिंग्स में **Share** टैब खोलें.
 2. शेयर करने के लिए फ़ोल्डर चुनें - ऐप खुद SFTP सर्वर शुरू करता है, key जनरेट करता है और ऑटोस्टार्ट सेट करता है.
 3. यह स्क्रीन पर एक **QR कोड** दिखाता है. यदि आप फ़ाइल पसंद करें तो यह **Save .fmscfg** भी कर सकता है.
 
@@ -1036,7 +1038,7 @@ FileDO कंटेनर `.fd-sec` एक्सटेंशन वाली ए
 
 **इनके लिए उपलब्ध:** SMB, SFTP, FTP फ़ाइलें
 
-**उपयोग का मामला:** आप अपने नेटवर्क ड्राइव से कोई दस्तावेज़, फ़ोटो या वीडियो किसी विशेष बाहरी ऐप (जैसे MS Office, Adobe Acrobat, VLC Player) में खोलना चाहते हैं.
+**उपयोग का मामला:** आप अपने नेटवर्क ड्राइव से कोई दस्तावेज़, फ़ोटो या वीडियो किसी विशेष बाहरी ऐप (जैसे कोई ऑफ़िस सुइट, PDF रीडर या वीडियो प्लेयर) में खोलना चाहते हैं.
 
 **चरण:**
 
@@ -1071,8 +1073,8 @@ FileDO कंटेनर `.fd-sec` एक्सटेंशन वाली ए
 **उपयोग के उदाहरण:**
 
 - MS Word में नेटवर्क दस्तावेज़ संपादित करें
-- VLC Player में नेटवर्क वीडियो चलाएँ
-- Adobe Acrobat में नेटवर्क PDF देखें
+- किसी अलग वीडियो प्लेयर में नेटवर्क वीडियो चलाएँ
+- किसी अलग PDF रीडर में नेटवर्क PDF देखें
 - मैसेजिंग ऐप्स के ज़रिए नेटवर्क फ़ोटो शेयर करें
 
 ---

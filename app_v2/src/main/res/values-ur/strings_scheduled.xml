@@ -97,4 +97,5 @@
     <string name="scheduled_op_last_success">آخری کامیابی: %1$s</string>
     <string name="scheduled_op_last_success_never">ابھی تک کوئی کامیاب رن نہیں</string>
     <string name="scheduled_op_filter_conditions">+ شرائط</string>
+    <string name="scheduled_ops_op_archive">آرکائیو</string>
 </resources>

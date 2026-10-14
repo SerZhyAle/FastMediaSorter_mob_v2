@@ -2,9 +2,45 @@ package com.sza.fastmediasorter.core.security
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Before
 import org.junit.Test
 
 class SecretMaskerTest {
+
+    // A value another test class registered would otherwise redact text these vectors expect to survive.
+    @Before
+    fun clearRegisteredValues() {
+        PrivateDiagnosticValues.clear()
+    }
+
+    // DIAGNOSTIC-REPORT 0.13, section 10: the exchange account values by key name.
+    @Test
+    fun `section 10 - pairing code, login and fingerprints are redacted by key`() {
+        assertEquals(
+            """{"login":"[REDACTED]","pairingCode":"[REDACTED]","deviceToken":"[REDACTED]"}""",
+            SecretMasker.sanitize("""{"login":"alice","pairingCode":"7KQ2M9XA","deviceToken":"t0k3n"}"""),
+        )
+        assertEquals(
+            "certFingerprint=[REDACTED] oldFingerprint=[REDACTED] pinnedCertificate=[REDACTED]",
+            SecretMasker.sanitize("certFingerprint=ab12 oldFingerprint=cd34 pinnedCertificate=ef56"),
+        )
+    }
+
+    // DIAGNOSTIC-REPORT 0.13, section 10: a pin in the family's text form is redacted under no key at all.
+    @Test
+    fun `section 10 - a bare SHA256 fingerprint is redacted by shape`() {
+        val pin = "SHA256:" + "A".repeat(FINGERPRINT_BASE64_LENGTH)
+        assertEquals(
+            "pinned SHA256:[REDACTED], presented SHA256:[REDACTED]",
+            SecretMasker.sanitize("pinned $pin, presented $pin"),
+        )
+    }
+
+    @Test
+    fun `section 10 - a login-like word that is not the login key survives`() {
+        val text = "loginScreen=shown relogin=false"
+        assertEquals(text, SecretMasker.sanitize(text))
+    }
 
     @Test
     fun `sanitize masks the bearer token and keeps the scheme`() {
@@ -142,5 +178,9 @@ class SecretMaskerTest {
     fun `empty inputs report empty`() {
         assertEquals("(empty)", SecretMasker.maskPath(""))
         assertEquals("(empty)", SecretMasker.maskFull(null))
+    }
+
+    private companion object {
+        const val FINGERPRINT_BASE64_LENGTH = 43
     }
 }

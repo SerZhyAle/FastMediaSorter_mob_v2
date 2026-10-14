@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.05.20 23:08</sub>
+
 # Sample TECH_REQUIREMENTS
 
 | Item | Version |

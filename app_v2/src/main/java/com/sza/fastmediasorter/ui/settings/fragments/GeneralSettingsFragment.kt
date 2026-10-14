@@ -33,10 +33,12 @@ import com.sza.fastmediasorter.domain.usecase.CredentialAuditor
 import com.sza.fastmediasorter.domain.usecase.DeleteUnusedCredentialsUseCase
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
+import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeProducerUseCase
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageSftpServerUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
+import com.sza.fastmediasorter.ui.exchange.MyDevicesActivity
 import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
 import com.sza.fastmediasorter.ui.settings.DataTransferDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
@@ -129,6 +131,8 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     // S3041: embedded SFTP server card.
     @Inject lateinit var manageSftpServerUseCase: ManageSftpServerUseCase
 
+    @Inject lateinit var manageExchangeProducerUseCase: ManageExchangeProducerUseCase
+
     @Inject lateinit var mediaCapabilities: MediaCapabilities
 
     // Shared flag passed as lambdas to helpers that need to suppress listeners during programmatic updates
@@ -208,6 +212,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             fragment = this,
             binding = binding,
             manageSftpServer = manageSftpServerUseCase,
+            manageExchangeProducer = manageExchangeProducerUseCase,
             capabilityAvailability = capabilityAvailability,
             mediaCapabilities = mediaCapabilities,
             launchRootPicker = sftpServerRootPickerLauncher::launch,
@@ -487,6 +492,10 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         binding.rowSavedAuthorizations.setOnRowClickListener {
             AuthSessionsActivity.start(requireContext())
         }
+        // S4116: the exchange account is shared by resources, broadcasts, the watch and cast, so it has its
+        // own screen; a consumer needs only network sources, never the embedded server.
+        binding.rowMyDevices.isVisible = mediaCapabilities.supportsLocalNetworkSources
+        binding.rowMyDevices.setOnRowClickListener { MyDevicesActivity.start(requireContext()) }
     }
 
     // S1052: menu-screenshot test is a debug-only tool relocated here from the destinations tab. The

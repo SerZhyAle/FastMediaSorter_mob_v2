@@ -18,12 +18,15 @@ import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.usecase.intake.DispatchIntakeTextUseCase
 import com.sza.fastmediasorter.ui.addresource.helpers.AddResourceSftpQrCoordinator
 import com.sza.fastmediasorter.ui.addresource.helpers.CreatedResourcePinManager
 import com.sza.fastmediasorter.ui.addresource.helpers.CreatedResourcePlacementManager
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.exchange.ExchangeDirectoryViewModel
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeDirectoryDialogManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -41,6 +44,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private var showsCredentialBranch = false
 
     private val viewModel: AddResourceViewModel by viewModels()
+    private val directoryViewModel: ExchangeDirectoryViewModel by viewModels()
+    private lateinit var directoryDialog: ExchangeDirectoryDialogManager
 
     private var copyResourceId: Long? = null
     private var pinShortcutOnCreate: Boolean = false
@@ -115,7 +120,9 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         uri?.let { viewModel.importCompanionConfig(it) }
     }
 
-    private val sftpQrCoordinator by lazy { AddResourceSftpQrCoordinator(this) }
+    private val sftpQrCoordinator by lazy {
+        AddResourceSftpQrCoordinator(this, DispatchIntakeTextUseCase(), viewModel::setSftpPairingTunnel)
+    }
 
     // S0988: camera QR scan returns the raw companion payload; the parser/import path is shared.
     private val companionQrScanLauncher = registerForActivityResult(
@@ -216,6 +223,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             binding.cardCloudStorage,
             binding.cardStream,
             binding.cardPairedWatch,
+            binding.cardMyDevices,
         ).firstOrNull(isShown) ?: binding.btnAddToResources
     }
 
@@ -230,6 +238,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         scanManager = AddResourceScanManager(this, viewModel, folderPickerLauncher, mediaCapabilities)
         helper = AddResourceHelper(this)
         watchPromptManager = AddResourceWatchPromptManager(this, viewModel)
+        directoryDialog = ExchangeDirectoryDialogManager(this, directoryViewModel)
 
         binding.toolbar.setUpNavigation(this)
 
@@ -272,6 +281,10 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         binding.cardPairedWatch.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("PairedWatchCard", "AddResource")
             watchPromptManager.promptForName()
+        }
+        binding.cardMyDevices.setOnClickListener {
+            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("MyDevicesCard", "AddResource")
+            directoryDialog.show()
         }
 
         // S0991: import entry points next to the resource-type cards, sharing the same action source.

@@ -4,6 +4,8 @@ title: "FastMediaSorter VR Edition"
 permalink: /docs/VR_EDITION.html
 ---
 
+<sub class="doc-stamp">26.09.10 21:53</sub>
+
 # FastMediaSorter VR Edition
 
 ## What is the VR Edition?

@@ -4,6 +4,9 @@ import com.sza.fastmediasorter.wear.domain.model.LiveAudioEndpoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.IOException
@@ -117,6 +120,15 @@ class LiveAudioLanServer @Inject constructor() {
     val listenerCount: Int
         get() = synchronized(lock) { clients.size }
 
+    private val mutableHumanListeners = MutableStateFlow(0)
+
+    /**
+     * The admitted listeners that are people on the LAN. A connection from the watch's own address is its relay
+     * upload: it holds a slot like any listener (contract DEVICE-EXCHANGE 7.6) but must not lower the cap the
+     * exchange server is given, which counts relay listeners only (amendment M).
+     */
+    val humanListeners: StateFlow<Int> = mutableHumanListeners.asStateFlow()
+
     /**
      * Binds on a platform-chosen port and starts accepting. The returned endpoint is what travels
      * into the published descriptor, which is why nothing here discovers anything.
@@ -165,7 +177,12 @@ class LiveAudioLanServer @Inject constructor() {
     fun stop() {
         acceptJob?.cancel()
         acceptJob = null
-        val open = synchronized(lock) { clients.toList().also { clients.clear() } }
+        val open = synchronized(lock) {
+            clients.toList().also {
+                clients.clear()
+                publishHumanListeners()
+            }
+        }
         open.forEach { closeQuietly(it) }
         val socket = serverSocket
         serverSocket = null
@@ -229,12 +246,21 @@ class LiveAudioLanServer @Inject constructor() {
             false
         } else {
             clients.add(socket)
+            publishHumanListeners()
             true
         }
     }
 
     private fun release(socket: Socket) {
-        synchronized(lock) { clients.remove(socket) }
+        synchronized(lock) {
+            clients.remove(socket)
+            publishHumanListeners()
+        }
+    }
+
+    // Called under [lock], so the published count never runs ahead of or behind the admitted set.
+    private fun publishHumanListeners() {
+        mutableHumanListeners.value = clients.count { it.inetAddress != it.localAddress }
     }
 
     private fun refuse(socket: Socket) {

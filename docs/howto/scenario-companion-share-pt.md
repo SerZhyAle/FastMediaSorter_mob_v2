@@ -3,6 +3,8 @@ layout: default
 title: "Abra as Pastas do Seu PC Escaneando um Único Código - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-pt.html
 ---
+<sub class="doc-stamp">26.09.25 02:16</sub>
+
 <div lang="pt" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Abra as Pastas do Seu PC Escaneando um Único Código
@@ -19,7 +21,7 @@ Você executa um pequeno programa auxiliar no seu PC Windows, escolhe as pastas 
 
 ## O Programa Auxiliar
 
-O "companion" é um recurso integrado do **[Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** (antigo FastMediaSorter LITE) - o organizador de mídia gratuito para Windows do mesmo autor. Ao compartilhar pastas com ele, o programa:
+O "companion" é um recurso integrado do **[Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** - o organizador de mídia gratuito para Windows do mesmo autor. Ao compartilhar pastas com ele, o programa:
 
 - Inicia um servidor SFTP privado apenas para essas pastas no seu PC.
 - Gera suas próprias chaves e configura a inicialização automática, para que o compartilhamento esteja lá na próxima vez também.
@@ -37,7 +39,7 @@ O "companion" é um recurso integrado do **[Fast Media Sorter for Windows](https
 
 ## O Que Você Vai Precisar
 
-- Um PC com Windows com o **Fast Media Sorter for Windows** instalado
+- Um PC com Windows com o **Fast Media Sorter & Sharing for Windows** instalado
 - Seu celular e PC na **mesma rede Wi-Fi** (mesmo roteador)
 - Para o caminho mais rápido: uma **câmera** no celular para escanear o código (um caminho por arquivo está disponível se não houver câmera)
 
@@ -45,7 +47,7 @@ O "companion" é um recurso integrado do **[Fast Media Sorter for Windows](https
 
 ## Passo 1 - Compartilhe as Pastas no PC
 
-1. Instale e execute o **Fast Media Sorter for Windows**, depois abra a aba **Compartilhar** nas configurações.
+1. Instale e execute o **Share Manager - Fast Media Sorter & Sharing**, depois abra a aba **Compartilhar** nas configurações.
 2. Escolha a(s) pasta(s) que você quer no celular - Filmes, Músicas, Documentos, Fotos, qualquer coisa.
 3. O app inicia o servidor SFTP, gera as chaves e configura a inicialização automática sozinho. Nada mais a configurar.
 4. Agora ele mostra um **código QR** na tela do PC. Deixe essa janela aberta para o Passo 2.

@@ -11,7 +11,9 @@ import android.os.Build
  *
  * User preferences always override this detector; it only decides the first-run default.
  *
- * Tightened heuristic: only true desktop / XR / VR form factors get the default ON.
+ * Tightened heuristic: only true desktop / XR / VR form factors get the default ON. Desktop
+ * means a Chromebook (ARC++) or a Googlebook (PC form factor, `android.hardware.type.pc`),
+ * both resolved by [DesktopPlatformProbe].
  * Samsung DeX and the generic `FEATURE_FREEFORM_WINDOW_MANAGEMENT` flag are intentionally
  * NOT consulted - on a regular Samsung phone DeX is declared by the platform but the user
  * is typically not in a multi-window context, so the "Open in new window" action would
@@ -40,7 +42,7 @@ object MultiWindowCapabilityDetector {
      *
      * Returns true when EITHER:
      *  - the device permanently exposes a multi-window UX (Quest 3, Android XR, ChromeOS,
-     *    Meta/Oculus manufacturer) - the install-time signal set, OR
+     *    Googlebook / PC form factor, Meta/Oculus manufacturer) - the install-time signal set, OR
      *  - the Activity is currently in a desktop / DeX-mode UI container
      *    (`Configuration.UI_MODE_TYPE_DESK`).
      *
@@ -57,7 +59,7 @@ object MultiWindowCapabilityDetector {
 
     private fun hasInstallTimeMultiWindowSignal(context: Context): Boolean {
         val packageManager = context.packageManager
-        return ChromeOsCompat.isChromeOs(context) ||
+        return DesktopPlatformProbe.isDesktopPlatform(context) ||
             hasFeature(packageManager, FEATURE_ANDROID_XR_IMMERSIVE) ||
             hasFeature(packageManager, FEATURE_ANDROID_XR_OPENXR) ||
             hasFeature(packageManager, FEATURE_VR_HEADTRACKING) ||

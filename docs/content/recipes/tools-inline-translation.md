@@ -2,15 +2,15 @@
 page_id: tools.inline-translation
 title: Translating Extracted Text
 nav_title: Translating text on screen
-description: How to translate a picture, a PDF page, an EPUB chapter or recognized text fully offline, choose the source and target language, switch between a translation card and a Google Lens-style overlay painted over the original words, adjust the font, and what happens on a device translation is not licensed for.
+description: How to translate a picture, a PDF page, an EPUB chapter or recognized text fully offline, choose the source and target language, switch between a translation card and an overlay painted over the original words, adjust the font, and what happens on a device translation is not licensed for.
 category: OCR, Drawing & Sharing
 category_slug: tools
 ticket: S2957
-flavor: Standard, noLegal, Legacy and VR
+availability: ENABLE_TRANSLATION
 recipe_number: "02"
 canonical_url: documentation/tools/inline-translation.html
 why: |
-  Once words are on the screen - recognized from a photo, printed on a PDF page, or sitting in an EPUB chapter - FastMediaSorter can turn them into your own language right there, using Google's on-device [ML Kit](term:ocr) translation. No internet is needed once the language models are on the phone, and nothing you translate is sent anywhere except to render the model download itself.
+  Once words are on the screen - recognized from a photo, printed on a PDF page, or sitting in an EPUB chapter - FastMediaSorter can turn them into your own language right there, using Google's on-device [ML Kit](term:ocr) translation. The internet is needed only to download each language model once from Google; the text you translate is translated on the phone and is never sent anywhere.
 
   Two different starting points feed the same translator: a picture goes through [OCR](term:ocr) first so there is text to translate, while a PDF page, an EPUB chapter or a text file is already text and skips straight to translation.
 ingredients:
@@ -26,16 +26,16 @@ steps:
     text: |
       Open the three-dots menu and tap **Translate** (in landscape the button may sit right on the command panel bar). After "Translation started.." the recognized lines come back translated, in one of two looks depending on the **Translation result in blocks** setting:
 
-      - **Off (default)** - the translation appears in a card of its own, below or over the picture, kept separate from the original.
-      - **On** - each translated line is painted directly over the original words on an opaque plate, Google Lens style, so the picture reads in your language in place. A line whose words sit far apart - text on both sides of a photo, separate speech bubbles - is split and translated as separate pieces instead of one strip across the picture. A plate that reaches the bottom of the screen grows upward instead of being cut off, and a translation taller than the whole screen shrinks its type first, so it is always fully drawn.
+      - **Off** - the translation appears in a card of its own, below or over the picture, kept separate from the original.
+      - **On** - each translated line is painted directly over the original words on an opaque plate, so the picture reads in your language in place. A line whose words sit far apart - text on both sides of a photo, separate speech bubbles - is split and translated as separate pieces instead of one strip across the picture. A plate that reaches the bottom of the screen grows upward instead of being cut off, and a translation taller than the whole screen shrinks its type first, so it is always fully drawn.
     image_bookmark:
       shot_id: tools.image-translation-overlay
       device_profile: phone
       screen_state: image-translate-lens-overlay
       alt: Translated text painted directly over the original words on a photographed sign, each line on its own solid plate
-      caption: "Translated text in place of the original, Lens style."
-      title: "Screenshot: Lens-style image translation"
-      desc: A photographed shop sign with the Lens-style translation overlay on, each recognized line replaced by an opaque plate with the translated words.
+      caption: "Translated text painted in place of the original, line by line."
+      title: "Screenshot: translation painted over a picture"
+      desc: A photographed shop sign with the translation overlay on, each recognized line replaced by an opaque plate with the translated words.
     callout:
       type: warning
       title: No overlay on a guessed language
@@ -45,6 +45,14 @@ steps:
     title: Translate a PDF page or an EPUB chapter
     text: |
       A PDF page - including a scanned one with no text layer, read through the same offline OCR pass - and an EPUB chapter both translate the same way: open the three-dots menu and tap **Translate**. A PDF page follows the card-or-overlay look from the step above; an EPUB chapter always opens in a resizable panel over the text, with its own font size separate from the book's. See [reading PDF documents](page:documents.pdf-epub-viewing) and [reading EPUB books](page:documents.office-docs-support) for turning pages and finding the button.
+    image_bookmark:
+      shot_id: tools.epub-chapter-translation
+      device_profile: phone
+      screen_state: epub-chapter-translation-panel
+      alt: An EPUB chapter with its translation open in a resizable panel over the text
+      caption: "An EPUB chapter is translated in a panel over the text."
+      title: "Screenshot: EPUB chapter translation"
+      desc: EPUB book open, Translate tapped in the three-dots menu, target language set.
   - number: 3
     id: text-settings
     title: Open Text Settings and choose your languages
@@ -67,6 +75,14 @@ steps:
       The first time you pick a new target language, FastMediaSorter downloads its translation model in the background as soon as you choose it, not while you are waiting for a result - you may briefly see "Downloading translation model.." and then "Translation model ready.". A failed download shows "Couldn't download the translation model. Try again." with a **Retry** button.
 
       A page or a picture you translate once stays translated in memory for the rest of the session: reopen the same page and the translation is already there, with no repeat recognition and no repeat download.
+    image_bookmark:
+      shot_id: tools.translation-model-downloading
+      device_profile: phone
+      screen_state: translation-model-downloading-message
+      alt: The message Downloading translation model.. shown right after a new target language was picked
+      caption: "A new language's model downloads as soon as you pick it."
+      title: "Screenshot: Model download"
+      desc: Translation settings, a new target language just picked, its model downloading.
   - number: 5
     id: device-support
     title: Where translation is not offered
@@ -74,6 +90,14 @@ steps:
       On-device translation is licensed for phones, tablets, laptops, desktops and Chromebooks. On a TV, a car head unit or an XR headset, the **Translate** button stays visible but disabled, with "Translation is not licensed for this type of device" as the explanation, and the translator [widget](term:widget) and launcher gadget are not offered on those devices at all.
 
       A translated result carries a small, screen-reader-readable Google credit, since the translation itself comes from Google's on-device model.
+    image_bookmark:
+      shot_id: tools.translate-not-licensed-tv
+      device_profile: tv
+      screen_state: tv-translate-button-disabled
+      alt: The Translate button shown disabled on a TV, with the explanation that translation is not licensed for this type of device
+      caption: "On a TV the Translate button stays visible but disabled."
+      title: "Screenshot: Translation on a TV"
+      desc: TV emulator, a picture open, the disabled Translate button focused.
 outcome: |
   Recognized text, a PDF page, an EPUB chapter or a text file reads in your language without the internet - as a card of its own or painted right over the original words, in the font and size you like. Switching languages downloads what it needs quietly in the background, and translating the same page twice costs nothing the second time.
 tips:
@@ -99,4 +123,6 @@ next_recipes:
     description: Install the Translation Module and OCR language models, or remove them again.
 ---
 
-Recognized text, a PDF page, an EPUB chapter or a text file reads in your language with one tap, entirely on the phone - as a card of its own, or painted right over the original words like Google Lens.
+<sub class="doc-stamp">26.10.09 14:52</sub>
+
+Recognized text, a PDF page, an EPUB chapter or a text file reads in your language with one tap, entirely on the phone - as a card of its own, or painted right over the original words.

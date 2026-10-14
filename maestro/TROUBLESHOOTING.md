@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.08.16 10:20</sub>
+
 # Maestro Testing - Troubleshooting Guide
 
 This guide helps you resolve common issues when running Maestro tests for FastMediaSorter v2.

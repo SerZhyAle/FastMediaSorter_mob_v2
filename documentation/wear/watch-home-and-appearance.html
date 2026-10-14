@@ -85,7 +85,7 @@ layout: null
           "@type": "HowToStep",
           "position": 4,
           "name": "Getting around: back, close and screen off",
-          "text": "Every screen that is not the home screen itself carries a back arrow at the left edge, level with the middle of the display - a visible affordance alongside the system\u0027s own back swipe, so you are never guessing whether a screen has one. The home screen shows a close cross or a minimize-style double chevron in that same spot instead, depending on whether something is currently playing. The home screen\u0027s own bottom row carries two more commands: Settings, and beside it Close app, which ends the watch app outright rather than leaving it running in the background - the next launch starts fresh at the home screen. From nearly any screen, a moon-shaped Screen off button sits opposite the back arrow, at the right edge. Tap it and the display goes dark without stopping whatever it was doing; a single tap on the dark screen only sends a thin ring spreading out from where you touched and fading away, so brushing the watch face by accident does not wake it. To bring the screen back: double tap, press and hold, or use the watch\u0027s own button.",
+          "text": "Every screen that is not the home screen itself carries a back arrow at the left edge, level with the middle of the display - a visible affordance alongside the system\u0027s own back swipe, so you are never guessing whether a screen has one. The home screen shows a close cross or a minimize-style double chevron in that same spot instead, depending on whether something is currently playing. The home screen\u0027s own bottom row carries two more commands: Settings, and beside it Close app, which ends the watch app outright rather than leaving it running in the background - the next launch starts fresh at the home screen. From nearly any screen, a moon-shaped Screen off button sits opposite the back arrow, at the right edge. Tap it and the display goes dark without stopping whatever it was doing; a single tap on the dark screen does not wake it - it sends a thin ring spreading out from where you touched and shows the current time and date above that spot for one second, so you can check the time and leave the watch dark. During that answer the screen is at full brightness; while dark it sits at the lowest, and it returns to its earlier brightness once you bring the screen back. To bring the screen back: double tap, press and hold, or use the watch\u0027s own button.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/watch-home-and-appearance.html#getting-around"
         },
         {
@@ -113,7 +113,7 @@ layout: null
           "@type": "HowToStep",
           "position": 8,
           "name": "Settings, laid out to fit your wrist",
-          "text": "Open Settings and every screen in it lays its controls out in rows of two or three wherever the display is wide enough - the same rule the file lists use for grid columns - so a short label sits two or three to a row while a longer one keeps the whole width to itself; nothing ever shrinks past a comfortable tap size. Every switch across these screens shares one look, and every icon target in the settings grid sits on a plain, see-through background rather than a filled button - a lighter, more watch-like plate than an ordinary settings list. Text across the watch app, settings included, is drawn from one consistent scale, so a setting label and, say, a reading on the athlete card come out at matching sizes. Every set of buttons on the watch follows the same rule too: a menu or an action row - from a permission page\u0027s Allow and Skip to a settings action - centers itself and sizes to its content, each entry with its own icon, instead of stretching to fill the screen. On the phone side, everything about the watch - the button that opens Wear Companion, its panel tile, its launcher shortcut - lives behind one master switch in a single collapsible Wear OS group on the Management tab; turn it off, and the whole companion disappears from the phone at once.",
+          "text": "Open Settings and every screen in it lays its controls out in rows of two or three wherever the display is wide enough - the same rule the file lists use for grid columns - so a short label sits two or three to a row while a longer one keeps the whole width to itself; nothing ever shrinks past a comfortable tap size. Every switch across these screens shares one look, and every icon target in the settings grid sits on a plain, see-through background rather than a filled button - a lighter, more watch-like plate than an ordinary settings list. Text across the watch app, settings included, is drawn from one consistent scale, so a setting label and, say, a reading on the athlete card come out at matching sizes. Every set of buttons on the watch follows the same rule too: a menu or an action row - from a permission page\u0027s Allow and Skip to a settings action - centers itself and sizes to its content, each entry with its own icon, instead of stretching to fill the screen. On a watch with a rotation sensor, Settings \u003e Other carries an Auto rotation switch of the watch app\u0027s own. Turn it off and the screen stops turning with your wrist, without touching any system setting of the watch. On the phone side, everything about the watch - the button that opens Wear Companion, its panel tile, its launcher shortcut - lives behind one master switch in a single collapsible Wear OS group on the Management tab; turn it off, and the whole companion disappears from the phone at once.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/watch-home-and-appearance.html#settings-layout"
         },
         {
@@ -183,19 +183,21 @@ layout: null
 </head>
 
 <body class="doc-body">
+<div class="doc-stamp">26.10.10 14:39</div>
+    <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Search...</span>
                 <kbd>/</kbd>
             </button>
@@ -217,8 +219,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
             </nav>
         </div>
     </header>
@@ -366,7 +368,7 @@ layout: null
                     <ul class="doc-sidebar-list">
                         <li><a href="../network/smb-samba-shares.html" class="doc-sidebar-link">Connecting SMB shares</a></li>
                         <li><a href="../network/sftp-ftp-servers.html" class="doc-sidebar-link">Connecting SFTP and FTP</a></li>
-                        <li><a href="../network/windows-companion.html" class="doc-sidebar-link">Fast Media Sorter for Windows</a></li>
+                        <li><a href="../network/windows-companion.html" class="doc-sidebar-link">Fast Media Sorter & Sharing</a></li>
                         <li><a href="../network/phone-as-sftp-server.html" class="doc-sidebar-link">Sharing folders from this phone</a></li>
                         <li><a href="../network/cloud-google-drive.html" class="doc-sidebar-link">Google Drive integration</a></li>
                         <li><a href="../network/cloud-dropbox-onedrive.html" class="doc-sidebar-link">Dropbox and OneDrive</a></li>
@@ -459,11 +461,13 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Wear OS Watch</span>
-                    <span class="doc-badge doc-badge-standard">Home screen, navigation and most of Settings - both watch versions; the Permissions screen, color scheme and background synced from the phone - shown only where the build declares the matching access; the Original layout switch - the full watch version (sideload only)</span>
+                    <span class="doc-edition-badge">FastMedia Wear</span>
+                    <span class="doc-device-badge doc-device-badge--wear"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g transform="translate(12 12) scale(0.917 0.917) translate(-12 -12)"><path d="M20,12c0,-2.54 -1.19,-4.81 -3.04,-6.27L16,0L8,0l-0.96,5.73C5.19,7.19 4,9.46 4,12s1.19,4.81 3.04,6.27L8,24h8l0.96,-5.73C18.81,16.81 20,14.54 20,12zM6,12c0,-3.31 2.69,-6 6,-6s6,2.69 6,6 -2.69,6 -6,6 -6,-2.69 -6,-6z"/><path d="M12.5,12L12.5,8.5L11.5,8.5L11.5,12.5L15,12.5L15,11.5z"/></g></svg>Watch</span>
                     <span class="doc-badge doc-badge-sm">Recipe #06</span>
                 </div>
+                <p class="doc-availability-note">Home screen, navigation and most of Settings - both watch versions; the Permissions screen, color scheme and background synced from the phone - shown only where the build declares the matching access; the Original layout switch - the full watch version (sideload only)</p>
 
                 <h1>Finding Your Way Around the Watch App - Home Screen, Look and Settings</h1>
 
@@ -478,13 +482,13 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Before You Begin: Ingredients &amp; Prerequisites</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> The <span class="doc-link-term" data-term="watch-app">watch app</span> installed and paired with your phone - see <a href="installation-and-pairing.html" class="doc-link">installing and pairing the watch</a>.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> For the Resources, Phone, Local and Streams sections, and for the Permissions entry in Settings: the full version of the watch app. *Sideload version only* - see the <span class="doc-link-term" data-term="nolegal-edition">noLegal edition</span>.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> A file, resource or channel marked as a <span class="doc-link-term" data-term="favorites">favorite</span> on the watch, to see the Favorites section filled in.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> The <span class="doc-link-term" data-term="watch-app">watch app</span> installed and paired with your phone - see <a href="installation-and-pairing.html" class="doc-link">installing and pairing the watch</a>.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> For the Resources, Phone, Local and Streams sections, and for the Permissions entry in Settings: the full version of the watch app. *Sideload version only* - see the <span class="doc-link-term" data-term="nolegal-edition">noLegal edition</span>.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> A file, resource or channel marked as a <span class="doc-link-term" data-term="favorites">favorite</span> on the watch, to see the Favorites section filled in.</li>
                     </ul>
                 </div>
 
@@ -582,7 +586,7 @@ layout: null
                     <div class="doc-step-body">
                         <p>Every screen that is not the home screen itself carries a back arrow at the left edge, level with the middle of the display - a visible affordance alongside the system's own back swipe, so you are never guessing whether a screen has one. The home screen shows a close cross or a minimize-style double chevron in that same spot instead, depending on whether something is currently playing.</p>
                         <p>The home screen's own bottom row carries two more commands: <strong>Settings</strong>, and beside it <strong>Close app</strong>, which ends the watch app outright rather than leaving it running in the background - the next launch starts fresh at the home screen.</p>
-                        <p>From nearly any screen, a moon-shaped <strong>Screen off</strong> button sits opposite the back arrow, at the right edge. Tap it and the display goes dark without stopping whatever it was doing; a single tap on the dark screen only sends a thin ring spreading out from where you touched and fading away, so brushing the watch face by accident does not wake it. To bring the screen back: double tap, press and hold, or use the watch's own button.</p>
+                        <p>From nearly any screen, a moon-shaped <strong>Screen off</strong> button sits opposite the back arrow, at the right edge. Tap it and the display goes dark without stopping whatever it was doing; a single tap on the dark screen does not wake it - it sends a thin ring spreading out from where you touched and shows the current time and date above that spot for one second, so you can check the time and leave the watch dark. During that answer the screen is at full brightness; while dark it sits at the lowest, and it returns to its earlier brightness once you bring the screen back. To bring the screen back: double tap, press and hold, or use the watch's own button.</p>
                         <div class="doc-img-bookmark"
                              data-shot-id="wear.home-navigation-controls"
                              data-device-profile="watch"
@@ -698,23 +702,12 @@ layout: null
                     <div class="doc-step-body">
                         <p>Open <strong>Settings</strong> and every screen in it lays its controls out in rows of two or three wherever the display is wide enough - the same rule the file lists use for grid columns - so a short label sits two or three to a row while a longer one keeps the whole width to itself; nothing ever shrinks past a comfortable tap size. Every switch across these screens shares one look, and every icon target in the settings grid sits on a plain, see-through background rather than a filled button - a lighter, more watch-like plate than an ordinary settings list. Text across the watch app, settings included, is drawn from one consistent scale, so a setting label and, say, a reading on the athlete card come out at matching sizes.</p>
                         <p>Every set of buttons on the watch follows the same rule too: a menu or an action row - from a permission page's Allow and Skip to a settings action - centers itself and sizes to its content, each entry with its own icon, instead of stretching to fill the screen.</p>
+                        <p>On a watch with a rotation sensor, <strong>Settings</strong> > <strong>Other</strong> carries an <strong>Auto rotation</strong> switch of the watch app's own. Turn it off and the screen stops turning with your wrist, without touching any system setting of the watch.</p>
                         <p>On the phone side, everything about the watch - the button that opens Wear Companion, its panel tile, its launcher shortcut - lives behind one master switch in a single collapsible <strong>Wear OS</strong> group on the Management tab; turn it off, and the whole companion disappears from the phone at once.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="wear.settings-icon-grid"
-                             data-device-profile="watch"
-                             data-screen-state="wear-settings-root-icon-grid"
-                             data-alt="The watch app Settings root screen showing transparent icon targets laid out in a two-column grid"
-                             data-caption="Settings, sized to the wrist.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Watch Settings</strong>
-                                <p class="doc-img-bookmark-desc">Round watch, Settings root, transparent icon grid, two columns.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>watch</code></span>
-                                    <span>ID: <code>wear.settings-icon-grid</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="wear.settings-icon-grid">
+                            <img src="../assets/images/wear/settings-icon-grid.png" alt="The watch app Settings root screen showing transparent icon targets laid out in a two-column grid" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Settings, sized to the wrist.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -837,17 +830,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="watch-players-and-viewers.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Watch</span>
-                            <h4>Watching and listening on the watch</h4>
+                            <h3>Watching and listening on the watch</h3>
                             <p>What opens when you tap a shortcut from the home screen.</p>
                         </a>
                         <a href="tiles-and-complications.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Watch</span>
-                            <h4>One swipe from the watch face</h4>
+                            <h3>One swipe from the watch face</h3>
                             <p>Put a Resource, a station or your Favorites on the watch face itself.</p>
                         </a>
                         <a href="companion-data-sync.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Watch</span>
-                            <h4>Syncing the phone and the watch</h4>
+                            <h3>Syncing the phone and the watch</h3>
                             <p>Set the watch's colors, background and more from the phone.</p>
                         </a>
                     </div>

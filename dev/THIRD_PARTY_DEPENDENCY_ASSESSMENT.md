@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.13 14:51</sub>
+
 # Third-party dependency assessment - measured 2026-09-10
 
 What each third-party library in this project costs, how deeply it is used, and whether it could go.
@@ -30,7 +32,7 @@ minus test-only configurations. The bundled binary in `app_v2/libs/` is included
 coordinate and appears as `local:fms-ffmpeg-dts`.
 
 **Flavor coverage.** Read from the configuration name each declaration uses. A plain
-`implementation` reaches all eight flavors; a quoted `"<flavor>Implementation"` reaches only the
+`implementation` reaches every flavor; a quoted `"<flavor>Implementation"` reaches only the
 flavors named. `docs/FLAVOR_MATRIX.md` is the authority on what each flavor is.
 
 **Sizes.** Two numbers per coordinate:

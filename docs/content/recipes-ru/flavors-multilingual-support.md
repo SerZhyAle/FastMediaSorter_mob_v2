@@ -6,7 +6,6 @@ description: Как FastMediaSorter определяет язык при пер�
 category: Редакции, расширения и языки
 category_slug: flavors
 ticket: S2947
-flavor: Все редакции
 recipe_number: "03"
 canonical_url: documentation/flavors/multilingual-support-ru.html
 why: |
@@ -109,5 +108,7 @@ next_recipes:
     badge_type: docs
     description: Быстрый поиск любого параметра в несколько касаний или по названию.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 FastMediaSorter поддерживает 13 языков интерфейса и позволяет выбирать между метрической и американской системами мер. На этой странице описано, как приложение определяет язык при первом старте, как его изменить и как настроить единицы измерения.

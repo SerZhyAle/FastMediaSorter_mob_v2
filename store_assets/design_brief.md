@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.06 16:35</sub>
+
 # Design Brief: Google Play Store Assets - Fast Media Sorter
 
 **Version:** 2.0 (S2570 - supersedes 1.0, S0135, 2026-05-13)

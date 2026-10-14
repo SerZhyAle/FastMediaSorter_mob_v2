@@ -1,15 +1,17 @@
 ---
 layout: default
 title: "Огляд архітектури"
-permalink: /docs/V2_architecture_overview_UK.html
+permalink: /docs/V2_architecture_overview-uk.html
 lang: uk
 ---
+
+<sub class="doc-stamp">26.10.13 14:51</sub>
 
 <div lang="uk" markdown="1">
 
 # Огляд архітектури
 
-[Технічна специфікація](V2_Specification_UK.html) | [Стек, EN](TECH_STACK.html) | [Вимоги](TECHNICAL_REQUIREMENTS_UK.html)
+[Технічна специфікація](V2_Specification-uk.html) | [Стек, EN](TECH_STACK.html) | [Вимоги](TECHNICAL_REQUIREMENTS-uk.html)
 
 Застосунок використовує MVVM, Hilt, репозиторії та use case. Потік виконання близький до Clean Architecture, але залежності при компіляції навмисно прагматичні.
 
@@ -21,7 +23,7 @@ ViewModel надає спостережуваний стан і події. Use 
 
 ## Модулі
 
-- `app_v2`: основний застосунок і вісім варіантів телефона/гарнітури; XML, ViewBinding та наявні поверхні Compose.
+- `app_v2`: основний застосунок і його варіанти для телефона та гарнітури (`docs/FLAVOR_MATRIX.md`); XML, ViewBinding та наявні поверхні Compose.
 - `wear`: застосунок Wear OS на Compose, редакції `standard` і `noLegal`.
 - `watchface`: окремий ресурсний пакет Watch Face Format v4 для Wear OS 6 / API 36 і новіших.
 - `lint-rules`: перевірки Android lint під час збірки.

@@ -50,6 +50,7 @@ if (-not $OutputPath) {
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'DocumentationShell.ps1')
+. (Join-Path $PSScriptRoot 'lib/portal-glyphs.ps1')
 $repoRoot = Resolve-Path "$PSScriptRoot/../.."
 $termbaseFile = Join-Path $repoRoot $TermbasePath
 $manifestFile = Join-Path $repoRoot $ManifestPath
@@ -71,7 +72,8 @@ $manifestPages = @{}
 Get-Content $manifestFile -Encoding utf8 | ForEach-Object {
     if (-not [string]::IsNullOrWhiteSpace($_)) {
         $p = ConvertFrom-Json $_
-        if ($p.page_id) {
+        # A page withdrawn with its capability (retire-docs-page.ps1) leaves the index in the same build.
+        if ($p.page_id -and $p.is_published -ne $false) {
             $manifestPages[$p.page_id] = $p
         }
     }
@@ -98,7 +100,7 @@ if ($Lang -eq 'ru') {
                 $desc = if ($fm -match '(?m)^description:\s*(.+)$') { $Matches[1].Trim().Trim('"').Trim("'") } else { $null }
                 $cat = if ($fm -match '(?m)^category:\s*(.+)$') { $Matches[1].Trim().Trim('"').Trim("'") } else { $null }
                 $canonUrl = if ($fm -match '(?m)^canonical_url:\s*(.+)$') { $Matches[1].Trim().Trim('"').Trim("'") } else { $null }
-                
+
                 if ($pageId) {
                     $ruPagesInfo[$pageId] = @{
                         Title = $title
@@ -166,15 +168,15 @@ function Format-PlatformsBadges($platforms) {
     $badges = [System.Collections.Generic.List[string]]::new()
     foreach ($plat in $platforms) {
         switch ($plat) {
-            'phone' { 
-                $label = if ($Lang -eq 'ru') { '📱 Телефон' } else { '📱 Phone' }
-                $badges.Add("<span class=`"doc-badge doc-badge-sm`" style=`"background:rgba(63,185,80,0.15);color:var(--doc-accent,#3fb950);border:1px solid rgba(63,185,80,0.3);`">$label</span>") 
+            'phone' {
+                $label = if ($Lang -eq 'en') { 'Phone' } else { 'Телефон' }
+                $badges.Add('<span class="doc-device-badge">' + (Get-PortalGlyph 'device.phone') + $label + '</span>')
             }
-            'wear'  { $badges.Add('<span class="doc-badge doc-badge-sm" style="background:rgba(206,147,216,0.15);color:#ce93d8;border:1px solid rgba(206,147,216,0.3);">⌚ Wear OS</span>') }
-            'vr'    { $badges.Add('<span class="doc-badge doc-badge-sm" style="background:rgba(128,203,196,0.15);color:#80cbc4;border:1px solid rgba(128,203,196,0.3);">🥽 VR</span>') }
-            'tv'    { 
-                $label = if ($Lang -eq 'ru') { '📺 ТВ / D-Pad' } else { '📺 TV / D-Pad' }
-                $badges.Add("<span class=`"doc-badge doc-badge-sm`" style=`"background:rgba(88,166,255,0.15);color:#58a6ff;border:1px solid rgba(88,166,255,0.3);`">$label</span>") 
+            'wear'  { $badges.Add('<span class="doc-device-badge doc-device-badge--wear">' + (Get-PortalGlyph 'source.watch') + 'Wear OS</span>') }
+            'vr'    { $badges.Add('<span class="doc-device-badge doc-device-badge--vr">' + (Get-PortalGlyph 'device.vr-headset') + 'VR</span>') }
+            'tv'    {
+                $label = if ($Lang -eq 'en') { 'TV / D-Pad' } else { 'ТВ / D-Pad' }
+                $badges.Add('<span class="doc-device-badge doc-device-badge--tv">' + (Get-PortalGlyph 'device.tv') + $label + '</span>')
             }
             default { $badges.Add("<span class=`"doc-badge doc-badge-sm`">$(Escape-Html $plat)</span>") }
         }
@@ -196,7 +198,7 @@ function Find-TermPages($term) {
         [string]$term.canonical_en
     }
     $termCanonEn = [string]$term.canonical_en
-    
+
     # Try finding by explicit category or keyword
     foreach ($p in $sortedManifestPages) {
         $pTitle = if ($ruPagesInfo -and $ruPagesInfo.ContainsKey($p.page_id) -and $ruPagesInfo[$p.page_id].Title) { $ruPagesInfo[$p.page_id].Title } else { $p.title }
@@ -224,7 +226,7 @@ function Find-TermPages($term) {
 }
 
 # Add Termbase Entries
-foreach ($t in ($terms | Sort-Object -Property { 
+foreach ($t in ($terms | Sort-Object -Property {
     if ($Lang -eq 'uk' -and $_.locales -and $_.locales.uk) { $_.locales.uk.ToLowerInvariant() }
     elseif ($Lang -eq 'ru' -and $_.locales -and $_.locales.ru) { $_.locales.ru.ToLowerInvariant() }
     else { $_.canonical_en.ToLowerInvariant() }
@@ -266,12 +268,12 @@ foreach ($p in $sortedManifestPages) {
     $pCanon = if ($ruPagesInfo -and $ruPagesInfo.ContainsKey($p.page_id) -and $ruPagesInfo[$p.page_id].CanonicalPath) { $ruPagesInfo[$p.page_id].CanonicalPath } else { $p.canonical_path }
 
     if ([string]::IsNullOrWhiteSpace($pTitle) -or $seenTopics.Contains($pTitle)) { continue }
-    
+
     $relUrl = if ($pCanon) {
         $r = $pCanon.TrimStart('/')
         if ($r.StartsWith('documentation/')) { $r.Substring('documentation/'.Length) } else { $r }
     } else { if ($Lang -eq 'ru') { "index-ru.html" } elseif ($Lang -eq 'uk') { "index-uk.html" } else { "index.html" } }
-    
+
     $cat = switch -wildcard ($pCat) {
         "*Wear*"     { "hardware" }
         "*VR*"       { "hardware" }
@@ -286,12 +288,12 @@ foreach ($p in $sortedManifestPages) {
         "*Часы*"       { "hardware" }
         default      { "concept" }
     }
-    
+
     $plats = [System.Collections.Generic.List[string]]::new()
     if ($pCat -like "*Wear*" -or $pCat -like "*Часы*") { $plats.Add("wear") }
     elseif ($pCat -like "*VR*") { $plats.Add("vr") }
     else { $plats.Add("phone") }
-    
+
     $pageRefs = [System.Collections.Generic.List[object]]::new()
     $pageRefs.Add([pscustomobject]@{
         Title = $pTitle
@@ -433,7 +435,7 @@ layout: null
   ]
 }
     </script>
-    
+
     <link rel="icon" type="image/x-icon" href="../favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -464,129 +466,6 @@ layout: null
     <!-- Styles -->
     <link rel="stylesheet" href="../styles.css">
     <link rel="stylesheet" href="assets/docs.css">
-    <style>
-        .doc-alpha-nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 2rem;
-            position: sticky;
-            top: 70px;
-            background: var(--doc-bg, #0d1117);
-            padding: 10px 0;
-            z-index: 10;
-            border-bottom: 1px solid var(--doc-border, #30363d);
-        }
-        .doc-alpha-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            background: var(--doc-card-bg, #161b22);
-            color: var(--doc-text, #c9d1d9);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            border: 1px solid var(--doc-border, #30363d);
-            transition: all 0.15s ease;
-        }
-        .doc-alpha-btn:hover, .doc-alpha-btn.active {
-            background: var(--doc-accent, #3fb950);
-            color: #fff;
-            border-color: var(--doc-accent, #3fb950);
-        }
-        .doc-alpha-btn.disabled {
-            opacity: 0.3;
-            pointer-events: none;
-        }
-        .doc-index-filter {
-            width: 100%;
-            max-width: 480px;
-            padding: 10px 14px;
-            font-size: 1rem;
-            border-radius: 6px;
-            border: 1px solid var(--doc-border, #30363d);
-            background: var(--doc-card-bg, #161b22);
-            color: var(--doc-text, #c9d1d9);
-            margin-bottom: 1.5rem;
-        }
-        .doc-index-filter:focus {
-            outline: none;
-            border-color: var(--doc-accent, #3fb950);
-            box-shadow: 0 0 0 2px rgba(63, 185, 80, 0.2);
-        }
-        .doc-letter-section {
-            margin-bottom: 3rem;
-            scroll-margin-top: 130px;
-        }
-        .doc-letter-title {
-            font-size: 1.8rem;
-            font-weight: 800;
-            border-bottom: 2px solid var(--doc-border, #30363d);
-            padding-bottom: 0.5rem;
-            margin-bottom: 1.25rem;
-            color: var(--doc-accent, #3fb950);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .doc-index-item {
-            background: var(--doc-card-bg, #161b22);
-            border: 1px solid var(--doc-border, #30363d);
-            border-radius: 8px;
-            padding: 1rem 1.25rem;
-            margin-bottom: 0.75rem;
-            transition: border-color 0.15s ease;
-        }
-        .doc-index-item:hover {
-            border-color: rgba(63, 185, 80, 0.5);
-        }
-        .doc-index-item-head {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            margin-bottom: 0.35rem;
-        }
-        .doc-index-item-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            margin: 0;
-            color: var(--doc-text-bright, #f0f6fc);
-        }
-        .doc-index-item-desc {
-            font-size: 0.92rem;
-            color: var(--doc-text-muted, #8b949e);
-            margin: 0.25rem 0 0.5rem 0;
-            line-height: 1.5;
-        }
-        .doc-index-item-links {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-        .doc-index-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 3px 8px;
-            background: rgba(63, 185, 80, 0.1);
-            color: var(--doc-accent, #3fb950);
-            border: 1px solid rgba(63, 185, 80, 0.25);
-            border-radius: 4px;
-            font-size: 0.82rem;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.15s ease;
-        }
-        .doc-index-pill:hover {
-            background: var(--doc-accent, #3fb950);
-            color: #fff;
-        }
-    </style>
 </head>
 
 <body class="doc-body">
@@ -594,26 +473,25 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <a class="doc-header-brand" href="../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <span class="doc-badge doc-badge-standard">Subject Index</span>
+            <div class="doc-header-start">
+                <a class="doc-header-brand" href="../index.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="index$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
-            <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="$(if ($Lang -eq 'ru') { 'Поиск по документации' } elseif ($Lang -eq 'uk') { 'Пошук по документації' } else { 'Search Documentation' })">
-                <span>🔍</span>
-                <span>$(if ($Lang -eq 'ru') { 'Поиск...' } elseif ($Lang -eq 'uk') { 'Пошук...' } else { 'Search documentation...' })</span>
+                $(Get-PortalGlyph 'action.search')
+                <span>$(if ($Lang -eq 'ru') { 'Поиск...' } elseif ($Lang -eq 'uk') { 'Пошук...' } else { 'Search...' })</span>
                 <kbd>/</kbd>
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="index$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-header-link">$(if ($Lang -eq 'ru') { 'Главная' } elseif ($Lang -eq 'uk') { 'Головна' } else { 'Docs Home' })</a>
                 <a href="overview$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-header-link">$(if ($Lang -eq 'ru') { 'Обзор' } elseif ($Lang -eq 'uk') { 'Огляд' } else { 'Overview' })</a>
-                <a href="subject-index$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-header-link active">$(if ($Lang -eq 'ru') { 'Указатель' } elseif ($Lang -eq 'uk') { 'Покажчик' } else { 'Subject Index' })</a>
                 <a href="general/glossary$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-header-link">$(if ($Lang -eq 'ru') { 'Словарь' } elseif ($Lang -eq 'uk') { 'Словник' } else { 'Glossary' })</a>
-                <a href="design-system/index.html" class="doc-header-link">$(if ($Lang -eq 'ru') { 'Дизайн-система' } elseif ($Lang -eq 'uk') { 'Дизайн-система' } else { 'Design System' })</a>
-                
+                <a href="subject-index$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-header-link active">$(if ($Lang -eq 'ru') { 'Указатель' } elseif ($Lang -eq 'uk') { 'Покажчик' } else { 'Index' })</a>
+                <a href="design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
+
                 <!-- 13-Language Selector -->
                 <div class="doc-lang-picker">
                     <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">$(if ($Lang -eq 'ru') { 'Язык' } elseif ($Lang -eq 'uk') { 'Мова' } else { 'Language' })</button>
@@ -634,7 +512,7 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <a href="../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
                 <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
             </nav>
         </div>
@@ -665,7 +543,7 @@ layout: null
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">$(if ($Lang -eq 'ru') { 'Статистика указателя' } elseif ($Lang -eq 'uk') { 'Статистика покажчика' } else { 'Index Stats' })</div>
-                    <p style="font-size: 0.85rem; color: var(--doc-text-muted, #8b949e); margin: 0 0 0.5rem 0;">
+                    <p class="doc-sidebar-note">
                         $(if ($Lang -eq 'ru') { "Содержит <strong>$($indexEntries.Count)</strong> тем, терминов, форматов и руководств по всем 22 разделам документации." } elseif ($Lang -eq 'uk') { "Містить <strong>$($indexEntries.Count)</strong> тем, термінів, форматів і посібників за всіма 22 розділами документації." } else { "Aggregates <strong>$($indexEntries.Count)</strong> indexed topics, terms, formats, and guides across all 22 documentation areas." })
                     </p>
                 </div>
@@ -673,9 +551,9 @@ layout: null
 
             <!-- Main Index Content -->
             <main class="doc-content" id="main-content">
-                <header class="doc-page-header" style="margin-bottom: 1.5rem;">
-                    <h1 style="font-size: 2.3rem; margin-bottom: 0.5rem;">$(if ($Lang -eq 'ru') { 'Алфавитный предметный указатель (А-Я)' } elseif ($Lang -eq 'uk') { 'Алфавітний предметний покажчик (А-Я)' } else { 'A-Z Subject & Topic Index' })</h1>
-                    <p class="doc-lead" style="font-size: 1.15rem; max-width: 780px;">
+                <header class="doc-page-header">
+                    <h1>$(if ($Lang -eq 'ru') { 'Алфавитный предметный указатель (А-Я)' } elseif ($Lang -eq 'uk') { 'Алфавітний предметний покажчик (А-Я)' } else { 'A-Z Subject & Topic Index' })</h1>
+                    <p class="doc-lead">
                         $(if ($Lang -eq 'ru') { 'Быстрый поиск страниц документации, функций, настроек, сетевых протоколов, медиаформатов и терминов в алфавитном порядке.' } elseif ($Lang -eq 'uk') { 'Швидкий пошук сторінок документації, функцій, налаштувань, мережевих протоколів, медіаформатів і термінів в алфавітному порядку.' } else { 'Quickly locate documentation pages, features, settings, network protocols, media formats, and terminology arranged alphabetically.' })
                     </p>
                     <input type="search" id="indexFilter" class="doc-index-filter" placeholder="$(if ($Lang -eq 'ru') { 'Фильтр тем или ключевых слов в указателе (например, SMB, FLAC, Wear, ПИН)...' } elseif ($Lang -eq 'uk') { 'Фільтр тем або ключових слів у покажчику (наприклад, SMB, FLAC, Wear, ПІН)...' } else { 'Filter topics or keywords in index (e.g. SMB, FLAC, Wear, PIN)...' })" aria-label="Filter subject index">
@@ -710,10 +588,10 @@ foreach ($letter in $grouped.Keys) {
 
     $null = $sb.AppendLine(@"
                     <section class="doc-letter-section" id="letter-$letter">
-                        <div class="doc-letter-title">
+                        <h2 class="doc-letter-title">
                             <span>$letter</span>
-                            <span style="font-size: 0.9rem; font-weight: normal; color: var(--doc-text-muted, #8b949e);">$letterItemCountText</span>
-                        </div>
+                            <span class="doc-letter-count">$letterItemCountText</span>
+                        </h2>
                         <div class="doc-letter-items">
 "@)
 
@@ -738,12 +616,12 @@ foreach ($letter in $grouped.Keys) {
             foreach ($ref in $entry.References) {
                 $refTitle = Escape-Html $ref.Title
                 $refUrl = $ref.Url
-                $null = $sb.AppendLine("                                    <a href=`"$refUrl`" class=`"doc-index-pill`">📖 $refTitle</a>")
+                $null = $sb.AppendLine("                                    <a href=`"$refUrl`" class=`"doc-index-pill`">$refTitle</a>")
             }
         } elseif ($entry.Kind -eq "term") {
             $glossaryLink = if ($Lang -eq 'ru') { "general/glossary-ru.html" } elseif ($Lang -eq 'uk') { "general/glossary-uk.html" } else { "general/glossary.html" }
             $glossaryAnchor = if ($entry.Id) { "term-$($entry.Id)" } else { "term-$($entry.Title.ToLowerInvariant() -replace '[^a-z0-9]+', '-')" }
-            $glossaryDefText = if ($Lang -eq 'ru') { "📖 Определение в словаре" } elseif ($Lang -eq 'uk') { "📖 Визначення у словнику" } else { "📖 Glossary Definition" }
+            $glossaryDefText = if ($Lang -eq 'ru') { "Определение в словаре" } elseif ($Lang -eq 'uk') { "Визначення у словнику" } else { "Glossary Definition" }
             $null = $sb.AppendLine("                                    <a href=`"$glossaryLink#$glossaryAnchor`" class=`"doc-index-pill`">$glossaryDefText</a>")
         }
 
@@ -768,8 +646,9 @@ $null = $sb.AppendLine(@"
     <footer class="doc-footer">
         <div class="doc-footer-inner">
             <div>$(if ($Lang -eq 'ru') { 'Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.' } elseif ($Lang -eq 'uk') { 'Fast Media Sorter &copy; 2026 SerZhyAle. Безкоштовний органайзер із відкритим вихідним кодом.' } else { 'Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.' })</div>
-                <a href="../docs/$(if ($Lang -eq 'ru') { 'PRIVACY_POLICY.ru.html' } elseif ($Lang -eq 'uk') { 'PRIVACY_POLICY.uk.html' } else { 'PRIVACY_POLICY.html' })">$(if ($Lang -eq 'ru') { 'Политика конфиденциальности' } elseif ($Lang -eq 'uk') { 'Політика конфіденційності' } else { 'Privacy Policy' })</a>
-                <a href="../docs/$(if ($Lang -eq 'ru') { 'TERMS_OF_SERVICE_RU.html' } elseif ($Lang -eq 'uk') { 'TERMS_OF_SERVICE_UK.html' } else { 'TERMS_OF_SERVICE.html' })">$(if ($Lang -eq 'ru') { 'Условия использования' } elseif ($Lang -eq 'uk') { 'Умови використання' } else { 'Terms of Service' })</a>
+            <div class="doc-footer-links">
+                <a href="../docs/$(if ($Lang -eq 'ru') { 'PRIVACY_POLICY-ru.html' } elseif ($Lang -eq 'uk') { 'PRIVACY_POLICY-uk.html' } else { 'PRIVACY_POLICY.html' })">$(if ($Lang -eq 'ru') { 'Политика конфиденциальности' } elseif ($Lang -eq 'uk') { 'Політика конфіденційності' } else { 'Privacy Policy' })</a>
+                <a href="../docs/$(if ($Lang -eq 'ru') { 'TERMS_OF_SERVICE-ru.html' } elseif ($Lang -eq 'uk') { 'TERMS_OF_SERVICE-uk.html' } else { 'TERMS_OF_SERVICE.html' })">$(if ($Lang -eq 'ru') { 'Условия использования' } elseif ($Lang -eq 'uk') { 'Умови використання' } else { 'Terms of Service' })</a>
                 <a href="overview$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html">$(if ($Lang -eq 'ru') { 'Обзор' } elseif ($Lang -eq 'uk') { 'Огляд' } else { 'Overview' })</a>
                 <a href="subject-index$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html">$(if ($Lang -eq 'ru') { 'Указатель' } elseif ($Lang -eq 'uk') { 'Покажчик' } else { 'Subject Index' })</a>
                 <a href="general/glossary$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html">$(if ($Lang -eq 'ru') { 'Словарь' } elseif ($Lang -eq 'uk') { 'Словник' } else { 'Glossary' })</a>
@@ -814,7 +693,7 @@ $null = $sb.AppendLine(@"
                     var q = filterInput.value.trim().toLowerCase();
                     var items = document.querySelectorAll('.doc-index-item');
                     var sections = document.querySelectorAll('.doc-letter-section');
-                    
+
                     items.forEach(function (item) {
                         var topic = item.getAttribute('data-topic') || '';
                         var text = item.textContent.toLowerCase();

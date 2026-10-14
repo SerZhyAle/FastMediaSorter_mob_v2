@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
+import com.sza.fastmediasorter.wear.domain.model.WearParsedCatalogEntry
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -59,5 +60,43 @@ class ImportWearStreamCatalogMergeTest {
         val catalog = listOf(channel("https://a"))
         val merged = ImportWearStreamCatalogUseCase.mergePreservingPhoneRows(catalog, emptyList())
         assertEquals(catalog, merged)
+    }
+
+    private fun entry(language: String, country: String) = WearParsedCatalogEntry(
+        category = "Radio",
+        topic = "General",
+        name = "Station",
+        url = "https://a",
+        mediaKind = "AUDIO",
+        protocol = "",
+        format = "",
+        bitrate = "",
+        isLive = true,
+        https = true,
+        language = language,
+        country = country,
+        homepage = "",
+        sourceKind = "",
+        licenseNote = "",
+        notes = "",
+        confidence = "",
+        faviconIndex = null
+    )
+
+    @Test
+    fun `a space-joined language cell and a nation without a code fold on import`() {
+        val channel = ImportWearStreamCatalogUseCase.toChannel(
+            entry(language = "english french german russian slovak spain", country = "Wales"),
+            mediaKind = "AUDIO"
+        )
+        assertEquals("english,french,german,russian,slovak", channel.language)
+        assertEquals("GB", channel.country)
+    }
+
+    @Test
+    fun `blank language and an unassigned country stay absent`() {
+        val channel = ImportWearStreamCatalogUseCase.toChannel(entry(language = "", country = "XX"), "AUDIO")
+        assertEquals(null, channel.language)
+        assertEquals(null, channel.country)
     }
 }

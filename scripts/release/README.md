@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.26 10:23</sub>
+
 # scripts/release - Operator Handbook
 
 Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store** (OpenHub-Store/GitHub-Store) can index and rank the project. Spec: **S0214 - github-store-publication**.

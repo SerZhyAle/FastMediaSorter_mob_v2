@@ -3,6 +3,8 @@ layout: default
 title: "السينما المنزلية والبث بتقنية الواقع الافتراضي - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema-ar.html
 ---
+<sub class="doc-stamp">26.09.25 02:20</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 # 🍿 السينما المنزلية والبث بتقنية الواقع الافتراضي

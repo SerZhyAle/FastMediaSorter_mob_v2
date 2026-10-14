@@ -1,0 +1,1063 @@
+{
+  "contract": "DEVICE-EXCHANGE",
+  "contractVersion": "0.17",
+  "proposal": "PROPOSAL-2026-10-10-exchange-connection-string.md (read with the grammar and canonical-bytes points of the proposals filed by StreamsPlayer and FastMediaSorter Android the same day)",
+  "sections": "5.5 (proposed)",
+  "producer": "Media Exchange Server (Go) of Fast Media Sorter & Sharing for Windows, cmd/exchange-vectors",
+  "notes": [
+    "The cases were run against the codec of the exchange-server module (internal/connstr) and each one was checked against the verdict this file states before it was written: a disagreement stops the generator.",
+    "verdict `valid`: the input is the canonical text; a writer given `fields` produces exactly `input`. `tolerated`: a reader accepts it and a writer given `fields` produces `canonical`, which differs from the input. `refused`: a reader refuses the WHOLE string with `reason`; nothing is partially read.",
+    "Canonical writing: prefix `FMSEXCH1:`, then `x`, `fp`, `n`, `u` in that order, `&`-separated; each value is escaped with the WHATWG application/x-www-form-urlencoded byte serializer over UTF-8 (A-Z a-z 0-9 * - . _ raw, a space as +, every other byte %XX with upper-case hex). Go's url.QueryEscape is NOT this serializer (it differs on * and ~): the generator uses its own.",
+    "The reader drops one leading U+FEFF and the white space around the text, then needs the exact prefix `FMSEXCH1:` (case-sensitive). 512 is counted on that trimmed text; 64 on the decoded name in Unicode scalar values; control characters are category Cc.",
+    "`x` is a DNS name (labels of letters, digits and hyphen, 1-63 characters, no trailing dot; written lower case), an IPv4 dotted quad or an IPv6 literal in brackets without a zone (written in RFC 5952 form), then `:` and a port of 1 to 5 digits, 1-65535 (a leading zero is tolerated and dropped on writing). A name of digits and dots is read as IPv4 or refused.",
+    "`fp` is `SHA256:` and exactly 43 characters of the standard base64 alphabet without padding, the last one carrying no stray bits. The URL-safe alphabet, a padded value, a lower-case prefix and a raw + (which form decoding reads as a space) are refused.",
+    "`u` is the login form of 5.1 (3-64 of a-z 0-9 . _ -); an upper-case input is tolerated and written lower case. An unknown key is ignored whatever its value; a known key that repeats or breaks its rule, a field with no = or no key, and an empty field refuse the string.",
+    "A file is UTF-8, at most 4096 bytes, one non-empty line; one leading byte-order mark and the line breaks around the line are tolerated. A writer writes no byte-order mark and no trailing line break.",
+    "The reasons are the vocabulary of this file (not-a-string, newer-major, too-long, whitespace, not-ascii, bad-escape, bad-utf8, malformed-field, repeated-key, missing-x, bad-x, bad-fp, bad-n, bad-u, file-too-long, file-lines); `looks` names what a not-a-string text resembles (share-code, url).",
+    "The fingerprints are fixed test values (SHA-256 of fixed words); the second one contains both + and / in its base64."
+  ],
+  "limits": {
+    "maxFile": 4096,
+    "maxName": 64,
+    "maxText": 512
+  },
+  "cases": [
+    {
+      "name": "ipv4",
+      "kind": "text",
+      "note": "the smallest string",
+      "input": "FMSEXCH1:x=192.0.2.10%3A22022",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=192.0.2.10%3A22022",
+      "fields": {
+        "x": "192.0.2.10:22022",
+        "host": "192.0.2.10",
+        "port": 22022
+      }
+    },
+    {
+      "name": "hostname",
+      "kind": "text",
+      "note": "a DNS name, written lower case",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022
+      }
+    },
+    {
+      "name": "ipv6-literal",
+      "kind": "text",
+      "note": "an IPv6 literal in brackets; colons and brackets are escaped",
+      "input": "FMSEXCH1:x=%5B2001%3Adb8%3A%3A7%5D%3A22022",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=%5B2001%3Adb8%3A%3A7%5D%3A22022",
+      "fields": {
+        "x": "[2001:db8::7]:22022",
+        "host": "2001:db8::7",
+        "port": 22022
+      }
+    },
+    {
+      "name": "port-1",
+      "kind": "text",
+      "note": "the lowest port",
+      "input": "FMSEXCH1:x=example.org%3A1",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=example.org%3A1",
+      "fields": {
+        "x": "example.org:1",
+        "host": "example.org",
+        "port": 1
+      }
+    },
+    {
+      "name": "port-65535",
+      "kind": "text",
+      "note": "the highest port",
+      "input": "FMSEXCH1:x=example.org%3A65535",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=example.org%3A65535",
+      "fields": {
+        "x": "example.org:65535",
+        "host": "example.org",
+        "port": 65535
+      }
+    },
+    {
+      "name": "with-fp",
+      "kind": "text",
+      "note": "a self-signed deployment: the leaf's pin travels with the address",
+      "input": "FMSEXCH1:x=192.0.2.10%3A22022&fp=SHA256%3AUl2rC03A44auS8B7ibLjJaAApHooIx%2F4R%2BSSgDTXUtY",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=192.0.2.10%3A22022&fp=SHA256%3AUl2rC03A44auS8B7ibLjJaAApHooIx%2F4R%2BSSgDTXUtY",
+      "fields": {
+        "x": "192.0.2.10:22022",
+        "host": "192.0.2.10",
+        "port": 22022,
+        "fp": "SHA256:Ul2rC03A44auS8B7ibLjJaAApHooIx/4R+SSgDTXUtY"
+      }
+    },
+    {
+      "name": "with-fp-plus-slash",
+      "kind": "text",
+      "note": "an fp whose base64 holds + and /: both are percent-encoded, a raw + would read as a space",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&fp=SHA256%3A%2B%2B%2B%2B%2F%2F%2F%2FNA%2BxR01JbXXB5CJm2pgMG7SRVTB8msjcGFw",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022&fp=SHA256%3A%2B%2B%2B%2B%2F%2F%2F%2FNA%2BxR01JbXXB5CJm2pgMG7SRVTB8msjcGFw",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022,
+        "fp": "SHA256:++++////NA+xR01JbXXB5CJm2pgMG7SRVTB8msjcGFw"
+      }
+    },
+    {
+      "name": "with-name",
+      "kind": "text",
+      "note": "a display name; the space is written +",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=Home+NAS",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022&n=Home+NAS",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022,
+        "n": "Home NAS"
+      }
+    },
+    {
+      "name": "name-escapes",
+      "kind": "text",
+      "note": "a name with ~ (written %7E), * (raw), a space, a Latin and a Cyrillic letter",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=Home%7ENAS*+%C3%A9+%D0%96",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022&n=Home%7ENAS*+%C3%A9+%D0%96",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022,
+        "n": "Home~NAS* é Ж"
+      }
+    },
+    {
+      "name": "with-login",
+      "kind": "text",
+      "note": "the login hint, upper case never written",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&u=alice",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022&u=alice",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022,
+        "u": "alice"
+      }
+    },
+    {
+      "name": "all-members",
+      "kind": "text",
+      "note": "x, fp, n and u in the one order",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&fp=SHA256%3A%2B%2B%2B%2B%2F%2F%2F%2FNA%2BxR01JbXXB5CJm2pgMG7SRVTB8msjcGFw&n=Office&u=bob.smith",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022&fp=SHA256%3A%2B%2B%2B%2B%2F%2F%2F%2FNA%2BxR01JbXXB5CJm2pgMG7SRVTB8msjcGFw&n=Office&u=bob.smith",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022,
+        "fp": "SHA256:++++////NA+xR01JbXXB5CJm2pgMG7SRVTB8msjcGFw",
+        "n": "Office",
+        "u": "bob.smith"
+      }
+    },
+    {
+      "name": "ipv6-with-fp-name-login",
+      "kind": "text",
+      "note": "an IPv6 endpoint with every member",
+      "input": "FMSEXCH1:x=%5B2001%3Adb8%3A%3A7%5D%3A22022&fp=SHA256%3AUl2rC03A44auS8B7ibLjJaAApHooIx%2F4R%2BSSgDTXUtY&n=Studio&u=carol_2",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=%5B2001%3Adb8%3A%3A7%5D%3A22022&fp=SHA256%3AUl2rC03A44auS8B7ibLjJaAApHooIx%2F4R%2BSSgDTXUtY&n=Studio&u=carol_2",
+      "fields": {
+        "x": "[2001:db8::7]:22022",
+        "host": "2001:db8::7",
+        "port": 22022,
+        "fp": "SHA256:Ul2rC03A44auS8B7ibLjJaAApHooIx/4R+SSgDTXUtY",
+        "n": "Studio",
+        "u": "carol_2"
+      }
+    },
+    {
+      "name": "name-64-ascii",
+      "kind": "text",
+      "note": "a name of exactly 64 characters",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022&n=nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022,
+        "n": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn"
+      }
+    },
+    {
+      "name": "name-64-cyrillic",
+      "kind": "text",
+      "note": "64 scalar values of two bytes each: 64 characters, 384 once encoded",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022&n=%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6%D0%B6",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022,
+        "n": "жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж"
+      }
+    },
+    {
+      "name": "name-4-byte-scalars",
+      "kind": "text",
+      "note": "a name of 4-byte scalar values (the count is scalar values, not bytes or UTF-16 units)",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022&n=%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80%F0%9F%98%80",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022,
+        "n": "😀😀😀😀😀😀😀😀😀😀😀😀"
+      }
+    },
+    {
+      "name": "length-512",
+      "kind": "text",
+      "note": "exactly 512 characters: the longest string a writer may write",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&fp=SHA256%3A%2B%2B%2B%2B%2F%2F%2F%2FNA%2BxR01JbXXB5CJm2pgMG7SRVTB8msjcGFw&n=%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9aaaaaaaaaaa&u=uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022&fp=SHA256%3A%2B%2B%2B%2B%2F%2F%2F%2FNA%2BxR01JbXXB5CJm2pgMG7SRVTB8msjcGFw&n=%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9%C3%A9aaaaaaaaaaa&u=uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022,
+        "fp": "SHA256:++++////NA+xR01JbXXB5CJm2pgMG7SRVTB8msjcGFw",
+        "n": "éééééééééééééééééééééééééééééééééééééééééééééééééééééaaaaaaaaaaa",
+        "u": "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu"
+      }
+    },
+    {
+      "name": "white-space-around",
+      "kind": "text",
+      "note": "a clipboard or a chat adds white space and a line break",
+      "inputHex": "2020464d5345584348313a783d3139322e302e322e313025334132323032320d0a",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=192.0.2.10%3A22022",
+      "fields": {
+        "x": "192.0.2.10:22022",
+        "host": "192.0.2.10",
+        "port": 22022
+      }
+    },
+    {
+      "name": "leading-bom",
+      "kind": "text",
+      "note": "one leading byte-order mark is dropped before trimming",
+      "inputHex": "efbbbf464d5345584348313a783d3139322e302e322e31302533413232303232",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=192.0.2.10%3A22022",
+      "fields": {
+        "x": "192.0.2.10:22022",
+        "host": "192.0.2.10",
+        "port": 22022
+      }
+    },
+    {
+      "name": "lower-case-hex",
+      "kind": "text",
+      "note": "percent hex of either case is read",
+      "input": "FMSEXCH1:x=192.0.2.10%3a22022",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=192.0.2.10%3A22022",
+      "fields": {
+        "x": "192.0.2.10:22022",
+        "host": "192.0.2.10",
+        "port": 22022
+      }
+    },
+    {
+      "name": "raw-colon",
+      "kind": "text",
+      "note": "an unescaped colon in x is read; a writer escapes it",
+      "input": "FMSEXCH1:x=192.0.2.10:22022",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=192.0.2.10%3A22022",
+      "fields": {
+        "x": "192.0.2.10:22022",
+        "host": "192.0.2.10",
+        "port": 22022
+      }
+    },
+    {
+      "name": "space-as-percent-20",
+      "kind": "text",
+      "note": "%20 for a space is read; a writer writes +",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=Home%20NAS",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022&n=Home+NAS",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022,
+        "n": "Home NAS"
+      }
+    },
+    {
+      "name": "unknown-trailing-key",
+      "kind": "text",
+      "note": "a later MINOR adds keys at the end: ignored",
+      "input": "FMSEXCH1:x=192.0.2.10%3A22022&z=1",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=192.0.2.10%3A22022",
+      "fields": {
+        "x": "192.0.2.10:22022",
+        "host": "192.0.2.10",
+        "port": 22022
+      }
+    },
+    {
+      "name": "unknown-key-any-value",
+      "kind": "text",
+      "note": "an unknown key is ignored whatever its value, even one that would be a bad escape",
+      "input": "FMSEXCH1:x=192.0.2.10%3A22022&zz=%ZZ%&q=",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=192.0.2.10%3A22022",
+      "fields": {
+        "x": "192.0.2.10:22022",
+        "host": "192.0.2.10",
+        "port": 22022
+      }
+    },
+    {
+      "name": "later-key-order",
+      "kind": "text",
+      "note": "keys in another order are read; a writer writes the one order",
+      "input": "FMSEXCH1:n=Office&u=alice&fp=SHA256%3AUl2rC03A44auS8B7ibLjJaAApHooIx%2F4R%2BSSgDTXUtY&x=exchange.example.org%3A22022",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022&fp=SHA256%3AUl2rC03A44auS8B7ibLjJaAApHooIx%2F4R%2BSSgDTXUtY&n=Office&u=alice",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022,
+        "fp": "SHA256:Ul2rC03A44auS8B7ibLjJaAApHooIx/4R+SSgDTXUtY",
+        "n": "Office",
+        "u": "alice"
+      }
+    },
+    {
+      "name": "port-leading-zero",
+      "kind": "text",
+      "note": "a leading zero is tolerated and dropped",
+      "input": "FMSEXCH1:x=example.org%3A00080",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=example.org%3A80",
+      "fields": {
+        "x": "example.org:80",
+        "host": "example.org",
+        "port": 80
+      }
+    },
+    {
+      "name": "host-upper-case",
+      "kind": "text",
+      "note": "the host is written lower case",
+      "input": "FMSEXCH1:x=Exchange.Example.ORG%3A22022",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022
+      }
+    },
+    {
+      "name": "login-upper-case",
+      "kind": "text",
+      "note": "5.1 compares logins case-insensitively: written lower case",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&u=Alice",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022&u=alice",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022,
+        "u": "alice"
+      }
+    },
+    {
+      "name": "ipv6-expanded",
+      "kind": "text",
+      "note": "an IPv6 literal is written in its RFC 5952 form",
+      "input": "FMSEXCH1:x=%5B2001%3A0DB8%3A0%3A0%3A0%3A0%3A0%3A7%5D%3A22022",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=%5B2001%3Adb8%3A%3A7%5D%3A22022",
+      "fields": {
+        "x": "[2001:db8::7]:22022",
+        "host": "2001:db8::7",
+        "port": 22022
+      }
+    },
+    {
+      "name": "tilde-raw",
+      "kind": "text",
+      "note": "a raw ~ is read; the WHATWG serializer writes %7E",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=Home~NAS",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022&n=Home%7ENAS",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022,
+        "n": "Home~NAS"
+      }
+    },
+    {
+      "name": "star-escaped",
+      "kind": "text",
+      "note": "%2A for * is read; the WHATWG serializer writes * raw",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=Home%2ANAS",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022&n=Home*NAS",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022,
+        "n": "Home*NAS"
+      }
+    },
+    {
+      "name": "empty-text",
+      "kind": "text",
+      "note": "nothing",
+      "verdict": "refused",
+      "reason": "not-a-string"
+    },
+    {
+      "name": "plain-text",
+      "kind": "text",
+      "note": "any other text",
+      "input": "hello world",
+      "verdict": "refused",
+      "reason": "not-a-string"
+    },
+    {
+      "name": "lower-case-prefix",
+      "kind": "text",
+      "note": "the prefix is case-sensitive",
+      "input": "fmsexch1:x=192.0.2.10%3A22022",
+      "verdict": "refused",
+      "reason": "not-a-string"
+    },
+    {
+      "name": "share-code",
+      "kind": "text",
+      "note": "a share code of another family is not 'update the program'",
+      "input": "FMSSFTP2:AbCdEf",
+      "verdict": "refused",
+      "reason": "not-a-string",
+      "looks": "share-code"
+    },
+    {
+      "name": "url",
+      "kind": "text",
+      "note": "a bare URL",
+      "input": "https://exchange.example.org:22022/",
+      "verdict": "refused",
+      "reason": "not-a-string",
+      "looks": "url"
+    },
+    {
+      "name": "newer-major",
+      "kind": "text",
+      "note": "FMSEXCH and another digit: tell the user to update, never a partial read",
+      "input": "FMSEXCH2:x=192.0.2.10%3A22022&k=v",
+      "verdict": "refused",
+      "reason": "newer-major"
+    },
+    {
+      "name": "major-zero",
+      "kind": "text",
+      "note": "a digit below 1 is not 'update': it is not a string of this contract",
+      "input": "FMSEXCH0:x=192.0.2.10%3A22022",
+      "verdict": "refused",
+      "reason": "not-a-string"
+    },
+    {
+      "name": "no-fields",
+      "kind": "text",
+      "note": "the prefix alone",
+      "input": "FMSEXCH1:",
+      "verdict": "refused",
+      "reason": "missing-x"
+    },
+    {
+      "name": "only-fp",
+      "kind": "text",
+      "note": "no x",
+      "input": "FMSEXCH1:fp=SHA256%3AUl2rC03A44auS8B7ibLjJaAApHooIx%2F4R%2BSSgDTXUtY",
+      "verdict": "refused",
+      "reason": "missing-x"
+    },
+    {
+      "name": "only-unknown",
+      "kind": "text",
+      "note": "no x",
+      "input": "FMSEXCH1:z=1",
+      "verdict": "refused",
+      "reason": "missing-x"
+    },
+    {
+      "name": "whitespace-inside",
+      "kind": "text",
+      "note": "white space inside is refused",
+      "input": "FMSEXCH1:x=192.0.2.10%3A22022 &n=a",
+      "verdict": "refused",
+      "reason": "whitespace"
+    },
+    {
+      "name": "tab-inside",
+      "kind": "text",
+      "note": "a tab inside",
+      "inputHex": "464d5345584348313a783d3139322e302e322e31302533413232303232266e3d610962",
+      "verdict": "refused",
+      "reason": "whitespace"
+    },
+    {
+      "name": "raw-non-ascii",
+      "kind": "text",
+      "note": "a raw non-ASCII character: values are percent-encoded",
+      "inputHex": "464d5345584348313a783d65786368616e67652e6578616d706c652e6f72672533413232303232266e3d636166c3a9",
+      "verdict": "refused",
+      "reason": "not-ascii"
+    },
+    {
+      "name": "raw-control",
+      "kind": "text",
+      "note": "a raw control character",
+      "inputHex": "464d5345584348313a783d65786368616e67652e6578616d706c652e6f72672533413232303232266e3d610162",
+      "verdict": "refused",
+      "reason": "not-ascii"
+    },
+    {
+      "name": "empty-field",
+      "kind": "text",
+      "note": "an empty field between two ampersands",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&&n=a",
+      "verdict": "refused",
+      "reason": "malformed-field"
+    },
+    {
+      "name": "trailing-ampersand",
+      "kind": "text",
+      "note": "a trailing &",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&",
+      "verdict": "refused",
+      "reason": "malformed-field"
+    },
+    {
+      "name": "leading-ampersand",
+      "kind": "text",
+      "note": "a leading &",
+      "input": "FMSEXCH1:&x=192.0.2.10%3A22022",
+      "verdict": "refused",
+      "reason": "malformed-field"
+    },
+    {
+      "name": "field-without-equals",
+      "kind": "text",
+      "note": "a field with no =",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&foo",
+      "verdict": "refused",
+      "reason": "malformed-field"
+    },
+    {
+      "name": "field-without-key",
+      "kind": "text",
+      "note": "a field with no key",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&=v",
+      "verdict": "refused",
+      "reason": "malformed-field"
+    },
+    {
+      "name": "repeated-x",
+      "kind": "text",
+      "note": "a known key twice",
+      "input": "FMSEXCH1:x=192.0.2.10%3A22022&x=192.0.2.11%3A22022",
+      "verdict": "refused",
+      "reason": "repeated-key"
+    },
+    {
+      "name": "repeated-name",
+      "kind": "text",
+      "note": "a known key twice",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=a&n=b",
+      "verdict": "refused",
+      "reason": "repeated-key"
+    },
+    {
+      "name": "bad-escape",
+      "kind": "text",
+      "note": "a % not followed by two hex digits",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=%G1",
+      "verdict": "refused",
+      "reason": "bad-escape"
+    },
+    {
+      "name": "escape-at-end",
+      "kind": "text",
+      "note": "a % at the very end",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=a%",
+      "verdict": "refused",
+      "reason": "bad-escape"
+    },
+    {
+      "name": "escape-short",
+      "kind": "text",
+      "note": "a % with one digit",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=a%4",
+      "verdict": "refused",
+      "reason": "bad-escape"
+    },
+    {
+      "name": "decoded-not-utf8",
+      "kind": "text",
+      "note": "a decoded value that is not UTF-8",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=%FF%FE",
+      "verdict": "refused",
+      "reason": "bad-utf8"
+    },
+    {
+      "name": "over-512",
+      "kind": "text",
+      "note": "513 characters, valid in every other way",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&z=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "verdict": "refused",
+      "reason": "too-long"
+    },
+    {
+      "name": "x-empty",
+      "kind": "text",
+      "note": "x with no value",
+      "input": "FMSEXCH1:x=",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-no-port",
+      "kind": "text",
+      "note": "no port",
+      "input": "FMSEXCH1:x=example.org",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-port-0",
+      "kind": "text",
+      "note": "port 0",
+      "input": "FMSEXCH1:x=example.org%3A0",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-port-65536",
+      "kind": "text",
+      "note": "port above 65535",
+      "input": "FMSEXCH1:x=example.org%3A65536",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-port-6-digits",
+      "kind": "text",
+      "note": "a port of six digits",
+      "input": "FMSEXCH1:x=example.org%3A022022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-port-letters",
+      "kind": "text",
+      "note": "a port that is not digits",
+      "input": "FMSEXCH1:x=example.org%3Aab",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-port-sign",
+      "kind": "text",
+      "note": "a signed port",
+      "input": "FMSEXCH1:x=example.org%3A%2B80",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-empty-host",
+      "kind": "text",
+      "note": "no host",
+      "input": "FMSEXCH1:x=%3A22022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-host-with-path",
+      "kind": "text",
+      "note": "a host with a path",
+      "input": "FMSEXCH1:x=example.org%2Fpath%3A22022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-host-with-user",
+      "kind": "text",
+      "note": "a host with user information",
+      "input": "FMSEXCH1:x=bob%40example.org%3A22022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-trailing-dot",
+      "kind": "text",
+      "note": "a trailing dot",
+      "input": "FMSEXCH1:x=example.org.%3A22022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-label-64",
+      "kind": "text",
+      "note": "a label of 64 characters",
+      "input": "FMSEXCH1:x=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.example%3A22022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-label-hyphen",
+      "kind": "text",
+      "note": "a label that begins with a hyphen",
+      "input": "FMSEXCH1:x=-a.example%3A22022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-underscore",
+      "kind": "text",
+      "note": "an underscore is not in a host",
+      "input": "FMSEXCH1:x=a_b.example%3A22022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-digits-only",
+      "kind": "text",
+      "note": "a name of digits is IPv4 or nothing",
+      "input": "FMSEXCH1:x=12345%3A22022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-ipv4-range",
+      "kind": "text",
+      "note": "an IPv4 octet above 255",
+      "input": "FMSEXCH1:x=999.1.1.1%3A22022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-ipv4-three-parts",
+      "kind": "text",
+      "note": "digits and dots that are not a dotted quad",
+      "input": "FMSEXCH1:x=1.2.3%3A22022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-ipv6-no-brackets",
+      "kind": "text",
+      "note": "an IPv6 literal needs brackets",
+      "input": "FMSEXCH1:x=2001%3Adb8%3A%3A7%3A22022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-ipv6-unclosed",
+      "kind": "text",
+      "note": "an unclosed bracket",
+      "input": "FMSEXCH1:x=%5B2001%3Adb8%3A%3A7%3A22022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-ipv6-zone",
+      "kind": "text",
+      "note": "an IPv6 literal with a zone id",
+      "input": "FMSEXCH1:x=%5Bfe80%3A%3A1%25eth0%5D%3A22022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-ipv4-in-brackets",
+      "kind": "text",
+      "note": "an IPv4 address in brackets",
+      "input": "FMSEXCH1:x=%5B192.0.2.10%5D%3A22022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "x-idn-host",
+      "kind": "text",
+      "note": "an internationalised name only in its xn-- form: percent-encoded UTF-8 is refused",
+      "input": "FMSEXCH1:x=b%C3%BCcher.example%3A22022",
+      "verdict": "refused",
+      "reason": "bad-x"
+    },
+    {
+      "name": "fp-url-safe-alphabet",
+      "kind": "text",
+      "note": "the URL-safe alphabet",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&fp=SHA256%3A----____NA-xR01JbXXB5CJm2pgMG7SRVTB8msjcGFw",
+      "verdict": "refused",
+      "reason": "bad-fp"
+    },
+    {
+      "name": "fp-padded",
+      "kind": "text",
+      "note": "a padded value",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&fp=SHA256%3AUl2rC03A44auS8B7ibLjJaAApHooIx%2F4R%2BSSgDTXUtY%3D",
+      "verdict": "refused",
+      "reason": "bad-fp"
+    },
+    {
+      "name": "fp-lower-prefix",
+      "kind": "text",
+      "note": "a lower-case prefix",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&fp=sha256%3AUl2rC03A44auS8B7ibLjJaAApHooIx%2F4R%2BSSgDTXUtY",
+      "verdict": "refused",
+      "reason": "bad-fp"
+    },
+    {
+      "name": "fp-short",
+      "kind": "text",
+      "note": "fewer than 43 characters",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&fp=SHA256%3AUl2rC03A44auS8B7ibLjJaAApHooIx%2F4R%2BSSgDTXUt",
+      "verdict": "refused",
+      "reason": "bad-fp"
+    },
+    {
+      "name": "fp-raw-plus",
+      "kind": "text",
+      "note": "a raw + decodes to a space",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&fp=SHA256%3A++++%2F%2F%2F%2FNA+xR01JbXXB5CJm2pgMG7SRVTB8msjcGFw",
+      "verdict": "refused",
+      "reason": "bad-fp"
+    },
+    {
+      "name": "fp-stray-bits",
+      "kind": "text",
+      "note": "the last character carries bits no 32-byte value has",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&fp=SHA256%3AUl2rC03A44auS8B7ibLjJaAApHooIx%2F4R%2BSSgDTXUtZ",
+      "verdict": "refused",
+      "reason": "bad-fp"
+    },
+    {
+      "name": "fp-empty",
+      "kind": "text",
+      "note": "fp with no value",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&fp=",
+      "verdict": "refused",
+      "reason": "bad-fp"
+    },
+    {
+      "name": "name-empty",
+      "kind": "text",
+      "note": "n with no value",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=",
+      "verdict": "refused",
+      "reason": "bad-n"
+    },
+    {
+      "name": "name-65",
+      "kind": "text",
+      "note": "65 characters",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+      "verdict": "refused",
+      "reason": "bad-n"
+    },
+    {
+      "name": "name-control",
+      "kind": "text",
+      "note": "a control character (category Cc) after decoding",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&n=a%0Ab",
+      "verdict": "refused",
+      "reason": "bad-n"
+    },
+    {
+      "name": "login-2",
+      "kind": "text",
+      "note": "two characters",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&u=ab",
+      "verdict": "refused",
+      "reason": "bad-u"
+    },
+    {
+      "name": "login-65",
+      "kind": "text",
+      "note": "65 characters",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&u=uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu",
+      "verdict": "refused",
+      "reason": "bad-u"
+    },
+    {
+      "name": "login-space",
+      "kind": "text",
+      "note": "a space",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&u=al%20ce",
+      "verdict": "refused",
+      "reason": "bad-u"
+    },
+    {
+      "name": "login-at",
+      "kind": "text",
+      "note": "an @",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&u=alice%40example.org",
+      "verdict": "refused",
+      "reason": "bad-u"
+    },
+    {
+      "name": "login-empty",
+      "kind": "text",
+      "note": "u with no value",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022&u=",
+      "verdict": "refused",
+      "reason": "bad-u"
+    },
+    {
+      "name": "file-canonical",
+      "kind": "file",
+      "note": "a .fmsexch file as a writer writes it: the text and nothing else",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022",
+      "verdict": "valid",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022
+      }
+    },
+    {
+      "name": "file-lf",
+      "kind": "file",
+      "note": "one trailing line break",
+      "inputHex": "464d5345584348313a783d65786368616e67652e6578616d706c652e6f726725334132323032320a",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022
+      }
+    },
+    {
+      "name": "file-crlf",
+      "kind": "file",
+      "note": "a Windows line break",
+      "inputHex": "464d5345584348313a783d65786368616e67652e6578616d706c652e6f726725334132323032320d0a",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022
+      }
+    },
+    {
+      "name": "file-bom",
+      "kind": "file",
+      "note": "a text editor's byte-order mark",
+      "inputHex": "efbbbf464d5345584348313a783d65786368616e67652e6578616d706c652e6f726725334132323032320d0a",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022
+      }
+    },
+    {
+      "name": "file-blank-lines-around",
+      "kind": "file",
+      "note": "blank lines around the one line",
+      "inputHex": "0d0a0d0a464d5345584348313a783d65786368616e67652e6578616d706c652e6f726725334132323032320d0a0d0a",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022
+      }
+    },
+    {
+      "name": "file-4096",
+      "kind": "file",
+      "note": "exactly 4096 bytes: a valid line then white space",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ",
+      "verdict": "tolerated",
+      "canonical": "FMSEXCH1:x=exchange.example.org%3A22022",
+      "fields": {
+        "x": "exchange.example.org:22022",
+        "host": "exchange.example.org",
+        "port": 22022
+      }
+    },
+    {
+      "name": "file-4097",
+      "kind": "file",
+      "note": "one byte over",
+      "input": "FMSEXCH1:x=exchange.example.org%3A22022                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ",
+      "verdict": "refused",
+      "reason": "file-too-long"
+    },
+    {
+      "name": "file-two-lines",
+      "kind": "file",
+      "note": "a second non-empty line",
+      "inputHex": "464d5345584348313a783d65786368616e67652e6578616d706c652e6f726725334132323032320d0a464d5345584348313a783d65786368616e67652e6578616d706c652e6f726725334132323032320d0a",
+      "verdict": "refused",
+      "reason": "file-lines"
+    },
+    {
+      "name": "file-invalid-utf8",
+      "kind": "file",
+      "note": "bytes that are not UTF-8",
+      "inputHex": "464d5345584348313a783d3139322e302e322e31302533413232303232266e3dfffe",
+      "verdict": "refused",
+      "reason": "bad-utf8"
+    },
+    {
+      "name": "file-empty",
+      "kind": "file",
+      "note": "no bytes",
+      "verdict": "refused",
+      "reason": "not-a-string"
+    },
+    {
+      "name": "file-other-text",
+      "kind": "file",
+      "note": "another family's text in a .fmsexch file",
+      "inputHex": "464d5353465450323a4162436445660d0a",
+      "verdict": "refused",
+      "reason": "not-a-string",
+      "looks": "share-code"
+    }
+  ]
+}

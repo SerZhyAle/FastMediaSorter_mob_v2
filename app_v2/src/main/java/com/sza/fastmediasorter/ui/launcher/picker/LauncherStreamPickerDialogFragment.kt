@@ -29,12 +29,14 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerController
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
+import com.sza.fastmediasorter.ui.streams.helpers.StreamLanguageOptionMapper
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -73,6 +75,7 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
     private var selectedMediaKind: String? = null // null = ALL, "AUDIO", "VIDEO"
     private var selectedTopic: String? = null
     private var selectedLanguage: String? = null
+    private var languageIds: List<String> = emptyList()
     private var selectedSort: StreamDefaultSort = StreamDefaultSort.NAME
 
     // Only the newest filter pass may attach its result: an older pass whose tiles resolved later would
@@ -162,8 +165,8 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
 
         binding.spinnerLanguage.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val item = parent?.getItemAtPosition(position)?.toString()
-                selectedLanguage = if (position == 0 || item == null) null else item
+                // Position 0 is the "All" row; every later row maps to its canonical id, not to its label.
+                selectedLanguage = languageIds.getOrNull(position - 1)
                 applyFiltersAndAttach()
             }
 
@@ -210,17 +213,23 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
         val topics = listOf(allOf(R.string.streams_filter_topic)) +
             sources.mapNotNull { (it.topic ?: it.category)?.takeIf(String::isNotBlank) }.distinct().sorted()
 
-        val languages = listOf(allOf(R.string.streams_filter_language)) +
+        val context = requireContext()
+        // S4133: the spinner shows the same readable labels as the filter dialog, while matching keeps
+        // using the canonical lowercase id - a label is never what `selectedLanguage` holds.
+        val languageOptions = StreamLanguageOptionMapper.languageOptions(
+            context,
             sources.asSequence()
                 .mapNotNull { it.language }
                 .flatMap { it.splitToSequence(',') }
                 .map { it.trim().lowercase() }
                 .filter { it.isNotEmpty() }
                 .distinct()
-                .sorted()
-                .toList()
+                .toList(),
+        )
+        languageIds = languageOptions.map { it.id }
+        Timber.d("S4133: quick picker language options=${languageOptions.size}")
+        val languages = listOf(allOf(R.string.streams_filter_language)) + languageOptions.map { it.label }
 
-        val context = requireContext()
         val topicAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, topics).apply {
             setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         }

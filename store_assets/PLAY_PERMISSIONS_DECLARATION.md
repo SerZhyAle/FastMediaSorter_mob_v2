@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.01 17:23</sub>
+
 # Play Console - All files access declaration (S1989)
 
 Source of truth for the **Permissions Declaration Form** in Play Console

@@ -3,6 +3,8 @@ layout: default
 title: "স্মার্টওয়াচকে NAS ও পিসি শেয়ারের সাথে সংযুক্ত করুন - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-network-bn.html
 ---
+<sub class="doc-stamp">26.09.25 02:22</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> স্মার্টওয়াচকে NAS ও পিসি শেয়ারের সাথে সংযুক্ত করুন

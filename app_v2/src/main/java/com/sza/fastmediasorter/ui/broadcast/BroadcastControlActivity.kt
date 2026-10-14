@@ -9,6 +9,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
+import com.sza.fastmediasorter.ui.broadcast.helpers.BroadcastCastManager
 import com.sza.fastmediasorter.ui.broadcast.helpers.BroadcastControlManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -22,6 +23,9 @@ class BroadcastControlActivity : AppCompatActivity() {
 
     @Inject
     lateinit var controlManager: BroadcastControlManager
+
+    @Inject
+    lateinit var castManager: BroadcastCastManager
 
     private lateinit var binding: ActivityBroadcastControlBinding
 
@@ -39,6 +43,7 @@ class BroadcastControlActivity : AppCompatActivity() {
         }
 
         controlManager.setup(this, binding)
+        castManager.setup(this, binding.btnCastToDevices)
     }
 
     override fun onResume() {

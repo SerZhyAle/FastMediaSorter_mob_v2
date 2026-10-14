@@ -6,7 +6,7 @@ description: На яких редакціях і шоломах працює imm
 category: VR і OpenXR
 category_slug: vr
 ticket: S2967
-flavor: noLegal і VR, на сумісному шоломі
+availability_note: noLegal і VR, на сумісному шоломі
 recipe_number: "01"
 canonical_url: documentation/vr/headset-setup-and-openxr-uk.html
 why: |
@@ -136,5 +136,7 @@ next_recipes:
     badge_type: docs
     description: Відкрийте прямий відеоканал прямо у VR Cinema.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Які редакції й шоломи запускають immersive-режим FastMediaSorter, як його встановити, як разом працюють головний перемикач 3D/VR та OpenXR, і VR Cinema, мітка VR, immersive-браузер, легенда керування й самотест, які ви побачите перед першим фільмом.

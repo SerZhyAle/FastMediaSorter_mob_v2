@@ -6,7 +6,8 @@ description: How to send the video you are watching to a TV with Chromecast, and
 category: Video & Media Player
 category_slug: player
 ticket: S2951
-flavor: Chromecast - Standard, noLegal, Lite and Legacy; Live Broadcast - Standard, noLegal and Legacy
+availability: SUPPORT_CAST+SUPPORT_VIDEO, SUPPORT_BROADCAST_SOURCE
+availability_note: Chromecast - Standard, noLegal, Lite and Legacy; Live Broadcast - Standard, noLegal and Legacy
 recipe_number: "04"
 canonical_url: documentation/player/casting-and-broadcast.html
 why: |
@@ -93,7 +94,7 @@ steps:
     id: broadcast-live
     title: While you are live
     text: |
-      The screen shows how many listeners are connected. The buttons switch the camera and the microphone on and off, change the camera, turn the screen off or cover it with a black screen while the broadcast keeps running, and **Stop Broadcast** ends it. The broadcast also keeps its own notification with a **Stop** button.
+      The screen shows how many listeners are connected. Someone who joins a video broadcast halfway through sees the picture at once, without waiting for the image to build up. The buttons switch the camera and the microphone on and off, change the camera, turn the screen off or cover it with a black screen while the broadcast keeps running, and **Stop Broadcast** ends it. The broadcast also keeps its own notification with a **Stop** button.
 
       The settings button on the same screen opens the broadcast settings in place: title, port, bit rate, audio format, microphone gain and **Auto-open share screen**. The same settings are in **Settings**, the **Media** tab, section **Broadcast**, and a settings backup keeps them - see [backing up and restoring settings](page:general.backup-and-restore).
   - number: 6
@@ -110,6 +111,7 @@ tips:
   - "**Nobody can connect to the broadcast?** Check that everyone is on the same Wi-Fi. Some routers block devices from talking to each other - look for an option called client or AP isolation."
   - "**Music on a Chromecast** works the same way from the audio player - see [playing and organizing music files](page:audio.playing-and-organizing-music)."
   - "**Want to record the screen instead?** See [recording the screen with audio](page:capture.screen-recording-and-audio)."
+  - "**Want a phone or a watch to go on air for your other devices?** The [media exchange portal](../../docs/media-exchange-portal/live-broadcast.html) explains the routes between devices and marks what is not available yet."
 next_recipes:
   - title: Watching videos - controls and gestures
     url: page:player.video-playback-controls
@@ -127,5 +129,7 @@ next_recipes:
     badge_type: video
     description: Keep watching in a small window.
 ---
+
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Send the video you are watching to a TV with Chromecast, or turn your phone into a small live sound or camera station that others open with a QR code.

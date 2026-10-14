@@ -3,6 +3,8 @@ layout: default
 title: "In-Car Music Player (Android Head Unit) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music.html
 ---
+<sub class="doc-stamp">26.09.24 20:50</sub>
+
 # 🚗 In-Car Music Player (Android Head Unit)
 
 > **Level:** Beginner &bull; **Time:** ~10 minutes &bull; **Flavor:** Standard, Legacy, VR, noLegal (Lite plays local audio but has no background playback and no Streams; Photos has no audio)

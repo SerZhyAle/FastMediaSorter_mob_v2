@@ -3,6 +3,8 @@ layout: default
 title: "Lecteur de musique embarqué (autoradio Android) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-fr.html
 ---
+<sub class="doc-stamp">26.09.25 02:12</sub>
+
 <div lang="fr" dir="ltr" markdown="1">
 
 # 🚗 Lecteur de musique embarqué (autoradio Android)

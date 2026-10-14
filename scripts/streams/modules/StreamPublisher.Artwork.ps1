@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Stream publisher module: favicon download, sprite-atlas packing and artwork index for the stream catalog.
+#>
+
+
 . "$PSScriptRoot\..\..\utils\project-paths.ps1"
 
 # --- S0668 favicon sprite-atlas (offline tooling) -----------------------------------------------

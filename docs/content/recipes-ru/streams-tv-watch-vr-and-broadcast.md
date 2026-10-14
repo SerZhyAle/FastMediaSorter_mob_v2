@@ -6,7 +6,7 @@ description: Как транслировать онлайн-каналы на т
 category: Интернет-трансляции
 category_slug: streams
 ticket: S2955
-flavor: Chromecast - редакции Standard, noLegal и Legacy; смарт-часы - Standard и noLegal; VR-плеер - noLegal и VR; Прямой эфир - Standard, noLegal и Legacy
+availability_note: Chromecast - редакции Standard, noLegal и Legacy; смарт-часы - Standard и noLegal; VR-плеер - noLegal и VR; Прямой эфир - Standard, noLegal и Legacy
 recipe_number: "08"
 canonical_url: documentation/streams/tv-watch-vr-and-broadcast-ru.html
 why: |
@@ -114,6 +114,7 @@ tips:
   - "**Нет пунктов «Отправить на часы» и «Открыть на часах»?** Включите компаньон Wear в настройках и убедитесь, что используется редакция Standard или noLegal."
   - "**Трансляция не играет?** Убедитесь, что оба устройства подключены к одной локальной сети Wi-Fi и в роутере не включена изоляция клиентов (AP Isolation)."
   - "**Пункт «Открыть в VR» скрыт?** Он доступен только в VR-гарнитурах с включенным режимом 3D VR и только для видеоканалов - см. [Настройка VR-гарнитуры и OpenXR](page:vr.headset-setup-and-openxr)."
+  - "**Хотите, чтобы телефон или часы вышли в эфир для ваших остальных устройств?** [Портал обмена медиа](../../docs/media-exchange-portal/live-broadcast-ru.html) объясняет маршруты между устройствами и отмечает то, что ещё не выпущено."
 next_recipes:
   - title: Трансляция на Chromecast и прямой эфир
     url: page:player.casting-and-broadcast
@@ -131,5 +132,7 @@ next_recipes:
     badge_type: docs
     description: Основы воспроизведения онлайн-каналов на смартфоне.
 ---
+
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Выводите прямой [канал](term:channel) на большой экран ТВ через [Chromecast](term:chromecast), на свои смарт-[часы](term:watch) или в [VR-гарнитуру](term:vr-headset), и подключайтесь к [прямому эфиру](term:live-broadcast) близких по QR-коду, ссылке или файлу.

@@ -6,7 +6,7 @@ description: How to read EPUB e-books with your own font, size, colors and margi
 category: Documents & Text Editor
 category_slug: documents
 ticket: S2953
-flavor: Standard, noLegal, Legacy, VR and FOSS
+availability: SUPPORT_DOCUMENTS
 recipe_number: "02"
 canonical_url: documentation/documents/office-docs-support.html
 why: |
@@ -17,7 +17,7 @@ ingredients:
   - "FastMediaSorter in an edition with the reader: Standard, noLegal, Legacy, VR or FOSS. The Lite and Photos editions do not open documents."
   - "An EPUB book without copy protection. Books locked by a shop's copy protection (DRM) open only in that shop's app."
   - "**Support EPUB e-books** and **Support Office documents** switched on in **Settings**, the **Media** tab, **Documents**."
-  - "For Office files in Standard, Legacy and VR: an office app on the phone, for example Microsoft Word, Google Docs or WPS Office."
+  - "For Office files in Standard, Legacy and VR: an office app installed on the phone."
   - "For translation: an edition with translation (all of the above except FOSS) and **Enable Translation** switched on in **Settings**."
 steps:
   - number: 1
@@ -29,6 +29,8 @@ steps:
       Books from a [network folder](term:network-folder) or [cloud storage](term:cloud-storage) are downloaded first and then open the same way. To collect all your books, PDFs and notes in one list, add the [All Documents](term:all-documents) resource on the [main screen](term:main-screen).
 
       If a book is protected, you will see "This file is protected and cannot be opened inside the app." - open it in the app of the shop you bought it from.
+
+      A picture missing from the book, or one that cannot be read, shows as a picture sign with the book's own description of it instead of a broken box.
     image_bookmark:
       shot_id: documents.epub-chapter-view
       device_profile: phone
@@ -139,5 +141,7 @@ next_recipes:
     badge_type: docs
     description: See which edition opens which kinds of files.
 ---
+
+<sub class="doc-stamp">26.10.10 14:38</sub>
 
 Read EPUB books with the font, size, colors and margins you like, jump between chapters, search a whole book, listen to it or translate it - and open Word, Excel and PowerPoint files with one tap, in the way your edition offers.

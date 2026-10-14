@@ -1,8 +1,10 @@
 ---
 layout: default
 title: "Історія продукту - FastMediaSorter v2"
-permalink: /docs/PRODUCT_HISTORY_UK.html
+permalink: /docs/PRODUCT_HISTORY-uk.html
 ---
+<sub class="doc-stamp">26.10.06 21:33</sub>
+
 # Історія продукту - FastMediaSorter v2
 
 **Дата знімка**: 13 вересня 2026  

@@ -1,5 +1,5 @@
 <#
-Run-Tests.ps1 - contract tests for assert-page-content.ps1 (S3452).
+Run-Tests.ps1 - contract tests for assert-page-content.ps1 (S3452; the portal emoji half S4099).
 
 Every case builds a throwaway site tree under the system temp directory, so no case depends on what
 the live pages carry this minute.
@@ -48,7 +48,9 @@ function New-Fixture {
 }
 
 function Set-Page([string]$root, [string]$name, [string]$text) {
-    Set-Content -LiteralPath (Join-Path $root $name) -Value $text -Encoding utf8
+    $path = Join-Path $root $name
+    New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
+    Set-Content -LiteralPath $path -Value $text -Encoding utf8
 }
 
 function Invoke-Case([string]$Name, [string]$Root, [int]$ExpectedExit, [string]$ExpectedText) {
@@ -73,7 +75,7 @@ $escapedMagnifier = ([char]92) + 'uD83D' + ([char]92) + 'uDD0D'
 
 try {
     $r = New-Fixture
-    Invoke-Case 'clean tree passes' $r 0 'PASS (6 pages)'
+    Invoke-Case 'clean tree passes' $r 0 'PASS (6 pages, 0 portal files)'
 
     $r = New-Fixture
     Set-Page $r 'index.html' ($cleanPage -replace '<h2>Open your first folder</h2>', "<h2>$magnifier Open</h2>")
@@ -85,11 +87,28 @@ try {
 
     $r = New-Fixture
     Set-Page $r 'index-uk.html' ($cleanPage.Replace("var label = 'Open';", "var label = '$escapedMagnifier';"))
-    Invoke-Case 'a surrogate-escaped emoji fails' $r 1 'FAIL [EMOJI] index-uk.html:14: escaped emoji \uD83D'
+    Invoke-Case 'a surrogate-escaped emoji fails' $r 1 ('FAIL [EMOJI] index-uk.html:14: escaped emoji ' + ([char]92) + 'uD83D')
 
     $r = New-Fixture
     Set-Page $r 'nolegal.html' ($cleanPage -replace '<h2>Open your first folder</h2>', '<h2>&#x1F50D; Open</h2>')
     Invoke-Case 'an entity emoji fails' $r 1 'FAIL [EMOJI] nolegal.html:13: escaped emoji &#x1F50D;'
+
+    $r = New-Fixture
+    Set-Page $r 'documentation/browsing/sorting.html' '<html><body><button>Search</button></body></html>'
+    Set-Page $r 'documentation/assets/search.js' "var label = 'Search';"
+    Invoke-Case 'a clean portal page and script pass and are counted' $r 0 'PASS (6 pages, 2 portal files)'
+
+    $r = New-Fixture
+    Set-Page $r 'documentation/browsing/sorting.html' "<html><body>`n<button><span>$magnifier</span> Search</button></body></html>"
+    Invoke-Case 'an emoji on a portal page fails' $r 1 'FAIL [EMOJI] documentation/browsing/sorting.html:2: U+1F50D'
+
+    $r = New-Fixture
+    Set-Page $r 'documentation/assets/search.js' "var icon = '$escapedMagnifier';"
+    Invoke-Case 'an escaped emoji in a portal script fails' $r 1 ('FAIL [EMOJI] documentation/assets/search.js:1: escaped emoji ' + ([char]92) + 'uD83D')
+
+    $r = New-Fixture
+    Set-Page $r 'documentation/temp/scratch.html' "<p>$cross</p>"
+    Invoke-Case 'the portal temp folder is not judged' $r 0 'PASS (6 pages, 0 portal files)'
 
     $r = New-Fixture
     Set-Page $r 'nolegal-ru.html' ($cleanPage -replace 'href="#get"', 'href="#download"')

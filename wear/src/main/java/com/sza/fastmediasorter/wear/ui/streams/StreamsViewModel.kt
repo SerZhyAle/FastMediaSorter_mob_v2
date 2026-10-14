@@ -152,9 +152,11 @@ class StreamsViewModel @Inject constructor(
      * `valueOf` would raise on a wearer's watch after an upgrade that renamed a constant - a place
      * where nobody can read the stack trace, and where the screen simply would not open.
      *
-     * A stored facet the current catalogue does not contain is kept as the selection rather than
-     * cleared. It then matches nothing, which is honest; clearing it would mean a catalogue that
-     * failed to download silently erased the wearer's choice.
+     * A stored facet is restored as it was. S4133: once the catalogue has produced a non-empty facet
+     * list and the stored language is not in it, [dropVanishedLanguageSelection] clears it - the
+     * vocabulary closing makes that common, and an empty list behind an active filter was the worse
+     * outcome. An empty catalogue (download failed or not yet done) never clears, so a failed download
+     * still cannot erase the wearer's choice.
      */
     private suspend fun restoreStoredSelection() {
         // The store is allowed to fail without taking the screen with it. `DataStore.data` can raise
@@ -223,9 +225,22 @@ class StreamsViewModel @Inject constructor(
             projectionInputs.update {
                 it.copy(channels = channels, pinnedIdentities = pinned, usageByIdentity = usage)
             }
+            dropVanishedLanguageSelection(languages)
             if (channels.isEmpty() && !_uiState.value.isLoading && !_uiState.value.isRefreshing) {
                 refreshCatalog(isInitial = true)
             }
+        }
+    }
+
+    /**
+     * S4133: a saved language that the catalogue no longer carries is cleared, in state and in the stored
+     * preference. An empty facet list proves nothing about the saved value, so it never clears.
+     */
+    private fun dropVanishedLanguageSelection(languages: List<StreamFacetValue>) {
+        val selected = _uiState.value.selectedLanguage ?: return
+        if (languages.isNotEmpty() && languages.none { it.id.equals(selected, ignoreCase = true) }) {
+            Timber.d("S4133: wear dropped vanished language selection")
+            setSelectedLanguage(null)
         }
     }
 

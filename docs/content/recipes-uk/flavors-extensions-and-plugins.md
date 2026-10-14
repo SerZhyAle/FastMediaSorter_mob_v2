@@ -6,7 +6,6 @@ description: Як відкрити екран додаткових модулі�
 category: Редакції, розширення та мови
 category_slug: flavors
 ticket: S2947
-flavor: Standard, noLegal, Legacy та VR
 recipe_number: "02"
 canonical_url: documentation/flavors/extensions-and-plugins-uk.html
 why: |
@@ -129,5 +128,7 @@ next_recipes:
     badge_type: docs
     description: Оберіть одну з тринадцяти мов і перемикайтеся між метричними та американськими одиницями.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Розширення](term:extension) - це необов'язкові частини FastMediaSorter, які ви завантажуєте лише коли вони потрібні: розпізнавання тексту, додаткові аудіоформати, фонові відео та каталоги трансляцій. Ця сторінка показує, як їх завантажувати, оновлювати і видаляти.

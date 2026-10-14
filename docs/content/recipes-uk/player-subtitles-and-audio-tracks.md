@@ -6,7 +6,7 @@ description: "Як відкрити вікно Керування відеопл
 category: Відео та медіаплеєр
 category_slug: player
 ticket: S2951
-flavor: Усі редакції, крім Photos; вибір 3D у вікні Керування - лише у VR і noLegal
+availability_note: Усі редакції, крім Photos; вибір 3D у вікні Керування - лише у VR і noLegal
 recipe_number: "02"
 canonical_url: documentation/player/subtitles-and-audio-tracks-uk.html
 why: |
@@ -101,5 +101,7 @@ next_recipes:
     badge_type: video
     description: Дивіться 3D і 360 відео в шоломі.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Виберіть звукову доріжку й субтитри фільму, зробіть їх читабельними, збалансуйте звук між вухами, змініть швидкість і кольори, і дивіться 3D-фільми на звичайному екрані.

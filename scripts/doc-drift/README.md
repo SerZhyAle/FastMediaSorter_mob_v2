@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.08.14 18:14</sub>
+
 # S0271 - Doc Drift Checker
 
 ## Purpose

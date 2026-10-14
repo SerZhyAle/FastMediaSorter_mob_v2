@@ -162,6 +162,23 @@ try {
     Invoke-Case 'a vendored kit that differs fails' $f 1 'differs from the catalog reference kit'
 
     $f = New-Fixture
+    Set-Content -LiteralPath (Join-Path $f.Site 'styles.css') -Value ":root { --wide: 1100px; }`n.card { max-width: 340px; }`n@media (min-width: 900px) {`n  .container { max-width: var(--wide); margin: 0 auto; }`n}`n" -Encoding utf8
+    Invoke-Case 'a capped page wrapper fails, a capped card does not' $f 1 'FAIL [WIDTH] styles.css: .container has max-width 1100px'
+
+    $f = New-Fixture
+    Set-Content -LiteralPath (Join-Path $f.Site 'styles.css') -Value ":root { --wide: 100%; }`n.container, .card { max-width: var(--wide); }`nmain { max-width: none !important; }`n" -Encoding utf8
+    Invoke-Case 'an uncapped wrapper passes' $f 0 'PASS (6 pages)'
+
+    $f = New-Fixture
+    New-Item -ItemType Directory -Path (Join-Path $f.Site 'assets/css') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $f.Site 'assets/css/style.scss') -Value "---`n---`n@import `"{{ site.theme }}`";`n.main-content { max-width: 64rem; }`n" -Encoding utf8
+    Invoke-Case 'a capped theme column fails' $f 1 'FAIL [WIDTH] assets/css/style.scss: .main-content has max-width 64rem'
+
+    $f = New-Fixture
+    Set-Content -LiteralPath (Join-Path $f.Site '404.html') -Value '<html><body><main style="max-width: 46rem; margin: 0 auto;"></main></body></html>' -Encoding utf8
+    Invoke-Case 'an inline cap on main fails' $f 1 'FAIL [WIDTH] 404.html: an inline max-width 46rem on <main>'
+
+    $f = New-Fixture
     Invoke-Case 'no catalog cannot verify' $f 2 'COULD NOT VERIFY' -CatalogOverride (Join-Path $f.Site 'no-such-catalog')
 
     $f = New-Fixture

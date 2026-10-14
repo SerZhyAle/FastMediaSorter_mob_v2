@@ -597,7 +597,20 @@
                         android:focusable="true"
                         android:clickable="true"
                         android:nextFocusUp="@id/btnSftpServerNewPassword"
+                        android:nextFocusDown="@id/btnSftpServerLegacyQr"
                         android:text="@string/settings_sftp_server_show_qr"
+                        android:visibility="gone" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSftpServerLegacyQr"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:nextFocusUp="@id/btnSftpServerShowQr"
+                        android:nextFocusDown="@id/rowSftpDriveAccess"
+                        android:text="@string/settings_sftp_server_legacy_qr"
                         android:visibility="gone" />
 
                     <ImageView
@@ -608,6 +621,104 @@
                         android:layout_marginTop="@dimen/margin_small"
                         android:contentDescription="@string/settings_sftp_server_qr_description"
                         android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/labelSftpExchange"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:text="@string/settings_sftp_exchange_title" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowSftpDriveAccess"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:nextFocusUp="@id/btnSftpServerShowQr"
+                        android:nextFocusDown="@id/rowSftpExchangeEnabled"
+                        app:str_icon="@drawable/ic_cloud"
+                        app:str_title="@string/settings_sftp_drive_access_title"
+                        app:str_subtitle="@string/settings_sftp_drive_access_subtitle" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowSftpExchangeEnabled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:nextFocusUp="@id/rowSftpDriveAccess"
+                        android:nextFocusDown="@id/btnSftpExchangeChangeOutgoing"
+                        app:str_icon="@drawable/ic_cloud"
+                        app:str_title="@string/settings_sftp_exchange_enable_title"
+                        app:str_subtitle="@string/settings_sftp_exchange_enable_subtitle" />
+
+                    <TextView
+                        android:id="@+id/textSftpExchangeStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:textColor="@color/text_color_secondary"
+                        android:textIsSelectable="true"
+                        android:text="@string/settings_sftp_exchange_status_off" />
+
+                    <!-- The publish switch names the outgoing entry; the entries themselves live on "My devices". -->
+                    <TextView
+                        android:id="@+id/textSftpExchangeOutgoing"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:text="@string/settings_sftp_exchange_outgoing_none" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSftpExchangeChangeOutgoing"
+                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/margin_small"
+                            android:focusable="true"
+                            android:clickable="true"
+                            android:nextFocusUp="@id/rowSftpExchangeEnabled"
+                            android:nextFocusRight="@id/btnSftpExchangeMyDevices"
+                            android:nextFocusDown="@id/btnSftpExchangeNewLink"
+                            android:text="@string/settings_sftp_exchange_change" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSftpExchangeMyDevices"
+                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:focusable="true"
+                            android:clickable="true"
+                            android:nextFocusUp="@id/rowSftpExchangeEnabled"
+                            android:nextFocusLeft="@id/btnSftpExchangeChangeOutgoing"
+                            android:nextFocusDown="@id/btnSftpExchangeNewLink"
+                            android:text="@string/exchange_devices_title" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/containerSftpExchangeFields"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSftpExchangeNewLink"
+                            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:focusable="true"
+                            android:clickable="true"
+                            android:nextFocusUp="@id/btnSftpExchangeChangeOutgoing"
+                            android:text="@string/settings_sftp_exchange_new_link"
+                            app:icon="@drawable/ic_refresh" />
+                    </LinearLayout>
 
                 </LinearLayout>
             </LinearLayout>
@@ -663,6 +774,17 @@
                         app:ssr_helpMessage="@string/tooltip_saved_authorizations_message"
                         app:ssr_navMode="true" />
 
+                    <!-- The exchange account entries live on their own screen: resources, broadcasts, the watch and cast share them. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                        android:id="@+id/row_my_devices"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="@dimen/margin_large"
+                        android:layout_marginBottom="@dimen/margin_normal"
+                        app:ssr_title="@string/exchange_devices_title"
+                        app:ssr_subtitle="@string/exchange_devices_summary"
+                        app:ssr_navMode="true" />
+
                     <!-- Default User and Password -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">
 
@@ -708,14 +830,16 @@
 
                 <LinearLayout android:id="@+id/containerAppData" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <!-- Debug Logs Export -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <!-- Debug Logs Export. Flow chip group: a linear row squeezed the second button at a large font scale. -->
+                    <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShareLogs" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/share_debug_logs" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_share" />
+                        <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowDebugLogs" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_verticalBias="0" app:flow_horizontalGap="@dimen/margin_small" app:flow_verticalGap="@dimen/margin_tiny" app:constraint_referenced_ids="btnShareLogs,btnSaveLogs" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShareLogs" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/share_debug_logs" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_share" />
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnSaveLogs" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/save_debug_logs" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_save" />
 
-                    </LinearLayout>
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <!-- Settings backup group: file export/import + Google Drive backup/restore (all operate on settings, kept adjacent). -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
@@ -1118,12 +1242,12 @@
 
         </LinearLayout>
 
-        <!-- PERMISSIONS + SYSTEM INFO ROW - permissions navigates to PermissionsManagementFragment; system info opens the System info dialog -->
-        <LinearLayout
+        <!-- PERMISSIONS + SYSTEM INFO ROW - permissions navigates to PermissionsManagementFragment; system info opens the System info dialog.
+             Flow, not a horizontal LinearLayout: at a large font scale the two labels no longer fit side by side, and a linear row
+             squeezed the second button to icon width and stacked its label one character per line. -->
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
             android:layout_marginHorizontal="@dimen/margin_small"
             android:layout_marginTop="@dimen/margin_tiny"
             android:layout_marginBottom="@dimen/margin_tiny">
@@ -1133,7 +1257,6 @@
                 style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/margin_small"
                 android:text="@string/settings_category_permissions"
                 app:icon="@drawable/ic_lock"
                 app:iconGravity="start" />
@@ -1147,7 +1270,21 @@
                 app:icon="@drawable/ic_info"
                 app:iconGravity="start" />
 
-        </LinearLayout>
+            <androidx.constraintlayout.helper.widget.Flow
+                android:id="@+id/flowPermissionsSystemInfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:constraint_referenced_ids="btnPermissionsManagement,btnSystemInfo"
+                app:flow_wrapMode="chain"
+                app:flow_horizontalStyle="packed"
+                app:flow_horizontalBias="0"
+                app:flow_horizontalGap="@dimen/margin_small"
+                app:flow_verticalGap="@dimen/margin_tiny"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <!-- ABOUT SECTION (heading removed - content sits flush under permissions section) -->
         <LinearLayout
@@ -1166,6 +1303,8 @@
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnHowToGuides" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/how_to_guides" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_book" app:iconSize="@dimen/settings_icon_size" />
 
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnMediaExchangePortal" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/media_exchange_portal_link" app:icon="@drawable/ic_swap_horizontal" app:iconSize="@dimen/settings_icon_size" />
+
                         <!-- S0994: PC-side companion publish-folders guide; hidden when companion import unavailable (lite/vr). -->
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnCompanionPublishGuide" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/companion_publish_folders_guide" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_open_in_browse" app:iconSize="@dimen/settings_icon_size" />
 
@@ -1176,7 +1315,7 @@
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnOpenWelcome" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/open_welcome_tutorial" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_image" app:iconSize="@dimen/settings_icon_size" />
 
                         <!-- Flow distributes buttons across lines based on available width -->
-                        <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowDocLinks" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_horizontalGap="0dp" app:flow_verticalGap="0dp" app:constraint_referenced_ids="btnUserGuide,btnHowToGuides,btnCompanionPublishGuide,btnPrivacyPolicy,btnOpenSourceLicenses,btnOpenWelcome" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
+                        <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowDocLinks" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_horizontalGap="0dp" app:flow_verticalGap="0dp" app:constraint_referenced_ids="btnUserGuide,btnHowToGuides,btnMediaExchangePortal,btnCompanionPublishGuide,btnPrivacyPolicy,btnOpenSourceLicenses,btnOpenWelcome" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -147,7 +147,7 @@
     <string name="welcome_streams_catalog_failed">فہرست ڈاؤن لوڈ نہیں ہوئی - آپ اسٹریمز خود شامل کر سکتے ہیں</string>
     <string name="welcome_func_gestures">اشارے فعال کریں</string>
     <string name="welcome_func_gestures_summary">بائیں کنارے سے سوائپ کریں: مینو، اسکرین شاٹ، خاموش اسکرین شاٹ</string>
-    <string name="welcome_networks_companion_note">میڈیا کسی Windows کمپیوٹر پر ہے؟ Fast Media Sorter for Windows چند کلک میں وہ فولڈر یہاں شیئر کر دیتا ہے - کسی سرور کی ترتیب کی ضرورت نہیں۔</string>
+    <string name="welcome_networks_companion_note">میڈیا کسی Windows کمپیوٹر پر ہے؟ Fast Media Sorter &amp; Sharing for Windows چند کلک میں وہ فولڈر یہاں شیئر کر دیتا ہے - کسی سرور کی ترتیب کی ضرورت نہیں۔</string>
     <string name="welcome_networks_companion_button">Windows ایپ حاصل کریں</string>
     <string name="welcome_networks_example_smb">مثلاً: Windows کمپیوٹر پر ایک شیئر کردہ فولڈر، Synology یا QNAP جیسا NAS، یا راؤٹر میں لگی USB ڈسک۔</string>
     <string name="welcome_networks_example_ftp">مثلاً: FTP پر ہوسٹنگ اکاؤنٹ، SFTP پر آپ کا اپنا گھریلو سرور، یا ایسا کیمرہ جو تصاویر FTP فولڈر میں بھیجتا ہے۔</string>

@@ -47,7 +47,7 @@
     <string name="keybinding_input_mouse_right">RMB</string>
     <string name="keybinding_label_audio_cycle_subtitle">Ciclo Sottotitolo</string>
     <string name="keybinding_label_audio_cycle_track">Traccia audio per bicicletta</string>
-    <string name="keybinding_label_audio_mute">Silenzioso</string>
+    <string name="keybinding_label_audio_mute">Muto</string>
     <string name="keybinding_label_audio_subtitle_delay">Ritardo dei sottotitoli</string>
     <string name="keybinding_label_audio_volume_down">Volume in calo</string>
     <string name="keybinding_label_audio_volume_up">Alza il volume</string>

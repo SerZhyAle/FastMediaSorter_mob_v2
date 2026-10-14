@@ -3,6 +3,8 @@ layout: default
 title: "تثبيت FastMedia على ساعتك - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-ar.html
 ---
+<sub class="doc-stamp">26.09.30 11:26</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 # <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> تثبيت FastMedia على ساعتك

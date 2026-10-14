@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.10 08:57</sub>
+
 # Product positioning - the canonical source
 
 **Owner ticket:** S2271

@@ -4,9 +4,48 @@ title: "What's New in FastMediaSorter v2"
 permalink: /docs/WHATS_NEW.html
 ---
 
+<sub class="doc-stamp">26.10.06 23:40</sub>
+
 # What's New in FastMediaSorter v2
 
-**Current release: 2.61.0041.544** (October 2026)
+**Current release: 2.61.0141.503** (October 2026)
+
+> Changes since version 2.61.0041.544
+
+---
+
+## What's New
+
+- **Tourist dashboard grows** - pressure, altitude, trip, course, wind and UV tiles. <!-- af: programs-tools.tourist-extra-sensor-tiles -->
+- **Tally counter** - count with taps and keep a dated history. <!-- af: programs-tools.tourist-tally-counter -->
+- **Stopwatch tile in Tourist** - start, stop and reset on the dashboard. <!-- af: programs-tools.tourist-inline-stopwatch-tile -->
+- **Stopwatch autostart** - opens already running on phone and watch. <!-- af: programs-tools.automatic-start-on-launch -->
+- **System information cards** - search, expand and copy sections. <!-- af: diagnostics.system-information-searchable-section-cards, diagnostics.system-information-actions-in-the-toolbar -->
+- **Googlebook support** - new-window actions are on by default. <!-- af: launcher.googlebook-support -->
+- **Cleaner stream filters** - one entry per language, countries with flags. <!-- af: streams.closed-language-country-facets -->
+- **Right-to-left page buttons** - mirrored in PDF, EPUB and text viewers. <!-- af: documents.rtl-mirrored-paging-buttons -->
+- **Neighbour files from other apps** - next and previous continue through the folder. <!-- af: media-player.standalone-neighbour-file-paging -->
+- **SFTP share address through Google Drive** - opt-in, off by default. <!-- af: network-cloud.sftp-share-rendezvous-via-google-drive, network-cloud.sftp-share-drive-access-opt-in -->
+- **Instant first picture in broadcasts** - new viewers see video right away. <!-- af: broadcast.instant-first-picture-for-new-viewers -->
+- **EPUB image placeholder** - a missing image shows its description. <!-- af: documents.epub-missing-image-placeholder -->
+- **Split notification shade swipe** - left half opens notifications, right half Quick Settings. <!-- af: launcher.split-notification-shade-swipe -->
+- **Watch Tourist readings** - pressure, altitude, trip, course and light on the watch. <!-- af: wear-os.barometer-trip-navigation-and-environment-readings-in-the -->
+- **Watch dark screen clock** - a tap shows the time and date. <!-- af: wear-os.dark-screen-tap-clock-and-brightness -->
+- **Watch rotation switch** - the screen stops turning with the wrist. <!-- af: wear-os.screen-rotation-toggle -->
+
+## What's Fixed
+
+- Deleting from shared storage asks for the system confirmation instead of failing.
+- Cloud-to-cloud copy keeps the original file name.
+- SFTP copies and moves keep running in the background.
+- Tourist compass works on phones without a fused orientation sensor.
+- Android backup no longer carries saved network logins.
+- Watch Tourist screens no longer crash on Wear OS API 28-29.
+- Watch Home and Streams lists fit the round glass.
+
+---
+
+## Previous Release: 2.61.0041.544 (October 2026)
 
 > Changes since version 2.61.0031.801
 
@@ -14,8 +53,8 @@ permalink: /docs/WHATS_NEW.html
 
 ## What's New
 
-- **Slow motion and video zoom** - 0.1x and 0.3x speeds, pinch to zoom and pan.
-- **Launcher tile placement** - new apps go to the Android apps section.
+- **Slow motion and video zoom** - 0.1x and 0.3x speeds, pinch to zoom and pan. <!-- af: video-player.video-chrome-slow-playback-and-gesture-zoom -->
+- **Launcher tile placement** - new apps go to the Android apps section. <!-- af: launcher.section-aware-placement-of-new-app-shortcut-and -->
 
 ## What's Fixed
 

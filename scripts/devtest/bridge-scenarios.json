@@ -689,6 +689,44 @@
       "notes": "S3216. The command reaches the watch screen through SosSyncBus rather than as a route argument: a stop arrives while the screen is already open, and navigating to a route again is not a way to say leave. The start is state and the stop is an event, because the command can land before MainActivity has drawn the destination it asked for. Neither device waits for an ack - an unreachable companion is the designed autonomous case (ADR-2), so measure the out-of-range run too and expect no delay at the local start."
     },
     {
+      "id": "J13",
+      "slug": "watch-tourist-health-on-phone",
+      "group": "J",
+      "channels": [
+        "/fms/watch/tourist_health"
+      ],
+      "logMarker": "/fms/watch/tourist_health",
+      "requiresPair": true,
+      "expectation": "With Tourist open on a noLegal watch, the noLegal phone Tourist shows the same heart rate (and body temperature where the watch has the sensor) within seconds; a minute after the watch Tourist closes both phone tiles show the open-Tourist hint.",
+      "notes": "S4150. noLegal on both sides only - the standard watch never sends and the standard phone has no tiles. The watch sends only while its Tourist screen runs the sensors, on change and at most every 5 s."
+    },
+    {
+      "id": "J14",
+      "slug": "phone-weather-on-watch-tourist",
+      "group": "J",
+      "channels": [
+        "/fms/watch/tourist_weather_request",
+        "/fms/phone/tourist_weather"
+      ],
+      "logMarker": "/fms/watch/tourist_weather_request",
+      "requiresPair": true,
+      "expectation": "With Tourist open on a noLegal watch that has a GPS fix and a phone with network, the watch shows the wind, feels-like, humidity, UV, precipitation, cloud and visibility tiles within seconds, matching the phone Tourist; with the phone out of range and the last answer older than an hour the tiles are gone, not empty.",
+      "notes": "S4152. Watch noLegal only (Tourist is sideload-only on the watch); the phone answers in standard and noLegal. The watch asks on the first fix, then at most every 15 min or after moving more than 2 km, with the position rounded to two decimals."
+    },
+    {
+      "id": "J15",
+      "slug": "phone-hands-exchange-entry-to-watch",
+      "group": "J",
+      "channels": [
+        "/fms/phone/exchange_handover",
+        "/fms/watch/exchange_handover_ack"
+      ],
+      "logMarker": "/fms/watch/exchange_handover_ack",
+      "requiresPair": true,
+      "expectation": "Connect watch on a server card of the phone's My devices: the watch enrolls into that account with a pairing code, the server lists the watch as a device of the account, the watch's Settings > Exchange servers shows the server, and the phone states the outcome in words - enrolled, refused with the reason, no watch, or no answer.",
+      "notes": "S4158. Needs a live exchange server (FMS_W) and an enrolled phone entry; the phone's menu item arrives with S4116 phase 04. Refusal reasons from the watch: malformed, unsupported_version, code_expired, certificate_untrusted, certificate_changed, unreachable, token-not-stored, or the server's own 7.10 reason."
+    },
+    {
       "id": "K1",
       "slug": "companion-off-mid-scenario",
       "group": "K",

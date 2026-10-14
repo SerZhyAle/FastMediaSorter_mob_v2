@@ -214,3 +214,13 @@
     <fields>;
 }
 
+# S4178: two enums flagged by assert-enum-persistence-contract during S4170 validation.
+# WearElevationSource round-trips through WearTripSnapshotCodec snapshot fields via .name and
+# valueOf, so an R8 rename makes a stored trip unreadable. TouristMetricType is credited by the
+# gate .name receiver resolution; the rule satisfies the contract rather than a durable store.
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.tourist.TouristMetricType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.tourist.WearElevationSource {
+    <fields>;
+}

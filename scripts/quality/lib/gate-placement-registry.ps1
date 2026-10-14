@@ -1,4 +1,4 @@
-#requires -Version 7.0
+﻿#requires -Version 7.0
 <#
 .SYNOPSIS
     S2870: shared reader for the gate-placement registry and for runner membership.
@@ -106,6 +106,13 @@ function Get-GateReferenceNames {
     lib/*.ps1 are resolved against the repo root when they carry it, else against the runner's own
     directory, and the lib's token references are unioned in. One level only - no lib in this tree
     dot-sources another.
+
+    S4169: a gate defined in an argument vector ($argv* = @(..., assert-*.ps1, ...)) is counted as
+    wired ONLY if its vector is actually consumed to read its verdict (via Invoke-GateChild,
+    Invoke-FixedInputGate, Invoke-Gate, Invoke-Step, Invoke-AdvisoryStep, & $pwsh, etc.) or if the
+    gate is directly referenced in a verdict-reading command. Merely starting it via Start-PooledGate
+    or defining an unused argv does not satisfy wiring, so an unawaited pooled gate cannot masquerade
+    as a per-ticket check.
 #>
 function Get-GateReferenceNamesWithLibs {
     param(
@@ -113,12 +120,15 @@ function Get-GateReferenceNamesWithLibs {
         [Parameter(Mandatory)][string]$RepoRoot
     )
 
-    $names = [System.Collections.Generic.HashSet[string]]::new()
-    foreach ($n in (Get-GateReferenceNames $Path)) { [void]$names.Add($n) }
+    if (-not (Test-Path -LiteralPath $Path)) { return , [System.Collections.Generic.HashSet[string]]::new() }
 
     $tokens = $null; $errors = $null
-    [void][System.Management.Automation.Language.Parser]::ParseFile($Path, [ref]$tokens, [ref]$errors)
+    $runnerAst = [System.Management.Automation.Language.Parser]::ParseFile($Path, [ref]$tokens, [ref]$errors)
     $runnerDir = Split-Path -Parent $Path
+
+    $allAsts = [System.Collections.Generic.List[System.Management.Automation.Language.ScriptBlockAst]]::new()
+    $allAsts.Add($runnerAst)
+
     foreach ($t in $tokens) {
         if ($t.Kind -notin @('StringLiteral', 'StringExpandable')) { continue }
         $lib = [string]$t.Value
@@ -126,9 +136,99 @@ function Get-GateReferenceNamesWithLibs {
         $libPath = if ($lib -match '^([A-Za-z]:|[\\/])') { $lib }
             elseif ($lib -match '^scripts[\\/]') { Join-Path $RepoRoot $lib }
             else { Join-Path $runnerDir $lib }
-        if (-not (Test-Path -LiteralPath $libPath)) { continue }
-        foreach ($n in (Get-GateReferenceNames $libPath)) { [void]$names.Add($n) }
+        if (Test-Path -LiteralPath $libPath) {
+            $lTokens = $null; $lErrors = $null
+            $allAsts.Add([System.Management.Automation.Language.Parser]::ParseFile($libPath, [ref]$lTokens, [ref]$lErrors))
+        }
     }
+
+    $allGateMatches = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($ast in $allAsts) {
+        $strExprs = $ast.FindAll({
+            $args[0] -is [System.Management.Automation.Language.StringConstantExpressionAst] -or
+            $args[0] -is [System.Management.Automation.Language.ExpandableStringExpressionAst]
+        }, $true)
+        foreach ($se in $strExprs) {
+            $val = if ($se -is [System.Management.Automation.Language.StringConstantExpressionAst]) { $se.Value } else { $se.Extent.Text }
+            foreach ($m in [regex]::Matches($val, 'assert-[A-Za-z0-9-]+\.ps1')) {
+                [void]$allGateMatches.Add($m.Value)
+            }
+        }
+    }
+
+    $gateToArgvs = @{}
+    foreach ($ast in $allAsts) {
+        $assigns = $ast.FindAll({ $args[0] -is [System.Management.Automation.Language.AssignmentStatementAst] }, $true)
+        foreach ($a in $assigns) {
+            $leftText = $a.Left.Extent.Text
+            if ($leftText -match '^\$([a-zA-Z0-9_]+)') {
+                $varName = $Matches[1]
+                if ($varName -like 'argv*') {
+                    $rightText = $a.Right.Extent.Text
+                    foreach ($m in [regex]::Matches($rightText, 'assert-[A-Za-z0-9-]+\.ps1')) {
+                        if (-not $gateToArgvs.ContainsKey($m.Value)) {
+                            $gateToArgvs[$m.Value] = [System.Collections.Generic.List[string]]::new()
+                        }
+                        [void]$gateToArgvs[$m.Value].Add($varName)
+                    }
+                }
+            }
+        }
+    }
+
+    $consumedVars = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($ast in $allAsts) {
+        $varExprs = $ast.FindAll({ $args[0] -is [System.Management.Automation.Language.VariableExpressionAst] }, $true)
+        foreach ($ve in $varExprs) {
+            $vName = $ve.VariablePath.UserPath
+            $p = $ve.Parent
+            while ($p -and $p -isnot [System.Management.Automation.Language.CommandAst]) {
+                $p = $p.Parent
+            }
+            if ($p -is [System.Management.Automation.Language.CommandAst]) {
+                if ($p.InvocationOperator -eq [System.Management.Automation.Language.TokenKind]::Ampersand -or
+                    $p.InvocationOperator -eq [System.Management.Automation.Language.TokenKind]::Dot) {
+                    [void]$consumedVars.Add($vName)
+                }
+                else {
+                    $cmdName = $p.GetCommandName()
+                    if ($cmdName -and $cmdName -ne 'Start-PooledGate' -and $cmdName -ne 'Join-Path') {
+                        [void]$consumedVars.Add($vName)
+                    }
+                }
+            }
+        }
+    }
+
+    $directlyConsumedGates = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($ast in $allAsts) {
+        $cmdAsts = $ast.FindAll({ $args[0] -is [System.Management.Automation.Language.CommandAst] }, $true)
+        foreach ($ca in $cmdAsts) {
+            $cmdName = $ca.GetCommandName()
+            if ($cmdName -eq 'Start-PooledGate' -or $cmdName -eq 'Join-Path') { continue }
+            $text = $ca.Extent.Text
+            foreach ($m in [regex]::Matches($text, 'assert-[A-Za-z0-9-]+\.ps1')) {
+                [void]$directlyConsumedGates.Add($m.Value)
+            }
+        }
+    }
+
+    $names = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($g in $allGateMatches) {
+        if ($gateToArgvs.ContainsKey($g)) {
+            $isConsumed = $false
+            foreach ($v in $gateToArgvs[$g]) {
+                if ($consumedVars.Contains($v)) { $isConsumed = $true; break }
+            }
+            if ($isConsumed -or $directlyConsumedGates.Contains($g)) {
+                [void]$names.Add($g)
+            }
+        }
+        else {
+            [void]$names.Add($g)
+        }
+    }
+
     return , $names
 }
 

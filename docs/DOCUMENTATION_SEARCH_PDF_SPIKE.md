@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.23 16:09</sub>
+
 # Documentation Search & PDF Generation Tooling Spike (S2970 / S2971 Preparation)
 
 This evaluation spike investigates search indexing options (for ticket S2970) and static/offline PDF compilation options (for ticket S2971) based on FastMediaSorter v2's full-width documentation architecture.

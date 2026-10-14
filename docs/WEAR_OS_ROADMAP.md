@@ -3,6 +3,8 @@ layout: default
 title: "FastMedia Wear OS - Enhancement Specification"
 permalink: /docs/WEAR_OS_ROADMAP.html
 ---
+<sub class="doc-stamp">26.09.03 21:10</sub>
+
 # FastMedia Wear OS - Enhancement Specification
 
 **Version**: 1.0  

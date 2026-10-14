@@ -6,6 +6,7 @@ $Schema = @(
 )
 $ua = 'FastMediaSorter-test/1.0'
 . $modulePath
+. (Join-Path $PSScriptRoot '..\streams\modules\StreamPublisher.Facets.ps1')
 
 Describe 'StreamPublisher.Common' {
     It 'preserves the published CSV schema order' {
@@ -36,7 +37,7 @@ Describe 'StreamPublisher.Common' {
         (Map-IptvTopic 'unknown-category') | Should Be 'General'
     }
 
-    It 'normalizes each grouping facet while retaining unknown values for review' {
+    It 'normalizes each grouping facet; only category keeps an unknown value for review' {
         (Get-CanonicalCategory 'Radio (SomaFM)') | Should Be 'Radio'
         (Get-CanonicalCategory 'Open movies') | Should Be 'On-demand video'
         (Get-CanonicalTopic 'Adult Contemporary') | Should Be 'Pop'
@@ -48,8 +49,36 @@ Describe 'StreamPublisher.Common' {
         (Get-CanonicalLanguages '') | Should Be ''
         (Get-CanonicalCountry '') | Should Be ''
         (Get-CanonicalCategory 'Future provider class') | Should Be 'Future provider class'
-        (Get-CanonicalLanguages 'future language') | Should Be 'future language'
-        (Get-CanonicalCountry 'Future country') | Should Be 'Future country'
+        # STREAM-BANK 2.3 (amendment O): a language cell with nothing recognized reads english, and a country
+        # that is not an assigned code is blank - neither passes through as text any more.
+        (Get-CanonicalLanguages 'future language') | Should Be 'english'
+        (Get-CanonicalCountry 'Future country') | Should Be ''
+    }
+
+    It 'holds every golden vector shared with the phone and the watch' {
+        $golden = Join-Path $PSScriptRoot '..\..\app_v2\src\test\resources\streams\facet-golden.tsv'
+        $failures = @()
+        $count = 0
+        foreach ($line in [System.IO.File]::ReadAllLines($golden, [System.Text.Encoding]::UTF8)) {
+            if ($line.StartsWith('#') -or -not $line.Trim()) { continue }
+            $parts = $line.Split("`t")
+            $kind = $parts[0]; $in = $parts[1]; $want = $parts[2]
+            $got = if ($kind -eq 'language') { Get-CanonicalLanguages $in } else { Get-CanonicalCountry $in }
+            $count++
+            if ($got -cne $want) { $failures += "$kind '$in' => '$got' (want '$want')" }
+        }
+        $count | Should BeGreaterThan 50
+        ($failures -join '; ') | Should Be ''
+    }
+
+    It 'produces only vocabulary languages and assigned country codes for the golden inputs' {
+        $tables = Get-FacetLanguageTables
+        $countries = Get-FacetCountryTables
+        foreach ($name in (Get-CanonicalLanguages 'english french german russian slovak spain') -split ',') {
+            $tables.Canonical.Contains($name) | Should Be $true
+        }
+        $countries.Assigned.Contains((Get-CanonicalCountry 'Wales')) | Should Be $true
+        $countries.Assigned.Contains('AQ') | Should Be $true
     }
 
     It 'assigns the Webcam category from the rubric, not from the collecting source' {

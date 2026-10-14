@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.05.25 00:15</sub>
+
 # S0292 Design Note - VR content launch UI
 
 ## Цель

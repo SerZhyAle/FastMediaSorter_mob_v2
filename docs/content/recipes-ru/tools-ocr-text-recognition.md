@@ -6,7 +6,6 @@ description: Как извлекать слова из фотографий, с�
 category: OCR, перевод, рисование и экспорт
 category_slug: tools
 ticket: S2957
-flavor: Редакции Standard, noLegal, Legacy и VR
 recipe_number: "01"
 canonical_url: documentation/tools/ocr-text-recognition-ru.html
 why: |
@@ -108,5 +107,7 @@ next_recipes:
     badge_type: docs
     description: Установка и удаление движка распознавания и языковых пакетов.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Одно нажатие превращает фото, скриншот или сканированную страницу в текст для копирования, поиска или сохранения в файл - полностью локально на телефоне, без отправки изображений в сеть.

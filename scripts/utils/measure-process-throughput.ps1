@@ -16,6 +16,9 @@
     - cheap model share: runs on any model other than the strong one.
     - gate seconds: the wall clock every gate execution summed to, SKIP rows excluded because a
       skipped gate costs nothing and folding it in makes the wall look calmer the more gates opt out.
+    - outcome by model and tier (S4190): per model and catalog tier, the runs, the share that moved a
+      status, the median minutes, and how many moved runs the NEXT run of the same ticket found
+      Partial or Broken. Tier is joined from PLAN/spec-catalog*.jsonl; '?' when the id is in neither.
     - fast check lag: how far the phone code fast check ran past the duration
       docs/BUILD_TEST_FAST_PATH.md documents for it, which is where concurrency is actually paid for.
 
@@ -109,6 +112,9 @@ function ConvertTo-LocalMoment {
 # --- runner journal: status moves, idle share, cheap model share -----------------------------
 
 $runRows = @()
+# S4190: every parsable row, window or not, so a run inside the window can be judged by the run that
+# FOLLOWED it on the same ticket - a ticket returned as Partial or Broken after a run that moved it.
+$allRuns = @()
 # Kept for every parsable row, window or not: a policy with no runs IN the window is only readable
 # as starved rather than unused if the instance carrying it can be dated outside the window too.
 $lastRunByInstance = @{}
@@ -123,13 +129,19 @@ foreach ($file in @(Get-ChildItem -LiteralPath $queueDir -Filter 'runs-*.jsonl' 
         if (-not $lastRunByInstance.ContainsKey($instance) -or $finished -gt $lastRunByInstance[$instance]) {
             $lastRunByInstance[$instance] = $finished
         }
-        if (-not (Test-InWindow $finished)) { continue }
-        $runRows += [pscustomobject]@{
-            Instance = $instance
-            Model    = [string]$row.model
-            Policy   = if ($row.PSObject.Properties.Name -contains 'policy' -and $row.policy) { [string]$row.policy } else { 'unknown' }
-            Moved    = [bool]$row.moved
+        $runRecord = [pscustomobject]@{
+            Instance     = $instance
+            Id           = [string]$row.id
+            Model        = [string]$row.model
+            Policy       = if ($row.PSObject.Properties.Name -contains 'policy' -and $row.policy) { [string]$row.policy } else { 'unknown' }
+            Moved        = [bool]$row.moved
+            StatusBefore = [string]$row.statusBefore
+            Minutes      = if ($null -ne $row.minutes) { [double]$row.minutes } else { $null }
+            Finished     = $finished
         }
+        $allRuns += $runRecord
+        if (-not (Test-InWindow $finished)) { continue }
+        $runRows += $runRecord
     }
 }
 
@@ -153,6 +165,53 @@ foreach ($group in @($runRows | Group-Object -Property Policy, Instance)) {
     }
 }
 $policyRows = @($policyRows | Sort-Object -Property Policy, Instance)
+
+# --- outcome by model and tier (S4190) -------------------------------------------------------
+
+# The cheap model is given the easier tickets by construction (tier 1-2 under the shape policy), so a
+# per-model total compares different work. Grouping by tier as well is what makes the two rows of one
+# tier comparable. Tier is not in the runner journal; it is joined from the catalog journals.
+$tierById = @{}
+foreach ($catalogName in @('PLAN/spec-catalog.jsonl', 'PLAN/spec-catalog-archive.jsonl')) {
+    $catalogPath = Join-Path $Root $catalogName
+    if (-not (Test-Path -LiteralPath $catalogPath)) { continue }
+    foreach ($line in (Get-Content -LiteralPath $catalogPath)) {
+        if (-not $line.Trim()) { continue }
+        try { $record = $line | ConvertFrom-Json } catch { continue }
+        if ($record.id -and $null -ne $record.tier) { $tierById[[string]$record.id] = [string]$record.tier }
+    }
+}
+
+$runsById = @{}
+foreach ($run in ($allRuns | Sort-Object -Property Finished)) {
+    if (-not $run.Id) { continue }
+    if (-not $runsById.ContainsKey($run.Id)) { $runsById[$run.Id] = [System.Collections.Generic.List[object]]::new() }
+    $runsById[$run.Id].Add($run)
+}
+
+function Test-ReturnedAfter {
+    param([object] $Run)
+    if (-not $Run.Moved -or -not $runsById.ContainsKey($Run.Id)) { return $false }
+    $next = $runsById[$Run.Id] | Where-Object { $_.Finished -gt $Run.Finished } | Select-Object -First 1
+    return [bool]($next -and $next.StatusBefore -in @('Partial', 'Broken'))
+}
+
+$outcomeRows = @()
+foreach ($group in @($runRows | Where-Object { $_.Model } | Group-Object -Property { '{0}|{1}' -f $_.Model, $(if ($tierById.ContainsKey($_.Id)) { $tierById[$_.Id] } else { '?' }) })) {
+    $parts = $group.Name -split '\|'
+    $moved = @($group.Group | Where-Object { $_.Moved }).Count
+    $minutes = @($group.Group | Where-Object { $null -ne $_.Minutes } | ForEach-Object { $_.Minutes } | Sort-Object)
+    $median = if ($minutes.Count -gt 0) { $minutes[[int][math]::Floor(($minutes.Count - 1) / 2)] } else { $null }
+    $outcomeRows += [pscustomobject]@{
+        Model         = $parts[0]
+        Tier          = $parts[1]
+        Runs          = $group.Count
+        MovedShare    = [math]::Round(100.0 * $moved / $group.Count, 1)
+        MedianMinutes = $median
+        Returned      = @($group.Group | Where-Object { Test-ReturnedAfter $_ }).Count
+    }
+}
+$outcomeRows = @($outcomeRows | Sort-Object -Property Tier, Model)
 
 # A policy that is declared but never ran is not an inconclusive measurement - it is an absent one,
 # and the two read identically in any report that only sums the rows it finds.
@@ -327,6 +386,7 @@ if ($Json) {
         strongModel     = $StrongModel
         policies        = $policyRows
         policyWarnings  = $policyWarnings
+        outcomes        = $outcomeRows
         holdThreshold   = $holdThreshold
         holds           = $holdRows
     } | ConvertTo-Json -Depth 4
@@ -363,6 +423,13 @@ if ($policyRows.Count -gt 0) {
     Write-Host '  model by policy and instance:'
     foreach ($row in $policyRows) {
         Write-Host ("      {0} / {1} : {2} run(s) - {3}" -f $row.Policy, $row.Instance, $row.Runs, $row.Models)
+    }
+}
+if ($outcomeRows.Count -gt 0) {
+    Write-Host '  outcome by model and tier (returned = next run found it Partial or Broken):'
+    foreach ($row in $outcomeRows) {
+        Write-Host ("      tier {0} / {1} : {2} run(s), {3} % moved, median {4} min, {5} returned" -f
+            $row.Tier, $row.Model, $row.Runs, $row.MovedShare, (Format-Value $row.MedianMinutes), $row.Returned)
     }
 }
 foreach ($warning in $policyWarnings) {

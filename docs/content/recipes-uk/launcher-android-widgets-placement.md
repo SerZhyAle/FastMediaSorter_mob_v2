@@ -6,7 +6,6 @@ description: Як розмістити ґаджет чи один із відж�
 category: "Лаунчер: Ґаджети і віджети"
 category_slug: launcher
 ticket: S2959
-flavor: Standard і noLegal
 recipe_number: "02"
 canonical_url: documentation/launcher/android-widgets-placement-uk.html
 why: |
@@ -108,5 +107,7 @@ next_recipes:
     badge_type: docs
     description: Переміщуйте, змінюйте розмір і згортайте, розподіляйте елементи по кількох екранах і блокуйте розкладку.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Ґаджету](term:gadget) потрібне добре місце і правильний розмір. Ця сторінка показує, як розмістити ґаджети та віджети застосунку на [робочому столі](term:desktop) лаунчера, дозволити столу звільнити місце, змінити їхній розмір, вибрати щільність їхньої картки, і почати знову зі свіжим набором.

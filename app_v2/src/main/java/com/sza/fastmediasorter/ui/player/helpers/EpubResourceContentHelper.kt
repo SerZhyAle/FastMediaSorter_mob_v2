@@ -5,6 +5,7 @@ import android.webkit.WebResourceResponse
 import io.documentnode.epub4j.domain.Book
 import io.documentnode.epub4j.domain.Resource
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import timber.log.Timber
 import java.io.ByteArrayInputStream
 
@@ -31,6 +32,9 @@ class EpubResourceContentHelper {
                </script>"""
         )
 
+        // In the head so the listener exists before the body's images start to load and fail.
+        doc.head().prepend(MISSING_IMAGE_SCRIPT)
+        doc.head().prepend(MISSING_IMAGE_CSS)
         doc.head().prepend(
             EpubStyleManager.generateCss(
                 theme = style.theme,
@@ -70,7 +74,9 @@ class EpubResourceContentHelper {
         Timber.d("EPUB: Found ${images.size} <img> tags in chapter")
         for (img in images) {
             val src = img.attr("src")
-            if (src.isNotBlank() && !src.startsWith("data:") && !src.startsWith("http")) {
+            if (src.isBlank()) {
+                img.replaceWith(missingImagePlaceholder(img.attr("alt")))
+            } else if (!src.startsWith("data:") && !src.startsWith("http")) {
                 convertResourceToDataUri(img, "src", src, resource, book)
             }
         }
@@ -123,6 +129,7 @@ class EpubResourceContentHelper {
                 Timber.d("EPUB: Converted image '$src' to data URI (${imageData.size} bytes, mime=${imageResource.mediaType?.name ?: "image/jpeg"})")
             } else {
                 Timber.w("EPUB: Image resource not found after all attempts: original='$src'")
+                element.replaceWith(missingImagePlaceholder(element.attr("alt")))
                 if (src.contains("cover", ignoreCase = true)) {
                     val imageResources = book.resources.all.filter { it.mediaType?.name?.startsWith("image/") == true }
                     Timber.w("EPUB: Available images in EPUB: ${imageResources.map { it.href }.joinToString()}")
@@ -130,7 +137,19 @@ class EpubResourceContentHelper {
             }
         } catch (e: Exception) {
             Timber.e(e, "EPUB: Failed to process image '$src'")
+            element.replaceWith(missingImagePlaceholder(element.attr("alt")))
         }
+    }
+
+    /** ICON-EXTERNAL rule 3: an image inside the book that cannot be shown is `content.image` plus its alt text. */
+    private fun missingImagePlaceholder(alt: String): Element {
+        val box = Element("span").addClass(MISSING_IMAGE_CLASS).attr("role", "img")
+        box.append(IMAGE_GLYPH_SVG)
+        if (alt.isNotBlank()) {
+            box.attr("aria-label", alt)
+            box.appendElement("span").text(alt)
+        }
+        return box
     }
 
     private fun dataUriFor(resource: Resource): String {
@@ -212,5 +231,30 @@ class EpubResourceContentHelper {
             }
         }
         return resolvedParts.joinToString("/")
+    }
+
+    private companion object {
+        const val MISSING_IMAGE_CLASS = "fms-img-missing"
+
+        // The ic_image path, so the reader draws the same content.image glyph as the rest of the app.
+        const val IMAGE_GLYPH_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" " +
+            "aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M21,19V5c0,-1.1 -0.9,-2 -2,-2H5" +
+            "c-1.1,0 -2,0.9 -2,2v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2zM8.5,13.5l2.5,3.01L14.5,12" +
+            "l4.5,6H5l3.5,-4.5z\"/></svg>"
+
+        const val MISSING_IMAGE_CSS = "<style>." + MISSING_IMAGE_CLASS + "{display:inline-flex;" +
+            "flex-direction:column;align-items:center;max-width:100%;padding:8px;opacity:0.7;}" +
+            "." + MISSING_IMAGE_CLASS + " svg{width:48px;height:48px;}" +
+            "." + MISSING_IMAGE_CLASS + " span{font-size:0.85em;text-align:center;}</style>"
+
+        // Error events do not bubble, so only a capture-phase listener on the document sees every <img>
+        // that was found in the book but failed to decode, or whose intercepted asset never arrived.
+        const val MISSING_IMAGE_SCRIPT = "<script>document.addEventListener('error',function(e){" +
+            "var t=e.target;if(!t||t.tagName!=='IMG')return;" +
+            "var b=document.createElement('span');b.className='" + MISSING_IMAGE_CLASS + "';" +
+            "b.setAttribute('role','img');b.innerHTML='" + IMAGE_GLYPH_SVG + "';" +
+            "var a=t.getAttribute('alt');if(a){b.setAttribute('aria-label',a);" +
+            "var l=document.createElement('span');l.textContent=a;b.appendChild(l);}" +
+            "t.replaceWith(b);},true);</script>"
     }
 }

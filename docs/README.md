@@ -4,6 +4,8 @@ title: "FastMediaSorter v2"
 permalink: /docs/README.html
 ---
 
+<sub class="doc-stamp">26.10.10 14:48</sub>
+
 # FastMediaSorter v2 🚀
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple?style=flat-square&logo=kotlin)
@@ -18,6 +20,8 @@ Installing the APK directly? Android warns about a package it has not seen befor
 
 **📘 User documentation:** [step-by-step guides for every feature, with search](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/)
 
+**🔁 Media exchange portal:** [which way fits you to move and open media between your own phone, watch, TV, VR headset and Windows PC](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/)
+
 ## About the Project
 
 **FastMediaSorter v2** is a complete shell for an Android device. It takes over the home screen, plays your media, opens live streams, launches your apps, talks to your watch, keeps an eye on the device, and manages every file you own - in local folders, on network drives (SMB, SFTP, FTP) and in cloud storage (Google Drive, OneDrive, Dropbox).
@@ -28,9 +32,9 @@ This manual now follows the same public vocabulary as the canonical feature inve
 
 ## Windows Version 🖥️
 
-Looking for a desktop solution? Check out **Fast Media Sorter for Windows** (formerly FastMediaSorter LITE) - a lightweight Windows Forms application for quickly sorting, viewing, and managing image and video files:
+Looking for a desktop solution? Check out **Fast Media Sorter & Sharing for Windows** - a lightweight Windows Forms application for quickly sorting, viewing, and managing image and video files:
 
-🔗 **[Fast Media Sorter for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
+🔗 **[Fast Media Sorter & Sharing for Windows](https://github.com/SerZhyAle/FastMediaSorter_Lite)**
 
 📄 [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html) - share your PC folders with the app over SFTP (companion import / QR scan on the phone).
 
@@ -154,7 +158,7 @@ Full-size images:
 - 📄 **Document Viewer:** Built-in viewer for Text files (.txt, .md, .log, .json, .xml) and PDF documents with zoom, pan, and gesture navigation.
 - 📚 **EPUB E-Book Reader:** Native EPUB reader with chapter navigation, table of contents, font size control, in-book search, and dark/light theme support. Works with local and network files.
 - 📥 **Download & Open:** Download network files (SMB/SFTP/FTP) to local storage and open them in external apps with progress tracking.
-- 🌐 **Auto-Translation:** Instantly translate text from images, PDFs, and text files fully on-device: **Tesseract** reads the text in Latin and Cyrillic scripts, and Google ML Kit translates it. Supports both standard and **lens-style overlay mode** for in-place translations.
+- 🌐 **Auto-Translation:** Instantly translate text from images, PDFs, and text files fully on-device: **Tesseract** reads the text in Latin and Cyrillic scripts, and Google ML Kit translates it. Shows the translation either as separate text or as **blocks painted over the original text** right on the image.
 - 📱 **Widget Support:** Over a dozen home-screen widgets covering a wide range - resource shortcuts, media players, camera capture, calculators, scheduled tasks, favorites, mini-games, and more. Browse the full selection in your launcher's widget picker.
 - 🏠 **Home-Screen Mode:** Let the app be your device's home screen (Standard and noLegal builds): its own desktop with resource shortcuts that open straight into browse, slideshow or play, resizable gadgets like a clock and weather, contact cells that need no contacts permission, an app grid, and a taskbar. Turn it off at any time and Android restores your previous home screen.
 - ⏰ **Scheduled File Operations:** Automate file operations (Copy/Move/Delete) using time-based rules with flexible filters and background execution.
@@ -232,7 +236,7 @@ Downloads folder cluttered? Open it in the source panel, set up destination butt
 
 Install FastMediaSorter on your Android-powered car stereo or head unit. Add USB drive or SD card music folders - or use the built-in **All Music** virtual resource to instantly access your entire collection with zero setup. Hardware media buttons (steering wheel controls, volume knobs) work seamlessly via the background audio service: play/pause, next/previous track, all without touching the screen. The app remembers playback position and resumes automatically on startup.
 
-With the **Streams** screen enabled, the same head unit also plays internet radio stations directly over mobile data or Wi-Fi - no separate TuneIn or RadioDroid app needed. Add any radio URL, or import a curated station catalog from the Extensions screen. The sticky mini-control shows the current ICY track name while the station list stays visible.
+With the **Streams** screen enabled, the same head unit also plays internet radio stations directly over mobile data or Wi-Fi - no separate radio app needed. Add any radio URL, or import a curated station catalog from the Extensions screen. The sticky mini-control shows the current ICY track name while the station list stays visible.
 
 ### 11. 📺 Media Center on an Android TV Box
 

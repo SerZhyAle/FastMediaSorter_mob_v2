@@ -3,6 +3,8 @@ layout: default
 title: "ٹیبلٹ پر ڈیجیٹل فوٹو فریم - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-ur.html
 ---
+<sub class="doc-stamp">26.09.25 02:24</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # 🖼️ ٹیبلٹ پر ڈیجیٹل فوٹو فریم

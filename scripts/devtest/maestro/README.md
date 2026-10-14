@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.12 15:52</sub>
+
 # Maestro flows - repeatable device-test regression core (S0420)
 
 Maestro YAML flows drive per-tap UI automation **out of the LLM loop**. Maestro matches

@@ -6,7 +6,6 @@ description: Как упорядочить папку по имени, дате,
 category: Просмотр медиафайлов и сортировка
 category_slug: browsing
 ticket: S2948
-flavor: Все редакции
 recipe_number: "02"
 canonical_url: documentation/browsing/sorting-and-filtering-ru.html
 why: |
@@ -139,5 +138,7 @@ next_recipes:
     badge_type: docs
     description: Как приложение сохраняет высокую скорость работы и плавность прокрутки в больших папках.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Настройте порядок в [ресурсе](term:resource), отфильтруйте файлы по дате, размеру и типу с сохранением параметров для конкретной папки или мгновенно найдите нужный файл через живой поиск - прямо на верхней панели [файлового браузера](term:file-browser).

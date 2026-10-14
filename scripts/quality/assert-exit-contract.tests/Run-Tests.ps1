@@ -359,6 +359,19 @@ exit 0
     $comment = New-Fixture 'helper-old-comment.ps1' ("# exit 2 used to print $oldUpper`nWrite-Host 'helper-old-comment: COULD NOT VERIFY - no input'`nexit 2`n")
     Assert-That 'E3 gate exits 0 when the old word sits only in a comment' ((Invoke-Gate $comment) -eq 0) 'expected 0'
 
+    # --- M: rule F (S4130; the F group above is older) - NOT APPLICABLE is upper-case, the word the aggregators read. ---
+    # The lowercase form is assembled at run time: this suite is itself under rule F's scan.
+    Write-Host 'M: a lowercase not-applicable verdict spelling is refused' -ForegroundColor Yellow
+    $naLower = 'not' + ' applicable'
+    $naBad = New-Fixture 'helper-na-lower.ps1' ("Write-Host 'helper-na-lower: $naLower - switched off'`nexit 0`n")
+    Assert-That 'M1 gate exits 1 on a lowercase subject-colon not-applicable' ((Invoke-Gate $naBad) -eq 1) 'expected 1'
+    $naGood = New-Fixture 'helper-na-upper.ps1' ("Write-Host 'helper-na-upper: NOT APPLICABLE (-Switch)'`nexit 0`n")
+    Assert-That 'M2 gate exits 0 on the upper-case word' ((Invoke-Gate $naGood) -eq 0) 'expected 0'
+    $naComment = New-Fixture 'helper-na-comment.ps1' ("# used to print 'x: $naLower'`nWrite-Host 'helper-na-comment: NOT APPLICABLE'`nexit 0`n")
+    Assert-That 'M3 gate exits 0 when the lowercase form sits only in a comment' ((Invoke-Gate $naComment) -eq 0) 'expected 0'
+    $naProse = New-Fixture 'helper-na-prose.ps1' ("Write-Host 'skipped (2, $naLower to this change)'`nWrite-Host 'helper-na-prose: PASS'`nexit 0`n")
+    Assert-That 'M4 gate exits 0 for prose with no subject colon' ((Invoke-Gate $naProse) -eq 0) 'expected 0'
+
     # --- H: live regression - the real tree stays clean (all 18 S1070 sites cured). ---
     Write-Host 'H: the repository scripts/ tree has no unreachable exit site' -ForegroundColor Yellow
     & $pwshExe -NoProfile -File $gate -Gate -Quiet *> $null

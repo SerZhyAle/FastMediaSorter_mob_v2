@@ -6,7 +6,8 @@ description: How to keep a video playing in a small floating window while you us
 category: Video & Media Player
 category_slug: player
 ticket: S2951
-flavor: All editions except Photos; background listening not in Lite; watch controls in Standard and noLegal
+availability: SUPPORT_VIDEO
+availability_note: All editions except Photos; background listening not in Lite; watch controls in Standard and noLegal
 recipe_number: "03"
 canonical_url: documentation/player/pip-and-background-play.html
 why: |
@@ -103,5 +104,7 @@ next_recipes:
     badge_type: wear
     description: Play and control music from your Wear OS watch.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Keep a video going in a small floating window, choose what happens to the sound when you leave the player, and decide how the phone player and your watch work together.

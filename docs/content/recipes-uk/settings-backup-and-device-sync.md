@@ -6,7 +6,7 @@ description: Експортування та відновлення всіх н�
 category: Налаштування
 category_slug: settings
 ticket: S2962
-flavor: Усі редакції - резервне копіювання в Google Drive потребує Standard, noLegal, Photos, Legacy або VR з підключеним акаунтом Google; синхронізація з Wear OS потребує Standard або noLegal з Wear-супутником
+availability_note: Усі редакції - резервне копіювання в Google Drive потребує Standard, noLegal, Photos, Legacy або VR з підключеним акаунтом Google; синхронізація з Wear OS потребує Standard або noLegal з Wear-супутником
 recipe_number: "05"
 canonical_url: documentation/settings/backup-and-device-sync-uk.html
 why: |
@@ -104,6 +104,7 @@ tips:
   - "**Не впевнені, у якій групі шукати налаштування?** Пошук у [Як орієнтуватися в Налаштуваннях](page:settings.settings-overview-and-search) знайде його за ключовим словом."
   - "**Зробіть копію перед великою зміною.** Файл налаштувань або копія в Google Drive займає кілька секунд; зробіть її перед скиданням телефону або переходом на новий."
   - "**Шукаєте частину про ресурси?** [Поширення та резервне копіювання ваших ресурсів](page:storage.sharing-and-backing-up-resources) охоплює експорт ресурсів у файл, разом із PIN-кодами, та імпорт готової конфігурації з Windows-супутника."
+  - "**Потрібна спільна «скринька» для всіх власних пристроїв?** [Портал обміну медіа](../../docs/media-exchange-portal/clouds-uk.html) показує, як Google Drive, Dropbox і OneDrive співвідносяться з іншими способами переносити медіа між пристроями."
 next_recipes:
   - title: Приватність, збережені входи та звіти про помилки
     url: page:settings.privacy-and-network-security
@@ -121,5 +122,7 @@ next_recipes:
     badge_type: docs
     description: Усі варіанти резервного копіювання й експорту застосунку на одній сторінці.
 ---
+
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Упакуйте всі налаштування у файл або резервну копію Google Drive, експортуйте й імпортуйте лише Обране, перенесіть рівно один тип даних через єдине меню і тримайте налаштування та ресурси спарованого [годинника](term:watch) в такт із телефоном - синхронізовані в обидва боки, з тільки тими ресурсами, які ви обрали.

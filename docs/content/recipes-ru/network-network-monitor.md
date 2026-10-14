@@ -6,7 +6,6 @@ description: Как включить программу «Сетевой мон�
 category: Сеть и облачные хранилища
 category_slug: network
 ticket: S2950
-flavor: Только редакции Standard и noLegal
 recipe_number: "08"
 canonical_url: documentation/network/network-monitor-ru.html
 why: |
@@ -103,5 +102,7 @@ next_recipes:
     badge_type: docs
     description: Сетевой монитор и весь набор встроенных инструментов для смарт-часов.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Включите Сетевой монитор, следите за состоянием Wi-Fi, мобильной связи, Bluetooth и спутников с помощью графиков в реальном времени, проверяйте доступность узлов через ping и traceroute, измеряйте реальную скорость сетевых ресурсов и выносите нужные показатели в виджет домашнего экрана, гаджет лаунчера и на экран часов.

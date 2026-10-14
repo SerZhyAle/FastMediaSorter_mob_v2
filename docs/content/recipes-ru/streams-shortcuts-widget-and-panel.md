@@ -6,7 +6,6 @@ description: Как запускать любимые радиостанции �
 category: Интернет-трансляции
 category_slug: streams
 ticket: S2955
-flavor: Standard, noLegal, Legacy и VR
 recipe_number: "07"
 canonical_url: documentation/streams/shortcuts-widget-and-panel-ru.html
 why: |
@@ -123,5 +122,7 @@ next_recipes:
     badge_type: docs
     description: Вывод станции на смарт-часы или видеоканала на большой экран ТВ.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Ваши любимые станции в одном касании: быстрый [ярлык](term:shortcut) или [виджет](term:widget) **Трансляция** на рабочем столе Android либо удобная [панель трансляций](term:streams-panel) с закрепленными [каналами](term:channel) на главном экране FastMediaSorter.

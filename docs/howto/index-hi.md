@@ -3,6 +3,8 @@ layout: default
 title: "चरण-दर-चरण गाइड - FastMediaSorter v2"
 permalink: /docs/howto/index-hi.html
 ---
+<sub class="doc-stamp">26.09.25 02:47</sub>
+
 <div lang="hi" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> चरण-दर-चरण गाइड

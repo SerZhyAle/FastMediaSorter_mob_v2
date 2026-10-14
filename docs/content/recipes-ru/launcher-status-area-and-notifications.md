@@ -6,7 +6,6 @@ description: Как выбрать между системной строкой 
 category: "Лаунчер - Панель задач, меню и жесты"
 category_slug: launcher
 ticket: S2960
-flavor: Редакции Standard и noLegal
 recipe_number: "06"
 canonical_url: documentation/launcher/status-area-and-notifications-ru.html
 why: |
@@ -99,5 +98,7 @@ next_recipes:
     badge_type: docs
     description: Как отображаются системные индикаторы на затемненном ночном экране.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Область уведомлений панели задач содержит ровно столько информации, сколько вам нужно. В этом руководстве показано, как переключаться между системной строкой Android и строкой лаунчера, настраивать отдельные индикаторы, переносить их наверх экрана и контролировать уведомления приложений.

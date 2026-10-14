@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.06.20 02:06</sub>
+
 # Release waivers - <versionName>
 
 One file per release (`store_assets/release_waivers/<versionName>.md`). Each approved deviation is one block below. A waiver is valid only with a loss-class reference, an author, and a date. Only the owner may approve a waiver (S0553 §3.3, Verdict contract).

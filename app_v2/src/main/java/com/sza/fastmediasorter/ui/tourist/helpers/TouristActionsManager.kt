@@ -8,6 +8,7 @@ import android.net.Uri
 import android.widget.Toast
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.AppLaunchPanelRouteIntents
+import com.sza.fastmediasorter.ui.tourist.counter.TouristCounterActivity
 import java.util.Locale
 
 /**
@@ -71,6 +72,20 @@ class TouristActionsManager(
      */
     fun launchSos() {
         tryStartActivity(AppLaunchPanelRouteIntents.sos(context))
+    }
+
+    /**
+     * S4182: opens the stopwatch from the Tourist dashboard tile.
+     */
+    fun launchStopwatch() {
+        timber.log.Timber.d("S4182: stopwatch tile launched from tourist")
+        tryStartActivity(AppLaunchPanelRouteIntents.stopwatch(context))
+    }
+
+    /** S4184: opens the tally counter from its hero card. */
+    fun launchCounter() {
+        timber.log.Timber.d("S4184: counter screen launched from tourist hero card")
+        tryStartActivity(TouristCounterActivity.createIntent(context))
     }
 
     private fun tryStartActivity(intent: Intent, onFallback: (() -> Unit)? = null) {

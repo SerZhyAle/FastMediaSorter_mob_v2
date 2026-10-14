@@ -147,7 +147,7 @@
     <string name="welcome_streams_catalog_failed">তালিকা ডাউনলোড হয়নি - আপনি নিজেই স্ট্রিম যোগ করতে পারেন</string>
     <string name="welcome_func_gestures">অঙ্গভঙ্গি চালু করুন</string>
     <string name="welcome_func_gestures_summary">বাঁ কিনারা থেকে সোয়াইপ করুন: মেনু, স্ক্রিনশট, নীরব স্ক্রিনশট</string>
-    <string name="welcome_networks_companion_note">মিডিয়া কোনো Windows পিসিতে আছে? Fast Media Sorter for Windows কয়েকটি ক্লিকেই সেই ফোল্ডারগুলো এখানে শেয়ার করে - কোনো সার্ভার সাজানোর দরকার নেই।</string>
+    <string name="welcome_networks_companion_note">মিডিয়া কোনো Windows পিসিতে আছে? Fast Media Sorter &amp; Sharing for Windows কয়েকটি ক্লিকেই সেই ফোল্ডারগুলো এখানে শেয়ার করে - কোনো সার্ভার সাজানোর দরকার নেই।</string>
     <string name="welcome_networks_companion_button">Windows অ্যাপটি নিন</string>
     <string name="welcome_networks_example_smb">যেমন: Windows পিসির একটি শেয়ার করা ফোল্ডার, Synology বা QNAP-এর মতো NAS, কিংবা রাউটারে লাগানো USB ডিস্ক।</string>
     <string name="welcome_networks_example_ftp">যেমন: FTP-তে একটি হোস্টিং অ্যাকাউন্ট, SFTP-তে আপনার নিজের বাড়ির সার্ভার, কিংবা এমন ক্যামেরা যা ছবি FTP ফোল্ডারে পাঠায়।</string>

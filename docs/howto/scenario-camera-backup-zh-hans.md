@@ -3,6 +3,8 @@ layout: default
 title: "定时相机备份到电脑 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-zh-hans.html
 ---
+<sub class="doc-stamp">26.09.25 02:13</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 📷 定时相机备份到电脑

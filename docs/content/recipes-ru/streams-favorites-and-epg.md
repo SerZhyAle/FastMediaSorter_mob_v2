@@ -6,7 +6,6 @@ description: Как закрепить канал вверху экрана Тр
 category: Интернет-трансляции
 category_slug: streams
 ticket: S2954
-flavor: Standard, noLegal, Legacy и VR
 recipe_number: "04"
 canonical_url: documentation/streams/favorites-and-epg-ru.html
 why: |
@@ -118,5 +117,7 @@ next_recipes:
     badge_type: docs
     description: Запуск воспроизведения на панели трансляций и в полноэкранном плеере.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Держите любимые [каналы](term:channel) под рукой: закрепляйте их вверху раздела [Трансляции](term:streams-screen) в желаемом порядке и отмечайте звездочкой в общем списке [Избранного](term:favorites) приложения.

@@ -48,6 +48,7 @@ import com.sza.fastmediasorter.ui.player.helpers.BackgroundAudioExitDialog
 import com.sza.fastmediasorter.ui.player.standalone.AudioStandaloneActivity
 import com.sza.fastmediasorter.ui.streams.helpers.StreamAtlasPromptManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastImportManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamDeviceBroadcastsManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamHealthProbeManager
@@ -86,6 +87,10 @@ import javax.inject.Inject
 class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     private val viewModel: StreamsViewModel by viewModels()
+
+    // S4116: the broadcasts of the user's other devices, a section of its own beside the catalog.
+    private val deviceBroadcastsViewModel: StreamsDeviceBroadcastsViewModel by viewModels()
+    private lateinit var deviceBroadcasts: StreamDeviceBroadcastsManager
 
     // S0668: favicon sprite-atlas sidecar (atlas PNG + url->index map) persisted by the catalog import.
     @Inject
@@ -134,6 +139,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // opens this screen before its network is up does not sweep the whole visible list into timeouts.
     @Inject
     lateinit var networkContextAnalyzer: com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
+
+    // S4160: a channel imported from a broadcast descriptor resolves its endpoint list before it plays.
+    @Inject
+    lateinit var broadcastEndpoints: com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastEndpointManager
 
     // S0668: decodes a tile index into a 32 px bitmap, re-reading the atlas file on each (re)decode so
     // invalidate() after an import picks up the new atlas. Lazy so it is built after Hilt field injection.
@@ -590,6 +599,15 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             pinnedGridMode = pinnedGridModeManager,
             mainGridMode = gridModeManager,
         )
+        deviceBroadcasts = StreamDeviceBroadcastsManager(
+            section = binding.streamsDevicesSection,
+            header = binding.streamsDevicesHeader,
+            chevron = binding.ivDevicesChevron,
+            status = binding.tvDevicesStatus,
+            list = binding.streamsDevicesList,
+            onToggle = deviceBroadcastsViewModel::toggle,
+            onChosen = deviceBroadcastsViewModel::onBroadcastChosen,
+        )
     }
 
     private fun setupToolbarCommands() {
@@ -919,6 +937,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         }
         // S1502: the status bullet travels beside the list, not inside it - a finished probe repaints
         // the affected rows only, instead of re-emitting the catalog through the filter/sort pass.
+        collectOnLifecycle(deviceBroadcastsViewModel.available) { deviceBroadcasts.setAvailable(it) }
+        collectOnLifecycle(deviceBroadcastsViewModel.state) { deviceBroadcasts.render(it) }
+        collectOnLifecycle(deviceBroadcastsViewModel.messages) { messageRes ->
+            Toast.makeText(this, messageRes, Toast.LENGTH_LONG).show()
+        }
         collectOnLifecycle(viewModel.playOutcomes) { outcomes ->
             adapter.playOutcomes = outcomes
             pinnedAdapter.playOutcomes = outcomes
@@ -1169,6 +1192,20 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             // both of which funnel through onPlay.
             !viewModel.hasNetworkForStream ->
                 Toast.makeText(this, R.string.streams_error_no_network, Toast.LENGTH_SHORT).show()
+            broadcastEndpoints.needsResolution(source.broadcastEndpoints) ->
+                playBroadcast(source)
+            else -> startPlayback(source)
+        }
+    }
+
+    private fun playBroadcast(source: StreamSourceEntity) {
+        broadcastEndpoints.play(lifecycleScope, this, source.id, source.url, source.broadcastEndpoints) { url ->
+            startPlayback(source.copy(url = url))
+        }
+    }
+
+    private fun startPlayback(source: StreamSourceEntity) {
+        when {
             source.mediaKind == "AUDIO" -> {
                 if (viewModel.settings.value.streamsVisualizeAsMusic) {
                     launchVisualizerStream(source)
@@ -1225,6 +1262,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     /** S1152: record this radio station as the last active stream, so a cold start resumes it. */
     private fun persistStreamResume(source: StreamSourceEntity) {
+        // S4160: a descriptor's broadcast is handed over per broadcast and plays through a resolved address, so a
+        // cold start has nothing durable to reopen.
+        if (broadcastEndpoints.needsResolution(source.broadcastEndpoints)) return
         viewModel.persistStreamResume(source)
     }
 
@@ -1305,7 +1345,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * S1509: removal is offered only when the device had a network - otherwise the user's own dead
      * link, not the channel, is what failed, and the dialog says so instead of proposing a deletion.
      */
-    private fun showStreamUnavailable(source: StreamSourceEntity) {
+    private fun showStreamUnavailable(played: StreamSourceEntity) {
+        // S4160: removal and retry act on the stored row; a retry of a broadcast resolves from the top again.
+        val source = played.copy(url = broadcastEndpoints.storedUrl(played.id, played.url))
         // S1509: one connectivity sample drives both the recorded outcome and the dialog, so the row
         // bullet and the buttons can never disagree about what just happened.
         val hasNetwork = viewModel.hasNetworkForStream
@@ -1316,7 +1358,13 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             activity = this,
             channelTitle = source.title,
             offline = !hasNetwork,
-            onRetry = { inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled()) },
+            onRetry = {
+                if (broadcastEndpoints.needsResolution(source.broadcastEndpoints)) {
+                    playBroadcast(source)
+                } else {
+                    inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled())
+                }
+            },
             onRemove = { viewModel.onRemove(source) },
             onDismiss = {},
         )
@@ -1529,6 +1577,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     override fun onStart() {
         super.onStart()
+        deviceBroadcastsViewModel.onScreenStarted()
         // S1154: the atlas may have been installed from the Extensions Manager while this screen sat in
         // the background - pick it up on return instead of waiting for the next catalog import.
         // S1445: either container counts as installed - a fresh install carries the pack and no sheet.
@@ -1545,6 +1594,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     override fun onStop() {
+        deviceBroadcastsViewModel.onScreenStopped()
         // S0700: a backgrounded screen aborts any in-flight reachability sweep.
         cancelHealthProbe()
         // S0699: remember where the user left the list so the next open lands on the same channel.

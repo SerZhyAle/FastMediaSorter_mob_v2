@@ -52,6 +52,11 @@ jobs:
           mkdir -p q
           cp dev/Q/index.html q/index.html
           cp dev/Q/index-en.html q/index-en.html
+      - name: Publish sitemap under a second name
+        # Search Console kept "Couldn't fetch" on sitemap.xml although the file was reachable and a
+        # live URL test passed; a second address starts a fresh fetch state. Copied at build time, never
+        # committed, so it cannot drift from the generated sitemap.xml.
+        run: cp sitemap.xml sitemap-pages.xml
       - name: Setup Pages
         uses: actions/configure-pages@v6
       - name: Build with Jekyll

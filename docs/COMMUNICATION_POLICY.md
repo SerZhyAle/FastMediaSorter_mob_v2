@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.24 22:04</sub>
+
 # FastMediaSorter - UI Communication Policy
 
 **Canonical source:** This document. Mirrors: `COMMUNICATION_POLICY-ru.md`, `COMMUNICATION_POLICY-uk.md`.

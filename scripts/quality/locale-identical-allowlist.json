@@ -397,6 +397,46 @@
   "error_dialog_hide_details",
   "error_dialog_show_details",
   "error_title",
+  {
+    "key": "exchange_devices_card_login",
+    "locales": [
+      "pt"
+    ]
+  },
+  {
+    "key": "exchange_devices_device_offline",
+    "locales": [
+      "de",
+      "it"
+    ]
+  },
+  {
+    "key": "exchange_devices_device_online",
+    "locales": [
+      "de",
+      "it"
+    ]
+  },
+  {
+    "key": "exchange_devices_signin_login",
+    "locales": [
+      "pt"
+    ]
+  },
+  {
+    "key": "exchange_devices_signin_password",
+    "locales": [
+      "it"
+    ]
+  },
+  "exchange_pin_hint",
+  {
+    "key": "exchange_signin_server_summary",
+    "locales": [
+      "de",
+      "it"
+    ]
+  },
   "exif_gps_label",
   "exif_iso_label",
   "exif_orientation_normal",
@@ -1770,8 +1810,60 @@
   "tooltip_wear_companion_title",
   "tourist_detail_coordinates",
   "tourist_info_title",
+  {
+    "key": "tourist_stopwatch_action_start",
+    "locales": [
+      "de"
+    ]
+  },
   "tourist_tile_altitude",
+  {
+    "key": "tourist_tile_cadence",
+    "locales": [
+      "fr"
+    ]
+  },
   "tourist_tile_satellites",
+  {
+    "key": "tourist_tile_wind",
+    "locales": [
+      "de"
+    ]
+  },
+  {
+    "key": "tourist_unit_bpm",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt"
+    ]
+  },
+  "tourist_unit_hpa",
+  "tourist_unit_inhg",
+  {
+    "key": "tourist_unit_min_per_km",
+    "locales": [
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt"
+    ]
+  },
+  {
+    "key": "tourist_unit_min_per_mi",
+    "locales": [
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt"
+    ]
+  },
   "tourist_unit_mph",
   "unit_bitrate_kbps",
   "unit_bitrate_mbps",
@@ -1929,6 +2021,12 @@
   "wear_document_format_epub",
   "wear_document_format_pdf",
   "wear_document_format_text",
+  {
+    "key": "wear_exchange_login",
+    "locales": [
+      "pt"
+    ]
+  },
   {
     "key": "wear_face_slot_opt_date",
     "locales": [
@@ -2112,8 +2210,42 @@
   "wear_tourist_action_sos",
   "wear_tourist_app",
   "wear_tourist_metric_altitude",
+  {
+    "key": "wear_tourist_metric_cadence",
+    "locales": [
+      "fr"
+    ]
+  },
   "wear_tourist_metric_satellites",
+  {
+    "key": "wear_tourist_metric_wind",
+    "locales": [
+      "de"
+    ]
+  },
   "wear_tourist_unit_bpm",
+  "wear_tourist_unit_hpa",
+  "wear_tourist_unit_inhg",
+  {
+    "key": "wear_tourist_unit_min_per_km",
+    "locales": [
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt"
+    ]
+  },
+  {
+    "key": "wear_tourist_unit_min_per_mi",
+    "locales": [
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt"
+    ]
+  },
   "wear_tourist_unit_mph",
   "welcome_default_player_btn_audio",
   "welcome_default_player_btn_docs",

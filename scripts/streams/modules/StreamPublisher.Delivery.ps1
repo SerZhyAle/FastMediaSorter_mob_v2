@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Stream publisher module: catalog maintenance, publish-time assertions and the publisher mode dispatch.
+#>
+
+
 function Invoke-CatalogMaintenance {
     if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
     $allRows = @(Import-Csv -Path $ExistingCsv)

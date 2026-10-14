@@ -3,6 +3,8 @@ layout: default
 title: "Прослуховування музики на годиннику - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music-uk.html
 ---
+<sub class="doc-stamp">26.09.24 10:01</sub>
+
 # <img src="../icons/doc/ic_audio.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Прослуховування музики на годиннику
 
 > **Рівень:** Для початківців &bull; **Час:** ~5 хвилин &bull; **Пристрій:** Смарт-годинник Wear OS (у зв'язці з Android-телефоном)

@@ -6,7 +6,6 @@ description: Для чего предназначена каждая из сем
 category: Редакции, расширения и языки
 category_slug: flavors
 ticket: S2947
-flavor: Все редакции
 recipe_number: "01"
 canonical_url: documentation/flavors/overview-and-comparison-ru.html
 why: |
@@ -139,5 +138,7 @@ next_recipes:
     badge_type: docs
     description: Пошаговый разбор первого запуска и базовой конфигурации приложения.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 FastMediaSorter выпускается в семи [редакциях](term:edition). Они выполнены в едином стиле и предлагают одинаково удобный интерфейс, но адаптированы под разные устройства и каталоги. На этой странице подробно описаны различия редакций, их возможности, источники загрузки и перенос настроек.

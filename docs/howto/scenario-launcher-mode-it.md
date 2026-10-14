@@ -3,6 +3,8 @@ layout: default
 title: "Usa l'app come schermata Home - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-it.html
 ---
+<sub class="doc-stamp">26.09.25 02:17</sub>
+
 <div lang="it" dir="ltr" markdown="1">
 
 # 🖥️ Usa l'app come schermata Home

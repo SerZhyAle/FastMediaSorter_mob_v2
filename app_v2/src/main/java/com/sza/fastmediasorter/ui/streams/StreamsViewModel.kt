@@ -61,6 +61,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -263,6 +264,7 @@ class StreamsViewModel @Inject constructor(
             .onEach { newState ->
                 _state.update { newState.copy(isImporting = it.isImporting, displayMode = it.displayMode) }
                 dropSelectionIfCollectionGone(newState)
+                dropVanishedFacetSelection(newState)
             }
             .launchIn(viewModelScope)
     }
@@ -285,9 +287,10 @@ class StreamsViewModel @Inject constructor(
             sort = session.lastSort?.toSortMode() ?: defaults.streamsDefaultSort.toSortMode(),
             mediaKind = session.lastMediaFilter?.toMediaKind() ?: defaults.streamsDefaultMediaFilter.toMediaKind(),
             // S1054: query intentionally omitted - starts empty each open (default StreamsFilter().query).
-            // S0697: restore the facet selections + pinned-only toggle too. A restored facet value that no
-            // longer exists in the catalog simply yields an empty list with the filter shown active, so the
-            // user can clear it - no crash, no silent wrong data.
+            // S0697: restore the facet selections + pinned-only toggle too. S4133: a restored language or
+            // country the catalog no longer carries is cleared back to "All" once the facets are known
+            // (dropVanishedFacetSelection) - the vocabulary closing makes that case common, and an empty
+            // list behind an active filter stopped being an acceptable way to show it.
             category = session.lastCategory,
             topic = session.lastTopic,
             language = session.lastLanguage,
@@ -589,6 +592,30 @@ class StreamsViewModel @Inject constructor(
     private suspend fun dropSelectionIfCollectionGone(state: StreamsUiState) {
         val selected = state.filter.collectionId ?: return
         if (state.collections.none { it.id == selected }) onCollectionSelected(null)
+    }
+
+    /**
+     * S4133: a saved language or country that the catalog no longer carries - its vocabulary was closed,
+     * or a refresh dropped the last channel - would leave an empty list behind an active filter. It is
+     * cleared back to "All" and the cleared state is persisted. An empty facet list (first run, import
+     * not finished) proves nothing about the saved value, so it never clears.
+     */
+    private fun dropVanishedFacetSelection(state: StreamsUiState) {
+        val language = state.filter.language
+        val country = state.filter.country
+        val dropLanguage = language != null && state.facets.languages.isNotEmpty() &&
+            state.facets.languages.none { it.equals(language, ignoreCase = true) }
+        val dropCountry = country != null && state.facets.countries.isNotEmpty() &&
+            country !in state.facets.countries
+        if (!dropLanguage && !dropCountry) return
+        Timber.d("S4133: dropped vanished facet selection language=$dropLanguage country=$dropCountry")
+        _filter.update { current ->
+            current.copy(
+                language = if (dropLanguage) null else current.language,
+                country = if (dropCountry) null else current.country,
+            )
+        }
+        persistSession()
     }
 
     /** S0675: flip list<->grid display mode, emit it, and persist the new mode for the next screen open. */

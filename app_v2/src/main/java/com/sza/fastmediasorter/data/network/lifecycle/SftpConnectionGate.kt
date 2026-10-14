@@ -13,17 +13,15 @@ import javax.inject.Singleton
 /**
  * Lifecycle adapter wrapping [SftpConnectionPool] under [NetworkConnectionGate]. S0067 Phase 03.
  *
- * **First iteration scope:** [closeFor] (delegates to existing `disconnectAll()`)
+ * **First iteration scope:** [closeFor] (retires pooled sessions with borrow-aware disconnect)
  * and [lastRecreateMs] (delegates to [SftpRecreateTracker]).
  * [acquire] / [release] / [withRetry] throw [UnsupportedOperationException] - SFTP consumers
  * continue calling `SftpClient` / `SftpConnectionPool` directly, per the strategic non-goal
  * "non-SMB consumers continue using their existing client until per-pool refactor lands".
  *
- * **Known limitation:** `SftpConnectionPool` has no per-consumer (UI vs WORKER) tagging today,
- * so [closeFor] closes **all** sessions including any active `BACKGROUND_WORKER` ones. A future
- * follow-up ticket should add tagging to `SftpConnectionPool` so worker sessions survive
- * `onStop`. Current behaviour matches pre-S0067 lifecycle (apps already disconnect SFTP on
- * background via separate paths).
+ * `SftpConnectionPool` has no per-consumer (UI vs WORKER) tagging. [closeFor] retires all
+ * pooled sessions, but active FILE_OPS and PLAYBACK borrowers retain their session until their
+ * final release. This prevents backgrounding from interrupting a non-replayable transfer.
  */
 @Singleton
 class SftpConnectionGate @Inject constructor(
@@ -63,11 +61,11 @@ class SftpConnectionGate @Inject constructor(
         // scope, mirroring SftpConnectionPool.disconnectAllOnNetworkChange (S0727).
         applicationScope.launch {
             try {
-                client.disconnectAllPool()
-                Timber.i("[scope=lifecycle protocol=SFTP action=close_ui] all SFTP sessions disconnected")
+                client.disconnectUiPool()
+                Timber.i("[scope=lifecycle protocol=SFTP action=close_ui] SFTP retired; active borrows retained")
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
-                Timber.w(e, "SftpConnectionGate.closeFor: disconnectAll failed")
+                Timber.w(e, "SftpConnectionGate.closeFor: UI session retirement failed")
             }
         }
     }

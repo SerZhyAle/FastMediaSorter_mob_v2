@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -12,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.AutoCenteringParams
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
@@ -19,6 +21,7 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.ScalingParams
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import kotlinx.coroutines.delay
@@ -116,6 +119,36 @@ private fun WearListOpeningAnchor(state: ScalingLazyListState, index: Int, resto
 }
 
 /**
+ * Puts a list whose first item is information on its first item once real content stands under it
+ * (S4136).
+ *
+ * The opening anchor cannot do this: it is for lists that want a LATER item in the opening frame, and an
+ * anchor of 0 is "do nothing" there. Measured on the watch 2026-10-08, Streams opens 51 px past its
+ * top the first time in a process and again each time the list replaces its empty state - the rows
+ * arrive after the list is first laid out - so the counter in item 0 sat under the pinned toolbar at
+ * rest.
+ *
+ * Waits for more than one item, which the single loading row cannot satisfy, lets the layout settle, and
+ * snaps only when item 0 is still composed: a position restored by [WearListPositionMemory] has moved the
+ * list past it, and that wins.
+ *
+ * @param active whether real content is on the glass; the snap re-runs each time this turns true.
+ */
+@Composable
+fun WearListSnapToTop(state: ScalingLazyListState, active: Boolean) {
+    LaunchedEffect(active) {
+        if (!active) {
+            return@LaunchedEffect
+        }
+        snapshotFlow { state.layoutInfo.totalItemsCount }.first { it > 1 }
+        delay(ANCHOR_SETTLE_DELAY_MS)
+        if (state.layoutInfo.visibleItemsInfo.firstOrNull()?.index == 0) {
+            state.scrollToItem(0)
+        }
+    }
+}
+
+/**
  * Restores the remembered anchor once the list actually has rows, and writes the current one back when
  * the screen leaves composition - which is exactly the "back" the user performs.
  *
@@ -198,8 +231,41 @@ private fun wearListDefaultContentPadding(): PaddingValues {
 @Composable
 fun wearDialogListContentPadding(): PaddingValues = PaddingValues(
     horizontal = wearRingInset(),
-    vertical = wearBandEdgeOffset(wearMaxSquareSide())
+    vertical = wearDialogContentVerticalPadding()
 )
+
+/**
+ * Where a dialog list's first and last row stand: [wearBandEdgeOffset] of the widest row the glass admits
+ * there, paid as content padding only in the ORIGINAL view (S4136).
+ *
+ * Content padding shapes the scroll extent and nothing else - at rest the viewport still spans the whole
+ * display, so the third row of a long dialog was laid out below the bottom line, where the chord is
+ * shorter than the row (`clip-check -Strict` 243.1 px against a 227 px radius on the Streams filter
+ * sheet). The shared view therefore bounds the viewport with this band instead ([wearBoundedViewportInset])
+ * and leaves no padding inside it; the owner's original view keeps the earlier content padding.
+ */
+@Composable
+private fun wearDialogContentVerticalPadding(): Dp =
+    if (LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL) {
+        wearBandEdgeOffset(wearMaxSquareSide())
+    } else {
+        0.dp
+    }
+
+/**
+ * Clearance a list's viewport keeps from the display edge it is bounded at, so that no row is laid out
+ * where the chord is shorter than the row; see [wearDialogContentVerticalPadding] for the measurement.
+ *
+ * A dialog list takes it on both sides. A screen list with a pinned control row at the top takes it at
+ * the bottom only, because the pinned row already owns the top (S4136). Zero in the ORIGINAL view.
+ */
+@Composable
+fun wearBoundedViewportInset(): Dp =
+    if (LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL) {
+        0.dp
+    } else {
+        wearBandEdgeOffset(wearMaxSquareSide())
+    }
 
 /**
  * List state for a dialog: opens where the layout puts it, never on [WEAR_LIST_ANCHOR] (S2762).
@@ -234,7 +300,7 @@ fun WearDialogListColumn(
 ) {
     WearListColumn(
         state = state,
-        modifier = modifier,
+        modifier = modifier.padding(vertical = wearBoundedViewportInset()),
         contentPadding = contentPadding,
         verticalArrangement = verticalArrangement,
         content = content

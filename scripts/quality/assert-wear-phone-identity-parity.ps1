@@ -1,7 +1,9 @@
 #requires -Version 7.0
 <#
-  assert-wear-phone-identity-parity.ps1 (S3364)
+.SYNOPSIS
+  Asserts the phone and wear modules share one applicationId and one signing key (S3364).
 
+.DESCRIPTION
   WO-G7 check: the phone module and the wear module must share one application id
   and one signing key, or Play refuses the pair (Wear OS quality page, verified
   2026-09-21 - docs/STORE_PREPUBLISH_TOOLS_AND_REQUIREMENTS.md section 2).

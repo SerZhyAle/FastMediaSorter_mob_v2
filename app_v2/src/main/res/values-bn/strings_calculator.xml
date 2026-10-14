@@ -4,7 +4,7 @@
 <resources>
     <string name="calculator_action_add">যোগ করুন</string>
     <string name="calculator_action_backspace">ব্যাকস্পেস</string>
-    <string name="calculator_action_clear">পরিষ্কার</string>
+    <string name="calculator_action_clear">পরিষ্কার করুন</string>
     <string name="calculator_action_clear_entry">এন্ট্রি মুছে ফেলুন</string>
     <string name="calculator_action_clear_history">ইতিহাস পরিষ্কার করুন</string>
     <string name="calculator_action_decimal">দশমিক বিন্দু</string>

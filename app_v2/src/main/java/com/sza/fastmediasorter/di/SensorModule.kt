@@ -2,8 +2,14 @@ package com.sza.fastmediasorter.di
 
 import com.sza.fastmediasorter.data.sensors.DeviceSensorAvailabilityRepositoryImpl
 import com.sza.fastmediasorter.data.sensors.SensorSeriesRepositoryImpl
+import com.sza.fastmediasorter.data.tourist.TouristCounterRepositoryImpl
+import com.sza.fastmediasorter.data.tourist.TouristTripRepositoryImpl
+import com.sza.fastmediasorter.data.tourist.WatchHealthRepositoryImpl
 import com.sza.fastmediasorter.domain.repository.SensorAvailabilityRepository
 import com.sza.fastmediasorter.domain.repository.SensorSeriesRepository
+import com.sza.fastmediasorter.domain.repository.TouristCounterRepository
+import com.sza.fastmediasorter.domain.repository.TouristTripRepository
+import com.sza.fastmediasorter.domain.repository.WatchHealthRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -31,4 +37,22 @@ abstract class SensorModule {
     abstract fun bindSensorSeriesRepository(
         impl: SensorSeriesRepositoryImpl,
     ): SensorSeriesRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTouristTripRepository(
+        impl: TouristTripRepositoryImpl,
+    ): TouristTripRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTouristCounterRepository(
+        impl: TouristCounterRepositoryImpl,
+    ): TouristCounterRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindWatchHealthRepository(
+        impl: WatchHealthRepositoryImpl,
+    ): WatchHealthRepository
 }

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.13 15:34</sub>
+
 # Agent workflow
 
 A routing page. Each line points at the one place that owns the contract; nothing here restates it.
@@ -8,6 +10,7 @@ A routing page. Each line points at the one place that owns the contract; nothin
 - `/spec-all` chooses its own path: Trivial (one page, one closure, one build), Simple (compact spec with inline phases) or Full (strategic spec, tactical folder, `/spec-dev`).
 - `/spec-code` is the same pipeline without a device; the build is the only test.
 - An out-of-scope finding is parked with `/spec-draft` (`CLAUDE.md` section 3.1) and the current task resumes.
+- A ticket's `**Complexity:**` line (light, medium, hard) picks the runner's model for its next pass, and the author revises it at the two checkpoints: `.claude/rules/spec-catalog.md` "Complexity level".
 
 ## Before editing
 

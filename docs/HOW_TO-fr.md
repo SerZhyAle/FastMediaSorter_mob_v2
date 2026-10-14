@@ -3,6 +3,8 @@ layout: default
 title: "📖 Guides pratiques"
 permalink: /docs/HOW_TO-fr.html
 ---
+<sub class="doc-stamp">26.10.09 14:26</sub>
+
 <div lang="fr" dir="ltr" markdown="1">
 
 # 📖 Guides pratiques
@@ -107,7 +109,7 @@ Si une fonctionnalité est marquée « ✗ », choisissez le build **Standard** 
 
 Ces sections sont volontairement plus variées que les blocs de référence de base ci-dessous. Chaque scénario combine un chemin rapide avec du contexte, des compromis, et les situations où FastMediaSorter est particulièrement efficace.
 
-> **⭐ À la une : transférez les dossiers de votre PC vers votre téléphone en un seul scan.** Lancez le compagnon gratuit [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) sur votre PC, choisissez les dossiers contenant vos vidéos, votre musique, vos documents ou vos photos, et il affiche un code à l'écran. Sur le téléphone, appuyez sur **Ajouter**, choisissez **Importer par code-barres**, pointez la caméra vers le code - les dossiers du PC sont connectés instantanément, sans avoir à saisir d'adresse, de port ni de mot de passe. Procédure complète : [Ouvrir les dossiers du PC en scannant un code](howto/scenario-companion-share-fr.md) &bull; recette rapide : [Importer un partage Companion Windows](#how-to-import-a-windows-companion-share).
+> **⭐ À la une : transférez les dossiers de votre PC vers votre téléphone en un seul scan.** Lancez le compagnon gratuit [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) sur votre PC, choisissez les dossiers contenant vos vidéos, votre musique, vos documents ou vos photos, et il affiche un code à l'écran. Sur le téléphone, appuyez sur **Ajouter**, choisissez **Importer par code-barres**, pointez la caméra vers le code - les dossiers du PC sont connectés instantanément, sans avoir à saisir d'adresse, de port ni de mot de passe. Procédure complète : [Ouvrir les dossiers du PC en scannant un code](howto/scenario-companion-share-fr.md) &bull; recette rapide : [Importer un partage Companion Windows](#how-to-import-a-windows-companion-share).
 
 > **⌚ Montres Wear OS :** Vous utilisez une montre Wear OS ? Consultez nos guides pas à pas [Écouter de la musique sur votre montre](howto/scenario-watch-music-fr.md) et [Connecter la montre au NAS et aux partages PC](howto/scenario-watch-network-fr.md).
 
@@ -219,7 +221,7 @@ Ces sections sont volontairement plus variées que les blocs de référence de b
 
 **Quand c'est utile**
 
-- Autoradios Android, lecteurs audio et boîtiers multimédias où vous voulez la radio Internet sans application séparée (TuneIn, RadioDroid, flux réseau VLC).
+- Autoradios Android, lecteurs audio et boîtiers multimédias où vous voulez la radio Internet sans application séparée.
 - Usage IPTV léger : les flux VOD HLS/DASH se lisent dans le lecteur plein écran.
 
 **À éviter**
@@ -554,13 +556,13 @@ Ces sections sont volontairement plus variées que les blocs de référence de b
 
 ## Comment importer un partage Companion Windows {#how-to-import-a-windows-companion-share}
 
-**Ce que c'est :** le compagnon est une fonctionnalité de [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) (anciennement FastMediaSorter LITE) - le trieur de médias Windows gratuit du même auteur. Il partage les dossiers PC choisis via SFTP et exporte une connexion prête à l'emploi - aucune configuration manuelle de serveur, aucune saisie d'hôte/port/clé sur le téléphone. Vous l'apportez au téléphone en **scannant un code QR** sur l'écran du PC, ou en **important un fichier `.fmscfg`**.
+**Ce que c'est :** le compagnon est une fonctionnalité de [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) - le trieur de médias Windows gratuit du même auteur. Il partage les dossiers PC choisis via SFTP et exporte une connexion prête à l'emploi - aucune configuration manuelle de serveur, aucune saisie d'hôte/port/clé sur le téléphone. Vous l'apportez au téléphone en **scannant un code QR** sur l'écran du PC, ou en **important un fichier `.fmscfg`**.
 
 **Disponible dans :** Standard, Photos, Legacy, XR/noLegal (le scan de code-barres nécessite un appareil photo ; la méthode par fichier fonctionne partout, y compris en VR)
 
 > Vous préférez une version guidée avec captures d'écran ? Consultez le guide de scénario [Ouvrir les dossiers du PC en scannant un code](howto/scenario-companion-share-fr.md).
 
-**Obtenir Fast Media Sorter for Windows :**
+**Obtenir Fast Media Sorter & Sharing for Windows :**
 
 - Site web : [serzhyale.github.io/FastMediaSorter_Lite](https://serzhyale.github.io/FastMediaSorter_Lite/)
 - Publier des dossiers (guide) : [Comment publier des dossiers PC vers Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html)
@@ -570,7 +572,7 @@ Ces sections sont volontairement plus variées que les blocs de référence de b
 
 **Sur le PC :**
 
-1. Installez et lancez **Fast Media Sorter for Windows**, ouvrez l'onglet **Partage** dans les paramètres.
+1. Installez et lancez **Share Manager - Fast Media Sorter & Sharing**, ouvrez l'onglet **Partage** dans les paramètres.
 2. Choisissez le(s) dossier(s) à partager - l'application démarre le serveur SFTP, génère les clés et configure le démarrage automatique toute seule.
 3. Elle affiche un **code QR** à l'écran. Elle peut aussi **enregistrer un .fmscfg** si vous préférez un fichier.
 
@@ -1042,7 +1044,7 @@ Les fichiers supprimés vont dans des dossiers `.trash/` et y restent jusqu'à c
 
 **Disponible pour :** fichiers SMB, SFTP, FTP
 
-**Cas d'usage :** vous voulez ouvrir un document, une photo ou une vidéo depuis votre lecteur réseau dans une application externe spécialisée (par ex. MS Office, Adobe Acrobat, VLC Player).
+**Cas d'usage :** vous voulez ouvrir un document, une photo ou une vidéo depuis votre lecteur réseau dans une application externe spécialisée (par ex. une suite bureautique, un lecteur PDF ou un lecteur vidéo).
 
 **Étapes :**
 
@@ -1077,8 +1079,8 @@ Les fichiers supprimés vont dans des dossiers `.trash/` et y restent jusqu'à c
 **Exemples d'usage :**
 
 - Modifier un document réseau dans MS Word
-- Lire une vidéo réseau dans VLC Player
-- Consulter un PDF réseau dans Adobe Acrobat
+- Lire une vidéo réseau dans un lecteur vidéo dédié
+- Consulter un PDF réseau dans un lecteur PDF dédié
 - Partager une photo réseau via une application de messagerie
 
 ---

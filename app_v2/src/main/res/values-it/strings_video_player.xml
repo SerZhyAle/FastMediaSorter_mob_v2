@@ -6,7 +6,7 @@
     <string name="playback_control_brightness_value">Luminosità: %1$+d%%</string>
     <string name="playback_control_done">Fatto</string>
     <string name="playback_control_hue_value">TONALITÀ: %1$+d°</string>
-    <string name="playback_control_mute">Silenzioso</string>
+    <string name="playback_control_mute">Muto</string>
     <string name="playback_control_mute_active">Silenziato</string>
     <string name="playback_control_mute_inactive">Attiva l\'audio</string>
     <string name="playback_control_no_audio_tracks">Nessuna traccia audio disponibile</string>

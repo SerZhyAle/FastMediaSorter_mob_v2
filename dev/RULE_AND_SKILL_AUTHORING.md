@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.05 21:26</sub>
+
 # Authoring Rules, Gates, Commands & Skills
 
 How to add or evolve an agent-facing directive (a `CLAUDE.md` rule, a `scripts/quality/assert-*.ps1` gate, a `.claude/commands/*.md` slash command, a `.claude/skills/*/SKILL.md`, or a `.claude/agents/*.md`) so it actually changes agent behavior instead of adding noise.

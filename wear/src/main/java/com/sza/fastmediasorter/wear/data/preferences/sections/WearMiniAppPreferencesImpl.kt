@@ -90,4 +90,12 @@ class WearMiniAppPreferencesImpl @Inject constructor(
     override suspend fun setStopwatchSession(value: String?) {
         writeNullableString(WearPreferenceKeys.STOPWATCH_SESSION, value)
     }
+
+    override val touristTrip: Flow<String?> = store.data.map { prefs ->
+        prefs[WearPreferenceKeys.TOURIST_TRIP]
+    }
+
+    override suspend fun setTouristTrip(value: String?) {
+        writeNullableString(WearPreferenceKeys.TOURIST_TRIP, value)
+    }
 }

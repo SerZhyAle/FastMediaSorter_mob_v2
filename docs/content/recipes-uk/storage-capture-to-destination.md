@@ -6,7 +6,7 @@ description: Як зняти фото чи відео, або записати �
 category: Джерела, призначення та операції з файлами
 category_slug: storage
 ticket: S2949
-flavor: Standard, noLegal, Legacy і VR (віджет Швидкий диктофон - Standard і Legacy)
+availability_note: Standard, noLegal, Legacy і VR (віджет Швидкий диктофон - Standard і Legacy)
 recipe_number: "10"
 canonical_url: documentation/storage/capture-to-destination-uk.html
 why: |
@@ -120,5 +120,7 @@ next_recipes:
     badge_type: other
     description: Переносьте денні фото й нотатки на їхнє місце щоночі.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Знімайте фото чи відео, або записуйте голосову нотатку, зсередини папки, щоб вона зберіглася саме там - на телефоні, в мережевій папці чи в хмарі - і користуйтеся віджетом Швидкий диктофон і буфером обміну для ще швидших нотаток.

@@ -3,6 +3,8 @@ layout: default
 title: "Open Your PC's Folders by Scanning One Code - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share.html
 ---
+<sub class="doc-stamp">26.09.24 06:25</sub>
+
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Open Your PC's Folders by Scanning One Code
 
 > **Level:** Beginner &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (Lite has no network sources; scanning needs a camera, the file method works everywhere)
@@ -17,7 +19,7 @@ You run a small helper program on your Windows PC, pick the folders with your vi
 
 ## The Helper Program
 
-The "companion" is a built-in feature of **[Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** (formerly FastMediaSorter LITE) - the free Windows media sorter from the same author. When you share folders with it, it:
+The "companion" is a built-in feature of **[Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** - the free Windows media sorter from the same author. When you share folders with it, it:
 
 - Starts a private SFTP server for just those folders on your PC.
 - Generates its own keys and sets up autostart, so the share is there next time too.
@@ -35,7 +37,7 @@ The "companion" is a built-in feature of **[Fast Media Sorter for Windows](https
 
 ## What You Will Need
 
-- A Windows PC with **Fast Media Sorter for Windows** installed
+- A Windows PC with **Fast Media Sorter & Sharing for Windows** installed
 - Your phone and PC on the **same Wi-Fi network** (same router)
 - For the fastest path: a phone **camera** to scan the code (a file-based path is available if the camera is not)
 
@@ -43,7 +45,7 @@ The "companion" is a built-in feature of **[Fast Media Sorter for Windows](https
 
 ## Step 1 - Share the Folders on the PC
 
-1. Install and run **Fast Media Sorter for Windows**, then open the **Share** tab in settings.
+1. Install and run **Share Manager - Fast Media Sorter & Sharing**, then open the **Share** tab in settings.
 2. Pick the folder(s) you want on the phone - Movies, Music, Documents, Photos, anything.
 3. The app starts the SFTP server, generates the keys, and sets up autostart on its own. Nothing else to configure.
 4. It now shows a **QR code** on the PC screen. Leave that window open for Step 2.

@@ -6,7 +6,6 @@ description: Как настроить время отключения экра�
 category: "Лаунчер - Панель задач, меню и жесты"
 category_slug: launcher
 ticket: S2960
-flavor: Редакции Standard и noLegal
 recipe_number: "09"
 canonical_url: documentation/launcher/screen-dimming-and-timeout-ru.html
 why: |
@@ -91,5 +90,7 @@ next_recipes:
     badge_type: docs
     description: Навигация по параметрам лаунчера и сброс рабочего стола к исходному виду.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Рабочий стол [лаунчера](term:launcher) умеет автоматически выключать экран при бездействии, предупреждать мягким затемнением и показывать аккуратные часы в спящем режиме. В этом руководстве рассмотрены настройка таймаута, ночной экран и поведение при зарядке.

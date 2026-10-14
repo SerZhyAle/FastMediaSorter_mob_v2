@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Library: parses Android string format specifiers and compares their contract across locales.
+#>
+
+
 Set-StrictMode -Version Latest
 
 $script:AndroidStringFormatFlagChars = '-#+ 0,(<'

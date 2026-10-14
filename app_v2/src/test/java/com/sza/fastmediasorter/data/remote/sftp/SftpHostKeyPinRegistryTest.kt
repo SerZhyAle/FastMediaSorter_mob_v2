@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.remote.sftp
 
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpRendezvousDirectory
 import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.ResourceType
 import io.mockk.coEvery
@@ -9,6 +10,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,11 +29,13 @@ import java.util.Base64
  * S3415: every runtime SFTP session must carry the resource's stored host-key pin, whichever address
  * of the resource it dials, and a pin the caller supplied must survive untouched.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class SftpHostKeyPinRegistryTest {
 
     private val scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher())
     private val dao = mockk<ResourceDao>()
     private val mdns = mockk<CompanionMdnsDiscovery>()
+    private val rendezvous = mockk<SftpRendezvousDirectory> { every { fingerprintForEndpoint(any()) } returns null }
     private val resources = MutableStateFlow<List<ResourceEntity>>(emptyList())
 
     init {
@@ -59,7 +63,7 @@ class SftpHostKeyPinRegistryTest {
     private fun info(host: String, port: Int = 22, pin: String? = null) =
         SftpClient.SftpConnectionInfo(host = host, port = port, username = "u", expectedFingerprint = pin)
 
-    private fun registry() = SftpHostKeyPinRegistry(dao, mdns, scope)
+    private fun registry() = SftpHostKeyPinRegistry(dao, mdns, scope, rendezvous)
 
     private fun pinned(registry: SftpHostKeyPinRegistry, request: SftpClient.SftpConnectionInfo): String? =
         runBlocking { withTimeout(TIMEOUT_MS) { registry.withPin(request) } }.expectedFingerprint

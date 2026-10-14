@@ -94,6 +94,13 @@ layout: null
           "name": "Сопряжение с другим устройством по QR-коду",
           "text": "При работающем сервере нажмите Показать код сопряжения, чтобы отобразить QR-код («Код сопряжения: отсканируйте его в FastMediaSorter на другом устройстве»), и Скрыть код сопряжения, чтобы убрать его. Код генерируется заново при каждом показе, поэтому всегда содержит актуальный IP-адрес и пароль сервера. На втором устройстве откройте Добавить ресурс, карточку SFTP / FTP и нажмите Импорт по штрихкоду - встроенный сканер распознает как коды Windows-компаньона, так и этот код. Появится подтверждение: «Параметры подключения заполнены из кода сопряжения - проверьте и сохраните». Хост, порт, имя пользователя, пароль или ключ, а также отпечаток ключа хоста будут заполнены автоматически с предложенным именем «Сервер устройства 192.168.1.42». Проверьте и сохраните: отпечаток ключа закрепляется с первого сканирования, предотвращая подмену узла в дальнейшем. При сканировании поврежденного кода приложение предупредит: «Этот код не является корректным кодом сопряжения FastMediaSorter - откройте его снова на телефоне-сервере и отсканируйте повторно».",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server-ru.html#pair-by-qr"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 6,
+          "name": "Доступ к телефону из другой сети",
+          "text": "В той же карточке раздел Доступ отовсюду регистрирует сервер телефона на сервере обмена, чтобы устройства из любой сети подключались к нему без VPN и проброса портов. Включите Сервер обмена - «Доступ к этому серверу из любой сети через ваш сервер обмена», - заполните Адрес сервера обмена, Порт сервера обмена и Пароль сервера обмена (не короче 10 символов, с заглавными и строчными латинскими буквами и цифрами) и нажмите Сохранить сервер. Строка состояния сменится с «Доступен только в локальной сети» на «Доступен отовсюду через» с именем сервера, как только сервер обмена примет телефон. По умолчанию раздел выключен. Показанный после этого код сопряжения несёт и сервер обмена: телефон, отсканировавший его, переходит на соединение через ретранслятор, если ни один прямой адрес не отвечает, и по-прежнему проверяет тот же ключ сервера. Новая ссылка доступа делает так, что коды, выданные раньше, больше не открывают этот сервер. Публичного сервера обмена пока нет; что работает уже сегодня - на портале обмена медиа. На обоих устройствах выполнен вход в Google Диск? Включите в той же карточке Доступ через Google Диск - по умолчанию он выключен. Пока сервер работает, телефон тогда хранит свой текущий адрес и данные для входа в закрытой папке приложения на вашем Диске, поэтому другое устройство в том же аккаунте Google после смены сети открывает привязанную папку по новому адресу без повторного сканирования кода - если вообще может достучаться до телефона.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server-ru.html#reach-from-anywhere"
         }
       ]
     }
@@ -134,19 +141,21 @@ layout: null
 </head>
 
 <body class="doc-body">
+<div class="doc-stamp">26.10.10 14:45</div>
+    <a class="doc-skip-link" href="#main-content">Перейти к содержимому</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
-                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index-ru.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div class="doc-header-start">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7h2v2H3v-2zm0 4h2v2H3v-2zm0 4h2v2H3v-2zm4-8h14v2H7V7zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/></svg></button>
+                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="../index-ru.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <span>Поиск...</span>
                 <kbd>/</kbd>
             </button>
@@ -168,8 +177,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../../index-ru.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Тема</span></button>
             </nav>
         </div>
     </header>
@@ -385,7 +394,7 @@ layout: null
                     <ul class="doc-sidebar-list">
                         <li><a href="../network/smb-samba-shares-ru.html" class="doc-sidebar-link">Подключение ресурсов SMB</a></li>
                         <li><a href="../network/sftp-ftp-servers-ru.html" class="doc-sidebar-link">Подключение SFTP и FTP</a></li>
-                        <li><a href="../network/windows-companion-ru.html" class="doc-sidebar-link">Fast Media Sorter for Windows</a></li>
+                        <li><a href="../network/windows-companion-ru.html" class="doc-sidebar-link">Fast Media Sorter & Sharing</a></li>
                         <li><a href="../network/phone-as-sftp-server-ru.html" class="doc-sidebar-link active">Раздача папок с этого телефона</a></li>
                         <li><a href="../network/cloud-google-drive-ru.html" class="doc-sidebar-link">Интеграция с Google Диском</a></li>
                         <li><a href="../network/cloud-dropbox-onedrive-ru.html" class="doc-sidebar-link">Dropbox и OneDrive</a></li>
@@ -415,11 +424,12 @@ layout: null
             <!-- Main Recipe Content -->
             <main class="doc-content" id="main-content">
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <div class="doc-meta-row">
                     <span class="doc-badge doc-badge-standard">Сеть и облачные хранилища</span>
-                    <span class="doc-badge doc-badge-standard">Все редакции, кроме Lite; требуется Android 8.0 или новее.</span>
+                    <span class="doc-edition-badge">Standard, noLegal, Photos, Legacy, VR и FOSS</span>
                     <span class="doc-badge doc-badge-sm">Recipe #04</span>
                 </div>
+                <p class="doc-availability-note">Все редакции, кроме Lite; требуется Android 8.0 или новее.</p>
 
                 <h1>Использование телефона в качестве SFTP-сервера</h1>
 
@@ -433,14 +443,14 @@ layout: null
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
+                        <span class="doc-card-prereq-icon"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
                         <span>Перед началом: Что вам понадобится</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> Приложение в любой <span class="doc-link-term" data-term="edition">редакции</span>, кроме Lite, на Android 8.0 (Oreo) или новее.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Папки для раздачи, выбранные через стандартный системный диалог Android.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Пароль (приложение может сгенерировать его автоматически) или открытая часть SSH-ключа подключающегося пользователя.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Для быстрого сопряжения по QR-коду: камера на подключающемся устройстве.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Приложение в любой <span class="doc-link-term" data-term="edition">редакции</span>, кроме Lite, на Android 8.0 (Oreo) или новее.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Папки для раздачи, выбранные через стандартный системный диалог Android.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Пароль (приложение может сгенерировать его автоматически) или открытая часть SSH-ключа подключающегося пользователя.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Для быстрого сопряжения по QR-коду: камера на подключающемся устройстве.</li>
                     </ul>
                 </div>
 
@@ -515,6 +525,19 @@ layout: null
                     </div>
                 </div>
 
+                <!-- Step 6 -->
+                <div class="doc-step" id="reach-from-anywhere">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">6</span>
+                        <h2 class="doc-step-title">Доступ к телефону из другой сети</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>В той же карточке раздел <strong>Доступ отовсюду</strong> регистрирует сервер телефона на сервере обмена, чтобы устройства из любой сети подключались к нему без VPN и проброса портов. Включите <strong>Сервер обмена</strong> - «Доступ к этому серверу из любой сети через ваш сервер обмена», - заполните <strong>Адрес сервера обмена</strong>, <strong>Порт сервера обмена</strong> и <strong>Пароль сервера обмена</strong> (не короче 10 символов, с заглавными и строчными латинскими буквами и цифрами) и нажмите <strong>Сохранить сервер</strong>. Строка состояния сменится с «Доступен только в локальной сети» на «Доступен отовсюду через» с именем сервера, как только сервер обмена примет телефон. По умолчанию раздел выключен.</p>
+                        <p>Показанный после этого код сопряжения несёт и сервер обмена: телефон, отсканировавший его, переходит на соединение через ретранслятор, если ни один прямой адрес не отвечает, и по-прежнему проверяет тот же ключ сервера. <strong>Новая ссылка доступа</strong> делает так, что коды, выданные раньше, больше не открывают этот сервер. Публичного сервера обмена пока нет; что работает уже сегодня - на <a href="../../docs/media-exchange-portal/exchange-server-ru.html" class="doc-link">портале обмена медиа</a>.</p>
+                        <p><strong>На обоих устройствах выполнен вход в Google Диск?</strong> Включите в той же карточке <strong>Доступ через Google Диск</strong> - по умолчанию он выключен. Пока сервер работает, телефон тогда хранит свой текущий адрес и данные для входа в закрытой папке приложения на вашем Диске, поэтому другое устройство в том же аккаунте Google после смены сети открывает привязанную папку по новому адресу без повторного сканирования кода - если вообще может достучаться до телефона.</p>
+                    </div>
+                </div>
+
                 <h2 id="outcome">Что вы получите</h2>
                 <div class="doc-callout doc-callout-note">
                         <p>Телефон открывает доступ ровно к тем папкам, которые вы указали, клиенты подключаются по надежному паролю или SSH-ключу, а сопряжение со вторым устройством с FastMediaSorter выполняется простым сканированием QR-кода без ручного ввода адресов. Одно нажатие на «Остановить» в приложении или уведомлении мгновенно завершает раздачу.</p>
@@ -523,9 +546,10 @@ layout: null
                 <h2 id="tips">Советы и решение проблем</h2>
                 <div class="doc-callout doc-callout-tip">
                     <ul>
-                        <li><strong>Хотите подключить папки с компьютера?</strong> Рецепт <a href="windows-companion-ru.html" class="doc-link">Раздача папок с ПК через Fast Media Sorter for Windows</a> описывает аналогичное сопряжение в обратную сторону.</li>
+                        <li><strong>Хотите подключить папки с компьютера?</strong> Рецепт <a href="windows-companion-ru.html" class="doc-link">Раздача папок с ПК через Fast Media Sorter & Sharing for Windows</a> описывает аналогичное сопряжение в обратную сторону.</li>
                         <li><strong>Нужно подключиться к серверу по IP-адресу вручную?</strong> Инструкция <a href="sftp-ftp-servers-ru.html" class="doc-link">Подключение серверов SFTP и FTP</a> описывает ручной ввод параметров.</li>
                         <li><strong>Впервые работаете с SSH-ключами?</strong> Официальная документация проекта <a href="https://www.openssh.com/" target="_blank" rel="noopener" class="doc-link-external">OpenSSH</a> подробно объясняет принципы работы пар ключей.</li>
+                        <li><strong>Нужен доступ к своему хранилищу не только из дома?</strong> <a href="../../docs/media-exchange-portal/home-network-ru.html" class="doc-link">Портал обмена медиа</a> по шагам разбирает способ через домашнюю сеть и говорит, что работает уже сегодня.</li>
                     </ul>
                 </div>
 
@@ -535,17 +559,17 @@ layout: null
                     <div class="doc-next-grid">
                         <a href="windows-companion-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Network</span>
-                            <h4>Раздача папок с ПК через Fast Media Sorter for Windows</h4>
+                            <h3>Раздача папок с ПК через Fast Media Sorter & Sharing for Windows</h3>
                             <p>Та же идея в обратную сторону - ПК на Windows открывает папки для этого телефона.</p>
                         </a>
                         <a href="sftp-ftp-servers-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Network</span>
-                            <h4>Подключение серверов SFTP и FTP</h4>
+                            <h3>Подключение серверов SFTP и FTP</h3>
                             <p>Ручное добавление папок серверов SFTP/FTP с авторизацией по паролю или SSH-ключу.</p>
                         </a>
                         <a href="../storage/network-and-cloud-sources-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-other">Storage</span>
-                            <h4>Добавление сетевых папок и облачных хранилищ</h4>
+                            <h3>Добавление сетевых папок и облачных хранилищ</h3>
                             <p>Полный обзор всех типов сетевых и облачных хранилищ, поддерживаемых приложением.</p>
                         </a>
                     </div>
@@ -564,6 +588,7 @@ layout: null
                         <li><a href="#choose-login" class="doc-toc-link">3. Настройте способ авторизации</a></li>
                         <li><a href="#change-while-running" class="doc-toc-link">4. Меняйте параметры без внезапного обрыва связи</a></li>
                         <li><a href="#pair-by-qr" class="doc-toc-link">5. Сопряжение с другим устройством по QR-коду</a></li>
+                        <li><a href="#reach-from-anywhere" class="doc-toc-link">6. Доступ к телефону из другой сети</a></li>
                         <li><a href="#outcome" class="doc-toc-link">Что вы получите</a></li>
                         <li><a href="#tips" class="doc-toc-link">Советы и решение проблем</a></li>
                     </ul>
@@ -578,8 +603,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.</div>
             <div class="doc-footer-links">
-                <a href="../../docs/PRIVACY_POLICY.ru.html">Политика конфиденциальности</a>
-                <a href="../../docs/TERMS_OF_SERVICE_RU.html">Условия использования</a>
+                <a href="../../docs/PRIVACY_POLICY-ru.html">Политика конфиденциальности</a>
+                <a href="../../docs/TERMS_OF_SERVICE-ru.html">Условия использования</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>

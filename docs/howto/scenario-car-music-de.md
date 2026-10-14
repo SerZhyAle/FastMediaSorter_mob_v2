@@ -3,6 +3,8 @@ layout: default
 title: "Musikplayer fürs Auto (Android-Autoradio) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-de.html
 ---
+<sub class="doc-stamp">26.09.25 02:14</sub>
+
 <div lang="de" dir="ltr" markdown="1">
 
 # 🚗 Musikplayer fürs Auto (Android-Autoradio)

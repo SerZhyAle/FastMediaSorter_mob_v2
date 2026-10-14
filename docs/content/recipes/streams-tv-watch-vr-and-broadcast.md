@@ -6,7 +6,8 @@ description: How to cast a live channel to a TV with Chromecast, send a channel 
 category: Internet Streams
 category_slug: streams
 ticket: S2955
-flavor: Chromecast - Standard, noLegal and Legacy; watch - Standard and noLegal; VR player - noLegal and VR; Live Broadcast - Standard, noLegal and Legacy
+availability: SUPPORT_STREAMS
+availability_note: Chromecast - Standard, noLegal and Legacy; watch - Standard and noLegal; VR player - noLegal and VR; Live Broadcast - Standard, noLegal and Legacy
 recipe_number: "08"
 canonical_url: documentation/streams/tv-watch-vr-and-broadcast.html
 why: |
@@ -114,6 +115,7 @@ tips:
   - "**Send to watch and Open on watch are missing?** Turn on the Wear companion, and check that your edition is Standard or noLegal."
   - "**A broadcast does not play?** You and the broadcasting phone must be on the same Wi-Fi. Some routers keep devices apart - look for an option called client or AP isolation."
   - "**Open in VR is missing?** It appears only on a headset with 3D VR playback turned on and only for video channels. Headset setup is described in [setting up the headset](page:vr.headset-setup-and-openxr)."
+  - "**Want a phone or a watch to go on air for your other devices?** The [media exchange portal](../../docs/media-exchange-portal/live-broadcast.html) explains the routes between devices and marks what is not available yet."
 next_recipes:
   - title: Chromecast casting and live broadcast
     url: page:player.casting-and-broadcast
@@ -131,5 +133,7 @@ next_recipes:
     badge_type: docs
     description: The basics of playing a channel on the phone.
 ---
+
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Take a live [channel](term:channel) to the TV with [Chromecast](term:chromecast), to your [watch](term:watch) or into a [VR headset](term:vr-headset), and add a friend's [Live Broadcast](term:live-broadcast) to your Streams with a QR code, a link or a file.

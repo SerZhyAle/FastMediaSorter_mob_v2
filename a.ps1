@@ -69,6 +69,7 @@
     wd   - Build Wear OS Debug and distribute APK
     iw   - Build and install noLegal Wear OS Debug APK on a selected watch
     wfr  - Signed release bundle of the watch face for the Play upload
+    wfd  - Build and verify watch face debug APK (:watchface), optionally install (-Install [-DeviceId <id>])
     r0   - MONO queue: one agent alone on the project, children run `/spec-all -m <id>` with no
            lease, lock or chat wait; starts by dropping every leftover lease, lock and queue (S3158)
     r1   - Run the release queue unattended, instance A (one fresh claude process per ticket)
@@ -191,8 +192,11 @@ function ConvertTo-ChildArgumentList {
     # A hashtable splat binds by name in-process but cannot cross a process boundary, so the preset
     # is flattened to tokens here. Switches carry no value; everything else becomes two tokens.
     $flat = @()
+    # An extra `-Instance b` replaces the preset's `-Instance a`; passing both is a binding error.
+    $overridden = @($Extra | Where-Object { "$_" -match '^-([A-Za-z_][\w-]*)' } | ForEach-Object { $Matches[1] })
     if ($Preset -is [hashtable]) {
         foreach ($key in $Preset.Keys) {
+            if ($overridden -contains $key) { continue }
             $value = $Preset[$key]
             if ($value -is [bool]) {
                 if ($value) { $flat += "-$key" }
@@ -206,15 +210,94 @@ function ConvertTo-ChildArgumentList {
     elseif ($Preset) {
         $flat += @($Preset | ForEach-Object { "$_" })
     }
-    foreach ($token in $Extra) { $flat += "$token" }
+    foreach ($token in $Extra) {
+        # `pwsh -File` hands `-Flag:false` over as two tokens, the second a [bool], and a child
+        # `pwsh -File` would split `-Flag:false` the same way and bind the flag as set. A switch
+        # given $false is the switch absent, so the flag is dropped; $true keeps the bare flag.
+        if ($token -is [bool] -and $flat.Count -gt 0 -and $flat[-1] -match '^-[A-Za-z_][\w-]*$') {
+            if (-not $token) { $flat = @($flat | Select-Object -SkipLast 1) }
+            continue
+        }
+        $flat += "$token"
+    }
     return , $flat
+}
+
+function Resolve-TargetParameterName {
+    param($Parameters, [string]$Token)
+
+    foreach ($parameter in $Parameters.Values) {
+        if ($parameter.Name -ieq $Token -or ($parameter.Aliases -icontains $Token)) { return $parameter }
+    }
+    return $null
+}
+
+function Split-ExtraArgsByName {
+    param([string]$Path, $Extra)
+
+    # Under `pwsh -File a.ps1 <cmd> -Flag` the automatic $args holds plain strings without the
+    # named-argument marker an interactive call carries, so an array splat binds `-Flag` as a
+    # positional VALUE (S4196: `r1 -DryRun` launched a child for a ticket named "-DryRun").
+    # Tokens naming a declared parameter of the target are rebound by name; anything else stays
+    # positional, which keeps a negative number working. A target with no param block (every canon
+    # forwarder, the runner included) cannot say which token is a switch, and re-splatting its $args
+    # leaks a preset switch's $true as a positional value, so such a target runs as a child
+    # `pwsh -File` whose own parser binds every flag by name.
+    $named = @{}
+    $positional = @()
+    $tokens = @($Extra | Where-Object { $null -ne $_ })
+    $parameters = $null
+    try { $parameters = (Get-Command -Name $Path -ErrorAction Stop).Parameters }
+    catch { Write-Verbose "a.ps1: cannot read parameters of $Path, forwarding positionally: $_" }
+    if (-not $parameters -or $parameters.Count -eq 0) {
+        return @{ Named = $named; Positional = $tokens; ParamLess = $true }
+    }
+
+    for ($i = 0; $i -lt $tokens.Count; $i++) {
+        $token = "$($tokens[$i])"
+        if ($token -notmatch '^-([A-Za-z_][\w-]*)(?::(.*))?$') { $positional += $tokens[$i]; continue }
+        $parameter = Resolve-TargetParameterName -Parameters $parameters -Token $Matches[1]
+        if (-not $parameter) { $positional += $tokens[$i]; continue }
+        $inlineValue = $Matches[2]
+        if ($parameter.SwitchParameter) {
+            if ($null -eq $inlineValue -and $i + 1 -lt $tokens.Count -and $tokens[$i + 1] -is [bool]) {
+                $i++
+                $named[$parameter.Name] = $tokens[$i]
+            }
+            else {
+                $named[$parameter.Name] = if ($null -eq $inlineValue) { $true } else { $inlineValue -notin @('$false', 'false', '0') }
+            }
+        }
+        elseif ($null -ne $inlineValue) { $named[$parameter.Name] = $inlineValue }
+        elseif ($i + 1 -lt $tokens.Count) { $i++; $named[$parameter.Name] = $tokens[$i] }
+        else { $positional += $tokens[$i] }
+    }
+    return @{ Named = $named; Positional = $positional }
 }
 
 function Invoke-LauncherTarget {
     param([string]$Path, $PresetArgs, $ExtraArgs, [string]$WorkingDirectory)
 
     if (-not (Test-StdoutIsolationWanted -Path $Path)) {
-        & $Path @PresetArgs @ExtraArgs
+        $split = Split-ExtraArgsByName -Path $Path -Extra $ExtraArgs
+        $hasPreset = ($PresetArgs -is [hashtable] -and $PresetArgs.Count -gt 0) -or
+            (-not ($PresetArgs -is [hashtable]) -and @($PresetArgs).Count -gt 0)
+        if ($split.ParamLess -and ($hasPreset -or @($split.Positional).Count -gt 0)) {
+            $childArgs = ConvertTo-ChildArgumentList -Preset $PresetArgs -Extra $ExtraArgs
+            & pwsh -NoProfile -File $Path @childArgs
+            return
+        }
+        $extraPositional = @($split.Positional)
+        if ($PresetArgs -is [hashtable]) {
+            # A caller's explicit `-Mode X` overrides the preset rather than binding the name twice.
+            $named = $PresetArgs.Clone()
+            foreach ($key in $split.Named.Keys) { $named[$key] = $split.Named[$key] }
+            & $Path @named @extraPositional
+        }
+        else {
+            $extraNamed = $split.Named
+            & $Path @PresetArgs @extraNamed @extraPositional
+        }
         return
     }
     $isolator = Join-Path $PSScriptRoot 'scripts\utils\invoke-isolated-stdout.ps1'
@@ -307,6 +390,7 @@ $scripts = @{
     'wd'        = @{ Path = 'scripts\builders\build-wear-debug.PS1'; Args = @{} }
     'iw'        = @{ Path = 'scripts\builders\build-wear-debug.PS1'; Args = @{ Flavor = 'noLegal'; Install = $true } }
     'wfr'       = @{ Path = 'scripts\builders\build-watchface-release.ps1'; Args = @{} }  # S4009: signed watch face bundle, verified against the pinned fingerprint
+    'wfd'       = @{ Path = 'scripts\builders\build-watchface-debug.ps1'; Args = @{} }    # S4134: debug watch face APK, verified against XML substitution and packaged ID
     # Unattended queue runners. Each ticket gets its own claude process, so the context resets
     # between tickets instead of growing all session. r1, r2 and r3 are the parallel instances -
     # r2 and r3 stagger their first ranking, each by a wider window than the last, so no pair
@@ -315,9 +399,11 @@ $scripts = @{
     # S3158: the MONO chain - one agent alone on the project, so its children take no lease or lock
     # and the wrapper runs the MONO start instead of the lease cleanup below.
     'r0'        = @{ Path = 'scripts\utils\run-mono-queue.ps1'; Args = @{} }
-    'r1'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'a' } }
-    'r2'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'b'; StartDelaySeconds = 20 } }
-    'r3'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'c'; StartDelaySeconds = 40 } }
+    # Quiet keeps each child's stdout and stderr in temp/spec-queue/<id>.log: without it a child that
+    # dies at launch leaves a journal row with exit 1 and no cause (S4191).
+    'r1'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'a'; Quiet = $true } }
+    'r2'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'b'; StartDelaySeconds = 20; Quiet = $true } }
+    'r3'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'c'; StartDelaySeconds = 40; Quiet = $true } }
     'rs'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Stop = $true } }
     'rm'        = @{ Path = 'scripts\utils\monitor-spec-queue.ps1'; Args = @{} }
     # S2406: the monitor page - a detached writer keeps temp/monitor/index.html current every 3 s
@@ -431,6 +517,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  wd   - Build Wear OS Debug and distribute APK" -ForegroundColor Cyan
     Write-Host "  iw   - Build + install noLegal Wear OS Debug (-DeviceId <watch> when multiple devices)" -ForegroundColor Cyan
     Write-Host "  wfr  - Signed release bundle of the watch face for the Play upload" -ForegroundColor Cyan
+    Write-Host "  wfd  - Build and verify watch face debug APK (:watchface), optionally install (-Install)" -ForegroundColor Cyan
     Write-Host "  r0   - MONO queue: one agent alone, children run /spec-all -m <id> (no lease, lock or wait)" -ForegroundColor Cyan
     Write-Host "  r1   - Run the release queue unattended, instance A (fresh process per ticket)" -ForegroundColor Cyan
     Write-Host "  r2   - Same, instance B - the second parallel stream" -ForegroundColor Cyan
@@ -460,6 +547,15 @@ if (-not $scripts.ContainsKey($Command)) {
 $scriptEntry = $scripts[$Command]
 $scriptPath = Join-Path $ProjectRoot $scriptEntry.Path
 $scriptArgs = $scriptEntry.Args
+
+# S4190: every runner start first archives the agent-parked findings nobody triaged in 14 days, so the
+# expiry needs no scheduler of its own. Advisory - a failure here never stops the runner.
+if ($Command -in @('r0', 'r1', 'r2', 'r3')) {
+    & pwsh -NoProfile -File (Join-Path $ProjectRoot 'scripts\utils\archive-untriaged-drafts.ps1')
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Warning: archive-untriaged-drafts.ps1 exit $LASTEXITCODE - the runner starts anyway." -ForegroundColor Yellow
+    }
+}
 
 # S2702: the runner takes its model policy only as -ModelPolicy, and agent-watchdog.ps1 was the one
 # caller reading runner.instances.<x>.modelPolicy - so `r3` started by hand ran 'tiered' while the

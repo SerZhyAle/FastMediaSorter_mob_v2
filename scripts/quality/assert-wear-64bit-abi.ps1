@@ -1,7 +1,9 @@
 #requires -Version 7.0
 <#
-  assert-wear-64bit-abi.ps1 (S3364)
+.SYNOPSIS
+  Asserts that a built wear APK carries the arm64-v8a ABI required by Google Play (S3364).
 
+.DESCRIPTION
   Google Play makes 64-bit support mandatory for Wear OS apps from the date the
   threshold catalog records as Wear64BitDeadline (2026-09-15, verified 2026-09-21).
   This check asserts a built wear APK carries the arm64-v8a ABI by listing its

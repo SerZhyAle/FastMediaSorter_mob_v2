@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.domain.model.SftpServerAuthMode
 import com.sza.fastmediasorter.domain.model.SftpServerClientCredentials
 import com.sza.fastmediasorter.domain.model.SftpServerConfig
 import com.sza.fastmediasorter.domain.model.SftpServerState
+import com.sza.fastmediasorter.domain.model.SftpTunnelState
 import com.sza.fastmediasorter.domain.repository.SftpServerRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,6 +28,10 @@ class ManageSftpServerUseCase @Inject constructor(
 
     suspend fun setEnabled(enabled: Boolean) = repository.setEnabled(enabled)
 
+    val driveAccessShared: Flow<Boolean> get() = repository.driveAccessShared
+
+    suspend fun setDriveAccessShared(shared: Boolean) = repository.setDriveAccessShared(shared)
+
     /**
      * Returns false, changing nothing, for a port outside
      * [SftpServerConfig.MIN_PORT]..[SftpServerConfig.MAX_PORT].
@@ -46,4 +51,14 @@ class ManageSftpServerUseCase @Inject constructor(
     suspend fun removeRoot(treeUri: String) = repository.removeRoot(treeUri)
 
     suspend fun regeneratePassword(): Boolean = repository.regeneratePassword()
+
+    val tunnelState: StateFlow<SftpTunnelState> get() = repository.tunnelState
+
+    /** The `FMSSFTP1` code of the running server, or null while none can be made. */
+    suspend fun legacyPairingCode(): String? = repository.legacyPairingPayload()?.encode()
+
+    suspend fun rotateShareId() {
+        repository.rotateShareId()
+        repository.applyExchangeSettings()
+    }
 }

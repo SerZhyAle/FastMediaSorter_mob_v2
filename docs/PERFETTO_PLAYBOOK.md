@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.19 12:29</sub>
+
 # Macrobenchmark, Baseline Profiles, and Perfetto Playbook
 
 ## Scope

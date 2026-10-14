@@ -3,6 +3,8 @@ layout: default
 title: "Порядок у завантаженнях (Quick Sort) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-uk.html
 ---
+<sub class="doc-stamp">26.09.24 18:41</sub>
+
 # 🧹 Порядок у завантаженнях - сортування одним дотиком
 
 > **Рівень:** Початківець &bull; **Версія:** Будь-яка (Standard, Lite, Photos, Legacy, VR, noLegal)

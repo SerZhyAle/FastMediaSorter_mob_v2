@@ -1371,6 +1371,16 @@
       "titleUk": "RUN INTEGRATION TESTS"
     },
     {
+      "key": "btnMediaExchangePortal",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Media exchange between devices",
+      "titleRu": "Обмен медиа между устройствами",
+      "titleUk": "Обмін медіа між пристроями"
+    },
+    {
       "key": "btnOpenSourceLicenses",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1471,6 +1481,36 @@
       "titleUk": "Зберегти логи"
     },
     {
+      "key": "btnSftpExchangeChangeOutgoing",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Change",
+      "titleRu": "Изменить",
+      "titleUk": "Змінити"
+    },
+    {
+      "key": "btnSftpExchangeMyDevices",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "My devices",
+      "titleRu": "Мои устройства",
+      "titleUk": "Мої пристрої"
+    },
+    {
+      "key": "btnSftpExchangeNewLink",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "New access link",
+      "titleRu": "Новая ссылка доступа",
+      "titleUk": "Нове посилання доступу"
+    },
+    {
       "key": "btnSftpServerAddRoot",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1479,6 +1519,16 @@
       "titleEn": "Add folder",
       "titleRu": "Добавить папку",
       "titleUk": "Додати папку"
+    },
+    {
+      "key": "btnSftpServerLegacyQr",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Code for older app versions",
+      "titleRu": "Код для старых версий приложения",
+      "titleUk": "Код для старих версій застосунку"
     },
     {
       "key": "btnSftpServerNewPassword",
@@ -1981,6 +2031,26 @@
       "titleUk": "Захищати секретні екрани"
     },
     {
+      "key": "rowSftpDriveAccess",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Share access through Google Drive",
+      "titleRu": "Доступ через Google Диск",
+      "titleUk": "Доступ через Google Диск"
+    },
+    {
+      "key": "rowSftpExchangeEnabled",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Exchange server",
+      "titleRu": "Сервер обмена",
+      "titleUk": "Сервер обміну"
+    },
+    {
       "key": "rowSftpServerEnabled",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -2079,6 +2149,16 @@
       "titleEn": "Unit system",
       "titleRu": "Система единиц",
       "titleUk": "Система одиниць"
+    },
+    {
+      "key": "row_my_devices",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SELECTION_ROW",
+      "titleEn": "My devices",
+      "titleRu": "Мои устройства",
+      "titleUk": "Мої пристрої"
     },
     {
       "key": "row_saved_authorizations",
@@ -3599,6 +3679,16 @@
       "titleEn": "Streams",
       "titleRu": "Трансляции",
       "titleUk": "Трансляції"
+    },
+    {
+      "key": "rowCastPlayAtOnce",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Play casts at once",
+      "titleRu": "Воспроизводить сразу",
+      "titleUk": "Відтворювати одразу"
     },
     {
       "key": "rowCatalogRefresh",

@@ -3,6 +3,8 @@ layout: default
 title: "Застосунок замість домашнього екрана - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-uk.html
 ---
+<sub class="doc-stamp">26.09.24 20:50</sub>
+
 # 🖥️ Застосунок замість домашнього екрана
 
 > **Рівень:** початківець &bull; **Збірка:** Standard / noLegal

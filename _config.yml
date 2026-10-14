@@ -51,3 +51,6 @@ exclude:
   - local.properties
   - build_all_log.txt
   - test_credentials.json.template
+  # The portal's picture brief; without this GitHub Pages publishes it, and with no index.md beside it
+  # renders it as the folder's index (S4141). The portal pages beside it declare their own permalinks.
+  - docs/media-exchange-portal/README.md

@@ -46,6 +46,7 @@ import com.sza.fastmediasorter.wear.ui.listen.ListenRequestActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -135,6 +136,9 @@ class VoiceRecordingService : Service() {
     /** Owned for the broadcast's whole life and released on every stop and every failed-start path. */
     private var broadcastLease: BroadcastNetworkLease? = null
 
+    /** Copies the server's human listener count into the broadcast holder while a broadcast serves. */
+    private var lanListenersJob: Job? = null
+
     /** Held only while a broadcast or a listening session is serving audio; never for a voice note. */
     private var sessionWakeLock: PowerManager.WakeLock? = null
 
@@ -200,6 +204,7 @@ class VoiceRecordingService : Service() {
         // The server goes down before the session does, because the session's own teardown closes the
         // pipe and the server must never be left holding a listener over a sink that is gone.
         lanServer.stop()
+        stopLanListenerCount()
         // The ticker dies before the recorder, so nothing publishes a Recording state over a session
         // that no longer exists.
         serviceScope.cancel()
@@ -408,6 +413,9 @@ class VoiceRecordingService : Service() {
         val endpoint = withContext(Dispatchers.IO) {
             lanServer.start(serviceScope, sessionManager.liveSink, lease.address, preferredPort)
         }
+        lanListenersJob = serviceScope.launch {
+            lanServer.humanListeners.collect(broadcastSession::publishLanListeners)
+        }
         // Recorded after the bind, not before it: a refused preferred port falls back, and the next
         // session must start from the port that actually worked.
         broadcastIdentity.rememberPort(endpoint.port)
@@ -464,10 +472,18 @@ class VoiceRecordingService : Service() {
      */
     private suspend fun stopBroadcastSession() {
         lanServer.stop()
+        stopLanListenerCount()
         sessionManager.stop()
         releaseBroadcastLease()
         releaseSessionWakeLock()
         broadcastSession.publish(WearBroadcastSessionState.Idle)
+    }
+
+    // Published directly rather than through the collector: it is cancelled here, before it would see the zero.
+    private fun stopLanListenerCount() {
+        lanListenersJob?.cancel()
+        lanListenersJob = null
+        broadcastSession.publishLanListeners(0)
     }
 
     private fun releaseBroadcastLease() {

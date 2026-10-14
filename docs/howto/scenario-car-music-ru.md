@@ -3,6 +3,8 @@ layout: default
 title: "Музыка в автомобиле (Android-магнитола) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-ru.html
 ---
+<sub class="doc-stamp">26.09.24 20:50</sub>
+
 # 🚗 Музыка в автомобиле (Android-магнитола)
 
 > **Уровень:** Начинающий &bull; **Время:** ~10 минут &bull; **Версия:** Standard, Legacy, VR, noLegal (Lite играет локальное аудио, но без фонового воспроизведения и без Трансляций; в Photos аудио нет)

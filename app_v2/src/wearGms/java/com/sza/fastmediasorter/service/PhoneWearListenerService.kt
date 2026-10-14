@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.data.wear.WearIncomingFileRegistry
 import com.sza.fastmediasorter.data.wear.WearSendToNotifier
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
+import com.sza.fastmediasorter.domain.model.WearExchangeHandoverCodec
 import com.sza.fastmediasorter.domain.model.WearFavoritesDeltaPayload
 import com.sza.fastmediasorter.domain.model.WearFileReceiveAck
 import com.sza.fastmediasorter.domain.model.WearFileTransferAck
@@ -124,6 +125,10 @@ class PhoneWearListenerService : WearableListenerService() {
     // decision - and this class has no room for another function either way.
     @Inject lateinit var wearDeleteRequestHandler: WearDeleteRequestHandler
 
+    @Inject lateinit var wearTouristHealthReceiver: WearTouristHealthReceiver
+
+    @Inject lateinit var wearTouristWeatherRequestHandler: WearTouristWeatherRequestHandler
+
     // S2462: built from the injected Gson rather than injected itself - it carries no state and no
     // dependency of its own, so a Hilt binding would be ceremony around a constructor call.
     private val settingsPayloadDecoder: WearSettingsPayloadDecoder by lazy {
@@ -179,6 +184,11 @@ class PhoneWearListenerService : WearableListenerService() {
                 applicationScope.launch { wearClipboardTextReceiver.publishAck(event.data) }
             WearDataLayerPaths.SCREENSHOT_REQUEST_ACK ->
                 applicationScope.launch { wearScreenshotAckReceiver.publishAck(event.data) }
+            WearDataLayerPaths.EXCHANGE_HANDOVER_ACK ->
+                applicationScope.launch {
+                    WearExchangeHandoverCodec.parseAck(event.data, gson)
+                        ?.let { WearSyncEvents.emitExchangeHandoverAck(it) }
+                }
             else -> onTransferMessageReceived(event)
         }
     }
@@ -392,6 +402,10 @@ class PhoneWearListenerService : WearableListenerService() {
         when (event.dataItem.uri.path) {
             WearDataLayerPaths.PLAYBACK_STATE -> handlePlaybackState(payloadBytes)
             WearDataLayerPaths.SETTINGS_REPORT -> handleSettingsReport(payloadBytes, receivedAtEpochMillis)
+            WearDataLayerPaths.TOURIST_HEALTH -> wearTouristHealthReceiver.handle(payloadBytes, receivedAtEpochMillis)
+            WearDataLayerPaths.TOURIST_WEATHER_REQUEST -> applicationScope.launch {
+                wearTouristWeatherRequestHandler.handle(payloadBytes)
+            }
         }
     }
 

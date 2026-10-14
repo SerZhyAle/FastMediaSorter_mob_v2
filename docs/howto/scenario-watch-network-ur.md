@@ -3,6 +3,8 @@ layout: default
 title: "اسمارٹ واچ کو NAS اور PC شیئرز سے جوڑیں - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-network-ur.html
 ---
+<sub class="doc-stamp">26.09.25 02:26</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> اسمارٹ واچ کو NAS اور PC شیئرز سے جوڑیں

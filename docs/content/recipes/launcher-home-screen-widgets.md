@@ -6,7 +6,8 @@ description: Which widgets FastMediaSorter offers for the Android home screen, w
 category: "Launcher: Gadgets and Widgets"
 category_slug: launcher
 ticket: S2959
-flavor: All editions - the set of widgets differs, see step 2
+availability: all
+availability_note: All editions - the set of widgets differs, see step 2
 recipe_number: "03"
 canonical_url: documentation/launcher/home-screen-widgets.html
 why: |
@@ -103,5 +104,7 @@ next_recipes:
     badge_type: image
     description: The slideshow that Continue Reading picks up again.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 FastMediaSorter offers a set of [widgets](term:widget) for the Android [home screen](term:home-screen): one-tap buttons for the camera, the recorder, random music and your folders, and larger windows for a photo frame, the player and your scheduled jobs. This page shows what each one does, in which editions it is available, and how to add and set it up.

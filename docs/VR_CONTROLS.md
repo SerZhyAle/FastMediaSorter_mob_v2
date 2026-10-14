@@ -4,6 +4,8 @@ title: "VR Immersive Controls"
 permalink: /docs/VR_CONTROLS.html
 ---
 
+<sub class="doc-stamp">26.10.09 14:26</sub>
+
 # VR Immersive Controls
 
 *Last updated: 2026-07-29*
@@ -117,7 +119,7 @@ for both interaction profiles so it behaves identically on every headset.
 ## 2. Bluetooth keyboard (target design, not shipped yet)
 
 Four convention layers are stacked so you can keep whatever habit you bring:
-Norton Commander F-keys (first-class), Windows / MPC-HC / VLC shortcuts,
+Norton Commander F-keys (first-class), Windows desktop-player shortcuts,
 browser-YouTube letters, and standard BT media keys.
 
 ### F-keys (Norton Commander)
@@ -134,7 +136,7 @@ browser-YouTube letters, and standard BT media keys.
 | **F8** | Delete (confirmation dialog). |
 | **F10** | Exit to 2D panel. |
 
-### Windows / VLC / MPC-HC
+### Windows desktop players
 
 | Key | Action |
 |---|---|

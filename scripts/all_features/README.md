@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.20 03:30</sub>
+
 # ALL_FEATURES inventory - schema notes
 
 `docs/ALL_FEATURES.jsonl` is the EN-only developer inventory of shipped capabilities. Records are

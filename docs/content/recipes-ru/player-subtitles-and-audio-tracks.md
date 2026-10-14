@@ -6,7 +6,7 @@ description: Как открыть окно параметров видеопл�
 category: Видеоплеер и медиаплеер
 category_slug: player
 ticket: S2951
-flavor: Все редакции, кроме Photos; выбор 3D в окне управления доступен только в VR и noLegal
+availability_note: Все редакции, кроме Photos; выбор 3D в окне управления доступен только в VR и noLegal
 recipe_number: "02"
 canonical_url: documentation/player/subtitles-and-audio-tracks-ru.html
 why: |
@@ -101,5 +101,7 @@ next_recipes:
     badge_type: video
     description: Просмотр 3D-фильмов и панорамных видео в VR-гарнитуре.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Выбирайте звуковую дорожку и субтитры, настраивайте комфортный размер шрифта, регулируйте стереобаланс звука, меняйте скорость и цвета видео и смотрите стереопары 3D на обычном экране смартфона.

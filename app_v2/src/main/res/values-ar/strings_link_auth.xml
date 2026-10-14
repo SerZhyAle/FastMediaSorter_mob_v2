@@ -7,7 +7,7 @@
     <string name="s0140_webview_auth_sign_in_first">قم بتسجيل الدخول أولاً، ثم انقر على حفظ التفويض.</string>
     <string name="s0155_name_account_title">قم بتسمية هذا الحساب</string>
     <string name="s0155_name_account_hint">مثال: @myusername</string>
-    <string name="s0155_name_account_positive">يحفظ</string>
+    <string name="s0155_name_account_positive">حفظ</string>
     <string name="s0155_pick_account_title">اختر حسابًا لـ %1$s</string>
     <string name="s0155_pick_account_last_used">(آخر استخدام)</string>
     <string name="s0155_reauth_title">قم بتسجيل الدخول مرة أخرى باسم %1$s؟</string>

@@ -195,6 +195,68 @@
 
         </HorizontalScrollView>
 
+        <!-- S4116: broadcasts of the user's other devices - shown only while an exchange server is held;
+             collapsed by default, because an open section keeps a server stream per entry. -->
+        <LinearLayout
+            android:id="@+id/streamsDevicesSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/streamsDevicesHeader"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/streams_section_header_height"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="@dimen/streams_section_header_padding"
+                android:paddingEnd="@dimen/streams_section_header_padding"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusUp="@id/btnFilter">
+
+                <TextView
+                    android:id="@+id/tvDevicesHeader"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Title"
+                    android:textColor="?attr/colorOnSurface"
+                    android:text="@string/streams_section_device_broadcasts" />
+
+                <ImageView
+                    android:id="@+id/ivDevicesChevron"
+                    android:layout_width="@dimen/icon_size_small"
+                    android:layout_height="@dimen/icon_size_small"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_expand_more"
+                    app:tint="?attr/colorControlNormal"
+                    android:contentDescription="@string/streams_section_expand" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvDevicesStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="@dimen/streams_section_header_padding"
+                android:paddingEnd="@dimen/streams_section_header_padding"
+                android:paddingBottom="@dimen/margin_small"
+                android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Subtitle"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/streamsDevicesList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/streams_list_side_padding"
+                android:paddingEnd="@dimen/streams_list_side_padding"
+                android:visibility="gone" />
+        </LinearLayout>
+
         <!-- S1141: pinned-channels section - shown by StreamsSectionsManager only when >=1 pinned. -->
         <LinearLayout
             android:id="@+id/streamsPinnedSection"

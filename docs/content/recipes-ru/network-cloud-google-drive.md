@@ -6,7 +6,7 @@ description: Как войти в Google Диск и добавить папку
 category: Сеть и облачные хранилища
 category_slug: network
 ticket: S2950
-flavor: Редакции Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS). Требуется учетная запись Google.
+availability_note: Редакции Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS). Требуется учетная запись Google.
 recipe_number: "05"
 canonical_url: documentation/network/cloud-google-drive-ru.html
 why: |
@@ -70,6 +70,7 @@ tips:
   - "**Хотите подключить Dropbox или OneDrive?** См. рецепт [Подключение Dropbox и OneDrive](page:network.cloud-dropbox-onedrive)."
   - "**Нужна полная картина резервного копирования?** Руководство [Резервное копирование настроек и синхронизация устройств](page:settings.backup-and-device-sync) описывает не только работу с Диском, но и локальные резервные копии в файлы."
   - "**Общие принципы работы с сетевыми и облачными источниками** собраны в рецепте [Добавление сетевых папок и облачных хранилищ](page:storage.network-and-cloud-sources)."
+  - "**Нужен общий «ящик» для всех своих устройств?** [Портал обмена медиа](../../docs/media-exchange-portal/clouds-ru.html) показывает, как Google Drive, Dropbox и OneDrive соотносятся с другими способами переносить медиа между устройствами."
 next_recipes:
   - title: Подключение Dropbox и OneDrive
     url: page:network.cloud-dropbox-onedrive
@@ -87,5 +88,7 @@ next_recipes:
     badge_type: other
     description: Обзор всех видов источников, которые можно добавить в качестве ресурсов.
 ---
+
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Авторизуйтесь в Google Диске один раз, чтобы открывать облачные папки как ресурсы, создавать резервные копии настроек и передавать файлы между своими устройствами через приватную очередь на Диске - все через единое подключение [Google Аккаунта](term:google-drive), которое надежно сохраняется при обновлениях приложения.

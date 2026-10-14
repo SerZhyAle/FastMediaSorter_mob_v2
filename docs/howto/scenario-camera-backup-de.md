@@ -3,6 +3,8 @@ layout: default
 title: "Geplantes Kamera-Backup auf den PC - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-de.html
 ---
+<sub class="doc-stamp">26.09.25 02:13</sub>
+
 <div lang="de" dir="ltr" markdown="1">
 
 # 📷 Geplantes Kamera-Backup auf den PC

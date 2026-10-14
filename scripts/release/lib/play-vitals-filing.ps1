@@ -31,6 +31,23 @@ $script:PlayVitalsReadyStatuses = @('Implemented', 'Verified', 'BlockNeedUserTes
 $script:PlayVitalsEvidenceHeading = '**Evidence log** (one line per run while the finding persists):'
 $script:PlayVitalsNameLimit = 60
 
+# One Markdown bullet per error issue, its sample stack one level deeper. Shared by the vitals block of
+# docs/PLAY_PUBLISHING_STATE.md and the filed ticket body, so the frames reach whatever is parked from
+# either (S4207).
+function Get-PlayVitalsIssueLines {
+    param([Parameter(Mandatory)] $Issue, [string] $Indent = '')
+    $lines = [System.Collections.Generic.List[string]]::new()
+    $lines.Add(('{0}- `{1}` {2} at `{3}` - {4} users, {5} reports, last versionCode {6} - [console]({7})' -f $Indent,
+        $Issue.type, $Issue.cause, $Issue.location, $Issue.distinctUsers, $Issue.errorReportCount,
+        $Issue.lastAppVersionCode, $Issue.issueUri))
+    # A snapshot written before S4207 has no stack member, and StrictMode throws on reading one.
+    $stack = $Issue.PSObject.Properties['stack']
+    if ($stack) {
+        foreach ($frame in @($stack.Value | Where-Object { $_ })) { $lines.Add(('{0}  - `{1}`' -f $Indent, $frame)) }
+    }
+    return , $lines
+}
+
 function Get-PlayVitalsTicketName {
     param([Parameter(Mandatory)] [string] $Key)
     $rest = $Key -replace '^play-vitals:', ''
@@ -158,10 +175,7 @@ function Get-PlayVitalsEvidenceText {
     $issues = @($Snapshot.errorIssues | Where-Object { $null -ne $_ } | Select-Object -First $TopIssues)
     if ($issues.Count -gt 0) {
         $lines.Add('- Top error issues by distinct users:')
-        foreach ($issue in $issues) {
-            $lines.Add(('  - `{0}` {1} at `{2}` - {3} users, {4} reports, last versionCode {5} - [console]({6})' -f $issue.type,
-                $issue.cause, $issue.location, $issue.distinctUsers, $issue.errorReportCount, $issue.lastAppVersionCode, $issue.issueUri))
-        }
+        foreach ($issue in $issues) { $lines.AddRange((Get-PlayVitalsIssueLines -Issue $issue -Indent '  ')) }
     } else {
         $lines.Add('- Top error issues: none reported in the window.')
     }

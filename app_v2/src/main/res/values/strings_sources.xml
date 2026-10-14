@@ -76,4 +76,7 @@
     <string name="dropbox_select_folder">Select Folder</string>
     <string name="dropbox_sign_in">Sign in with Dropbox</string>
     <string name="dropbox_signed_in">Signed in: %1$s</string>
+    <string name="media_exchange_portal_link">Media exchange between devices</string>
+    <string name="media_exchange_portal_open">Open the media exchange portal</string>
+    <string name="broadcast_portal_help">How broadcasting works between devices</string>
 </resources>

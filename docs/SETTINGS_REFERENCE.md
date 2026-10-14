@@ -31,6 +31,7 @@ _Generated from the app. Do not edit by hand._
 | Import Settings from File | Loads app settings from a previously exported file, replacing the current configuration. |
 | Import Test Setup | Imports a predefined test configuration used for QA and integration testing. |
 | RUN INTEGRATION TESTS | Runs the app's built-in integration test suite. |
+| Media exchange between devices | Opens the media exchange portal: which way of connecting your devices fits you - the home network, the exchange server or live broadcast - and what works today. |
 | Open Source Licenses | Shows the licenses for open-source libraries used in the app. |
 | Welcome Tutorial | Reopens the welcome tutorial screen shown on first launch. |
 | Permissions & Access | Opens the permissions and access management screen where you can review and adjust what the app can access. |
@@ -41,7 +42,11 @@ _Generated from the app. Do not edit by hand._
 | Reset SMB | Clears all saved SMB network connection credentials and configurations. |
 | Restore settings from Google Drive | Restores app settings from a backup stored in your Google Drive account. |
 | Save Debug Logs | Saves the current debug log to a file on the device for sharing or inspection. |
+| Change | Picks which of your exchange servers the share is published through; the line above names the current outgoing server. |
+| My devices | Opens My devices, where you add, move, share and remove your exchange servers. |
+| New access link | Issues a new access link: every code shared before stops opening this server through the exchange server. |
 | Add folder | Picks a folder through the system picker and adds it to the folders the server shares. |
+| Code for older app versions | Shows the pairing code without the exchange server part, for a FastMediaSorter too old to read the new code; it connects on the local network only. |
 | New password | Replaces the server login password with a new random one; clients need the new password afterwards. |
 | Show pairing code | Shows a pairing code with the address, login and host key fingerprint for another FastMediaSorter to scan. |
 | Share Debug Logs | Shares the current debug log via the system share sheet. |
@@ -85,13 +90,15 @@ _Generated from the app. Do not edit by hand._
 | Settings | Chooses app settings as the data set to export or import. |
 | Pinned streams | Chooses the pinned stream list as the data set to export or import. |
 | Language/Язык/Мова | Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. |
-| Primary startup window | Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the main screen. |
+| Primary startup window | Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the main screen. On a Googlebook the device home screen is not offered and the in-app desktop is the default. |
 | System launcher settings | Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density. |
 | Statistics | Opens the usage statistics screen. |
 | Power saving mode | Chooses when power saving mode is activated: off, on, or automatically when battery drops below 30%. |
 | Resource grid cell size | Sets how large the resource cells are in the main window grid: small fits more resources per row, large makes each one bigger. |
 | Show resource actions in menu ⋮ | Off adds shortcut buttons for the frequent resource actions (edit, duplicate, move, delete) directly on the row. The ⋮ menu with the full action list is always available either way. |
 | Secure sensitive screens | Blocks screenshots and the Recents preview on screens that show passwords (add/edit resource, credentials in Settings, the login WebView, and the credential QR). On by default. |
+| Share access through Google Drive | Puts the SFTP server's address, login and password in your Google Drive app folder so your devices on the same Google account can connect; off by default, and while off those devices see the share but cannot connect to it. |
+| Exchange server | Publishes the SFTP share through your outgoing exchange server so your devices in any network can reach it; with no outgoing server chosen it asks for one first, and off keeps the share local-network only. |
 | SFTP server | Starts or stops the SFTP server; while it runs a notification with a Stop action stays in the shade. |
 | Show hidden files | Shows files and folders whose names begin with a dot (hidden by convention). |
 | Programs panel | Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu. |
@@ -102,6 +109,7 @@ _Generated from the app. Do not edit by hand._
 | Local network (Ethernet) SMB | Enables adding local-network SMB shares (NAS, PC) as remote resources. |
 | Wi-Fi only preload | Restricts thumbnail preloading to Wi-Fi connections only, saving mobile data. |
 | Unit system | Chooses the measurement system the desktop weather and dew-point gadgets read: metric shows degrees Celsius, US shows degrees Fahrenheit. Metric by default; changing it refreshes the reading rather than converting the one already shown. |
+| My devices | Opens My devices: your exchange servers, the devices of each account, revoking a lost device and issuing a pairing code. |
 | Saved authorizations | Opens the list of saved sign-ins to remote sources so you can review or remove them. |
 | Color theme | Selects the color theme applied across the app interface. |
 
@@ -172,6 +180,7 @@ _Available in: Standard, Legacy, VR, FOSS_
 |---|---|
 | Clear play marks | Clears the green and red play marks on all channels. The channels themselves stay. |
 | Streams | Opens the Streams screen for internet audio, video and RTSP sources, where you can add or import streams and play them. |
+| Play casts at once | When another of your devices casts a broadcast to this phone through your exchange server, accepts it without the Accept question; the notification then only opens the player. Off by default. |
 | Updating the channel list | Chooses when the app refreshes the channel list - only when you ask, by offering an update when you open Streams, or automatically on Wi-Fi. |
 | Audio language for streams | Picks the audio language the app prefers when a stream offers several. A channel that you set a language for yourself keeps its own choice. |
 | Show by default | Sets which channels the Streams screen shows by default - all of them, only audio, or only video. |
@@ -352,7 +361,7 @@ _Settings -> General -> System launcher settings_
 | App to launch | Sets the target of the upward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback. |
 | Notifications from other apps on the top bar | Shows one icon per other app that has pending notifications in the launcher top bar, with how many it has. Their title, text and attachments are never read. On by default and inert until the system grants notification access. |
 | Lock desktop | Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable. |
-| Change home screen | Opens Android's default-launcher chooser to switch the system home screen. |
+| Change home screen | Opens Android's default-launcher chooser to switch the system home screen. Hidden on Googlebook and XR, where the system does not let another app become the home screen. |
 | Hide system status bar | Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar. |
 | Screen timeout | Turns the screen off after a chosen period of inactivity on the launcher desktop - locking the device where a system lock is reachable, or showing a black screen where it is not. On by default after 30 seconds; presets of 5 to 300 seconds, a custom number of seconds, or never (off). Car head unit and photo-frame profiles start with never. |
 | Screen timeout when on charge | Turns the screen off after a chosen period of inactivity while the charger is connected, wired or wireless. It replaces the ordinary screen timeout for as long as power is attached; off by default, so a charging device keeps the desktop lit. Same choices as the screen timeout above: presets of 5 to 300 seconds, a custom number of seconds, or never (off). |
@@ -456,7 +465,7 @@ _Reached from the on-screen translation overlay, not from Settings._
 |---|---|
 | Font Family | Chooses the font family used to render translated text. |
 | Font Size | Chooses the font size used to render translated text. |
-| Translation result in blocks | Shows the translation result as opaque blocks over the original text, matching Google Lens style. |
+| Translation result in blocks | Shows the translation result as opaque blocks painted over the original text, line by line. |
 
 ## Network Monitor
 

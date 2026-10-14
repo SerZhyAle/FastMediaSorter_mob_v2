@@ -3,6 +3,8 @@ layout: default
 title: "车载音乐播放器（Android 车机）- FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-zh-hans.html
 ---
+<sub class="doc-stamp">26.09.25 02:14</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 🚗 车载音乐播放器（Android 车机）

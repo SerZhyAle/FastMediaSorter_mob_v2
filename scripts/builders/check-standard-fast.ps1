@@ -539,17 +539,8 @@ $runOnce = {
         $attemptArgs += Get-KotlinStaleIncrementalRepairArgs
     }
 
-    $collected = New-Object System.Collections.Generic.List[string]
-    & "$projectRoot\gradlew.bat" @attemptArgs 2>&1 | ForEach-Object {
-        $line = [string]$_
-        $collected.Add($line)
-        [System.IO.File]::AppendAllLines($tempLogPath, [string[]]@($line))
-        if ($Quiet -and ($line -match " UP-TO-DATE$" -or $line -match " NO-SOURCE$" -or $line -match " FROM-CACHE$")) {
-            return
-        }
-        Write-Host $line
-    }
-    return [pscustomobject]@{ ExitCode = $LASTEXITCODE; Lines = $collected.ToArray() }
+    return Invoke-GradleClientWithFileOutput -GradleWrapper "$projectRoot\gradlew.bat" `
+        -Arguments $attemptArgs -LogPath $tempLogPath -Quiet:$Quiet
 }
 
 # S1463: only a unit run can lose its worker, and only there is a repeat the right answer - repeating

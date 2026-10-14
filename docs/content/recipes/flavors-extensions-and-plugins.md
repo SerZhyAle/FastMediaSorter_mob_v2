@@ -6,7 +6,7 @@ description: How to open the Downloadable Extensions screen, download text recog
 category: Editions, Extensions & Languages
 category_slug: flavors
 ticket: S2947
-flavor: Standard, noLegal, Legacy and VR
+availability: ocrEnabled, translationEnabled
 recipe_number: "02"
 canonical_url: documentation/flavors/extensions-and-plugins.html
 why: |
@@ -129,5 +129,7 @@ next_recipes:
     badge_type: docs
     description: Pick one of thirteen languages and switch between metric and US units.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Extensions](term:extension) are optional parts of FastMediaSorter that you download only when you need them: text recognition, extra audio formats, background videos and stream catalogs. This page shows how to download, update and delete them.

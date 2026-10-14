@@ -4,7 +4,7 @@
 <resources>
     <string name="resource_ops_in_overflow_menu">إظهار إجراءات المورد في القائمة ⋮</string>
     <string name="setting_resource_ops_in_overflow_menu_desc">يطوي أزرار الإجراءات المضمّنة في قائمة فائضة ⋮ على كل بطاقة مورد</string>
-    <string name="action_refresh_resource">ينعش</string>
+    <string name="action_refresh_resource">تحديث</string>
     <string name="resource_unavailable_name">المورد \"%1$s\" غير متاح</string>
     <string name="resource_menu_reconnect_resource">إعادة توصيل المورد</string>
     <string name="reconnect_different_folder_title">تم اختيار مجلد مختلف</string>

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.05.20 13:00</sub>
+
 # GPT Audit: Research and Development Speed
 
 Generated: 2026-05-20

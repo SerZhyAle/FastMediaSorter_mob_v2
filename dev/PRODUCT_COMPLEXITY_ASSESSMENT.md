@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.08.14 18:09</sub>
+
 # FastMediaSorter v2 - Product Complexity Assessment
 
 **Snapshot Date**: July 17, 2026

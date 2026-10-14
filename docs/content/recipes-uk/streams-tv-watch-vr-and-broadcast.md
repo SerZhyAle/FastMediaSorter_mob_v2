@@ -6,7 +6,7 @@ description: Як транслювати онлайн-канал на ТВ че�
 category: Інтернет-трансляції
 category_slug: streams
 ticket: S2955
-flavor: Chromecast - Standard, noLegal та Legacy; годинник - Standard і noLegal; VR-плеєр - noLegal і VR; Прямий ефір - Standard, noLegal та Legacy
+availability_note: Chromecast - Standard, noLegal та Legacy; годинник - Standard і noLegal; VR-плеєр - noLegal і VR; Прямий ефір - Standard, noLegal та Legacy
 recipe_number: "08"
 canonical_url: documentation/streams/tv-watch-vr-and-broadcast-uk.html
 why: |
@@ -114,6 +114,7 @@ tips:
   - "**Немає пунктів «Надіслати на годинник» і «Відкрити на годиннику»?** Увімкніть Wear-супутника й перевірте, що ваша редакція - Standard або noLegal."
   - "**Ефір не грає?** Ви і телефон, що транслює, маєте бути в одній мережі Wi-Fi. Деякі маршрутизатори розділяють пристрої - шукайте опцію на кшталт ізоляції клієнтів чи точки доступу."
   - "**Немає пункту «Відкрити у VR»?** Він з'являється лише на шоломі з увімкненим 3D VR-відтворенням і лише для відеоканалів. Налаштування шолома описано в статті [налаштування шолома](page:vr.headset-setup-and-openxr)."
+  - "**Хочете, щоб телефон або годинник вийшов в ефір для ваших інших пристроїв?** [Портал обміну медіа](../../docs/media-exchange-portal/live-broadcast-uk.html) пояснює маршрути між пристроями й позначає те, що ще не випущено."
 next_recipes:
   - title: Трансляція на Chromecast і прямий ефір
     url: page:player.casting-and-broadcast
@@ -131,5 +132,7 @@ next_recipes:
     badge_type: docs
     description: Основи відтворення каналу на телефоні.
 ---
+
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Виведіть прямий [канал](term:channel) на ТВ через [Chromecast](term:chromecast), на свій [годинник](term:watch) або у [VR-шолом](term:vr-headset), і додайте [Прямий ефір](term:live-broadcast) друга за QR-кодом, посиланням чи файлом.

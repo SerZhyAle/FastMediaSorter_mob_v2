@@ -3,6 +3,8 @@ layout: default
 title: "Lettore musicale per auto (autoradio Android) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-it.html
 ---
+<sub class="doc-stamp">26.09.25 02:13</sub>
+
 <div lang="it" dir="ltr" markdown="1">
 
 # 🚗 Lettore musicale per auto (autoradio Android)

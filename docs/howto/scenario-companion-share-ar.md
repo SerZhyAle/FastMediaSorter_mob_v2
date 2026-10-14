@@ -3,6 +3,8 @@ layout: default
 title: "فتح مجلدات جهاز الكمبيوتر بمسح رمز واحد - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-ar.html
 ---
+<sub class="doc-stamp">26.09.25 02:18</sub>
+
 <div lang="ar" dir="rtl" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> فتح مجلدات جهاز الكمبيوتر بمسح رمز واحد
@@ -19,7 +21,7 @@ permalink: /docs/howto/scenario-companion-share-ar.html
 
 ## البرنامج المساعد
 
-"الرفيق" هو ميزة مدمجة في **[Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** (المعروف سابقًا باسم FastMediaSorter LITE) - أداة فرز الوسائط المجانية لـ Windows من نفس المطوّر. عند مشاركة المجلدات به، فإنه:
+"الرفيق" هو ميزة مدمجة في **[Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** - أداة فرز الوسائط المجانية لـ Windows من نفس المطوّر. عند مشاركة المجلدات به، فإنه:
 
 - يشغّل خادم SFTP خاصًا لهذه المجلدات فقط على جهاز الكمبيوتر الخاص بك.
 - يولّد مفاتيحه الخاصة ويعدّ التشغيل التلقائي، بحيث تكون المشاركة متاحة في المرة القادمة أيضًا.
@@ -37,7 +39,7 @@ permalink: /docs/howto/scenario-companion-share-ar.html
 
 ## ما ستحتاجه
 
-- جهاز كمبيوتر يعمل بنظام Windows ومثبّت عليه **Fast Media Sorter for Windows**
+- جهاز كمبيوتر يعمل بنظام Windows ومثبّت عليه **Fast Media Sorter & Sharing for Windows**
 - هاتفك وجهاز الكمبيوتر على **نفس شبكة Wi-Fi** (نفس جهاز التوجيه)
 - للمسار الأسرع: **كاميرا** الهاتف لمسح الرمز (يتوفر مسار قائم على الملف إذا لم تتوفر الكاميرا)
 
@@ -45,7 +47,7 @@ permalink: /docs/howto/scenario-companion-share-ar.html
 
 ## الخطوة 1 - مشاركة المجلدات على جهاز الكمبيوتر
 
-1. ثبّت وشغّل **Fast Media Sorter for Windows**، ثم افتح تبويب **المشاركة** في الإعدادات.
+1. ثبّت وشغّل **Share Manager - Fast Media Sorter & Sharing**، ثم افتح تبويب **المشاركة** في الإعدادات.
 2. اختر المجلد (أو المجلدات) التي تريدها على الهاتف - أفلام، موسيقى، مستندات، أي شيء.
 3. يشغّل التطبيق خادم SFTP، ويولّد المفاتيح، ويعدّ التشغيل التلقائي من تلقاء نفسه. لا شيء آخر لإعداده.
 4. يعرض الآن **رمز QR** على شاشة الكمبيوتر. اترك تلك النافذة مفتوحة للخطوة 2.

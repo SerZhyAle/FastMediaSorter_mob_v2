@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.core.network.LanAddressResolver
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeVideoRelayFeed
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -52,10 +53,16 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
     @Inject
     lateinit var previewProvider: BroadcastPreviewProvider
 
+    @Inject
+    lateinit var relayFeed: ExchangeVideoRelayFeed
+
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     @Volatile
     private var cameraServer: RtspServerCamera2? = null
+
+    @Volatile
+    private var relayTap: RelayTapRecordController? = null
 
     private val isStreaming = AtomicBoolean(false)
 
@@ -325,6 +332,10 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             // Headless and not yet streaming, startPreview only records which camera startStream opens.
             camera.startPreview(BroadcastLensOption.logicalIdOf(lensId))
         }
+        // Set before the encoders start, so the tap sees the format that carries the SPS and PPS.
+        val tap = RelayTapRecordController(relayFeed, hasAudio = currentMode != BroadcastMode.VIDEO_ONLY)
+        camera.setRecordController(tap)
+        relayTap = tap
         camera.startStream()
         cameraServer = camera
         previewProvider.attachCamera(camera)
@@ -474,6 +485,8 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         }
         cameraServer = null
         activePhysicalId = null
+        relayTap?.release()
+        relayTap = null
     }
 
     /** A camera the stop path already took is left alone: the field may by now hold a newer session's camera. */
@@ -512,7 +525,11 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     // The server removes a client from its list before it reports the disconnect, so its own count is the
     // truth on both edges and a missed or doubled callback cannot drift the number.
+    // The library calls this inside its PLAY handling, before the client may send. Without a fresh IDR the
+    // listener sees nothing until the encoder's next scheduled keyframe (LIVE-BROADCAST consumer rule 1).
     override fun onClientConnected(client: ServerClient) {
+        cameraServer?.requestKeyFrame()
+        Timber.d("S4124: keyframe requested on PLAY from %s", client.getAddress())
         publishListenerCount()
     }
 

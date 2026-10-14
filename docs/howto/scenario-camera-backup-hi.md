@@ -3,6 +3,8 @@ layout: default
 title: "पीसी पर शेड्यूल्ड कैमरा बैकअप - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-hi.html
 ---
+<sub class="doc-stamp">26.09.25 02:13</sub>
+
 <div lang="hi" dir="ltr" markdown="1">
 
 # 📷 पीसी पर शेड्यूल्ड कैमरा बैकअप

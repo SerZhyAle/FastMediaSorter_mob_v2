@@ -3,6 +3,8 @@ layout: default
 title: "Abre las Carpetas de tu PC Escaneando un Código - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-es.html
 ---
+<sub class="doc-stamp">26.09.25 02:13</sub>
+
 <div lang="es" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Abre las Carpetas de tu PC Escaneando un Código
@@ -19,7 +21,7 @@ Ejecutas un pequeño programa auxiliar en tu PC con Windows, eliges las carpetas
 
 ## El Programa Auxiliar
 
-El "companion" es una función integrada de **[Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** (antes FastMediaSorter LITE) - el clasificador de medios gratuito para Windows del mismo autor. Cuando compartes carpetas con él, hace lo siguiente:
+El "companion" es una función integrada de **[Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** - el clasificador de medios gratuito para Windows del mismo autor. Cuando compartes carpetas con él, hace lo siguiente:
 
 - Inicia un servidor SFTP privado solo para esas carpetas en tu PC.
 - Genera sus propias claves y configura el inicio automático, para que el recurso compartido esté ahí la próxima vez también.
@@ -37,7 +39,7 @@ El "companion" es una función integrada de **[Fast Media Sorter for Windows](ht
 
 ## Lo Que Necesitarás
 
-- Una PC con Windows con **Fast Media Sorter for Windows** instalado
+- Una PC con Windows con **Fast Media Sorter & Sharing for Windows** instalado
 - Tu teléfono y PC en la **misma red Wi-Fi** (mismo router)
 - Para la ruta más rápida: una **cámara** en el teléfono para escanear el código (hay una ruta basada en archivo disponible si no la tienes)
 
@@ -45,7 +47,7 @@ El "companion" es una función integrada de **[Fast Media Sorter for Windows](ht
 
 ## Paso 1 - Comparte las Carpetas en el PC
 
-1. Instala y ejecuta **Fast Media Sorter for Windows**, luego abre la pestaña **Compartir** en la configuración.
+1. Instala y ejecuta **Share Manager - Fast Media Sorter & Sharing**, luego abre la pestaña **Compartir** en la configuración.
 2. Elige la(s) carpeta(s) que quieres en el teléfono - Películas, Música, Documentos, Fotos, lo que sea.
 3. La app inicia el servidor SFTP, genera las claves y configura el inicio automático por su cuenta. Nada más que configurar.
 4. Ahora muestra un **código QR** en la pantalla del PC. Deja esa ventana abierta para el Paso 2.

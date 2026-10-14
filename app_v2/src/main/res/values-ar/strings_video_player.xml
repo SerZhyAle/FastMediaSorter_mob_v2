@@ -15,9 +15,9 @@
     <string name="playback_control_tab_audio">مسار صوتي</string>
     <string name="playback_control_tab_brightness">السطوع</string>
     <string name="playback_control_tab_hue">لون</string>
-    <string name="playback_control_tab_speed">سرعة</string>
+    <string name="playback_control_tab_speed">السرعة</string>
     <string name="playback_control_tab_subtitles">الترجمة</string>
-    <string name="playback_control_tab_volume">الصوت</string>
+    <string name="playback_control_tab_volume">مستوى الصوت</string>
     <string name="playback_control_unmute">إلغاء كتم الصوت</string>
     <string name="playback_order_button_desc">ترتيب التشغيل: %1$s</string>
     <string name="playback_order_loop_list">قائمة الحلقات</string>

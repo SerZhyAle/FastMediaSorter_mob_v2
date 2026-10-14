@@ -3,6 +3,8 @@ layout: default
 title: "Автобекап фото на ПК за розкладом - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-uk.html
 ---
+<sub class="doc-stamp">26.09.30 02:31</sub>
+
 # 📷 Автобекап фото на ПК за розкладом
 
 > **Рівень:** Початківець &bull; **Час:** ~15 хвилин на налаштування &bull; **Версія:** Standard, Photos, Legacy, VR, noLegal (потрібні мережеві джерела - у Lite їх немає)

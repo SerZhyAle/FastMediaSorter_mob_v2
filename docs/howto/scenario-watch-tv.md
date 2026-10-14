@@ -3,6 +3,8 @@ layout: default
 title: "Watch TV Channels on Your Smartwatch - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv.html
 ---
+<sub class="doc-stamp">26.09.24 06:25</sub>
+
 # <img src="../icons/doc/ic_stream.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Watch TV Channels on Your Smartwatch
 
 > **Level:** Beginner &bull; **Time:** ~10 minutes &bull; **Device:** Wear OS smartwatch

@@ -1,8 +1,10 @@
 ---
 layout: default
 title: "FastMediaSorter VR-редакція"
-permalink: /docs/VR_EDITION_UK.html
+permalink: /docs/VR_EDITION-uk.html
 ---
+
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 # FastMediaSorter VR-редакція
 

@@ -147,7 +147,7 @@
     <string name="welcome_streams_catalog_failed">Katalog nicht heruntergeladen - Sie können Streams von Hand hinzufügen</string>
     <string name="welcome_func_gestures">Gesten aktivieren</string>
     <string name="welcome_func_gestures_summary">Vom linken Rand wischen: Menü, Screenshot, stiller Screenshot</string>
-    <string name="welcome_networks_companion_note">Medien auf einem Windows-PC? Fast Media Sorter für Windows gibt diese Ordner hier mit wenigen Klicks frei - ganz ohne Servereinrichtung.</string>
+    <string name="welcome_networks_companion_note">Medien auf einem Windows-PC? Fast Media Sorter &amp; Sharing for Windows gibt diese Ordner hier mit wenigen Klicks frei - ganz ohne Servereinrichtung.</string>
     <string name="welcome_networks_companion_button">Windows-App holen</string>
     <string name="welcome_networks_example_smb">Zum Beispiel: ein freigegebener Ordner auf einem Windows-PC, ein NAS wie Synology oder QNAP oder eine USB-Festplatte am Router.</string>
     <string name="welcome_networks_example_ftp">Zum Beispiel: ein Hosting-Konto über FTP, Ihr eigener Heimserver über SFTP oder eine Kamera, die Fotos in einen FTP-Ordner hochlädt.</string>

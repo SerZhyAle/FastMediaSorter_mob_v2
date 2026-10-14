@@ -106,6 +106,12 @@
             android:name=".ui.companionimport.CompanionConfigImportActivity"
             tools:node="remove" />
 
+        <!-- S4155: lite has no SFTP (SUPPORT_LOCAL_NETWORK=false), so an exchange server
+             entry would be dead - drop the exported intake receiver. -->
+        <activity
+            android:name=".ui.exchange.ExchangeSignInActivity"
+            tools:node="remove" />
+
     </application>
 
 </manifest>

@@ -3,6 +3,8 @@ layout: default
 title: "Heimkino & VR-Streaming - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema-de.html
 ---
+<sub class="doc-stamp">26.09.25 02:17</sub>
+
 <div lang="de" dir="ltr" markdown="1">
 
 # 🍿 Heimkino & VR-Streaming

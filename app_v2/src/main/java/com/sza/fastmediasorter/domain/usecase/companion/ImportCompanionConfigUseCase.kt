@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.companion.CompanionAccessPathDto
 import com.sza.fastmediasorter.data.companion.CompanionConfigDto
 import com.sza.fastmediasorter.data.companion.CompanionConfigException
 import com.sza.fastmediasorter.data.companion.CompanionConfigParser
@@ -14,6 +15,9 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SftpShareId
+import com.sza.fastmediasorter.domain.model.SftpTunnelAddress
+import com.sza.fastmediasorter.domain.model.SftpTunnelAddress.forLog
 import com.sza.fastmediasorter.domain.model.mediaPreset
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
@@ -134,7 +138,16 @@ class ImportCompanionConfigUseCase @Inject constructor(
             .mapNotNull { ap ->
                 val altHost = ap.host
                 val altPort = ap.port
-                if (altHost.isNullOrBlank() || altPort == null) null else HostPort(altHost, altPort)
+                when {
+                    altHost.isNullOrBlank() || altPort == null -> null
+                    // ANYWHERE-ACCESS 4.2: the tunnel path names the exchange server, never an SSH endpoint,
+                    // so it travels as a tunnel address or, without a usable share id, not at all.
+                    ap.kind == CompanionAccessPathDto.KIND_RENDEZVOUS_TUNNEL ->
+                        ap.shareId
+                            ?.takeIf(SftpShareId::isValid)
+                            ?.let { HostPort(SftpTunnelAddress.host(it, altHost), altPort) }
+                    else -> HostPort(altHost, altPort)
+                }
             }
             .filterNot { it.host == host && it.port == port }
             .distinct()
@@ -185,7 +198,7 @@ class ImportCompanionConfigUseCase @Inject constructor(
         addResourceUseCase.addMultiple(resources, matchExistingByPath = matchExistingByPath).fold(
             onSuccess = { addResult ->
                 Timber.i(
-                    "Companion import for $host:$port: added ${addResult.addedCount}, " +
+                    "Companion import for ${forLog(host)}:$port: added ${addResult.addedCount}, " +
                         "updated ${addResult.updatedCount}"
                 )
                 Result.success(
@@ -296,7 +309,12 @@ class ImportCompanionConfigUseCase @Inject constructor(
                 username = username,
                 password = password
             ).onFailure { e ->
-                Timber.w(e, "Companion import: alt credential save failed for ${endpoint.host}:${endpoint.port}")
+                Timber.w(
+                    e,
+                    "Companion import: alt credential save failed for %s:%d",
+                    forLog(endpoint.host),
+                    endpoint.port
+                )
             }
         }
         return credentialsResult

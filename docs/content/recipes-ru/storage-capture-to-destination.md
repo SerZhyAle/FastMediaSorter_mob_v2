@@ -6,7 +6,7 @@ description: Как сделать снимок, записать видео и�
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: Standard, noLegal, Legacy и VR (виджет «Быстрый диктофон» - Standard и Legacy)
+availability_note: Standard, noLegal, Legacy и VR (виджет «Быстрый диктофон» - Standard и Legacy)
 recipe_number: "10"
 canonical_url: documentation/storage/capture-to-destination-ru.html
 why: |
@@ -120,5 +120,7 @@ next_recipes:
     badge_type: other
     description: Автоматический перенос дневных фото и заметок по расписанию.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Делайте фото, записывайте видеоролики и надиктовывайте аудиозаметки прямо из нужной папки с автоматическим сохранением на месте - на телефоне, сетевом диске или в облаке - используя удобный виджет быстрого диктофона и буфер обмена для мгновенной отправки.

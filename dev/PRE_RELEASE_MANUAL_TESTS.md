@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.01 11:41</sub>
+
 # Pre-Release Manual Tests
 
 > **Automated sweep:** `/spec-prerelease` runs the emulator-scriptable subset of this plan as one

@@ -113,13 +113,9 @@ class ScheduledOperationDialog(
         }
 
         // Operations
-        val opLabels = listOf(
-            context.getString(R.string.scheduled_ops_op_copy),
-            context.getString(R.string.scheduled_ops_op_move),
-            context.getString(R.string.scheduled_ops_op_delete)
-        )
+        val opLabels = OPERATION_ORDER.map(::operationLabel)
         b.actvOperation.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, opLabels))
-        b.actvOperation.setOnItemClickListener { _, _, pos, _ -> applyOperationVisibility(isDelete = pos == 2) }
+        b.actvOperation.setOnItemClickListener { _, _, pos, _ -> applyOperationVisibility(OPERATION_ORDER[pos]) }
         b.actvOperation.setText(opLabels[0], false)
 
         // Target - "Local folder" first (index 0), then destinations; auto-fill if exactly one dest.
@@ -153,12 +149,29 @@ class ScheduledOperationDialog(
         b.actvTimeFilter.setText(timeLabels[0], false)
     }
 
-    private fun applyOperationVisibility(isDelete: Boolean) {
-        val visibility = if (isDelete) View.GONE else View.VISIBLE
-        b.tvTargetLabel.visibility = visibility
-        b.tilTarget.visibility = visibility
-        b.containerOverwrite.visibility = visibility
+    // ARCHIVE keeps the target but hides overwrite: every run writes a fresh, auto-deduplicated ZIP name,
+    // so the switch would have nothing to act on.
+    private fun applyOperationVisibility(type: ScheduledOpType) {
+        timber.log.Timber.d("S4173: editor operation type=$type")
+        val targetVisibility = if (type == ScheduledOpType.DELETE) View.GONE else View.VISIBLE
+        b.tvTargetLabel.visibility = targetVisibility
+        b.tilTarget.visibility = targetVisibility
+        b.containerOverwrite.visibility =
+            if (type == ScheduledOpType.DELETE || type == ScheduledOpType.ARCHIVE) View.GONE else View.VISIBLE
     }
+
+    private fun operationLabel(type: ScheduledOpType): String = context.getString(
+        when (type) {
+            ScheduledOpType.COPY -> R.string.scheduled_ops_op_copy
+            ScheduledOpType.MOVE -> R.string.scheduled_ops_op_move
+            ScheduledOpType.DELETE -> R.string.scheduled_ops_op_delete
+            ScheduledOpType.ARCHIVE -> R.string.scheduled_ops_op_archive
+        }
+    )
+
+    /** Maps the dropdown text back to its type; COPY is the dropdown's own default for an empty field. */
+    private fun resolveOperationType(text: String): ScheduledOpType =
+        OPERATION_ORDER.firstOrNull { operationLabel(it) == text } ?: ScheduledOpType.COPY
 
     // The base bundle carries the id-bearing text fields only: both switch rows wrap an inner switch
     // with the same id, so the hierarchy restores one row's value into both, and the staged folder
@@ -192,8 +205,7 @@ class ScheduledOperationDialog(
         applyFileTypeMask(savedInstanceState.getInt(STATE_FILE_TYPE_MASK, FileTypeFlags.DEFAULT))
         b.switchOverwrite.isChecked = savedInstanceState.getBoolean(STATE_OVERWRITE)
         b.switchSilentMode.isChecked = savedInstanceState.getBoolean(STATE_SILENT_MODE)
-        val deleteLabel = context.getString(R.string.scheduled_ops_op_delete)
-        applyOperationVisibility(isDelete = b.actvOperation.text.toString() == deleteLabel)
+        applyOperationVisibility(resolveOperationType(b.actvOperation.text.toString()))
         if (stagedSourceFolderPath != null) {
             applyReadOnlyState(stagedSourceReadOnly)
         } else {
@@ -225,7 +237,7 @@ class ScheduledOperationDialog(
 
     private fun updateSaveButtonState() {
         val sourceEmpty = b.actvSource.text.isNullOrBlank()
-        val isDelete = b.actvOperation.text.toString() == context.getString(R.string.scheduled_ops_op_delete)
+        val isDelete = resolveOperationType(b.actvOperation.text.toString()) == ScheduledOpType.DELETE
         val targetEmpty = !isDelete && b.actvTarget.text.isNullOrBlank()
 
         b.tilSource.error = if (sourceEmpty) context.getString(R.string.scheduled_ops_error_source_required) else null
@@ -367,11 +379,10 @@ class ScheduledOperationDialog(
     private fun applyReadOnlyState(isReadOnly: Boolean) {
         b.tvReadOnlySourceHint.visibility = if (isReadOnly) View.VISIBLE else View.GONE
         if (isReadOnly) {
-            val copyLabel = context.getString(R.string.scheduled_ops_op_copy)
-            b.actvOperation.setText(copyLabel, false)
+            b.actvOperation.setText(operationLabel(ScheduledOpType.COPY), false)
             b.actvOperation.isEnabled = false
-            b.tvTargetLabel.visibility = View.VISIBLE
-            b.tilTarget.visibility = View.VISIBLE
+            // Restores the overwrite row too: a previously chosen DELETE or ARCHIVE had hidden it.
+            applyOperationVisibility(ScheduledOpType.COPY)
         } else {
             b.actvOperation.isEnabled = true
         }
@@ -457,18 +468,8 @@ class ScheduledOperationDialog(
         applyReadOnlySourceConstraint(srcResource)
 
         // Operation type
-        val opIdx = when (op.operationType) {
-            ScheduledOpType.COPY -> 0
-            ScheduledOpType.MOVE -> 1
-            ScheduledOpType.DELETE -> 2
-        }
-        val opLabels = listOf(
-            context.getString(R.string.scheduled_ops_op_copy),
-            context.getString(R.string.scheduled_ops_op_move),
-            context.getString(R.string.scheduled_ops_op_delete)
-        )
-        b.actvOperation.setText(opLabels[opIdx], false)
-        if (op.operationType == ScheduledOpType.DELETE) applyOperationVisibility(isDelete = true)
+        b.actvOperation.setText(operationLabel(op.operationType), false)
+        applyOperationVisibility(op.operationType)
 
         // Target
         val destResource = destinations.find { it.id == op.targetResourceId }
@@ -521,12 +522,7 @@ class ScheduledOperationDialog(
             sourceId = source.id
         }
 
-        val opText = b.actvOperation.text.toString()
-        val opType = when (opText) {
-            context.getString(R.string.scheduled_ops_op_move) -> ScheduledOpType.MOVE
-            context.getString(R.string.scheduled_ops_op_delete) -> ScheduledOpType.DELETE
-            else -> ScheduledOpType.COPY
-        }
+        val opType = resolveOperationType(b.actvOperation.text.toString())
 
         var targetId: Long? = null
         val stagedTarget = if (opType != ScheduledOpType.DELETE) stagedTargetFolderPath else null
@@ -607,6 +603,13 @@ class ScheduledOperationDialog(
     }
 
     private companion object {
+        // Dropdown order; the item-click position indexes this list.
+        val OPERATION_ORDER = listOf(
+            ScheduledOpType.COPY,
+            ScheduledOpType.MOVE,
+            ScheduledOpType.DELETE,
+            ScheduledOpType.ARCHIVE
+        )
         const val STATE_SOURCE_PATH = "scheduled_op_staged_source_path"
         const val STATE_SOURCE_NAME = "scheduled_op_staged_source_name"
         const val STATE_SOURCE_READ_ONLY = "scheduled_op_staged_source_read_only"

@@ -77,4 +77,7 @@
     <string name="dropbox_select_folder">Ordner auswählen</string>
     <string name="dropbox_sign_in">Mit Dropbox anmelden</string>
     <string name="dropbox_signed_in">Angemeldet: %1$s</string>
+    <string name="media_exchange_portal_link">Medienaustausch zwischen Geräten</string>
+    <string name="media_exchange_portal_open">Medienaustausch-Portal öffnen</string>
+    <string name="broadcast_portal_help">So funktioniert das Übertragen zwischen Geräten</string>
 </resources>

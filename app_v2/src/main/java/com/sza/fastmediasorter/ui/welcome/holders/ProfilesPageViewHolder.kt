@@ -5,6 +5,8 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.sza.fastmediasorter.core.compat.DesktopPlatformProbe
+import com.sza.fastmediasorter.core.launcher.HomeRoleOfferability
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.databinding.PageWelcomeProfilesBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherPrimaryWindow
@@ -36,6 +38,8 @@ class ProfilesPageViewHolder(
     private var showPrimaryWindowChoice = false
     private var renderedPrimaryWindowSelected: LauncherPrimaryWindow? = null
     private var renderedPrimaryWindowRecommended: LauncherPrimaryWindow? = null
+    private val homeOfferable = HomeRoleOfferability.isOfferable(binding.root.context)
+    private val desktopPlatform = DesktopPlatformProbe.isPcFormFactor(binding.root.context)
 
     fun bind(page: WelcomePage) {
         orderedProfiles = orderSmallScreenFirst(page.selectableProfiles)
@@ -86,7 +90,11 @@ class ProfilesPageViewHolder(
         binding.layoutPrimaryWindow.isVisible = true
 
         val rec = recommended
-            ?: LauncherPrimaryWindow.recommendedFor(renderedSelected ?: renderedRecommended)
+            ?: LauncherPrimaryWindow.recommendedFor(
+                renderedSelected ?: renderedRecommended,
+                homeRoleOfferable = homeOfferable,
+                desktopPlatform = desktopPlatform,
+            )
         val sel = selected ?: rec
 
         renderedPrimaryWindowSelected = sel
@@ -94,6 +102,7 @@ class ProfilesPageViewHolder(
 
         if (primaryWindowAdapter == null) {
             val adapter = WelcomePrimaryWindowChoiceAdapter(
+                choices = LauncherPrimaryWindow.choicesFor(homeOfferable),
                 selectedChoice = sel,
                 recommendedChoice = rec,
                 onChoiceSelected = { choice ->
@@ -115,7 +124,11 @@ class ProfilesPageViewHolder(
     ) {
         if (!showPrimaryWindowChoice) return
         val rec = recommended
-            ?: LauncherPrimaryWindow.recommendedFor(renderedSelected ?: renderedRecommended)
+            ?: LauncherPrimaryWindow.recommendedFor(
+                renderedSelected ?: renderedRecommended,
+                homeRoleOfferable = homeOfferable,
+                desktopPlatform = desktopPlatform,
+            )
         val sel = selected ?: renderedPrimaryWindowSelected ?: rec
         renderedPrimaryWindowSelected = sel
         renderedPrimaryWindowRecommended = rec

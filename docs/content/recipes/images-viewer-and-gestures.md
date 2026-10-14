@@ -6,7 +6,7 @@ description: How to open a picture full screen, move between photos with a swipe
 category: Images, Audio & Slideshow
 category_slug: images
 ticket: S2952
-flavor: All editions
+availability: all
 recipe_number: "01"
 canonical_url: documentation/images/viewer-and-gestures.html
 why: |
@@ -132,5 +132,7 @@ next_recipes:
     badge_type: docs
     description: Find the photo you want faster with thumbnails, sorting and filters.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 The [image viewer](term:image-viewer) shows one picture at a time on the whole screen. Swipe to move between photos, pinch to zoom, turn a sideways photo for a moment and pause animated pictures - all without changing your files.

@@ -6,7 +6,6 @@ description: Как настроить автоматическую смену �
 category: Изображения, аудио и слайд-шоу
 category_slug: images
 ticket: S2952
-flavor: Все редакции
 recipe_number: "03"
 canonical_url: documentation/images/slideshow-and-transitions-ru.html
 why: |
@@ -127,5 +126,7 @@ next_recipes:
     badge_type: docs
     description: Не гаснущий экран, цветовые темы и тонкая настройка интерфейса.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Слайд-шоу](term:slideshow) автоматически переключает фотографии одну за другой. Настраивайте интервал смены кадров, добавляйте фоновую музыку и наслаждайтесь показом без отключения экрана - смартфон или планшет превращается в цифровую фоторамку за минуту.

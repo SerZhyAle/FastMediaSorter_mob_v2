@@ -6,7 +6,6 @@ description: Як витягти слова з фото, скріншота чи
 category: OCR, малювання та надсилання
 category_slug: tools
 ticket: S2957
-flavor: Standard, noLegal, Legacy та VR
 recipe_number: "01"
 canonical_url: documentation/tools/ocr-text-recognition-uk.html
 why: |
@@ -108,5 +107,7 @@ next_recipes:
     badge_type: docs
     description: Встановіть рушій OCR і мовні моделі, або приберіть їх знову.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Один дотик перетворює фото, скріншот чи скановану сторінку на текст, який можна скопіювати, знайти пошуком чи зберегти - прочитаний на самому телефоні, без жодної картинки, що покидає пристрій.

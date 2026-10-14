@@ -3,6 +3,8 @@ layout: default
 title: "اپنی واچ پر FastMedia انسٹال کریں - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-ur.html
 ---
+<sub class="doc-stamp">26.09.30 11:26</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> اپنی واچ پر FastMedia انسٹال کریں

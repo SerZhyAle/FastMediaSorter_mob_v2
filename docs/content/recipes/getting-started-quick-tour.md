@@ -6,7 +6,8 @@ description: Installing FastMediaSorter, what the first launch splash shows you,
 category: Getting Started
 category_slug: getting-started
 ticket: S2946
-flavor: All editions - install source depends on the edition
+availability: all
+availability_note: All editions - install source depends on the edition
 recipe_number: "04"
 canonical_url: documentation/getting-started/quick-tour.html
 why: |
@@ -16,7 +17,7 @@ why: |
 ingredients:
   - "An Android phone, tablet, TV box, car head unit or headset - FastMediaSorter runs on all of them, in the [edition](term:edition) built for that hardware."
   - "A way to install an app: the Google Play Store, or a downloaded APK file for the editions that are not sold in a store."
-  - "For the Windows-folder step: Fast Media Sorter for Windows running on the same network as your phone."
+  - "For the Windows-folder step: Fast Media Sorter & Sharing for Windows running on the same network as your phone."
 steps:
   - number: 1
     id: get-the-app
@@ -74,7 +75,7 @@ steps:
     id: bring-in-windows-folders
     title: Bring in folders from your Windows PC
     text: |
-      If you run Fast Media Sorter for Windows on the same network, you do not have to type in a server address by hand: scan its QR code, or open the `.fmscfg` file it hands you, and FastMediaSorter adds those PC folders as [SFTP](term:sftp) resources in one step.
+      If you run Fast Media Sorter & Sharing for Windows on the same network, you do not have to type in a server address by hand: scan its QR code, or open the `.fmscfg` file it hands you, and FastMediaSorter adds those PC folders as [SFTP](term:sftp) resources in one step.
 
       Import the same file again later - say, after sharing one more folder on the PC - and it does not create duplicates. It recognizes a resource it already has by its server and folder path and updates that one instead, then shows a short toast telling you what happened: "Added: <resource name>" or "Updated: <resource name>" when exactly one resource changed, a combined count when several did, or "Resources already up to date" when nothing did.
     image_bookmark:
@@ -114,5 +115,7 @@ next_recipes:
     badge_type: docs
     description: Which edition carries which capability, and how to tell them apart.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 From installing FastMediaSorter to the clock on its first splash to a map of which recipe to read next - this is the five-minute tour before the [welcome wizard](page:getting-started.welcome-and-setup) asks you anything.

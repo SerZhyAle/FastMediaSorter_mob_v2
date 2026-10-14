@@ -47,12 +47,10 @@ scripts/quality/assert-fgs-notifications.ps1
 scripts/quality/assert-file-line-ceiling.ps1
 scripts/quality/assert-fileop-journal-pairing.ps1
 scripts/quality/assert-flavor-binding-coverage.ps1
-scripts/quality/assert-flavor-count-prose.ps1
 scripts/quality/assert-flavor-flags-not-growing.ps1
 scripts/quality/assert-flavor-matrix-docs.ps1
 scripts/quality/assert-focus-highlight.ps1
 scripts/quality/assert-focus-parity.ps1
-scripts/quality/assert-gate-count-prose.ps1
 scripts/quality/assert-gate-hints-sync.ps1
 scripts/quality/assert-gate-placement.ps1
 scripts/quality/assert-gate-timing-claims.ps1
@@ -112,7 +110,6 @@ scripts/quality/assert-script-described.ps1
 scripts/quality/assert-script-file-size.ps1
 scripts/quality/assert-script-parses.ps1
 scripts/quality/assert-script-references.ps1
-scripts/quality/assert-sdk-pin-claims.ps1
 scripts/quality/assert-security-posture.ps1
 scripts/quality/assert-sensitive-settings-annotated.ps1
 scripts/quality/assert-settings-catalog-complete.ps1

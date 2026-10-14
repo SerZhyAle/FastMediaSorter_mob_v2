@@ -23,7 +23,7 @@
     <string name="widget_capture_ocr_panel_description">Acesso rápido às fotos da câmera e ao OCR da câmera.</string>
     <string name="widget_capture_ocr_panel_label">Captura e OCR</string>
     <string name="widget_continue_reading_description">Apresentação de slides do currículo da última posição</string>
-    <string name="widget_continue_reading_label">Continue lendo</string>
+    <string name="widget_continue_reading_label">Continuar lendo</string>
     <string name="widget_favorites_description">Acesso rápido aos arquivos favoritos</string>
     <string name="widget_favorites_label">Favoritos</string>
     <string name="widget_pin_not_supported">A fixação de widgets não é compatível com este dispositivo.</string>

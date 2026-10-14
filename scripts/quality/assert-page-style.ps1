@@ -1,7 +1,7 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    S3453 conformance gate for contract PAGE-STYLE 1.2: language switcher, pre-paint resolver, locale row, kit stylesheet.
+    S3453 conformance gate for contracts PAGE-STYLE 1.2 and PAGE-CONTENT 1.3: language switcher, pre-paint resolver, locale row, kit stylesheet, uncapped page width.
 
 .DESCRIPTION
     The product site's six pages were moved onto the family kit by reading (S3425, S3426), and
@@ -13,7 +13,7 @@
     Judged pages: the six hand-maintained ones, plus every other `index-*.html` at the root - the
     landing in a further locale, written by scripts/site/generate-landing-pages.ps1.
 
-    Four finding kinds, per page:
+    Five finding kinds, per page (WIDTH also per stylesheet):
       LANG   - the switcher has no `data-lang="ua"` link labelled UA, a language link is labelled UK,
                the pre-kit `lang-switcher` markup is back, the pre-paint does not read `sza-lang` or
                does not map a stored `uk` to `ua`, no script writes `sza-lang`, or a link carries a
@@ -27,6 +27,11 @@
       KIT   - a page links `sza-kit.css` and the linked file is not byte-identical to the catalog's
               reference; or no page links it and the catalog registry's section 3 holds no open,
               unexpired `PAGE-STYLE` exception for the FastMediaSorter website naming `sza-kit.css`.
+      WIDTH - a page wrapper (html, body, main, section, .container, .hero-inner, the header,
+              footer and locale row, .get-panel, the documentation grid and content, the docs/ theme rule
+              .main-content) carries a max-width other than none / 100% in styles.css, docs.css or
+              assets/css/style.scss, or a page or 404.html caps <main> / <body> / <section> inline
+              (PAGE-CONTENT 1.3 "Layout contract", S4106). A var() value is resolved in the same sheet.
 
 .PARAMETER Root
     Tree to judge. Defaults to the repository root; the contract suite passes a fixture tree.
@@ -57,7 +62,7 @@
 
     Exit codes (CLAUDE.md Rule 7):
       0 - every page passed every check.
-      1 - at least one LANG, THEME, LOCALE or KIT finding.
+      1 - at least one LANG, THEME, LOCALE, KIT or WIDTH finding.
       2 - cannot verify: the root, a page, the catalog, its registry or its reference kit is missing.
 #>
 [CmdletBinding()]
@@ -210,6 +215,46 @@ if (-not $kitLinked) {
     }
     elseif (-not $Quiet) {
         Write-Host "  kit: not vendored, registry exception open until $open"
+    }
+}
+
+# WIDTH (PAGE-CONTENT 1.3 "Layout contract"): a page wrapper never carries a length cap. Judged on
+# the site's own stylesheets and on inline styles, because that is where the 1100px kit default and
+# the theme's 64rem column hid; a card or a control may still be narrower than the page.
+$wrapperSelectors = @('html', 'body', 'main', 'section', '.container', '.hero-inner', '.site-header', '.site-footer',
+    '.lang-row', '.get-panel', '.doc-layout', '.doc-grid', '.doc-container', '.doc-content', '.main-content')
+$uncappedValues = @('none', '100%', '100vw', 'initial', 'unset', 'inherit')
+function Resolve-CssValue([string]$value, [string]$css) {
+    $var = [regex]::Match($value, '^var\(\s*(--[\w-]+)\s*(?:,[^)]*)?\)$')
+    if (-not $var.Success) { return $value }
+    $decl = [regex]::Match($css, [regex]::Escape($var.Groups[1].Value) + '\s*:\s*([^;}]+)')
+    if ($decl.Success) { return $decl.Groups[1].Value.Trim() }
+    return $value
+}
+$widthSheets = @('styles.css', 'documentation/assets/docs.css', 'assets/css/style.scss')
+foreach ($sheet in $widthSheets) {
+    $sheetPath = Join-Path $Root $sheet
+    if (-not (Test-Path -LiteralPath $sheetPath -PathType Leaf)) { continue }
+    $css = [regex]::Replace((Get-Content -LiteralPath $sheetPath -Raw -Encoding utf8), '(?s)/\*.*?\*/', '')
+    foreach ($rule in [regex]::Matches($css, '([^{};]+)\{([^{}]*)\}')) {
+        $selectors = @($rule.Groups[1].Value -split ',' | ForEach-Object { $_.Trim() })
+        $hit = @($selectors | Where-Object { $wrapperSelectors -contains $_ })
+        if ($hit.Count -eq 0) { continue }
+        foreach ($decl in [regex]::Matches($rule.Groups[2].Value, '(?<![\w-])max-width\s*:\s*([^;]+)')) {
+            $value = Resolve-CssValue ($decl.Groups[1].Value -replace '!important', '').Trim() $css
+            if ($uncappedValues -notcontains $value) {
+                Add-Finding 'WIDTH' "${sheet}: $($hit[0]) has max-width $value; a page wrapper spans the viewport less the gutter"
+            }
+        }
+    }
+}
+$inlinePages = @($pages) + @('404.html' | Where-Object { Test-Path -LiteralPath (Join-Path $Root $_) -PathType Leaf })
+foreach ($page in $inlinePages) {
+    $html = Get-Content -LiteralPath (Join-Path $Root $page) -Raw -Encoding utf8
+    foreach ($m in [regex]::Matches($html, '<(html|body|main|section)\b[^>]*\bstyle="[^"]*max-width\s*:\s*([^;"]+)')) {
+        if ($uncappedValues -notcontains $m.Groups[2].Value.Trim()) {
+            Add-Finding 'WIDTH' "${page}: an inline max-width $($m.Groups[2].Value.Trim()) on <$($m.Groups[1].Value)>; a page wrapper is never capped"
+        }
     }
 }
 

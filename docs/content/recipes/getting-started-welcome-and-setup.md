@@ -6,7 +6,8 @@ description: How the welcome wizard walks you through language, theme, device pr
 category: Getting Started
 category_slug: getting-started
 ticket: S2946
-flavor: All editions - which pages appear depends on the edition
+availability: all
+availability_note: All editions - which pages appear depends on the edition
 recipe_number: "01"
 canonical_url: documentation/getting-started/welcome-and-setup.html
 why: |
@@ -78,7 +79,7 @@ steps:
     callout:
       type: tip
       title: Already have a Windows PC on the network?
-      text: "[Fast Media Sorter for Windows](term:windows-companion) shares chosen PC folders here in a couple of clicks, no server setup needed - this page has a **Get the Windows app** button for it."
+      text: "[Fast Media Sorter & Sharing for Windows](term:windows-companion) shares chosen PC folders here in a couple of clicks, no server setup needed - this page has a **Get the Windows app** button for it."
   - number: 4
     id: functionality
     title: "Page 4: choose what the app can do"
@@ -177,5 +178,7 @@ next_recipes:
     badge_type: docs
     description: Installing the app, the first launch splash, and a map of what to read next.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 The welcome wizard runs once, the first time you open FastMediaSorter, and walks you through language, theme, [device profile](term:device-profile), network and cloud sources, capabilities, permissions and your default player - or you can skip straight to the end with the **Enable all** button on its first page. Every choice it makes lives in [Settings](term:settings) afterward, so nothing here is a one-way door.

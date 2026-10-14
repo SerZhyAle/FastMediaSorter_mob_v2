@@ -88,7 +88,7 @@
     <string name="keybinding_label_sorting_delete">মুছে ফেলুন</string>
     <string name="keybinding_label_sorting_favourite">প্রিয়</string>
     <string name="keybinding_label_sorting_file_ops">ফাইল অপারেশন</string>
-    <string name="keybinding_label_sorting_move">স্থানান্তর</string>
+    <string name="keybinding_label_sorting_move">সরান</string>
     <string name="keybinding_label_sorting_op_slot_1">অপারেশন স্লট ১</string>
     <string name="keybinding_label_sorting_op_slot_2">অপারেশন স্লট ২</string>
     <string name="keybinding_label_sorting_op_slot_3">অপারেশন স্লট ৩</string>
@@ -165,7 +165,7 @@
     <string name="kbm_help_op_create_group">গ্রুপ তৈরি করুন</string>
     <string name="kbm_help_op_delete">মুছে ফেলুন</string>
     <string name="kbm_help_op_edit">সম্পাদনা</string>
-    <string name="kbm_help_op_move">স্থানান্তর</string>
+    <string name="kbm_help_op_move">সরান</string>
     <string name="kbm_help_op_refresh">রিফ্রেশ</string>
     <string name="kbm_help_op_rename">পুনঃনামকরণ</string>
     <string name="kbm_help_op_view">দেখুন / প্রিভিউ</string>

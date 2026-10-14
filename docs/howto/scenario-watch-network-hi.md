@@ -3,6 +3,8 @@ layout: default
 title: "स्मार्टवॉच को NAS और पीसी शेयर से जोड़ें - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-network-hi.html
 ---
+<sub class="doc-stamp">26.09.25 02:21</sub>
+
 <div lang="hi" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> स्मार्टवॉच को NAS और पीसी शेयर से जोड़ें

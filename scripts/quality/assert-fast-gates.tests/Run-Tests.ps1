@@ -64,6 +64,14 @@ Assert-Case 'the exit code is taken from the set block, not from every gate' `
 Assert-Case 'the exit-code contract documents the changed-set form' `
     ($text -match '(?s)Exit codes:.*-ChangedFiles')
 
+# S4190: bare runs were red in 30 of 36, scoped runs in 0 of 10 - the set must be easy to pass and the
+# bare red must say how to get the caller's own verdict.
+Assert-Case '-Files is an alias of -ChangedFiles' `
+    ($text -match "\[Alias\('Files'\)\]\s*\[string\[\]\]\`$ChangedFiles")
+
+Assert-Case 'a bare red run outside CI prints the scoped re-run hint' `
+    ($text -match '(?s)if \(-not \$split -and -not \$env:CI\).*?-Files "<your changed set>"')
+
 # S2693 re-audit: a tree gate that takes no -ChangedFiles still judges the caller's own file, and
 # its red must not hide as advisory. The promotion is asserted from the text on both sides of it -
 # the classification and the block selection - so removing either half fails here.
@@ -85,11 +93,44 @@ Assert-Case 'detekt telemetry records paths and a count only after its report is
 Assert-Case 'quiet: a clean run keeps the summary blocks off the console' `
     (($text -match '\$showSummary = \$consoleVerbose -or \$anyRed') -and ($text -match 'Write-Line -Text \$Title -Console \$showSummary'))
 Assert-Case 'quiet: only a red child prints its output without -ShowPasses' `
-    ($text -match "if \(\`$consoleVerbose -or \`$r\.Status -eq 'FAIL'\) \{ Write-Host")
+    ($text -match "if \(\`$consoleVerbose -or \`$r\.Status -in \`$redStatuses\) \{ Write-Host")
+
+# S4192: only exit 1 is a finding; a gate that never judged keeps its own word and exit 2.
+Assert-Case 'mapping: exit 1 is FAIL, 4 is QUEUED, any other non-zero code is UNVERIFIED' `
+    ($text -match "Status\s+= switch \(\`$code\) \{ 0 \{ 'PASS' \} 1 \{ 'FAIL' \} 3 \{ 'SKIP' \} 4 \{ 'QUEUED' \} default \{ 'UNVERIFIED' \} \}")
+Assert-Case 'mapping: detekt never folds a non-finding exit into FAIL' `
+    ($text -match "\`$status = switch \(\`$detektExitCode\) \{ 0 \{ 'PASS' \} 1 \{ 'FAIL' \} 4 \{ 'QUEUED' \} default \{ 'UNVERIFIED' \} \}")
+Assert-Case 'exit: 1 on a finding, 2 when every red row never judged' `
+    (($text -match '\$runExitCode = \(\$defectCount -gt 0\) \? 1 : 2') -and ($text -match 'exit \$runExitCode') -and
+        ($text -match 'assert-fast-gates: COULD NOT VERIFY \('))
+Assert-Case 'exit: the contract documents code 2' `
+    ($text -match '(?s)Exit codes:.*?\n\s+2\s+no gate failed')
 Assert-Case 'quiet: the PASS verdict carries passed and skipped counts' `
-    ($text -match '\$counts = "\$passedCount passed, \$\(\$skippedRows\.Count\) skipped"')
+    (($text -match '\$skippedTotal = \$skippedRows\.Count \+ \$notApplicableRows\.Count') -and
+        ($text -match '\$counts = "\$passedCount passed, \$skippedTotal skipped"'))
+
+# S4130: CHECK-VERDICT 0.12 item A. The reader is shared with the other two aggregators, so it is
+# driven directly; the runner's use of it is asserted from the text.
+. (Join-Path $repoRoot 'scripts/quality/lib/verdict-word.ps1')
+Assert-Case 'reader: a NOT APPLICABLE last line with a parenthesis is the word' `
+    (Test-NotApplicableVerdict -Lines @('subject: scope=x', 'gate-a: NOT APPLICABLE (-Module app_v2)', ''))
+Assert-Case 'reader: a bare NOT APPLICABLE last line is the word' `
+    (Test-NotApplicableVerdict -Lines @("noise`ngate-a: NOT APPLICABLE"))
+Assert-Case 'reader: the word on an earlier line is not the verdict' `
+    (-not (Test-NotApplicableVerdict -Lines @('gate-a: NOT APPLICABLE', 'gate-a: PASS')))
+Assert-Case 'reader: lowercase prose is not the word' `
+    (-not (Test-NotApplicableVerdict -Lines @("gate-a: $('not' + ' applicable') - prose")))
+Assert-Case 'reader: colour escapes do not hide the word' `
+    (Test-NotApplicableVerdict -Lines @("$([char]27)[90mgate-a: NOT APPLICABLE (x)$([char]27)[0m"))
+Assert-Case 'reader: no output is not the word' (-not (Test-NotApplicableVerdict -Lines @()))
+Assert-Case 'N/A: an exit-0 child under the word is re-classified, in the parent' `
+    ($text -match "if \(\`$r\.Status -eq 'PASS' -and \(Test-NotApplicableVerdict -Lines @\(\`$r\.Output\)\)\) \{ \`$r\.Status = 'N/A' \}")
+Assert-Case 'N/A: -FailOnSkipped charges the exit-3 skips only' `
+    ($text -match '\$failed \+= \$skippedRows\.Count')
+Assert-Case 'N/A: every child under the word answers NOT APPLICABLE with exit 0' `
+    ($text -match '(?s)\$results\.Count -eq 0 -and \$skippedRows\.Count -eq 0 -and \$notApplicableRows\.Count -gt 0\) \{\s*Write-Host "assert-fast-gates: NOT APPLICABLE.*?exit 0')
 Assert-Case 'protocol: every run writes fast-gates-runs and a failing run names it' `
-    (($text -match 'fast-gates-runs') -and ($text -match '(?s)FAIL \(\$failed gate\(s\)\)\.".*?protocol: \$protocolPath'))
+    (($text -match 'fast-gates-runs') -and ($text -match '(?s)FAIL \(\$failed gate\(s\)\$unverifiedNote\)\.".*?protocol: \$protocolPath'))
 Assert-Case 'verbose: -ShowPasses and FMS_POSTCHANGE_VERBOSE restore the old output' `
     ($text -match "\`$consoleVerbose = \`$ShowPasses -or \(\`$env:FMS_POSTCHANGE_VERBOSE -eq '1'\)")
 
@@ -106,11 +147,13 @@ Assert-Case 'a run with a changed set prints the tree block' ($output -match 'TH
 
 $setBlock = ''
 if ($output -match '(?s)YOUR SET:(.*?)assert-fast-gates summary - THE TREE') { $setBlock = $Matches[1] }
-$setHasFailure = ($setBlock -match '\bFAIL\b') -or ($setBlock -match '\bMISSING\b')
+$setHasFinding = $setBlock -match '\bFAIL\b'
+$setHasUnjudged = $setBlock -match '\b(MISSING|UNVERIFIED|QUEUED)\b'
 
-Assert-Case 'the exit code is 1 exactly when the set block carries a red gate' `
-    ((($code -eq 1) -and $setHasFailure) -or (($code -eq 0) -and -not $setHasFailure)) `
-    "exit $code, set block red = $setHasFailure"
+Assert-Case 'the exit code is 1 on a finding in the set block, 2 on an unjudged red row only, else 0' `
+    ((($code -eq 1) -and $setHasFinding) -or (($code -eq 2) -and $setHasUnjudged -and -not $setHasFinding) -or
+        (($code -eq 0) -and -not $setHasFinding -and -not $setHasUnjudged)) `
+    "exit $code, finding = $setHasFinding, unjudged = $setHasUnjudged"
 
 Write-Host ''
 if ($failures -gt 0) {

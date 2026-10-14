@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.13 14:51</sub>
+
 # Build & Test Fast Path
 
 This playbook defines the cheapest safe validation path for common change types in `app_v2/` and `wear/`.
@@ -38,7 +40,7 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 
 | Target | Wall clock | Verdict |
 | --- | ---: | --- |
-| `a.ps1 fg` (fast static gates, 70 gates concurrent since S2451) | 79 s | foreground |
+| `a.ps1 fg` (fast static gates, concurrent since S2451) | 79 s | foreground |
 <!-- S2612 moved this measurement out of CLAUDE.md Rule 6, which was at its always-loaded ceiling.
      `fg` is the one target that ever crossed the 120 s threshold: 45 gates running one at a time
      reached 142.8 s and were preempted into the background twice, delivering the verdict the way
@@ -210,7 +212,7 @@ S2935 re-measured the row on 2026-09-11 and the sentence above still points the 
 
 A gate can also end **NOT RUN** (S3075). A child exit code of 3 means the gate judged nothing - `lib/absent-input.ps1` when a gitignored root (`PLAN/`, `.claude/`) is not in this checkout, `lib/fixed-input-scope.ps1` when the changed set charges a fixed-input gate nothing - and those rows are printed in their own `NOT RUN (input absent)` block, outside both scope blocks and outside the failure count. On a workstation the block is empty, because both roots are there; on a fresh clone, in the release worktree and on a CI runner it is where those gates go. `-FailOnSkipped` puts them back into the count for a caller that requires full coverage rather than "everything runnable here was green". Folding exit 3 into FAIL is what made the GitHub "Static Gates" job state one published fact - that `PLAN/` and `.claude/` are not published - as nine separate findings.
 
-The gate count in that row is no longer hand-held: `assert-gate-count-prose.ps1` (S2935) reads the live `$gates` table out of `assert-fast-gates.ps1` by AST and fails when the row disagrees. It was written because the count had gone fifteen revisions stale in silence - every ticket that adds a gate moves it, and none of them read this row.
+The row carries no gate count: the `$gates` table in `assert-fast-gates.ps1` is the count, and a copy here went stale with every new gate (S2935 guarded it; S4190 removed the number and the guard).
 
 S2453 then closed the loop that let this row go ~7x stale in silence: `scripts/quality/assert-gate-timing-claims.ps1` reads the figure out of the live table row and compares it against the same journal the gates already write, `temp/metrics/gate-executions.jsonl`. Both batch runners now add one record per run under the gate name `(batch)` - their own wall clock, which is what a row here claims and what the concurrent children's summed `elapsedMs` stopped being at S2451. The rules, each taken from the journal's own spread rather than chosen: the **median** over a **14-day** window, a floor of **5** executions before any verdict, fatal past **2x** the documented figure, and fatal on its own when the median crosses the 120 s threshold while the row still says `foreground` - that last case being the one this table exists to answer. A figure the target beat by more than half is advisory: the prose is pessimistic, which misleads more cheaply. A reworded row exits 2 rather than green, because an anchor that no longer matches means the check did not look. An absent journal is not a finding: it lives under `temp/`, which Rule 1 makes disposable, so a fresh clone and the release worktree have none and say `no telemetry` out loud. The claims themselves - the document, the anchor and the telemetry key, never a copy of the number - are `scripts/quality/gate-timing-claims.json`; the gate runs in release scope from `assert-release-scope-gates.ps1`. **So a row in this table is now load-bearing:** re-measure before editing one, because the next release reads it back.
 

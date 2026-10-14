@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.12 15:52</sub>
+
 # Maestro Capability Suite
 
 This directory contains the root Maestro capability-regression suite for FastMediaSorter v2

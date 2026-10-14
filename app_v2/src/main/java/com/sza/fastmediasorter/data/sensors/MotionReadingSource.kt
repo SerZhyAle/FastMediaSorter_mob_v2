@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.Looper
 import androidx.core.location.LocationCompat
 import com.sza.fastmediasorter.domain.model.sensors.MotionReading
+import com.sza.fastmediasorter.domain.model.tourist.TripMotionPolicy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -64,6 +65,12 @@ class MotionReadingSource @Inject constructor(
                             altitudeMeters = altitude,
                             distanceDeltaMeters = delta,
                             takenAtMillis = System.currentTimeMillis(),
+                        ).copy(
+                            horizontalAccuracyMeters = location.accuracy.takeIf { location.hasAccuracy() },
+                            // LocationCompat answers false below API 26, where the field does not exist.
+                            verticalAccuracyMeters = LocationCompat.getVerticalAccuracyMeters(location)
+                                .takeIf { LocationCompat.hasVerticalAccuracy(location) },
+                            bearingDegrees = location.bearing.takeIf { location.hasBearing() },
                         ),
                     )
                 }
@@ -107,7 +114,7 @@ class MotionReadingSource @Inject constructor(
      */
     private fun distanceSince(previous: Location?, current: Location): Double = when {
         previous == null -> 0.0
-        current.hasAccuracy() && current.accuracy > MAX_TRUSTED_ACCURACY_M -> 0.0
+        current.hasAccuracy() && current.accuracy > TripMotionPolicy.TRUSTED_HORIZONTAL_ACCURACY_M -> 0.0
         else -> previous.distanceTo(current).toDouble()
     }
 
@@ -116,6 +123,5 @@ class MotionReadingSource @Inject constructor(
             listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
         const val MIN_UPDATE_INTERVAL_MS = 500L
         const val MIN_UPDATE_DISTANCE_M = 0f
-        const val MAX_TRUSTED_ACCURACY_M = 50f
     }
 }

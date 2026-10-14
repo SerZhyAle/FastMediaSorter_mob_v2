@@ -11,8 +11,6 @@
          <meta name="yandex-verification" content="..." /> -->
     <meta name="description"
         content="Fast Media Sorter هو غلاف متكامل لجهاز أندرويد: شاشة رئيسية، مشغل وسائط، بث مباشر، تشغيل التطبيقات، مرافق للساعة الذكية، مراقبة الجهاز، ومدير ملفات كامل للتخزين المحلي والشبكي والسحابي.">
-    <meta name="keywords"
-        content="مشغل أندرويد، بديل الشاشة الرئيسية أندرويد، مشغل وسائط أندرويد، مشغل IPTV أندرويد، مرافق Wear OS، مدير ملفات أندرويد، مرتب وسائط أندرويد، تطبيق تنظيم الصور، مرتب فيديو أندرويد، عميل SMB أندرويد، متصفح NAS أندرويد، عميل SFTP أندرويد، عميل FTP أندرويد، مدير ملفات سحابي أندرويد، مدير Google Drive أندرويد، Dropbox أندرويد، تطبيق عرض شرائح الصور، إطار صور رقمي للتابلت، مشغل صوت أندرويد، قارئ EPUB أندرويد، ترجمة OCR أندرويد، مشغل وسائط لراديو السيارة أندرويد، تطبيق وحدة رأس السيارة أندرويد، منظم ملفات أندرويد، عمليات ملفات دفعية أندرويد، مشغل وسائط لصندوق تلفاز أندرويد، مشغل جهاز استقبال تلفزيوني، تطبيق وسائط للتلفاز الذكي، بديل Kodi لأندرويد">
     <meta name="author" content="SerZhyAle">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#0a0f0a">
@@ -115,6 +113,8 @@
 </head>
 
 <body>
+<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.11 02:15</div>
+    <a class="skip-link" href="#main-content">Skip to content</a>
 
     <!-- SZA Web Kit sticky header -->
     <header class="site-header">
@@ -125,7 +125,7 @@
             <a href="index.html" data-lang="en">EN</a>
             <a href="index-uk.html" data-lang="ua">UA</a>
         </div>
-        <button class="theme-btn" id="themeBtn" aria-label="التبديل إلى المظهر الفاتح" title="تبديل المظهر">◐</button>
+        <button class="theme-btn" id="themeBtn" aria-label="التبديل إلى المظهر الفاتح" title="تبديل المظهر"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
         <a class="btn btn-primary btn-sm" href="#get">تثبيت</a>
     </header>
 
@@ -149,7 +149,7 @@
 
     <!-- GitHub Corner -->
     <aside class="source-link">
-    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
+    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" tabindex="-1" target="_blank"
         aria-label="عرض الكود المصدري على GitHub">
         <svg width="80" height="80" viewBox="0 0 250 250"
             style="fill:var(--color-standard); color:var(--acc-ink); position: absolute; top: 0; border: 0; right: 0;"
@@ -167,9 +167,15 @@
 
     <main id="main-content">
     <header class="hero" id="top">
-        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
+        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.35" data-speed="0.5"></canvas>
         <div class="hero-inner">
-            <p class="kicker">أندرويد - غلاف الجهاز</p>
+            <div class="identity">
+                <img class="product-icon" src="icon.png" width="104" height="104" alt="">
+                <div>
+                    <p class="product-name">Fast Media Sorter &amp; Organizer</p>
+                    <p class="kicker">أندرويد - غلاف الجهاز</p>
+                </div>
+            </div>
             <h1>غلاف متكامل لجهاز أندرويد الخاص بك.</h1>
             <p class="subtitle">الشاشة الرئيسية والوسائط والبث والتطبيقات والساعة والملفات - كلها في مكان واحد.</p>
             <p class="whatfor">يستولي Fast Media Sorter &amp; Organizer على الشاشة الرئيسية ليصبح نقطة الانطلاق لكل شيء: غلاف للجهاز، مشغل وسائط، بث مباشر، تشغيل التطبيقات، بديل لتطبيقات الجهاز الافتراضية، مرافق على الساعة، مراقبة الجهاز، ومدير ملفات كامل للتخزين المحلي وSMB/NAS وSFTP/FTP ومحركات الأقراص السحابية.</p>
@@ -591,17 +597,17 @@
                         <h3><button type="button" class="scenario-select" disabled>مشاركة مجلد Windows (مرافق الكمبيوتر)</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">Standard / Photos / Legacy</span></div>
-                    <p class="card-summary">شارك مجلدًا من كمبيوتر Windows مباشرة إلى التطبيق: يشغّل <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" target="_blank">Fast Media Sorter for Windows</a> المجاني خادم SFTP آمنًا لذلك - يتم الاقتران باستيراد ملف إعداد واحد، دون إدخال يدوي للمضيف/المنفذ/المفتاح.</p>
+                    <p class="card-summary">شارك مجلدًا من كمبيوتر Windows مباشرة إلى التطبيق: يشغّل <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" target="_blank">Fast Media Sorter &amp; Sharing for Windows</a> المجاني خادم SFTP آمنًا لذلك - يتم الاقتران باستيراد ملف إعداد واحد، دون إدخال يدوي للمضيف/المنفذ/المفتاح.</p>
                 </div>
                 <details class="card-details">
                     <summary>التفاصيل</summary>
                     <ul class="detail-list">
-                        <li>ثبّت Fast Media Sorter for Windows على الكمبيوتر: <a href="https://github.com/SerZhyAle/FastMediaSorter_Lite/releases/latest" target="_blank">إصدار GitHub</a>، أو <code>winget install SerZhyAle.FastMediaSorter</code>، أو "FastMediaSorter LITE" في Microsoft Store (منشور باسمه السابق).</li>
+                        <li>ثبّت Fast Media Sorter &amp; Sharing for Windows على الكمبيوتر: <a href="https://github.com/SerZhyAle/FastMediaSorter_Lite/releases/latest" target="_blank">إصدار GitHub</a>، أو <code>winget install SerZhyAle.FastMediaSorter</code>، أو "FastMediaSorter LITE" في Microsoft Store (منشور باسمه السابق).</li>
                         <li>اختر المجلدات المراد مشاركتها على الكمبيوتر - يتم إعداد الخادم والمفاتيح والتشغيل التلقائي تلقائيًا.</li>
                         <li>على الهاتف: إضافة مورد &gt; SFTP/FTP &gt; استيراد من المرافق، ثم افتح ملف .fmscfg المصدَّر.</li>
                         <li>دليل الكمبيوتر خطوة بخطوة: <a href="https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html" target="_blank">كيفية نشر المجلدات لأندرويد</a>.</li>
                     </ul>
-                    <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" class="card-footer" target="_blank">احصل على Fast Media Sorter for Windows</a>
+                    <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" class="card-footer" target="_blank">احصل على Fast Media Sorter &amp; Sharing for Windows</a>
                 </details>
             </article>
             <article class="card scenario-card" data-scenario="offline">
@@ -658,6 +664,7 @@
                     target="_blank" rel="noopener">IzzyOnDroid</a>
             </div>
             <p class="shell-links"><a href="#download">إصدارات APK الأخرى وواجهة الساعة</a></p>
+            <p class="shell-links">الإصدارات: <a href="#download">Lite</a> · <a href="#download">Photos</a> · <a href="#download">Legacy</a> · <a href="nolegal.html">noLegal</a> · <a href="documentation/vr/spatial-cinema-playback.html">VR</a> · <a href="docs/wear/">Wear OS</a> · <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">واجهة الساعة</a></p>
             <ol class="quickstart">
                 <li>ثبّت الإصدار المناسب وافتح التطبيق.</li>
                 <li>في معالج الترحيب، أو لاحقًا في الإعدادات، عام، نافذة البدء الأساسية، اختر الشاشة الرئيسية للجهاز وأكد ذلك عندما يسأل Android.</li>
@@ -695,7 +702,7 @@
             <summary>الفهرس الكامل للميزات</summary>
         <!-- What it Replaces -->
         <h2 class="section-title" id="replaces">يحل محل أكثر من عشرة تطبيقات</h2>
-        <p class="section-lead">يجمع Fast Media Sorter بين الشاشة الرئيسية ومشغل التطبيقات ومشغل الوسائط ومشغل البث ومدير الملفات. بدلًا من تطبيقات منفصلة للمشغل والفيديو والموسيقى والمعارض والقراءة ومجلدات الشبكة والتخزين السحابي، تستخدم واجهة واحدة بمجموعة إجراءات مألوفة. التطبيقات أدناه مجرد نقاط مرجعية معروفة للقدرات، وليست ترتيبًا للمقارنة.</p>
+        <p class="section-lead">يجمع Fast Media Sorter بين الشاشة الرئيسية ومشغل التطبيقات ومشغل الوسائط ومشغل البث ومدير الملفات. بدلًا من تطبيقات منفصلة للمشغل والفيديو والموسيقى والمعارض والقراءة ومجلدات الشبكة والتخزين السحابي، تستخدم واجهة واحدة بمجموعة إجراءات مألوفة.</p>
         <div class="cards-grid replaces-grid">
             <article class="card">
                 <div class="card-title-row">
@@ -703,7 +710,7 @@
                     <h3>الشاشة الرئيسية والجهاز</h3>
                 </div>
                 <ul class="detail-list repl-list">
-                    <li><strong>المشغل / الشاشة الرئيسية</strong> <span class="repl-ref">(Nova Launcher، المشغل الافتراضي)</span> - سطح مكتب من المجلدات والاختصارات والأدوات الحية، وشريط مهام بقائمة ابدأ وتطبيقات مثبتة وحديثة. <span class="repl-note">الإصدار القياسي</span></li>
+                    <li><strong>المشغل / الشاشة الرئيسية</strong> <span class="repl-ref">(المشغل الافتراضي)</span> - سطح مكتب من المجلدات والاختصارات والأدوات الحية، وشريط مهام بقائمة ابدأ وتطبيقات مثبتة وحديثة. <span class="repl-note">الإصدار القياسي</span></li>
                     <li><strong>درج التطبيقات</strong> <span class="repl-ref">(قائمة التطبيقات الافتراضية)</span> - كل التطبيقات المثبتة في قائمة واحدة قابلة للبحث، مجمعة حسب الحرف.</li>
                     <li><strong>الساعة والطقس والبوصلة</strong> <span class="repl-ref">(تطبيقات الساعة والطقس الافتراضية)</span> - أدوات مدمجة للساعة والساعة العالمية والطقس والخريطة والبوصلة والسرعة.</li>
                     <li><strong>مراقب الجهاز</strong> <span class="repl-ref">(تطبيقات معلومات النظام)</span> - أدوات للشبكة والبطارية والتخزين والذاكرة، وقائمة حية باتصالات الشبكة.</li>
@@ -716,14 +723,14 @@
                     <h3>العرض والتشغيل</h3>
                 </div>
                 <ul class="detail-list repl-list">
-                    <li><strong>مشغل الفيديو</strong> <span class="repl-ref">(MX Player, VLC)</span> - الفيديو، ملفات بلوراي TS/.m2ts، صورة داخل صورة، لقطات شاشة للإطارات، البث عبر Chromecast.</li>
-                    <li><strong>مشغل الصوت</strong> <span class="repl-ref">(Poweramp, AIMP)</span> - التشغيل في الخلفية، كلمات الأغاني، MIDI، مؤقت النوم، المؤثرات المرئية، عناصر تحكم الإشعارات.</li>
-                    <li><strong>معرض / عارض الصور</strong> <span class="repl-ref">(QuickPic, Google Photos)</span> - الصور وملفات GIF، القص، الفلاتر، التدوير.</li>
-                    <li><strong>قارئ PDF / EPUB</strong> <span class="repl-ref">(Adobe Reader, Moon+ Reader)</span> - الكتب، خرائط الفصول، المظاهر، القراءة بصوت عالٍ (TTS).</li>
+                    <li><strong>مشغل الفيديو</strong> - الفيديو، ملفات بلوراي TS/.m2ts، صورة داخل صورة، لقطات شاشة للإطارات، البث عبر Chromecast.</li>
+                    <li><strong>مشغل الصوت</strong> - التشغيل في الخلفية، كلمات الأغاني، MIDI، مؤقت النوم، المؤثرات المرئية، عناصر تحكم الإشعارات.</li>
+                    <li><strong>معرض / عارض الصور</strong> - الصور وملفات GIF، القص، الفلاتر، التدوير.</li>
+                    <li><strong>قارئ PDF / EPUB</strong> - الكتب، خرائط الفصول، المظاهر، القراءة بصوت عالٍ (TTS).</li>
                     <li><strong>عرض الشرائح / إطار الصور</strong> - صور متعاقبة مع موسيقى خلفية، بالإضافة إلى ودجت إطار الصور.</li>
-                    <li><strong>مركز وسائط للتلفاز</strong> <span class="repl-ref">(Kodi, Nova Video Player)</span> - تصفح وتشغيل متوافقان مع لوحة الاتجاهات ولوحة المفاتيح والفأرة ووحدة التحكم وجهاز التحكم عن بعد للتلفاز.</li>
-                    <li><strong>مشغل وسائط VR</strong> <span class="repl-ref">(Pigasus, Skybox VR)</span> - ستيريو SBS/OU، VR180، 360°، شاشة سينما افتراضية. <span class="repl-note">إصدار VR</span></li>
-                    <li><strong>راديو إنترنت / مشغل IPTV</strong> <span class="repl-ref">(TuneIn, Online Radio, RadioDroid, VLC network)</span> - تشغل شاشة البث راديو http/https ومصادر HLS/DASH وRTSP؛ مشغل مصغر مدمج يعرض معلومات ICY للتشغيل الحالي؛ فهرس محطات منسق.</li>
+                    <li><strong>مركز وسائط للتلفاز</strong> - تصفح وتشغيل متوافقان مع لوحة الاتجاهات ولوحة المفاتيح والفأرة ووحدة التحكم وجهاز التحكم عن بعد للتلفاز.</li>
+                    <li><strong>مشغل وسائط VR</strong> - ستيريو SBS/OU، VR180، 360°، شاشة سينما افتراضية. <span class="repl-note">إصدار VR</span></li>
+                    <li><strong>راديو إنترنت / مشغل IPTV</strong> - تشغل شاشة البث راديو http/https ومصادر HLS/DASH وRTSP؛ مشغل مصغر مدمج يعرض معلومات ICY للتشغيل الحالي؛ فهرس محطات منسق.</li>
                 </ul>
             </article>
             <article class="card">
@@ -736,7 +743,7 @@
                     <li><strong>مسجل الصوت</strong> - ملاحظات صوتية بالإضافة إلى ودجت للتسجيل السريع.</li>
                     <li><strong>محرر الرسم</strong> - لوحة رسم، فرش، أشكال، نص، لون وحجم مخصصان للفرشاة.
                     </li>
-                    <li><strong>ماسح المستندات / النصوص</strong> <span class="repl-ref">(Google Lens, CamScanner)</span> - تعرف ضوئي على الحروف (OCR) على الجهاز من الكاميرا مع اقتصاص المنطقة.</li>
+                    <li><strong>ماسح المستندات / النصوص</strong> - تعرف ضوئي على الحروف (OCR) على الجهاز من الكاميرا مع اقتصاص المنطقة.</li>
                 </ul>
             </article>
             <article class="card">
@@ -747,9 +754,9 @@
                 <ul class="detail-list repl-list">
                     <li><strong>محرر النصوص / Markdown</strong> - تحرير ملفات .txt/.md مع تلوين الصياغة والحفظ التلقائي.
                     </li>
-                    <li><strong>المترجم</strong> <span class="repl-ref">(Google Translate offline)</span> - ترجمة كاملة دون اتصال بالإنترنت.</li>
+                    <li><strong>المترجم</strong> - ترجمة كاملة دون اتصال بالإنترنت.</li>
                     <li><strong>الآلة الحاسبة</strong> - حساب مدمج للتعبيرات من النص المحدد. <span class="repl-note">أساسية</span></li>
-                    <li><strong>البث إلى التلفاز</strong> <span class="repl-ref">(Google Home)</span> - Chromecast للفيديو والصوت معًا.</li>
+                    <li><strong>البث إلى التلفاز</strong> - Chromecast للفيديو والصوت معًا.</li>
                     <li><strong>أداة نسخ إعدادات احتياطي</strong> - تصدير واستعادة إعداد التطبيق والمصادر والمفضلة والجداول وكلمات المرور وبيانات تسجيل الدخول. <span class="repl-note">إعداد التطبيق فقط</span></li>
                 </ul>
             </article>
@@ -759,13 +766,13 @@
                     <h3>إدارة الملفات</h3>
                 </div>
                 <ul class="detail-list repl-list">
-                    <li><strong>مدير الملفات</strong> <span class="repl-ref">(Total Commander, ES File Explorer, Files by Google)</span> - الملفات المحلية والشبكية والسحابية في مكان واحد.</li>
-                    <li><strong>عميل FTP/SFTP/SMB</strong> <span class="repl-ref">(AndFTP, Solid Explorer)</span> - مصادر شبكية مع مفاتيح SSH وتثبيت مفتاح المضيف.</li>
+                    <li><strong>مدير الملفات</strong> - الملفات المحلية والشبكية والسحابية في مكان واحد.</li>
+                    <li><strong>عميل FTP/SFTP/SMB</strong> - مصادر شبكية مع مفاتيح SSH وتثبيت مفتاح المضيف.</li>
                     <li><strong>عملاء السحابة</strong> <span class="repl-ref">(Google Drive, Dropbox, OneDrive)</span> - محركات أقراص سحابية كمصادر وسائط.</li>
-                    <li><strong>كاشف التكرارات</strong> <span class="repl-ref">(Duplicate Files Fixer)</span> - محرك من 3 مراحل الحجم -&gt; التجزئة -&gt; SHA-256.</li>
-                    <li><strong>سلة المحذوفات</strong> <span class="repl-ref">(Dumpster)</span> - حذف مؤقت مع استعادة بلمسة واحدة.</li>
-                    <li><strong>مستخرج الأرشيف</strong> <span class="repl-ref">(ZArchiver)</span> - استخراج ملفات ZIP، بما في ذلك المحمية بكلمة مرور. <span class="repl-note">أساسي</span></li>
-                    <li><strong>مدير التنزيلات</strong> <span class="repl-ref">(1DM, ADM)</span> - الصق رابطًا واحفظه مباشرة في مجلد تختاره.</li>
+                    <li><strong>كاشف التكرارات</strong> - محرك من 3 مراحل الحجم -&gt; التجزئة -&gt; SHA-256.</li>
+                    <li><strong>سلة المحذوفات</strong> - حذف مؤقت مع استعادة بلمسة واحدة.</li>
+                    <li><strong>مستخرج الأرشيف</strong> - استخراج ملفات ZIP، بما في ذلك المحمية بكلمة مرور. <span class="repl-note">أساسي</span></li>
+                    <li><strong>مدير التنزيلات</strong> - الصق رابطًا واحفظه مباشرة في مجلد تختاره.</li>
                     <li><strong>جدولة المهام</strong> - عمليات ملفات مجدولة.</li>
                 </ul>
             </article>
@@ -860,6 +867,22 @@
             <article class="card">
                 <div>
                     <div class="card-title-row">
+                        <h3>Media Exchange Portal</h3>
+                    </div>
+                    <p class="card-summary">Which way fits you for moving and opening media between your own phone, watch, TV, VR headset and Windows PC.</p>
+                </div>
+                <details class="card-details">
+                    <summary>التفاصيل</summary>
+                    <ul class="detail-list">
+                        <li>Three ways to connect: your home network, the exchange server and live broadcast, with what works today.</li>
+                        <li>Which program does what on each device, and which edition has what.</li>
+                    </ul>
+                    <a href="docs/media-exchange-portal/" class="card-footer" target="_blank">Open the exchange portal</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
                         <h3>إصدارات APK والمرايا</h3>
                     </div>
                     <p class="card-summary">ملاحظات الإصدارات بالإضافة إلى مرايا Google Drive بصيغة ZIP للنسخ المُصرّفة.</p>
@@ -870,7 +893,7 @@
                         <li>يشرح الفروقات بين الإصدارات والمرآة البديلة على Google Drive.</li>
                         <li>التنزيلات بلمسة واحدة موجودة في قسم تنزيل ملفات APK أدناه.</li>
                     </ul>
-                    <a href="docs/DOWNLOADS_EN.html" class="card-footer" target="_blank">فتح التفاصيل</a>
+                    <a href="docs/DOWNLOADS.html" class="card-footer" target="_blank">فتح التفاصيل</a>
                 </details>
             </article>
         </div>
@@ -878,7 +901,7 @@
         <!-- Download APK Builds - live buttons from the latest GitHub Release (S0394) -->
         <h2 class="section-title" id="download">تنزيل ملفات APK</h2>
         <p class="section-lead">أحدث APK مستقر متاح لكل إصدار. قد تختلف أرقام النسخ؛ راجع إصدارات GitHub إذا لم تجد الإصدار المطلوب.</p>
-        <p class="section-lead">يحذّر أندرويد من ملف APK لم يسبق له رؤيته. <a href="docs/INSTALL_TRUST_EN.html" target="_blank" rel="noopener">لماذا يظهر التحذير - وماذا تضغط</a>.</p>
+        <p class="section-lead">يحذّر أندرويد من ملف APK لم يسبق له رؤيته. <a href="docs/INSTALL_TRUST.html" target="_blank" rel="noopener">لماذا يظهر التحذير - وماذا تضغط</a>.</p>
         <h3 class="edition-heading">إصدارات للنظارات والساعات</h3>
         <div class="edition-download-grid">
             <article class="card edition-card" data-download-edition="noLegal">
@@ -1189,11 +1212,11 @@
             <h2 class="section-title">المزيد من أدوات SZA</h2>
             <div class="tools-grid">
                 <!-- family-footer:begin - rendered from scripts/site/family-footer.json by scripts/site/render-family-footer.ps1; edit the source, not this block -->
-                <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>مرتب وسائط للكمبيوتر ومشاركة مجلدات مع أندرويد</span></a> <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>محول كتب إلكترونية لـ Windows</span></a> <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>مصلح تخطيط لوحة المفاتيح لـ Windows</span></a> <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>أداة سطر أوامر للتخزين على Windows</span></a> <a href="https://serzhyale.github.io/StreamsPlayer/"><b>StreamsPlayer</b><span>مشغل بث لـ Windows</span></a> <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>مشغل شريط مهام لـ Windows</span></a> <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>منهجية تطوير بالذكاء الاصطناعي</span></a> <a href="https://sza.od.ua"><b>SZA</b><span>مركز المحفظة</span></a>
+                <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>مرتب وسائط للكمبيوتر ومشاركة مجلدات مع أندرويد</span></a> <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>محول كتب إلكترونية لـ Windows</span></a> <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>مصلح تخطيط لوحة المفاتيح لـ Windows</span></a> <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>أداة سطر أوامر للتخزين على Windows</span></a> <a href="https://serzhyale.github.io/StreamsPlayer/"><b>STREAMS Player</b><span>مشغل بث لـ Windows</span></a> <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>مشغل شريط مهام لـ Windows</span></a> <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>منهجية تطوير بالذكاء الاصطناعي</span></a> <a href="https://sza.od.ua"><b>SZA</b><span>مركز المحفظة</span></a>
                 <!-- family-footer:end -->
             </div>
             <div class="footer-bottom">
-                <span>&copy; 2024-2026 Serhii Zhyhunenko · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">الخصوصية</a> · <a href="docs/TERMS_OF_SERVICE.html">الشروط</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
+                <span>&copy; 2024-2026 <a href="https://sza.od.ua">Serhii Zhyhunenko</a> · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">الخصوصية</a> · <a href="docs/TERMS_OF_SERVICE.html">الشروط</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
             </div>
         </div>
     </footer>

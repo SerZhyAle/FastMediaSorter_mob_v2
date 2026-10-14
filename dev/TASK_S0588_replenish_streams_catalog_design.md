@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.06.21 16:04</sub>
+
 # SOLUTION DESIGN (Дизайн решения): S0588 - replenish-streams-catalog
 
 **Билет:** S0588  

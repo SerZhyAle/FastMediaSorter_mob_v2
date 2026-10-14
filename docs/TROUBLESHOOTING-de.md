@@ -3,6 +3,8 @@ layout: default
 title: "🔧 Troubleshooting Guide"
 permalink: /docs/TROUBLESHOOTING-de.html
 ---
+<sub class="doc-stamp">26.10.09 14:26</sub>
+
 <div lang="de" dir="ltr" markdown="1">
 
 {% include lang-switcher.html doc="TROUBLESHOOTING" dir="/docs/" current="de" %}
@@ -173,7 +175,7 @@ Aktueller Leitfaden zur Problembehebung für FastMediaSorter v2. Nutze das maßg
 **Lösung:**
 1. Tippe auf die Schaltfläche **ⓘ (Info)** in der oberen Symbolleiste
 2. Tippe auf **"In externem Player öffnen"**
-3. Wähle einen spezialisierten Player (z. B. VLC, MX Player)
+3. Wähle einen spezialisierten Player
 
 Dies nutzt die Funktion *Sekundärer Player*, um nicht unterstützte Codecs an andere Apps zu übergeben.
 

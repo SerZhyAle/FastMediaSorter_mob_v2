@@ -26,7 +26,8 @@
     PreToolUse-style hook to refuse a call before it happens.
 
     Exit codes (S1070):
-      0 - not applicable (wrong runtime, or no rollout found), or applicable with zero findings.
+      0 - NOT APPLICABLE on a Claude Code process (S4130), nothing inspected when no rollout
+          names the ticket, or applicable with zero findings.
       2 - measure-codex-transcript.ps1 itself could not verify (its own exit 2).
       3 - applicable, and one or more findings (advisory).
 
@@ -47,7 +48,8 @@ $ErrorActionPreference = 'Stop'
 # S3149: FMS_AGENT_RUNTIME can be inherited from a persisted environment, and a Claude Code
 # process carrying 'Codex' that way was judged as a Codex session. The runtime's own markers win.
 if ($env:CLAUDECODE -or $env:CLAUDE_CODE_SESSION_ID) {
-    Write-Host "assert-codex-transcript-hygiene: not applicable - this is a Claude Code process (inherited FMS_AGENT_RUNTIME='$($env:FMS_AGENT_RUNTIME)' ignored)."
+    # S4130: CHECK-VERDICT 0.12 item A - the runtime the caller runs in selects no Codex transcript.
+    Write-Host "assert-codex-transcript-hygiene: NOT APPLICABLE (Claude Code process; inherited FMS_AGENT_RUNTIME='$($env:FMS_AGENT_RUNTIME)' ignored)"
     exit 0
 }
 # S3177: no FMS_AGENT_RUNTIME test. Codex never sets it - the S3103 session closed without it, so
@@ -69,7 +71,9 @@ if ($measureExit -eq 2) {
 
 $parsed = $rawJson | ConvertFrom-Json -Depth 6
 if (-not $parsed.found) {
-    Write-Host "assert-codex-transcript-hygiene: not applicable - no rollout on disk names $Id."
+    # S4130: not NOT APPLICABLE - a Codex ticket whose rollout is not on disk looks the same, and item
+    # A.2 would make that 2. Kept at 0 as a recorded deviation (registry, CHECK-VERDICT rules 11-15).
+    Write-Host "assert-codex-transcript-hygiene: nothing inspected - no rollout on disk names $Id."
     exit 0
 }
 

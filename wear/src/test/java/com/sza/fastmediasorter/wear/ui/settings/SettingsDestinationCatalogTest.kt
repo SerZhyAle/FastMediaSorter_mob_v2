@@ -30,6 +30,7 @@ class SettingsDestinationCatalogTest {
                 SettingsRoutes.OTHER,
                 SettingsRoutes.TILE_TARGETS,
                 SettingsRoutes.PERMISSIONS,
+                SettingsRoutes.EXCHANGE_SERVERS,
                 SettingsRoutes.ABOUT
             ),
             routes
@@ -46,7 +47,7 @@ class SettingsDestinationCatalogTest {
         )
 
         assertEquals(
-            listOf(SettingsRoutes.SCREEN, SettingsRoutes.OTHER, SettingsRoutes.ABOUT),
+            listOf(SettingsRoutes.SCREEN, SettingsRoutes.OTHER, SettingsRoutes.EXCHANGE_SERVERS, SettingsRoutes.ABOUT),
             routes
         )
     }

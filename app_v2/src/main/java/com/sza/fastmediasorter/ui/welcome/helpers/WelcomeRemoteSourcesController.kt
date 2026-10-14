@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.welcome.helpers
 
 import android.content.ActivityNotFoundException
 import android.view.View
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
@@ -9,12 +10,13 @@ import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.databinding.PageWelcomeNetworksBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-import timber.log.Timber
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -41,6 +43,20 @@ class WelcomeRemoteSourcesController @Inject constructor(
         owner.lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
             bindRows(binding, settings)
+        }
+        bindPortalLink(binding, owner)
+    }
+
+    // S4143: the portal compares the ways to reach a remote source, so it is useful wherever either
+    // group exists and pointless on a flavor with neither.
+    private fun bindPortalLink(binding: PageWelcomeNetworksBinding, owner: LifecycleOwner) {
+        val visible = gate.isNetworkGroupSupported() || gate.isCloudGroupSupported()
+        binding.btnMediaExchangePortal.visibility = visibilityOf(visible)
+        if (!visible) return
+        binding.btnMediaExchangePortal.setOnClickListener {
+            (owner as? FragmentActivity)?.let {
+                MediaExchangePortalLinks.open(it, MediaExchangePortalLinks.Page.START)
+            }
         }
     }
 

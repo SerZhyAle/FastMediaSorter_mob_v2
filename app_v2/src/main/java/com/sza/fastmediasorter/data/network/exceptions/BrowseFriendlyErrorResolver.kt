@@ -29,6 +29,14 @@ object BrowseFriendlyErrorResolver {
     fun message(context: Context, throwable: Throwable): String =
         context.getString(resolveRes(throwable))
 
+    /**
+     * The text of a tunnel or Drive rendezvous verdict anywhere in [throwable]'s cause chain, or null.
+     * It names the real cause, so a caller shows it ahead of any companion access note.
+     */
+    fun peerUnreachableMessage(context: Context, throwable: Throwable): String? =
+        (NetworkErrorClassifier.classifySilently(throwable) as? NetworkPeerUnreachableException)
+            ?.let { context.getString(NetworkErrorMessageMapper.toMessageRes(it)) }
+
     @StringRes
     fun resolveRes(throwable: Throwable): Int {
         val sftpCategory = SftpOperationFailure.fromThrowable(throwable).category

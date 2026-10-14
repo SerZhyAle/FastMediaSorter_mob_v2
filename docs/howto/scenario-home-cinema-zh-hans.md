@@ -3,6 +3,8 @@ layout: default
 title: "家庭影院与 VR 串流 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema-zh-hans.html
 ---
+<sub class="doc-stamp">26.09.25 02:17</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 🍿 家庭影院与 VR 串流

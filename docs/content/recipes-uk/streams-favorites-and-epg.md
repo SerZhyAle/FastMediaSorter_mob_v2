@@ -6,7 +6,6 @@ description: Як закріпити канал вгорі Трансляцій,
 category: Інтернет-трансляції
 category_slug: streams
 ticket: S2954
-flavor: Standard, noLegal, Legacy і VR
 recipe_number: "04"
 canonical_url: documentation/streams/favorites-and-epg-uk.html
 why: |
@@ -118,5 +117,7 @@ next_recipes:
     badge_type: docs
     description: Що відбувається, коли ви торкаєтеся каналу, на панелі трансляцій і в повному плеєрі.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Тримайте щоденні [канали](term:channel) напохваті двома способами: закріплюйте їх вгорі [Трансляцій](term:streams-screen) у обраному вами порядку, і позначайте зіркою потрібні в спільному списку [Обране](term:favorites). Ця сторінка охоплює закріплення, зміну порядку, фільтр лише закріплених і додавання каналу до Обраного.

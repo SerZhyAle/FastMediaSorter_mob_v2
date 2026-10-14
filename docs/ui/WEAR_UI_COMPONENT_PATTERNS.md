@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.23 03:45</sub>
+
 # Wear UI Component Patterns and Unification Catalogue
 
 Scope: The `wear` module, covering all Jetpack Compose for Wear OS screens, dialogs, tiles, and player surfaces across `wear/src/main/java/com/sza/fastmediasorter/wear/ui/`.

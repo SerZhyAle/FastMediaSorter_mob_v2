@@ -3,6 +3,8 @@ layout: default
 title: "Öffnen Sie die Ordner Ihres PCs durch Scannen eines einzigen Codes - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-de.html
 ---
+<sub class="doc-stamp">26.09.25 02:16</sub>
+
 <div lang="de" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Öffnen Sie die Ordner Ihres PCs durch Scannen eines einzigen Codes
@@ -19,7 +21,7 @@ Sie starten ein kleines Hilfsprogramm auf Ihrem Windows-PC, wählen die Ordner m
 
 ## Das Hilfsprogramm
 
-Der „Begleiter“ ist eine integrierte Funktion von **[Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** (früher FastMediaSorter LITE) - dem kostenlosen Windows-Media-Sorter desselben Autors. Wenn Sie damit Ordner freigeben, tut er Folgendes:
+Der „Begleiter“ ist eine integrierte Funktion von **[Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** - dem kostenlosen Windows-Media-Sorter desselben Autors. Wenn Sie damit Ordner freigeben, tut er Folgendes:
 
 - Startet auf Ihrem PC einen privaten SFTP-Server nur für diese Ordner.
 - Generiert eigene Schlüssel und richtet den Autostart ein, sodass die Freigabe auch beim nächsten Mal vorhanden ist.
@@ -37,7 +39,7 @@ Der „Begleiter“ ist eine integrierte Funktion von **[Fast Media Sorter for W
 
 ## Was Sie benötigen
 
-- Ein Windows-PC mit installiertem **Fast Media Sorter for Windows**
+- Ein Windows-PC mit installiertem **Fast Media Sorter & Sharing for Windows**
 - Ihr Handy und PC im **gleichen Wi-Fi-Netzwerk** (gleicher Router)
 - Für den schnellsten Weg: eine Handy-**Kamera** zum Scannen des Codes (ein dateibasierter Weg steht zur Verfügung, falls keine Kamera vorhanden ist)
 
@@ -45,7 +47,7 @@ Der „Begleiter“ ist eine integrierte Funktion von **[Fast Media Sorter for W
 
 ## Schritt 1 - Die Ordner auf dem PC freigeben
 
-1. Installieren und starten Sie **Fast Media Sorter for Windows**, öffnen Sie dann den Reiter **Freigabe** in den Einstellungen.
+1. Installieren und starten Sie **Share Manager - Fast Media Sorter & Sharing**, öffnen Sie dann den Reiter **Freigabe** in den Einstellungen.
 2. Wählen Sie die Ordner aus, die Sie auf dem Handy haben möchten - Filme, Musik, Dokumente, Fotos, alles Mögliche.
 3. Die App startet den SFTP-Server, generiert die Schlüssel und richtet den Autostart von selbst ein. Es ist nichts weiter zu konfigurieren.
 4. Sie zeigt nun einen **QR-Code** auf dem PC-Bildschirm an. Lassen Sie dieses Fenster für Schritt 2 geöffnet.

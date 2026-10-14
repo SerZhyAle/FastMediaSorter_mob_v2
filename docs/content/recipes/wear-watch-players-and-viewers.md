@@ -6,7 +6,9 @@ description: How to use the watch's image viewer, video player and audio player 
 category: Wear OS Watch
 category_slug: wear
 ticket: S2966
-flavor: The full version of the watch app (sideload only) - the Google Play version has no player at all. See the noLegal edition.
+availability: companion:wear
+devices: watch
+availability_note: The full version of the watch app (sideload only) - the Google Play version has no player at all. See the noLegal edition.
 recipe_number: "07"
 canonical_url: documentation/wear/watch-players-and-viewers.html
 why: |
@@ -91,7 +93,7 @@ steps:
     id: player-screen-off
     title: "Turning the screen off while it keeps playing"
     text: |
-      The audio player, and an audio stream, offer their own **Screen off**: the display goes dark while the sound keeps going, and one tap brings the picture and controls straight back. A single tap on the dark screen otherwise just sends a thin ring spreading out from the touch point and fading away, so a stray touch in your pocket does not wake it by accident; a double tap, a long press or the watch's own button all bring it back properly.
+      The audio player, and an audio stream, offer their own **Screen off**: the display goes dark while the sound keeps going, and one tap brings the picture and controls straight back. A single tap on the dark screen otherwise only sends a thin ring spreading out from the touch point and shows the time and date above it for one second, so a stray touch in your pocket does not wake it by accident; a double tap, a long press or the watch's own button all bring it back properly.
 
       The video player does not offer this - going dark during a video would hide the one thing its screen is open for.
     image_bookmark:
@@ -171,5 +173,7 @@ next_recipes:
     badge_type: docs
     description: The Chromecast session the watch's Show on TV hands off to.
 ---
+
+<sub class="doc-stamp">26.10.10 14:39</sub>
 
 A tour of the watch app's three players - image, video and audio - plus its text document reader and sending what's on the watch to a TV.

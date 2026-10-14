@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.07.18 04:13</sub>
+
 # Launcher Mode - Roadmap
 
 **Owner:** Serhii

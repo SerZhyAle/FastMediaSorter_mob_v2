@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.25 18:36</sub>
+
 # Pointer - `DOC-INTERNAL-QUALITY`
 
 | | |

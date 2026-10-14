@@ -23,9 +23,9 @@
     <string name="widget_capture_ocr_panel_description">ক্যামেরার ছবি এবং ক্যামেরা ওসিআর-এ দ্রুত অ্যাক্সেস।</string>
     <string name="widget_capture_ocr_panel_label">ক্যাপচার এবং ওসিআর</string>
     <string name="widget_continue_reading_description">স্লাইডশো শেষ অবস্থান থেকে পুনরায় শুরু করুন।</string>
-    <string name="widget_continue_reading_label">আরও পড়ুন</string>
+    <string name="widget_continue_reading_label">পড়া চালিয়ে যান</string>
     <string name="widget_favorites_description">পছন্দের ফাইলগুলিতে দ্রুত অ্যাক্সেস</string>
-    <string name="widget_favorites_label">প্রিয়</string>
+    <string name="widget_favorites_label">পছন্দসমূহ</string>
     <string name="widget_pin_not_supported">এই ডিভাইসে উইজেট পিনিং সমর্থিত নয়।</string>
     <string name="widget_random_music_description">এলোমেলোভাবে একটি মিউজিক ট্র্যাক বাজান।</string>
     <string name="widget_random_music_label">র‍্যান্ডম মিউজিক</string>

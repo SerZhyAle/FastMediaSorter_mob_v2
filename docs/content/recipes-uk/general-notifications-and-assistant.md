@@ -6,7 +6,7 @@ description: Що показує заставка запуску, які спо�
 category: "Загальні, клавіатура та ТВ"
 category_slug: general
 ticket: S2963
-flavor: Усі редакції - кожне сповіщення з'являється лише в редакціях, що мають цю функцію
+availability_note: Усі редакції - кожне сповіщення з'являється лише в редакціях, що мають цю функцію
 recipe_number: "04"
 canonical_url: documentation/general/notifications-and-assistant-uk.html
 why: |
@@ -110,5 +110,7 @@ next_recipes:
     badge_type: docs
     description: Застосунок поруч з іншим, на планшеті чи на розкладеному телефоні.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Заставка запуску, сповіщення, кольори типів контенту й програм, приватні екрани з паролями й одна мова скрізь - способи, якими FastMediaSorter показує себе на телефоні.

@@ -3,6 +3,8 @@ layout: default
 title: "📖 操作指南"
 permalink: /docs/HOW_TO-zh-hans.html
 ---
+<sub class="doc-stamp">26.10.09 14:26</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 📖 操作指南
@@ -107,7 +109,7 @@ permalink: /docs/HOW_TO-zh-hans.html
 
 以下这些小节的内容故意比下面的核心参考模块更丰富多样。每个场景都把一条快速路径与背景、取舍以及 FastMediaSorter 尤其擅长的情境结合在一起。
 
-> **⭐ 推荐：一次扫码，把电脑上的文件夹带到手机上。** 在电脑上运行免费的 [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) 伴侣应用，选择包含视频、音乐、文档或照片的文件夹，它会在屏幕上显示一个二维码。在手机上点击 **添加**，选择 **通过二维码导入**，用摄像头对准二维码--电脑上的文件夹立刻就连接好了，无需输入地址、端口或密码。完整演示见 [通过扫码打开电脑文件夹](howto/scenario-companion-share-zh-hans.md)；快速方法见 [导入 Windows 伴侣共享](#how-to-import-a-windows-companion-share)。
+> **⭐ 推荐：一次扫码，把电脑上的文件夹带到手机上。** 在电脑上运行免费的 [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) 伴侣应用，选择包含视频、音乐、文档或照片的文件夹，它会在屏幕上显示一个二维码。在手机上点击 **添加**，选择 **通过二维码导入**，用摄像头对准二维码--电脑上的文件夹立刻就连接好了，无需输入地址、端口或密码。完整演示见 [通过扫码打开电脑文件夹](howto/scenario-companion-share-zh-hans.md)；快速方法见 [导入 Windows 伴侣共享](#how-to-import-a-windows-companion-share)。
 
 > **⌚ Wear OS 智能手表：** 正在使用 Wear OS 手表？请查看我们的分步指南 [在手表上听音乐](howto/scenario-watch-music-zh-hans.md) 和 [把智能手表连接到 NAS 和电脑共享](howto/scenario-watch-network-zh-hans.md)。
 
@@ -219,7 +221,7 @@ permalink: /docs/HOW_TO-zh-hans.html
 
 **适用场景**
 
-- 想在 Android 车载主机、音频播放器和媒体盒上收听网络电台，而无需单独的应用（TuneIn、RadioDroid、VLC 网络流）。
+- 想在 Android 车载主机、音频播放器和媒体盒上收听网络电台，而无需单独的应用。
 - 轻量 IPTV 用途：HLS/DASH 点播流可在全屏播放器中播放。
 
 **避免这样做**
@@ -554,13 +556,13 @@ permalink: /docs/HOW_TO-zh-hans.html
 
 ## 如何导入 Windows 伴侣共享 {#how-to-import-a-windows-companion-share}
 
-**这是什么：** 伴侣功能来自同一作者开发的免费 Windows 媒体整理工具 [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)（原名 FastMediaSorter LITE）。它通过 SFTP 分享选定的电脑文件夹，并导出一个现成的连接--手机上无需手动配置服务器，也无需输入主机、端口或密钥。你可以通过在电脑屏幕上**扫描二维码**，或**导入一个 `.fmscfg` 文件**，把它带到手机上。
+**这是什么：** 伴侣功能来自同一作者开发的免费 Windows 媒体整理工具 [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)。它通过 SFTP 分享选定的电脑文件夹，并导出一个现成的连接--手机上无需手动配置服务器，也无需输入主机、端口或密钥。你可以通过在电脑屏幕上**扫描二维码**，或**导入一个 `.fmscfg` 文件**，把它带到手机上。
 
 **可用版本：** Standard、Photos、Legacy、XR/noLegal（扫码需要摄像头；文件方式在所有版本都可用，包括 VR）
 
 > 想要一个带截图、更易上手的版本？请查看场景指南 [通过扫码打开电脑文件夹](howto/scenario-companion-share-zh-hans.md)。
 
-**获取 Fast Media Sorter for Windows：**
+**获取 Fast Media Sorter & Sharing for Windows：**
 
 - 官网：[serzhyale.github.io/FastMediaSorter_Lite](https://serzhyale.github.io/FastMediaSorter_Lite/)
 - 发布文件夹指南：[如何把电脑文件夹发布到 Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html)
@@ -570,7 +572,7 @@ permalink: /docs/HOW_TO-zh-hans.html
 
 **在电脑上：**
 
-1. 安装并运行 **Fast Media Sorter for Windows**，打开设置中的 **共享** 选项卡。
+1. 安装并运行 **Share Manager - Fast Media Sorter & Sharing**，打开设置中的 **共享** 选项卡。
 2. 选择要共享的文件夹--应用会自行启动 SFTP 服务器、生成密钥并设置自启动。
 3. 屏幕上会显示一个 **二维码**。如果你更喜欢文件方式，也可以 **保存 .fmscfg**。
 
@@ -1042,7 +1044,7 @@ FileDO 容器是一个带 `.fd-sec` 扩展名的文件，其中锁着另一个�
 
 **适用于：** SMB、SFTP、FTP 文件
 
-**使用场景：** 你想在专门的外部应用（例如 MS Office、Adobe Acrobat、VLC Player）中打开来自网络驱动器的文档、照片或视频。
+**使用场景：** 你想在专门的外部应用（例如办公套件、PDF 阅读器或视频播放器）中打开来自网络驱动器的文档、照片或视频。
 
 **步骤：**
 
@@ -1077,8 +1079,8 @@ FileDO 容器是一个带 `.fd-sec` 扩展名的文件，其中锁着另一个�
 **示例用例：**
 
 - 在 MS Word 中编辑网络文档
-- 在 VLC Player 中播放网络视频
-- 在 Adobe Acrobat 中查看网络 PDF
+- 在专门的视频播放器中播放网络视频
+- 在专门的 PDF 阅读器中查看网络 PDF
 - 通过消息应用分享网络照片
 
 ---

@@ -14,9 +14,9 @@ interface WearTouristRepository {
     fun observeTelemetry(): Flow<WearTouristState>
 
     /**
-     * Resets the accumulated trip distance for the current session.
+     * Resets the whole trip - distance, time, moving time, ascent, descent and max speed - and its stored copy.
      */
-    fun resetTrip()
+    suspend fun resetTrip()
 
     /**
      * Resets the base step count for the current session.

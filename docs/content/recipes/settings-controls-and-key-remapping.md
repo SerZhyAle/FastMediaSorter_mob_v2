@@ -6,7 +6,8 @@ description: Remapping any command to a D-pad, gamepad, keyboard or mouse button
 category: "Settings & Navigation"
 category_slug: settings
 ticket: S2962
-flavor: All editions - remapping, D-pad and gamepad navigation, the focus frame and the automatic initial focus are in Standard, Lite, Photos and Legacy; the VR Only keybinding group needs a build with a VR runtime
+availability: all
+availability_note: All editions - remapping, D-pad and gamepad navigation, the focus frame and the automatic initial focus are in Standard, Lite, Photos and Legacy; the VR Only keybinding group needs a build with a VR runtime
 recipe_number: "06"
 canonical_url: documentation/settings/controls-and-key-remapping.html
 why: |
@@ -103,5 +104,7 @@ next_recipes:
     badge_type: docs
     description: Keyboard, D-pad and remote-control navigation across the app.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Remap any command to a [D-pad](term:d-pad), gamepad, keyboard or mouse button, move fast through large grids, and always see where focus is with the travelling focus frame - plus readable VR gesture names and a Permissions screen, empty lists and custom views that all take D-pad focus the way the rest of the app does.

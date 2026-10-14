@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.wear.input.RemoteInputIntentHelper
@@ -20,10 +21,15 @@ private const val KEY_NEW_NAME = "wear_file_op_new_name"
  * Shared rather than repeated per screen: three file surfaces now offer Rename, and copying the
  * `RemoteInput` plumbing onto each is how one watch's key quirk (S1946, below) would end up fixed in
  * one copy and left broken in the others.
+ *
+ * S4185: [hintRes] lets a non-file prompt (the Tourist counter's starting number) reuse the same path.
  */
 @Composable
-fun rememberWearRenameInput(onName: (String) -> Unit): (String?) -> Unit {
-    val hint = stringResource(R.string.wear_file_op_rename_hint)
+fun rememberWearRenameInput(
+    @StringRes hintRes: Int = R.string.wear_file_op_rename_hint,
+    onName: (String) -> Unit,
+): (String?) -> Unit {
+    val hint = stringResource(hintRes)
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->

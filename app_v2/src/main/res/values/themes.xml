@@ -325,6 +325,9 @@
 
     <style name="TextAppearance.FastMediaSorter.Item.Badge" parent="TextAppearance.Material3.LabelSmall" />
 
+    <style name="TextAppearance.FastMediaSorter.Tourist.CompassHeading"
+        parent="TextAppearance.Material3.DisplaySmall" />
+
     <style name="TextAppearance.FastMediaSorter.Bar.Title" parent="TextAppearance.Material3.TitleLarge" />
 
     <style name="TextAppearance.FastMediaSorter.Dialog.Title" parent="TextAppearance.Material3.HeadlineSmall" />

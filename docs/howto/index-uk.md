@@ -3,6 +3,8 @@ layout: default
 title: "Покрокові сценарії - FastMediaSorter v2"
 permalink: /docs/howto/index-uk.html
 ---
+<sub class="doc-stamp">26.10.10 14:48</sub>
+
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Покрокові сценарії
 
 Практичні посібники для реальних задач. Попередні знання не потрібні - кожен крок пояснено з нуля.
@@ -23,6 +25,7 @@ permalink: /docs/howto/index-uk.html
 - <img src="../icons/doc/ic_image.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Є старий планшет - хочу зробити з нього фоторамку»_ → [Цифрова фоторамка](scenario-photo-frame-uk.md)
 - <img src="../icons/doc/ic_profile_car_head_unit.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«У мене Android-магнітола в машині, хочу слухати свою музику»_ → [Музика в автомобілі](scenario-car-music-uk.md)
 - <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу FastMedia на смарт-годиннику й не знаю, з чого почати»_ → [Встановити FastMedia на годинник](wear-install-uk.md) • [Веб-портал Wear OS](../wear/index-uk.md)
+- <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу переносити медіа між власними пристроями й не знаю, який спосіб мені підходить»_ → [Портал обміну медіа](../media-exchange-portal/index-uk.md)
 - <img src="../icons/doc/ic_audio.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу слухати свою музику або треки з телефона на смарт-годиннику»_ → [Музика на смарт-годиннику](scenario-watch-music-uk.md)
 - <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу підключити смарт-годинник напряму до спільної папки ПК або NAS»_ → [Підключення годинника до мережевих ресурсів](scenario-watch-network-uk.md)
 - <img src="../icons/doc/ic_stream.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу дивитися телеканали на смарт-годиннику»_ → [Телевізор на смарт-годиннику](scenario-watch-tv-uk.md)

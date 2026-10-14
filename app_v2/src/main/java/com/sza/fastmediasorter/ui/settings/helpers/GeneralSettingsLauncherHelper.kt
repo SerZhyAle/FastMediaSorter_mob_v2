@@ -6,6 +6,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.launcher.LauncherPrimaryWindowManager
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.util.XrDeviceProbe
@@ -49,6 +50,9 @@ class GeneralSettingsLauncherHelper(
     // (onResume can fire repeatedly). Reset naturally: each recreated instance gets a fresh helper.
     private var roleRequestScheduled = false
 
+    // Visible order of the row; HOME_SCREEN is absent where the role cannot be offered (Googlebook).
+    private var choices: List<LauncherPrimaryWindow> = LauncherPrimaryWindow.choicesFor(homeRoleOfferable = true)
+
     fun setup() {
         if (!launcherModeContract.isAvailableInBuild) {
             binding.rowLauncherPrimaryWindow.isVisible = false
@@ -60,8 +64,11 @@ class GeneralSettingsLauncherHelper(
         binding.rowLauncherSettings.isVisible = showSystemLauncher
         if (!showSystemLauncher) return
 
+        choices = launcherPrimaryWindowManager.availableChoices()
+        val labels = fragment.resources.getStringArray(R.array.launcher_primary_window_options)
+        binding.rowLauncherPrimaryWindow.setEntries(choices.map { labels[it.ordinal] })
         binding.rowLauncherPrimaryWindow.setOnItemSelectedListener { position ->
-            val choice = LauncherPrimaryWindow.entries.getOrNull(position) ?: return@setOnItemSelectedListener
+            val choice = choices.getOrNull(position) ?: return@setOnItemSelectedListener
             val host = fragment.activity ?: return@setOnItemSelectedListener
             coroutineScope.launch {
                 withContext(ioDispatcher) {
@@ -102,7 +109,7 @@ class GeneralSettingsLauncherHelper(
                 }
                 launcherPrimaryWindowManager.getCurrentChoice()
             }
-            binding.rowLauncherPrimaryWindow.setSelection(choice.ordinal)
+            binding.rowLauncherPrimaryWindow.setSelection(choices.indexOf(choice).coerceAtLeast(0))
             updateOpenRowEnabled(choice != LauncherPrimaryWindow.RESOURCE_MANAGER)
         }
     }

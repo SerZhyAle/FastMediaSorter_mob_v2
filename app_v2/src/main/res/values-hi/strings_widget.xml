@@ -23,7 +23,7 @@
     <string name="widget_capture_ocr_panel_description">कैमरा फ़ोटो और कैमरा OCR तक त्वरित पहुंच।</string>
     <string name="widget_capture_ocr_panel_label">कैप्चर और ओसीआर</string>
     <string name="widget_continue_reading_description">पिछली नौकरी से लेकर अब तक के रिज्यूमे का स्लाइडशो</string>
-    <string name="widget_continue_reading_label">जारी रखें पढ़ रहे हैं</string>
+    <string name="widget_continue_reading_label">पढ़ना जारी रखें</string>
     <string name="widget_favorites_description">पसंदीदा फ़ाइलों तक त्वरित पहुंच</string>
     <string name="widget_favorites_label">पसंदीदा</string>
     <string name="widget_pin_not_supported">इस डिवाइस पर विजेट पिनिंग समर्थित नहीं है।</string>

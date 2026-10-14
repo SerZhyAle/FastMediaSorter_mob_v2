@@ -6,7 +6,6 @@ description: Як повернути або віддзеркалити фото 
 category: Зображення, аудіо та слайдшоу
 category_slug: images
 ticket: S2952
-flavor: Усі редакції
 recipe_number: "02"
 canonical_url: documentation/images/editing-photos-uk.html
 why: |
@@ -143,5 +142,7 @@ next_recipes:
     badge_type: docs
     description: Малюйте, пишіть і розмічайте прямо на зображенні.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Поверніть, віддзеркальте й обріжте фото, зробіть маленьку копію для надсилання, освітліть темну картинку або надайте їй чорно-білого вигляду, і змініть швидкість анімованого GIF - прямо в [перегляді зображень](term:image-viewer), без окремого редактора.

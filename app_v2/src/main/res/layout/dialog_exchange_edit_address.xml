@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/dialog_padding_large"
+    android:paddingTop="@dimen/margin_small">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilExchangeEditAddress"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/exchange_devices_signin_address">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etExchangeEditAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:imeOptions="actionDone|flagNoExtractUi"
+            android:inputType="textUri|textNoSuggestions"
+            android:nextFocusDown="@id/btnExchangeEditUseAnnounced" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/textExchangeEditAnnounced"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:visibility="gone" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnExchangeEditUseAnnounced"
+        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:nextFocusUp="@id/etExchangeEditAddress"
+        android:text="@string/exchange_devices_edit_use_announced"
+        android:visibility="gone" />
+</LinearLayout>

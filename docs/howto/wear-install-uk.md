@@ -3,6 +3,8 @@ layout: default
 title: "Встановити FastMedia на годинник - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-uk.html
 ---
+<sub class="doc-stamp">26.09.30 13:01</sub>
+
 # <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Встановити FastMedia на годинник
 
 > **Рівень:** для початківців &bull; **Час:** ~5 хвилин &bull; **Пристрій:** годинник на Wear OS, спарений з телефоном Android

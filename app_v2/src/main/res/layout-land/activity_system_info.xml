@@ -11,47 +11,24 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:title="@string/settings_system_info_title"
-        app:navigationIcon="@drawable/ic_arrow_back" />
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:menu="@menu/menu_system_info" />
 
-    <LinearLayout
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/systemInfoSearchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="end"
-        android:orientation="horizontal">
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/system_info_copy"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/copy"
-            android:focusable="true"
-            android:clickable="true"
-            android:foreground="@drawable/focus_button_background"
-            android:nextFocusRight="@id/system_info_save"
-            android:nextFocusDown="@id/system_info_content" />
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/system_info_save"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/save"
-            android:focusable="true"
-            android:clickable="true"
-            android:foreground="@drawable/focus_button_background"
-            android:nextFocusLeft="@id/system_info_copy"
-            android:nextFocusRight="@id/system_info_share"
-            android:nextFocusDown="@id/system_info_content" />
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/system_info_share"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/share"
-            android:focusable="true"
-            android:clickable="true"
-            android:foreground="@drawable/focus_button_background"
-            android:nextFocusLeft="@id/system_info_save"
-            android:nextFocusDown="@id/system_info_content" />
-    </LinearLayout>
+        android:background="?attr/colorSurfaceVariant"
+        android:queryHint="@string/sysinfo_search_hint"
+        app:iconifiedByDefault="false"
+        app:queryHint="@string/sysinfo_search_hint" />
 
-    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <LinearLayout android:id="@+id/system_info_content" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
-    </ScrollView>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/systemInfoRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/margin_large" />
+
 </LinearLayout>

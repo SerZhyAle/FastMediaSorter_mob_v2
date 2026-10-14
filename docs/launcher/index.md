@@ -3,6 +3,8 @@ layout: default
 title: "FastMedia Launcher - Android Desktop & Car Tablet Home Screen"
 permalink: /docs/launcher/
 ---
+<sub class="doc-stamp">26.09.24 04:02</sub>
+
 # <img src="../icons/doc/ic_launcher_mode.png" alt="" width="24" height="24" style="vertical-align:text-bottom"> FastMedia Launcher Web Portal
 
 [📱 Main App Home](../README.md) | [📖 All Step-by-Step Guides](../howto/index.md) | [⌚ Wear OS Portal](../wear/index.md) | [Русский](index-ru.md) | [Українська](index-uk.md)

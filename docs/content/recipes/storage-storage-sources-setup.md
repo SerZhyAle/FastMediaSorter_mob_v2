@@ -6,7 +6,7 @@ description: How to add a folder from the phone, a memory card or a USB drive as
 category: Sources, Destinations & File Operations
 category_slug: storage
 ticket: S2949
-flavor: All editions
+availability: all
 recipe_number: "01"
 canonical_url: documentation/storage/storage-sources-setup.html
 why: |
@@ -145,5 +145,7 @@ next_recipes:
     badge_type: image
     description: Look through a resource as tiles or as a list.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Add a folder from the phone, a memory card or a USB drive as a resource, meet the ready-made collections the app creates for you, and let a folder show every kind of file with Reconnect resource.

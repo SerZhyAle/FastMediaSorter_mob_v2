@@ -52,6 +52,10 @@ class FilenameOverlayAutoHideManager(
     // Used to restore correct state when returning from fullscreen.
     private var overlayLogicallyVisible: Boolean = false
 
+    // Set by cancel() on destroy. The host's lambdas read a view binding that throws after
+    // onDestroy, and a late caller re-arming the timer would reach them on a later looper turn.
+    private var released: Boolean = false
+
     private val hideRunnable = Runnable { animateHide() }
 
     // ────────────────────────────────────────────────────────────────────
@@ -65,6 +69,7 @@ class FilenameOverlayAutoHideManager(
      * and timer will fire when [onEnterCommandPanelMode] is called.
      */
     fun onFileShown(mediaType: MediaType) {
+        if (released) return
         currentTimeoutMs = timeoutForType(mediaType)
         pausedRemainingMs = -1L
         mainHandler.removeCallbacks(hideRunnable)
@@ -89,7 +94,7 @@ class FilenameOverlayAutoHideManager(
      */
     fun onPauseInteraction(mediaType: MediaType) {
         // Ignore during fullscreen - overlay is not visible there
-        if (isFullscreen()) return
+        if (released || isFullscreen()) return
         currentTimeoutMs = timeoutForType(mediaType)
         triggerReShowOrExtend()
         Timber.d("FilenameOverlayAutoHideManager: onPauseInteraction type=$mediaType")
@@ -100,7 +105,7 @@ class FilenameOverlayAutoHideManager(
      * Only triggers for IMAGE / GIF types; ignored for everything else.
      */
     fun onZoomInteraction(mediaType: MediaType) {
-        if (isFullscreen()) return
+        if (released || isFullscreen()) return
         // Zoom interaction only applies to image/GIF content
         if (mediaType != MediaType.IMAGE && mediaType != MediaType.GIF) return
         currentTimeoutMs = timeoutForType(mediaType)
@@ -114,7 +119,7 @@ class FilenameOverlayAutoHideManager(
      * re-arming the timer with remaining time or a fresh countdown.
      */
     fun onEnterCommandPanelMode() {
-        if (overlayLogicallyVisible) {
+        if (!released && overlayLogicallyVisible) {
             overlayView.animate().cancel()
             overlayView.alpha = 1f
             overlayView.isVisible = true
@@ -138,6 +143,7 @@ class FilenameOverlayAutoHideManager(
      */
     fun onEnterFullscreenMode() {
         mainHandler.removeCallbacks(hideRunnable)
+        if (released) return
         // Don't change overlayLogicallyVisible - preserve for restore on panel-back
         overlayView.animate().cancel()
         overlayView.isVisible = false
@@ -169,8 +175,8 @@ class FilenameOverlayAutoHideManager(
      * If there was no saved time but the overlay is logically visible, starts a fresh timer.
      */
     fun onHostResume(currentType: MediaType?) {
-        if (!overlayLogicallyVisible) {
-            // Overlay was already hidden before pause - nothing to restore
+        if (released || !overlayLogicallyVisible) {
+            // Released, or the overlay was already hidden before pause - nothing to restore
             pausedRemainingMs = -1L
             return
         }
@@ -197,8 +203,10 @@ class FilenameOverlayAutoHideManager(
     /**
      * Cancels any pending timer and immediately hides the overlay.
      * Should be called from onDestroy() to prevent stale runnables.
+     * Releases the manager: every later call is ignored, so nothing can re-arm the timer.
      */
     fun cancel() {
+        released = true
         mainHandler.removeCallbacks(hideRunnable)
         overlayView.animate().cancel()
         overlayView.alpha = 0f
@@ -264,6 +272,7 @@ class FilenameOverlayAutoHideManager(
     }
 
     private fun animateHide() {
+        if (released) return
         overlayView.animate().cancel()
         overlayView.animate()
             .alpha(0f)

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.11 02:24</sub>
+
 # Google Play Store Release - Quick Reference
 
 > Historical reference only. Do not use its build or upload commands for a current release; follow `docs/RELEASE_READINESS_STANDARD.md` and its linked operator checklist instead.

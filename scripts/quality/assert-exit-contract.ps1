@@ -93,12 +93,19 @@
     carries the upper-case old word, a lowercase "<subject>: cannot|could not verify", or "FAIL (cannot verify)". No
     baseline: the migration that introduced the rule left none.
 
+    RULE F - NOT APPLICABLE has one spelling (S4130, contract CHECK-VERDICT 0.12 item A). A check
+    whose work the caller switched off exits 0 under "<subject>: NOT APPLICABLE", and the three
+    aggregators read that word case-sensitively off the verdict line - a lowercase spelling is read
+    as a pass. Every scanned script, the suites included, is refused when a code line carries a
+    lowercase "<subject>: not applicable". No baseline: S4130 migrated the two sites it measured.
+
     Exit codes:
       0 - no unreachable exit site, no silent script, Rule C at or below baseline,
           no unlisted or stale Rule D entry (or report mode).
       1 - substantive failure: an unreachable exit site, a silent script, Rule C
           above its baseline, a Rule D check with no verdict line / a stale listing,
-          or a Rule E line spelling exit 2 other than COULD NOT VERIFY.
+          a Rule E line spelling exit 2 other than COULD NOT VERIFY, or a Rule F line
+          spelling NOT APPLICABLE in lowercase.
       2 - the gate itself cannot run (scan root missing). Distinct from 1 on purpose -
           this gate must not commit the very sin it audits.
 
@@ -364,6 +371,10 @@ if (-not $Path) {
 # The third form is a verdict word carrying the opposite outcome: "FAIL (cannot verify)" exits 2
 # under a word that tells a tail reader the run found a defect.
 $oldSpellingPattern = '(?-i)CANNOT[ ]VERIFY|[A-Za-z0-9)-]: (cannot|could not)[ ]verify\b|(FAIL|PASS) \((cannot|could not)[ ]verify'
+# Rule F (S4130, CHECK-VERDICT 0.12 item A): the word for a deselected check is upper-case, because
+# the aggregators read it off the verdict line case-sensitively and a lowercase spelling counts as a pass.
+$naSpellingPattern = '(?-i)[A-Za-z0-9)-]: not[ ]applicable\b'
+$naSpelling = @()
 foreach ($f in $spellingFiles) {
     $spellLines = Get-Content -LiteralPath $f.FullName -ErrorAction SilentlyContinue
     if (-not $spellLines) { continue }
@@ -375,6 +386,13 @@ foreach ($f in $spellingFiles) {
         if ($spell -match '^\s*#') { continue }
         if ($spell -cmatch $oldSpellingPattern) {
             $oldSpelling += [pscustomobject]@{
+                File = $f.FullName.Replace($repoRoot + [IO.Path]::DirectorySeparatorChar, '') -replace '\\', '/'
+                Line = $i + 1
+                Text = $spell.Trim()
+            }
+        }
+        if ($spell -cmatch $naSpellingPattern) {
+            $naSpelling += [pscustomobject]@{
                 File = $f.FullName.Replace($repoRoot + [IO.Path]::DirectorySeparatorChar, '') -replace '\\', '/'
                 Line = $i + 1
                 Text = $spell.Trim()
@@ -576,13 +594,22 @@ if (-not $Quiet -and $oldSpelling.Count -gt 0) {
     Write-Host "  Fix: print '<script name>: COULD NOT VERIFY' for exit 2 (CHECK-VERDICT 0.11 rule 5), and match that word in a suite." -ForegroundColor Yellow
 }
 
-Write-Host ("assert-exit-contract: expected: 0 | actual: {0} unreachable exit site(s), {1} silent script(s), {2} reasonless exit(s) (baseline {3}), {4} verdict-less check(s) of {5} (residue {6}, stale {7}), {8} old exit-2 spelling(s)" -f $findings.Count, $silent.Count, $reasonless.Count, $reasonBaseline, $newNoVerdict.Count, $verdictScanned.Count, $verdictResidue.Count, $staleVerdict.Count, $oldSpelling.Count)
+if (-not $Quiet -and $naSpelling.Count -gt 0) {
+    foreach ($x in $naSpelling) {
+        Write-Host ("  {0}:{1}  spells NOT APPLICABLE in lowercase" -f $x.File, $x.Line) -ForegroundColor Red
+        Write-Host ("      {0}" -f $x.Text) -ForegroundColor DarkGray
+    }
+    Write-Host ''
+    Write-Host "  Fix: print '<script name>: NOT APPLICABLE (<what was switched off>)' with exit 0 when the caller switched the work off (CHECK-VERDICT 0.12 item A); a requested run that could not happen is '<script name>: COULD NOT VERIFY' with exit 2." -ForegroundColor Yellow
+}
 
-if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0 -or $reasonless.Count -gt $reasonBaseline -or $newNoVerdict.Count -gt 0 -or $staleVerdict.Count -gt 0 -or $oldSpelling.Count -gt 0)) {
-    Write-Host 'assert-exit-contract: FAIL - a script cannot deliver the exit code it means to send, exits without saying why, names no verdict, or misspells COULD NOT VERIFY.' -ForegroundColor Red
+Write-Host ("assert-exit-contract: expected: 0 | actual: {0} unreachable exit site(s), {1} silent script(s), {2} reasonless exit(s) (baseline {3}), {4} verdict-less check(s) of {5} (residue {6}, stale {7}), {8} old exit-2 spelling(s), {9} lowercase not-applicable spelling(s)" -f $findings.Count, $silent.Count, $reasonless.Count, $reasonBaseline, $newNoVerdict.Count, $verdictScanned.Count, $verdictResidue.Count, $staleVerdict.Count, $oldSpelling.Count, $naSpelling.Count)
+
+if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0 -or $reasonless.Count -gt $reasonBaseline -or $newNoVerdict.Count -gt 0 -or $staleVerdict.Count -gt 0 -or $oldSpelling.Count -gt 0 -or $naSpelling.Count -gt 0)) {
+    Write-Host 'assert-exit-contract: FAIL - a script cannot deliver the exit code it means to send, exits without saying why, names no verdict, or misspells COULD NOT VERIFY or NOT APPLICABLE.' -ForegroundColor Red
     exit 1
 }
-if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0 -and $newNoVerdict.Count -eq 0 -and $staleVerdict.Count -eq 0 -and $oldSpelling.Count -eq 0) {
+if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0 -and $newNoVerdict.Count -eq 0 -and $staleVerdict.Count -eq 0 -and $oldSpelling.Count -eq 0 -and $naSpelling.Count -eq 0) {
     Write-Host 'assert-exit-contract: PASS - every exit code is reachable, every scanned script sets one, and every check names its verdict.' -ForegroundColor Green
 }
 exit 0

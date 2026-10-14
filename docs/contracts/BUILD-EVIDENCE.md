@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.02 20:46</sub>
+
 # Pointer - `BUILD-EVIDENCE`
 
 | | |

@@ -98,4 +98,5 @@
     <string name="scheduled_op_last_success">Последний успех: %1$s</string>
     <string name="scheduled_op_last_success_never">Успешных запусков ещё не было</string>
     <string name="scheduled_op_filter_conditions">+ условия</string>
+    <string name="scheduled_ops_op_archive">Архивирование</string>
 </resources>

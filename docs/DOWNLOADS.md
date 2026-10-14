@@ -1,8 +1,10 @@
 ---
 layout: default
 title: "FastMediaSorter APK Downloads"
-permalink: /docs/DOWNLOADS_EN.html
+permalink: /docs/DOWNLOADS.html
 ---
+
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 # FastMediaSorter APK Downloads
 

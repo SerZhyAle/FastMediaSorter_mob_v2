@@ -30,6 +30,12 @@ $script:UnverifiedFindings = @()
 # answerable; -ShowSkips restores the per-step reason.
 $script:SkippedSteps = @()
 
+# S4130: CHECK-VERDICT 0.12 item A - a gate child that exits 0 under NOT APPLICABLE did nothing by
+# the caller's choice. It is counted with the skipped, never with the passed, and a run whose only
+# answers were that word ends on it (rule 2.14).
+. (Join-Path $root 'scripts/quality/lib/verdict-word.ps1')
+$script:NotApplicableCount = 0
+
 # S3301: set by the closure ledger when this run`s changed set was already judged clean by a
 # recent run of the same closure over the same bytes. Declared here rather than in the ledger
 # because the wrappers below are what read it, and a consumer that never loads the ledger must
@@ -245,6 +251,10 @@ function Invoke-Gate([string]$Label, [scriptblock]$Action) {
         }
 
         $sw.Stop()
+        if (Test-NotApplicableVerdict -Lines $script:CaptureLines) {
+            Add-NotApplicableStep -Label $Label -ElapsedMs (Get-StepElapsedMs $sw)
+            return
+        }
         Write-StepResult -Label $Label -Status PASS -ElapsedMs (Get-StepElapsedMs $sw)
     }
     catch {
@@ -320,6 +330,13 @@ function Skip-Step([string]$Label, [string]$Reason) {
     Write-StepResult -Label $Label -Status SKIP -ElapsedMs 0 -Details $Reason
 }
 
+function Add-NotApplicableStep([string]$Label, [int]$ElapsedMs) {
+    $childLine = @($script:CaptureLines | ForEach-Object { "$_".Trim() } | Where-Object { $_ }) | Select-Object -Last 1
+    $script:NotApplicableCount++
+    $script:SkippedSteps += [pscustomobject]@{ Label = $Label; Reason = "not applicable ($childLine)" }
+    Write-StepResult -Label $Label -Status SKIP -ElapsedMs $ElapsedMs -Details "not applicable ($childLine)"
+}
+
 # S1937: one line for the whole not-applicable set, printed before the verdict on the failing
 # and advisory paths so a failed closure still shows what never ran.
 function Write-SkippedSummary {
@@ -352,6 +369,9 @@ function Invoke-AdvisoryStep([string]$Label, [scriptblock]$Action, [string]$Advi
             Write-CapturedOutput
             Write-StepResult -Label $Label -Status SKIP -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details $details -AlwaysShow
             $script:AdvisoryFindings += "$Label (exit $exitCode)"
+        }
+        elseif (Test-NotApplicableVerdict -Lines $script:CaptureLines) {
+            Add-NotApplicableStep -Label $Label -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
         }
         else {
             Write-StepResult -Label $Label -Status PASS -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)

@@ -6,7 +6,6 @@ description: Як упорядкувати папку за назвою, дат�
 category: Перегляд та сортування
 category_slug: browsing
 ticket: S2948
-flavor: Усі редакції
 recipe_number: "02"
 canonical_url: documentation/browsing/sorting-and-filtering-uk.html
 why: |
@@ -139,5 +138,7 @@ next_recipes:
     badge_type: docs
     description: Як FastMediaSorter тримає мініатюри й великі папки швидкими для перегляду.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Впорядкуйте [ресурс](term:resource) так, як йому личить, звузьте його фільтром, що лишається саме з цим ресурсом, або перейдіть прямо до одного файлу живим пошуком - і все це з тієї самої панелі інструментів у [браузері файлів](term:file-browser).

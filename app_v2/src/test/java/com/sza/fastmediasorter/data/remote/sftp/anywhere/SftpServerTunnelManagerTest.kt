@@ -1,0 +1,425 @@
+package com.sza.fastmediasorter.data.remote.sftp.anywhere
+
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeFrameCodec
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeTokenStore
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeBroadcastPublication
+import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
+import com.sza.fastmediasorter.domain.model.SftpRendezvousResource
+import com.sza.fastmediasorter.domain.model.SftpTunnelState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import java.io.InputStream
+import java.net.ServerSocket
+import java.net.Socket
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.concurrent.thread
+
+/**
+ * The producer of contract DEVICE-EXCHANGE 7.3-7.5 against a fake exchange server on loopback, speaking
+ * plain frames (TLS is the connector's concern and is replaced here).
+ */
+class SftpServerTunnelManagerTest {
+
+    private val exchange = ServerSocket(0)
+    private val localServer = ServerSocket(0)
+    private val connections = AtomicInteger()
+
+    private val entry = DeviceExchangeAccountEntry(
+        host = "127.0.0.1",
+        port = exchange.localPort,
+        login = "owner",
+        deviceId = DEVICE_ID,
+        pinnedCertificate = null,
+    )
+    private val producer = SftpExchangeProducer(entry, SHARE_ID)
+    private val record = SftpRendezvousResource(
+        resourceId = RESOURCE_ID,
+        deviceId = DEVICE_ID,
+        kind = SftpRendezvousResource.KIND_SFTP_SHARE,
+        name = "Pixel",
+        descriptor = "FMSSFTP1:test",
+        updatedAtMs = 0,
+        writtenAtMs = 0,
+        ttlSeconds = 0,
+        shareId = SHARE_ID,
+        publicPort = 0,
+    )
+
+    private val connector = object : ExchangeConnector {
+        override fun connect(host: String, port: Int, trust: ExchangeTrust): ExchangeConnection {
+            connections.incrementAndGet()
+            return ExchangeConnection(Socket(host, port), "SHA256:fake")
+        }
+    }
+
+    private val tokens = object : DeviceExchangeTokenStore {
+        override suspend fun token(entry: DeviceExchangeAccountEntry): String = TOKEN
+
+        override suspend fun save(entry: DeviceExchangeAccountEntry, token: String): Boolean = true
+
+        override suspend fun forget(entry: DeviceExchangeAccountEntry) = Unit
+    }
+
+    private val source = object : SftpExchangeProducerSource {
+        override suspend fun producer(): SftpExchangeProducer = producer
+
+        override suspend fun shareRecord(
+            producer: SftpExchangeProducer,
+            port: Int,
+            hosts: List<String>,
+        ): SftpRendezvousResource = record.copy(descriptor = "FMSSFTP1:${hosts.joinToString()}:$port")
+    }
+
+    // The manager runs in the test's own runBlocking scope, so every coroutine it starts is joined
+    // before the test returns.
+    private fun withManager(block: suspend (SftpServerTunnelManager) -> Unit) = runBlocking(Dispatchers.IO) {
+        val manager =
+            SftpServerTunnelManager(DeviceExchangeAccountClient(connector, tokens), source, this, Dispatchers.IO)
+        try {
+            block(manager)
+        } finally {
+            manager.stop()
+            manager.endBroadcast()
+        }
+    }
+
+    @After
+    fun tearDown() {
+        exchange.close()
+        localServer.close()
+    }
+
+    @Test
+    fun `publishes the share, then splices an opened tunnel to the local server`() = withManager { manager ->
+        val control = ArrayBlockingQueue<DeviceExchangeEnvelope>(2)
+        val data = ArrayBlockingQueue<DeviceExchangeEnvelope>(2)
+        val echoed = ArrayBlockingQueue<String>(1)
+        thread(isDaemon = true) { echoOnce(localServer) }
+        thread(isDaemon = true) {
+            val stream = exchange.accept()
+            control.put(read(stream))
+            write(
+                stream,
+                DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME) { addProperty("keepaliveSeconds", 30) }
+            )
+            control.put(read(stream))
+            write(stream, published(40007))
+            write(
+                stream,
+                DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_OPEN) {
+                    addProperty("tunnelId", TUNNEL_ID)
+                    addProperty("resourceId", RESOURCE_ID)
+                }
+            )
+            val tunnel = exchange.accept()
+            data.put(read(tunnel))
+            write(tunnel, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+            data.put(read(tunnel))
+            tunnel.getOutputStream().apply {
+                write(PAYLOAD.toByteArray())
+                flush()
+            }
+            val reply = ByteArray(PAYLOAD.length)
+            readFully(tunnel.getInputStream(), reply)
+            echoed.put(String(reply))
+        }
+
+        manager.start(localServer.localPort, listOf("192.168.1.5"))
+
+        val hello = poll(control)
+        assertEquals(DeviceExchangeEnvelope.TYPE_HELLO, hello.type)
+        assertEquals(TOKEN, hello.string("deviceToken"))
+        val publish = poll(control)
+        assertEquals(DeviceExchangeEnvelope.TYPE_PUBLISH, publish.type)
+        val resource = checkNotNull(publish.obj("resource"))
+        assertEquals(RESOURCE_ID, resource.get("resourceId").asString)
+        assertEquals(SHARE_ID, resource.get("shareId").asString)
+        assertEquals(0, resource.get("publicPort").asInt)
+        assertEquals(
+            "FMSSFTP1:192.168.1.5:${localServer.localPort}",
+            resource.getAsJsonObject("access").get("descriptor").asString
+        )
+        assertEquals(DeviceExchangeEnvelope.TYPE_HELLO, poll(data).type)
+        val attach = poll(data)
+        assertEquals(DeviceExchangeEnvelope.TYPE_ATTACH, attach.type)
+        assertEquals(TUNNEL_ID, attach.string("tunnelId"))
+        assertEquals(PAYLOAD, echoed.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+        assertEquals(SftpTunnelState.Registered(40007), manager.state.value)
+    }
+
+    @Test
+    fun `publishes again after the control stream comes back`() = withManager { manager ->
+        val publishes = ArrayBlockingQueue<DeviceExchangeEnvelope>(2)
+        thread(isDaemon = true) {
+            repeat(2) { round ->
+                exchange.accept().use { stream ->
+                    read(stream)
+                    write(stream, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+                    publishes.put(read(stream))
+                    write(stream, published(0))
+                    // The first stream drops as a restarted server would; the second is held open.
+                    if (round == 1) stream.getInputStream().read()
+                }
+            }
+        }
+
+        manager.start(localServer.localPort, emptyList())
+
+        assertEquals(DeviceExchangeEnvelope.TYPE_PUBLISH, poll(publishes).type)
+        val again = checkNotNull(publishes.poll(WAIT_SECONDS + RECONNECT_SECONDS, TimeUnit.SECONDS))
+        assertEquals(RESOURCE_ID, again.obj("resource")?.get("resourceId")?.asString)
+        assertEquals(2, connections.get())
+    }
+
+    @Test
+    fun `unpublishes and says bye when the server stops`() = withManager { manager ->
+        val farewell = ArrayBlockingQueue<DeviceExchangeEnvelope>(2)
+        val registered = ArrayBlockingQueue<Boolean>(1)
+        thread(isDaemon = true) {
+            exchange.accept().use { stream ->
+                read(stream)
+                write(stream, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+                read(stream)
+                write(stream, published(0))
+                registered.put(true)
+                farewell.put(read(stream))
+                farewell.put(read(stream))
+            }
+        }
+
+        manager.start(localServer.localPort, emptyList())
+        checkNotNull(registered.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+        withTimeout(WAIT_SECONDS * MILLIS) { manager.state.first { it is SftpTunnelState.Registered } }
+        manager.stop()
+
+        val unpublish = poll(farewell)
+        assertEquals(DeviceExchangeEnvelope.TYPE_UNPUBLISH, unpublish.type)
+        assertEquals(RESOURCE_ID, unpublish.string("resourceId"))
+        assertEquals(DeviceExchangeEnvelope.TYPE_BYE, poll(farewell).type)
+        assertEquals(SftpTunnelState.Off, manager.state.value)
+    }
+
+    @Test
+    fun `withdraw unpublishes on the live stream and reports that the server was told`() = withManager { manager ->
+        val farewell = ArrayBlockingQueue<DeviceExchangeEnvelope>(2)
+        thread(isDaemon = true) {
+            exchange.accept().use { stream ->
+                read(stream)
+                write(stream, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+                read(stream)
+                write(stream, published(0))
+                farewell.put(read(stream))
+                farewell.put(read(stream))
+            }
+        }
+
+        manager.start(localServer.localPort, emptyList())
+        withTimeout(WAIT_SECONDS * MILLIS) { manager.state.first { it is SftpTunnelState.Registered } }
+
+        assertTrue(manager.withdraw())
+        assertEquals(DeviceExchangeEnvelope.TYPE_UNPUBLISH, poll(farewell).type)
+        assertEquals(DeviceExchangeEnvelope.TYPE_BYE, poll(farewell).type)
+        assertEquals(SftpTunnelState.Off, manager.state.value)
+    }
+
+    @Test
+    fun `withdraw with nothing published ends locally at once`() = withManager { manager ->
+        assertFalse(manager.withdraw())
+        assertEquals(SftpTunnelState.Off, manager.state.value)
+    }
+
+    @Test
+    fun `refused credentials end the retries`() = withManager { manager ->
+        thread(isDaemon = true) {
+            exchange.accept().use { stream ->
+                read(stream)
+                write(stream, DeviceExchangeEnvelope.refused(DeviceExchangeEnvelope.REASON_BAD_CREDENTIALS))
+            }
+        }
+
+        manager.start(localServer.localPort, emptyList())
+
+        val refused = withTimeout(WAIT_SECONDS * MILLIS) { manager.state.first { it is SftpTunnelState.Refused } }
+        assertEquals(SftpTunnelState.Refused(DeviceExchangeEnvelope.REASON_BAD_CREDENTIALS), refused)
+        Thread.sleep(RETRY_WINDOW_MS)
+        assertEquals(1, connections.get())
+        assertTrue(manager.state.value is SftpTunnelState.Refused)
+    }
+
+    @Test
+    fun `a broadcast alone announces itself and splices an http tunnel to its server`() = withManager { manager ->
+        val control = ArrayBlockingQueue<DeviceExchangeEnvelope>(2)
+        val data = ArrayBlockingQueue<DeviceExchangeEnvelope>(2)
+        val echoed = ArrayBlockingQueue<String>(1)
+        thread(isDaemon = true) { echoOnce(localServer) }
+        thread(isDaemon = true) {
+            val stream = exchange.accept()
+            control.put(read(stream))
+            write(stream, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+            control.put(read(stream))
+            write(
+                stream,
+                DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_OPEN) {
+                    addProperty("tunnelId", TUNNEL_ID)
+                    addProperty("broadcastId", BROADCAST_ID)
+                    addProperty("scheme", "http")
+                }
+            )
+            val tunnel = exchange.accept()
+            data.put(read(tunnel))
+            write(tunnel, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+            data.put(read(tunnel))
+            tunnel.getOutputStream().apply {
+                write(PAYLOAD.toByteArray())
+                flush()
+            }
+            val reply = ByteArray(PAYLOAD.length)
+            readFully(tunnel.getInputStream(), reply)
+            echoed.put(String(reply))
+        }
+
+        manager.announceBroadcast(publication(localServer.localPort))
+
+        assertEquals(DeviceExchangeEnvelope.TYPE_HELLO, poll(control).type)
+        val start = poll(control)
+        assertEquals(DeviceExchangeEnvelope.TYPE_BROADCAST_START, start.type)
+        assertEquals(BROADCAST_ID, start.obj("broadcast")?.get("broadcastId")?.asString)
+        assertEquals(0, start.int("maxListeners"))
+        assertEquals(DeviceExchangeEnvelope.TYPE_HELLO, poll(data).type)
+        assertEquals(TUNNEL_ID, poll(data).string("tunnelId"))
+        assertEquals(PAYLOAD, echoed.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+        assertEquals(SftpTunnelState.Off, manager.state.value)
+    }
+
+    @Test
+    fun `a published share carries the broadcast on its own control stream`() = withManager { manager ->
+        val control = ArrayBlockingQueue<DeviceExchangeEnvelope>(4)
+        thread(isDaemon = true) {
+            exchange.accept().use { stream ->
+                read(stream)
+                write(stream, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+                control.put(read(stream))
+                write(stream, published(0))
+                control.put(read(stream))
+                control.put(read(stream))
+                stream.getInputStream().read()
+            }
+        }
+
+        manager.start(localServer.localPort, emptyList())
+        withTimeout(WAIT_SECONDS * MILLIS) { manager.state.first { it is SftpTunnelState.Registered } }
+        manager.announceBroadcast(publication(localServer.localPort))
+        manager.announceBroadcast(publication(localServer.localPort))
+
+        assertEquals(DeviceExchangeEnvelope.TYPE_PUBLISH, poll(control).type)
+        assertEquals(DeviceExchangeEnvelope.TYPE_BROADCAST_START, poll(control).type)
+        assertEquals(DeviceExchangeEnvelope.TYPE_BROADCAST_UPDATE, poll(control).type)
+        assertEquals(1, connections.get())
+    }
+
+    @Test
+    fun `ending a broadcast with no share says broadcast-end and bye`() = withManager { manager ->
+        val farewell = ArrayBlockingQueue<DeviceExchangeEnvelope>(2)
+        val announced = ArrayBlockingQueue<Boolean>(1)
+        thread(isDaemon = true) {
+            exchange.accept().use { stream ->
+                read(stream)
+                write(stream, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+                read(stream)
+                announced.put(true)
+                farewell.put(read(stream))
+                farewell.put(read(stream))
+            }
+        }
+
+        manager.announceBroadcast(publication(localServer.localPort))
+        checkNotNull(announced.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+        // The announce runs on the manager's own coroutine; give it the moment to record what it sent.
+        Thread.sleep(SETTLE_MS)
+        manager.endBroadcast()
+
+        val end = poll(farewell)
+        assertEquals(DeviceExchangeEnvelope.TYPE_BROADCAST_END, end.type)
+        assertEquals(BROADCAST_ID, end.string("broadcastId"))
+        assertEquals(DeviceExchangeEnvelope.TYPE_BYE, poll(farewell).type)
+    }
+
+    private fun publication(httpPort: Int) = ExchangeBroadcastPublication(
+        record = SftpRendezvousBroadcast(
+            broadcastId = BROADCAST_ID,
+            deviceId = DEVICE_ID,
+            title = "Pixel",
+            mode = "AUDIO_ONLY",
+            startedAtMs = 0L,
+            updatedAtMs = 0L,
+            descriptorJson = "{\"url\":\"http://192.168.1.5:$httpPort/live-audio.aac\"}",
+            writtenAtMs = 0L,
+            ttlSeconds = 0L,
+        ),
+        maxListeners = ExchangeBroadcastPublication.NO_LISTENER_CAP,
+        localPorts = mapOf(ExchangeBroadcastPublication.SCHEME_HTTP to httpPort),
+    )
+
+    private fun published(publicPort: Int) = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_PUBLISHED) {
+        addProperty("resourceId", RESOURCE_ID)
+        addProperty("publicPort", publicPort)
+    }
+
+    private fun read(socket: Socket): DeviceExchangeEnvelope =
+        checkNotNull(
+            DeviceExchangeFrameCodec.read(
+                socket.getInputStream(),
+                DeviceExchangeFrameCodec.MAX_FRAME_BODY_AUTHENTICATED
+            )
+        )
+
+    private fun write(socket: Socket, envelope: DeviceExchangeEnvelope) =
+        DeviceExchangeFrameCodec.write(socket.getOutputStream(), envelope)
+
+    private fun poll(queue: ArrayBlockingQueue<DeviceExchangeEnvelope>): DeviceExchangeEnvelope =
+        checkNotNull(queue.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+
+    private fun echoOnce(server: ServerSocket) {
+        server.accept().use { socket ->
+            val buffer = ByteArray(PAYLOAD.length)
+            readFully(socket.getInputStream(), buffer)
+            socket.getOutputStream().apply {
+                write(buffer)
+                flush()
+            }
+            socket.getInputStream().read()
+        }
+    }
+
+    private fun readFully(input: InputStream, buffer: ByteArray) {
+        var offset = 0
+        while (offset < buffer.size) offset += input.read(buffer, offset, buffer.size - offset)
+    }
+
+    private companion object {
+        const val DEVICE_ID = "AAAAAAAAAAAAAAAAAAAAAA"
+        const val SHARE_ID = "BBBBBBBBBBBBBBBBBBBBBB"
+        const val RESOURCE_ID = "CCCCCCCCCCCCCCCCCCCCCC"
+        const val TUNNEL_ID = "DDDDDDDDDDDDDDDDDDDDDD"
+        const val BROADCAST_ID = "EEEEEEEEEEEEEEEEEEEEEA"
+        const val SETTLE_MS = 300L
+        const val TOKEN = "device-token"
+        const val PAYLOAD = "SSH-2.0-test\r\n"
+        const val WAIT_SECONDS = 10L
+        const val RECONNECT_SECONDS = 5L
+        const val MILLIS = 1_000L
+        const val RETRY_WINDOW_MS = 3_000L
+    }
+}

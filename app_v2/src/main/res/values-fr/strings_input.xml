@@ -83,10 +83,10 @@
     <string name="keybinding_label_playback_speed_reset">Vitesse de réinitialisation</string>
     <string name="keybinding_label_playback_speed_up">Accélérer</string>
     <string name="keybinding_label_playback_stop">Arrêt</string>
-    <string name="keybinding_label_sorting_copy">Copie</string>
+    <string name="keybinding_label_sorting_copy">Copier</string>
     <string name="keybinding_label_sorting_create_folder">Créer un dossier</string>
     <string name="keybinding_label_sorting_delete">Supprimer</string>
-    <string name="keybinding_label_sorting_favourite">Préféré</string>
+    <string name="keybinding_label_sorting_favourite">Favori</string>
     <string name="keybinding_label_sorting_file_ops">Opérations sur les fichiers</string>
     <string name="keybinding_label_sorting_move">Déplacer</string>
     <string name="keybinding_label_sorting_op_slot_1">Emplacement d\'opération 1</string>
@@ -160,7 +160,7 @@
     <string name="kbm_help_nav_home_end">Premier / dernier élément</string>
     <string name="kbm_help_nav_page">Passer à la page suivante</string>
     <string name="kbm_help_op_context_menu">Menu contextuel</string>
-    <string name="kbm_help_op_copy">Copie</string>
+    <string name="kbm_help_op_copy">Copier</string>
     <string name="kbm_help_op_create_folder">Créer un dossier</string>
     <string name="kbm_help_op_create_group">Créer un groupe</string>
     <string name="kbm_help_op_delete">Supprimer</string>

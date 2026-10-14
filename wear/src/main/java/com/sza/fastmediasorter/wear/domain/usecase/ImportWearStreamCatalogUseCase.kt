@@ -1,10 +1,12 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
+import com.sza.fastmediasorter.domain.streams.facets.StreamFacetFolding
 import com.sza.fastmediasorter.wear.data.repository.WearFaviconAtlasStore
 import com.sza.fastmediasorter.wear.data.repository.WearStreamCatalogCsvParser
 import com.sza.fastmediasorter.wear.data.repository.WearStreamCollectionsJsonParser
 import com.sza.fastmediasorter.wear.domain.model.CatalogImportResult
 import com.sza.fastmediasorter.wear.domain.model.CatalogPayload
+import com.sza.fastmediasorter.wear.domain.model.WearParsedCatalogEntry
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
@@ -82,18 +84,7 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
         }
 
         val channels = entries.map { entry ->
-            WearStreamChannel(
-                id = UUID.randomUUID().toString(),
-                name = entry.name,
-                url = entry.url,
-                mediaKind = classifier.resolve(entry.mediaKind, entry.url),
-                faviconIndex = entry.faviconIndex,
-                category = entry.category.ifBlank { null },
-                topic = entry.topic.ifBlank { null },
-                language = entry.language.ifBlank { null },
-                country = entry.country.ifBlank { null },
-                access = entry.access.ifBlank { null }
-            )
+            toChannel(entry, classifier.resolve(entry.mediaKind, entry.url))
         }
 
         try {
@@ -217,6 +208,25 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
     }
 
     companion object {
+
+        /**
+         * S4133: one parsed catalog row as a stored channel. Language and country go through the shared
+         * STREAM-BANK 2.3 folds, so a catalog published before the amendment still reaches the watch's
+         * filter as one entry per language and assigned country codes only.
+         */
+        internal fun toChannel(entry: WearParsedCatalogEntry, mediaKind: String): WearStreamChannel =
+            WearStreamChannel(
+                id = UUID.randomUUID().toString(),
+                name = entry.name,
+                url = entry.url,
+                mediaKind = mediaKind,
+                faviconIndex = entry.faviconIndex,
+                category = entry.category.ifBlank { null },
+                topic = entry.topic.ifBlank { null },
+                language = StreamFacetFolding.foldLanguages(entry.language).ifBlank { null },
+                country = StreamFacetFolding.foldCountry(entry.country).ifBlank { null },
+                access = entry.access.ifBlank { null }
+            )
 
         /**
          * S1799: catalog import replaces catalog rows only. A stored row with

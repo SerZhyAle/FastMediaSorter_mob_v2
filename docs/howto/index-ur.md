@@ -3,6 +3,8 @@ layout: default
 title: "قدم بہ قدم رہنما - FastMediaSorter v2"
 permalink: /docs/howto/index-ur.html
 ---
+<sub class="doc-stamp">26.09.25 02:14</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> قدم بہ قدم رہنما

@@ -3,6 +3,8 @@ layout: default
 title: "📖 Guias Práticos"
 permalink: /docs/HOW_TO-pt.html
 ---
+<sub class="doc-stamp">26.10.09 14:26</sub>
+
 <div lang="pt" dir="ltr" markdown="1">
 
 # 📖 Guias Práticos
@@ -107,7 +109,7 @@ Se um recurso estiver marcado com "✗", escolha o build **Standard** ou **XR / 
 
 Estas seções são intencionalmente mais variadas do que os blocos de referência principais mais abaixo. Cada cenário combina um caminho rápido com contexto, contrapartidas e as situações em que o FastMediaSorter se destaca especialmente.
 
-> **⭐ Destaque: traga as pastas do seu PC para o celular com uma única leitura.** Execute o companion gratuito [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) no seu PC, escolha as pastas com seus vídeos, músicas, documentos ou fotos, e ele mostra um código na tela. No celular, toque em **Adicionar**, escolha **Importar por código de barras**, aponte a câmera para o código - as pastas do PC são conectadas instantaneamente, sem precisar digitar endereço, porta ou senha. Passo a passo completo: [Abra pastas do PC escaneando um código](howto/scenario-companion-share-pt.md) &bull; receita rápida: [Importar um compartilhamento do Windows Companion](#how-to-import-a-windows-companion-share).
+> **⭐ Destaque: traga as pastas do seu PC para o celular com uma única leitura.** Execute o companion gratuito [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) no seu PC, escolha as pastas com seus vídeos, músicas, documentos ou fotos, e ele mostra um código na tela. No celular, toque em **Adicionar**, escolha **Importar por código de barras**, aponte a câmera para o código - as pastas do PC são conectadas instantaneamente, sem precisar digitar endereço, porta ou senha. Passo a passo completo: [Abra pastas do PC escaneando um código](howto/scenario-companion-share-pt.md) &bull; receita rápida: [Importar um compartilhamento do Windows Companion](#how-to-import-a-windows-companion-share).
 
 > **⌚ Smartwatches Wear OS:** Está usando um relógio Wear OS? Veja nossos guias passo a passo para [Ouvir música no seu relógio](howto/scenario-watch-music-pt.md) e [Conectar o smartwatch a compartilhamentos de NAS e PC](howto/scenario-watch-network-pt.md).
 
@@ -219,7 +221,7 @@ Estas seções são intencionalmente mais variadas do que os blocos de referênc
 
 **Quando isso ajuda**
 
-- Rádios automotivos Android, players de áudio e media boxes onde você quer rádio pela internet sem um aplicativo separado (TuneIn, RadioDroid, streams de rede do VLC).
+- Rádios automotivos Android, players de áudio e media boxes onde você quer rádio pela internet sem um aplicativo separado.
 - Uso tipo IPTV-lite: streams HLS/DASH VOD tocam no player em tela cheia.
 
 **Evite isto**
@@ -554,13 +556,13 @@ Estas seções são intencionalmente mais variadas do que os blocos de referênc
 
 ## Como Importar um Compartilhamento do Windows Companion {#how-to-import-a-windows-companion-share}
 
-**O que é:** o companion é um recurso do [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) (antigamente FastMediaSorter LITE) - o sorteador de mídia gratuito para Windows do mesmo autor. Ele compartilha pastas escolhidas do PC via SFTP e exporta uma conexão pronta - sem configuração manual de servidor, sem digitar host/porta/chave no celular. Você a traz para o celular **escaneando um código QR** na tela do PC, ou **importando um arquivo `.fmscfg`**.
+**O que é:** o companion é um recurso do [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) - o sorteador de mídia gratuito para Windows do mesmo autor. Ele compartilha pastas escolhidas do PC via SFTP e exporta uma conexão pronta - sem configuração manual de servidor, sem digitar host/porta/chave no celular. Você a traz para o celular **escaneando um código QR** na tela do PC, ou **importando um arquivo `.fmscfg`**.
 
 **Disponível em:** Standard, Photos, Legacy, XR/noLegal (a leitura de código de barras precisa de câmera; o método por arquivo funciona em todo lugar, incluindo VR)
 
 > Prefere uma versão guiada e com capturas de tela? Veja o guia de cenário [Abra pastas do PC escaneando um código](howto/scenario-companion-share-pt.md).
 
-**Obtenha o Fast Media Sorter for Windows:**
+**Obtenha o Fast Media Sorter & Sharing for Windows:**
 
 - Site: [serzhyale.github.io/FastMediaSorter_Lite](https://serzhyale.github.io/FastMediaSorter_Lite/)
 - Guia de publicação de pastas: [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html)
@@ -570,7 +572,7 @@ Estas seções são intencionalmente mais variadas do que os blocos de referênc
 
 **No PC:**
 
-1. Instale e execute o **Fast Media Sorter for Windows**, abra a aba **Share** nas configurações.
+1. Instale e execute o **Share Manager - Fast Media Sorter & Sharing**, abra a aba **Share** nas configurações.
 2. Escolha a(s) pasta(s) a compartilhar - o aplicativo inicia o servidor SFTP, gera chaves e configura a inicialização automática por conta própria.
 3. Ele mostra um **código QR** na tela. Também pode **Salvar .fmscfg** se você preferir um arquivo.
 
@@ -1042,7 +1044,7 @@ Os arquivos excluídos vão para pastas `.trash/` e permanecem lá até serem es
 
 **Disponível para:** arquivos SMB, SFTP, FTP
 
-**Caso de uso:** você quer abrir um documento, foto ou vídeo da sua unidade de rede em um aplicativo externo especializado (por exemplo, MS Office, Adobe Acrobat, VLC Player).
+**Caso de uso:** você quer abrir um documento, foto ou vídeo da sua unidade de rede em um aplicativo externo especializado (por exemplo, um pacote de escritório, um leitor de PDF ou um player de vídeo).
 
 **Passos:**
 
@@ -1077,8 +1079,8 @@ Os arquivos excluídos vão para pastas `.trash/` e permanecem lá até serem es
 **Exemplos de uso:**
 
 - Editar um documento de rede no MS Word
-- Reproduzir um vídeo de rede no VLC Player
-- Visualizar um PDF de rede no Adobe Acrobat
+- Reproduzir um vídeo de rede em um player de vídeo dedicado
+- Visualizar um PDF de rede em um leitor de PDF dedicado
 - Compartilhar uma foto de rede via aplicativos de mensagens
 
 ---

@@ -9,19 +9,15 @@ import com.sza.fastmediasorter.databinding.ItemWelcomePrimaryWindowChoiceBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherPrimaryWindow
 
 /**
- * Adapter for selecting the primary window mode during onboarding and in settings.
+ * Adapter for selecting the primary window mode during onboarding. The caller supplies the choices,
+ * so a device that cannot offer the HOME role never lists it.
  */
 class WelcomePrimaryWindowChoiceAdapter(
+    private val choices: List<LauncherPrimaryWindow>,
     private var selectedChoice: LauncherPrimaryWindow,
     private var recommendedChoice: LauncherPrimaryWindow,
     private val onChoiceSelected: (LauncherPrimaryWindow) -> Unit
 ) : RecyclerView.Adapter<WelcomePrimaryWindowChoiceAdapter.ChoiceViewHolder>() {
-
-    private val choices = listOf(
-        LauncherPrimaryWindow.HOME_SCREEN,
-        LauncherPrimaryWindow.DESKTOP,
-        LauncherPrimaryWindow.RESOURCE_MANAGER
-    )
 
     fun updateSelection(selected: LauncherPrimaryWindow, recommended: LauncherPrimaryWindow) {
         val oldSelected = selectedChoice

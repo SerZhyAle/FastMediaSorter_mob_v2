@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.05.18 17:59</sub>
+
 # ACTIVITY_CATALOG - JSONL Schema
 
 Merge key: `module + class` (unique combination per record).

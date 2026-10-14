@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.26 10:04</sub>
+
 # Play Console - Android XR dedicated track (S0556)
 
 Operator runbook for publishing the `xr` flavor to Google Play's dedicated Android XR release track under the phone's package, `com.sza.fastmediasorter`. The phone listing, reviews and cloud sign-in registrations stay shared; only the artifact and its track differ.

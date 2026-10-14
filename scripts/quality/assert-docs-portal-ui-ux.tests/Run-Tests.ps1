@@ -15,6 +15,9 @@
     - Jekyll markdown source target resolution (exit 0).
     - CSS token validation (exit 1 when token missing).
     - PAGE-STYLE 1.0 pre-paint resolver and a missing sza-lang writer (exit 1).
+    - SITE-EXPERIENCE rules 2, 3, 4, 12 and 15 on the portal layer (S4099): a copied kit colour, the
+      kit linked after the layer, a style attribute or element, a missing component or a doubled
+      edition badge, an empty search result without the query, a page without its skip link.
 
 .NOTES
     Exit codes:
@@ -71,36 +74,50 @@ try {
         New-Item -ItemType Directory -Path $assetsDir -Force | Out-Null
         New-Item -ItemType Directory -Path $docsDir -Force | Out-Null
 
+        # The kit tokens, carried by the product layer the portal links first
+        $kit = @'
+:root { --bg: #0a0f0a; --text: #f1f5ee; --acc: #3fb950; --gold: #e3b341; --border: rgba(255, 255, 255, 0.08); }
+html[data-theme="light"] { --bg: #eef3ea; --acc-strong: #267a30; --bg-2: #ffffff; }
+'@
+        Set-Content -LiteralPath (Join-Path $baseDir 'styles.css') -Value $kit -Encoding utf8
+
         # Minimal valid CSS
         $css = @'
 :root {
-    --doc-bg: #0a0f0a;
-    --doc-text: #f1f5ee;
-    --doc-accent: #3fb950;
-    --doc-gold: #e3b341;
-    --doc-border: rgba(255, 255, 255, 0.09);
+    --doc-bg: var(--bg);
+    --doc-text: var(--text);
+    --doc-accent: var(--acc);
+    --doc-gold: var(--gold);
+    --doc-border: var(--border);
 }
 html[data-theme="light"] {
-    --doc-bg: #ffffff;
-    --doc-text: #162115;
-    --doc-accent: #267a30;
-    --doc-gold: #9a6a13;
-    --doc-border: rgba(22, 33, 15, 0.12);
+    --doc-bg: var(--bg);
+    --doc-text: var(--text);
+    --doc-accent: var(--acc-strong);
+    --doc-gold: var(--gold);
+    --doc-border: var(--border);
 }
+.doc-menu-path-item { font-weight: 600; }
+.doc-edition-badge { display: inline-flex; }
 .doc-mobile-menu-btn { display: none; }
 .doc-sidebar.active { left: 0; }
 @media (max-width: 1100px) { .doc-grid { grid-template-columns: 1fr; } }
 @media (max-width: 768px) { .doc-grid { grid-template-columns: 1fr; } }
 @media (max-width: 480px) { .doc-grid { grid-template-columns: 1fr; } }
-@media print { .doc-header { display: none; } }
+@media print { .doc-header { display: none; } body { background: #ffffff; } }
 '@
         Set-Content -LiteralPath (Join-Path $assetsDir 'docs.css') -Value $css -Encoding utf8
 
         # Minimal valid search JS
         $js = @'
 (function() {
+    var messages = { en: { empty: 'No guides match "{query}".' }, ru: { empty: 'Нет руководств «{query}».' }, uk: { empty: 'Немає посібників «{query}».' } };
     function getDocRelativePrefix() { return ''; }
     function getSearchIndexPath() { return 'assets/search-index.json'; }
+    function emptyResult(query) {
+        return getDocRelativePrefix() + 'subject-index.html' + query;
+    }
+    function search(query) { emptyResult(query); }
     var modal = document.createElement('div');
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
@@ -125,11 +142,14 @@ html[data-theme="light"] {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doc Portal</title>
     <script>try{var t=localStorage.getItem('sza-theme');if(t !== 'dark' && t !== 'light')t='dark';var l=localStorage.getItem('sza-lang');if(l === 'uk') l = 'ua';}catch(e){}</script>
+    <link rel="stylesheet" href="../styles.css">
     <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
+    <a class="doc-skip-link" href="#main-content">Skip to content</a>
     <header class="doc-header"><button id="themeBtn">◐</button></header>
-    <main class="doc-content">
+    <main class="doc-content" id="main-content">
+        <div class="doc-meta-row"><span class="doc-badge">Section</span><span class="doc-edition-badge">All editions</span></div>
         <img src="assets/docs.css" alt="Valid asset reference">
         <a href="../docs/PRIVACY_POLICY.html">Privacy</a>
     </main>
@@ -205,6 +225,35 @@ html[data-theme="light"] {
     $out10 = & $pwshExe -NoProfile -File $gateScript -RepoRoot $case9 2>&1
     Assert-That "Search shard traversal is refused" ($LASTEXITCODE -ne 0 -and ($out10 -match 'Invalid search shard name')) ($out10 -join '; ')
 
+    # SITE-EXPERIENCE rules 2, 3, 4, 12 and 15 (S4099): one change per case against the valid tree.
+    function Test-PortalRule([string]$name, [string]$relative, [string]$pattern, [string]$replacement, [string]$expected) {
+        $caseDir = Join-Path $scratchRoot ('s4099-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+        Initialize-SyntheticDocTree $caseDir
+        $target = Join-Path $caseDir $relative
+        $text = Get-Content -LiteralPath $target -Raw
+        $changed = $text -replace $pattern, $replacement
+        if ($changed -ceq $text) { Assert-That $name $false "fixture edit '$pattern' changed nothing"; return }
+        Set-Content -LiteralPath $target -Value $changed -Encoding utf8
+        $out = & $pwshExe -NoProfile -File $gateScript -RepoRoot $caseDir 2>&1
+        $code = $LASTEXITCODE
+        if ($expected) {
+            Assert-That $name ($code -ne 0 -and (($out -join "`n") -match [regex]::Escape($expected))) ($out -join '; ')
+        } else {
+            Assert-That $name ($code -eq 0) ($out -join '; ')
+        }
+    }
+
+    Test-PortalRule 'A kit colour copied into docs.css fails (rule 2)' 'documentation/assets/docs.css' '--doc-accent: var\(--acc\);' '--doc-accent: #3FB950;' 'copies the kit value #3FB950 of --acc'
+    Test-PortalRule 'A kit colour in a print rule is not judged (rule 2)' 'documentation/assets/docs.css' 'body \{ background: #ffffff; \}' 'body { background: #ffffff; color: #0a0f0a; }' ''
+    Test-PortalRule 'The kit linked after docs.css fails (rule 2)' 'documentation/index.html' '(<link rel="stylesheet" href="\.\./styles\.css">)(\s*)(<link rel="stylesheet" href="assets/docs\.css">)' '$3$2$1' 'is not linked before docs.css'
+    Test-PortalRule 'A missing menu-path component fails (rule 3)' 'documentation/assets/docs.css' '\.doc-menu-path-item \{ font-weight: 600; \}' '' 'does not define the .doc-menu-path-item component'
+    Test-PortalRule 'A badge row with two edition badges fails (rule 3)' 'documentation/index.html' '(<span class="doc-edition-badge">All editions</span>)' '$1$1' 'exactly one edition badge'
+    Test-PortalRule 'A style attribute fails (rule 4)' 'documentation/index.html' '<footer class="doc-footer">' '<footer class="doc-footer" style="margin-top: 2rem;">' '1 style attribute(s)'
+    Test-PortalRule 'A style element fails (rule 4)' 'documentation/index.html' '</head>' '<style>.x { color: red; }</style></head>' 'a <style> element'
+    Test-PortalRule 'A style string inside a script is not judged (rule 4)' 'documentation/index.html' '<script src="assets/search.js"></script>' '<script>var html = ''<b style="color: red">x</b>'';</script><script src="assets/search.js"></script>' ''
+    Test-PortalRule 'An empty search result without the query fails (rule 12)' 'documentation/assets/search.js' '\{query\}' '' 'SITE-EXPERIENCE rule 12'
+    Test-PortalRule 'A page without its skip link fails (rule 15)' 'documentation/index.html' '<a class="doc-skip-link" href="#main-content">Skip to content</a>' '' 'skip link to #main-content'
+    Test-PortalRule 'A skip link after the chrome fails (rule 15)' 'documentation/index.html' '(<a class="doc-skip-link"[^>]*>[^<]*</a>)(\s*)(<header class="doc-header">.*?</header>)' '$3$2$1' 'skip link to #main-content'
 } finally {
     if (Test-Path -LiteralPath $scratchRoot) {
         Remove-Item -LiteralPath $scratchRoot -Recurse -Force -ErrorAction SilentlyContinue

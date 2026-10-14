@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.06.21 22:54</sub>
+
 # TASK DEFINITION (Постановка задачи): S0602 - default-player-toggles-nonfunctional-unsupported-flavors
 
 **Билет:** S0602  

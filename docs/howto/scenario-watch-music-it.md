@@ -3,6 +3,8 @@ layout: default
 title: "Ascolta musica sul tuo orologio - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music-it.html
 ---
+<sub class="doc-stamp">26.09.25 02:19</sub>
+
 <div lang="it" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_audio.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Ascolta musica sul tuo orologio

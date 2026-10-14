@@ -3,6 +3,8 @@ layout: default
 title: "হোম সিনেমা ও ভিআর স্ট্রিমিং - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema-bn.html
 ---
+<sub class="doc-stamp">26.09.25 02:17</sub>
+
 <div lang="bn" dir="ltr" markdown="1">
 
 # 🍿 হোম সিনেমা ও ভিআর স্ট্রিমিং

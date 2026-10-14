@@ -6,7 +6,7 @@ description: How to switch between grid and list view, move through subfolders w
 category: Browsing & Sorting
 category_slug: browsing
 ticket: S2948
-flavor: All editions
+availability: all
 recipe_number: "01"
 canonical_url: documentation/browsing/grid-and-list-views.html
 why: |
@@ -157,5 +157,7 @@ next_recipes:
     badge_type: docs
     description: Why folders open fast and stay accurate as files change.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 The [file browser](term:file-browser) is where every resource opens: switch between grid and list, move through subfolders with a single path button, see every file with File Manager Mode, check details or lock a resource down, and reach removable drives, archives and documents that hand off to another app.

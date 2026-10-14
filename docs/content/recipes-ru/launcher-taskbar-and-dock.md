@@ -6,7 +6,6 @@ description: Как настроить положение панели зада�
 category: "Лаунчер - Панель задач, меню и жесты"
 category_slug: launcher
 ticket: S2960
-flavor: Редакции Standard и noLegal
 recipe_number: "04"
 canonical_url: documentation/launcher/taskbar-and-dock-ru.html
 why: |
@@ -113,5 +112,7 @@ next_recipes:
     badge_type: docs
     description: Боковые жесты смахивания для быстрого вызова камеры и функций панели.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Панель задач](term:taskbar) - это постоянная часть [лаунчера](term:launcher), которая никогда не исчезает при прокрутке. В этом руководстве показано, как настроить ее положение, закреплять программы, открывать док быстрого запуска и управлять беспроводными переключателями.

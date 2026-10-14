@@ -23,12 +23,20 @@ object NetworkErrorMessageMapper {
         is NetworkServerErrorException -> R.string.error_network_server_error
         is NetworkTimeoutException -> R.string.error_network_timeout
         is ScanTimeoutException -> R.string.error_scan_timeout
+        // The more specific refusal first: it is a NetworkAccessDeniedException too.
+        is NetworkPinRefusedException -> R.string.error_network_pin_refused
         is NetworkAccessDeniedException -> R.string.error_network_access_denied
         is NetworkHostKeyChangedException -> R.string.error_network_host_key_changed
         is NetworkFileNotFoundException -> R.string.error_network_not_found
         // WifiRequiredException is a NetworkConnectionLostException subclass - must come first
         // so the more specific branch wins before the generic connection-lost branch.
         is WifiRequiredException -> R.string.error_wifi_required_smb
+        is NetworkPeerUnreachableException -> when (exception.reason) {
+            NetworkPeerUnreachableException.Reason.TUNNEL_NOT_REGISTERED ->
+                R.string.error_sftp_peer_tunnel_not_registered
+            NetworkPeerUnreachableException.Reason.UNREACHABLE_FROM_THIS_NETWORK ->
+                R.string.error_sftp_peer_unreachable_here
+        }
         is NetworkConnectionLostException -> R.string.error_network_connection_lost
         is NetworkUnsupportedOperationException -> R.string.error_network_unsupported
     }
@@ -76,6 +84,8 @@ object NetworkErrorMessageMapper {
             isCompanionAuthFailure -> {
                 context.getString(R.string.error_companion_repair_needed)
             }
+            // ANYWHERE-ACCESS: a known reason beats the generic companion guidance below.
+            exception is NetworkPeerUnreachableException -> context.getString(toMessageRes(exception))
             !isConnectivityError -> context.getString(toMessageRes(exception))
             else -> {
                 val companionResource = resourceType == ResourceType.SFTP || resourceType == ResourceType.FTP

@@ -224,8 +224,13 @@ android {
         // with a foreign program, so two copies would diverge silently - the divergence surfaces as a
         // container the other platform refuses, never as a failing build. The package has no Android
         // import at all, which is what makes one source legal in two modules.
+        // S4133: the stream-catalog language and country folds are compiled from app_v2's tree too. The
+        // publisher, the phone and the watch must reduce one raw cell to the same id, and two copies of
+        // the vocabulary tables would drift unnoticed. Like the FD-SEC package it imports nothing from
+        // Android, Hilt or an app package, and must keep it that way.
         getByName("main") {
             kotlin.srcDir("../app_v2/src/main/java/com/sza/fastmediasorter/data/security/fdsec")
+            kotlin.srcDir("../app_v2/src/main/java/com/sza/fastmediasorter/domain/streams/facets")
         }
 
         // The same source's conformance suite, so the watch reproduces the contract's published
@@ -235,6 +240,7 @@ android {
         // it collides with one of this module's own fixtures.
         getByName("test") {
             kotlin.srcDir("../app_v2/src/test/java/com/sza/fastmediasorter/data/security/fdsec")
+            kotlin.srcDir("../app_v2/src/test/java/com/sza/fastmediasorter/domain/streams/facets")
             resources.srcDir("../app_v2/src/test/resources")
         }
     }

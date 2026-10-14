@@ -3,6 +3,8 @@ layout: default
 title: "टैबलेट पर डिजिटल फोटो फ्रेम - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-hi.html
 ---
+<sub class="doc-stamp">26.09.25 02:19</sub>
+
 <div lang="hi" dir="ltr" markdown="1">
 
 # 🖼️ टैबलेट पर डिजिटल फोटो फ्रेम

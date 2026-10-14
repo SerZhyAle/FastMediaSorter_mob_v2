@@ -282,4 +282,62 @@ class FilenameOverlayAutoHideManagerTest {
         verify(atLeast = 2) { mainHandler.removeCallbacks(any()) }
         verify { overlayView.alpha = 0f }
     }
+
+    // Released by cancel(): the host lambdas read a binding that throws after onDestroy
+
+    @Test
+    fun `calls after cancel post no runnable and never reach the host lambdas`() {
+        var fullscreenReads = 0
+        var companionReads = 0
+        val host = FilenameOverlayAutoHideManager(
+            overlayView = overlayView,
+            mainHandler = mainHandler,
+            isFullscreen = {
+                fullscreenReads++
+                false
+            },
+            companionViews = {
+                companionReads++
+                emptyList()
+            },
+        )
+        host.onFileShown(MediaType.IMAGE)
+        host.cancel()
+        val fullscreenBefore = fullscreenReads
+        val companionBefore = companionReads
+
+        host.onFileShown(MediaType.VIDEO)
+        host.onPauseInteraction(MediaType.VIDEO)
+        host.onZoomInteraction(MediaType.IMAGE)
+        host.onHostResume(MediaType.IMAGE)
+        host.onEnterCommandPanelMode()
+        host.onEnterFullscreenMode()
+
+        verify(exactly = 1) { mainHandler.postDelayed(any(), any<Long>()) }
+        assertEquals("isFullscreen read after cancel", fullscreenBefore, fullscreenReads)
+        assertEquals("companionViews read after cancel", companionBefore, companionReads)
+    }
+
+    @Test
+    fun `hide runnable firing after cancel never reaches companion views`() {
+        var companionReads = 0
+        val host = FilenameOverlayAutoHideManager(
+            overlayView = overlayView,
+            mainHandler = mainHandler,
+            isFullscreen = { false },
+            companionViews = {
+                companionReads++
+                emptyList()
+            },
+        )
+        val runnableSlot = slot<Runnable>()
+        every { mainHandler.postDelayed(capture(runnableSlot), any<Long>()) } returns true
+        host.onFileShown(MediaType.IMAGE)
+        host.cancel()
+        val companionBefore = companionReads
+
+        runnableSlot.captured.run()
+
+        assertEquals("companionViews read by a runnable fired after cancel", companionBefore, companionReads)
+    }
 }

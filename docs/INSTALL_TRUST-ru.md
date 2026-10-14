@@ -1,8 +1,10 @@
 ---
 layout: default
 title: "Почему Android предупреждает об этом APK"
-permalink: /docs/INSTALL_TRUST_RU.html
+permalink: /docs/INSTALL_TRUST-ru.html
 ---
+
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 # Почему Android предупреждает об этом APK - и что нажимать
 

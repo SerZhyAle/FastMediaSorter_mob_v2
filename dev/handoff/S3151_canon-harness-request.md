@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.15 16:14</sub>
+
 # S3151 - canon harness change request
 
 This is input for the canon update after S3151 closes.

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.24 02:28</sub>
+
 # Spec catalog rationale - incidents, measurements and design history
 
 Moved verbatim from `.claude/rules/spec-catalog.md` by S3151. That rule keeps each contract's statement, gate and fix and is loaded with any `PLAN/` file; this document keeps why each contract exists and is read on demand.

@@ -3,6 +3,8 @@ layout: default
 title: "Інтернет-радіо і Трансляції - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-uk.html
 ---
+<sub class="doc-stamp">26.10.09 14:26</sub>
+
 # 📻 Інтернет-радіо і Трансляції
 
 > **Рівень:** Початківець - **Час:** ~10 хвилин - **Версія:** Standard, Legacy, VR, noLegal (у Lite і Photos Трансляцій немає)
@@ -11,7 +13,7 @@ permalink: /docs/howto/scenario-internet-radio-uk.html
 
 FastMediaSorter містить окремий екран Трансляцій для інтернет-аудіо та відеотрансляцій. Додайте URL будь-якого інтернет-радіо, імпортуйте .m3u-плейлист або перегляньте каталог станцій - без окремого застосунку. Чудово працює на Android-магнітолах, аудіоплеєрах, телефонах і планшетах.
 
-> **Замінює:** TuneIn, Shoutcast, Online Radio, RadioDroid, VLC мережеві потоки, IPTV-плеєри.
+> **Замінює:** окремий застосунок інтернет-радіо або плеєр трансляцій.
 
 ---
 

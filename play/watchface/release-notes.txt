@@ -1,9 +1,9 @@
 <en-US>
-First release of the FastMediaSorter watch face: large clear time, the date, living waves and particles, a watch battery bar and six buttons for the data sources you pick.
+Small maintenance update of the FastMediaSorter watch face.
 </en-US>
 <ru-RU>
-Первая версия циферблата FastMediaSorter: крупное чёткое время, дата, живые волны и частицы, полоса заряда часов и шесть кнопок для данных, которые вы выберете.
+Небольшое сервисное обновление циферблата FastMediaSorter.
 </ru-RU>
 <uk>
-Перша версія циферблата FastMediaSorter: великий чіткий час, дата, живі хвилі й частинки, смуга заряду годинника та шість кнопок для даних, які ви оберете.
+Невелике сервісне оновлення циферблата FastMediaSorter.
 </uk>

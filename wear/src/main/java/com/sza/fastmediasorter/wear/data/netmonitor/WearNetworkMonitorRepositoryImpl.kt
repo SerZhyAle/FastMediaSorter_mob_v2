@@ -212,7 +212,7 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
             isGranted(Manifest.permission.ACCESS_COARSE_LOCATION)
         if (hasLocationPermission && locationManager != null) {
             try {
-                locationManager.registerGnssStatusCallback(mainHandler::post, gnssCallback)
+                locationManager.registerGnssStatusCallback(gnssCallback, mainHandler)
             } catch (e: SecurityException) {
                 Timber.w(e, "Location permission revoked during GNSS status registration")
             }

@@ -5,6 +5,8 @@ permalink: /docs/V2_TERMS.html
 lang: en
 ---
 
+<sub class="doc-stamp">26.10.06 14:18</sub>
+
 # Terminology Reference
 
 ## Core terms

@@ -77,4 +77,7 @@
     <string name="dropbox_select_folder">选择文件夹</string>
     <string name="dropbox_sign_in">使用 Dropbox 登录</string>
     <string name="dropbox_signed_in">已登录：%1$s</string>
+    <string name="media_exchange_portal_link">设备间的媒体交换</string>
+    <string name="media_exchange_portal_open">打开媒体交换门户</string>
+    <string name="broadcast_portal_help">设备间广播的工作原理</string>
 </resources>

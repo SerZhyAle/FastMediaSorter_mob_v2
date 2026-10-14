@@ -3,6 +3,8 @@ layout: default
 title: "把本应用用作主屏幕 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-zh-hans.html
 ---
+<sub class="doc-stamp">26.09.25 02:18</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 🖥️ 把本应用用作主屏幕

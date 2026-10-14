@@ -97,7 +97,8 @@ function Get-Block([string]$locale, [string]$indent, [string]$eol) {
     $lines = [System.Collections.Generic.List[string]]::new()
     $lines.Add($indent + $beginMarker)
     foreach ($tool in $tools) {
-        $lines.Add(('{0}<a href="{1}"><b>{2}</b><span>{3}</span></a>' -f $indent, $tool.url, $tool.name, $tool.caption.$locale))
+        $displayName = [System.Net.WebUtility]::HtmlEncode($tool.name)
+        $lines.Add(('{0}<a href="{1}"><b>{2}</b><span>{3}</span></a>' -f $indent, $tool.url, $displayName, $tool.caption.$locale))
     }
     $lines.Add($indent + $endMarker)
     return ($lines -join $eol)

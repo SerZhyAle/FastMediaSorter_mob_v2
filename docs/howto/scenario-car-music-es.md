@@ -3,6 +3,8 @@ layout: default
 title: "Reproductor de Música en el Coche (Unidad Central Android) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-es.html
 ---
+<sub class="doc-stamp">26.09.25 02:12</sub>
+
 <div lang="es" dir="ltr" markdown="1">
 
 # 🚗 Reproductor de Música en el Coche (Unidad Central Android)

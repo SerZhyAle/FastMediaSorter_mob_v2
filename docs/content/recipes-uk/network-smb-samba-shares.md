@@ -6,7 +6,7 @@ description: "Як відкрити спільний доступ до папк�
 category: Мережеві папки та хмари
 category_slug: network
 ticket: S2950
-flavor: Мережеві папки (SMB) - усі редакції, крім Lite. Автоматичний пошук комп'ютера, список його спільних папок, перевірка підключення й тихе налаштування швидкості - Standard, noLegal, Photos, Legacy та VR (не Lite, не FOSS).
+availability_note: Мережеві папки (SMB) - усі редакції, крім Lite. Автоматичний пошук комп'ютера, список його спільних папок, перевірка підключення й тихе налаштування швидкості - Standard, noLegal, Photos, Legacy та VR (не Lite, не FOSS).
 recipe_number: "01"
 canonical_url: documentation/network/smb-samba-shares-uk.html
 why: |
@@ -29,7 +29,7 @@ steps:
     callout:
       type: tip
       title: Не хочете чіпати спільний доступ Windows узагалі?
-      text: "[Fast Media Sorter for Windows](term:windows-companion) відкриває обрані папки за кілька кліків і спарюється за QR-кодом, не вмикаючи власний мережевий спільний доступ Windows. Див. [Поширення папок ПК через Fast Media Sorter для Windows](page:network.windows-companion)."
+      text: "[Fast Media Sorter & Sharing for Windows](term:windows-companion) відкриває обрані папки за кілька кліків і спарюється за QR-кодом, не вмикаючи власний мережевий спільний доступ Windows. Див. [Поширення папок ПК через Fast Media Sorter для Windows](page:network.windows-companion)."
   - number: 2
     id: find-and-add
     title: Знайдіть свій комп'ютер і додайте спільну папку
@@ -97,6 +97,7 @@ tips:
   - "**Спільна папка працює з комп'ютера, але не з телефону.** Переконайтеся, що обидва в одній мережі Wi-Fi, а не один у Wi-Fi, а інший на мобільних даних, і що ПК не заснув."
   - "**Хочете деталі кешування й фонового оновлення?** Вони однакові для будь-якого мережевого ресурсу - див. [Додавання мережевих папок і хмарних сховищ як джерел](page:storage.network-and-cloud-sources)."
   - "**Ділитеся всім списком ресурсів, разом із паролями, з іншим телефоном?** Див. [Спільний доступ і резервне копіювання ваших ресурсів](page:storage.sharing-and-backing-up-resources)."
+  - "**Потрібен доступ до власного сховища не лише вдома?** [Портал обміну медіа](../../docs/media-exchange-portal/home-network-uk.html) крок за кроком розбирає спосіб через домашню мережу й каже, що працює вже сьогодні."
 next_recipes:
   - title: Підключення серверів SFTP та FTP
     url: page:network.sftp-ftp-servers
@@ -114,5 +115,7 @@ next_recipes:
     badge_type: other
     description: Огляд - які місця можна додати і як застосунок тримає їх швидкими.
 ---
+
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Відкрийте спільний доступ до папки у Windows, знайдіть її із застосунку скануванням мережі, увійдіть і перевірте підключення до збереження, і дізнайтеся, що насправді означає повідомлення «не вдається підключитися» - повний огляд за [додаванням мережевої папки](page:storage.network-and-cloud-sources) як [ресурсу](term:resource).

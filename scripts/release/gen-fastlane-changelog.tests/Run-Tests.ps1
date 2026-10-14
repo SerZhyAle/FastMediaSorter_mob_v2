@@ -116,6 +116,13 @@ try {
     Assert-That '-Overwrite exits 0' ($r4.Code -eq 0) "exit=$($r4.Code) $($r4.Text)"
     Assert-That 'the new notes replaced the old' ([System.IO.File]::ReadAllText($enPath) -match 'belong under the watch code') 'content did not change'
 
+    Write-Host 'An inventory anchor never reaches the store text'
+    Write-Sources -Bullet '**Anchored** - a bullet with its inventory anchor. <!-- af: area.some-id -->'
+    $r5 = Invoke-Generator -Extra @('-Overwrite')
+    $anchored = if (Test-Path -LiteralPath $enPath) { [System.IO.File]::ReadAllText($enPath) } else { '' }
+    Assert-That 'an anchored source exits 0' ($r5.Code -eq 0) "exit=$($r5.Code) $($r5.Text)"
+    Assert-That 'the anchor is stripped' ((-not $anchored.Contains('<!--')) -and $anchored -match 'with its inventory anchor\.') $anchored
+
     Write-Host 'The real tree is untouched'
     $realChangelog = Join-Path $repoRoot 'fastlane/metadata/android/en-US/changelogs/999999999.txt'
     Assert-That 'no changelog was written under the real fastlane root' (-not (Test-Path -LiteralPath $realChangelog)) $realChangelog

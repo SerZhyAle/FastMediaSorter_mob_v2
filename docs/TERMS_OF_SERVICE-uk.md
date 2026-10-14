@@ -1,8 +1,10 @@
 ---
-layout: default
+layout: doc
 title: "Умови використання"
-permalink: /docs/TERMS_OF_SERVICE_UK.html
+permalink: /docs/TERMS_OF_SERVICE-uk.html
 ---
+<sub class="doc-stamp">26.10.07 02:56</sub>
+
 # Умови використання
 
 **Останнє оновлення:** 30 листопада 2024 р.

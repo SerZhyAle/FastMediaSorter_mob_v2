@@ -3,6 +3,8 @@ layout: default
 title: "ایک کوڈ اسکین کر کے اپنے پی سی کے فولڈرز کھولیں - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-ur.html
 ---
+<sub class="doc-stamp">26.09.25 02:18</sub>
+
 <div lang="ur" dir="rtl" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> ایک کوڈ اسکین کر کے اپنے پی سی کے فولڈرز کھولیں
@@ -19,7 +21,7 @@ permalink: /docs/howto/scenario-companion-share-ur.html
 
 ## ہیلپر پروگرام
 
-"کمپینین" **[Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** (پہلے FastMediaSorter LITE) کی ایک بلٹ ان خصوصیت ہے - وہی مصنف کا مفت Windows میڈیا سورٹر۔ جب آپ اس کے ساتھ فولڈرز شیئر کرتے ہیں، تو یہ:
+"کمپینین" **[Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** کی ایک بلٹ ان خصوصیت ہے - وہی مصنف کا مفت Windows میڈیا سورٹر۔ جب آپ اس کے ساتھ فولڈرز شیئر کرتے ہیں، تو یہ:
 
 - آپ کے پی سی پر صرف انہی فولڈرز کے لیے ایک نجی SFTP سرور شروع کرتا ہے۔
 - اپنی خود کی کیز بناتا ہے اور آٹو اسٹارٹ سیٹ اپ کرتا ہے، تاکہ اگلی بار بھی شیئر موجود ہو۔
@@ -37,7 +39,7 @@ permalink: /docs/howto/scenario-companion-share-ur.html
 
 ## آپ کو کیا درکار ہوگا
 
-- **Fast Media Sorter for Windows** انسٹال شدہ ایک Windows پی سی
+- **Fast Media Sorter & Sharing for Windows** انسٹال شدہ ایک Windows پی سی
 - آپ کا فون اور پی سی **ایک ہی Wi-Fi نیٹ ورک** پر (ایک ہی راؤٹر)
 - تیز ترین طریقے کے لیے: کوڈ اسکین کرنے کے لیے ایک فون **کیمرہ** (اگر کیمرہ نہ ہو تو فائل پر مبنی طریقہ دستیاب ہے)
 
@@ -45,7 +47,7 @@ permalink: /docs/howto/scenario-companion-share-ur.html
 
 ## مرحلہ 1 - پی سی پر فولڈرز شیئر کریں
 
-1. **Fast Media Sorter for Windows** انسٹال اور چلائیں، پھر ترتیبات میں **Share** ٹیب کھولیں۔
+1. **Share Manager - Fast Media Sorter & Sharing** انسٹال اور چلائیں، پھر ترتیبات میں **Share** ٹیب کھولیں۔
 2. وہ فولڈر(ز) منتخب کریں جو آپ فون پر چاہتے ہیں - Movies، Music، Documents، Photos، کچھ بھی۔
 3. ایپ SFTP سرور شروع کرتی ہے، کیز بناتی ہے، اور خود ہی آٹو اسٹارٹ سیٹ اپ کرتی ہے۔ اور کچھ ترتیب دینے کی ضرورت نہیں۔
 4. یہ اب پی سی اسکرین پر ایک **QR کوڈ** دکھاتی ہے۔ مرحلہ 2 کے لیے وہ ونڈو کھلی رکھیں۔

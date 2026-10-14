@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import java.util.Locale
 
 private const val LOCK_BUTTON_WIDTH_FRACTION = 0.8f
+private const val SHORT_LABEL_LENGTH = 3
 
 private const val KMH_TO_MPH = 0.621371f
 private const val METERS_TO_FEET = 3.28084
@@ -161,14 +162,7 @@ private fun AthleteControls(
         ) {
             metrics.forEach { metric ->
                 val isSelected = metric == focusedMetric
-                val shortLabel = when (metric) {
-                    TouristMetricType.STEPS -> "STP"
-                    TouristMetricType.TRIP_DISTANCE -> "DST"
-                    TouristMetricType.HEART_RATE -> "BPM"
-                    TouristMetricType.SPEED -> "SPD"
-                    TouristMetricType.BODY_TEMPERATURE -> "TMP"
-                    else -> "???"
-                }
+                val shortLabel = athleteShortLabel(metric)
                 CompactChip(
                     onClick = { onSelectMetric(metric) },
                     label = { Text(shortLabel, style = MaterialTheme.typography.caption3) },
@@ -201,6 +195,47 @@ private fun AthleteControls(
     }
 }
 
+/** Only the athlete chips reach this; the other metrics share a three-letter cut of their name. */
+private fun athleteShortLabel(metric: TouristMetricType): String = when (metric) {
+    TouristMetricType.STEPS -> "STP"
+    TouristMetricType.TRIP_DISTANCE -> "DST"
+    TouristMetricType.HEART_RATE -> "BPM"
+    TouristMetricType.SPEED -> "SPD"
+    TouristMetricType.BODY_TEMPERATURE -> "TMP"
+    TouristMetricType.ALTITUDE,
+    TouristMetricType.COMPASS,
+    TouristMetricType.COORDINATES,
+    TouristMetricType.SATELLITES,
+    TouristMetricType.SUN_TIME,
+    TouristMetricType.PRESSURE,
+    TouristMetricType.BAROMETRIC_ALTITUDE,
+    TouristMetricType.ELEVATION_GAIN_LOSS,
+    TouristMetricType.SLOPE,
+    TouristMetricType.ELAPSED_TIME,
+    TouristMetricType.MOVING_TIME,
+    TouristMetricType.AVERAGE_PACE,
+    TouristMetricType.CADENCE,
+    TouristMetricType.GPS_ACCURACY,
+    TouristMetricType.COURSE,
+    TouristMetricType.DECLINATION,
+    TouristMetricType.LEVEL,
+    TouristMetricType.LIGHT,
+    TouristMetricType.MAGNETIC_FIELD,
+    TouristMetricType.WIND,
+    TouristMetricType.FEELS_LIKE,
+    TouristMetricType.HUMIDITY,
+    TouristMetricType.UV_INDEX,
+    TouristMetricType.PRECIPITATION_PROBABILITY,
+    TouristMetricType.CLOUD_COVER,
+    TouristMetricType.VISIBILITY,
+    -> metric.name.take(SHORT_LABEL_LENGTH)
+}
+
+/**
+ * The focused metric can be any of them - it carries over from the dashboard - so every metric outside
+ * the athlete set shows its shared label and value rather than a placeholder (S4146).
+ */
+@Composable
 private fun formatAthleteMetric(
     state: WearTouristState,
     isMetric: Boolean,
@@ -216,7 +251,36 @@ private fun formatAthleteMetric(
             state.bodyTemperatureCelsius?.let { String.format(Locale.US, "%.1f", it) } ?: "--",
             "°C",
         )
-        else -> Triple("Tourist", "--", "")
+        TouristMetricType.COMPASS,
+        TouristMetricType.COORDINATES,
+        TouristMetricType.SATELLITES,
+        TouristMetricType.SUN_TIME,
+        TouristMetricType.PRESSURE,
+        TouristMetricType.BAROMETRIC_ALTITUDE,
+        TouristMetricType.ELEVATION_GAIN_LOSS,
+        TouristMetricType.SLOPE,
+        TouristMetricType.ELAPSED_TIME,
+        TouristMetricType.MOVING_TIME,
+        TouristMetricType.AVERAGE_PACE,
+        TouristMetricType.CADENCE,
+        TouristMetricType.GPS_ACCURACY,
+        TouristMetricType.COURSE,
+        TouristMetricType.DECLINATION,
+        TouristMetricType.LEVEL,
+        TouristMetricType.LIGHT,
+        TouristMetricType.MAGNETIC_FIELD,
+        TouristMetricType.WIND,
+        TouristMetricType.FEELS_LIKE,
+        TouristMetricType.HUMIDITY,
+        TouristMetricType.UV_INDEX,
+        TouristMetricType.PRECIPITATION_PROBABILITY,
+        TouristMetricType.CLOUD_COVER,
+        TouristMetricType.VISIBILITY,
+        -> Triple(
+            touristMetricLabel(state.focusedMetric),
+            touristMetricValue(state.focusedMetric, state, isMetric),
+            "",
+        )
     }
 }
 

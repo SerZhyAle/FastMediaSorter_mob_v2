@@ -42,6 +42,8 @@ object SettingsDestinationCatalog {
         if (hasPermissionRows) {
             add(SettingsRoutes.PERMISSIONS)
         }
+        // S4158: registered in every edition - joining comes from the phone, so the page asks for nothing.
+        add(SettingsRoutes.EXCHANGE_SERVERS)
         add(SettingsRoutes.ABOUT)
     }
 }

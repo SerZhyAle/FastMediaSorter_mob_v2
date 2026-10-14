@@ -96,4 +96,5 @@
     <string name="scheduled_op_last_success">上次成功：%1$s</string>
     <string name="scheduled_op_last_success_never">尚无成功的运行</string>
     <string name="scheduled_op_filter_conditions">+ 条件</string>
+    <string name="scheduled_ops_op_archive">归档</string>
 </resources>

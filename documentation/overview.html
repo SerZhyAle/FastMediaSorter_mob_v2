@@ -97,28 +97,29 @@ layout: null
 </head>
 
 <body class="doc-body">
+    <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <a class="doc-header-brand" href="../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <span class="doc-badge doc-badge-standard">Overview</span>
+            <div class="doc-header-start">
+                <a class="doc-header-brand" href="../index.html">Fast Media Sorter<span class="doc-header-brand-dot">.</span></a>
+                <a href="index.html" class="doc-badge doc-badge-sm doc-header-docs-link">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
-                <span>🔍</span>
-                <span>Search documentation...</span>
+                <svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <span>Search...</span>
                 <kbd>/</kbd>
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="index.html" class="doc-header-link">Docs Home</a>
                 <a href="overview.html" class="doc-header-link active">Overview</a>
-                <a href="subject-index.html" class="doc-header-link">Subject Index</a>
                 <a href="general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="subject-index.html" class="doc-header-link">Index</a>
                 <a href="design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
                 <!-- 13-Language Selector -->
                 <div class="doc-lang-picker">
@@ -130,8 +131,8 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
-                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+                <a href="../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
             </nav>
         </div>
     </header>
@@ -174,25 +175,28 @@ layout: null
 
             <!-- Main Overview Content -->
             <main class="doc-content" id="main-content">
-                <header class="doc-page-header" style="margin-bottom: 2.5rem;">
-                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                <header class="doc-page-header doc-hub-header">
+                    <div class="doc-hub-badges">
                         <span class="doc-badge doc-badge-standard">Official Guide</span>
                         <span class="doc-badge doc-badge-music">Multi-Platform</span>
                         <span class="doc-badge doc-badge-docs">105 Recipes</span>
                     </div>
-                    <h1 style="font-size: 2.5rem; margin-bottom: 0.75rem;">Fast Media Sorter - Product Overview</h1>
-                    <p class="doc-lead" style="font-size: 1.2rem; max-width: 800px;">
+                    <h1>Fast Media Sorter - Product Overview</h1>
+                    <p class="doc-lead">
                         Fast Media Sorter is a high-performance, privacy-first multimedia organizer, universal media player, and desktop environment designed for Android phones, tablets, TVs, Wear OS smartwatches, and OpenXR VR headsets.
                     </p>
-                    <div style="margin-top: 1rem; display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <a href="index.html#categories" class="doc-btn doc-btn-primary" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">
-                            <span>📖</span> Browse All 22 Categories
+                    <p>
+                        Fast Media Sorter is built on eight pillars, in this order: device shell, media player, live streams, app launching, a replacement for stock apps, a companion on the watch, device monitoring and a full file manager.
+                    </p>
+                    <div class="doc-hub-actions">
+                        <a href="index.html#categories" class="btn btn-primary">
+                            Browse All 22 Categories
                         </a>
-                        <a href="subject-index.html" class="doc-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
-                            <span>🔤</span> A-Z Subject Index
+                        <a href="subject-index.html" class="btn btn-ghost">
+                            A-Z Subject Index
                         </a>
-                        <a href="assets/FastMediaSorter-Documentation.pdf" class="doc-btn" download style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
-                            <span>📥</span> PDF Offline Handbook
+                        <a href="assets/FastMediaSorter-Documentation.pdf" class="btn btn-ghost" download>
+                            PDF Offline Handbook
                         </a>
                     </div>
                 </header>
@@ -206,64 +210,64 @@ layout: null
                     <p>
                         <strong>Fast Media Sorter</strong> is engineered from the ground up to solve this:
                     </p>
-                    <div class="doc-next-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 1rem;">
+                    <div class="doc-next-grid doc-next-grid-compact doc-hub-block">
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-image doc-badge-sm">Lightning Fast</span>
-                            <h4>One-Tap Sorting</h4>
+                            <h3>One-Tap Sorting</h3>
                             <p>Sort, move, and copy files to predefined targets with a single tap, gesture, or keyboard shortcut.</p>
                         </div>
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-video doc-badge-sm">Universal Playback</span>
-                            <h4>Any Format &amp; Source</h4>
+                            <h3>Any Format &amp; Source</h3>
                             <p>Seamless playback for FLAC, MKV, MP4, PDF, EPUB, M3U streams, and cloud/network storage without local copying.</p>
                         </div>
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-docs doc-badge-sm">Zero Telemetry</span>
-                            <h4>100% Privacy &amp; Offline</h4>
+                            <h3>100% Privacy &amp; Offline</h3>
                             <p>No analytics trackers, no account required, all sorting and statistics remain strictly on your local device.</p>
                         </div>
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-wear doc-badge-sm">Ecosystem</span>
-                            <h4>Watch &amp; VR Companion</h4>
+                            <h3>Watch &amp; VR Companion</h3>
                             <p>Sync playlists, control playback from your wrist, or view 3D/180° spatial cinema in OpenXR VR headsets.</p>
                         </div>
                     </div>
                 </section>
 
                 <!-- Section: Supported Platforms -->
-                <section class="doc-section" id="platforms" style="margin-top: 2.5rem;">
+                <section class="doc-section doc-hub-section" id="platforms">
                     <h2>Supported Platforms &amp; Form Factors</h2>
                     <p>Fast Media Sorter adapts its UI and input handling to each specific form factor:</p>
                     
-                    <div class="doc-table-wrapper" style="overflow-x: auto; margin-top: 1rem;">
-                        <table class="doc-table" style="width: 100%; border-collapse: collapse;">
+                    <div class="doc-table-wrapper">
+                        <table class="doc-table">
                             <thead>
-                                <tr style="border-bottom: 2px solid var(--doc-border, #30363d); text-align: left;">
-                                    <th style="padding: 10px;">Platform</th>
-                                    <th style="padding: 10px;">Optimizations &amp; Key Features</th>
-                                    <th style="padding: 10px;">Guides</th>
+                                <tr>
+                                    <th>Platform</th>
+                                    <th>Optimizations &amp; Key Features</th>
+                                    <th>Guides</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr style="border-bottom: 1px solid var(--doc-border, #30363d);">
-                                    <td style="padding: 10px; font-weight: 600;">📱 Android Smartphones &amp; Tablets</td>
-                                    <td style="padding: 10px;">Touch gestures, multi-window split-screen, foldables, edge quick-access panel, PIP video, photo editor, OCR &amp; translation.</td>
-                                    <td style="padding: 10px;"><a href="getting-started/welcome-and-setup.html" class="doc-link">Setup</a>, <a href="browsing/grid-and-list-views.html" class="doc-link">Browsing</a></td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid var(--doc-border, #30363d);">
-                                    <td style="padding: 10px; font-weight: 600;">📺 Android TV &amp; Media Boxes</td>
-                                    <td style="padding: 10px;">Complete D-Pad / remote control support, high contrast large-screen UI, live stream catalog, Chromecast casting receiver/sender.</td>
-                                    <td style="padding: 10px;"><a href="general/keyboard-dpad-tv-navigation.html" class="doc-link">TV &amp; D-Pad Guide</a></td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid var(--doc-border, #30363d);">
-                                    <td style="padding: 10px; font-weight: 600;">⌚ Wear OS Smartwatches</td>
-                                    <td style="padding: 10px;">Standalone music &amp; streams playback, watch file manager, tiles, complications, flashlight, SOS, health &amp; step metrics.</td>
-                                    <td style="padding: 10px;"><a href="wear/installation-and-pairing.html" class="doc-link">Watch Suite</a></td>
+                                <tr>
+                                    <td class="doc-table-key"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17,1H7c-1.1,0 -2,0.9 -2,2v18c0,1.1 0.9,2 2,2h10c1.1,0 2,-0.9 2,-2V3c0,-1.1 -0.9,-2 -2,-2zM17,19H7V5h10v14z"/></svg>Android Smartphones &amp; Tablets</td>
+                                    <td>Touch gestures, multi-window split-screen, foldables, edge quick-access panel, PIP video, photo editor, OCR &amp; translation.</td>
+                                    <td><a href="getting-started/welcome-and-setup.html" class="doc-link">Setup</a>, <a href="browsing/grid-and-list-views.html" class="doc-link">Browsing</a></td>
                                 </tr>
                                 <tr>
-                                    <td style="padding: 10px; font-weight: 600;">🥽 Meta Quest &amp; OpenXR VR</td>
-                                    <td style="padding: 10px;">Curved spatial cinema, 3D SBS/OU, 180° and 360° hemispherical video, room passthrough, controller and hand tracking.</td>
-                                    <td style="padding: 10px;"><a href="vr/headset-setup-and-openxr.html" class="doc-link">VR Guide</a></td>
+                                    <td class="doc-table-key"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21,3L3,3c-1.1,0 -2,0.9 -2,2v12c0,1.1 0.9,2 2,2h5v2h8v-2h5c1.1,0 2,-0.9 2,-2L23,5c0,-1.1 -0.9,-2 -2,-2zM21,17L3,17L3,5h18v12z"/></svg>Android TV &amp; Media Boxes</td>
+                                    <td>Complete D-Pad / remote control support, high contrast large-screen UI, live stream catalog, Chromecast casting receiver/sender.</td>
+                                    <td><a href="general/keyboard-dpad-tv-navigation.html" class="doc-link">TV &amp; D-Pad Guide</a></td>
+                                </tr>
+                                <tr>
+                                    <td class="doc-table-key"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g transform="translate(12 12) scale(0.917 0.917) translate(-12 -12)"><path d="M20,12c0,-2.54 -1.19,-4.81 -3.04,-6.27L16,0L8,0l-0.96,5.73C5.19,7.19 4,9.46 4,12s1.19,4.81 3.04,6.27L8,24h8l0.96,-5.73C18.81,16.81 20,14.54 20,12zM6,12c0,-3.31 2.69,-6 6,-6s6,2.69 6,6 -2.69,6 -6,6 -6,-2.69 -6,-6z"/><path d="M12.5,12L12.5,8.5L11.5,8.5L11.5,12.5L15,12.5L15,11.5z"/></g></svg>Wear OS Smartwatches</td>
+                                    <td>Standalone music &amp; streams playback, watch file manager, tiles, complications, flashlight, SOS, health &amp; step metrics.</td>
+                                    <td><a href="wear/installation-and-pairing.html" class="doc-link">Watch Suite</a></td>
+                                </tr>
+                                <tr>
+                                    <td class="doc-table-key"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.74,6H3.26C2.57,6 2,6.57 2,7.26v9.49C2,17.43 2.57,18 3.26,18h4.85c0.45,0 0.86,-0.26 1.06,-0.67l0.99,-1.99c0.33,-0.67 1.01,-1.09 1.75,-1.09h0.18c0.74,0 1.42,0.42 1.75,1.09l0.99,1.99c0.2,0.41 0.61,0.67 1.06,0.67h4.85c0.69,0 1.26,-0.57 1.26,-1.26V7.26C22,6.57 21.43,6 20.74,6zM7.5,14C5.57,14 4,12.43 4,10.5S5.57,7 7.5,7S11,8.57 11,10.5S9.43,14 7.5,14zM16.5,14c-1.93,0 -3.5,-1.57 -3.5,-3.5S14.57,7 16.5,7S20,8.57 20,10.5S18.43,14 16.5,14z"/><path d="M7.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z"/><path d="M16.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z"/></svg>Meta Quest &amp; OpenXR VR</td>
+                                    <td>Curved spatial cinema, 3D SBS/OU, 180° and 360° hemispherical video, room passthrough, controller and hand tracking.</td>
+                                    <td><a href="vr/headset-setup-and-openxr.html" class="doc-link">VR Guide</a></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -271,67 +275,67 @@ layout: null
                 </section>
 
                 <!-- Section: The 7 Editions -->
-                <section class="doc-section" id="editions" style="margin-top: 2.5rem;">
+                <section class="doc-section doc-hub-section" id="editions">
                     <h2>The Seven Editions (Flavors)</h2>
                     <p>
                         To comply with different distribution channels (Google Play, F-Droid, Meta Horizon Store, legacy Android devices) while providing maximal capabilities, Fast Media Sorter is published in 7 distinct editions:
                     </p>
 
-                    <div class="doc-next-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: 1rem;">
+                    <div class="doc-next-grid doc-next-grid-wide doc-hub-block">
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-standard doc-badge-sm">Standard</span>
-                            <h4>Standard Edition</h4>
+                            <h3>Standard Edition</h3>
                             <p>The flagship build for Google Play. Full feature set including media player, sorting, cloud integration, OCR, desktop launcher, and Wear companion.</p>
                         </div>
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-docs doc-badge-sm">FOSS</span>
-                            <h4>F-Droid / FOSS Edition</h4>
+                            <h3>F-Droid / FOSS Edition</h3>
                             <p>100% libre software with zero proprietary binary dependencies (no Google Drive / Play Services). Fully reproducible builds.</p>
                         </div>
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-image doc-badge-sm">Lite</span>
-                            <h4>Lite Edition</h4>
+                            <h3>Lite Edition</h3>
                             <p>Ultra-compact footprint for resource-constrained devices, focusing strictly on core file management, browsing, and sorting.</p>
                         </div>
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-image doc-badge-sm">Photos</span>
-                            <h4>Photos Edition</h4>
+                            <h3>Photos Edition</h3>
                             <p>Specialized for digital photo frames and photography enthusiasts. Features advanced slideshows, EXIF tools, and gallery curation.</p>
                         </div>
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-other doc-badge-sm">Legacy</span>
-                            <h4>Legacy Edition</h4>
+                            <h3>Legacy Edition</h3>
                             <p>Backwards-compatible edition optimized for older Android versions (API 21+) and vintage media tablets.</p>
                         </div>
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-vr doc-badge-sm">VR</span>
-                            <h4>VR Edition</h4>
+                            <h3>VR Edition</h3>
                             <p>Standalone OpenXR package built for Meta Quest headsets with spatial immersive cinema and hands-free controls.</p>
                         </div>
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-video doc-badge-sm">NoLegal</span>
-                            <h4>Direct / NoLegal Edition</h4>
+                            <h3>Direct / NoLegal Edition</h3>
                             <p>Direct APK distribution with unrestricted local and network stream codecs, SFTP/SMB servers, and power-user utilities.</p>
                         </div>
                     </div>
 
-                    <p style="margin-top: 1rem;">
+                    <p class="doc-hub-note">
                         Detailed edition matrix and side-by-side feature comparison: <a href="flavors/overview-and-comparison.html" class="doc-link">Read Editions, Extensions &amp; Languages Guide &rarr;</a>
                     </p>
                 </section>
 
                 <!-- Section: Core Subsystems & Thematic Areas -->
-                <section class="doc-section" id="subsystems" style="margin-top: 2.5rem;">
+                <section class="doc-section doc-hub-section" id="subsystems">
                     <h2>Core Subsystems &amp; 22 Thematic Cookbook Chapters</h2>
                     <p>
                         The documentation corpus consists of 105 in-depth recipes across 22 thematic areas. Here is how the system is structured:
                     </p>
 
-                    <div class="doc-next-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: 1rem;">
+                    <div class="doc-next-grid doc-next-grid-wide doc-hub-block">
                         <!-- Getting Started & Editions -->
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-standard doc-badge-sm">Orientation</span>
-                            <h4>1. Getting Started &amp; Editions</h4>
+                            <h3>1. Getting Started &amp; Editions</h3>
                             <p>Setup wizard, permission management, editions comparison, and localization settings.</p>
                             <a href="getting-started/welcome-and-setup.html" class="doc-link">Explore Getting Started &rarr;</a>
                         </div>
@@ -339,7 +343,7 @@ layout: null
                         <!-- Browsing & Organization -->
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-image doc-badge-sm">Organization</span>
-                            <h4>2. Browsing &amp; Storage</h4>
+                            <h3>2. Browsing &amp; Storage</h3>
                             <p>Grid/list views, thumbnail indexing, batch operations, destination setup, and secure PIN containers.</p>
                             <a href="browsing/grid-and-list-views.html" class="doc-link">Explore Browsing &amp; Storage &rarr;</a>
                         </div>
@@ -347,7 +351,7 @@ layout: null
                         <!-- Network & Cloud -->
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-docs doc-badge-sm">Networking</span>
-                            <h4>3. Network &amp; Cloud Storage</h4>
+                            <h3>3. Network &amp; Cloud Storage</h3>
                             <p>SMB/Samba, SFTP/FTP, Google Drive, OneDrive, Dropbox, and the Windows Companion app.</p>
                             <a href="network/smb-samba-shares.html" class="doc-link">Explore Network &amp; Cloud &rarr;</a>
                         </div>
@@ -355,7 +359,7 @@ layout: null
                         <!-- Media Playback -->
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-video doc-badge-sm">Playback</span>
-                            <h4>4. Video, Audio &amp; Photo Player</h4>
+                            <h3>4. Video, Audio &amp; Photo Player</h3>
                             <p>Lossless FLAC playback, audio queues, MKV video controls, subtitles, PIP, and photo editors.</p>
                             <a href="player/video-playback-controls.html" class="doc-link">Explore Players &rarr;</a>
                         </div>
@@ -363,7 +367,7 @@ layout: null
                         <!-- Documents & Streams -->
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-docs doc-badge-sm">Reading &amp; Streaming</span>
-                            <h4>5. Documents &amp; Internet Streams</h4>
+                            <h3>5. Documents &amp; Internet Streams</h3>
                             <p>PDF/EPUB viewers, Markdown text editor, live M3U radio and TV channel catalogs, and buffering tools.</p>
                             <a href="documents/pdf-epub-viewing.html" class="doc-link">Explore Documents &amp; Streams &rarr;</a>
                         </div>
@@ -371,7 +375,7 @@ layout: null
                         <!-- Camera, Capture & OCR -->
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-other doc-badge-sm">Capture &amp; OCR</span>
-                            <h4>6. Camera, Recording &amp; OCR Tools</h4>
+                            <h3>6. Camera, Recording &amp; OCR Tools</h3>
                             <p>Quick snaps, screen recording, annotation markups, optical text recognition (OCR), and translation.</p>
                             <a href="capture/quick-photo-capture.html" class="doc-link">Explore Capture &amp; Tools &rarr;</a>
                         </div>
@@ -379,7 +383,7 @@ layout: null
                         <!-- Launcher & Mini-Apps -->
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-standard doc-badge-sm">Desktop &amp; Tools</span>
-                            <h4>7. Launcher, Gadgets &amp; Mini-Apps</h4>
+                            <h3>7. Launcher, Gadgets &amp; Mini-Apps</h3>
                             <p>Full home-screen replacement desktop, taskbar dock, weather/clock gadgets, calculator, and SOS lights.</p>
                             <a href="launcher/desktop-grid-and-icons.html" class="doc-link">Explore Launcher &rarr;</a>
                         </div>
@@ -387,7 +391,7 @@ layout: null
                         <!-- Settings & Diagnostics -->
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-standard doc-badge-sm">Configuration</span>
-                            <h4>8. Settings &amp; Diagnostics</h4>
+                            <h3>8. Settings &amp; Diagnostics</h3>
                             <p>Preferences search, key remapping for gamepads/remotes, system diagnostics, and configuration backup.</p>
                             <a href="settings/settings-overview-and-search.html" class="doc-link">Explore Settings &rarr;</a>
                         </div>
@@ -395,7 +399,7 @@ layout: null
                         <!-- Wear OS & VR -->
                         <div class="doc-next-card">
                             <span class="doc-badge doc-badge-wear doc-badge-sm">Wear OS &amp; VR</span>
-                            <h4>9. Wear OS Smartwatch &amp; VR Headsets</h4>
+                            <h3>9. Wear OS Smartwatch &amp; VR Headsets</h3>
                             <p>Wear standalone player, tiles, sync companion, and OpenXR 3D spatial cinema playback.</p>
                             <a href="wear/installation-and-pairing.html" class="doc-link">Explore Watch &amp; VR &rarr;</a>
                         </div>
@@ -403,24 +407,24 @@ layout: null
                 </section>
 
                 <!-- Section: Quick Start Guide -->
-                <section class="doc-section" id="getting-started-steps" style="margin-top: 2.5rem;">
+                <section class="doc-section doc-hub-section" id="getting-started-steps">
                     <h2>Quick Start Guide in 3 Steps</h2>
                     
-                    <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
-                        <div style="background: var(--doc-card-bg, #161b22); border: 1px solid var(--doc-border, #30363d); border-radius: 8px; padding: 1.25rem;">
-                            <h4 style="margin-top: 0; color: var(--doc-accent, #3fb950);">Step 1: Welcome Setup Wizard</h4>
+                    <div class="doc-hub-steps">
+                        <div class="doc-hub-step">
+                            <h3>Step 1: Welcome Setup Wizard</h3>
                             <p>On initial launch, Fast Media Sorter detects your device hardware (smartphone, TV box, tablet, or car unit) and recommends an optimized preset. Choose your preferred language, theme, and grant storage permissions.</p>
                             <a href="getting-started/welcome-and-setup.html" class="doc-link">Step-by-step Setup Walkthrough &rarr;</a>
                         </div>
 
-                        <div style="background: var(--doc-card-bg, #161b22); border: 1px solid var(--doc-border, #30363d); border-radius: 8px; padding: 1.25rem;">
-                            <h4 style="margin-top: 0; color: var(--doc-accent, #3fb950);">Step 2: Add Sources &amp; Destination Targets</h4>
+                        <div class="doc-hub-step">
+                            <h3>Step 2: Add Sources &amp; Destination Targets</h3>
                             <p>Select which local folders, SD cards, SMB network shares, or cloud storage accounts to monitor. Configure your Quick Sort destination buttons (e.g. <em>Favorites</em>, <em>Work</em>, <em>Archive</em>, <em>To Review</em>).</p>
                             <a href="storage/storage-sources-setup.html" class="doc-link">Configuring Sources &amp; Destinations &rarr;</a>
                         </div>
 
-                        <div style="background: var(--doc-card-bg, #161b22); border: 1px solid var(--doc-border, #30363d); border-radius: 8px; padding: 1.25rem;">
-                            <h4 style="margin-top: 0; color: var(--doc-accent, #3fb950);">Step 3: Browse, Play &amp; One-Tap Sort</h4>
+                        <div class="doc-hub-step">
+                            <h3>Step 3: Browse, Play &amp; One-Tap Sort</h3>
                             <p>Swipe through media with full gesture controls. When organizing, tap a destination icon or press a remapped key to instantly move or copy the current item and advance to the next file.</p>
                             <a href="storage/file-copy-move-delete.html" class="doc-link">File Operations &amp; Sorting Guide &rarr;</a>
                         </div>
@@ -428,24 +432,24 @@ layout: null
                 </section>
 
                 <!-- Section: Where to Go Next -->
-                <section class="doc-section" id="next-steps" style="margin-top: 2.5rem; margin-bottom: 3rem;">
+                <section class="doc-section doc-hub-section" id="next-steps">
                     <h2>Where to Go Next</h2>
                     <p>Explore the full documentation using any of the available discovery mechanisms:</p>
 
-                    <div class="doc-next-grid" style="margin-top: 1rem;">
+                    <div class="doc-next-grid doc-hub-block">
                         <a href="index.html#categories" class="doc-next-card">
                             <span class="doc-badge doc-badge-standard doc-badge-sm">Table of Contents</span>
-                            <h4>Complete Table of Contents</h4>
+                            <h3>Complete Table of Contents</h3>
                             <p>Browse all 22 thematic categories containing links to every single cookbook recipe.</p>
                         </a>
                         <a href="subject-index.html" class="doc-next-card">
                             <span class="doc-badge doc-badge-docs doc-badge-sm">Subject Index</span>
-                            <h4>A-Z Keyword &amp; Topic Index</h4>
+                            <h3>A-Z Keyword &amp; Topic Index</h3>
                             <p>Find specific protocols, formats, tools, and settings arranged alphabetically from A to Z.</p>
                         </a>
                         <a href="general/glossary.html" class="doc-next-card">
                             <span class="doc-badge doc-badge-music doc-badge-sm">Glossary</span>
-                            <h4>Glossary of Terms &amp; Concepts</h4>
+                            <h3>Glossary of Terms &amp; Concepts</h3>
                             <p>Definitions and cross-references for core terminology used throughout the application.</p>
                         </a>
                     </div>

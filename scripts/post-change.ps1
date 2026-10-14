@@ -1,4 +1,4 @@
-# Combined post-change runner.
+﻿# Combined post-change runner.
 # Chains the applicable mechanical post-change steps for a given change type.
 #
 # Usage:
@@ -40,6 +40,10 @@
 #        "post-change: PASS" or "post-change: PASS WITH ADVISORIES (n)" -
 #        the latter means a gate found something it could not attribute to
 #        this change, and the caller is expected to read the listed names.
+#        (S4130, CHECK-VERDICT 0.12) A gate child that exits 0 under
+#        "<subject>: NOT APPLICABLE" is counted with the skipped, never the
+#        passed; when no step passed and one answered that word, the line reads
+#        "post-change: NOT APPLICABLE (..)", still exit 0 and never a pass.
 #     1  a gate failed. Something was inspected and judged defective. The run
 #        does NOT stop at that gate (S1598): every remaining gate still runs, and
 #        the full list, each with the command that reproduces it alone, is followed
@@ -1433,6 +1437,16 @@ else {
     Skip-Step "script-cheatsheet-sync-gate" "not applicable - no changed file is a repo script or the script cheatsheet"
 }
 
+if ($runsCodeDomainWritersGate) {
+    # S4169: project-wide gate without per-file delta support, so $ratchetRunner (advisory
+    # under -ScopeToFile, fatal otherwise). S2635 pooled the gate at line 1175 but omitted
+    # consuming the verdict.
+    & $ratchetRunner "code-domain-writers-gate" { Invoke-GateChild @argvCodeDomainWriters }
+}
+else {
+    Skip-Step "code-domain-writers-gate" "not applicable - no changed file is a repo script or the code-domain writer registry"
+}
+
 # S2870: the gate-placement registry against where the gates are actually wired. It runs HERE, in
 # the closure, and not at release scope, because the defect it catches does its damage BETWEEN
 # releases - every closure that a gate should have judged and did not. That is not hypothetical:
@@ -1864,6 +1878,16 @@ Invoke-Step "dev-log" {
     & $pwsh -NoProfile -File (Join-Path $root "scripts/add_to_dev_log.ps1") $File $Target $logDescription
 }
 
+# Last-edited stamp (yy.MM.dd HH:mm) on every document of the set, and on the changelog the row above
+# has just changed. After the dev-log on purpose: stamping rewrites no gate input that matters, and the
+# changelog's mtime only moves once its row is written. Cosmetic by nature, so it can never fail a
+# closure whose gates passed - a refusal there would leave a row claiming a closure the verdict denies.
+$stampTargets = @($changedFiles | Where-Object { $_ -match '\.(md|html?)$' }) + 'dev/CHANGELOG.md'
+Invoke-Step "doc-stamp" {
+    & $pwsh -NoProfile -File (Join-Path $root "scripts/docs/stamp-doc-dates.ps1") -Files ($stampTargets -join ',') -Quiet
+    $global:LASTEXITCODE = 0
+}
+
 if ($Target -match '^S\d{4}$') {
     # Silent by contract: the ledger is read later through the recorder's Summary verb, and printing
     # it here would add to the agent context it measures. A recorder failure never changes the verdict.
@@ -1915,6 +1939,13 @@ elseif ($closureReuse) {
     Send-PostChangeChatVerdict -Verdict "PASS (reused from $($closureReuse.RunId)), $elapsedMs ms"
     Write-Host ("post-change: PASS (REUSED from run $($closureReuse.RunId), $($closureReuse.AgeSec)s ago over " +
         "$($closureReuse.Files) unchanged file(s); gate batch not re-run, $elapsedMs ms)") -ForegroundColor Green
+}
+elseif ($script:PassedCount -eq 0 -and $script:NotApplicableCount -gt 0) {
+    # S4130: CHECK-VERDICT 0.12 item A - every step that answered said NOT APPLICABLE, so nothing was
+    # inspected. Exit 0, but never the word PASS, and never a ledger record a later run could reuse.
+    Send-PostChangeChatVerdict -Verdict "NOT APPLICABLE, $elapsedMs ms"
+    Write-Host ("post-change: NOT APPLICABLE ($resolvedChangeType, $elapsedMs ms, 0 passed, " +
+        "$($script:SkippedSteps.Count) skipped, $($script:NotApplicableCount) not applicable)") -ForegroundColor DarkGray
 }
 else {
     Send-PostChangeChatVerdict -Verdict "PASS, $elapsedMs ms"

@@ -6,7 +6,7 @@ description: Как открыть общий доступ к папке в Wind
 category: Сеть и облачные хранилища
 category_slug: network
 ticket: S2950
-flavor: Сетевые папки (SMB) - все редакции, кроме Lite. Автоматический поиск компьютеров, список общих папок, проверка подключения и автоматическая оптимизация скорости - Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS).
+availability_note: Сетевые папки (SMB) - все редакции, кроме Lite. Автоматический поиск компьютеров, список общих папок, проверка подключения и автоматическая оптимизация скорости - Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS).
 recipe_number: "01"
 canonical_url: documentation/network/smb-samba-shares-ru.html
 why: |
@@ -29,7 +29,7 @@ steps:
     callout:
       type: tip
       title: Не хотите настраивать общий доступ Windows вручную?
-      text: "[Fast Media Sorter for Windows](term:windows-companion) позволяет открыть доступ к выбранным папкам в пару кликов и подключается через QR-код без включения системного общего доступа Windows. См. [Раздача папок с ПК через Fast Media Sorter for Windows](page:network.windows-companion)."
+      text: "[Fast Media Sorter & Sharing for Windows](term:windows-companion) позволяет открыть доступ к выбранным папкам в пару кликов и подключается через QR-код без включения системного общего доступа Windows. См. [Раздача папок с ПК через Fast Media Sorter & Sharing for Windows](page:network.windows-companion)."
   - number: 2
     id: find-and-add
     title: Найдите компьютер и добавьте сетевую папку
@@ -97,13 +97,14 @@ tips:
   - "**Папка открывается с другого ПК, но не видна с телефона.** Убедитесь, что оба устройства подключены к одной и той же сети Wi-Fi (а не телефон через мобильные данные), и что компьютер не перешел в режим сна."
   - "**Хотите узнать больше о кэшировании и фоновом обновлении?** Механизмы одинаковы для всех сетевых хранилищ - см. [Добавление сетевых папок и облачных хранилищ](page:storage.network-and-cloud-sources)."
   - "**Как перенести весь список ресурсов с паролями на другой телефон?** См. рецепт [Экспорт и резервное копирование ресурсов](page:storage.sharing-and-backing-up-resources)."
+  - "**Нужен доступ к своему хранилищу не только из дома?** [Портал обмена медиа](../../docs/media-exchange-portal/home-network-ru.html) по шагам разбирает способ через домашнюю сеть и говорит, что работает уже сегодня."
 next_recipes:
   - title: Подключение серверов SFTP и FTP
     url: page:network.sftp-ftp-servers
     badge: Network
     badge_type: docs
     description: Адреса серверов, SSH-ключи и проверка подлинности узлов.
-  - title: Раздача папок с ПК через Fast Media Sorter for Windows
+  - title: Раздача папок с ПК через Fast Media Sorter & Sharing for Windows
     url: page:network.windows-companion
     badge: Network
     badge_type: docs
@@ -114,5 +115,7 @@ next_recipes:
     badge_type: other
     description: Обзорный рецепт: типы подключаемых папок и технологии быстрого кэширования.
 ---
+
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Откройте общий доступ к папке в Windows, найдите ее в приложении сканированием локальной сети, проверьте подключение до сохранения и разберитесь, что означают сообщения о статусе связи - полное руководство по [добавлению сетевых папок](page:storage.network-and-cloud-sources) в качестве [ресурсов](term:resource).

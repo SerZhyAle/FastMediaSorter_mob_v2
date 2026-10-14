@@ -6,7 +6,7 @@ description: Як заблокувати ресурс ПІН-кодом, і як
 category: Джерела, призначення та операції з файлами
 category_slug: storage
 ticket: S2949
-flavor: Усі редакції (контейнери в хмарі - усі, крім Lite і FOSS)
+availability_note: Усі редакції (контейнери в хмарі - усі, крім Lite і FOSS)
 recipe_number: "11"
 canonical_url: documentation/storage/file-encryption-and-security-uk.html
 why: |
@@ -114,5 +114,7 @@ next_recipes:
     badge_type: other
     description: Видаліть оригінал після того, як запечатали його.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Заблокуйте ресурс ПІН-кодом, і перетворіть один файл на захищений паролем контейнер .fd-sec, який можна переглянути без розпакування і розпакувати знову - на телефоні, в мережевій папці чи в хмарі.

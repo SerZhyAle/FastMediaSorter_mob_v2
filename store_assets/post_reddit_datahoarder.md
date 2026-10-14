@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.09 14:27</sub>
+
 PLATFORM: Reddit - r/DataHoarder
 URL: https://www.reddit.com/r/DataHoarder/
 FORMAT: Reddit Markdown
@@ -43,7 +45,7 @@ The app indexes large SMB directories into a local Room database. Subsequent ope
 **What it's not:**
 - Not a deduplication tool with auto-merge logic - it shows you duplicates, you decide what to do
 - No RAID management, no server-side anything
-- Direct SMB access only (no Plex/Jellyfin client mode)
+- Direct SMB access only (no media-server client mode)
 
 **Supported sources:** Local, SMB (NAS/Windows shares), FTP, SFTP, Google Drive, Dropbox, OneDrive
 

@@ -4,6 +4,8 @@ import android.content.Context
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -81,5 +83,57 @@ class LocalDeleteFileOperationTest {
 
         assertTrue(result is FileOperationResult.PartialSuccess)
         assertEquals(1, (result as FileOperationResult.PartialSuccess).processedCount)
+    }
+
+    @Test
+    fun `soft delete removes the empty trash snapshot and container when metadata cannot be written`() = runTest {
+        val parent = "/storage/emulated/0/Pictures/Holiday"
+        val container = "$parent/.trash"
+        every { localStrategy.supportsProtocol(any()) } returns true
+        every { localStrategy.getProtocolName() } returns "local"
+        coEvery { localStrategy.createDirectory(any()) } returns Result.success(Unit)
+        coEvery { localStrategy.writeFile(any(), any()) } returns Result.failure(java.io.IOException("EPERM"))
+        coEvery { localStrategy.deleteFile(any()) } returns Result.success(Unit)
+        coEvery { localStrategy.listFiles(container) } returns Result.success(emptyList())
+
+        op.execute(FileOperation.Delete(listOf(unixFile("$parent/a.jpg")), softDelete = true))
+
+        coVerify { localStrategy.deleteFile(match { it.startsWith("$container/") }) }
+        coVerify { localStrategy.deleteFile(container) }
+    }
+
+    @Test
+    fun `soft delete keeps a trash container that still holds other snapshots`() = runTest {
+        val parent = "/storage/emulated/0/Pictures/Holiday"
+        val container = "$parent/.trash"
+        every { localStrategy.supportsProtocol(any()) } returns true
+        every { localStrategy.getProtocolName() } returns "local"
+        coEvery { localStrategy.createDirectory(any()) } returns Result.success(Unit)
+        coEvery { localStrategy.writeFile(any(), any()) } returns Result.failure(java.io.IOException("EPERM"))
+        coEvery { localStrategy.deleteFile(any()) } returns Result.success(Unit)
+        coEvery { localStrategy.listFiles(container) } returns Result.success(listOf("$container/1700000000000"))
+
+        op.execute(FileOperation.Delete(listOf(unixFile("$parent/a.jpg")), softDelete = true))
+
+        coVerify(exactly = 0) { localStrategy.deleteFile(container) }
+    }
+
+    @Test
+    fun `a delete that needs the system consent propagates instead of becoming a per-file error`() = runTest {
+        val parent = "/storage/emulated/0/Pictures/Holiday"
+        every { localStrategy.supportsProtocol(any()) } returns true
+        every { localStrategy.getProtocolName() } returns "local"
+        coEvery { localStrategy.deleteFile(any()) } throws
+            FileOperationUseCase.BatchDeletePermissionRequiredException(mockk(), emptyList())
+
+        val thrown = runCatching {
+            op.execute(FileOperation.Delete(listOf(unixFile("$parent/a.jpg")), softDelete = false))
+        }.exceptionOrNull()
+
+        assertTrue(thrown is FileOperationUseCase.BatchDeletePermissionRequiredException)
+    }
+
+    private fun unixFile(path: String): File = object : File(path) {
+        override fun getAbsolutePath(): String = path
     }
 }

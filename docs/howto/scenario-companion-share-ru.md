@@ -3,6 +3,8 @@ layout: default
 title: "Откройте папки ПК, отсканировав один код - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-ru.html
 ---
+<sub class="doc-stamp">26.09.24 06:25</sub>
+
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Откройте папки ПК, отсканировав один код
 
 > **Уровень:** Начинающий &bull; **Флейворы:** Standard, Photos, Legacy, VR, noLegal (в Lite сетевых источников нет; для скана нужна камера, способ с файлом работает везде)
@@ -17,7 +19,7 @@ permalink: /docs/howto/scenario-companion-share-ru.html
 
 ## Программа-компаньон
 
-Компаньон - встроенная функция **[Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)** (ранее FastMediaSorter LITE), бесплатного сортировщика медиа от того же автора. Когда вы открываете ей доступ к папкам, она:
+Компаньон - встроенная функция **[Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)**, бесплатного сортировщика медиа от того же автора. Когда вы открываете ей доступ к папкам, она:
 
 - Поднимает приватный SFTP-сервер только для этих папок на вашем ПК.
 - Сама создаёт ключи и настраивает автозапуск, чтобы общая папка была доступна и в следующий раз.
@@ -35,7 +37,7 @@ permalink: /docs/howto/scenario-companion-share-ru.html
 
 ## Что понадобится
 
-- ПК с Windows и установленной **Fast Media Sorter for Windows**
+- ПК с Windows и установленной **Fast Media Sorter & Sharing for Windows**
 - Телефон и ПК в **одной сети Wi-Fi** (один роутер)
 - Для самого быстрого способа - **камера** телефона для скана кода (если камеры нет, есть способ с файлом)
 
@@ -43,7 +45,7 @@ permalink: /docs/howto/scenario-companion-share-ru.html
 
 ## Шаг 1 - Откройте доступ к папкам на ПК
 
-1. Установите и запустите **Fast Media Sorter for Windows**, откройте вкладку **Share** в настройках.
+1. Установите и запустите **Share Manager - Fast Media Sorter & Sharing**, откройте вкладку **Share** в настройках.
 2. Выберите папку(и), которые нужны на телефоне - фильмы, музыку, документы, фото, что угодно.
 3. Программа сама поднимет SFTP-сервер, создаст ключи и настроит автозапуск. Больше ничего настраивать не нужно.
 4. Теперь она показывает на экране ПК **QR-код**. Оставьте это окно открытым для шага 2.

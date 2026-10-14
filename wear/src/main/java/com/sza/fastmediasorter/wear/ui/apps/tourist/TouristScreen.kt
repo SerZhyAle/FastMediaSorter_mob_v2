@@ -32,6 +32,7 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.tourist.TouristMetricType
 import com.sza.fastmediasorter.wear.domain.tourist.WearTouristState
+import com.sza.fastmediasorter.wear.domain.tourist.isOffered
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
@@ -47,6 +48,8 @@ private val TILE_SPACING = 4.dp
 @Composable
 fun TouristScreen(
     onLaunchSos: () -> Unit,
+    onLaunchStopwatch: () -> Unit,
+    onLaunchCounter: () -> Unit,
     viewModel: TouristViewModel = hiltViewModel(),
     listState: ScalingLazyListState = rememberWearListState(positionKey = WearRoutes.TOURIST),
 ) {
@@ -78,12 +81,17 @@ fun TouristScreen(
         }
     }
 
-    // A watch without a temperature sensor drops the metric entirely rather than showing a dash.
-    val secondaryMetrics = remember(telemetry.focusedMetric, telemetry.hasBodyTemperatureSensor) {
-        TouristMetricType.values().filter { metric ->
-            metric != telemetry.focusedMetric &&
-                (metric != TouristMetricType.BODY_TEMPERATURE || telemetry.hasBodyTemperatureSensor)
-        }
+    // A watch without the sensor drops the metric entirely rather than showing a dash or a zero.
+    val secondaryMetrics = remember(
+        telemetry.focusedMetric,
+        telemetry.hasBodyTemperatureSensor,
+        telemetry.hasPressureSensor,
+        telemetry.hasStepSensor,
+        telemetry.hasLevelSensor,
+        telemetry.hasLightSensor,
+        telemetry.hasMagneticSensor,
+    ) {
+        TouristMetricType.entries.filter { it != telemetry.focusedMetric && it.isOffered(telemetry) }
     }
 
     val promoteMetric: (TouristMetricType) -> Unit = { metricType ->
@@ -122,6 +130,9 @@ fun TouristScreen(
                 onToggleAthleteMode = { viewModel.toggleAthleteMode() },
                 onLockScreen = { viewModel.setScreenLocked(true) },
                 onLaunchSos = onLaunchSos,
+                onLaunchStopwatch = onLaunchStopwatch,
+                onLaunchCounter = onLaunchCounter,
+                counterValue = state.counterValue,
             )
         }
 
@@ -149,6 +160,9 @@ private fun TouristDashboardContent(
     onToggleAthleteMode: () -> Unit,
     onLockScreen: () -> Unit,
     onLaunchSos: () -> Unit,
+    onLaunchStopwatch: () -> Unit,
+    onLaunchCounter: () -> Unit,
+    counterValue: Long,
 ) {
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -210,23 +224,58 @@ private fun TouristDashboardContent(
             }
 
             item {
-                FlowRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = TILE_SPACING),
-                    horizontalArrangement = Arrangement.spacedBy(TILE_SPACING, Alignment.CenterHorizontally),
-                    verticalArrangement = Arrangement.spacedBy(TILE_SPACING),
-                ) {
-                    secondaryMetrics.forEach { metricType ->
-                        TouristSecondaryCard(
-                            metricType = metricType,
-                            state = telemetry,
-                            isMetric = isMetricSystem,
-                            onClick = { onSelectMetric(metricType) },
-                        )
-                    }
-                }
+                TouristTileCloud(
+                    telemetry = telemetry,
+                    isMetricSystem = isMetricSystem,
+                    secondaryMetrics = secondaryMetrics,
+                    onSelectMetric = onSelectMetric,
+                    onLaunchStopwatch = onLaunchStopwatch,
+                    onLaunchCounter = onLaunchCounter,
+                    counterValue = counterValue,
+                )
             }
         }
+    }
+}
+
+/** S4186: the wrapping cloud of secondary metric tiles, closed by the program-launch tiles. */
+@Suppress("LongParameterList")
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TouristTileCloud(
+    telemetry: WearTouristState,
+    isMetricSystem: Boolean,
+    secondaryMetrics: List<TouristMetricType>,
+    onSelectMetric: (TouristMetricType) -> Unit,
+    onLaunchStopwatch: () -> Unit,
+    onLaunchCounter: () -> Unit,
+    counterValue: Long,
+) {
+    FlowRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = TILE_SPACING),
+        horizontalArrangement = Arrangement.spacedBy(TILE_SPACING, Alignment.CenterHorizontally),
+        verticalArrangement = Arrangement.spacedBy(TILE_SPACING),
+    ) {
+        secondaryMetrics.forEach { metricType ->
+            TouristSecondaryCard(
+                metricType = metricType,
+                state = telemetry,
+                isMetric = isMetricSystem,
+                onClick = { onSelectMetric(metricType) },
+            )
+        }
+        TouristLaunchCard(
+            label = stringResource(R.string.wear_app_stopwatch),
+            iconRes = R.drawable.ic_stopwatch,
+            onClick = onLaunchStopwatch,
+        )
+        TouristLaunchCard(
+            label = stringResource(R.string.wear_tourist_counter),
+            iconRes = R.drawable.ic_tourist_counter,
+            onClick = onLaunchCounter,
+            value = counterValue.toString(),
+        )
     }
 }

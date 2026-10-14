@@ -3,6 +3,8 @@ layout: default
 title: "Usar o App como Sua Tela Inicial - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-pt.html
 ---
+<sub class="doc-stamp">26.09.25 02:18</sub>
+
 <div lang="pt" dir="ltr" markdown="1">
 
 # 🖥️ Usar o App como Sua Tela Inicial

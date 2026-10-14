@@ -97,4 +97,5 @@
     <string name="scheduled_op_last_success">Ultimo successo: %1$s</string>
     <string name="scheduled_op_last_success_never">Nessuna esecuzione riuscita finora</string>
     <string name="scheduled_op_filter_conditions">+ condizioni</string>
+    <string name="scheduled_ops_op_archive">Archivia</string>
 </resources>

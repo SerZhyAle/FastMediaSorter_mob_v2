@@ -21,7 +21,7 @@ const fixture = '<main class="main-content"><h1>Complete Feature List</h1><h2 id
 let failures = [], passed = 0;
 const server = http.createServer((request, response) => {
     const relative = decodeURIComponent(new URL(request.url, 'http://localhost').pathname).replace(/^\/+/, '');
-    if (/^docs\/FEATURES(?:_RU|_UK)?\.html$/.test(relative)) {
+    if (/^docs\/FEATURES(?:-ru|-uk)?\.html$/.test(relative)) {
         const saved = process.env.SITE_FEATURES_FIXTURE_DIR && path.join(process.env.SITE_FEATURES_FIXTURE_DIR, path.basename(relative));
         response.setHeader('Content-Type', 'text/html; charset=utf-8');
         response.end(saved ? fs.readFileSync(saved) : fixture); return;

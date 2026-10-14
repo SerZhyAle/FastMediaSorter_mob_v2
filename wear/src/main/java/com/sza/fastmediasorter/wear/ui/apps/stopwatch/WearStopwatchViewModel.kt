@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -64,8 +65,17 @@ class WearStopwatchViewModel @Inject constructor(
         // A collection rather than a first(): the count is changed from this screen's own menu, so the
         // regions follow the store instead of the store following a local copy.
         viewModelScope.launch {
+            var autostartPending = true
             preferencesRepository.stopwatchParticipantCount.collect { count ->
-                if (session.current().participants.size != WearStopwatchState.snapCount(count)) {
+                if (autostartPending) {
+                    autostartPending = false
+                    // The session update waits for restore and preserves clocks that already run.
+                    change { state, now ->
+                        val resized = WearStopwatchEngine.resize(state, count)
+                        Timber.d("S4180: watch stopwatch autostart participants=%d", resized.participants.size)
+                        WearStopwatchEngine.startAll(resized, now)
+                    }
+                } else if (session.current().participants.size != WearStopwatchState.snapCount(count)) {
                     change { state, _ -> WearStopwatchEngine.resize(state, count) }
                 }
             }

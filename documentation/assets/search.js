@@ -12,17 +12,20 @@
     var messages = {
         en: { title: 'Search documentation', placeholder: 'Search guides, controls, and features...',
             prompt: 'Enter a feature, control, or question.', loading: 'Loading documentation...',
-            error: 'Documentation search could not be loaded.', retry: 'Retry', empty: 'No matching guides.',
+            error: 'Documentation search could not be loaded.', retry: 'Retry', empty: 'No guides match “{query}”.',
+            emptyIndex: 'Browse the subject index',
             close: 'Close search', navigate: 'Navigate', select: 'Open', fallback: 'Other language',
             language: 'Documentation language', menu: 'Documentation navigation' },
         ru: { title: 'Поиск по документации', placeholder: 'Найти руководство, кнопку или функцию...',
             prompt: 'Введите функцию, название кнопки или вопрос.', loading: 'Загрузка документации...',
-            error: 'Не удалось загрузить поиск по документации.', retry: 'Повторить', empty: 'Подходящих руководств нет.',
+            error: 'Не удалось загрузить поиск по документации.', retry: 'Повторить', empty: 'Нет руководств по запросу «{query}».',
+            emptyIndex: 'Открыть предметный указатель',
             close: 'Закрыть поиск', navigate: 'Выбрать', select: 'Открыть', fallback: 'Другой язык',
             language: 'Язык документации', menu: 'Навигация по документации' },
         uk: { title: 'Пошук у документації', placeholder: 'Знайти посібник, кнопку або функцію...',
             prompt: 'Введіть функцію, назву кнопки або запитання.', loading: 'Завантаження документації...',
-            error: 'Не вдалося завантажити пошук у документації.', retry: 'Повторити', empty: 'Відповідних посібників немає.',
+            error: 'Не вдалося завантажити пошук у документації.', retry: 'Повторити', empty: 'Немає посібників за запитом «{query}».',
+            emptyIndex: 'Відкрити предметний покажчик',
             close: 'Закрити пошук', navigate: 'Вибрати', select: 'Відкрити', fallback: 'Інша мова',
             language: 'Мова документації', menu: 'Навігація документації' }
     };
@@ -66,6 +69,14 @@
             results.firstChild.appendChild(retry);
         }
     }
+    // SITE-EXPERIENCE rule 12: an empty result says so, repeats the query and offers the subject index.
+    function emptyResult(query) {
+        var indexHref = getDocRelativePrefix() + 'subject-index' + (lang === 'en' ? '' : '-' + lang) + '.html';
+        var message = text.empty.replace('{query}', function () { return query; });
+        results.setAttribute('aria-busy', 'false');
+        results.innerHTML = '<div class="doc-search-empty" role="status">' + escapeHtml(message) +
+            '<br><a class="doc-link" href="' + escapeHtml(indexHref) + '">' + escapeHtml(text.emptyIndex) + '</a></div>';
+    }
     function loadIndex() {
         if (index) { search(); return Promise.resolve(); }
         if (loading) return loading;
@@ -100,16 +111,14 @@
         modal = document.createElement('div');
         modal.id = 'docSearchModal';
         modal.className = 'doc-search-backdrop';
-        modal.setAttribute('role', 'dialog');
-        modal.setAttribute('aria-modal', 'true');
-        modal.setAttribute('aria-label', text.title);
-        modal.innerHTML = '<div class="doc-search-modal"><div class="doc-search-header">' +
-            '<span class="doc-search-icon" aria-hidden="true">⌕</span>' +
+        modal.innerHTML = '<div class="doc-search-modal" role="dialog" aria-modal="true"><div class="doc-search-header">' +
+            '<span class="doc-search-icon" aria-hidden="true"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></span>' +
             '<input id="docSearchInput" class="doc-search-input" type="text" autocomplete="off" />' +
             '<button id="docSearchClose" class="doc-search-close">Esc</button></div>' +
             '<div id="docSearchResults" class="doc-search-results" aria-live="polite"></div>' +
             '<div class="doc-search-footer"><span><kbd>↑</kbd> <kbd>↓</kbd> ' + escapeHtml(text.navigate) +
             '</span><span><kbd>↵</kbd> ' + escapeHtml(text.select) + '</span><span><kbd>Esc</kbd></span></div></div>';
+        modal.firstChild.setAttribute('aria-label', text.title);
         document.body.appendChild(modal);
         input = document.getElementById('docSearchInput');
         results = document.getElementById('docSearchResults');
@@ -179,7 +188,7 @@
             matches.push({ page: page, score: score, local: page.lang === lang || (!page.lang && lang === 'en') });
         });
         matches.sort(function (a, b) { return Number(b.local) - Number(a.local) || b.score - a.score; });
-        if (!matches.length) { status(text.empty); return; }
+        if (!matches.length) { emptyResult(query); return; }
         results.innerHTML = matches.slice(0, 12).map(function (match, i) {
             var page = match.page;
             var href = page.url.indexOf('documentation/') === 0 ? getDocRelativePrefix() + page.url.substring(14) : page.url;

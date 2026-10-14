@@ -11,8 +11,6 @@
          <meta name="yandex-verification" content="..." /> -->
     <meta name="description"
         content="फास्ट मीडिया सॉर्टर आपके Android डिवाइस के लिए एक संपूर्ण शेल है: होम स्क्रीन, मीडिया प्लेयर, लाइव स्ट्रीम, ऐप लॉन्चिंग, वॉच कम्पेनियन, डिवाइस मॉनिटरिंग और लोकल, नेटवर्क व क्लाउड स्टोरेज के लिए एक पूर्ण फ़ाइल मैनेजर।">
-    <meta name="keywords"
-        content="Android लॉन्चर, होम स्क्रीन रिप्लेसमेंट Android, मीडिया प्लेयर Android, IPTV प्लेयर Android, Wear OS कम्पेनियन, Android फ़ाइल मैनेजर, मीडिया सॉर्टर Android, फोटो ऑर्गनाइज़र ऐप, वीडियो सॉर्टर Android, SMB क्लाइंट Android, NAS ब्राउज़र Android, SFTP क्लाइंट Android, FTP क्लाइंट Android, क्लाउड फ़ाइल मैनेजर Android, Google Drive मैनेजर Android, Dropbox Android, फोटो स्लाइडशो ऐप, डिजिटल फोटो फ्रेम टैबलेट, ऑडियो प्लेयर Android, EPUB रीडर Android, OCR ट्रांसलेशन Android, कार स्टीरियो Android मीडिया प्लेयर, Android हेड यूनिट ऐप, फ़ाइल ऑर्गनाइज़र Android, बैच फ़ाइल ऑपरेशन Android, Android TV बॉक्स मीडिया प्लेयर, सेट-टॉप बॉक्स प्लेयर, स्मार्ट TV मीडिया ऐप, Kodi का विकल्प Android">
     <meta name="author" content="SerZhyAle">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#0a0f0a">
@@ -115,6 +113,8 @@
 </head>
 
 <body>
+<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.11 02:15</div>
+    <a class="skip-link" href="#main-content">Skip to content</a>
 
     <!-- SZA Web Kit sticky header -->
     <header class="site-header">
@@ -125,7 +125,7 @@
             <a href="index.html" data-lang="en">EN</a>
             <a href="index-uk.html" data-lang="ua">UA</a>
         </div>
-        <button class="theme-btn" id="themeBtn" aria-label="लाइट थीम पर स्विच करें" title="थीम टॉगल करें">◐</button>
+        <button class="theme-btn" id="themeBtn" aria-label="लाइट थीम पर स्विच करें" title="थीम टॉगल करें"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
         <a class="btn btn-primary btn-sm" href="#get">इंस्टॉल करें</a>
     </header>
 
@@ -149,7 +149,7 @@
 
     <!-- GitHub Corner -->
     <aside class="source-link">
-    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
+    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" tabindex="-1" target="_blank"
         aria-label="GitHub पर सोर्स देखें">
         <svg width="80" height="80" viewBox="0 0 250 250"
             style="fill:var(--color-standard); color:var(--acc-ink); position: absolute; top: 0; border: 0; right: 0;"
@@ -167,9 +167,15 @@
 
     <main id="main-content">
     <header class="hero" id="top">
-        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
+        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.35" data-speed="0.5"></canvas>
         <div class="hero-inner">
-            <p class="kicker">Android - डिवाइस शेल</p>
+            <div class="identity">
+                <img class="product-icon" src="icon.png" width="104" height="104" alt="">
+                <div>
+                    <p class="product-name">Fast Media Sorter &amp; Organizer</p>
+                    <p class="kicker">Android - डिवाइस शेल</p>
+                </div>
+            </div>
             <h1>आपके Android डिवाइस के लिए एक संपूर्ण शेल।</h1>
             <p class="subtitle">होम स्क्रीन, मीडिया, स्ट्रीम, ऐप्स, वॉच और फ़ाइलें - सब कुछ एक ही जगह।</p>
             <p class="whatfor">Fast Media Sorter &amp; Organizer होम स्क्रीन को अपने कब्ज़े में ले लेता है और वह जगह बन जाता है जहाँ से सब कुछ शुरू होता है: डिवाइस शेल, मीडिया प्लेयर, लाइव स्ट्रीम, ऐप लॉन्चिंग, स्टॉक ऐप्स का विकल्प, वॉच पर कम्पेनियन, डिवाइस मॉनिटरिंग और लोकल स्टोरेज, SMB/NAS, SFTP/FTP और क्लाउड ड्राइव के लिए एक पूर्ण फ़ाइल मैनेजर।</p>
@@ -589,17 +595,17 @@
                         <h3><button type="button" class="scenario-select" disabled>Windows फ़ोल्डर शेयर (PC कम्पेनियन)</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">Standard / Photos / Legacy</span></div>
-                    <p class="card-summary">Windows PC से सीधे ऐप में फ़ोल्डर शेयर करें: मुफ़्त <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" target="_blank">Fast Media Sorter for Windows</a> इसके लिए एक सुरक्षित SFTP सर्वर चलाता है - पेयरिंग बस एक इम्पोर्ट की गई कॉन्फ़िग फ़ाइल है, मैन्युअल host/port/key एंट्री की ज़रूरत नहीं।</p>
+                    <p class="card-summary">Windows PC से सीधे ऐप में फ़ोल्डर शेयर करें: मुफ़्त <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" target="_blank">Fast Media Sorter &amp; Sharing for Windows</a> इसके लिए एक सुरक्षित SFTP सर्वर चलाता है - पेयरिंग बस एक इम्पोर्ट की गई कॉन्फ़िग फ़ाइल है, मैन्युअल host/port/key एंट्री की ज़रूरत नहीं।</p>
                 </div>
                 <details class="card-details">
                     <summary>विवरण</summary>
                     <ul class="detail-list">
-                        <li>PC पर Fast Media Sorter for Windows इंस्टॉल करें: <a href="https://github.com/SerZhyAle/FastMediaSorter_Lite/releases/latest" target="_blank">GitHub release</a>, <code>winget install SerZhyAle.FastMediaSorter</code>, या Microsoft Store में "FastMediaSorter LITE" (इसके पुराने नाम के तहत प्रकाशित)।</li>
+                        <li>PC पर Fast Media Sorter &amp; Sharing for Windows इंस्टॉल करें: <a href="https://github.com/SerZhyAle/FastMediaSorter_Lite/releases/latest" target="_blank">GitHub release</a>, <code>winget install SerZhyAle.FastMediaSorter</code>, या Microsoft Store में "FastMediaSorter LITE" (इसके पुराने नाम के तहत प्रकाशित)।</li>
                         <li>PC पर शेयर करने के लिए फ़ोल्डर चुनें - सर्वर, keys और autostart अपने आप सेट हो जाते हैं।</li>
                         <li>फ़ोन पर: Add resource &gt; SFTP/FTP &gt; Import from companion, फिर एक्सपोर्ट की गई .fmscfg फ़ाइल खोलें।</li>
                         <li>चरण-दर-चरण PC गाइड: <a href="https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html" target="_blank">Android के लिए फ़ोल्डर कैसे पब्लिश करें</a>।</li>
                     </ul>
-                    <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" class="card-footer" target="_blank">Fast Media Sorter for Windows पाएं</a>
+                    <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" class="card-footer" target="_blank">Fast Media Sorter &amp; Sharing for Windows पाएं</a>
                 </details>
             </article>
             <article class="card scenario-card" data-scenario="offline">
@@ -656,6 +662,7 @@
                     target="_blank" rel="noopener">IzzyOnDroid</a>
             </div>
             <p class="shell-links"><a href="#download">अन्य APK संस्करण और वॉच फेस</a></p>
+            <p class="shell-links">संस्करण: <a href="#download">Lite</a> · <a href="#download">Photos</a> · <a href="#download">Legacy</a> · <a href="nolegal.html">noLegal</a> · <a href="documentation/vr/spatial-cinema-playback.html">VR</a> · <a href="docs/wear/">Wear OS</a> · <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">वॉच फेस</a></p>
             <ol class="quickstart">
                 <li>उपयुक्त एडिशन इंस्टॉल करें और ऐप खोलें।</li>
                 <li>स्वागत विज़ार्ड में, या बाद में सेटिंग्स, सामान्य, प्राथमिक स्टार्टअप विंडो में, डिवाइस होम स्क्रीन चुनें और Android के पूछने पर पुष्टि करें।</li>
@@ -693,7 +700,7 @@
             <summary>पूरी फ़ीचर सूची</summary>
         <!-- What it Replaces -->
         <h2 class="section-title" id="replaces">एक दर्जन से ज़्यादा ऐप्स की जगह</h2>
-        <p class="section-lead">Fast Media Sorter होम स्क्रीन, ऐप लॉन्चर, मीडिया प्लेयर, स्ट्रीम प्लेयर और फ़ाइल मैनेजर को एक साथ लाता है। लॉन्चर, वीडियो, संगीत, गैलरी, पढ़ने, नेटवर्क फ़ोल्डर और क्लाउड स्टोरेज के लिए अलग-अलग ऐप की जगह, आप एक ही शेल और क्रियाओं के एक परिचित सेट का उपयोग करते हैं। नीचे दिए ऐप केवल क्षमताओं के जाने-पहचाने संदर्भ हैं, तुलनात्मक रैंकिंग नहीं।</p>
+        <p class="section-lead">Fast Media Sorter होम स्क्रीन, ऐप लॉन्चर, मीडिया प्लेयर, स्ट्रीम प्लेयर और फ़ाइल मैनेजर को एक साथ लाता है। लॉन्चर, वीडियो, संगीत, गैलरी, पढ़ने, नेटवर्क फ़ोल्डर और क्लाउड स्टोरेज के लिए अलग-अलग ऐप की जगह, आप एक ही शेल और क्रियाओं के एक परिचित सेट का उपयोग करते हैं।</p>
         <div class="cards-grid replaces-grid">
             <article class="card">
                 <div class="card-title-row">
@@ -701,7 +708,7 @@
                     <h3>होम स्क्रीन और डिवाइस</h3>
                 </div>
                 <ul class="detail-list repl-list">
-                    <li><strong>लॉन्चर / होम स्क्रीन</strong> <span class="repl-ref">(Nova Launcher, स्टॉक लॉन्चर)</span> - फ़ोल्डर, शॉर्टकट और लाइव गैजेट वाला डेस्कटॉप, स्टार्ट मेनू, पिन किए और हाल के ऐप वाला टास्कबार। <span class="repl-note">स्टैंडर्ड संस्करण</span></li>
+                    <li><strong>लॉन्चर / होम स्क्रीन</strong> <span class="repl-ref">(स्टॉक लॉन्चर)</span> - फ़ोल्डर, शॉर्टकट और लाइव गैजेट वाला डेस्कटॉप, स्टार्ट मेनू, पिन किए और हाल के ऐप वाला टास्कबार। <span class="repl-note">स्टैंडर्ड संस्करण</span></li>
                     <li><strong>ऐप ड्रॉअर</strong> <span class="repl-ref">(स्टॉक ऐप सूची)</span> - हर इंस्टॉल ऐप एक खोजने योग्य सूची में, अक्षर के अनुसार समूहित।</li>
                     <li><strong>घड़ी, मौसम और कम्पास</strong> <span class="repl-ref">(स्टॉक घड़ी और मौसम ऐप)</span> - घड़ी, विश्व घड़ी, मौसम, मानचित्र, कम्पास और गति के लिए बिल्ट-इन गैजेट।</li>
                     <li><strong>डिवाइस मॉनिटर</strong> <span class="repl-ref">(सिस्टम जानकारी ऐप)</span> - नेटवर्क, बैटरी, स्टोरेज और मेमोरी गैजेट, साथ में नेटवर्क कनेक्शन की लाइव सूची।</li>
@@ -714,14 +721,14 @@
                     <h3>देखना और प्लेबैक</h3>
                 </div>
                 <ul class="detail-list repl-list">
-                    <li><strong>वीडियो प्लेयर</strong> <span class="repl-ref">(MX Player, VLC)</span> - वीडियो, Blu-ray TS/.m2ts, पिक्चर-इन-पिक्चर, फ्रेम स्क्रीनशॉट, Chromecast कास्टिंग।</li>
-                    <li><strong>ऑडियो प्लेयर</strong> <span class="repl-ref">(Poweramp, AIMP)</span> - बैकग्राउंड प्लेबैक, लिरिक्स, MIDI, स्लीप टाइमर, विज़ुअलाइज़ेशन, नोटिफ़िकेशन कंट्रोल।</li>
-                    <li><strong>गैलरी / इमेज व्यूअर</strong> <span class="repl-ref">(QuickPic, Google Photos)</span> - इमेज और GIF, क्रॉप, फ़िल्टर, रोटेट।</li>
-                    <li><strong>PDF / EPUB रीडर</strong> <span class="repl-ref">(Adobe Reader, Moon+ Reader)</span> - किताबें, चैप्टर मैप, थीम, Read Aloud (TTS)।</li>
+                    <li><strong>वीडियो प्लेयर</strong> - वीडियो, Blu-ray TS/.m2ts, पिक्चर-इन-पिक्चर, फ्रेम स्क्रीनशॉट, Chromecast कास्टिंग।</li>
+                    <li><strong>ऑडियो प्लेयर</strong> - बैकग्राउंड प्लेबैक, लिरिक्स, MIDI, स्लीप टाइमर, विज़ुअलाइज़ेशन, नोटिफ़िकेशन कंट्रोल।</li>
+                    <li><strong>गैलरी / इमेज व्यूअर</strong> - इमेज और GIF, क्रॉप, फ़िल्टर, रोटेट।</li>
+                    <li><strong>PDF / EPUB रीडर</strong> - किताबें, चैप्टर मैप, थीम, Read Aloud (TTS)।</li>
                     <li><strong>स्लाइडशो / फोटो फ्रेम</strong> - बैकग्राउंड संगीत के साथ घूमती तस्वीरें, साथ ही एक फोटो-फ्रेम विजेट।</li>
-                    <li><strong>TV मीडिया सेंटर</strong> <span class="repl-ref">(Kodi, Nova Video Player)</span> - D-pad, कीबोर्ड, माउस, गेमपैड और TV-रिमोट के अनुकूल ब्राउज़िंग व प्लेबैक।</li>
-                    <li><strong>VR मीडिया प्लेयर</strong> <span class="repl-ref">(Pigasus, Skybox VR)</span> - स्टीरियो SBS/OU, VR180, 360°, वर्चुअल सिनेमा स्क्रीन। <span class="repl-note">VR एडिशन</span></li>
-                    <li><strong>इंटरनेट रेडियो / IPTV प्लेयर</strong> <span class="repl-ref">(TuneIn, Online Radio, RadioDroid, VLC network)</span> - Streams स्क्रीन http/https रेडियो, HLS/DASH और RTSP स्रोत चलाती है; ICY now-playing के साथ इनलाइन मिनी-प्लेयर; क्यूरेटेड स्टेशन कैटलॉग।</li>
+                    <li><strong>TV मीडिया सेंटर</strong> - D-pad, कीबोर्ड, माउस, गेमपैड और TV-रिमोट के अनुकूल ब्राउज़िंग व प्लेबैक।</li>
+                    <li><strong>VR मीडिया प्लेयर</strong> - स्टीरियो SBS/OU, VR180, 360°, वर्चुअल सिनेमा स्क्रीन। <span class="repl-note">VR एडिशन</span></li>
+                    <li><strong>इंटरनेट रेडियो / IPTV प्लेयर</strong> - Streams स्क्रीन http/https रेडियो, HLS/DASH और RTSP स्रोत चलाती है; ICY now-playing के साथ इनलाइन मिनी-प्लेयर; क्यूरेटेड स्टेशन कैटलॉग।</li>
                 </ul>
             </article>
             <article class="card">
@@ -734,7 +741,7 @@
                     <li><strong>वॉइस रिकॉर्डर</strong> - वॉइस नोट्स के साथ एक क्विक-रिकॉर्ड विजेट।</li>
                     <li><strong>ड्रॉइंग एडिटर</strong> - कैनवस, ब्रश, शेप्स, टेक्स्ट, कस्टम ब्रश रंग और आकार।
                     </li>
-                    <li><strong>डॉक्यूमेंट / टेक्स्ट स्कैनर</strong> <span class="repl-ref">(Google Lens, CamScanner)</span> - एरिया क्रॉप के साथ कैमरा से ऑन-डिवाइस OCR।</li>
+                    <li><strong>डॉक्यूमेंट / टेक्स्ट स्कैनर</strong> - एरिया क्रॉप के साथ कैमरा से ऑन-डिवाइस OCR।</li>
                 </ul>
             </article>
             <article class="card">
@@ -745,9 +752,9 @@
                 <ul class="detail-list repl-list">
                     <li><strong>टेक्स्ट / Markdown एडिटर</strong> - सिंटैक्स हाइलाइटिंग और ऑटो-सेव के साथ .txt/.md एडिट करें।
                     </li>
-                    <li><strong>ट्रांसलेटर</strong> <span class="repl-ref">(Google Translate offline)</span> - पूरी तरह ऑफ़लाइन अनुवाद।</li>
+                    <li><strong>ट्रांसलेटर</strong> - पूरी तरह ऑफ़लाइन अनुवाद।</li>
                     <li><strong>कैलकुलेटर</strong> - चयनित टेक्स्ट से एक्सप्रेशन का बिल्ट-इन मूल्यांकन। <span class="repl-note">बेसिक</span></li>
-                    <li><strong>Cast to TV</strong> <span class="repl-ref">(Google Home)</span> - वीडियो और ऑडियो दोनों के लिए Chromecast।</li>
+                    <li><strong>Cast to TV</strong> - वीडियो और ऑडियो दोनों के लिए Chromecast।</li>
                     <li><strong>सेटिंग्स बैकअप टूल</strong> - ऐप सेटअप, स्रोत, फेवरेट, शेड्यूल, पासवर्ड और साइन-इन एक्सपोर्ट व रीस्टोर करें। <span class="repl-note">केवल ऐप सेटअप</span></li>
                 </ul>
             </article>
@@ -757,13 +764,13 @@
                     <h3>फ़ाइल मैनेजमेंट</h3>
                 </div>
                 <ul class="detail-list repl-list">
-                    <li><strong>फ़ाइल मैनेजर</strong> <span class="repl-ref">(Total Commander, ES File Explorer, Files by Google)</span> - लोकल, नेटवर्क और क्लाउड फ़ाइलें एक ही जगह।</li>
-                    <li><strong>FTP/SFTP/SMB क्लाइंट</strong> <span class="repl-ref">(AndFTP, Solid Explorer)</span> - SSH keys और host-key pinning के साथ नेटवर्क स्रोत।</li>
+                    <li><strong>फ़ाइल मैनेजर</strong> - लोकल, नेटवर्क और क्लाउड फ़ाइलें एक ही जगह।</li>
+                    <li><strong>FTP/SFTP/SMB क्लाइंट</strong> - SSH keys और host-key pinning के साथ नेटवर्क स्रोत।</li>
                     <li><strong>क्लाउड क्लाइंट</strong> <span class="repl-ref">(Google Drive, Dropbox, OneDrive)</span> - मीडिया स्रोत के रूप में क्लाउड ड्राइव।</li>
-                    <li><strong>डुप्लिकेट फाइंडर</strong> <span class="repl-ref">(Duplicate Files Fixer)</span> - Size -&gt; Hash -&gt; SHA-256 का 3-चरण इंजन।</li>
-                    <li><strong>रीसायकल बिन</strong> <span class="repl-ref">(Dumpster)</span> - एक-टैप रीस्टोर के साथ सॉफ्ट डिलीट।</li>
-                    <li><strong>आर्काइव एक्सट्रैक्टर</strong> <span class="repl-ref">(ZArchiver)</span> - पासवर्ड-प्रोटेक्टेड सहित ZIP एक्सट्रैक्शन। <span class="repl-note">बेसिक</span></li>
-                    <li><strong>डाउनलोड मैनेजर</strong> <span class="repl-ref">(1DM, ADM)</span> - एक लिंक पेस्ट करें और सीधे चुने हुए फ़ोल्डर में सेव करें।</li>
+                    <li><strong>डुप्लिकेट फाइंडर</strong> - Size -&gt; Hash -&gt; SHA-256 का 3-चरण इंजन।</li>
+                    <li><strong>रीसायकल बिन</strong> - एक-टैप रीस्टोर के साथ सॉफ्ट डिलीट।</li>
+                    <li><strong>आर्काइव एक्सट्रैक्टर</strong> - पासवर्ड-प्रोटेक्टेड सहित ZIP एक्सट्रैक्शन। <span class="repl-note">बेसिक</span></li>
+                    <li><strong>डाउनलोड मैनेजर</strong> - एक लिंक पेस्ट करें और सीधे चुने हुए फ़ोल्डर में सेव करें।</li>
                     <li><strong>टास्क शेड्यूलर</strong> - निर्धारित फ़ाइल ऑपरेशन।</li>
                 </ul>
             </article>
@@ -858,6 +865,22 @@
             <article class="card">
                 <div>
                     <div class="card-title-row">
+                        <h3>Media Exchange Portal</h3>
+                    </div>
+                    <p class="card-summary">Which way fits you for moving and opening media between your own phone, watch, TV, VR headset and Windows PC.</p>
+                </div>
+                <details class="card-details">
+                    <summary>विवरण</summary>
+                    <ul class="detail-list">
+                        <li>Three ways to connect: your home network, the exchange server and live broadcast, with what works today.</li>
+                        <li>Which program does what on each device, and which edition has what.</li>
+                    </ul>
+                    <a href="docs/media-exchange-portal/" class="card-footer" target="_blank">Open the exchange portal</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
                         <h3>APK एडिशन और मिरर</h3>
                     </div>
                     <p class="card-summary">कंपाइल्ड बिल्ड के लिए एडिशन नोट्स और Google Drive ZIP मिरर।</p>
@@ -868,7 +891,7 @@
                         <li>एडिशन के अंतर और वैकल्पिक Google Drive मिरर बताता है।</li>
                         <li>एक-टैप डाउनलोड नीचे Download APK Builds सेक्शन में हैं।</li>
                     </ul>
-                    <a href="docs/DOWNLOADS_EN.html" class="card-footer" target="_blank">विवरण खोलें</a>
+                    <a href="docs/DOWNLOADS.html" class="card-footer" target="_blank">विवरण खोलें</a>
                 </details>
             </article>
         </div>
@@ -876,7 +899,7 @@
         <!-- Download APK Builds - live buttons from the latest GitHub Release (S0394) -->
         <h2 class="section-title" id="download">APK Builds डाउनलोड करें</h2>
         <p class="section-lead">हर संस्करण के लिए नवीनतम उपलब्ध स्थिर APK। संस्करण अलग हो सकते हैं; अपना संस्करण न दिखे तो GitHub रिलीज़ देखें।</p>
-        <p class="section-lead">Android किसी ऐसे APK के बारे में चेतावनी देता है जो उसने पहले नहीं देखा। <a href="docs/INSTALL_TRUST_EN.html" target="_blank" rel="noopener">चेतावनी क्यों दिखती है - और क्या टैप करें</a>।</p>
+        <p class="section-lead">Android किसी ऐसे APK के बारे में चेतावनी देता है जो उसने पहले नहीं देखा। <a href="docs/INSTALL_TRUST.html" target="_blank" rel="noopener">चेतावनी क्यों दिखती है - और क्या टैप करें</a>।</p>
         <h3 class="edition-heading">हेडसेट और घड़ियों के संस्करण</h3>
         <div class="edition-download-grid">
             <article class="card edition-card" data-download-edition="noLegal">
@@ -1187,11 +1210,11 @@
             <h2 class="section-title">SZA के अन्य टूल</h2>
             <div class="tools-grid">
                 <!-- family-footer:begin - rendered from scripts/site/family-footer.json by scripts/site/render-family-footer.ps1; edit the source, not this block -->
-                <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>PC मीडिया सॉर्टर और Android के लिए फ़ोल्डर शेयर</span></a> <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Windows ईबुक कनवर्टर</span></a> <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Windows लेआउट फिक्सर</span></a> <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Windows स्टोरेज CLI</span></a> <a href="https://serzhyale.github.io/StreamsPlayer/"><b>StreamsPlayer</b><span>Windows स्ट्रीम प्लेयर</span></a> <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>Windows ट्रे लॉन्चर</span></a> <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>AI-dev पद्धति</span></a> <a href="https://sza.od.ua"><b>SZA</b><span>पोर्टफोलियो हब</span></a>
+                <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>PC मीडिया सॉर्टर और Android के लिए फ़ोल्डर शेयर</span></a> <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Windows ईबुक कनवर्टर</span></a> <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Windows लेआउट फिक्सर</span></a> <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Windows स्टोरेज CLI</span></a> <a href="https://serzhyale.github.io/StreamsPlayer/"><b>STREAMS Player</b><span>Windows स्ट्रीम प्लेयर</span></a> <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>Windows ट्रे लॉन्चर</span></a> <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>AI-dev पद्धति</span></a> <a href="https://sza.od.ua"><b>SZA</b><span>पोर्टफोलियो हब</span></a>
                 <!-- family-footer:end -->
             </div>
             <div class="footer-bottom">
-                <span>&copy; 2024-2026 Serhii Zhyhunenko · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">गोपनीयता</a> · <a href="docs/TERMS_OF_SERVICE.html">शर्तें</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
+                <span>&copy; 2024-2026 <a href="https://sza.od.ua">Serhii Zhyhunenko</a> · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">गोपनीयता</a> · <a href="docs/TERMS_OF_SERVICE.html">शर्तें</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
             </div>
         </div>
     </footer>

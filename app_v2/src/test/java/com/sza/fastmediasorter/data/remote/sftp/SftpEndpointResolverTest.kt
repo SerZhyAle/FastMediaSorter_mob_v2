@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.data.remote.sftp
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpRendezvousDirectory
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpRendezvousVerdicts
 import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.ResourceType
 import io.mockk.Runs
@@ -32,6 +34,7 @@ class SftpEndpointResolverTest {
     private val dao = mockk<ResourceDao>()
     private val monitor = mockk<NetworkStateMonitor>(relaxed = true)
     private val mdns = mockk<CompanionMdnsDiscovery>()
+    private val rendezvous = mockk<SftpRendezvousDirectory>(relaxed = true)
     private val callbackSlot = slot<NetworkStateMonitor.NetworkChangeCallback>()
 
     @Before
@@ -64,7 +67,7 @@ class SftpEndpointResolverTest {
     @Test
     fun `resolve picks the reachable alternate when the primary is dead`() = runBlocking {
         coEvery { dao.getAllResourcesSync() } returns listOf(companionResource())
-        val resolver = SftpEndpointResolver(dao, mdns, monitor)
+        val resolver = SftpEndpointResolver(dao, mdns, monitor, rendezvous, SftpRendezvousVerdicts())
 
         val winner = resolver.resolve("127.0.0.1", deadPort)
 
@@ -74,7 +77,7 @@ class SftpEndpointResolverTest {
     @Test
     fun `second resolve is served from cache without another db read`() = runBlocking {
         coEvery { dao.getAllResourcesSync() } returns listOf(companionResource())
-        val resolver = SftpEndpointResolver(dao, mdns, monitor)
+        val resolver = SftpEndpointResolver(dao, mdns, monitor, rendezvous, SftpRendezvousVerdicts())
 
         resolver.resolve("127.0.0.1", deadPort)
         resolver.resolve("127.0.0.1", deadPort)
@@ -85,7 +88,7 @@ class SftpEndpointResolverTest {
     @Test
     fun `network change clears the cache so the next resolve re-probes`() = runBlocking {
         coEvery { dao.getAllResourcesSync() } returns listOf(companionResource())
-        val resolver = SftpEndpointResolver(dao, mdns, monitor)
+        val resolver = SftpEndpointResolver(dao, mdns, monitor, rendezvous, SftpRendezvousVerdicts())
 
         resolver.resolve("127.0.0.1", deadPort)
         callbackSlot.captured.onNetworkChanged()
@@ -98,7 +101,7 @@ class SftpEndpointResolverTest {
     fun `pinned group does not let a non-SSH listener win on TCP alone`() = runBlocking {
         val pinned = companionResource().copy(hostKeyFingerprint = PIN)
         coEvery { dao.getAllResourcesSync() } returns listOf(pinned)
-        val resolver = SftpEndpointResolver(dao, mdns, monitor)
+        val resolver = SftpEndpointResolver(dao, mdns, monitor, rendezvous, SftpRendezvousVerdicts())
 
         val winner = resolver.resolve("127.0.0.1", deadPort)
 
@@ -110,7 +113,7 @@ class SftpEndpointResolverTest {
     @Test
     fun `unknown single-address host resolves to itself without probing`() = runBlocking {
         coEvery { dao.getAllResourcesSync() } returns emptyList()
-        val resolver = SftpEndpointResolver(dao, mdns, monitor)
+        val resolver = SftpEndpointResolver(dao, mdns, monitor, rendezvous, SftpRendezvousVerdicts())
 
         val winner = resolver.resolve("10.0.0.99", 22)
 

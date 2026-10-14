@@ -6,7 +6,6 @@ description: Як FastMediaSorter обирає мову під час першо
 category: Редакції, розширення та мови
 category_slug: flavors
 ticket: S2947
-flavor: Усі редакції
 recipe_number: "03"
 canonical_url: documentation/flavors/multilingual-support-uk.html
 why: |
@@ -109,5 +108,7 @@ next_recipes:
     badge_type: docs
     description: Знайдіть будь-яке налаштування за кілька дотиків або ввівши його назву.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 FastMediaSorter розмовляє тринадцятьма мовами і показує час, відстані й температуру в метричних або американських одиницях. Ця сторінка показує, як застосунок обирає свою мову, як її змінити і як обрати ваші одиниці виміру.

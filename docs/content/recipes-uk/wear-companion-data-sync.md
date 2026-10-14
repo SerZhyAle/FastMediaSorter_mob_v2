@@ -6,7 +6,7 @@ description: Як вибрати, які мережеві ресурси под�
 category: Годинник Wear OS
 category_slug: wear
 ticket: S2964
-flavor: На телефоні - Standard і noLegal; надсилання мережевих ресурсів і синхронізація з годинника - повна версія для годинника (лише сайдлоуд)
+availability_note: На телефоні - Standard і noLegal; надсилання мережевих ресурсів і синхронізація з годинника - повна версія для годинника (лише сайдлоуд)
 recipe_number: "02"
 canonical_url: documentation/wear/companion-data-sync-uk.html
 why: |
@@ -162,5 +162,7 @@ next_recipes:
     badge_type: docs
     description: Перші кроки, якщо годинник і телефон ще не бачать одне одного.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Виберіть, які [мережеві ресурси](term:network-resource) отримає [годинник](term:watch), надішліть їх, прочитайте звіт синхронізації, і налаштуйте годинник з вікна [Wear-супутника](term:wear-companion) на телефоні - типи медіа, слайдшоу, екран, колірну схему, фон та енергозбереження.

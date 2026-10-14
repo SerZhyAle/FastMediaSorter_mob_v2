@@ -495,7 +495,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             }
             // S1693: titleRow exists only in the portrait layout, so the generated field is nullable.
             binding.titleRow?.let { titleRow ->
-                titleRow.layoutParams.height = titleH
+                // The dp height is a floor: the title is sp, so a large font scale outgrows a fixed
+                // row and the tabs below clip it.
+                titleRow.layoutParams.height = max(titleH, binding.titleText.lineHeight)
                 titleRow.requestLayout()
             }
             binding.tabLayout.layoutParams.height = tabH

@@ -75,7 +75,7 @@ class SftpDataSource(
             val connectionInfo = SftpClient.SftpConnectionInfo(
                 host = host, port = port, username = username, password = password
             )
-            val pooledConnection = sftpClient.getConnectionForExoPlayer(connectionInfo)
+            val pooledConnection = sftpClient.getConnectionForExoPlayer(connectionInfo, remotePath)
             session = pooledConnection.session
             // S1032: capture the nullable var into a local val so the null-guard smart-casts,
             // removing the redundant non-null assertions here and at attemptOpen below.
@@ -103,7 +103,7 @@ class SftpDataSource(
                 connectionAcquired = false
                 try {
                     val retryInfo = SftpClient.SftpConnectionInfo(host, port, username, password)
-                    val retryConn = sftpClient.getConnectionForExoPlayer(retryInfo)
+                    val retryConn = sftpClient.getConnectionForExoPlayer(retryInfo, openedRemotePath())
                     session = retryConn.session
                     val retryChannel = retryConn.channel
                     channel = retryChannel
@@ -284,6 +284,9 @@ class SftpDataSource(
         return classified is NetworkHostKeyChangedException || classified is NetworkAccessDeniedException
     }
 
+    // The path the stream was opened for names the root a protected resource has to prove (SHARE-SESSION 1.2).
+    private fun openedRemotePath(): String? = uri?.encodedPath?.let(Uri::decode)
+
     private fun maybeTouchPlaybackTransport() {
         val now = System.currentTimeMillis()
         if (now - lastPlaybackTouchMs < PLAYBACK_IDLE_HEARTBEAT_MS) return
@@ -291,6 +294,7 @@ class SftpDataSource(
             host = host,
             port = port,
             username = username,
+            remotePath = openedRemotePath(),
         )
         lastPlaybackTouchMs = now
         Timber.d("SftpDataSource: playback heartbeat refreshed idle timer")
@@ -310,7 +314,7 @@ class SftpDataSource(
         }
 
         val connInfo = SftpClient.SftpConnectionInfo(host, port, username, password)
-        val pooled = sftpClient.getConnectionForExoPlayer(connInfo)
+        val pooled = sftpClient.getConnectionForExoPlayer(connInfo, openedRemotePath())
         session = pooled.session
         channel = pooled.channel
         connectionAcquired = true

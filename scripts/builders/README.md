@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.09.30 11:24</sub>
+
 # Build Scripts
 
 Build automation scripts for FastMediaSorter v2.

@@ -55,6 +55,7 @@ class ScheduledOperationsAdapter(
                 ScheduledOpType.COPY -> R.drawable.ic_copy
                 ScheduledOpType.MOVE -> R.drawable.ic_move
                 ScheduledOpType.DELETE -> R.drawable.ic_delete
+                ScheduledOpType.ARCHIVE -> R.drawable.ic_archive
             }
             b.ivOpTypeIcon.setImageResource(iconRes)
 

@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Library: appends gate and gate-batch execution records to temp/metrics/gate-executions.jsonl.
+#>
+
+
 #requires -Version 7.0
 
 function Get-GateTelemetryPath {

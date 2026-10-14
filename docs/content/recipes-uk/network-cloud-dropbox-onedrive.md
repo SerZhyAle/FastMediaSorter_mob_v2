@@ -6,7 +6,7 @@ description: Вхід у Dropbox та OneDrive і додавання їхніх 
 category: Мережа й хмара
 category_slug: network
 ticket: S2950
-flavor: Standard, noLegal, Photos, Legacy і VR - без Lite, без FOSS. Потрібен обліковий запис Dropbox і/або Microsoft.
+availability_note: Standard, noLegal, Photos, Legacy і VR - без Lite, без FOSS. Потрібен обліковий запис Dropbox і/або Microsoft.
 recipe_number: "06"
 canonical_url: documentation/network/cloud-dropbox-onedrive-uk.html
 why: |
@@ -48,6 +48,7 @@ tips:
   - "**Перейшли на новий телефон?** OneDrive тримає свій вхід у місці, яке застосунок не може перенести автоматично, тож там доведеться увійти в OneDrive ще раз - див. нотатки про новий телефон у [Додаванні мережевих папок і хмарних сховищ як джерел](page:storage.network-and-cloud-sources)."
   - "**Шукаєте Google Диск?** У нього власна сторінка, із прив'язкою облікового запису й чергою передачі між пристроями, що на ній тримається - див. [Інтеграцію з Google Диском](page:network.cloud-google-drive)."
   - "**Додавання мережевих папок і хмарних сховищ загалом** описано з самого початку в [Додаванні мережевих папок і хмарних сховищ як джерел](page:storage.network-and-cloud-sources)."
+  - "**Потрібна спільна «скринька» для всіх власних пристроїв?** [Портал обміну медіа](../../docs/media-exchange-portal/clouds-uk.html) показує, як Google Drive, Dropbox і OneDrive співвідносяться з іншими способами переносити медіа між пристроями."
 next_recipes:
   - title: Інтеграція з Google Диском
     url: page:network.cloud-google-drive
@@ -65,5 +66,7 @@ next_recipes:
     badge_type: docs
     description: Повна картина резервного копіювання й відновлення ваших налаштувань і ресурсів.
 ---
+
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Увійдіть у Dropbox та OneDrive, щоб додати їхні папки як ресурси поруч із локальними та Google Диском, із однаково простим входом, виходом і зрозумілими повідомленнями про помилки для обох [хмарних сервісів](term:cloud-provider).

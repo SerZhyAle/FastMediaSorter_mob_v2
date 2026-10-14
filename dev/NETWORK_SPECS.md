@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.08.07 18:57</sub>
+
 # Network Protocol Notes
 
 - **SMB**: Use `SmbConnectionManager` for connection pooling. SMBJ 0.12.1+.

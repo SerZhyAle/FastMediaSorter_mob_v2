@@ -13,7 +13,10 @@
                 from the source, or carries no markers (a hand edit, or a source edit not rendered).
       MAP     - a row of the catalog map's section 2, other than this product, has no source entry
                 with the same URL; or the source carries a URL the map does not list (rule 5: a URL
-                enters the footer only through the map).
+                enters the footer only through the map); or a source entry's `name` differs from the
+                map's `Tool` cell for that URL (a corrective step of the map, 1.3 and 1.4, changes
+                a label and nothing else, which a URL comparison cannot see - S4159). The hub row's
+                trailing ` (hub)` is the map's annotation, not part of the name a footer shows.
       SELF    - this product's map row is absent, or its URL differs from `_config.yml` url + baseurl,
                 the canonical address the site publishes (the repository-to-catalog direction: a
                 mismatch is raised with the map owner, never fixed by editing the map from here).
@@ -140,6 +143,14 @@ foreach ($key in $mapRows.Keys) {
 foreach ($key in $sourceKeys) {
     if (-not $mapRows.Contains($key)) { Add-Finding 'MAP' "scripts/site/family-footer.json links $key, which the map does not list" }
     if ($key -eq $selfKey) { Add-Finding 'MAP' "scripts/site/family-footer.json lists this product ($key) in its own footer" }
+}
+foreach ($tool in @($source.tools)) {
+    $key = ConvertTo-UrlKey "$($tool.url)"
+    if ($key -eq $selfKey -or -not $mapRows.Contains($key)) { continue }
+    $mapLabel = ($mapRows[$key] -replace '\s*\(hub\)\s*$', '').Trim()
+    if ("$($tool.name)" -cne $mapLabel) {
+        Add-Finding 'MAP' "scripts/site/family-footer.json names $key '$($tool.name)', but the map's Tool cell reads '$mapLabel'"
+    }
 }
 
 $config = Get-Content -LiteralPath $configPath -Raw -Encoding utf8

@@ -11,8 +11,6 @@
          <meta name="yandex-verification" content="..." /> -->
     <meta name="description"
         content="Fast Media Sorter 是您 Android 设备的完整外壳：主屏幕、媒体播放器、直播流、应用启动器、手表伴侣应用、设备监控，以及支持本地、网络和云存储的完整文件管理器。">
-    <meta name="keywords"
-        content="Android 启动器, Android 主屏幕替换, Android 媒体播放器, Android IPTV 播放器, Wear OS 伴侣应用, Android 文件管理器, Android 媒体整理工具, 照片整理应用, Android 视频整理工具, Android SMB 客户端, Android NAS 浏览器, Android SFTP 客户端, Android FTP 客户端, Android 云文件管理器, Android Google Drive 管理器, Android Dropbox 应用, 照片幻灯片应用, 数码相框平板, Android 音频播放器, Android EPUB 阅读器, Android OCR 翻译, 车载 Android 媒体播放器, Android 车机应用, Android 文件整理工具, Android 批量文件操作, Android 电视盒媒体播放器, 机顶盒播放器 Android, 智能电视媒体应用, Android Kodi 替代品">
     <meta name="author" content="SerZhyAle">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#0a0f0a">
@@ -115,6 +113,8 @@
 </head>
 
 <body>
+<div class="doc-stamp" style="font-size:11px;opacity:.6;margin:0;padding:2px 8px;text-align:right">26.10.11 02:15</div>
+    <a class="skip-link" href="#main-content">Skip to content</a>
 
     <!-- SZA Web Kit sticky header -->
     <header class="site-header">
@@ -125,7 +125,7 @@
             <a href="index.html" data-lang="en">EN</a>
             <a href="index-uk.html" data-lang="ua">UA</a>
         </div>
-        <button class="theme-btn" id="themeBtn" aria-label="切换到浅色主题" title="切换主题">◐</button>
+        <button class="theme-btn" id="themeBtn" aria-label="切换到浅色主题" title="切换主题"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
         <a class="btn btn-primary btn-sm" href="#get">安装</a>
     </header>
 
@@ -149,7 +149,7 @@
 
     <!-- GitHub Corner -->
     <aside class="source-link">
-    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
+    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" tabindex="-1" target="_blank"
         aria-label="在 GitHub 上查看源代码">
         <svg width="80" height="80" viewBox="0 0 250 250"
             style="fill:var(--color-standard); color:var(--acc-ink); position: absolute; top: 0; border: 0; right: 0;"
@@ -167,9 +167,15 @@
 
     <main id="main-content">
     <header class="hero" id="top">
-        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
+        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.35" data-speed="0.5"></canvas>
         <div class="hero-inner">
-            <p class="kicker">Android - 设备外壳</p>
+            <div class="identity">
+                <img class="product-icon" src="icon.png" width="104" height="104" alt="">
+                <div>
+                    <p class="product-name">Fast Media Sorter &amp; Organizer</p>
+                    <p class="kicker">Android - 设备外壳</p>
+                </div>
+            </div>
             <h1>您 Android 设备的完整外壳。</h1>
             <p class="subtitle">主屏幕、媒体、直播流、应用、手表和文件 - 一站式集成。</p>
             <p class="whatfor">Fast Media Sorter &amp; Organizer 接管您的主屏幕，成为一切操作的起点：设备外壳、媒体播放器、直播流、应用启动、系统自带应用的替代品、手表端的伴侣应用、设备监控，以及支持本地存储、SMB/NAS、SFTP/FTP 和云盘的完整文件管理器。</p>
@@ -589,17 +595,17 @@
                         <h3><button type="button" class="scenario-select" disabled>Windows 文件夹共享（电脑伴侣）</button></h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge standard">标准版 / Photos / Legacy</span></div>
-                    <p class="card-summary">直接从 Windows 电脑将文件夹共享给应用：免费的 <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" target="_blank">Fast Media Sorter for Windows</a> 会为此运行一个安全的 SFTP 服务器 - 配对只需导入一个配置文件，无需手动输入主机、端口或密钥。</p>
+                    <p class="card-summary">直接从 Windows 电脑将文件夹共享给应用：免费的 <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" target="_blank">Fast Media Sorter &amp; Sharing for Windows</a> 会为此运行一个安全的 SFTP 服务器 - 配对只需导入一个配置文件，无需手动输入主机、端口或密钥。</p>
                 </div>
                 <details class="card-details">
                     <summary>详情</summary>
                     <ul class="detail-list">
-                        <li>在电脑上安装 Fast Media Sorter for Windows：<a href="https://github.com/SerZhyAle/FastMediaSorter_Lite/releases/latest" target="_blank">GitHub 发布页</a>、<code>winget install SerZhyAle.FastMediaSorter</code>，或在 Microsoft Store 中搜索“FastMediaSorter LITE”（以其旧名称发布）。</li>
+                        <li>在电脑上安装 Fast Media Sorter &amp; Sharing for Windows：<a href="https://github.com/SerZhyAle/FastMediaSorter_Lite/releases/latest" target="_blank">GitHub 发布页</a>、<code>winget install SerZhyAle.FastMediaSorter</code>，或在 Microsoft Store 中搜索“FastMediaSorter LITE”（以其旧名称发布）。</li>
                         <li>在电脑上选择要共享的文件夹 - 服务器、密钥和自启动均会自动配置。</li>
                         <li>在手机上：添加资源 &gt; SFTP/FTP &gt; 从伴侣应用导入，然后打开导出的 .fmscfg 文件。</li>
                         <li>电脑端详细指南：<a href="https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html" target="_blank">如何为 Android 发布文件夹</a>。</li>
                     </ul>
-                    <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" class="card-footer" target="_blank">获取 Fast Media Sorter for Windows</a>
+                    <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" class="card-footer" target="_blank">获取 Fast Media Sorter &amp; Sharing for Windows</a>
                 </details>
             </article>
             <article class="card scenario-card" data-scenario="offline">
@@ -656,6 +662,7 @@
                     target="_blank" rel="noopener">IzzyOnDroid</a>
             </div>
             <p class="shell-links"><a href="#download">查看其他 APK 版本和表盘</a></p>
+            <p class="shell-links">版本: <a href="#download">Lite</a> · <a href="#download">Photos</a> · <a href="#download">Legacy</a> · <a href="nolegal.html">noLegal</a> · <a href="documentation/vr/spatial-cinema-playback.html">VR</a> · <a href="docs/wear/">Wear OS</a> · <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">表盘</a></p>
             <ol class="quickstart">
                 <li>安装适合的版本并打开应用。</li>
                 <li>在欢迎向导中，或稍后在“设置”、“常规”、“主启动窗口”中选择“设备主屏幕”，并在 Android 询问时确认。</li>
@@ -693,7 +700,7 @@
             <summary>完整功能目录</summary>
         <!-- What it Replaces -->
         <h2 class="section-title" id="replaces">替代十几款应用</h2>
-        <p class="section-lead">Fast Media Sorter 集主屏幕、应用启动、媒体播放器、流媒体播放器和文件管理器于一体。无需为启动器、视频、音乐、图库、阅读、网络文件夹和云存储分别安装应用，你只需使用一个外壳和一套熟悉的操作。下面列出的应用只是功能的参照，并非比较排名。</p>
+        <p class="section-lead">Fast Media Sorter 集主屏幕、应用启动、媒体播放器、流媒体播放器和文件管理器于一体。无需为启动器、视频、音乐、图库、阅读、网络文件夹和云存储分别安装应用，你只需使用一个外壳和一套熟悉的操作。</p>
         <div class="cards-grid replaces-grid">
             <article class="card">
                 <div class="card-title-row">
@@ -701,7 +708,7 @@
                     <h3>主屏幕与设备</h3>
                 </div>
                 <ul class="detail-list repl-list">
-                    <li><strong>启动器 / 主屏幕</strong> <span class="repl-ref">(Nova Launcher、系统启动器)</span> - 包含文件夹、快捷方式和实时小工具的桌面，带开始菜单、固定和最近应用的任务栏。 <span class="repl-note">标准版</span></li>
+                    <li><strong>启动器 / 主屏幕</strong> <span class="repl-ref">(系统启动器)</span> - 包含文件夹、快捷方式和实时小工具的桌面，带开始菜单、固定和最近应用的任务栏。 <span class="repl-note">标准版</span></li>
                     <li><strong>应用抽屉</strong> <span class="repl-ref">(系统应用列表)</span> - 所有已安装应用集中在一个可搜索的列表中，按字母分组。</li>
                     <li><strong>时钟、天气和指南针</strong> <span class="repl-ref">(系统时钟和天气应用)</span> - 内置时钟、世界时钟、天气、地图、指南针和速度小工具。</li>
                     <li><strong>设备监视器</strong> <span class="repl-ref">(系统信息应用)</span> - 网络、电池、存储和内存小工具，以及实时的网络连接列表。</li>
@@ -714,14 +721,14 @@
                     <h3>查看与播放</h3>
                 </div>
                 <ul class="detail-list repl-list">
-                    <li><strong>视频播放器</strong> <span class="repl-ref">(MX Player、VLC)</span> - 视频、蓝光 TS/.m2ts、画中画、逐帧截图、Chromecast 投屏。</li>
-                    <li><strong>音频播放器</strong> <span class="repl-ref">(Poweramp、AIMP)</span> - 后台播放、歌词、MIDI、睡眠定时器、可视化效果、通知栏控制。</li>
-                    <li><strong>图库 / 图片查看器</strong> <span class="repl-ref">(QuickPic、Google Photos)</span> - 图片与 GIF、裁剪、滤镜、旋转。</li>
-                    <li><strong>PDF / EPUB 阅读器</strong> <span class="repl-ref">(Adobe Reader、Moon+ Reader)</span> - 电子书、章节目录、主题、朗读（TTS）。</li>
+                    <li><strong>视频播放器</strong> - 视频、蓝光 TS/.m2ts、画中画、逐帧截图、Chromecast 投屏。</li>
+                    <li><strong>音频播放器</strong> - 后台播放、歌词、MIDI、睡眠定时器、可视化效果、通知栏控制。</li>
+                    <li><strong>图库 / 图片查看器</strong> - 图片与 GIF、裁剪、滤镜、旋转。</li>
+                    <li><strong>PDF / EPUB 阅读器</strong> - 电子书、章节目录、主题、朗读（TTS）。</li>
                     <li><strong>幻灯片 / 电子相框</strong> - 配有背景音乐的循环照片播放，附带电子相框小组件。</li>
-                    <li><strong>电视媒体中心</strong> <span class="repl-ref">(Kodi、Nova Video Player)</span> - 支持方向键、键盘、鼠标、手柄，以及电视遥控器友好的浏览与播放。</li>
-                    <li><strong>VR 媒体播放器</strong> <span class="repl-ref">(Pigasus、Skybox VR)</span> - 立体 SBS/OU、VR180、360°、虚拟影院大屏幕。<span class="repl-note">VR 版</span></li>
-                    <li><strong>网络电台 / IPTV 播放器</strong> <span class="repl-ref">(TuneIn、Online Radio、RadioDroid、VLC network)</span> - “直播流”界面可播放 http/https 电台、HLS/DASH 及 RTSP 源；内嵌迷你播放器显示 ICY 正在播放信息；提供精选电台目录。</li>
+                    <li><strong>电视媒体中心</strong> - 支持方向键、键盘、鼠标、手柄，以及电视遥控器友好的浏览与播放。</li>
+                    <li><strong>VR 媒体播放器</strong> - 立体 SBS/OU、VR180、360°、虚拟影院大屏幕。<span class="repl-note">VR 版</span></li>
+                    <li><strong>网络电台 / IPTV 播放器</strong> - “直播流”界面可播放 http/https 电台、HLS/DASH 及 RTSP 源；内嵌迷你播放器显示 ICY 正在播放信息；提供精选电台目录。</li>
                 </ul>
             </article>
             <article class="card">
@@ -734,7 +741,7 @@
                     <li><strong>录音机</strong> - 语音备忘录，附带快速录音小组件。</li>
                     <li><strong>绘图编辑器</strong> - 画布、画笔、形状、文字，可自定义画笔颜色和粗细。
                     </li>
-                    <li><strong>文档 / 文本扫描器</strong> <span class="repl-ref">(Google Lens、CamScanner)</span> - 通过相机进行设备端 OCR 识别，支持区域裁剪。</li>
+                    <li><strong>文档 / 文本扫描器</strong> - 通过相机进行设备端 OCR 识别，支持区域裁剪。</li>
                 </ul>
             </article>
             <article class="card">
@@ -747,7 +754,7 @@
                     </li>
                     <li><strong>翻译工具</strong> <span class="repl-ref">(Google 翻译离线版)</span> - 完全离线翻译。</li>
                     <li><strong>计算器</strong> - 内置功能，可直接对所选文本中的表达式求值。<span class="repl-note">基础功能</span></li>
-                    <li><strong>投屏到电视</strong> <span class="repl-ref">(Google Home)</span> - 支持 Chromecast 投射视频和音频。</li>
+                    <li><strong>投屏到电视</strong> - 支持 Chromecast 投射视频和音频。</li>
                     <li><strong>设置备份工具</strong> - 导出和恢复应用设置、资源、收藏、计划任务、密码和登录信息。<span class="repl-note">仅限应用设置</span></li>
                 </ul>
             </article>
@@ -757,13 +764,13 @@
                     <h3>文件管理</h3>
                 </div>
                 <ul class="detail-list repl-list">
-                    <li><strong>文件管理器</strong> <span class="repl-ref">(Total Commander、ES File Explorer、Files by Google)</span> - 本地、网络和云端文件一站式管理。</li>
-                    <li><strong>FTP/SFTP/SMB 客户端</strong> <span class="repl-ref">(AndFTP、Solid Explorer)</span> - 支持 SSH 密钥和主机密钥锁定的网络资源。</li>
+                    <li><strong>文件管理器</strong> - 本地、网络和云端文件一站式管理。</li>
+                    <li><strong>FTP/SFTP/SMB 客户端</strong> - 支持 SSH 密钥和主机密钥锁定的网络资源。</li>
                     <li><strong>云端客户端</strong> <span class="repl-ref">(Google Drive、Dropbox、OneDrive)</span> - 将云盘作为媒体来源。</li>
-                    <li><strong>重复文件查找</strong> <span class="repl-ref">(Duplicate Files Fixer)</span> - 三阶段引擎：大小 -&gt; 哈希 -&gt; SHA-256。</li>
-                    <li><strong>回收站</strong> <span class="repl-ref">(Dumpster)</span> - 软删除，一键恢复。</li>
-                    <li><strong>压缩包解压</strong> <span class="repl-ref">(ZArchiver)</span> - 支持 ZIP 解压，包括带密码保护的压缩包。<span class="repl-note">基础功能</span></li>
-                    <li><strong>下载管理器</strong> <span class="repl-ref">(1DM、ADM)</span> - 粘贴链接，直接保存到您选择的文件夹。</li>
+                    <li><strong>重复文件查找</strong> - 三阶段引擎：大小 -&gt; 哈希 -&gt; SHA-256。</li>
+                    <li><strong>回收站</strong> - 软删除，一键恢复。</li>
+                    <li><strong>压缩包解压</strong> - 支持 ZIP 解压，包括带密码保护的压缩包。<span class="repl-note">基础功能</span></li>
+                    <li><strong>下载管理器</strong> - 粘贴链接，直接保存到您选择的文件夹。</li>
                     <li><strong>任务计划</strong> - 定时执行文件操作。</li>
                 </ul>
             </article>
@@ -858,6 +865,22 @@
             <article class="card">
                 <div>
                     <div class="card-title-row">
+                        <h3>Media Exchange Portal</h3>
+                    </div>
+                    <p class="card-summary">Which way fits you for moving and opening media between your own phone, watch, TV, VR headset and Windows PC.</p>
+                </div>
+                <details class="card-details">
+                    <summary>详情</summary>
+                    <ul class="detail-list">
+                        <li>Three ways to connect: your home network, the exchange server and live broadcast, with what works today.</li>
+                        <li>Which program does what on each device, and which edition has what.</li>
+                    </ul>
+                    <a href="docs/media-exchange-portal/" class="card-footer" target="_blank">Open the exchange portal</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
                         <h3>APK 版本与镜像</h3>
                     </div>
                     <p class="card-summary">版本说明，以及已编译安装包的 Google Drive ZIP 镜像。</p>
@@ -868,7 +891,7 @@
                         <li>说明各版本之间的差异以及备用 Google Drive 镜像。</li>
                         <li>一键下载位于下方的“下载 APK 安装包”部分。</li>
                     </ul>
-                    <a href="docs/DOWNLOADS_EN.html" class="card-footer" target="_blank">查看详情</a>
+                    <a href="docs/DOWNLOADS.html" class="card-footer" target="_blank">查看详情</a>
                 </details>
             </article>
         </div>
@@ -876,7 +899,7 @@
         <!-- Download APK Builds - live buttons from the latest GitHub Release (S0394) -->
         <h2 class="section-title" id="download">下载 APK 安装包</h2>
         <p class="section-lead">各版本最新可用的稳定 APK。版本号可能不同；如果未列出所需版本，请查看 GitHub 发布列表。</p>
-        <p class="section-lead">Android 会对从未见过的 APK 发出警告。<a href="docs/INSTALL_TRUST_EN.html" target="_blank" rel="noopener">为什么会出现此警告 - 以及应该点击什么</a>。</p>
+        <p class="section-lead">Android 会对从未见过的 APK 发出警告。<a href="docs/INSTALL_TRUST.html" target="_blank" rel="noopener">为什么会出现此警告 - 以及应该点击什么</a>。</p>
         <h3 class="edition-heading">头显和手表版本</h3>
         <div class="edition-download-grid">
             <article class="card edition-card" data-download-edition="noLegal">
@@ -1187,11 +1210,11 @@
             <h2 class="section-title">SZA 出品的更多工具</h2>
             <div class="tools-grid">
                 <!-- family-footer:begin - rendered from scripts/site/family-footer.json by scripts/site/render-family-footer.ps1; edit the source, not this block -->
-                <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>PC 媒体整理工具，向 Android 共享文件夹</span></a> <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Windows 电子书转换工具</span></a> <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Windows 键盘布局修复工具</span></a> <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Windows 存储命令行工具</span></a> <a href="https://serzhyale.github.io/StreamsPlayer/"><b>StreamsPlayer</b><span>Windows 流媒体播放器</span></a> <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>Windows 托盘启动器</span></a> <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>AI 开发方法论</span></a> <a href="https://sza.od.ua"><b>SZA</b><span>作品集主页</span></a>
+                <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>PC 媒体整理工具，向 Android 共享文件夹</span></a> <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Windows 电子书转换工具</span></a> <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Windows 键盘布局修复工具</span></a> <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Windows 存储命令行工具</span></a> <a href="https://serzhyale.github.io/StreamsPlayer/"><b>STREAMS Player</b><span>Windows 流媒体播放器</span></a> <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>Windows 托盘启动器</span></a> <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>AI 开发方法论</span></a> <a href="https://sza.od.ua"><b>SZA</b><span>作品集主页</span></a>
                 <!-- family-footer:end -->
             </div>
             <div class="footer-bottom">
-                <span>&copy; 2024-2026 Serhii Zhyhunenko · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">隐私政策</a> · <a href="docs/TERMS_OF_SERVICE.html">条款</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
+                <span>&copy; 2024-2026 <a href="https://sza.od.ua">Serhii Zhyhunenko</a> · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">隐私政策</a> · <a href="docs/TERMS_OF_SERVICE.html">条款</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
             </div>
         </div>
     </footer>

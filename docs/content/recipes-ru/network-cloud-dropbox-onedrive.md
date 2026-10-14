@@ -6,7 +6,7 @@ description: Как войти в учетные записи Dropbox и OneDriv
 category: Сеть и облачные хранилища
 category_slug: network
 ticket: S2950
-flavor: Редакции Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS). Требуется учетная запись Dropbox и/или Microsoft.
+availability_note: Редакции Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS). Требуется учетная запись Dropbox и/или Microsoft.
 recipe_number: "06"
 canonical_url: documentation/network/cloud-dropbox-onedrive-ru.html
 why: |
@@ -48,6 +48,7 @@ tips:
   - "**Перешли на новый телефон?** Авторизация OneDrive хранится в защищенном хранилище системы, которое не переносится автоматически, поэтому на новом устройстве достаточно войти в OneDrive еще раз - подробнее в рецепте [Добавление сетевых папок и облачных хранилищ](page:storage.network-and-cloud-sources)."
   - "**Ищете Google Диск?** Интеграции с Диском посвящен отдельный рецепт с описанием резервного копирования настроек и передачи файлов между устройствами: [Интеграция с Google Диском](page:network.cloud-google-drive)."
   - "**Общие принципы работы с сетью и облаками** подробно разобраны в руководстве [Добавление сетевых папок и облачных хранилищ](page:storage.network-and-cloud-sources)."
+  - "**Нужен общий «ящик» для всех своих устройств?** [Портал обмена медиа](../../docs/media-exchange-portal/clouds-ru.html) показывает, как Google Drive, Dropbox и OneDrive соотносятся с другими способами переносить медиа между устройствами."
 next_recipes:
   - title: Интеграция с Google Диском
     url: page:network.cloud-google-drive
@@ -65,5 +66,7 @@ next_recipes:
     badge_type: docs
     description: Создание резервных копий и полное восстановление настроек и ресурсов.
 ---
+
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Подключите учетные записи Dropbox и OneDrive, чтобы добавить нужные папки как ресурсы на главный экран рядом с локальными файлами и Google Диском - с удобной авторизацией, быстрым выходом и понятными сообщениями об ошибках от обоих [облачных провайдеров](term:cloud-provider).

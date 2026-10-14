@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.ui.tourist.helpers.TouristActionsManager
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristHeroTileManager
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristPermissionManager
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristSecondaryTilesAdapter
+import com.sza.fastmediasorter.ui.tourist.helpers.TouristTileContentManager
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristTileValueFormatter
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -56,18 +57,21 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
             unitSystemProvider.value
         }
 
-        heroTileManager = TouristHeroTileManager(binding, valueFormatter) { focusedTile ->
-            when (focusedTile) {
-                TouristTileType.SPEED -> viewModel.resetSpeedAndTrip()
-                TouristTileType.STEPS -> viewModel.resetSteps()
-                TouristTileType.TRIP_DISTANCE -> viewModel.resetTrip()
-                else -> {}
-            }
-        }
+        val contentManager = TouristTileContentManager(this, valueFormatter)
+
+        heroTileManager = TouristHeroTileManager(
+            binding,
+            contentManager,
+            onResetClicked = { focusedTile -> viewModel.resetFor(focusedTile) },
+            // S4202: the STOPWATCH tile runs inline; the row's three buttons are its whole control surface.
+            onStopwatchToggleClicked = { viewModel.toggleStopwatch() },
+            onStopwatchResetClicked = { viewModel.resetStopwatch() },
+            onStopwatchOpenClicked = { actionsManager.launchStopwatch() },
+        )
         actionsManager = TouristActionsManager(this)
         permissionManager = TouristPermissionManager(this, binding) { permissionLauncher.launch(it) }
 
-        secondaryTilesAdapter = TouristSecondaryTilesAdapter(valueFormatter) { tileType ->
+        secondaryTilesAdapter = TouristSecondaryTilesAdapter(contentManager) { tileType ->
             viewModel.selectTile(tileType)
         }
 
@@ -87,14 +91,7 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
             actionsManager.shareLocation(state.latitude, state.longitude)
         }
 
-        binding.btnResetTrip.setOnClickListener {
-            val state = viewModel.state.value
-            when (state.focusedTile) {
-                TouristTileType.SPEED -> viewModel.resetSpeedAndTrip()
-                TouristTileType.STEPS -> viewModel.resetSteps()
-                else -> viewModel.resetTrip()
-            }
-        }
+        binding.btnResetTrip.setOnClickListener { viewModel.resetFor(viewModel.state.value.focusedTile) }
 
         // S3216: the dashboard is where the owner already is when something goes wrong outdoors, so
         // the distress signal is one tap from it rather than back through the programs menu.
@@ -102,8 +99,12 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
 
         binding.cardHeroTile.setOnClickListener {
             val state = viewModel.state.value
-            if (state.focusedTile == TouristTileType.COORDINATES) {
-                actionsManager.copyCoordinates(state.latitude, state.longitude)
+            when (state.focusedTile) {
+                TouristTileType.COORDINATES -> actionsManager.copyCoordinates(state.latitude, state.longitude)
+                // S4202: STOPWATCH dropped from here - the tile is a stopwatch itself, and launching the
+                // full program moved to the row's dedicated button.
+                TouristTileType.COUNTER -> actionsManager.launchCounter()
+                else -> Unit
             }
         }
     }

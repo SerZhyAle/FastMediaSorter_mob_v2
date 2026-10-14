@@ -6,7 +6,7 @@ description: How to listen to an internet radio station while you keep browsing,
 category: Internet Streams
 category_slug: streams
 ticket: S2955
-flavor: Standard, noLegal, Legacy and VR
+availability: SUPPORT_STREAMS
 recipe_number: "05"
 canonical_url: documentation/streams/live-stream-playback.html
 why: |
@@ -134,6 +134,7 @@ tips:
   - "**A channel keeps spinning or shows a failure dialog?** See [when the connection is weak](page:streams.hls-dash-buffering) for what the app does by itself and what the dialogs mean."
   - "**Want the details of a channel?** Its menu has **About this channel**: the address, where the channel came from, when it last played and, while it plays, the picture size, codecs and the incoming speed. **Copy all** copies it as text."
   - "**A channel from an old playlist with an unusual type** is played according to its address, so it behaves the same everywhere in the app."
+  - "**Want a phone or a watch to go on air for your other devices?** The [media exchange portal](../../docs/media-exchange-portal/live-broadcast.html) explains the routes between devices and marks what is not available yet."
 next_recipes:
   - title: When the connection is weak
     url: page:streams.hls-dash-buffering
@@ -156,5 +157,7 @@ next_recipes:
     badge_type: docs
     description: Keep the channels you play most at the top.
 ---
+
+<sub class="doc-stamp">26.10.10 14:45</sub>
 
 Tap a [channel](term:channel) and it plays: radio inside the list with the current song in view, TV and video full screen with only the controls that make sense for a live picture, and music that keeps going when you leave the app.

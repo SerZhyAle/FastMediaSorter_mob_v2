@@ -1,9 +1,11 @@
+<sub class="doc-stamp">26.10.11 02:15</sub>
+
 # Pointer - `DIAGNOSTIC-REPORT`
 
 | | |
 | --- | --- |
 | **Id** | `DIAGNOSTIC-REPORT` |
-| **Version** | 0.12, draft. Owner: StreamsPlayer |
+| **Version** | 0.13, draft. Owner: StreamsPlayer |
 | **Home** | `diagnostic-report/README.md` in the shared contracts catalog |
 | **Role here** | producer and consumer (sanitized diagnostic logs and export bundle) |
 
@@ -20,6 +22,7 @@
 - The 16 MB, 1 MB head and 7 MB tail ceilings are maxima, and a live session log is never pruned.
 - Sanitize personal filesystem paths in logs: the app data directory becomes `<APP_DATA>`; Android has no user-named directory for `<USER>`.
 - Generate diagnostic bundles only upon explicit user action (no silent background telemetry).
+- Treat the exchange account values of section 10 as private diagnostic values: the device token, the pairing code, the exchange login and server address, and every certificate fingerprint including the old and the replacement pin become `[REDACTED]` at the log sink and again when a bundle is exported. An exchange account file is never packed, and an environment summary names no account identity.
 
 ## Where it lives here
 
@@ -28,3 +31,4 @@
 - `app_v2/.../ui/settings/helpers/GeneralSettingsLogHelper.kt`.
 - `app_v2/.../core/security/SecretMasker.kt` - rule 3 redaction for every phone log line.
 - `wear/.../core/logging/WearLogTree.kt` (`WearSecretMasker`) - the same rules on the watch.
+- `app_v2/.../data/remote/exchange/` - the code that holds the values section 10 names: the account entry (host, login, pinned fingerprint), the token store and the enrollment credential.

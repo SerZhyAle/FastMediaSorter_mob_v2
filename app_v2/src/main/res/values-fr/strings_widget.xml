@@ -23,7 +23,7 @@
     <string name="widget_capture_ocr_panel_description">Accès rapide aux photos de l\'appareil photo et à la reconnaissance optique de caractères (OCR).</string>
     <string name="widget_capture_ocr_panel_label">Capture et OCR</string>
     <string name="widget_continue_reading_description">Reprendre le diaporama à partir de la dernière position</string>
-    <string name="widget_continue_reading_label">Lire la suite</string>
+    <string name="widget_continue_reading_label">Continuer la lecture</string>
     <string name="widget_favorites_description">Accès rapide aux fichiers favoris</string>
     <string name="widget_favorites_label">Favoris</string>
     <string name="widget_pin_not_supported">L\'épinglage de widgets n\'est pas pris en charge sur cet appareil.</string>

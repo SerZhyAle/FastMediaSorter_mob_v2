@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.03 08:45</sub>
+
 # Google Play technical quality thresholds - February 2027 (S2100)
 
 Google Play begins enforcing quality thresholds on three metrics from **February 2027**. Exceeding a
@@ -327,7 +329,7 @@ be judged against.
 
 <!-- s2917:measured:play-vitals:begin -->
 
-Measured 2026-10-03 (UTC) over 2026-09-04..2026-10-01 America/Los_Angeles. App verdict: `insufficient-data`. Rates as the API returns them, read as fraction (S2917 research 6).
+Measured 2026-10-14 (UTC) over 2026-09-15..2026-10-12 America/Los_Angeles. App verdict: `insufficient-data`. Rates as the API returns them, read as fraction (S2917 research 6).
 
 | Freshest day | versionCode | Crash, user-perceived 28d | ANR, user-perceived 28d | LMK, user-perceived 28d | Distinct users | Memory | Anomalies | Band colour |
 |---|---|---|---|---|---|---|---|---|

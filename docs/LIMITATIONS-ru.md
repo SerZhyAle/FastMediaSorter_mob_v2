@@ -1,8 +1,10 @@
 ---
 layout: default
 title: "⚠️ Ограничения программы"
-permalink: /docs/LIMITATIONS_RU.html
+permalink: /docs/LIMITATIONS-ru.html
 ---
+
+<sub class="doc-stamp">26.10.06 21:33</sub>
 
 # ⚠️ Ограничения программы
 

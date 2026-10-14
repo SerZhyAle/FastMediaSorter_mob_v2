@@ -6,7 +6,6 @@ description: Как открыть изображение на весь экра
 category: Изображения, аудио и слайд-шоу
 category_slug: images
 ticket: S2952
-flavor: Все редакции
 recipe_number: "01"
 canonical_url: documentation/images/viewer-and-gestures-ru.html
 why: |
@@ -132,5 +131,7 @@ next_recipes:
     badge_type: docs
     description: Быстрый поиск нужных снимков с миниатюрами, гибкой сортировкой и фильтрами.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 [Просмотрщик изображений](term:image-viewer) показывает фотографии на полном экране. Листайте снимки свайпом, масштабируйте детали двумя пальцами, временно поворачивайте кадры и ставьте анимации на паузу - не изменяя исходные файлы на диске.

@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.10.11 18:16</sub>
+
 # FastMediaSorter v2 - Technical Requirements & Stack Reference
 
 **Last Updated**: July 19, 2026
@@ -129,7 +131,7 @@
 | `room-compiler`                | 2.7.0      | Room annotation processor          |
 | `datastore-preferences`        | 1.1.7      | Key-value preferences store        |
 | `paging-runtime-ktx`           | 3.2.1      | Paging 3 library                   |
-| Room DB version                  | 60         | Current schema version (see AppDatabase.kt) |
+| Room DB version                  | 62         | Current schema version (see AppDatabase.kt) |
 
 ### 4.7 Media Playback
 
@@ -453,7 +455,7 @@ Detailed live complexity snapshot is maintained in `dev/PRODUCT_COMPLEXITY_ASSES
 
 | Aspect                  | Value                 | Notes                                           |
 |:------------------------|:----------------------|:------------------------------------------------|
-| Room DB version        | 60                    | Current schema in `AppDatabase`                |
+| Room DB version        | 62                    | Current schema in `AppDatabase`                |
 | Number of entities     | 27                    | Current `@Database(entities = ..)` set         |
 | Migrations             | 52 migrations         | Registered in DatabaseModule; through v53      |
 

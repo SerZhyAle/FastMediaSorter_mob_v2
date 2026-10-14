@@ -38,7 +38,7 @@
 
 .NOTES
     Exit codes (S1070):
-      0 - no probes found in the module's src/main.
+      0 - no probes found in the module's src/main; or, with -Module app_v2, NOT APPLICABLE (S4130).
       1 - one or more probes found; the release must not proceed.
       2 - cannot verify: the module directory is absent, or the shared harness library is unavailable.
 #>
@@ -58,7 +58,9 @@ $ErrorActionPreference = 'Stop'
 # Running this gate against app_v2 would block the phone release for probes that Step 12c is
 # designed to handle, so it is a deliberate no-op.
 if ($Module -eq 'app_v2') {
-    Write-Host "assert-no-release-probes: app_v2 skipped (phone release handles probes via Step 12c)."
+    # S4130: CHECK-VERDICT 0.12 item A - the caller's -Module choice switched the work off, so the
+    # line says NOT APPLICABLE and an aggregator counts it as skipped, never as passed.
+    Write-Host "assert-no-release-probes: NOT APPLICABLE (-Module app_v2; the phone release removes probes at /skill-release Step 12c)"
     exit 0
 }
 

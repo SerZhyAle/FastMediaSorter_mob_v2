@@ -1,15 +1,17 @@
 ---
 layout: default
 title: "Обзор архитектуры"
-permalink: /docs/V2_architecture_overview_RU.html
+permalink: /docs/V2_architecture_overview-ru.html
 lang: ru
 ---
+
+<sub class="doc-stamp">26.10.13 14:51</sub>
 
 <div lang="ru" markdown="1">
 
 # Обзор архитектуры
 
-[Техническая спецификация](V2_Specification_RU.html) | [Стек, EN](TECH_STACK.html) | [Требования](TECHNICAL_REQUIREMENTS_RU.html)
+[Техническая спецификация](V2_Specification-ru.html) | [Стек, EN](TECH_STACK.html) | [Требования](TECHNICAL_REQUIREMENTS-ru.html)
 
 Приложение использует MVVM, Hilt, репозитории и use case. Поток выполнения близок к Clean Architecture, но зависимости при компиляции намеренно прагматичны.
 
@@ -21,7 +23,7 @@ ViewModel предоставляет наблюдаемое состояние �
 
 ## Модули
 
-- `app_v2`: основное приложение и восемь вариантов телефона/гарнитуры; XML, ViewBinding и существующие поверхности Compose.
+- `app_v2`: основное приложение и его варианты для телефона и гарнитуры (`docs/FLAVOR_MATRIX.md`); XML, ViewBinding и существующие поверхности Compose.
 - `wear`: приложение Wear OS на Compose, редакции `standard` и `noLegal`.
 - `watchface`: отдельный ресурсный пакет Watch Face Format v4 для Wear OS 6 / API 36 и новее.
 - `lint-rules`: проверки Android lint при сборке.

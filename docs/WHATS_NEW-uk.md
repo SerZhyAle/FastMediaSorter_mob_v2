@@ -1,12 +1,51 @@
 ---
 layout: default
 title: "Що нового у FastMediaSorter v2"
-permalink: /docs/WHATS_NEW_UK.html
+permalink: /docs/WHATS_NEW-uk.html
 ---
+
+<sub class="doc-stamp">26.10.06 23:40</sub>
 
 # Що нового у FastMediaSorter v2
 
-**Поточний реліз: 2.61.0041.544** (жовтень 2026)
+**Поточний реліз: 2.61.0141.503** (жовтень 2026)
+
+> Зміни з версії 2.61.0041.544
+
+---
+
+## Що нового
+
+- **Більше плиток у «Туристі»** - тиск, висота, похід, курс, вітер і УФ-індекс. <!-- af: programs-tools.tourist-extra-sensor-tiles -->
+- **Лічильник натискань** - рахуйте дотиками й зберігайте історію за датами. <!-- af: programs-tools.tourist-tally-counter -->
+- **Секундомір у «Туристі»** - старт, стоп і скидання просто на панелі. <!-- af: programs-tools.tourist-inline-stopwatch-tile -->
+- **Автозапуск секундоміра** - відкривається вже запущеним на телефоні й годиннику. <!-- af: programs-tools.automatic-start-on-launch -->
+- **Картки системної інформації** - пошук, розгортання й копіювання розділів. <!-- af: diagnostics.system-information-searchable-section-cards, diagnostics.system-information-actions-in-the-toolbar -->
+- **Підтримка Googlebook** - дії «Нове вікно» ввімкнено за промовчанням. <!-- af: launcher.googlebook-support -->
+- **Чистіші фільтри трансляцій** - один пункт на мову, країни з прапорами. <!-- af: streams.closed-language-country-facets -->
+- **Кнопки сторінок для письма справа наліво** - дзеркальні в PDF, EPUB і тексті. <!-- af: documents.rtl-mirrored-paging-buttons -->
+- **Сусідні файли з інших застосунків** - «Назад» і «Далі» йдуть текою. <!-- af: media-player.standalone-neighbour-file-paging -->
+- **Адреса SFTP-роздачі через Google Диск** - за бажанням, за промовчанням вимкнено. <!-- af: network-cloud.sftp-share-rendezvous-via-google-drive, network-cloud.sftp-share-drive-access-opt-in -->
+- **Миттєвий перший кадр у трансляції** - нові глядачі бачать картинку одразу. <!-- af: broadcast.instant-first-picture-for-new-viewers -->
+- **Заглушка зображення в EPUB** - замість зниклого зображення видно його опис. <!-- af: documents.epub-missing-image-placeholder -->
+- **Шторка сповіщень двома половинами** - ліворуч сповіщення, праворуч швидкі налаштування. <!-- af: launcher.split-notification-shade-swipe -->
+- **Показники «Туриста» на годиннику** - тиск, висота, похід, курс і світло. <!-- af: wear-os.barometer-trip-navigation-and-environment-readings-in-the -->
+- **Годинник на темному екрані** - дотик показує час і дату. <!-- af: wear-os.dark-screen-tap-clock-and-brightness -->
+- **Перемикач повороту на годиннику** - екран не обертається слідом за рукою. <!-- af: wear-os.screen-rotation-toggle -->
+
+## Що виправлено
+
+- Видалення із загального сховища просить системне підтвердження замість помилки.
+- Копіювання між хмарами зберігає початкову назву файлу.
+- Копіювання й перенесення через SFTP тривають у фоні.
+- Компас «Туриста» працює на телефонах без комбінованого датчика орієнтації.
+- Резервна копія Android більше не містить збережені мережеві входи.
+- Екрани «Туриста» на годиннику більше не падають на Wear OS API 28-29.
+- Списки «Головна» і «Трансляції» на годиннику вміщуються в кругле скло.
+
+---
+
+## Попередній реліз: 2.61.0041.544 (жовтень 2026)
 
 > Зміни з версії 2.61.0031.801
 
@@ -14,8 +53,8 @@ permalink: /docs/WHATS_NEW_UK.html
 
 ## Що нового
 
-- **Уповільнене відео та масштаб** - швидкості 0.1x і 0.3x, збільшення щипком і зсув кадру.
-- **Розміщення плиток лаунчера** - нові застосунки потрапляють до розділу застосунків Android.
+- **Уповільнене відео та масштаб** - швидкості 0.1x і 0.3x, збільшення щипком і зсув кадру. <!-- af: video-player.video-chrome-slow-playback-and-gesture-zoom -->
+- **Розміщення плиток лаунчера** - нові застосунки потрапляють до розділу застосунків Android. <!-- af: launcher.section-aware-placement-of-new-app-shortcut-and -->
 
 ## Що виправлено
 

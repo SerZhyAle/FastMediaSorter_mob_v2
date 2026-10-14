@@ -6,7 +6,8 @@ description: How to play a video full screen or with the command panel, move bet
 category: Video & Media Player
 category_slug: player
 ticket: S2951
-flavor: All editions except Photos; saving frames and color controls in Standard, noLegal, Legacy and VR
+availability: SUPPORT_VIDEO
+availability_note: All editions except Photos; saving frames and color controls in Standard, noLegal, Legacy and VR
 recipe_number: "01"
 canonical_url: documentation/player/video-playback-controls.html
 why: |
@@ -44,6 +45,8 @@ steps:
       - Turn the phone sideways and the player goes full screen by itself; turn it back upright and the command panel returns. The video keeps playing.
 
       While a video plays, the top buttons hide together with the bottom playback controls. Tap the picture to bring them back. This works in portrait and landscape, both inside the app and when opening a video from another app. Change the embedded player's delay with **Player panel auto-hide duration (s)** in **Settings**, the **Player** tab - anything from 1 to 600 seconds.
+
+      A file another app hands over does not open alone: the player reads the folder it lies in, so next, previous, random and the slideshow carry on through the files next to it.
   - number: 3
     id: touch-zones
     title: Tap and swipe instead of hunting for buttons
@@ -161,5 +164,7 @@ next_recipes:
     badge_type: video
     description: Play the video on your TV.
 ---
+
+<sub class="doc-stamp">26.10.10 14:37</sub>
 
 Play videos full screen or with the command panel, move between them with taps and swipes, zoom in, resume where you stopped, save still frames as pictures and sort your videos while you watch.

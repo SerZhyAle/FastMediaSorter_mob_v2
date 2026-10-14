@@ -6,7 +6,6 @@ description: Как читать текстовые файлы, документ
 category: Документы и текстовый редактор
 category_slug: documents
 ticket: S2953
-flavor: Standard, noLegal, Legacy, VR и FOSS
 recipe_number: "03"
 canonical_url: documentation/documents/text-code-editor-ru.html
 why: |
@@ -143,5 +142,7 @@ next_recipes:
     badge_type: docs
     description: Калькулятор и другие полезные мини-инструменты в составе приложения.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Читайте текстовые файлы, Markdown и логи с комфортом, вносите правки на лету, находите и заменяйте слова, создавайте заметки в любых папках и отправляйте текст в Google Keep, калькулятор, синтезатор речи или переводчик - без сторонних редакторов.

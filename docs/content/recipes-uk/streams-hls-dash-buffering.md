@@ -6,7 +6,6 @@ description: Що FastMediaSorter робить сам, коли трансляц
 category: Інтернет-трансляції
 category_slug: streams
 ticket: S2955
-flavor: Standard, noLegal, Legacy і VR
 recipe_number: "06"
 canonical_url: documentation/streams/hls-dash-buffering-uk.html
 why: |
@@ -114,5 +113,7 @@ next_recipes:
     badge_type: docs
     description: Перевіряйте канали масово і прибирайте ті, що більше не відтворюються.
 ---
+
+<sub class="doc-stamp">26.10.07 01:10</sub>
 
 Слабке з'єднання не мусить псувати живу [трансляцію](term:stream): FastMediaSorter буферизує, перепідключається, наздоганяє пряме ТБ і сам підлаштовує якість картинки, а також прямо каже, коли це ваше з'єднання, а коли - канал.

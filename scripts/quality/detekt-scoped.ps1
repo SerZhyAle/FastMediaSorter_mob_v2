@@ -40,6 +40,10 @@
     Housekeeping mode. See the "Fix mode" note below: it judges first, corrects only files that
     carry a finding, and restores any file the correction made worse.
 
+.PARAMETER ReportDir
+    Directory for the per-module XML report, repo-relative or absolute. Default temp/detekt-scoped.
+    A caller running beside other sessions passes a private one.
+
 .PARAMETER Json
     Emit the findings as JSON instead of human-readable lines.
 
@@ -82,6 +86,10 @@ param(
     # -Fix only: where to record that the judging pass found the whole set clean. The caller can
     # then skip the separate preflight, which re-runs this same analyser over these same files.
     [string]   $VerdictPath,
+    # S4190: where the per-module XML report goes. A caller that runs beside other sessions (the
+    # PostToolUse hook observe-kt-edit-detekt.ps1) passes a private directory, because two runs
+    # sharing temp/detekt-scoped/<module>.xml would read each other's findings.
+    [string]   $ReportDir,
     [switch]   $Json
 )
 
@@ -157,7 +165,9 @@ $cpCachePath = $cli.MemoPath
 $script:KotlinOrder = @($cli.KotlinCandidates)
 $script:PreferredKotlin = if ($script:KotlinOrder.Count -gt 0) { $script:KotlinOrder[0] } else { $null }
 
-$reportDir = Join-Path $RepoRoot 'temp/detekt-scoped'
+$reportDir = if ($ReportDir) {
+    if ([System.IO.Path]::IsPathRooted($ReportDir)) { $ReportDir } else { Join-Path $RepoRoot $ReportDir }
+} else { Join-Path $RepoRoot 'temp/detekt-scoped' }
 if (-not (Test-Path $reportDir)) { New-Item -ItemType Directory -Path $reportDir -Force | Out-Null }
 
 <#

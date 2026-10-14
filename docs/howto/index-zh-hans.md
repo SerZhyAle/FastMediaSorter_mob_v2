@@ -3,6 +3,8 @@ layout: default
 title: "分步指南 - FastMediaSorter v2"
 permalink: /docs/howto/index-zh-hans.html
 ---
+<sub class="doc-stamp">26.09.25 02:11</sub>
+
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> 分步指南

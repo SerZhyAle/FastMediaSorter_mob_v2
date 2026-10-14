@@ -3,6 +3,8 @@ layout: default
 title: "Listen to Music on Your Watch - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music.html
 ---
+<sub class="doc-stamp">26.09.24 10:01</sub>
+
 # <img src="../icons/doc/ic_audio.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Listen to Music on Your Watch
 
 > **Level:** Beginner &bull; **Time:** ~5 minutes &bull; **Device:** Wear OS smartwatch (paired with Android phone)

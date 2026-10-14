@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- S4134: distinct name in the watch face picker for the debug dev build -->
+    <string name="watch_face_name">FastMediaSorter (Debug)</string>
+</resources>

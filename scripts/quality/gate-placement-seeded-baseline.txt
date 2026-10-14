@@ -27,7 +27,6 @@ assert-fast-gates.ps1
 assert-fgs-notifications.ps1
 assert-file-line-ceiling.ps1
 assert-flavor-binding-coverage.ps1
-assert-flavor-count-prose.ps1
 assert-flavor-flags-not-growing.ps1
 assert-flavor-matrix-docs.ps1
 assert-focus-highlight.ps1
@@ -74,7 +73,6 @@ assert-script-cheatsheet-sync.ps1
 assert-script-described.ps1
 assert-script-parses.ps1
 assert-script-references.ps1
-assert-sdk-pin-claims.ps1
 assert-sensitive-settings-annotated.ps1
 assert-settings-catalog-complete.ps1
 assert-settings-doc-sync.ps1

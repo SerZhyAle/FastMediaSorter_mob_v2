@@ -147,7 +147,7 @@
     <string name="welcome_streams_catalog_failed">目录未下载 - 您可以手动添加直播流</string>
     <string name="welcome_func_gestures">启用手势</string>
     <string name="welcome_func_gestures_summary">从左边缘滑动：菜单、截图、静默截图</string>
-    <string name="welcome_networks_companion_note">媒体存在 Windows 电脑上？Fast Media Sorter for Windows 只需几次点击就能把那些文件夹共享到这里，无需搭建服务器。</string>
+    <string name="welcome_networks_companion_note">媒体存在 Windows 电脑上？Fast Media Sorter &amp; Sharing for Windows 只需几次点击就能把那些文件夹共享到这里，无需搭建服务器。</string>
     <string name="welcome_networks_companion_button">获取 Windows 版应用</string>
     <string name="welcome_networks_example_smb">例如：Windows 电脑上的共享文件夹、Synology 或 QNAP 之类的 NAS，或插在路由器上的 USB 硬盘。</string>
     <string name="welcome_networks_example_ftp">例如：通过 FTP 访问的主机账户、通过 SFTP 访问的自建家庭服务器，或把照片上传到 FTP 目录的相机。</string>

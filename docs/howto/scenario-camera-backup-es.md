@@ -3,6 +3,8 @@ layout: default
 title: "Copia de Seguridad Programada de la Cámara al PC - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-es.html
 ---
+<sub class="doc-stamp">26.09.25 02:12</sub>
+
 <div lang="es" dir="ltr" markdown="1">
 
 # 📷 Copia de Seguridad Programada de la Cámara al PC

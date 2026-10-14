@@ -1,3 +1,5 @@
+<sub class="doc-stamp">26.05.18 17:59</sub>
+
 # S0116 instrumentation fixtures
 
 These files are PLACEHOLDERS. Replace with real binaries before running

@@ -336,9 +336,11 @@ function Invoke-RunnerSupervisor {
         if ($WhatIf) { Write-WatchdogLine "WOULD START runner instance $instance with model policy $policy"; continue }
         $out = Join-Path $logDir "queue-$instance.out.txt"
         $err = Join-Path $logDir "queue-$instance.err.txt"
+        # -Quiet: a child's own stdout and stderr go to temp/spec-queue/<id>.log, the only record of why
+        # it exited non-zero; these two files keep the runner's lines alone (S4191).
         $proc = Start-Process -FilePath 'pwsh' `
             -ArgumentList @('-NoProfile', '-File', 'scripts/utils/run-spec-queue.ps1',
-                '-ModelPolicy', $policy, '-Instance', $instance, '-TimeoutMinutes', '60') `
+                '-ModelPolicy', $policy, '-Instance', $instance, '-TimeoutMinutes', '60', '-Quiet') `
             -WorkingDirectory $repoRoot -RedirectStandardOutput $out -RedirectStandardError $err `
             -WindowStyle Hidden -PassThru
         # The policy is named in the line because the journal it produces is compared against another

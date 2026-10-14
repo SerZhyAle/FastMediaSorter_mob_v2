@@ -1,8 +1,10 @@
 ---
-layout: default
+layout: doc
 title: "Terms of Service"
 permalink: /docs/TERMS_OF_SERVICE.html
 ---
+<sub class="doc-stamp">26.10.07 02:56</sub>
+
 # Terms of Service
 
 **Last Updated:** November 30, 2024

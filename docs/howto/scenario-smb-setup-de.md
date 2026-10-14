@@ -3,6 +3,8 @@ layout: default
 title: "Mit NAS / Windows-Freigabe verbinden (SMB) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-smb-setup-de.html
 ---
+<sub class="doc-stamp">26.09.25 02:19</sub>
+
 <div lang="de" dir="ltr" markdown="1">
 
 # 🖥️ Mit Heim-NAS / Windows-Freigabe verbinden (SMB)

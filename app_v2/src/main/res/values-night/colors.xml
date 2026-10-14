@@ -265,4 +265,9 @@
     <color name="tourist_tile_bg_sun_time">#332800</color>
     <color name="tourist_tile_bg_weather">#002233</color>
     <color name="tourist_tile_bg_dew_point">#002B26</color>
+    <color name="tourist_tile_bg_group_pressure">#14193A</color>
+    <color name="tourist_tile_bg_group_trip">#2A1233</color>
+    <color name="tourist_tile_bg_group_navigation">#00302A</color>
+    <color name="tourist_tile_bg_group_environment">#2E2A00</color>
+    <color name="tourist_tile_bg_group_weather">#0A2240</color>
 </resources>
