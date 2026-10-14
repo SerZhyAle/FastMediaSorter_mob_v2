@@ -125,6 +125,8 @@ class PhoneWearListenerService : WearableListenerService() {
     // decision - and this class has no room for another function either way.
     @Inject lateinit var wearDeleteRequestHandler: WearDeleteRequestHandler
 
+    @Inject lateinit var wearResourcePassAckHandler: WearResourcePassAckHandler
+
     @Inject lateinit var wearTouristHealthReceiver: WearTouristHealthReceiver
 
     @Inject lateinit var wearTouristWeatherRequestHandler: WearTouristWeatherRequestHandler
@@ -222,9 +224,10 @@ class PhoneWearListenerService : WearableListenerService() {
             // handler claims its own paths and reports whether it did, so a route lands with exactly
             // one of them and adding the next one costs no function here.
             else -> applicationScope.launch {
-                if (!sosCommandFromWatchHandler.handle(event.path, event.data)) {
+                val handled = sosCommandFromWatchHandler.handle(event.path, event.data) ||
                     wearDeleteRequestHandler.handle(event.path, event.data)
-                }
+                // S4228: the answer to a resource pass joins the same chain for the same reason.
+                if (!handled) wearResourcePassAckHandler.handle(event.path, event.data)
             }
         }
     }

@@ -4137,7 +4137,7 @@
     <string name="sftp_server_notification_title">SFTP-сервер включён</string>
     <string name="sftp_server_notification_starting">Запуск..</string>
     <string name="sftp_server_notification_address">Подключайтесь к %1$s</string>
-    <string name="sftp_server_notification_no_network">Подключите телефон к Wi-Fi, чтобы другие устройства могли к нему подключиться</string>
+    <string name="sftp_server_notification_no_network">Нет Wi-Fi - другие устройства подключаются к телефону через сервер обмена или через Google Drive</string>
     <string name="sftp_server_action_stop">Остановить</string>
     <string name="settings_sftp_server_title">Доступ по SFTP</string>
     <string name="settings_sftp_server_enable_title">SFTP-сервер</string>
@@ -4145,7 +4145,7 @@
     <string name="settings_sftp_server_status_off">Выключен</string>
     <string name="settings_sftp_server_status_starting">Запуск..</string>
     <string name="settings_sftp_server_status_running">Работает: %1$s</string>
-    <string name="settings_sftp_server_status_no_network">Работает, но телефон не подключён к Wi-Fi - другие устройства пока его не видят</string>
+    <string name="settings_sftp_server_status_no_network">Работает, но телефон не в сети Wi-Fi - другие устройства подключаются к нему через сервер обмена или через Google Drive</string>
     <string name="settings_sftp_server_failure_no_folders">Добавьте хотя бы одну папку и снова включите сервер</string>
     <string name="settings_sftp_server_failure_no_credential">Добавьте открытый ключ или включите вход по паролю, затем снова включите сервер</string>
     <string name="settings_sftp_server_failure_port">Порт %1$d занят другим приложением - выберите другой</string>
@@ -4338,8 +4338,6 @@
     <string name="settings_sftp_exchange_status_connecting">Подключение к серверу обмена..</string>
     <string name="settings_sftp_exchange_status_registered">Доступен отовсюду через %1$s</string>
     <string name="settings_sftp_exchange_status_registered_port">Доступен отовсюду через %1$s. Другие SFTP-программы: %2$s</string>
-    <string name="settings_sftp_exchange_status_unreachable">Сервер обмена недоступен, повторная попытка</string>
-    <string name="settings_sftp_exchange_status_certificate">Сервер обмена предъявил другой сертификат, подключение остановлено</string>
     <string name="settings_sftp_exchange_new_link">Новая ссылка доступа</string>
     <string name="settings_sftp_exchange_new_link_done">Коды, выданные раньше, больше не открывают этот сервер</string>
     <string name="settings_sftp_server_legacy_qr">Код для старых версий приложения</string>
@@ -4447,4 +4445,10 @@
     <string name="tourist_stopwatch_action_stop">Стоп</string>
     <string name="tourist_stopwatch_action_reset">Сброс</string>
     <string name="tourist_stopwatch_action_open_full">Открыть секундомер</string>
+    <string name="sftp_server_notification_paused_title">Раздача приостановлена</string>
+    <string name="sftp_server_notification_paused_text">Android приостановил раздачу по суточному пределу. Откройте приложение, чтобы продолжить.</string>
+    <string name="settings_sftp_server_status_paused">Приостановлено Android - продолжится, когда вы откроете приложение</string>
+    <string name="broadcast_failed_file">Этот файл нельзя вещать - он не открылся или не содержит проигрываемой дорожки</string>
+    <string name="broadcast_notification_file_title">Вещание файла</string>
+    <string name="broadcast_notification_file_text">Идёт вещание файла</string>
 </resources>

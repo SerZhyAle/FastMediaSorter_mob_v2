@@ -3886,8 +3886,6 @@
     <string name="settings_sftp_exchange_status_connecting">एक्सचेंज सर्वर से कनेक्ट हो रहा है..</string>
     <string name="settings_sftp_exchange_status_registered">%1$s के ज़रिए कहीं से भी पहुँच योग्य</string>
     <string name="settings_sftp_exchange_status_registered_port">%1$s के ज़रिए कहीं से भी पहुँच योग्य। अन्य SFTP ऐप: %2$s</string>
-    <string name="settings_sftp_exchange_status_unreachable">एक्सचेंज सर्वर तक पहुँच नहीं हो पा रही, फिर कोशिश की जा रही है</string>
-    <string name="settings_sftp_exchange_status_certificate">एक्सचेंज सर्वर ने दूसरा प्रमाणपत्र दिखाया, इसलिए कनेक्शन रुक गया</string>
     <string name="settings_sftp_exchange_new_link">नया एक्सेस लिंक</string>
     <string name="settings_sftp_exchange_new_link_done">पहले साझा किए गए कोड अब इस सर्वर को नहीं खोलते</string>
     <string name="settings_sftp_server_legacy_qr">ऐप के पुराने वर्शन के लिए कोड</string>

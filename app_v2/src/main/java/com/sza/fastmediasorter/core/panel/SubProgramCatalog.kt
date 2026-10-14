@@ -206,6 +206,29 @@ object SubProgramCatalog {
             ),
             disable = { it.copy(enableWearCompanion = false) },
         ),
+        // S4226: send before get, beside the other programs that reach another device. No widget - the owner
+        // asked for main-window buttons and desktop shortcuts - and no switch of their own: the network flag
+        // decides whether they exist, and with no account they open "My devices" instead of tapping dead.
+        SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_CLIPBOARD_SEND,
+            order = 93,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+                SubProgramSurface.OS_APP_SHORTCUT,
+            ),
+        ),
+        SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_CLIPBOARD_GET,
+            order = 94,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+                SubProgramSurface.OS_APP_SHORTCUT,
+            ),
+        ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_FRONT_FLASHLIGHT,
             order = 100,

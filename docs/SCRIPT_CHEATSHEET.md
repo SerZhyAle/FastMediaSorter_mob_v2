@@ -1444,6 +1444,24 @@ scripts/devtest/prerelease-configure.ps1
   Exit: 0 - configuration applied (reachable resources + required adb settings OK); 1 - bad arguments / config unreadable; 10 - a required configuration stage failed; 11 - the app is not installed on the device and was not restored
 ```
 
+### prerelease-device-half.ps1
+S4249 pre-release sweep - the phone's device half on several emulators at once.
+
+```
+scripts/devtest/prerelease-device-half.ps1
+  S4249 pre-release sweep - the phone's device half on several emulators at once.
+  Params:
+    -DeviceIds         (req)  [String[]]
+    -SelfTestDeviceId  (req)  [String]
+    -Suite                    [String] = 'all'
+    -OutDir                   [String]
+    -Stamp                    [String]
+    -SetupOnly                [SwitchParameter]
+    -SkipSetup                [SwitchParameter]
+    -Json                     [SwitchParameter]
+  Exit: 0 - every shard flow passed (advisory and flaky outcomes are the verdict's business), the
+```
+
 ### prerelease-log-audit.ps1
 Pre-release sweep - detailed log audit (step 04.1).
 
@@ -1480,9 +1498,10 @@ S0484 pre-release sweep - environment preparation stage.
 scripts/devtest/prerelease-prepare.ps1
   S0484 pre-release sweep - environment preparation stage.
   Params:
-    -DeviceId         [String]
-    -Json             [SwitchParameter]
-  Exit: 0 - ready (all stages passed); 1 - adb not found / bad arguments (from the readiness pre-flight); 2 - no online device; 3 - multiple online devices and -DeviceId not supplied; 10 - a preparation stage failed (install / seed / launch)
+    -DeviceId          [String]
+    -SkipBuild         [SwitchParameter]
+    -Json              [SwitchParameter]
+  Exit: 0 - ready (all stages passed); 1 - adb not found / bad arguments (from the readiness pre-flight); 2 - no online device; 3 - multiple online devices and -DeviceId not supplied; 10 - a preparation stage failed (install / seed / launch), or -SkipBuild found no
 ```
 
 ### prerelease-verdict.ps1
@@ -1501,6 +1520,22 @@ scripts/devtest/prerelease-verdict.ps1
     -WalkResults              [String]
     -Json                     [SwitchParameter]
   Exit: 0 - PASS; 1 - content FAIL (log / perf / maestro); 2 - infrastructure abort (LogFile missing / inputs unreadable)
+```
+
+### prerelease-wear-half.ps1
+S4249 watch pre-release sweep on the two reviewed shapes at once - steps 0 to 3 of /spec-prerelease-wear in one call.
+
+```
+scripts/devtest/prerelease-wear-half.ps1
+  S4249 watch pre-release sweep on the two reviewed shapes at once - steps 0 to 3 of /spec-prerelease-wear in one call.
+  Params:
+    -SmallDeviceId  (req)  [String]
+    -LargeDeviceId  (req)  [String]
+    -WearFlavor            [String] = 'standard'  {standard|noLegal}
+    -OutRoot               [String] = 'temp/scratch'
+    -Stamp                 [String]
+    -Json                  [SwitchParameter]
+  Exit: 0 - both shapes passed: gates, migration, bench, walk and verdict all clean; 1 - content failure: a gate, the migration run, a shape assertion, a walk or a verdict failed,
 ```
 
 ### resolve-ticket-module.ps1
@@ -2054,6 +2089,24 @@ scripts/devtest/lib/device-form-factor.ps1
   (no param block)
 ```
 
+### device-half-lanes.ps1
+Concurrent child-process lanes for the parallel pre-release halves (S4249).
+
+```
+scripts/devtest/lib/device-half-lanes.ps1
+  Concurrent child-process lanes for the parallel pre-release halves (S4249).
+  (no param block)
+```
+
+### device-half-plan.ps1
+Pure planning functions of the parallel pre-release halves (S4249): device roles, stage timing records and the exit-code fold of the phone and watch halves.
+
+```
+scripts/devtest/lib/device-half-plan.ps1
+  Pure planning functions of the parallel pre-release halves (S4249): device roles, stage timing records and the exit-code fold of the phone and watch halves.
+  (no param block)
+```
+
 ### device-state-journal.ps1
 The device state journal: what a test changed on a device, and what it was before (S3201).
 
@@ -2219,6 +2272,30 @@ scripts/devtest/lib/target-device.tests/Run-Tests.ps1
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
+## scripts\devtest\maestro-run-tests.tests
+
+### Run-Tests.ps1
+S4249 contract suite for the Maestro runner's pure half: header markers, run order, shard partition, attempt records and the shard-result merge. # Subject: maestro/run-tests.ps1, maestro/lib/flow-selection.ps1, maestro/merge-shard-results.ps1
+
+```
+scripts/devtest/maestro-run-tests.tests/Run-Tests.ps1
+  S4249 contract suite for the Maestro runner's pure half: header markers, run order, shard partition, attempt records and the shard-result merge. # Subject: maestro/run-tests.ps1, maestro/lib/flow-selection.ps1, maestro/merge-shard-results.ps1
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\devtest\prerelease-device-half.tests
+
+### Run-Tests.ps1
+S4249 contract suite for the phone device half's planning library: device roles, the exit-code fold and the stage-record shape. # Subject: scripts/devtest/prerelease-device-half.ps1, scripts/devtest/lib/device-half-plan.ps1, scripts/devtest/lib/device-half-lanes.ps1
+
+```
+scripts/devtest/prerelease-device-half.tests/Run-Tests.ps1
+  S4249 contract suite for the phone device half's planning library: device roles, the exit-code fold and the stage-record shape. # Subject: scripts/devtest/prerelease-device-half.ps1, scripts/devtest/lib/device-half-plan.ps1, scripts/devtest/lib/device-half-lanes.ps1
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
 ## scripts\devtest\prerelease-log-audit.tests
 
 ### Run-Tests.ps1
@@ -2263,6 +2340,30 @@ scripts/devtest/prerelease-package-guard.tests/stub/prepare-stub.ps1
   Stub `prerelease-prepare.ps1` for the S2709 suite.
   (no param block)
   Exit: 0 - the stubbed prepare "succeeded"; 10 - the stubbed prepare failed (or FMS_STUB_PREPARE_EXIT)
+```
+
+## scripts\devtest\prerelease-verdict.tests
+
+### Run-Tests.ps1
+S4249 contract suite for the verdict's Maestro policy: advisory flows and flaky retries. # Subject: scripts/devtest/prerelease-verdict.ps1
+
+```
+scripts/devtest/prerelease-verdict.tests/Run-Tests.ps1
+  S4249 contract suite for the verdict's Maestro policy: advisory flows and flaky retries. # Subject: scripts/devtest/prerelease-verdict.ps1
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\devtest\prerelease-wear-half.tests
+
+### Run-Tests.ps1
+S4249 contract suite for the watch half's decision function and its device refusal. # Subject: scripts/devtest/prerelease-wear-half.ps1, scripts/devtest/lib/device-half-plan.ps1
+
+```
+scripts/devtest/prerelease-wear-half.tests/Run-Tests.ps1
+  S4249 contract suite for the watch half's decision function and its device refusal. # Subject: scripts/devtest/prerelease-wear-half.ps1, scripts/devtest/lib/device-half-plan.ps1
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\devtest\resolve-ticket-module.tests
@@ -5805,8 +5906,9 @@ Record and compare a fingerprint of the tree the release-scope gates judge (S301
 scripts/quality/release-scope-fingerprint.ps1
   Record and compare a fingerprint of the tree the release-scope gates judge (S3010).
   Params:
-    -Verb  (req)  [String]  {Record|Compare}
-    -Json         [SwitchParameter]
+    -Verb   (req)  [String]  {Record|Compare}
+    -Json          [SwitchParameter]
+    -Scope         [String] = 'phone'  {phone|wear}
   Exit: 0 Record wrote the fingerprint, or Compare found nothing moved.; 2 Compare found no recorded fingerprint, or it could not be read.; 3 Compare found at least one group moved - the names are on stdout.
 ```
 
@@ -7375,6 +7477,21 @@ scripts/release/assert-play-review-batches.ps1
   Exit: 0 - the plan keeps the phone and the watch in separate batches; 1 - the plan lets the watch and the phone share a batch (reasons printed); 2 - could not verify: bad arguments or the track state could not be read
 ```
 
+### assert-sweep-verdicts.ps1
+Release-point check of both sweep verdicts - the phone one and the watch ones (S4249).
+
+```
+scripts/release/assert-sweep-verdicts.ps1
+  Release-point check of both sweep verdicts - the phone one and the watch ones (S4249).
+  Params:
+    -PhoneVerdict  (req)  [String]
+    -WearVerdicts         [String[]] = @()
+    -NoWear               [SwitchParameter]
+    -NoWearReason         [String]
+    -RepoRoot             [String]
+  Exit: 0 - every verdict exists, passed, is not blocked and is not older than its fingerprint; 1 - a verdict FAILED, is BLOCKED, or is stale (older than its scope's fingerprint record); 2 - a verdict file or a fingerprint record is missing or unreadable, or the arguments are
+```
+
 ### build-release-spectrum.ps1
 Build the full release spectrum at ONE uniform version for GitHub Release publication (S0394).
 
@@ -7697,6 +7814,18 @@ scripts/release/watch-play-vitals.ps1
     -LogDir                [String]
     -Package               [String] = 'com.sza.fastmediasorter'
   Exit: 0 - read, judged and recorded (whatever the verdict colour); tickets filed where a band was red; 1 - -Check found at least one block out of date; nothing was written; 2 - could not verify: the read failed, the verdict refused, a document or its marker pair is
+```
+
+## scripts\release\assert-sweep-verdicts.tests
+
+### Run-Tests.ps1
+S4249 contract suite for scripts/release/assert-sweep-verdicts.ps1 - the release-point read of the phone and watch sweep verdicts.
+
+```
+scripts/release/assert-sweep-verdicts.tests/Run-Tests.ps1
+  S4249 contract suite for scripts/release/assert-sweep-verdicts.ps1 - the release-point read of the phone and watch sweep verdicts.
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\release\compose-feature-graphic.tests
@@ -9737,6 +9866,7 @@ scripts/utils/release-freeze.ps1
     -Hours          [Int32] = 4  {range 1..24}
     -Json           [SwitchParameter]
     -Force          [SwitchParameter]
+    -Scope          [String] = 'phone'  {phone|wear}
   Exit: 0 the verb succeeded - freeze taken, released, or reported (held or not).; 2 the marker exists but could not be read or written.; 4 refused - a live foreign session holds the freeze.
 ```
 

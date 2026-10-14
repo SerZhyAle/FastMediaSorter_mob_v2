@@ -1,7 +1,15 @@
 package com.sza.fastmediasorter.broadcast
 
+import android.net.Uri
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import kotlinx.coroutines.flow.StateFlow
+
+/**
+ * The UI-side name of a broadcast source (LIVE-BROADCAST 0.21 item N). It never travels on the
+ * wire - a source is not a kind, and the descriptor carries no member for it - so the control
+ * screen is the only reader, and it uses the one value that hides capture-only controls.
+ */
+const val BROADCAST_SOURCE_FILE = "file"
 
 /**
  * Why a broadcast could not start or could not continue. Kept as a closed set so the UI can say
@@ -12,6 +20,9 @@ enum class BroadcastFailure {
     NETWORK_UNAVAILABLE,
     ENCODER_UNAVAILABLE,
     CAPTURE_ERROR,
+
+    // S4234: the picked file cannot be opened, or carries no track the pipeline can serve.
+    FILE_UNREADABLE,
 }
 
 sealed interface BroadcastState {
@@ -30,6 +41,8 @@ sealed interface BroadcastState {
         val microphoneEnabled: Boolean = true,
         /** [BroadcastLensOption.id] of the lens on air; null for audio-only sessions. */
         val activeLensId: String? = null,
+        /** [BROADCAST_SOURCE_FILE] for a session serving a stored file; null for a captured one. */
+        val source: String? = null,
     ) : BroadcastState
     data class Failed(val failure: BroadcastFailure, val detail: String) : BroadcastState
 }
@@ -59,6 +72,15 @@ interface BroadcastSourceController {
 
     /** [lensId] is a [BroadcastLensOption.id]; null opens the phone's main back lens. Ignored by AUDIO_ONLY. */
     fun start(mode: BroadcastMode, lensId: String? = null)
+
+    /**
+     * S4234: starts a live broadcast of the stored file behind the content [uri]. The shape follows
+     * the file's own tracks - music through the AUDIO_ONLY path, a film through the RTSP path - so
+     * the descriptor stays the one every receiver already knows (LIVE-BROADCAST 0.21 item N). Any
+     * live session stops first: the services are exclusive. No-op in builds without capture.
+     */
+    fun startFile(uri: Uri)
+
     fun stop()
 
     // S3038: toggle camera and microphone during a live broadcast.

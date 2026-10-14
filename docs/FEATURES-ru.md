@@ -3,7 +3,7 @@ layout: default
 title: "FastMediaSorter v2 - Полный список возможностей"
 permalink: /docs/FEATURES-ru.html
 ---
-<sub class="doc-stamp">26.10.06 23:54</sub>
+<sub class="doc-stamp">26.10.15 00:39</sub>
 
 # FastMediaSorter v2 - Полный список возможностей
 
@@ -155,4 +155,5 @@ FastMediaSorter - полноценная оболочка Android-устройс
 - **Контейнеры FileDO работают и в облаке** `[Standard / Photos / Legacy / VR / noLegal]`: Те же команды шифрования и расшифровки теперь работают с файлами в Google Drive, Dropbox и OneDrive, не трогая исходный файл. <!-- af: file-operations.filedo-containers-beside-cloud-files -->
 - **Единое резервное копирование и восстановление** `[Standard / VR]`: Сохраняйте источники, избранное, расписания, пароли и входы в локальный файл или Google Drive, а потом восстанавливайте всю конфигурацию целиком. <!-- af: sources-storage.unified-settings-backup-including-sources, settings-navigation.settings-backup-and-restore-via-google-drive -->
 - **У расписания операций теперь свой экран** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Повторяющиеся задачи копирования, переноса и очистки теперь живут на полноценном отдельном экране с историей запусков, а не на карточке внутри настроек - экран открывается из меню программ, панели быстрого доступа, виджета, рабочего стола лаунчера и ярлыков приложения. <!-- af: file-operations.scheduled-operations-standalone-screen-history -->
+- **Расписание работает над ресурсами обмена** `[Standard / Photos / Legacy / VR / noLegal]`: Расписание операций с файлами работает без человека над ресурсом другого устройства через сервер обмена, а с появлением пути - через Google Drive. <!-- af: file-operations.scheduled-operations-over-exchange-and-drive -->
 - **Резервная копия хранит на 124 настройки больше** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: восстановление возвращает жесты скриншота и показания лаунчера, которые копия раньше теряла. <!-- af: general.backup-carries-the-rest-of-the-settings -->

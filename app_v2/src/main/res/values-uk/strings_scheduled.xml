@@ -99,4 +99,12 @@
     <string name="scheduled_op_last_success_never">Успішних запусків ще не було</string>
     <string name="scheduled_op_filter_conditions">+ умови</string>
     <string name="scheduled_ops_op_archive">Архівування</string>
+    <string name="scheduled_op_history">Історія</string>
+    <string name="scheduled_op_history_line_ok">%1$s · Успішно · файлів: %2$d</string>
+    <string name="scheduled_op_history_line_skipped">%1$s · Пропущено · %2$s</string>
+    <string name="scheduled_op_history_line_error">%1$s · Помилка · файлів: %2$d · %3$s</string>
+    <string name="scheduled_op_badge_error">Останній запуск завершився помилкою. Подробиці - в історії.</string>
+    <string name="scheduled_op_badge_skipped">Останній запуск пропущено: одна зі сторін недоступна. Операція повториться в наступний термін.</string>
+    <string name="scheduled_ops_notif_failed_title">Операцію за розкладом не виконано</string>
+    <string name="scheduled_ops_notif_failed_text">%1$s: %2$s</string>
 </resources>

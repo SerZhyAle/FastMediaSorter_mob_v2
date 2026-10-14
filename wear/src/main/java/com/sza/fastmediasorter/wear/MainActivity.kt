@@ -133,6 +133,8 @@ import com.sza.fastmediasorter.wear.ui.common.testlaunch.WearTestLaunchOverride
 import com.sza.fastmediasorter.wear.ui.common.testlaunch.WearTestLaunchOverrideReader
 import com.sza.fastmediasorter.wear.ui.common.testlaunch.rememberWearTestScreenMetrics
 import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
+import com.sza.fastmediasorter.wear.ui.exchange.WearAccountBroadcastsScreen
+import com.sza.fastmediasorter.wear.ui.exchange.WearAccountFoldersScreen
 import com.sza.fastmediasorter.wear.ui.exchange.WearExchangeServersScreen
 import com.sza.fastmediasorter.wear.ui.favourites.FavouritesScreen
 import com.sza.fastmediasorter.wear.ui.fdsec.FdSecCredentialScreen
@@ -1097,7 +1099,23 @@ private fun NavGraphBuilder.settingsRoutes(
     }
 
     composable(SettingsRoutes.EXCHANGE_SERVERS) {
-        WearExchangeServersScreen()
+        WearExchangeServersScreen(
+            onOpenBroadcasts = { navController.navigate(SettingsRoutes.EXCHANGE_BROADCASTS) },
+            onOpenFolders = { entry ->
+                navController.navigate(SettingsRoutes.exchangeAccountFolders(entry.identity))
+            },
+        )
+    }
+
+    composable(SettingsRoutes.EXCHANGE_BROADCASTS) {
+        WearAccountBroadcastsScreen(navController = navController)
+    }
+
+    composable(
+        route = SettingsRoutes.EXCHANGE_ACCOUNT_FOLDERS,
+        arguments = listOf(navArgument(SettingsRoutes.ARG_EXCHANGE_ENTRY) { type = NavType.StringType }),
+    ) {
+        WearAccountFoldersScreen()
     }
 
     composable(SettingsRoutes.ABOUT) {

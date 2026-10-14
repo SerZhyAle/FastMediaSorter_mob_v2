@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.data.exchange
 
+import android.net.Network
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -25,6 +26,7 @@ class WearExchangeAccountClientTest {
             port: Int,
             pinned: String?,
             readTimeoutMs: Int,
+            network: Network?,
         ): WearExchangeConnection {
             pins += pinned
             return WearExchangeConnection(Socket(host, port))
@@ -54,7 +56,10 @@ class WearExchangeAccountClientTest {
         assertEquals("Owner.Home", enroll.string("login"))
         assertEquals(DEVICE_ID, enroll.string("deviceId"))
         assertEquals("fms-wear", enroll.string("product"))
-        assertEquals("[\"broadcaster\",\"receiver\"]", enroll.members.get("roles").toString())
+        assertEquals(
+            "[\"broadcaster\",\"receiver\",\"clipboard\",\"resource-consumer\"]",
+            enroll.members.get("roles").toString()
+        )
         assertEquals("[\"AUDIO_ONLY\"]", enroll.members.getAsJsonObject("receiver").get("modes").toString())
         assertEquals(TOKEN, (result as WearExchangeEnrollResult.Enrolled).token)
         assertEquals(listOf<String?>(PIN), pins)
@@ -70,7 +75,13 @@ class WearExchangeAccountClientTest {
     @Test
     fun `a refused certificate is told apart from an unreachable server`() {
         val refusing = object : WearExchangeConnector {
-            override fun connect(host: String, port: Int, pinned: String?, readTimeoutMs: Int): WearExchangeConnection =
+            override fun connect(
+                host: String,
+                port: Int,
+                pinned: String?,
+                readTimeoutMs: Int,
+                network: Network?,
+            ): WearExchangeConnection =
                 throw WearExchangeCertificateChangedException()
         }
 

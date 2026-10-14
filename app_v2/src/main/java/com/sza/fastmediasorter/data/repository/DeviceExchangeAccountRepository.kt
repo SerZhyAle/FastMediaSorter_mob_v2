@@ -13,8 +13,11 @@ import com.sza.fastmediasorter.domain.model.DeviceExchangeAddressChange
 import com.sza.fastmediasorter.domain.model.DeviceExchangeCredential
 import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollResult
 import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollment
+import com.sza.fastmediasorter.domain.model.DeviceExchangeInvitation
 import com.sza.fastmediasorter.domain.model.DeviceExchangePairingCode
 import com.sza.fastmediasorter.domain.model.DeviceExchangeRemoval
+import com.sza.fastmediasorter.domain.model.DeviceExchangeWelcome
+import com.sza.fastmediasorter.domain.model.ExchangeBinding
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionString
 import com.sza.fastmediasorter.domain.model.ExchangeEndpoint
 import com.sza.fastmediasorter.domain.model.SftpShareId
@@ -24,6 +27,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -64,6 +68,31 @@ class DeviceExchangeAccountRepository @Inject constructor(
         pin: String?,
         credential: DeviceExchangeCredential,
         enrollment: DeviceExchangeEnrollment,
+    ): DeviceExchangeEnrollResult = admit(endpoint, login, pin, enrollment) { candidate ->
+        client.enroll(candidate, credential, enrollment)
+    }
+
+    /**
+     * Registers a new account [login] at [endpoint] with an invitation and enrolls this device as its first one
+     * (19 item AQ). The entry is recorded exactly as by [enroll], only once a token was stored.
+     */
+    suspend fun register(
+        endpoint: ExchangeEndpoint,
+        login: String,
+        pin: String?,
+        password: DeviceExchangeCredential.Password,
+        invitation: DeviceExchangeInvitation,
+        enrollment: DeviceExchangeEnrollment,
+    ): DeviceExchangeEnrollResult = admit(endpoint, login, pin, enrollment) { candidate ->
+        client.register(candidate, password, invitation, enrollment)
+    }
+
+    private suspend fun admit(
+        endpoint: ExchangeEndpoint,
+        login: String,
+        pin: String?,
+        enrollment: DeviceExchangeEnrollment,
+        exchange: suspend (DeviceExchangeAccountEntry) -> DeviceExchangeEnrollResult,
     ): DeviceExchangeEnrollResult {
         require(DeviceExchangeAccountEntry.isValidLogin(login)) { "login breaks the contract rule" }
         val fresh = DeviceExchangeAccountEntry(endpoint.host, endpoint.port, login, SftpShareId.generate(), pin)
@@ -76,15 +105,22 @@ class DeviceExchangeAccountRepository @Inject constructor(
         ) ?: fresh
         var enrolled = candidate
         Timber.d("Exchange enrollment: %s:%d login=%s heldEntry=%s", endpoint.host, endpoint.port, login, held != null)
-        var result = withContext(ioDispatcher) { client.enroll(candidate, credential, enrollment) }
+        var result = withContext(ioDispatcher) { exchange(candidate) }
         if (held == null && result.isIdCollision()) {
             Timber.d("Exchange enrollment: id-collision, retrying with a new deviceId")
             enrolled = candidate.copy(deviceId = SftpShareId.generate())
-            result = withContext(ioDispatcher) { client.enroll(enrolled, credential, enrollment) }
+            result = withContext(ioDispatcher) { exchange(enrolled) }
         }
         if (result is DeviceExchangeEnrollResult.Enrolled) {
             val pinCapable = DeviceExchangeEnrollment.CAPABILITY_PIN_V1 in enrollment.capabilities
-            store.put(enrolled.copy(publicEndpoint = result.welcome.publicEndpoint, pinCapable = pinCapable))
+            store.put(
+                enrolled.copy(
+                    publicEndpoint = result.welcome.publicEndpoint,
+                    pinCapable = pinCapable,
+                    features = result.welcome.features,
+                    accountKind = result.welcome.accountKind,
+                )
+            )
         }
         Timber.d("Exchange enrollment finished: %s", result.javaClass.simpleName)
         return result
@@ -139,6 +175,34 @@ class DeviceExchangeAccountRepository @Inject constructor(
     }
 
     /**
+     * Changes [entry]'s account password (19 item AT); the fresh token replaces the held one and every other
+     * device of the account signs in again.
+     *
+     * @throws IOException when the server cannot be reached or refused the change.
+     */
+    suspend fun changePassword(
+        entry: DeviceExchangeAccountEntry,
+        oldPassword: DeviceExchangeCredential.Password,
+        newPassword: DeviceExchangeCredential.Password,
+    ) = withContext(ioDispatcher) { client.changePassword(entry, oldPassword, newPassword) }
+
+    /**
+     * Deletes [entry]'s account on its server (19 item AU), then forgets the entry, its token and the PINs cached
+     * for its resources. The attached resources stay and show as no longer published until the user removes them.
+     *
+     * @throws IOException when the server cannot be reached or refused the deletion; nothing is forgotten then.
+     */
+    suspend fun deleteAccount(entry: DeviceExchangeAccountEntry, password: DeviceExchangeCredential.Password) {
+        withContext(ioDispatcher) { client.deleteAccount(entry, password) }
+        resourceDao.getAllResourcesSync()
+            .filter { it.exchangeAccount == entry.identity }
+            .mapNotNull { it.exchangeResourceId }
+            .forEach { resourceId -> pins.forget(ExchangeBinding(entry.identity, resourceId)) }
+        tokens.forget(entry)
+        store.remove(entry.identity)
+    }
+
+    /**
      * A one-time pairing code of [entry]'s account for another device - the watch - to enroll with (5.3). It is
      * handed on and never stored here.
      *
@@ -170,11 +234,27 @@ class DeviceExchangeAccountRepository @Inject constructor(
         store.entry(entry.identity)?.let { store.put(it.copy(autoAttach = enabled)) }
     }
 
-    /** Remembers what the latest `welcome` announced, so [announcedEndpoint] can offer it. */
-    suspend fun rememberPublicEndpoint(entry: DeviceExchangeAccountEntry, publicEndpoint: String?) {
+    /**
+     * Remembers what the latest `welcome` announced: the address [announcedEndpoint] offers, and the features and
+     * account kind that decide whether the entry takes part in the clipboard (22 item BV). Writes nothing when
+     * all three are unchanged.
+     */
+    suspend fun rememberWelcome(entry: DeviceExchangeAccountEntry, welcome: DeviceExchangeWelcome) {
         store.entry(entry.identity)
-            ?.takeIf { it.publicEndpoint != publicEndpoint }
-            ?.let { store.put(it.copy(publicEndpoint = publicEndpoint)) }
+            ?.takeIf {
+                it.publicEndpoint != welcome.publicEndpoint ||
+                    it.features != welcome.features ||
+                    it.accountKind != welcome.accountKind
+            }
+            ?.let {
+                store.put(
+                    it.copy(
+                        publicEndpoint = welcome.publicEndpoint,
+                        features = welcome.features,
+                        accountKind = welcome.accountKind,
+                    )
+                )
+            }
     }
 
     /** The announced address when it differs from the one [entry] connects to; the user decides (item AA). */
@@ -193,6 +273,25 @@ class DeviceExchangeAccountRepository @Inject constructor(
             ExchangeConnectionString(endpoint = endpoint, fingerprint = entry.pinnedCertificate)
         } catch (e: IllegalArgumentException) {
             Timber.w(e, "Exchange entry cannot be written as a connection string")
+            null
+        }
+    }
+
+    /**
+     * What the sign-in form is filled with to sign [entry] in again after `signed-out` or a revoke: the held
+     * address, the held pin and the login, so the same identity re-enrolls its own `deviceId` (19 item AT). It
+     * stays on this device and is never passed on, unlike [connectionString].
+     */
+    fun signInAgainString(entry: DeviceExchangeAccountEntry): ExchangeConnectionString? {
+        val endpoint = heldEndpoint(entry) ?: return null
+        return try {
+            ExchangeConnectionString(
+                endpoint = endpoint,
+                fingerprint = entry.pinnedCertificate,
+                loginHint = entry.login.lowercase(Locale.ROOT),
+            )
+        } catch (e: IllegalArgumentException) {
+            Timber.w(e, "Exchange entry cannot fill the sign-in form")
             null
         }
     }

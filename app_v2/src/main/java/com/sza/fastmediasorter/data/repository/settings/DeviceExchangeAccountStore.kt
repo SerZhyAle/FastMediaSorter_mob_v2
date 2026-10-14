@@ -116,6 +116,8 @@ class DeviceExchangeAccountStore @Inject constructor(
             publicEndpoint = publicEndpoint,
             outgoing = json.flag(KEY_OUTGOING),
             pinCapable = json.flag(KEY_PIN_CAPABLE),
+            features = json.textList(KEY_FEATURES),
+            accountKind = json.text(KEY_ACCOUNT_KIND),
         )
     }
 
@@ -132,6 +134,8 @@ class DeviceExchangeAccountStore @Inject constructor(
                     entry.publicEndpoint?.let { addProperty(KEY_PUBLIC_ENDPOINT, it) }
                     if (entry.outgoing) addProperty(KEY_OUTGOING, true)
                     if (entry.pinCapable) addProperty(KEY_PIN_CAPABLE, true)
+                    entry.features?.let { features -> add(KEY_FEATURES, JsonArray().apply { features.forEach(::add) }) }
+                    entry.accountKind?.let { addProperty(KEY_ACCOUNT_KIND, it) }
                 }
             )
         }
@@ -139,6 +143,12 @@ class DeviceExchangeAccountStore @Inject constructor(
 
     private fun JsonObject.text(key: String): String? =
         get(key)?.takeIf { it.isJsonPrimitive && it.asJsonPrimitive.isString }?.asString
+
+    // Absent or malformed reads as "not seen yet": an older build drops the key on its next write (S4226).
+    private fun JsonObject.textList(key: String): List<String>? =
+        get(key)?.takeIf(JsonElement::isJsonArray)?.asJsonArray?.mapNotNull { element ->
+            element.takeIf { it.isJsonPrimitive && it.asJsonPrimitive.isString }?.asString
+        }
 
     private fun JsonObject.flag(key: String): Boolean =
         get(key)?.takeIf { it.isJsonPrimitive && it.asJsonPrimitive.isBoolean }?.asBoolean ?: false
@@ -154,5 +164,7 @@ class DeviceExchangeAccountStore @Inject constructor(
         const val KEY_PUBLIC_ENDPOINT = "publicEndpoint"
         const val KEY_OUTGOING = "outgoing"
         const val KEY_PIN_CAPABLE = "pinCapable"
+        const val KEY_FEATURES = "features"
+        const val KEY_ACCOUNT_KIND = "accountKind"
     }
 }

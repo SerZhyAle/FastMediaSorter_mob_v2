@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
+import com.sza.fastmediasorter.wear.data.exchange.WearFolderIdentity
+import com.sza.fastmediasorter.wear.data.exchange.WearResourcePinStore
 import com.sza.fastmediasorter.wear.domain.model.ImportResult
 import com.sza.fastmediasorter.wear.domain.model.NetworkBasePath
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
@@ -27,7 +29,9 @@ private enum class ImportOutcome { ADDED, UPDATED, SKIPPED }
 
 class ImportNetworkSourcesUseCase @Inject constructor(
     private val repository: NetworkSourceRepository,
-    private val requestWearTileRefreshUseCase: RequestWearTileRefreshUseCase
+    private val requestWearTileRefreshUseCase: RequestWearTileRefreshUseCase,
+    // S4228: a folder that leaves the watch takes its PIN with it.
+    private val pinStore: WearResourcePinStore
 ) {
     /**
      * @param receivedAtEpochMillis when this watch took delivery, in its own time base. Together with
@@ -44,6 +48,7 @@ class ImportNetworkSourcesUseCase @Inject constructor(
         }
 
         val skewMillis = receivedAtEpochMillis - payload.sentAt
+        val heldBefore = repository.getAllSources()
         // S2507: a tombstone always states the moment of deletion, so a comparison involving one is
         // always stamped on the sender's side. Judging it through the batch resolver below would let
         // an unstamped record from an older phone resurrect a source deleted here on purpose.
@@ -77,9 +82,22 @@ class ImportNetworkSourcesUseCase @Inject constructor(
             }
         }
 
+        forgetPinsOfGone(heldBefore, repository.getAllSources())
         Timber.i("Import complete: added=$added updated=$updated skipped=$skipped removed=$removed")
         requestWearTileRefreshUseCase(WearTileKind.RESOURCE)
         return ImportResult(added, updated, skipped, removed)
+    }
+
+    /**
+     * S4228: forgets the PIN of every protected folder this batch took off the watch, unless a source still held
+     * shares its identity - one folder may sit under the phone's id and under one the watch made.
+     */
+    private suspend fun forgetPinsOfGone(before: List<NetworkSource>, after: List<NetworkSource>) {
+        val kept = after.mapNotNullTo(mutableSetOf()) { WearFolderIdentity.of(it) }
+        before.filter { it.pinProtected }
+            .mapNotNull { WearFolderIdentity.of(it) }
+            .filterNot { it in kept }
+            .forEach { pinStore.forget(it) }
     }
 
     /**
@@ -190,7 +208,8 @@ class ImportNetworkSourcesUseCase @Inject constructor(
                 Timber.d("Keeping locally edited source ${incoming.name} - phone copy is older")
                 ImportOutcome.SKIPPED
             } else {
-                store(incoming.copy(lastEditedAt = decision.stampEpochMillis), index, stored)
+                val kept = keepExchangeFields(item, incoming, stored.getOrNull(index))
+                store(kept.copy(lastEditedAt = decision.stampEpochMillis), index, stored)
             }
         }
     }
@@ -252,6 +271,30 @@ class ImportNetworkSourcesUseCase @Inject constructor(
         endpoints = item.endpoints
             ?.filter { it.host.isNotBlank() && it.port in MIN_PORT..MAX_PORT }
             ?.map { WearEndpoint(it.host, it.port) }
-            ?.ifEmpty { null }
+            ?.ifEmpty { null },
+        exchangeAccount = item.exchangeAccount,
+        exchangeResourceId = item.exchangeResourceId,
+        readOnly = item.readOnly ?: false,
+        pinProtected = item.pinProtected ?: false
     )
+
+    /**
+     * S4228: a phone that predates the exchange members sends none of them, and its push must not strip a binding,
+     * a read-only flag or a protection the record already holds - they belong to the record (contract
+     * DEVICE-EXCHANGE 20 item BH), not to whichever sender wrote last.
+     */
+    private fun keepExchangeFields(
+        item: WearNetworkSourcePayload,
+        incoming: NetworkSource,
+        existing: NetworkSource?
+    ): NetworkSource = if (existing == null) {
+        incoming
+    } else {
+        incoming.copy(
+            exchangeAccount = item.exchangeAccount ?: existing.exchangeAccount,
+            exchangeResourceId = item.exchangeResourceId ?: existing.exchangeResourceId,
+            readOnly = item.readOnly ?: existing.readOnly,
+            pinProtected = item.pinProtected ?: existing.pinProtected
+        )
+    }
 }

@@ -18,5 +18,6 @@ object BroadcastFailureMessage {
         BroadcastFailure.NETWORK_UNAVAILABLE -> R.string.broadcast_failed_network
         BroadcastFailure.ENCODER_UNAVAILABLE -> R.string.broadcast_failed_encoder
         BroadcastFailure.CAPTURE_ERROR -> R.string.broadcast_failed_capture
+        BroadcastFailure.FILE_UNREADABLE -> R.string.broadcast_failed_file
     }
 }

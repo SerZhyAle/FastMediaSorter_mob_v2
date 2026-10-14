@@ -99,4 +99,12 @@
     <string name="scheduled_op_last_success_never">No successful run yet</string>
     <string name="scheduled_op_filter_conditions">+ conditions</string>
     <string name="scheduled_ops_op_archive">Archive</string>
+    <string name="scheduled_op_history">History</string>
+    <string name="scheduled_op_history_line_ok">%1$s · OK · %2$d files</string>
+    <string name="scheduled_op_history_line_skipped">%1$s · Skipped · %2$s</string>
+    <string name="scheduled_op_history_line_error">%1$s · Failed · %2$d files · %3$s</string>
+    <string name="scheduled_op_badge_error">Last run failed. Open History for details.</string>
+    <string name="scheduled_op_badge_skipped">Last run was skipped: a side could not be reached. It is tried again at the next slot.</string>
+    <string name="scheduled_ops_notif_failed_title">Scheduled operation failed</string>
+    <string name="scheduled_ops_notif_failed_text">%1$s: %2$s</string>
 </resources>

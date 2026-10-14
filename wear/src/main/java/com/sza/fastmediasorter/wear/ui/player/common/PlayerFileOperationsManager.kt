@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.player.common
 
 import android.content.IntentSender
-import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiverCatalogRepository
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.files.WearSendToReceiverFilter
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
@@ -48,7 +48,7 @@ sealed interface PlayerOperationResult {
 class PlayerFileOperationsManager @Inject constructor(
     private val capabilityPolicy: WearFileCapabilityPolicy,
     private val performFileOperation: PerformWearFileOperationUseCase,
-    private val sendToReceiversRepository: WearSendToReceiversRepository,
+    private val sendToReceiversRepository: WearSendToReceiverCatalogRepository,
     private val playbackSetManager: PlaybackSetManager,
     /**
      * S3359: the hand-over that opened this player, read back for the phone token a move needs.

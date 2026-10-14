@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.wear.ui.browse
 import android.net.Uri
 import com.sza.fastmediasorter.wear.data.network.WearNetworkDataSources
 import com.sza.fastmediasorter.wear.data.network.WearNetworkFailureClassifier
-import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiverCatalogRepository
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.files.WearFdSecUseCase
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
@@ -64,7 +64,7 @@ class BrowseViewModelRefineTest {
      * combines it into a flow at construction, and a relaxed answer would make it a mock list whose
      * filtering means nothing - these tests are about refining the file list, not about receivers.
      */
-    private val sendToReceivers: WearSendToReceiversRepository = mockk<WearSendToReceiversRepository>().also {
+    private val sendToReceivers = mockk<WearSendToReceiverCatalogRepository>().also {
         every { it.observe() } returns MutableStateFlow(emptyList())
     }
 

@@ -433,6 +433,11 @@
              by availability, so on flavors without the watch bridge it is simply never launched. -->
         <activity android:name=".ui.wear.WatchListenLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
 
+        <!-- S4226: the window behind the two clipboard programs. From Android 10 the clipboard answers only the
+             window holding input focus (DEVICE-EXCHANGE 22 item CB), so a shortcut or a panel tile opens this
+             translucent window, which reads the clip on focus and only follows the transfer worker. -->
+        <activity android:name=".ui.exchange.ExchangeClipboardActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" />
+
         <activity android:name=".ui.addresource.AddResourceActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
         <activity android:name=".ui.resourceeditor.ResourceEditorActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />

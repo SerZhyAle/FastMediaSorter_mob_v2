@@ -10,14 +10,12 @@
     <string name="exchange_devices_outgoing">الصادر</string>
     <string name="exchange_devices_status_checking">جارٍ التحقق من الاتصال..</string>
     <string name="exchange_devices_status_online">متصل، الأجهزة: %1$d</string>
-    <string name="exchange_devices_status_unreachable">تعذّر الوصول إلى الخادم</string>
     <string name="exchange_devices_card_menu">المزيد من الإجراءات للخادم</string>
     <string name="exchange_devices_menu_edit_address">تغيير العنوان</string>
     <string name="exchange_devices_menu_make_outgoing">جعله الخادم الصادر</string>
     <string name="exchange_devices_menu_connect_watch">توصيل الساعة</string>
     <string name="exchange_devices_menu_share">تمرير الخادم</string>
     <string name="exchange_devices_menu_auto_attach">ربط كل شيء تلقائيًا</string>
-    <string name="exchange_devices_menu_remove">إزالة الخادم</string>
     <string name="exchange_devices_signin_title">تسجيل الدخول إلى خادم التبادل</string>
     <string name="exchange_devices_signin_address">العنوان (host:port)</string>
     <string name="exchange_devices_signin_login">اسم الدخول</string>
@@ -32,16 +30,7 @@
     <string name="exchange_devices_signin_done">تم تسجيل الدخول إلى %1$s</string>
     <string name="exchange_devices_cert_title">تحقّق من شهادة الخادم</string>
     <string name="exchange_devices_cert_message">يعرض الخادم شهادة لا يعرفها هاتفك. ثق بها فقط إذا تطابقت هذه البصمة مع البصمة التي يعرضها خادمك:\n\n%1$s</string>
-    <string name="exchange_devices_cert_changed_message">تغيّرت شهادة الخادم منذ أن قبلتها. إذا لم تستبدلها أنت، فقد يكون طرف ثالث يعترض الاتصال.\n\nالمقبولة: %1$s\nالآن: %2$s</string>
     <string name="exchange_devices_cert_accept">الوثوق</string>
-    <string name="exchange_devices_reason_bad_credentials">اسم الدخول أو كلمة المرور أو الرمز غير صحيح</string>
-    <string name="exchange_devices_reason_device_revoked">أُزيل هذا الهاتف من الحساب. أزل الخادم ثم سجّل الدخول مجددًا.</string>
-    <string name="exchange_devices_reason_version">يستخدم الخادم إصدارًا مختلفًا. حدّث التطبيق أو الخادم.</string>
-    <string name="exchange_devices_reason_capacity">الخادم ممتلئ حاليًا. حاول لاحقًا.</string>
-    <string name="exchange_devices_reason_rate_limited">محاولات كثيرة جدًا. انتظر قليلًا ثم حاول مرة أخرى.</string>
-    <string name="exchange_devices_reason_unsupported">لا يدعم الخادم هذا</string>
-    <string name="exchange_devices_reason_generic">رفض الخادم الطلب</string>
-    <string name="exchange_devices_reason_token_not_stored">تعذّر على الهاتف حفظ تسجيل الدخول بأمان. حاول مرة أخرى.</string>
     <string name="exchange_devices_list_loading">جارٍ تحميل الأجهزة..</string>
     <string name="exchange_devices_list_empty">لا توجد أجهزة في القائمة</string>
     <string name="exchange_devices_device_online">متصل</string>
@@ -100,7 +89,6 @@
     <string name="exchange_directory_resource_attached">مربوط</string>
     <string name="exchange_directory_resource_offline">الجهاز غير متصل</string>
     <string name="exchange_directory_resource_no_access">لا يشارك الجهاز عنوانه هنا</string>
-    <string name="exchange_directory_resource_locked">مقفل بطريقة لا يعرفها هذا الإصدار. حدّث التطبيق لفتحه</string>
     <string name="exchange_directory_attached_section">رُبط سابقًا</string>
     <string name="exchange_directory_no_longer_published">لم يعد منشورًا</string>
     <string name="exchange_directory_unavailable">غير متاح حاليًا</string>
@@ -127,13 +115,6 @@
     <string name="exchange_cast_send_failed">لم يتم إرسال كل الطلبات. تحقق من الاتصال بالخادم.</string>
     <string name="exchange_cast_sent">الطلبات المُرسَلة: %1$d</string>
     <string name="exchange_cast_result_accepted">يشغّل %1$s الإذاعة</string>
-    <string name="exchange_cast_result_unavailable">%1$s غير متصل</string>
-    <string name="exchange_cast_result_declined">رفض %1$s</string>
-    <string name="exchange_cast_result_timeout">لم يستجب %1$s</string>
-    <string name="exchange_cast_result_unsupported">لا يستطيع %1$s تشغيل هذه الإذاعة</string>
-    <string name="exchange_cast_result_refused">لم يمرّر الخادم الطلب إلى %1$s</string>
-    <string name="exchange_devices_status_unanswered">لم يستجب الخادم</string>
-    <string name="exchange_directory_resource_pin">محمي برمز PIN</string>
     <string name="exchange_directory_resource_pin_needed">مربوط - يلزم رمز PIN</string>
     <string name="exchange_directory_resource_pin_sign_in">محمي برمز PIN. سجّل الدخول إلى هذا الخادم مرة أخرى لفتحه</string>
     <string name="exchange_pin_title">رمز PIN لـ %1$s</string>
@@ -141,7 +122,6 @@
     <string name="exchange_pin_skip">تخطّي</string>
     <string name="exchange_pin_checking">جارٍ التحقق..</string>
     <string name="exchange_pin_refused">مقفل: لم يتم قبول رمز PIN. تحقق منه وحاول مرة أخرى</string>
-    <string name="exchange_pin_unreachable">يتعذّر الوصول إلى الجهاز الآن - تأكد من أنه متصل وحاول مرة أخرى</string>
     <string name="exchange_pin_failed">تعذّر ربط هذا المورد. حاول مرة أخرى لاحقًا</string>
     <string name="exchange_pin_empty">أدخل رمز PIN</string>
 </resources>

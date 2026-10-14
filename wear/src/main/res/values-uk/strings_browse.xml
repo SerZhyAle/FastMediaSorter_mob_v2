@@ -9,4 +9,7 @@
     <string name="browse_network_error_timeout">Немає відповіді. Перевірте мережу та спробуйте ще раз.</string>
     <string name="browse_network_error_auth">Невірний логін або пароль. Оновіть ресурс на телефоні.</string>
     <string name="browse_network_error_unknown_host">Пристрій не знайдено в цій мережі. Перевірте підключення до Wi-Fi.</string>
+    <string name="exchange_folder_needs_own_network">Ця тека відкривається лише через Wi-Fi або LTE самого годинника. Увімкніть Wi-Fi або LTE на годиннику.</string>
+    <string name="exchange_folder_pin_on_phone">Ця тека захищена, і її PIN вводиться на телефоні. Відкрийте теку на телефоні та введіть PIN.</string>
+    <string name="exchange_folder_connect_watch_on_phone">Поза домом для цієї теки годинник має бути підключений до сервера. Підключіть годинник на телефоні.</string>
 </resources>

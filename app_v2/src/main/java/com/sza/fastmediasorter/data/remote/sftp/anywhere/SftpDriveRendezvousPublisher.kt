@@ -60,15 +60,25 @@ class SftpDriveRendezvousPublisher @Inject constructor(
         job = appScope.launch(ioDispatcher) { run(port, addresses) }
     }
 
-    /** Stops publishing and marks this device offline, unless a restart claimed the channel meanwhile. */
+    /**
+     * Stops publishing and marks this device offline, unless a restart claimed the channel meanwhile.
+     * [offlineReason] rides the offline record only (DEVICE-EXCHANGE 26 item DC).
+     */
     @Synchronized
-    fun stop() {
+    fun stop(offlineReason: String? = null) {
         val running = job ?: return
         job = null
         running.cancel()
         appScope.launch(ioDispatcher) {
             running.join()
-            if (isIdle()) writeDevice(ids.deviceId(), SftpRendezvousDevice.PRESENCE_OFFLINE, System.currentTimeMillis())
+            if (isIdle()) {
+                writeDevice(
+                    ids.deviceId(),
+                    SftpRendezvousDevice.PRESENCE_OFFLINE,
+                    System.currentTimeMillis(),
+                    offlineReason,
+                )
+            }
         }
     }
 
@@ -137,7 +147,12 @@ class SftpDriveRendezvousPublisher @Inject constructor(
         ).encode()
     }
 
-    private suspend fun writeDevice(deviceId: String, presence: String, now: Long): Boolean {
+    private suspend fun writeDevice(
+        deviceId: String,
+        presence: String,
+        now: Long,
+        offlineReason: String? = null,
+    ): Boolean {
         val device = SftpRendezvousDevice(
             deviceId = deviceId,
             deviceName = Build.MODEL.orEmpty(),
@@ -149,6 +164,7 @@ class SftpDriveRendezvousPublisher @Inject constructor(
             updatedAtMs = now,
             writtenAtMs = now,
             ttlSeconds = RECORD_TTL_SECONDS,
+            offlineReason = offlineReason,
         )
         return store.writeDevice(device)
             .onFailure { Timber.i("SftpDriveRendezvousPublisher: %s device record skipped (%s)", presence, it.message) }

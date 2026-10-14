@@ -63,7 +63,9 @@ class SftpExchangeSettingsStore @Inject constructor(
     }
 
     private fun decode(preferences: Preferences) = SftpExchangeConfig(
-        enabled = preferences[keyEnabled] ?: false,
+        // Contract DEVICE-EXCHANGE item BC: a running share is published on every path by default; only an explicit
+        // "leave" (written false) keeps the exchange path off.
+        enabled = preferences[keyEnabled] ?: true,
         shareId = preferences[keyShareId].orEmpty(),
     )
 

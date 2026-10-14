@@ -37,7 +37,10 @@ class DeleteNetworkFileUseCase @Inject constructor(
     suspend operator fun invoke(sourceId: String?, streamUri: String): Result<Unit> =
         withContext(Dispatchers.IO) {
             resolveSource(sourceId)
-                .mapCatching { source -> deleteFrom(source, streamUri).getOrThrow() }
+                .mapCatching { source ->
+                    Timber.d("S4228: network delete requested, readOnly=${source.readOnly}")
+                    deleteFrom(source, streamUri).getOrThrow()
+                }
                 .onFailure { Timber.w(it, "Failed to delete network file: $streamUri") }
         }
 
@@ -53,12 +56,14 @@ class DeleteNetworkFileUseCase @Inject constructor(
     }
 
     private suspend fun deleteFrom(source: NetworkSource, streamUri: String): Result<Unit> =
-        when (source.type) {
-            NetworkSourceType.SMB -> deleteOverSmb(source, streamUri)
-            NetworkSourceType.FTP ->
+        // S4228: read-only set on the phone belongs to this record (contract DEVICE-EXCHANGE 20 item BH), so the
+        // server is never asked - a share that would allow it must still not lose the file from the watch.
+        when {
+            source.readOnly -> Result.failure(IllegalStateException("The folder is read-only"))
+            source.type == NetworkSourceType.SMB -> deleteOverSmb(source, streamUri)
+            source.type == NetworkSourceType.FTP ->
                 ftpDataSource.deleteFile(source, NetworkUriParser.remotePathOf(streamUri))
-            NetworkSourceType.SFTP ->
-                sftpDataSource.deleteFile(source, NetworkUriParser.remotePathOf(streamUri))
+            else -> sftpDataSource.deleteFile(source, NetworkUriParser.remotePathOf(streamUri))
         }
 
     /**

@@ -10,14 +10,12 @@
     <string name="exchange_devices_outgoing">Saliente</string>
     <string name="exchange_devices_status_checking">Comprobando la conexión..</string>
     <string name="exchange_devices_status_online">Conectado, dispositivos: %1$d</string>
-    <string name="exchange_devices_status_unreachable">Servidor no accesible</string>
     <string name="exchange_devices_card_menu">Más acciones para el servidor</string>
     <string name="exchange_devices_menu_edit_address">Cambiar dirección</string>
     <string name="exchange_devices_menu_make_outgoing">Hacer saliente</string>
     <string name="exchange_devices_menu_connect_watch">Conectar reloj</string>
     <string name="exchange_devices_menu_share">Pasar el servidor</string>
     <string name="exchange_devices_menu_auto_attach">Vincular todo automáticamente</string>
-    <string name="exchange_devices_menu_remove">Quitar servidor</string>
     <string name="exchange_devices_signin_title">Iniciar sesión en un servidor de intercambio</string>
     <string name="exchange_devices_signin_address">Dirección (host:puerto)</string>
     <string name="exchange_devices_signin_login">Usuario</string>
@@ -32,16 +30,7 @@
     <string name="exchange_devices_signin_done">Sesión iniciada en %1$s</string>
     <string name="exchange_devices_cert_title">Comprueba el certificado del servidor</string>
     <string name="exchange_devices_cert_message">El servidor presenta un certificado que tu teléfono no conoce. Confía en él solo si esta huella digital coincide con la que muestra tu servidor:\n\n%1$s</string>
-    <string name="exchange_devices_cert_changed_message">El certificado del servidor ha cambiado desde que lo aceptaste. Si no lo sustituiste tú, alguien podría estar interceptando la conexión.\n\nAceptado: %1$s\nAhora: %2$s</string>
     <string name="exchange_devices_cert_accept">Confiar</string>
-    <string name="exchange_devices_reason_bad_credentials">Usuario, contraseña o código incorrectos</string>
-    <string name="exchange_devices_reason_device_revoked">Este teléfono fue eliminado de la cuenta. Quita el servidor e inicia sesión de nuevo.</string>
-    <string name="exchange_devices_reason_version">El servidor usa una versión distinta. Actualiza la aplicación o el servidor.</string>
-    <string name="exchange_devices_reason_capacity">El servidor está lleno ahora mismo. Inténtalo más tarde.</string>
-    <string name="exchange_devices_reason_rate_limited">Demasiados intentos. Espera un poco e inténtalo de nuevo.</string>
-    <string name="exchange_devices_reason_unsupported">El servidor no ofrece esto</string>
-    <string name="exchange_devices_reason_generic">El servidor rechazó la solicitud</string>
-    <string name="exchange_devices_reason_token_not_stored">El teléfono no pudo guardar el inicio de sesión de forma segura. Inténtalo de nuevo.</string>
     <string name="exchange_devices_list_loading">Cargando los dispositivos..</string>
     <string name="exchange_devices_list_empty">No hay dispositivos en la lista</string>
     <string name="exchange_devices_device_online">En línea</string>
@@ -100,7 +89,6 @@
     <string name="exchange_directory_resource_attached">Vinculado</string>
     <string name="exchange_directory_resource_offline">El dispositivo está sin conexión</string>
     <string name="exchange_directory_resource_no_access">El dispositivo no comparte aquí su dirección</string>
-    <string name="exchange_directory_resource_locked">Bloqueado de una forma que esta versión no conoce. Actualiza la aplicación para abrirlo</string>
     <string name="exchange_directory_attached_section">Vinculados anteriormente</string>
     <string name="exchange_directory_no_longer_published">Ya no está publicado</string>
     <string name="exchange_directory_unavailable">No disponible ahora mismo</string>
@@ -127,13 +115,6 @@
     <string name="exchange_cast_send_failed">No se enviaron todas las solicitudes. Comprueba la conexión con el servidor.</string>
     <string name="exchange_cast_sent">Solicitudes enviadas: %1$d</string>
     <string name="exchange_cast_result_accepted">%1$s está reproduciendo la difusión</string>
-    <string name="exchange_cast_result_unavailable">%1$s está sin conexión</string>
-    <string name="exchange_cast_result_declined">%1$s rechazó</string>
-    <string name="exchange_cast_result_timeout">%1$s no respondió</string>
-    <string name="exchange_cast_result_unsupported">%1$s no puede reproducir esta difusión</string>
-    <string name="exchange_cast_result_refused">El servidor no entregó la solicitud a %1$s</string>
-    <string name="exchange_devices_status_unanswered">El servidor no respondió</string>
-    <string name="exchange_directory_resource_pin">Protegido con un PIN</string>
     <string name="exchange_directory_resource_pin_needed">Vinculado - se necesita PIN</string>
     <string name="exchange_directory_resource_pin_sign_in">Protegido con un PIN. Inicia sesión de nuevo en este servidor para abrirlo</string>
     <string name="exchange_pin_title">PIN para %1$s</string>
@@ -141,7 +122,6 @@
     <string name="exchange_pin_skip">Omitir</string>
     <string name="exchange_pin_checking">Comprobando..</string>
     <string name="exchange_pin_refused">Bloqueado: no se aceptó el PIN. Compruébalo e inténtalo de nuevo</string>
-    <string name="exchange_pin_unreachable">No se puede contactar con el dispositivo ahora - asegúrate de que esté en línea e inténtalo de nuevo</string>
     <string name="exchange_pin_failed">No se pudo vincular este recurso. Inténtalo de nuevo más tarde</string>
     <string name="exchange_pin_empty">Introduce el PIN</string>
 </resources>

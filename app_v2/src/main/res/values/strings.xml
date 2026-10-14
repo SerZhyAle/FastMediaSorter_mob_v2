@@ -4200,7 +4200,7 @@
     <string name="sftp_server_notification_title">SFTP server is on</string>
     <string name="sftp_server_notification_starting">Starting..</string>
     <string name="sftp_server_notification_address">Connect to %1$s</string>
-    <string name="sftp_server_notification_no_network">Connect the phone to Wi-Fi so other devices can reach it</string>
+    <string name="sftp_server_notification_no_network">Not on Wi-Fi - other devices reach this phone through the exchange server or via Google Drive</string>
     <string name="sftp_server_action_stop">Stop</string>
     <string name="settings_sftp_server_title">Share over SFTP</string>
     <string name="settings_sftp_server_enable_title">SFTP server</string>
@@ -4208,7 +4208,7 @@
     <string name="settings_sftp_server_status_off">Off</string>
     <string name="settings_sftp_server_status_starting">Starting..</string>
     <string name="settings_sftp_server_status_running">Running at %1$s</string>
-    <string name="settings_sftp_server_status_no_network">Running, but the phone is not on Wi-Fi - other devices cannot reach it yet</string>
+    <string name="settings_sftp_server_status_no_network">Running, but the phone is not on Wi-Fi - other devices reach it through the exchange server or via Google Drive</string>
     <string name="settings_sftp_server_failure_no_folders">Add at least one folder to share, then turn the server on</string>
     <string name="settings_sftp_server_failure_no_credential">Add a public key or switch to password login, then turn the server on</string>
     <string name="settings_sftp_server_failure_port">Port %1$d is taken by another app - choose another port</string>
@@ -4401,8 +4401,6 @@
     <string name="settings_sftp_exchange_status_connecting">Connecting to the exchange server..</string>
     <string name="settings_sftp_exchange_status_registered">Reachable from anywhere through %1$s</string>
     <string name="settings_sftp_exchange_status_registered_port">Reachable from anywhere through %1$s. Other SFTP apps: %2$s</string>
-    <string name="settings_sftp_exchange_status_unreachable">Exchange server unreachable, trying again</string>
-    <string name="settings_sftp_exchange_status_certificate">The exchange server presented a different certificate, so the connection stopped</string>
     <string name="settings_sftp_exchange_new_link">New access link</string>
     <string name="settings_sftp_exchange_new_link_done">Codes shared earlier no longer open this server</string>
     <string name="settings_sftp_server_legacy_qr">Code for older app versions</string>
@@ -4510,4 +4508,10 @@
     <string name="tourist_stopwatch_action_stop">Stop</string>
     <string name="tourist_stopwatch_action_reset">Reset</string>
     <string name="tourist_stopwatch_action_open_full">Open stopwatch</string>
+    <string name="sftp_server_notification_paused_title">Sharing paused</string>
+    <string name="sftp_server_notification_paused_text">Android paused sharing after its daily limit. Open the app to continue.</string>
+    <string name="settings_sftp_server_status_paused">Paused by Android - it continues when you open the app</string>
+    <string name="broadcast_failed_file">This file cannot be broadcast - it did not open, or it carries no playable track</string>
+    <string name="broadcast_notification_file_title">Broadcasting a File</string>
+    <string name="broadcast_notification_file_text">Live file broadcast is active</string>
 </resources>

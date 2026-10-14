@@ -3886,8 +3886,6 @@
     <string name="settings_sftp_exchange_status_connecting">正在连接交换服务器..</string>
     <string name="settings_sftp_exchange_status_registered">可通过 %1$s 从任何地方访问</string>
     <string name="settings_sftp_exchange_status_registered_port">可通过 %1$s 从任何地方访问。其他 SFTP 应用：%2$s</string>
-    <string name="settings_sftp_exchange_status_unreachable">无法连接交换服务器，正在重试</string>
-    <string name="settings_sftp_exchange_status_certificate">交换服务器出示了不同的证书，因此连接已中断</string>
     <string name="settings_sftp_exchange_new_link">新的访问链接</string>
     <string name="settings_sftp_exchange_new_link_done">此前分享的代码已无法再打开此服务器</string>
     <string name="settings_sftp_server_legacy_qr">适用于旧版应用的代码</string>

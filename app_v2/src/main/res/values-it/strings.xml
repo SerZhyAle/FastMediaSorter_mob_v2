@@ -3891,8 +3891,6 @@
     <string name="settings_sftp_exchange_status_connecting">Connessione al server di scambio..</string>
     <string name="settings_sftp_exchange_status_registered">Raggiungibile da ovunque tramite %1$s</string>
     <string name="settings_sftp_exchange_status_registered_port">Raggiungibile da ovunque tramite %1$s. Altre app SFTP: %2$s</string>
-    <string name="settings_sftp_exchange_status_unreachable">Server di scambio non raggiungibile, nuovo tentativo in corso</string>
-    <string name="settings_sftp_exchange_status_certificate">Il server di scambio ha presentato un certificato diverso, quindi la connessione è stata interrotta</string>
     <string name="settings_sftp_exchange_new_link">Nuovo link di accesso</string>
     <string name="settings_sftp_exchange_new_link_done">I codici condivisi in precedenza non aprono più questo server</string>
     <string name="settings_sftp_server_legacy_qr">Codice per le versioni precedenti dell\'app</string>

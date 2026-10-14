@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.core.panel.SubProgramSurface
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
+import com.sza.fastmediasorter.ui.exchange.ExchangeClipboardActivity
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity
 import com.sza.fastmediasorter.ui.stopwatch.StopwatchActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
@@ -212,6 +213,13 @@ class MainProgramsMenuCoordinator(
             WatchListenLaunchActivity.createIntent(activity, record = true)
         MENU_ITEM_TOURIST ->
             com.sza.fastmediasorter.ui.tourist.TouristInfoActivity.createIntent(activity)
+        else -> clipboardIntentFor(itemId)
+    }
+
+    // S4226: split from launchIntentFor, which the two clipboard rows took to detekt's cyclomatic ceiling.
+    private fun clipboardIntentFor(itemId: Int): Intent? = when (itemId) {
+        MENU_ITEM_CLIPBOARD_SEND -> ExchangeClipboardActivity.createIntent(activity, send = true)
+        MENU_ITEM_CLIPBOARD_GET -> ExchangeClipboardActivity.createIntent(activity, send = false)
         else -> null
     }
 
@@ -301,6 +309,10 @@ class MainProgramsMenuCoordinator(
         // launchIntentFor beside the other registry rows.
         const val MENU_ITEM_SCHEDULED_TASKS = 32
 
+        // S4226: 33 and 34 are the next free ids; manager-less, so their launch lives in launchIntentFor.
+        const val MENU_ITEM_CLIPBOARD_SEND = 33
+        const val MENU_ITEM_CLIPBOARD_GET = 34
+
         /**
          * The menu item id each sub-program's tap is dispatched on - the one thing ADR-1 keeps out of
          * the registry that this file still has to own.
@@ -335,6 +347,8 @@ class MainProgramsMenuCoordinator(
             InternalRouteCatalog.KEY_TOURIST_INFO to MENU_ITEM_TOURIST,
             InternalRouteCatalog.KEY_BROADCAST to MainBroadcastMenuManager.MENU_ITEM_BROADCAST,
             InternalRouteCatalog.KEY_SCHEDULED_TASKS to MENU_ITEM_SCHEDULED_TASKS,
+            InternalRouteCatalog.KEY_CLIPBOARD_SEND to MENU_ITEM_CLIPBOARD_SEND,
+            InternalRouteCatalog.KEY_CLIPBOARD_GET to MENU_ITEM_CLIPBOARD_GET,
         )
 
         /** The route keys the menu can draw - read by SubProgramCatalogCompletenessTest. */

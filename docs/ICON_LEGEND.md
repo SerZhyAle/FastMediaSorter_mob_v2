@@ -38,6 +38,8 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Date and time |
 | <img src="icons/svg/ic_developer_options.svg" alt="ic_developer_options" width="24" height="24"> | Developer options |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Display |
+| <img src="icons/svg/ic_clipboard_get_server.svg" alt="ic_clipboard_get_server" width="24" height="24"> | Get the clipboard from the server |
+| <img src="icons/svg/ic_clipboard_send_server.svg" alt="ic_clipboard_send_server" width="24" height="24"> | Send the clipboard to the server |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Favorites |
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Front flashlight |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Mini-game |

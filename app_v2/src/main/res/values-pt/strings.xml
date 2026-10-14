@@ -3892,8 +3892,6 @@
     <string name="settings_sftp_exchange_status_connecting">Conectando ao servidor de intercâmbio..</string>
     <string name="settings_sftp_exchange_status_registered">Acessível de qualquer lugar por meio de %1$s</string>
     <string name="settings_sftp_exchange_status_registered_port">Acessível de qualquer lugar por meio de %1$s. Outros aplicativos SFTP: %2$s</string>
-    <string name="settings_sftp_exchange_status_unreachable">Servidor de intercâmbio inacessível, tentando novamente</string>
-    <string name="settings_sftp_exchange_status_certificate">O servidor de intercâmbio apresentou um certificado diferente, por isso a conexão foi interrompida</string>
     <string name="settings_sftp_exchange_new_link">Novo link de acesso</string>
     <string name="settings_sftp_exchange_new_link_done">Os códigos compartilhados antes não abrem mais este servidor</string>
     <string name="settings_sftp_server_legacy_qr">Código para versões antigas do aplicativo</string>

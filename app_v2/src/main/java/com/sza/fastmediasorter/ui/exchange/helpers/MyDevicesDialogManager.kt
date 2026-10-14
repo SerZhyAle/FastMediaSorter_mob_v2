@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.databinding.DialogExchangeSignInBinding
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionString
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringResult
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
 import com.sza.fastmediasorter.ui.exchange.ExchangeDevicesState
 import com.sza.fastmediasorter.ui.exchange.ExchangeSignInRequest
@@ -42,11 +43,12 @@ class MyDevicesDialogManager(
 ) {
 
     private var signInDialog: AlertDialog? = null
-    private var signInBinding: DialogExchangeSignInBinding? = null
+    private var signInPanel: ExchangeFailurePanel? = null
     private var intake: ExchangeSignInIntakeManager? = null
     private var lastSignInState: ExchangeSignInState? = null
     private var devicesDialog: AlertDialog? = null
     private var devicesBinding: DialogExchangeServerDevicesBinding? = null
+    private var devicesPanel: ExchangeFailurePanel? = null
 
     fun resolve(message: MyDevicesMessage): String = resolve(activity, message)
 
@@ -56,12 +58,12 @@ class MyDevicesDialogManager(
     ) {
         viewModel.resetSignIn()
         val binding = DialogExchangeSignInBinding.inflate(LayoutInflater.from(activity))
-        val intakeManager = ExchangeSignInIntakeManager(activity, binding, viewModel, launchers).also { it.bind() }
-        binding.checkExchangeSignInUseCode.setOnCheckedChangeListener { code ->
-            binding.tilExchangeSignInSecret.hint = activity.getString(
-                if (code) R.string.exchange_devices_signin_pairing_code else R.string.exchange_devices_signin_password
+        val panel = ExchangeFailurePanel(binding.exchangeFailurePanel, activity)
+        val intakeManager = ExchangeSignInIntakeManager(activity, binding, viewModel, launchers, panel) { registers ->
+            signInDialog?.getButton(AlertDialog.BUTTON_POSITIVE)?.setText(
+                if (registers) R.string.exchange_signin_register_submit else R.string.exchange_devices_signin_submit
             )
-        }
+        }.also { it.bind() }
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.exchange_devices_signin_title)
             .setView(binding.root)
@@ -69,7 +71,7 @@ class MyDevicesDialogManager(
             .setNegativeButton(R.string.cancel, null)
             .setOnDismissListener {
                 signInDialog = null
-                signInBinding = null
+                signInPanel = null
                 intake = null
                 lastSignInState = null
                 viewModel.resetSignIn()
@@ -79,7 +81,7 @@ class MyDevicesDialogManager(
         // Set after show(): a builder listener would dismiss the dialog before the server has answered.
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { submitSignIn(binding) }
         signInDialog = dialog
-        signInBinding = binding
+        signInPanel = panel
         intake = intakeManager
         prefill?.let { intakeManager.applyText(it.encode()) }
     }
@@ -96,24 +98,35 @@ class MyDevicesDialogManager(
     }
 
     fun renderSignIn(state: ExchangeSignInState) {
-        val binding = signInBinding ?: return
+        val panel = signInPanel ?: return
         // A collector restarted by the lifecycle replays the same state; its trust dialog is already up.
         if (state === lastSignInState) return
         lastSignInState = state
         val busy = state is ExchangeSignInState.InProgress
         signInDialog?.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = !busy
-        val status = when (state) {
-            ExchangeSignInState.InProgress -> activity.getString(R.string.exchange_devices_signin_progress)
-            is ExchangeSignInState.Failed -> resolve(state.message)
-            else -> null
+        when (state) {
+            ExchangeSignInState.InProgress -> panel.showProgress(
+                activity.getString(
+                    if (intake?.registers == true) {
+                        R.string.exchange_signin_register_progress
+                    } else {
+                        R.string.exchange_devices_signin_progress
+                    }
+                )
+            )
+            is ExchangeSignInState.Failed -> panel.showFailure(state.diagnosis)
+            else -> panel.hide()
         }
-        binding.textExchangeSignInStatus.text = status
-        binding.textExchangeSignInStatus.isVisible = status != null
         when (state) {
             is ExchangeSignInState.NeedsTrust -> showTrust(state)
             is ExchangeSignInState.Done -> {
                 signInDialog?.dismiss()
-                toast(activity.getString(R.string.exchange_devices_signin_done, state.endpoint.toString()))
+                val done = if (state.registered) {
+                    R.string.exchange_signin_register_done
+                } else {
+                    R.string.exchange_devices_signin_done
+                }
+                toast(activity.getString(done, state.endpoint.toString()))
             }
             else -> Unit
         }
@@ -130,16 +143,42 @@ class MyDevicesDialogManager(
             if (loginValid) null else activity.getString(R.string.exchange_devices_signin_login_invalid)
         binding.tilExchangeSignInSecret.error =
             if (secret.isEmpty()) activity.getString(R.string.exchange_devices_signin_secret_empty) else null
+        val registration = registrationFields(binding, secret) ?: return
         if (endpoint == null || !loginValid || secret.isEmpty()) return
         viewModel.signIn(
-            ExchangeSignInRequest(endpoint, login, secret, binding.checkExchangeSignInUseCode.isChecked),
+            ExchangeSignInRequest(
+                endpoint,
+                login,
+                secret,
+                pairingCode = !registration.registers && binding.checkExchangeSignInUseCode.isChecked,
+                invitation = registration.invitation,
+                invitationPassword = registration.invitationPassword,
+            ),
             acceptedPin = intake?.pinFor(endpoint),
         )
     }
 
+    private class Registration(val registers: Boolean, val invitation: String?, val invitationPassword: String?)
+
+    // A forgotten password has no recovery (19 item AT), so registration asks for it twice. Null = a field error.
+    private fun registrationFields(binding: DialogExchangeSignInBinding, secret: String): Registration? {
+        val intakeManager = intake?.takeIf { it.registers } ?: return Registration(false, null, null)
+        val repeat = binding.etExchangeSignInPasswordRepeat.text?.toString().orEmpty()
+        val mismatch = repeat != secret
+        binding.tilExchangeSignInPasswordRepeat.error =
+            if (mismatch) activity.getString(R.string.exchange_signin_password_mismatch) else null
+        val shared = binding.etExchangeSignInInvitationPassword.text?.toString().orEmpty()
+            .takeIf { intakeManager.usesInvitationPassword }
+        val sharedMissing = shared?.isEmpty() == true
+        binding.tilExchangeSignInInvitationPassword.error =
+            if (sharedMissing) activity.getString(R.string.exchange_signin_invitation_password_empty) else null
+        return Registration(true, intakeManager.invitation, shared).takeUnless { mismatch || sharedMissing }
+    }
+
     private fun showTrust(state: ExchangeSignInState.NeedsTrust) {
         val message = state.pinned?.let { pinned ->
-            activity.getString(R.string.exchange_devices_cert_changed_message, pinned, state.presented)
+            ExchangeMessageText.twoParts(activity, ExchangeMessage.CERTIFICATE_CHANGED) + "\n\n" +
+                activity.getString(R.string.exchange_failure_certificate_fingerprints, pinned, state.presented)
         } ?: activity.getString(R.string.exchange_devices_cert_message, state.presented)
         // A changed certificate is the dangerous case: its dialog opens on the safe button (S4051 owner rule).
         val theme = state.pinned?.let { R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive } ?: 0
@@ -165,24 +204,30 @@ class MyDevicesDialogManager(
             .setOnDismissListener {
                 devicesDialog = null
                 devicesBinding = null
+                devicesPanel = null
                 viewModel.closeDevices()
             }
             .showBoundTo(activity)
         devicesBinding = binding
+        devicesPanel = ExchangeFailurePanel(binding.exchangeFailurePanel, activity).also {
+            it.showProgress(activity.getString(R.string.exchange_devices_list_loading))
+        }
         viewModel.openDevices(entry)
     }
 
     fun renderDevices(state: ExchangeDevicesState) {
         val binding = devicesBinding ?: return
-        val status = when (state) {
+        val panel = devicesPanel ?: return
+        when (state) {
             ExchangeDevicesState.Closed, ExchangeDevicesState.Loading ->
-                activity.getString(R.string.exchange_devices_list_loading)
-            is ExchangeDevicesState.Failed -> resolve(state.message)
-            is ExchangeDevicesState.Loaded ->
-                if (state.devices.isEmpty()) activity.getString(R.string.exchange_devices_list_empty) else null
+                panel.showProgress(activity.getString(R.string.exchange_devices_list_loading))
+            is ExchangeDevicesState.Failed -> panel.showFailure(state.diagnosis)
+            is ExchangeDevicesState.Loaded -> if (state.devices.isEmpty()) {
+                panel.showProgress(activity.getString(R.string.exchange_devices_list_empty))
+            } else {
+                panel.hide()
+            }
         }
-        binding.textExchangeDevicesStatus.text = status
-        binding.textExchangeDevicesStatus.isVisible = status != null
         if (state is ExchangeDevicesState.Loaded) {
             binding.rvExchangeDevices.adapter = ExchangeDeviceAdapter(state.entry.deviceId, state.devices) { device ->
                 confirmRevoke(device.deviceName) { viewModel.revokeDevice(state.entry, device) }
@@ -241,7 +286,7 @@ class MyDevicesDialogManager(
                 activity.getString(R.string.exchange_devices_remove_title, ExchangeServerCardAdapter.address(entry))
             )
             .setMessage(R.string.exchange_devices_remove_message)
-            .setPositiveButton(R.string.exchange_devices_menu_remove) { _, _ -> viewModel.remove(entry) }
+            .setPositiveButton(R.string.exchange_devices_menu_sign_out) { _, _ -> viewModel.remove(entry) }
             .setNegativeButton(R.string.cancel, null)
             .showBoundTo(activity)
     }

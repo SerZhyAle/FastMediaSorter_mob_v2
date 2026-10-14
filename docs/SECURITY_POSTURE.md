@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.02 14:54</sub>
+<sub class="doc-stamp">26.10.15 00:36</sub>
 
 # Security posture - what this app can touch and what it can send
 
@@ -43,7 +43,7 @@ the request itself.
 | `android.permission.CHANGE_WIFI_STATE` | `app_v2/src/networkMonitor` | standard, noLegal | Network Monitor radio toggles | `-` | no |
 | `android.permission.EXPAND_STATUS_BAR` | `app_v2/src/main` | all seven | launcher shade-panel control | `-` | no |
 | `android.permission.FOREGROUND_SERVICE` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | every foreground service below | `-` | no |
-| `android.permission.FOREGROUND_SERVICE_CAMERA` | `app_v2/src/broadcastVideoBackground` | noLegal | video broadcast that survives leaving the screen (S3154 keeps it off the store flavors) | `-` | no |
+| `android.permission.FOREGROUND_SERVICE_CAMERA` | `app_v2/src/broadcastVideoBackground` | standard, noLegal | video broadcast that survives leaving the screen (S4235 enables for standard; legacy retains foreground-only) | `-` | no |
 | `android.permission.FOREGROUND_SERVICE_DATA_SYNC` | `app_v2/src/main` | all seven, debug build type only | scheduled file operations | `-` | no |
 | `android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | audio playback service | `-` | no |
 | `android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION` | `app_v2/src/screenCapture` | noLegal, standard when the capture suite is built | screen capture and screen recording | `-` | no |

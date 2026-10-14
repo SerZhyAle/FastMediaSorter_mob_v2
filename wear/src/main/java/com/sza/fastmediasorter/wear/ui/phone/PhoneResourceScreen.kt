@@ -904,6 +904,23 @@ private fun WearFileOperationOutcome.toStatusRes(): Int = when (this) {
     WearFileOperationOutcome.AWAITING_PHONE_ACTION -> R.string.wear_send_to_awaiting_phone
     WearFileOperationOutcome.FAILED -> R.string.wear_file_op_outcome_failed
     WearFileOperationOutcome.CANCELLED -> R.string.wear_file_op_outcome_cancelled
+    WearFileOperationOutcome.SENT_TO_SERVER_CLIPBOARD,
+    WearFileOperationOutcome.SENT_TO_SERVER_CLIPBOARD_PARTLY,
+    WearFileOperationOutcome.NOT_SENT_TO_SERVER_CLIPBOARD,
+    WearFileOperationOutcome.SENT_TO_RESOURCE,
+    WearFileOperationOutcome.NOT_SENT_TO_RESOURCE -> watchServedStatusRes()
+}
+
+// S4227, S4230: this pinned line carries no argument, so a partial clipboard send is said to be partial without
+// naming servers, and a refused send to a resource reads as the generic "not sent" with its two things to check;
+// the batch screen of the browse list names the one reason.
+@StringRes
+private fun WearFileOperationOutcome.watchServedStatusRes(): Int = when (this) {
+    WearFileOperationOutcome.SENT_TO_SERVER_CLIPBOARD -> R.string.wear_server_clipboard_sent
+    WearFileOperationOutcome.SENT_TO_SERVER_CLIPBOARD_PARTLY -> R.string.wear_server_clipboard_sent_partly_short
+    WearFileOperationOutcome.SENT_TO_RESOURCE -> R.string.wear_resource_send_sent
+    WearFileOperationOutcome.NOT_SENT_TO_RESOURCE -> R.string.wear_resource_send_not_sent
+    else -> R.string.wear_server_clipboard_not_sent
 }
 
 /**
@@ -921,7 +938,10 @@ private fun WearFileOperationOutcome.isSuccess(): Boolean = this == WearFileOper
     // S3359: the copy is on the watch and only the removal was declined, so the line reports what the
     // owner asked for happening in part. Painted as an error it read as "nothing was copied", which is
     // the opposite of what the phone answered.
-    this == WearFileOperationOutcome.COPIED_SOURCE_KEPT
+    this == WearFileOperationOutcome.COPIED_SOURCE_KEPT ||
+    this == WearFileOperationOutcome.SENT_TO_SERVER_CLIPBOARD ||
+    this == WearFileOperationOutcome.SENT_TO_SERVER_CLIPBOARD_PARTLY ||
+    this == WearFileOperationOutcome.SENT_TO_RESOURCE
 
 private fun WearPhoneResourceResponseStatus?.toMessageRes(): Int = when (this) {
     WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE -> R.string.phone_resource_source_unavailable

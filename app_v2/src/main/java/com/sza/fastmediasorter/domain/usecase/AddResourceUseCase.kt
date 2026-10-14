@@ -5,6 +5,8 @@ import com.sza.fastmediasorter.core.logging.StructuredLogger
 import com.sza.fastmediasorter.core.metrics.OperationMetricsRecorder
 import com.sza.fastmediasorter.core.util.DestinationColors
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.ResourceIdentity
+import com.sza.fastmediasorter.domain.model.SftpTunnelAddress
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.utils.SftpPathUtils
 import kotlinx.coroutines.flow.first
@@ -157,9 +159,11 @@ class AddResourceUseCase @Inject constructor(
     ): List<MediaResource> {
         val toInsert = mutableListOf<MediaResource>()
         incoming.forEach { resource ->
-            val match = existingResources.firstOrNull {
-                it.type == resource.type && pathsMatch(it.path, resource.path)
-            }
+            // Contract DEVICE-EXCHANGE item BB: the host key and root name the folder; a changed address is a new
+            // channel of the same record, so identity wins over the path rule.
+            val identity = ResourceIdentity.of(resource)
+            val match = existingResources.firstOrNull { identity != null && ResourceIdentity.of(it) == identity }
+                ?: existingResources.firstOrNull { it.type == resource.type && pathsMatch(it.path, resource.path) }
             if (match == null) {
                 toInsert += resource
             } else {
@@ -178,6 +182,10 @@ class AddResourceUseCase @Inject constructor(
      * owns and preserves every user/runtime field (id, name, icon, sort/display mode, view state,
      * stats, displayOrder, destination slot/color, comment, pin, profile). Building from
      * [existing].copy avoids the full-row clobber documented on ResourceRepository (S1001).
+     *
+     * S4224: read-only is the consumer's choice (DEVICE-EXCHANGE item BH), so a re-import never changes it,
+     * and the exchange tunnels the record holds are channels the config does not own (item BB), so they stay
+     * behind the config's own addresses, together with the exchange binding.
      */
     private fun mergeConfigAuthoritative(existing: MediaResource, incoming: MediaResource): MediaResource =
         existing.copy(
@@ -190,8 +198,10 @@ class AddResourceUseCase @Inject constructor(
             scanSubdirectories = incoming.scanSubdirectories,
             showHiddenFiles = incoming.showHiddenFiles,
             showSubfoldersAsItems = incoming.showSubfoldersAsItems,
-            isReadOnly = incoming.isReadOnly,
-            altAccessPaths = incoming.altAccessPaths,
+            altAccessPaths = (
+                incoming.altAccessPaths +
+                    existing.altAccessPaths.filter { SftpTunnelAddress.isTunnel(it.host) }
+                ).distinct(),
             accessNote = incoming.accessNote
         )
 

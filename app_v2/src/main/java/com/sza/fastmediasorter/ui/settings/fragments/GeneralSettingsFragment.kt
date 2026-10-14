@@ -33,6 +33,7 @@ import com.sza.fastmediasorter.domain.usecase.CredentialAuditor
 import com.sza.fastmediasorter.domain.usecase.DeleteUnusedCredentialsUseCase
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
+import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeGrantsUseCase
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeProducerUseCase
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageSftpServerUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
@@ -133,6 +134,8 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
     @Inject lateinit var manageExchangeProducerUseCase: ManageExchangeProducerUseCase
 
+    @Inject lateinit var manageExchangeGrantsUseCase: ManageExchangeGrantsUseCase
+
     @Inject lateinit var mediaCapabilities: MediaCapabilities
 
     // Shared flag passed as lambdas to helpers that need to suppress listeners during programmatic updates
@@ -213,6 +216,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             binding = binding,
             manageSftpServer = manageSftpServerUseCase,
             manageExchangeProducer = manageExchangeProducerUseCase,
+            manageExchangeGrants = manageExchangeGrantsUseCase,
             capabilityAvailability = capabilityAvailability,
             mediaCapabilities = mediaCapabilities,
             launchRootPicker = sftpServerRootPickerLauncher::launch,

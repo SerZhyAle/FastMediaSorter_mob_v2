@@ -52,8 +52,14 @@
 
 .PARAMETER Json
   Emit a single JSON object
-  { pass, total, failed, skipped, reason, launcherMode, flows:[{flow,pass,status,skipReason,log}] }
-  instead of human-readable lines. launcherMode is on|off|unknown - the environment state that
+  { pass, total, failed, skipped, reason, launcherMode, shard:{index,count}, device,
+    flows:[{flow,pass,status,skipReason,log,attempts,firstAttemptStatus,firstAttemptLog,flaky,advisory}] }
+  instead of human-readable lines. device is the resolved target serial or null. Per flow, status,
+  pass and log describe the FINAL attempt; attempts is 1 or 2 (a failed or execError first attempt is
+  retried once), firstAttemptStatus and firstAttemptLog keep attempt 1, flaky is true only when
+  attempt 1 was fail/execError and the retry passed (S4249: a retry used to replace the result
+  silently), and advisory is the flow's '# maestro-advisory:' token or null - a consumer such as
+  scripts/devtest/prerelease-verdict.ps1 decides what an advisory failure means, this runner does not. launcherMode is on|off|unknown - the environment state that
   changes where a back press out of MainActivity lands (S1673). status is pass|fail|execError|skip.
   execError is a transport failure between Maestro and the device and says nothing about the app,
   so a consumer aggregating a release verdict must not count it as a defect (S2396). skip means the
@@ -72,8 +78,23 @@
   binary discovery and before any device call, so a selector form can be verified with no
   emulator attached.
 
+.PARAMETER ShardIndex
+  1-based shard this run executes (default 1). The resolved flow set is ordered first - flows named
+  in the last-failed file, then flows carrying '# maestro-advisory:', then the rest - and shard i
+  takes element k of that order when (k mod ShardCount) + 1 = i (S4249). -ListFlows prints the
+  shard's subset. An index above -ShardCount exits 1.
+
+.PARAMETER ShardCount
+  Number of shards the ordered set is split into (default 1 = the sequential runner, unchanged).
+  Above 1 the run writes temp/scratch/maestro/last-failed.shard<i>of<n>.json instead of
+  last-failed.json, and does NOT clear the per-user Maestro session directory before each flow:
+  every concurrent Maestro process shares it, so the orchestrator
+  (scripts/devtest/prerelease-device-half.ps1) clears it once before starting the shards.
+
 .EXAMPLE
   pwsh -NoProfile -File maestro/run-tests.ps1 -Suite smoke -Json
+.EXAMPLE
+  pwsh -NoProfile -File maestro/run-tests.ps1 -Suite all -DeviceId emulator-5556 -ShardIndex 2 -ShardCount 3 -Json
 .EXAMPLE
   pwsh -NoProfile -File maestro/run-tests.ps1 -Suite features\files -DeviceId emulator-5554
 .EXAMPLE
@@ -93,7 +114,11 @@ param(
     # Retained for backward compatibility with existing callers
     # (scripts/utils/run-maestro-smoke.ps1, scripts/utils/run-stress.ps1) which pass -DebugMode.
     # When set, the off-context trace of any failing flow is echoed to the console for local triage.
-    [switch]$DebugMode
+    [switch]$DebugMode,
+    [ValidateRange(1, 16)]
+    [int]$ShardIndex = 1,
+    [ValidateRange(1, 16)]
+    [int]$ShardCount = 1
 )
 
 $ErrorActionPreference = 'Stop'
@@ -104,8 +129,13 @@ $ProjectRoot = Split-Path -Parent $MaestroDir
 # over that directory used to fail on this runner's logs (S3025).
 $LogDir      = Join-Path $ProjectRoot 'temp/scratch/maestro'
 
+# Header markers, run order, shard partition and attempt records - the pure half of this runner,
+# kept apart so a hermetic suite can pin it without a device (S4249).
+. (Join-Path $MaestroDir 'lib/flow-selection.ps1')
+
 # Probed once in the preflight; reported in both output modes so -Json callers see it too (S1673).
 $script:LauncherMode = 'unknown'
+$script:TargetDevice = $null
 
 function Write-Line {
     param([string]$Text, [string]$Color = 'White')
@@ -116,7 +146,9 @@ function Exit-Suite {
     param([int]$Code, [bool]$Pass, [int]$Total, [int]$Failed, [int]$Skipped = 0, [array]$Flows, [string]$Reason)
     if ($Json) {
         ([ordered]@{ pass = $Pass; total = $Total; failed = $Failed; skipped = $Skipped; reason = $Reason
-                     launcherMode = $script:LauncherMode; flows = $Flows } |
+                     launcherMode = $script:LauncherMode
+                     shard = [ordered]@{ index = $ShardIndex; count = $ShardCount }
+                     device = $script:TargetDevice; flows = $Flows } |
             ConvertTo-Json -Depth 5 -Compress)
     } else {
         $verdict = if ($Pass) { 'PASS' } else { 'FAIL' }
@@ -228,19 +260,7 @@ function Resolve-TargetDevice {
 }
 
 # ---------- ROLE_HOME precondition for launcher flows (S2720) ----------
-# A flow declares the requirement in its own header, `# maestro-requires: home-role`, because the
-# alternative is a list of file names inside this script that drifts from the flows it names.
-function Get-FlowRequirements {
-    param([System.IO.FileInfo]$FlowFile)
-    $head = Get-Content -Path $FlowFile.FullName -TotalCount 20 -ErrorAction SilentlyContinue
-    $tokens = @()
-    foreach ($line in @($head)) {
-        $m = [regex]::Match($line, '^\s*#\s*maestro-requires:\s*([a-z0-9-]+)\s*$')
-        if ($m.Success) { $tokens += $m.Groups[1].Value }
-    }
-    return , $tokens
-}
-
+# The header token reader Get-FlowRequirements lives in lib/flow-selection.ps1.
 function Test-FlowRequiresHomeRole {
     param([System.IO.FileInfo]$FlowFile)
     return (Get-FlowRequirements -FlowFile $FlowFile) -contains 'home-role'
@@ -439,13 +459,37 @@ function Get-FlowSet {
     return @()
 }
 
+# Orders the resolved set and cuts this run's shard out of it. Every shard reads the SAME
+# last-failed.json (shards write per-shard files, the merge writes this one), so all shards compute
+# one order and the round-robin partition covers each flow exactly once (S4249).
+function Get-RunFlowSet {
+    param([object[]]$Resolved)
+    $previouslyFailed = @()
+    $lastFailedPath = Join-Path $LogDir (Get-LastFailedFileName)
+    if (Test-Path -LiteralPath $lastFailedPath -PathType Leaf) {
+        try {
+            $previouslyFailed = @((Get-Content -LiteralPath $lastFailedPath -Raw | ConvertFrom-Json) | ForEach-Object { [string]$_ })
+        } catch {
+            Write-Line "WARN last-failed list unreadable ($lastFailedPath) - default order used" 'Yellow'
+        }
+    }
+    $ordered = Sort-FlowsForRun -Flows $Resolved -PreviouslyFailed $previouslyFailed
+    if ($ShardIndex -gt $ShardCount) {
+        Exit-Suite -Code 1 -Pass $false -Total 0 -Failed 0 -Flows @() `
+            -Reason ("shard index {0} is outside 1..{1}" -f $ShardIndex, $ShardCount)
+    }
+    return , (Get-ShardSubset -Flows $ordered -Index $ShardIndex -Count $ShardCount)
+}
+
 # ---------- run one flow, capture trace off-context ----------
 function Invoke-Flow {
     param([string]$Maestro, [System.IO.FileInfo]$FlowFile)
 
     # Maestro 2.x can leave a local session lock after stopApp/relaunch-heavy flows; clearing the
     # per-user session cache before each isolated CLI invocation keeps the suite deterministic.
-    Clear-MaestroSessions
+    # A shard never clears it: the directory is shared by every concurrent Maestro process, so one
+    # shard would delete a sibling's live session (S4249). The orchestrator clears it once instead.
+    if ($ShardCount -eq 1) { Clear-MaestroSessions }
 
     $stamp   = (Get-Date).ToString('yyyyMMdd_HHmmss')
     $logFile = Join-Path $LogDir ("{0}_maestro_{1}.log" -f $FlowFile.BaseName, $stamp)
@@ -493,9 +537,9 @@ if (-not (Test-Path -Path $LogDir -PathType Container)) {
 # adb call on purpose: every other path here needs a device, so without it no selector form can be
 # verified except by starting a suite (S2396).
 if ($ListFlows) {
-    $listed = Get-FlowSet -Selection $Suite
+    $listed = Get-RunFlowSet -Resolved (Get-FlowSet -Selection $Suite)
     foreach ($f in $listed) { Write-Host (Get-RelativeFlowPath $f) }
-    Write-Host ("selection '{0}': {1} flow(s)" -f $Suite, $listed.Count)
+    Write-Host ("selection '{0}' shard {2}/{3}: {1} flow(s)" -f $Suite, $listed.Count, $ShardIndex, $ShardCount)
     exit $(if ($listed.Count -gt 0) { 0 } else { 1 })
 }
 
@@ -524,7 +568,7 @@ switch ($script:LauncherMode) {
     default { Write-Line 'OK launcher-mode: (not probed - adb unavailable)' 'Yellow' }
 }
 
-$flows = Get-FlowSet -Selection $Suite
+$flows = Get-RunFlowSet -Resolved (Get-FlowSet -Selection $Suite)
 if ($flows.Count -eq 0) {
     Exit-Suite -Code 1 -Pass $false -Total 0 -Failed 0 -Flows @() `
         -Reason "no flow matched selection '$Suite' (try: all | smoke | critical | features | features\\<category> | <flow>.yaml)"
@@ -542,12 +586,13 @@ if (@($flows | Where-Object { $_.FullName -match '[\\/]wear[\\/]' }).Count -gt 0
     }
 }
 
-Write-Line ("RUN suite '{0}': {1} flow(s) on device {2}" -f $Suite, $flows.Count, $(if ($DeviceId) { $DeviceId } else { '(auto)' })) 'Cyan'
+Write-Line ("RUN suite '{0}' shard {3}/{4}: {1} flow(s) on device {2}" -f $Suite, $flows.Count, $(if ($DeviceId) { $DeviceId } else { '(auto)' }), $ShardIndex, $ShardCount) 'Cyan'
 
 $results  = @()
 $anyExec  = $false
 $anyFail  = $false
 $targetDevice = Resolve-TargetDevice -Sdk $sdk -Device $DeviceId
+$script:TargetDevice = $targetDevice
 foreach ($flow in $flows) {
     # S2720: a flow that needs the home role gets it taken and given back around its own run, and is
     # skipped rather than failed when that cannot be arranged here. Restoring is not housekeeping:
@@ -589,7 +634,9 @@ foreach ($flow in $flows) {
         }
     }
 
+    $advisoryKind = Get-FlowAdvisoryKind -FlowFile $flow
     $r = Invoke-Flow -Maestro $maestro -FlowFile $flow
+    $r2 = $null
     # Single retry for a transient assertion failure. Emulator UI suites flake run-to-run (state
     # contamination between flows, scroll determinism); an isolated re-run almost always passes, and a
     # failing flow can leave the app on a deep screen that cascades into the next flow's go_home.
@@ -601,8 +648,9 @@ foreach ($flow in $flows) {
         Write-Line ("  RETRY    {0}  (first attempt {1} - transient flake guard)" -f $r.flow, $r.status) 'Yellow'
         Reset-App -Sdk $sdk -Device $DeviceId
         $r2 = Invoke-Flow -Maestro $maestro -FlowFile $flow
-        if ($r2.pass) { $r = $r2 }
     }
+    # Both attempts stay in the record: a pass on the retry is flaky, not clean (S4249).
+    $r = Resolve-FlowAttempts -First $r -Retry $r2 -Advisory $advisoryKind
 
     # Give the role back before the next flow starts, whatever this one did.
     if ($previousRoleHolder) {
@@ -618,7 +666,7 @@ foreach ($flow in $flows) {
     $results += $r
     if ($r.status -eq 'execError') { $anyExec = $true }
     if ($r.status -eq 'fail')      { $anyFail = $true }
-    $mark = switch ($r.status) { 'pass' { 'PASS' } 'fail' { 'FAIL' } default { 'EXEC-ERR' } }
+    $mark = switch ($r.status) { 'pass' { if ($r.flaky) { 'FLAKY' } else { 'PASS' } } 'fail' { 'FAIL' } default { 'EXEC-ERR' } }
     $col  = if ($r.pass) { 'Green' } else { 'Red' }
     Write-Line ("  {0,-8} {1}  (log: {2})" -f $mark, $r.flow, $r.log) $col
 
@@ -637,8 +685,22 @@ $failedCount  = @($results | Where-Object { -not $_.pass -and $_.status -ne 'ski
 # skipReason rides along for the same reason one step further: a skip carries no log to read.
 $flowsOut     = @($results | ForEach-Object {
     [ordered]@{ flow = $_.flow; pass = $_.pass; status = $_.status
-                skipReason = $(if ($_.Contains('skipReason')) { $_.skipReason } else { $null }); log = $_.log }
+                skipReason = $(if ($_.Contains('skipReason')) { $_.skipReason } else { $null }); log = $_.log
+                attempts = $(if ($_.Contains('attempts')) { $_.attempts } else { 0 })
+                firstAttemptStatus = $(if ($_.Contains('firstAttemptStatus')) { $_.firstAttemptStatus } else { $null })
+                firstAttemptLog = $(if ($_.Contains('firstAttemptLog')) { $_.firstAttemptLog } else { $null })
+                flaky = $(if ($_.Contains('flaky')) { [bool]$_.flaky } else { $false })
+                advisory = $(if ($_.Contains('advisory')) { $_.advisory } else { $null }) }
 })
+
+# The next run reads this list to put these flows first. A shard writes its own file and the merge
+# (maestro/merge-shard-results.ps1) writes last-failed.json, so concurrent shards never race on it.
+$lastFailedOut = Join-Path $LogDir (Get-LastFailedFileName -ShardIndex $ShardIndex -ShardCount $ShardCount)
+try {
+    Set-Content -LiteralPath $lastFailedOut -Encoding utf8NoBOM -Value (ConvertTo-Json -InputObject @(Get-FailedFlowNames -Flows $flowsOut) -Compress)
+} catch {
+    Write-Line "WARN could not write $lastFailedOut - the next run keeps the default order" 'Yellow'
+}
 
 # Precedence: execution error (4) outranks assertion failure (3); both outrank pass. A skip enters
 # neither branch - it is a flow that was never judged, not a flow that was judged badly.

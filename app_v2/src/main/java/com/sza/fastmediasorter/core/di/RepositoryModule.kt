@@ -240,6 +240,12 @@ abstract class RepositoryModule {
         impl: ScheduledOperationRepositoryImpl
     ): ScheduledOperationRepository
 
+    @Binds
+    @Singleton
+    abstract fun bindScheduledRunJournalRepository(
+        impl: com.sza.fastmediasorter.data.repository.ScheduledRunJournalRepositoryImpl
+    ): com.sza.fastmediasorter.domain.repository.ScheduledRunJournalRepository
+
     // WearableDataLayerRepository is bound per-flavor by the seam modules (S0403):
     // src/wearGms/.../di/WearModule (GMS impl) or src/wearStub/.../di/WearModule (no-op).
 

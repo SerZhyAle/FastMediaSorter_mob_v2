@@ -131,5 +131,7 @@ private fun BroadcastFailure.asRefusal(): WearCameraRefusal = when (this) {
     BroadcastFailure.NETWORK_UNAVAILABLE -> WearCameraRefusal.NO_NETWORK
     BroadcastFailure.MICROPHONE_PERMISSION,
     BroadcastFailure.ENCODER_UNAVAILABLE,
-    BroadcastFailure.CAPTURE_ERROR -> WearCameraRefusal.CAPTURE_FAILED
+    // A watch camera start never produces a file refusal; the wire names no file reason either.
+    BroadcastFailure.CAPTURE_ERROR,
+    BroadcastFailure.FILE_UNREADABLE -> WearCameraRefusal.CAPTURE_FAILED
 }

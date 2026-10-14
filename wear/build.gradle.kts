@@ -416,6 +416,8 @@ dependencies {
     
     // Coil for image loading (Compose-friendly)
     implementation(libs.coil.coil.compose)
+    // S4227: animated GIF and WebP in the full-screen image viewer, through the platform decoder (minSdk 28).
+    implementation(libs.coil.coil.gif)
     
     // Hilt Dependency Injection
     implementation(libs.dagger.hilt.android)

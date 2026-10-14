@@ -3907,8 +3907,6 @@
     <string name="settings_sftp_exchange_status_connecting">جارٍ الاتصال بخادم التبادل..</string>
     <string name="settings_sftp_exchange_status_registered">متاح من أي مكان عبر %1$s</string>
     <string name="settings_sftp_exchange_status_registered_port">متاح من أي مكان عبر %1$s. تطبيقات SFTP الأخرى: %2$s</string>
-    <string name="settings_sftp_exchange_status_unreachable">تعذّر الوصول إلى خادم التبادل، جارٍ إعادة المحاولة</string>
-    <string name="settings_sftp_exchange_status_certificate">قدّم خادم التبادل شهادة مختلفة، لذا توقّف الاتصال</string>
     <string name="settings_sftp_exchange_new_link">رابط وصول جديد</string>
     <string name="settings_sftp_exchange_new_link_done">الرموز التي تمت مشاركتها سابقًا لم تعد تفتح هذا الخادم</string>
     <string name="settings_sftp_server_legacy_qr">رمز لإصدارات التطبيق الأقدم</string>

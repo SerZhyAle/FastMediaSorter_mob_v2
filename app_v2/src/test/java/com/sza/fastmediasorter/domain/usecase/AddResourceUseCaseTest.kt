@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.domain.model.DisplayMode
+import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SftpTunnelAddress
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.testing.createMediaResource
@@ -278,8 +280,46 @@ class AddResourceUseCaseTest {
         // Overwritten config-authoritative fields.
         assertEquals("cred-xyz", merged.credentialsId)
         assertEquals(setOf(MediaType.IMAGE, MediaType.VIDEO), merged.supportedMediaTypes)
-        assertFalse(merged.isReadOnly)
+        // S4224: read-only is the consumer's choice (DEVICE-EXCHANGE item BH); the config does not own it.
+        assertTrue(merged.isReadOnly)
         assertTrue(merged.scanSubdirectories)
+    }
+
+    @Test
+    fun `reimport with a new LAN address joins the record of the same host key and keeps its tunnel`() = runTest {
+        val tunnel = HostPort(SftpTunnelAddress.host("AAAAAAAAAAAAAAAAAAAAAA", "exchange.example"), 7443)
+        repo.setResources(
+            listOf(
+                createMediaResource(
+                    id = 6L,
+                    name = "Phone",
+                    path = "sftp://192.168.1.5:2222/Share",
+                    type = ResourceType.SFTP,
+                    hostKeyFingerprint = FINGERPRINT,
+                    isReadOnly = true,
+                ).copy(altAccessPaths = listOf(tunnel), exchangeAccount = "exchange.example:7443/me")
+            )
+        )
+
+        val result = useCase.addMultiple(
+            listOf(
+                createMediaResource(
+                    id = 0L,
+                    path = "sftp://192.168.1.77:2222/Share/",
+                    type = ResourceType.SFTP,
+                    hostKeyFingerprint = FINGERPRINT,
+                ).copy(altAccessPaths = listOf(HostPort("203.0.113.7", 40022)))
+            ),
+            matchExistingByPath = true
+        ).getOrThrow()
+
+        assertEquals(0, result.addedCount)
+        val merged = repo.updatedResources.single()
+        assertEquals(6L, merged.id)
+        assertEquals("sftp://192.168.1.77:2222/Share/", merged.path)
+        assertTrue(merged.isReadOnly)
+        assertEquals(listOf(HostPort("203.0.113.7", 40022), tunnel), merged.altAccessPaths)
+        assertEquals("exchange.example:7443/me", merged.exchangeAccount)
     }
 
     @Test
@@ -366,5 +406,9 @@ class AddResourceUseCaseTest {
         assertEquals(1, result.updatedCount)
         assertTrue(repo.addedResources.isEmpty())
         assertEquals("sftp://host/photos", repo.updatedResources.single().path)
+    }
+
+    private companion object {
+        const val FINGERPRINT = "SHA256:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU"
     }
 }

@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemExchangeServerCardBinding
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.ui.exchange.ExchangeServerCard
 import com.sza.fastmediasorter.ui.exchange.ExchangeServerStatus
 
@@ -35,8 +36,9 @@ class ExchangeServerCardAdapter(
                 ExchangeServerStatus.Checking -> context.getString(R.string.exchange_devices_status_checking)
                 is ExchangeServerStatus.Online ->
                     context.getString(R.string.exchange_devices_status_online, status.deviceCount)
-                is ExchangeServerStatus.Refused -> context.getString(status.text)
-                ExchangeServerStatus.Unreachable -> context.getString(R.string.exchange_devices_status_unreachable)
+                is ExchangeServerStatus.Failed -> context.getString(ExchangeMessageText.what(status.message))
+                ExchangeServerStatus.Offline ->
+                    context.getString(ExchangeMessageText.what(ExchangeMessage.SERVER_OFFLINE))
             }
             binding.textExchangeServerOutgoing.isVisible = entry.outgoing
             binding.root.setOnClickListener { onOpen(entry) }

@@ -38,6 +38,8 @@ permalink: /docs/ICON_LEGEND-uk.html
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Дата і час |
 | <img src="icons/svg/ic_developer_options.svg" alt="ic_developer_options" width="24" height="24"> | Для розробників |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Дисплей |
+| <img src="icons/svg/ic_clipboard_get_server.svg" alt="ic_clipboard_get_server" width="24" height="24"> | Отримати буфер із сервера |
+| <img src="icons/svg/ic_clipboard_send_server.svg" alt="ic_clipboard_send_server" width="24" height="24"> | Надіслати буфер на сервер |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Обране |
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Фронтальний ліхтарик |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Міні-гра |

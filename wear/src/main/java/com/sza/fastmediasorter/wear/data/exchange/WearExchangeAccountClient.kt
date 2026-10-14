@@ -112,10 +112,16 @@ class WearExchangeAccountClient @Inject constructor(
         const val ROLE_BROADCASTER = "broadcaster"
         const val ROLE_RECEIVER = "receiver"
 
+        /** Contract DEVICE-EXCHANGE 22 item BV: the watch sends and receives the clipboard on the server. */
+        const val ROLE_CLIPBOARD = "clipboard"
+
+        /** S4228: contract DEVICE-EXCHANGE 23 item CE - the watch opens the account's folders. */
+        const val ROLE_RESOURCE_CONSUMER = "resource-consumer"
+
         private const val PLATFORM_ANDROID = "android"
         private const val MODE_AUDIO_ONLY = "AUDIO_ONLY"
         private const val TRANSPORT_RELAY = "RELAY"
-        private val ROLES = listOf(ROLE_BROADCASTER, ROLE_RECEIVER)
+        private val ROLES = listOf(ROLE_BROADCASTER, ROLE_RECEIVER, ROLE_CLIPBOARD, ROLE_RESOURCE_CONSUMER)
 
         private const val KEY_LOGIN = "login"
         private const val KEY_PAIRING_CODE = "pairingCode"

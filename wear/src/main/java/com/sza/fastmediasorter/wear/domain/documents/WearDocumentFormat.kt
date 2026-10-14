@@ -12,7 +12,8 @@ import com.sza.fastmediasorter.wear.R
  * alike. Naming the format makes it a value the graph can carry and a screen can read.
  *
  * @property readableOnWatch whether the watch shows the content as text. Only the text-shaped
- * entries do in this iteration; PDF, EPUB and the office formats stay with the phone.
+ * entries do, and since S4227 PDF, which the reader draws as pages; EPUB and the office formats stay with
+ * the phone.
  * @property labelRes how the format is named to the wearer when a screen has to say which one it is.
  * The readable entries share one label on purpose - nothing has to name them, because they open.
  */
@@ -26,7 +27,9 @@ enum class WearDocumentFormat(
     LOG(readableOnWatch = true, labelRes = R.string.wear_document_format_text),
     JSON(readableOnWatch = true, labelRes = R.string.wear_document_format_text),
     XML(readableOnWatch = true, labelRes = R.string.wear_document_format_text),
-    PDF(readableOnWatch = false, labelRes = R.string.wear_document_format_pdf),
+
+    // S4227: drawn as pages by the reader, so a PDF from the clipboard or the phone opens on the watch.
+    PDF(readableOnWatch = true, labelRes = R.string.wear_document_format_pdf),
     EPUB(readableOnWatch = false, labelRes = R.string.wear_document_format_epub),
     OFFICE(readableOnWatch = false, labelRes = R.string.wear_document_format_office),
     OTHER(readableOnWatch = false, labelRes = R.string.wear_document_format_other);

@@ -25,7 +25,10 @@
   Directory of per-checkpoint screenshots (evidence only; never gates PASS/FAIL).
 
 .PARAMETER MaestroResults
-  JSON file emitted by maestro/run-tests.ps1 -Json: { flows:[{flow,pass,log}] }.
+  JSON file emitted by maestro/run-tests.ps1 -Json (or merged by maestro/merge-shard-results.ps1):
+  { flows:[{flow,pass,status,log,flaky,advisory}] }. S4249: a 'fail' flow carrying an advisory token
+  is listed under advisoryFailures and does not fail the maestro dimension - the log dimension still
+  fails the verdict on an app crash; a flow with flaky=true is listed under flaky.
 
 .PARAMETER FromTs
   Optional HH:MM:SS lower bound to scope log queries to the run window.
@@ -231,6 +234,12 @@ $perfBreakdown = [ordered]@{ pass = [bool]$perfPass; failures = $perfFailures; a
 $maestroFailures = @()
 $maestroInfra = @()
 $maestroSkipped = @()
+# S4249: a flow marked '# maestro-advisory:' (network-dependent) that fails is listed, not counted -
+# owner decision 2026-10-14. Only a 'fail' is advisory; the log dimension above is untouched, so an
+# app crash anywhere in the capture still fails the verdict. A flow that passed only on its retry
+# is listed as flaky so a retry no longer passes for a clean result.
+$maestroAdvisory = @()
+$maestroFlaky = @()
 $maestroTotal = 0
 $maestroPass = $true
 if ($MaestroResults -and (Test-Path $MaestroResults)) {
@@ -238,10 +247,14 @@ if ($MaestroResults -and (Test-Path $MaestroResults)) {
     $flows = @($suite.flows)
     $maestroTotal = $flows.Count
     foreach ($flow in $flows) {
+        $fields = $flow.PSObject.Properties.Name
+        if ($fields -contains 'flaky' -and $flow.flaky) { $maestroFlaky += "$($flow.flow)" }
         if ($flow.pass) { continue }
-        $status = if ($flow.PSObject.Properties.Name -contains 'status') { "$($flow.status)" } else { 'fail' }
+        $status = if ($fields -contains 'status') { "$($flow.status)" } else { 'fail' }
         if ($status -eq 'execError') {
             $maestroInfra += "$($flow.flow)"
+        } elseif ($status -eq 'fail' -and $fields -contains 'advisory' -and $flow.advisory) {
+            $maestroAdvisory += "$($flow.flow) ($($flow.advisory))"
         } elseif ($status -eq 'skip') {
             $reason = if ($flow.PSObject.Properties.Name -contains 'skipReason' -and $flow.skipReason) { " - $($flow.skipReason)" } else { '' }
             $maestroSkipped += "$($flow.flow)$reason"
@@ -252,7 +265,8 @@ if ($MaestroResults -and (Test-Path $MaestroResults)) {
     }
 }
 $maestroBreakdown = [ordered]@{ pass = [bool]$maestroPass; total = $maestroTotal; failures = $maestroFailures
-                                infra = $maestroInfra; skipped = $maestroSkipped }
+                                infra = $maestroInfra; skipped = $maestroSkipped
+                                advisoryFailures = $maestroAdvisory; flaky = $maestroFlaky }
 
 # screenshot: evidence only. A present ScreensDir reports the number of captured screenshots
 # but does not contribute to PASS/FAIL.
@@ -412,6 +426,12 @@ else {
     }
     foreach ($skippedFlow in $maestroSkipped) {
         Write-Host ("  maestro skipped (precondition not established, flow not run): {0}" -f $skippedFlow)
+    }
+    foreach ($advisoryFlow in $maestroAdvisory) {
+        Write-Host ("  maestro advisory failure (no app crash in the log, does not block): {0}" -f $advisoryFlow)
+    }
+    foreach ($flakyFlow in $maestroFlaky) {
+        Write-Host ("  maestro flaky (failed the first attempt, passed the retry): {0}" -f $flakyFlow)
     }
 }
 

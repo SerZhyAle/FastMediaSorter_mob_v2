@@ -10,14 +10,12 @@
     <string name="exchange_devices_outgoing">Ausgehend</string>
     <string name="exchange_devices_status_checking">Verbindung wird geprüft..</string>
     <string name="exchange_devices_status_online">Verbunden, Geräte: %1$d</string>
-    <string name="exchange_devices_status_unreachable">Server nicht erreichbar</string>
     <string name="exchange_devices_card_menu">Weitere Aktionen für den Server</string>
     <string name="exchange_devices_menu_edit_address">Adresse ändern</string>
     <string name="exchange_devices_menu_make_outgoing">Als ausgehend festlegen</string>
     <string name="exchange_devices_menu_connect_watch">Uhr verbinden</string>
     <string name="exchange_devices_menu_share">Server weitergeben</string>
     <string name="exchange_devices_menu_auto_attach">Alles automatisch einbinden</string>
-    <string name="exchange_devices_menu_remove">Server entfernen</string>
     <string name="exchange_devices_signin_title">Bei einem Austauschserver anmelden</string>
     <string name="exchange_devices_signin_address">Adresse (Host:Port)</string>
     <string name="exchange_devices_signin_login">Benutzername</string>
@@ -32,16 +30,7 @@
     <string name="exchange_devices_signin_done">Bei %1$s angemeldet</string>
     <string name="exchange_devices_cert_title">Serverzertifikat prüfen</string>
     <string name="exchange_devices_cert_message">Der Server legt ein Zertifikat vor, das dein Telefon nicht kennt. Vertraue ihm nur, wenn dieser Fingerabdruck mit dem übereinstimmt, den dein Server anzeigt:\n\n%1$s</string>
-    <string name="exchange_devices_cert_changed_message">Das Serverzertifikat hat sich geändert, seit du es akzeptiert hast. Wenn du es nicht ersetzt hast, könnte sich jemand dazwischengeschaltet haben.\n\nAkzeptiert: %1$s\nAktuell: %2$s</string>
     <string name="exchange_devices_cert_accept">Vertrauen</string>
-    <string name="exchange_devices_reason_bad_credentials">Benutzername, Passwort oder Code falsch</string>
-    <string name="exchange_devices_reason_device_revoked">Dieses Telefon wurde aus dem Konto entfernt. Entferne den Server und melde dich erneut an.</string>
-    <string name="exchange_devices_reason_version">Der Server nutzt eine andere Version. Aktualisiere die App oder den Server.</string>
-    <string name="exchange_devices_reason_capacity">Der Server ist gerade voll ausgelastet. Versuche es später erneut.</string>
-    <string name="exchange_devices_reason_rate_limited">Zu viele Versuche. Warte etwas und versuche es erneut.</string>
-    <string name="exchange_devices_reason_unsupported">Der Server bietet das nicht an</string>
-    <string name="exchange_devices_reason_generic">Der Server hat die Anfrage abgelehnt</string>
-    <string name="exchange_devices_reason_token_not_stored">Das Telefon konnte die Anmeldung nicht sicher speichern. Versuche es erneut.</string>
     <string name="exchange_devices_list_loading">Geräte werden geladen..</string>
     <string name="exchange_devices_list_empty">Keine Geräte aufgelistet</string>
     <string name="exchange_devices_device_this">Dieses Telefon</string>
@@ -97,7 +86,6 @@
     <string name="exchange_directory_resource_attached">Eingebunden</string>
     <string name="exchange_directory_resource_offline">Das Gerät ist offline</string>
     <string name="exchange_directory_resource_no_access">Das Gerät gibt seine Adresse hier nicht frei</string>
-    <string name="exchange_directory_resource_locked">Auf eine Art gesperrt, die diese Version nicht kennt. Aktualisiere die App, um sie zu öffnen</string>
     <string name="exchange_directory_attached_section">Zuvor eingebunden</string>
     <string name="exchange_directory_no_longer_published">Nicht mehr veröffentlicht</string>
     <string name="exchange_directory_unavailable">Gerade nicht verfügbar</string>
@@ -124,13 +112,6 @@
     <string name="exchange_cast_send_failed">Nicht alle Anfragen wurden gesendet. Prüfe die Verbindung zum Server.</string>
     <string name="exchange_cast_sent">Gesendete Anfragen: %1$d</string>
     <string name="exchange_cast_result_accepted">%1$s spielt die Übertragung ab</string>
-    <string name="exchange_cast_result_unavailable">%1$s ist offline</string>
-    <string name="exchange_cast_result_declined">%1$s hat abgelehnt</string>
-    <string name="exchange_cast_result_timeout">%1$s hat nicht geantwortet</string>
-    <string name="exchange_cast_result_unsupported">%1$s kann diese Übertragung nicht abspielen</string>
-    <string name="exchange_cast_result_refused">Der Server hat die Anfrage nicht an %1$s weitergegeben</string>
-    <string name="exchange_devices_status_unanswered">Der Server hat nicht geantwortet</string>
-    <string name="exchange_directory_resource_pin">Durch eine PIN geschützt</string>
     <string name="exchange_directory_resource_pin_needed">Eingebunden - PIN erforderlich</string>
     <string name="exchange_directory_resource_pin_sign_in">Durch eine PIN geschützt. Melde dich erneut bei diesem Server an, um sie zu öffnen</string>
     <string name="exchange_pin_title">PIN für %1$s</string>
@@ -138,7 +119,6 @@
     <string name="exchange_pin_skip">Überspringen</string>
     <string name="exchange_pin_checking">Wird geprüft..</string>
     <string name="exchange_pin_refused">Gesperrt: Die PIN wurde nicht akzeptiert. Prüfe sie und versuche es erneut</string>
-    <string name="exchange_pin_unreachable">Das Gerät ist gerade nicht erreichbar - stelle sicher, dass es online ist, und versuche es erneut</string>
     <string name="exchange_pin_failed">Diese Ressource konnte nicht eingebunden werden. Versuche es später erneut</string>
     <string name="exchange_pin_empty">PIN eingeben</string>
 </resources>

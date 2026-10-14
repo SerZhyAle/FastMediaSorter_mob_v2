@@ -39,8 +39,12 @@ class ExchangeDeviceAdapter(
                     R.string.exchange_devices_device_offline
                 }
             )
-            binding.textExchangeDeviceDetails.text =
+            // Item DA of DEVICE-EXCHANGE: a message of the shared table is shown whole, never joined with other text.
+            binding.textExchangeDeviceDetails.text = if (device.isSharePaused) {
+                context.getString(R.string.exchange_share_paused)
+            } else {
                 context.getString(R.string.exchange_devices_device_details, device.product, presence)
+            }
             binding.btnExchangeDeviceRevoke.isVisible = !own
             binding.btnExchangeDeviceRevoke.contentDescription =
                 context.getString(R.string.exchange_devices_revoke_confirm_title, device.deviceName)

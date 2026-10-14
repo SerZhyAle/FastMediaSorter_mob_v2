@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.player.document
 
+import android.graphics.Bitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,9 +8,13 @@ import com.sza.fastmediasorter.wear.domain.documents.DocumentFontSize
 import com.sza.fastmediasorter.wear.domain.documents.DocumentReadingAnchor
 import com.sza.fastmediasorter.wear.domain.documents.WearDocumentContent
 import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFailure
+import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFormat
+import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFormatPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
+import com.sza.fastmediasorter.wear.domain.repository.WearPdfDocument
+import com.sza.fastmediasorter.wear.domain.repository.WearPdfPageRenderer
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ReadDocumentTextUseCase
 import com.sza.fastmediasorter.wear.ui.common.WearListPosition
@@ -50,6 +55,7 @@ class DocumentViewerViewModel @Inject constructor(
     private val selectedMediaManager: SelectedMediaManager,
     private val readDocumentText: ReadDocumentTextUseCase,
     private val preferences: WearPreferencesRepository,
+    private val pdfRenderer: WearPdfPageRenderer,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -70,6 +76,10 @@ class DocumentViewerViewModel @Inject constructor(
     private var documentKey: String? = null
 
     private var documentSizeBytes = 0L
+
+    private var pdf: WearPdfDocument? = null
+
+    private val formats = WearDocumentFormatPolicy()
 
     init {
         viewModelScope.launch {
@@ -116,11 +126,37 @@ class DocumentViewerViewModel @Inject constructor(
         documentKey = key
         documentSizeBytes = file.size
         _uiState.update { it.copy(fileName = file.name) }
+        if (formats.formatFor(file.mimeType, file.name) == WearDocumentFormat.PDF) {
+            openPdf(file)
+            return
+        }
         val content = readDocumentText(file)
         // The anchor is resolved BEFORE the text is published, so the screen never sees a frame where
         // the paragraphs exist and the restored position has not been decided yet - in that frame it
         // would report the opening anchor back as a settled position and overwrite what it came for.
         render(content, preferences.readingPositionFor(key, file.size))
+    }
+
+    /** S4227: a PDF is drawn page by page; one that cannot be opened reads as the readers own failure. */
+    private suspend fun openPdf(file: WearMediaFile) {
+        Timber.d("S4227: PDF opened in the reader")
+        val opened = pdfRenderer.open(file.uri)
+        pdf = opened
+        _uiState.update { state ->
+            when {
+                opened == null -> state.copy(isLoading = false, failure = WearDocumentFailure.IO_ERROR)
+                opened.pageCount == 0 -> state.copy(isLoading = false, isEmpty = true)
+                else -> state.copy(isLoading = false, pdfPageCount = opened.pageCount)
+            }
+        }
+    }
+
+    /** S4227: one page of the open PDF at [widthPx]; null while none is open or the page cannot be drawn. */
+    suspend fun pdfPage(index: Int, widthPx: Int): Bitmap? = pdf?.page(index, widthPx)
+
+    override fun onCleared() {
+        pdf?.close()
+        pdf = null
     }
 
     // The anchor becomes a list position here and nowhere earlier: the pair of numbers is domain data

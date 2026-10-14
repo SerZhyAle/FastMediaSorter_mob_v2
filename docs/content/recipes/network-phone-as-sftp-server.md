@@ -24,7 +24,9 @@ steps:
     text: |
       Open **Settings**, the **General** tab, and find the **Share over SFTP** card. Switch on **SFTP server** - "Other devices on your network can open the folders you pick" - and the status line below moves from **Off** to **Starting..** and then to **Running at 192.168.1.42:2222**, its address and port. Turning it on with nothing shared yet, or with no way to sign in configured, is caught before it starts: "Add at least one folder to share, then turn the server on" or "Add a public key or switch to password login, then turn the server on."
 
-      A phone with no Wi-Fi connection can still switch the server on, but it says so plainly: "Running, but the phone is not on Wi-Fi - other devices cannot reach it yet." A foreground notification, "SFTP server is on", stays up the whole time with the address to connect to and a one-tap **Stop** button.
+      A phone with no Wi-Fi connection can still switch the server on, but it says so plainly: "Running, but the phone is not on Wi-Fi - other devices reach it through the exchange server or via Google Drive." A foreground notification, "SFTP server is on", stays up the whole time with the address to connect to and a one-tap **Stop** button; when the phone moves to another Wi-Fi network, the address shown follows it.
+
+      Sharing stays on until you switch it off yourself. It starts again on its own every time the app is opened - including when the app is your home screen - and Android 15 and newer may pause it after about 6 hours in the background in one day: the notification "Sharing paused" says so, and opening the app continues it. There is no start after the phone reboots until the app is opened. Sharing over mobile internet uses mobile traffic.
   - number: 2
     id: pick-folders
     title: Choose which folders to share
@@ -81,7 +83,7 @@ steps:
 
       **Signed in to Google Drive on both devices?** Switch on **Share access through Google Drive** in the same card - it is off by default. While the server runs, the phone then keeps its current address and sign-in details in the app's private space of your Drive, so another device on the same Google account opens the paired share at its new address after a network change, without scanning the code again - as long as it can reach the phone at all.
 outcome: |
-  The phone shares exactly the folders you picked, with everyone else needing either a password or an accepted SSH key to get in, and pairing another FastMediaSorter takes one scan instead of typing an address by hand. A tap on Stop, in the app or the notification, ends it.
+  The phone shares exactly the folders you picked, with everyone else needing either a password or an accepted SSH key to get in, and pairing another FastMediaSorter takes one scan instead of typing an address by hand. A tap on Stop, in the app or the notification, ends it until you turn it on again.
 tips:
   - "**Bringing in a PC's folders instead?** [Sharing PC folders with Fast Media Sorter & Sharing for Windows](page:network.windows-companion) covers the same pairing idea from the other side."
   - "**Setting up a server by typing its address yourself?** [Connecting SFTP and FTP servers](page:network.sftp-ftp-servers) covers that manual route, on either end of the connection."

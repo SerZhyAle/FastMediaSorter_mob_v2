@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.model.ExchangeDirectorySource
 import com.sza.fastmediasorter.domain.model.ExchangeListedResource
 import com.sza.fastmediasorter.domain.model.ExchangePinAttempt
 import com.sza.fastmediasorter.domain.model.HostPort
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SftpPairingPayload
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
@@ -86,6 +87,60 @@ class AttachExchangeResourcesUseCaseTest {
             ),
             made.altAccessPaths,
         )
+    }
+
+    @Test
+    fun `a folder already added from its code takes the binding instead of a second record`() = runTest {
+        resources.setResources(
+            listOf(
+                MediaResource(
+                    id = 4L,
+                    name = "My photos",
+                    path = "sftp://192.168.1.9:2222/Photos",
+                    type = ResourceType.SFTP,
+                    hostKeyFingerprint = FINGERPRINT,
+                    isReadOnly = true,
+                )
+            )
+        )
+        val listed = record("r1", hosts = listOf("192.168.1.5"), shareId = SHARE_ID)
+        val items = listingOf(listed).devices.single().resources
+
+        val result = useCase.attach(items)
+
+        assertEquals(1, result.attached)
+        val one = resources.resources.single()
+        assertEquals("My photos", one.name)
+        assertTrue(one.isReadOnly)
+        assertEquals("sftp://192.168.1.9:2222/Photos", one.path)
+        assertEquals(entry.identity, one.exchangeAccount)
+        assertEquals("r1", one.exchangeResourceId)
+        assertEquals(
+            listOf(
+                HostPort("192.168.1.5", PORT),
+                HostPort(SftpTunnelAddress.host(SHARE_ID, entry.host), entry.port),
+            ),
+            one.altAccessPaths,
+        )
+    }
+
+    @Test
+    fun `the same host key under another root is another record`() = runTest {
+        resources.setResources(
+            listOf(
+                MediaResource(
+                    id = 4L,
+                    name = "Music",
+                    path = "sftp://192.168.1.5:2222/Music",
+                    type = ResourceType.SFTP,
+                    hostKeyFingerprint = FINGERPRINT,
+                )
+            )
+        )
+
+        useCase.attach(listingOf(record("r1")).devices.single().resources)
+
+        assertEquals(2, resources.resources.size)
     }
 
     @Test

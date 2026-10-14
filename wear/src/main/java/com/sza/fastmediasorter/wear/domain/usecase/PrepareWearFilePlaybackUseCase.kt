@@ -32,11 +32,13 @@ class PrepareWearFilePlaybackUseCase @Inject constructor(
 
     suspend operator fun invoke(request: WearFileOpenRequest): WearFilePlaybackTarget {
         val file = File(request.path)
-        val size = withContext(Dispatchers.IO) { file.length() }
+        val row = request.contentUri
+        val size = request.sizeBytes ?: withContext(Dispatchers.IO) { file.length() }
         val mediaFile = WearMediaFile(
-            id = request.path.hashCode().toLong(),
+            id = (row ?: request.path).hashCode().toLong(),
             name = file.name,
-            uri = Uri.fromFile(file),
+            // S4227: a value received into a media collection is addressed by its row, never a path.
+            uri = row?.let(Uri::parse) ?: Uri.fromFile(file),
             mimeType = request.mimeType,
             size = size,
             dateModified = 0L,

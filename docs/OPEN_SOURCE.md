@@ -109,6 +109,7 @@ FastMediaSorter is built on the open source components listed below. We are grat
 | Apache Commons Net | `commons-net:commons-net` | [Apache-2.0](https://raw.githubusercontent.com/apache/commons-net/master/LICENSE.txt) | all builds | [link](https://github.com/apache/commons-net) |
 | Tesseract4Android | `cz.adaptech:tesseract4android` | [Apache-2.0](https://raw.githubusercontent.com/adaptech-cz/Tesseract4Android/master/LICENSE) | legacy, noLegal, standard, vr, xr | [link](https://github.com/adaptech-cz/Tesseract4Android) |
 | Coil for Compose | `io.coil-kt:coil-compose` | [Apache-2.0](https://raw.githubusercontent.com/coil-kt/coil/main/LICENSE.txt) | all builds | [link](https://github.com/coil-kt/coil) |
+| Coil GIF | `io.coil-kt:coil-gif` | [Apache-2.0](https://raw.githubusercontent.com/coil-kt/coil/main/LICENSE.txt) | all builds | [link](https://github.com/coil-kt/coil) |
 | epub4j | `io.documentnode:epub4j-core` | [Apache-2.0](https://raw.githubusercontent.com/documentnode/epub4j/main/LICENSE) | all builds | [link](https://github.com/documentnode/epub4j) |
 | Markwon | `io.noties.markwon:core` | [Apache-2.0](https://raw.githubusercontent.com/noties/Markwon/master/LICENSE) | all builds | [link](https://github.com/noties/Markwon) |
 | dav1d (custom Media3 AV1 decoder build) (bundled binary) | `local:fms-av1` | [BSD-2-Clause](https://code.videolan.org/videolan/dav1d/-/blob/master/COPYING) | standard, noLegal, legacy, vr | [link](https://code.videolan.org/videolan/dav1d) |

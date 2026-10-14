@@ -10,14 +10,12 @@
     <string name="exchange_devices_outgoing">出站</string>
     <string name="exchange_devices_status_checking">正在检查连接..</string>
     <string name="exchange_devices_status_online">已连接，设备数：%1$d</string>
-    <string name="exchange_devices_status_unreachable">无法连接服务器</string>
     <string name="exchange_devices_card_menu">服务器的更多操作</string>
     <string name="exchange_devices_menu_edit_address">更改地址</string>
     <string name="exchange_devices_menu_make_outgoing">设为出站</string>
     <string name="exchange_devices_menu_connect_watch">连接手表</string>
     <string name="exchange_devices_menu_share">传递服务器</string>
     <string name="exchange_devices_menu_auto_attach">自动关联全部</string>
-    <string name="exchange_devices_menu_remove">移除服务器</string>
     <string name="exchange_devices_signin_title">登录交换服务器</string>
     <string name="exchange_devices_signin_address">地址 (host:port)</string>
     <string name="exchange_devices_signin_login">登录名</string>
@@ -32,16 +30,7 @@
     <string name="exchange_devices_signin_done">已登录到 %1$s</string>
     <string name="exchange_devices_cert_title">请核对服务器证书</string>
     <string name="exchange_devices_cert_message">服务器出示了您的手机无法识别的证书。仅当此指纹与服务器上显示的指纹一致时才信任它：\n\n%1$s</string>
-    <string name="exchange_devices_cert_changed_message">服务器证书在您接受之后发生了变化。如果不是您更换的，可能有人在中途拦截连接。\n\n已接受：%1$s\n现在：%2$s</string>
     <string name="exchange_devices_cert_accept">信任</string>
-    <string name="exchange_devices_reason_bad_credentials">登录名、密码或配对码错误</string>
-    <string name="exchange_devices_reason_device_revoked">此手机已从账户中移除。请移除该服务器并重新登录。</string>
-    <string name="exchange_devices_reason_version">服务器使用的版本不同。请更新应用或服务器。</string>
-    <string name="exchange_devices_reason_capacity">服务器目前已满。请稍后再试。</string>
-    <string name="exchange_devices_reason_rate_limited">尝试次数过多。请稍等片刻后再试。</string>
-    <string name="exchange_devices_reason_unsupported">服务器不提供此功能</string>
-    <string name="exchange_devices_reason_generic">服务器拒绝了该请求</string>
-    <string name="exchange_devices_reason_token_not_stored">手机无法安全保存登录信息。请重试。</string>
     <string name="exchange_devices_list_loading">正在加载设备..</string>
     <string name="exchange_devices_list_empty">没有列出任何设备</string>
     <string name="exchange_devices_device_online">在线</string>
@@ -100,7 +89,6 @@
     <string name="exchange_directory_resource_attached">已关联</string>
     <string name="exchange_directory_resource_offline">设备已离线</string>
     <string name="exchange_directory_resource_no_access">该设备不在此处共享其地址</string>
-    <string name="exchange_directory_resource_locked">采用了此版本无法识别的锁定方式。请更新应用以打开</string>
     <string name="exchange_directory_attached_section">此前已关联</string>
     <string name="exchange_directory_no_longer_published">已不再发布</string>
     <string name="exchange_directory_unavailable">当前不可用</string>
@@ -127,13 +115,6 @@
     <string name="exchange_cast_send_failed">并非所有请求都已发送。请检查与服务器的连接。</string>
     <string name="exchange_cast_sent">已发送请求：%1$d</string>
     <string name="exchange_cast_result_accepted">%1$s 正在播放该广播</string>
-    <string name="exchange_cast_result_unavailable">%1$s 已离线</string>
-    <string name="exchange_cast_result_declined">%1$s 已拒绝</string>
-    <string name="exchange_cast_result_timeout">%1$s 没有响应</string>
-    <string name="exchange_cast_result_unsupported">%1$s 无法播放此广播</string>
-    <string name="exchange_cast_result_refused">服务器未将请求转发给 %1$s</string>
-    <string name="exchange_devices_status_unanswered">服务器没有响应</string>
-    <string name="exchange_directory_resource_pin">受 PIN 保护</string>
     <string name="exchange_directory_resource_pin_needed">已关联 - 需要 PIN</string>
     <string name="exchange_directory_resource_pin_sign_in">受 PIN 保护。请重新登录此服务器以打开</string>
     <string name="exchange_pin_title">%1$s 的 PIN</string>
@@ -141,7 +122,6 @@
     <string name="exchange_pin_skip">跳过</string>
     <string name="exchange_pin_checking">正在检查..</string>
     <string name="exchange_pin_refused">已锁定：PIN 未被接受。请检查后重试</string>
-    <string name="exchange_pin_unreachable">目前无法连接该设备 - 请确认它在线后重试</string>
     <string name="exchange_pin_failed">无法关联此资源。请稍后再试</string>
     <string name="exchange_pin_empty">请输入 PIN</string>
 </resources>

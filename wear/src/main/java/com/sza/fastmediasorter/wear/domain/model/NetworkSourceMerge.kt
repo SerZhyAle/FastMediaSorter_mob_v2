@@ -23,8 +23,9 @@ object NetworkSourceMerge {
      */
     fun indexOfMatch(stored: List<NetworkSource>, incoming: NetworkSource): Int {
         val byId = stored.indexOfFirst { it.id == incoming.id }
-        if (byId != -1) {
-            return byId
+        val byIdentity = if (byId == -1) indexOfIdentity(stored, incoming) else byId
+        if (byIdentity != -1) {
+            return byIdentity
         }
         return stored.indexOfFirst { existing ->
             existing.type == incoming.type &&
@@ -32,6 +33,21 @@ object NetworkSourceMerge {
                 existing.port == incoming.port &&
                 existing.shareName == incoming.shareName &&
                 existing.basePath == incoming.basePath
+        }
+    }
+
+    /**
+     * S4228: one SFTP folder is one record whatever channel brought it (contract DEVICE-EXCHANGE 20 item BA) - the
+     * phone's push under the phone's id and the account catalog under one this watch made. Without a host-key
+     * fingerprint there is no identity to compare, so such a record falls through to the tuple.
+     */
+    private fun indexOfIdentity(stored: List<NetworkSource>, incoming: NetworkSource): Int {
+        val fingerprint = incoming.hostKeyFingerprint
+        if (incoming.type != NetworkSourceType.SFTP || fingerprint.isNullOrBlank()) return -1
+        return stored.indexOfFirst { existing ->
+            existing.type == NetworkSourceType.SFTP &&
+                existing.hostKeyFingerprint == fingerprint &&
+                existing.identityRoot == incoming.identityRoot
         }
     }
 }

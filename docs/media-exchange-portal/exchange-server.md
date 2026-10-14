@@ -57,6 +57,15 @@ Never:
 - Passwords, tokens or pairing codes in the log.
 - Your folder list, for anyone outside your account.
 
+## The clipboard on the server
+
+The phone has two programs for the clipboard of your own devices: **Send the clipboard to the server** and **Get the clipboard from the server**. You find them in the programs menu of the main window, on the quick-access panel, as launcher shortcuts and in the menu of the app icon.
+
+- **One object at a time** - a text, a picture or one file. Several files or a folder go into one archive first; copy the archive and send it.
+- **Only the last value.** The server keeps the clipboard in its memory only: a new value replaces the old one, and a restart of the server loses it.
+- **Every account of the phone.** A send goes to every account the phone is signed in to, except a guest account.
+- **Whoever runs the server can see what you send** until end-to-end encryption arrives.
+
 ## What works today {#what-works-today}
 
 - **The home network**: a forwarded port and a public address or a dynamic DNS name make your folders reachable from anywhere - see [Home network](home-network.html).

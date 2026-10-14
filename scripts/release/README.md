@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.26 10:23</sub>
+<sub class="doc-stamp">26.10.14 19:37</sub>
 
 # scripts/release - Operator Handbook
 
@@ -10,6 +10,7 @@ Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store**
 
 | Script | Purpose |
 |--------|---------|
+| `assert-sweep-verdicts.ps1` | Release-point read of the phone and watch pre-release verdicts - each must exist, pass and be newer than its scope's fingerprint (S4249). |
 | `apply-github-store-metadata.ps1` | Apply repo `description`, `topics`, `homepage` from `PLAN/S0214_github-store-publication/DECISIONS.md` to GitHub via REST. Idempotent. |
 | `publish-github-release.ps1` | Publish a stable release: discover prebuilt APKs, stage them with deterministic names, create a GitHub Release tag from `main`, attach release notes from `docs/WHATS_NEW.md`, upload both APKs as assets. |
 | `publish-play-release.ps1` | Publish the standard AAB to Google Play Console: attach the bundle if its versionCode is already in the library else upload it, fetch generated Fastlane changelogs for that versionCode, update specified track (internal/alpha/beta/production) as draft/completed, and commit edit. |

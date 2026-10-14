@@ -17,10 +17,15 @@ class PlayerRouteTest {
     private val fileId = 42L
 
     @Test
-    fun `pdf is refused by name of its format`() {
+    fun `pdf opens the reader since S4227 draws its pages`() {
+        assertEquals(WearRoutes.documentViewer(fileId), playerRouteFor(fileId, "application/pdf"))
+    }
+
+    @Test
+    fun `epub is refused by name of its format`() {
         assertEquals(
-            WearRoutes.unsupportedFile(WearDocumentFormat.PDF),
-            playerRouteFor(fileId, "application/pdf")
+            WearRoutes.unsupportedFile(WearDocumentFormat.EPUB),
+            playerRouteFor(fileId, "application/epub+zip")
         )
     }
 

@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.DeviceExchangeCredential
 import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollResult
 import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollment
+import com.sza.fastmediasorter.domain.model.DeviceExchangeInvitation
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -156,6 +157,28 @@ class DeviceExchangeAccountClientTest {
     }
 
     @Test
+    fun `a welcome naming the guest kind is read as guest`() = runBlocking {
+        tokens.save(entry, TOKEN)
+        serveOnce {
+            DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME) { addProperty("accountKind", "guest") }
+        }
+
+        client.openAuthenticated(entry).use { session ->
+            assertEquals("guest", session.welcome.accountKind)
+        }
+    }
+
+    @Test
+    fun `a welcome with no kind comes from a 0_20 server and is a member`() = runBlocking {
+        tokens.save(entry, TOKEN)
+        serveOnce { DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME) }
+
+        client.openAuthenticated(entry).use { session ->
+            assertEquals("member", session.welcome.accountKind)
+        }
+    }
+
+    @Test
     fun `a revoked device forgets its token`() {
         runBlocking { tokens.save(entry, TOKEN) }
         serveOnce { DeviceExchangeEnvelope.refused(DeviceExchangeEnvelope.REASON_DEVICE_REVOKED) }
@@ -166,6 +189,148 @@ class DeviceExchangeAccountClientTest {
 
         assertEquals(DeviceExchangeEnvelope.REASON_DEVICE_REVOKED, refused.reason)
         assertNull(runBlocking { tokens.token(entry) })
+    }
+
+    @Test
+    fun `a signed-out device keeps its token for the next sign-in`() {
+        runBlocking { tokens.save(entry, TOKEN) }
+        serveOnce { DeviceExchangeEnvelope.refused(DeviceExchangeEnvelope.REASON_SIGNED_OUT) }
+
+        val refused = assertThrows(DeviceExchangeRefusedException::class.java) {
+            runBlocking { client.openAuthenticated(entry) }
+        }
+
+        assertEquals(DeviceExchangeEnvelope.REASON_SIGNED_OUT, refused.reason)
+        assertEquals(TOKEN, runBlocking { tokens.token(entry) })
+    }
+
+    @Test
+    fun `register with a one-time invitation carries the device members and keeps the token`() = runBlocking {
+        val asked = serveOnce { request ->
+            DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_ENROLLED) {
+                addProperty("deviceToken", TOKEN)
+            }.takeIf { request.type == DeviceExchangeEnvelope.TYPE_REGISTER }
+        }
+
+        val result = client.register(
+            entry,
+            DeviceExchangeCredential.Password(PASSWORD),
+            DeviceExchangeInvitation.OneTime(INVITATION),
+            enrollment,
+        )
+
+        val register = checkNotNull(asked.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+        assertEquals("Owner.Home", register.string("login"))
+        assertEquals(PASSWORD, register.string("password"))
+        assertEquals(INVITATION, register.string("invitation"))
+        assertNull(register.string("invitationPassword"))
+        assertEquals(DEVICE_ID, register.string("deviceId"))
+        assertEquals("fms-android", register.string("product"))
+        assertTrue(result is DeviceExchangeEnrollResult.Enrolled)
+        assertEquals(TOKEN, tokens.token(entry))
+    }
+
+    @Test
+    fun `register with the shared password and a refusal stores nothing`() = runBlocking {
+        val asked = serveOnce { DeviceExchangeEnvelope.refused("login-taken") }
+
+        val result = client.register(
+            entry,
+            DeviceExchangeCredential.Password(PASSWORD),
+            DeviceExchangeInvitation.SharedPassword("Shared-Invite-1"),
+            enrollment,
+        )
+
+        val register = checkNotNull(asked.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+        assertEquals("Shared-Invite-1", register.string("invitationPassword"))
+        assertNull(register.string("invitation"))
+        assertEquals(DeviceExchangeEnrollResult.Refused("login-taken"), result)
+        assertNull(tokens.token(entry))
+    }
+
+    @Test
+    fun `a register the server closes unanswered is no answer, not an unreachable host`() = runBlocking {
+        // An older server meets `register` as an invalid first envelope and closes the stream (19 item AN).
+        thread(isDaemon = true) {
+            server.accept().use { socket -> DeviceExchangeFrameCodec.read(socket.getInputStream()) }
+        }
+
+        val result = client.register(
+            entry,
+            DeviceExchangeCredential.Password(PASSWORD),
+            DeviceExchangeInvitation.OneTime(INVITATION),
+            enrollment,
+        )
+
+        assertTrue(result is DeviceExchangeEnrollResult.NoAnswer)
+        assertNull(tokens.token(entry))
+    }
+
+    @Test
+    fun `a password change keeps the fresh token of this device`() = runBlocking {
+        tokens.save(entry, TOKEN)
+        val asked = serveAfterWelcome(
+            DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_PASSWORD_CHANGED) {
+                addProperty("deviceToken", NEW_TOKEN)
+            }
+        )
+
+        client.changePassword(
+            entry,
+            DeviceExchangeCredential.Password(PASSWORD),
+            DeviceExchangeCredential.Password(NEW_PASSWORD),
+        )
+
+        assertEquals(DeviceExchangeEnvelope.TYPE_HELLO, asked.poll(WAIT_SECONDS, TimeUnit.SECONDS)?.type)
+        val change = checkNotNull(asked.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+        assertEquals(DeviceExchangeEnvelope.TYPE_PASSWORD_CHANGE, change.type)
+        assertEquals(PASSWORD, change.string("oldPassword"))
+        assertEquals(NEW_PASSWORD, change.string("newPassword"))
+        assertEquals(NEW_TOKEN, tokens.token(entry))
+    }
+
+    @Test
+    fun `a refused password change keeps the old token`() {
+        runBlocking { tokens.save(entry, TOKEN) }
+        serveAfterWelcome(DeviceExchangeEnvelope.refused("password-policy"))
+
+        val refused = assertThrows(DeviceExchangeRefusedException::class.java) {
+            runBlocking {
+                client.changePassword(
+                    entry,
+                    DeviceExchangeCredential.Password(PASSWORD),
+                    DeviceExchangeCredential.Password("short"),
+                )
+            }
+        }
+
+        assertEquals("password-policy", refused.reason)
+        assertEquals(TOKEN, runBlocking { tokens.token(entry) })
+    }
+
+    @Test
+    fun `an account deletion sends the password and returns on account-deleted`() = runBlocking {
+        tokens.save(entry, TOKEN)
+        val asked = serveAfterWelcome(DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_ACCOUNT_DELETED))
+
+        client.deleteAccount(entry, DeviceExchangeCredential.Password(PASSWORD))
+
+        assertEquals(DeviceExchangeEnvelope.TYPE_HELLO, asked.poll(WAIT_SECONDS, TimeUnit.SECONDS)?.type)
+        val delete = checkNotNull(asked.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+        assertEquals(DeviceExchangeEnvelope.TYPE_ACCOUNT_DELETE, delete.type)
+        assertEquals(PASSWORD, delete.string("password"))
+    }
+
+    @Test
+    fun `a wrong password refuses the account deletion`() {
+        runBlocking { tokens.save(entry, TOKEN) }
+        serveAfterWelcome(DeviceExchangeEnvelope.refused(DeviceExchangeEnvelope.REASON_BAD_CREDENTIALS))
+
+        val refused = assertThrows(DeviceExchangeRefusedException::class.java) {
+            runBlocking { client.deleteAccount(entry, DeviceExchangeCredential.Password(PASSWORD)) }
+        }
+
+        assertEquals(DeviceExchangeEnvelope.REASON_BAD_CREDENTIALS, refused.reason)
     }
 
     @Test
@@ -454,6 +619,9 @@ class DeviceExchangeAccountClientTest {
         const val OTHER_DEVICE_ID = "CCCCCCCCCCCCCCCCCCCCCC"
         const val TOKEN = "tok3n-of-thirty-two-bytes-base64url-xxxxxx"
         const val PASSWORD = "Passw0rdTest"
+        const val NEW_PASSWORD = "N3wPassw0rdTest"
+        const val NEW_TOKEN = "fresh-token-of-thirty-two-bytes-base64url-x"
+        const val INVITATION = "q3Vb7YtK0xP2mN9s-_R4wA"
         const val PIN = "SHA256:pinned"
         const val RESOURCE_ID = "q3Vb7YtK0xP2mN9sLfR4wA"
         const val SHARE_ID = "BBBBBBBBBBBBBBBBBBBBBB"

@@ -393,6 +393,11 @@
   ],
   "excluded": [
     {
+      "screen": "WearAccountBroadcastsScreen",
+      "reason": "needs-seeded-content",
+      "note": "S4229: reached from the Broadcasts chip that WearExchangeServersScreen draws only when the watch holds an exchange entry, and its rows need a broadcasting device on the same account. The sweep's clean watch holds neither, so the page has no route and no static marker; it is judged by the ticket's device test."
+    },
+    {
       "screen": "PermissionsSettingsScreen",
       "reason": "no-static-marker",
       "note": "S4029: both merged manifests declare runtime permissions again, so both builds draw the chip. Not walked: the title repeats the chip label, and the screen's own marker - the System Settings chip - sits below a permission list whose length depends on the device and the grants, so no token is reliably on the first frame. Earlier: S3226 shows the Permissions entry only where the merged manifest declares a runtime permission, which it reads through BuildWearPermissionGroupsUseCase rather than through a flavor check (S3186 ADR-1). The standard store manifest removes every one of them, so the settings list carries no chip for it in the build this sweep judges and a walk entry could only ever report unreachable."

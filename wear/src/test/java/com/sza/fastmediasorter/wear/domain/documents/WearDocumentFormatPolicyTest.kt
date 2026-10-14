@@ -27,11 +27,11 @@ class WearDocumentFormatPolicyTest {
     }
 
     @Test
-    fun `pdf epub and office are documents the watch does not render`() {
+    fun `pdf is drawn while epub and office stay with the phone`() {
         assertEquals(WearDocumentFormat.PDF, policy.formatFor("application/pdf", null))
         assertEquals(WearDocumentFormat.EPUB, policy.formatFor("application/epub+zip", null))
         assertEquals(WearDocumentFormat.OFFICE, policy.formatFor("application/msword", null))
-        assertFalse(policy.isReadable("application/pdf", null))
+        assertTrue(policy.isReadable("application/pdf", null))
         assertFalse(policy.isReadable("application/epub+zip", null))
         assertFalse(policy.isReadable("application/msword", null))
     }
@@ -51,7 +51,7 @@ class WearDocumentFormatPolicyTest {
     @Test
     fun `an absent mime type falls back to a pdf name`() {
         assertEquals(WearDocumentFormat.PDF, policy.formatFor(null, "manual.pdf"))
-        assertFalse(policy.isReadable(null, "manual.pdf"))
+        assertTrue(policy.isReadable(null, "manual.pdf"))
     }
 
     @Test

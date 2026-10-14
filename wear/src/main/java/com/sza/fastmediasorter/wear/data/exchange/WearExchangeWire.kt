@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.data.exchange
 
+import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -29,6 +30,10 @@ data class WearExchangeEnvelope(
     fun boolean(key: String): Boolean? = primitive(key)?.takeIf(JsonPrimitive::isBoolean)?.asBoolean
 
     fun obj(key: String): JsonObject? = members.get(key)?.takeIf(JsonElement::isJsonObject)?.asJsonObject
+
+    fun long(key: String): Long? = primitive(key)?.takeIf(JsonPrimitive::isNumber)?.asString?.toLongOrNull()
+
+    fun array(key: String): JsonArray? = members.get(key)?.takeIf(JsonElement::isJsonArray)?.asJsonArray
 
     private fun primitive(key: String): JsonPrimitive? =
         members.get(key)?.takeIf(JsonElement::isJsonPrimitive)?.asJsonPrimitive
@@ -66,6 +71,24 @@ data class WearExchangeEnvelope(
         const val TYPE_CAST_OFFER = "cast-offer"
         const val TYPE_CAST_ANSWER = "cast-answer"
         const val TYPE_CAST_STOP = "cast-stop"
+        const val TYPE_LIST = "list"
+        const val TYPE_DIRECTORY = "directory"
+        const val TYPE_SUBSCRIBE = "subscribe"
+        const val TYPE_CHANGED = "changed"
+
+        // S4228: contract 7.5 - a tunnel to a resource of the watch's own account by its resourceId.
+        const val TYPE_CONNECT = "connect"
+        const val TYPE_CONNECTED = "connected"
+
+        // S4227: contract 22 items BW and BY - the clipboard on the exchange server.
+        const val TYPE_CLIPBOARD_PUT = "clipboard-put"
+        const val TYPE_CLIPBOARD_READY = "clipboard-ready"
+        const val TYPE_CLIPBOARD_STORED = "clipboard-stored"
+        const val TYPE_CLIPBOARD_INFO = "clipboard-info"
+        const val TYPE_CLIPBOARD_STATE = "clipboard-state"
+        const val TYPE_CLIPBOARD_GET = "clipboard-get"
+        const val TYPE_CLIPBOARD_VALUE = "clipboard-value"
+        const val TYPE_CLIPBOARD_EMPTY = "clipboard-empty"
 
         const val REASON_ID_COLLISION = "id-collision"
         const val KEY_REASON = "reason"

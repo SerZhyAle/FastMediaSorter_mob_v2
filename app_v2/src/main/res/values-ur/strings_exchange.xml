@@ -10,14 +10,12 @@
     <string name="exchange_devices_outgoing">جانے والا</string>
     <string name="exchange_devices_status_checking">کنکشن جانچا جا رہا ہے..</string>
     <string name="exchange_devices_status_online">منسلک، آلات: %1$d</string>
-    <string name="exchange_devices_status_unreachable">سرور تک رسائی نہیں ہو رہی</string>
     <string name="exchange_devices_card_menu">سرور کے لیے مزید اعمال</string>
     <string name="exchange_devices_menu_edit_address">پتہ تبدیل کریں</string>
     <string name="exchange_devices_menu_make_outgoing">جانے والا بنائیں</string>
     <string name="exchange_devices_menu_connect_watch">گھڑی منسلک کریں</string>
     <string name="exchange_devices_menu_share">سرور آگے بھیجیں</string>
     <string name="exchange_devices_menu_auto_attach">سب کچھ خودکار طور پر جوڑیں</string>
-    <string name="exchange_devices_menu_remove">سرور ہٹائیں</string>
     <string name="exchange_devices_signin_title">تبادلہ سرور میں سائن ان کریں</string>
     <string name="exchange_devices_signin_address">پتہ (host:port)</string>
     <string name="exchange_devices_signin_login">لاگ ان</string>
@@ -32,16 +30,7 @@
     <string name="exchange_devices_signin_done">%1$s میں سائن ان ہو گیا</string>
     <string name="exchange_devices_cert_title">سرور کا سرٹیفکیٹ چیک کریں</string>
     <string name="exchange_devices_cert_message">سرور ایسا سرٹیفکیٹ پیش کر رہا ہے جسے آپ کا فون نہیں جانتا۔ اس پر صرف اسی صورت میں بھروسا کریں جب یہ فنگر پرنٹ اس فنگر پرنٹ سے مطابقت رکھتا ہو جو آپ کا سرور دکھاتا ہے:\n\n%1$s</string>
-    <string name="exchange_devices_cert_changed_message">قبول کرنے کے بعد سرور کا سرٹیفکیٹ بدل گیا ہے۔ اگر آپ نے اسے تبدیل نہیں کیا تو ممکن ہے کوئی درمیان میں مداخلت کر رہا ہو۔\n\nقبول شدہ: %1$s\nاب: %2$s</string>
     <string name="exchange_devices_cert_accept">بھروسا کریں</string>
-    <string name="exchange_devices_reason_bad_credentials">لاگ ان، پاس ورڈ یا کوڈ غلط ہے</string>
-    <string name="exchange_devices_reason_device_revoked">اس فون کو اکاؤنٹ سے ہٹا دیا گیا ہے۔ سرور ہٹائیں اور دوبارہ سائن ان کریں۔</string>
-    <string name="exchange_devices_reason_version">سرور کا ورژن مختلف ہے۔ ایپ یا سرور کو اپ ڈیٹ کریں۔</string>
-    <string name="exchange_devices_reason_capacity">سرور اس وقت بھرا ہوا ہے۔ بعد میں کوشش کریں۔</string>
-    <string name="exchange_devices_reason_rate_limited">بہت زیادہ کوششیں۔ تھوڑا انتظار کریں اور دوبارہ کوشش کریں۔</string>
-    <string name="exchange_devices_reason_unsupported">سرور یہ سہولت فراہم نہیں کرتا</string>
-    <string name="exchange_devices_reason_generic">سرور نے درخواست مسترد کر دی</string>
-    <string name="exchange_devices_reason_token_not_stored">فون سائن ان کو محفوظ طریقے سے رکھ نہیں سکا۔ دوبارہ کوشش کریں۔</string>
     <string name="exchange_devices_list_loading">آلات لوڈ ہو رہے ہیں..</string>
     <string name="exchange_devices_list_empty">فہرست میں کوئی آلہ نہیں</string>
     <string name="exchange_devices_device_online">آن لائن</string>
@@ -100,7 +89,6 @@
     <string name="exchange_directory_resource_attached">جڑا ہوا</string>
     <string name="exchange_directory_resource_offline">آلہ آف لائن ہے</string>
     <string name="exchange_directory_resource_no_access">آلہ اپنا پتہ یہاں شیئر نہیں کرتا</string>
-    <string name="exchange_directory_resource_locked">ایسے طریقے سے مقفل ہے جسے یہ ورژن نہیں جانتا۔ کھولنے کے لیے ایپ اپ ڈیٹ کریں</string>
     <string name="exchange_directory_attached_section">پہلے جوڑا گیا</string>
     <string name="exchange_directory_no_longer_published">اب شائع نہیں ہے</string>
     <string name="exchange_directory_unavailable">اس وقت دستیاب نہیں</string>
@@ -127,13 +115,6 @@
     <string name="exchange_cast_send_failed">تمام درخواستیں نہیں بھیجی گئیں۔ سرور سے کنکشن چیک کریں۔</string>
     <string name="exchange_cast_sent">بھیجی گئی درخواستیں: %1$d</string>
     <string name="exchange_cast_result_accepted">%1$s نشریہ چلا رہا ہے</string>
-    <string name="exchange_cast_result_unavailable">%1$s آف لائن ہے</string>
-    <string name="exchange_cast_result_declined">%1$s نے مسترد کر دیا</string>
-    <string name="exchange_cast_result_timeout">%1$s نے جواب نہیں دیا</string>
-    <string name="exchange_cast_result_unsupported">%1$s یہ نشریہ نہیں چلا سکتا</string>
-    <string name="exchange_cast_result_refused">سرور نے درخواست %1$s تک نہیں پہنچائی</string>
-    <string name="exchange_devices_status_unanswered">سرور نے جواب نہیں دیا</string>
-    <string name="exchange_directory_resource_pin">PIN سے محفوظ</string>
     <string name="exchange_directory_resource_pin_needed">جوڑا گیا - PIN درکار ہے</string>
     <string name="exchange_directory_resource_pin_sign_in">PIN سے محفوظ۔ اسے کھولنے کے لیے اس سرور میں دوبارہ سائن ان کریں</string>
     <string name="exchange_pin_title">%1$s کے لیے PIN</string>
@@ -141,7 +122,6 @@
     <string name="exchange_pin_skip">نظرانداز کریں</string>
     <string name="exchange_pin_checking">جانچ ہو رہی ہے..</string>
     <string name="exchange_pin_refused">مقفل: PIN قبول نہیں کیا گیا۔ اسے چیک کریں اور دوبارہ کوشش کریں</string>
-    <string name="exchange_pin_unreachable">آلے تک اس وقت رسائی نہیں ہو رہی - یقینی بنائیں کہ وہ آن لائن ہے اور دوبارہ کوشش کریں</string>
     <string name="exchange_pin_failed">یہ وسیلہ جوڑا نہیں جا سکا۔ بعد میں دوبارہ کوشش کریں</string>
     <string name="exchange_pin_empty">PIN درج کریں</string>
 </resources>

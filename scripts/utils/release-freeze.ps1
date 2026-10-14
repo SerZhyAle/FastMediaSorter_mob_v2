@@ -43,6 +43,17 @@
     is: the marker now presents the NEWEST of its heartbeat and its owner's transcript (Resolve-Heartbeat),
     and the owner's own reads refresh the stamp on disk.
 
+    S4208: the freeze also announces itself in the release queue file, the one file the owner opens
+    when tickets stop moving. Take writes one `# freeze:` comment line directly under the
+    `current-next-release:` marker, naming the holder and the expiry; every end of the freeze removes
+    it - Release, Release -Force, expiry and a dead owner. Before this, the queue header promised that
+    line and nothing wrote it: the package-45 sweep froze the tree, its own parked tickets sat at the
+    head of the package unclaimable, and the file gave no reason why. The write is lock-free on
+    purpose - the catalog writer that re-renders the file holds a mutex this repository does not
+    declare - so every read of the freeze re-asserts or removes the line, and a line one side
+    overwrote comes back on the next read. The writer keeps a `#` line verbatim, so it is never
+    parsed as a ticket or a package.
+
 .PARAMETER Verb
     Take    - claim the freeze for this session.
     Status  - report whether a freeze is held, and by whom.
@@ -61,15 +72,27 @@
     Release only. Drop a freeze whose owner is still live. For an owner that demonstrably exited
     without releasing; the expiry covers the ordinary case on its own.
 
+.PARAMETER Scope
+    S4249. phone (default) or wear - which sweep's freeze every verb acts on. Each scope has its own
+    marker (temp\RELEASE-FREEZE.json / temp\RELEASE-FREEZE-WEAR.json), its own end record (the
+    -ENDED variant of each) and its own announcement line in the release queue file, so the watch
+    sweep runs beside the phone sweep instead of being refused by its freeze. Inside one scope
+    nothing changed: one holder, a second session refused with exit 4. The queue stop file is
+    shared: a scope that ends while the other is held hands its stoppedQueue flag to the other
+    scope's marker instead of removing the file, and the last scope to end removes it.
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/utils/release-freeze.ps1 -Verb Take -Reason 'r37 pre-release sweep'
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/utils/release-freeze.ps1 -Verb Status -Json
 
+.EXAMPLE
+    pwsh -NoProfile -File scripts/utils/release-freeze.ps1 -Verb Take -Scope wear -Reason 'r46 watch sweep'
+
 .NOTES
-    FMS_REPO_ROOT overrides the repository root, against which the marker and the queue stop file
-    resolve; the contract suite points it at a fixture tree.
+    FMS_REPO_ROOT overrides the repository root, against which the marker, the queue stop file and
+    the release queue file resolve; the contract suite points it at a fixture tree.
 
 Exit codes (CLAUDE.md Rule 7):
   0  the verb succeeded - freeze taken, released, or reported (held or not).
@@ -90,7 +113,10 @@ param(
 
     [switch] $Json,
 
-    [switch] $Force
+    [switch] $Force,
+
+    [ValidateSet('phone', 'wear')]
+    [string] $Scope = 'phone'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -101,18 +127,31 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'agent-lock.ps1')
 
 $RepoRoot = if ($env:FMS_REPO_ROOT) { $env:FMS_REPO_ROOT } else { Split-Path -Parent (Split-Path -Parent $PSScriptRoot) }
-$MarkerPath = Join-Path $RepoRoot 'temp\RELEASE-FREEZE.json'
+# S4249: one marker per scope, so the watch sweep runs beside the phone sweep instead of being refused
+# by its freeze (strategic ADR-3). The phone keeps the original names; every reader that knew only
+# those still sees the phone freeze exactly as before.
+$ScopeFiles = @{
+    phone = @{ Marker = 'temp\RELEASE-FREEZE.json'; Ended = 'temp\RELEASE-FREEZE-ENDED.json'; Prefix = '# freeze:' }
+    wear  = @{ Marker = 'temp\RELEASE-FREEZE-WEAR.json'; Ended = 'temp\RELEASE-FREEZE-WEAR-ENDED.json'; Prefix = '# freeze-wear:' }
+}
+$OtherScope = if ($Scope -eq 'phone') { 'wear' } else { 'phone' }
+$MarkerPath = Join-Path $RepoRoot $ScopeFiles[$Scope].Marker
+$OtherMarkerPath = Join-Path $RepoRoot $ScopeFiles[$OtherScope].Marker
 # Deliberately NOT the marker path with a field added (S3320). guard-release-freeze.ps1's hot path is
 # one Test-Path on the marker name, and it runs on every Bash and PowerShell call in every session; a
 # tombstone living there would spawn its child process forever after the first sweep. A second name the
 # hook never looks at costs that hook nothing. Declared in temp-root-inventory.ps1 beside the two names
 # the freeze already owns, so a temp/ sweep cannot carry it off.
-$EndedPath = Join-Path $RepoRoot 'temp\RELEASE-FREEZE-ENDED.json'
+$EndedPath = Join-Path $RepoRoot $ScopeFiles[$Scope].Ended
 
 # The stop file is canon-owned profile data, so it is read from the profile rather than spelled out:
 # a literal here would be a second declaration of a path run-spec-queue.ps1 already owns.
 $StopRelative = try { Get-SzaPath 'queueStopFile' -Relative } catch { 'temp/STOP-SPEC-QUEUE' }
 $StopPath = Join-Path $RepoRoot ($StopRelative -replace '/', '\')
+$QueueRelative = try { Get-SzaPath 'releaseQueue' -Relative } catch { 'PLAN/RELEASE_QUEUE.md' }
+$QueuePath = Join-Path $RepoRoot ($QueueRelative -replace '/', '\')
+# The wear prefix does not start with the phone prefix, so each scope removes only its own line.
+$AnnouncePrefix = $ScopeFiles[$Scope].Prefix
 
 $StaleMinutes = $Script:AgentLockTimings.SpecTicket.SessionStaleMinutes
 $CeilingMinutes = $Script:AgentLockTimings.SpecTicket.TicketCeilingMinutes
@@ -203,8 +242,74 @@ function Clear-StandDown($Record) {
     if ($Record.PSObject.Properties.Name -notcontains 'stoppedQueue') { return }
     if (-not $Record.stoppedQueue) { return }
     if (-not (Test-Path -LiteralPath $StopPath)) { return }
+    if (Send-StandDownHandOff) { return }
     Remove-Item -LiteralPath $StopPath -Force -ErrorAction SilentlyContinue
     Write-Line "release-freeze: the stand-down this freeze requested is lifted - $StopRelative removed." 'Yellow'
+}
+
+# S4249: the stand-down is one stop file shared by both scopes, written by whichever scope took its
+# freeze first. When that scope ends while the other is still held, removing the file would restart
+# the queue under a sweep still judging the tree, and leaving it with stoppedQueue=false everywhere
+# would strand it with nobody to remove it. So the flag moves to the other scope's marker, and that
+# scope's own end removes the file. Returns $true when the hand-off happened and the file must stay.
+function Send-StandDownHandOff {
+    if (-not (Test-Path -LiteralPath $OtherMarkerPath)) { return $false }
+    try {
+        $other = Get-Content -LiteralPath $OtherMarkerPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ($other.PSObject.Properties.Name -contains 'stoppedQueue') { $other.stoppedQueue = $true }
+        else { $other | Add-Member -NotePropertyName stoppedQueue -NotePropertyValue $true }
+        Set-Content -LiteralPath $OtherMarkerPath -Value ($other | ConvertTo-Json -Depth 4) -Encoding UTF8
+    }
+    catch {
+        # An unreadable sibling marker cannot take the flag; removing the file then is the S3320
+        # default - a stand-down nobody owns is the worse outcome.
+        return $false
+    }
+    Write-Line "release-freeze: the $OtherScope freeze is still held - $StopRelative stays, handed over to it." 'Yellow'
+    return $true
+}
+
+function Format-Announcement($Record) {
+    $session = [string]$Record.sessionId
+    if ($session.Length -gt 8) { $session = $session.Substring(0, 8) }
+    $reason = ([string]$Record.reason) -replace '\s+', ' '
+    return "{0} {6} sweep held by {1} (session {2}) since {3} until {4} - '{5}'; no new ticket can be claimed until it ends" -f `
+        $AnnouncePrefix, $Record.ownerName, $session, (Format-Stamp $Record.takenAt), (Format-Stamp $Record.expiresAt), $reason, $Scope
+}
+
+# $null removes the line, a record writes or rewrites it. Writes only when the text changes, so a
+# held-freeze read in a sibling's guard-hook child costs one file read. Failure is reported, never
+# fatal: the marker in temp/ is the freeze, this line only announces it.
+function Sync-QueueAnnouncement($Record) {
+    if (-not (Test-Path -LiteralPath $QueuePath)) { return }
+    try {
+        $text = [System.IO.File]::ReadAllText($QueuePath)
+        $newline = if ($text.Contains("`r`n")) { "`r`n" } else { "`n" }
+        $trailing = $text.EndsWith("`n")
+        $body = if ($trailing) { $text -replace '\r?\n\z', '' } else { $text }
+        $lines = [System.Collections.Generic.List[string]]::new()
+        if ($text.Length -gt 0) {
+            foreach ($line in ($body -split '\r?\n')) {
+                if (-not $line.StartsWith($AnnouncePrefix)) { $lines.Add($line) }
+            }
+        }
+        if ($Record) {
+            $at = [Math]::Min(1, $lines.Count)
+            for ($i = 0; $i -lt $lines.Count; $i++) {
+                if ($lines[$i] -match '^\s*current-(?:next-)?release:') { $at = $i + 1; break }
+            }
+            $lines.Insert($at, (Format-Announcement $Record))
+        }
+        $payload = [string]::Join($newline, $lines.ToArray())
+        if ($trailing -or ($text.Length -eq 0 -and $lines.Count -gt 0)) { $payload += $newline }
+        if ($payload -ceq $text) { return }
+        $tmp = "$QueuePath.freeze.tmp"
+        [System.IO.File]::WriteAllText($tmp, $payload, [System.Text.UTF8Encoding]::new($false))
+        Move-Item -LiteralPath $tmp -Destination $QueuePath -Force
+    }
+    catch {
+        Write-Line "release-freeze: could not update the announcement in $QueueRelative - $($_.Exception.Message)" 'Yellow'
+    }
 }
 
 # Every verb loads the marker through here, so "held" has exactly one definition. A marker whose
@@ -214,6 +319,7 @@ function Clear-StandDown($Record) {
 # the cost to the next session at one line of output instead of a standoff.
 function Get-Freeze {
     if (-not (Test-Path -LiteralPath $MarkerPath)) {
+        Sync-QueueAnnouncement $null
         return [pscustomobject]@{ Held = $false; Record = $null; EndedBy = '' }
     }
 
@@ -234,6 +340,7 @@ function Get-Freeze {
         Remove-Item -LiteralPath $MarkerPath -Force -ErrorAction SilentlyContinue
         Write-Line "release-freeze: a freeze taken by $($record.ownerName) expired at $(Format-Stamp $record.expiresAt) - cleared." 'Yellow'
         Clear-StandDown $record
+        Sync-QueueAnnouncement $null
         Write-FreezeEnded $record 'expiry'
         return [pscustomobject]@{ Held = $false; Record = $record; EndedBy = 'expiry' }
     }
@@ -252,6 +359,7 @@ function Get-Freeze {
         Remove-Item -LiteralPath $MarkerPath -Force -ErrorAction SilentlyContinue
         Write-Line "release-freeze: the session that took the freeze ($($record.ownerName)) is gone - cleared." 'Yellow'
         Clear-StandDown $record
+        Sync-QueueAnnouncement $null
         Write-FreezeEnded $record 'dead-owner'
         return [pscustomobject]@{ Held = $false; Record = $record; EndedBy = 'dead-owner' }
     }
@@ -264,6 +372,7 @@ function Get-Freeze {
         try { Set-Content -LiteralPath $MarkerPath -Value ($record | ConvertTo-Json -Depth 4) -Encoding UTF8 } catch { }
     }
 
+    Sync-QueueAnnouncement $record
     return [pscustomobject]@{ Held = $true; Record = $record; EndedBy = ''; Liveness = $liveness }
 }
 
@@ -291,6 +400,7 @@ switch ($Verb) {
             $payload = if ($state.Held) {
                 [ordered]@{
                     held      = $true
+                    scope     = $Scope
                     sessionId = [string]$state.Record.sessionId
                     ownerName = [string]$state.Record.ownerName
                     reason    = [string]$state.Record.reason
@@ -302,6 +412,7 @@ switch ($Verb) {
             else {
                 [ordered]@{
                     held      = $false
+                    scope     = $Scope
                     endedBy   = $endedBy
                     endedAt   = if ($ended) { Format-Stamp $ended.endedAt } else { '' }
                     ownerName = if ($ended) { [string]$ended.ownerName } else { '' }
@@ -357,6 +468,7 @@ switch ($Verb) {
         $now = Get-Date
         $record = [ordered]@{
             schema         = 1
+            scope          = $Scope
             # The four field names below are Get-AgentTicketLiveness's, not this script's. They are
             # spelled its way so the marker can be handed to it unchanged.
             sessionId      = $me.id
@@ -388,6 +500,7 @@ switch ($Verb) {
         # A live freeze supersedes whatever the last one ended as; keeping the record would make the
         # next Status announce an end that this Take has already answered.
         Clear-FreezeEnded
+        Sync-QueueAnnouncement ([pscustomobject]$record)
 
         $what = if ($state.Held) { 'refreshed' } else { 'taken' }
         Write-Host "release-freeze: $what by $($me.name) until $($record.expiresAt) - reason '$($record.reason)'." -ForegroundColor Green
@@ -416,14 +529,20 @@ switch ($Verb) {
         }
 
         if ($state.Record.stoppedQueue) {
-            Remove-Item -LiteralPath $StopPath -Force -ErrorAction SilentlyContinue
-            Write-Host "release-freeze: queue runner released - $StopRelative removed." -ForegroundColor Green
+            if (Send-StandDownHandOff) {
+                Write-Host "release-freeze: $StopRelative handed over to the $OtherScope freeze, still held." -ForegroundColor Green
+            }
+            else {
+                Remove-Item -LiteralPath $StopPath -Force -ErrorAction SilentlyContinue
+                Write-Host "release-freeze: queue runner released - $StopRelative removed." -ForegroundColor Green
+            }
         }
         else {
             Write-Host "release-freeze: $StopRelative was not this freeze's to remove - left in place." -ForegroundColor DarkGray
         }
 
         Remove-Item -LiteralPath $MarkerPath -Force -ErrorAction SilentlyContinue
+        Sync-QueueAnnouncement $null
         # An explicit Release is the one end nobody needs to be told about - its owner is the caller.
         Clear-FreezeEnded
         Write-Host "release-freeze: released - the tree is no longer being judged." -ForegroundColor Green

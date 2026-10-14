@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
+import com.sza.fastmediasorter.ui.scheduledops.helpers.ScheduledRunHistoryDialogManager
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.Job
@@ -47,6 +48,7 @@ class ScheduledOperationsScreenManager(
         scheduledViewModel = scheduledViewModel,
         folderPickerLauncher = folderPickerLauncher,
     )
+    private val runHistoryDialogManager = ScheduledRunHistoryDialogManager(activity)
     private lateinit var scheduledAdapter: ScheduledOperationsAdapter
     private var reconcileJob: Job? = null
     private var historyJob: Job? = null
@@ -61,6 +63,7 @@ class ScheduledOperationsScreenManager(
             onEdit = ::showScheduledOperationDialog,
             onDelete = ::confirmDeleteScheduledOp,
             onRunNow = { op -> scheduledViewModel.runNow(op.id) },
+            onHistory = ::showRunHistory,
             resourceNameProvider = { id -> scheduledViewModel.resources.value.find { it.id == id }?.name },
         )
         binding.rvScheduledOps.layoutManager = LinearLayoutManager(activity)
@@ -196,6 +199,19 @@ class ScheduledOperationsScreenManager(
         row.addView(message)
         row.contentDescription = entry.raw
         return row
+    }
+
+    /** The card's own journal, headed by the same "source -> target" names the card shows. */
+    private fun showRunHistory(op: ScheduledOperation) {
+        val resources = scheduledViewModel.resources.value
+        val unknown = activity.getString(R.string.scheduled_op_unknown_resource)
+        val source = resources.find { it.id == op.sourceResourceId }?.name ?: unknown
+        val label = if (op.targetResourceId == null) {
+            source
+        } else {
+            "$source → ${resources.find { it.id == op.targetResourceId }?.name ?: unknown}"
+        }
+        runHistoryDialogManager.show(op.id, label)
     }
 
     private fun confirmClearHistory() {

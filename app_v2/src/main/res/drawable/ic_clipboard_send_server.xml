@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4226: "Send the clipboard to the server" - a clipboard with an arrow leaving it upwards. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorOnSurface">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M4,3h4v2H6v15h12V5h-2V3h4v19H4z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M8,2h8v4H8z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M12,8l4,4h-3v6h-2v-6H8z" />
+</vector>

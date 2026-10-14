@@ -14,6 +14,8 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityMyDevicesBinding
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeAccountDialogManager
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeFailureDialogManager
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeIntakeLaunchers
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeServerCardAdapter
 import com.sza.fastmediasorter.ui.exchange.helpers.MyDevicesDialogManager
@@ -45,6 +47,8 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
         readUri = { uri -> viewModel.readConnectionFile(contentResolver, uri) },
     )
     private val dialogs: MyDevicesDialogManager by lazy { MyDevicesDialogManager(this, viewModel, launchers) }
+    private val accountDialogs: ExchangeAccountDialogManager by lazy { ExchangeAccountDialogManager(this, viewModel) }
+    private val failureDialogs: ExchangeFailureDialogManager by lazy { ExchangeFailureDialogManager(this) }
     private val adapter: ExchangeServerCardAdapter by lazy {
         ExchangeServerCardAdapter(
             dialogs::showDevices,
@@ -75,9 +79,11 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
         collectOnLifecycle(viewModel.messages) { message ->
             Toast.makeText(this, dialogs.resolve(message), Toast.LENGTH_LONG).show()
         }
+        collectOnLifecycle(viewModel.failures) { failureDialogs.show(it) }
         collectOnLifecycle(viewModel.signIn) { dialogs.renderSignIn(it) }
         collectOnLifecycle(viewModel.devices) { dialogs.renderDevices(it) }
         collectOnLifecycle(viewModel.pairingCode) { dialogs.renderPairingCode(it) }
+        collectOnLifecycle(viewModel.accountAction) { accountDialogs.render(it) }
     }
 
     override fun getInitialFocusView(): View? =
@@ -101,12 +107,21 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
                 R.id.action_exchange_connect_watch -> viewModel.connectWatch(entry)
                 R.id.action_exchange_share -> dialogs.showShare(entry)
                 R.id.action_exchange_auto_attach -> viewModel.setAutoAttach(entry, !entry.autoAttach)
+                R.id.action_exchange_sign_in_again -> signInAgain(entry)
+                R.id.action_exchange_change_password -> accountDialogs.showChangePassword(entry)
                 R.id.action_exchange_remove -> dialogs.confirmRemove(entry)
+                R.id.action_exchange_delete_account -> accountDialogs.showDeleteAccount(entry)
                 else -> return@setOnMenuItemClickListener false
             }
             true
         }
         popup.show()
+    }
+
+    // The held address, pin and login refill the form, so the same identity re-enrolls its own deviceId.
+    private fun signInAgain(entry: DeviceExchangeAccountEntry) {
+        dialogs.showSignIn()
+        viewModel.signInAgainString(entry)?.let(dialogs::applyIntakeText)
     }
 
     companion object {

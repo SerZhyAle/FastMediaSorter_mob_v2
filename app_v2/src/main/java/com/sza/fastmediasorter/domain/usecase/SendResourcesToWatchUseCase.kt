@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.data.repository.wear.WearResourceTombstoneStore
 import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SftpTunnelAddress
 import com.sza.fastmediasorter.domain.model.WearEndpointPayload
 import com.sza.fastmediasorter.domain.model.WearNetworkSourcePayload
 import com.sza.fastmediasorter.domain.model.WearSourceTombstonePayload
@@ -57,7 +58,9 @@ class SendResourcesToWatchUseCase @Inject constructor(
     // S2507: the deletions this phone has made, which the watch ranks the same way.
     private val wearResourceTombstoneStore: WearResourceTombstoneStore,
     // S2909: what this phone has already put on the watch, which is what a withdrawal can name.
-    private val wearDeliveredResourceStore: WearDeliveredResourceStore
+    private val wearDeliveredResourceStore: WearDeliveredResourceStore,
+    // S4228: the PINs of protected exchange folders, which never ride the DataItem.
+    private val sendResourcePasses: SendResourcePassesToWatchUseCase
 ) {
     private val gson = Gson()
     suspend operator fun invoke(forceDispatch: Boolean = false): Result<SendResult> = runCatching {
@@ -113,6 +116,8 @@ class SendResourcesToWatchUseCase @Inject constructor(
         wearableRepository.putDataItem(DATA_LAYER_PATH, bytes)
         rememberDelivered(delivered, collected.payloads, deselectedIds, tombstones)
         retireTombstones(tombstones)
+        // S4228: after the push landed, so the watch already holds the folder each PIN belongs to.
+        handOverPins(networkResources, collected.payloads)
         Timber.i(
             "Sent ${collected.payloads.size} resources to watch " +
                 "(${collected.skipped} skipped, ${deselectedIds.size} withdrawn)"
@@ -222,11 +227,22 @@ class SendResourcesToWatchUseCase @Inject constructor(
                 skipped++
                 continue
             }
-            payloads.add(
+            val payload =
                 toPayload(resource, creds, password, endpointsFor(resource, creds), editStamps[resource.id.toString()])
-            )
+            payloads.add(payload.copy(pinProtected = sendResourcePasses.isProtected(resource)))
         }
         return CollectedPayloads(payloads, skipped)
+    }
+
+    /**
+     * S4228: the PINs ride their own message, never this DataItem. A failure here is the PIN's alone - the folders
+     * already reached the watch, so the push still reports what it sent and the watch shows the folder locked.
+     */
+    private suspend fun handOverPins(resources: List<MediaResource>, payloads: List<WearNetworkSourcePayload>) {
+        val protectedIds = payloads.filter { it.pinProtected == true }.mapTo(mutableSetOf()) { it.id }
+        if (protectedIds.isEmpty()) return
+        runCatching { sendResourcePasses(resources.filter { it.id.toString() in protectedIds }) }
+            .onFailure { it.warnUnlessCancellation("Resource passes were not handed to the watch") }
     }
 
     /**
@@ -242,6 +258,10 @@ class SendResourcesToWatchUseCase @Inject constructor(
                 it.warnUnlessCancellation("Endpoint resolution failed for ${resource.name} - sending stored address")
             }
             .getOrNull()
+            // S4228: a `shareId@host` tunnel address does not resolve on the watch, which opens the account
+            // tunnel itself from the exchange binding (contract DEVICE-EXCHANGE 23 item CG).
+            ?.filterNot { SftpTunnelAddress.isTunnel(it.host) }
+            ?.ifEmpty { null }
     } else {
         null
     }
@@ -283,7 +303,10 @@ class SendResourcesToWatchUseCase @Inject constructor(
             // S2502: null when this resource was never edited since the stamp store existed.
             // Null, not zero: zero would rank it as the oldest record possible and lose to
             // anything the watch holds, which is the loss this ticket exists to remove.
-            lastEditedAt = lastEditedAt
+            lastEditedAt = lastEditedAt,
+            exchangeAccount = resource.exchangeAccount,
+            exchangeResourceId = resource.exchangeResourceId,
+            readOnly = resource.isReadOnly
         )
     }
 }

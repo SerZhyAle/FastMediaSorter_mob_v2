@@ -2,12 +2,15 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.util.PathUtils
+import com.sza.fastmediasorter.data.network.exceptions.NetworkPinRefusedException
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.domain.model.ScheduledRunOutcome
+import com.sza.fastmediasorter.domain.model.ScheduledRunStatus
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.mutation.MutationRecorder
@@ -32,10 +35,23 @@ data class ScheduledExecutionResult(
     // S0710: set when the run halted because deleting the source requires an interactive permission
     // grant (All-Files-Access / MANAGE_MEDIA) that is unreachable from a headless worker. The worker
     // surfaces a notification and the loop stops instead of re-uploading the same files every run.
-    val permissionRequired: Boolean = false
+    val permissionRequired: Boolean = false,
+    // Set when a network side could not be reached before any file was touched. Not an error: the
+    // window stays open for the next slot, and no failure notification is sent for it.
+    val skippedReason: String? = null
 ) {
-    val isSuccess: Boolean get() = errors.isEmpty()
-    val statusString: String get() = if (isSuccess) "OK" else "ERROR: ${errors.first()}"
+    val isSkipped: Boolean get() = skippedReason != null
+    val isSuccess: Boolean get() = errors.isEmpty() && !isSkipped
+    val outcome: ScheduledRunOutcome
+        get() = when {
+            isSkipped -> ScheduledRunOutcome.SKIPPED
+            errors.isEmpty() -> ScheduledRunOutcome.OK
+            else -> ScheduledRunOutcome.ERROR
+        }
+
+    /** The line shown in the log and stored as `lastRunStatus`; the reason is the first error or the skip cause. */
+    val statusString: String
+        get() = ScheduledRunStatus.format(outcome, skippedReason ?: errors.firstOrNull())
 }
 
 // One collaborator per operation type plus the shared scan/log/journal seams; grouping them into a holder
@@ -53,7 +69,15 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     private val statsSink: StatsSink,
     private val mutationRecorder: MutationRecorder,
     private val archiveFilesUseCase: ArchiveFilesUseCase,
+    private val cleanupOrphanedTempFilesUseCase: CleanupOrphanedTempFilesUseCase,
 ) {
+    // One stable line for a refused protected-folder PIN: the journal, the notification body and the
+    // status string all quote it, so a raw exception message never reaches the user (S4232).
+    private companion object {
+        const val PIN_REFUSED_MESSAGE =
+            "Protected folder PIN was rejected - re-enter the PIN on the resource screen"
+    }
+
     // S2598: Locale.US, not the interface language - this stamp goes into a persisted log line that
     // outlives a language change, and an Arabic or Bengali interface would render its digits in a script
     // the neighbouring lines of the same file do not share.
@@ -114,6 +138,13 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         }
 
         return try {
+            // Step 0: a network source that cannot be reached scans as an empty folder, so the run would
+            // end "No files found" - a success that consumes the SINCE_LAST window and loses its files.
+            val sourceUnreachable = unreachableReason(sourceResource, "Source")
+            if (sourceUnreachable != null) {
+                return skipped(operationId, sourceUnreachable, ts, opName, srcLabel, dstLabel)
+            }
+
             // Step 1: Load and filter source files.
             val allFiles = getMediaFilesUseCase(
                 resource = buildEffectiveResource(sourceResource, operation.fileTypeMask),
@@ -124,6 +155,11 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             val filtered = applyFilters(allFiles, operation)
 
             if (filtered.isEmpty()) {
+                // An unmounted card or a removed folder lists as empty too; the same loss as above.
+                val missing = missingLocalSourceReason(sourceResource)
+                if (missing != null) {
+                    return skipped(operationId, missing, ts, opName, srcLabel, dstLabel)
+                }
                 val msg = "No files found"
                 logOp(ts, opName, srcLabel, dstLabel, msg)
                 Timber.d("ScheduledOp[$operationId] $msg")
@@ -132,12 +168,26 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
 
             // Step 2: For COPY/MOVE - verify target is reachable before doing any work.
             if (targetResource != null) {
-                val reachabilityError = checkTargetReachability(targetResource)
+                val targetUnreachable = unreachableReason(targetResource, "Target")
+                if (targetUnreachable != null) {
+                    return skipped(operationId, targetUnreachable, ts, opName, srcLabel, dstLabel)
+                }
+                val reachabilityError = localTargetError(targetResource)
                 if (reachabilityError != null) {
                     logOp(ts, opName, srcLabel, dstLabel, "ERROR: $reachabilityError")
                     Timber.w("ScheduledOp[$operationId] $reachabilityError")
                     return ScheduledExecutionResult(operationId, 0, listOf(reachabilityError))
                 }
+            }
+
+            // S4232: an interrupted earlier run can leave a *.temp_copy on the target that its window
+            // never retries, and the browse-open cleanup never runs for a target only the schedule
+            // touches - so the run cleans its own target first; cloud and virtual paths no-op inside
+            // the use case, and a colliding temp of the very next file is replaced by the atomic layer.
+            if (operation.operationType == ScheduledOpType.COPY ||
+                operation.operationType == ScheduledOpType.MOVE
+            ) {
+                cleanupOrphanedTempFilesUseCase(requireNotNull(targetResource).path)
             }
 
             val errors = mutableListOf<String>()
@@ -275,6 +325,14 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             ScheduledExecutionResult(operationId, successCount, errors, permissionRequired = permissionStop)
         } catch (e: CancellationException) {
             throw e
+        } catch (e: NetworkPinRefusedException) {
+            // S4232: a required-but-refused PIN is a configuration error the user fixes on the resource
+            // screen, not an unreachable device, so it stays ERROR with its own line - never SKIPPED -
+            // and the existing failure notification fires. The stored PIN itself never reaches a log.
+            val msg = PIN_REFUSED_MESSAGE
+            Timber.w(e, "ScheduledOp[$operationId] protected folder PIN refused")
+            logOp(ts, opName, srcLabel, dstLabel, "ERROR: $msg")
+            ScheduledExecutionResult(operationId, 0, listOf(msg))
         } catch (e: Exception) {
             Timber.e(e, "ScheduledOp[$operationId] unexpected exception")
             val msg = e.message ?: "Unknown error"
@@ -284,25 +342,64 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     }
 
     /**
-     * Returns an error string if the target is unreachable, null if OK.
-     * - Local: checks that the directory exists.
-     * - Remote (SMB/SFTP/FTP/CLOUD): uses resourceRepository.testConnection().
+     * Records and returns a skipped run: a network side was unreachable before any file was touched.
+     * The status is `SKIPPED`, not `ERROR` - an offline server is a normal state - so the worker keeps
+     * the SINCE_LAST marker and sends no failure notification.
      */
-    private suspend fun checkTargetReachability(target: MediaResource): String? {
-        return if (target.type.isNetworkResource) {
-            try {
-                val result = resourceRepository.testConnection(target)
-                if (result.isSuccess) {
-                    null
-                } else {
-                    val cause = result.exceptionOrNull()?.message ?: "connection failed"
-                    "Target '${target.name}' is unreachable: $cause"
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                "Target '${target.name}' is unreachable: ${e.message ?: "connection failed"}"
+    private fun skipped(
+        operationId: Long,
+        reason: String,
+        ts: String,
+        opName: String,
+        srcLabel: String,
+        dstLabel: String
+    ): ScheduledExecutionResult {
+        logOp(ts, opName, srcLabel, dstLabel, "${ScheduledRunStatus.SKIPPED_PREFIX}: $reason")
+        Timber.i("ScheduledOp[$operationId] skipped - $reason")
+        Timber.d("S4211: skipped op=$operationId reason=$reason")
+        return ScheduledExecutionResult(operationId, 0, emptyList(), skippedReason = reason)
+    }
+
+    /**
+     * Returns why a network [resource] cannot be reached, null when it can or when it is not a network
+     * resource. Uses `resourceRepository.testConnection()` (SMB/SFTP/FTP/CLOUD).
+     */
+    private suspend fun unreachableReason(resource: MediaResource, role: String): String? {
+        if (!resource.type.isNetworkResource) return null
+        return try {
+            val result = resourceRepository.testConnection(resource)
+            if (result.isSuccess) {
+                null
+            } else {
+                val cause = result.exceptionOrNull()?.message ?: "connection failed"
+                "$role '${resource.name}' is unreachable: $cause"
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            "$role '${resource.name}' is unreachable: ${e.message ?: "connection failed"}"
+        }
+    }
+
+    /** Why a local filesystem [source] that listed empty is not actually there, or null when it exists. */
+    private fun missingLocalSourceReason(source: MediaResource): String? {
+        val isFilesystemPath = !source.type.isNetworkResource && !PathUtils.isContentUri(source.path)
+        return if (isFilesystemPath && !File(source.path).isDirectory) {
+            "Source folder '${source.path}' is not available"
+        } else {
+            null
+        }
+    }
+
+    /**
+     * Returns an error string if a local target cannot receive files, null if OK.
+     * - Content tree: checks that the tree is writable.
+     * - Filesystem path: checks that the directory exists.
+     * A network target is judged by [unreachableReason] instead.
+     */
+    private suspend fun localTargetError(target: MediaResource): String? {
+        return if (target.type.isNetworkResource) {
+            null
         } else if (PathUtils.isContentUri(target.path)) {
             // A SAF tree Uri is not a filesystem path, so File(path).exists() is always false
             // for one. That made every ad-hoc local-folder TARGET fail pre-flight and the operation
@@ -349,7 +446,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         return files
             // When ALL_FILES - type filtering was already applied at the scanner level via buildEffectiveResource
             .filter { if (FileTypeFlags.isAllFiles(op.fileTypeMask)) true else matchesTypeMask(it, op.fileTypeMask) }
-            .filter { matchesTimeFilter(it, op.timeFilter, op.lastRunAt, now) }
+            .filter { matchesTimeFilter(it, op.timeFilter, op.sinceLastMarkerAt, now) }
             .filter { op.fileConditions.matches(it, now) }
     }
 
@@ -361,9 +458,14 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         return false
     }
 
-    private fun matchesTimeFilter(file: MediaFile, filter: TimeFilter, lastRunAt: Long?, now: Long): Boolean = when (filter) {
+    private fun matchesTimeFilter(
+        file: MediaFile,
+        filter: TimeFilter,
+        sinceMarker: Long?,
+        now: Long
+    ): Boolean = when (filter) {
         TimeFilter.ALL -> true
-        TimeFilter.SINCE_LAST -> lastRunAt == null || file.createdDate > lastRunAt
+        TimeFilter.SINCE_LAST -> sinceMarker == null || file.createdDate > sinceMarker
         TimeFilter.LAST_HOUR -> file.createdDate > now - 3_600_000L
         TimeFilter.LAST_DAY -> file.createdDate > now - 86_400_000L
     }
@@ -393,6 +495,14 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         setPermissionStop: () -> Unit
     ) {
         when {
+            // A partial result for one source file means that file failed; counting it as handled
+            // would let the run end "OK" and move the SINCE_LAST marker past a file never transferred.
+            result is FileOperationResult.PartialSuccess && result.failedCount > 0 -> {
+                val err = result.errors.firstOrNull() ?: fallbackErrMessage
+                addError(err)
+                logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: $err")
+                Timber.d("ScheduledOp[$operationId] $opLabel ERROR ${file.name}: $err")
+            }
             result is FileOperationResult.Success ||
                 result is FileOperationResult.PartialSuccess -> {
                 val skippedCount = when (result) {

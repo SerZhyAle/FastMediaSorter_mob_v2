@@ -103,6 +103,11 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     lateinit var exchangeCastCoordinator:
         dagger.Lazy<com.sza.fastmediasorter.domain.exchange.ExchangeCastCoordinator>
 
+    /** S4225: resumes the phone's sharing each time the app comes to the foreground, launcher mode included. */
+    @Inject
+    lateinit var sftpServerResumeCoordinator:
+        dagger.Lazy<com.sza.fastmediasorter.data.remote.sftp.server.SftpServerResumeCoordinator>
+
     @Inject
     lateinit var playbackPositionRepository: dagger.Lazy<com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository>
 
@@ -311,6 +316,9 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         }
         applicationScope.launch(Dispatchers.IO) {
             exchangeCastCoordinator.get().start()
+        }
+        applicationScope.launch(Dispatchers.IO) {
+            sftpServerResumeCoordinator.get().start()
         }
 
         // S0213 Pillar C: connect the release-safe degradation signal to MemoryEnduranceTracker so

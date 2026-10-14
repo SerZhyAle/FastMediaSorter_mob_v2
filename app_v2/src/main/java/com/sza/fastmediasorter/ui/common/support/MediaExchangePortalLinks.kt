@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.common.support
 import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.ui.common.input.UiSurface
-import timber.log.Timber
 
 /**
  * S4143: the pages of the media exchange portal (`docs/media-exchange-portal/`) the app links to.
@@ -17,7 +16,7 @@ import timber.log.Timber
 object MediaExchangePortalLinks {
 
     /** The portal pages a screen of the app can point at. */
-    enum class Page { START, HOME_NETWORK, LIVE_BROADCAST, CLOUDS }
+    enum class Page { START, HOME_NETWORK, LIVE_BROADCAST, CLOUDS, ACCOUNT_DELETION }
 
     private class Localized(val en: String, val ru: String, val uk: String)
 
@@ -42,6 +41,13 @@ object MediaExchangePortalLinks {
         uk = "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/clouds-uk.html",
     )
 
+    // S4223: the exchange server page until S4243 publishes the account page "how to delete an account".
+    private val ACCOUNT_DELETION = Localized(
+        en = "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/exchange-server.html",
+        ru = "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/exchange-server-ru.html",
+        uk = "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/exchange-server-uk.html",
+    )
+
     /** Address of [page] in [language], English when the portal has no edition in that language. */
     fun urlFor(page: Page, language: String): String {
         val addresses = when (page) {
@@ -49,6 +55,7 @@ object MediaExchangePortalLinks {
             Page.HOME_NETWORK -> HOME_NETWORK
             Page.LIVE_BROADCAST -> LIVE_BROADCAST
             Page.CLOUDS -> CLOUDS
+            Page.ACCOUNT_DELETION -> ACCOUNT_DELETION
         }
         return when (language.lowercase()) {
             "ru" -> addresses.ru

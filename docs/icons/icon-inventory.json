@@ -665,6 +665,22 @@
   },
   {
     "surface": "program-nav",
+    "key": "exchange_clipboard_get",
+    "feature": "exchange_clipboard_get_label",
+    "drawable": "ic_clipboard_get_server",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "exchange_clipboard_send",
+    "feature": "exchange_clipboard_send_label",
+    "drawable": "ic_clipboard_send_server",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "favorites",
     "feature": "app_launch_panel_route_favorites",
     "drawable": "ic_resource_favorites",

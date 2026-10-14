@@ -80,6 +80,46 @@ class SftpServerTunnelManagerTest {
             port: Int,
             hosts: List<String>,
         ): SftpRendezvousResource = record.copy(descriptor = "FMSSFTP1:${hosts.joinToString()}:$port")
+
+        override suspend fun grantEnvelopes(port: Int, hosts: List<String>): List<DeviceExchangeEnvelope> = grants
+    }
+
+    private var grants: List<DeviceExchangeEnvelope> = emptyList()
+
+    @Test
+    fun `grants follow the publish on a welcomed stream and granted is recorded`() = withManager { manager ->
+        grants = listOf(
+            DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_GRANT) {
+                addProperty(DeviceExchangeEnvelope.KEY_GRANT_ID, GRANT_ID)
+            }
+        )
+        val control = ArrayBlockingQueue<DeviceExchangeEnvelope>(3)
+        thread(isDaemon = true) {
+            val stream = exchange.accept()
+            control.put(read(stream))
+            write(stream, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+            control.put(read(stream))
+            control.put(read(stream))
+            write(
+                stream,
+                DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_GRANTED) {
+                    addProperty(DeviceExchangeEnvelope.KEY_GRANT_ID, GRANT_ID)
+                }
+            )
+            stream.getInputStream().read()
+        }
+
+        manager.start(localServer.localPort, listOf("192.168.1.5"))
+
+        assertEquals(DeviceExchangeEnvelope.TYPE_HELLO, poll(control).type)
+        assertEquals(DeviceExchangeEnvelope.TYPE_PUBLISH, poll(control).type)
+        val grant = poll(control)
+        assertEquals(DeviceExchangeEnvelope.TYPE_GRANT, grant.type)
+        assertEquals(GRANT_ID, grant.string(DeviceExchangeEnvelope.KEY_GRANT_ID))
+        val granted = withTimeout(TimeUnit.SECONDS.toMillis(WAIT_SECONDS)) {
+            manager.grantedIds.first { GRANT_ID in it }
+        }
+        assertTrue(GRANT_ID in granted)
     }
 
     // The manager runs in the test's own runBlocking scope, so every coroutine it starts is joined
@@ -414,6 +454,7 @@ class SftpServerTunnelManagerTest {
         const val RESOURCE_ID = "CCCCCCCCCCCCCCCCCCCCCC"
         const val TUNNEL_ID = "DDDDDDDDDDDDDDDDDDDDDD"
         const val BROADCAST_ID = "EEEEEEEEEEEEEEEEEEEEEA"
+        const val GRANT_ID = "FFFFFFFFFFFFFFFFFFFFFA"
         const val SETTLE_MS = 300L
         const val TOKEN = "device-token"
         const val PAYLOAD = "SSH-2.0-test\r\n"

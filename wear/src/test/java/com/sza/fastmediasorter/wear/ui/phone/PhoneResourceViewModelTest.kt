@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import com.sza.fastmediasorter.wear.R
-import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiverCatalogRepository
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
@@ -71,7 +71,7 @@ class PhoneResourceViewModelTest {
     private val performFileOperation: PerformWearFileOperationUseCase = mockk(relaxed = true)
 
     /** S2142: an explicitly empty receiver list - these cases pin the browse mapping, not receivers. */
-    private val sendToReceivers: WearSendToReceiversRepository = mockk<WearSendToReceiversRepository>().also {
+    private val sendToReceivers = mockk<WearSendToReceiverCatalogRepository>().also {
         every { it.observe() } returns MutableStateFlow(emptyList())
     }
 

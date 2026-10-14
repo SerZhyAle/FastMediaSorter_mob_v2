@@ -90,6 +90,13 @@ fun ClipboardScreen(
                     onClick = viewModel::sendToPhone
                 )
             }
+            item {
+                ServerClipboardGetChip(
+                    server = uiState.server,
+                    onGet = viewModel::getFromServer,
+                    onCancel = viewModel::cancelGet
+                )
+            }
         }
     }
 }

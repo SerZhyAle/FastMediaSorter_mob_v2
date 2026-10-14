@@ -2059,9 +2059,10 @@ androidComponents {
         val broadcastFlavors = setOf("standard", "noLegal", "legacy")
         if (flavorName in broadcastFlavors) {
             variant.sources.manifests.addStaticManifestFile("src/broadcastSource/AndroidManifest.xml")
-            // S3154: FOREGROUND_SERVICE_CAMERA blocks the Play commit until a background-camera use
-            // case is declared, so only the sideload flavor keeps the camera type on the service.
-            val videoServiceDir = if (flavorName == "noLegal") "broadcastVideoBackground" else "broadcastVideoForeground"
+            // S3154: FOREGROUND_SERVICE_CAMERA blocked Play commit until background-camera use case was declared.
+            // S4235: standard store builds now declare camera background FGS for release 46 device exchange (B24);
+            // legacy retains the foreground-only declaration.
+            val videoServiceDir = if (flavorName in setOf("standard", "noLegal")) "broadcastVideoBackground" else "broadcastVideoForeground"
             variant.sources.manifests.addStaticManifestFile("src/$videoServiceDir/AndroidManifest.xml")
         }
 

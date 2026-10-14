@@ -92,7 +92,7 @@ layout: null
           "@type": "HowToStep",
           "position": 5,
           "name": "Pause, run now and read the history",
-          "text": "Each operation in the list shows its source, destination and schedule (\u0022At 23:00 · Every 24h\u0022) with its own switch to pause it, and Run now to start it at once. For all of them together use Run all now, Pause all and Resume all. Tap Log to open the Run history: when each job ran, how many files it handled and what went wrong, if anything. An operation whose last run failed is marked - \u0022Last run failed. Tap Log for details.\u0022 You can clear the history at any time. The job runs by itself even after the phone restarts. If the folder you are looking at in the file browser was changed by a job in the meantime, the list updates the moment you come back to it - no files that were already moved away are left in view.",
+          "text": "Each operation in the list shows its source, destination and schedule (\u0022At 23:00 · Every 24h\u0022) with its own switch to pause it, and Run now to start it at once. For all of them together use Run all now, Pause all and Resume all. Tap Log to open the Run history: when each job ran, how many files it handled and what went wrong, if anything. An operation whose last run failed is marked - \u0022Last run failed. Tap Log for details.\u0022 You can clear the history at any time. Each operation also has its own History button: the latest runs of that one operation, newest first - when it ran, how many files it handled and why it stopped. A run that could not reach its source or destination (a computer that is switched off, no network) is shown as skipped, marked with the same warning and tried again at the next scheduled time. Nothing is lost: New since last run moves forward only after a run that finished without an error, so the files of a skipped or failed run are taken the next time. A run that failed also posts a notification, unless the operation is set to Suppress notifications; the warning on the operation stays either way. The job runs by itself even after the phone restarts. If the folder you are looking at in the file browser was changed by a job in the meantime, the list updates the moment you come back to it - no files that were already moved away are left in view.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/scheduled-operations.html#manage"
         }
       ]
@@ -134,7 +134,7 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp">26.10.07 01:11</div>
+<div class="doc-stamp">26.10.14 18:55</div>
     <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Header Chrome -->
@@ -515,6 +515,7 @@ layout: null
                     <div class="doc-step-body">
                         <p>Each operation in the list shows its source, destination and schedule ("At 23:00 · Every 24h") with its own switch to pause it, and <strong>Run now</strong> to start it at once. For all of them together use <strong>Run all now</strong>, <strong>Pause all</strong> and <strong>Resume all</strong>.</p>
                         <p>Tap <strong>Log</strong> to open the <strong>Run history</strong>: when each job ran, how many files it handled and what went wrong, if anything. An operation whose last run failed is marked - "Last run failed. Tap Log for details." You can clear the history at any time.</p>
+                        <p>Each operation also has its own <strong>History</strong> button: the latest runs of that one operation, newest first - when it ran, how many files it handled and why it stopped. A run that could not reach its source or destination (a computer that is switched off, no network) is shown as skipped, marked with the same warning and tried again at the next scheduled time. Nothing is lost: <strong>New since last run</strong> moves forward only after a run that finished without an error, so the files of a skipped or failed run are taken the next time. A run that failed also posts a notification, unless the operation is set to <strong>Suppress notifications</strong>; the warning on the operation stays either way.</p>
                         <p>The job runs by itself even after the phone restarts. If the folder you are looking at in the file browser was changed by a job in the meantime, the list updates the moment you come back to it - no files that were already moved away are left in view.</p>
                         <figure class="doc-figure" data-shot-id="storage.scheduled-ops-history">
                             <img src="../assets/images/storage/scheduled-ops-history.png" alt="The Run history window listing several runs of a scheduled copy with their times and file counts" class="doc-screenshot" loading="lazy" />

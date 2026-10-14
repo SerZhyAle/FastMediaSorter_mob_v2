@@ -3,7 +3,7 @@ layout: default
 title: "FastMediaSorter v2 - Complete Feature List"
 permalink: /docs/FEATURES.html
 ---
-<sub class="doc-stamp">26.10.06 23:50</sub>
+<sub class="doc-stamp">26.10.15 00:39</sub>
 
 # FastMediaSorter v2 - Complete Feature List
 
@@ -155,4 +155,5 @@ FastMediaSorter is a complete shell for an Android device. The showcase follows 
 - **FileDO containers reach your cloud files too** `[Standard / Photos / Legacy / VR / noLegal]`: The same encrypt and decrypt commands now work on files in Google Drive, Dropbox and OneDrive, without ever touching the original. <!-- af: file-operations.filedo-containers-beside-cloud-files -->
 - **Unified settings backup and restore** `[Standard / VR]`: Back up sources, favorites, schedules, passwords, and sign-ins to a local file or Google Drive, then restore the whole setup after reinstalling or moving devices. <!-- af: sources-storage.unified-settings-backup-including-sources, settings-navigation.settings-backup-and-restore-via-google-drive -->
 - **Scheduled operations get their own screen** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Recurring copy, move and cleanup jobs now live on a full standalone screen with a run history, not a card buried in Settings - reachable from the programs menu, the quick-access panel, a widget, the launcher desktop and app-icon shortcuts alike. <!-- af: file-operations.scheduled-operations-standalone-screen-history -->
+- **Scheduled operations run over exchange resources** `[Standard / Photos / Legacy / VR / noLegal]`: Scheduled file operations run unattended over another device's resource reached through the exchange server, and over the Google Drive path once it lands. <!-- af: file-operations.scheduled-operations-over-exchange-and-drive -->
 - **Backup carries 124 more settings** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: A restore brings back the screenshot gestures and launcher readouts a backup used to drop. <!-- af: general.backup-carries-the-rest-of-the-settings -->

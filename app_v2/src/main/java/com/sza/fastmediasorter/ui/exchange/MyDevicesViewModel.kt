@@ -15,17 +15,20 @@ import com.sza.fastmediasorter.domain.model.ExchangeConnectionString
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringCodec
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringResult
+import com.sza.fastmediasorter.domain.model.ExchangeDiagnosis
 import com.sza.fastmediasorter.domain.model.ExchangeEndpoint
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.ExchangeServerCall
 import com.sza.fastmediasorter.domain.model.IntakeTextDispatch
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import com.sza.fastmediasorter.domain.model.WatchExchangeHandoverOutcome
+import com.sza.fastmediasorter.domain.usecase.exchange.DiagnoseExchangeFailureUseCase
 import com.sza.fastmediasorter.domain.usecase.exchange.ManageExchangeAccountsUseCase
 import com.sza.fastmediasorter.domain.usecase.intake.DispatchIntakeTextUseCase
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ExchangeProducerLeave
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeProducerUseCase
 import com.sza.fastmediasorter.domain.usecase.wear.ConnectWatchToExchangeEntryUseCase
-import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeRefusalText
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
@@ -48,8 +51,10 @@ import javax.inject.Inject
 sealed interface ExchangeServerStatus {
     data object Checking : ExchangeServerStatus
     data class Online(val deviceCount: Int) : ExchangeServerStatus
-    data class Refused(@StringRes val text: Int) : ExchangeServerStatus
-    data object Unreachable : ExchangeServerStatus
+    data class Failed(val message: ExchangeMessage) : ExchangeServerStatus
+
+    /** The server did not answer; what the person added stays in the list (item CZ `server-offline`). */
+    data object Offline : ExchangeServerStatus
 }
 
 data class ExchangeServerCard(val entry: DeviceExchangeAccountEntry, val status: ExchangeServerStatus)
@@ -57,20 +62,27 @@ data class ExchangeServerCard(val entry: DeviceExchangeAccountEntry, val status:
 /** A text the screen shows once; [args] fill its placeholders, a nested message resolved first. */
 data class MyDevicesMessage(@StringRes val text: Int, val args: List<Any> = emptyList())
 
-/** What the user typed into the sign-in dialog; the secret leaves memory with the dialog. */
+/**
+ * What the user typed into the sign-in dialog; the secrets leave memory with the dialog. With [invitation] (from
+ * an invitation string) or [invitationPassword] (typed) the form registers a new account instead (19 item AQ).
+ */
 class ExchangeSignInRequest(
     val endpoint: ExchangeEndpoint,
     val login: String,
     val secret: String,
     val pairingCode: Boolean,
+    val invitation: String? = null,
+    val invitationPassword: String? = null,
 ) {
-    override fun toString(): String = "ExchangeSignInRequest(pairingCode=$pairingCode)"
+    val registers: Boolean get() = invitation != null || invitationPassword != null
+
+    override fun toString(): String = "ExchangeSignInRequest(pairingCode=$pairingCode, registers=$registers)"
 }
 
 sealed interface ExchangeSignInState {
     data object Idle : ExchangeSignInState
     data object InProgress : ExchangeSignInState
-    data class Failed(val message: MyDevicesMessage) : ExchangeSignInState
+    data class Failed(val diagnosis: ExchangeDiagnosis) : ExchangeSignInState
 
     /** The user must see [presented] and accept it before the entry pins it (amendment D). */
     data class NeedsTrust(
@@ -79,7 +91,15 @@ sealed interface ExchangeSignInState {
         val pinned: String?,
     ) : ExchangeSignInState
 
-    data class Done(val endpoint: ExchangeEndpoint) : ExchangeSignInState
+    data class Done(val endpoint: ExchangeEndpoint, val registered: Boolean = false) : ExchangeSignInState
+}
+
+/** A password change or an account deletion asked from its own dialog, which stays open until it ends. */
+sealed interface ExchangeAccountActionState {
+    data object Idle : ExchangeAccountActionState
+    data object InProgress : ExchangeAccountActionState
+    data class Failed(val diagnosis: ExchangeDiagnosis) : ExchangeAccountActionState
+    data class Done(val message: MyDevicesMessage) : ExchangeAccountActionState
 }
 
 /** What the sign-in form does with one piece of intake text or file content (S4155). */
@@ -97,7 +117,7 @@ sealed interface ExchangeDevicesState {
     data object Loading : ExchangeDevicesState
     data class Loaded(val entry: DeviceExchangeAccountEntry, val devices: List<SftpRendezvousDevice>) :
         ExchangeDevicesState
-    data class Failed(val message: MyDevicesMessage) : ExchangeDevicesState
+    data class Failed(val diagnosis: ExchangeDiagnosis) : ExchangeDevicesState
 }
 
 @HiltViewModel
@@ -105,24 +125,31 @@ class MyDevicesViewModel @Inject constructor(
     private val accounts: ManageExchangeAccountsUseCase,
     private val producer: ManageExchangeProducerUseCase,
     private val connectWatchToEntry: ConnectWatchToExchangeEntryUseCase,
+    private val diagnose: DiagnoseExchangeFailureUseCase,
     private val dispatchIntakeText: DispatchIntakeTextUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val statuses = MutableStateFlow<Map<String, ExchangeServerStatus>>(emptyMap())
     private val messageChannel = Channel<MyDevicesMessage>(Channel.BUFFERED)
+    private val failureChannel = Channel<ExchangeDiagnosis>(Channel.BUFFERED)
     private val signInState = MutableStateFlow<ExchangeSignInState>(ExchangeSignInState.Idle)
     private val devicesState = MutableStateFlow<ExchangeDevicesState>(ExchangeDevicesState.Closed)
     private val pairingState = MutableStateFlow<MyDevicesMessage?>(null)
+    private val accountActionState = MutableStateFlow<ExchangeAccountActionState>(ExchangeAccountActionState.Idle)
 
     val cards: StateFlow<List<ExchangeServerCard>> = combine(accounts.entries, statuses) { entries, known ->
         entries.map { entry -> ExchangeServerCard(entry, known[entry.identity] ?: ExchangeServerStatus.Checking) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
 
     val messages: Flow<MyDevicesMessage> = messageChannel.receiveAsFlow()
+
+    /** Failures of the screen that used to be toasts: each opens the failure dialog with its walk. */
+    val failures: Flow<ExchangeDiagnosis> = failureChannel.receiveAsFlow()
     val signIn: StateFlow<ExchangeSignInState> = signInState.asStateFlow()
     val devices: StateFlow<ExchangeDevicesState> = devicesState.asStateFlow()
     val pairingCode: StateFlow<MyDevicesMessage?> = pairingState.asStateFlow()
+    val accountAction: StateFlow<ExchangeAccountActionState> = accountActionState.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -168,34 +195,83 @@ class MyDevicesViewModel @Inject constructor(
     }
 
     fun signIn(request: ExchangeSignInRequest, acceptedPin: String? = null) {
+        Timber.d("S4223: sign-in form submitted, registers=${request.registers}")
         signInState.value = ExchangeSignInState.InProgress
         viewModelScope.launch {
-            val result = accounts.signIn(
-                request.endpoint,
-                request.login,
-                request.secret,
-                request.pairingCode,
-                acceptedPin
-            )
-            Timber.d("My devices sign-in result: %s", result.javaClass.simpleName)
+            val result = if (request.registers) {
+                accounts.register(
+                    request.endpoint,
+                    request.login,
+                    request.secret,
+                    request.invitation,
+                    request.invitationPassword,
+                    acceptedPin,
+                )
+            } else {
+                accounts.signIn(request.endpoint, request.login, request.secret, request.pairingCode, acceptedPin)
+            }
+            Timber.d("My devices sign-in result: %s registers=%s", result.javaClass.simpleName, request.registers)
+            // A card refused as signed-out or revoked keeps its status until it is read again after a sign-in.
+            if (result is DeviceExchangeEnrollResult.Enrolled) {
+                cards.value.filter { it.status is ExchangeServerStatus.Failed }.forEach { refreshStatus(it.entry) }
+            }
             signInState.value = when (result) {
-                is DeviceExchangeEnrollResult.Enrolled -> ExchangeSignInState.Done(request.endpoint)
+                is DeviceExchangeEnrollResult.Enrolled -> ExchangeSignInState.Done(request.endpoint, request.registers)
                 is DeviceExchangeEnrollResult.CertificateUntrusted ->
                     ExchangeSignInState.NeedsTrust(request, result.presented, pinned = null)
                 is DeviceExchangeEnrollResult.CertificateChanged ->
                     ExchangeSignInState.NeedsTrust(request, result.presented, result.pinned)
-                is DeviceExchangeEnrollResult.Refused ->
-                    ExchangeSignInState.Failed(MyDevicesMessage(ExchangeRefusalText.of(result.reason)))
+                is DeviceExchangeEnrollResult.Refused -> ExchangeSignInState.Failed(
+                    diagnose(
+                        ExchangeMessage.ofWire(result.reason, oneTimeCode = request.pairingCode),
+                        request.endpoint.host,
+                    )
+                )
                 is DeviceExchangeEnrollResult.Unreachable ->
-                    ExchangeSignInState.Failed(MyDevicesMessage(R.string.exchange_devices_status_unreachable))
+                    ExchangeSignInState.Failed(diagnose.fromCause(result.cause, request.endpoint.host))
                 is DeviceExchangeEnrollResult.NoAnswer ->
-                    ExchangeSignInState.Failed(MyDevicesMessage(R.string.exchange_devices_status_unanswered))
+                    ExchangeSignInState.Failed(diagnose(ExchangeMessage.UNANSWERED, request.endpoint.host))
             }
         }
     }
 
     fun resetSignIn() {
         signInState.value = ExchangeSignInState.Idle
+    }
+
+    /** The held address, pin and login that refill the sign-in form after `signed-out` (19 item AT). */
+    fun signInAgainString(entry: DeviceExchangeAccountEntry): String? = accounts.signInAgainString(entry)
+
+    fun changePassword(entry: DeviceExchangeAccountEntry, oldPassword: String, newPassword: String) {
+        Timber.d("S4223: password change requested")
+        accountActionState.value = ExchangeAccountActionState.InProgress
+        viewModelScope.launch {
+            accountActionState.value = when (val call = accounts.changePassword(entry, oldPassword, newPassword)) {
+                is ExchangeServerCall.Done -> {
+                    refreshStatus(entry)
+                    ExchangeAccountActionState.Done(MyDevicesMessage(R.string.exchange_password_done))
+                }
+                else -> ExchangeAccountActionState.Failed(callFailure(call, entry))
+            }
+        }
+    }
+
+    fun deleteAccount(entry: DeviceExchangeAccountEntry, password: String) {
+        Timber.d("S4223: account deletion requested")
+        accountActionState.value = ExchangeAccountActionState.InProgress
+        viewModelScope.launch {
+            accountActionState.value = when (val call = accounts.deleteAccount(entry, password)) {
+                is ExchangeServerCall.Done -> {
+                    statuses.update { it - entry.identity }
+                    ExchangeAccountActionState.Done(MyDevicesMessage(R.string.exchange_delete_done))
+                }
+                else -> ExchangeAccountActionState.Failed(callFailure(call, entry))
+            }
+        }
+    }
+
+    fun resetAccountAction() {
+        accountActionState.value = ExchangeAccountActionState.Idle
     }
 
     fun openDevices(entry: DeviceExchangeAccountEntry) {
@@ -222,7 +298,7 @@ class MyDevicesViewModel @Inject constructor(
                         }
                     }
                 }
-                else -> post(callFailure(call))
+                else -> failureChannel.trySend(callFailure(call, entry))
             }
         }
     }
@@ -233,7 +309,10 @@ class MyDevicesViewModel @Inject constructor(
                 is ExchangeServerCall.Done -> call.value.expiresAt?.let { expires ->
                     MyDevicesMessage(R.string.exchange_devices_pairing_code, listOf(call.value.code, expires))
                 } ?: MyDevicesMessage(R.string.exchange_devices_pairing_code_no_expiry, listOf(call.value.code))
-                else -> callFailure(call)
+                else -> {
+                    failureChannel.trySend(callFailure(call, entry))
+                    null
+                }
             }
         }
     }
@@ -287,8 +366,8 @@ class MyDevicesViewModel @Inject constructor(
         viewModelScope.launch {
             val status = when (val call = accounts.directory(entry)) {
                 is ExchangeServerCall.Done -> ExchangeServerStatus.Online(call.value.devices.size)
-                is ExchangeServerCall.Refused -> ExchangeServerStatus.Refused(ExchangeRefusalText.of(call.reason))
-                ExchangeServerCall.Unreachable -> ExchangeServerStatus.Unreachable
+                is ExchangeServerCall.Refused -> ExchangeServerStatus.Failed(ExchangeMessage.ofWire(call.reason))
+                is ExchangeServerCall.Unreachable -> ExchangeServerStatus.Offline
             }
             statuses.update { it + (entry.identity to status) }
         }
@@ -300,14 +379,16 @@ class MyDevicesViewModel @Inject constructor(
                 statuses.update { it + (entry.identity to ExchangeServerStatus.Online(call.value.devices.size)) }
                 ExchangeDevicesState.Loaded(entry, call.value.devices)
             }
-            else -> ExchangeDevicesState.Failed(callFailure(call))
+            else -> ExchangeDevicesState.Failed(callFailure(call, entry))
         }
     }
 
-    private fun callFailure(call: ExchangeServerCall<*>): MyDevicesMessage = when (call) {
-        is ExchangeServerCall.Refused -> MyDevicesMessage(ExchangeRefusalText.of(call.reason))
-        else -> MyDevicesMessage(R.string.exchange_devices_status_unreachable)
-    }
+    private fun callFailure(call: ExchangeServerCall<*>, entry: DeviceExchangeAccountEntry): ExchangeDiagnosis =
+        when (call) {
+            is ExchangeServerCall.Refused -> diagnose(ExchangeMessage.ofWire(call.reason), entry.host)
+            is ExchangeServerCall.Unreachable -> diagnose.fromLocal(call.failure, entry.host)
+            is ExchangeServerCall.Done -> diagnose(ExchangeMessage.REFUSED, entry.host)
+        }
 
     private fun watchMessage(outcome: WatchExchangeHandoverOutcome): MyDevicesMessage = when (outcome) {
         WatchExchangeHandoverOutcome.Enrolled -> MyDevicesMessage(R.string.exchange_devices_watch_enrolled)
@@ -316,12 +397,14 @@ class MyDevicesViewModel @Inject constructor(
         WatchExchangeHandoverOutcome.WatchDidNotAnswer -> MyDevicesMessage(R.string.exchange_devices_watch_no_answer)
         is WatchExchangeHandoverOutcome.CodeRefused ->
             MyDevicesMessage(R.string.exchange_devices_watch_code_refused, listOf(reasonText(outcome.reason)))
-        WatchExchangeHandoverOutcome.ServerUnreachable -> MyDevicesMessage(R.string.exchange_devices_status_unreachable)
+        WatchExchangeHandoverOutcome.ServerUnreachable ->
+            MyDevicesMessage(ExchangeMessageText.what(ExchangeMessage.UNREACHABLE_SERVER))
         WatchExchangeHandoverOutcome.NoConnectedWatch -> MyDevicesMessage(R.string.exchange_devices_watch_none)
         WatchExchangeHandoverOutcome.CompanionOff -> MyDevicesMessage(R.string.exchange_devices_watch_companion_off)
     }
 
-    private fun reasonText(reason: String) = MyDevicesMessage(ExchangeRefusalText.of(reason))
+    private fun reasonText(reason: String) =
+        MyDevicesMessage(ExchangeMessageText.what(ExchangeMessageText.ofHandoverReason(reason)))
 
     private fun post(message: MyDevicesMessage) {
         messageChannel.trySend(message)

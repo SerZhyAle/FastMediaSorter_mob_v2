@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.07 01:49</sub>
+<sub class="doc-stamp">26.10.14 21:42</sub>
 
 # Contract pointers
 
@@ -27,7 +27,7 @@ catalog registry to one set of ids and versions.
 | [`FMSCFG.md`](FMSCFG.md) | `FMSCFG` | consumer (the `.fmscfg` importer); also writes `.fmscfg` files and `FMSCFG1:` QR payloads |
 | [`SHARE-SESSION.md`](SHARE-SESSION.md) | `SHARE-SESSION` | client - the SFTP connection to a shared folder |
 | [`ANYWHERE-ACCESS.md`](ANYWHERE-ACCESS.md) | `ANYWHERE-ACCESS` | owner; reference producer (phone shares over rendezvous/tunnel) and consumer (reads others' shares) - [PROPOSED], nothing ships against it yet |
-| [`DEVICE-EXCHANGE.md`](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | owner; phone - resource producer and consumer, broadcaster, receiver; watch - audio broadcaster and receiver - [PROPOSED], nothing ships yet |
+| [`DEVICE-EXCHANGE.md`](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | owner; phone - resource producer and consumer, broadcaster, receiver; watch - broadcaster of sound and receiver of sound and video - [PROPOSED], nothing ships yet |
 | [`OCR-OVERLAY.md`](OCR-OVERLAY.md) | `OCR-OVERLAY` | consumer - the player's OCR + translation overlay |
 | [`LETTERBOX-FILL.md`](LETTERBOX-FILL.md) | `LETTERBOX-BARS`, `LETTERBOX-HALO` | consumer - the player's edge-extended background behind a fitted photo |
 | [`OCR-ACCURACY.md`](OCR-ACCURACY.md) | `OCR-ACCURACY` | owner of the record |

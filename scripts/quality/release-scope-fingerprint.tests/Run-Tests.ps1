@@ -159,6 +159,31 @@ try {
         if ($code -ne 0) { return "expected exit 0, got $code" }
         return $null
     }
+
+    # S4249: the watch sweep's own fingerprint.
+    Assert-Case 'E10 the wear scope writes its own record with only its groups' {
+        $wearRecordPath = Join-Path $root 'temp\RELEASE-FREEZE-FINGERPRINTS-WEAR.json'
+        $code = Invoke-Fingerprint @('-Verb', 'Record', '-Scope', 'wear')
+        if ($code -ne 0) { return "expected exit 0, got $code" }
+        if (-not (Test-Path -LiteralPath $wearRecordPath)) { return 'no wear record written' }
+        $record = Get-Content -LiteralPath $wearRecordPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        $names = (@($record.groups.PSObject.Properties.Name) | Sort-Object) -join ','
+        if ($names -ne 'docs,scripts,wear-src') { return "expected docs,scripts,wear-src, got '$names'" }
+        if ($record.scope -ne 'wear') { return "expected scope wear, got '$($record.scope)'" }
+        return $null
+    }
+
+    Assert-Case 'E11 the wear scope ignores a moved phone-src group' {
+        [void](Invoke-Fingerprint @('-Verb', 'Record', '-Scope', 'wear'))
+        Set-Content -LiteralPath (Join-Path $root 'app_v2\src\Main.kt') -Value 'class Main2' -Encoding UTF8
+        $code = Invoke-Fingerprint @('-Verb', 'Compare', '-Scope', 'wear')
+        if ($code -ne 0) { return "expected exit 0 for the wear scope, got $code" }
+        [void](Invoke-Fingerprint @('-Verb', 'Record'))
+        Set-Content -LiteralPath (Join-Path $root 'app_v2\src\Main.kt') -Value 'class Main3' -Encoding UTF8
+        $code = Invoke-Fingerprint @('-Verb', 'Compare')
+        if ($code -ne 3) { return "expected exit 3 for the phone scope, got $code" }
+        return $null
+    }
 }
 finally {
     if ($null -eq $previousRoot) { Remove-Item Env:\FMS_REPO_ROOT -ErrorAction SilentlyContinue }

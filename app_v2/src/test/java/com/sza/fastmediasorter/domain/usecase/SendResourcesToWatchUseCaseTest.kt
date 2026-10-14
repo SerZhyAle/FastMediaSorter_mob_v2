@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeResourcePinStore
 import com.sza.fastmediasorter.data.repository.WearResourceSelectionRepositoryImpl
 import com.sza.fastmediasorter.data.repository.wear.WearResourceStampStore
+import com.sza.fastmediasorter.domain.model.ExchangeBinding
 import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -14,6 +16,7 @@ import com.sza.fastmediasorter.domain.networkmonitor.ReachableEndpointProvider
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
+import com.sza.fastmediasorter.service.WearDataLayerPaths
 import com.sza.fastmediasorter.testing.fakes.FakeWearDeliveredResourceStore
 import com.sza.fastmediasorter.testing.fakes.FakeWearResourceTombstoneStore
 import kotlinx.coroutines.flow.Flow
@@ -43,6 +46,7 @@ class SendResourcesToWatchUseCaseTest {
     private lateinit var stampStore: FakeWearResourceStampStore
     private lateinit var tombstoneStore: FakeWearResourceTombstoneStore
     private lateinit var deliveredStore: FakeWearDeliveredResourceStore
+    private lateinit var pinStore: FakeExchangeResourcePinStore
     private lateinit var useCase: SendResourcesToWatchUseCase
 
     @Before
@@ -55,6 +59,7 @@ class SendResourcesToWatchUseCaseTest {
         stampStore = FakeWearResourceStampStore()
         tombstoneStore = FakeWearResourceTombstoneStore()
         deliveredStore = FakeWearDeliveredResourceStore()
+        pinStore = FakeExchangeResourcePinStore()
         useCase = SendResourcesToWatchUseCase(
             resourceRepository,
             credentialsRepository,
@@ -63,7 +68,8 @@ class SendResourcesToWatchUseCaseTest {
             endpointProvider,
             stampStore,
             tombstoneStore,
-            deliveredStore
+            deliveredStore,
+            SendResourcePassesToWatchUseCase(wearableRepository, pinStore, Gson())
         )
     }
 
@@ -584,6 +590,58 @@ class SendResourcesToWatchUseCaseTest {
         assertEquals(445, sftp.port)
     }
 
+    @Test
+    fun `an exchange folder carries its binding, read-only and protection, never a tunnel address`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(
+            makeResource(id = 1, type = ResourceType.SFTP, credId = "cred-1").copy(
+                path = "sftp://192.168.1.20:2222/Music",
+                hostKeyFingerprint = "ab".repeat(32),
+                isReadOnly = true,
+                exchangeAccount = "fms.example:7443/anna",
+                exchangeResourceId = "res-1"
+            )
+        )
+        select(1L)
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+        endpointProvider.result = listOf(
+            HostPort("AAAAAAAAAAAAAAAAAAAAAA@fms.example", 7443),
+            HostPort("192.168.1.20", 2222),
+            HostPort("10.0.0.20", 2222)
+        )
+        pinStore.pins[ExchangeBinding("fms.example:7443/anna", "res-1")] = "1234"
+
+        useCase()
+
+        val sftp = sentSources().single()
+        assertEquals("192.168.1.20", sftp.server)
+        assertEquals(listOf("192.168.1.20", "10.0.0.20"), sftp.endpoints.orEmpty().map { it.host })
+        assertEquals("fms.example:7443/anna", sftp.exchangeAccount)
+        assertEquals("res-1", sftp.exchangeResourceId)
+        assertEquals(true, sftp.readOnly)
+        assertEquals(true, sftp.pinProtected)
+        assertEquals(listOf(WearDataLayerPaths.RESOURCE_PASS), wearableRepository.messagePaths)
+    }
+
+    @Test
+    fun `an exchange folder whose PIN this phone does not keep is not protected`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(
+            makeResource(id = 1, type = ResourceType.SFTP, credId = "cred-1").copy(
+                exchangeAccount = "fms.example:7443/anna",
+                exchangeResourceId = "res-1"
+            )
+        )
+        select(1L)
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+
+        useCase()
+
+        assertEquals(false, sentSources().single().pinProtected)
+        assertEquals(false, sentSources().single().readOnly)
+        assertTrue(wearableRepository.messagePaths.isEmpty())
+    }
+
     private fun sentPayload(): WearSyncPayload = Gson().fromJson(
         wearableRepository.putCalls.single().payload.decodeToString(),
         WearSyncPayload::class.java
@@ -633,8 +691,24 @@ private class FakeWearResourceStampStore : WearResourceStampStore {
     }
 }
 
-private class FakeReachableEndpointProvider : ReachableEndpointProvider {
-    var result: List<HostPort> = emptyList()
+private class FakeExchangeResourcePinStore : ExchangeResourcePinStore {
+    val pins = mutableMapOf<ExchangeBinding, String>()
+
+    override suspend fun pin(binding: ExchangeBinding): String? = pins[binding]
+
+    override suspend fun save(binding: ExchangeBinding, pin: String): Boolean {
+        pins[binding] = pin
+        return true
+    }
+
+    override suspend fun forget(binding: ExchangeBinding) {
+        pins.remove(binding)
+    }
+
+    override suspend fun move(from: String, to: String, resourceIds: Collection<String>) = Unit
+}
+
+private class FakeReachableEndpointProvider : ReachableEndpointProvider {    var result: List<HostPort> = emptyList()
     var failure: Throwable? = null
     var calls = 0
 
@@ -655,7 +729,11 @@ private class FakeWearableDataLayerRepository : WearableDataLayerRepository {
         putCalls += PutCall(path, payload)
     }
 
-    override suspend fun sendMessage(nodeId: String, path: String, data: ByteArray) = Unit
+    val messagePaths = mutableListOf<String>()
+
+    override suspend fun sendMessage(nodeId: String, path: String, data: ByteArray) {
+        messagePaths += path
+    }
 
     // Required by the interface but not exercised in these tests.
     override suspend fun putEnvelopeDataItem(

@@ -3878,8 +3878,6 @@
     <string name="settings_sftp_exchange_status_connecting">Verbindung zum Austauschserver wird hergestellt..</string>
     <string name="settings_sftp_exchange_status_registered">Von überall erreichbar über %1$s</string>
     <string name="settings_sftp_exchange_status_registered_port">Von überall erreichbar über %1$s. Andere SFTP-Apps: %2$s</string>
-    <string name="settings_sftp_exchange_status_unreachable">Austauschserver nicht erreichbar, neuer Versuch</string>
-    <string name="settings_sftp_exchange_status_certificate">Der Austauschserver hat ein anderes Zertifikat vorgelegt, daher wurde die Verbindung beendet</string>
     <string name="settings_sftp_exchange_new_link">Neuer Zugangslink</string>
     <string name="settings_sftp_exchange_new_link_done">Zuvor geteilte Codes öffnen diesen Server nicht mehr</string>
     <string name="settings_sftp_server_legacy_qr">Code für ältere App-Versionen</string>

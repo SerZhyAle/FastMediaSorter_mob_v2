@@ -12,10 +12,13 @@ import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.network.LanAddressResolver
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpDriveRendezvousPublisher
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpServerTunnelManager
+import com.sza.fastmediasorter.data.repository.settings.ExchangeGrantRepository
 import com.sza.fastmediasorter.data.repository.settings.SftpServerSettingsStore
+import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import com.sza.fastmediasorter.domain.model.SftpServerAuthMode
 import com.sza.fastmediasorter.domain.model.SftpServerConfig
 import com.sza.fastmediasorter.domain.model.SftpServerFailure
+import com.sza.fastmediasorter.domain.model.SftpServerPauseReason
 import com.sza.fastmediasorter.domain.model.SftpServerState
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -64,6 +67,9 @@ import javax.inject.Singleton
  * user's private Drive space, so a paired device finds a changed address (contract DEVICE-EXCHANGE
  * section 8). Only the SFTP subsystem is installed, so a client gets no shell.
  */
+// The server's collaborators are all distinct stores and transports it owns the lifecycle of; grouping them
+// into a holder would only hide the same dependencies one level down.
+@Suppress("LongParameterList")
 @Singleton
 class SftpServerController @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -73,6 +79,7 @@ class SftpServerController @Inject constructor(
     private val mediaCapabilities: MediaCapabilities,
     private val tunnelManager: SftpServerTunnelManager,
     private val rendezvousPublisher: SftpDriveRendezvousPublisher,
+    private val grantStore: ExchangeGrantRepository,
     @ApplicationScope private val appScope: CoroutineScope,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
@@ -84,8 +91,13 @@ class SftpServerController @Inject constructor(
     private var server: SshServer? = null
     private var rootsJob: Job? = null
 
+    /** One served folder: the tree URI a grant names and the node the file system serves. */
+    private class ServedRoot(val treeUri: String, val node: SftpServerNode)
+
     @Volatile
-    private var roots: List<SftpServerNode> = emptyList()
+    private var roots: List<ServedRoot> = emptyList()
+
+    private val grantLogins = SftpGrantLogins()
 
     fun isAvailable(): Boolean = capabilityAvailability.isSftpServerAvailable(mediaCapabilities)
 
@@ -103,12 +115,47 @@ class SftpServerController @Inject constructor(
         result
     }
 
-    /** Stops the server; safe to call when nothing runs. Completes on the application scope. */
-    fun stop() {
+    /**
+     * Stops the server; safe to call when nothing runs. Completes on the application scope. A [pauseReason]
+     * ends it as [SftpServerState.Paused] and tells the Drive record why (DEVICE-EXCHANGE 26 item DC).
+     */
+    fun stop(pauseReason: SftpServerPauseReason? = null) {
         // UNDISPATCHED enters the FIFO mutex queue on the calling thread, so a start() called right
         // after this stop() runs after it instead of racing a stop still waiting to be dispatched.
         appScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            mutex.withLock { stopLocked() }
+            mutex.withLock { stopLocked(pauseReason) }
+        }
+    }
+
+    /**
+     * The person's own "off": the one stop that clears the stored start intent, so the next foreground does not
+     * bring the share back (S4225).
+     */
+    fun stopByUser() {
+        appScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            mutex.withLock {
+                settingsStore.setEnabled(false)
+                stopLocked(null)
+                mutableState.value = SftpServerState.Stopped
+            }
+        }
+    }
+
+    /**
+     * Advertises the LAN addresses as they are now, while the server runs: the state the notification and the
+     * settings show, and, when the list changed, the tunnel registration and the Drive record. The listener is
+     * bound to every interface, so nothing re-binds.
+     */
+    fun refreshAddresses() {
+        appScope.launch(ioDispatcher) {
+            mutex.withLock {
+                val running = mutableState.value as? SftpServerState.Running ?: return@withLock
+                val current = advertisedAddresses()
+                if (current == running.addresses) return@withLock
+                Timber.d("S4225: LAN addresses changed, re-advertising the share")
+                mutableState.value = running.copy(addresses = current)
+                restartTunnel()
+            }
         }
     }
 
@@ -125,10 +172,27 @@ class SftpServerController @Inject constructor(
     /** The LAN addresses a client can use right now; never a loopback address. */
     fun advertisedAddresses(): List<String> = listOfNotNull(LanAddressResolver(context).resolve())
 
+    /**
+     * Re-reads the grants (contract DEVICE-EXCHANGE items BD and BE) so a new grant logs in at once and a withdrawn
+     * one is refused at its next attempt. A grant whose password the secret store no longer decrypts stays out.
+     */
+    suspend fun refreshGrantLogins() {
+        val live = grantStore.snapshot().mapNotNull { grant ->
+            grantStore.password(grant.login)?.let { SftpGrantLogins.Live(grant, it) }
+        }
+        grantLogins.replace(live)
+    }
+
+    /** Ends every open session of [login]: a withdrawn grant must not keep the sessions it opened (item BD). */
+    fun closeSessionsOf(login: String) {
+        server?.activeSessions?.filter { it.username == login }?.forEach { it.close(true) }
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun startLocked(): SftpServerState {
         val snapshot = settingsStore.snapshot()
         roots = withContext(ioDispatcher) { resolveRoots(snapshot.rootUris) }
+        refreshGrantLogins()
         // The server launches with the configuration readiness was judged on; only the password is
         // taken from the credential read, which may have just generated it.
         val config = when (snapshot.authMode) {
@@ -191,7 +255,9 @@ class SftpServerController @Inject constructor(
             host = BIND_ALL_INTERFACES
             port = config.port
             keyPairProvider = KeyPairProvider.wrap(hostKey)
-            fileSystemFactory = SftpSafFileSystemFactory { roots }
+            fileSystemFactory = SftpSafFileSystemFactory { user ->
+                grantLogins.rootsFor(user, config.username, roots) { it.treeUri }.map { it.node }
+            }
             subsystemFactories = listOf(
                 SftpSubsystemFactory.Builder().withFileSystemAccessor(SftpSafFileSystemAccessor).build(),
             )
@@ -201,7 +267,10 @@ class SftpServerController @Inject constructor(
                     publickeyAuthenticator = null
                 }
                 SftpServerAuthMode.PUBLIC_KEY -> {
-                    passwordAuthenticator = null
+                    // A grant login always logs in by its password, whatever the install's own login uses.
+                    passwordAuthenticator = PasswordAuthenticator { user, password, _ ->
+                        grantLogins.accepts(user, password)
+                    }
                     keyboardInteractiveAuthenticator = null
                     publickeyAuthenticator = publicKeyAuthenticator(config)
                 }
@@ -213,8 +282,9 @@ class SftpServerController @Inject constructor(
         val expected = config.password.orEmpty().toByteArray(Charsets.UTF_8)
         return PasswordAuthenticator { user, password, _ ->
             // Constant-time: the comparison must not tell a LAN attacker how many characters matched.
-            user == config.username && expected.isNotEmpty() &&
+            val install = user == config.username && expected.isNotEmpty() &&
                 MessageDigest.isEqual(expected, password.orEmpty().toByteArray(Charsets.UTF_8))
+            install || grantLogins.accepts(user, password)
         }
     }
 
@@ -261,9 +331,9 @@ class SftpServerController @Inject constructor(
         }
     }
 
-    private suspend fun stopLocked() {
+    private suspend fun stopLocked(pauseReason: SftpServerPauseReason?) {
         tunnelManager.stop()
-        rendezvousPublisher.stop()
+        rendezvousPublisher.stop(pauseReason?.let { SftpRendezvousDevice.OFFLINE_REASON_TIME_LIMIT })
         rootsJob?.cancel()
         rootsJob = null
         val running = server
@@ -278,19 +348,22 @@ class SftpServerController @Inject constructor(
                 }
             }
         }
-        // The service stops itself after a failed start; that stop must not wipe the reason the
-        // settings surface is about to show.
-        if (running != null || mutableState.value !is SftpServerState.Failed) {
-            mutableState.value = SftpServerState.Stopped
+        // The service stops itself after a failed start, and its onDestroy stops again after a pause; neither
+        // stop may wipe the reason the settings surface is about to show.
+        val current = mutableState.value
+        mutableState.value = when {
+            pauseReason != null -> SftpServerState.Paused(pauseReason)
+            running == null && (current is SftpServerState.Failed || current is SftpServerState.Paused) -> current
+            else -> SftpServerState.Stopped
         }
     }
 
     /** A picked folder whose access grant is gone no longer resolves to a directory and is skipped. */
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun resolveRoots(uris: List<String>): List<SftpServerNode> = uris
-        .mapNotNull { DocumentFile.fromTreeUri(context, Uri.parse(it)) }
-        .filter(DocumentFile::isDirectory)
-        .map { DocumentFileServerNode(context, it) }
+    private fun resolveRoots(uris: List<String>): List<ServedRoot> = uris
+        .mapNotNull { uri -> DocumentFile.fromTreeUri(context, Uri.parse(uri))?.let { uri to it } }
+        .filter { (_, tree) -> tree.isDirectory }
+        .map { (uri, tree) -> ServedRoot(uri, DocumentFileServerNode(context, tree)) }
 
     private companion object {
         const val BIND_ALL_INTERFACES = "0.0.0.0"

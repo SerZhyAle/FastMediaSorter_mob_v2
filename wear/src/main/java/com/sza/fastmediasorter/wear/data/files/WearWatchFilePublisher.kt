@@ -7,12 +7,15 @@ import android.os.Build
 import android.provider.MediaStore
 import com.sza.fastmediasorter.wear.domain.files.WearWatchFileCollection
 import com.sza.fastmediasorter.wear.domain.files.WearWatchFileTarget
+import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardSaved
+import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardSink
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.io.OutputStream
 import javax.inject.Inject
 
 /**
@@ -80,6 +83,68 @@ class WearWatchFilePublisher @Inject constructor(
             Result.Published(uri, finalNameOf(uri, displayName))
         } else {
             discardPending(uri)
+        }
+    }
+
+    /**
+     * S4227: a pending row the caller streams into, for a value that arrives over the network and may reach
+     * gigabytes - copying it through a temp file first would need twice its size on the watch. The row stays
+     * invisible until [WearServerClipboardSink.commit]; a value that failed its hash check is discarded and
+     * never placed. Null when the row cannot be created (below API 29, or the store refused).
+     */
+    fun openPending(
+        displayName: String,
+        mimeType: String,
+        collection: WearWatchFileCollection,
+    ): WearServerClipboardSink? {
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
+            put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+            put(MediaStore.MediaColumns.RELATIVE_PATH, WearWatchFileTarget.relativePathOf(collection))
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
+        }
+        val uri = if (isAvailable()) insertRow(contentUriOf(collection), values, displayName) else null
+        return uri?.let { row -> openRowOutput(row)?.let { PendingRow(row, it, displayName) } }
+    }
+
+    private fun openRowOutput(uri: Uri): OutputStream? {
+        val output = try {
+            context.contentResolver.openOutputStream(uri)
+        } catch (e: FileNotFoundException) {
+            Timber.w(e, "WearWatchFilePublisher: pending row %s cannot be written", uri)
+            null
+        }
+        if (output == null) discardPending(uri)
+        return output
+    }
+
+    private inner class PendingRow(
+        private val uri: Uri,
+        override val output: OutputStream,
+        private val requestedName: String,
+    ) : WearServerClipboardSink {
+
+        override fun commit(): WearServerClipboardSaved? {
+            closeQuietly()
+            return if (commitPending(uri)) {
+                WearServerClipboardSaved(finalNameOf(uri, requestedName), path = null, contentUri = uri.toString())
+            } else {
+                discard()
+                null
+            }
+        }
+
+        override fun discard() {
+            closeQuietly()
+            discardPending(uri)
+        }
+
+        private fun closeQuietly() {
+            try {
+                output.close()
+            } catch (e: IOException) {
+                Timber.w(e, "WearWatchFilePublisher: closing %s failed", uri)
+            }
         }
     }
 

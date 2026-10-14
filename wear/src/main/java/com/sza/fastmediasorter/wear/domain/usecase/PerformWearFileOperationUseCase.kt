@@ -5,7 +5,7 @@ import com.sza.fastmediasorter.wear.data.files.WearMediaFileStager
 import com.sza.fastmediasorter.wear.data.files.WearMediaStoreFileWriter
 import com.sza.fastmediasorter.wear.data.files.WearSendToLauncher
 import com.sza.fastmediasorter.wear.data.files.WearWatchFilePublisher
-import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiverCatalogRepository
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.files.WearFileNameConflictResolver
@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearOpenOnPhoneOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearOpenOnPhoneRequest
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceDeleteOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiverEntry
+import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardFailure
 import com.sza.fastmediasorter.wear.domain.model.kind
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult
@@ -32,6 +33,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -62,9 +64,13 @@ class PerformWearFileOperationUseCase @Inject constructor(
     private val downloadNetworkFile: DownloadNetworkFileUseCase,
     /** S3359: the share's own half of the move - the only call here that removes anything on a server. */
     private val deleteNetworkFile: DeleteNetworkFileUseCase,
-    private val sendToReceivers: WearSendToReceiversRepository,
+    private val sendToReceivers: WearSendToReceiverCatalogRepository,
     private val reachability: WearSendToReachability,
-    private val sendToLauncher: WearSendToLauncher
+    private val sendToLauncher: WearSendToLauncher,
+    /** S4227: the receiver the watch serves itself, through its own exchange entries and network. */
+    private val sendServerClipboard: SendWearServerClipboardUseCase,
+    /** S4230: a network resource of the watch, written to over its own network with no phone. */
+    private val sendFileToResource: SendWearFileToResourceUseCase
 ) {
 
     /**
@@ -132,7 +138,39 @@ class PerformWearFileOperationUseCase @Inject constructor(
      * An id no published receiver carries is refused rather than guessed: the list this came from is
      * the phone's, and it can be replaced between the menu opening and the tap landing.
      */
-    private suspend fun sendToReceiver(file: WearMediaFile, receiverId: String): WearFileOperationResult {
+    private suspend fun sendToReceiver(file: WearMediaFile, receiverId: String): WearFileOperationResult = when {
+        WearSendToReceiverCatalogRepository.isServerClipboard(receiverId) -> sendToServerClipboard(file)
+        WearSendToReceiverCatalogRepository.isResource(receiverId) -> sendToResource(file, receiverId)
+        else -> sendToPublishedReceiver(file, receiverId)
+    }
+
+    /**
+     * S4230: the watch sends the file itself to one of its own network resources. No staging copy, no 32 MiB bridge
+     * ceiling and no phone check: the bytes never cross the phone link (contract DEVICE-EXCHANGE 23 items CF, CH).
+     * A resource id whose source is gone is refused rather than guessed, as an unknown published receiver is.
+     */
+    private suspend fun sendToResource(file: WearMediaFile, receiverId: String): WearFileOperationResult {
+        val sourceId = WearSendToReceiverCatalogRepository.sourceIdOf(receiverId)
+            ?: return WearFileOperationResult(file.name, WearFileOperationOutcome.REFUSED_UNSUPPORTED)
+        val report = sendFileToResource(sourceId, file)
+        return if (report.sent) {
+            WearFileOperationResult(
+                fileName = file.name,
+                outcome = WearFileOperationOutcome.SENT_TO_RESOURCE,
+                finalName = report.finalName?.takeIf { it != file.name },
+                destination = report.resourceName
+            )
+        } else {
+            WearFileOperationResult(
+                fileName = file.name,
+                outcome = WearFileOperationOutcome.NOT_SENT_TO_RESOURCE,
+                destination = report.resourceName,
+                resourceSendFailure = report.failure
+            )
+        }
+    }
+
+    private suspend fun sendToPublishedReceiver(file: WearMediaFile, receiverId: String): WearFileOperationResult {
         val entry = sendToReceivers.observe().value.firstOrNull { it.id == receiverId }
             ?: return WearFileOperationResult(file.name, WearFileOperationOutcome.REFUSED_UNSUPPORTED)
         val sendIntent = WearSendToReachability.sendIntentFor(file.mimeType ?: ANY_MIME_TYPE)
@@ -140,6 +178,35 @@ class PerformWearFileOperationUseCase @Inject constructor(
             sendHere(file, entry, sendIntent)
         } else {
             sendThroughPhone(file, entry)
+        }
+    }
+
+    /**
+     * S4227: the third branch - the watch sends the file itself to the clipboard on every exchange server it
+     * belongs to. No staging copy (a value may reach gigabytes), no 32 MiB bridge ceiling and no phone check:
+     * the phone takes no part (contract DEVICE-EXCHANGE 23 item CH). A partial success names the servers that
+     * did not take it (22 item CA).
+     */
+    private suspend fun sendToServerClipboard(file: WearMediaFile): WearFileOperationResult {
+        Timber.d("S4227: send to clipboard on the server")
+        val report = sendServerClipboard(file)
+        val firstFailure = report.localFailure
+            ?: WearServerClipboardFailure.NO_NETWORK.takeIf { report.noNetwork }
+            ?: WearServerClipboardFailure.NO_ENTRY.takeIf { report.noEntry }
+            ?: report.failed.firstOrNull()?.failure
+        return when {
+            report.sent && report.failed.isEmpty() ->
+                WearFileOperationResult(file.name, WearFileOperationOutcome.SENT_TO_SERVER_CLIPBOARD)
+            report.sent -> WearFileOperationResult(
+                fileName = file.name,
+                outcome = WearFileOperationOutcome.SENT_TO_SERVER_CLIPBOARD_PARTLY,
+                destination = report.failed.joinToString(", ") { it.label }
+            )
+            else -> WearFileOperationResult(
+                fileName = file.name,
+                outcome = WearFileOperationOutcome.NOT_SENT_TO_SERVER_CLIPBOARD,
+                serverClipboardFailure = firstFailure
+            )
         }
     }
 

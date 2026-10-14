@@ -3890,8 +3890,6 @@
     <string name="settings_sftp_exchange_status_connecting">تبادلہ سرور سے جڑا جا رہا ہے..</string>
     <string name="settings_sftp_exchange_status_registered">%1$s کے ذریعے کہیں سے بھی دستیاب</string>
     <string name="settings_sftp_exchange_status_registered_port">%1$s کے ذریعے کہیں سے بھی دستیاب۔ دوسری SFTP ایپس: %2$s</string>
-    <string name="settings_sftp_exchange_status_unreachable">تبادلہ سرور تک رسائی نہیں ہو رہی، دوبارہ کوشش جاری ہے</string>
-    <string name="settings_sftp_exchange_status_certificate">تبادلہ سرور نے مختلف سرٹیفکیٹ پیش کیا، اس لیے کنکشن رک گیا</string>
     <string name="settings_sftp_exchange_new_link">رسائی کا نیا لنک</string>
     <string name="settings_sftp_exchange_new_link_done">پہلے شیئر کیے گئے کوڈز اب اس سرور کو نہیں کھولتے</string>
     <string name="settings_sftp_server_legacy_qr">ایپ کے پرانے ورژنز کے لیے کوڈ</string>

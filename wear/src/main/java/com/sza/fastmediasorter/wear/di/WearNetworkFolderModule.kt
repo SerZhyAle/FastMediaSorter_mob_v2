@@ -3,10 +3,12 @@ package com.sza.fastmediasorter.wear.di
 import com.sza.fastmediasorter.wear.data.network.WearNetworkDataSources
 import com.sza.fastmediasorter.wear.data.repository.WearFolderLevelRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearNetworkFolderRepositoryImpl
+import com.sza.fastmediasorter.wear.data.repository.WearNetworkResourceSendRepositoryImpl
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFolderLevelRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearLocalFolderRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearNetworkFolderRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearResourceSendRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,4 +39,11 @@ object WearNetworkFolderModule {
         local: WearLocalFolderRepository,
         network: dagger.Lazy<WearNetworkFolderRepository>
     ): WearFolderLevelRepository = WearFolderLevelRepositoryImpl(local, network)
+
+    /** S4230: the watch's own send to a network resource; the same scope as the folder walk it sits beside. */
+    @Provides
+    @Singleton
+    fun provideWearResourceSendRepository(
+        impl: WearNetworkResourceSendRepositoryImpl
+    ): WearResourceSendRepository = impl
 }

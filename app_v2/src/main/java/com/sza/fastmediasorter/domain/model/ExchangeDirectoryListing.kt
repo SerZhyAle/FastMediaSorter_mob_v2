@@ -43,6 +43,8 @@ data class ExchangeListedResource(
     val sourceKey: String,
     val record: SftpRendezvousResource,
     val online: Boolean,
+    /** Offline because Android paused its producer's sharing (DEVICE-EXCHANGE 26 item DC), not closed. */
+    val paused: Boolean = false,
 ) {
 
     val access: ExchangeResourceAccess
@@ -73,6 +75,8 @@ data class ExchangeListedDevice(
 ) {
 
     val online: Boolean get() = device?.isOnline ?: resources.any(ExchangeListedResource::online)
+
+    val paused: Boolean get() = !online && device?.isSharePaused == true
 }
 
 /** The account directory as section 9.1 shows it: grouped by device, this device's own records left out. */
@@ -185,7 +189,8 @@ object ExchangeDirectoryRules {
                 deviceId = deviceId,
                 device = device,
                 resources = resources[deviceId].orEmpty().map { record ->
-                    ExchangeListedResource(source.key, record, isOnline(record, device))
+                    val online = isOnline(record, device)
+                    ExchangeListedResource(source.key, record, online, !online && device?.isSharePaused == true)
                 },
                 broadcasts = broadcasts[deviceId].orEmpty().map { record ->
                     ExchangeListedBroadcast(source.key, record, record.mode in playableModes)

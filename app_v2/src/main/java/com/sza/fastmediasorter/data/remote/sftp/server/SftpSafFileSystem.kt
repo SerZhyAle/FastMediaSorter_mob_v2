@@ -26,7 +26,8 @@ import java.nio.file.attribute.UserPrincipalNotFoundException
  * what enforces the chroot.
  *
  * The roots are read per session through [rootsSupplier], so a folder added or removed in settings
- * applies to the next login without restarting the server.
+ * applies to the next login without restarting the server. The supplier gets the session's user name:
+ * a grant login (contract ANYWHERE-ACCESS item L) is served only the folder its grant names.
  *
  * Two SAF limits are accepted rather than hidden (strategic spec section 3): a listing costs one
  * provider query per child, so very large folders list slowly; and a provider that serves a pipe
@@ -34,14 +35,14 @@ import java.nio.file.attribute.UserPrincipalNotFoundException
  */
 @RequiresApi(Build.VERSION_CODES.O)
 class SftpSafFileSystemFactory(
-    private val rootsSupplier: () -> List<SftpServerNode>,
+    private val rootsSupplier: (user: String?) -> List<SftpServerNode>,
 ) : FileSystemFactory {
 
     // Null lets the SFTP subsystem start in the file system's own default directory, `/`.
     override fun getUserHomeDir(session: SessionContext?): Path? = null
 
     override fun createFileSystem(session: SessionContext?): FileSystem =
-        SftpSafFileSystem(SftpSafFileSystemProvider(SafPathResolver(rootsSupplier())))
+        SftpSafFileSystem(SftpSafFileSystemProvider(SafPathResolver(rootsSupplier(session?.username))))
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

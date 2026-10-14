@@ -88,6 +88,8 @@ steps:
 
       Tap **Log** to open the **Run history**: when each job ran, how many files it handled and what went wrong, if anything. An operation whose last run failed is marked - "Last run failed. Tap Log for details." You can clear the history at any time.
 
+      Each operation also has its own **History** button: the latest runs of that one operation, newest first - when it ran, how many files it handled and why it stopped. A run that could not reach its source or destination (a computer that is switched off, no network) is shown as skipped, marked with the same warning and tried again at the next scheduled time. Nothing is lost: **New since last run** moves forward only after a run that finished without an error, so the files of a skipped or failed run are taken the next time. A run that failed also posts a notification, unless the operation is set to **Suppress notifications**; the warning on the operation stays either way.
+
       The job runs by itself even after the phone restarts. If the folder you are looking at in the file browser was changed by a job in the meantime, the list updates the moment you come back to it - no files that were already moved away are left in view.
     image_bookmark:
       shot_id: storage.scheduled-ops-history
@@ -122,6 +124,6 @@ next_recipes:
     description: The other programs you can open from the same menu.
 ---
 
-<sub class="doc-stamp">26.10.07 01:11</sub>
+<sub class="doc-stamp">26.10.14 18:55</sub>
 
 Let the app copy, move or delete files by itself on a schedule - for example copy new camera photos to the home computer every night - and read the run history to see what was done.

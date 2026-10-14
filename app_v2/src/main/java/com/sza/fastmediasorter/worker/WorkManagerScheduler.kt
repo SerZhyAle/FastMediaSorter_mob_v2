@@ -12,7 +12,9 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.domain.model.computeNextRunAt
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -194,7 +196,9 @@ class WorkManagerScheduler @Inject constructor(
 
     /**
      * Schedule a one-time run of [operation] at [operation.nextRunAt].
-     * If nextRunAt is null or in the past, runs immediately.
+     * If nextRunAt is in the past (an overdue slot), runs immediately. If it is null - a schedule that
+     * was just restored or imported - the slot is taken from the schedule's own grid and stored, so a
+     * restore no longer fires every schedule at once.
      */
     fun scheduleOperation(operation: ScheduledOperation) {
         if (!operation.isEnabled) {
@@ -202,14 +206,28 @@ class WorkManagerScheduler @Inject constructor(
             return
         }
         try {
-            val delayMs = ((operation.nextRunAt ?: 0L) - System.currentTimeMillis())
-                .coerceAtLeast(0L)
+            val now = System.currentTimeMillis()
+            val slot = operation.nextRunAt ?: computeNextRunAt(
+                operation.startTimeHour,
+                operation.startTimeMinute,
+                operation.intervalHours,
+                operation.intervalMinutes,
+                now,
+            ).also { persistInitialSlot(operation.id, it) }
+            val delayMs = (slot - now).coerceAtLeast(0L)
+            Timber.d("S4211: schedule op=${operation.id} storedSlot=${operation.nextRunAt} slot=$slot delayMs=$delayMs")
             val inputData = Data.Builder()
                 .putLong(ScheduledOperationsWorker.KEY_OPERATION_ID, operation.id)
                 .build()
             val request = OneTimeWorkRequestBuilder<ScheduledOperationsWorker>()
                 .setInputData(inputData)
                 .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
+                // S4232: any live network, never UNMETERED - the owner allows mobile data for a
+                // scheduled run and the user carries the responsibility, so WorkManager defers the
+                // slot to the first moment a network exists instead of firing into a dead one.
+                .setConstraints(
+                    Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+                )
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .addTag("sched_op_${operation.id}")
                 .addTag(TAG_SCHEDULED_OP)
@@ -466,6 +484,23 @@ class WorkManagerScheduler @Inject constructor(
     // -------------------------------------------------------------------------
     // Internal helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * Stores a slot computed by [scheduleOperation] for a row that had none, so the screen shows the
+     * moment the work request was really enqueued for. A row that gained a slot in the meantime is kept.
+     */
+    private fun persistInitialSlot(operationId: Long, slot: Long) {
+        scope.launch {
+            try {
+                scheduledOperationRepository.getById(operationId)
+                    ?.takeIf { it.nextRunAt == null }
+                    ?.let { scheduledOperationRepository.update(it.copy(nextRunAt = slot)) }
+            } catch (e: Exception) {
+                e.rethrowIfCancellation()
+                Timber.w(e, "WorkManagerScheduler: could not store the initial slot of op=$operationId")
+            }
+        }
+    }
 
     /**
      * After [requestId] reaches a terminal state, reschedule the next run of [operationId]

@@ -159,6 +159,9 @@ class WatchWearListenerService : WearableListenerService() {
     // S4158: Lazy for S2626's reason - only a hand-over needs the encrypted store and the TLS client.
     @Inject lateinit var exchangeHandoverReceiver: dagger.Lazy<WearExchangeHandoverReceiver>
 
+    // S4228: Lazy for S2626's reason - only a resource pass needs the encrypted PIN store.
+    @Inject lateinit var resourcePassReceiver: dagger.Lazy<WearResourcePassReceiver>
+
     // S2915: every handler below launches on the application-owned scope. The platform destroys this
     // service shortly after the callback returns, and the service-owned scope this used to cancel in
     // onDestroy took every job still in flight with it - a cancelled job reports nothing, so a slow
@@ -331,6 +334,10 @@ class WatchWearListenerService : WearableListenerService() {
             // inline, as the receiver is what a handler function would delegate to anyway.
             WearDataLayerPaths.EXCHANGE_HANDOVER ->
                 applicationScope.launch { exchangeHandoverReceiver.get().handle(event.sourceNodeId, event.data) }
+
+            // S4228: the PIN of a protected exchange folder, launched inline for the hand-over's reason above.
+            WearDataLayerPaths.RESOURCE_PASS ->
+                applicationScope.launch { resourcePassReceiver.get().handle(event.sourceNodeId, event.data) }
 
             else -> Timber.d("WatchWearListenerService: unhandled message path ${event.path}")
         }

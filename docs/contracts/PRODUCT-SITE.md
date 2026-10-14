@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.07 04:59</sub>
+<sub class="doc-stamp">26.10.14 21:54</sub>
 
 # Pointer - `SITE-STRUCTURE`, `SITE-EXPERIENCE` and `SITE-REPRESENTATION`
 
 | | |
 | --- | --- |
 | **Id** | `SITE-STRUCTURE`, `SITE-EXPERIENCE`, `SITE-REPRESENTATION` |
-| **Version** | 0.1, 0.3, 0.1, draft (in the order of the ids above); wire carrier: none - a page set, a stylesheet layer and a content model. Owner: this product |
+| **Version** | 0.2, 0.3, 0.1, draft (in the order of the ids above); wire carrier: none - a page set, a stylesheet layer and a content model. Owner: this product |
 | **Home** | `product-site/README.md` in the shared contracts catalog |
 | **Role here** | owner and reference implementation - the product site: landing, sideload pages, documentation portal and the `docs/` reference pages |
 
@@ -14,6 +14,10 @@
 - Publish the page types its tier owes (portal), every public page reachable from the landing by links, and a not-found page; keep every address that the app, the store listings or a README holds answering, and leave a forwarder when a page moves.
 - Offer a language only where the page exists in it, and give the landing, the portal and the trust pages the locale sets the registry's adoption row declares.
 - Release a function with its page, and retire the page of a removed function in the same change.
+- From the release that first carries a page, keep its address and every anchor unchanged; a move of a released page is not made, and a forwarder is left only for a retired page (`SITE-STRUCTURE` section 8 item D).
+- Link the concrete function page from each setup, start and repair screen of a function that has one, in the app, the watch, the README and the user documentation, through a resolver whose fallback for a language the portal lacks is the English page (items C, E).
+- Make the language control of each variant lead to the same page in the other two, and keep the visitor's language on every internal link (items A, B).
+- Put no "not available yet" mark in the place of a page: a function's pages are written in the change that implements it and go out in the release that carries it, with the portal deployed before the builds that link it (item F).
 - Build the portal layer on the family kit with tokens taken from it; keep language and theme state, the search, the keyboard reach and the alternative text to `SITE-EXPERIENCE`.
 - Fill the screen on every page - landing, documentation, portal, trust pages, generated and theme-drawn pages: no `max-width`, `min(NNNpx, NNvw)` or centred `margin: auto` on a page wrapper (`SITE-EXPERIENCE` rule 20, S4106).
 - Declare every third-party origin the site contacts and name each on the privacy page; load advertising on the landing only.

@@ -3891,8 +3891,6 @@
     <string name="settings_sftp_exchange_status_connecting">Connexion au serveur d\'échange..</string>
     <string name="settings_sftp_exchange_status_registered">Joignable de partout via %1$s</string>
     <string name="settings_sftp_exchange_status_registered_port">Joignable de partout via %1$s. Autres applications SFTP : %2$s</string>
-    <string name="settings_sftp_exchange_status_unreachable">Serveur d\'échange injoignable, nouvelle tentative</string>
-    <string name="settings_sftp_exchange_status_certificate">Le serveur d\'échange a présenté un autre certificat, la connexion a donc été interrompue</string>
     <string name="settings_sftp_exchange_new_link">Nouveau lien d\'accès</string>
     <string name="settings_sftp_exchange_new_link_done">Les codes partagés auparavant n\'ouvrent plus ce serveur</string>
     <string name="settings_sftp_server_legacy_qr">Code pour les anciennes versions de l\'application</string>

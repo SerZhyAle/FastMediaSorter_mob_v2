@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.remote.exchange
 
 import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeCertificateChangedException
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeCertificateUntrustedException
@@ -12,6 +13,7 @@ import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.DeviceExchangeCredential
 import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollResult
 import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollment
+import com.sza.fastmediasorter.domain.model.DeviceExchangeInvitation
 import com.sza.fastmediasorter.domain.model.DeviceExchangePairingCode
 import com.sza.fastmediasorter.domain.model.DeviceExchangeWelcome
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
@@ -77,27 +79,51 @@ class DeviceExchangeAccountClient @Inject constructor(
         entry: DeviceExchangeAccountEntry,
         credential: DeviceExchangeCredential,
         enrollment: DeviceExchangeEnrollment,
+    ): DeviceExchangeEnrollResult {
+        Timber.d("Exchange enroll: credential=%s", credential.javaClass.simpleName)
+        return firstExchange(entry, enrollment, enrollEnvelope(entry, credential, enrollment))
+    }
+
+    /**
+     * Creates the account and enrolls [entry] as its first device in one exchange (19 item AQ). The answer is
+     * `enrolled` exactly as for [enroll], so the token is kept the same way; a stream closed with no answer is an
+     * older server that may not take registration, and it is never retried as an `enroll`.
+     */
+    suspend fun register(
+        entry: DeviceExchangeAccountEntry,
+        password: DeviceExchangeCredential.Password,
+        invitation: DeviceExchangeInvitation,
+        enrollment: DeviceExchangeEnrollment,
+    ): DeviceExchangeEnrollResult {
+        Timber.d("Exchange register: invitation=%s", invitation.javaClass.simpleName)
+        return firstExchange(entry, enrollment, registerEnvelope(entry, password, invitation, enrollment))
+    }
+
+    private suspend fun firstExchange(
+        entry: DeviceExchangeAccountEntry,
+        enrollment: DeviceExchangeEnrollment,
+        request: DeviceExchangeEnvelope,
     ): DeviceExchangeEnrollResult = try {
         val trust = ExchangeTrust.Verified(entry.pinnedCertificate)
         Timber.d(
-            "Exchange enroll: %s:%d login=%s deviceId=%s pinned=%s credential=%s roles=%s product=%s",
+            "Exchange %s: %s:%d login=%s deviceId=%s pinned=%s roles=%s product=%s",
+            request.type,
             entry.host,
             entry.port,
             entry.login,
             entry.deviceId,
             entry.pinnedCertificate,
-            credential.javaClass.simpleName,
             enrollment.roles,
             enrollment.productVersion,
         )
         val answer = connector.connect(entry.host, entry.port, trust).use { stream ->
             // Never the password or the token: the envelope's type and size are enough to place a refusal.
-            val request = enrollEnvelope(entry, credential, enrollment)
             DeviceExchangeFrameCodec.write(stream.output, request)
-            Timber.d("Exchange enroll: %s envelope written, waiting for the answer", request.type)
+            Timber.d("Exchange %s: envelope written, waiting for the answer", request.type)
             DeviceExchangeFrameCodec.read(stream.input).also { answer ->
                 Timber.d(
-                    "Exchange enroll: answer type=%s reason=%s",
+                    "Exchange %s: answer type=%s reason=%s",
+                    request.type,
                     answer?.type,
                     answer?.string(DeviceExchangeEnvelope.KEY_REASON),
                 )
@@ -112,13 +138,14 @@ class DeviceExchangeAccountClient @Inject constructor(
         }
         enrollAnswer(entry, answer)
     } catch (e: IOException) {
-        Timber.w(e, "Exchange enroll failed with %s: %s", e.javaClass.simpleName, e.message)
+        Timber.w(e, "Exchange %s failed with %s: %s", request.type, e.javaClass.simpleName, e.message)
         connectFailure(e)
     }
 
     /**
      * Opens a stream authenticated by `hello`. A `device-revoked` refusal forgets the token: it is dead on
-     * the server and only a new enrollment helps.
+     * the server and only a new enrollment helps. A `signed-out` refusal keeps it (19 item AT): the entry stays
+     * and enrolls its own `deviceId` again, which rotates the token anyway.
      *
      * @throws DeviceExchangeNotEnrolledException when [entry] holds no token.
      * @throws DeviceExchangeRefusedException when the server refused the token.
@@ -177,6 +204,62 @@ class DeviceExchangeAccountClient @Inject constructor(
             )
         }
     }
+
+    /**
+     * Changes the account password with the old one (19 item AT) on a stream of its own. The server answers
+     * `password-changed` with a fresh token for this device, which stays signed in; every other device of the
+     * account is signed out by the same act.
+     *
+     * @throws DeviceExchangeRefusedException when the server refused it, or with
+     * [DeviceExchangeEnrollResult.REASON_TOKEN_NOT_STORED] when the fresh token could not be kept.
+     * @throws IOException when the server cannot be reached, refuses the token or answers anything else.
+     */
+    suspend fun changePassword(
+        entry: DeviceExchangeAccountEntry,
+        oldPassword: DeviceExchangeCredential.Password,
+        newPassword: DeviceExchangeCredential.Password,
+    ) {
+        val token = openAuthenticated(entry).use { session ->
+            session.send(
+                DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_PASSWORD_CHANGE) {
+                    addProperty(KEY_OLD_PASSWORD, oldPassword.value)
+                    addProperty(KEY_NEW_PASSWORD, newPassword.value)
+                }
+            )
+            val answer = awaitAnswer(session, PASSWORD_ANSWERS)
+            answer?.takeIf { it.type == DeviceExchangeEnvelope.TYPE_PASSWORD_CHANGED }?.string(KEY_DEVICE_TOKEN)
+                ?: throw answerFailure(answer, DeviceExchangeEnvelope.TYPE_PASSWORD_CHANGED)
+        }
+        if (!tokens.save(entry, token)) {
+            throw DeviceExchangeRefusedException(DeviceExchangeEnrollResult.REASON_TOKEN_NOT_STORED)
+        }
+    }
+
+    /**
+     * Deletes the account with its password (19 item AU). On `account-deleted` the server has erased the account,
+     * its devices, records, tokens and clipboard and closes every stream; forgetting the entry is the caller's.
+     *
+     * @throws DeviceExchangeRefusedException when the server refused it.
+     * @throws IOException when the server cannot be reached, refuses the token or answers anything else.
+     */
+    suspend fun deleteAccount(entry: DeviceExchangeAccountEntry, password: DeviceExchangeCredential.Password) {
+        openAuthenticated(entry).use { session ->
+            session.send(
+                DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_ACCOUNT_DELETE) {
+                    addProperty(KEY_PASSWORD, password.value)
+                }
+            )
+            val answer = awaitAnswer(session, DELETE_ANSWERS)
+            if (answer?.type != DeviceExchangeEnvelope.TYPE_ACCOUNT_DELETED) {
+                throw answerFailure(answer, DeviceExchangeEnvelope.TYPE_ACCOUNT_DELETED)
+            }
+        }
+    }
+
+    private fun answerFailure(answer: DeviceExchangeEnvelope?, expected: String): IOException =
+        answer?.takeIf { it.type == DeviceExchangeEnvelope.TYPE_REFUSED }
+            ?.let { DeviceExchangeRefusedException(it.string(DeviceExchangeEnvelope.KEY_REASON) ?: REASON_UNKNOWN) }
+            ?: DeviceExchangeWireException("the request was not answered with $expected")
 
     /**
      * The account's whole directory (7.4) on a stream of its own, which replaces a producer's control stream for
@@ -298,6 +381,26 @@ class DeviceExchangeAccountClient @Inject constructor(
             is DeviceExchangeCredential.Password -> addProperty(KEY_PASSWORD, credential.value)
             is DeviceExchangeCredential.PairingCode -> addProperty(KEY_PAIRING_CODE, credential.value)
         }
+        addDeviceMembers(entry, enrollment)
+    }
+
+    // `register` carries every device member of `enroll` beside the account's own (19 item AQ).
+    private fun registerEnvelope(
+        entry: DeviceExchangeAccountEntry,
+        password: DeviceExchangeCredential.Password,
+        invitation: DeviceExchangeInvitation,
+        enrollment: DeviceExchangeEnrollment,
+    ) = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_REGISTER) {
+        addProperty(KEY_LOGIN, entry.login)
+        addProperty(KEY_PASSWORD, password.value)
+        when (invitation) {
+            is DeviceExchangeInvitation.OneTime -> addProperty(KEY_INVITATION, invitation.value)
+            is DeviceExchangeInvitation.SharedPassword -> addProperty(KEY_INVITATION_PASSWORD, invitation.value)
+        }
+        addDeviceMembers(entry, enrollment)
+    }
+
+    private fun JsonObject.addDeviceMembers(entry: DeviceExchangeAccountEntry, enrollment: DeviceExchangeEnrollment) {
         addProperty(KEY_DEVICE_ID, entry.deviceId)
         addProperty(KEY_DEVICE_NAME, enrollment.deviceName)
         addProperty(KEY_PRODUCT, SftpRendezvousDevice.PRODUCT_FMS_ANDROID)
@@ -329,6 +432,10 @@ class DeviceExchangeAccountClient @Inject constructor(
 
         private const val KEY_LOGIN = "login"
         private const val KEY_PASSWORD = "password"
+        private const val KEY_OLD_PASSWORD = "oldPassword"
+        private const val KEY_NEW_PASSWORD = "newPassword"
+        private const val KEY_INVITATION = "invitation"
+        private const val KEY_INVITATION_PASSWORD = "invitationPassword"
         private const val KEY_PAIRING_CODE = "pairingCode"
         private const val KEY_DEVICE_ID = "deviceId"
         private const val KEY_DEVICE_TOKEN = "deviceToken"
@@ -346,6 +453,10 @@ class DeviceExchangeAccountClient @Inject constructor(
             setOf(DeviceExchangeEnvelope.TYPE_PAIRING_CODE, DeviceExchangeEnvelope.TYPE_REFUSED)
         private val DIRECTORY_ANSWERS =
             setOf(DeviceExchangeEnvelope.TYPE_DIRECTORY, DeviceExchangeEnvelope.TYPE_REFUSED)
+        private val PASSWORD_ANSWERS =
+            setOf(DeviceExchangeEnvelope.TYPE_PASSWORD_CHANGED, DeviceExchangeEnvelope.TYPE_REFUSED)
+        private val DELETE_ANSWERS =
+            setOf(DeviceExchangeEnvelope.TYPE_ACCOUNT_DELETED, DeviceExchangeEnvelope.TYPE_REFUSED)
 
         /**
          * An outsider tunnel by share id (5.4, 7.5): no `hello`, TLS only since 0.17 (item V). [trust] pins the

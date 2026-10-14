@@ -9,4 +9,7 @@
     <string name="browse_network_error_timeout">No answer in time. Check the network and try again.</string>
     <string name="browse_network_error_auth">Wrong user name or password. Update the resource on your phone.</string>
     <string name="browse_network_error_unknown_host">Computer not found on this network. Check the Wi-Fi connection.</string>
+    <string name="exchange_folder_needs_own_network">This folder opens only over the watch\'s own Wi-Fi or LTE. Turn on Wi-Fi or LTE on the watch.</string>
+    <string name="exchange_folder_pin_on_phone">This folder is protected, and its PIN is entered on the phone. Open the folder on the phone and enter the PIN.</string>
+    <string name="exchange_folder_connect_watch_on_phone">Away from home this folder needs the watch connected to the server. Connect the watch on the phone.</string>
 </resources>

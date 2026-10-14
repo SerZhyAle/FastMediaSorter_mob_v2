@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.model
 
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_ESCAPE
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_FP
+import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_I
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_N
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_U
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_UTF8
@@ -185,6 +186,27 @@ class ExchangeConnectionStringCodecTest {
         )
     }
 
+    @Test
+    fun `an invitation string carries i after u and makes the string an invitation`() {
+        val value = read("${PREFIX}i=$INVITATION&u=alice&x=192.0.2.10:22022")
+        assertEquals(INVITATION, value.invitation)
+        assertTrue(value.isInvitation)
+        assertEquals("$MINIMAL&u=alice&i=$INVITATION", value.encode())
+        assertFalse(read(MINIMAL).isInvitation)
+    }
+
+    @Test
+    fun `an invitation of the wrong length or with stray bits refuses the whole string`() {
+        assertEquals(BAD_I, refusal("$MINIMAL&i=${INVITATION.dropLast(1)}"))
+        assertEquals(BAD_I, refusal("$MINIMAL&i=${INVITATION.dropLast(1)}B"))
+        assertEquals(REPEATED_KEY, refusal("$MINIMAL&i=$INVITATION&i=$INVITATION"))
+    }
+
+    @Test
+    fun `toString never carries the invitation`() {
+        assertFalse(read("$MINIMAL&i=$INVITATION").toString().contains(INVITATION))
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun `a value the codec could not read back cannot be built`() {
         ExchangeConnectionString(ENDPOINT, loginHint = "Alice")
@@ -227,6 +249,7 @@ class ExchangeConnectionStringCodecTest {
         const val LOGIN_MAX = 64
         const val FINGERPRINT_BYTES = 32
         const val EMOJI_COUNT = 4
+        const val INVITATION = "q3Vb7YtK0xP2mN9s-_R4wA"
         const val FP_BODY = "Ul2rC03A44auS8B7ibLjJaAApHooIx%2F4R%2BSSgDTXUtY"
         val ENDPOINT = ExchangeEndpoint("192.0.2.10", PORT)
     }

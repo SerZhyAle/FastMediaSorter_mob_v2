@@ -15,8 +15,10 @@ import com.sza.fastmediasorter.domain.model.DeviceExchangeAddressChange
 import com.sza.fastmediasorter.domain.model.DeviceExchangeCredential
 import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollResult
 import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollment
+import com.sza.fastmediasorter.domain.model.DeviceExchangeInvitation
 import com.sza.fastmediasorter.domain.model.DeviceExchangeRemoval
 import com.sza.fastmediasorter.domain.model.DeviceExchangeWelcome
+import com.sza.fastmediasorter.domain.model.ExchangeBinding
 import com.sza.fastmediasorter.domain.model.ExchangeEndpoint
 import com.sza.fastmediasorter.domain.model.ResourceType
 import io.mockk.coEvery
@@ -24,6 +26,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -103,6 +106,46 @@ class DeviceExchangeAccountRepositoryTest {
     }
 
     @Test
+    fun `an enrollment keeps the features and the account kind it was answered with`() = runTest {
+        enrollAnswers(
+            DeviceExchangeEnrollResult.Enrolled(
+                DeviceExchangeWelcome(LOGIN, ANNOUNCED, null, listOf("clipboard"), null, accountKind = "member")
+            )
+        )
+
+        repository().enroll(SERVER_A, LOGIN, null, password, enrollment)
+
+        val held = store.snapshot().single()
+        assertEquals(listOf("clipboard"), held.features)
+        assertEquals("member", held.accountKind)
+    }
+
+    @Test
+    fun `a welcome that changes nothing leaves the entries unchanged and a new kind is kept`() = runTest {
+        val entry = held(SERVER_A).copy(
+            publicEndpoint = ANNOUNCED,
+            features = listOf("clipboard"),
+            accountKind = "guest",
+        )
+        store.put(entry)
+        val repository = repository()
+        val unchanged = DeviceExchangeWelcome(LOGIN, ANNOUNCED, null, listOf("clipboard"), null, accountKind = "guest")
+        val emissions = mutableListOf<List<DeviceExchangeAccountEntry>>()
+        val watcher = backgroundScope.launch { store.entries.collect { emissions += it } }
+        testScheduler.runCurrent()
+
+        repository.rememberWelcome(entry, unchanged)
+        testScheduler.runCurrent()
+        val afterUnchanged = emissions.size
+        repository.rememberWelcome(entry, unchanged.copy(accountKind = "member"))
+        testScheduler.runCurrent()
+        watcher.cancel()
+
+        assertEquals(1, afterUnchanged)
+        assertEquals("member", store.snapshot().single().accountKind)
+    }
+
+    @Test
     fun `a refused enrollment records nothing`() = runTest {
         enrollAnswers(refused(DeviceExchangeEnvelope.REASON_BAD_CREDENTIALS))
 
@@ -172,6 +215,65 @@ class DeviceExchangeAccountRepositoryTest {
         coEvery { client.revokeOwnDevice(entry) } returns Unit
 
         assertEquals(DeviceExchangeRemoval.REVOKED, repository().remove(entry))
+    }
+
+    @Test
+    fun `a registration records the entry only once a token was stored`() = runTest {
+        val invitation = DeviceExchangeInvitation.OneTime("q3Vb7YtK0xP2mN9s-_R4wA")
+        coEvery { client.register(any(), any(), any(), any()) } returnsMany listOf(
+            refused("login-taken"),
+            enrolled(),
+        )
+        val repository = repository()
+
+        repository.register(SERVER_A, LOGIN, null, password, invitation, enrollment)
+        assertTrue(store.snapshot().isEmpty())
+        repository.register(SERVER_A, LOGIN, null, password, invitation, enrollment)
+
+        assertEquals(LOGIN, store.snapshot().single().login)
+    }
+
+    @Test
+    fun `an account deletion forgets the entry, its token and its PINs and keeps the resources`() = runTest {
+        val entry = held(SERVER_A)
+        tokens.save(entry, TOKEN)
+        coEvery { client.deleteAccount(entry, password) } returns Unit
+        coEvery { resourceDao.getAllResourcesSync() } returns listOf(
+            bound(entry.identity, "r1"),
+            bound("elsewhere:1/someone", "r3"),
+        )
+
+        repository().deleteAccount(entry, password)
+
+        assertTrue(store.snapshot().isEmpty())
+        assertNull(tokens.token(entry))
+        coVerify { pins.forget(ExchangeBinding(entry.identity, "r1")) }
+        coVerify(exactly = 0) { pins.forget(ExchangeBinding("elsewhere:1/someone", "r3")) }
+        coVerify(exactly = 0) { resourceDao.delete(any()) }
+    }
+
+    @Test
+    fun `a refused account deletion forgets nothing`() = runTest {
+        val entry = held(SERVER_A)
+        tokens.save(entry, TOKEN)
+        coEvery { client.deleteAccount(entry, password) } throws IOException("refused")
+
+        runCatching { repository().deleteAccount(entry, password) }
+
+        assertEquals(listOf(entry), store.snapshot())
+        assertEquals(TOKEN, tokens.token(entry))
+    }
+
+    @Test
+    fun `sign in again fills the held address, the pin and the login`() = runTest {
+        val entry = held(SERVER_A).copy(pinnedCertificate = PIN, publicEndpoint = ANNOUNCED)
+
+        val text = checkNotNull(repository().signInAgainString(entry))
+
+        assertEquals(SERVER_A, text.endpoint)
+        assertEquals(PIN, text.fingerprint)
+        assertEquals(LOGIN, text.loginHint)
+        assertNull(text.invitation)
     }
 
     @Test

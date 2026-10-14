@@ -161,7 +161,22 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             // out to keep this chain under detekt's cyclomatic ceiling, which S1883 already reached.
             InternalRouteCatalog.KEY_MIRROR ->
                 Availability(availableInBuild = true, enabledAtRuntime = isMirrorEnabled(settings))
-            else -> resolveLightRoute(routeKey, settings) ?: resolveCaptureRoute(routeKey, settings)
+            else -> resolveLightRoute(routeKey, settings)
+                ?: resolveExchangeRoute(routeKey)
+                ?: resolveCaptureRoute(routeKey, settings)
+        }
+
+    /**
+     * S4226: the clipboard on the exchange server exists wherever the exchange client does - the network flag,
+     * read through the flavor-bound capabilities. Whether an account takes part is not read here: the entries live
+     * in another store, and the window opens "My devices" when none does, so the program is never dead.
+     */
+    private fun resolveExchangeRoute(routeKey: String): Availability? =
+        when (routeKey) {
+            InternalRouteCatalog.KEY_CLIPBOARD_SEND,
+            InternalRouteCatalog.KEY_CLIPBOARD_GET ->
+                Availability(availableInBuild = mediaCapabilities.supportsLocalNetworkSources, enabledAtRuntime = true)
+            else -> null
         }
 
     /**

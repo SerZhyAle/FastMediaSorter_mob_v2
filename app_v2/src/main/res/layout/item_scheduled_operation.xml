@@ -134,6 +134,16 @@
             android:layout_marginTop="4dp">
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHistory"
+                style="@style/Widget.FastMediaSorter.Button.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:paddingHorizontal="@dimen/margin_normal"
+                android:text="@string/scheduled_op_history"
+                android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Badge" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRunNow"
                 style="@style/Widget.FastMediaSorter.Button.Text"
                 android:layout_width="wrap_content"

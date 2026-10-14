@@ -63,3 +63,6 @@
 {"kind":"address","address":"docs/media-exchange-portal/clouds-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
 {"kind":"address","address":"docs/media-exchange-portal/clouds-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
 {"kind":"resolver","holder":"app_v2/src/main/java/com/sza/fastmediasorter/ui/common/input/InputHelpLinkResolver.kt","manifest":"docs/docs-pages-manifest.jsonl","languages":["ru","uk"]}
+{"kind":"address","address":"docs/media-exchange-portal/exchange-server.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/exchange-server-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/exchange-server-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}

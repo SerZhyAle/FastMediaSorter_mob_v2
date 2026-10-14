@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.13 14:51</sub>
+<sub class="doc-stamp">26.10.14 19:37</sub>
 
 # FastMediaSorter v2: OPS & Guidelines
 
@@ -1000,9 +1000,28 @@ six groups together cost 1163 ms, and content hashing would put the check in the
 the gates it exists to save. Expect `specs-archive` to move on most sweeps - `PLAN/` is lock-exempt and
 every sibling archives into it - which re-runs `assert-archive-artefacts` alone.
 
+**One freeze per sweep scope (S4249).** `-Scope phone|wear` on both scripts, default `phone`:
+
+- `phone` keeps every name above: `temp/RELEASE-FREEZE.json`, `temp/RELEASE-FREEZE-ENDED.json`, `temp/RELEASE-FREEZE-FINGERPRINTS.json`, the `# freeze:` queue line.
+- `wear` has `temp/RELEASE-FREEZE-WEAR.json`, `temp/RELEASE-FREEZE-WEAR-ENDED.json`, `temp/RELEASE-FREEZE-FINGERPRINTS-WEAR.json` and a `# freeze-wear:` line; its fingerprint covers only the groups `scopes.wear` names in `release-scope-fingerprint.groups.json`.
+- The guard hook tests each marker and refuses a claim while either scope is held by another session.
+- The queue stop file is shared: a scope ending while the other is held hands its `stoppedQueue` flag to the other marker, and the last scope to end removes the file.
+
 Contract suites: `scripts/utils/release-freeze.tests/Run-Tests.ps1`,
 `scripts/quality/release-scope-fingerprint.tests/Run-Tests.ps1`,
 `.claude/hooks/tests/Run-GuardReleaseFreeze-Tests.ps1`.
+
+### Pre-release sweep wall-clock (S4249)
+
+**Measured baseline, release 45 (2026-10-14).** The release took about six hours end to end, and publication - the AAB build and the upload - about 8 minutes of it. The rest was the sweep: the Maestro suite ran 26 flows in 29 attempts over 81 minutes on one emulator with 17 seconds of gaps between attempts in total, so the time sits inside each `maestro test` call; one network-dependent flow failed after its retry, sat last in the list, and opened a 110-minute window before the verdict; three launcher flows failed every first attempt and passed on the retry, invisible in the verdict; and the watch sweep ran only after the phone release (15:58 - 17:43).
+
+**Decisions.**
+
+- Shards across emulators: the ordered suite is split round-robin over several sweep emulators, one shard each, with the migration tests and the device self-test on an emulator of their own; a separate watch half judges both reviewed shapes at once. The owner's budget is 3-4 emulators at a time.
+- Network flows are advisory unless the app crashes (owner decision 2026-10-14): a flow marked `# maestro-advisory: network` fails the verdict only through the log dimension, and every advisory failure and every flow that passed only on its retry has its own report line.
+- A freeze per scope: the watch sweep runs beside the phone sweep under its own freeze and fingerprint, and the release point reads both verdicts.
+
+**Where it lives.** `maestro/run-tests.ps1` (`-ShardIndex`/`-ShardCount`), `maestro/merge-shard-results.ps1`, `scripts/devtest/prerelease-device-half.ps1`, `scripts/devtest/prerelease-wear-half.ps1`, `scripts/release/assert-sweep-verdicts.ps1`; parameters and exit codes are in each script's header.
 
 ### Mono mode - one agent alone on the project (S3158)
 

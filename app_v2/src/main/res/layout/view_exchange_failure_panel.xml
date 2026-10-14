@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The failure panel of a failed exchange connection: what happened, what to try, a walk to the next step,
+     the code behind "Details" and the log export. Hidden until a dialog shows a state in it. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/margin_small"
+    android:orientation="vertical"
+    android:visibility="gone">
+
+    <TextView
+        android:id="@+id/textExchangeFailureWhat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:accessibilityLiveRegion="polite"
+        android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+    <TextView
+        android:id="@+id/textExchangeFailureAdvice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/textExchangeFailureCode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:accessibilityLiveRegion="polite"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textIsSelectable="true"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/layoutExchangeFailureActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExchangeFailureNext"
+            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusDown="@+id/btnExchangeFailureDetails"
+            android:text="@string/exchange_failure_next_step"
+            android:visibility="gone" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExchangeFailureDetails"
+            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusUp="@id/btnExchangeFailureNext"
+            android:nextFocusDown="@+id/btnExchangeFailureSendLog"
+            android:text="@string/exchange_failure_details" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExchangeFailureSendLog"
+            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusUp="@id/btnExchangeFailureDetails"
+            android:text="@string/exchange_failure_send_log" />
+    </LinearLayout>
+</LinearLayout>

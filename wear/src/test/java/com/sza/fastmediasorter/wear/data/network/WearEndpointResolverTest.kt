@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.data.network
 
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeEntry
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearEndpoint
@@ -8,6 +9,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearNetworkChannelKind
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.net.ServerSocket
@@ -34,7 +36,7 @@ class WearEndpointResolverTest {
 
     @Test
     fun `a group of one is returned unchanged`() = runTest {
-        val resolver = WearEndpointResolver(FakeWearNetworkChannelMonitor())
+        val resolver = WearEndpointResolver(FakeWearNetworkChannelMonitor(), FakeWearExchangeEntryStore())
         val source = makeSource(port = UNUSED_PORT, endpoints = null)
 
         val resolved = resolver.resolve(source)
@@ -44,7 +46,7 @@ class WearEndpointResolverTest {
 
     @Test
     fun `an unreachable first candidate gives way to a reachable second`() = runTest {
-        val resolver = WearEndpointResolver(FakeWearNetworkChannelMonitor())
+        val resolver = WearEndpointResolver(FakeWearNetworkChannelMonitor(), FakeWearExchangeEntryStore())
         val source = makeSource(
             port = UNUSED_PORT,
             endpoints = listOf(
@@ -61,7 +63,7 @@ class WearEndpointResolverTest {
     @Test
     fun `a second call on the same link reuses the winner`() = runTest {
         val monitor = FakeWearNetworkChannelMonitor(wifi(DOWNSTREAM_A))
-        val resolver = WearEndpointResolver(monitor)
+        val resolver = WearEndpointResolver(monitor, FakeWearExchangeEntryStore())
         val source = makeSource(
             port = UNUSED_PORT,
             endpoints = listOf(
@@ -80,7 +82,7 @@ class WearEndpointResolverTest {
     @Test
     fun `a changed link discards the cached winner and probes again`() = runTest {
         val monitor = FakeWearNetworkChannelMonitor(wifi(DOWNSTREAM_A))
-        val resolver = WearEndpointResolver(monitor)
+        val resolver = WearEndpointResolver(monitor, FakeWearExchangeEntryStore())
         val source = makeSource(
             port = UNUSED_PORT,
             endpoints = listOf(
@@ -98,7 +100,7 @@ class WearEndpointResolverTest {
 
     @Test
     fun `a group where nothing answers falls back to the first candidate`() = runTest {
-        val resolver = WearEndpointResolver(FakeWearNetworkChannelMonitor())
+        val resolver = WearEndpointResolver(FakeWearNetworkChannelMonitor(), FakeWearExchangeEntryStore())
         val source = makeSource(
             port = OTHER_UNUSED_PORT,
             endpoints = listOf(
@@ -111,6 +113,62 @@ class WearEndpointResolverTest {
 
         assertEquals(UNUSED_PORT, resolved.port)
     }
+
+    @Test
+    fun `an exchange folder answering directly takes the direct route`() = runTest {
+        val resolver = WearEndpointResolver(FakeWearNetworkChannelMonitor(), FakeWearExchangeEntryStore(ENTRY))
+        val source = makeSource(port = reachablePort, endpoints = null).bound()
+
+        val route = resolver.route(source)
+
+        assertTrue(route is WearSftpRoute.Direct)
+        assertEquals(reachablePort, route.source.port)
+    }
+
+    @Test
+    fun `an exchange folder silent at every address tunnels through the matching entry`() = runTest {
+        val resolver = WearEndpointResolver(FakeWearNetworkChannelMonitor(), FakeWearExchangeEntryStore(ENTRY))
+        val source = makeSource(port = UNUSED_PORT, endpoints = null).bound()
+
+        val route = resolver.route(source)
+
+        assertTrue(route is WearSftpRoute.Tunnel)
+        route as WearSftpRoute.Tunnel
+        assertEquals(ENTRY.identity, route.entry.identity)
+        assertEquals(RESOURCE_ID, route.resourceId)
+    }
+
+    @Test
+    fun `an exchange folder silent with no matching entry fails as entry missing`() = runTest {
+        val resolver = WearEndpointResolver(FakeWearNetworkChannelMonitor(), FakeWearExchangeEntryStore())
+        val source = makeSource(port = UNUSED_PORT, endpoints = null).bound()
+
+        val failure = runCatching { resolver.route(source) }.exceptionOrNull()
+
+        assertTrue(failure is WearExchangeEntryMissingException)
+    }
+
+    @Test
+    fun `an exchange folder over the bluetooth proxy is refused before any probe`() = runTest {
+        val monitor = FakeWearNetworkChannelMonitor(wifi(DOWNSTREAM_A).copy(kind = WearNetworkChannelKind.BLUETOOTH))
+        val resolver = WearEndpointResolver(monitor, FakeWearExchangeEntryStore(ENTRY))
+        val source = makeSource(port = reachablePort, endpoints = null).bound()
+
+        val failure = runCatching { resolver.route(source) }.exceptionOrNull()
+
+        assertTrue(failure is WearExchangeNeedsOwnNetworkException)
+    }
+
+    @Test
+    fun `a plain source over the bluetooth proxy keeps its direct route`() = runTest {
+        val monitor = FakeWearNetworkChannelMonitor(wifi(DOWNSTREAM_A).copy(kind = WearNetworkChannelKind.BLUETOOTH))
+        val resolver = WearEndpointResolver(monitor, FakeWearExchangeEntryStore())
+        val source = makeSource(port = reachablePort, endpoints = null)
+
+        assertTrue(resolver.route(source) is WearSftpRoute.Direct)
+    }
+
+    private fun NetworkSource.bound() = copy(exchangeAccount = ENTRY.identity, exchangeResourceId = RESOURCE_ID)
 
     private fun wifi(downstreamKbps: Int) = WearNetworkChannel(
         kind = WearNetworkChannelKind.WIFI,
@@ -139,5 +197,7 @@ class WearEndpointResolverTest {
         const val OTHER_UNUSED_PORT = 2
         const val DOWNSTREAM_A = 10_000
         const val DOWNSTREAM_B = 20_000
+        const val RESOURCE_ID = "res-42"
+        val ENTRY = WearExchangeEntry("exchange.example", 7443, "owner", "device-1", null)
     }
 }

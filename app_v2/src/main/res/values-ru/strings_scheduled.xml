@@ -99,4 +99,12 @@
     <string name="scheduled_op_last_success_never">Успешных запусков ещё не было</string>
     <string name="scheduled_op_filter_conditions">+ условия</string>
     <string name="scheduled_ops_op_archive">Архивирование</string>
+    <string name="scheduled_op_history">История</string>
+    <string name="scheduled_op_history_line_ok">%1$s · Успешно · файлов: %2$d</string>
+    <string name="scheduled_op_history_line_skipped">%1$s · Пропущено · %2$s</string>
+    <string name="scheduled_op_history_line_error">%1$s · Ошибка · файлов: %2$d · %3$s</string>
+    <string name="scheduled_op_badge_error">Последний запуск завершился ошибкой. Подробности - в истории.</string>
+    <string name="scheduled_op_badge_skipped">Последний запуск пропущен: одна из сторон недоступна. Операция повторится в следующий срок.</string>
+    <string name="scheduled_ops_notif_failed_title">Операция по расписанию не выполнена</string>
+    <string name="scheduled_ops_notif_failed_text">%1$s: %2$s</string>
 </resources>

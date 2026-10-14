@@ -14,8 +14,9 @@ import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.domain.exchange.ExchangeCastCoordinator
 import com.sza.fastmediasorter.domain.model.ExchangeCastResult
-import com.sza.fastmediasorter.domain.model.ExchangeCastRules
 import com.sza.fastmediasorter.domain.model.ExchangeCastTarget
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -117,19 +118,13 @@ class BroadcastCastManager @Inject constructor(
         val text = if (result.accepted) {
             activity.getString(R.string.exchange_cast_result_accepted, name)
         } else {
-            activity.getString(reasonText(result.reason), name)
+            activity.getString(
+                R.string.exchange_failure_named,
+                name,
+                activity.getString(ExchangeMessageText.what(ExchangeMessage.ofCast(result.reason))),
+            )
         }
         Toast.makeText(activity, text, Toast.LENGTH_LONG).show()
-    }
-
-    // An unknown reason reads as the generic refusal (7.10).
-    @StringRes
-    private fun reasonText(reason: String?): Int = when (reason) {
-        ExchangeCastRules.REASON_UNAVAILABLE -> R.string.exchange_cast_result_unavailable
-        ExchangeCastRules.REASON_DECLINED -> R.string.exchange_cast_result_declined
-        ExchangeCastRules.REASON_TIMEOUT -> R.string.exchange_cast_result_timeout
-        ExchangeCastRules.REASON_UNSUPPORTED -> R.string.exchange_cast_result_unsupported
-        else -> R.string.exchange_cast_result_refused
     }
 
     private fun toast(activity: AppCompatActivity, @StringRes text: Int) {

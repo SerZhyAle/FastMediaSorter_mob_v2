@@ -85,4 +85,41 @@ class NetworkSourceMergeTest {
             incoming.id
         )
     }
+
+    private fun folder(id: String, server: String, basePath: String, fingerprint: String? = "SHA256:abc") =
+        NetworkSource(
+            id = id,
+            type = NetworkSourceType.SFTP,
+            name = "n-$id",
+            server = server,
+            port = 2222,
+            username = "user",
+            password = "pw",
+            basePath = basePath,
+            hostKeyFingerprint = fingerprint
+        )
+
+    @Test
+    fun `one folder that arrived under two ids is one record`() {
+        val stored = listOf(folder(id = "watch-made", server = "10.0.0.20", basePath = "/Music"))
+        val incoming = folder(id = "17", server = "192.168.1.20", basePath = "/Music/")
+
+        assertEquals(0, NetworkSourceMerge.indexOfMatch(stored, incoming))
+    }
+
+    @Test
+    fun `two roots behind one host key stay two records`() {
+        val stored = listOf(folder(id = "watch-made", server = "10.0.0.20", basePath = "/Music"))
+        val incoming = folder(id = "17", server = "192.168.1.20", basePath = "/Photos")
+
+        assertEquals(-1, NetworkSourceMerge.indexOfMatch(stored, incoming))
+    }
+
+    @Test
+    fun `a folder without a host key is never matched by identity`() {
+        val stored = listOf(folder(id = "watch-made", server = "10.0.0.20", basePath = "/Music", fingerprint = null))
+        val incoming = folder(id = "17", server = "192.168.1.20", basePath = "/Music", fingerprint = null)
+
+        assertEquals(-1, NetworkSourceMerge.indexOfMatch(stored, incoming))
+    }
 }

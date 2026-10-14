@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.domain.model.SftpTunnelAddress
 import com.sza.fastmediasorter.domain.usecase.intake.DispatchIntakeTextUseCase
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.exchange.ExchangeSignInActivity
-import timber.log.Timber
 
 /**
  * Turns a scanned embedded-server pairing code into a filled SFTP form ("Resources -> Add Resource ->
@@ -68,13 +67,11 @@ class AddResourceSftpQrCoordinator(
         form.etSftpHost.setText(host)
         form.etSftpPort.setText(pairing.port.toString())
         form.etSftpUsername.setText(pairing.username)
-        val password = pairing.password
-        if (password != null) {
-            form.rbSftpPassword.isChecked = true
-            form.etSftpPassword.setText(password)
-        } else {
-            form.rbSftpSshKey.isChecked = true
-        }
+        // ANYWHERE-ACCESS item K: a code without `pw` - a link with a password above all - asks for the password,
+        // which its owner tells separately; the person can still switch to a key the device holds.
+        form.rbSftpPassword.isChecked = true
+        form.etSftpPassword.setText(pairing.password.orEmpty())
+        if (pairing.password == null) form.etSftpPassword.requestFocus()
         form.etSftpHostKeyFingerprint.setText(pairing.hostKeyFingerprint)
         if (form.etSftpResourceName.text.isNullOrBlank()) {
             form.etSftpResourceName.setText(activity.getString(R.string.add_resource_sftp_pairing_name, host))

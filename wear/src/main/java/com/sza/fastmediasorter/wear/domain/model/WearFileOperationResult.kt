@@ -29,7 +29,11 @@ data class WearFileOperationResult(
      * A move whose transfer already succeeded has only its source left to remove, so repeating the
      * move would send the same bytes to the phone a second time. Null means "retry what was asked".
      */
-    val retryAs: WearFileOperation? = null
+    val retryAs: WearFileOperation? = null,
+    /** S4227: why a send to the clipboard on the server failed everywhere; null for every other outcome. */
+    val serverClipboardFailure: WearServerClipboardFailure? = null,
+    /** S4230: why a send to a resource of the watch failed; null for every other outcome. */
+    val resourceSendFailure: WearResourceSendFailure? = null
 )
 
 /** Why one file of a batch ended the way it did. */
@@ -99,5 +103,23 @@ enum class WearFileOperationOutcome {
 
     FAILED,
 
-    CANCELLED
+    CANCELLED,
+
+    /** S4227: every eligible exchange server stored the value in its clipboard. */
+    SENT_TO_SERVER_CLIPBOARD,
+
+    /** S4227: some servers stored it; [WearFileOperationResult.destination] names the ones that did not. */
+    SENT_TO_SERVER_CLIPBOARD_PARTLY,
+
+    /** S4227: no server stored it; [WearFileOperationResult.serverClipboardFailure] says why. */
+    NOT_SENT_TO_SERVER_CLIPBOARD,
+
+    /**
+     * S4230: the resource stored the file; [WearFileOperationResult.destination] is the resource's name and
+     * [WearFileOperationResult.finalName] the name it was stored under when that differs from the file's own.
+     */
+    SENT_TO_RESOURCE,
+
+    /** S4230: the resource did not take the file; [WearFileOperationResult.resourceSendFailure] says why. */
+    NOT_SENT_TO_RESOURCE
 }

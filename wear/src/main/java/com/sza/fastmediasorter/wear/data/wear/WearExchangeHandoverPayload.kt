@@ -49,6 +49,8 @@ object WearExchangeHandoverReasons {
     const val CERTIFICATE_UNTRUSTED = "certificate_untrusted"
     const val CERTIFICATE_CHANGED = "certificate_changed"
     const val UNREACHABLE = "unreachable"
+    const val UNANSWERED = "unanswered"
+    const val TLS_FAILED = "tls-failed"
     const val TOKEN_NOT_STORED = "token-not-stored"
 }
 

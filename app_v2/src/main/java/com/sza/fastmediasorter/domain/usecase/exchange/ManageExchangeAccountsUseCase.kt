@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectory
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeNotEnrolledException
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeRefusedException
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeLocalFailureClassifier
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpRendezvousCodec
 import com.sza.fastmediasorter.data.repository.DeviceExchangeAccountRepository
 import com.sza.fastmediasorter.data.repository.settings.BroadcastSettingsStore
@@ -17,6 +18,7 @@ import com.sza.fastmediasorter.domain.model.DeviceExchangeAddressChange
 import com.sza.fastmediasorter.domain.model.DeviceExchangeCredential
 import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollResult
 import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollment
+import com.sza.fastmediasorter.domain.model.DeviceExchangeInvitation
 import com.sza.fastmediasorter.domain.model.DeviceExchangePairingCode
 import com.sza.fastmediasorter.domain.model.DeviceExchangeRemoval
 import com.sza.fastmediasorter.domain.model.ExchangeCastRules
@@ -73,6 +75,46 @@ class ManageExchangeAccountsUseCase @Inject constructor(
         return accounts.enroll(endpoint, login, acceptedPin, credential, enrollment())
     }
 
+    /**
+     * Creates the account [login] with [password] and an invitation (19 item AQ): the one-time [invitation] of an
+     * invitation string, else the shared [invitationPassword] the user typed. [acceptedPin] as for [signIn].
+     */
+    suspend fun register(
+        endpoint: ExchangeEndpoint,
+        login: String,
+        password: String,
+        invitation: String?,
+        invitationPassword: String?,
+        acceptedPin: String?,
+    ): DeviceExchangeEnrollResult {
+        val credential = if (invitation != null) {
+            DeviceExchangeInvitation.OneTime(invitation)
+        } else {
+            DeviceExchangeInvitation.SharedPassword(requireNotNull(invitationPassword))
+        }
+        val secret = DeviceExchangeCredential.Password(password)
+        return accounts.register(endpoint, login, acceptedPin, secret, credential, enrollment())
+    }
+
+    suspend fun changePassword(
+        entry: DeviceExchangeAccountEntry,
+        oldPassword: String,
+        newPassword: String,
+    ): ExchangeServerCall<Unit> = call {
+        accounts.changePassword(
+            entry,
+            DeviceExchangeCredential.Password(oldPassword),
+            DeviceExchangeCredential.Password(newPassword),
+        )
+    }
+
+    suspend fun deleteAccount(entry: DeviceExchangeAccountEntry, password: String): ExchangeServerCall<Unit> =
+        call { accounts.deleteAccount(entry, DeviceExchangeCredential.Password(password)) }
+
+    /** The held address, pin and login that fill the sign-in form for "Sign in again"; never passed on. */
+    fun signInAgainString(entry: DeviceExchangeAccountEntry): String? =
+        accounts.signInAgainString(entry)?.let(ExchangeConnectionStringCodec::encode)
+
     suspend fun directory(entry: DeviceExchangeAccountEntry): ExchangeServerCall<DeviceExchangeDirectory> =
         call { accounts.directory(entry) }
 
@@ -109,6 +151,8 @@ class ManageExchangeAccountsUseCase @Inject constructor(
                 producer = capabilityAvailability.isSftpServerAvailable(mediaCapabilities),
                 broadcaster = broadcastSource.isAvailable,
                 receiver = receiver,
+                // 22 item BV: every build that enrolls carries the clipboard actions.
+                clipboard = true,
             ),
             receiver = if (receiver) {
                 SftpRendezvousCodec.receiverBody(ExchangeCastRules.phoneReceiver(BroadcastMode.entries.map { it.name }))
@@ -128,7 +172,7 @@ class ManageExchangeAccountsUseCase @Inject constructor(
         ExchangeServerCall.Refused(REASON_NOT_ENROLLED)
     } catch (e: IOException) {
         Timber.i(e, "Exchange server not reached")
-        ExchangeServerCall.Unreachable
+        ExchangeServerCall.Unreachable(ExchangeLocalFailureClassifier.of(e))
     }
 
     companion object {

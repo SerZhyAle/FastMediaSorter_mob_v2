@@ -92,7 +92,7 @@ fun DocumentViewerScreen(
     // S2754: restates the branch below, so the indicator can be bound before the branch is taken.
     // Every outcome but loading replaces the paragraph list with the state block and its own scroll.
     val showsStateBlock = !uiState.isLoading &&
-        (failure != null || uiState.isEmpty || uiState.paragraphs.isEmpty())
+        (failure != null || uiState.isEmpty || (uiState.paragraphs.isEmpty() && uiState.pdfPageCount == 0))
 
     WearScreenScaffold(
         // The list carries the round-screen inset itself through WearListColumn, and the state block
@@ -110,6 +110,12 @@ fun DocumentViewerScreen(
                 message = stringResource(messageFor(failure)),
                 onBack = onBack,
                 scrollState = stateScrollState
+            )
+            uiState.pdfPageCount > 0 -> PdfPagesContent(
+                fileName = uiState.fileName,
+                pageCount = uiState.pdfPageCount,
+                listState = listState,
+                loadPage = viewModel::pdfPage
             )
             // A file holding nothing but blank lines reads as empty too: it was read successfully and
             // there is still nothing to show, which is the same sentence rather than a blank screen.

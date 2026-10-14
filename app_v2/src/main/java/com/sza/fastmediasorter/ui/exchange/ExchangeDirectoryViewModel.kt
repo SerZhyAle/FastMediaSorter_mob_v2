@@ -27,7 +27,13 @@ import javax.inject.Inject
 /** One line of the "From my devices" list. */
 sealed interface ExchangeDirectoryRow {
 
-    data class Device(val title: String, val product: String?, val online: Boolean) : ExchangeDirectoryRow
+    data class Device(
+        val title: String,
+        val product: String?,
+        val online: Boolean,
+        /** Android paused the device's sharing (26 item DC): the row says so instead of plain offline. */
+        val paused: Boolean = false,
+    ) : ExchangeDirectoryRow
 
     data class Resource(
         val item: ExchangeListedResource,
@@ -267,6 +273,7 @@ class ExchangeDirectoryViewModel @Inject constructor(
                     title = device.device?.deviceName ?: device.deviceId,
                     product = device.device?.product,
                     online = device.online,
+                    paused = device.paused,
                 )
             ) + device.resources.map { item -> resourceRow(item, chosen) }
         }

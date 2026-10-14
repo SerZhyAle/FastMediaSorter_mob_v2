@@ -9,8 +9,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemExchangeDirectoryRowBinding
 import com.sza.fastmediasorter.domain.model.ExchangeAttachmentState
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.ExchangeResourceAccess
 import com.sza.fastmediasorter.ui.exchange.ExchangeDirectoryRow
+import timber.log.Timber
 
 /**
  * The rows of "From my devices": a device line with presence in words, never colour alone (S4116 3.3), then its
@@ -59,6 +61,12 @@ class ExchangeDirectoryAdapter(
 
         private fun bindDevice(context: Context, row: ExchangeDirectoryRow.Device) {
             bindHeader(row.title)
+            // Item DA of DEVICE-EXCHANGE: a message of the shared table is shown whole, never joined with other text.
+            if (row.paused) {
+                Timber.d("S4225: device row shows share-paused")
+                binding.textExchangeDirectoryDetails.setText(R.string.exchange_share_paused)
+                return
+            }
             val presence = context.getString(
                 if (row.online) R.string.exchange_devices_device_online else R.string.exchange_devices_device_offline
             )
@@ -87,14 +95,17 @@ class ExchangeDirectoryAdapter(
             return when {
                 row.asksPin -> R.string.exchange_directory_resource_pin_needed
                 row.attached -> R.string.exchange_directory_resource_attached
-                access == ExchangeResourceAccess.PIN_LOCKED -> R.string.exchange_directory_resource_locked
+                access == ExchangeResourceAccess.PIN_LOCKED ->
+                    ExchangeMessageText.what(ExchangeMessage.PROTECTION_UNSUPPORTED)
                 access == ExchangeResourceAccess.NO_ACCESS -> R.string.exchange_directory_resource_no_access
                 access == ExchangeResourceAccess.PIN_NO_ACCESS && online && row.signInNeeded ->
                     R.string.exchange_directory_resource_pin_sign_in
                 access == ExchangeResourceAccess.PIN_NO_ACCESS && online ->
                     R.string.exchange_directory_resource_no_access
+                !online && row.item.paused -> R.string.exchange_share_paused
                 !online -> R.string.exchange_directory_resource_offline
-                access == ExchangeResourceAccess.PIN_REQUIRED -> R.string.exchange_directory_resource_pin
+                access == ExchangeResourceAccess.PIN_REQUIRED ->
+                    ExchangeMessageText.what(ExchangeMessage.RESOURCE_LOCKED)
                 else -> R.string.exchange_devices_device_online
             }
         }

@@ -43,7 +43,15 @@ data class WearNetworkSourcePayload(
     // S2502: when the sender last edited this record, in the sender's own time base. Absent on a
     // payload from a side that predates the stamp, and the receiver then applies the record exactly
     // as it did before this ticket rather than refusing it.
-    @SerializedName("lastEditedAt") val lastEditedAt: Long? = null
+    @SerializedName("lastEditedAt") val lastEditedAt: Long? = null,
+    // S4228: the exchange binding of an SFTP folder (contract DEVICE-EXCHANGE 23 item CG) - the entry identity and
+    // the producer's resourceId the watch opens the account tunnel with. Both null for any other resource.
+    @SerializedName("exchangeAccount") val exchangeAccount: String? = null,
+    @SerializedName("exchangeResourceId") val exchangeResourceId: String? = null,
+    // S4228: read-only belongs to the consumer's record (20 item BH) and holds on the watch too.
+    @SerializedName("readOnly") val readOnly: Boolean? = null,
+    // S4228: the root demands its original PIN (17 item AG); the PIN itself never rides this DataItem.
+    @SerializedName("pinProtected") val pinProtected: Boolean? = null
 )
 
 /** S2488: one connection endpoint of a source's address group. */
@@ -57,10 +65,10 @@ data class WearEndpointPayload(
  */
 data class WearSyncPayload(
     // S2488: raised to 2 with the `endpoints` field. S2502 raised it to 3 with `lastEditedAt`.
-    // S2882 raised it to 4 with `deselectedIds`. Neither side branches on it - it records the
-    // contract generation rather than gating anything, and in particular the merge rule reads the
-    // presence of the stamps themselves, not this number.
-    @SerializedName("version") val version: Int = 4,
+    // S2882 raised it to 4 with `deselectedIds`, S4228 to 5 with the exchange members. Neither side
+    // branches on it - it records the contract generation rather than gating anything, and in
+    // particular the merge rule reads the presence of the stamps themselves, not this number.
+    @SerializedName("version") val version: Int = 5,
     // Epoch ms - used to reject stale replays (> 24 h)
     @SerializedName("sentAt") val sentAt: Long,
     // e.g. "Pixel 8 Pro" - shown on watch during transfer

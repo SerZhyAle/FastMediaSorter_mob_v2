@@ -6,13 +6,11 @@
     android:paddingHorizontal="@dimen/dialog_padding_large"
     android:paddingTop="@dimen/margin_small">
 
-    <TextView
-        android:id="@+id/textExchangeDevicesStatus"
+    <include
+        android:id="@+id/exchangeFailurePanel"
+        layout="@layout/view_exchange_failure_panel"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:accessibilityLiveRegion="polite"
-        android:text="@string/exchange_devices_list_loading"
-        android:textAppearance="?attr/textAppearanceBodyMedium" />
+        android:layout_height="wrap_content" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvExchangeDevices"

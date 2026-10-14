@@ -45,8 +45,20 @@ data class NetworkSource(
     // S2502: when this record was last edited, in this watch's own time base. Null for a source stored
     // before this field existed and for one an exchange applied from a sender that carries no stamps -
     // the merge rule reads that absence as "the age of this record cannot be stated", never as zero.
-    val lastEditedAt: Long? = null
-)
+    val lastEditedAt: Long? = null,
+    // S4228: the exchange binding (contract DEVICE-EXCHANGE 23 item CG) - an entry identity in the form
+    // WearExchangeEntry.identity, and the producer's resourceId. Both null for a source with no account behind it.
+    val exchangeAccount: String? = null,
+    val exchangeResourceId: String? = null,
+    // S4228: set on the phone; deletion is refused and hidden on the watch (20 item BH).
+    val readOnly: Boolean = false,
+    // S4228: the root asks for its original PIN (17 item AG), kept apart in the secret store by [identityRoot].
+    val pinProtected: Boolean = false
+) {
+    /** S4228: the root half of the folder's identity (20 item BA); the other half is [hostKeyFingerprint]. */
+    val identityRoot: String
+        get() = basePath.trim('/')
+}
 
 /**
  * S2488: one endpoint of a source's address group. Declared in this package deliberately - the

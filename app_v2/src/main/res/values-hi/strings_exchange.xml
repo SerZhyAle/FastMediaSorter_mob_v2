@@ -10,14 +10,12 @@
     <string name="exchange_devices_outgoing">आउटगोइंग</string>
     <string name="exchange_devices_status_checking">कनेक्शन जांचा जा रहा है..</string>
     <string name="exchange_devices_status_online">कनेक्ट है, डिवाइस: %1$d</string>
-    <string name="exchange_devices_status_unreachable">सर्वर तक पहुँच नहीं हो पा रही</string>
     <string name="exchange_devices_card_menu">सर्वर के लिए और कार्रवाइयाँ</string>
     <string name="exchange_devices_menu_edit_address">पता बदलें</string>
     <string name="exchange_devices_menu_make_outgoing">आउटगोइंग बनाएं</string>
     <string name="exchange_devices_menu_connect_watch">घड़ी कनेक्ट करें</string>
     <string name="exchange_devices_menu_share">सर्वर दूसरे डिवाइस को दें</string>
     <string name="exchange_devices_menu_auto_attach">सब कुछ अपने आप अटैच करें</string>
-    <string name="exchange_devices_menu_remove">सर्वर हटाएं</string>
     <string name="exchange_devices_signin_title">एक्सचेंज सर्वर में साइन इन करें</string>
     <string name="exchange_devices_signin_address">पता (host:port)</string>
     <string name="exchange_devices_signin_login">लॉगिन</string>
@@ -32,16 +30,7 @@
     <string name="exchange_devices_signin_done">%1$s में साइन इन हो गया</string>
     <string name="exchange_devices_cert_title">सर्वर का प्रमाणपत्र जांचें</string>
     <string name="exchange_devices_cert_message">सर्वर ऐसा प्रमाणपत्र दिखा रहा है जिसे आपका फ़ोन नहीं पहचानता। उस पर तभी भरोसा करें जब यह फ़िंगरप्रिंट वही हो जो आपका सर्वर दिखाता है:\n\n%1$s</string>
-    <string name="exchange_devices_cert_changed_message">आपके स्वीकार करने के बाद सर्वर का प्रमाणपत्र बदल गया है। अगर आपने उसे नहीं बदला, तो कोई बीच में दखल दे रहा हो सकता है।\n\nस्वीकार किया गया: %1$s\nअब: %2$s</string>
     <string name="exchange_devices_cert_accept">भरोसा करें</string>
-    <string name="exchange_devices_reason_bad_credentials">लॉगिन, पासवर्ड या कोड गलत है</string>
-    <string name="exchange_devices_reason_device_revoked">इस फ़ोन को खाते से हटा दिया गया है। सर्वर हटाएं और दोबारा साइन इन करें।</string>
-    <string name="exchange_devices_reason_version">सर्वर दूसरे वर्शन पर चल रहा है। ऐप या सर्वर को अपडेट करें।</string>
-    <string name="exchange_devices_reason_capacity">सर्वर अभी भरा हुआ है। बाद में कोशिश करें।</string>
-    <string name="exchange_devices_reason_rate_limited">बहुत सारे प्रयास हो गए। थोड़ा रुकें और फिर कोशिश करें।</string>
-    <string name="exchange_devices_reason_unsupported">सर्वर यह सुविधा नहीं देता</string>
-    <string name="exchange_devices_reason_generic">सर्वर ने अनुरोध अस्वीकार कर दिया</string>
-    <string name="exchange_devices_reason_token_not_stored">फ़ोन साइन-इन को सुरक्षित रूप से सहेज नहीं सका। फिर कोशिश करें।</string>
     <string name="exchange_devices_list_loading">डिवाइस लोड हो रहे हैं..</string>
     <string name="exchange_devices_list_empty">सूची में कोई डिवाइस नहीं</string>
     <string name="exchange_devices_device_online">ऑनलाइन</string>
@@ -100,7 +89,6 @@
     <string name="exchange_directory_resource_attached">अटैच किया गया</string>
     <string name="exchange_directory_resource_offline">डिवाइस ऑफलाइन है</string>
     <string name="exchange_directory_resource_no_access">डिवाइस अपना पता यहाँ साझा नहीं करता</string>
-    <string name="exchange_directory_resource_locked">ऐसे तरीके से लॉक है जिसे यह वर्शन नहीं जानता। इसे खोलने के लिए ऐप अपडेट करें</string>
     <string name="exchange_directory_attached_section">पहले अटैच किए गए</string>
     <string name="exchange_directory_no_longer_published">अब प्रकाशित नहीं है</string>
     <string name="exchange_directory_unavailable">अभी उपलब्ध नहीं</string>
@@ -127,13 +115,6 @@
     <string name="exchange_cast_send_failed">सभी अनुरोध नहीं भेजे जा सके। सर्वर से कनेक्शन जांचें।</string>
     <string name="exchange_cast_sent">भेजे गए अनुरोध: %1$d</string>
     <string name="exchange_cast_result_accepted">%1$s ब्रॉडकास्ट चला रहा है</string>
-    <string name="exchange_cast_result_unavailable">%1$s ऑफलाइन है</string>
-    <string name="exchange_cast_result_declined">%1$s ने अस्वीकार कर दिया</string>
-    <string name="exchange_cast_result_timeout">%1$s ने जवाब नहीं दिया</string>
-    <string name="exchange_cast_result_unsupported">%1$s यह ब्रॉडकास्ट नहीं चला सकता</string>
-    <string name="exchange_cast_result_refused">सर्वर ने अनुरोध %1$s तक नहीं पहुँचाया</string>
-    <string name="exchange_devices_status_unanswered">सर्वर ने जवाब नहीं दिया</string>
-    <string name="exchange_directory_resource_pin">PIN से सुरक्षित</string>
     <string name="exchange_directory_resource_pin_needed">अटैच किया गया - PIN चाहिए</string>
     <string name="exchange_directory_resource_pin_sign_in">PIN से सुरक्षित। इसे खोलने के लिए इस सर्वर में फिर से साइन इन करें</string>
     <string name="exchange_pin_title">%1$s के लिए PIN</string>
@@ -141,7 +122,6 @@
     <string name="exchange_pin_skip">छोड़ें</string>
     <string name="exchange_pin_checking">जांच हो रही है..</string>
     <string name="exchange_pin_refused">लॉक है: PIN स्वीकार नहीं किया गया। उसे जांचें और फिर कोशिश करें</string>
-    <string name="exchange_pin_unreachable">डिवाइस तक अभी पहुँच नहीं हो पा रही - देखें कि वह ऑनलाइन है और फिर कोशिश करें</string>
     <string name="exchange_pin_failed">यह संसाधन अटैच नहीं हो सका। बाद में फिर कोशिश करें</string>
     <string name="exchange_pin_empty">PIN दर्ज करें</string>
 </resources>

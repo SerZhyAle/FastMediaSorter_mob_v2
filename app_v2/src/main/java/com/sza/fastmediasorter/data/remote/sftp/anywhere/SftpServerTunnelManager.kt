@@ -77,6 +77,11 @@ class SftpServerTunnelManager @Inject constructor(
 
     private val mutableControlEvents = MutableSharedFlow<DeviceExchangeEnvelope>(extraBufferCapacity = EVENT_BUFFER)
 
+    private val mutableGranted = MutableStateFlow<Set<String>>(emptySet())
+
+    /** Item BD: the grant ids the server answered `granted` for on the current control stream. */
+    val grantedIds: StateFlow<Set<String>> = mutableGranted.asStateFlow()
+
     /** The control-stream envelopes other owners act on: directory and the cast messages of 7.8. */
     val controlEvents: SharedFlow<DeviceExchangeEnvelope> = mutableControlEvents.asSharedFlow()
 
@@ -114,6 +119,18 @@ class SftpServerTunnelManager @Inject constructor(
     /** Sends [envelope] on the live control stream; false when none is welcomed or the write failed. Blocking. */
     fun sendControl(envelope: DeviceExchangeEnvelope): Boolean =
         live.get()?.let { sendQuietly(it.session, envelope) } ?: false
+
+    /** Sends every grant again on the live control stream (item BD), so a grant made now reaches the server now. */
+    fun resendGrants() {
+        val control = live.get() ?: return
+        appScope.launch(ioDispatcher) { sendGrants(control) }
+    }
+
+    // The server keeps a grant's `access` in memory only while this device is online, as it keeps `access` (7.9).
+    private suspend fun sendGrants(control: LiveControl) {
+        val target = share ?: return
+        source.grantEnvelopes(target.localPort, target.hosts).forEach { sendQuietly(control.session, it) }
+    }
 
     /** Stops publishing the share; a live broadcast keeps the control stream and only the share leaves it. */
     @Synchronized
@@ -275,9 +292,11 @@ class SftpServerTunnelManager @Inject constructor(
         val keepalive = tunnels.launch(ioDispatcher) { keepalive(session, intervalMs, lastHeard) }
         var outcome = SessionOutcome(wasWelcomed = true)
         try {
+            mutableGranted.value = emptySet()
             record?.let {
                 session.send(publishEnvelope(it))
                 control.resourceId = it.resourceId
+                sendGrants(control)
             }
             live.set(control)
             broadcast?.let { announce(control, it) }
@@ -307,6 +326,9 @@ class SftpServerTunnelManager @Inject constructor(
             DeviceExchangeEnvelope.TYPE_PUBLISHED ->
                 mutableState.value = SftpTunnelState.Registered(envelope.int(KEY_PUBLIC_PORT)?.takeIf { it > 0 })
             DeviceExchangeEnvelope.TYPE_REFUSED -> return refusal(envelope.string(DeviceExchangeEnvelope.KEY_REASON))
+            DeviceExchangeEnvelope.TYPE_GRANTED -> envelope.string(DeviceExchangeEnvelope.KEY_GRANT_ID)?.let { id ->
+                mutableGranted.value = mutableGranted.value + id
+            }
             in FORWARDED_TYPES -> mutableControlEvents.tryEmit(envelope)
             DeviceExchangeEnvelope.TYPE_OPEN -> envelope.string(DeviceExchangeAccountClient.KEY_TUNNEL_ID)?.let { id ->
                 val port = tunnelPort(envelope, sharePort)

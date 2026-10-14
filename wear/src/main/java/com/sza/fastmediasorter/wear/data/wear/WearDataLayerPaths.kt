@@ -194,6 +194,16 @@ object WearDataLayerPaths {
     const val EXCHANGE_HANDOVER_ACK = "/fms/watch/exchange_handover_ack"
 
     /**
+     * Message, phone -> watch. The PIN of one protected exchange folder (S4228), keyed by the folder's identity.
+     * A message and never a DataItem: a DataItem persists on both devices, and the PIN belongs only in the
+     * watch's secret store.
+     */
+    const val RESOURCE_PASS = "/fms/phone/resource_pass"
+
+    /** Message, watch -> phone. Answers one pass - stored, or refused with a reason. */
+    const val RESOURCE_PASS_ACK = "/fms/watch/resource_pass_ack"
+
+    /**
      * Message, phone → watch. Asks this watch for a picture of its own screen (S3110).
      *
      * The image never rides this route: a Data Layer message is capped at 100 KB, so the answer sends

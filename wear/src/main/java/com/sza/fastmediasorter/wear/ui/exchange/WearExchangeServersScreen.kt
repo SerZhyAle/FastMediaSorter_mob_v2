@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,11 +26,14 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeEntry
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeRemoval
+import com.sza.fastmediasorter.wear.domain.model.WearExchangeMessage
+import com.sza.fastmediasorter.wear.ui.common.EXCHANGE_DETAILS_ON_PHONE_RES
 import com.sza.fastmediasorter.wear.ui.common.StandardWearAlertDialog
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.settings.SettingsRoutes
+import timber.log.Timber
 
 /**
  * S4158: the exchange servers this watch joined from the phone. One chip per server - its address, its login and
@@ -38,6 +42,8 @@ import com.sza.fastmediasorter.wear.ui.settings.SettingsRoutes
  */
 @Composable
 fun WearExchangeServersScreen(
+    onOpenBroadcasts: () -> Unit = {},
+    onOpenFolders: (WearExchangeEntry) -> Unit = {},
     viewModel: WearExchangeServersViewModel = hiltViewModel(),
     listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.EXCHANGE_SERVERS),
 ) {
@@ -45,10 +51,19 @@ fun WearExchangeServersScreen(
     val overlay by viewModel.overlay.collectAsStateWithLifecycle()
 
     when (val shown = overlay) {
-        WearExchangeServersOverlay.None -> ServerList(entries, listState, onOpen = viewModel::open)
+        WearExchangeServersOverlay.None -> ServerList(
+            entries = entries,
+            listState = listState,
+            onOpen = viewModel::open,
+            onOpenBroadcasts = onOpenBroadcasts,
+        )
         is WearExchangeServersOverlay.Actions -> EntryActions(
             entry = shown.entry,
             onMakeOutgoing = { viewModel.makeOutgoing(shown.entry) },
+            onOpenFolders = {
+                viewModel.dismiss()
+                onOpenFolders(shown.entry)
+            },
             onRemove = { viewModel.askRemoval(shown.entry) },
             onDismiss = viewModel::dismiss,
         )
@@ -65,6 +80,7 @@ fun WearExchangeServersScreen(
         is WearExchangeServersOverlay.Removed -> StandardWearAlertDialog(
             show = true,
             title = stringResource(removalMessageOf(shown.removal)),
+            message = removalDetails(shown.removal),
             onConfirm = viewModel::dismiss,
             onDismissRequest = viewModel::dismiss,
             confirmLabel = stringResource(R.string.ok),
@@ -78,6 +94,7 @@ private fun ServerList(
     entries: List<WearExchangeEntry>?,
     listState: ScalingLazyListState,
     onOpen: (WearExchangeEntry) -> Unit,
+    onOpenBroadcasts: () -> Unit,
 ) {
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -103,6 +120,17 @@ private fun ServerList(
                     )
                 }
             }
+            // S4229: the account's broadcasts of every server, one screen; it needs at least one server to ask.
+            if (entries?.isNotEmpty() == true) {
+                item(key = "broadcasts") {
+                    Chip(
+                        onClick = onOpenBroadcasts,
+                        label = { Text(text = stringResource(R.string.wear_exchange_broadcasts), maxLines = 1) },
+                        colors = ChipDefaults.primaryChipColors(),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
             items(entries.orEmpty(), key = { it.identity }) { entry ->
                 Chip(
                     onClick = { onOpen(entry) },
@@ -124,6 +152,7 @@ private fun ServerList(
 private fun EntryActions(
     entry: WearExchangeEntry,
     onMakeOutgoing: () -> Unit,
+    onOpenFolders: () -> Unit,
     onRemove: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -137,6 +166,19 @@ private fun EntryActions(
         cancelLabel = stringResource(R.string.cancel),
         isDestructive = true,
     ) {
+        // S4228: the account's folders belong to the entry, so the way to them is the entry's own action.
+        Chip(
+            onClick = onOpenFolders,
+            label = {
+                Text(
+                    text = stringResource(R.string.exchange_account_folders),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            colors = ChipDefaults.secondaryChipColors(),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        )
         // The outgoing entry has nothing to become, so the action is offered only on the others.
         if (!entry.outgoing) {
             Chip(
@@ -172,6 +214,16 @@ private fun addressOf(entry: WearExchangeEntry): String {
 private fun captionOf(entry: WearExchangeEntry): String {
     val login = stringResource(R.string.wear_exchange_login, entry.login)
     return if (entry.outgoing) "$login · ${stringResource(R.string.wear_exchange_outgoing_label)}" else login
+}
+
+// Contract 25 item DA: a removal that never reached the server says so and points at the phone.
+@Composable
+private fun removalDetails(removal: WearExchangeRemoval): String? {
+    if (removal != WearExchangeRemoval.FORGOTTEN_LOCALLY) return null
+    LaunchedEffect(removal) {
+        Timber.i("Exchange failure shown on removal: code=%s", WearExchangeMessage.UNREACHABLE_SERVER.code)
+    }
+    return stringResource(EXCHANGE_DETAILS_ON_PHONE_RES)
 }
 
 @StringRes

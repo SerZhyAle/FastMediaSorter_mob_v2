@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.data.exchange
 
+import android.net.Network
 import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
@@ -25,6 +26,8 @@ interface WearExchangeConnector {
     /**
      * [pinned] is the leaf the phone's user accepted, null where the platform trusts the server. [readTimeoutMs]
      * is [NO_READ_TIMEOUT] for a control stream, which is silent between keepalives and judged by their window.
+     * [network] binds the socket to one network (S4227: the Wi-Fi or LTE of the watch, never the Bluetooth
+     * proxy); null keeps whatever route the platform picks.
      *
      * @throws WearExchangeCertificateUntrustedException when the platform refuses and nothing is pinned.
      * @throws WearExchangeCertificateChangedException when the server presented another leaf than [pinned].
@@ -35,6 +38,7 @@ interface WearExchangeConnector {
         port: Int,
         pinned: String?,
         readTimeoutMs: Int = ENROLL_READ_TIMEOUT_MS,
+        network: Network? = null,
     ): WearExchangeConnection
 
     companion object {
@@ -77,11 +81,18 @@ object WearExchangeTrustDecision {
 @Singleton
 class TlsWearExchangeConnector @Inject constructor() : WearExchangeConnector {
 
-    override fun connect(host: String, port: Int, pinned: String?, readTimeoutMs: Int): WearExchangeConnection {
+    override fun connect(
+        host: String,
+        port: Int,
+        pinned: String?,
+        readTimeoutMs: Int,
+        network: Network?,
+    ): WearExchangeConnection {
         val inspector = InspectingTrustManager(platformTrustManager())
         val context = SSLContext.getInstance(TLS).apply { init(null, arrayOf(inspector), null) }
         val socket = context.socketFactory.createSocket() as SSLSocket
         try {
+            network?.bindSocket(socket)
             socket.connect(InetSocketAddress(host, port), CONNECT_TIMEOUT_MS)
             // The handshake is bounded even for a control stream, whose own reads wait for the keepalive window.
             socket.soTimeout = WearExchangeConnector.ENROLL_READ_TIMEOUT_MS

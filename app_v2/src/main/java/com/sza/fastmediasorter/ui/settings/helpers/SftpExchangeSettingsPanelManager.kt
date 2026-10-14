@@ -8,6 +8,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.SftpServerState
 import com.sza.fastmediasorter.domain.model.SftpTunnelState
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ExchangeProducerLeave
@@ -15,7 +16,7 @@ import com.sza.fastmediasorter.domain.usecase.sftpserver.ExchangePublishStart
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeProducerUseCase
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageSftpServerUseCase
 import com.sza.fastmediasorter.ui.exchange.MyDevicesActivity
-import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeRefusalText
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeServerCardAdapter
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -23,7 +24,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * Binds the "Access from anywhere" part of the SFTP server card: the opt-in that lets the share's
@@ -138,9 +138,11 @@ class SftpExchangeSettingsPanelManager(
         SftpTunnelState.Off, SftpTunnelState.Connecting ->
             context.getString(R.string.settings_sftp_exchange_status_connecting)
         is SftpTunnelState.Registered -> registeredText(tunnel)
-        SftpTunnelState.Unreachable -> context.getString(R.string.settings_sftp_exchange_status_unreachable)
-        SftpTunnelState.CertificateChanged -> context.getString(R.string.settings_sftp_exchange_status_certificate)
-        is SftpTunnelState.Refused -> context.getString(ExchangeRefusalText.of(tunnel.reason))
+        SftpTunnelState.Unreachable -> ExchangeMessageText.twoParts(context, ExchangeMessage.UNREACHABLE_SERVER)
+        SftpTunnelState.CertificateChanged ->
+            ExchangeMessageText.twoParts(context, ExchangeMessage.CERTIFICATE_CHANGED)
+        is SftpTunnelState.Refused ->
+            ExchangeMessageText.twoParts(context, ExchangeMessage.ofWire(tunnel.reason))
     }
 
     private fun registeredText(tunnel: SftpTunnelState.Registered): String {

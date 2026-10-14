@@ -3889,8 +3889,6 @@
     <string name="settings_sftp_exchange_status_connecting">এক্সচেঞ্জ সার্ভারে সংযুক্ত হচ্ছে..</string>
     <string name="settings_sftp_exchange_status_registered">%1$s-এর মাধ্যমে যেকোনো জায়গা থেকে পৌঁছানো যায়</string>
     <string name="settings_sftp_exchange_status_registered_port">%1$s-এর মাধ্যমে যেকোনো জায়গা থেকে পৌঁছানো যায়। অন্য SFTP অ্যাপ: %2$s</string>
-    <string name="settings_sftp_exchange_status_unreachable">এক্সচেঞ্জ সার্ভারে পৌঁছানো যাচ্ছে না, আবার চেষ্টা করা হচ্ছে</string>
-    <string name="settings_sftp_exchange_status_certificate">এক্সচেঞ্জ সার্ভার অন্য একটি সার্টিফিকেট দেখিয়েছে, তাই সংযোগ বন্ধ হয়ে গেছে</string>
     <string name="settings_sftp_exchange_new_link">নতুন অ্যাক্সেস লিঙ্ক</string>
     <string name="settings_sftp_exchange_new_link_done">আগে শেয়ার করা কোড দিয়ে আর এই সার্ভার খোলা যাবে না</string>
     <string name="settings_sftp_server_legacy_qr">অ্যাপের পুরনো সংস্করণের জন্য কোড</string>

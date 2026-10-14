@@ -23,11 +23,17 @@ data class SftpRendezvousDevice(
     override val writtenAtMs: Long,
     override val ttlSeconds: Long,
     val receiver: SftpRendezvousReceiver? = null,
+    /** 26 item DC: why the device went offline; written only with [PRESENCE_OFFLINE], null when unknown. */
+    val offlineReason: String? = null,
 ) : SftpRendezvousRecord {
 
     val isOnline: Boolean get() = presence == PRESENCE_ONLINE
 
+    /** Android paused this device's sharing; the consumer shows `share-paused` (26 item DD) instead of offline. */
+    val isSharePaused: Boolean get() = !isOnline && offlineReason == OFFLINE_REASON_TIME_LIMIT
+
     companion object {
+        const val OFFLINE_REASON_TIME_LIMIT = "time-limit"
         const val PRODUCT_FMS_ANDROID = "fms-android"
         const val PLATFORM_ANDROID = "android"
         const val ROLE_RESOURCE_PRODUCER = "resource-producer"
@@ -76,6 +82,12 @@ data class SftpRendezvousResource(
     /** The producer locked the root with its original PIN (17 item AG); the record carries the fact, never a key. */
     val pinProtected: Boolean = false,
     val protectionScheme: String? = null,
+    /**
+     * Item BA: the producer's host-key fingerprint and the root it shares, the resource's identity across every
+     * channel. Not secrets, so they ride every store, a record without `access` included.
+     */
+    val hostKeyFingerprint: String? = null,
+    val identityRoot: String? = null,
 ) : SftpRendezvousRecord {
 
     /**

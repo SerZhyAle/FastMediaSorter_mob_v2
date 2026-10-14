@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.data.remote.sftp.anywhere
 
 import android.os.Build
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
 import com.sza.fastmediasorter.data.remote.sftp.server.SftpServerIdentityStore
 import com.sza.fastmediasorter.data.repository.settings.DeviceExchangeAccountStore
+import com.sza.fastmediasorter.data.repository.settings.ExchangeGrantRepository
 import com.sza.fastmediasorter.data.repository.settings.SftpExchangeSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.SftpRendezvousIdentityStore
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
@@ -33,6 +35,12 @@ interface SftpExchangeProducerSource {
      * [port] at [hosts]; null while the server has no host key to describe.
      */
     suspend fun shareRecord(producer: SftpExchangeProducer, port: Int, hosts: List<String>): SftpRendezvousResource?
+
+    /**
+     * The `grant` envelopes of every grant this device made (items BD and BE), for the server on [port] at [hosts];
+     * sent after `publish` on every welcomed stream. Empty when nothing is granted.
+     */
+    suspend fun grantEnvelopes(port: Int, hosts: List<String>): List<DeviceExchangeEnvelope> = emptyList()
 }
 
 /**
@@ -46,7 +54,24 @@ class SftpExchangeProducerProvider @Inject constructor(
     private val accounts: DeviceExchangeAccountStore,
     private val identityStore: SftpServerIdentityStore,
     private val ids: SftpRendezvousIdentityStore,
+    private val grants: ExchangeGrantRepository,
 ) : SftpExchangeProducerSource {
+
+    override suspend fun grantEnvelopes(port: Int, hosts: List<String>): List<DeviceExchangeEnvelope> {
+        val all = grants.snapshot()
+        val fingerprint = SshFingerprintNormalizer.canonical(identityStore.hostKeyFingerprint())
+        if (all.isEmpty() || fingerprint == null) return emptyList()
+        val share = ExchangeGrantEnvelopes.Share(
+            hosts = hosts,
+            port = port,
+            hostKeyFingerprint = identityStore.clientCredentials().hostKeyFingerprint,
+            resourceId = ids.resourceIdFor(fingerprint).resourceId,
+        )
+        // A grant whose password no longer decrypts (a restored copy) is not offered: nobody could log in with it.
+        return all.mapNotNull { grant ->
+            grants.password(grant.login)?.let { ExchangeGrantEnvelopes.grant(grant, it, share) }
+        }
+    }
 
     override suspend fun outgoingEntry(): DeviceExchangeAccountEntry? = accounts.outgoing()
 
@@ -86,11 +111,16 @@ class SftpExchangeProducerProvider @Inject constructor(
             ttlSeconds = 0,
             shareId = producer.shareId,
             publicPort = ANY_PUBLIC_PORT,
+            hostKeyFingerprint = fingerprint,
+            identityRoot = WHOLE_SERVER_ROOT,
         )
     }
 
     private companion object {
         // A request for any free third-party port (contract ANYWHERE-ACCESS 5.5).
         const val ANY_PUBLIC_PORT = 0
+
+        // The published resource is the whole server: every served folder sits under its root (item BA).
+        const val WHOLE_SERVER_ROOT = "/"
     }
 }

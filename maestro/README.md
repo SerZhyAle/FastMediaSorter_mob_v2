@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.12 15:52</sub>
+<sub class="doc-stamp">26.10.14 19:37</sub>
 
 # Maestro Capability Suite
 
@@ -16,6 +16,9 @@ pwsh -NoProfile -File maestro/run-tests.ps1 -Suite features\player -Json
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite maestro/features/player/player_image.yaml -Json
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite player_image.yaml -ListFlows
 ```
+
+- `merge-shard-results.ps1` - joins the `-Json` results of concurrent `-ShardIndex`/`-ShardCount` runs into one result of the runner's shape (S4249).
+- `lib/flow-selection.ps1` - the runner's pure half: header markers, run order, shard partition, attempt records, shard merge (S4249).
 
 Runner contract:
 

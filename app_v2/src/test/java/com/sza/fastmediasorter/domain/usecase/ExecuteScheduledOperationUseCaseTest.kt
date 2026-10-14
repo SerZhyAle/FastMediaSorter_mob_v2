@@ -1,11 +1,14 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.mutation.InMemoryMutationJournal
+import com.sza.fastmediasorter.data.network.exceptions.NetworkPinRefusedException
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
+import com.sza.fastmediasorter.domain.model.ScheduledRunOutcome
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.mutation.Mutation
 import com.sza.fastmediasorter.domain.mutation.MutationRecorder
@@ -19,6 +22,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -40,6 +44,10 @@ class ExecuteScheduledOperationUseCaseTest {
     private val getMediaFiles = mockk<GetMediaFilesUseCase>()
     private val fileOperationUseCase = mockk<FileOperationUseCase>()
     private val appendLog = mockk<AppendToScheduledLogUseCase>(relaxed = true)
+
+    // S4232: relaxed - the run-start temp cleanup is asserted by coVerify on the call, and a
+    // relaxed mock keeps every other test's constructor wiring free of per-test stubbing.
+    private val cleanup = mockk<CleanupOrphanedTempFilesUseCase>(relaxed = true)
 
     private lateinit var useCase: ExecuteScheduledOperationUseCase
     private lateinit var targetDir: File
@@ -71,6 +79,7 @@ class ExecuteScheduledOperationUseCaseTest {
             // The real archiver: a local-to-local run never touches Context (only error strings and
             // content:// reads do), so these tests assert the ZIP that actually lands on disk.
             ArchiveFilesUseCase(mockk(relaxed = true), mockk(relaxed = true)),
+            cleanup,
         )
     }
 
@@ -104,7 +113,9 @@ class ExecuteScheduledOperationUseCaseTest {
 
     @Test
     fun `missing source resource returns error`() = runTest {
-        scheduledRepo.setOperations(listOf(createScheduledOperation(id = 1L, sourceResourceId = 7L, targetResourceId = 8L)))
+        scheduledRepo.setOperations(
+            listOf(createScheduledOperation(id = 1L, sourceResourceId = 7L, targetResourceId = 8L))
+        )
         resourceRepo.setResources(emptyList())
 
         val result = useCase(1L)
@@ -116,7 +127,14 @@ class ExecuteScheduledOperationUseCaseTest {
     @Test
     fun `missing target resource for copy returns error`() = runTest {
         scheduledRepo.setOperations(
-            listOf(createScheduledOperation(id = 1L, sourceResourceId = 1L, targetResourceId = 2L, operationType = ScheduledOpType.COPY))
+            listOf(
+                createScheduledOperation(
+                    id = 1L,
+                    sourceResourceId = 1L,
+                    targetResourceId = 2L,
+                    operationType = ScheduledOpType.COPY
+                )
+            )
         )
         resourceRepo.setResources(listOf(createMediaResource(id = 1L, type = ResourceType.LOCAL)))
 
@@ -129,11 +147,22 @@ class ExecuteScheduledOperationUseCaseTest {
     @Test
     fun `empty file set yields success with zero processed`() = runTest {
         scheduledRepo.setOperations(
-            listOf(createScheduledOperation(id = 1L, sourceResourceId = 1L, targetResourceId = 2L, operationType = ScheduledOpType.COPY))
+            listOf(
+                createScheduledOperation(
+                    id = 1L,
+                    sourceResourceId = 1L,
+                    targetResourceId = 2L,
+                    operationType = ScheduledOpType.COPY
+                )
+            )
         )
         resourceRepo.setResources(
             listOf(
-                createMediaResource(id = 1L, type = ResourceType.LOCAL, path = "/src"),
+                createMediaResource(
+                    id = 1L,
+                    type = ResourceType.LOCAL,
+                    path = tempFolder.newFolder("src").absolutePath
+                ),
                 createMediaResource(id = 2L, type = ResourceType.LOCAL, path = targetDir.absolutePath),
             )
         )
@@ -145,10 +174,155 @@ class ExecuteScheduledOperationUseCaseTest {
         assertEquals(0, result.filesProcessed)
     }
 
+    /** One copy/move schedule between [source] and [target] with the given window state. */
+    private fun seedSchedule(
+        source: MediaResource,
+        target: MediaResource,
+        operationType: ScheduledOpType = ScheduledOpType.COPY,
+        timeFilter: TimeFilter = TimeFilter.ALL,
+        window: WindowState = WindowState(),
+    ) {
+        scheduledRepo.setOperations(
+            listOf(
+                createScheduledOperation(
+                    id = 1L,
+                    sourceResourceId = source.id,
+                    targetResourceId = target.id,
+                    operationType = operationType,
+                    fileTypeMask = FileTypeFlags.IMAGES,
+                    timeFilter = timeFilter,
+                    lastRunAt = window.lastRunAt,
+                    lastRunStatus = window.lastRunStatus,
+                ).copy(lastSuccessAt = window.lastSuccessAt)
+            )
+        )
+        resourceRepo.setResources(listOf(source, target))
+    }
+
+    /** What the stored row says about earlier runs; the SINCE_LAST marker is derived from it. */
+    private data class WindowState(
+        val lastRunAt: Long? = null,
+        val lastRunStatus: String? = null,
+        val lastSuccessAt: Long? = null,
+    )
+
+    private fun localResource(id: Long, path: String) =
+        createMediaResource(id = id, type = ResourceType.LOCAL, path = path)
+
+    private fun imageNamed(name: String, createdDate: Long = 0L) =
+        createMediaFile(name = name, path = "/src/$name", type = MediaType.IMAGE, createdDate = createdDate)
+
+    @Test
+    fun `local source folder that lists empty because it is gone is skipped not a success`() = runTest {
+        seedSchedule(localResource(1L, "/does/not/exist"), localResource(2L, targetDir.absolutePath))
+        stubFiles(emptyList())
+
+        val result = useCase(1L)
+
+        assertFalse(result.isSuccess)
+        assertTrue(result.isSkipped)
+        assertEquals(ScheduledRunOutcome.SKIPPED, result.outcome)
+        assertTrue(result.errors.isEmpty())
+    }
+
+    @Test
+    fun `unreachable network source is skipped before any scan`() = runTest {
+        val nas = createMediaResource(id = 1L, name = "NAS", type = ResourceType.SMB, path = "smb://nas/photos")
+        seedSchedule(nas, localResource(2L, targetDir.absolutePath))
+        resourceRepo.testConnectionResult = Result.failure(java.io.IOException("no route to host"))
+        // getMediaFiles is deliberately not stubbed: a scan of the offline share would fail the test.
+
+        val result = useCase(1L)
+
+        assertTrue(result.isSkipped)
+        assertEquals(0, result.filesProcessed)
+        assertTrue(result.skippedReason!!.contains("Source 'NAS' is unreachable"))
+        assertTrue(result.statusString.startsWith("SKIPPED"))
+    }
+
+    @Test
+    fun `unreachable network target is skipped and transfers nothing`() = runTest {
+        val pc = createMediaResource(id = 2L, name = "Home PC", type = ResourceType.SFTP, path = "sftp://pc/in")
+        seedSchedule(localResource(1L, "/src"), pc, operationType = ScheduledOpType.MOVE)
+        resourceRepo.testConnectionResult = Result.failure(java.io.IOException("timeout"))
+        stubFiles(listOf(imageNamed("a.jpg")))
+
+        val result = useCase(1L)
+
+        assertTrue(result.isSkipped)
+        assertTrue(result.skippedReason!!.contains("Target 'Home PC' is unreachable"))
+        coVerify(exactly = 0) { fileOperationUseCase.execute(any()) }
+    }
+
+    @Test
+    fun `since last reads the success marker and not the last attempt`() = runTest {
+        // The attempt at 2000 failed after the success at 1000, so a file created at 1500 was never transferred.
+        seedSchedule(
+            localResource(1L, "/src"),
+            localResource(2L, targetDir.absolutePath),
+            timeFilter = TimeFilter.SINCE_LAST,
+            window = WindowState(lastRunAt = 2_000L, lastRunStatus = "ERROR: unreachable", lastSuccessAt = 1_000L),
+        )
+        stubFiles(listOf(imageNamed("old.jpg", createdDate = 500L), imageNamed("missed.jpg", createdDate = 1_500L)))
+        coEvery { fileOperationUseCase.execute(any()) } returns
+            FileOperationResult.Success(1, FileOperation.Delete(emptyList()))
+
+        val result = useCase(1L)
+
+        assertTrue(result.isSuccess)
+        assertEquals(1, result.filesProcessed)
+    }
+
+    @Test
+    fun `since last keeps the marker of a row written before last success existed`() = runTest {
+        seedSchedule(
+            localResource(1L, tempFolder.newFolder("legacy").absolutePath),
+            localResource(2L, targetDir.absolutePath),
+            timeFilter = TimeFilter.SINCE_LAST,
+            window = WindowState(lastRunAt = 2_000L, lastRunStatus = "OK", lastSuccessAt = null),
+        )
+        stubFiles(listOf(imageNamed("old.jpg", createdDate = 1_500L)))
+
+        val result = useCase(1L)
+
+        assertTrue(result.isSuccess)
+        assertEquals(0, result.filesProcessed)
+        coVerify(exactly = 0) { fileOperationUseCase.execute(any()) }
+    }
+
+    @Test
+    fun `partial result with a failed file is an error not a success`() = runTest {
+        seedSchedule(
+            localResource(1L, "/src"),
+            localResource(2L, targetDir.absolutePath),
+            operationType = ScheduledOpType.MOVE,
+        )
+        stubFiles(listOf(imageNamed("a.jpg")))
+        coEvery { fileOperationUseCase.execute(any()) } returns FileOperationResult.PartialSuccess(
+            processedCount = 0,
+            failedCount = 1,
+            errors = listOf("copy verify failed"),
+        )
+
+        val result = useCase(1L)
+
+        assertFalse(result.isSuccess)
+        assertEquals(ScheduledRunOutcome.ERROR, result.outcome)
+        assertEquals(0, result.filesProcessed)
+        assertTrue(result.errors.contains("copy verify failed"))
+    }
+
     @Test
     fun `local copy target missing directory fails reachability`() = runTest {
         scheduledRepo.setOperations(
-            listOf(createScheduledOperation(id = 1L, sourceResourceId = 1L, targetResourceId = 2L, operationType = ScheduledOpType.COPY))
+            listOf(
+                createScheduledOperation(
+                    id = 1L,
+                    sourceResourceId = 1L,
+                    targetResourceId = 2L,
+                    operationType = ScheduledOpType.COPY
+                )
+            )
         )
         resourceRepo.setResources(
             listOf(
@@ -167,7 +341,16 @@ class ExecuteScheduledOperationUseCaseTest {
     @Test
     fun `copy success increments processed count`() = runTest {
         scheduledRepo.setOperations(
-            listOf(createScheduledOperation(id = 1L, sourceResourceId = 1L, targetResourceId = 2L, operationType = ScheduledOpType.COPY, fileTypeMask = FileTypeFlags.IMAGES, timeFilter = TimeFilter.ALL))
+            listOf(
+                createScheduledOperation(
+                    id = 1L,
+                    sourceResourceId = 1L,
+                    targetResourceId = 2L,
+                    operationType = ScheduledOpType.COPY,
+                    fileTypeMask = FileTypeFlags.IMAGES,
+                    timeFilter = TimeFilter.ALL
+                )
+            )
         )
         resourceRepo.setResources(
             listOf(
@@ -193,7 +376,15 @@ class ExecuteScheduledOperationUseCaseTest {
     @Test
     fun `copy failure is recorded as error`() = runTest {
         scheduledRepo.setOperations(
-            listOf(createScheduledOperation(id = 1L, sourceResourceId = 1L, targetResourceId = 2L, operationType = ScheduledOpType.COPY, fileTypeMask = FileTypeFlags.IMAGES))
+            listOf(
+                createScheduledOperation(
+                    id = 1L,
+                    sourceResourceId = 1L,
+                    targetResourceId = 2L,
+                    operationType = ScheduledOpType.COPY,
+                    fileTypeMask = FileTypeFlags.IMAGES
+                )
+            )
         )
         resourceRepo.setResources(
             listOf(
@@ -213,7 +404,15 @@ class ExecuteScheduledOperationUseCaseTest {
     @Test
     fun `move executes native move operation`() = runTest {
         scheduledRepo.setOperations(
-            listOf(createScheduledOperation(id = 1L, sourceResourceId = 1L, targetResourceId = 2L, operationType = ScheduledOpType.MOVE, fileTypeMask = FileTypeFlags.IMAGES))
+            listOf(
+                createScheduledOperation(
+                    id = 1L,
+                    sourceResourceId = 1L,
+                    targetResourceId = 2L,
+                    operationType = ScheduledOpType.MOVE,
+                    fileTypeMask = FileTypeFlags.IMAGES
+                )
+            )
         )
         resourceRepo.setResources(
             listOf(
@@ -230,11 +429,13 @@ class ExecuteScheduledOperationUseCaseTest {
         assertTrue(result.isSuccess)
         assertEquals(1, result.filesProcessed)
         coVerify(exactly = 1) {
-            fileOperationUseCase.execute(match<FileOperation.Move> {
-                it.sources.single().path.replace('\\', '/').endsWith("/src/a.jpg") &&
-                    it.destination == targetDir &&
-                    !it.overwrite
-            })
+            fileOperationUseCase.execute(
+                match<FileOperation.Move> {
+                    it.sources.single().path.replace('\\', '/').endsWith("/src/a.jpg") &&
+                        it.destination == targetDir &&
+                        !it.overwrite
+                }
+            )
         }
         // S1204: ofType, not any<FileOperation.Delete>. The type argument on any<T> is erased, so
         // that matcher accepts the Move call above and turns this line into "execute was never
@@ -245,7 +446,15 @@ class ExecuteScheduledOperationUseCaseTest {
     @Test
     fun `delete operation needs no target and processes files`() = runTest {
         scheduledRepo.setOperations(
-            listOf(createScheduledOperation(id = 1L, sourceResourceId = 1L, targetResourceId = null, operationType = ScheduledOpType.DELETE, fileTypeMask = FileTypeFlags.IMAGES))
+            listOf(
+                createScheduledOperation(
+                    id = 1L,
+                    sourceResourceId = 1L,
+                    targetResourceId = null,
+                    operationType = ScheduledOpType.DELETE,
+                    fileTypeMask = FileTypeFlags.IMAGES
+                )
+            )
         )
         resourceRepo.setResources(listOf(createMediaResource(id = 1L, type = ResourceType.LOCAL, path = "/src")))
         stubFiles(listOf(createMediaFile(name = "a.jpg", path = "/src/a.jpg", type = MediaType.IMAGE)))
@@ -261,7 +470,15 @@ class ExecuteScheduledOperationUseCaseTest {
     @Test
     fun `type mask filters out non-matching files`() = runTest {
         scheduledRepo.setOperations(
-            listOf(createScheduledOperation(id = 1L, sourceResourceId = 1L, targetResourceId = null, operationType = ScheduledOpType.DELETE, fileTypeMask = FileTypeFlags.IMAGES))
+            listOf(
+                createScheduledOperation(
+                    id = 1L,
+                    sourceResourceId = 1L,
+                    targetResourceId = null,
+                    operationType = ScheduledOpType.DELETE,
+                    fileTypeMask = FileTypeFlags.IMAGES
+                )
+            )
         )
         resourceRepo.setResources(listOf(createMediaResource(id = 1L, type = ResourceType.LOCAL, path = "/src")))
         stubFiles(
@@ -446,5 +663,91 @@ class ExecuteScheduledOperationUseCaseTest {
 
         assertFalse(result.isSuccess)
         assertEquals("Archive target must be a local folder", result.errors.single())
+    }
+
+    // -- S4232: unattended open over exchange resources -----------------------
+
+    @Test
+    fun `a refused protected folder PIN is a stable error, not a skip`() = runTest {
+        singleImageOperation(ScheduledOpType.COPY, withTarget = true)
+        // The scan seam throws where a PIN-protected exchange root refuses the stored PIN; the
+        // executor must surface one readable line, not the raw exception text.
+        every {
+            getMediaFiles(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+        } returns flow { throw NetworkPinRefusedException() }
+
+        val result = useCase(1L)
+
+        assertFalse(result.isSuccess)
+        assertFalse(result.isSkipped)
+        assertEquals(ScheduledRunOutcome.ERROR, result.outcome)
+        assertEquals(
+            "Protected folder PIN was rejected - re-enter the PIN on the resource screen",
+            result.errors.single(),
+        )
+    }
+
+    @Test
+    fun `scheduled copy passes the operation overwrite rule to the file operation`() = runTest {
+        scheduledRepo.setOperations(
+            listOf(
+                createScheduledOperation(
+                    id = 1L,
+                    sourceResourceId = 1L,
+                    targetResourceId = 2L,
+                    operationType = ScheduledOpType.COPY,
+                    fileTypeMask = FileTypeFlags.IMAGES,
+                    overwrite = true,
+                )
+            )
+        )
+        resourceRepo.setResources(
+            listOf(
+                createMediaResource(id = 1L, type = ResourceType.LOCAL, path = "/src"),
+                createMediaResource(id = 2L, type = ResourceType.LOCAL, path = targetDir.absolutePath),
+            )
+        )
+        stubFiles(listOf(createMediaFile(name = "a.jpg", path = "/src/a.jpg", type = MediaType.IMAGE)))
+        coEvery { fileOperationUseCase.execute(any<FileOperation.Copy>()) } returns
+            FileOperationResult.Success(1, FileOperation.Copy(emptyList(), targetDir, overwrite = true))
+
+        val result = useCase(1L)
+
+        assertTrue(result.isSuccess)
+        // B23.3: the remote target's skip/replace/rename behaviour follows the operation's own rule,
+        // so the executor must not second-guess the flag on its way to the file operation.
+        coVerify(exactly = 1) {
+            fileOperationUseCase.execute(
+                match<FileOperation.Copy> {
+                    it.sources.single().path.replace('\\', '/').endsWith("/src/a.jpg") &&
+                        it.destination == targetDir &&
+                        it.overwrite
+                }
+            )
+        }
+    }
+
+    @Test
+    fun `copy run cleans orphaned temp files in the target before copying`() = runTest {
+        singleImageOperation(ScheduledOpType.COPY, withTarget = true)
+        coEvery { fileOperationUseCase.execute(any()) } returns
+            FileOperationResult.Success(1, FileOperation.Delete(emptyList()))
+
+        val result = useCase(1L)
+
+        assertTrue(result.isSuccess)
+        coVerify(exactly = 1) { cleanup(targetDir.absolutePath) }
+        coVerify(exactly = 1) { fileOperationUseCase.execute(any()) }
+    }
+
+    @Test
+    fun `delete run without target never cleans temp files`() = runTest {
+        singleImageOperation(ScheduledOpType.DELETE, withTarget = false)
+        coEvery { fileOperationUseCase.execute(any()) } returns
+            FileOperationResult.Success(1, FileOperation.Delete(emptyList()))
+
+        useCase(1L)
+
+        coVerify(exactly = 0) { cleanup(any()) }
     }
 }

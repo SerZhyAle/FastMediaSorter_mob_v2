@@ -49,10 +49,41 @@ class DeviceExchangeAccountStoreTest {
             publicEndpoint = "exchange.example.org:8443",
             outgoing = true,
             pinCapable = true,
+            features = listOf("directory", "clipboard"),
+            accountKind = "member",
         )
         store.put(full)
 
         assertEquals(full, DeviceExchangeAccountStore(dataStore).entry(full.identity))
+    }
+
+    @Test
+    fun `an entry an older build wrote reads with no features and no kind`() = runTest {
+        dataStore.edit {
+            it[stringPreferencesKey(ENTRIES_KEY)] =
+                """[{"host":"$HOST_A","port":8443,"login":"$LOGIN_ONE","deviceId":"$DEVICE_1"}]"""
+        }
+
+        val held = store.snapshot().single()
+
+        assertNull(held.features)
+        assertNull(held.accountKind)
+        assertEquals(true, held.takesPartInClipboard)
+    }
+
+    @Test
+    fun `an unknown member and a malformed features value do not drop the entry`() = runTest {
+        dataStore.edit {
+            it[stringPreferencesKey(ENTRIES_KEY)] =
+                """[{"host":"$HOST_A","port":8443,"login":"$LOGIN_ONE","deviceId":"$DEVICE_1",""" +
+                """"features":"clipboard","futureMember":{"x":1},"accountKind":"guest"}]"""
+        }
+
+        val held = store.snapshot().single()
+
+        assertNull(held.features)
+        assertEquals("guest", held.accountKind)
+        assertEquals(false, held.takesPartInClipboard)
     }
 
     @Test

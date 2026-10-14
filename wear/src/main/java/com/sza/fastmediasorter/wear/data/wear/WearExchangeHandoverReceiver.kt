@@ -6,7 +6,9 @@ import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeAccountRepository
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeEnrollResult
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeFailureClassifier
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeJoin
+import com.sza.fastmediasorter.wear.domain.model.WearExchangeMessage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
@@ -65,11 +67,23 @@ class WearExchangeHandoverReceiver @Inject constructor(
             WearExchangeEnrollResult.CertificateChanged ->
                 refusal(requestId, WearExchangeHandoverReasons.CERTIFICATE_CHANGED)
             is WearExchangeEnrollResult.Unreachable -> {
+                val failure = WearExchangeFailureClassifier.of(result.cause)
                 // The class only: a connect failure's message names the host.
-                Timber.i("Exchange hand-over: server unreachable (%s)", result.cause.javaClass.simpleName)
-                WearExchangeHandoverAck(requestId, enrolled = false, reason = WearExchangeHandoverReasons.UNREACHABLE)
+                Timber.i(
+                    "Exchange hand-over: server not reached, code=%s (%s)",
+                    failure.code,
+                    result.cause.javaClass.simpleName,
+                )
+                WearExchangeHandoverAck(requestId, enrolled = false, reason = unreachableReason(failure))
             }
         }
+
+    // The answer lets the phone name the right step: a silent server and a failed handshake are not a dead host.
+    private fun unreachableReason(failure: WearExchangeMessage): String = when (failure) {
+        WearExchangeMessage.UNANSWERED -> WearExchangeHandoverReasons.UNANSWERED
+        WearExchangeMessage.TLS_FAILED -> WearExchangeHandoverReasons.TLS_FAILED
+        else -> WearExchangeHandoverReasons.UNREACHABLE
+    }
 
     private fun refusal(requestId: String, reason: String): WearExchangeHandoverAck {
         Timber.w("Exchange hand-over: refused - %s", reason)

@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.favourites
 
 import android.net.Uri
-import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiverCatalogRepository
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
@@ -53,7 +53,7 @@ class FavouritesViewModelTest {
     private val performFileOperation: PerformWearFileOperationUseCase = mockk(relaxed = true)
 
     /** S2142: an explicitly empty receiver list - these tests are about favourites, not receivers. */
-    private val sendToReceivers: WearSendToReceiversRepository = mockk<WearSendToReceiversRepository>().also {
+    private val sendToReceivers = mockk<WearSendToReceiverCatalogRepository>().also {
         every { it.observe() } returns MutableStateFlow(emptyList())
     }
 

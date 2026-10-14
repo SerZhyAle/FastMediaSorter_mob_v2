@@ -82,6 +82,27 @@ data class DeviceExchangeEnvelope(
         const val TYPE_CAST_ANSWER = "cast-answer"
         const val TYPE_CAST_RESULT = "cast-result"
         const val TYPE_CAST_STOP = "cast-stop"
+        const val TYPE_REGISTER = "register"
+        const val TYPE_PASSWORD_CHANGE = "password-change"
+        const val TYPE_PASSWORD_CHANGED = "password-changed"
+        const val TYPE_ACCOUNT_DELETE = "account-delete"
+        const val TYPE_ACCOUNT_DELETED = "account-deleted"
+        const val TYPE_GRANT = "grant"
+        const val TYPE_GRANTED = "granted"
+        const val TYPE_UNGRANT = "ungrant"
+
+        // 22 items BW and BY: `put`, `get` and their answers ride data streams; `info` rides the control stream.
+        const val TYPE_CLIPBOARD_PUT = "clipboard-put"
+        const val TYPE_CLIPBOARD_READY = "clipboard-ready"
+        const val TYPE_CLIPBOARD_STORED = "clipboard-stored"
+        const val TYPE_CLIPBOARD_INFO = "clipboard-info"
+        const val TYPE_CLIPBOARD_STATE = "clipboard-state"
+        const val TYPE_CLIPBOARD_GET = "clipboard-get"
+        const val TYPE_CLIPBOARD_VALUE = "clipboard-value"
+        const val TYPE_CLIPBOARD_EMPTY = "clipboard-empty"
+        const val KEY_GRANT_ID = "grantId"
+        const val KEY_GUEST = "guest"
+        const val KEY_KIND = "kind"
 
         const val REASON_BAD_CREDENTIALS = "bad-credentials"
         const val REASON_DEVICE_REVOKED = "device-revoked"
@@ -95,6 +116,9 @@ data class DeviceExchangeEnvelope(
         const val REASON_DECLINED = "declined"
         const val REASON_TIMEOUT = "timeout"
         const val REASON_UNSUPPORTED = "unsupported"
+        const val REASON_SIGNED_OUT = "signed-out"
+        const val REASON_NOT_PERMITTED = "not-permitted"
+        const val REASON_LIMIT_REACHED = "limit-reached"
 
         const val KEY_REASON = "reason"
 
@@ -107,7 +131,10 @@ data class DeviceExchangeEnvelope(
             TYPE_UNPUBLISH, TYPE_BROADCAST_START, TYPE_BROADCAST_STARTED, TYPE_BROADCAST_UPDATE,
             TYPE_BROADCAST_END, TYPE_PAIRING_REQUEST, TYPE_PAIRING_CODE, TYPE_REVOKE, TYPE_CONNECT,
             TYPE_CONNECTED, TYPE_OPEN, TYPE_ATTACH, TYPE_UPLOAD, TYPE_UPLOAD_ACCEPTED, TYPE_CAST,
-            TYPE_CAST_OFFER, TYPE_CAST_ANSWER, TYPE_CAST_RESULT, TYPE_CAST_STOP,
+            TYPE_CAST_OFFER, TYPE_CAST_ANSWER, TYPE_CAST_RESULT, TYPE_CAST_STOP, TYPE_REGISTER,
+            TYPE_PASSWORD_CHANGE, TYPE_PASSWORD_CHANGED, TYPE_ACCOUNT_DELETE, TYPE_ACCOUNT_DELETED,
+            TYPE_CLIPBOARD_PUT, TYPE_CLIPBOARD_READY, TYPE_CLIPBOARD_STORED, TYPE_CLIPBOARD_INFO,
+            TYPE_CLIPBOARD_STATE, TYPE_CLIPBOARD_GET, TYPE_CLIPBOARD_VALUE, TYPE_CLIPBOARD_EMPTY,
         )
 
         /** An envelope of [type] whose members [build] writes, in the order it writes them. */

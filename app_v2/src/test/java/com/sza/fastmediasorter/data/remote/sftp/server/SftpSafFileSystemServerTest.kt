@@ -55,7 +55,7 @@ class SftpSafFileSystemServerTest {
             port = 0
             keyPairProvider = KeyPairProvider.wrap(keyPair)
             passwordAuthenticator = PasswordAuthenticator { user, password, _ -> user == USER && password == PASSWORD }
-            fileSystemFactory = SftpSafFileSystemFactory { listOf(FileServerNode(photos)) }
+            fileSystemFactory = SftpSafFileSystemFactory { _ -> listOf(FileServerNode(photos)) }
             subsystemFactories = listOf(
                 SftpSubsystemFactory.Builder().withFileSystemAccessor(SftpSafFileSystemAccessor).build(),
             )
