@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnection
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnector
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTrust
 import java.io.IOException
+import java.net.URI
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -18,8 +19,8 @@ class BroadcastLoopbackBridges @Inject constructor(
     private val connector: ExchangeConnector,
 ) {
 
-    private val bridges = object : LinkedHashMap<String, BroadcastLoopbackBridge>(MAX_BRIDGES, LOAD_FACTOR, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, BroadcastLoopbackBridge>): Boolean {
+    private val bridges = object : LinkedHashMap<String, LoopbackEndpoint>(MAX_BRIDGES, LOAD_FACTOR, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, LoopbackEndpoint>): Boolean {
             val evict = size > MAX_BRIDGES
             if (evict) eldest.value.close()
             return evict
@@ -49,6 +50,28 @@ class BroadcastLoopbackBridges @Inject constructor(
         return portFor(key, label("relay", relay.server, relay.broadcastId)) {
             connector.connect(relay.server.host, relay.server.port, ExchangeTrust.Verified(relay.certFingerprint))
         }
+    }
+
+    /**
+     * The loopback port of the opening proxy for a sealed [relay] (27 item DL): each accepted connection is its own
+     * listen stream through the server's TLS, answered with clear media.
+     */
+    @Throws(IOException::class)
+    @Synchronized
+    fun sealedRelayPort(relay: BroadcastExchangeEndpoint.Relay, groupKey: ByteArray): Int {
+        val key = "sealed|${relay.server.label}|${relay.certFingerprint}|${relay.broadcastId}"
+        val path = runCatching { URI(relay.url).rawPath }.getOrNull().orEmpty()
+        return bridges.getOrPut(key) {
+            SealedRelayProxy(
+                label = label("sealed relay", relay.server, relay.broadcastId),
+                path = path,
+                host = relay.server.label,
+                broadcastId = relay.broadcastId,
+                groupKey = groupKey,
+            ) {
+                connector.connect(relay.server.host, relay.server.port, ExchangeTrust.Verified(relay.certFingerprint))
+            }
+        }.port
     }
 
     @Synchronized

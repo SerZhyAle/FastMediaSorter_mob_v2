@@ -59,7 +59,7 @@ class WearExchangeHandoverReceiver @Inject constructor(
         when (result) {
             is WearExchangeEnrollResult.Enrolled -> {
                 Timber.i("Exchange hand-over: this watch enrolled")
-                WearExchangeHandoverAck(requestId, enrolled = true)
+                WearExchangeHandoverAck(requestId, enrolled = true, deviceId = result.deviceId, e2eKem = result.kem)
             }
             is WearExchangeEnrollResult.Refused -> refusal(requestId, result.reason)
             WearExchangeEnrollResult.CertificateUntrusted ->

@@ -83,7 +83,7 @@ class ExchangeDirectoryViewModelTest {
     private fun viewModel(view: ExchangeDirectoryView): ExchangeDirectoryViewModel {
         coEvery { useCase.observe() } returns flowOf(view)
         coEvery { useCase.sync(any()) } returns view
-        return ExchangeDirectoryViewModel(useCase).also { it.open() }
+        return ExchangeDirectoryViewModel(useCase, mockk(relaxed = true)).also { it.open() }
     }
 
     private fun ExchangeDirectoryViewModel.resourceRows() =

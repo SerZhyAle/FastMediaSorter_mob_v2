@@ -153,7 +153,7 @@
     <string name="about_send_logs_no_answer">Phone did not answer. Open the app on it and try again</string>
     <string name="about_send_logs_notifications_off">Phone notifications are off. Turn them on and try again</string>
     <string name="about_send_logs_refused">Phone could not accept the logs. Update the app on it</string>
-    <string name="about_web_portal">Web Portal</string>
+    <string name="about_web_portal">Media exchange portal</string>
     <string name="wear_app_calculator">Calculator</string>
     <string name="wear_app_network_monitor">Network Monitor</string>
     <string name="wear_app_game">Mini-game</string>
@@ -1141,5 +1141,8 @@
     <string name="exchange_account_folder_added">Folder added to network resources</string>
     <string name="exchange_account_folder_add_failed">Couldn\'t add the folder. Try again.</string>
     <string name="exchange_account_folder_on_watch">Already on the watch</string>
-    <string name="exchange_account_folder_locked">Protected - the PIN comes from the phone</string>
+    <string name="exchange_account_folder_locked">Locked - the PIN comes from the phone</string>
+    <string name="wear_exchange_reason_e2e_missing">This device cannot receive protected content yet, so nothing is sent to it through the server.</string>
+    <string name="wear_exchange_reason_server_no_e2e">This server cannot carry protected content, so folders, broadcasts and the clipboard do not go through it.</string>
+    <string name="wear_exchange_reason_sealed_failed">This could not be opened on this device. Try again from the other device.</string>
 </resources>

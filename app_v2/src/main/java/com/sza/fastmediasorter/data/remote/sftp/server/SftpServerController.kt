@@ -1,10 +1,8 @@
 package com.sza.fastmediasorter.data.remote.sftp.server
 
 import android.content.Context
-import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.di.ApplicationScope
@@ -358,12 +356,9 @@ class SftpServerController @Inject constructor(
         }
     }
 
-    /** A picked folder whose access grant is gone no longer resolves to a directory and is skipped. */
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun resolveRoots(uris: List<String>): List<ServedRoot> = uris
-        .mapNotNull { uri -> DocumentFile.fromTreeUri(context, Uri.parse(uri))?.let { uri to it } }
-        .filter { (_, tree) -> tree.isDirectory }
-        .map { (uri, tree) -> ServedRoot(uri, DocumentFileServerNode(context, tree)) }
+    private fun resolveRoots(uris: List<String>): List<ServedRoot> =
+        SftpServedRoots.resolve(context, uris).map { (uri, node) -> ServedRoot(uri, node) }
 
     private companion object {
         const val BIND_ALL_INTERFACES = "0.0.0.0"

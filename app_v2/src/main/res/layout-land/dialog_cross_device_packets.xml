@@ -22,6 +22,34 @@
             android:textSize="@dimen/text_size_title_dialog"
             android:textStyle="bold" />
 
+        <!-- S4231: the Drive channel switches sit on top of the queue they feed (strategic 3.4). -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowDriveChannelEnabled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nextFocusDown="@+id/rowDriveChannelBackground"
+            app:str_title="@string/drive_channel_enabled_title"
+            app:str_subtitle="@string/drive_channel_enabled_subtitle" />
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowDriveChannelBackground"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:nextFocusUp="@+id/rowDriveChannelEnabled"
+            android:nextFocusDown="@+id/listCrossDevicePackets"
+            app:str_title="@string/drive_channel_background_title"
+            app:str_subtitle="@string/drive_channel_background_subtitle" />
+
+        <TextView
+            android:id="@+id/tvDriveChannelStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:accessibilityLiveRegion="polite"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.HelperText"
+            android:visibility="gone" />
+
         <TextView
             android:id="@+id/tvCrossDevicePacketsEmpty"
             android:layout_width="match_parent"
@@ -32,13 +60,13 @@
             android:textSize="@dimen/text_size_small"
             android:visibility="gone" />
 
-        <ListView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/listCrossDevicePackets"
             android:focusedByDefault="true"
             android:layout_width="match_parent"
             android:layout_height="@dimen/dialog_landscape_list_max_height"
             android:layout_marginBottom="@dimen/margin_small"
-            android:choiceMode="none"
+            android:nextFocusUp="@+id/rowDriveChannelBackground"
             android:nextFocusDown="@+id/btnCrossDeviceSendSettings" />
 
         <!-- S3040: runs while the settings packet upload (or any queue call) is in flight. -->

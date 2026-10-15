@@ -83,4 +83,34 @@ class RawPreferencesStoreTest {
         RawPreferencesStore.apply(target, listOf(BackupPreference("is_player_first_run", "B", "false")))
         assertEquals(true, target[firstRun])
     }
+
+    @Test
+    fun `S4238 exchange secret families are exported by no name and restored by none`() {
+        val secrets = listOf(
+            "device_exchange_token_0123456789abcdef",
+            "exchange_resource_pin_0123456789abcdef_fedcba9876543210",
+            "exchange_grant_password_guest.one",
+            "exchange_grants_v1",
+            "device_exchange_account_entries"
+        )
+        val source = mutablePreferencesOf(label to "kept")
+        secrets.forEach { source[stringPreferencesKey(it)] = "cipher-or-json" }
+
+        assertEquals(listOf("label"), RawPreferencesStore.export(source).map { it.key })
+
+        val target = mutablePreferencesOf()
+        RawPreferencesStore.apply(
+            target,
+            secrets.map { BackupPreference(it, "S", "cipher-or-json") } + BackupPreference("label", "S", "kept")
+        )
+        assertEquals("kept", target[label])
+        secrets.forEach { assertNull(target[stringPreferencesKey(it)]) }
+    }
+
+    @Test
+    fun `S4238 a key that only resembles a secret family is an ordinary setting`() {
+        val source = mutablePreferencesOf(stringPreferencesKey("exchange_resource_note") to "x")
+
+        assertEquals(listOf("exchange_resource_note"), RawPreferencesStore.export(source).map { it.key })
+    }
 }

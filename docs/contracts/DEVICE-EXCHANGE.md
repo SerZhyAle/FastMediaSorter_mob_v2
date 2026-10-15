@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.14 21:48</sub>
+<sub class="doc-stamp">26.10.15 08:14</sub>
 
 # Pointer - `DEVICE-EXCHANGE`
 
 | | |
 | --- | --- |
 | **Id** | `DEVICE-EXCHANGE` |
-| **Version** | 0.28, draft - how long a phone shares and why it went offline, 2026-10-14 (section 26; section 25, 0.27, the shared terms, the names of the programs and the one table of connection messages; section 24, 0.26, the path "via Google Drive" carrying files; section 23, 0.25, the roles of every product, the watch, the account's broadcast list, cast and the hand-over to the watch; section 22, 0.24, the clipboard; section 21, 0.23, folded the open proposals). Owner: FastMediaSorter Android |
+| **Version** | 0.29, draft - end-to-end encryption of content, 2026-10-15 (section 27; section 26, 0.28, how long a phone shares and why it went offline; section 25, 0.27, the shared terms, the names of the programs and the one table of connection messages; section 24, 0.26, the path "via Google Drive" carrying files; section 23, 0.25, the roles of every product, the watch, the account's broadcast list, cast and the hand-over to the watch; section 22, 0.24, the clipboard; section 21, 0.23, folded the open proposals). Owner: FastMediaSorter Android |
 | **Home** | `device-exchange/README.md` in the shared contracts catalog |
 | **Role here** | owner; phone - `fms-android`: resource producer and consumer, broadcaster, receiver, enrolls the watch; watch - `fms-wear`: broadcaster of sound only, receiver of sound and video, resource consumer through the phone's hand-over or its own entry, never a resource; phone and watch send and receive the clipboard (section 22). The exchange server is FMS_W's to implement |
 
@@ -28,7 +28,8 @@
 - Answer `REQUEST` `list` / `fetch` / `changes` for a resource published on Drive and refuse a protected root
   `pin-required`; send and take the clipboard as one untargeted `CLIPBOARD` packet under its own option; poll on the
   item CQ cadence with exponential back-off; check free space before an upload, `packetBytes` 5 GiB; the watch has
-  no Drive channel of its own; produce `vectors/drive-packets-v1.json` (items CO to CU).
+  no Drive channel of its own (items CO to CU). Delivered: `vectors/drive-packets-v1.json`, produced by
+  `CrossDevicePacketCodecTest` (S4231, 2026-10-15).
 - Frames: at most 16384 bytes until `welcome` / `enrolled`, up to 262144 after, a record at most 16 KiB, no
   paging; a relay chunk's length field, flag byte plus payload, is at most 1 MiB (section 15, items T and U).
 - Every outsider `connect` is TLS only; there is no plain fallback (item V).
@@ -97,6 +98,22 @@
 - Show a failed connection with the one table of item CZ: what happened, then what to try from the ladder of item
   CY; the code only in a details line and the log, one language at a time, on the watch the fixed line that sends
   to the phone for details, and no secret in the text (items CY to DA).
+- Seal every content path through the exchange server (section 27): a P-256 key pair per account entry with
+  `e2eKey` and `e2e-v1` declared at `enroll`, the private key only in Keystore-backed storage and never in a backup
+  or a hand-over; trust each device key on first sight, the watch's from its hand-over answer, show `key-changed` for a
+  changed one and seal only to devices this program lists (items DF and DG).
+- Use the sealed box of item DH (HPKE Auth mode, DHKEM(P-256, HKDF-SHA256), HKDF-SHA256, AES-128-GCM; AES-256-GCM
+  payload) after passing the RFC 9180 A.3 vectors; publish `sealedAccess` instead of `access` and take the SSH host key
+  from the opened descriptor; seal grants to the guest's devices (items DI and DJ).
+- Seal broadcasts: the record's box with `relayKey`, `tunnelPin` and `credentials`, the relay as key-ring and media
+  records with a new epoch by a replacement upload when a recipient is dropped, TLS inside a broadcast tunnel on a
+  per-broadcast pinned leaf, the keys in an outward descriptor; play a sealed relay through the loopback proxy, on the
+  phone and the watch (items DK to DM).
+- Send and get the clipboard as kind `sealed` in 64 KiB segments; never place a value that fails to open (item DN).
+- Send no content through a server whose `features` lacks `sealed` (`server-no-e2e`) and use no clear content from a
+  device without `e2eKey` (`e2e-missing`); leave the Drive path unsealed; show the honest text of item DE wherever the
+  server or the Drive channel is described, and the four rows of item DR (items DO to DR). Produce
+  `vectors/e2e-v1.json` (S4240).
 
 ## Where it will live here
 
@@ -134,6 +151,8 @@
 - S4219 - the owner's terms, names and connection-message decisions folded as 0.27 (section 25, items CV to DA).
 - S4236 - the check ladder and the shared texts in the phone and watch programs against 0.27.
 - S4237 - the terms, the name and the icons in strings, README and listings against 0.27.
+- S4239 - the owner's decision 18 folded as 0.29 (section 27, items DE to DR): content sealed end to end, the honest text.
+- S4240 - sealing on the phone and the watch against 0.29, with `vectors/e2e-v1.json`.
 - S4225 - the phone share's lifetime and the reason it went offline folded as 0.28 (section 26, items DB to DD): the share resumes when the app is shown, a platform limit is written as `offlineReason: time-limit` on the Drive device record, and the consumer shows the `share-paused` row.
 
 ## Original resource PIN (section 17, items AG to AL)

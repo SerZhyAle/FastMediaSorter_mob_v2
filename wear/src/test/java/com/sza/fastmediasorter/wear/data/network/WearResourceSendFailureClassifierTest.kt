@@ -3,7 +3,9 @@ package com.sza.fastmediasorter.wear.data.network
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.SftpException
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeTunnelUnavailableException
 import com.sza.fastmediasorter.wear.data.network.ftp.FtpStoreRefusedException
+import com.sza.fastmediasorter.wear.data.network.sftp.WearResourcePinMissingException
 import com.sza.fastmediasorter.wear.domain.model.WearResourceSendFailure
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -88,6 +90,45 @@ class WearResourceSendFailureClassifierTest {
         val wrapped = IOException("send failed", SftpException(ChannelSftp.SSH_FX_PERMISSION_DENIED, "denied"))
 
         assertEquals(WearResourceSendFailure.REFUSED, classifier.classify(wrapped))
+    }
+
+    @Test
+    fun `an exchange folder reached only over the phone's Bluetooth is no network`() {
+        assertEquals(
+            WearResourceSendFailure.NO_NETWORK,
+            classifier.classify(WearExchangeNeedsOwnNetworkException())
+        )
+    }
+
+    @Test
+    fun `a protected folder without a held PIN needs the PIN`() {
+        assertEquals(
+            WearResourceSendFailure.PIN_NEEDED,
+            classifier.classify(WearResourcePinMissingException())
+        )
+    }
+
+    @Test
+    fun `an exchange folder of an account the watch holds no entry of is not connected`() {
+        assertEquals(
+            WearResourceSendFailure.NOT_CONNECTED,
+            classifier.classify(WearExchangeEntryMissingException())
+        )
+    }
+
+    @Test
+    fun `a tunnel the server will not open is unreachable`() {
+        assertEquals(
+            WearResourceSendFailure.UNREACHABLE,
+            classifier.classify(WearExchangeTunnelUnavailableException("offline"))
+        )
+    }
+
+    @Test
+    fun `an exchange refusal wrapped by the session is found down the cause chain`() {
+        val wrapped = IOException("send failed", WearExchangeEntryMissingException())
+
+        assertEquals(WearResourceSendFailure.NOT_CONNECTED, classifier.classify(wrapped))
     }
 
     @Test

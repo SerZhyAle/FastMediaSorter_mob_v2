@@ -21,6 +21,9 @@ _Generated from the app. Do not edit by hand._
 | Clear Cache | Deletes all locally cached thumbnails and metadata to free up storage. |
 | Clear streaming cache | Deletes temporary files buffered during streaming playback. |
 | How to publish PC folders to Android | Opens the PC-side guide on publishing folders to Android over SFTP (companion import / QR scan). |
+| Close | Closes the pending transfers dialog; packets stay in your Google Drive until they are received, deleted or expire. |
+| Remove expired packets | Deletes the packets past their lifetime and the uploads that never finished, judged on Google Drive's clock. Packets still inside their lifetime are kept. |
+| Send to my device (Drive) | Sends this device's settings to your other devices as a packet in your Google Drive; any of them can apply it. |
 | Downloadable Extensions | Opens the downloadable extensions manager where you can install optional feature modules. |
 | Export Favorites | Exports your saved favorites list to a file you can back up or transfer. Available when Favorites is enabled. |
 | Export resources to file | Saves all configured resources (folders, network connections) to an export file. |
@@ -45,6 +48,7 @@ _Generated from the app. Do not edit by hand._
 | Change | Picks which of your exchange servers the share is published through; the line above names the current outgoing server. |
 | My devices | Opens My devices, where you add, move, share and remove your exchange servers. |
 | New access link | Issues a new access link: every code shared before stops opening this server through the exchange server. |
+| About access from outside the home network | Opens the portal page about reaching your shared folders from outside the home network, step by step. |
 | Add folder | Picks a folder through the system picker and adds it to the folders the server shares. |
 | Code for older app versions | Shows the pairing code without the exchange server part, for a FastMediaSorter too old to read the new code; it connects on the local network only. |
 | New password | Replaces the server login password with a new random one; clients need the new password afterwards. |
@@ -79,6 +83,8 @@ _Generated from the app. Do not edit by hand._
 | Open browse in grid view | Opens the file browser in grid view by default instead of list view. |
 | Device profile | Selects the device profile that adapts the interface and controls to your device type. |
 | Disable animations | Disables screen transitions, group expanding and collapsing, settings-tab effects, decorative animations, and image crossfades. Audio visualizers, the camera focus ring, and filename auto-hide still run because they convey state. |
+| Check via Google Drive in the background | Checks the Google Drive queue every 15 minutes while the app is closed, so your other devices can open this phone's shared folders and receive answers. Works only while Files via Google Drive is on. Off by default. |
+| Files via Google Drive | Turns on the path via Google Drive: your own devices on the same Google account exchange files and open each other's shared folders through the hidden app folder on your Drive, with no exchange server and no direct address. Uses your Google storage. Off by default. |
 | Enable background sync | Lets the app sync remote resources in the background when the device is idle. |
 | Enable Favorites | Enables the Favorites feature so you can mark and quickly access starred files. |
 | Statistics collection | Enables anonymous usage statistics collection to help improve the app. |

@@ -785,6 +785,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         com.sza.fastmediasorter.utils.GlideCacheStats.logStats()
         if (::initializer.isInitialized) {
             initializer.mediaStoreObserver.stop()
+            initializer.commandOverflowManager.release()
             // The transfer collector runs under STARTED and stops before destroy, so it can no
             // longer dismiss the non-cancelable progress dialog bound to this window.
             initializer.fileOperationsManager.cleanup()

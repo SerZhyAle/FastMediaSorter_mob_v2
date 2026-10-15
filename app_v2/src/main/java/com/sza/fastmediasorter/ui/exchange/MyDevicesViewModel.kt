@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringResult
 import com.sza.fastmediasorter.domain.model.ExchangeDiagnosis
 import com.sza.fastmediasorter.domain.model.ExchangeEndpoint
 import com.sza.fastmediasorter.domain.model.ExchangeMessage
+import com.sza.fastmediasorter.domain.model.ExchangeSealState
 import com.sza.fastmediasorter.domain.model.ExchangeServerCall
 import com.sza.fastmediasorter.domain.model.IntakeTextDispatch
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
@@ -115,8 +116,12 @@ sealed interface ExchangeIntakeOutcome {
 sealed interface ExchangeDevicesState {
     data object Closed : ExchangeDevicesState
     data object Loading : ExchangeDevicesState
-    data class Loaded(val entry: DeviceExchangeAccountEntry, val devices: List<SftpRendezvousDevice>) :
-        ExchangeDevicesState
+    data class Loaded(
+        val entry: DeviceExchangeAccountEntry,
+        val devices: List<SftpRendezvousDevice>,
+        /** The table row each device's line shows in place of its details (27 item DR); absent for none. */
+        val notices: Map<String, ExchangeMessage> = emptyMap(),
+    ) : ExchangeDevicesState
     data class Failed(val diagnosis: ExchangeDiagnosis) : ExchangeDevicesState
 }
 
@@ -377,7 +382,13 @@ class MyDevicesViewModel @Inject constructor(
         devicesState.value = when (val call = accounts.directory(entry)) {
             is ExchangeServerCall.Done -> {
                 statuses.update { it + (entry.identity to ExchangeServerStatus.Online(call.value.devices.size)) }
-                ExchangeDevicesState.Loaded(entry, call.value.devices)
+                val devices = call.value.devices
+                val states = accounts.sealStates(entry, devices)
+                val notices = devices.mapNotNull { device ->
+                    val own = device.deviceId == entry.deviceId
+                    ExchangeSealState.noticeOf(states[device.deviceId], own, entry)?.let { device.deviceId to it }
+                }.toMap()
+                ExchangeDevicesState.Loaded(entry, devices, notices)
             }
             else -> ExchangeDevicesState.Failed(callFailure(call, entry))
         }

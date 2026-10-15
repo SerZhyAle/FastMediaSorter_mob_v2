@@ -255,6 +255,18 @@
                 android:paddingStart="@dimen/streams_list_side_padding"
                 android:paddingEnd="@dimen/streams_list_side_padding"
                 android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDevicesPortal"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/streams_section_header_padding"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="@string/exchange_portal_link_broadcast"
+                android:visibility="gone" />
         </LinearLayout>
 
         <!-- S1141: pinned-channels section - shown by StreamsSectionsManager only when >=1 pinned. -->

@@ -136,6 +136,15 @@ enum class WearServerClipboardFailure {
     /** The watch holds no entry that may take part (no member account whose server lists the clipboard). */
     NO_ENTRY,
 
+    /** S4240: the fresh `welcome` lists no `sealed`, so no value goes through it (`server-no-e2e`, 27 item DP). */
+    NO_SEALED_FEATURE,
+
+    /** No other device of the account can open a box, or the value came in clear (`e2e-missing`). */
+    E2E_MISSING,
+
+    /** The box or a segment did not open, or the clear size or SHA-256 differed; nothing was placed. */
+    SEALED_FAILED,
+
     /** A refusal reason this build does not know (7.10): the generic refusal text. */
     OTHER_REFUSAL;
 

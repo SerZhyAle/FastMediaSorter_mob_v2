@@ -461,6 +461,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     // strategic section 0 anchor "Settings -> Data / Cloud Transfer". Sending settings happens
     // inside the queue dialog, so the card keeps exactly two entries.
     private fun setupCrossDeviceQueueRow() {
+        binding.rowCrossDevicePackets.isVisible = capabilityAvailability.isCloudAvailable()
         binding.rowCrossDevicePackets.setOnRowClickListener {
             CrossDevicePacketListDialogFragment().show(
                 parentFragmentManager,

@@ -2,12 +2,19 @@ package com.sza.fastmediasorter.ui.browse.transfer
 
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePayloadKind
-import com.sza.fastmediasorter.domain.usecase.transfer.SendCrossDevicePacketUseCase
+import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceTarget
+import com.sza.fastmediasorter.domain.model.transfer.OutgoingPacketFile
+import com.sza.fastmediasorter.domain.transfer.DriveChannelSettings
+import com.sza.fastmediasorter.domain.transfer.DriveFileChannel
+import com.sza.fastmediasorter.domain.transfer.OwnDriveDevice
+import com.sza.fastmediasorter.domain.usecase.transfer.GetOwnDriveDevicesUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,40 +37,41 @@ sealed interface SendToDeviceState {
  * Only a file the device can read byte for byte is sent: a cloud entry is already in a cloud the
  * other device can reach, so copying it through the transfer queue would spend the user's quota
  * twice for nothing.
+ *
+ * S4231: the file goes as a version 2 `FILES` packet through the Drive channel, to one own device or to
+ * any of them; success means it waits in the queue, never that it was delivered (contract item CT).
  */
 @Singleton
 class SendToDeviceActionManager @Inject constructor(
-    private val sendPacket: SendCrossDevicePacketUseCase,
+    private val channel: DriveFileChannel,
+    private val settings: DriveChannelSettings,
+    private val getOwnDevices: GetOwnDriveDevicesUseCase,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     private val _state = MutableStateFlow<SendToDeviceState>(SendToDeviceState.Idle)
     val state: StateFlow<SendToDeviceState> = _state.asStateFlow()
 
+    suspend fun isChannelOn(): Boolean = settings.enabled.first()
+
+    /** The devices a file can be sent to; empty when no other own device ever wrote its record. */
+    suspend fun targets(): Result<List<OwnDriveDevice>> = getOwnDevices()
+
     suspend fun send(
         filePath: String,
-        senderDeviceName: String,
-        targetDeviceName: String? = null
+        target: CrossDeviceTarget? = null
     ): Result<Unit> = withContext(ioDispatcher) {
+        Timber.d("S4231: send a file via Google Drive")
         val file = File(filePath)
         val fileName = file.name
-        val refusal = when {
-            !file.isFile || !file.canRead() -> "$filePath is not a readable local file"
-            // The packet API takes the payload as one ByteArray, so the whole file lands in the heap.
-            file.length() > MAX_PAYLOAD_BYTES -> "$filePath exceeds the $MAX_PAYLOAD_BYTES byte send limit"
-            else -> null
-        }
-        if (refusal != null) {
+        if (!file.isFile || !file.canRead()) {
             _state.value = SendToDeviceState.Failed(fileName)
-            return@withContext Result.failure(IllegalArgumentException(refusal))
+            return@withContext Result.failure(IllegalArgumentException("$filePath is not a readable local file"))
         }
         _state.value = SendToDeviceState.Uploading(fileName)
-        sendPacket(
-            payloadKind = CrossDevicePayloadKind.MEDIA_FILES,
-            senderDeviceName = senderDeviceName,
-            targetDeviceName = targetDeviceName,
-            payloadBytes = mapOf(fileName to file.readBytes())
-        ).fold(
+        // Streamed from disk, so the size limit is the packet limit, not the heap.
+        val files = listOf(OutgoingPacketFile(name = fileName, size = file.length(), open = file::inputStream))
+        channel.sendFiles(target, files, CrossDevicePayloadKind.FILES).fold(
             onSuccess = {
                 _state.value = SendToDeviceState.Sent(fileName)
                 Result.success(Unit)
@@ -78,9 +86,5 @@ class SendToDeviceActionManager @Inject constructor(
     /** Return to idle once the surface has shown the last outcome. */
     fun consumeState() {
         _state.value = SendToDeviceState.Idle
-    }
-
-    internal companion object {
-        const val MAX_PAYLOAD_BYTES: Long = 32L * 1024 * 1024
     }
 }

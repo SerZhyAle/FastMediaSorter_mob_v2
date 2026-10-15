@@ -708,7 +708,7 @@ private class FakeExchangeResourcePinStore : ExchangeResourcePinStore {
     override suspend fun move(from: String, to: String, resourceIds: Collection<String>) = Unit
 }
 
-private class FakeReachableEndpointProvider : ReachableEndpointProvider {    var result: List<HostPort> = emptyList()
+private class FakeReachableEndpointProvider : ReachableEndpointProvider { var result: List<HostPort> = emptyList()
     var failure: Throwable? = null
     var calls = 0
 

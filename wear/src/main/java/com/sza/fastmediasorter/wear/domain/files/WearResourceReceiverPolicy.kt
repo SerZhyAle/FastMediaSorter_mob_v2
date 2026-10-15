@@ -14,9 +14,5 @@ object WearResourceReceiverPolicy {
      * @param pinHeld whether the watch holds the original PIN of this folder's root, which only the phone hands over.
      */
     fun isOffered(source: NetworkSource, pinHeld: Boolean): Boolean =
-        !source.readOnly &&
-            (!source.pinProtected || pinHeld) &&
-            // Exchange-bound folders wait for the account route of S4228 (tunnel, root proof): offering one before
-            // that route exists would only work at home. The last phase of S4230 removes this line.
-            source.exchangeResourceId == null
+        !source.readOnly && (!source.pinProtected || pinHeld)
 }

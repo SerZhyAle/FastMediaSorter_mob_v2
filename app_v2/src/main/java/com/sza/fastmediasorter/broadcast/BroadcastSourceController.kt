@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.broadcast
 
+import android.content.Intent
 import android.net.Uri
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import kotlinx.coroutines.flow.StateFlow
@@ -10,6 +11,9 @@ import kotlinx.coroutines.flow.StateFlow
  * screen is the only reader, and it uses the one value that hides capture-only controls.
  */
 const val BROADCAST_SOURCE_FILE = "file"
+
+/** S4233: the same UI-side name for a session serving the phone's own screen. */
+const val BROADCAST_SOURCE_SCREEN = "screen"
 
 /**
  * Why a broadcast could not start or could not continue. Kept as a closed set so the UI can say
@@ -41,7 +45,10 @@ sealed interface BroadcastState {
         val microphoneEnabled: Boolean = true,
         /** [BroadcastLensOption.id] of the lens on air; null for audio-only sessions. */
         val activeLensId: String? = null,
-        /** [BROADCAST_SOURCE_FILE] for a session serving a stored file; null for a captured one. */
+        /**
+         * [BROADCAST_SOURCE_FILE] for a session serving a stored file, [BROADCAST_SOURCE_SCREEN] for one
+         * serving the screen; null for a camera or microphone session.
+         */
         val source: String? = null,
     ) : BroadcastState
     data class Failed(val failure: BroadcastFailure, val detail: String) : BroadcastState
@@ -80,6 +87,14 @@ interface BroadcastSourceController {
      * live session stops first: the services are exclusive. No-op in builds without capture.
      */
     fun startFile(uri: Uri)
+
+    /**
+     * S4233: starts a live broadcast of the phone's screen from the platform consent result the caller
+     * just obtained ([resultCode] and [data] of `createScreenCaptureIntent()`). The consent is good for
+     * this one session: the broadcast ends when the platform stops the projection. Any live session
+     * stops first. No-op in builds without capture.
+     */
+    fun startScreen(resultCode: Int, data: Intent)
 
     fun stop()
 

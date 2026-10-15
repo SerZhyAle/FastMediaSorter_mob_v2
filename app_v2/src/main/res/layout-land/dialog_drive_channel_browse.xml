@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4231: landscape counterpart of layout/dialog_drive_channel_browse.xml - same ids, one ViewBinding.
+     The list is capped shorter so the two actions stay reachable in a short landscape dialog. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/padding_normal">
+
+    <TextView
+        android:id="@+id/tvDriveBrowseTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Title" />
+
+    <TextView
+        android:id="@+id/tvDriveBrowseStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:accessibilityLiveRegion="polite"
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Body"
+        android:visibility="gone" />
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progressDriveBrowse"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvDriveBrowseEntries"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dialog_landscape_list_max_height"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:focusedByDefault="true"
+        android:nextFocusDown="@+id/btnDriveBrowseSave" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDriveBrowseSave"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_small"
+            android:nextFocusUp="@+id/rvDriveBrowseEntries"
+            android:nextFocusRight="@+id/btnDriveBrowseClose"
+            android:text="@string/drive_channel_browse_save" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDriveBrowseClose"
+            style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:nextFocusLeft="@+id/btnDriveBrowseSave"
+            android:nextFocusUp="@+id/rvDriveBrowseEntries"
+            android:text="@string/close" />
+
+    </LinearLayout>
+
+</LinearLayout>

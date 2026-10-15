@@ -35,6 +35,9 @@ private val MESSAGE_RES: Map<WearExchangeMessage, Int> = mapOf(
     WearExchangeMessage.CERTIFICATE_CHANGED to R.string.wear_exchange_reason_certificate_changed,
     WearExchangeMessage.SERVER_OFFLINE to R.string.wear_exchange_reason_server_offline,
     WearExchangeMessage.RESOURCE_LOCKED to R.string.wear_exchange_reason_resource_locked,
+    WearExchangeMessage.E2E_MISSING to R.string.wear_exchange_reason_e2e_missing,
+    WearExchangeMessage.SERVER_NO_E2E to R.string.wear_exchange_reason_server_no_e2e,
+    WearExchangeMessage.SEALED_FAILED to R.string.wear_exchange_reason_sealed_failed,
     WearExchangeMessage.REFUSED to R.string.wear_exchange_reason_refused,
 )
 

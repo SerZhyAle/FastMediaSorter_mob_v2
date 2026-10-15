@@ -34,6 +34,7 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
     private val accounts: DeviceExchangeAccountRepository,
     private val producer: SftpServerTunnelManager,
     private val uploader: ExchangeRelayUploader,
+    private val relayKeys: ExchangeRelayKeys,
     private val videoFeed: ExchangeVideoRelayFeed,
     private val serializer: BroadcastDescriptorSerializer,
     @ApplicationScope private val appScope: CoroutineScope,
@@ -83,6 +84,7 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
             publicEndpoint = entry.publicEndpoint ?: "${entry.host}:${entry.port}",
             certFingerprint = entry.pinnedCertificate,
             relayUploading = accepted == held.broadcastId,
+            sealed = entry.serverSeals,
         )
         if (descriptor == announced.value) return
         announced.value = descriptor
@@ -97,6 +99,7 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
         if (current != null) end()
         val started = Announcement(key, SftpShareId.generate(), System.currentTimeMillis())
         current = started
+        relayKeys.begin(started.broadcastId)
         val source = loopbackSource(live.descriptor)
         val id = started.broadcastId
         when {
@@ -111,6 +114,7 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
         current = null
         announced.value = null
         uploader.stop()
+        relayKeys.end()
         producer.endBroadcast()
     }
 

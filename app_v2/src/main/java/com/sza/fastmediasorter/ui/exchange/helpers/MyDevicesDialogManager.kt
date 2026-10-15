@@ -229,7 +229,11 @@ class MyDevicesDialogManager(
             }
         }
         if (state is ExchangeDevicesState.Loaded) {
-            binding.rvExchangeDevices.adapter = ExchangeDeviceAdapter(state.entry.deviceId, state.devices) { device ->
+            binding.rvExchangeDevices.adapter = ExchangeDeviceAdapter(
+                state.entry.deviceId,
+                state.devices,
+                state.notices,
+            ) { device ->
                 confirmRevoke(device.deviceName) { viewModel.revokeDevice(state.entry, device) }
             }
         }

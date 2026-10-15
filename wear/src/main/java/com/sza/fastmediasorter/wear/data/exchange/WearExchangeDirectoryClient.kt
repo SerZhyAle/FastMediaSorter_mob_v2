@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.wear.data.exchange
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.sza.fastmediasorter.data.security.e2e.E2eOpenResult
+import com.sza.fastmediasorter.data.security.e2e.E2eSealedBox
 import com.sza.fastmediasorter.wear.domain.model.WearAccountFolder
 import com.sza.fastmediasorter.wear.domain.model.WearSftpPairingCode
 import kotlinx.coroutines.CoroutineStart
@@ -27,6 +29,7 @@ class WearExchangeDirectoryUnavailableException(reason: String?) :
 @Singleton
 class WearExchangeDirectoryClient @Inject constructor(
     private val streams: WearExchangeControlStreams,
+    private val e2e: WearExchangeE2e,
 ) {
 
     /**
@@ -48,7 +51,8 @@ class WearExchangeDirectoryClient @Inject constructor(
         if (answer?.type != WearExchangeEnvelope.TYPE_DIRECTORY) {
             throw WearExchangeDirectoryUnavailableException(answer?.string(WearExchangeEnvelope.KEY_REASON))
         }
-        return foldersOf(answer)
+        val sealing = e2e.sealing(entry, WearExchangeDirectoryState.of(answer).devices.values)
+        return foldersOf(answer) { record, resourceId -> openSealedAccess(sealing, record, resourceId) }
     }
 
     companion object {
@@ -60,7 +64,8 @@ class WearExchangeDirectoryClient @Inject constructor(
         private const val KEY_NAME = "name"
         private const val KEY_PROTECTION = "protection"
         private const val KEY_SCHEME = "scheme"
-        private const val KEY_ACCESS = "access"
+        private const val KEY_SEALED_ACCESS = "sealedAccess"
+        private const val KEY_HOST_KEY_FINGERPRINT = "hostKeyFingerprint"
         private const val KEY_DESCRIPTOR = "descriptor"
         private const val KEY_ROOT = "root"
         private const val KIND_SFTP_SHARE = "sftp-share"
@@ -68,20 +73,45 @@ class WearExchangeDirectoryClient @Inject constructor(
         private val ANSWERS = setOf(WearExchangeEnvelope.TYPE_DIRECTORY, WearExchangeEnvelope.TYPE_REFUSED)
         private val LIST = WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_LIST)
 
-        /** The readable `sftp-share` records of a `directory` answer; a record that does not read is dropped alone. */
-        fun foldersOf(directory: WearExchangeEnvelope): List<WearAccountFolder> =
+        /**
+         * The readable `sftp-share` records of a `directory` answer; a record that does not read is dropped alone.
+         * [openAccess] opens a record's `sealedAccess` (27 item DI); a clear `access` from the server is never used,
+         * since a conforming client has no clear fallback through it (item DP).
+         */
+        fun foldersOf(
+            directory: WearExchangeEnvelope,
+            openAccess: (record: JsonObject, resourceId: String) -> JsonObject?,
+        ): List<WearAccountFolder> =
             directory.array(KEY_RESOURCES)?.toList().orEmpty()
                 .filter(JsonElement::isJsonObject)
-                .mapNotNull { folderOf(it.asJsonObject) }
+                .mapNotNull { folderOf(it.asJsonObject, openAccess) }
 
-        // A lock of any other scheme, or one whose access the server withheld, cannot be opened from the watch.
-        private fun folderOf(record: JsonObject): WearAccountFolder? {
+        /** The `access` object inside [record]'s `sealedAccess`; null when it is absent or does not open here. */
+        fun openSealedAccess(sealing: WearSealing, record: JsonObject, resourceId: String): JsonObject? {
+            val self = sealing.self
+            val box = record.get(KEY_SEALED_ACCESS)
+            val result = if (self == null || box == null) {
+                null
+            } else {
+                E2eSealedBox.open(box, E2eSealedBox.accessContext(resourceId), self, sealing::trusts)
+            }
+            return (result as? E2eOpenResult.Opened)?.payload
+        }
+
+        // A lock of any other scheme, an access the server withheld or a box that did not open cannot be used. The
+        // host key is the opened descriptor's, and a record whose own fingerprint names another is dropped.
+        private fun folderOf(
+            record: JsonObject,
+            openAccess: (record: JsonObject, resourceId: String) -> JsonObject?,
+        ): WearAccountFolder? {
             val protected = record.has(KEY_PROTECTION)
             val scheme = record.get(KEY_PROTECTION)?.takeIf(JsonElement::isJsonObject)?.asJsonObject?.text(KEY_SCHEME)
             val readable = record.text(KEY_KIND) == KIND_SFTP_SHARE && (!protected || scheme == PROTECTION_PIN_V1)
-            val access = record.get(KEY_ACCESS)?.takeIf { readable && it.isJsonObject }?.asJsonObject
-            val code = access?.text(KEY_DESCRIPTOR)?.let(WearSftpPairingCode::decode)
             val resourceId = record.text(KEY_RESOURCE_ID)
+            val access = resourceId?.takeIf { readable }?.let { openAccess(record, it) }
+            val listedKey = record.text(KEY_HOST_KEY_FINGERPRINT)
+            val code = access?.text(KEY_DESCRIPTOR)?.let(WearSftpPairingCode::decode)
+                ?.takeIf { listedKey == null || listedKey == it.hostKeyFingerprint }
             return if (access != null && code != null && resourceId != null) {
                 val root = access.text(KEY_ROOT)?.trim('/').orEmpty()
                 WearAccountFolder(resourceId, record.text(KEY_NAME) ?: resourceId, code, root, protected)

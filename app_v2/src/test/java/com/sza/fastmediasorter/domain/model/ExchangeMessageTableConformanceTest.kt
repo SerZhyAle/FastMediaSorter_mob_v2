@@ -126,7 +126,11 @@ class ExchangeMessageTableConformanceTest {
         val start = lines.indexOfFirst { it.startsWith("## 25.") }
         val end = lines.indexOfFirst { it.startsWith("## 26.") }
         assumeTrue("section 25 is not in the contract", start in 0 until end)
-        return lines.subList(start, end)
+        // Section 27 item DR adds four rows to the same table; section 26 item DD is a standalone product string.
+        val sealedStart = lines.indexOfFirst { it.startsWith("## 27.") }
+        val sealedEnd = lines.indexOfFirst { it.startsWith("## Document log") }
+        val sealed = if (sealedStart in 0 until sealedEnd) lines.subList(sealedStart, sealedEnd) else emptyList()
+        return lines.subList(start, end) + sealed
     }
 
     private fun resources(directory: String): Map<String, String> {
@@ -152,7 +156,7 @@ class ExchangeMessageTableConformanceTest {
         const val COL_THIRD = 2
         const val COL_TEXT_EN = 3
         const val NO_STEP = "-"
-        val CODE_CELL = Regex("""`([a-z-]+)`(.*)""")
+        val CODE_CELL = Regex("""`([a-z0-9-]+)`(.*)""")
         val KINDS = setOf("wire", "cast", "local", "state", "result", "wire, cast")
         val ESCAPE = Regex("""\\(.)""")
     }

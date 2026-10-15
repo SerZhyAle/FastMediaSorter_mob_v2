@@ -49,6 +49,21 @@
     "ru": "Удаляет временные файлы, накопленные при потоковом воспроизведении.",
     "uk": "Видаляє тимчасові файли, накопичені під час потокового відтворення."
   },
+  "btnCrossDevicePacketsClose": {
+    "en": "Closes the pending transfers dialog; packets stay in your Google Drive until they are received, deleted or expire.",
+    "ru": "Закрывает окно ожидающих передач; пакеты остаются на вашем Google Drive, пока их не получат, не удалят или не истечёт их срок.",
+    "uk": "Закриває вікно очікуваних передач; пакети лишаються на вашому Google Drive, доки їх не отримають, не видалять або не мине їхній строк."
+  },
+  "btnCrossDeviceRemoveExpired": {
+    "en": "Deletes the packets past their lifetime and the uploads that never finished, judged on Google Drive's clock. Packets still inside their lifetime are kept.",
+    "ru": "Удаляет пакеты с истёкшим сроком и незавершённые загрузки, по часам Google Drive. Пакеты в пределах срока остаются.",
+    "uk": "Видаляє пакети з вичерпаним строком і незавершені завантаження, за годинником Google Drive. Пакети в межах строку лишаються."
+  },
+  "btnCrossDeviceSendSettings": {
+    "en": "Sends this device's settings to your other devices as a packet in your Google Drive; any of them can apply it.",
+    "ru": "Отправляет настройки этого устройства другим вашим устройствам пакетом на вашем Google Drive; применить его может любое из них.",
+    "uk": "Надсилає налаштування цього пристрою іншим вашим пристроям пакетом на вашому Google Drive; застосувати його може будь-який із них."
+  },
   "btnCompanionPublishGuide": {
     "en": "Opens the PC-side guide on publishing folders to Android over SFTP (companion import / QR scan).",
     "ru": "Открывает PC-инструкцию по публикации папок для Android через SFTP (companion-импорт / скан QR).",
@@ -843,6 +858,16 @@
     "en": "Turns off the 9-zone touch grid; the fullscreen player switches to a simpler 3-zone layout (previous / zoom / next) with a left-edge command-panel area.",
     "ru": "Отключает 9-зоновую сенсорную сетку; полноэкранный плеер переключается на упрощённую раскладку из 3 зон (предыдущий / зум / следующий) с областью командной панели у левого края.",
     "uk": "Вимикає 9-зонову сенсорну сітку; повноекранний плеєр переходить на спрощену розкладку з 3 зон (попередній / зум / наступний) з областю командної панелі біля лівого краю."
+  },
+  "rowDriveChannelBackground": {
+    "en": "Checks the Google Drive queue every 15 minutes while the app is closed, so your other devices can open this phone's shared folders and receive answers. Works only while Files via Google Drive is on. Off by default.",
+    "ru": "Проверяет очередь Google Drive каждые 15 минут, пока приложение закрыто, чтобы другие ваши устройства могли открывать общие папки этого телефона и получать ответы. Работает только при включённых файлах через Google Drive. По умолчанию выключено.",
+    "uk": "Перевіряє чергу Google Drive кожні 15 хвилин, поки застосунок закрито, щоб інші ваші пристрої могли відкривати спільні теки цього телефона й отримувати відповіді. Працює лише з увімкненими файлами через Google Drive. Типово вимкнено."
+  },
+  "rowDriveChannelEnabled": {
+    "en": "Turns on the path via Google Drive: your own devices on the same Google account exchange files and open each other's shared folders through the hidden app folder on your Drive, with no exchange server and no direct address. Uses your Google storage. Off by default.",
+    "ru": "Включает путь через Google Drive: ваши устройства с одним аккаунтом Google обмениваются файлами и открывают общие папки друг друга через скрытую папку приложения на вашем Drive, без сервера обмена и без прямого адреса. Использует место в вашем хранилище Google. По умолчанию выключено.",
+    "uk": "Вмикає шлях через Google Drive: ваші пристрої з одним акаунтом Google обмінюються файлами та відкривають спільні теки один одного через приховану теку застосунку на вашому Drive, без сервера обміну й без прямої адреси. Використовує місце у вашому сховищі Google. Типово вимкнено."
   },
   "rowDynamicBackground": {
     "en": "Extends the image edges into a blurred background to fill the screen without cropping.",
@@ -2042,6 +2067,11 @@
     "en": "Opens My devices, where you add, move, share and remove your exchange servers.",
     "ru": "Открывает «Мои устройства», где вы добавляете, переносите, передаёте и удаляете свои серверы обмена.",
     "uk": "Відкриває «Мої пристрої», де ви додаєте, переносите, передаєте й видаляєте свої сервери обміну."
+  },
+  "btnSftpExchangePortal": {
+    "en": "Opens the portal page about reaching your shared folders from outside the home network, step by step.",
+    "ru": "Открывает страницу портала о том, как добраться до ваших общих папок не из домашней сети, шаг за шагом.",
+    "uk": "Відкриває сторінку порталу про те, як дістатися до ваших спільних тек не з домашньої мережі, крок за кроком."
   },
   "rowLetterboxHalo": {
     "en": "Softly fades the extended bars into the background around a photo. Needs the dynamic background.",

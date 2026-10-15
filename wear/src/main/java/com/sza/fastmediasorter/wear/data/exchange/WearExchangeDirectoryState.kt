@@ -2,6 +2,9 @@ package com.sza.fastmediasorter.wear.data.exchange
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.sza.fastmediasorter.data.security.e2e.E2eDeviceKey
+import com.sza.fastmediasorter.data.security.e2e.E2ePeer
+import java.time.Instant
 
 /** A device of the account as the directory lists it (contract DEVICE-EXCHANGE 6.1), reduced to what the list shows. */
 data class WearDirectoryDevice(
@@ -9,7 +12,15 @@ data class WearDirectoryDevice(
     val name: String?,
     val product: String?,
     val isOnline: Boolean,
-)
+    /** S4240: `kem` of the device's `e2eKey` (27 item DF), null when it has none or one of an unknown version. */
+    val kem: String? = null,
+    /** The device declared `e2e-v1`. */
+    val sealsCapable: Boolean = false,
+    val updatedAtMs: Long = 0L,
+) {
+    /** The device as the shared trust rules see it (27 item DG). */
+    fun peer(): E2ePeer = E2ePeer(deviceId, kem, sealsCapable, updatedAtMs)
+}
 
 /** The user and password of a protected broadcast's record (6.3); never printed, never persisted. */
 class WearBroadcastCredentials(val user: String, val password: String) {
@@ -91,6 +102,8 @@ class WearExchangeDirectoryState private constructor(
         private const val KEY_DEVICE_NAME = "deviceName"
         private const val KEY_PRODUCT = "product"
         private const val KEY_PRESENCE = "presence"
+        private const val KEY_CAPABILITIES = "capabilities"
+        private const val KEY_UPDATED_AT = "updatedAt"
         private const val PRESENCE_ONLINE = "online"
         private const val KEY_BROADCAST_ID = "broadcastId"
         private const val KEY_TITLE = "title"
@@ -129,8 +142,14 @@ class WearExchangeDirectoryState private constructor(
                 name = record.text(KEY_DEVICE_NAME),
                 product = record.text(KEY_PRODUCT),
                 isOnline = record.text(KEY_PRESENCE) == PRESENCE_ONLINE,
+                kem = E2eDeviceKey.kemOf(record.get(E2eDeviceKey.KEY_E2E_KEY)),
+                sealsCapable = record.ids(KEY_CAPABILITIES).contains(E2eDeviceKey.CAPABILITY),
+                updatedAtMs = record.text(KEY_UPDATED_AT)?.let(::instantMs) ?: 0L,
             )
         }
+
+        private fun instantMs(text: String): Long? =
+            runCatching { Instant.parse(text).toEpochMilli() }.getOrNull()
 
         private fun broadcast(record: JsonObject): WearDirectoryBroadcast? {
             val id = record.text(KEY_BROADCAST_ID)

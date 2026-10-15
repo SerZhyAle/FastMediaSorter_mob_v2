@@ -39,6 +39,9 @@ class WearExchangeMessageTableConformanceTest {
         "`certificate-changed`" to "wear_exchange_reason_certificate_changed",
         "`server-offline`" to "wear_exchange_reason_server_offline",
         "`resource-locked`" to "wear_exchange_reason_resource_locked",
+        "`e2e-missing`" to "wear_exchange_reason_e2e_missing",
+        "`server-no-e2e`" to "wear_exchange_reason_server_no_e2e",
+        "`sealed-failed`" to "wear_exchange_reason_sealed_failed",
     )
 
     @Test
@@ -79,7 +82,11 @@ class WearExchangeMessageTableConformanceTest {
         val start = lines.indexOfFirst { it.startsWith("## 25.") }
         val end = lines.indexOfFirst { it.startsWith("## 26.") }
         assumeTrue("section 25 is not in the contract", start in 0 until end)
-        return lines.subList(start, end)
+        // Section 27 item DR adds rows to the same table.
+        val sealedStart = lines.indexOfFirst { it.startsWith("## 27.") }
+        val sealedEnd = lines.indexOfFirst { it.startsWith("## Document log") }
+        val sealed = if (sealedStart in 0 until sealedEnd) lines.subList(sealedStart, sealedEnd) else emptyList()
+        return lines.subList(start, end) + sealed
     }
 
     private fun resources(directory: String): Map<String, String> {

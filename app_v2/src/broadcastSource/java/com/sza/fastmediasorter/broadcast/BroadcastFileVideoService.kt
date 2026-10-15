@@ -21,6 +21,7 @@ import com.pedro.rtspserver.server.ServerClient
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.network.LanAddressResolver
 import com.sza.fastmediasorter.core.notification.NotificationIds
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
 import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeVideoRelayFeed
@@ -127,6 +128,7 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
 
     @Suppress("ReturnCount", "TooGenericExceptionCaught")
     private suspend fun openSession(uri: Uri) {
+        Timber.d("S4234: video file session opening uri=$uri")
         val config = readSessionConfig()
         if (!isStreaming.get()) return
         val tracks = probeTracks(uri)
@@ -171,29 +173,8 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
             server.startStream()
 
             val endpoint = publishableEndpoint(streamClient.getEndPointConnection(), lanHost)
-            val endpointDto = BroadcastEndpointDto(
-                url = endpoint,
-                transport = "RTSP",
-                mode = currentMode.name,
-                videoCodec = "h264",
-                audioCodec = if (currentMode != BroadcastMode.VIDEO_ONLY) "aac" else null,
-                sampleRate = if (currentMode != BroadcastMode.VIDEO_ONLY) config.sampleRateHz else null,
-                bitrate = config.videoBitrateBps,
-                isLive = true,
-                targetLatencyMs = 200L
-            )
-            val dto = BroadcastDescriptorDto(
-                schemaVersion = 1,
-                url = endpoint,
-                title = resolveDisplayName(uri) ?: config.streamTitle,
-                mode = currentMode.name,
-                sourceId = config.sourceDeviceId,
-                endpoints = listOf(endpointDto),
-                isLive = true,
-                targetLatencyMs = 200L
-            )
             _state.value = BroadcastState.Live(
-                descriptor = dto,
+                descriptor = liveDescriptor(endpoint, resolveDisplayName(uri), config),
                 startedAtElapsedRealtimeMs = SystemClock.elapsedRealtime(),
                 cameraEnabled = false,
                 microphoneEnabled = false,
@@ -202,6 +183,7 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
             )
             Timber.d("BroadcastFileVideoService: RTSP file streaming started at %s", endpoint)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "BroadcastFileVideoService: failed to start RTSP file server")
             if (isStreaming.getAndSet(false)) {
                 _state.value = BroadcastState.Failed(
@@ -216,7 +198,7 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
 
     /** The library reports the file played out on a decoder thread; the ending mirrors a natural stop. */
     private fun onFileDecoded() {
-        Timber.d("BroadcastFileVideoService: file decoded to the end")
+        Timber.d("S4234: video file decoded to its end, broadcast over")
         serviceScope.launch {
             if (isStreaming.getAndSet(false)) {
                 stopBroadcast()
@@ -248,6 +230,35 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
         checkNotNull(RtspEndpointAddress.onLanHost(libraryEndpoint, lanHost)) {
             "RTSP endpoint $libraryEndpoint cannot be published on $lanHost"
         }
+
+    /** The endpoint the file session is reached by - the same RTSP shape a camera session publishes. */
+    private fun liveDescriptor(
+        endpoint: String,
+        displayName: String?,
+        config: BroadcastSessionConfig,
+    ): BroadcastDescriptorDto {
+        val endpointDto = BroadcastEndpointDto(
+            url = endpoint,
+            transport = "RTSP",
+            mode = currentMode.name,
+            videoCodec = "h264",
+            audioCodec = if (currentMode != BroadcastMode.VIDEO_ONLY) "aac" else null,
+            sampleRate = if (currentMode != BroadcastMode.VIDEO_ONLY) config.sampleRateHz else null,
+            bitrate = config.videoBitrateBps,
+            isLive = true,
+            targetLatencyMs = 200L
+        )
+        return BroadcastDescriptorDto(
+            schemaVersion = 1,
+            url = endpoint,
+            title = displayName ?: config.streamTitle,
+            mode = currentMode.name,
+            sourceId = config.sourceDeviceId,
+            endpoints = listOf(endpointDto),
+            isLive = true,
+            targetLatencyMs = 200L
+        )
+    }
 
     /** The kinds of track the file carries, read before the mode and the SDP are decided. */
     @Suppress("TooGenericExceptionCaught")

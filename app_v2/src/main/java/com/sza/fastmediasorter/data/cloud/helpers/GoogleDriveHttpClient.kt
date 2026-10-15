@@ -63,17 +63,30 @@ class GoogleDriveHttpClient @Inject constructor(
                 }
                 
                 val responseCode = connection.responseCode
-                
+                val serverDateMs = connection.getHeaderFieldDate("Date", 0L).takeIf { it > 0L }
+
                 if (responseCode in 200..299) {
                     val data = if (method == "DELETE") {
                         "{}" // DELETE returns empty response
                     } else {
                         connection.inputStream.bufferedReader().use { it.readText() }
                     }
-                    ApiResponse(isSuccess = true, data = data, errorMessage = null, httpCode = responseCode)
+                    ApiResponse(
+                        isSuccess = true,
+                        data = data,
+                        errorMessage = null,
+                        httpCode = responseCode,
+                        serverDateMs = serverDateMs
+                    )
                 } else {
                     val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $responseCode"
-                    ApiResponse(isSuccess = false, data = null, errorMessage = error, httpCode = responseCode)
+                    ApiResponse(
+                        isSuccess = false,
+                        data = null,
+                        errorMessage = error,
+                        httpCode = responseCode,
+                        serverDateMs = serverDateMs
+                    )
                 }
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
@@ -218,7 +231,9 @@ class GoogleDriveHttpClient @Inject constructor(
         val isSuccess: Boolean,
         val data: String?,
         val errorMessage: String?,
-        val httpCode: Int? = null
+        val httpCode: Int? = null,
+        /** The response Date header - Drives clock, which S4231 judges packet expiry against. */
+        val serverDateMs: Long? = null
     )
 
     /**

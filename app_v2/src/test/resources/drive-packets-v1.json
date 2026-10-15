@@ -1,0 +1,369 @@
+{
+  "contract": "DEVICE-EXCHANGE",
+  "section": "24 items CN, CO, CP, CR",
+  "producer": "FastMediaSorter Android S4231",
+  "cases": [
+    {
+      "id": "v1-settings-as-shipped",
+      "expect": "read",
+      "fields": { "payloadKind": "SETTINGS", "schemaVersion": 1, "targetDeviceName": null, "status": "PENDING" },
+      "manifest": {
+        "packetId": "3f2b1c4d-0000-4a00-8000-0123456789ab",
+        "createdAtEpochMs": 1700000000000,
+        "senderDeviceName": "Pixel 8",
+        "targetDeviceName": null,
+        "payloadKind": "SETTINGS",
+        "fileNames": ["fms_settings.json"],
+        "totalSizeBytes": 2048,
+        "ttlDays": 7,
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "v1-media-files-targeted",
+      "expect": "read",
+      "fields": { "payloadKind": "MEDIA_FILES", "schemaVersion": 1, "targetDeviceName": "SM-G991B" },
+      "manifest": {
+        "packetId": "0b6a9a1e-1111-4b00-8000-0123456789ab",
+        "createdAtEpochMs": 1700000000000,
+        "senderDeviceName": "Pixel 8",
+        "targetDeviceName": "SM-G991B",
+        "payloadKind": "MEDIA_FILES",
+        "fileNames": ["clip.mp4", "cover.jpg"],
+        "totalSizeBytes": 4096,
+        "ttlDays": 7,
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "v1-absent-ttl-and-status",
+      "expect": "read",
+      "fields": { "ttlDays": 7, "status": "PENDING" },
+      "manifest": {
+        "packetId": "p1",
+        "createdAtEpochMs": 10,
+        "senderDeviceName": "Tablet",
+        "payloadKind": "SETTINGS",
+        "fileNames": ["fms_settings.json"],
+        "totalSizeBytes": 12
+      }
+    },
+    {
+      "id": "v1-claimed-by-the-shipped-phone",
+      "expect": "read",
+      "fields": { "status": "CLAIMED" },
+      "manifest": {
+        "packetId": "p2",
+        "createdAtEpochMs": 10,
+        "senderDeviceName": "Tablet",
+        "targetDeviceName": null,
+        "payloadKind": "MEDIA_FILES",
+        "fileNames": ["a.jpg"],
+        "totalSizeBytes": 1,
+        "status": "CLAIMED"
+      }
+    },
+    {
+      "id": "v1-unknown-member-ignored",
+      "expect": "read",
+      "fields": { "payloadKind": "MEDIA_FILES" },
+      "manifest": {
+        "packetId": "p3",
+        "createdAtEpochMs": 10,
+        "senderDeviceName": "Tablet",
+        "payloadKind": "MEDIA_FILES",
+        "fileNames": ["a.jpg"],
+        "totalSizeBytes": 1,
+        "someFutureMember": { "x": 1 }
+      }
+    },
+    {
+      "id": "v2-files-targeted",
+      "expect": "read",
+      "fields": { "payloadKind": "FILES", "schemaVersion": 2, "targetDeviceId": "dev-B_0123456789abcdef", "filesCount": 1 },
+      "manifest": {
+        "packetId": "Q2hhbm5lbFBhY2tldDAx",
+        "createdAtEpochMs": 1700000000000,
+        "senderDeviceName": "Pixel 8",
+        "targetDeviceName": "SM-G991B",
+        "payloadKind": "FILES",
+        "fileNames": ["holiday.mp4"],
+        "totalSizeBytes": 10485760,
+        "ttlDays": 7,
+        "status": "PENDING",
+        "schemaVersion": 2,
+        "senderDeviceId": "dev-A_0123456789abcdef",
+        "targetDeviceId": "dev-B_0123456789abcdef",
+        "files": [
+          { "name": "holiday.mp4", "size": 10485760, "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08", "mimeType": "video/mp4" }
+        ]
+      }
+    },
+    {
+      "id": "v2-files-untargeted",
+      "expect": "read",
+      "fields": { "payloadKind": "FILES", "targetDeviceId": null, "targetDeviceName": null },
+      "manifest": {
+        "packetId": "untargeted_01",
+        "createdAtEpochMs": 1700000000000,
+        "senderDeviceName": "Pixel 8",
+        "targetDeviceName": null,
+        "payloadKind": "FILES",
+        "fileNames": ["note.txt"],
+        "totalSizeBytes": 5,
+        "schemaVersion": 2,
+        "senderDeviceId": "dev-A_0123456789abcdef",
+        "files": [
+          { "name": "note.txt", "size": 5, "sha256": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824", "mimeType": "text/plain" }
+        ]
+      }
+    },
+    {
+      "id": "v2-clipboard-text",
+      "expect": "read",
+      "fields": { "payloadKind": "CLIPBOARD", "clipKind": "text" },
+      "manifest": {
+        "packetId": "clip_01",
+        "createdAtEpochMs": 1700000000000,
+        "senderDeviceName": "Pixel 8",
+        "targetDeviceName": null,
+        "payloadKind": "CLIPBOARD",
+        "fileNames": ["clipboard.txt"],
+        "totalSizeBytes": 5,
+        "schemaVersion": 2,
+        "senderDeviceId": "dev-A_0123456789abcdef",
+        "files": [
+          { "name": "clipboard.txt", "size": 5, "sha256": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824", "mimeType": "text/plain", "clipKind": "text" }
+        ]
+      }
+    },
+    {
+      "id": "v2-request-list",
+      "expect": "read",
+      "fields": { "payloadKind": "REQUEST", "action": "list", "ttlSeconds": 900 },
+      "manifest": {
+        "packetId": "req_list_01",
+        "createdAtEpochMs": 1700000000000,
+        "senderDeviceName": "SM-G991B",
+        "targetDeviceName": "Pixel 8",
+        "payloadKind": "REQUEST",
+        "fileNames": [],
+        "totalSizeBytes": 0,
+        "schemaVersion": 2,
+        "senderDeviceId": "dev-B_0123456789abcdef",
+        "targetDeviceId": "dev-A_0123456789abcdef",
+        "ttlSeconds": 900,
+        "request": { "action": "list", "resourceId": "res_0123456789abcdef", "path": "Camera/2026" }
+      }
+    },
+    {
+      "id": "v2-request-fetch",
+      "expect": "read",
+      "fields": { "payloadKind": "REQUEST", "action": "fetch", "pathsCount": 2 },
+      "manifest": {
+        "packetId": "req_fetch_01",
+        "createdAtEpochMs": 1700000000000,
+        "senderDeviceName": "SM-G991B",
+        "targetDeviceName": "Pixel 8",
+        "payloadKind": "REQUEST",
+        "fileNames": [],
+        "totalSizeBytes": 0,
+        "schemaVersion": 2,
+        "senderDeviceId": "dev-B_0123456789abcdef",
+        "targetDeviceId": "dev-A_0123456789abcdef",
+        "ttlSeconds": 900,
+        "request": { "action": "fetch", "resourceId": "res_0123456789abcdef", "paths": ["Camera/a.jpg", "Camera/b.jpg"] }
+      }
+    },
+    {
+      "id": "v2-request-changes",
+      "expect": "read",
+      "fields": { "payloadKind": "REQUEST", "action": "changes", "modifiedAfter": "2026-10-14T10:00:00Z" },
+      "manifest": {
+        "packetId": "req_changes_01",
+        "createdAtEpochMs": 1700000000000,
+        "senderDeviceName": "SM-G991B",
+        "targetDeviceName": "Pixel 8",
+        "payloadKind": "REQUEST",
+        "fileNames": [],
+        "totalSizeBytes": 0,
+        "schemaVersion": 2,
+        "senderDeviceId": "dev-B_0123456789abcdef",
+        "targetDeviceId": "dev-A_0123456789abcdef",
+        "ttlSeconds": 900,
+        "request": { "action": "changes", "resourceId": "res_0123456789abcdef", "path": "Camera", "modifiedAfter": "2026-10-14T10:00:00Z" }
+      }
+    },
+    {
+      "id": "v2-reply-listing-ok",
+      "expect": "read",
+      "fields": { "payloadKind": "REPLY", "outcome": "ok", "final": true, "inReplyTo": "req_list_01" },
+      "manifest": {
+        "packetId": "rep_list_01",
+        "createdAtEpochMs": 1700000000000,
+        "senderDeviceName": "Pixel 8",
+        "targetDeviceName": "SM-G991B",
+        "payloadKind": "REPLY",
+        "fileNames": ["listing.json"],
+        "totalSizeBytes": 120,
+        "schemaVersion": 2,
+        "senderDeviceId": "dev-A_0123456789abcdef",
+        "targetDeviceId": "dev-B_0123456789abcdef",
+        "inReplyTo": "req_list_01",
+        "ttlSeconds": 86400,
+        "outcome": "ok",
+        "final": true,
+        "asOf": "2026-10-15T08:00:00Z",
+        "files": [
+          { "name": "listing.json", "size": 120, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "mimeType": "application/json" }
+        ]
+      }
+    },
+    {
+      "id": "v2-reply-refused-pin-required",
+      "expect": "read",
+      "fields": { "payloadKind": "REPLY", "outcome": "refused", "reason": "pin-required" },
+      "manifest": {
+        "packetId": "rep_refused_01",
+        "createdAtEpochMs": 1700000000000,
+        "senderDeviceName": "Pixel 8",
+        "targetDeviceName": "SM-G991B",
+        "payloadKind": "REPLY",
+        "fileNames": [],
+        "totalSizeBytes": 0,
+        "schemaVersion": 2,
+        "senderDeviceId": "dev-A_0123456789abcdef",
+        "targetDeviceId": "dev-B_0123456789abcdef",
+        "inReplyTo": "req_list_01",
+        "ttlSeconds": 86400,
+        "outcome": "refused",
+        "reason": "pin-required",
+        "final": true
+      }
+    },
+    {
+      "id": "v2-reply-split-not-final",
+      "expect": "read",
+      "fields": { "payloadKind": "REPLY", "outcome": "ok", "final": false },
+      "manifest": {
+        "packetId": "rep_fetch_part1",
+        "createdAtEpochMs": 1700000000000,
+        "senderDeviceName": "Pixel 8",
+        "targetDeviceName": "SM-G991B",
+        "payloadKind": "REPLY",
+        "fileNames": ["a.jpg"],
+        "totalSizeBytes": 3,
+        "schemaVersion": 2,
+        "senderDeviceId": "dev-A_0123456789abcdef",
+        "targetDeviceId": "dev-B_0123456789abcdef",
+        "inReplyTo": "req_fetch_01",
+        "ttlSeconds": 86400,
+        "outcome": "ok",
+        "final": false,
+        "asOf": "2026-10-15T08:00:00Z",
+        "files": [
+          { "name": "a.jpg", "size": 3, "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", "mimeType": "image/jpeg" }
+        ]
+      }
+    },
+    {
+      "id": "skip-unknown-payload-kind",
+      "expect": "skip",
+      "manifest": {
+        "packetId": "p4",
+        "createdAtEpochMs": 10,
+        "senderDeviceName": "Phone",
+        "payloadKind": "HOLOGRAM",
+        "fileNames": [],
+        "totalSizeBytes": 0,
+        "schemaVersion": 2
+      }
+    },
+    {
+      "id": "skip-new-kind-without-schema-version",
+      "expect": "skip",
+      "manifest": {
+        "packetId": "p5",
+        "createdAtEpochMs": 10,
+        "senderDeviceName": "Phone",
+        "payloadKind": "FILES",
+        "fileNames": ["a.jpg"],
+        "totalSizeBytes": 1
+      }
+    },
+    {
+      "id": "skip-name-with-slash",
+      "expect": "skip",
+      "manifest": {
+        "packetId": "p6",
+        "createdAtEpochMs": 10,
+        "senderDeviceName": "Phone",
+        "payloadKind": "MEDIA_FILES",
+        "fileNames": ["../../etc/passwd"],
+        "totalSizeBytes": 1
+      }
+    },
+    {
+      "id": "skip-name-dot-dot",
+      "expect": "skip",
+      "manifest": {
+        "packetId": "p7",
+        "createdAtEpochMs": 10,
+        "senderDeviceName": "Phone",
+        "payloadKind": "MEDIA_FILES",
+        "fileNames": [".."],
+        "totalSizeBytes": 1
+      }
+    },
+    {
+      "id": "skip-name-manifest-json",
+      "expect": "skip",
+      "manifest": {
+        "packetId": "p8",
+        "createdAtEpochMs": 10,
+        "senderDeviceName": "Phone",
+        "payloadKind": "MEDIA_FILES",
+        "fileNames": ["manifest.json"],
+        "totalSizeBytes": 1
+      }
+    },
+    {
+      "id": "skip-name-with-backslash",
+      "expect": "skip",
+      "manifest": {
+        "packetId": "p9",
+        "createdAtEpochMs": 10,
+        "senderDeviceName": "Phone",
+        "payloadKind": "MEDIA_FILES",
+        "fileNames": ["dir\\a.jpg"],
+        "totalSizeBytes": 1
+      }
+    },
+    {
+      "id": "skip-unsafe-packet-id",
+      "expect": "skip",
+      "manifest": {
+        "packetId": "../escape",
+        "createdAtEpochMs": 10,
+        "senderDeviceName": "Phone",
+        "payloadKind": "MEDIA_FILES",
+        "fileNames": ["a.jpg"],
+        "totalSizeBytes": 1
+      }
+    },
+    {
+      "id": "skip-files-disagree-with-file-names",
+      "expect": "skip",
+      "manifest": {
+        "packetId": "p10",
+        "createdAtEpochMs": 10,
+        "senderDeviceName": "Phone",
+        "payloadKind": "FILES",
+        "fileNames": ["a.jpg"],
+        "totalSizeBytes": 1,
+        "schemaVersion": 2,
+        "files": [ { "name": "b.jpg", "size": 1, "mimeType": "image/jpeg" } ]
+      }
+    }
+  ]
+}

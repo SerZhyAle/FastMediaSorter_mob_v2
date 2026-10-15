@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.02 14:54</sub>
+<sub class="doc-stamp">26.10.15 10:00</sub>
 
 # Play Console Operator Checklist - S0135
 
@@ -111,6 +111,8 @@ whole list. Answer these before sending that build for review:
 - [ ] Data safety, Wear form factor: `Send logs to developer` (Settings - About) hands the watch log
       to the paired phone, which opens an email the user finishes and sends - declare it as
       user-initiated app diagnostics, like the phone's
+- [ ] Data safety, Wear form factor, exchange between devices: C6 - the directory rows and no account
+      creation; the sealed content is not declared
 - [ ] Still absent from the store build and not to be declared: health and body sensors, activity
       recognition, `USE_FULL_SCREEN_INTENT` (sideload-only automatic listening start)
 
@@ -190,6 +192,33 @@ and higher; the app is on targetSdk 36 today.
       `standard`, and record the verdict and its date
 - [ ] After every verdict or release, update `docs/PLAY_PUBLISHING_STATE.md`, marker
       `s4030:transcribed:contacts-declaration`, so the next release reads the current state
+
+## C6. Data safety and account deletion - exchange between devices (S4241)
+
+Source of truth: `store_assets/PLAY_DATA_SAFETY_EXCHANGE.md`. No Play Developer API endpoint; decide in the
+file, never in the console. Filled **per form factor**.
+
+- [ ] The deletion page of the media exchange portal (S4243) answers in EN, RU and UK, names the app and the
+      developer, shows the path prominently and works without the app. Do not open the form before it does
+- [ ] Phone form factor: directory data - User IDs, Device or other IDs, file and folder names - collected,
+      not shared, optional, App functionality, encrypted in transit; content not declared
+- [ ] Wear OS form factor: the same rows; account creation answered "no"; the deletion link is the same page
+- [ ] The deletion questions carry the in-app path (My devices, server card menu, Delete my account) and the
+      page address
+- [ ] The privacy policy at its published address carries "Exchange Between Your Devices" in EN, RU and UK
+      and the same retention statement as the page
+- [ ] Write the state and the date into `docs/PLAY_PUBLISHING_STATE.md` right after submitting
+
+## C7. Foreground service permissions declaration (S4241)
+
+Source of truth: `store_assets/PLAY_FGS_DECLARATIONS.md`. Pasted by hand, one video per type.
+
+- [ ] `camera` declared with the text of the file and the owner's video of a background camera broadcast
+      (S4235) - the owner's step
+- [ ] `mediaProjection` declared or its text extended with the phone-screen broadcast (S4233)
+- [ ] `microphone` and `mediaPlayback` texts edited to the versions of the file
+- [ ] `dataSync` left alone until S4263 is decided
+- [ ] The declaration state and its date written into `docs/PLAY_PUBLISHING_STATE.md`
 
 ## D. App Category
 

@@ -149,11 +149,15 @@ class BrowseLoadingAuxManager(
         // S1014: on a browse-scan connectivity failure of a companion/SFTP resource, show the companion's
         // access note (or the default access guidance) instead of a bare timeout - this is the surface the
         // user sees when opening a shared folder that cannot be reached on any address.
-        sendEvent(BrowseEvent.ShowError(
-            message = companionConnectGuidance(resource, e) ?: getFriendlyBrowseErrorMessage(e),
-            details = details,
-            exception = e
-        ))
+        val message = companionConnectGuidance(resource, e) ?: getFriendlyBrowseErrorMessage(e)
+        val exchangeResourceId = resource.exchangeResourceId
+        // S4231: a resource of another own device gets the last channel offered once every live path failed.
+        val event = if (exchangeResourceId != null) {
+            BrowseEvent.OfferDriveChannel(message, exchangeResourceId, resource.path, resource.name)
+        } else {
+            BrowseEvent.ShowError(message = message, details = details, exception = e)
+        }
+        sendEvent(event)
         onHandleError(e)
     }
 

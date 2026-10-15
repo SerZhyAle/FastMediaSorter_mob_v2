@@ -216,12 +216,14 @@ class SftpDataSource @Inject constructor(
         input: InputStream,
         network: Network? = null
     ): Result<String> = withContext(Dispatchers.IO) {
-        val route = endpointResolver.route(sourceIn, network)
         val token = WearRemoteFileNames.newToken()
         val partial = WearRemoteFileNames.joinRemote(directory, WearRemoteFileNames.partialName(token))
         var session: Session? = null
         var channel: ChannelSftp? = null
         try {
+            // S4230: routed inside the guard - an exchange folder with no way in raises its own exception here, and
+            // a store reports every refusal as a result, never as a throw for the writer to miss.
+            val route = endpointResolver.route(sourceIn, network)
             session = openSession(route, network)
             channel = openChannel(session)
             val finalName = freeNameIn(channel, directory, intendedName)

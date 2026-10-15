@@ -28,6 +28,11 @@ enum class WearExchangeMessage(val code: String) {
     SERVER_OFFLINE("server-offline"),
     RESOURCE_LOCKED("resource-locked"),
 
+    /** Three rows of 27 item DR: nothing sealed goes here, the server cannot carry it, or a box did not open. */
+    E2E_MISSING("e2e-missing"),
+    SERVER_NO_E2E("server-no-e2e"),
+    SEALED_FAILED("sealed-failed"),
+
     /** An unknown `refused.reason` (7.10): the generic refusal. */
     REFUSED("refused");
 

@@ -47,6 +47,9 @@ data class ExchangeListedResource(
     val paused: Boolean = false,
 ) {
 
+    /** Why access that came through the server is not usable here (27 item DR); null when nothing is wrong. */
+    val sealNotice: ExchangeMessage? get() = record.sealIssue?.message
+
     val access: ExchangeResourceAccess
         get() = when {
             record.proofRoot != null -> ExchangeResourceAccess.PIN_REQUIRED

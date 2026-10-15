@@ -1,19 +1,21 @@
 package com.sza.fastmediasorter.ui.settings.cloud
 
 import android.os.Bundle
-import android.text.format.DateUtils
+import android.text.format.Formatter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
+import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogCrossDevicePacketsBinding
-import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketManifest
 import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceTransferOption
+import com.sza.fastmediasorter.domain.transfer.DrivePollState
+import com.sza.fastmediasorter.ui.common.dialog.AppDialog
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -24,6 +26,9 @@ import dagger.hilt.android.AndroidEntryPoint
  *
  * A dialog rather than a settings section, like the neighbouring data-transfer surfaces: the list
  * only exists while a transfer is pending and has nothing to persist between visits.
+ *
+ * S4231: also the home of the Drive channel switches, this device's own sends still waiting, and the
+ * delete action for any packet (strategic 3.4).
  */
 @AndroidEntryPoint
 class CrossDevicePacketListDialogFragment : DialogFragment() {
@@ -33,15 +38,8 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
 
     private val viewModel: CrossDeviceTransferViewModel by viewModels()
 
-    private var shownPackets: List<CrossDevicePacketManifest> = emptyList()
-
-    // S3792: one adapter for the dialog's lifetime, rebuilt only when the packet list itself moves -
-    // a loading toggle or a notice used to reallocate the whole list mapping on every emission.
-    private var packetsAdapter: ArrayAdapter<String>? = null
-
-    // What the adapter currently holds, so state-only emissions (loading toggles, notices) skip the
-    // clear-and-refill and its full rebind.
-    private var renderedPackets: List<CrossDevicePacketManifest> = emptyList()
+    // S3792: one adapter for the dialog lifetime; DiffUtil rebinds only the rows that moved.
+    private var packetsAdapter: CrossDevicePacketAdapter? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,18 +55,37 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
         binding.btnCrossDevicePacketsClose.setOnClickListener { dismiss() }
         binding.btnCrossDeviceRemoveExpired.setOnClickListener { viewModel.removeExpiredPackets() }
         binding.btnCrossDeviceSendSettings.setOnClickListener { viewModel.sendSettings() }
-        binding.listCrossDevicePackets.setOnItemClickListener { _, _, position, _ ->
-            shownPackets.getOrNull(position)?.let(::askReceiveOption)
+        binding.rowDriveChannelEnabled.setOnCheckedChangeListener(viewModel::setChannelEnabled)
+        binding.rowDriveChannelBackground.setOnCheckedChangeListener(viewModel::setBackgroundPoll)
+        val adapter = CrossDevicePacketAdapter(requireContext()) { row ->
+            if (row.outgoing) askDelete(row) else askReceiveOption(row)
         }
-        packetsAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1)
-        binding.listCrossDevicePackets.adapter = packetsAdapter
+        packetsAdapter = adapter
+        binding.listCrossDevicePackets.layoutManager = LinearLayoutManager(requireContext())
+        binding.listCrossDevicePackets.adapter = adapter
         collectOnLifecycle(viewModel.state) { state -> render(state) }
+        collectOnLifecycle(viewModel.channelEnabled) { enabled ->
+            binding.rowDriveChannelEnabled.setCheckedSilently(enabled)
+            binding.rowDriveChannelBackground.isEnabled = enabled
+        }
+        collectOnLifecycle(viewModel.backgroundPoll) { binding.rowDriveChannelBackground.setCheckedSilently(it) }
+        collectOnLifecycle(viewModel.pollState, block = ::renderPollState)
         viewModel.refresh()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        viewModel.onVisible()
+    }
+
+    override fun onStop() {
+        viewModel.onHidden()
+        super.onStop()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // S3792: the ListView keeps its adapter through an observer registration, so the pair is
+        // S3792: the list keeps its adapter through an observer registration, so the pair is
         // detached with the view rather than carried into the next dialog instance.
         binding.listCrossDevicePackets.adapter = null
         packetsAdapter = null
@@ -76,16 +93,11 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
     }
 
     private fun render(state: CrossDeviceQueueUiState) {
-        shownPackets = state.packets
-        val adapter = packetsAdapter
-        if (adapter != null && state.packets != renderedPackets) {
-            renderedPackets = state.packets
-            adapter.clear()
-            adapter.addAll(state.packets.map(::describe))
-        }
-        binding.tvCrossDevicePacketsEmpty.visibility =
-            if (state.packets.isEmpty() && !state.loading) View.VISIBLE else View.GONE
-        binding.progressCrossDeviceSend.visibility = if (state.loading) View.VISIBLE else View.GONE
+        val rows = state.packets.map { CrossDevicePacketRow(it, outgoing = false) } +
+            state.outgoing.map { CrossDevicePacketRow(it, outgoing = true) }
+        packetsAdapter?.submitList(rows)
+        binding.tvCrossDevicePacketsEmpty.isVisible = rows.isEmpty() && !state.loading
+        binding.progressCrossDeviceSend.isVisible = state.loading
         binding.btnCrossDeviceSendSettings.isEnabled = !state.loading
         binding.btnCrossDeviceRemoveExpired.isEnabled = !state.loading
         state.notice?.let { notice ->
@@ -94,10 +106,15 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
         }
     }
 
-    private fun describe(manifest: CrossDevicePacketManifest): String {
-        val age = DateUtils.getRelativeTimeSpanString(manifest.createdAtEpochMs)
-        val files = manifest.fileNames.joinToString().ifEmpty { manifest.payloadKind.name }
-        return "${manifest.senderDeviceName} - $files ($age)"
+    private fun renderPollState(state: DrivePollState) {
+        val text = when (state) {
+            DrivePollState.SignInRequired -> getString(R.string.drive_channel_sign_in_required)
+            DrivePollState.DailyLimit -> getString(R.string.drive_channel_daily_limit)
+            is DrivePollState.BackingOff -> getString(R.string.drive_channel_backing_off)
+            DrivePollState.Off, is DrivePollState.Polling -> null
+        }
+        binding.tvDriveChannelStatus.isVisible = text != null
+        binding.tvDriveChannelStatus.text = text
     }
 
     private fun noticeText(notice: CrossDeviceQueueNotice): String = when (notice) {
@@ -107,33 +124,56 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
         CrossDeviceQueueNotice.SettingsSent -> getString(R.string.cross_device_transfer_sent)
         is CrossDeviceQueueNotice.ExpiredRemoved ->
             getString(R.string.cross_device_transfer_expired_removed, notice.removed)
+        CrossDeviceQueueNotice.ChannelOff -> getString(R.string.drive_channel_off_hint)
+        CrossDeviceQueueNotice.SignInRequired -> getString(R.string.drive_channel_sign_in_required)
+        CrossDeviceQueueNotice.DailyLimit -> getString(R.string.drive_channel_daily_limit)
+        is CrossDeviceQueueNotice.NotEnoughSpace -> getString(
+            R.string.drive_channel_not_enough_space,
+            Formatter.formatShortFileSize(requireContext(), notice.freeBytes ?: 0L)
+        )
+        is CrossDeviceQueueNotice.TooLarge -> getString(
+            R.string.drive_channel_too_large,
+            Formatter.formatShortFileSize(requireContext(), notice.limitBytes)
+        )
+        CrossDeviceQueueNotice.Deleted -> getString(R.string.drive_channel_deleted)
     }
 
     /**
-     * The two accept options are asked here rather than shown as two buttons per row.
+     * The accept options are asked here rather than shown as buttons per row.
      *
      * Deleting from the cloud is irreversible and the rows are as narrow as the shortest supported
      * screen, so the choice gets its own prompt where both consequences fit as full sentences.
      */
-    private fun askReceiveOption(manifest: CrossDevicePacketManifest) {
+    private fun askReceiveOption(row: CrossDevicePacketRow) {
         val options = arrayOf(
             getString(R.string.cross_device_transfer_receive_and_keep),
-            getString(R.string.cross_device_transfer_receive_and_delete)
+            getString(R.string.cross_device_transfer_receive_and_delete),
+            getString(R.string.drive_channel_delete_without_receiving)
         )
         val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle(describe(manifest))
+            .setTitle(packetsAdapter?.titleOf(row))
             .setItems(options) { _, which ->
-                val option = if (which == 0) {
-                    CrossDeviceTransferOption.ACCEPT
-                } else {
-                    CrossDeviceTransferOption.ACCEPT_AND_DELETE
+                when (which) {
+                    0 -> viewModel.receive(row.entry, CrossDeviceTransferOption.ACCEPT)
+                    1 -> viewModel.receive(row.entry, CrossDeviceTransferOption.ACCEPT_AND_DELETE)
+                    else -> askDelete(row)
                 }
-                viewModel.receive(manifest, option)
             }
             .setNegativeButton(R.string.cancel, null)
             .create()
         DialogKeyboardDelegate.applyTo(dialog) {}
         dialog.showBoundTo(this)
+    }
+
+    private fun askDelete(row: CrossDevicePacketRow) {
+        AppDialog.destructive(
+            owner = this,
+            context = requireContext(),
+            title = packetsAdapter?.titleOf(row).orEmpty(),
+            message = getString(R.string.drive_channel_delete_message),
+            confirmLabel = getString(R.string.drive_channel_delete),
+            onConfirm = { viewModel.delete(row.entry) }
+        )
     }
 
     companion object {

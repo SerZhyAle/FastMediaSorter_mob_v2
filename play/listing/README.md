@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.06 12:45</sub>
+<sub class="doc-stamp">26.10.15 10:03</sub>
 
 # Google Play listing source
 
@@ -17,6 +17,12 @@ policy judges a declared permission against what the app tells the user, so that
 in-app rationale string, the privacy policy and the Data safety form
 (`store_assets/PLAY_DATA_SAFETY_LOCATION.md`) are read as one set. It deliberately does not claim
 that no coordinate leaves the device - the map gadgets fetch map imagery over the network.
+
+Exchange between devices and live broadcasting have the same pairing (S4241): the Data safety answers and the
+account-deletion block are in `store_assets/PLAY_DATA_SAFETY_EXCHANGE.md`, the foreground-service texts
+(`camera`, `mediaProjection`, `microphone`, `mediaPlayback`) in `store_assets/PLAY_FGS_DECLARATIONS.md`. The
+description does not name live broadcast today; whether it should is the owner's call, and the declarations
+are judged against whatever it says.
 
 ## Why separate from fastlane
 

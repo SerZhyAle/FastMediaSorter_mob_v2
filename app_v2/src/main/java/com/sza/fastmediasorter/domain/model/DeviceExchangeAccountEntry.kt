@@ -46,6 +46,13 @@ data class DeviceExchangeAccountEntry(
     val takesPartInClipboard: Boolean
         get() = accountKind != ACCOUNT_KIND_GUEST && (features == null || FEATURE_CLIPBOARD in features)
 
+    /**
+     * The server keeps and delivers sealed content (27 item DP). Content goes through a server only when this holds;
+     * unknown counts as not, since sending in clear to a server that cannot carry a box is the one thing forbidden.
+     */
+    val serverSeals: Boolean
+        get() = features?.contains(FEATURE_SEALED) == true
+
     // DIAGNOSTIC-REPORT section 10: host, login and pin are private; the generated form would print all three.
     override fun toString(): String =
         "DeviceExchangeAccountEntry(host=$REDACTED, port=$port, login=$REDACTED, deviceId=$deviceId, " +
@@ -55,6 +62,7 @@ data class DeviceExchangeAccountEntry(
 
     companion object {
         const val FEATURE_CLIPBOARD = "clipboard"
+        const val FEATURE_SEALED = "sealed"
         const val ACCOUNT_KIND_MEMBER = "member"
         const val ACCOUNT_KIND_GUEST = "guest"
 

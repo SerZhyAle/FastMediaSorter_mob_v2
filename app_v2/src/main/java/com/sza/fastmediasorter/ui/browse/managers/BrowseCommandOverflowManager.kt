@@ -46,6 +46,19 @@ class BrowseCommandOverflowManager(
 
     private var recomputing = false
 
+    private var released = false
+
+    // A named runnable so release() can pull it back out of the message queue: View.post survives
+    // Activity.onDestroy while the layout is still attached, and its callback reaches into the
+    // Activity binding that BaseActivity nulls on destroy (S4251).
+    private val partitionRunnable = Runnable {
+        try {
+            if (!released) applyPartition()
+        } finally {
+            recomputing = false
+        }
+    }
+
     fun isOverflowed(viewId: Int): Boolean = viewId in overflowedIds
 
     /**
@@ -58,15 +71,19 @@ class BrowseCommandOverflowManager(
 
     /** Recompute the visible/overflow partition after layout settles. */
     fun recompute() {
-        if (recomputing) return
+        if (released || recomputing) return
         recomputing = true
-        binding.layoutControls.post {
-            try {
-                applyPartition()
-            } finally {
-                recomputing = false
-            }
-        }
+        binding.layoutControls.post(partitionRunnable)
+    }
+
+    /**
+     * Detach from the host Activity: drops the pending partition pass and the focus-chain hook so
+     * nothing posted earlier can run against a destroyed Activity. Call before `super.onDestroy()`.
+     */
+    fun release() {
+        released = true
+        onOverflowChanged = null
+        binding.layoutControls.removeCallbacks(partitionRunnable)
     }
 
     private fun applyPartition() {

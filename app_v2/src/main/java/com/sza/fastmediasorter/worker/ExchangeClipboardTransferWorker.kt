@@ -314,6 +314,7 @@ class ExchangeClipboardTransferWorker @AssistedInject constructor(
         Cause.Guest -> ExchangeMessageText.twoParts(context, ExchangeMessage.NOT_PERMITTED)
         Cause.Unreachable -> ExchangeMessageText.twoParts(context, ExchangeMessage.UNREACHABLE_SERVER)
         Cause.Broken -> context.getString(R.string.exchange_clipboard_broken)
+        is Cause.Sealing -> ExchangeMessageText.twoParts(context, cause.message)
     }
 
     private fun storedAtText(instant: Instant?, raw: String): String =

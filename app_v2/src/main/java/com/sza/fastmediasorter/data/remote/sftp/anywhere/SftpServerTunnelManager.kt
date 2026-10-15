@@ -3,11 +3,16 @@ package com.sza.fastmediasorter.data.remote.sftp.anywhere
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeChanged
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectory
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectoryState
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeNotEnrolledException
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeRefusedException
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeSession
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeBroadcastPublication
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeGrantAudiences
+import com.sza.fastmediasorter.data.security.e2e.E2eRecipient
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.SftpRendezvousResource
 import com.sza.fastmediasorter.domain.model.SftpTunnelState
@@ -25,6 +30,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.Closeable
@@ -129,7 +136,9 @@ class SftpServerTunnelManager @Inject constructor(
     // The server keeps a grant's `access` in memory only while this device is online, as it keeps `access` (7.9).
     private suspend fun sendGrants(control: LiveControl) {
         val target = share ?: return
-        source.grantEnvelopes(target.localPort, target.hosts).forEach { sendQuietly(control.session, it) }
+        val entry = control.entry ?: return
+        val sealing = ExchangeGrantSealing(entry, control.serverSeals, control.grantAudience)
+        source.grantEnvelopes(target.localPort, target.hosts, sealing).forEach { sendQuietly(control.session, it) }
     }
 
     /** Stops publishing the share; a live broadcast keeps the control stream and only the share leaves it. */
@@ -167,7 +176,8 @@ class SftpServerTunnelManager @Inject constructor(
         broadcast = publication
         val control = live.get()
         when {
-            control != null -> appScope.launch(ioDispatcher) { announce(control, publication) }
+            control != null ->
+                appScope.launch(ioDispatcher) { announce(control, sealedPublication(control, publication)) }
             job?.isActive != true -> job = appScope.launch(ioDispatcher) { run() }
         }
     }
@@ -292,18 +302,27 @@ class SftpServerTunnelManager @Inject constructor(
         val keepalive = tunnels.launch(ioDispatcher) { keepalive(session, intervalMs, lastHeard) }
         var outcome = SessionOutcome(wasWelcomed = true)
         try {
+            source.rememberWelcome(entry, session.welcome)
+            control.serverSeals = session.welcome.features?.contains(DeviceExchangeAccountEntry.FEATURE_SEALED) == true
+            control.record = record
+            control.entry = entry
             mutableGranted.value = emptySet()
             record?.let {
-                session.send(publishEnvelope(it))
+                session.send(publishEnvelope(source.sealedRecord(entry, it, control.serverSeals, null).record))
                 control.resourceId = it.resourceId
                 sendGrants(control)
             }
             live.set(control)
-            broadcast?.let { announce(control, it) }
+            // 27 item DI: the box follows the account's devices, so the stream watches them like a directory surface.
+            if (control.serverSeals) {
+                sendQuietly(session, LIST)
+                sendQuietly(session, SUBSCRIBE)
+            }
+            broadcast?.let { announce(control, sealedPublication(control, it)) }
             var envelope = session.receive()
             while (envelope != null) {
                 lastHeard.touch()
-                val refused = handle(tunnels, envelope, entry, sharePort)
+                val refused = handle(tunnels, control, envelope, entry, sharePort)
                 if (refused != null) outcome = refused.copy(wasWelcomed = true)
                 envelope = if (refused == null) session.receive() else null
             }
@@ -318,6 +337,7 @@ class SftpServerTunnelManager @Inject constructor(
     /** Acts on one control-stream envelope; a non-null outcome ends the session. */
     private fun handle(
         tunnels: CoroutineScope,
+        control: LiveControl,
         envelope: DeviceExchangeEnvelope,
         entry: DeviceExchangeAccountEntry,
         sharePort: Int?,
@@ -329,7 +349,11 @@ class SftpServerTunnelManager @Inject constructor(
             DeviceExchangeEnvelope.TYPE_GRANTED -> envelope.string(DeviceExchangeEnvelope.KEY_GRANT_ID)?.let { id ->
                 mutableGranted.value = mutableGranted.value + id
             }
-            in FORWARDED_TYPES -> mutableControlEvents.tryEmit(envelope)
+            DeviceExchangeEnvelope.TYPE_CHANGED -> follow(tunnels, control, entry, envelope)
+            in FORWARDED_TYPES -> {
+                mutableControlEvents.tryEmit(envelope)
+                if (envelope.type == DeviceExchangeEnvelope.TYPE_DIRECTORY) follow(tunnels, control, entry, envelope)
+            }
             DeviceExchangeEnvelope.TYPE_OPEN -> envelope.string(DeviceExchangeAccountClient.KEY_TUNNEL_ID)?.let { id ->
                 val port = tunnelPort(envelope, sharePort)
                 if (port == null) {
@@ -340,6 +364,83 @@ class SftpServerTunnelManager @Inject constructor(
             }
         }
         return null
+    }
+
+    // A directory replaces the held list; a changed is applied in revision order, and a skipped revision asks
+    // for the whole list again, as every subscribed client does (7.4).
+    // Applied on the reading thread, so pushes keep their order; only the sealing and the write are launched.
+    private fun follow(
+        tunnels: CoroutineScope,
+        control: LiveControl,
+        entry: DeviceExchangeAccountEntry,
+        envelope: DeviceExchangeEnvelope,
+    ) {
+        val held = control.directory
+        val heldAudience = control.grantAudience
+        ExchangeGrantAudiences.of(envelope.members)?.let { control.grantAudience = it }
+        control.directory = when {
+            envelope.type == DeviceExchangeEnvelope.TYPE_DIRECTORY ->
+                DeviceExchangeDirectoryState.of(DeviceExchangeDirectory.from(envelope))
+            held == null -> null
+            else -> when (val outcome = held.apply(DeviceExchangeChanged.from(envelope))) {
+                is DeviceExchangeDirectoryState.Outcome.Applied -> outcome.state
+                DeviceExchangeDirectoryState.Outcome.Gap -> held.also { sendQuietly(control.session, LIST) }
+                DeviceExchangeDirectoryState.Outcome.Stale -> held
+            }
+        }
+        if (control.directory !== held || control.grantAudience !== heldAudience) {
+            tunnels.launch(ioDispatcher) { control.directoryLock.withLock { reseal(control, entry) } }
+        }
+    }
+
+    // Item DI: the producer publishes again whenever its set of recipients changes, so a device added later opens
+    // the folder while this one is online, and a removed one is no longer in the next box.
+    // Item DK: a broadcast is announced with its box for the account's devices as the stream knows them now; the
+    // record goes out unsealed only while the directory has not arrived, and a later reseal sends the box.
+    private suspend fun sealedPublication(
+        control: LiveControl,
+        publication: ExchangeBroadcastPublication,
+    ): ExchangeBroadcastPublication {
+        val devices = control.directory?.directory?.devices
+        val entry = control.entry
+        return if (devices == null || entry == null || !control.serverSeals) {
+            publication
+        } else {
+            val sealed = source.sealedBroadcast(entry, publication.record, devices)
+            control.broadcastKey = sealed.recipientsKey
+            publication.copy(record = sealed.record)
+        }
+    }
+
+    private suspend fun reseal(control: LiveControl, entry: DeviceExchangeAccountEntry) {
+        resealBroadcast(control, entry)
+        val devices = control.directory?.directory?.devices
+        val record = control.record
+        if (devices == null || record == null) return
+        val sealed = source.sealedRecord(entry, record, control.serverSeals, devices)
+        if (sealed.recipientsKey != control.recipientsKey) {
+            control.recipientsKey = sealed.recipientsKey
+            if (control.resourceId != null) sendQuietly(control.session, publishEnvelope(sealed.record))
+        }
+        // Item DJ: a grant is sent again with the same grantId and a new box when its guest's devices change.
+        val grantKey = control.grantAudience?.let(ExchangeGrantAudiences::keyOf)
+        if (grantKey != control.grantKey) {
+            control.grantKey = grantKey
+            if (control.resourceId != null) sendGrants(control)
+        }
+    }
+
+    // Item DK: the broadcaster sends `broadcast-update` with a new box whenever its set of recipients changes.
+    private suspend fun resealBroadcast(control: LiveControl, entry: DeviceExchangeAccountEntry) {
+        val publication = broadcast
+        val devices = control.directory?.directory?.devices
+        if (publication != null && devices != null && control.serverSeals) {
+            val sealed = source.sealedBroadcast(entry, publication.record, devices)
+            if (sealed.recipientsKey != control.broadcastKey) {
+                control.broadcastKey = sealed.recipientsKey
+                announce(control, publication.copy(record = sealed.record))
+            }
+        }
     }
 
     // An open names a broadcast by its id and scheme (7.5); without one it is for the share.
@@ -486,6 +587,37 @@ class SftpServerTunnelManager @Inject constructor(
         @Volatile
         var resourceId: String? = null
 
+        /** The share's record in clear, sealed again for every new set of recipients (27 item DI). */
+        @Volatile
+        var record: SftpRendezvousResource? = null
+
+        /** The server listed sealed in this stream's welcome (27 item DP). */
+        @Volatile
+        var serverSeals: Boolean = false
+
+        val directoryLock = Mutex()
+
+        @Volatile
+        var directory: DeviceExchangeDirectoryState? = null
+
+        /** The recipients the last published box was addressed to; null before the first directory. */
+        @Volatile
+        var recipientsKey: String? = null
+
+        @Volatile
+        var entry: DeviceExchangeAccountEntry? = null
+
+        /** The guest devices of every grant, from the member's `directory` (27 item DJ); null until it arrives. */
+        @Volatile
+        var grantAudience: Map<String, List<E2eRecipient>>? = null
+
+        @Volatile
+        var grantKey: String? = null
+
+        /** Who the announced broadcast's box went to, with which own group key (27 item DK). */
+        @Volatile
+        var broadcastKey: String? = null
+
         @Volatile
         var broadcastId: String? = null
     }
@@ -529,6 +661,8 @@ class SftpServerTunnelManager @Inject constructor(
             DeviceExchangeEnvelope.TYPE_CAST_STOP,
         )
         val KEEPALIVE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_KEEPALIVE)
+        val LIST = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_LIST)
+        val SUBSCRIBE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_SUBSCRIBE)
         val BYE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_BYE)
         val PERMANENT_REFUSALS = setOf(
             DeviceExchangeEnvelope.REASON_BAD_CREDENTIALS,

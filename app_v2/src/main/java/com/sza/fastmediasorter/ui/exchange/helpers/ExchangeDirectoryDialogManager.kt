@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogExchangeDirectoryBinding
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.exchange.ExchangeDirectoryState
 import com.sza.fastmediasorter.ui.exchange.ExchangeDirectoryViewModel
 import com.sza.fastmediasorter.ui.exchange.MyDevicesActivity
@@ -42,6 +43,9 @@ class ExchangeDirectoryDialogManager(
         val view = DialogExchangeDirectoryBinding.inflate(LayoutInflater.from(activity))
         view.rvExchangeDirectory.layoutManager = LinearLayoutManager(activity)
         view.btnExchangeDirectoryMyDevices.setOnClickListener { MyDevicesActivity.start(activity) }
+        view.btnExchangePortalDirectory.setOnClickListener {
+            MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.EXCHANGE_SERVER)
+        }
         binding = view
         dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.add_resource_my_devices)
@@ -73,8 +77,12 @@ class ExchangeDirectoryDialogManager(
         }
         view.textExchangeDirectoryStatus.isVisible = status != null
         status?.let(view.textExchangeDirectoryStatus::setText)
-        view.rvExchangeDirectory.adapter =
-            ExchangeDirectoryAdapter(loaded?.rows.orEmpty(), viewModel::toggle, viewModel::askPin)
+        view.rvExchangeDirectory.adapter = ExchangeDirectoryAdapter(
+            rows = loaded?.rows.orEmpty(),
+            onToggle = viewModel::toggle,
+            onPinNeeded = viewModel::askPin,
+            driveChannelOn = viewModel.driveChannelOn.value
+        )
         val canAttach = loaded?.anyAttachable == true
         dialog?.getButton(DialogInterface.BUTTON_POSITIVE)?.isEnabled = canAttach
         dialog?.getButton(DialogInterface.BUTTON_NEUTRAL)?.isEnabled = canAttach

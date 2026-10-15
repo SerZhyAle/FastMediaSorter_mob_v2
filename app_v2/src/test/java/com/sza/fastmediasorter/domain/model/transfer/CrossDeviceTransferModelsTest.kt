@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.domain.model.transfer
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -10,7 +9,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * S3040: manifest roundtrip, defaults and TTL expiry.
+ * S3040: manifest roundtrip and defaults; expiry moved to Drive time in CrossDevicePacketExpiryTest (S4231).
  *
  * Robolectric supplies the real org.json implementation (S0223 pattern) - the manifest codec is
  * built on `JSONObject`, which the stubbed framework jar would refuse.
@@ -65,16 +64,6 @@ class CrossDeviceTransferModelsTest {
         assertEquals(CrossDevicePacketManifest.DEFAULT_TTL_DAYS, parsed?.ttlDays)
         assertEquals(CrossDevicePacketStatus.PENDING, parsed?.status)
         assertNull("a broadcast packet names no target", parsed?.targetDeviceName)
-    }
-
-    @Test
-    fun `a packet expires only past its ttl`() {
-        val dayMs = 24L * 60L * 60L * 1000L
-        val sixDaysLater = sample.createdAtEpochMs + 6 * dayMs
-        val eightDaysLater = sample.createdAtEpochMs + 8 * dayMs
-
-        assertFalse(sample.isExpiredAt(sixDaysLater))
-        assertTrue(sample.isExpiredAt(eightDaysLater))
     }
 
     @Test

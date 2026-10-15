@@ -393,6 +393,11 @@
   ],
   "excluded": [
     {
+      "screen": "WearAccountFoldersScreen",
+      "reason": "needs-seeded-content",
+      "note": "S4228: reached from the Account folders action of an exchange entry in WearExchangeServersScreen, so it needs an entry the clean sweep watch never holds, and its rows need a folder shared on the same account. It is judged by the ticket's device test."
+    },
+    {
       "screen": "WearAccountBroadcastsScreen",
       "reason": "needs-seeded-content",
       "note": "S4229: reached from the Broadcasts chip that WearExchangeServersScreen draws only when the watch holds an exchange entry, and its rows need a broadcasting device on the same account. The sweep's clean watch holds neither, so the page has no route and no static marker; it is judged by the ticket's device test."

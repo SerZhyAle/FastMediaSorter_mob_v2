@@ -3,6 +3,13 @@ package com.sza.fastmediasorter.wear.data.exchange
 import android.net.Network
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.sza.fastmediasorter.data.security.e2e.E2eClipboard
+import com.sza.fastmediasorter.data.security.e2e.E2eDeviceKey
+import com.sza.fastmediasorter.data.security.e2e.E2eOpenResult
+import com.sza.fastmediasorter.data.security.e2e.E2eRecipient
+import com.sza.fastmediasorter.data.security.e2e.E2eSealedBox
+import com.sza.fastmediasorter.data.security.e2e.E2eSegmentStream
+import com.sza.fastmediasorter.data.security.e2e.E2eSelf
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardFailure
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardKind
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardOffer
@@ -24,7 +31,10 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
-/** S4227: the clipboard wire of contract DEVICE-EXCHANGE 22 against a fake server on loopback, plain frames. */
+/**
+ * S4227: the clipboard wire of contract DEVICE-EXCHANGE 22, sealed by 27 item DN, against a fake server on
+ * loopback, plain frames.
+ */
 class WearServerClipboardClientTest {
 
     private val server = ServerSocket(0)
@@ -39,8 +49,12 @@ class WearServerClipboardClientTest {
     }
     private val entry = WearExchangeEntry("127.0.0.1", server.localPort, "owner", DEVICE_ID, null)
     private val store = TokenStore(entry.identity)
+    private val watch = E2eSelf(DEVICE_ID, E2eDeviceKey.generate())
+    private val phone = E2eSelf(PHONE_ID, E2eDeviceKey.generate())
+    private val keys = FakeWearExchangeE2eStore().apply { keys[DEVICE_ID] = watch.key }
     private val client = WearServerClipboardClient(
-        WearExchangeSessionOpener(connector, store, WearExchangeDeviceProfile("Watch", "2.6.0"))
+        WearExchangeSessionOpener(connector, store, WearExchangeDeviceProfile("Watch", "2.6.0")),
+        WearExchangeE2e(keys),
     )
     private val content = "a picture of a cat".toByteArray()
     private val offer = WearServerClipboardOffer(
@@ -56,21 +70,31 @@ class WearServerClipboardClientTest {
     }
 
     @Test
-    fun `a put stores exactly the declared bytes`() {
-        val received = ArrayBlockingQueue<ByteArray>(1)
+    fun `a put seals the value for the account's phone`() {
+        val received = ArrayBlockingQueue<Pair<WearExchangeEnvelope, ByteArray>>(1)
         serve { socket ->
-            val put = read(socket)
-            assertEquals("image", put?.string("kind"))
+            val put = checkNotNull(read(socket))
             write(socket, WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_CLIPBOARD_READY))
-            val bytes = ByteArray(content.size).also { DataInputStream(socket.getInputStream()).readFully(it) }
-            received.offer(bytes)
+            val size = checkNotNull(put.long("size")).toInt()
+            received.offer(put to ByteArray(size).also { DataInputStream(socket.getInputStream()).readFully(it) })
             write(socket, WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_CLIPBOARD_STORED))
         }
 
-        val result = runBlocking { client.put(entry, offer, ByteArrayInputStream(content), null) {} }
+        val result = runBlocking { client.put(entry, offer, sha256Of(content), ByteArrayInputStream(content), null) {} }
 
         assertEquals(WearServerClipboardPut.Stored, result)
-        assertArrayEquals(content, received.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+        val (put, bytes) = checkNotNull(received.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+        assertEquals("sealed", put.string("kind"))
+        assertNull(put.string("mimeType"))
+        val trustsWatch = { from: String, key: ByteArray ->
+            from == DEVICE_ID && key.contentEquals(watch.key.publicKey)
+        }
+        val opened = E2eSealedBox.open(put.members.get("sealed"), E2eSealedBox.CLIPBOARD_CONTEXT, phone, trustsWatch)
+            as E2eOpenResult.Opened
+        assertEquals("image/png", opened.payload.get("mimeType").asString)
+        val clear = ByteArrayOutputStream()
+        E2eSegmentStream.open(bytes.inputStream(), clear, E2eSegmentStream.valueKey(opened.contentKey))
+        assertArrayEquals(content, clear.toByteArray())
     }
 
     @Test
@@ -82,7 +106,7 @@ class WearServerClipboardClientTest {
             afterRefusal.offer(socket.getInputStream().read())
         }
 
-        val result = runBlocking { client.put(entry, offer, ByteArrayInputStream(content), null) {} }
+        val result = runBlocking { client.put(entry, offer, sha256Of(content), ByteArrayInputStream(content), null) {} }
 
         assertEquals(WearServerClipboardPut.Failed(WearServerClipboardFailure.LIMIT_REACHED), result)
         assertEquals(-1, afterRefusal.poll(WAIT_SECONDS, TimeUnit.SECONDS))
@@ -93,7 +117,7 @@ class WearServerClipboardClientTest {
         val asked = ArrayBlockingQueue<String>(1)
         serve(accountKind = "guest") { socket -> asked.offer(read(socket)?.type ?: "closed") }
 
-        val result = runBlocking { client.put(entry, offer, ByteArrayInputStream(content), null) {} }
+        val result = runBlocking { client.put(entry, offer, sha256Of(content), ByteArrayInputStream(content), null) {} }
 
         assertEquals(WearServerClipboardPut.Failed(WearServerClipboardFailure.NOT_PERMITTED), result)
         assertEquals("closed", asked.poll(WAIT_SECONDS, TimeUnit.SECONDS))
@@ -104,18 +128,30 @@ class WearServerClipboardClientTest {
         val asked = ArrayBlockingQueue<String>(1)
         serve(features = emptyList()) { socket -> asked.offer(read(socket)?.type ?: "closed") }
 
-        val result = runBlocking { client.put(entry, offer, ByteArrayInputStream(content), null) {} }
+        val result = runBlocking { client.put(entry, offer, sha256Of(content), ByteArrayInputStream(content), null) {} }
 
         assertEquals(WearServerClipboardPut.Failed(WearServerClipboardFailure.NO_CLIPBOARD_FEATURE), result)
         assertEquals("closed", asked.poll(WAIT_SECONDS, TimeUnit.SECONDS))
     }
 
     @Test
-    fun `a get whose bytes match is received whole`() {
+    fun `a server without sealed is sent nothing`() {
+        val asked = ArrayBlockingQueue<String>(1)
+        serve(features = listOf("clipboard")) { socket -> asked.offer(read(socket)?.type ?: "closed") }
+
+        val result = runBlocking { client.put(entry, offer, sha256Of(content), ByteArrayInputStream(content), null) {} }
+
+        assertEquals(WearServerClipboardPut.Failed(WearServerClipboardFailure.NO_SEALED_FEATURE), result)
+        assertEquals("closed", asked.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+    }
+
+    @Test
+    fun `a get opens a sealed value whole`() {
+        val value = sealedValue(content)
         serve { socket ->
             read(socket)
-            write(socket, valueEnvelope(WearExchangeEnvelope.TYPE_CLIPBOARD_VALUE, sha256Of(content)))
-            socket.getOutputStream().write(content)
+            write(socket, WearExchangeEnvelope(WearExchangeEnvelope.TYPE_CLIPBOARD_VALUE, value.first))
+            socket.getOutputStream().write(value.second)
             socket.getOutputStream().flush()
         }
         val sink = ByteArrayOutputStream()
@@ -127,32 +163,32 @@ class WearServerClipboardClientTest {
     }
 
     @Test
-    fun `a get with a wrong hash is never received`() {
+    fun `a get whose segment was changed is never received`() {
+        val value = sealedValue(content)
+        value.second[0] = (value.second[0].toInt() xor 1).toByte()
+        value.first.addProperty("sha256", sha256Of(value.second))
         serve { socket ->
             read(socket)
-            write(socket, valueEnvelope(WearExchangeEnvelope.TYPE_CLIPBOARD_VALUE, sha256Of("other".toByteArray())))
-            socket.getOutputStream().write(content)
+            write(socket, WearExchangeEnvelope(WearExchangeEnvelope.TYPE_CLIPBOARD_VALUE, value.first))
+            socket.getOutputStream().write(value.second)
             socket.getOutputStream().flush()
         }
 
         val result = runBlocking { client.get(entry, null, null, { ByteArrayOutputStream() }) {} }
 
-        assertEquals(WearServerClipboardGet.Failed(WearServerClipboardFailure.HASH_MISMATCH), result)
+        assertEquals(WearServerClipboardGet.Failed(WearServerClipboardFailure.SEALED_FAILED), result)
     }
 
     @Test
-    fun `a get that ends early is a broken transfer`() {
+    fun `a clear value is never received`() {
         serve { socket ->
             read(socket)
-            write(socket, valueEnvelope(WearExchangeEnvelope.TYPE_CLIPBOARD_VALUE, sha256Of(content)))
-            socket.getOutputStream().write(content, 0, content.size / 2)
-            socket.getOutputStream().flush()
-            socket.shutdownOutput()
+            write(socket, WearExchangeEnvelope(WearExchangeEnvelope.TYPE_CLIPBOARD_VALUE, clearMembers()))
         }
 
         val result = runBlocking { client.get(entry, null, null, { ByteArrayOutputStream() }) {} }
 
-        assertEquals(WearServerClipboardGet.Failed(WearServerClipboardFailure.TRANSFER_BROKEN), result)
+        assertEquals(WearServerClipboardGet.Failed(WearServerClipboardFailure.E2E_MISSING), result)
     }
 
     @Test
@@ -168,13 +204,12 @@ class WearServerClipboardClientTest {
     }
 
     @Test
-    fun `info returns the state value and an empty state`() {
+    fun `info opens the state value and reads an empty state`() {
+        val value = sealedValue(content)
         serve { socket ->
             read(socket)
             write(socket, WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_KEEPALIVE))
-            val state = WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_CLIPBOARD_STATE) {
-                add("value", valueEnvelope(WearExchangeEnvelope.TYPE_CLIPBOARD_STATE, sha256Of(content)).members)
-            }
+            val state = WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_CLIPBOARD_STATE) { add("value", value.first) }
             write(socket, state)
             read(socket)
         }
@@ -193,8 +228,52 @@ class WearServerClipboardClientTest {
         assertNull((runBlocking { client.info(entry, null) } as WearServerClipboardInfo.Answered).value)
     }
 
+    // What the phone put: the box over the clear members and the segments, the server's members outside.
+    private fun sealedValue(clear: ByteArray): Pair<JsonObject, ByteArray> {
+        val payload = E2eClipboard.payload("image", "image/png", null, clear.size.toLong(), sha256Of(clear))
+        val to = listOf(E2eRecipient(DEVICE_ID, watch.key.publicKey))
+        val (box, contentKey) = E2eSealedBox.sealWithKey(payload, E2eSealedBox.CLIPBOARD_CONTEXT, phone, to)
+        val sealed = ByteArrayOutputStream().also {
+            E2eSegmentStream.seal(clear.inputStream(), it, E2eSegmentStream.valueKey(contentKey))
+        }.toByteArray()
+        val members = JsonObject().apply {
+            addProperty("clipId", "Y2xpcGJvYXJkY2xpcGlk")
+            addProperty("kind", "sealed")
+            addProperty("size", sealed.size)
+            addProperty("sha256", sha256Of(sealed))
+            addProperty("storedAt", "2026-10-14T20:00:00Z")
+            addProperty("sourceDeviceId", PHONE_ID)
+            addProperty("sourceDeviceName", "Phone")
+            add("sealed", box)
+        }
+        return members to sealed
+    }
+
+    private fun clearMembers() = JsonObject().apply {
+        addProperty("clipId", "Y2xpcGJvYXJkY2xpcGlk")
+        addProperty("kind", "image")
+        addProperty("size", content.size)
+        addProperty("sha256", sha256Of(content))
+        addProperty("storedAt", "2026-10-14T20:00:00Z")
+        addProperty("mimeType", "image/png")
+    }
+
+    private fun directory() = WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_DIRECTORY) {
+        addProperty("revision", 1)
+        val device = JsonObject().apply {
+            addProperty("deviceId", PHONE_ID)
+            addProperty("deviceName", "Phone")
+            addProperty("product", "fms-android")
+            addProperty("presence", "online")
+            add("capabilities", JsonArray().apply { add("e2e-v1") })
+            add("e2eKey", phone.key.toWire())
+        }
+        add("devices", JsonArray().apply { add(device) })
+    }
+
+    // Answers `hello` with a welcome and the client's `list` with the account's phone, then runs [script].
     private fun serve(
-        features: List<String> = listOf("clipboard"),
+        features: List<String> = listOf("clipboard", "sealed"),
         accountKind: String = "member",
         script: (Socket) -> Unit,
     ) {
@@ -208,6 +287,11 @@ class WearServerClipboardClientTest {
                         addProperty("accountKind", accountKind)
                     }
                 )
+                val sealedServer = "sealed" in features && "clipboard" in features && accountKind != "guest"
+                if (sealedServer) {
+                    read(socket)
+                    write(socket, directory())
+                }
                 script(socket)
             }
         }
@@ -225,20 +309,6 @@ class WearServerClipboardClientTest {
     private fun refused(reason: String) =
         WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_REFUSED) { addProperty("reason", reason) }
 
-    private fun valueEnvelope(type: String, sha256: String) = WearExchangeEnvelope(
-        type,
-        JsonObject().apply {
-            addProperty("clipId", "Y2xpcGJvYXJkY2xpcGlk")
-            addProperty("kind", "image")
-            addProperty("size", content.size)
-            addProperty("sha256", sha256)
-            addProperty("storedAt", "2026-10-14T20:00:00Z")
-            addProperty("sourceDeviceId", "cGhvbmVwaG9uZXBob25l")
-            addProperty("sourceDeviceName", "Phone")
-            addProperty("mimeType", "image/png")
-        }
-    )
-
     private fun sha256Of(bytes: ByteArray): String =
         MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
 
@@ -255,6 +325,7 @@ class WearServerClipboardClientTest {
 
     private companion object {
         const val DEVICE_ID = "d3ViZGV2aWNlaWQxMjM0"
+        const val PHONE_ID = "cGhvbmVwaG9uZXBob25l"
         const val TOKEN = "token-1"
         const val WAIT_SECONDS = 5L
     }

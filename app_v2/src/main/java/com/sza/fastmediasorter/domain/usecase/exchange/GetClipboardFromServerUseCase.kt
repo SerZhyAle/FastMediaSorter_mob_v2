@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.data.remote.exchange.ExchangeClipboardGetResult
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeClipboardState
 import com.sza.fastmediasorter.data.repository.ExchangeClipboardRepository
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardEntryFailure
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardEntryFailure.Cause
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardGetOutcome
@@ -62,6 +63,9 @@ class GetClipboardFromServerUseCase @Inject constructor(
             is ExchangeClipboardState.Refused -> Asked.Failed(Cause.Refused(state.reason))
             ExchangeClipboardState.NotOffered -> Asked.Failed(Cause.NotOffered)
             ExchangeClipboardState.Guest -> Asked.Failed(Cause.Guest)
+            ExchangeClipboardState.NotSealed -> Asked.Failed(Cause.Sealing(ExchangeMessage.SERVER_NO_E2E))
+            ExchangeClipboardState.SealedFailed -> Asked.Failed(Cause.Sealing(ExchangeMessage.SEALED_FAILED))
+            ExchangeClipboardState.Unsealed -> Asked.Failed(Cause.Sealing(ExchangeMessage.E2E_MISSING))
         }
     }
 
@@ -118,6 +122,9 @@ class GetClipboardFromServerUseCase @Inject constructor(
                 is ExchangeClipboardGetResult.Refused -> Fetched.Failed(Cause.Refused(result.reason))
                 ExchangeClipboardGetResult.NotOffered -> Fetched.Failed(Cause.NotOffered)
                 ExchangeClipboardGetResult.Guest -> Fetched.Failed(Cause.Guest)
+                ExchangeClipboardGetResult.NotSealed -> Fetched.Failed(Cause.Sealing(ExchangeMessage.SERVER_NO_E2E))
+                ExchangeClipboardGetResult.SealedFailed -> Fetched.Failed(Cause.Sealing(ExchangeMessage.SEALED_FAILED))
+                ExchangeClipboardGetResult.Unsealed -> Fetched.Failed(Cause.Sealing(ExchangeMessage.E2E_MISSING))
             }
         }
         return outcome

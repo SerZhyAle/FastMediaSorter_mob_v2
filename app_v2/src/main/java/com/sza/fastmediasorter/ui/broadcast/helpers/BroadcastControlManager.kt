@@ -66,6 +66,7 @@ class BroadcastControlManager @Inject constructor(
     /** Takes no dependencies of its own, so it is constructed here instead of going through Hilt. */
     private val preStreamPreview = BroadcastPreStreamPreviewManager()
     private val qrFullscreen = BroadcastQrFullscreenManager()
+    private val sourceEntries = BroadcastSourceEntriesManager()
 
     /**
      * The mode a live switch is re-opening the session in, null while nothing switches. Until that mode
@@ -121,6 +122,7 @@ class BroadcastControlManager @Inject constructor(
         setupPreStreamControls(activity, binding)
         setupLiveControls(activity, binding)
         setupSharePanel(activity, binding)
+        sourceEntries.setup(controller, activity, binding)
 
         activity.lifecycleScope.launch {
             activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -566,6 +568,7 @@ class BroadcastControlManager @Inject constructor(
         binding: ActivityBroadcastControlBinding,
         state: BroadcastState
     ) {
+        sourceEntries.render(controller, binding, state)
         when (state) {
             is BroadcastState.Live -> {
                 val switching = switchTargetMode?.let { it.name != state.descriptor.mode } == true
@@ -580,7 +583,7 @@ class BroadcastControlManager @Inject constructor(
                     checkModeChip(binding, state.descriptor.mode)
                     checkLensChip(binding, state.activeLensId)
                 }
-                renderModeControls(binding, state.descriptor.mode)
+                renderModeControls(binding, state.descriptor.mode, state.source != null)
                 renderToggles(binding, state)
                 renderSendToWatch(binding, state)
                 renderShareData(activity, binding)
@@ -681,14 +684,23 @@ class BroadcastControlManager @Inject constructor(
         binding.btnSendToWatch.isEnabled = isVisible && !wearSendInProgress
     }
 
-    private fun renderModeControls(binding: ActivityBroadcastControlBinding, modeName: String) {
-        val hasCamera = modeName != BroadcastMode.AUDIO_ONLY.name
+    /**
+     * A file or screen session has no camera or microphone of its own (S4234, S4233): the capture
+     * toggles would do nothing, and blanking the app would blank the screen being shown.
+     */
+    private fun renderModeControls(
+        binding: ActivityBroadcastControlBinding,
+        modeName: String,
+        isSourceSession: Boolean = false,
+    ) {
+        val hasCamera = !isSourceSession && modeName != BroadcastMode.AUDIO_ONLY.name
         val cameraVisibility = if (hasCamera) View.VISIBLE else View.GONE
         binding.previewContainer.visibility = cameraVisibility
         binding.btnToggleCamera.visibility = cameraVisibility
         binding.btnSwitchCamera.visibility = cameraVisibility
         binding.btnToggleMic.visibility =
-            if (modeName == BroadcastMode.VIDEO_AUDIO.name) View.VISIBLE else View.GONE
+            if (!isSourceSession && modeName == BroadcastMode.VIDEO_AUDIO.name) View.VISIBLE else View.GONE
+        binding.btnScreenOff.visibility = if (isSourceSession) View.GONE else View.VISIBLE
         renderScreenOffLabel(binding)
     }
 
@@ -761,6 +773,7 @@ class BroadcastControlManager @Inject constructor(
         preStreamPreview.stop()
         previewBinder.detach()
         blankScreenManager.detach()
+        sourceEntries.onDetach()
         // setup() re-registers all three on the next attach, so dropping them here loses nothing.
         exportFileLauncher = null
         cameraPermissionLauncher = null

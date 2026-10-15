@@ -23,6 +23,9 @@ data class ExchangeClipboardEntryFailure(val entryLabel: String, val cause: Caus
 
         /** The stream broke after the value had started to flow. */
         data object Broken : Cause
+
+        /** A row of 27 item DR: the server carries no sealed value, nobody can open one, or this one did not open. */
+        data class Sealing(val message: ExchangeMessage) : Cause
     }
 
     companion object {

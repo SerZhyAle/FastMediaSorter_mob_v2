@@ -40,6 +40,10 @@ class ExchangeMessageTest {
             ExchangeMessage.SERVER_OFFLINE to "pc-asleep",
             ExchangeMessage.RESOURCE_LOCKED to null,
             ExchangeMessage.CLIPBOARD_EMPTY to null,
+            ExchangeMessage.E2E_MISSING to null,
+            ExchangeMessage.KEY_CHANGED to null,
+            ExchangeMessage.SERVER_NO_E2E to "operator",
+            ExchangeMessage.SEALED_FAILED to null,
             ExchangeMessage.REFUSED to "operator",
             ExchangeMessage.TOKEN_NOT_STORED to null,
         )

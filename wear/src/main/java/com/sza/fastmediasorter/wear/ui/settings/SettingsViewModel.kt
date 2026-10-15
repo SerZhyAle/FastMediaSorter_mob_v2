@@ -428,7 +428,7 @@ class SettingsViewModel @Inject constructor(
         }
         _phonePortalState.value = WearPortalLinkState.Busy
         viewModelScope.launch {
-            val outcome = openUrlOnPhoneRepository.openOnPhone(WearPortalLinks.WEB_PORTAL_URL)
+            val outcome = openUrlOnPhoneRepository.openOnPhone(WearPortalLinks.portalUrl())
             _phonePortalState.value = WearPortalLinkState.Finished(outcome.toLinkOutcome())
         }
     }

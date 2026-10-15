@@ -58,6 +58,9 @@ data class WearExchangeEntry(
         const val ACCOUNT_KIND_GUEST = "guest"
         const val FEATURE_CLIPBOARD = "clipboard"
 
+        /** S4240: the server keeps and delivers sealed content (27 item DP); nothing goes through one without it. */
+        const val FEATURE_SEALED = "sealed"
+
         private const val DEVICE_ID_BYTES = 16
         private val random = SecureRandom()
 
@@ -72,7 +75,12 @@ data class WearExchangeEntry(
 /** How one `enroll` ended; only [Enrolled] carries a token, and only the repository stores it. */
 sealed interface WearExchangeEnrollResult {
 
-    class Enrolled(val token: String) : WearExchangeEnrollResult {
+    /**
+     * [deviceId] and [kem] name the enrolled device and its published key once the repository recorded it; the
+     * hand-over answer carries them so the phone trusts this key over the directory (27 item DG).
+     */
+    class Enrolled(val token: String, val deviceId: String? = null, val kem: String? = null) :
+        WearExchangeEnrollResult {
         override fun toString(): String = "Enrolled(token=***)"
     }
 

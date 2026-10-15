@@ -41,6 +41,12 @@ enum class ExchangeMessage(val code: String, val kind: Kind, val step: ExchangeC
     RESOURCE_LOCKED("resource-locked", Kind.STATE, null),
     CLIPBOARD_EMPTY("clipboard-empty", Kind.RESULT, null),
 
+    /** The four rows of 27 item DR: why sealed content does not go somewhere, or did not open here. */
+    E2E_MISSING("e2e-missing", Kind.STATE, null),
+    KEY_CHANGED("key-changed", Kind.STATE, null),
+    SERVER_NO_E2E("server-no-e2e", Kind.STATE, ExchangeCheckStep.OPERATOR),
+    SEALED_FAILED("sealed-failed", Kind.LOCAL, null),
+
     /** An unknown `refused.reason` (7.10): the generic refusal, sent to whoever runs the server. */
     REFUSED("refused", Kind.WIRE, ExchangeCheckStep.OPERATOR),
 

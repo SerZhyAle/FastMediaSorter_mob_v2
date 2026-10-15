@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeRefusedExcepti
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeClipboardPutResult
 import com.sza.fastmediasorter.data.repository.ExchangeClipboardRepository
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardEntryFailure
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardEntryFailure.Cause
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardMeta
@@ -69,11 +70,9 @@ class SendClipboardToServerUseCase @Inject constructor(
     ): ExchangeClipboardEntryFailure? {
         var flowed = false
         val cause = try {
-            val result = openSource().use { source ->
-                clipboard.put(entry, meta, source) { done ->
-                    flowed = true
-                    onProgress(done)
-                }
+            val result = clipboard.put(entry, meta, openSource) { done ->
+                flowed = true
+                onProgress(done)
             }
             causeOf(result)
         } catch (e: DeviceExchangeRefusedException) {
@@ -93,6 +92,8 @@ class SendClipboardToServerUseCase @Inject constructor(
         is ExchangeClipboardPutResult.Refused -> Cause.Refused(result.reason)
         ExchangeClipboardPutResult.NotOffered -> Cause.NotOffered
         ExchangeClipboardPutResult.Guest -> Cause.Guest
+        ExchangeClipboardPutResult.NotSealed -> Cause.Sealing(ExchangeMessage.SERVER_NO_E2E)
+        ExchangeClipboardPutResult.NoRecipient -> Cause.Sealing(ExchangeMessage.E2E_MISSING)
     }
 
     private companion object {

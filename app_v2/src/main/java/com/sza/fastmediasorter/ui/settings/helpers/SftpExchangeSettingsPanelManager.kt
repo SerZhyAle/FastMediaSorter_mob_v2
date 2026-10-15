@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.usecase.sftpserver.ExchangeProducerLeave
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ExchangePublishStart
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeProducerUseCase
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageSftpServerUseCase
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.exchange.MyDevicesActivity
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeServerCardAdapter
@@ -58,6 +59,9 @@ class SftpExchangeSettingsPanelManager(
         }
         binding.btnSftpExchangeChangeOutgoing.setOnClickListener { launchInView { pickOutgoing(publishAfter = false) } }
         binding.btnSftpExchangeMyDevices.setOnClickListener { MyDevicesActivity.start(context) }
+        binding.btnSftpExchangePortal.setOnClickListener {
+            MediaExchangePortalLinks.open(fragment.requireActivity(), MediaExchangePortalLinks.Page.HOME_NETWORK)
+        }
         binding.btnSftpExchangeNewLink.setOnClickListener {
             launchInView {
                 manageSftpServer.rotateShareId()

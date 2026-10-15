@@ -12,6 +12,7 @@ import java.io.OutputStream
 class ExchangeRelayChunkWriter(
     private val out: OutputStream,
     private val header: ByteArray? = null,
+    private val sealer: ExchangeRelaySealer? = null,
 ) {
 
     private var opened = false
@@ -23,7 +24,8 @@ class ExchangeRelayChunkWriter(
             opened = true
             header?.let { frame(FLAG_HEADER, it) }
         }
-        frame(if (joinable) FLAG_JOINABLE else FLAG_NONE, payload)
+        val flag = if (joinable) FLAG_JOINABLE else FLAG_NONE
+        frame(flag, sealer?.media(payload, flag) ?: payload)
         out.flush()
     }
 

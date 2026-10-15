@@ -15,8 +15,10 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
+import java.io.InputStream
 import java.net.URL
 import java.net.URLEncoder
+import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,6 +32,22 @@ import javax.inject.Singleton
  * class is that one space's transport, and the scope is minted on its own path so a session that
  * consented before S3040 keeps browsing Drive even while the transfer queue refuses.
  */
+/** S4231: one appdata entry with Drives own timestamps. */
+data class DriveAppDataEntry(
+    val id: String,
+    val name: String,
+    val isFolder: Boolean,
+    val size: Long,
+    val createdTimeMs: Long,
+    val modifiedTimeMs: Long
+)
+
+/** S4231: a full listing and Drives clock at the time it was taken. */
+data class DriveAppDataListing(val entries: List<DriveAppDataEntry>, val serverDateMs: Long)
+
+/** S4231: bout.storageQuota; [limitBytes] null means the account has no limit. */
+data class DriveStorageQuota(val limitBytes: Long?, val usageBytes: Long)
+
 @Singleton
 class GoogleDriveAppDataApi @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -44,7 +62,7 @@ class GoogleDriveAppDataApi @Inject constructor(
     suspend fun listChildren(parentFolderId: String): CloudResult<List<CloudFile>> =
         withContext(Dispatchers.IO) {
             when (val token = auth.fetchAppDataAccessToken()) {
-                null -> CloudResult.Error(reauthRequiredMessage())
+                null -> CloudResult.Error(reauthRequiredMessage(), DriveAppDataFailure.AuthRequired())
                 else -> requestChildren(parentFolderId, token)
             }
         }
@@ -82,7 +100,7 @@ class GoogleDriveAppDataApi @Inject constructor(
         content: ByteArray
     ): CloudResult<CloudFile> = withContext(Dispatchers.IO) {
         when (val token = auth.fetchAppDataAccessToken()) {
-            null -> CloudResult.Error(reauthRequiredMessage())
+            null -> CloudResult.Error(reauthRequiredMessage(), DriveAppDataFailure.AuthRequired())
             else -> uploadContent(fileName, parentFolderId, mimeType, content, token)
         }
     }
@@ -90,7 +108,7 @@ class GoogleDriveAppDataApi @Inject constructor(
     /** Read one appdata file whole; payloads here are packets, not streamed media. */
     suspend fun downloadFile(fileId: String): CloudResult<ByteArray> = withContext(Dispatchers.IO) {
         when (val token = auth.fetchAppDataAccessToken()) {
-            null -> CloudResult.Error(reauthRequiredMessage())
+            null -> CloudResult.Error(reauthRequiredMessage(), DriveAppDataFailure.AuthRequired())
             else -> readBytes(fileId, token)
         }
     }
@@ -103,7 +121,7 @@ class GoogleDriveAppDataApi @Inject constructor(
      */
     suspend fun deleteEntry(fileId: String): CloudResult<Boolean> = withContext(Dispatchers.IO) {
         when (val token = auth.fetchAppDataAccessToken()) {
-            null -> CloudResult.Error(reauthRequiredMessage())
+            null -> CloudResult.Error(reauthRequiredMessage(), DriveAppDataFailure.AuthRequired())
             else -> deleteById(fileId, token)
         }
     }
@@ -114,31 +132,136 @@ class GoogleDriveAppDataApi @Inject constructor(
     private suspend fun requestChildren(
         parentFolderId: String,
         token: String
-    ): CloudResult<List<CloudFile>> {
-        val query = URLEncoder.encode("'$parentFolderId' in parents and trashed = false", "UTF-8")
-        val fields = URLEncoder.encode("files(id, name, mimeType, size, modifiedTime)", "UTF-8")
-        val url = URL(
-            "$DRIVE_API_BASE/files?q=$query&spaces=$APP_DATA_FOLDER_ALIAS" +
-                "&pageSize=$PAGE_SIZE&fields=$fields&orderBy=name"
-        )
-        return runCatching {
-            val response = auth.makeAuthenticatedRequest(url, "GET", token, R.string.google_web_client_id)
-            if (response.isSuccess && response.data != null) {
-                val files = JSONObject(response.data).getJSONArray("files")
-                CloudResult.Success(GoogleDriveRestClientUtils.parseItems(files, parentFolderId))
-            } else {
-                CloudResult.Error(context.getString(R.string.cloud_list_files_failed))
+    ): CloudResult<List<CloudFile>> =
+        listPages(parentFolderId, token, BASIC_FIELDS).fold(
+            onSuccess = { pages ->
+                CloudResult.Success(pages.items.map { GoogleDriveRestClientUtils.parseItem(it, parentFolderId) })
+            },
+            onFailure = { error ->
+                Timber.e(error, "Failed to list appdata children of $parentFolderId")
+                CloudResult.Error(context.getString(R.string.cloud_list_files_failed), error)
             }
-        }.getOrElse { error ->
-            error.rethrowIfCancellation()
-            Timber.e(error, "Failed to list appdata children of $parentFolderId")
-            CloudResult.Error(context.getString(R.string.cloud_list_files_failed), error)
+        )
+
+    // Follows nextPageToken: a queue longer than one page must never be cut silently (S4231).
+    private suspend fun listPages(parentFolderId: String, token: String, fields: String): Result<ListedPages> =
+        runCatching {
+            val query = URLEncoder.encode("'$parentFolderId' in parents and trashed = false", "UTF-8")
+            val encodedFields = URLEncoder.encode("nextPageToken, files($fields)", "UTF-8")
+            val items = mutableListOf<JSONObject>()
+            var serverDateMs: Long? = null
+            var pageToken: String? = null
+            do {
+                val tokenPart = pageToken?.let { "&pageToken=" + URLEncoder.encode(it, "UTF-8") }.orEmpty()
+                val url = URL(
+                    "$DRIVE_API_BASE/files?q=$query&spaces=$APP_DATA_FOLDER_ALIAS" +
+                        "&pageSize=$PAGE_SIZE&fields=$encodedFields&orderBy=name$tokenPart"
+                )
+                val response = auth.makeAuthenticatedRequest(url, "GET", token, R.string.google_web_client_id)
+                val page = JSONObject(successBody(response))
+                serverDateMs = serverDateMs ?: response.serverDateMs
+                page.optJSONArray("files")?.let { files -> (0 until files.length()).mapTo(items, files::getJSONObject) }
+                pageToken = page.optString("nextPageToken").ifEmpty { null }
+            } while (pageToken != null)
+            ListedPages(items, serverDateMs)
+        }.onFailure { it.rethrowIfCancellation() }
+
+    private fun successBody(response: GoogleDriveHttpClient.ApiResponse): String {
+        val body = response.data
+        if (!response.isSuccess || body == null) {
+            throw DriveAppDataFailure.classify(response.httpCode, response.errorMessage)
+        }
+        return body
+    }
+
+    /**
+     * S4231: every child of [parentFolderId] with Drive's `createdTime`, and Drive's clock from the response
+     * `Date` header - packet expiry is judged on that clock, never on this device's (contract item CR).
+     */
+    suspend fun listChildrenDetailed(parentFolderId: String): Result<DriveAppDataListing> = withToken { token ->
+        listPages(parentFolderId, token, DETAILED_FIELDS).map { pages ->
+            val serverNow = pages.serverDateMs ?: System.currentTimeMillis().also {
+                Timber.w("GoogleDriveAppDataApi: no Date header on the listing, falling back to the device clock")
+            }
+            DriveAppDataListing(pages.items.map(::entryOf), serverNow)
         }
     }
 
+    /** S4231: the account's storage quota (`about.storageQuota`); a null limit means unlimited. */
+    suspend fun readStorageQuota(): Result<DriveStorageQuota> = withToken { token ->
+        runCatching {
+            val url = URL("$DRIVE_API_BASE/about?fields=storageQuota")
+            val response = auth.makeAuthenticatedRequest(url, "GET", token, R.string.google_web_client_id)
+            val quota = JSONObject(successBody(response)).getJSONObject("storageQuota")
+            DriveStorageQuota(
+                limitBytes = quota.optString("limit").toLongOrNull(),
+                usageBytes = quota.optString("usage").toLongOrNull() ?: 0L
+            )
+        }.onFailure { it.rethrowIfCancellation() }
+    }
+
+    /**
+     * S4231: write [size] bytes of [source] as [fileName] through Drive's resumable upload, holding at most
+     * one chunk in memory. The resumable protocol serves the small files too, so every failure arrives
+     * classified (a multipart failure loses its status).
+     */
+    suspend fun uploadStream(
+        fileName: String,
+        parentFolderId: String,
+        mimeType: String,
+        size: Long,
+        source: InputStream,
+        onProgress: ((Long) -> Unit)? = null
+    ): Result<CloudFile> = withToken { token ->
+        runCatching {
+            val metadata = JSONObject().apply {
+                put("name", fileName)
+                put("mimeType", mimeType)
+                put("parents", JSONArray().put(parentFolderId))
+            }
+            val session = GoogleDriveResumableUploader.initiate(DRIVE_UPLOAD_BASE, token, metadata, size, mimeType)
+            val json = GoogleDriveResumableUploader.upload(session, token, source, size, onProgress)
+            GoogleDriveRestClientUtils.parseItem(json, parentFolderId)
+        }.onFailure { it.rethrowIfCancellation() }.fold(
+            onSuccess = { Result.success(it) },
+            onFailure = { error ->
+                Result.failure(error as? DriveAppDataFailure ?: DriveAppDataFailure.Network(error))
+            }
+        )
+    }
+
+    /** S4231: open one appdata file as a stream; the caller closes it. */
+    suspend fun openDownload(fileId: String): Result<InputStream> = withToken { token ->
+        when (val stream = httpClient.getFileInputStream(fileId, DRIVE_API_BASE, token, 0L, -1L)) {
+            is GoogleDriveHttpClient.StreamResult.Success -> Result.success(stream.stream)
+            is GoogleDriveHttpClient.StreamResult.Error ->
+                Result.failure(DriveAppDataFailure.classify(stream.httpCode, null))
+        }
+    }
+
+    private suspend fun <T> withToken(block: suspend (String) -> Result<T>): Result<T> =
+        withContext(Dispatchers.IO) {
+            val token = auth.fetchAppDataAccessToken()
+            if (token == null) Result.failure(DriveAppDataFailure.AuthRequired()) else block(token)
+        }
+
+    private fun entryOf(item: JSONObject): DriveAppDataEntry = DriveAppDataEntry(
+        id = item.getString("id"),
+        name = item.getString("name"),
+        isFolder = item.optString("mimeType") == MIME_TYPE_FOLDER,
+        size = item.optString("size").toLongOrNull() ?: 0L,
+        createdTimeMs = epochMsOf(item.optString("createdTime")),
+        modifiedTimeMs = epochMsOf(item.optString("modifiedTime"))
+    )
+
+    private fun epochMsOf(rfc3339: String): Long =
+        runCatching { Instant.parse(rfc3339).toEpochMilli() }.getOrDefault(0L)
+
+    private data class ListedPages(val items: List<JSONObject>, val serverDateMs: Long?)
+
     private suspend fun createFolder(folderName: String, parentFolderId: String): CloudResult<CloudFile> {
         val token = auth.fetchAppDataAccessToken()
-        if (token == null) return CloudResult.Error(reauthRequiredMessage())
+        if (token == null) return CloudResult.Error(reauthRequiredMessage(), DriveAppDataFailure.AuthRequired())
         val body = JSONObject().apply {
             put("name", folderName)
             put("mimeType", MIME_TYPE_FOLDER)
@@ -150,7 +273,10 @@ class GoogleDriveAppDataApi @Inject constructor(
             if (response.isSuccess && response.data != null) {
                 CloudResult.Success(GoogleDriveRestClientUtils.parseItem(JSONObject(response.data), parentFolderId))
             } else {
-                CloudResult.Error(context.getString(R.string.cloud_create_folder_failed))
+                CloudResult.Error(
+                    context.getString(R.string.cloud_create_folder_failed),
+                    DriveAppDataFailure.classify(response.httpCode, response.errorMessage)
+                )
             }
         }.getOrElse { error ->
             error.rethrowIfCancellation()
@@ -222,7 +348,10 @@ class GoogleDriveAppDataApi @Inject constructor(
             if (response.isSuccess) {
                 CloudResult.Success(true)
             } else {
-                CloudResult.Error(context.getString(R.string.error_delete_failed))
+                CloudResult.Error(
+                    context.getString(R.string.error_delete_failed),
+                    DriveAppDataFailure.classify(response.httpCode, response.errorMessage)
+                )
             }
         }.getOrElse { error ->
             error.rethrowIfCancellation()
@@ -237,5 +366,7 @@ class GoogleDriveAppDataApi @Inject constructor(
         private const val DRIVE_UPLOAD_BASE = "https://www.googleapis.com/upload/drive/v3"
         private const val MIME_TYPE_FOLDER = "application/vnd.google-apps.folder"
         private const val PAGE_SIZE = 100
+        private const val BASIC_FIELDS = "id, name, mimeType, size, modifiedTime"
+        private const val DETAILED_FIELDS = "id, name, mimeType, size, createdTime, modifiedTime"
     }
 }

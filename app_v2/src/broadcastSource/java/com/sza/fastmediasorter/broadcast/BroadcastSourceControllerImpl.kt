@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.broadcast
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.media.MediaExtractor
 import android.media.MediaFormat
@@ -51,9 +52,11 @@ class BroadcastSourceControllerImpl @Inject constructor(
         VideoBroadcastService.state,
         BroadcastFileAudioService.state,
         BroadcastFileVideoService.state,
-    ) { audioState, videoState, fileAudioState, fileVideoState ->
+        BroadcastScreenService.state,
+    ) { audioState, videoState, fileAudioState, fileVideoState, screenState ->
         when {
             videoState !is BroadcastState.Idle -> videoState
+            screenState !is BroadcastState.Idle -> screenState
             fileVideoState !is BroadcastState.Idle -> fileVideoState
             fileAudioState !is BroadcastState.Idle -> fileAudioState
             else -> audioState
@@ -70,8 +73,9 @@ class BroadcastSourceControllerImpl @Inject constructor(
         VideoBroadcastService.listenerCount,
         BroadcastFileAudioService.listenerCount,
         BroadcastFileVideoService.listenerCount,
-    ) { audioCount, videoCount, fileAudioCount, fileVideoCount ->
-        audioCount + videoCount + fileAudioCount + fileVideoCount
+        BroadcastScreenService.listenerCount,
+    ) { audioCount, videoCount, fileAudioCount, fileVideoCount, screenCount ->
+        audioCount + videoCount + fileAudioCount + fileVideoCount + screenCount
     }.stateIn(scope, SharingStarted.Eagerly, 0)
 
     // S3349: only the audio path carries a guard - the video path hands its microphone to the encoder
@@ -92,8 +96,9 @@ class BroadcastSourceControllerImpl @Inject constructor(
     override fun startFile(uri: Uri) {
         switchJob?.cancel()
         switchJob = scope.launch {
+            Timber.d("S4234: startFile entry, stopping live sessions then routing by tracks uri=$uri")
             stopCapturedSessionsAndWait()
-            stopFileSessionsAndWait()
+            stopSourceSessionsAndWait()
             // The track kinds decide the shape: a film takes the RTSP service, a music file the
             // HTTP AAC one, and a file with neither lands on the audio service, whose open fails
             // with the one typed refusal both shapes share.
@@ -106,6 +111,18 @@ class BroadcastSourceControllerImpl @Inject constructor(
         }
     }
 
+    // The consent result is good for one projection, so the service starts as soon as the outgoing
+    // session is off the air.
+    override fun startScreen(resultCode: Int, data: Intent) {
+        switchJob?.cancel()
+        switchJob = scope.launch {
+            Timber.d("S4233: startScreen entry, stopping live sessions then opening the projection")
+            stopCapturedSessionsAndWait()
+            stopSourceSessionsAndWait()
+            BroadcastScreenService.start(context, resultCode, data)
+        }
+    }
+
     override fun stop() {
         switchJob?.cancel()
         switchJob = null
@@ -113,6 +130,7 @@ class BroadcastSourceControllerImpl @Inject constructor(
         VideoBroadcastService.stop(context)
         BroadcastFileAudioService.stop(context)
         BroadcastFileVideoService.stop(context)
+        BroadcastScreenService.stop(context)
     }
 
     override fun acknowledgeFailure() {
@@ -120,6 +138,7 @@ class BroadcastSourceControllerImpl @Inject constructor(
         VideoBroadcastService.clearFailure()
         BroadcastFileAudioService.clearFailure()
         BroadcastFileVideoService.clearFailure()
+        BroadcastScreenService.clearFailure()
     }
 
     override fun toggleCamera() {
@@ -144,11 +163,11 @@ class BroadcastSourceControllerImpl @Inject constructor(
         val liveMode = liveModeOrNull()
         if (liveMode == null || liveMode == mode) return
         switchJob?.cancel()
-        if (isFileLive()) {
-            // A file session re-opening as a captured one crosses services like audio-video does:
-            // the file service goes off air before the capture service starts.
+        if (isSourceSessionLive()) {
+            // A file or screen session re-opening as a captured one crosses services like audio-video
+            // does: that service goes off air before the capture service starts.
             switchJob = scope.launch {
-                stopFileSessionsAndWait()
+                stopSourceSessionsAndWait()
                 start(mode, lensId)
             }
         } else if (liveMode != BroadcastMode.AUDIO_ONLY && mode != BroadcastMode.AUDIO_ONLY) {
@@ -169,12 +188,19 @@ class BroadcastSourceControllerImpl @Inject constructor(
         VideoBroadcastService.state.first { it !is BroadcastState.Live }
     }
 
-    /** Stops both file services and returns once neither is on the air any more. */
-    private suspend fun stopFileSessionsAndWait() {
-        BroadcastFileAudioService.stop(context)
-        BroadcastFileVideoService.stop(context)
+    /**
+     * Stops the file and screen services that are on the air and returns once none is. An idle service
+     * gets no stop: the intent would create an instance whose stopSelf() lands under the
+     * startForegroundService() that follows for the same service, and the platform then ends the process
+     * for a foreground start that never completed (device run 2026-10-15, S4233).
+     */
+    private suspend fun stopSourceSessionsAndWait() {
+        if (BroadcastFileAudioService.state.value is BroadcastState.Live) BroadcastFileAudioService.stop(context)
+        if (BroadcastFileVideoService.state.value is BroadcastState.Live) BroadcastFileVideoService.stop(context)
+        if (BroadcastScreenService.state.value is BroadcastState.Live) BroadcastScreenService.stop(context)
         BroadcastFileAudioService.state.first { it !is BroadcastState.Live }
         BroadcastFileVideoService.state.first { it !is BroadcastState.Live }
+        BroadcastScreenService.state.first { it !is BroadcastState.Live }
     }
 
     private fun liveModeOrNull(): BroadcastMode? {
@@ -186,9 +212,10 @@ class BroadcastSourceControllerImpl @Inject constructor(
     // would create an idle sticky service holding nothing.
     private fun isVideoLive(): Boolean = VideoBroadcastService.state.value is BroadcastState.Live
 
-    private fun isFileLive(): Boolean =
+    private fun isSourceSessionLive(): Boolean =
         BroadcastFileAudioService.state.value is BroadcastState.Live ||
-            BroadcastFileVideoService.state.value is BroadcastState.Live
+            BroadcastFileVideoService.state.value is BroadcastState.Live ||
+            BroadcastScreenService.state.value is BroadcastState.Live
 
     /** The kinds of track a picked file carries, read off the media I/O thread before a service is chosen. */
     private data class FileTracks(val hasVideo: Boolean, val hasAudio: Boolean)

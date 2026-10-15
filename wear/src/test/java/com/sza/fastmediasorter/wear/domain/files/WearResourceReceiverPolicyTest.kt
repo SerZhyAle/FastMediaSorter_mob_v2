@@ -26,8 +26,26 @@ class WearResourceReceiverPolicyTest {
     }
 
     @Test
-    fun `an exchange-bound folder waits for the account route`() {
-        assertFalse(WearResourceReceiverPolicy.isOffered(source(exchangeResourceId = "res-1"), pinHeld = true))
+    fun `an exchange-bound writable folder is offered`() {
+        assertTrue(WearResourceReceiverPolicy.isOffered(source(exchangeResourceId = "res-1"), pinHeld = false))
+    }
+
+    @Test
+    fun `an exchange-bound read-only folder is not offered`() {
+        assertFalse(
+            WearResourceReceiverPolicy.isOffered(
+                source(exchangeResourceId = "res-1", readOnly = true),
+                pinHeld = true
+            )
+        )
+    }
+
+    @Test
+    fun `an exchange-bound protected folder is offered only while its PIN is held`() {
+        val protected = source(exchangeResourceId = "res-1", pinProtected = true)
+
+        assertFalse(WearResourceReceiverPolicy.isOffered(protected, pinHeld = false))
+        assertTrue(WearResourceReceiverPolicy.isOffered(protected, pinHeld = true))
     }
 
     private fun source(

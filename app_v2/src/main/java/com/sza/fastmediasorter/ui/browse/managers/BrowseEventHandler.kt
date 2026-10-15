@@ -53,6 +53,7 @@ class BrowseEventHandler(
             is BrowseEvent.ShowError -> {
                 errorDisplayManager.showError(event.message, event.details, event.exception)
             }
+            is BrowseEvent.OfferDriveChannel -> errorDisplayManager.offerDriveChannel(event)
             is BrowseEvent.ShowMessage -> {
                 Toast.makeText(activity, event.message, Toast.LENGTH_SHORT).show()
             }

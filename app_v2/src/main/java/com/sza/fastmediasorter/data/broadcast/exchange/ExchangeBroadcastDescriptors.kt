@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.broadcast.exchange
 
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.broadcast.BroadcastSealDto
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeBroadcastPublication
 import java.net.URI
 
@@ -24,6 +25,7 @@ object ExchangeBroadcastDescriptors {
         publicEndpoint: String,
         certFingerprint: String?,
         relayUploading: Boolean,
+        sealed: Boolean = true,
     ): BroadcastDescriptorDto {
         val direct = lanEndpoints(lan)
         val relay = BroadcastEndpointDto(
@@ -35,6 +37,7 @@ object ExchangeBroadcastDescriptors {
             isLive = true,
             targetLatencyMs = EXCHANGE_TARGET_LATENCY_MS,
             certFingerprint = certFingerprint,
+            seal = BroadcastSealDto(),
         ).takeIf { relayUploading }
         val tunnels = direct.mapNotNull { endpoint ->
             schemeOf(endpoint.url)?.let { scheme ->
@@ -45,9 +48,11 @@ object ExchangeBroadcastDescriptors {
                     targetLatencyMs = EXCHANGE_TARGET_LATENCY_MS,
                     inner = endpoint.url,
                     certFingerprint = certFingerprint,
+                    seal = BroadcastSealDto(),
                 )
             }
-        }.distinctBy { it.url }
+            // 27 item DP: a server without `sealed` is offered no broadcast tunnel.
+        }.distinctBy { it.url }.takeIf { sealed }.orEmpty()
         return lan.copy(endpoints = direct + listOfNotNull(relay) + tunnels)
     }
 

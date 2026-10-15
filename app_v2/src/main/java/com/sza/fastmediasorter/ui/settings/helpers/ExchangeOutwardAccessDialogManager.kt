@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogExchangeOutwardAccessBinding
 import com.sza.fastmediasorter.domain.model.ExchangeGrant
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeGrantsUseCase
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.Job
@@ -53,6 +54,9 @@ class ExchangeOutwardAccessDialogManager(
         ) { (list, confirmed) -> renderGrants(view, list, confirmed) }
         view.btnOutwardCreateLink.setOnClickListener { createLink(view, rootUri, rootName) }
         view.btnOutwardInviteGuest.setOnClickListener { inviteGuest(view, rootUri, rootName) }
+        view.btnExchangePortalOutward.setOnClickListener {
+            MediaExchangePortalLinks.open(fragment.requireActivity(), MediaExchangePortalLinks.Page.EXCHANGE_SERVER)
+        }
         dialog.setCanceledOnTouchOutside(false)
     }
 

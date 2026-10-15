@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.mutation.Mutation
 import com.sza.fastmediasorter.domain.mutation.MutationRecorder
 import com.sza.fastmediasorter.domain.path.PathNormalizer
+import com.sza.fastmediasorter.domain.usecase.transfer.FetchScheduledChangesViaDriveUseCase
 import com.sza.fastmediasorter.testing.createMediaFile
 import com.sza.fastmediasorter.testing.createMediaResource
 import com.sza.fastmediasorter.testing.createScheduledOperation
@@ -49,6 +50,9 @@ class ExecuteScheduledOperationUseCaseTest {
     // relaxed mock keeps every other test's constructor wiring free of per-test stubbing.
     private val cleanup = mockk<CleanupOrphanedTempFilesUseCase>(relaxed = true)
 
+    // S4232: no Drive path unless a test gives the source one.
+    private val driveLeg = mockk<FetchScheduledChangesViaDriveUseCase>()
+
     private lateinit var useCase: ExecuteScheduledOperationUseCase
     private lateinit var targetDir: File
 
@@ -80,7 +84,9 @@ class ExecuteScheduledOperationUseCaseTest {
             // content:// reads do), so these tests assert the ZIP that actually lands on disk.
             ArchiveFilesUseCase(mockk(relaxed = true), mockk(relaxed = true)),
             cleanup,
+            driveLeg,
         )
+        coEvery { driveLeg.producerFor(any()) } returns null
     }
 
     /** Every unapplied entry filed under [resourceId], in seq order. */

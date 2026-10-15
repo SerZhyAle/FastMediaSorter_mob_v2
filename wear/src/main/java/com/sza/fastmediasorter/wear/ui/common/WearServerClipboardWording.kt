@@ -35,6 +35,9 @@ private val MESSAGES: Map<WearServerClipboardFailure, Int> = mapOf(
     WearServerClipboardFailure.SAVE_FAILED to R.string.wear_server_clipboard_save_failed,
     WearServerClipboardFailure.NO_NETWORK to R.string.wear_server_clipboard_no_network,
     WearServerClipboardFailure.NO_ENTRY to R.string.wear_server_clipboard_no_feature,
+    WearServerClipboardFailure.NO_SEALED_FEATURE to WearExchangeMessage.SERVER_NO_E2E.messageRes(),
+    WearServerClipboardFailure.E2E_MISSING to WearExchangeMessage.E2E_MISSING.messageRes(),
+    WearServerClipboardFailure.SEALED_FAILED to WearExchangeMessage.SEALED_FAILED.messageRes(),
     WearServerClipboardFailure.OTHER_REFUSAL to WearExchangeMessage.REFUSED.messageRes(),
 )
 

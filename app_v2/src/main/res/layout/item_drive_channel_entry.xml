@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4231: one entry of a folder browsed via Google Drive - a folder to enter, or a file to pick; no thumbnail
+     (contract DEVICE-EXCHANGE item CO). A list row has no landscape variant. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/touch_target_min_height"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/padding_small"
+    android:paddingEnd="@dimen/padding_small">
+
+    <CheckBox
+        android:id="@+id/checkDriveEntry"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:focusable="false"
+        android:importantForAccessibility="no" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvDriveEntryName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Title" />
+
+        <TextView
+            android:id="@+id/tvDriveEntryDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Detail" />
+
+    </LinearLayout>
+
+</LinearLayout>

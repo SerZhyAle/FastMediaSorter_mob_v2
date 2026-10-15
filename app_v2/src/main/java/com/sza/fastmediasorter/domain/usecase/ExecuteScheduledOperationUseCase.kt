@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.data.network.exceptions.NetworkPinRefusedException
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
+import com.sza.fastmediasorter.domain.model.MediaExtensions
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -18,6 +19,7 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
+import com.sza.fastmediasorter.domain.usecase.transfer.FetchScheduledChangesViaDriveUseCase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
@@ -25,6 +27,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -70,6 +73,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     private val mutationRecorder: MutationRecorder,
     private val archiveFilesUseCase: ArchiveFilesUseCase,
     private val cleanupOrphanedTempFilesUseCase: CleanupOrphanedTempFilesUseCase,
+    private val fetchScheduledChangesViaDrive: FetchScheduledChangesViaDriveUseCase,
 ) {
     // One stable line for a refused protected-folder PIN: the journal, the notification body and the
     // status string all quote it, so a raw exception message never reaches the user (S4232).
@@ -142,7 +146,13 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             // end "No files found" - a success that consumes the SINCE_LAST window and loses its files.
             val sourceUnreachable = unreachableReason(sourceResource, "Source")
             if (sourceUnreachable != null) {
-                return skipped(operationId, sourceUnreachable, ts, opName, srcLabel, dstLabel)
+                return copyViaDriveOrSkip(
+                    operation,
+                    sourceResource,
+                    targetResource,
+                    sourceUnreachable,
+                    RunLabels(ts, opName, srcLabel, dstLabel)
+                )
             }
 
             // Step 1: Load and filter source files.
@@ -187,6 +197,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             if (operation.operationType == ScheduledOpType.COPY ||
                 operation.operationType == ScheduledOpType.MOVE
             ) {
+                Timber.d("S4232: run-start orphaned temp cleanup on the target")
                 cleanupOrphanedTempFilesUseCase(requireNotNull(targetResource).path)
             }
 
@@ -330,6 +341,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             // screen, not an unreachable device, so it stays ERROR with its own line - never SKIPPED -
             // and the existing failure notification fires. The stored PIN itself never reaches a log.
             val msg = PIN_REFUSED_MESSAGE
+            Timber.d("S4232: scheduled run met a refused protected-folder PIN")
             Timber.w(e, "ScheduledOp[$operationId] protected folder PIN refused")
             logOp(ts, opName, srcLabel, dstLabel, "ERROR: $msg")
             ScheduledExecutionResult(operationId, 0, listOf(msg))
@@ -340,6 +352,139 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             ScheduledExecutionResult(operationId, 0, listOf(msg))
         }
     }
+
+    /**
+     * S4232: a COPY whose source device answered on no live path tries the record's Google Drive path
+     * before it skips. Only COPY qualifies - Drive carries files out of the other device and nothing back,
+     * so a MOVE or DELETE could not remove the source - and an age condition keeps the skip, because a
+     * fetched file carries the time it arrived, not its time on the other device.
+     */
+    private suspend fun copyViaDriveOrSkip(
+        operation: ScheduledOperation,
+        source: MediaResource,
+        target: MediaResource?,
+        unreachable: String,
+        labels: RunLabels
+    ): ScheduledExecutionResult {
+        val conditions = operation.fileConditions
+        val eligible = operation.operationType == ScheduledOpType.COPY && target != null &&
+            conditions.minAgeHours == null && conditions.maxAgeHours == null
+        val producer = if (eligible) fetchScheduledChangesViaDrive.producerFor(source) else null
+        Timber.d("S4232: source unreachable on live paths, Google Drive leg considered")
+        if (producer == null || target == null) return skipped(operation.id, unreachable, labels)
+        return targetRefusal(operation.id, target, labels) ?: run {
+            cleanupOrphanedTempFilesUseCase(target.path)
+            when (val fetched = fetchScheduledChangesViaDrive(producer, windowStartMs(operation))) {
+                is FetchScheduledChangesViaDriveUseCase.Outcome.Fetched ->
+                    moveFetchedIntoTarget(operation, target, fetched.placed, labels)
+                is FetchScheduledChangesViaDriveUseCase.Outcome.Unavailable ->
+                    skipped(operation.id, "$unreachable; ${fetched.reason}", labels)
+                FetchScheduledChangesViaDriveUseCase.Outcome.NoDrivePath ->
+                    skipped(operation.id, unreachable, labels)
+            }
+        }
+    }
+
+    /** The run's end when [target] cannot receive files: skipped when it is offline, an error otherwise. */
+    private suspend fun targetRefusal(
+        operationId: Long,
+        target: MediaResource,
+        labels: RunLabels
+    ): ScheduledExecutionResult? {
+        val offline = unreachableReason(target, "Target")
+        val broken = if (offline == null) localTargetError(target) else null
+        return when {
+            offline != null -> skipped(operationId, offline, labels)
+            broken != null -> {
+                logOp(labels, "ERROR: $broken")
+                ScheduledExecutionResult(operationId, 0, listOf(broken))
+            }
+            else -> null
+        }
+    }
+
+    /**
+     * The files the Drive leg placed in the incoming folder go to the target under the operation's own
+     * filters and conflict rule; whatever is left over - filtered out, skipped or failed - is removed, since
+     * the original stays on the other device and a failed run fetches it again.
+     */
+    private suspend fun moveFetchedIntoTarget(
+        operation: ScheduledOperation,
+        target: MediaResource,
+        placed: List<String>,
+        labels: RunLabels
+    ): ScheduledExecutionResult {
+        val errors = mutableListOf<String>()
+        var successCount = 0
+        var permissionStop = false
+        Timber.d("S4232: moving files fetched via Google Drive into the target")
+        try {
+            val received = placed.map(::File).filter { it.isFile }.map(::receivedMediaFile)
+            applyFilters(received, operation).forEach { file ->
+                if (permissionStop) return@forEach
+                val result = fileOperationUseCase.execute(
+                    FileOperation.Move(
+                        sources = listOf(File(file.path)),
+                        destination = File(target.path),
+                        overwrite = operation.overwrite
+                    )
+                )
+                handleFileResult(
+                    result = result,
+                    file = file,
+                    opLabel = "COPY",
+                    fallbackErrMessage = "Failed to copy ${file.name}",
+                    operationId = operation.id,
+                    ts = labels.ts,
+                    opName = labels.opName,
+                    srcLabel = labels.src,
+                    dstLabel = labels.dst,
+                    addError = { errors.add(it) },
+                    incrementSuccess = { successCount++ },
+                    setPermissionStop = { permissionStop = true }
+                )
+            }
+        } finally {
+            placed.map(::File).filter { it.exists() }.forEach { it.delete() }
+        }
+        val statusStr = if (errors.isEmpty()) {
+            "OK ($successCount files via Google Drive)"
+        } else {
+            "ERROR: ${errors.first()}"
+        }
+        logOp(labels, statusStr)
+        statsSink.record(StatsEvent.ScheduledRun(filesProcessed = successCount.toLong()))
+        if (successCount > 0) refreshResourceFileCountsUseCase(listOf(target.id))
+        return ScheduledExecutionResult(operation.id, successCount, errors, permissionRequired = permissionStop)
+    }
+
+    private fun receivedMediaFile(file: File) = MediaFile(
+        name = file.name,
+        path = file.absolutePath,
+        type = MediaExtensions.getMediaType(file.extension),
+        size = file.length(),
+        createdDate = file.lastModified()
+    )
+
+    /** The start of the operation's time window on the other device's clock, or null for every file. */
+    private fun windowStartMs(operation: ScheduledOperation): Long? {
+        val now = System.currentTimeMillis()
+        return when (operation.timeFilter) {
+            TimeFilter.ALL -> null
+            TimeFilter.SINCE_LAST -> operation.sinceLastMarkerAt
+            TimeFilter.LAST_HOUR -> now - TimeUnit.HOURS.toMillis(1)
+            TimeFilter.LAST_DAY -> now - TimeUnit.DAYS.toMillis(1)
+        }
+    }
+
+    private fun skipped(operationId: Long, reason: String, labels: RunLabels): ScheduledExecutionResult =
+        skipped(operationId, reason, labels.ts, labels.opName, labels.src, labels.dst)
+
+    private fun logOp(labels: RunLabels, message: String) =
+        logOp(labels.ts, labels.opName, labels.src, labels.dst, message)
+
+    /** The four fields every log line of one run repeats. */
+    private data class RunLabels(val ts: String, val opName: String, val src: String, val dst: String)
 
     /**
      * Records and returns a skipped run: a network side was unreachable before any file was touched.

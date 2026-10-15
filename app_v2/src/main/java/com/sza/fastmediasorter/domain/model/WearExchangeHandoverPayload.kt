@@ -39,6 +39,10 @@ data class WearExchangeHandoverAck(
     @SerializedName("requestId") val requestId: String,
     @SerializedName("enrolled") val enrolled: Boolean,
     @SerializedName("reason") val reason: String? = null,
+    /** The enrolled watch's `deviceId`; set on success only. */
+    @SerializedName("deviceId") val deviceId: String? = null,
+    /** `kem` of the watch's `e2eKey`, which the phone trusts over the directory (DEVICE-EXCHANGE 27 item DG). */
+    @SerializedName("e2eKem") val e2eKem: String? = null,
 )
 
 /** The watch-side refusal vocabulary, mirrored verbatim in the watch module. */

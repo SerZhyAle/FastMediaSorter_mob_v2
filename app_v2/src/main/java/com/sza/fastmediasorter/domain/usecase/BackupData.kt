@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.core.letterbox.LetterboxFillMath
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BackupExchangeAccount
+import com.sza.fastmediasorter.domain.model.BackupHostPort
 import com.sza.fastmediasorter.domain.model.BackupLauncherRecent
 import com.sza.fastmediasorter.domain.model.BackupPreference
 
@@ -31,7 +33,9 @@ data class BackupPayload(
     // hand-maintained field list, so a setting added later travels without a backup-code edit.
     val rawSettings: List<BackupPreference>? = null,
     // S3836: launcher recents, so the list survives an uninstall through the app's own backup.
-    val launcherRecents: List<BackupLauncherRecent>? = null
+    val launcherRecents: List<BackupLauncherRecent>? = null,
+    // S4238: the exchange account entries as an address, a login and a pin - never a token or a device id.
+    val exchangeAccounts: List<BackupExchangeAccount>? = null
 ) {
     companion object {
         // S1346: v5->v6 - not a payload-shape change but a trust marker for
@@ -40,6 +44,9 @@ data class BackupPayload(
         // S3130: v6->v7 - [rawSettings] added. A v6 payload carries no raw section and restores
         // through the typed section alone, exactly as before.
         // S3836: v7->v8 - [launcherRecents] added. A v7 payload carries none and leaves recents alone.
+        // S4238: no bump - [exchangeAccounts] and the exchange fields of [BackupResource] and
+        // [BackupScheduledOperation] are additive and null by default, so an older reader ignores them
+        // and an older payload reads as "knows nothing" and keeps what the device already holds.
         const val CURRENT_VERSION = 8
     }
 }
@@ -582,12 +589,20 @@ data class BackupResource(
     val slideshowInterval: Int = 10,
     val rememberFileList: Boolean = false,
     val comment: String? = null,
-    val showCommandPanel: Boolean? = null
+    val showCommandPanel: Boolean? = null,
+    // S4238: null means "the payload predates these fields" - restore then keeps whatever the matched
+    // resource already holds instead of clearing a pinned server key or the extra access paths.
+    val hostKeyFingerprint: String? = null,
+    val altAccessPaths: List<BackupHostPort>? = null,
+    val exchangeAccount: String? = null,
+    val exchangeResourceId: String? = null
 )
 
 /**
  * Serializable scheduled operation for backup.
- * Resources are identified by path+type so they survive cross-device restore.
+ * Resources are identified by path+type so they survive cross-device restore; since S4238 a resource
+ * attached from the exchange directory is named by its exchange identity as well, which outlives a
+ * changed path.
  */
 data class BackupScheduledOperation(
     val isEnabled: Boolean = true,
@@ -610,7 +625,12 @@ data class BackupScheduledOperation(
     val minAgeHours: Int? = null,
     val maxAgeHours: Int? = null,
     val minSizeBytes: Long? = null,
-    val maxSizeBytes: Long? = null
+    val maxSizeBytes: Long? = null,
+    // S4238: exchange identity of each side; null for a resource that never came from the directory.
+    val sourceExchangeAccount: String? = null,
+    val sourceExchangeResourceId: String? = null,
+    val targetExchangeAccount: String? = null,
+    val targetExchangeResourceId: String? = null
 )
 
 /**

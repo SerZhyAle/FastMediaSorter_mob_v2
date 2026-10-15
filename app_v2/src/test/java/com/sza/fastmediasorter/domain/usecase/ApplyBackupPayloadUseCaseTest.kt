@@ -13,7 +13,12 @@ import com.sza.fastmediasorter.data.local.db.LauncherJournalEntity
 import com.sza.fastmediasorter.data.local.db.LauncherLaunchStatsDao
 import com.sza.fastmediasorter.data.local.db.LauncherLaunchStatsEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BackupExchangeAccount
+import com.sza.fastmediasorter.domain.model.BackupHostPort
 import com.sza.fastmediasorter.domain.model.BackupLauncherRecent
+import com.sza.fastmediasorter.domain.model.HostPort
+import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -22,6 +27,7 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.testing.createAppSettings
+import com.sza.fastmediasorter.testing.createMediaResource
 import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import io.mockk.Runs
@@ -198,6 +204,75 @@ class ApplyBackupPayloadUseCaseTest {
         assertEquals(2, summary.launcherRecentsRestored)
         assertEquals(2, inserted.size)
         assertEquals(2, stats.captured.size)
+    }
+
+    @Test
+    fun `S4238 exchange accounts reach the repository and a missing section is tolerated`() = runTest {
+        val accounts = listOf(BackupExchangeAccount("exchange.example.org", 8443, "alice"))
+        coEvery { rawSettingsRepository.importExchangeAccounts(accounts) } returns 1
+
+        useCase(BackupPayload(exchangeAccounts = accounts))
+        useCase(BackupPayload(exchangeAccounts = null))
+        useCase(BackupPayload(exchangeAccounts = emptyList()))
+
+        coVerify(exactly = 1) { rawSettingsRepository.importExchangeAccounts(any()) }
+    }
+
+    @Test
+    fun `S4238 update from a copy without exchange fields keeps the binding the pin and the paths`() = runTest {
+        val existing = createMediaResource(id = 11L, path = "sftp://h:2222/Photos", type = ResourceType.SFTP).copy(
+            hostKeyFingerprint = "SHA256:held",
+            altAccessPaths = listOf(HostPort("tunnel.example", 8443)),
+            exchangeAccount = "acc",
+            exchangeResourceId = "res-1"
+        )
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(existing)
+        val updated = slot<MediaResource>()
+        coEvery { resourceRepository.updateResource(capture(updated)) } just Runs
+
+        useCase(
+            BackupPayload(resources = listOf(BackupResource(name = "Photos", path = existing.path, type = "SFTP")))
+        )
+
+        assertEquals(11L, updated.captured.id)
+        assertEquals("SHA256:held", updated.captured.hostKeyFingerprint)
+        assertEquals(existing.altAccessPaths, updated.captured.altAccessPaths)
+        assertEquals("acc", updated.captured.exchangeAccount)
+        assertEquals("res-1", updated.captured.exchangeResourceId)
+    }
+
+    @Test
+    fun `S4238 a copy that carries the exchange identity matches the row by it when the path changed`() = runTest {
+        val existing = createMediaResource(id = 12L, path = "sftp://old:2222/Photos", type = ResourceType.SFTP).copy(
+            exchangeAccount = "acc",
+            exchangeResourceId = "res-1"
+        )
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(existing)
+        val updated = slot<MediaResource>()
+        coEvery { resourceRepository.updateResource(capture(updated)) } just Runs
+
+        val summary = useCase(
+            BackupPayload(
+                resources = listOf(
+                    BackupResource(
+                        name = "Photos",
+                        path = "sftp://new:2222/Photos",
+                        type = "SFTP",
+                        hostKeyFingerprint = "SHA256:fresh",
+                        altAccessPaths = listOf(BackupHostPort("tunnel.example", 8443)),
+                        exchangeAccount = "acc",
+                        exchangeResourceId = "res-1"
+                    )
+                )
+            )
+        )
+
+        assertEquals(1, summary.resourcesUpdated)
+        assertEquals(0, summary.resourcesAdded)
+        assertEquals(12L, updated.captured.id)
+        assertEquals("sftp://new:2222/Photos", updated.captured.path)
+        assertEquals("SHA256:fresh", updated.captured.hostKeyFingerprint)
+        assertEquals(listOf(HostPort("tunnel.example", 8443)), updated.captured.altAccessPaths)
     }
 
     private companion object {

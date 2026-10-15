@@ -24,12 +24,15 @@ class StreamDeviceBroadcastsManager(
     private val chevron: ImageView,
     private val status: TextView,
     private val list: LinearLayout,
+    private val portalLink: View,
     private val onToggle: () -> Unit,
     private val onChosen: (ExchangeDeviceBroadcast) -> Unit,
+    onPortalLink: () -> Unit,
 ) {
 
     init {
         header.setOnClickListener { onToggle() }
+        portalLink.setOnClickListener { onPortalLink() }
     }
 
     fun setAvailable(available: Boolean) {
@@ -54,6 +57,7 @@ class StreamDeviceBroadcastsManager(
         }
         status.isVisible = statusText != null
         statusText?.let(status::setText)
+        portalLink.isVisible = state.expanded
         list.isVisible = items.isNotEmpty()
         list.removeAllViews()
         items.forEach { list.addView(row(it)) }

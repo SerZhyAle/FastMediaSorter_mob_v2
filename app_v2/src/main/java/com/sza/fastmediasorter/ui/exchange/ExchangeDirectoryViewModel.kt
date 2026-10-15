@@ -11,15 +11,18 @@ import com.sza.fastmediasorter.domain.model.ExchangeDirectoryView
 import com.sza.fastmediasorter.domain.model.ExchangeListedResource
 import com.sza.fastmediasorter.domain.model.ExchangePinAttempt
 import com.sza.fastmediasorter.domain.model.ExchangeResourceAccess
+import com.sza.fastmediasorter.domain.transfer.DriveChannelSettings
 import com.sza.fastmediasorter.domain.usecase.exchange.AttachExchangeResourcesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -98,7 +101,12 @@ sealed interface ExchangePinPrompt {
 @HiltViewModel
 class ExchangeDirectoryViewModel @Inject constructor(
     private val directory: AttachExchangeResourcesUseCase,
+    driveChannelSettings: DriveChannelSettings,
 ) : ViewModel() {
+
+    /** S4231: with the Drive channel on, a resource listed only by its Drive record is marked so. */
+    val driveChannelOn: StateFlow<Boolean> = driveChannelSettings.enabled
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val _state = MutableStateFlow<ExchangeDirectoryState>(ExchangeDirectoryState.Closed)
     val state: StateFlow<ExchangeDirectoryState> = _state.asStateFlow()

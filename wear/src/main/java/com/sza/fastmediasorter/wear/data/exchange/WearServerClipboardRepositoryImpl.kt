@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.data.exchange
 import android.content.Context
 import android.net.Network
 import android.net.Uri
+import com.sza.fastmediasorter.data.security.e2e.E2eDigestInputStream
 import com.sza.fastmediasorter.wear.data.network.WearTransferNetworkManager
 import com.sza.fastmediasorter.wear.domain.files.WearServerClipboardChooser
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardEntryFailure
@@ -20,6 +21,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -28,6 +31,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import java.io.FileNotFoundException
 import java.io.InputStream
+import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -97,9 +101,13 @@ class WearServerClipboardRepositoryImpl @Inject constructor(
     ): WearServerClipboardSendReport {
         val delivered = mutableListOf<String>()
         val failed = mutableListOf<WearServerClipboardEntryFailure>()
+        // The box carries the clear SHA-256 ahead of the bytes (27 item DN), so the source is read once for it.
+        val clearSha256 = openSource(source)?.use { input -> sha256Of(input, offer.size) }
         for (entry in entries) {
-            val result = openSource(source)?.use { input ->
-                client.put(entry, offer, input, granted) { sent -> onProgress(sent, offer.size) }
+            val result = clearSha256?.let { sha ->
+                openSource(source)?.use { input ->
+                    client.put(entry, offer, sha, input, granted) { sent -> onProgress(sent, offer.size) }
+                }
             } ?: WearServerClipboardPut.Failed(WearServerClipboardFailure.SOURCE_UNREADABLE)
             when (result) {
                 WearServerClipboardPut.Stored -> delivered += entry.label
@@ -109,6 +117,16 @@ class WearServerClipboardRepositoryImpl @Inject constructor(
         }
         Timber.i("Clipboard send: %d stored, %d failed", delivered.size, failed.size)
         return WearServerClipboardSendReport(delivered, failed)
+    }
+
+    // Null when the source ends before its declared size: the send would break the same way.
+    private suspend fun sha256Of(input: InputStream, size: Long): String? = withContext(Dispatchers.IO) {
+        val counted = E2eDigestInputStream(input, size, MessageDigest.getInstance("SHA-256"))
+        val buffer = ByteArray(HASH_BUFFER_BYTES)
+        while (counted.read(buffer) >= 0) {
+            currentCoroutineContext().ensureActive()
+        }
+        counted.hexDigest().takeIf { counted.count == size }
     }
 
     private suspend fun openSource(source: Uri): InputStream? = handingOffCloseable { handOff ->
@@ -207,5 +225,6 @@ class WearServerClipboardRepositoryImpl @Inject constructor(
     private companion object {
         // Contract 22 item CA: an entry that does not answer is skipped and named, never waited for.
         const val INFO_TIMEOUT_MS = 15_000L
+        const val HASH_BUFFER_BYTES = 64 * 1024
     }
 }

@@ -54,6 +54,14 @@ class MediaExchangePortalLinksTest {
     }
 
     @Test
+    fun `the exchange server page has an edition for each portal language`() {
+        val page = MediaExchangePortalLinks.Page.EXCHANGE_SERVER
+        assertTrue(MediaExchangePortalLinks.urlFor(page, "en").endsWith("/exchange-server.html"))
+        assertTrue(MediaExchangePortalLinks.urlFor(page, "ru").endsWith("/exchange-server-ru.html"))
+        assertTrue(MediaExchangePortalLinks.urlFor(page, "uk").endsWith("/exchange-server-uk.html"))
+    }
+
+    @Test
     fun `only the source-choosing surfaces carry a portal page`() {
         val mapped = UiSurface.entries.filter { MediaExchangePortalLinks.pageFor(it) != null }
         assertEquals(listOf(UiSurface.ADD_RESOURCE, UiSurface.CLOUD_PICKER).toSet(), mapped.toSet())

@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogExchangeClipboardTransferBinding
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.exchange.ExchangeClipboardUiState
 import com.sza.fastmediasorter.ui.exchange.MyDevicesActivity
 import com.sza.fastmediasorter.util.showBoundTo
@@ -89,6 +90,10 @@ class ExchangeClipboardDialogManager(
             .setMessage(text)
             .setPositiveButton(R.string.ok) { _, _ ->
                 if (openDevices) MyDevicesActivity.start(activity)
+                onDone()
+            }
+            .setNeutralButton(R.string.exchange_portal_link_clipboard) { _, _ ->
+                MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.EXCHANGE_SERVER)
                 onDone()
             }
             .setOnCancelListener { onDone() }

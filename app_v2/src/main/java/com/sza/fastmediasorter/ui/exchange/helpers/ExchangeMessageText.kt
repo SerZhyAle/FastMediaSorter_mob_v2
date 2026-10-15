@@ -45,6 +45,10 @@ object ExchangeMessageText {
         ExchangeMessage.SERVER_OFFLINE to R.string.exchange_failure_server_offline,
         ExchangeMessage.RESOURCE_LOCKED to R.string.exchange_failure_resource_locked,
         ExchangeMessage.CLIPBOARD_EMPTY to R.string.exchange_failure_clipboard_empty,
+        ExchangeMessage.E2E_MISSING to R.string.exchange_failure_e2e_missing,
+        ExchangeMessage.KEY_CHANGED to R.string.exchange_failure_key_changed,
+        ExchangeMessage.SERVER_NO_E2E to R.string.exchange_failure_server_no_e2e,
+        ExchangeMessage.SEALED_FAILED to R.string.exchange_failure_sealed_failed,
         ExchangeMessage.REFUSED to R.string.exchange_failure_refused,
         ExchangeMessage.TOKEN_NOT_STORED to R.string.exchange_failure_token_not_stored,
     )

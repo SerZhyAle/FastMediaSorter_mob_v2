@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.Activity
 import android.view.View
+import androidx.fragment.app.FragmentActivity
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.error.ErrorSeverity
@@ -9,11 +10,14 @@ import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.common.copy.UiMessageFamily
 import com.sza.fastmediasorter.ui.common.copy.UiMessageProjector
 import com.sza.fastmediasorter.ui.common.copy.UiMessageSpec
+import com.sza.fastmediasorter.ui.common.dialog.AppDialog
 import com.sza.fastmediasorter.ui.dialog.HostKeyRepinPrompter
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
+import com.sza.fastmediasorter.ui.exchange.drive.DriveChannelBrowseDialogFragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -62,6 +66,34 @@ class BrowseErrorDisplayManager(
 
         val renderStatic = { renderError(message, details, exception) }
         if (!hostKeyRepinPrompter.offer(activity, coroutineScope, exception, renderStatic)) renderStatic()
+    }
+
+    /**
+     * S4231: the live paths to a resource of another own device all failed - say so and offer the folder
+     * via Google Drive, the last channel (DEVICE-EXCHANGE item CO, strategic 3.4). Without a fragment host
+     * the plain error is shown instead.
+     */
+    fun offerDriveChannel(event: BrowseEvent.OfferDriveChannel) {
+        val host = activity as? FragmentActivity
+        if (host == null) {
+            renderError(event.message, null, null)
+        } else {
+            AppDialog.confirm(
+                owner = host,
+                context = host,
+                title = host.getString(R.string.error),
+                message = event.message,
+                confirmLabel = host.getString(R.string.drive_channel_browse_open),
+                onConfirm = {
+                    DriveChannelBrowseDialogFragment.show(
+                        host.supportFragmentManager,
+                        event.exchangeResourceId,
+                        event.resourceUri,
+                        event.resourceName
+                    )
+                }
+            )
+        }
     }
 
     private fun renderError(message: String, details: String?, exception: Throwable?) {

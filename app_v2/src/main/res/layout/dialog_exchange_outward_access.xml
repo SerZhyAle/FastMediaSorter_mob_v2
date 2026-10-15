@@ -102,6 +102,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="@dimen/touch_target_min_height"
-            android:text="@string/exchange_outward_invite_guest" />
+            android:nextFocusDown="@+id/btnExchangePortalOutward"
+            android:text="@string/exchange_outward_invite_guest"
+            app:icon="@drawable/ic_exchange_guest" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExchangePortalOutward"
+            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusUp="@id/btnOutwardInviteGuest"
+            android:text="@string/exchange_portal_link_server" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

@@ -113,6 +113,7 @@ class BroadcastFileAudioService : Service() {
      */
     @Suppress("ReturnCount", "TooGenericExceptionCaught")
     private suspend fun openSession(uri: Uri) {
+        Timber.d("S4234: audio file session opening uri=$uri")
         val baseConfig = readSessionConfig()
         val decoder = BroadcastFileDecoder(this, uri)
         if (!decoder.open()) {
@@ -165,7 +166,7 @@ class BroadcastFileAudioService : Service() {
         decoder.release()
         // The stop path and the end of the file both own the teardown; getAndSet picks one.
         if (ranToTheEnd && isPlaying.getAndSet(false)) {
-            Timber.d("BroadcastFileAudioService: file ended, broadcast over")
+            Timber.d("S4234: audio file ran to its end, broadcast over")
             stopBroadcast()
             leaveForegroundAndStop()
         }

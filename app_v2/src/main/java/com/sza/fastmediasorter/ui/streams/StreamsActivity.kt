@@ -39,6 +39,7 @@ import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction
@@ -605,8 +606,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             chevron = binding.ivDevicesChevron,
             status = binding.tvDevicesStatus,
             list = binding.streamsDevicesList,
+            portalLink = binding.btnDevicesPortal,
             onToggle = deviceBroadcastsViewModel::toggle,
             onChosen = deviceBroadcastsViewModel::onBroadcastChosen,
+            onPortalLink = {
+                MediaExchangePortalLinks.open(this, MediaExchangePortalLinks.Page.LIVE_BROADCAST)
+            },
         )
     }
 

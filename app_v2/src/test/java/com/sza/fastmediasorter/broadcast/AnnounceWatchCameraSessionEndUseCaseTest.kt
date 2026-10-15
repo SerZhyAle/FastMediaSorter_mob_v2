@@ -135,5 +135,9 @@ class AnnounceWatchCameraSessionEndUseCaseTest {
         override fun selectLens(lensId: String) = Unit
 
         override fun acknowledgeFailure() = Unit
+
+        override fun startFile(uri: android.net.Uri) = Unit
+
+        override fun startScreen(resultCode: Int, data: android.content.Intent) = Unit
     }
 }

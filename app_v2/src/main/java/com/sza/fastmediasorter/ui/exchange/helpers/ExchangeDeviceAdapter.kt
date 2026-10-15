@@ -6,6 +6,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemExchangeDeviceBinding
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 
 /**
@@ -15,6 +16,7 @@ import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 class ExchangeDeviceAdapter(
     private val ownDeviceId: String,
     private val devices: List<SftpRendezvousDevice>,
+    private val notices: Map<String, ExchangeMessage>,
     private val onRevoke: (SftpRendezvousDevice) -> Unit,
 ) : RecyclerView.Adapter<ExchangeDeviceAdapter.Holder>() {
 
@@ -40,10 +42,11 @@ class ExchangeDeviceAdapter(
                 }
             )
             // Item DA of DEVICE-EXCHANGE: a message of the shared table is shown whole, never joined with other text.
-            binding.textExchangeDeviceDetails.text = if (device.isSharePaused) {
-                context.getString(R.string.exchange_share_paused)
-            } else {
-                context.getString(R.string.exchange_devices_device_details, device.product, presence)
+            val notice = notices[device.deviceId]
+            binding.textExchangeDeviceDetails.text = when {
+                notice != null -> ExchangeMessageText.twoParts(context, notice)
+                device.isSharePaused -> context.getString(R.string.exchange_share_paused)
+                else -> context.getString(R.string.exchange_devices_device_details, device.product, presence)
             }
             binding.btnExchangeDeviceRevoke.isVisible = !own
             binding.btnExchangeDeviceRevoke.contentDescription =

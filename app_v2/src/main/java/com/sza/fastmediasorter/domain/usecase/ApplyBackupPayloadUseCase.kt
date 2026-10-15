@@ -87,6 +87,13 @@ class ApplyBackupPayloadUseCase @Inject constructor(
             settingsRestored = true
         }
 
+        // S4238: entries return without a token and with a fresh device id, so the account asks for its
+        // password once; resources bound to the same identity find the entry again by that identity.
+        payload.exchangeAccounts?.takeIf { it.isNotEmpty() }?.let { accounts ->
+            val restored = rawSettingsRepository.importExchangeAccounts(accounts)
+            Timber.i("ApplyBackup: %d exchange account entries restored, each waits for sign-in", restored)
+        }
+
         // 2-6. S0732: the Room sections commit all-or-nothing in one transaction;
         // a kill mid-restore no longer leaves a partial DB. Counts are hoisted out so
         // RestoreSummary can read them; WorkManager scheduling is deferred to after commit.
@@ -135,7 +142,7 @@ class ApplyBackupPayloadUseCase @Inject constructor(
                         val candidate = BackupMapper.toMediaResource(backupRes)
                         val existing = existingResources.firstOrNull { isSameResource(it, candidate) }
                         if (existing != null) {
-                            resourceRepository.updateResource(candidate.copy(id = existing.id))
+                            resourceRepository.updateResource(keepKnownExchangeState(candidate, existing))
                             resourcesUpdated++
                         } else {
                             resourceRepository.addResource(candidate)
@@ -307,11 +314,30 @@ class ApplyBackupPayloadUseCase @Inject constructor(
     }
 
     private fun isSameResource(existing: MediaResource, candidate: MediaResource): Boolean {
-        if (existing.type == ResourceType.CLOUD && candidate.type == ResourceType.CLOUD) {
-            return existing.cloudProvider == candidate.cloudProvider &&
-                existing.cloudFolderId == candidate.cloudFolderId &&
-                existing.accountId == candidate.accountId
+        val exchangeIdentity = candidate.exchangeAccount != null && candidate.exchangeResourceId != null
+        return when {
+            // S4238: the directory's own identity outlives a changed path, so it decides before the path does.
+            exchangeIdentity && existing.exchangeAccount == candidate.exchangeAccount &&
+                existing.exchangeResourceId == candidate.exchangeResourceId -> true
+            existing.type == ResourceType.CLOUD && candidate.type == ResourceType.CLOUD ->
+                existing.cloudProvider == candidate.cloudProvider &&
+                    existing.cloudFolderId == candidate.cloudFolderId &&
+                    existing.accountId == candidate.accountId
+            else -> existing.type == candidate.type && existing.path == candidate.path
         }
-        return existing.type == candidate.type && existing.path == candidate.path
     }
+
+    /**
+     * S4238: a copy that does not know the exchange binding, the pinned server key or the extra access
+     * paths (taken before they were carried, or from a resource that never had them) must not clear what
+     * the matched row already holds - clearing the key would leave the host unpinned.
+     */
+    private fun keepKnownExchangeState(candidate: MediaResource, existing: MediaResource): MediaResource =
+        candidate.copy(
+            id = existing.id,
+            hostKeyFingerprint = candidate.hostKeyFingerprint ?: existing.hostKeyFingerprint,
+            altAccessPaths = candidate.altAccessPaths.ifEmpty { existing.altAccessPaths },
+            exchangeAccount = candidate.exchangeAccount ?: existing.exchangeAccount,
+            exchangeResourceId = candidate.exchangeResourceId ?: existing.exchangeResourceId
+        )
 }

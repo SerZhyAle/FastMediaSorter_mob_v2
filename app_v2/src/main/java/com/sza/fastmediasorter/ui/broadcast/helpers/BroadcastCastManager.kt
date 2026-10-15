@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.domain.exchange.ExchangeCastCoordinator
 import com.sza.fastmediasorter.domain.model.ExchangeCastResult
 import com.sza.fastmediasorter.domain.model.ExchangeCastTarget
 import com.sza.fastmediasorter.domain.model.ExchangeMessage
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.launch
@@ -100,6 +101,9 @@ class BroadcastCastManager @Inject constructor(
                 } else {
                     activity.lifecycleScope.launch { onSent(activity, coordinator.cast(chosen), chosen.size) }
                 }
+            }
+            .setNeutralButton(R.string.exchange_portal_link_broadcast) { _, _ ->
+                MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.LIVE_BROADCAST)
             }
             .setNegativeButton(R.string.cancel, null)
             .showBoundTo(activity)

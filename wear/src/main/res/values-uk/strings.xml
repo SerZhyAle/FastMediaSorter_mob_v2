@@ -153,7 +153,7 @@
     <string name="about_send_logs_no_answer">Телефон не відповів. Відкрийте на ньому програму й повторіть</string>
     <string name="about_send_logs_notifications_off">На телефоні вимкнено сповіщення. Увімкніть їх і повторіть</string>
     <string name="about_send_logs_refused">Телефон не прийняв логи. Оновіть на ньому програму</string>
-    <string name="about_web_portal">Веб-портал</string>
+    <string name="about_web_portal">Портал обміну медіа</string>
     <string name="wear_app_calculator">Калькулятор</string>
     <string name="wear_app_network_monitor">Мережевий монітор</string>
     <string name="wear_app_game">Міні-гра</string>
@@ -1143,5 +1143,8 @@
     <string name="exchange_account_folder_added">Теку додано до мережевих ресурсів</string>
     <string name="exchange_account_folder_add_failed">Не вдалося додати теку. Спробуйте ще раз.</string>
     <string name="exchange_account_folder_on_watch">Вже на годиннику</string>
-    <string name="exchange_account_folder_locked">Захищена - PIN надійде з телефона</string>
+    <string name="exchange_account_folder_locked">Заблоковано - PIN надійде з телефона</string>
+    <string name="wear_exchange_reason_e2e_missing">Цей пристрій поки не вміє приймати захищений вміст, тому через сервер йому нічого не надсилається.</string>
+    <string name="wear_exchange_reason_server_no_e2e">Цей сервер не вміє передавати захищений вміст, тому папки, трансляції й буфер через нього не йдуть.</string>
+    <string name="wear_exchange_reason_sealed_failed">Це не вдалося відкрити на цьому пристрої. Повторіть з іншого пристрою.</string>
 </resources>

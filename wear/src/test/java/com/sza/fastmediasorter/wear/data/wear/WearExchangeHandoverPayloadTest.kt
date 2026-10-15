@@ -36,6 +36,15 @@ class WearExchangeHandoverPayloadTest {
     }
 
     @Test
+    fun `a successful answer carries the watch's deviceId and key`() {
+        val ack = WearExchangeHandoverAck("r-2", enrolled = true, deviceId = "w-1", e2eKem = "kem-value")
+
+        val json = String(WearExchangeHandoverCodec.serializeAck(ack, gson))
+
+        assertEquals("""{"requestId":"r-2","enrolled":true,"deviceId":"w-1","e2eKem":"kem-value"}""", json)
+    }
+
+    @Test
     fun `only a readable past expiry refuses`() {
         val now = Instant.parse("2026-10-11T12:00:00Z")
 

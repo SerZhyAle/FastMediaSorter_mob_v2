@@ -128,12 +128,40 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="@dimen/margin_normal"
+            android:layout_marginBottom="@dimen/margin_small"
             android:minHeight="@dimen/touch_target_min_height"
             android:focusable="true"
             android:clickable="true"
             android:text="@string/broadcast_entry_start"
             app:icon="@drawable/ic_live_broadcast" />
+
+        <!-- S4234: BROADCAST A STORED FILE (IDLE STATE) - the picker hands the uri to the controller -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBroadcastFile"
+            style="@style/Widget.FastMediaSorter.Button.Tonal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:focusable="true"
+            android:clickable="true"
+            android:text="@string/broadcast_control_file_action"
+            android:visibility="gone" />
+
+        <!-- S4233: BROADCAST THE PHONE SCREEN (IDLE STATE) - the platform consent result goes to the controller -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBroadcastScreen"
+            style="@style/Widget.FastMediaSorter.Button.Tonal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="@dimen/margin_normal"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:focusable="true"
+            android:clickable="true"
+            android:text="@string/broadcast_control_screen_action"
+            android:visibility="gone" />
 
         <!-- LIVE STREAM CONTROLS CONTAINER -->
         <LinearLayout

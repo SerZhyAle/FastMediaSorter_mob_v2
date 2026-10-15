@@ -108,6 +108,11 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     lateinit var sftpServerResumeCoordinator:
         dagger.Lazy<com.sza.fastmediasorter.data.remote.sftp.server.SftpServerResumeCoordinator>
 
+    /** S4231: the Drive channels shared poll and its opt-in background worker follow the channel switches. */
+    @Inject
+    lateinit var driveChannelScheduler:
+        dagger.Lazy<com.sza.fastmediasorter.worker.DriveChannelBackgroundScheduler>
+
     @Inject
     lateinit var playbackPositionRepository: dagger.Lazy<com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository>
 
@@ -319,6 +324,9 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         }
         applicationScope.launch(Dispatchers.IO) {
             sftpServerResumeCoordinator.get().start()
+        }
+        applicationScope.launch(Dispatchers.IO) {
+            driveChannelScheduler.get().start()
         }
 
         // S0213 Pillar C: connect the release-safe degradation signal to MemoryEnduranceTracker so

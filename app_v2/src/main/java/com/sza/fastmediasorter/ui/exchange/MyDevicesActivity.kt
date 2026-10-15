@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityMyDevicesBinding
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeAccountDialogManager
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeFailureDialogManager
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeIntakeLaunchers
@@ -68,6 +69,9 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
         binding.rvExchangeServers.adapter = adapter
         binding.btnExchangeAddServer.setOnClickListener {
             startActivity(ExchangeSignInActivity.createIntent(this))
+        }
+        binding.btnExchangePortalServer.setOnClickListener {
+            MediaExchangePortalLinks.open(this, MediaExchangePortalLinks.Page.EXCHANGE_SERVER)
         }
     }
 

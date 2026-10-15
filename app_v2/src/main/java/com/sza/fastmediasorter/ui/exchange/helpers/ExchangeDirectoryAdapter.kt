@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemExchangeDirectoryRowBinding
 import com.sza.fastmediasorter.domain.model.ExchangeAttachmentState
+import com.sza.fastmediasorter.domain.model.ExchangeDirectorySource
 import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.ExchangeResourceAccess
 import com.sza.fastmediasorter.ui.exchange.ExchangeDirectoryRow
@@ -23,6 +24,7 @@ class ExchangeDirectoryAdapter(
     private val rows: List<ExchangeDirectoryRow>,
     private val onToggle: (ExchangeDirectoryRow.Resource, Boolean) -> Unit,
     private val onPinNeeded: (ExchangeDirectoryRow.Resource) -> Unit,
+    private val driveChannelOn: Boolean = false,
 ) : RecyclerView.Adapter<ExchangeDirectoryAdapter.Holder>() {
 
     override fun getItemCount(): Int = rows.size
@@ -76,7 +78,12 @@ class ExchangeDirectoryAdapter(
         }
 
         private fun bindResource(context: Context, row: ExchangeDirectoryRow.Resource) {
-            binding.textExchangeDirectoryTitle.text = row.item.record.name
+            val name = row.item.record.name
+            // S4231: a resource only the Drive record lists is named with its path; the status line is a
+            // message of the shared table and stays whole (item DA).
+            val driveOnly = driveChannelOn && row.item.sourceKey == ExchangeDirectorySource.DRIVE_SOURCE
+            binding.textExchangeDirectoryTitle.text =
+                if (driveOnly) context.getString(R.string.drive_channel_browse_title, name) else name
             binding.textExchangeDirectoryDetails.text = context.getString(resourceText(row))
             binding.checkExchangeDirectory.isVisible = true
             binding.checkExchangeDirectory.isChecked = row.attached || row.checked
@@ -92,9 +99,11 @@ class ExchangeDirectoryAdapter(
         private fun resourceText(row: ExchangeDirectoryRow.Resource): Int {
             val access = row.item.access
             val online = row.item.online
+            val sealNotice = row.item.sealNotice
             return when {
                 row.asksPin -> R.string.exchange_directory_resource_pin_needed
                 row.attached -> R.string.exchange_directory_resource_attached
+                sealNotice != null -> ExchangeMessageText.what(sealNotice)
                 access == ExchangeResourceAccess.PIN_LOCKED ->
                     ExchangeMessageText.what(ExchangeMessage.PROTECTION_UNSUPPORTED)
                 access == ExchangeResourceAccess.NO_ACCESS -> R.string.exchange_directory_resource_no_access

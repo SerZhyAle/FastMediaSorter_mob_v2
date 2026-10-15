@@ -58,7 +58,8 @@ class DeviceExchangeAccountClientTest {
         productVersion = "2.6.0",
         roles = listOf("resource-producer", "resource-consumer"),
     )
-    private val client = DeviceExchangeAccountClient(connector, tokens)
+    private val e2eKeys = InMemoryE2eKeyStore()
+    private val client = DeviceExchangeAccountClient(connector, tokens, e2eKeys)
 
     @After
     fun tearDown() {
@@ -91,7 +92,11 @@ class DeviceExchangeAccountClientTest {
         assertEquals(DEVICE_ID, enroll.string("deviceId"))
         assertEquals("fms-android", enroll.string("product"))
         assertEquals("android", enroll.string("platform"))
-        assertEquals(listOf("pin-v1"), enroll.members.getAsJsonArray("capabilities").map { it.asString })
+        assertEquals(listOf("pin-v1", "e2e-v1"), enroll.members.getAsJsonArray("capabilities").map { it.asString })
+        val declared = enroll.members.getAsJsonObject("e2eKey")
+        assertEquals(1, declared.get("v").asInt)
+        assertEquals(e2eKeys.keys.getValue(DEVICE_ID).kem, declared.get("kem").asString)
+        assertEquals(KEM_LENGTH, declared.get("kem").asString.length)
         val welcome = (result as DeviceExchangeEnrollResult.Enrolled).welcome
         assertEquals("exchange.example.net:44022", welcome.publicEndpoint)
         assertEquals(listOf("directory", "tunnel"), welcome.features)
@@ -616,6 +621,7 @@ class DeviceExchangeAccountClientTest {
 
     private companion object {
         const val DEVICE_ID = "AAAAAAAAAAAAAAAAAAAAAA"
+        const val KEM_LENGTH = 87
         const val OTHER_DEVICE_ID = "CCCCCCCCCCCCCCCCCCCCCC"
         const val TOKEN = "tok3n-of-thirty-two-bytes-base64url-xxxxxx"
         const val PASSWORD = "Passw0rdTest"

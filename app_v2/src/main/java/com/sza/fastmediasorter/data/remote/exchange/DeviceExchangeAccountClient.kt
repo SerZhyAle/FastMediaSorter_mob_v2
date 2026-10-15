@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnection
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnector
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTrust
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTunnelUnavailableException
+import com.sza.fastmediasorter.data.security.e2e.E2eDeviceKey
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.DeviceExchangeCredential
 import com.sza.fastmediasorter.domain.model.DeviceExchangeEnrollResult
@@ -69,6 +70,7 @@ class DeviceExchangeSession(
 class DeviceExchangeAccountClient @Inject constructor(
     private val connector: ExchangeConnector,
     private val tokens: DeviceExchangeTokenStore,
+    private val e2eKeys: DeviceExchangeE2eKeyStore,
 ) {
 
     /**
@@ -81,7 +83,8 @@ class DeviceExchangeAccountClient @Inject constructor(
         enrollment: DeviceExchangeEnrollment,
     ): DeviceExchangeEnrollResult {
         Timber.d("Exchange enroll: credential=%s", credential.javaClass.simpleName)
-        return firstExchange(entry, enrollment, enrollEnvelope(entry, credential, enrollment))
+        val key = e2eKeys.keyFor(entry.deviceId)
+        return firstExchange(entry, enrollment, enrollEnvelope(entry, credential, enrollment, key))
     }
 
     /**
@@ -96,7 +99,8 @@ class DeviceExchangeAccountClient @Inject constructor(
         enrollment: DeviceExchangeEnrollment,
     ): DeviceExchangeEnrollResult {
         Timber.d("Exchange register: invitation=%s", invitation.javaClass.simpleName)
-        return firstExchange(entry, enrollment, registerEnvelope(entry, password, invitation, enrollment))
+        val key = e2eKeys.keyFor(entry.deviceId)
+        return firstExchange(entry, enrollment, registerEnvelope(entry, password, invitation, enrollment, key))
     }
 
     private suspend fun firstExchange(
@@ -375,13 +379,14 @@ class DeviceExchangeAccountClient @Inject constructor(
         entry: DeviceExchangeAccountEntry,
         credential: DeviceExchangeCredential,
         enrollment: DeviceExchangeEnrollment,
+        key: E2eDeviceKey?,
     ) = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_ENROLL) {
         addProperty(KEY_LOGIN, entry.login)
         when (credential) {
             is DeviceExchangeCredential.Password -> addProperty(KEY_PASSWORD, credential.value)
             is DeviceExchangeCredential.PairingCode -> addProperty(KEY_PAIRING_CODE, credential.value)
         }
-        addDeviceMembers(entry, enrollment)
+        addDeviceMembers(entry, enrollment, key)
     }
 
     // `register` carries every device member of `enroll` beside the account's own (19 item AQ).
@@ -390,6 +395,7 @@ class DeviceExchangeAccountClient @Inject constructor(
         password: DeviceExchangeCredential.Password,
         invitation: DeviceExchangeInvitation,
         enrollment: DeviceExchangeEnrollment,
+        key: E2eDeviceKey?,
     ) = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_REGISTER) {
         addProperty(KEY_LOGIN, entry.login)
         addProperty(KEY_PASSWORD, password.value)
@@ -397,19 +403,26 @@ class DeviceExchangeAccountClient @Inject constructor(
             is DeviceExchangeInvitation.OneTime -> addProperty(KEY_INVITATION, invitation.value)
             is DeviceExchangeInvitation.SharedPassword -> addProperty(KEY_INVITATION_PASSWORD, invitation.value)
         }
-        addDeviceMembers(entry, enrollment)
+        addDeviceMembers(entry, enrollment, key)
     }
 
-    private fun JsonObject.addDeviceMembers(entry: DeviceExchangeAccountEntry, enrollment: DeviceExchangeEnrollment) {
+    // A device without a key declares neither `e2eKey` nor `e2e-v1` (item DF), so it is never a recipient.
+    private fun JsonObject.addDeviceMembers(
+        entry: DeviceExchangeAccountEntry,
+        enrollment: DeviceExchangeEnrollment,
+        key: E2eDeviceKey?,
+    ) {
         addProperty(KEY_DEVICE_ID, entry.deviceId)
         addProperty(KEY_DEVICE_NAME, enrollment.deviceName)
         addProperty(KEY_PRODUCT, SftpRendezvousDevice.PRODUCT_FMS_ANDROID)
         addProperty(KEY_PRODUCT_VERSION, enrollment.productVersion)
         addProperty(KEY_PLATFORM, SftpRendezvousDevice.PLATFORM_ANDROID)
         add(KEY_ROLES, JsonArray().apply { enrollment.roles.forEach(::add) })
-        if (enrollment.capabilities.isNotEmpty()) {
-            add(KEY_CAPABILITIES, JsonArray().apply { enrollment.capabilities.forEach(::add) })
+        val capabilities = enrollment.capabilities + listOfNotNull(key?.let { E2eDeviceKey.CAPABILITY })
+        if (capabilities.isNotEmpty()) {
+            add(KEY_CAPABILITIES, JsonArray().apply { capabilities.distinct().forEach(::add) })
         }
+        key?.let { add(E2eDeviceKey.KEY_E2E_KEY, it.toWire()) }
         enrollment.receiver?.let { add(KEY_RECEIVER, it) }
     }
 

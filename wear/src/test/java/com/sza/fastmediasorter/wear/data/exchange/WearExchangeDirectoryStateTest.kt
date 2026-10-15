@@ -1,11 +1,13 @@
 package com.sza.fastmediasorter.wear.data.exchange
 
+import com.sza.fastmediasorter.data.security.e2e.E2eDeviceKey
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
 
 /** The directory a subscribed watch holds (contract DEVICE-EXCHANGE 7.4): `directory`, then `changed` by revision. */
 class WearExchangeDirectoryStateTest {
@@ -20,6 +22,20 @@ class WearExchangeDirectoryStateTest {
         assertFalse(state.devices.getValue("d2").isOnline)
         assertEquals("Mic", state.broadcasts.getValue("b1").title)
         assertEquals("AUDIO_ONLY", state.broadcasts.getValue("b1").mode)
+    }
+
+    @Test
+    fun `a device record's key, capability and time are read for the trust rules`() {
+        val key = E2eDeviceKey.generate()
+        val record = """{"schemaVersion":2,"type":"directory","revision":1,"devices":[{"deviceId":"d9",""" +
+            """"deviceName":"Tab","product":"fms-android","presence":"online","capabilities":["e2e-v1"],""" +
+            """"e2eKey":{"v":1,"kem":"${key.kem}"},"updatedAt":"2026-10-15T08:00:00Z"}]}"""
+
+        val device = WearExchangeDirectoryState.of(WearExchangeEnvelope.decode(record)).devices.getValue("d9")
+
+        assertEquals(key.kem, device.kem)
+        assertTrue(device.sealsCapable)
+        assertEquals(Instant.parse("2026-10-15T08:00:00Z").toEpochMilli(), device.updatedAtMs)
     }
 
     @Test

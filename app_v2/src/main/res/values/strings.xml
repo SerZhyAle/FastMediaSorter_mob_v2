@@ -2898,7 +2898,7 @@
     <string name="perm_addendum_read_external_storage_local_resource">This is needed to create a local resource from a folder on the device.</string>
     <string name="perm_rationale_access_local_network">The app connects to SMB, SFTP, FTP and DLNA servers on your network, and finds them by looking for devices on it. Without this permission those sources stay unreachable; nothing outside your network is contacted.</string>
     <string name="perm_addendum_camera_qr_pairing">Scanning a companion QR code needs the camera.</string>
-    <string name="perm_rationale_record_audio">The microphone records voice notes and the sound in a screen recording. Without it recording cannot start.</string>
+    <string name="perm_rationale_record_audio">The microphone records voice notes and the sound in a screen recording, and carries live sound when you start a broadcast. Without it recording and audio broadcasts cannot start.</string>
     <string name="perm_addendum_record_audio_screen_recording">A screen recording takes its sound from the microphone.</string>
     <string name="perm_addendum_post_notifications_screen_recording">The recording notification carries the stop control.</string>
     <string name="perm_rationale_location">Location is used only to write coordinates into the photos and videos you shoot in the app. Nothing is sent anywhere.</string>
@@ -4328,7 +4328,7 @@
     <string name="streams_error_playlist_json_unsupported">This is a JSON playlist. Only .m3u and .m3u8 lists can be imported.</string>
     <string name="perm_rationale_camera">The camera takes photos and videos inside the app, recognizes text and scans QR codes. Pictures stay on your device unless you share or stream them yourself.</string>
     <string name="perm_rationale_read_phone_state">The launcher status strip and the network monitor read the signal strength and network of each SIM to show them to you. Calls and messages are not touched, and nothing is sent anywhere.</string>
-    <string name="perm_rationale_post_notifications">Notifications show the progress of playback, file transfers, recordings and screen captures, and carry the button that stops each of them. Without this permission the work still runs, but out of sight.</string>
+    <string name="perm_rationale_post_notifications">Notifications show the progress of playback, file transfers, recordings, screen captures and live broadcasts, and carry the button that stops each of them. Without this permission the work still runs, but out of sight.</string>
     <string name="perm_rationale_manage_media">Android asks for confirmation every time an app moves or deletes a photo or video it did not create. With this access the files you sort are moved and deleted without that extra prompt. It is used only for the files you choose to sort.</string>
     <string name="perm_rationale_system_alert_window">The edge gesture strip is drawn on top of other apps so you can swipe it from anywhere. Without this permission the strip cannot be shown. Nothing on the screen underneath is read or recorded.</string>
     <string name="perm_rationale_request_install_packages">Opening an APK file from a browsed folder hands it to the Android installer, which needs this permission. The app never installs anything on its own - every install is confirmed by you on the system screen.</string>
@@ -4514,4 +4514,8 @@
     <string name="broadcast_failed_file">This file cannot be broadcast - it did not open, or it carries no playable track</string>
     <string name="broadcast_notification_file_title">Broadcasting a File</string>
     <string name="broadcast_notification_file_text">Live file broadcast is active</string>
+    <string name="broadcast_control_file_action">Broadcast a file</string>
+    <string name="broadcast_control_screen_action">Broadcast the screen</string>
+    <string name="broadcast_notification_screen_title">Broadcasting the Screen</string>
+    <string name="broadcast_notification_screen_text">Live screen broadcast is active</string>
 </resources>

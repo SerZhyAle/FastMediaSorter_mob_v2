@@ -153,7 +153,7 @@
     <string name="about_send_logs_no_answer">Телефон не ответил. Откройте на нём программу и повторите</string>
     <string name="about_send_logs_notifications_off">На телефоне выключены уведомления. Включите их и повторите</string>
     <string name="about_send_logs_refused">Телефон не принял логи. Обновите на нём программу</string>
-    <string name="about_web_portal">Веб-портал</string>
+    <string name="about_web_portal">Портал обмена медиа</string>
     <string name="wear_app_calculator">Калькулятор</string>
     <string name="wear_app_network_monitor">Сетевой монитор</string>
     <string name="wear_app_game">Мини-игра</string>
@@ -1143,5 +1143,8 @@
     <string name="exchange_account_folder_added">Папка добавлена в сетевые ресурсы</string>
     <string name="exchange_account_folder_add_failed">Не удалось добавить папку. Попробуйте ещё раз.</string>
     <string name="exchange_account_folder_on_watch">Уже на часах</string>
-    <string name="exchange_account_folder_locked">Защищена - PIN придёт с телефона</string>
+    <string name="exchange_account_folder_locked">Заблокировано - PIN придёт с телефона</string>
+    <string name="wear_exchange_reason_e2e_missing">Это устройство пока не умеет принимать защищённое содержимое, поэтому через сервер ему ничего не отправляется.</string>
+    <string name="wear_exchange_reason_server_no_e2e">Этот сервер не умеет передавать защищённое содержимое, поэтому папки, трансляции и буфер через него не идут.</string>
+    <string name="wear_exchange_reason_sealed_failed">Это не удалось открыть на этом устройстве. Повторите с другого устройства.</string>
 </resources>

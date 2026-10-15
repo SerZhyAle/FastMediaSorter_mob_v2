@@ -3,7 +3,9 @@ package com.sza.fastmediasorter.wear.data.network
 import com.hierynomus.mssmb2.SMBApiException
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.SftpException
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeTunnelUnavailableException
 import com.sza.fastmediasorter.wear.data.network.ftp.FtpStoreRefusedException
+import com.sza.fastmediasorter.wear.data.network.sftp.WearResourcePinMissingException
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkFailure
 import com.sza.fastmediasorter.wear.domain.model.WearResourceSendFailure
 import org.apache.commons.net.ftp.FTPReply
@@ -45,6 +47,10 @@ class WearResourceSendFailureClassifier @Inject constructor(
         is FtpStoreRefusedException -> fromFtpReply(error.replyCode)
         is SMBApiException -> fromSmbStatus(error.status?.name)
         is FileNotFoundException, is SecurityException -> WearResourceSendFailure.SOURCE_UNREADABLE
+        is WearExchangeNeedsOwnNetworkException -> WearResourceSendFailure.NO_NETWORK
+        is WearResourcePinMissingException -> WearResourceSendFailure.PIN_NEEDED
+        is WearExchangeEntryMissingException -> WearResourceSendFailure.NOT_CONNECTED
+        is WearExchangeTunnelUnavailableException -> WearResourceSendFailure.UNREACHABLE
         else -> null
     }
 

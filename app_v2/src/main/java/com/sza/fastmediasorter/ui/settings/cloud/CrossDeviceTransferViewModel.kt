@@ -1,14 +1,26 @@
 package com.sza.fastmediasorter.ui.settings.cloud
 
-import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketEntry
 import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketManifest
 import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePayloadKind
 import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceTransferOption
+import com.sza.fastmediasorter.domain.model.transfer.DriveChannelOff
+import com.sza.fastmediasorter.domain.model.transfer.DriveDailyLimit
+import com.sza.fastmediasorter.domain.model.transfer.DriveQueueFull
+import com.sza.fastmediasorter.domain.model.transfer.DriveSignInRequired
+import com.sza.fastmediasorter.domain.model.transfer.OutgoingPacketFile
+import com.sza.fastmediasorter.domain.model.transfer.PacketTooLarge
 import com.sza.fastmediasorter.domain.model.transfer.TransferDataKind
+import com.sza.fastmediasorter.domain.port.LocalDeviceIdentitySource
+import com.sza.fastmediasorter.domain.transfer.DriveChannelSettings
+import com.sza.fastmediasorter.domain.transfer.DrivePollState
+import com.sza.fastmediasorter.domain.transfer.DriveQueueSnapshots
+import com.sza.fastmediasorter.domain.transfer.PollDemand
 import com.sza.fastmediasorter.domain.usecase.transfer.BuildTransferPayloadUseCase
 import com.sza.fastmediasorter.domain.usecase.transfer.CleanExpiredCrossDevicePacketsUseCase
+import com.sza.fastmediasorter.domain.usecase.transfer.DeleteCrossDevicePacketUseCase
 import com.sza.fastmediasorter.domain.usecase.transfer.GetPendingCrossDevicePacketsUseCase
 import com.sza.fastmediasorter.domain.usecase.transfer.ReceiveCrossDevicePacketUseCase
 import com.sza.fastmediasorter.domain.usecase.transfer.SendCrossDevicePacketUseCase
@@ -17,8 +29,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -36,12 +50,26 @@ sealed interface CrossDeviceQueueNotice {
     data object SettingsSent : CrossDeviceQueueNotice
 
     data class ExpiredRemoved(val removed: Int) : CrossDeviceQueueNotice
+
+    /** S4231: the Drive channel failures a person can act on (contract DEVICE-EXCHANGE items CS and CT). */
+    data object ChannelOff : CrossDeviceQueueNotice
+
+    data object SignInRequired : CrossDeviceQueueNotice
+
+    data object DailyLimit : CrossDeviceQueueNotice
+
+    data class NotEnoughSpace(val freeBytes: Long?) : CrossDeviceQueueNotice
+
+    data class TooLarge(val limitBytes: Long) : CrossDeviceQueueNotice
+
+    data object Deleted : CrossDeviceQueueNotice
 }
 
 /** S3040: the queue screen's whole state - what is offered, whether a call is in flight, what to say. */
 data class CrossDeviceQueueUiState(
     val loading: Boolean = false,
-    val packets: List<CrossDevicePacketManifest> = emptyList(),
+    val packets: List<CrossDevicePacketEntry> = emptyList(),
+    val outgoing: List<CrossDevicePacketEntry> = emptyList(),
     val notice: CrossDeviceQueueNotice? = null
 )
 
@@ -58,31 +86,80 @@ class CrossDeviceTransferViewModel @Inject constructor(
     private val receivePacket: ReceiveCrossDevicePacketUseCase,
     private val cleanExpiredPackets: CleanExpiredCrossDevicePacketsUseCase,
     private val buildTransferPayload: BuildTransferPayloadUseCase,
-    private val sendPacket: SendCrossDevicePacketUseCase
+    private val sendPacket: SendCrossDevicePacketUseCase,
+    private val deletePacket: DeleteCrossDevicePacketUseCase,
+    private val identity: LocalDeviceIdentitySource,
+    private val settings: DriveChannelSettings,
+    private val queue: DriveQueueSnapshots
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CrossDeviceQueueUiState())
     val state: StateFlow<CrossDeviceQueueUiState> = _state.asStateFlow()
     private var refreshJob: Job? = null
+    private var visibleJob: Job? = null
+    private var demand: AutoCloseable? = null
 
-    val localDeviceName: String = Build.MODEL ?: UNKNOWN_DEVICE_NAME
+    val channelEnabled: StateFlow<Boolean> =
+        settings.enabled.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), false)
+
+    val backgroundPoll: StateFlow<Boolean> =
+        settings.backgroundPoll.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), false)
+
+    val pollState: StateFlow<DrivePollState> = queue.pollState
+
+    /**
+     * S4231: the open queue screen is an active demand - the shared poll runs every 10 seconds while it
+     * shows (contract item CQ) - and its list follows that poll instead of a timer of its own.
+     */
+    fun onVisible() {
+        Timber.d("S4231: Drive queue dialog visible")
+        if (demand != null) return
+        demand = queue.acquire(PollDemand.ACTIVE)
+        visibleJob = viewModelScope.launch {
+            queue.snapshots.collect { snapshot ->
+                val view = GetPendingCrossDevicePacketsUseCase.viewOf(
+                    snapshot,
+                    identity.current(),
+                    settings.receivedPacketIds()
+                )
+                _state.update { it.copy(packets = view.incoming, outgoing = view.outgoing) }
+            }
+        }
+    }
+
+    fun onHidden() {
+        visibleJob?.cancel()
+        visibleJob = null
+        demand?.close()
+        demand = null
+    }
+
+    fun setChannelEnabled(enabled: Boolean) {
+        viewModelScope.launch { settings.setEnabled(enabled) }
+    }
+
+    fun setBackgroundPoll(enabled: Boolean) {
+        viewModelScope.launch { settings.setBackgroundPoll(enabled) }
+    }
 
     fun refresh() {
         refreshJob?.cancel()
         _state.update { it.copy(loading = true) }
         refreshJob = viewModelScope.launch {
-            val result = getPendingPackets(localDeviceName)
+            val result = getPendingPackets(identity.current())
             currentCoroutineContext().ensureActive()
             result
-                .onSuccess { packets -> _state.update { it.copy(loading = false, packets = packets) } }
+                .onSuccess { view ->
+                    _state.update { it.copy(loading = false, packets = view.incoming, outgoing = view.outgoing) }
+                }
                 .onFailure { error -> failed(error, "listing the cross-device queue") }
         }
     }
 
-    fun receive(manifest: CrossDevicePacketManifest, option: CrossDeviceTransferOption) {
+    fun receive(entry: CrossDevicePacketEntry, option: CrossDeviceTransferOption) {
         _state.update { it.copy(loading = true) }
         viewModelScope.launch {
-            receivePacket(manifest, option)
+            receivePacket(entry, identity.current(), option)
                 .onSuccess { outcome ->
                     _state.update {
                         it.copy(
@@ -96,7 +173,7 @@ class CrossDeviceTransferViewModel @Inject constructor(
                     }
                     refresh()
                 }
-                .onFailure { error -> failed(error, "receiving packet ${manifest.packetId}") }
+                .onFailure { error -> failed(error, "receiving packet ${entry.packetId}") }
         }
     }
 
@@ -132,10 +209,17 @@ class CrossDeviceTransferViewModel @Inject constructor(
                 onSuccess = { bytes ->
                     sendPacket(
                         payloadKind = CrossDevicePayloadKind.SETTINGS,
-                        senderDeviceName = localDeviceName,
-                        targetDeviceName = null,
-                        payloadBytes = mapOf(TransferDataKind.SETTINGS.driveFileName to bytes)
-                    )
+                        sender = identity.current(),
+                        target = null,
+                        files = listOf(
+                            OutgoingPacketFile(
+                                name = TransferDataKind.SETTINGS.driveFileName,
+                                size = bytes.size.toLong(),
+                                mimeType = TransferDataKind.SETTINGS.mimeType,
+                                open = bytes::inputStream
+                            )
+                        )
+                    ).map { }
                 },
                 onFailure = { error -> Result.failure(error) }
             )
@@ -148,6 +232,19 @@ class CrossDeviceTransferViewModel @Inject constructor(
         }
     }
 
+    /** S4231: the person deletes any packet the queue shows, received or not (contract item CS). */
+    fun delete(entry: CrossDevicePacketEntry) {
+        _state.update { it.copy(loading = true) }
+        viewModelScope.launch {
+            deletePacket(entry)
+                .onSuccess {
+                    _state.update { it.copy(notice = CrossDeviceQueueNotice.Deleted) }
+                    refresh()
+                }
+                .onFailure { error -> failed(error, "deleting packet ${entry.packetId}") }
+        }
+    }
+
     /** Drop the notice once the dialog has shown it, so a rotation does not repeat the message. */
     fun consumeNotice() {
         _state.update { it.copy(notice = null) }
@@ -155,10 +252,24 @@ class CrossDeviceTransferViewModel @Inject constructor(
 
     private fun failed(error: Throwable, what: String) {
         Timber.e(error, "Cross-device transfer failed while $what")
-        _state.update { it.copy(loading = false, notice = CrossDeviceQueueNotice.Failed) }
+        _state.update { it.copy(loading = false, notice = noticeFor(error)) }
+    }
+
+    override fun onCleared() {
+        onHidden()
+        super.onCleared()
     }
 
     private companion object {
-        const val UNKNOWN_DEVICE_NAME = "Android"
+        const val STOP_TIMEOUT_MS = 5_000L
+
+        fun noticeFor(error: Throwable): CrossDeviceQueueNotice = when (error) {
+            is DriveChannelOff -> CrossDeviceQueueNotice.ChannelOff
+            is DriveSignInRequired -> CrossDeviceQueueNotice.SignInRequired
+            is DriveDailyLimit -> CrossDeviceQueueNotice.DailyLimit
+            is DriveQueueFull -> CrossDeviceQueueNotice.NotEnoughSpace(error.freeBytes)
+            is PacketTooLarge -> CrossDeviceQueueNotice.TooLarge(error.limitBytes)
+            else -> CrossDeviceQueueNotice.Failed
+        }
     }
 }

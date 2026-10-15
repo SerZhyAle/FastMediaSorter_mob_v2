@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectory
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeE2eKeyStore
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeTokenStore
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeResourcePinStore
@@ -43,6 +44,7 @@ class DeviceExchangeAccountRepository @Inject constructor(
     private val tokens: DeviceExchangeTokenStore,
     private val pins: ExchangeResourcePinStore,
     private val resourceDao: ResourceDao,
+    private val e2eKeys: DeviceExchangeE2eKeyStore,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
 
@@ -108,9 +110,12 @@ class DeviceExchangeAccountRepository @Inject constructor(
         var result = withContext(ioDispatcher) { exchange(candidate) }
         if (held == null && result.isIdCollision()) {
             Timber.d("Exchange enrollment: id-collision, retrying with a new deviceId")
+            e2eKeys.forget(candidate.deviceId)
             enrolled = candidate.copy(deviceId = SftpShareId.generate())
             result = withContext(ioDispatcher) { exchange(enrolled) }
         }
+        // A key lives as long as its deviceId (item DF); an id that never became an entry takes its key along.
+        if (held == null && result !is DeviceExchangeEnrollResult.Enrolled) e2eKeys.forget(enrolled.deviceId)
         if (result is DeviceExchangeEnrollResult.Enrolled) {
             val pinCapable = DeviceExchangeEnrollment.CAPABILITY_PIN_V1 in enrollment.capabilities
             store.put(
@@ -170,6 +175,7 @@ class DeviceExchangeAccountRepository @Inject constructor(
             DeviceExchangeRemoval.FORGOTTEN_LOCALLY
         }
         tokens.forget(entry)
+        e2eKeys.forget(entry.deviceId)
         store.remove(entry.identity)
         return removal
     }
@@ -199,6 +205,7 @@ class DeviceExchangeAccountRepository @Inject constructor(
             .mapNotNull { it.exchangeResourceId }
             .forEach { resourceId -> pins.forget(ExchangeBinding(entry.identity, resourceId)) }
         tokens.forget(entry)
+        e2eKeys.forget(entry.deviceId)
         store.remove(entry.identity)
     }
 

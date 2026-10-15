@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeRefusedExcepti
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeLocalFailureClassifier
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpRendezvousCodec
 import com.sza.fastmediasorter.data.repository.DeviceExchangeAccountRepository
+import com.sza.fastmediasorter.data.repository.ExchangeE2eRepository
 import com.sza.fastmediasorter.data.repository.settings.BroadcastSettingsStore
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAddressChange
@@ -24,8 +25,10 @@ import com.sza.fastmediasorter.domain.model.DeviceExchangeRemoval
 import com.sza.fastmediasorter.domain.model.ExchangeCastRules
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringCodec
 import com.sza.fastmediasorter.domain.model.ExchangeEndpoint
+import com.sza.fastmediasorter.domain.model.ExchangeSealState
 import com.sza.fastmediasorter.domain.model.ExchangeServerCall
 import com.sza.fastmediasorter.domain.model.SftpExchangeConfig
+import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import timber.log.Timber
@@ -43,6 +46,7 @@ class ManageExchangeAccountsUseCase @Inject constructor(
     private val capabilityAvailability: CapabilityAvailability,
     private val mediaCapabilities: MediaCapabilities,
     private val broadcastSource: BroadcastSourceController,
+    private val e2e: ExchangeE2eRepository,
     @ApplicationContext private val context: Context,
 ) {
 
@@ -117,6 +121,12 @@ class ManageExchangeAccountsUseCase @Inject constructor(
 
     suspend fun directory(entry: DeviceExchangeAccountEntry): ExchangeServerCall<DeviceExchangeDirectory> =
         call { accounts.directory(entry) }
+
+    /** How each of [devices] stands for sealed content (27 item DR), learning first-seen keys on the way. */
+    suspend fun sealStates(
+        entry: DeviceExchangeAccountEntry,
+        devices: List<SftpRendezvousDevice>,
+    ): Map<String, ExchangeSealState> = e2e.sealing(entry, devices).states
 
     suspend fun revokeDevice(entry: DeviceExchangeAccountEntry, deviceId: String): ExchangeServerCall<Unit> =
         call { accounts.revokeDevice(entry, deviceId) }

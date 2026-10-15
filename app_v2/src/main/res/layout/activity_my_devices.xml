@@ -55,7 +55,21 @@
             android:clickable="true"
             android:focusable="true"
             android:nextFocusUp="@id/rvExchangeServers"
+            android:nextFocusDown="@+id/btnExchangePortalServer"
             android:text="@string/exchange_devices_add_server"
             app:icon="@drawable/ic_add" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExchangePortalServer"
+            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginHorizontal="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusUp="@id/btnExchangeAddServer"
+            android:text="@string/exchange_portal_link_server" />
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

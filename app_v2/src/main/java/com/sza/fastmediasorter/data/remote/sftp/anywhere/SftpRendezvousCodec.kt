@@ -4,6 +4,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.sza.fastmediasorter.data.security.e2e.E2eDeviceKey
 import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import com.sza.fastmediasorter.domain.model.SftpRendezvousPlayPair
@@ -60,6 +61,12 @@ object SftpRendezvousCodec {
     private const val KEY_TRANSPORT = "transport"
     private const val KEY_PRESENCE = "presence"
     private const val KEY_OFFLINE_REASON = "offlineReason"
+    private const val KEY_CAPABILITIES = "capabilities"
+    private const val KEY_SEALED_ACCESS = "sealedAccess"
+    private const val KEY_SEALED = "sealed"
+    private const val KEY_GRANT_ID = "grantId"
+    private const val KEY_E2E_VERSION = "v"
+    private const val KEY_E2E_KEM = "kem"
     private const val KEY_UPDATED_AT = "updatedAt"
     private const val KEY_RESOURCE_ID = "resourceId"
     private const val KEY_KIND = "kind"
@@ -168,7 +175,18 @@ object SftpRendezvousCodec {
         device.productVersion?.let { addProperty(KEY_PRODUCT_VERSION, it) }
         device.platform?.let { addProperty(KEY_PLATFORM, it) }
         add(KEY_ROLES, stringArray(device.roles))
+        // Both absent unless declared, so the records the rung 1 vectors freeze keep their byte form.
+        if (device.capabilities.isNotEmpty()) add(KEY_CAPABILITIES, stringArray(device.capabilities))
         device.receiver?.let { add(KEY_RECEIVER, receiverBody(it)) }
+        device.e2eKem?.let { kem ->
+            add(
+                E2eDeviceKey.KEY_E2E_KEY,
+                JsonObject().apply {
+                    addProperty(KEY_E2E_VERSION, E2eDeviceKey.VERSION)
+                    addProperty(KEY_E2E_KEM, kem)
+                },
+            )
+        }
         addProperty(KEY_PRESENCE, device.presence)
         // Absent unless offline, so every record without a reason keeps the byte form the rung 1 vectors freeze.
         device.offlineReason?.takeIf { !device.isOnline }?.let { addProperty(KEY_OFFLINE_REASON, it) }
@@ -217,6 +235,7 @@ object SftpRendezvousCodec {
                 }
             )
         }
+        resource.sealedAccess?.takeIf { open }?.let { add(KEY_SEALED_ACCESS, JsonParser.parseString(it)) }
         resource.shareId?.takeIf { open }?.let { addProperty(KEY_SHARE_ID, it) }
         resource.publicPort?.takeIf { open }?.let { addProperty(KEY_PUBLIC_PORT, it) }
         // Item BA: identities, not secrets - written whatever the lock, last, so a record without them keeps the
@@ -233,6 +252,7 @@ object SftpRendezvousCodec {
         broadcast.startedAtMs?.let { addProperty(KEY_STARTED_AT, Iso8601Utc.format(it)) }
         addProperty(KEY_UPDATED_AT, Iso8601Utc.format(broadcast.updatedAtMs))
         add(KEY_DESCRIPTOR, JsonParser.parseString(broadcast.descriptorJson))
+        broadcast.sealed?.let { add(KEY_SEALED, JsonParser.parseString(it)) }
     }
 
     private fun requestBody(request: SftpRendezvousRequest) = JsonObject().apply {
@@ -263,6 +283,8 @@ object SftpRendezvousCodec {
             ttlSeconds = ttl,
             receiver = (body.get(KEY_RECEIVER) as? JsonObject)?.let(::decodeReceiver),
             offlineReason = offlineReason,
+            capabilities = body.strings(KEY_CAPABILITIES),
+            e2eKem = E2eDeviceKey.kemOf(body.get(E2eDeviceKey.KEY_E2E_KEY)),
         )
     }
 
@@ -311,6 +333,10 @@ object SftpRendezvousCodec {
             presence = body.get(KEY_PRESENCE)?.let { body.presence() },
             hostKeyFingerprint = body.string(KEY_HOST_KEY_FINGERPRINT)?.takeIf(String::isNotBlank),
             identityRoot = body.string(KEY_ROOT)?.takeIf(String::isNotBlank),
+            // A granted record carries its box as `sealed` (27 item DJ), a published one as `sealedAccess` (item DI).
+            sealedAccess = ((body.get(KEY_SEALED_ACCESS) ?: body.get(KEY_SEALED)) as? JsonObject)
+                ?.takeIf { open }?.toString(),
+            grantId = body.string(KEY_GRANT_ID)?.takeIf(String::isNotBlank),
         )
     }
 
@@ -330,6 +356,7 @@ object SftpRendezvousCodec {
             descriptorJson = descriptor.toString(),
             writtenAtMs = writtenAt,
             ttlSeconds = ttl,
+            sealed = (body.get(KEY_SEALED) as? JsonObject)?.toString(),
         )
     }
 

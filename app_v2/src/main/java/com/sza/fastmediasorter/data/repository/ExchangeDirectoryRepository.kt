@@ -34,6 +34,7 @@ class ExchangeDirectoryRepository @Inject constructor(
     private val watcher: DeviceExchangeDirectoryWatcher,
     private val drive: GoogleDriveSftpRendezvousDataSource,
     private val driveIds: SftpRendezvousIdentityStore,
+    private val sealed: ExchangeSealedContentOpener,
 ) {
 
     internal var nowMs: () -> Long = System::currentTimeMillis
@@ -64,7 +65,8 @@ class ExchangeDirectoryRepository @Inject constructor(
     // A stream that ends - the producer took the control stream back - leaves its last directory in place.
     private fun serverSource(entry: DeviceExchangeAccountEntry): Flow<ExchangeDirectorySource?> =
         watcher.watch(entry)
-            .map<DeviceExchangeDirectory, ExchangeDirectorySource?> { directory ->
+            .map<DeviceExchangeDirectory, ExchangeDirectorySource?> { delivered ->
+                val directory = sealed.open(entry, delivered)
                 ExchangeDirectorySource(entry.identity, directory.devices, directory.resources, directory.broadcasts)
             }
             .onStart { emit(null) }

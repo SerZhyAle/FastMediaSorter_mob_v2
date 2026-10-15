@@ -4,6 +4,8 @@ import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeSession
+import com.sza.fastmediasorter.data.security.e2e.E2eRelayRecords
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -39,6 +41,7 @@ import javax.inject.Singleton
 @Singleton
 class ExchangeRelayUploader @Inject constructor(
     private val client: DeviceExchangeAccountClient,
+    private val keys: ExchangeRelayKeys,
     @ApplicationScope private val appScope: CoroutineScope,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
@@ -99,32 +102,41 @@ class ExchangeRelayUploader @Inject constructor(
         val header = (source as? Source.Ts)?.feed?.header?.filterNotNull()?.first()
         val session = client.openAuthenticated(entry).also(openStreams::add)
         try {
-            session.send(
-                DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_UPLOAD) {
-                    addProperty(DeviceExchangeAccountClient.KEY_BROADCAST_ID, broadcastId)
-                    addProperty(KEY_CONTENT_TYPE, source.contentType)
+            // 27 item DP: a server without `sealed` gets no relay at all; every upload stream is a new epoch (DL).
+            val sealing = session.welcome.features?.contains(DeviceExchangeAccountEntry.FEATURE_SEALED) == true
+            val ring = keys.newEpoch(broadcastId)?.takeIf { sealing }
+            val accepted = ring != null && accepted(session, broadcastId)
+            if (ring != null && accepted) {
+                mutableAccepted.value = broadcastId
+                val sealer = ExchangeRelaySealer(broadcastId, source.contentType, ring) {
+                    keys.isCurrent(broadcastId, ring)
                 }
-            )
-            val answer = session.receive()
-            if (answer?.type != DeviceExchangeEnvelope.TYPE_UPLOAD_ACCEPTED) {
-                val reason = answer?.string(DeviceExchangeEnvelope.KEY_REASON)
-                Timber.i("ExchangeRelayUploader: upload not accepted (%s)", reason)
-                return false
+                val writer = ExchangeRelayChunkWriter(session.connection.output, sealer.headerChunk(header), sealer)
+                when (source) {
+                    is Source.Adts -> forward(source.url, writer)
+                    is Source.Ts -> pump(source.feed, writer)
+                }
+                writer.end()
             }
-            mutableAccepted.value = broadcastId
-            val writer = ExchangeRelayChunkWriter(session.connection.output, header)
-            when (source) {
-                is Source.Adts -> forward(source.url, writer)
-                is Source.Ts -> pump(source.feed, writer)
-            }
-            writer.end()
-            return true
+            return accepted
         } finally {
             openStreams.remove(session)
             closeQuietly(session)
         }
     }
 
+    private fun accepted(session: DeviceExchangeSession, broadcastId: String): Boolean {
+        session.send(
+            DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_UPLOAD) {
+                addProperty(DeviceExchangeAccountClient.KEY_BROADCAST_ID, broadcastId)
+                addProperty(KEY_CONTENT_TYPE, E2eRelayRecords.CONTENT_TYPE)
+            }
+        )
+        val answer = session.receive()
+        val accepted = answer?.type == DeviceExchangeEnvelope.TYPE_UPLOAD_ACCEPTED
+        if (!accepted) Timber.i("ExchangeRelayUploader: upload not accepted (%s)", answer?.string(KEY_REASON))
+        return accepted
+    }
     // Whole frames per chunk keep every chunk joinable; a few frames per chunk keep the framing overhead small.
     private fun forward(sourceUrl: String, writer: ExchangeRelayChunkWriter) {
         val connection = (URL(sourceUrl).openConnection() as HttpURLConnection).apply {
@@ -158,7 +170,8 @@ class ExchangeRelayUploader @Inject constructor(
     private suspend fun pump(feed: ExchangeVideoRelayFeed, writer: ExchangeRelayChunkWriter) {
         var joined = false
         feed.chunks.collect { chunk ->
-            val fits = chunk.payload.size < ExchangeRelayChunkWriter.MAX_CHUNK_LENGTH
+            val room = ExchangeRelayChunkWriter.MAX_CHUNK_LENGTH - ExchangeRelaySealer.RECORD_OVERHEAD
+            val fits = chunk.payload.size < room
             // A skipped chunk would leave the listeners mid-picture, so the upload waits for the next keyframe.
             joined = fits && (joined || chunk.joinable)
             if (joined) writer.write(chunk.payload, chunk.joinable)
@@ -190,6 +203,7 @@ class ExchangeRelayUploader @Inject constructor(
 
     private companion object {
         const val KEY_CONTENT_TYPE = "contentType"
+        const val KEY_REASON = DeviceExchangeEnvelope.KEY_REASON
         const val CONTENT_TYPE_AAC = "audio/aac"
         const val CONTENT_TYPE_TS = "video/mp2t"
         const val FRAMES_PER_CHUNK = 4

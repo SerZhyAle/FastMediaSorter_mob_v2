@@ -1,12 +1,16 @@
 package com.sza.fastmediasorter.data.remote.sftp.anywhere
 
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeFrameCodec
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeTokenStore
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeBroadcastPublication
+import com.sza.fastmediasorter.data.remote.exchange.InMemoryE2eKeyStore
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
+import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import com.sza.fastmediasorter.domain.model.SftpRendezvousResource
 import com.sza.fastmediasorter.domain.model.SftpTunnelState
 import kotlinx.coroutines.Dispatchers
@@ -81,10 +85,71 @@ class SftpServerTunnelManagerTest {
             hosts: List<String>,
         ): SftpRendezvousResource = record.copy(descriptor = "FMSSFTP1:${hosts.joinToString()}:$port")
 
-        override suspend fun grantEnvelopes(port: Int, hosts: List<String>): List<DeviceExchangeEnvelope> = grants
+        override suspend fun grantEnvelopes(
+            port: Int,
+            hosts: List<String>,
+            sealing: ExchangeGrantSealing,
+        ): List<DeviceExchangeEnvelope> = grants
+
+        override suspend fun sealedRecord(
+            entry: DeviceExchangeAccountEntry,
+            record: SftpRendezvousResource,
+            serverSeals: Boolean,
+            devices: List<SftpRendezvousDevice>?,
+        ): SealedShareRecord = sealer(record, serverSeals, devices)
     }
 
     private var grants: List<DeviceExchangeEnvelope> = emptyList()
+
+    private var sealer: (SftpRendezvousResource, Boolean, List<SftpRendezvousDevice>?) -> SealedShareRecord =
+        { record, _, _ -> SealedShareRecord(record, "") }
+
+    @Test
+    fun `a sealed server gets sealedAccess, published again when the devices change`() = withManager { manager ->
+        sealer = { record, serverSeals, devices ->
+            val ids = devices?.map { it.deviceId }.orEmpty()
+            val box = """{"for":"${ids.joinToString()}"}""".takeIf { serverSeals && ids.isNotEmpty() }
+            SealedShareRecord(record.copy(descriptor = null, sealedAccess = box), ids.joinToString())
+        }
+        val control = ArrayBlockingQueue<DeviceExchangeEnvelope>(SEALED_FRAMES)
+        thread(isDaemon = true) {
+            val stream = exchange.accept()
+            control.put(read(stream))
+            write(stream, sealedWelcome())
+            repeat(SEALED_FIRST_READS) { control.put(read(stream)) }
+            write(stream, directoryWith(OTHER_DEVICE_ID))
+            control.put(read(stream))
+            stream.getInputStream().read()
+        }
+
+        manager.start(localServer.localPort, listOf("192.168.1.5"))
+
+        assertEquals(DeviceExchangeEnvelope.TYPE_HELLO, poll(control).type)
+        val first = poll(control)
+        assertEquals(DeviceExchangeEnvelope.TYPE_PUBLISH, first.type)
+        assertFalse(first.members.getAsJsonObject("resource").has("access"))
+        assertFalse(first.members.getAsJsonObject("resource").has("sealedAccess"))
+        assertEquals(DeviceExchangeEnvelope.TYPE_LIST, poll(control).type)
+        assertEquals(DeviceExchangeEnvelope.TYPE_SUBSCRIBE, poll(control).type)
+        val second = poll(control).members.getAsJsonObject("resource")
+        assertFalse(second.has("access"))
+        assertEquals(OTHER_DEVICE_ID, second.getAsJsonObject("sealedAccess").get("for").asString)
+    }
+
+    private fun sealedWelcome() = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME) {
+        add("features", JsonArray().apply { add("sealed") })
+    }
+
+    private fun directoryWith(deviceId: String) = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_DIRECTORY) {
+        addProperty("revision", 1)
+        val device = JsonObject().apply {
+            addProperty("deviceId", deviceId)
+            addProperty("deviceName", "Tablet")
+            addProperty("product", "fms-android")
+            addProperty("presence", "online")
+        }
+        add("devices", JsonArray().apply { add(device) })
+    }
 
     @Test
     fun `grants follow the publish on a welcomed stream and granted is recorded`() = withManager { manager ->
@@ -126,7 +191,12 @@ class SftpServerTunnelManagerTest {
     // before the test returns.
     private fun withManager(block: suspend (SftpServerTunnelManager) -> Unit) = runBlocking(Dispatchers.IO) {
         val manager =
-            SftpServerTunnelManager(DeviceExchangeAccountClient(connector, tokens), source, this, Dispatchers.IO)
+            SftpServerTunnelManager(
+                DeviceExchangeAccountClient(connector, tokens, InMemoryE2eKeyStore()),
+                source,
+                this,
+                Dispatchers.IO,
+            )
         try {
             block(manager)
         } finally {
@@ -455,6 +525,9 @@ class SftpServerTunnelManagerTest {
         const val TUNNEL_ID = "DDDDDDDDDDDDDDDDDDDDDD"
         const val BROADCAST_ID = "EEEEEEEEEEEEEEEEEEEEEA"
         const val GRANT_ID = "FFFFFFFFFFFFFFFFFFFFFA"
+        const val OTHER_DEVICE_ID = "GGGGGGGGGGGGGGGGGGGGGA"
+        const val SEALED_FRAMES = 5
+        const val SEALED_FIRST_READS = 3
         const val SETTLE_MS = 300L
         const val TOKEN = "device-token"
         const val PAYLOAD = "SSH-2.0-test\r\n"

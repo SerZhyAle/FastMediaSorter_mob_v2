@@ -25,14 +25,22 @@ data class SftpRendezvousDevice(
     val receiver: SftpRendezvousReceiver? = null,
     /** 26 item DC: why the device went offline; written only with [PRESENCE_OFFLINE], null when unknown. */
     val offlineReason: String? = null,
+    /** 17 item AG and 27 item DF: what the device declared at `enroll`. */
+    val capabilities: List<String> = emptyList(),
+    /** 27 item DF: `kem` of the device's published `e2eKey`, null when it has none or one of an unknown version. */
+    val e2eKem: String? = null,
 ) : SftpRendezvousRecord {
 
     val isOnline: Boolean get() = presence == PRESENCE_ONLINE
+
+    /** Holds the capability `e2e-v1` and a key, the two things a recipient needs besides trust (item DP). */
+    val canReceiveSealed: Boolean get() = CAPABILITY_E2E_V1 in capabilities && e2eKem != null
 
     /** Android paused this device's sharing; the consumer shows `share-paused` (26 item DD) instead of offline. */
     val isSharePaused: Boolean get() = !isOnline && offlineReason == OFFLINE_REASON_TIME_LIMIT
 
     companion object {
+        const val CAPABILITY_E2E_V1 = "e2e-v1"
         const val OFFLINE_REASON_TIME_LIMIT = "time-limit"
         const val PRODUCT_FMS_ANDROID = "fms-android"
         const val PLATFORM_ANDROID = "android"
@@ -88,6 +96,15 @@ data class SftpRendezvousResource(
      */
     val hostKeyFingerprint: String? = null,
     val identityRoot: String? = null,
+    /**
+     * 27 item DI: `sealedAccess` as compact JSON - the box over `access` that only the account's own devices open.
+     * A producer writes it in place of [descriptor]; a consumer replaces it with the opened [descriptor].
+     */
+    val sealedAccess: String? = null,
+    /** 20 item BD: the grant that lists this record to a guest; its box's context is `grant:<grantId>` (27 item DJ). */
+    val grantId: String? = null,
+    /** Set by the consumer only: why a record from the server carries no usable access (27 item DR). */
+    val sealIssue: ExchangeSealIssue? = null,
 ) : SftpRendezvousRecord {
 
     /**
@@ -125,6 +142,8 @@ data class SftpRendezvousBroadcast(
     val descriptorJson: String,
     override val writtenAtMs: Long,
     override val ttlSeconds: Long,
+    /** 27 item DK: the record's box as compact JSON, holding `relayKey`, `tunnelPin` and `credentials`. */
+    val sealed: String? = null,
 ) : SftpRendezvousRecord {
 
     override fun toString(): String = "SftpRendezvousBroadcast(deviceId=$deviceId, mode=$mode)"

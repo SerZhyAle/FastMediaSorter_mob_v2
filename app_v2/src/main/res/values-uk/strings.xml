@@ -2828,7 +2828,7 @@
     <string name="perm_addendum_read_external_storage_local_resource">Це потрібно, щоб створити локальний ресурс із папки на пристрої.</string>
     <string name="perm_rationale_access_local_network">Застосунок підключається до серверів SMB, SFTP, FTP та DLNA у вашій мережі й знаходить їх, переглядаючи пристрої в ній. Без цього дозволу такі джерела залишаться недоступними; за межі вашої мережі застосунок не звертається.</string>
     <string name="perm_addendum_camera_qr_pairing">Для сканування QR-коду companion-застосунку потрібна камера.</string>
-    <string name="perm_rationale_record_audio">Мікрофон потрібен для голосових нотаток і для звуку в записі екрана. Без нього запис не почнеться.</string>
+    <string name="perm_rationale_record_audio">Мікрофон потрібен для голосових нотаток, для звуку в записі екрана та для живого звуку під час мовлення. Без нього запис і звукове мовлення не почнуться.</string>
     <string name="perm_addendum_record_audio_screen_recording">Звук у записі екрана береться з мікрофона.</string>
     <string name="perm_addendum_post_notifications_screen_recording">У сповіщенні про запис міститься кнопка зупинки.</string>
     <string name="perm_rationale_location">Місцезнаходження використовується лише для запису координат у знімки та відео, зняті в застосунку. Нікуди нічого не надсилається.</string>
@@ -4250,7 +4250,7 @@
     <string name="streams_error_playlist_json_unsupported">Це плейлист у форматі JSON. Імпортувати можна лише списки .m3u та .m3u8.</string>
     <string name="perm_rationale_camera">Камера знімає фото й відео просто в застосунку, розпізнає текст і сканує QR-коди. Знімки залишаються на пристрої, доки ви самі ними не поділитеся або не почнете трансляцію.</string>
     <string name="perm_rationale_read_phone_state">Рядок стану робочого столу й монітор мережі читають рівень сигналу та мережу кожної SIM-картки, щоб показати їх вам. Дзвінки та повідомлення не зачіпаються, і нічого нікуди не надсилається.</string>
-    <string name="perm_rationale_post_notifications">Сповіщення показують перебіг відтворення, передавання файлів, запису й захоплення екрана, і в кожному є кнопка, яка його зупиняє. Без цього дозволу робота однаково триває, але непомітно.</string>
+    <string name="perm_rationale_post_notifications">Сповіщення показують перебіг відтворення, передавання файлів, запису, захоплення екрана й мовлення, і в кожному є кнопка, яка його зупиняє. Без цього дозволу робота однаково триває, але непомітно.</string>
     <string name="perm_rationale_manage_media">Android питає підтвердження щоразу, коли застосунок переміщує або видаляє фото чи відео, створене не ним. З цим доступом файли, які ви сортуєте, переміщуються та видаляються без зайвого запитання. Він використовується лише для файлів, які ви самі обрали.</string>
     <string name="perm_rationale_system_alert_window">Смуга жестів біля краю екрана малюється поверх інших застосунків, щоб її можна було змахнути звідусіль. Без цього дозволу смуга не з\'явиться. Те, що на екрані під нею, не читається і не записується.</string>
     <string name="perm_rationale_request_install_packages">Відкриття APK-файлу з папки, яку ви переглядаєте, передає його інсталятору Android, якому потрібен цей дозвіл. Застосунок нічого не встановлює сам - кожне встановлення ви підтверджуєте на системному екрані.</string>
@@ -4328,8 +4328,8 @@
     <string name="settings_sftp_server_legacy_qr">Код для старих версій застосунку</string>
     <string name="error_sftp_peer_tunnel_not_registered">Пристрій із цією текою зараз не підключений до свого сервера обміну. Перевірте, що на ньому запущено SFTP-сервер і ввімкнено «Доступ звідусіль».</string>
     <string name="error_sftp_peer_unreachable_here">Пристрій із цією текою в мережі, але з цієї мережі до нього не дістатися. Підключіть обидва пристрої до одного Wi-Fi або налаштуйте «Доступ звідусіль» через сервер обміну.</string>
-    <string name="settings_sftp_drive_access_title">Доступ через Google Диск</string>
-    <string name="settings_sftp_drive_access_subtitle">Записує адресу, логін і пароль цього сервера в папку застосунку на вашому Google Диску, щоб ваші пристрої з тим самим обліковим записом Google могли підключитися. Вимкнено - вони бачать ресурс, але підключитися до нього не можуть.</string>
+    <string name="settings_sftp_drive_access_title">Доступ через Google Drive</string>
+    <string name="settings_sftp_drive_access_subtitle">Записує адресу, логін і пароль цього сервера в папку застосунку у вашому Google Drive, щоб ваші пристрої з тим самим обліковим записом Google могли підключитися. Вимкнено - вони бачать ресурс, але підключитися до нього не можуть.</string>
     <string name="tourist_tile_pressure">Тиск</string>
     <string name="tourist_tile_baro_altitude">Висота за барометром</string>
     <string name="tourist_tile_elevation_gain_loss">Набір висоти</string>
@@ -4436,4 +4436,8 @@
     <string name="broadcast_failed_file">Цей файл не вдається транслювати - він не відкрився або не містить придатної доріжки</string>
     <string name="broadcast_notification_file_title">Трансляція файла</string>
     <string name="broadcast_notification_file_text">Триває трансляція файла</string>
+    <string name="broadcast_control_file_action">Транслювати готовий файл</string>
+    <string name="broadcast_control_screen_action">Транслювати екран</string>
+    <string name="broadcast_notification_screen_title">Трансляція екрана</string>
+    <string name="broadcast_notification_screen_text">Триває трансляція екрана</string>
 </resources>

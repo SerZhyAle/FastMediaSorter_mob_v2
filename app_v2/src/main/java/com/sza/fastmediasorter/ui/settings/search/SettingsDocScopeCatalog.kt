@@ -64,6 +64,13 @@ object SettingsDocScopeCatalog {
             SettingsSearchDestination.GENERAL,
             "rowDataTransfer"
         ),
+        // S4231: the Drive channel switches live in the pending-transfers dialog, opened by rowCrossDevicePackets.
+        DocScopeSurface(
+            R.layout.dialog_cross_device_packets,
+            "general",
+            SettingsSearchDestination.GENERAL,
+            "rowCrossDevicePackets"
+        ),
         DocScopeSurface(
             R.layout.dialog_edge_gesture_config,
             "gestures",

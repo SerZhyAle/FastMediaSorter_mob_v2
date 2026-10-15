@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeTokenStore
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeResourcePinStore
+import com.sza.fastmediasorter.data.remote.exchange.InMemoryE2eKeyStore
 import com.sza.fastmediasorter.data.repository.settings.DeviceExchangeAccountStore
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAddressChange
@@ -48,7 +49,15 @@ class DeviceExchangeAccountRepositoryTest {
     private val password = DeviceExchangeCredential.Password("secret-value")
 
     private fun TestScope.repository() =
-        DeviceExchangeAccountRepository(client, store, tokens, pins, resourceDao, StandardTestDispatcher(testScheduler))
+        DeviceExchangeAccountRepository(
+            client,
+            store,
+            tokens,
+            pins,
+            resourceDao,
+            InMemoryE2eKeyStore(),
+            StandardTestDispatcher(testScheduler),
+        )
 
     @Test
     fun `re-enrolling the same identity keeps the deviceId and the entry count`() = runTest {

@@ -14,6 +14,11 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
+/** A port on `127.0.0.1` a player is pointed at, closed when it is evicted. */
+interface LoopbackEndpoint : Closeable {
+    val port: Int
+}
+
 /**
  * S4160: a local port on `127.0.0.1` whose every accepted connection becomes one upstream stream to an exchange
  * server, spliced byte for byte until either side closes (`DEVICE-EXCHANGE` 7.7). It serves both shapes the
@@ -26,7 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class BroadcastLoopbackBridge(
     private val label: String,
     private val opener: () -> ExchangeConnection,
-) : Closeable {
+) : LoopbackEndpoint {
 
     private val server =
         ServerSocket(0, ACCEPT_BACKLOG, InetAddress.getByName(BroadcastExchangeEndpoints.LOOPBACK_HOST))
@@ -35,7 +40,7 @@ class BroadcastLoopbackBridge(
         Thread(runnable, "fms-broadcast-bridge").apply { isDaemon = true }
     }
 
-    val port: Int get() = server.localPort
+    override val port: Int get() = server.localPort
 
     init {
         workers.execute(::acceptLoop)

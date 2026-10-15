@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.databinding.DialogExchangeSignInBinding
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionString
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringResult
 import com.sza.fastmediasorter.domain.model.ExchangeEndpoint
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.exchange.ExchangeIntakeOutcome
 import com.sza.fastmediasorter.ui.exchange.MyDevicesViewModel
 
@@ -56,6 +57,9 @@ class ExchangeSignInIntakeManager(
         binding.btnExchangeSignInPaste.setOnClickListener { applyText(clipboardText()) }
         binding.btnExchangeSignInScan.setOnClickListener { launchers.scanQr() }
         binding.btnExchangeSignInFile.setOnClickListener { launchers.chooseFile() }
+        binding.btnExchangePortalSignIn.setOnClickListener {
+            MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.EXCHANGE_SERVER)
+        }
         binding.etExchangeSignInIntake.setOnEditorActionListener { view, actionId, _ ->
             if (actionId != EditorInfo.IME_ACTION_GO) return@setOnEditorActionListener false
             applyText(view.text?.toString().orEmpty())
