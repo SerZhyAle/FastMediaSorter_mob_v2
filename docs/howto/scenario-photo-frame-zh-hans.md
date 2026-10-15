@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "平板上的数字相框 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.25 02:19</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 🖼️ 平板上的数字相框
 
 > **难度：** 入门 &bull; **用时：** 约 15 分钟 &bull; **版本：** Standard、Photos、Legacy、VR、noLegal（用于 NAS/云端照片）或任意版本（用于本地照片）
-
-{% include lang-switcher.html doc="scenario-photo-frame" dir="/docs/howto/" current="zh-Hans" %}
 
 把任意 Android 平板变成一个漂亮的常亮数字相框 - 从家庭 NAS 或云端串流您的珍贵回忆，还可选配背景音乐。不占用任何本地存储空间。
 

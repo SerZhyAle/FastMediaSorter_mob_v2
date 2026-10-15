@@ -97,6 +97,7 @@ class StreamsStaleFacetSelectionTest {
             clearDownloadedStreams = mockk(relaxed = true),
             mediaCapabilities = mockk(relaxed = true),
             sendStreamToWatchUseCase = mockk(relaxed = true),
+            buildWatchBroadcastHandoff = mockk(relaxed = true),
             observeStreamCollections = observeStreamCollections,
         )
     }

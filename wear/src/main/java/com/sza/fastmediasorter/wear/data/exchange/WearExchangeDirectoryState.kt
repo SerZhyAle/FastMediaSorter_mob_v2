@@ -36,6 +36,8 @@ data class WearDirectoryBroadcast(
     val mode: String?,
     val descriptor: JsonObject?,
     val credentials: WearBroadcastCredentials?,
+    /** S4240: the record's box over the relay group key (27 item DK), opened only when the broadcast is played. */
+    val sealed: JsonObject? = null,
 ) {
 
     // DEVICE-EXCHANGE 7.9: a broadcast id is a capability and a log names it by a hash only, so none prints it.
@@ -110,6 +112,7 @@ class WearExchangeDirectoryState private constructor(
         private const val KEY_MODE = "mode"
         private const val KEY_DESCRIPTOR = "descriptor"
         private const val KEY_CREDENTIALS = "credentials"
+        private const val KEY_SEALED = "sealed"
         private const val KEY_USER = "user"
         private const val KEY_PASSWORD = "password"
 
@@ -165,6 +168,7 @@ class WearExchangeDirectoryState private constructor(
                     mode = record.text(KEY_MODE) ?: descriptor?.text(KEY_MODE),
                     descriptor = descriptor,
                     credentials = credentials(record),
+                    sealed = record.get(KEY_SEALED)?.takeIf(JsonElement::isJsonObject)?.asJsonObject,
                 )
             }
         }

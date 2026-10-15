@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Se connecter à un NAS / partage Windows (SMB) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-smb-setup-fr.html
 ---
-<sub class="doc-stamp">26.09.25 02:17</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
 # 🖥️ Se connecter à un NAS domestique / partage Windows (SMB)
 
 > **Niveau :** Débutant &bull; **Édition :** Standard, Photos, Legacy, VR, noLegal (Lite n'a pas de sources réseau)
-
-{% include lang-switcher.html doc="scenario-smb-setup" dir="/docs/howto/" current="fr" %}
 
 Le SMB (aussi appelé partage de fichiers Windows ou CIFS) vous permet de parcourir les fichiers de votre PC, portable ou appareil NAS à la maison exactement comme s'ils étaient sur votre téléphone - sans câbles, sans USB, juste le Wi-Fi.
 

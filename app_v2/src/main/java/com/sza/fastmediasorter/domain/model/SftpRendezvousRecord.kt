@@ -144,6 +144,10 @@ data class SftpRendezvousBroadcast(
     override val ttlSeconds: Long,
     /** 27 item DK: the record's box as compact JSON, holding `relayKey`, `tunnelPin` and `credentials`. */
     val sealed: String? = null,
+    /** 20 item BD: the grant that lists this broadcast to a guest; its box's context is `grant:<grantId>` (DJ). */
+    val grantId: String? = null,
+    /** Why the box did not open on this device; null when it opened or there was none. */
+    val sealIssue: ExchangeSealIssue? = null,
 ) : SftpRendezvousRecord {
 
     override fun toString(): String = "SftpRendezvousBroadcast(deviceId=$deviceId, mode=$mode)"

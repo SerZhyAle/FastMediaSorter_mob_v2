@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: doc
 title: "Open Source Notices"
 permalink: /docs/OPEN_SOURCE.html
 ---

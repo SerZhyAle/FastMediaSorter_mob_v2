@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "استخدام التطبيق كشاشة رئيسية - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-ar.html
 ---
-<sub class="doc-stamp">26.09.25 02:22</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
 # 🖥️ استخدام التطبيق كشاشة رئيسية
 
 > **المستوى:** مبتدئ &bull; **الإصدار:** Standard / noLegal
-
-{% include lang-switcher.html doc="scenario-launcher-mode" dir="/docs/howto/" current="ar" %}
 
 يمكن لـ FastMediaSorter استبدال الشاشة الرئيسية لجهازك بسطح مكتب خاص به - مجلداتك، وساعة، والطقس، وتطبيقاتك، وشريط مهام على أحد الحواف. إذا سبق لك استخدام سطح مكتب Windows فسيبدو الأمر مألوفًا: تبقى الأشياء حيث وضعتها، وزر ابدأ يفتح القائمة. يُسمى هذا **وضع المشغّل (launcher mode)**.
 

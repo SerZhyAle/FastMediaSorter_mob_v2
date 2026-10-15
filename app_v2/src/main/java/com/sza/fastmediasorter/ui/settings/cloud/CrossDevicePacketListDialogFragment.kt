@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.databinding.DialogCrossDevicePacketsBinding
 import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceTransferOption
 import com.sza.fastmediasorter.domain.transfer.DrivePollState
 import com.sza.fastmediasorter.ui.common.dialog.AppDialog
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -57,6 +58,9 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
         binding.btnCrossDeviceSendSettings.setOnClickListener { viewModel.sendSettings() }
         binding.rowDriveChannelEnabled.setOnCheckedChangeListener(viewModel::setChannelEnabled)
         binding.rowDriveChannelBackground.setOnCheckedChangeListener(viewModel::setBackgroundPoll)
+        binding.btnDriveChannelPortal.setOnClickListener {
+            MediaExchangePortalLinks.open(requireActivity(), MediaExchangePortalLinks.Page.FOLDERS_GOOGLE_DRIVE)
+        }
         val adapter = CrossDevicePacketAdapter(requireContext()) { row ->
             if (row.outgoing) askDelete(row) else askReceiveOption(row)
         }

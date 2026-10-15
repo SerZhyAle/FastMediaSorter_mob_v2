@@ -11,7 +11,9 @@
     from 1.0 to 1.2 after it had PASSed for a day while the 1.2 resolver and locale row were absent.
 
     Judged pages: the six hand-maintained ones, plus every other `index-*.html` at the root - the
-    landing in a further locale, written by scripts/site/generate-landing-pages.ps1.
+    landing in a further locale, written by scripts/site/generate-landing-pages.ps1 - plus
+    `_layouts/doc.html` when it exists, the Jekyll template every docs/ reference page renders
+    through (S4117); its RU / EN / UA links and its further-locale row are judged as template text.
 
     Five finding kinds, per page (WIDTH also per stylesheet):
       LANG   - the switcher has no `data-lang="ua"` link labelled UA, a language link is labelled UK,
@@ -109,6 +111,10 @@ $todayDate = if ($Today) { [datetime]::ParseExact($Today, 'yyyy-MM-dd', $null) }
 $generatedPages = @(Get-ChildItem -LiteralPath $Root -File -Filter 'index-*.html' |
         Where-Object { $handPages -notcontains $_.Name } | Sort-Object Name | ForEach-Object Name)
 $pages = @($handPages) + $generatedPages
+# Every docs/ reference page renders through this one template (S4117), so its text is judged in
+# their place. A tree without it - a fixture, or a site with no docs/ group - is not refused for that.
+$docLayout = '_layouts/doc.html'
+if (Test-Path -LiteralPath (Join-Path $Root $docLayout) -PathType Leaf) { $pages += $docLayout }
 
 Write-Host "subject: root=$Root catalog=$CatalogRoot pages=$($pages.Count)"
 

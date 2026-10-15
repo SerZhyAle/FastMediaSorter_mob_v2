@@ -418,12 +418,14 @@ class StreamsViewModel @Inject constructor(
      */
     suspend fun prepareStreamPlayback(channel: WearStreamChannel): StreamPlaybackTarget {
         val target = preparePlayback(channel, _uiState.value.displayChannels)
-        return StreamPlaybackTarget(fileId = target.fileId, isVideo = target.isVideo)
+        return StreamPlaybackTarget(fileId = target.fileId, isVideo = target.isVideo, unplayable = target.unplayable)
     }
 
     data class StreamPlaybackTarget(
         val fileId: Long,
-        val isVideo: Boolean
+        val isVideo: Boolean,
+        // S4261: a handed-off broadcast that plays from nowhere here; the screen shows why instead of navigating.
+        val unplayable: Boolean = false
     )
 
     /**

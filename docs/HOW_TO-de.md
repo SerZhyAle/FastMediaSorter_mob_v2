@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "📖 Anleitungen"
 permalink: /docs/HOW_TO-de.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
@@ -15,8 +15,6 @@ Dieser Leitfaden hat jetzt zwei Ebenen:
 
 - **Szenario-Gruppen** für umfassendere reale Arbeitsabläufe und Kombinationen von Funktionen.
 - **Kernaufgaben-Referenz** für direkte Rezepte zu einzelnen Funktionen weiter unten.
-
-{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="de" %}
 
 ---
 

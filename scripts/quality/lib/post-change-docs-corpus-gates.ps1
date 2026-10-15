@@ -4,7 +4,7 @@
     documentation/ and the sources they are generated from.
 
 .DESCRIPTION
-    Ten gates with one subject, each PER-TICKET by Rule 33 for the reason S2974 recorded for the
+    Twelve gates with one subject, each PER-TICKET by Rule 33 for the reason S2974 recorded for the
     termbase gate: jekyll-gh-pages.yml builds the whole repository as the site, so a corpus page
     reaches readers with no Android release in between, and only the author of the change knows
     which word, link, image or generated page they meant.
@@ -19,6 +19,8 @@
       - site-origins          (S4098) third-party hosts declared, named on the privacy pages, advertising only on the landing
       - showcase-inventory    (S4102) every showcase and current What's New bullet anchors a shipped inventory record
       - docs-hub-shell        (S4114) the hand-kept portal hubs carry a current shared shell
+      - released-addresses    (S4256) every page a release carried keeps its address and its anchors, or is retired
+      - portal-pages          (S4256) the media exchange portal's section owners, three-language set and rendered schemes
 
     site-origins reads the whole published set - every page, stylesheet and script, 39 MB - and took
     1.9 s when added, so its trigger is any published page, stylesheet, script or template, never a
@@ -61,6 +63,10 @@ $argvShowcaseInventory = @('-NoProfile', '-File', (Join-Path $root "scripts/qual
 $runsDocsHubShell = Test-AnyChangedFile '^(documentation/(index|overview)[^/]*\.html$|documentation/design-system/index\.html$|scripts/docs/(update-docs-shell|DocumentationShell)\.ps1$|scripts/quality/assert-docs-hub-shell\.ps1$)'
 $argvDocsHubShell = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-docs-hub-shell.ps1"))
 $argvSiteFacts = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-site-facts.ps1"))
+$runsReleasedAddresses = Test-AnyChangedFile '^(docs/site-released-addresses\.jsonl$|docs/site-redirects\.jsonl$|sitemap\.xml$|_config\.yml$|[^/]+\.(html|md)$|docs/.*\.(md|html)$|documentation/.*\.html$|q/|DOWNLOADS/|scripts/docs/(lib/(site|released)-addresses\.ps1|record-released-addresses\.ps1)$|scripts/quality/assert-released-addresses(\.ps1$|\.tests/))'
+$argvReleasedAddresses = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-released-addresses.ps1"), '-Quiet')
+$runsPortalPages = Test-AnyChangedFile '^(docs/media-exchange-portal/|scripts/docs/(portal-sections\.json|render-usage-schemes\.ps1|usage-schemes/)|scripts/quality/assert-portal-pages(\.ps1$|\.tests/))'
+$argvPortalPages = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-portal-pages.ps1"))
 
 # Started together so the children overlap; each Invoke-Gate below joins its own.
 if ($runsSiteAddresses) { Start-PooledGate @argvSiteAddresses }
@@ -68,6 +74,8 @@ if ($runsSiteOrigins) { Start-PooledGate @argvSiteOrigins }
 if ($runsSiteFacts) { Start-PooledGate @argvSiteFacts }
 if ($runsShowcaseInventory) { Start-PooledGate @argvShowcaseInventory }
 if ($runsDocsHubShell) { Start-PooledGate @argvDocsHubShell }
+if ($runsReleasedAddresses) { Start-PooledGate @argvReleasedAddresses }
+if ($runsPortalPages) { Start-PooledGate @argvPortalPages }
 if ($runsDocsTermbase) { Start-PooledGate @argvDocsTermbase }
 if ($runsDocsCorpus) {
     Start-PooledGate @argvDocsCrosslinks
@@ -123,6 +131,22 @@ if ($runsDocsHubShell) {
 }
 else {
     Skip-Step "docs-hub-shell" "not applicable - no changed portal hub, design-system page or shell script"
+}
+
+# S4256: fatal - SITE-STRUCTURE 0.2 item D; the closure that renames a released page or heading is the one that must keep it.
+if ($runsReleasedAddresses) {
+    Invoke-Gate "released-addresses" { Invoke-GateChild @argvReleasedAddresses }
+}
+else {
+    Skip-Step "released-addresses" "not applicable - no changed published page, sitemap, redirect manifest, released-address record or its scripts"
+}
+
+# S4256: fatal - DOC-EXTERNAL-QUALITY 0.11 items F, H and I; the writer of a portal page, variant or label knows its set.
+if ($runsPortalPages) {
+    Invoke-Gate "portal-pages" { Invoke-GateChild @argvPortalPages }
+}
+else {
+    Skip-Step "portal-pages" "not applicable - no changed portal page, picture, label file, section manifest or scheme renderer"
 }
 
 # Each label is written out, never looped over: assert-gate-hints-sync.ps1 pairs a hint with a

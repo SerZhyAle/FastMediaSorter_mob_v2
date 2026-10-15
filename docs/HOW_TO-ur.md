@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "📖 استعمال کے رہنما"
 permalink: /docs/HOW_TO-ur.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
@@ -15,8 +15,6 @@ permalink: /docs/HOW_TO-ur.html
 
 - **منظرنامہ گروپس** حقیقی زندگی کے بھرپور ورک فلوز اور خصوصیات کے امتزاج کے لیے۔
 - **بنیادی کام حوالہ** براہِ راست ایک خصوصیت پر مبنی نسخوں کے لیے، جو مزید نیچے ہیں۔
-
-{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="ur" %}
 
 ---
 

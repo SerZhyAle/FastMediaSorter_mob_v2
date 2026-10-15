@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.core.network.LanAddressResolver
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialRegistry
 import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeVideoRelayFeed
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -49,6 +50,11 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
+
+    @Inject
+    lateinit var credentialRegistry: BroadcastCredentialRegistry
+
+    private var rtspGate: RtspGatedPort? = null
 
     @Inject
     lateinit var previewProvider: BroadcastPreviewProvider
@@ -202,10 +208,15 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         try {
             // Always headless: the control screen attaches its preview later through BroadcastPreviewProvider,
             // once its surface exists.
-            val camera = RtspServerCamera2(this, this, port)
+            val gated = RtspGatedPort(port, credentialRegistry)
+            rtspGate?.close()
+            rtspGate = gated
+            val camera = RtspServerCamera2(this, this, gated.innerPort)
             if (!prepareEncoders(camera, config)) return
 
             val streamClient = configureStreamClient(camera)
+            gated.closeLibrary(streamClient)
+            gated.open()
             val lensId = startStreamOnLens(camera)
             // Published before the recheck: a stop landing after startStreamOnLens() finds the camera in
             // the field, and one landing before it is caught here, so the camera cannot outlive the session.
@@ -308,7 +319,7 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
     }
 
     private fun publishableEndpoint(libraryEndpoint: String, lanHost: String): String =
-        checkNotNull(RtspEndpointAddress.onLanHost(libraryEndpoint, lanHost)) {
+        checkNotNull(RtspEndpointAddress.onLanHost(libraryEndpoint, lanHost, rtspGate?.publicPort)) {
             "RTSP endpoint $libraryEndpoint cannot be published on $lanHost"
         }
 
@@ -496,6 +507,8 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     private fun stopBroadcast() {
         releaseCamera()
+        rtspGate?.close()
+        rtspGate = null
         _state.value = BroadcastState.Idle
         _listenerCount.value = 0
     }

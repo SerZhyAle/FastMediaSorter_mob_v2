@@ -1,10 +1,10 @@
 ---
-layout: default
+layout: doc
 title: "FastMediaSorter VR-редакція"
 permalink: /docs/VR_EDITION-uk.html
 ---
 
-<sub class="doc-stamp">26.10.06 21:33</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # FastMediaSorter VR-редакція
 

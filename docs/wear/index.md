@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "FastMedia Wear - Smartwatch Media Companion & Standalone App"
 permalink: /docs/wear/
 ---
-<sub class="doc-stamp">26.10.15 00:19</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # <img src="../icons/doc/ic_watch.png" alt="" width="24" height="24" style="vertical-align:text-bottom"> FastMedia Wear OS Portal
 

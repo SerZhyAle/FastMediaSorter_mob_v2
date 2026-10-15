@@ -5,37 +5,60 @@ import com.jcraft.jsch.Session
 import com.jcraft.jsch.SocketFactory
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.domain.model.SftpTunnelAddress
-import timber.log.Timber
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.Socket
 
 /**
- * The outsider consumer of contract DEVICE-EXCHANGE 5.4 and 7.5 as a JSch [Proxy]: the SSH session to a
- * tunnel address (see [SftpTunnelAddress]) runs over a stream to the exchange server that asked for the
- * share by its id and was handed over to raw bytes. Everything above the stream - the host-key pin,
- * authentication, SFTP - is unchanged, so the tunnel is just one more path to the same server.
+ * The consumer of contract DEVICE-EXCHANGE 5.4 and 7.5 as a JSch [Proxy]: the SSH session to a
+ * tunnel address (see [SftpTunnelAddress]) runs over a stream to the exchange server.
  *
- * A pairing code carries no certificate fingerprint for its exchange server, so the server must pass the
- * platform trust store (contract DEVICE-EXCHANGE section 15, item V): a self-signed deployment is refused
- * here until its fingerprint reaches the device by a connection string or an accepted prompt.
+ * When an [ExchangeTunnelRouter] and [DeviceExchangeAccountClient] are present, routing resolves whether the
+ * endpoint belongs to an attached own-account resource ([ExchangeTunnelRoute.OwnAccount]) or an outsider share
+ * ([ExchangeTunnelRoute.Outsider]). Own-account connections authenticate with the account's device token
+ * and pinned exchange certificate, opening a tunnel by `resourceId`. Outsider connections connect anonymously
+ * by `shareId`.
  */
 class ExchangeTunnelProxy(
     private val connector: ExchangeConnector,
     private val parts: SftpTunnelAddress.Parts,
+    private val router: ExchangeTunnelRouter? = null,
+    private val client: DeviceExchangeAccountClient? = null,
 ) : Proxy {
 
     private var connection: ExchangeConnection? = null
 
     override fun connect(socketFactory: SocketFactory?, host: String?, port: Int, timeout: Int) {
-        connection = DeviceExchangeAccountClient.connectByShareId(
-            connector = connector,
-            host = parts.exchangeHost,
-            port = port,
-            shareId = parts.shareId,
-            trust = ExchangeTrust.Verified(pinned = null),
-        )
+        val tunnelHost = host ?: SftpTunnelAddress.host(parts.shareId, parts.exchangeHost)
+        val route = router?.route(tunnelHost, port)
+        connection = when {
+            route is ExchangeTunnelRoute.OwnAccount && client != null -> {
+                runBlocking(Dispatchers.IO) {
+                    client.connectByResourceId(route.entry, route.resourceId)
+                }
+            }
+            route is ExchangeTunnelRoute.Outsider -> {
+                DeviceExchangeAccountClient.connectByShareId(
+                    connector = connector,
+                    host = parts.exchangeHost,
+                    port = port,
+                    shareId = route.shareId,
+                    trust = route.trust,
+                )
+            }
+            else -> {
+                DeviceExchangeAccountClient.connectByShareId(
+                    connector = connector,
+                    host = parts.exchangeHost,
+                    port = port,
+                    shareId = parts.shareId,
+                    trust = ExchangeTrust.Verified(pinned = null),
+                )
+            }
+        }
     }
 
     override fun getInputStream(): InputStream = checkNotNull(connection) { "tunnel not connected" }.input
@@ -51,8 +74,16 @@ class ExchangeTunnelProxy(
 
     companion object {
         /** Routes [session] through the exchange server when [host] is a tunnel address; other hosts stay direct. */
-        fun attachIfTunnel(session: Session, host: String, connector: ExchangeConnector = TlsExchangeConnector()) {
-            SftpTunnelAddress.parse(host)?.let { session.setProxy(ExchangeTunnelProxy(connector, it)) }
+        fun attachIfTunnel(
+            session: Session,
+            host: String,
+            connector: ExchangeConnector = TlsExchangeConnector(),
+            router: ExchangeTunnelRouter? = null,
+            client: DeviceExchangeAccountClient? = null,
+        ) {
+            SftpTunnelAddress.parse(host)?.let {
+                session.setProxy(ExchangeTunnelProxy(connector, it, router = router, client = client))
+            }
         }
     }
 }

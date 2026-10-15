@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "ایک کوڈ اسکین کر کے اپنے پی سی کے فولڈرز کھولیں - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-ur.html
 ---
-<sub class="doc-stamp">26.09.25 02:18</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> ایک کوڈ اسکین کر کے اپنے پی سی کے فولڈرز کھولیں
 
 > **سطح:** ابتدائی &bull; **فلیور:** Standard, Photos, Legacy, VR, noLegal (Lite میں نیٹ ورک سورسز نہیں ہیں؛ اسکیننگ کے لیے کیمرہ درکار ہے، فائل والا طریقہ ہر جگہ کام کرتا ہے)
-
-{% include lang-switcher.html doc="scenario-companion-share" dir="/docs/howto/" current="ur" %}
 
 آپ اپنے Windows پی سی پر ایک چھوٹا ہیلپر پروگرام چلاتے ہیں، اپنی ویڈیوز، میوزک، دستاویزات، یا تصاویر والے فولڈرز منتخب کرتے ہیں، اور یہ اسکرین پر ایک کوڈ لگا دیتا ہے۔ فون پر آپ **Add** پر ٹیپ کریں، کیمرہ اس کوڈ کے سامنے رکھیں، اور پی سی فولڈرز فوری طور پر جڑ جاتے ہیں - نہ کوئی ایڈریس ٹائپ کرنا، نہ پورٹ، نہ پاس ورڈ، نہ کیبلز۔
 

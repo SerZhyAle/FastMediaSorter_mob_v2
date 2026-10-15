@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "ٹیبلٹ پر ڈیجیٹل فوٹو فریم - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-ur.html
 ---
-<sub class="doc-stamp">26.09.25 02:24</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
 # 🖼️ ٹیبلٹ پر ڈیجیٹل فوٹو فریم
 
 > **سطح:** ابتدائی &bull; **وقت:** ~15 منٹ &bull; **فلیور:** Standard, Photos, Legacy, VR, noLegal (NAS/cloud تصاویر کے لیے) یا کوئی بھی فلیور (مقامی تصاویر کے لیے)
-
-{% include lang-switcher.html doc="scenario-photo-frame" dir="/docs/howto/" current="ur" %}
 
 کسی بھی Android ٹیبلٹ کو ایک خوبصورت، ہمیشہ آن رہنے والے ڈیجیٹل فوٹو فریم میں بدلیں - گھر کے NAS یا کلاؤڈ سے آپ کی یادیں اسٹریم کرتے ہوئے، اختیاری بیک گراؤنڈ میوزک کے ساتھ۔ کوئی مقامی اسٹوریج استعمال نہیں ہوتی۔
 

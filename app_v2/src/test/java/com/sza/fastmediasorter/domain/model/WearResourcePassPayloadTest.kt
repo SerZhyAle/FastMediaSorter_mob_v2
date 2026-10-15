@@ -37,14 +37,32 @@ class WearResourcePassPayloadTest {
     }
 
     @Test
-    fun `an unknown version is refused by name`() {
+    fun `an unknown version is refused by name and keeps the request id`() {
         val bytes = """{"requestId":"r-1","formatVersion":2,"fingerprint":"f","root":"r","exchangeAccount":"a",""" +
             """"resourceId":"i","pin":"1"}"""
 
         assertEquals(
-            WearResourcePassParseResult.UnsupportedVersion(2),
+            WearResourcePassParseResult.UnsupportedVersion(version = 2, requestId = "r-1"),
             WearResourcePassCodec.parse(bytes.toByteArray(), gson),
         )
+    }
+
+    @Test
+    fun `a newer format that renamed the fields is still refused by its version`() {
+        val bytes = """{"requestId":"r-7","formatVersion":3,"folder":{"fingerprint":"f"},"secret":"1"}"""
+
+        assertEquals(
+            WearResourcePassParseResult.UnsupportedVersion(version = 3, requestId = "r-7"),
+            WearResourcePassCodec.parse(bytes.toByteArray(), gson),
+        )
+    }
+
+    @Test
+    fun `an unknown version without an id is malformed`() {
+        val bytes = """{"formatVersion":2,"fingerprint":"f","root":"r","exchangeAccount":"a","resourceId":"i",""" +
+            """"pin":"1"}"""
+
+        assertEquals(WearResourcePassParseResult.Malformed, WearResourcePassCodec.parse(bytes.toByteArray(), gson))
     }
 
     @Test

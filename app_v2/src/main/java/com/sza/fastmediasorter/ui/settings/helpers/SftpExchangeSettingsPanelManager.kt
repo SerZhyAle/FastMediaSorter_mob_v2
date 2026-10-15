@@ -59,6 +59,12 @@ class SftpExchangeSettingsPanelManager(
         }
         binding.btnSftpExchangeChangeOutgoing.setOnClickListener { launchInView { pickOutgoing(publishAfter = false) } }
         binding.btnSftpExchangeMyDevices.setOnClickListener { MyDevicesActivity.start(context) }
+        binding.btnSftpExchangeFoldersPortal.setOnClickListener {
+            MediaExchangePortalLinks.open(
+                fragment.requireActivity(),
+                MediaExchangePortalLinks.Page.FOLDERS_EXCHANGE_SERVER,
+            )
+        }
         binding.btnSftpExchangePortal.setOnClickListener {
             MediaExchangePortalLinks.open(fragment.requireActivity(), MediaExchangePortalLinks.Page.HOME_NETWORK)
         }

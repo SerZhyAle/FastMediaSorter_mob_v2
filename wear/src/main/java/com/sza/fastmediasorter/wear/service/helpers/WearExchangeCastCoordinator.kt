@@ -2,13 +2,19 @@ package com.sza.fastmediasorter.wear.service.helpers
 
 import android.content.Context
 import androidx.core.content.ContextCompat
+import com.google.gson.JsonObject
+import com.sza.fastmediasorter.data.security.e2e.E2eBytes
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeConnector
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeControlEvent
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeControlStreams
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeE2e
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeEntryStore
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeEnvelope
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeLoopbackBridge
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeRelayEndpoint
+import com.sza.fastmediasorter.wear.data.exchange.WearLoopbackPort
+import com.sza.fastmediasorter.wear.data.exchange.WearSealedRelayProxy
 import com.sza.fastmediasorter.wear.di.ApplicationScope
 import com.sza.fastmediasorter.wear.domain.exchange.WearExchangeCastAction
 import com.sza.fastmediasorter.wear.domain.exchange.WearExchangeCastMachine
@@ -25,6 +31,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -45,6 +52,8 @@ class WearExchangeCastCoordinator @Inject constructor(
     @ApplicationContext private val context: Context,
     private val streams: WearExchangeControlStreams,
     private val connector: WearExchangeConnector,
+    private val entries: WearExchangeEntryStore,
+    private val e2e: WearExchangeE2e,
     private val notifier: WearExchangeCastNotifier,
     private val playbackSession: WearBackgroundSessionState,
     @ApplicationScope private val scope: CoroutineScope,
@@ -71,7 +80,7 @@ class WearExchangeCastCoordinator @Inject constructor(
         scope.launch { mutex.withLock { perform(machine.onUserAnswer(broadcastId, accepted)) } }
     }
 
-    private fun onControlEvent(event: WearExchangeControlEvent) {
+    private suspend fun onControlEvent(event: WearExchangeControlEvent) {
         when (event.envelope.type) {
             WearExchangeEnvelope.TYPE_CAST_OFFER -> onOffer(event)
             WearExchangeEnvelope.TYPE_CAST_STOP ->
@@ -79,11 +88,9 @@ class WearExchangeCastCoordinator @Inject constructor(
         }
     }
 
-    private fun onOffer(event: WearExchangeControlEvent) {
-        val endpoint = WearExchangeRelayEndpoint.fromOffer(event.envelope)
-        val broadcastId = endpoint?.broadcastId
-            ?: event.envelope.string(KEY_BROADCAST_ID)
-            ?: event.envelope.obj(KEY_BROADCAST)?.get(KEY_BROADCAST_ID)?.takeIf { it.isJsonPrimitive }?.asString
+    private suspend fun onOffer(event: WearExchangeControlEvent) {
+        val endpoint = WearExchangeRelayEndpoint.fromOffer(event.envelope, openedDescriptor(event))
+        val broadcastId = endpoint?.broadcastId ?: WearExchangeRelayEndpoint.broadcastIdOf(event.envelope)
         if (broadcastId == null) {
             Timber.w("WearExchangeCastCoordinator: a cast offer named no broadcast")
             return
@@ -91,6 +98,20 @@ class WearExchangeCastCoordinator @Inject constructor(
         endpoint?.let { endpoints[broadcastId] = it }
         val offer = WearExchangeCastOffer(event.identity, broadcastId, endpoint?.title)
         perform(machine.onOffer(offer, playable = endpoint != null, playAtOnce = false))
+    }
+
+    // S4240, 27 item DK: the offer's box opens with the keys the watch already trusts, as the phone opens a cast; a
+    // box that does not open leaves the sealed relay keyless, and the offer unplayable.
+    private suspend fun openedDescriptor(event: WearExchangeControlEvent): JsonObject? {
+        val descriptor = WearExchangeRelayEndpoint.descriptorOf(event.envelope)
+        val box = WearExchangeRelayEndpoint.boxOf(event.envelope)
+        val broadcastId = WearExchangeRelayEndpoint.broadcastIdOf(event.envelope)
+        val entry = entries.entries.first().firstOrNull { it.identity == event.identity }
+        return if (box == null || broadcastId == null || entry == null) {
+            descriptor
+        } else {
+            e2e.trustedSealing(entry).openBroadcast(broadcastId, box, descriptor)
+        }
     }
 
     // The service reports what it plays; once it stopped playing this cast - the owner's stop, the stream's end -
@@ -155,9 +176,7 @@ class WearExchangeCastCoordinator @Inject constructor(
         val endpoint = endpoints[offer.broadcastId] ?: return
         current?.let { stopPlaying(it.broadcastId) }
         val bridge = try {
-            WearExchangeLoopbackBridge(LABEL) {
-                connector.connect(endpoint.host, endpoint.port, endpoint.certFingerprint)
-            }
+            loopbackFor(endpoint)
         } catch (e: IOException) {
             Timber.w(e, "WearExchangeCastCoordinator: the loopback proxy did not open")
             return
@@ -182,6 +201,18 @@ class WearExchangeCastCoordinator @Inject constructor(
         }
     }
 
+    // 27 item DL: a sealed relay is no stream for any player, so it plays only through the opening proxy.
+    private fun loopbackFor(endpoint: WearExchangeRelayEndpoint): WearLoopbackPort {
+        val opener = { connector.connect(endpoint.host, endpoint.port, endpoint.certFingerprint) }
+        val groupKey = endpoint.groupKey?.let(E2eBytes::fromB64url)
+        val host = if (endpoint.port == HTTPS_PORT) endpoint.host else "${endpoint.host}:${endpoint.port}"
+        return if (groupKey == null) {
+            WearExchangeLoopbackBridge(LABEL, opener = opener)
+        } else {
+            WearSealedRelayProxy(LABEL, endpoint.path, host, endpoint.broadcastId, groupKey, opener = opener)
+        }
+    }
+
     private fun stopPlaying(broadcastId: String) {
         val playing = current?.takeIf { it.broadcastId == broadcastId } ?: return
         current = null
@@ -197,13 +228,13 @@ class WearExchangeCastCoordinator @Inject constructor(
         }
     }
 
-    private class Playing(val broadcastId: String, val url: String, val bridge: WearExchangeLoopbackBridge) {
+    private class Playing(val broadcastId: String, val url: String, val bridge: WearLoopbackPort) {
         var seen = false
     }
 
     private companion object {
         const val LABEL = "cast"
-        const val KEY_BROADCAST = "broadcast"
+        const val HTTPS_PORT = 443
         const val KEY_BROADCAST_ID = "broadcastId"
         const val KEY_ACCEPTED = "accepted"
         const val KEY_REASON = "reason"

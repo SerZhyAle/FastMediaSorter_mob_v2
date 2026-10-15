@@ -1,8 +1,12 @@
 package com.sza.fastmediasorter.data.remote.sftp.anywhere
 
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeFrameCodec
+import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.SftpTunnelAddress
+import io.mockk.coEvery
+import io.mockk.mockk
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -14,7 +18,7 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
-/** The outsider consumer of contract DEVICE-EXCHANGE 7.5 against a fake exchange server on loopback. */
+/** The consumer of contract DEVICE-EXCHANGE 7.5 against a fake exchange server on loopback. */
 class ExchangeTunnelProxyTest {
 
     private val exchange = ServerSocket(0)
@@ -86,6 +90,37 @@ class ExchangeTunnelProxyTest {
         assertThrows(ExchangeTunnelUnavailableException::class.java) {
             proxy.connect(null, "ignored", exchange.localPort, TIMEOUT_MS)
         }
+    }
+
+    @Test
+    fun `own-account route delegates to client connectByResourceId`() {
+        val entry = DeviceExchangeAccountEntry(
+            host = "127.0.0.1",
+            port = exchange.localPort,
+            login = "alice",
+            deviceId = "dev-1",
+            pinnedCertificate = null,
+        )
+        val router = mockk<ExchangeTunnelRouter>()
+        val client = mockk<DeviceExchangeAccountClient>()
+        val tunnelHost = SftpTunnelAddress.host(parts.shareId, parts.exchangeHost)
+        val port = exchange.localPort
+
+        coEvery { router.route(tunnelHost, port) } returns ExchangeTunnelRoute.OwnAccount(entry, "res-123")
+
+        val clientConnection = ExchangeConnection(Socket(), "SHA256:fake")
+        coEvery { client.connectByResourceId(entry, "res-123") } returns clientConnection
+
+        val proxy = ExchangeTunnelProxy(
+            connector = connector,
+            parts = parts,
+            router = router,
+            client = client,
+        )
+
+        proxy.connect(null, tunnelHost, port, TIMEOUT_MS)
+        assertEquals(clientConnection.socket, proxy.socket)
+        proxy.close()
     }
 
     private companion object {

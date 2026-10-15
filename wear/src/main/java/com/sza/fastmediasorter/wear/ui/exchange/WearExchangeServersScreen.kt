@@ -144,6 +144,15 @@ private fun ServerList(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
+            // Contract DEVICE-EXCHANGE 27 item DE: what the server sees, in these words wherever it is described.
+            item(key = "honest") {
+                Text(
+                    text = stringResource(R.string.wear_exchange_server_honest_text),
+                    style = MaterialTheme.typography.caption2,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
     }
 }

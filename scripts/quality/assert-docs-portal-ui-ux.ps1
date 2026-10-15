@@ -25,6 +25,10 @@
       rule 12 - search.js renders an empty result that repeats the query and links the subject index;
       rule 15 - every page opens <body> (after the optional date stamp) with a skip link to
                 #main-content, and carries that target.
+    - The docs/ reference pages in the portal shell (S4117): _layouts/doc.html, the Jekyll copy of the
+      portal chrome, is judged by every page check above; a docs/**/*.md page naming a layout names
+      `doc` (SITE-EXPERIENCE rules 1, 3, 5); and a page's {% include NAME %} names a file in
+      _includes/, because a missing include fails the whole Pages build, not one page.
 
 .PARAMETER RepoRoot
     Target repository root path.
@@ -46,7 +50,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '../docs/Read-DocumentationSearchIndex.ps1')
 . (Join-Path $PSScriptRoot 'lib/check-subject.ps1')
-Write-CheckSubject -Axes ([ordered]@{ module = 'site'; scope = 'docs-portal-ui-ux'; files = 'documentation/**/*.html,documentation/assets/docs.css,documentation/assets/search.js' })
+Write-CheckSubject -Axes ([ordered]@{ module = 'site'; scope = 'docs-portal-ui-ux'; files = 'documentation/**/*.html,_layouts/doc.html,docs/**/*.md,documentation/assets/docs.css,documentation/assets/search.js' })
 
 $docRoot = Join-Path $RepoRoot 'documentation'
 $docsCssPath = Join-Path $docRoot 'assets/docs.css'
@@ -210,6 +214,12 @@ if (-not (Test-Path -LiteralPath $searchJsPath)) {
 # -------------------------------------------------------------------------
 $tempSubdir = Join-Path $docRoot 'temp'
 $htmlFiles = @(Get-ChildItem -LiteralPath $docRoot -Recurse -Filter *.html -File | Where-Object { -not $_.FullName.StartsWith($tempSubdir, [System.StringComparison]::OrdinalIgnoreCase) })
+# The docs/ pages render through this layout, so the portal checks judge their chrome here; its own
+# hrefs are Liquid expressions, which the link check below already skips.
+$docLayoutPath = Join-Path $RepoRoot '_layouts/doc.html'
+if (Test-Path -LiteralPath $docLayoutPath -PathType Leaf) {
+    $htmlFiles += Get-Item -LiteralPath $docLayoutPath
+}
 
 $checkedPages = 0
 $checkedImages = 0
@@ -263,8 +273,9 @@ foreach ($file in $htmlFiles) {
     }
 
     # 3f-bis. SITE-EXPERIENCE rules 2, 3, 4 and 15 on the page itself (S4099).
-    $kitLink = [regex]::Match($content, '<link\b[^>]*href="[^"]*styles\.css"')
-    $layerLink = [regex]::Match($content, '<link\b[^>]*href="[^"]*docs\.css"')
+    # The Jekyll layout names a stylesheet as {{ '/x.css' | relative_url }}; both forms are judged.
+    $kitLink = [regex]::Match($content, '<link\b[^>]*href="[^"]*styles\.css(?:''\s*\|\s*relative_url\s*\}\})?"')
+    $layerLink = [regex]::Match($content, '<link\b[^>]*href="[^"]*docs\.css(?:''\s*\|\s*relative_url\s*\}\})?"')
     if ($layerLink.Success -and (-not $kitLink.Success -or $kitLink.Index -gt $layerLink.Index)) {
         $errors.Add("$relPath - styles.css (the kit tokens) is not linked before docs.css (SITE-EXPERIENCE rule 2)")
     }
@@ -313,6 +324,35 @@ foreach ($file in $htmlFiles) {
 }
 
 # -------------------------------------------------------------------------
+# 3i. docs/ reference pages: on the portal shell, and no include that is not there (S4117)
+# -------------------------------------------------------------------------
+$docsSourceRoot = Join-Path $RepoRoot 'docs'
+$includesRoot = Join-Path $RepoRoot '_includes'
+$checkedDocsPages = 0
+if (Test-Path -LiteralPath $docsSourceRoot) {
+    foreach ($mdPage in (Get-ChildItem -LiteralPath $docsSourceRoot -Recurse -Filter *.md -File)) {
+        $mdText = Get-Content -LiteralPath $mdPage.FullName -Raw -Encoding utf8
+        if ([string]::IsNullOrEmpty($mdText)) { continue }
+        $mdRel = [System.IO.Path]::GetRelativePath($RepoRoot, $mdPage.FullName).Replace([char]92, '/')
+        $frontMatter = [regex]::Match($mdText, '\A---\r?\n(.*?)\r?\n---\r?\n', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+        if ($frontMatter.Success) {
+            $layoutLine = [regex]::Match($frontMatter.Groups[1].Value, '(?m)^layout:\s*(\S+)\s*$')
+            if ($layoutLine.Success) {
+                $checkedDocsPages++
+                if ($layoutLine.Groups[1].Value -ne 'doc') {
+                    $errors.Add("$mdRel - layout '$($layoutLine.Groups[1].Value)' is not the portal shell 'doc' (SITE-EXPERIENCE rules 1, 3, 5)")
+                }
+            }
+        }
+        foreach ($include in [regex]::Matches($mdText, '\{%-?\s*include\s+([\w./-]+)')) {
+            if (-not (Test-Path -LiteralPath (Join-Path $includesRoot $include.Groups[1].Value) -PathType Leaf)) {
+                $errors.Add("$mdRel - includes '$($include.Groups[1].Value)', which is not in _includes/; the Pages build would fail")
+            }
+        }
+    }
+}
+
+# -------------------------------------------------------------------------
 # 4. Search Simulation: Unmatched Query Scoring Verification
 # -------------------------------------------------------------------------
 if (Test-Path -LiteralPath $searchIndexPath) {
@@ -344,7 +384,7 @@ if (Test-Path -LiteralPath $searchIndexPath) {
 # Verdict
 # -------------------------------------------------------------------------
 if (-not $Quiet) {
-    Write-Host "Audited $checkedPages documentation page(s), $checkedImages image(s), $checkedLinks link reference(s)." -ForegroundColor Gray
+    Write-Host "Audited $checkedPages documentation page(s), $checkedImages image(s), $checkedLinks link reference(s), $checkedDocsPages docs/ page layout(s)." -ForegroundColor Gray
 }
 
 if ($warnings.Count -gt 0 -and -not $Quiet) {

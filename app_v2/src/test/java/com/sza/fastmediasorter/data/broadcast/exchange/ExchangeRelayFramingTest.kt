@@ -1,5 +1,8 @@
 package com.sza.fastmediasorter.data.broadcast.exchange
 
+import com.sza.fastmediasorter.data.security.e2e.E2eBytes
+import com.sza.fastmediasorter.data.security.e2e.E2eRelayMedia
+import com.sza.fastmediasorter.data.security.e2e.E2eRelayRecords
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -33,6 +36,31 @@ class ExchangeRelayFramingTest {
                 out.toByteArray(),
             )
         }
+    }
+
+    @Test
+    fun `a sealed header chunk is a key ring for the group key and the format header as a media record`() {
+        val groupKey = ByteArray(E2eRelayRecords.GROUP_KEY_LENGTH) { 7 }
+        val epochKey = ByteArray(E2eRelayRecords.EPOCH_KEY_LENGTH) { 1 }
+        val ring = ExchangeRelayRing(epoch = 3L, epochKey = epochKey, groupKeys = listOf(groupKey))
+        val sealer = ExchangeRelaySealer(BROADCAST_ID, "video/mp2t", ring)
+        val out = ByteArrayOutputStream()
+
+        ExchangeRelayChunkWriter(out, sealer.headerChunk(byteArrayOf(0x47, 0x40)), sealer)
+            .write(byteArrayOf(5), joinable = true)
+
+        val bytes = out.toByteArray()
+        val headerLength = E2eBytes.readU32be(bytes, 0).toInt()
+        assertEquals(ExchangeRelayChunkWriter.FLAG_HEADER, bytes[4].toInt())
+        val records = requireNotNull(E2eRelayRecords.split(bytes.copyOfRange(5, 4 + headerLength)))
+        assertEquals(listOf(E2eRelayRecords.TYPE_KEY_RING, E2eRelayRecords.TYPE_MEDIA), records.map { it.type })
+        val opened = requireNotNull(E2eRelayRecords.openKeyRing(BROADCAST_ID, records[0].body, groupKey))
+        assertEquals("video/mp2t", opened.mediaType)
+        val flag = ExchangeRelayChunkWriter.FLAG_HEADER
+        val header = E2eRelayRecords.openMedia(BROADCAST_ID, records[1].body, flag) { epoch ->
+            opened.epochKey.takeIf { epoch == opened.epoch }
+        }
+        assertArrayEquals(byteArrayOf(0x47, 0x40), (header as E2eRelayMedia.Clear).bytes)
     }
 
     @Test
@@ -95,5 +123,6 @@ class ExchangeRelayFramingTest {
 
     private companion object {
         const val ADTS_HEADER = 7
+        const val BROADCAST_ID = "b1"
     }
 }

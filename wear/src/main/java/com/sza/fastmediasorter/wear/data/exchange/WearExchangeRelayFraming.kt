@@ -1,18 +1,61 @@
 package com.sza.fastmediasorter.wear.data.exchange
 
+import com.sza.fastmediasorter.data.security.e2e.E2eRelayRecords
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.io.OutputStream
+
+/**
+ * Turns the ADTS payloads of one upload stream into the sealed records of contract DEVICE-EXCHANGE 27 item DL,
+ * mirrored from the phone's `ExchangeRelaySealer`: the header chunk is the key ring of [ring]'s epoch alone, since
+ * ADTS has no format header, and every other payload becomes one media record under its chunk's flag.
+ */
+class WearExchangeRelaySealer(
+    private val broadcastId: String,
+    private val mediaType: String,
+    private val ring: WearExchangeRelayRing,
+    private val isCurrent: () -> Boolean = { true },
+) {
+
+    fun headerChunk(): ByteArray =
+        E2eRelayRecords.encodeKeyRing(broadcastId, ring.epoch, mediaType, ring.epochKey, listOf(ring.groupKey))
+
+    /**
+     * One media record. Throws once the group key was replaced (an own device left the account), which ends this
+     * upload stream; the uploader reconnects with a replacement upload and a new epoch (item DL).
+     */
+    fun media(payload: ByteArray, flag: Int): ByteArray {
+        if (!isCurrent()) throw IOException("the relay epoch was replaced")
+        return E2eRelayRecords.encodeMedia(broadcastId, ring.epoch, ring.epochKey, flag, payload)
+    }
+}
 
 /**
  * The upload chunk framing of contract DEVICE-EXCHANGE 7.6, mirrored from the phone's `ExchangeRelayChunkWriter`:
  * a 4-byte unsigned big-endian length counting one flag byte plus the payload, the flag byte, the payload; a zero
- * length ends the broadcast. The watch uploads ADTS only, which has no header chunk.
+ * length ends the broadcast. A sealed upload opens every stream with [header], the key ring (27 item DL).
  */
-class WearExchangeRelayChunkWriter(private val out: OutputStream) {
+class WearExchangeRelayChunkWriter(
+    private val out: OutputStream,
+    private val header: ByteArray? = null,
+    private val sealer: WearExchangeRelaySealer? = null,
+) {
 
-    /** Writes [payload] as one chunk. */
+    private var opened = false
+
+    /** Writes [payload] as one chunk; the first chunk of the stream is preceded by the header chunk. */
     fun write(payload: ByteArray, joinable: Boolean) {
         require(payload.size + FLAG_BYTES <= MAX_CHUNK_LENGTH) { "a chunk is at most 1 MiB with its flag byte" }
+        if (!opened) {
+            opened = true
+            header?.let { frame(FLAG_HEADER, it) }
+        }
+        val flag = if (joinable) FLAG_JOINABLE else FLAG_NONE
+        frame(flag, sealer?.media(payload, flag) ?: payload)
+        out.flush()
+    }
+
+    private fun frame(flag: Int, payload: ByteArray) {
         val length = payload.size + FLAG_BYTES
         out.write(
             byteArrayOf(
@@ -20,11 +63,10 @@ class WearExchangeRelayChunkWriter(private val out: OutputStream) {
                 (length ushr BYTE_2_SHIFT).toByte(),
                 (length ushr BYTE_1_SHIFT).toByte(),
                 length.toByte(),
-                (if (joinable) FLAG_JOINABLE else FLAG_NONE).toByte(),
+                flag.toByte(),
             )
         )
         out.write(payload)
-        out.flush()
     }
 
     /** A clean end of the broadcast (7.6): the relay ends every listener's response instead of timing out. */
@@ -36,6 +78,7 @@ class WearExchangeRelayChunkWriter(private val out: OutputStream) {
     companion object {
         const val FLAG_NONE = 0x00
         const val FLAG_JOINABLE = 0x01
+        const val FLAG_HEADER = 0x02
         const val MAX_CHUNK_LENGTH = 1_048_576
         private const val FLAG_BYTES = 1
         private const val LENGTH_BYTES = 4

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.15 10:03</sub>
+<sub class="doc-stamp">26.10.15 13:39</sub>
 
 # Play Console - Foreground service permissions declaration (S4241)
 
@@ -57,11 +57,13 @@ under `app_v2/src/` on 2026-10-15. The store flavor is `standard`; `noLegal` is 
   open neither camera nor microphone.
 - **`specialUse` - existing, no change.** `OverlayHostService`, the edge-gesture handle of the screen
   capture strip (`src/standardScreenCapture`, with a `PROPERTY_SPECIAL_USE_FGS_SUBTYPE` string).
-- **`dataSync` - NOT declared in the release build today.** `src/release/AndroidManifest.xml` removes
-  `FOREGROUND_SERVICE_DATA_SYNC`, while `SftpServerService` (the phone's folder sharing) and WorkManager's
-  `SystemForegroundService` are typed `dataSync`. Open finding **S4263**: either the permission comes back
-  with a declaration, or sharing and scheduled operations stay out of store builds. Decide there; this file
-  carries the text for the first answer only so it is not re-derived.
+- **`dataSync` - NOT in release 46; returns with S4271.** S4263 decided it: `src/storeReleaseNoDataSync`
+  strips `FOREGROUND_SERVICE_DATA_SYNC` and the `dataSync` type from `SftpServerService` (the phone's folder
+  sharing, which then runs while the app is foreground-bound) and from WorkManager's
+  `SystemForegroundService` in every store release, `standard` included. `noLegal` keeps the type. The
+  return is one build switch, `fms.dataSyncFgsStandard` in `gradle.properties` (default `off`): set `on`
+  only after the declaration below is saved, because a `standard` bundle that carries the type commits with
+  HTTP 403 until then. The text and the video steps for it are in the `dataSync` section below.
 
 Nothing about the exchange server, Google Drive or the clipboard adds a foreground-service type: those run
 inside the services above, in the caller's foreground, or in WorkManager.
@@ -133,16 +135,37 @@ Use case of each is chosen from the console's own list; the closest entry is nam
 - **Video:** start playback, leave the app, the notification controls; start a file broadcast, the
   notification, Stop.
 
-### `specialUse` and `dataSync`
+### `specialUse`
 
 - `specialUse`: unchanged. Re-read the text the console already holds; edit only if it names the strip in
   words that no longer match `OverlayHostService`.
-- `dataSync`: not declared; see S4263. If the first answer wins, the text is: "The user turns on folder
-  sharing from the phone's settings. A foreground service runs the phone's SFTP server so the user's other
-  devices can browse the chosen folders; it shows an ongoing notification with a Stop button and pauses when
-  Android reaches its daily data-sync limit, resuming when the user opens the app. Scheduled file
-  operations the user set up run in WorkManager's foreground service with a notification." Impact: "Sharing
-  or the operation pauses and resumes the next time the app is in the foreground."
+
+### `dataSync` (S4271 - declare before `fms.dataSyncFgsStandard` is set to `on`)
+
+- **Use case (closest list entry):** transfer or sync data between the device and a server or other devices
+  (pick the console's entry that says so; this wording was not read from Google's page).
+- **Description:** "The user turns on folder sharing from the phone's settings. A foreground service runs
+  the phone's SFTP server so the user's other devices can browse the chosen folders; it shows an ongoing
+  notification with a Stop button and pauses when Android reaches its daily data-sync limit, resuming when
+  the user opens the app. File copies and moves the user starts, and scheduled file operations the user set
+  up, run in WorkManager's foreground service with a progress notification, so a large transfer is not cut
+  when the user leaves the app."
+- **Impact of an interruption:** "Sharing or the transfer pauses and resumes the next time the app is in
+  the foreground. Files already copied stay where they are."
+- **Video (owner records it, on a `standard` build made with `-Pfms.dataSyncFgsStandard=on`):**
+  1) open the app, Settings, folder sharing, turn it on and pick a folder; 2) show the ongoing notification
+  with the address and its Stop button; 3) press Home and, from another device, list the folder over SFTP;
+  4) back in the app start a copy of several large files to a network folder; 5) press Home, pull the
+  shade and show the transfer progress notification; 6) return and show the finished copy; 7) turn sharing
+  off from the notification and show it gone. Use files and folders created for the recording.
+  Scenario text for the owner: `docs/PLAY_STORE_VIDEO_GUIDE.md`, Video 1.
+- **Flip:** after the console shows the declaration saved, write its state and date into
+  `docs/PLAY_PUBLISHING_STATE.md`, then set `fms.dataSyncFgsStandard=on` in `gradle.properties` for the
+  release that should carry it. Nothing else in the build changes: `SftpServerService` reads the
+  permission from the merged manifest and promotes itself to a foreground service again.
+- **Inventories to read once it is on:** `docs/PRIVACY_POLICY.md` (+ `-ru`, `-uk`), `docs/SECURITY_POSTURE.md`
+  (the `FOREGROUND_SERVICE_DATA_SYNC` row names the switch), the `play/listing/<locale>/full_description.txt`
+  line about folder sharing.
 
 ---
 
@@ -162,7 +185,8 @@ after the watch bundle lands: because the page names no form factor, the phone's
    date into `docs/PLAY_PUBLISHING_STATE.md` (no block for it exists there yet).
 2. Declare `camera` with the text above and the video the owner recorded. Declare `mediaProjection` if absent.
 3. Edit the `microphone` and `mediaPlayback` texts to the versions above.
-4. Leave `dataSync` until S4263 is decided.
+4. Leave `dataSync` alone for release 46. For the release that carries it (S4271): record the video, declare
+   `dataSync` with the text above, then set `fms.dataSyncFgsStandard=on`.
 5. Under a policy enforcement Play refuses automatic review - send the held edit from
    `Publishing overview -> Send changes for review`.
 

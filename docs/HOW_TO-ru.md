@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "📖 Руководства"
 permalink: /docs/HOW_TO-ru.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 📖 Руководства
 
@@ -13,8 +13,6 @@ permalink: /docs/HOW_TO-ru.html
 
 - **Группы сценариев** для более живых реальных workflows и комбинаций функций.
 - **Базовый справочник по задачам** ниже для прямых однофункциональных рецептов.
-
-{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="ru" %}
 
 ---
 

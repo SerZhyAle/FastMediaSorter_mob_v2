@@ -1,25 +1,71 @@
 {%- comment -%}
   S4104: the Jekyll copy of the documentation portal shell that scripts/docs/generate-docs-pages.ps1
   writes, so a docs/ reference page opens in the same chrome as the portal (SITE-EXPERIENCE rules 1, 3, 5).
-  The page language and its siblings come from the source path: NAME.md is English, NAME-ru.md and
-  NAME-uk.md are the translations. A sibling whose file does not exist is not offered, so the language
-  menu never links a page that 404s (SITE-STRUCTURE rule 9).
+  The page language and its siblings come from the source path: NAME.md is English and NAME-<slug>.md
+  is the translation for each further language of _data/languages.yml (S4117). A sibling whose file
+  does not exist is not offered, so no language link ever leads to a 404 (SITE-STRUCTURE rule 9).
+  RU / EN / UA live in the header menu and are remembered in sza-lang; every further locale is the
+  text-only row under the header and is never stored (PAGE-STYLE section 4.2).
 {%- endcomment -%}
 {%- assign doc_stem = page.path | remove: '.md' -%}
-{%- assign doc_tail = doc_stem | slice: -3, 3 -%}
 {%- assign doc_lang = 'en' -%}
+{%- assign doc_dir = 'ltr' -%}
 {%- assign doc_base = doc_stem -%}
-{%- if doc_tail == '-ru' or doc_tail == '-uk' -%}
-  {%- assign doc_lang = doc_tail | remove: '-' -%}
-  {%- assign doc_base_size = doc_stem.size | minus: 3 -%}
-  {%- assign doc_base = doc_stem | slice: 0, doc_base_size -%}
-{%- endif -%}
-{%- assign doc_en_path = doc_base | append: '.md' -%}
-{%- assign doc_ru_path = doc_base | append: '-ru.md' -%}
-{%- assign doc_uk_path = doc_base | append: '-uk.md' -%}
-{%- assign doc_en = site.pages | where: "path", doc_en_path | first -%}
-{%- assign doc_ru = site.pages | where: "path", doc_ru_path | first -%}
-{%- assign doc_uk = site.pages | where: "path", doc_uk_path | first -%}
+{%- for lang in site.data.languages -%}
+  {%- if lang.code == 'en' -%}{%- continue -%}{%- endif -%}
+  {%- assign lang_tail = '-' | append: lang.slug -%}
+  {%- assign lang_tail_size = lang_tail.size -%}
+  {%- if doc_stem.size <= lang_tail_size -%}{%- continue -%}{%- endif -%}
+  {%- assign lang_tail_from = 0 | minus: lang_tail_size -%}
+  {%- assign stem_tail = doc_stem | slice: lang_tail_from, lang_tail_size -%}
+  {%- if stem_tail == lang_tail -%}
+    {%- assign doc_lang = lang.code -%}
+    {%- assign doc_dir = lang.dir -%}
+    {%- assign doc_base_size = doc_stem.size | minus: lang_tail_size -%}
+    {%- assign doc_base = doc_stem | slice: 0, doc_base_size -%}
+    {%- break -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- assign doc_lang_label = doc_lang | split: '-' | first | upcase -%}
+{%- if doc_lang == 'uk' -%}{%- assign doc_lang_label = 'UA' -%}{%- endif -%}
+{%- assign doc_en = nil -%}
+{%- assign doc_ru = nil -%}
+{%- assign doc_uk = nil -%}
+{%- assign doc_further_count = 0 -%}
+{%- comment -%} Siblings share the URL directory, so 13 lookups scan a handful of pages, not the whole site. {%- endcomment -%}
+{%- assign doc_family_pages = site.pages | where: "dir", page.dir -%}
+{%- capture doc_alternates -%}
+{%- for lang in site.data.languages -%}
+  {%- if lang.code == 'en' -%}
+    {%- assign lang_path = doc_base | append: '.md' -%}
+  {%- else -%}
+    {%- assign lang_path = doc_base | append: '-' | append: lang.slug | append: '.md' -%}
+  {%- endif -%}
+  {%- assign lang_page = doc_family_pages | where: "path", lang_path | first -%}
+  {%- unless lang_page -%}{%- continue -%}{%- endunless -%}
+  {%- if lang.code == 'en' -%}{%- assign doc_en = lang_page -%}
+  {%- elsif lang.code == 'ru' -%}{%- assign doc_ru = lang_page -%}
+  {%- elsif lang.code == 'uk' -%}{%- assign doc_uk = lang_page -%}
+  {%- else -%}{%- assign doc_further_count = doc_further_count | plus: 1 -%}
+  {%- endif %}
+    <link rel="alternate" hreflang="{{ lang.code }}" href="{{ lang_page.url | absolute_url }}">
+{%- endfor -%}
+{%- endcapture -%}
+{%- capture doc_further_links -%}
+{%- for lang in site.data.languages -%}
+  {%- if lang.code == 'en' or lang.code == 'ru' or lang.code == 'uk' -%}{%- continue -%}{%- endif -%}
+  {%- assign lang_label = lang.code | split: '-' | first | upcase -%}
+  {%- if lang.code == doc_lang %}
+        <span aria-current="page" lang="{{ lang.code }}" title="{{ lang.endonym }}">{{ lang_label }}</span>
+    {%- continue -%}
+  {%- endif -%}
+  {%- assign lang_path = doc_base | append: '-' | append: lang.slug | append: '.md' -%}
+  {%- assign lang_page = doc_family_pages | where: "path", lang_path | first -%}
+  {%- if lang_page %}
+        <a href="{{ lang_page.url | relative_url }}" hreflang="{{ lang.code }}" lang="{{ lang.code }}" title="{{ lang.endonym }}">{{ lang_label }}</a>
+  {%- endif -%}
+{%- endfor -%}
+{%- endcapture -%}
 {%- if doc_lang == 'ru' -%}
   {%- assign doc_suffix = '-ru' -%}
   {%- assign t_search = 'Поиск...' -%}
@@ -33,6 +79,7 @@
   {%- assign t_first = 'Первый запуск' -%}
   {%- assign t_perms = 'Разрешения' -%}
   {%- assign t_toc = 'На этой странице' -%}
+  {%- assign t_langs = 'Языки' -%}
   {%- assign t_privacy = 'Политика конфиденциальности' -%}
   {%- assign t_terms = 'Условия использования' -%}
   {%- assign t_footer = 'Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.' -%}
@@ -49,6 +96,7 @@
   {%- assign t_first = 'Перший запуск' -%}
   {%- assign t_perms = 'Дозволи' -%}
   {%- assign t_toc = 'На цій сторінці' -%}
+  {%- assign t_langs = 'Мови' -%}
   {%- assign t_privacy = 'Політика конфіденційності' -%}
   {%- assign t_terms = 'Умови використання' -%}
   {%- assign t_footer = 'Fast Media Sorter &copy; 2026 SerZhyAle. Безкоштовний органайзер із відкритим вихідним кодом.' -%}
@@ -65,13 +113,14 @@
   {%- assign t_first = 'First launch' -%}
   {%- assign t_perms = 'Permissions' -%}
   {%- assign t_toc = 'On this page' -%}
+  {%- assign t_langs = 'Languages' -%}
   {%- assign t_privacy = 'Privacy Policy' -%}
   {%- assign t_terms = 'Terms of Service' -%}
   {%- assign t_footer = 'Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.' -%}
 {%- endif -%}
 {%- assign doc_portal = '/documentation/' -%}
 <!DOCTYPE html>
-<html lang="{{ doc_lang }}">
+<html lang="{{ doc_lang }}" dir="{{ doc_dir }}">
 
 <head>
     <meta charset="UTF-8">
@@ -79,15 +128,7 @@
     <title>{{ page.title | default: 'Documentation' }} - Fast Media Sorter</title>
     <meta name="description" content="{{ page.description | default: site.description | strip_html | escape }}">
     <link rel="canonical" href="{{ page.url | absolute_url }}">
-    {%- if doc_en %}
-    <link rel="alternate" hreflang="en" href="{{ doc_en.url | absolute_url }}">
-    {%- endif -%}
-    {%- if doc_ru %}
-    <link rel="alternate" hreflang="ru" href="{{ doc_ru.url | absolute_url }}">
-    {%- endif -%}
-    {%- if doc_uk %}
-    <link rel="alternate" hreflang="uk" href="{{ doc_uk.url | absolute_url }}">
-    {%- endif -%}
+    {{- doc_alternates }}
     {%- if doc_en %}
     <link rel="alternate" hreflang="x-default" href="{{ doc_en.url | absolute_url }}">
     {%- endif %}
@@ -153,7 +194,7 @@
 
                 <!-- Language selector: only the translations that exist for this page -->
                 <div class="doc-lang-picker">
-                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">{{ doc_lang | upcase }}</button>
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">{{ doc_lang_label }}</button>
                     <div class="doc-lang-menu" id="langMenu">
                         {%- if doc_en %}
                         <a href="{{ doc_en.url | relative_url }}" class="doc-lang-item{% if doc_lang == 'en' %} active{% endif %}" data-lang="en"{% if doc_lang == 'en' %} aria-current="page"{% endif %}><span>English</span><span class="lang-code">en</span></a>
@@ -162,7 +203,7 @@
                         <a href="{{ doc_ru.url | relative_url }}" class="doc-lang-item{% if doc_lang == 'ru' %} active{% endif %}" data-lang="ru"{% if doc_lang == 'ru' %} aria-current="page"{% endif %}><span>Русский</span><span class="lang-code">ru</span></a>
                         {%- endif -%}
                         {%- if doc_uk %}
-                        <a href="{{ doc_uk.url | relative_url }}" class="doc-lang-item{% if doc_lang == 'uk' %} active{% endif %}" data-lang="uk"{% if doc_lang == 'uk' %} aria-current="page"{% endif %}><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="{{ doc_uk.url | relative_url }}" class="doc-lang-item{% if doc_lang == 'uk' %} active{% endif %}" data-lang="ua"{% if doc_lang == 'uk' %} aria-current="page"{% endif %}><span>Українська</span><span class="lang-code">uk</span></a>
                         {%- endif %}
                     </div>
                 </div>
@@ -172,6 +213,35 @@
             </nav>
         </div>
     </header>
+
+    {%- if doc_further_count > 0 %}
+
+    <!-- Further locales: a text-only row under the header, never written to sza-lang (PAGE-STYLE 4.2) -->
+    <nav class="lang-row doc-lang-row" aria-label="{{ t_langs }}">
+        {%- if doc_ru %}
+        {%- if doc_lang == 'ru' %}
+        <span aria-current="page" lang="ru" title="Русский">RU</span>
+        {%- else %}
+        <a href="{{ doc_ru.url | relative_url }}" hreflang="ru" lang="ru" data-lang="ru" title="Русский">RU</a>
+        {%- endif -%}
+        {%- endif -%}
+        {%- if doc_en %}
+        {%- if doc_lang == 'en' %}
+        <span aria-current="page" lang="en" title="English">EN</span>
+        {%- else %}
+        <a href="{{ doc_en.url | relative_url }}" hreflang="en" lang="en" data-lang="en" title="English">EN</a>
+        {%- endif -%}
+        {%- endif -%}
+        {%- if doc_uk %}
+        {%- if doc_lang == 'uk' %}
+        <span aria-current="page" lang="uk" title="Українська">UA</span>
+        {%- else %}
+        <a href="{{ doc_uk.url | relative_url }}" hreflang="uk" lang="uk" data-lang="ua" title="Українська">UA</a>
+        {%- endif -%}
+        {%- endif -%}
+        {{- doc_further_links }}
+    </nav>
+    {%- endif %}
 
     <div class="doc-container">
 

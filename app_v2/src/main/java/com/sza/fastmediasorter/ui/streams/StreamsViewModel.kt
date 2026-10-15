@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.BuildWatchBroadcastHandoffUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ClearDownloadedStreamsUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamBroadcastUseCase
@@ -124,6 +125,7 @@ class StreamsViewModel @Inject constructor(
     private val mediaCapabilities: MediaCapabilities,
     // S1799: Lazy - the send path is cold until the user actually invokes the command (Rule 18).
     private val sendStreamToWatchUseCase: dagger.Lazy<SendStreamToWatchUseCase>,
+    private val buildWatchBroadcastHandoff: dagger.Lazy<BuildWatchBroadcastHandoffUseCase>,
     // S2669: the curated collections delivered with the catalog, as one more pipeline input. The UI's
     // only door to them (S2103): it also serves the on-demand membership read below, so no UI file
     // needs the repository or the Room entity behind it.
@@ -172,11 +174,19 @@ class StreamsViewModel @Inject constructor(
      */
     fun sendStreamToWatch(source: StreamSourceEntity, openNow: Boolean = false) {
         viewModelScope.launch {
+            // S4261: a broadcast with a server endpoint or `auth` travels with its descriptor and pass, never bare.
+            val form = buildWatchBroadcastHandoff.get().forStoredChannel(source)
+            Timber.d("S4261: stored channel to watch, form=%s", form.javaClass.simpleName)
+            if (form is BuildWatchBroadcastHandoffUseCase.Result.PasswordMissing) {
+                _events.send(StreamsEvent.Message(R.string.stream_send_to_watch_password_first))
+                return@launch
+            }
             val outcome = sendStreamToWatchUseCase.get()(
                 source.title,
                 source.url,
                 source.mediaKind,
                 openNow,
+                form as? BuildWatchBroadcastHandoffUseCase.Result.Handoff,
             )
             _events.send(StreamsEvent.Message(outcome.toMessageRes()))
         }
@@ -194,6 +204,8 @@ class StreamsViewModel @Inject constructor(
         is SendStreamToWatchUseCase.Outcome.Error -> R.string.stream_send_to_watch_failed
         SendStreamToWatchUseCase.Outcome.Opened -> R.string.stream_open_on_watch_opened
         SendStreamToWatchUseCase.Outcome.WatchAppNotOpen -> R.string.stream_open_on_watch_app_closed
+        SendStreamToWatchUseCase.Outcome.Unplayable -> R.string.stream_send_to_watch_unplayable
+        SendStreamToWatchUseCase.Outcome.NoReplyToBroadcast -> R.string.stream_send_to_watch_no_reply_update
     }
 
     // S1502: play outcome per channel id. Deliberately NOT part of StreamsUiState - folding it into
@@ -464,8 +476,14 @@ class StreamsViewModel @Inject constructor(
      * S2508 criterion 4: a descriptor arriving by QR or file becomes an ordinary channel, so the
      * payload goes straight to the shared import use case and only its verdict reaches the screen.
      */
-    fun onImportBroadcastDescriptor(payload: String) = viewModelScope.launch {
-        val messageRes = when (importStreamBroadcast(payload)) {
+    fun onImportBroadcastDescriptor(payload: String, password: String? = null) = viewModelScope.launch {
+        // LIVE-BROADCAST item M: a protected descriptor with no pair on this device asks for the password first;
+        // cancelling that question imports nothing.
+        if (password == null && importStreamBroadcast.needsPassword(payload)) {
+            _events.send(StreamsEvent.BroadcastPasswordRequired(payload))
+            return@launch
+        }
+        val messageRes = when (importStreamBroadcast(payload, password)) {
             ImportStreamBroadcastUseCase.ImportResult.Success -> R.string.broadcast_import_success
             ImportStreamBroadcastUseCase.ImportResult.Updated -> R.string.broadcast_import_refreshed
             ImportStreamBroadcastUseCase.ImportResult.Duplicate -> R.string.streams_error_duplicate_url
@@ -476,6 +494,15 @@ class StreamsViewModel @Inject constructor(
                 R.string.broadcast_import_unsupported_version
         }
         _events.send(StreamsEvent.Message(messageRes))
+    }
+
+    /** A protected broadcast refused [source]'s pair: keep the typed [password] and play the row again. */
+    fun onBroadcastPasswordEntered(source: StreamSourceEntity, password: String) = viewModelScope.launch {
+        if (importStreamBroadcast.replacePassword(source.id, password)) {
+            _events.send(StreamsEvent.PlayRequested(source))
+        } else {
+            _events.send(StreamsEvent.Message(R.string.broadcast_password_protected))
+        }
     }
 
     // S3881: no persistSession() here - the query is never written (S1054), so a keystroke would only
@@ -964,6 +991,9 @@ class StreamsViewModel @Inject constructor(
 
         /** S0659: ON_OPEN policy asks the Activity to surface a dismissible catalog-refresh suggestion. */
         data object SuggestCatalogRefresh : StreamsEvent
+
+        /** LIVE-BROADCAST item M: the descriptor is protected and this device has no password for it yet. */
+        data class BroadcastPasswordRequired(val payload: String) : StreamsEvent
     }
 }
 

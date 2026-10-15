@@ -19,57 +19,106 @@
             app:title="@string/exchange_devices_title" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <LinearLayout
+    <!-- S4273: the screen scrolls as a whole - with the portal links added, a landscape phone no longer fits
+         the cards, the server text and the buttons in one non-scrolling column. -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollExchangeServers"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
+        android:fillViewport="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <TextView
-            android:id="@+id/textExchangeServersEmpty"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/margin_medium"
-            android:text="@string/exchange_devices_empty"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:visibility="gone" />
+            android:orientation="vertical">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvExchangeServers"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipToPadding="false"
-            android:focusable="true"
-            android:nextFocusUp="@id/toolbar"
-            android:nextFocusDown="@id/btnExchangeAddServer"
-            android:paddingVertical="@dimen/margin_small" />
+            <TextView
+                android:id="@+id/textExchangeServersEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/margin_medium"
+                android:text="@string/exchange_devices_empty"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:visibility="gone" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnExchangeAddServer"
-            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_margin="@dimen/margin_small"
-            android:clickable="true"
-            android:focusable="true"
-            android:nextFocusUp="@id/rvExchangeServers"
-            android:nextFocusDown="@+id/btnExchangePortalServer"
-            android:text="@string/exchange_devices_add_server"
-            app:icon="@drawable/ic_add" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvExchangeServers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:nestedScrollingEnabled="false"
+                android:focusable="true"
+                android:nextFocusUp="@id/toolbar"
+                android:nextFocusDown="@id/btnExchangeAddServer"
+                android:paddingVertical="@dimen/margin_small" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnExchangePortalServer"
-            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginHorizontal="@dimen/margin_small"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:clickable="true"
-            android:focusable="true"
-            android:nextFocusUp="@id/btnExchangeAddServer"
-            android:text="@string/exchange_portal_link_server" />
-    </LinearLayout>
+            <!-- S4240: contract DEVICE-EXCHANGE 27 item DE - what the server sees, in these words wherever it is described. -->
+            <TextView
+                android:id="@+id/textExchangeServerHonest"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="@dimen/margin_medium"
+                android:paddingVertical="@dimen/margin_small"
+                android:text="@string/exchange_server_honest_text"
+                android:textAppearance="@style/TextAppearance.FastMediaSorter.HelperText" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExchangeAddServer"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_margin="@dimen/margin_small"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusUp="@id/rvExchangeServers"
+                android:nextFocusDown="@+id/btnExchangePortalAddServer"
+                android:text="@string/exchange_devices_add_server"
+                app:icon="@drawable/ic_add" />
+
+            <!-- S4273: SITE-STRUCTURE 0.2 item E - the page of adding a server, pairing code and connection string. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExchangePortalAddServer"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginHorizontal="@dimen/margin_small"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusUp="@id/btnExchangeAddServer"
+                android:nextFocusDown="@+id/btnExchangePortalServer"
+                android:text="@string/exchange_portal_link_my_devices" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExchangePortalServer"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginHorizontal="@dimen/margin_small"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusUp="@id/btnExchangePortalAddServer"
+                android:nextFocusDown="@+id/btnExchangePortalWatch"
+                android:text="@string/exchange_portal_link_server" />
+
+            <!-- S4273: SITE-STRUCTURE 0.2 item E - the page of the watch connection, shown with the Connect watch menu item. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExchangePortalWatch"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginHorizontal="@dimen/margin_small"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusUp="@id/btnExchangePortalServer"
+                android:text="@string/exchange_portal_link_watch" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

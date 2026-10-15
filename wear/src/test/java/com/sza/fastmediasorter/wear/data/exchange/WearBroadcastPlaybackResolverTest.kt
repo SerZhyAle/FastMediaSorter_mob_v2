@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.wear.data.exchange
 
 import android.net.Network
+import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.sza.fastmediasorter.data.security.e2e.E2eBytes
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPlayback
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPlayback.Reason
 import kotlinx.coroutines.runBlocking
@@ -10,7 +12,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.net.InetAddress
+import java.net.ServerSocket
+import java.net.Socket
+import java.net.URI
+import kotlin.concurrent.thread
 
 /** What a tap on a listed broadcast resolves to (contract DEVICE-EXCHANGE 7.7, items CH and CI; LIVE-BROADCAST M). */
 class WearBroadcastPlaybackResolverTest {
@@ -21,6 +29,7 @@ class WearBroadcastPlaybackResolverTest {
                 host: String,
                 port: Int,
                 pinned: String?,
+                pinnedKey: String?,
                 readTimeoutMs: Int,
                 network: Network?,
             ): WearExchangeConnection =
@@ -127,6 +136,106 @@ class WearBroadcastPlaybackResolverTest {
         assertFalse(playable.url.contains("@"))
     }
 
+    @Test
+    fun `a sealed relay whose key never arrived is never played`() {
+        val keyless = """{"endpoints":[{"url":"https://ex.example:7443/v2/b/b1/stream","transport":"RELAY",""" +
+            """"seal":{"v":1}}]}"""
+
+        assertEquals(
+            WearBroadcastPlayback.Unavailable(Reason.NO_ENDPOINT),
+            resolve(record(descriptor = keyless, mode = "AUDIO_ONLY")),
+        )
+    }
+
+    @Test
+    fun `a sealed relay endpoint resolves to the decrypting proxy, which plays the clear media`() {
+        val vectors = relayVectors()
+        val broadcastId = vectors.get("broadcastId").asString
+        val chunks = vectors.getAsJsonArray("chunks").map { it.asJsonObject }
+        val upstream = ServerSocket(0, 1, InetAddress.getLoopbackAddress())
+        serveOnce(upstream, chunks.map { E2eBytes.fromB64url(it.get("payload").asString) })
+        val sealedBridges = WearExchangeRelayBridges(
+            object : WearExchangeConnector {
+                override fun connect(
+                    host: String,
+                    port: Int,
+                    pinned: String?,
+                    pinnedKey: String?,
+                    readTimeoutMs: Int,
+                    network: Network?,
+                ): WearExchangeConnection =
+                    WearExchangeConnection(Socket(InetAddress.getLoopbackAddress(), upstream.localPort))
+            },
+        )
+        val groupKey = E2eBytes.b64url(E2eBytes.fromHex(vectors.getAsJsonObject("groupKeys").get("link-1").asString))
+        val descriptor = """{"endpoints":[{"url":"https://ex.example:7443/v2/b/$broadcastId/stream",""" +
+            """"transport":"RELAY","seal":{"v":1,"key":"$groupKey"}}]}"""
+        val sealedResolver = WearBroadcastPlaybackResolver(
+            sealedBridges,
+            object : WearLanEndpointProbe {
+                override fun answers(host: String, port: Int): Boolean = false
+            },
+        )
+
+        try {
+            val playable = runBlocking {
+                sealedResolver.resolve(record(descriptor, "AUDIO_ONLY").copy(broadcastId = broadcastId))
+            } as WearBroadcastPlayback.Playable
+            val port = URI(playable.url).port
+            val answer = Socket(WearExchangeRelayEndpoint.LOOPBACK_HOST, port).use { client ->
+                client.soTimeout = TIMEOUT_MS
+                client.getOutputStream().apply {
+                    write("GET / HTTP/1.1\r\n\r\n".toByteArray(Charsets.US_ASCII))
+                    flush()
+                }
+                client.getInputStream().readBytes()
+            }
+
+            val text = String(answer, Charsets.ISO_8859_1)
+            val body = answer.copyOfRange(text.indexOf("\r\n\r\n") + HEAD_END_LENGTH, answer.size)
+            assertTrue(text.startsWith("HTTP/1.1 200"))
+            val clear = chunks.flatMap { chunk -> chunk.getAsJsonArray("clearMedia").map { it.asString } }
+            assertEquals(clear.joinToString(""), E2eBytes.hex(body))
+        } finally {
+            sealedBridges.closeAll()
+            upstream.close()
+        }
+    }
+
+    private fun relayVectors(): JsonObject {
+        val text = requireNotNull(javaClass.classLoader?.getResource(VECTORS)) { "missing test resource $VECTORS" }
+            .readText()
+        return JsonParser.parseString(text).asJsonObject.getAsJsonObject("relay")
+    }
+
+    // The relay's listen body: chunk payloads without their length and flag (7.6), in HTTP chunks.
+    private fun serveOnce(upstream: ServerSocket, payloads: List<ByteArray>) {
+        thread(isDaemon = true) {
+            upstream.accept().use { peer ->
+                val input = peer.getInputStream()
+                var blankLines = 0
+                var previous = 0
+                while (blankLines == 0) {
+                    val byte = input.read()
+                    if (byte < 0 || (byte == '\n'.code && previous == '\n'.code)) blankLines++
+                    if (byte != '\r'.code) previous = byte
+                }
+                val out = ByteArrayOutputStream()
+                out.write("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n".toByteArray(Charsets.US_ASCII))
+                payloads.forEach { payload ->
+                    out.write("${Integer.toHexString(payload.size)}\r\n".toByteArray(Charsets.US_ASCII))
+                    out.write(payload)
+                    out.write("\r\n".toByteArray(Charsets.US_ASCII))
+                }
+                out.write("0\r\n\r\n".toByteArray(Charsets.US_ASCII))
+                peer.getOutputStream().apply {
+                    write(out.toByteArray())
+                    flush()
+                }
+            }
+        }
+    }
+
     private fun resolve(record: WearDirectoryBroadcast): WearBroadcastPlayback =
         runBlocking { resolver.resolve(record) }
 
@@ -144,6 +253,9 @@ class WearBroadcastPlaybackResolverTest {
     )
 
     private companion object {
+        const val VECTORS = "device-exchange/e2e-v1.json"
+        const val TIMEOUT_MS = 10_000
+        const val HEAD_END_LENGTH = 4
         const val LAN_AND_RELAY = """{"endpoints":[""" +
             """{"url":"http://10.0.0.2:8080/","transport":"HTTP"},""" +
             """{"url":"https://ex.example:7443/v2/b/b1/stream","transport":"RELAY","certFingerprint":"SHA256:p"}]}"""

@@ -48,7 +48,7 @@ object ExchangeConnectionStringCodec {
     private const val KEY_I = "i"
     private val KNOWN_KEYS = setOf(KEY_X, KEY_FP, KEY_N, KEY_U, KEY_I)
     private const val FIELD_SEPARATOR = '&'
-    private const val BYTE_ORDER_MARK = "﻿"
+    private const val BYTE_ORDER_MARK = "\uFEFF"
     private const val FINGERPRINT_PREFIX = "SHA256:"
     private const val FINGERPRINT_CHARS = 43
     private const val FINGERPRINT_BYTES = 32

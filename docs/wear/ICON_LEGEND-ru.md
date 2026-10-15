@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: doc
 title: "Легенда значков часов"
 permalink: /docs/wear/ICON_LEGEND-ru.html
 ---

@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Cine en Casa y Streaming VR - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema-es.html
 ---
-<sub class="doc-stamp">26.09.25 02:14</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="es" dir="ltr" markdown="1">
 
 # 🍿 Cine en Casa y Streaming VR
 
 > **Nivel:** Principiante &bull; **Tiempo:** ~15 minutos &bull; **Edición:** Standard, Legacy, VR, noLegal (Lite no tiene fuentes de red, Photos no tiene video)
-
-{% include lang-switcher.html doc="scenario-home-cinema" dir="/docs/howto/" current="es" %}
 
 Mira tu colección de series directamente desde tu PC de casa - en tu teléfono, tablet, o visor VR basado en Android (Meta Quest, Pico). Sin copiar archivos. Sin cables USB. Solo presiona reproducir.
 

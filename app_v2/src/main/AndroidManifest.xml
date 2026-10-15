@@ -1029,6 +1029,7 @@
                 <data android:mimeType="image/heif" />
                 <data android:mimeType="image/bmp" />
                 <data android:mimeType="image/avif" />
+                <data android:mimeType="image/jxl" />
                 <data android:mimeType="image/*" />
             </intent-filter>
         </activity-alias>
@@ -1140,6 +1141,7 @@
                 <data android:mimeType="image/heif" />
                 <data android:mimeType="image/bmp" />
                 <data android:mimeType="image/avif" />
+                <data android:mimeType="image/jxl" />
                 <data android:mimeType="image/*" />
             </intent-filter>
         </activity-alias>

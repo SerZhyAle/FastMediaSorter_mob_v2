@@ -381,6 +381,14 @@ header.doc-header {
     line-height: 1.2;
     margin: 0 0 16px 0;
     color: var(--doc-text);
+    /* A long Cyrillic word at 360 px broke mid-word with no hyphen (S4117); <html lang> names the dictionary. */
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* The docs/ pages' further-locale row sits between the sticky header and the breadcrumbs (PAGE-STYLE 4.2). */
+.doc-lang-row {
+    margin: 10px var(--gutter) 0;
 }
 
 .doc-lead {
@@ -1402,6 +1410,10 @@ mark.doc-search-highlight {
     }
     .doc-header-nav {
         gap: 8px;
+    }
+    .doc-content h1,
+    .doc-article h1 {
+        font-size: 1.75rem;
     }
 }
 

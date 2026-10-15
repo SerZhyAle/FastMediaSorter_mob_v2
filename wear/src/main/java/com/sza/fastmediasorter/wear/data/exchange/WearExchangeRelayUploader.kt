@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.data.exchange
 
+import com.sza.fastmediasorter.data.security.e2e.E2eRelayRecords
 import com.sza.fastmediasorter.wear.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -31,6 +32,7 @@ import javax.inject.Singleton
 @Singleton
 class WearExchangeRelayUploader @Inject constructor(
     private val opener: WearExchangeSessionOpener,
+    private val keys: WearExchangeRelayKeys,
     @ApplicationScope private val scope: CoroutineScope,
 ) {
 
@@ -85,27 +87,38 @@ class WearExchangeRelayUploader @Inject constructor(
     private suspend fun upload(entry: WearExchangeEntry, broadcastId: String, sourceUrl: String): Boolean {
         val session = opener.open(entry, null, WearExchangeConnector.ENROLL_READ_TIMEOUT_MS).also(openStreams::add)
         try {
-            session.send(
-                WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_UPLOAD) {
-                    addProperty(KEY_BROADCAST_ID, broadcastId)
-                    addProperty(KEY_CONTENT_TYPE, CONTENT_TYPE_AAC)
-                }
-            )
-            val answer = session.receive()
-            val accepted = answer?.type == WearExchangeEnvelope.TYPE_UPLOAD_ACCEPTED
-            if (accepted) {
+            // 27 item DP: a server without `sealed` gets no relay at all; every upload stream is a new epoch (DL).
+            val sealing = WearExchangeEntry.FEATURE_SEALED in session.welcome.features
+            val ring = keys.newEpoch(broadcastId)?.takeIf { sealing }
+            val accepted = ring != null && accepted(session, broadcastId)
+            if (ring != null && accepted) {
                 mutableAccepted.value = broadcastId
-                val writer = WearExchangeRelayChunkWriter(session.connection.output)
+                Timber.d("S4240: watch uploads a sealed relay epoch")
+                val sealer = WearExchangeRelaySealer(broadcastId, CONTENT_TYPE_AAC, ring) {
+                    keys.isCurrent(broadcastId, ring)
+                }
+                val writer = WearExchangeRelayChunkWriter(session.connection.output, sealer.headerChunk(), sealer)
                 forward(sourceUrl, writer)
                 writer.end()
-            } else {
-                Timber.i("WearExchangeRelayUploader: upload not accepted (%s)", answer?.string(KEY_REASON))
             }
             return accepted
         } finally {
             openStreams.remove(session)
             closeQuietly(session)
         }
+    }
+
+    private fun accepted(session: WearExchangeSession, broadcastId: String): Boolean {
+        session.send(
+            WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_UPLOAD) {
+                addProperty(KEY_BROADCAST_ID, broadcastId)
+                addProperty(KEY_CONTENT_TYPE, E2eRelayRecords.CONTENT_TYPE)
+            }
+        )
+        val answer = session.receive()
+        val accepted = answer?.type == WearExchangeEnvelope.TYPE_UPLOAD_ACCEPTED
+        if (!accepted) Timber.i("WearExchangeRelayUploader: upload not accepted (%s)", answer?.string(KEY_REASON))
+        return accepted
     }
 
     // Whole frames per chunk keep every chunk joinable; a few frames per chunk keep the framing overhead small.

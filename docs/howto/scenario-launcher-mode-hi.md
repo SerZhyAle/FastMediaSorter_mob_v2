@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "ऐप को अपनी होम स्क्रीन के रूप में इस्तेमाल करें - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-hi.html
 ---
-<sub class="doc-stamp">26.09.25 02:18</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
 # 🖥️ ऐप को अपनी होम स्क्रीन के रूप में इस्तेमाल करें
 
 > **लेवल:** शुरुआती &bull; **एडिशन:** Standard / noLegal
-
-{% include lang-switcher.html doc="scenario-launcher-mode" dir="/docs/howto/" current="hi" %}
 
 FastMediaSorter आपके डिवाइस की होम स्क्रीन को अपने ही डेस्कटॉप से बदल सकता है - आपके फ़ोल्डर, एक घड़ी, मौसम, आपके ऐप, और एक किनारे पर एक टास्कबार. अगर आपने कभी Windows डेस्कटॉप इस्तेमाल किया है तो यह जाना-पहचाना लगेगा: चीज़ें वहीं रहती हैं जहां आपने उन्हें रखा है, और एक Start बटन मेनू खोलता है. इसे **लॉन्चर मोड** कहते हैं.
 

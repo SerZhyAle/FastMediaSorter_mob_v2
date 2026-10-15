@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "স্মার্টওয়াচকে NAS ও পিসি শেয়ারের সাথে সংযুক্ত করুন - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-network-bn.html
 ---
-<sub class="doc-stamp">26.09.25 02:22</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-network-bn.html
 > **স্তর:** মধ্যবর্তী &bull; **সময়:** ~১০ মিনিট &bull; **ডিভাইস:** Wear OS স্মার্টওয়াচ
 
 > **শুধু ফুল ভার্সনে** - এই গাইডটা Google Play-এর মাধ্যমে বিতরণ করা সংস্করণে বাস্তবায়িত নেই। এটা ফুল ভার্সনের জন্য প্রযোজ্য, যা [Downloads](../DOWNLOADS.md) থেকে সরাসরি APK ডাউনলোড।
-
-{% include lang-switcher.html doc="scenario-watch-network" dir="/docs/howto/" current="bn" %}
 
 Wear OS-এ FastMediaSorter Wi-Fi-এর মাধ্যমে সরাসরি আপনার বাড়ির নেটওয়ার্ক স্টোরেজের (NAS, পিসি শেয়ার করা ফোল্ডার, FTP, বা SFTP সার্ভার) সাথে সংযুক্ত হয়। আপনি রিমোট ফাইল ব্রাউজ করতে পারেন, ব্লুটুথ হেডফোনে মিউজিক স্ট্রিম করতে পারেন, এবং ফোনের প্রয়োজন ছাড়াই আপনার প্রিয় ফোল্ডার সিঙ্ক করতে পারেন।
 

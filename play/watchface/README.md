@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.30 12:25</sub>
+<sub class="doc-stamp">26.10.15 20:16</sub>
 
 # Watch face - Google Play source and owner runbook
 
@@ -43,6 +43,6 @@ The Play publishing API cannot opt an app into a form factor or send an app for 
 
 ## How the graphics were made
 
-- `icon.png` - rendered from `watchface/src/main/res/drawable/ic_watch_face_launcher.xml` at 512x512.
+- `icon.png` - rendered from `watchface/src/main/res/drawable/ic_watch_face_launcher.xml` at 512x512. Play rule WO-G4 (Wear OS app quality, single-face apps): the icon is the face itself, a round dial reaching the icon's edges, with no text that the face does not draw. So it shows the face's own time (glyphs of the bundled `fms_clock_condensed.ttf`), its wave crests and particles, and nothing else. A change to the face's time font or colours means redrawing this vector and re-rendering all three locale copies from it.
 - `wearScreenshots/` - captured on the reviewed `Wear_OS_Large_Round` emulator (454x454, API 37): `01` with three buttons bound in the face editor, `02` as a store-only install shows the face, `03` always-on.
 - `featureGraphic.png` - drawn by `compose()` of `scripts/release/compose-feature-graphic.py` with the face icon, screenshot `01` as the mockup and the face headline per locale.

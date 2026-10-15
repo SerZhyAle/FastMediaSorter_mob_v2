@@ -32,7 +32,8 @@ class ObserveDeviceBroadcastsUseCase @Inject constructor(
 
         fun toBroadcasts(listing: ExchangeDirectoryListing) = ExchangeDeviceBroadcasts(
             items = listing.devices.flatMap { device ->
-                device.broadcasts.map { listed ->
+                // A box that did not open leaves the record keyless, and a keyless sealed broadcast never plays.
+                device.broadcasts.filter { it.record.sealIssue == null }.map { listed ->
                     ExchangeDeviceBroadcast(
                         broadcastId = listed.record.broadcastId,
                         deviceName = device.device?.deviceName,

@@ -43,6 +43,7 @@ class WearServerClipboardClientTest {
             host: String,
             port: Int,
             pinned: String?,
+            pinnedKey: String?,
             readTimeoutMs: Int,
             network: Network?,
         ): WearExchangeConnection = WearExchangeConnection(Socket(host, port))

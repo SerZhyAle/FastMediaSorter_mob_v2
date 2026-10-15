@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "হোম সিনেমা ও ভিআর স্ট্রিমিং - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema-bn.html
 ---
-<sub class="doc-stamp">26.09.25 02:17</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
 # 🍿 হোম সিনেমা ও ভিআর স্ট্রিমিং
 
 > **স্তর:** শিক্ষানবিস &bull; **সময়:** ~১৫ মিনিট &bull; **ফ্লেভার:** Standard, Legacy, VR, noLegal (Lite-এ নেটওয়ার্ক সোর্স নেই, Photos-এ ভিডিও নেই)
-
-{% include lang-switcher.html doc="scenario-home-cinema" dir="/docs/howto/" current="bn" %}
 
 আপনার বাড়ির পিসি থেকে সরাসরি আপনার সিরিজ সংগ্রহ দেখুন - আপনার ফোন, ট্যাবলেট, বা অ্যান্ড্রয়েড-ভিত্তিক ভিআর হেডসেটে (Meta Quest, Pico)। কোনো ফাইল কপি নেই। কোনো USB তার নেই। শুধু প্লে চাপুন।
 

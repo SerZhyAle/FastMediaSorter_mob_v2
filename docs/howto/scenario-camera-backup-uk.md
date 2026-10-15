@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Автобекап фото на ПК за розкладом - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-uk.html
 ---
-<sub class="doc-stamp">26.09.30 02:31</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 📷 Автобекап фото на ПК за розкладом
 
 > **Рівень:** Початківець &bull; **Час:** ~15 хвилин на налаштування &bull; **Версія:** Standard, Photos, Legacy, VR, noLegal (потрібні мережеві джерела - у Lite їх немає)
-
-{% include lang-switcher.html doc="scenario-camera-backup" dir="/docs/howto/" current="uk" %}
 
 Автоматично копіюйте нові фото з камери телефону на домашній комп'ютер **щоночі по Wi-Fi**. Налаштуйте раз - працює вічно без вашої участі.
 

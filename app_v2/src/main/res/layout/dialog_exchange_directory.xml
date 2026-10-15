@@ -42,5 +42,5 @@
         android:clickable="true"
         android:focusable="true"
         android:nextFocusUp="@id/btnExchangeDirectoryMyDevices"
-        android:text="@string/exchange_portal_link_server" />
+        android:text="@string/exchange_portal_link_folders_exchange_server" />
 </LinearLayout>

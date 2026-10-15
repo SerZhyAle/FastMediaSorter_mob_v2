@@ -146,6 +146,7 @@ class DeviceExchangeClipboardClient @Inject constructor(
             ExchangeClipboardPutResult.NoRecipient
         } else {
             Timber.i("Exchange clipboard put: kind=%s size=%d sealed", meta.kind, meta.size)
+            Timber.d("S4240: phone seals a clipboard value")
             val (box, contentKey) = E2eSealedBox.sealWithKey(
                 payloadOf(meta, clearSha256),
                 E2eSealedBox.CLIPBOARD_CONTEXT,
@@ -406,8 +407,8 @@ class DeviceExchangeClipboardClient @Inject constructor(
                 )
             }
         }
+
         private fun text(json: JsonObject, key: String): String? =
             json.get(key)?.takeIf { it.isJsonPrimitive && it.asJsonPrimitive.isString }?.asString
-
     }
 }

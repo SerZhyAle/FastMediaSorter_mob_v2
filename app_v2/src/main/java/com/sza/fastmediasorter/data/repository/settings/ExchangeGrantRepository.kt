@@ -61,7 +61,43 @@ class ExchangeGrantRepository internal constructor(
         dataStore.data.first()[passwordKey(login)]?.let(decrypt)?.takeUnless(String::isEmpty)
             ?.also { PrivateDiagnosticValues.register(it) }
 
+    /**
+     * The guests kept for a broadcast source (item BD): their logins only, since a broadcast grant's pair is made
+     * again at every `broadcast-start` and never leaves memory.
+     */
+    suspend fun broadcastGuests(sourceKey: String): List<String> =
+        decodeLogins(dataStore.data.first()[guestsKey(sourceKey)])
+
+    suspend fun keepBroadcastGuest(sourceKey: String, guest: String) {
+        dataStore.edit { prefs ->
+            val kept = decodeLogins(prefs[guestsKey(sourceKey)])
+            if (guest !in kept) prefs[guestsKey(sourceKey)] = encodeLogins(kept + guest)
+        }
+    }
+
+    suspend fun forgetBroadcastGuest(sourceKey: String, guest: String) {
+        dataStore.edit { prefs ->
+            val kept = decodeLogins(prefs[guestsKey(sourceKey)]).filterNot { it == guest }
+            if (kept.isEmpty()) {
+                prefs.remove(guestsKey(sourceKey))
+            } else {
+                prefs[guestsKey(sourceKey)] = encodeLogins(kept)
+            }
+        }
+    }
+
     private fun passwordKey(login: String): Preferences.Key<String> = stringPreferencesKey(PASSWORD_PREFIX + login)
+
+    private fun guestsKey(sourceKey: String): Preferences.Key<String> =
+        stringPreferencesKey(BROADCAST_GUESTS_PREFIX + sourceKey)
+
+    private fun encodeLogins(logins: List<String>): String = JsonArray().apply { logins.forEach(::add) }.toString()
+
+    private fun decodeLogins(raw: String?): List<String> {
+        val array = raw?.let { runCatching { JsonParser.parseString(it) }.getOrNull() } as? JsonArray
+        return array?.mapNotNull { it.takeIf { e -> e.isJsonPrimitive && e.asJsonPrimitive.isString }?.asString }
+            .orEmpty()
+    }
 
     private fun encodeList(grants: List<ExchangeGrant>): String = JsonArray().apply {
         grants.forEach { grant ->
@@ -99,6 +135,7 @@ class ExchangeGrantRepository internal constructor(
     private companion object {
         val KEY_LIST = stringPreferencesKey("exchange_grants_v1")
         const val PASSWORD_PREFIX = "exchange_grant_password_"
+        const val BROADCAST_GUESTS_PREFIX = "exchange_broadcast_guests_"
         const val F_ID = "grantId"
         const val F_KIND = "kind"
         const val F_ROOT = "root"

@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "🔧 সমস্যা সমাধান গাইড"
 permalink: /docs/TROUBLESHOOTING-bn.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
 # 🔧 সমস্যা সমাধান গাইড
 
 FastMediaSorter v2-এর জন্য বর্তমান সমস্যা সমাধান গাইড। সমস্যাটি যদি নির্বাচিত বিল্ড পাথের (Standard, Lite, Photos, Legacy, বা XR / noLegal) উপর নির্ভর করে, তাহলে [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md)-এর ক্যানোনিকাল ফ্লেভার ম্যাট্রিক্স ব্যবহার করুন।
-
-{% include lang-switcher.html doc="TROUBLESHOOTING" dir="/docs/" current="bn" %}
 
 ---
 

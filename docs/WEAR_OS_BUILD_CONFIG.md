@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "Wear OS Build Configuration Summary"
 permalink: /docs/WEAR_OS_BUILD_CONFIG.html
 ---
-<sub class="doc-stamp">26.09.11 13:40</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # Wear OS Build Configuration Summary
 

@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "🔧 دليل استكشاف الأخطاء وإصلاحها"
 permalink: /docs/TROUBLESHOOTING-ar.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
 # 🔧 دليل استكشاف الأخطاء وإصلاحها
 
 الدليل الحالي لاستكشاف أخطاء FastMediaSorter v2 وإصلاحها. استخدم جدول الإصدارات المرجعي في [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) عندما تعتمد المشكلة على مسار البناء المختار (Standard أو Lite أو Photos أو Legacy أو XR / noLegal).
-
-{% include lang-switcher.html doc="TROUBLESHOOTING" dir="/docs/" current="ar" %}
 
 ---
 

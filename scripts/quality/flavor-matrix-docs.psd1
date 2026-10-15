@@ -208,8 +208,10 @@
             Glyphs = @{ True = @('yes'); False = @('no'); Absent = @('n/a') }
             RowMap = @{
                 "network folders (smb, sftp, ftp) and the phone's sftp server" = 'SUPPORT_LOCAL_NETWORK'
+                'my devices and the exchange server'                            = 'SUPPORT_LOCAL_NETWORK'
                 'clouds (google drive, dropbox, onedrive)'                      = 'SUPPORT_CLOUD'
-                'going live from this device'                                   = 'SUPPORT_BROADCAST_SOURCE'
+                'files via google drive between your devices'                   = 'SUPPORT_CLOUD'
+                'going live from this device (sound, camera, screen, file)'     = 'SUPPORT_BROADCAST_SOURCE'
                 'playing live broadcasts and internet streams'                  = 'SUPPORT_STREAMS'
                 'chromecast'                                                    = 'SUPPORT_CAST'
                 'watch companion'                                               = 'SUPPORT_WEAR_COMPANION'
@@ -227,8 +229,10 @@
             Glyphs = @{ True = @('да'); False = @('нет'); Absent = @('н/д') }
             RowMap = @{
                 'сетевые папки (smb, sftp, ftp) и sftp-сервер телефона' = 'SUPPORT_LOCAL_NETWORK'
+                'мои устройства и сервер обмена'                        = 'SUPPORT_LOCAL_NETWORK'
                 'облака (google диск, dropbox, onedrive)'               = 'SUPPORT_CLOUD'
-                'выход в эфир с этого устройства'                       = 'SUPPORT_BROADCAST_SOURCE'
+                'файлы через google drive между вашими устройствами'    = 'SUPPORT_CLOUD'
+                'выход в эфир с этого устройства (звук, камера, экран, файл)' = 'SUPPORT_BROADCAST_SOURCE'
                 'воспроизведение живых трансляций и интернет-потоков'   = 'SUPPORT_STREAMS'
                 'chromecast'                                            = 'SUPPORT_CAST'
                 'компаньон для часов'                                   = 'SUPPORT_WEAR_COMPANION'
@@ -246,8 +250,10 @@
             Glyphs = @{ True = @('так'); False = @('ні'); Absent = @('н/д') }
             RowMap = @{
                 'мережеві теки (smb, sftp, ftp) і sftp-сервер телефона' = 'SUPPORT_LOCAL_NETWORK'
+                'мої пристрої та сервер обміну'                         = 'SUPPORT_LOCAL_NETWORK'
                 'хмари (google диск, dropbox, onedrive)'                = 'SUPPORT_CLOUD'
-                'вихід в ефір з цього пристрою'                         = 'SUPPORT_BROADCAST_SOURCE'
+                'файли через google drive між вашими пристроями'        = 'SUPPORT_CLOUD'
+                'вихід в ефір з цього пристрою (звук, камера, екран, файл)' = 'SUPPORT_BROADCAST_SOURCE'
                 'відтворення прямих трансляцій та інтернет-потоків'     = 'SUPPORT_STREAMS'
                 'chromecast'                                            = 'SUPPORT_CAST'
                 'компаньйон для годинника'                              = 'SUPPORT_WEAR_COMPANION'

@@ -1,7 +1,13 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
 import android.net.Uri
+import com.google.gson.JsonElement
+import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastCredentials
+import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastPassStore
+import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastPlaybackResolver
+import com.sza.fastmediasorter.wear.data.exchange.WearDirectoryBroadcast
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
+import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPlayback
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamPlaybackTarget
@@ -11,6 +17,7 @@ import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -28,6 +35,8 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
     private val playbackSetManager: PlaybackSetManager,
     private val usageRepository: WearStreamUsageRepository,
     private val preferencesRepository: WearPreferencesRepository,
+    private val passStore: WearBroadcastPassStore,
+    private val resolver: WearBroadcastPlaybackResolver,
 ) {
 
     /**
@@ -44,9 +53,62 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
         channel: WearStreamChannel,
         siblings: List<WearStreamChannel> = emptyList(),
     ): WearStreamPlaybackTarget {
+        if (channel.hasBroadcast == true) {
+            return prepareBroadcast(channel)
+        }
         val isVideo = channel.isVideoKind()
         val mediaFile = channel.toWearMediaFile(isVideo)
 
+        // S2146: counted here rather than in the list's ViewModel, because this is the one point the
+        // list entrance and the phone's Data Layer request already share - counting at either
+        // entrance alone would make a channel opened from the phone invisible to the default order.
+        // Folded, not merely normalized: the projection looks the count up by the same folded identity
+        // it partitions pins by, and a station reached over http on one day and https on the next is
+        // one station to the owner. Writing the un-folded form here would key a web channel's count to
+        // an address the reader never asks for, so every play of it would count into nothing.
+        recordHistory(channel)
+        select(mediaFile, channel.url)
+
+        // Same kind only: paging from a radio station into a video feed would swap the player under
+        // the user mid-gesture.
+        val set = siblings.filter { it.isVideoKind() == isVideo }.ifEmpty { listOf(channel) }
+        val startIndex = set.indexOfFirst { it.url == channel.url }.coerceAtLeast(0)
+        playbackSetManager.publish(set.map { it.toWearMediaFile(isVideo) }, startIndex)
+
+        return WearStreamPlaybackTarget(fileId = mediaFile.id, isVideo = isVideo)
+    }
+
+    /**
+     * S4261: a channel handed off with its descriptor plays by the endpoint choice of a listed broadcast (ADR-3), so
+     * a watch on LTE reaches the relay rather than the phone's LAN address. The channel's URL stays its identity for
+     * the count and the home row; the player gets the resolved address, which never carries the password (item M).
+     */
+    private suspend fun prepareBroadcast(channel: WearStreamChannel): WearStreamPlaybackTarget {
+        val stored = passStore.get(channel.url)
+        Timber.d("S4261: stored broadcast channel opened, pass stored=%s", stored != null)
+        val playback = stored?.let {
+            resolver.resolve(
+                WearDirectoryBroadcast(
+                    broadcastId = it.broadcastId,
+                    deviceId = "",
+                    title = channel.name,
+                    mode = it.descriptor.get(KEY_MODE)?.takeIf(JsonElement::isJsonPrimitive)?.asString,
+                    descriptor = it.descriptor,
+                    credentials = it.pass?.let { pass -> WearBroadcastCredentials(pass.user, pass.password) },
+                ),
+            )
+        }
+        if (playback !is WearBroadcastPlayback.Playable) {
+            return WearStreamPlaybackTarget(fileId = 0L, isVideo = false, unplayable = true)
+        }
+        val mediaFile = channel.copy(url = playback.url).toWearMediaFile(playback.isVideo)
+        recordHistory(channel)
+        select(mediaFile, playback.url)
+        playbackSetManager.publish(listOf(mediaFile), 0)
+        return WearStreamPlaybackTarget(fileId = mediaFile.id, isVideo = playback.isVideo)
+    }
+
+    private suspend fun recordHistory(channel: WearStreamChannel) {
         // S2146: counted here rather than in the list's ViewModel, because this is the one point the
         // list entrance and the phone's Data Layer request already share - counting at either
         // entrance alone would make a channel opened from the phone invisible to the default order.
@@ -63,24 +125,22 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
         // launch-target resolver, which finds the channel by the normalized spelling. A folded key
         // would need a second catalog lookup, which is a second answer to which channel this is.
         preferencesRepository.setLastUsedStream(normalizeWearStreamUrl(channel.url), channel.name)
+    }
 
+    private fun select(mediaFile: WearMediaFile, streamUri: String) {
         selectedMediaManager.selectFile(
             file = mediaFile,
             isNetworkSource = true,
-            streamUri = channel.url,
+            streamUri = streamUri,
             // S2039: the domain constant, not a private copy - the two agreed by value but not by
             // definition, so a change to one would not have reached the other.
             sourceId = SOURCE_ID_STREAM,
             isDirectStream = true,
         )
+    }
 
-        // Same kind only: paging from a radio station into a video feed would swap the player under
-        // the user mid-gesture.
-        val set = siblings.filter { it.isVideoKind() == isVideo }.ifEmpty { listOf(channel) }
-        val startIndex = set.indexOfFirst { it.url == channel.url }.coerceAtLeast(0)
-        playbackSetManager.publish(set.map { it.toWearMediaFile(isVideo) }, startIndex)
-
-        return WearStreamPlaybackTarget(fileId = mediaFile.id, isVideo = isVideo)
+    private companion object {
+        const val KEY_MODE = "mode"
     }
 }
 

@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "FastMedia को अपनी वॉच पर लगाएं - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-hi.html
 ---
-<sub class="doc-stamp">26.09.30 11:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/wear-install-hi.html
 > **लेवल:** शुरुआती &bull; **समय:** ~5 मिनट &bull; **डिवाइस:** Android फोन के साथ पेयर की हुई Wear OS स्मार्टवॉच
 
 > **दो वर्शन.** Google Play वाला वर्शन एक छोटा पहला रिलीज़ है: Calculator, Stopwatch, Mini-game, Settings और Programs टाइल. म्यूज़िक, फ़ोटो, नेटवर्क शेयर और फोन फ़ीचर सिर्फ़ फुल वर्शन में हैं, जो [Downloads](../DOWNLOADS.md) से सीधा APK डाउनलोड है.
-
-{% include lang-switcher.html doc="wear-install" dir="/docs/howto/" current="hi" %}
 
 FastMedia Wear FastMediaSorter का वॉच वाला आधा हिस्सा है. एक बार यह आपकी कलाई पर आ जाए तो आप सीधे वॉच से म्यूज़िक चला सकते हैं और फ़ोटो देख सकते हैं, अपनी पेयर की हुई फोन से शेयर की गई फ़ोल्डर तक पहुंच सकते हैं, और वॉच के अपने आप जुड़ने वाले नेटवर्क शेयर खोल सकते हैं. यह पेज इसे इंस्टॉल और पेयर करवाता है.
 

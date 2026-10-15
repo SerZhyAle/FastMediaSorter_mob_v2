@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "📖 Guias Práticos"
 permalink: /docs/HOW_TO-pt.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
@@ -15,8 +15,6 @@ Este guia agora tem duas camadas:
 
 - **Grupos de Cenários** para fluxos de trabalho mais completos do dia a dia e combinações de recursos.
 - **Referência de Tarefas Principais** para receitas diretas de um único recurso, mais abaixo.
-
-{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="pt" %}
 
 ---
 

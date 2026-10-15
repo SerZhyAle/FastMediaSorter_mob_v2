@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "مشاهدة قنوات التلفاز على ساعتك الذكية - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-ar.html
 ---
-<sub class="doc-stamp">26.09.25 02:27</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-tv-ar.html
 > **المستوى:** مبتدئ &bull; **الوقت:** ~10 دقائق &bull; **الجهاز:** ساعة Wear OS ذكية
 
 > **الإصدار الكامل فقط** - هذا الدليل غير مطبّق في الإصدار الموزّع عبر Google Play. ينطبق على الإصدار الكامل، وهو تنزيل مباشر لملف APK من [التنزيلات](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="scenario-watch-tv" dir="/docs/howto/" current="ar" %}
 
 يشغّل FastMedia Wear قنوات التلفاز والراديو المباشرة مباشرة على معصمك. تفتح الساعة البث عبر شبكة Wi-Fi الخاصة بها، لذا بمجرد وجود قناة في القائمة يمكنك مشاهدتها والهاتف في غرفة أخرى، أو في حقيبة، أو مغلقًا تمامًا.
 

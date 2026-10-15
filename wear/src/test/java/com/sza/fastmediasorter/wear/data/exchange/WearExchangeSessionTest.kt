@@ -22,16 +22,21 @@ class WearExchangeSessionTest {
 
     private val server = ServerSocket(0)
     private val timeouts = mutableListOf<Int>()
+    private val pinnedKeys = mutableListOf<String?>()
+    private var presentedLeaf: String? = null
+    private var presentedKey: String? = null
     private val connector = object : WearExchangeConnector {
         override fun connect(
             host: String,
             port: Int,
             pinned: String?,
+            pinnedKey: String?,
             readTimeoutMs: Int,
             network: Network?,
         ): WearExchangeConnection {
             timeouts += readTimeoutMs
-            return WearExchangeConnection(Socket(host, port))
+            pinnedKeys += pinnedKey
+            return WearExchangeConnection(Socket(host, port), presentedLeaf, presentedKey)
         }
     }
     private val entry = WearExchangeEntry("127.0.0.1", server.localPort, "owner", DEVICE_ID, null)
@@ -133,6 +138,48 @@ class WearExchangeSessionTest {
         assertFalse(store.puts.single().clipboardEligible)
     }
 
+    @Test
+    fun `a same-key renewal replaces the stored leaf`() {
+        val pinned = entry.copy(pinnedCertificate = LEAF, pinnedKey = KEY)
+        val pinnedStore = FakeStore(mutableMapOf(pinned.identity to TOKEN), mutableListOf(pinned))
+        val pinnedOpener = WearExchangeSessionOpener(connector, pinnedStore, WearExchangeDeviceProfile("Watch", "2.6"))
+        presentedLeaf = RENEWED_LEAF
+        presentedKey = KEY
+        serve(WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_WELCOME))
+
+        runBlocking { pinnedOpener.open(pinned, null, WearExchangeConnector.ENROLL_READ_TIMEOUT_MS) }.close()
+
+        assertEquals(listOf<String?>(KEY), pinnedKeys)
+        assertEquals(RENEWED_LEAF, pinnedStore.puts.single().pinnedCertificate)
+        assertEquals(KEY, pinnedStore.puts.single().pinnedKey)
+    }
+
+    @Test
+    fun `a pin handed over without a key learns it from the matching leaf`() {
+        val pinned = entry.copy(pinnedCertificate = LEAF)
+        val pinnedStore = FakeStore(mutableMapOf(pinned.identity to TOKEN), mutableListOf(pinned))
+        val pinnedOpener = WearExchangeSessionOpener(connector, pinnedStore, WearExchangeDeviceProfile("Watch", "2.6"))
+        presentedLeaf = LEAF
+        presentedKey = KEY
+        serve(WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_WELCOME))
+
+        runBlocking { pinnedOpener.open(pinned, null, WearExchangeConnector.ENROLL_READ_TIMEOUT_MS) }.close()
+
+        assertEquals(LEAF, pinnedStore.puts.single().pinnedCertificate)
+        assertEquals(KEY, pinnedStore.puts.single().pinnedKey)
+    }
+
+    @Test
+    fun `an unpinned entry never gains a pin from a connect`() {
+        presentedLeaf = RENEWED_LEAF
+        presentedKey = KEY
+        serve(WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_WELCOME))
+
+        runBlocking { opener.open(entry, null, WearExchangeConnector.ENROLL_READ_TIMEOUT_MS) }.close()
+
+        assertTrue(store.puts.all { it.pinnedCertificate == null && it.pinnedKey == null })
+    }
+
     private fun serve(answer: WearExchangeEnvelope): ArrayBlockingQueue<WearExchangeEnvelope> {
         val asked = ArrayBlockingQueue<WearExchangeEnvelope>(1)
         thread(isDaemon = true) {
@@ -170,5 +217,8 @@ class WearExchangeSessionTest {
         const val TOKEN = "token-1"
         const val KEEPALIVE = 30
         const val WAIT_SECONDS = 5L
+        const val LEAF = "SHA256:leaf"
+        const val RENEWED_LEAF = "SHA256:renewed"
+        const val KEY = "SHA256:key"
     }
 }

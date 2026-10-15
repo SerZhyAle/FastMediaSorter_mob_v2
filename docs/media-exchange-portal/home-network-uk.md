@@ -5,7 +5,7 @@ description: "Роздавання тек з медіа-ПК або телефо
 category: "Обмін медіа"
 permalink: /docs/media-exchange-portal/home-network-uk.html
 ---
-<sub class="doc-stamp">26.10.10 14:45</sub>
+<sub class="doc-stamp">26.10.15 15:03</sub>
 
 # Домашня мережа: ваше сховище, доступне ззовні
 
@@ -44,7 +44,7 @@ permalink: /docs/media-exchange-portal/home-network-uk.html
 ![Докладна схема. Пристрої ззовні під'єднуються до публічної адреси роутера 203.0.113.25 або до імені динамічного DNS. Роутер прокидає TCP 2222 на медіа-ПК 192.168.1.20 і TCP 2223 на телефон-сервер 192.168.1.42, обидва із закріпленими адресами. Пристрої всередині домашньої мережі під'єднуються до серверів напряму.](diagrams/home-scheme-uk.svg)
 
 <div class="doc-callout doc-callout-note" markdown="1">
-**Провайдер не дає публічної адреси?** Багато мобільних і частина домашніх провайдерів ставлять вас за NAT оператора, і тоді жоден прокинутий порт до роутера не доходить. Перше, що варто спробувати, - IPv6: якщо у ПК є адреса IPv6, код із Share Manager уже її несе, і за нею можна дійти до ПК там, де прокидання не працює. VPN у домашню мережу й далі працює; для цього випадку задуманий [сервер обміну](exchange-server-uk.html), але він ще не випущений.
+**Провайдер не дає публічної адреси?** Багато мобільних і частина домашніх провайдерів ставлять вас за NAT оператора, і тоді жоден прокинутий порт до роутера не доходить. Перше, що варто спробувати, - IPv6: якщо у ПК є адреса IPv6, код із Share Manager уже її несе, і за нею можна дійти до ПК там, де прокидання не працює. VPN у домашню мережу й далі працює; для цього випадку задуманий [сервер обміну](exchange-server-uk.html): кожен пристрій сам під'єднується до нього, тому прокинутий порт з боку пристроїв не потрібен. Як тека відкривається через нього, за кроками: [Теки через сервер обміну](folders-exchange-server-uk.html).
 </div>
 
 ## Покрокові інструкції
@@ -53,6 +53,8 @@ permalink: /docs/media-exchange-portal/home-network-uk.html
 - [Під'єднання серверів SFTP і FTP](../../documentation/network/sftp-ftp-servers-uk.html)
 - [Роздавання тек ПК через Fast Media Sorter & Sharing for Windows](../../documentation/network/windows-companion-uk.html)
 - [Телефон як SFTP-сервер](../../documentation/network/phone-as-sftp-server-uk.html)
+- [Телефон як сервер: скільки він працює, режим лаунчера й мобільний трафік](phone-sharing-uk.html)
+- [Теки через сервер обміну](folders-exchange-server-uk.html)
 - [Мережеві теки й хмарні сховища як джерела](../../documentation/storage/network-and-cloud-sources-uk.html)
 - [Публікація тек ПК для Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html) - на сайті продукту для Windows
 

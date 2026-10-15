@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "在手表上收听音乐 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.25 02:21</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-music-zh-hans.html
 > **难度：** 入门 &bull; **用时：** 约 5 分钟 &bull; **设备：** Wear OS 智能手表（与 Android 手机配对）
 
 > **仅限完整版** - 本指南不适用于通过 Google Play 分发的版本，而是适用于从[下载页面](../DOWNLOADS.md)直接下载 APK 的完整版本。
-
-{% include lang-switcher.html doc="scenario-watch-music" dir="/docs/howto/" current="zh-Hans" %}
 
 FastMediaSorter 让您可以直接在 Wear OS 智能手表上浏览并播放您的音乐收藏。您可以串流播放配对手机中共享的曲目，也可以播放存放在手表本身的本地音频文件，并支持专辑封面、随机播放、旋转表圈音量控制、离开应用后仍能继续播放的后台播放，以及在熄屏状态下继续播放音乐的息屏模式。
 

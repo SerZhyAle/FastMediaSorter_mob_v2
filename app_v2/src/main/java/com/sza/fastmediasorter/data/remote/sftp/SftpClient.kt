@@ -4,6 +4,8 @@ import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.SftpException
 import com.sza.fastmediasorter.core.util.InputStreamExt.copyToWithProgress
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTunnelRouter
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpRendezvousVerdicts
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.CancellationException
@@ -60,6 +62,8 @@ class SftpClient @Inject constructor(
     private val pinRegistry: SftpHostKeyPinRegistry,
     private val rendezvousVerdicts: SftpRendezvousVerdicts,
     private val proofRegistry: SftpRootProofRegistry,
+    private val tunnelRouter: dagger.Lazy<ExchangeTunnelRouter>,
+    private val accountClient: dagger.Lazy<DeviceExchangeAccountClient>,
 ) {
 
     companion object {
@@ -79,7 +83,11 @@ class SftpClient @Inject constructor(
         val rootProof: SftpRootProof? = null,
     )
 
-    private val pool = SftpConnectionPool(onFirstUseHostKey = pinRegistry::recordFirstUse)
+    private val pool = SftpConnectionPool(
+        onFirstUseHostKey = pinRegistry::recordFirstUse,
+        router = tunnelRouter.get(),
+        client = accountClient.get(),
+    )
 
     // newSetFromMap, not newKeySet(): KeySetView#clear and #size are API 24 and legacy ships to API 23.
     private val trackedTransportKeys: MutableSet<String> =

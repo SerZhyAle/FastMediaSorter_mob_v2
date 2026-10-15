@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "📖 How-To Guides"
 permalink: /docs/HOW_TO.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 📖 How-To Guides
 
@@ -13,8 +13,6 @@ This guide now has two layers:
 
 - **Scenario Groups** for richer real-life workflows and combinations of features.
 - **Core Task Reference** for direct one-feature recipes further below.
-
-{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="en" %}
 
 ---
 

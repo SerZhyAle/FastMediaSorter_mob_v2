@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "تثبيت FastMedia على ساعتك - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-ar.html
 ---
-<sub class="doc-stamp">26.09.30 11:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/wear-install-ar.html
 > **المستوى:** مبتدئ &bull; **الوقت:** ~5 دقائق &bull; **الجهاز:** ساعة Wear OS ذكية مقترنة بهاتف Android
 
 > **إصداران.** الإصدار من Google Play هو إصدار أولي صغير: الآلة الحاسبة، وساعة الإيقاف، ولعبة مصغّرة، والإعدادات، وبلاطة البرامج. الموسيقى، والصور، ومشاركات الشبكة، وميزات الهاتف موجودة في الإصدار الكامل فقط، وهو تنزيل مباشر لملف APK من [التنزيلات](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="wear-install" dir="/docs/howto/" current="ar" %}
 
 FastMedia Wear هو نصف الساعة من FastMediaSorter. بمجرد وجوده على معصمك يمكنك تشغيل الموسيقى وعرض الصور مباشرة من الساعة، والوصول إلى المجلدات المشتركة من هاتفك المقترن، وفتح مشاركات الشبكة التي تتصل بها الساعة بنفسها. تُثبّت هذه الصفحة ذلك وتقرن الطرفين.
 

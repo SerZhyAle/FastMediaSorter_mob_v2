@@ -1,12 +1,7 @@
 package com.sza.fastmediasorter.ui.broadcast.helpers
 
 import android.Manifest
-import android.content.ActivityNotFoundException
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.view.View
 import android.widget.Toast
@@ -22,7 +17,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.google.zxing.WriterException
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.broadcast.BroadcastLensChoice
 import com.sza.fastmediasorter.broadcast.BroadcastMode
@@ -31,41 +25,36 @@ import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.broadcast.ListBroadcastCameraLensesUseCase
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.core.share.SharePayload
-import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
-import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
-import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
-import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
-import com.sza.fastmediasorter.util.CaptureFileNamer
+import com.sza.fastmediasorter.domain.usecase.streams.BuildWatchBroadcastHandoffUseCase
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.Lazy
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.min
 
 @Singleton
+// S4261: one past detekt's ceiling with the watch hand-off form; this class is the screen's coordinator and every
+// collaborator is already a single-purpose manager or use case, so a wrapper would only move the list.
+@Suppress("LongParameterList")
 class BroadcastControlManager @Inject constructor(
     private val controller: BroadcastSourceController,
     private val previewBinder: BroadcastPreviewBinder,
     private val listLenses: ListBroadcastCameraLensesUseCase,
-    private val shareManager: BroadcastShareManager,
+    private val sharePanel: BroadcastSharePanelManager,
     private val blankScreenManager: BroadcastBlankScreenManager,
     private val settingsRepository: SettingsRepository,
     private val mediaCapabilities: MediaCapabilities,
     private val sendStreamToWatch: Lazy<SendStreamToWatchUseCase>,
+    private val buildWatchBroadcastHandoff: Lazy<BuildWatchBroadcastHandoffUseCase>,
     private val settingsPanelManager: BroadcastSettingsPanelManager,
 ) {
     /** Takes no dependencies of its own, so it is constructed here instead of going through Hilt. */
     private val preStreamPreview = BroadcastPreStreamPreviewManager()
-    private val qrFullscreen = BroadcastQrFullscreenManager()
     private val sourceEntries = BroadcastSourceEntriesManager()
 
     /**
@@ -83,7 +72,6 @@ class BroadcastControlManager @Inject constructor(
     // Nullable and cleared in onDetach(): each launcher is registered on the activity's own
     // ActivityResultRegistry and its callback captures that activity, so a @Singleton holding
     // them would retain the last destroyed BroadcastControlActivity for the rest of the process.
-    private var exportFileLauncher: ActivityResultLauncher<String>? = null
     private var cameraPermissionLauncher: ActivityResultLauncher<String>? = null
     private var startPermissionLauncher: ActivityResultLauncher<String>? = null
 
@@ -121,7 +109,7 @@ class BroadcastControlManager @Inject constructor(
         }
         setupPreStreamControls(activity, binding)
         setupLiveControls(activity, binding)
-        setupSharePanel(activity, binding)
+        sharePanel.setup(activity, binding)
         sourceEntries.setup(controller, activity, binding)
 
         activity.lifecycleScope.launch {
@@ -134,6 +122,13 @@ class BroadcastControlManager @Inject constructor(
                 launch {
                     controller.listenerCount.collect { count ->
                         renderListenerCount(activity, binding, count)
+                    }
+                }
+                launch {
+                    // The announcement that adds `auth` lands after the session is live, not with a state change.
+                    sharePanel.shareChanges.collect {
+                        sharePanel.render(activity, binding)
+                        renderSendToWatch(binding, controller.state.value)
                     }
                 }
                 launch {
@@ -398,15 +393,19 @@ class BroadcastControlManager @Inject constructor(
         if (!wearSendAvailable || wearSendInProgress) return
 
         wearSendInProgress = true
+        Timber.d("S4261: live broadcast to watch")
         renderSendToWatch(binding, liveState)
         activity.lifecycleScope.launch {
             try {
                 val descriptor = liveState.descriptor
+                // S4261: a protected or server-reachable broadcast goes with its descriptor and the own pair.
+                val form = buildWatchBroadcastHandoff.get().forLiveBroadcast(descriptor)
                 val outcome = sendStreamToWatch.get()(
                     title = descriptor.title ?: descriptor.url,
                     url = descriptor.url,
                     mediaKind = descriptor.mode,
                     openNow = true,
+                    handoff = form as? BuildWatchBroadcastHandoffUseCase.Result.Handoff,
                 )
                 Toast.makeText(activity, outcome.toMessageRes(), Toast.LENGTH_SHORT).show()
             } finally {
@@ -428,109 +427,8 @@ class BroadcastControlManager @Inject constructor(
         is SendStreamToWatchUseCase.Outcome.Error -> R.string.stream_send_to_watch_failed
         SendStreamToWatchUseCase.Outcome.Opened -> R.string.stream_open_on_watch_opened
         SendStreamToWatchUseCase.Outcome.WatchAppNotOpen -> R.string.stream_open_on_watch_app_closed
-    }
-
-    private fun setupSharePanel(
-        activity: AppCompatActivity,
-        binding: ActivityBroadcastControlBinding
-    ) {
-        exportFileLauncher = activity.registerForActivityResult(
-            ActivityResultContracts.CreateDocument(BROADCAST_DESCRIPTOR_MIME_TYPE)
-        ) { uri ->
-            if (uri != null) writeBroadcastDescriptor(activity, uri)
-        }
-
-        binding.btnBroadcastHelp.setOnClickListener { openViewerGuide(activity) }
-        binding.btnBroadcastPortal.setOnClickListener {
-            MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.LIVE_BROADCAST)
-        }
-    }
-
-    /** S3175: the guide the broadcaster forwards to whoever receives the link, QR or file. */
-    private fun openViewerGuide(activity: AppCompatActivity) {
-        val url = SupportIntentFactory.broadcastGuideUrl(activity)
-        try {
-            activity.startActivity(SupportIntentFactory.openUrl(url))
-        } catch (e: ActivityNotFoundException) {
-            Timber.w(e, "No browser to open the broadcast viewer guide")
-            Toast.makeText(activity, R.string.settings_no_browser_for_docs, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    @Suppress("TooGenericExceptionCaught")
-    private fun renderShareData(
-        activity: AppCompatActivity,
-        binding: ActivityBroadcastControlBinding
-    ) {
-        val liveState = controller.state.value as? BroadcastState.Live ?: return
-        val descriptor = liveState.descriptor
-        val url = descriptor.url
-
-        binding.tvShareUrl.text = url
-
-        binding.btnCopyUrl.setOnClickListener {
-            val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip = ClipData.newPlainText("Broadcast URL", url)
-            clipboard.setPrimaryClip(clip)
-            Toast.makeText(activity, R.string.broadcast_share_saved, Toast.LENGTH_SHORT).show()
-        }
-
-        binding.btnShareSend.setOnClickListener {
-            val link = shareManager.generateShareLink(liveState)
-            SystemShareInvoker.invoke(
-                activity,
-                SharePayload.Text(link),
-                chooserTitle = activity.getString(R.string.broadcast_share_send_chooser_title)
-            )
-        }
-
-        binding.btnExportFile.setOnClickListener {
-            // The stream URL is stable across exports, so a URL-derived name made every save collide
-            // with the previous file and the system silently appended " (1)" (S3240).
-            val descriptorName = CaptureFileNamer.shared.allocate(
-                CaptureFileNamer.CaptureKind.BROADCAST,
-                BROADCAST_DESCRIPTOR_EXTENSION
-            )
-            exportFileLauncher?.launch(descriptorName)
-        }
-
-        val payload = shareManager.generateQrPayload(liveState)
-        binding.ivShareQr.setOnClickListener { qrFullscreen.show(activity, payload) }
-        qrFullscreen.update(activity, payload)
-        val metrics = activity.resources.displayMetrics
-        val size = (min(metrics.widthPixels, metrics.heightPixels) * QR_SIZE_FRACTION)
-            .toInt()
-            .coerceIn(QR_SIZE_MIN_PX, QR_SIZE_MAX_PX)
-        try {
-            binding.ivShareQr.setImageBitmap(QrCodeEncoder.encode(payload, size))
-        } catch (e: WriterException) {
-            Timber.w(e, "Failed to encode QR in BroadcastControlManager")
-        } catch (e: IllegalArgumentException) {
-            Timber.w(e, "Illegal argument when encoding QR in BroadcastControlManager")
-        }
-    }
-
-    private fun writeBroadcastDescriptor(activity: AppCompatActivity, uri: Uri) {
-        val liveState = controller.state.value as? BroadcastState.Live ?: return
-        val descriptor = liveState.descriptor
-        val json = shareManager.generateJsonPayload(liveState)
-        activity.lifecycleScope.launch {
-            val saved = withContext(Dispatchers.IO) {
-                runCatching {
-                    activity.contentResolver.openOutputStream(uri, "wt")?.bufferedWriter()?.use { writer ->
-                        writer.write(json)
-                    } ?: return@runCatching false
-                    true
-                }.onFailure { error ->
-                    Timber.e(error, "Writing broadcast descriptor failed")
-                }.getOrDefault(false)
-            }
-            Toast.makeText(
-                activity,
-                if (saved) R.string.broadcast_share_saved else R.string.broadcast_share_save_failed,
-                Toast.LENGTH_SHORT,
-            ).show()
-        }
+        SendStreamToWatchUseCase.Outcome.Unplayable -> R.string.stream_send_to_watch_unplayable
+        SendStreamToWatchUseCase.Outcome.NoReplyToBroadcast -> R.string.stream_send_to_watch_no_reply_update
     }
 
     /** Every lens the phone offers, not a front/back flip (S3050 owner requirement). */
@@ -586,7 +484,7 @@ class BroadcastControlManager @Inject constructor(
                 renderModeControls(binding, state.descriptor.mode, state.source != null)
                 renderToggles(binding, state)
                 renderSendToWatch(binding, state)
-                renderShareData(activity, binding)
+                sharePanel.render(activity, binding)
                 previewBinder.attach(binding.previewContainer)
             }
             // The transient idle between the two services of an audio-video switch is not the end of the session.
@@ -624,7 +522,7 @@ class BroadcastControlManager @Inject constructor(
         state: BroadcastState
     ) {
         previewBinder.detach()
-        qrFullscreen.dismiss()
+        sharePanel.dismissQr()
         binding.btnStartBroadcast.visibility = View.VISIBLE
         binding.layoutLiveControls.visibility = View.GONE
         binding.layoutSharePanel.visibility = View.GONE
@@ -679,6 +577,7 @@ class BroadcastControlManager @Inject constructor(
         binding: ActivityBroadcastControlBinding,
         state: BroadcastState,
     ) {
+        // The watch plays a protected broadcast from the account's directory with the own pair (S4229).
         val isVisible = state is BroadcastState.Live && wearSendAvailable
         binding.btnSendToWatch.visibility = if (isVisible) View.VISIBLE else View.GONE
         binding.btnSendToWatch.isEnabled = isVisible && !wearSendInProgress
@@ -769,23 +668,17 @@ class BroadcastControlManager @Inject constructor(
     }
 
     fun onDetach() {
-        qrFullscreen.dismiss()
         preStreamPreview.stop()
         previewBinder.detach()
         blankScreenManager.detach()
         sourceEntries.onDetach()
-        // setup() re-registers all three on the next attach, so dropping them here loses nothing.
-        exportFileLauncher = null
+        // setup() re-registers every launcher on the next attach, so dropping them here loses nothing.
+        sharePanel.onDetach()
         cameraPermissionLauncher = null
         startPermissionLauncher = null
     }
 
     companion object {
-        private const val QR_SIZE_FRACTION = 0.45
-        private const val QR_SIZE_MIN_PX = 200
-        private const val QR_SIZE_MAX_PX = 500
-        private const val BROADCAST_DESCRIPTOR_MIME_TYPE = "application/vnd.fms.bcast+json"
-        private const val BROADCAST_DESCRIPTOR_EXTENSION = ".fmsbcast"
         private const val START_PERMISSION_STATE_KEY = "broadcast_control_pending_start_permission"
         private const val KEY_PENDING_START_PERMISSION = "permission"
     }

@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.domain.usecase.broadcast
 
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialRegistry
 import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeBroadcastAnnouncer
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 /**
@@ -11,6 +13,17 @@ import javax.inject.Inject
  */
 class ResolveBroadcastShareDescriptorUseCase @Inject constructor(
     private val announcer: ExchangeBroadcastAnnouncer,
+    private val credentials: BroadcastCredentialRegistry,
 ) {
     operator fun invoke(live: BroadcastDescriptorDto): BroadcastDescriptorDto = announcer.shareDescriptor(live)
+
+    /** Emits whenever the shared descriptor may have changed, so a shown link, QR code or password is redrawn. */
+    val changes: Flow<BroadcastDescriptorDto?> get() = announcer.announcements
+
+    /**
+     * The outward link's password while the shared descriptor carries `auth`, null for a LAN-only broadcast. Both
+     * must hold: the registry begins a moment before the announcement that puts `auth` into the descriptor lands.
+     */
+    fun linkPassword(live: BroadcastDescriptorDto): String? =
+        credentials.linkPair?.password?.takeIf { invoke(live).isProtected }
 }

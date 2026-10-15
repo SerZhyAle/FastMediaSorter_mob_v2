@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Домашній кінотеатр та VR-стримінг - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema-uk.html
 ---
-<sub class="doc-stamp">26.09.24 18:41</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 🍿 Домашній кінотеатр та VR-стримінг
 
 > **Рівень:** Початківець &bull; **Час:** ~15 хвилин &bull; **Версія:** Standard, Legacy, VR, noLegal (у Lite немає мережевих джерел, у Photos немає відео)
-
-{% include lang-switcher.html doc="scenario-home-cinema" dir="/docs/howto/" current="uk" %}
 
 Дивіться свою колекцію серіалів напряму з домашнього ПК - на телефоні, планшеті або Android-VR-шоломі (Meta Quest, Pico). Без копіювання файлів. Без USB-кабелів. Просто натисніть Play.
 

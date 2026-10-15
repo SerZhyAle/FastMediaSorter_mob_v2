@@ -31,7 +31,7 @@ class WearExchangeLoopbackBridge(
     private val label: String,
     private val requestHeader: String? = null,
     private val opener: () -> WearExchangeConnection,
-) : Closeable {
+) : WearLoopbackPort {
 
     private val server =
         ServerSocket(0, ACCEPT_BACKLOG, InetAddress.getByName(WearExchangeRelayEndpoint.LOOPBACK_HOST))
@@ -40,7 +40,7 @@ class WearExchangeLoopbackBridge(
         Thread(runnable, "fms-wear-exchange-bridge").apply { isDaemon = true }
     }
 
-    val port: Int get() = server.localPort
+    override val port: Int get() = server.localPort
 
     init {
         workers.execute(::acceptLoop)

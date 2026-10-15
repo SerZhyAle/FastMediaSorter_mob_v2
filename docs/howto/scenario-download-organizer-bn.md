@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "ডাউনলোড অর্গানাইজার (কুইক সর্ট) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-bn.html
 ---
-<sub class="doc-stamp">26.09.25 02:16</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
 # 🧹 ডাউনলোড অর্গানাইজার - এক ট্যাপে ফাইল সাজান
 
 > **স্তর:** শিক্ষানবিস &bull; **ফ্লেভার:** যেকোনো (Standard, Lite, Photos, Legacy, VR, noLegal)
-
-{% include lang-switcher.html doc="scenario-download-organizer" dir="/docs/howto/" current="bn" %}
 
 **Quick Sort** হলো FastMediaSorter-এর সেরা ফিচার: একবার আপনার ফোল্ডার সেট করুন, তারপর শুধু একটা নম্বরে ট্যাপ করে শত শত ফাইল সাজান। কোনো ড্র্যাগ-অ্যান্ড-ড্রপ নেই। কোনো মেনু নেই। শুধু **1**, **2**, বা **3** ট্যাপ করুন - এবং ফাইলটা সঠিক জায়গায় চলে যায়।
 

@@ -39,6 +39,17 @@ class WearExchangeAccountRepositoryTest {
     }
 
     @Test
+    fun `the key handed over beside the leaf is enrolled with and kept`() = runBlocking {
+        val sent = slot<WearExchangeEntry>()
+        every { client.enroll(capture(sent), CODE, profile, any()) } returns WearExchangeEnrollResult.Enrolled(TOKEN)
+
+        repository.enroll(join().copy(pinnedKey = KEY))
+
+        assertEquals(KEY, sent.captured.pinnedKey)
+        assertEquals(KEY, store.all().single().pinnedKey)
+    }
+
+    @Test
     fun `the same identity re-enrolls with its id and keeps its mark`() = runBlocking {
         store.put(WearExchangeEntry(HOST, PORT, "OWNER", HELD_ID, null, outgoing = false))
         store.put(WearExchangeEntry("other.example.net", PORT, LOGIN, "BBBB", null, outgoing = true))
@@ -184,5 +195,6 @@ class WearExchangeAccountRepositoryTest {
         const val TOKEN = "tok3n"
         const val CODE = "7KQ2M9XA"
         const val PIN = "SHA256:pinned"
+        const val KEY = "SHA256:key"
     }
 }

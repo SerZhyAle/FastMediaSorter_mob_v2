@@ -10,7 +10,7 @@ class MediaCategoryClassifierTest {
 
     private val table = mapOf(
         MediaCategory.IMAGE to listOf(
-            "jpg", "jpeg", "png", "webp", "gif", "bmp", "avif", "heic", "heif", "svg", "tiff", "ico", "wmf", "emf",
+            "jpg", "jpeg", "png", "webp", "gif", "bmp", "avif", "heic", "heif", "jxl", "svg", "tiff", "ico", "wmf", "emf",
         ),
         MediaCategory.VIDEO to listOf(
             "mp4", "mkv", "mov", "webm", "3gp", "flv", "wmv", "m4v", "avi", "mpg", "mpeg", "ts", "m2ts", "vob",

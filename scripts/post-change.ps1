@@ -805,10 +805,16 @@ if ($runsTicketLogAudit) {
     # log id to an advisory - weakening the gate instead of scoping it.
     $ticketLogOutput = & $pwsh @ticketLogArgs 2>&1 | Out-String
     $ticketLogExit = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
-    if (-not [string]::IsNullOrWhiteSpace($ticketLogOutput)) { Write-Host $ticketLogOutput.TrimEnd() }
+    # S4269: the report is emitted from INSIDE the gate's action, not printed ahead of it. Invoke-Gate
+    # and Invoke-AdvisoryStep capture only what the action emits, so a Write-Host here left the
+    # protocol file with "[ticket-log-audit] FAIL" and no finding lines - the reason a stale probe
+    # was red could not be read back, and the own/other split had to be rebuilt from chat transcripts.
+    # A passing run prints nothing, like every other gate; a failing or advisory one prints it through
+    # Write-CapturedOutput, after the same lines went to the protocol.
+    $ticketLogReport = $ticketLogOutput.TrimEnd()
 
     if ($ScopeToFile -and $ticketLogExit -eq 3) {
-        Invoke-AdvisoryStep "ticket-log-audit" { $global:LASTEXITCODE = 3 } `
+        Invoke-AdvisoryStep "ticket-log-audit" { if ($ticketLogReport) { $ticketLogReport }; $global:LASTEXITCODE = 3 } `
             -AdvisoryDetails ("a ticket other than this change's sits in BlockNeedUserTest without its probe. " +
                 "Its author owns that probe - it belongs at the entry of their changed flow - so this closure is " +
                 "not charged for it. Run assert-no-ticket-logs.ps1 with no -ChangedFiles for the project-wide verdict.")
@@ -816,7 +822,7 @@ if ($runsTicketLogAudit) {
     else {
         # Code 1 (a forbidden log id in the changed set) and code 2 (the gate could not run) both
         # stay fatal, scoped or not.
-        Invoke-Gate "ticket-log-audit" { $global:LASTEXITCODE = $ticketLogExit }
+        Invoke-Gate "ticket-log-audit" { if ($ticketLogReport) { $ticketLogReport }; $global:LASTEXITCODE = $ticketLogExit }
     }
 }
 else {

@@ -56,6 +56,21 @@ if ($neuroslopRoutes -ne 1) {
     throw "Expected one neuroslop-gate route, got $neuroslopRoutes."
 }
 
+# S4269: the ticket-log-audit report must be emitted from inside the gate's action. A Write-Host
+# ahead of the gate sits outside Invoke-CapturedAction, so the protocol file kept "FAIL" with no
+# finding lines and the reason a closure went red could not be read back.
+if ($facade -match 'Write-Host\s+\$ticketLogOutput') {
+    throw 'ticket-log-audit prints its report with Write-Host outside the gate action; the protocol file loses the finding lines.'
+}
+foreach ($ticketLogRoute in @(
+    'Invoke-Gate "ticket-log-audit" \{ if \(\$ticketLogReport\)',
+    'Invoke-AdvisoryStep "ticket-log-audit" \{ if \(\$ticketLogReport\)'
+)) {
+    if ($facade -notmatch $ticketLogRoute) {
+        throw "ticket-log-audit does not emit its report inside the gate action: missing /$ticketLogRoute/."
+    }
+}
+
 # S1939: the document-icon and icon-inventory gates left the per-ticket facade for the
 # release-scope runner - their subject is a repository-wide inventory, not the changed file.
 # The assertion follows them rather than being deleted: a gate that vanishes from one runner

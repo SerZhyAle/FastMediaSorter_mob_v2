@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Die App als Startbildschirm verwenden - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-de.html
 ---
-<sub class="doc-stamp">26.09.25 02:18</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
 # 🖥️ Die App als Startbildschirm verwenden
 
 > **Niveau:** Anfänger &bull; **Edition:** Standard / noLegal
-
-{% include lang-switcher.html doc="scenario-launcher-mode" dir="/docs/howto/" current="de" %}
 
 FastMediaSorter kann den Startbildschirm Ihres Geräts durch einen eigenen Desktop ersetzen - Ihre Ordner, eine Uhr, das Wetter, Ihre Apps und eine Taskleiste an einem Rand. Wenn Sie schon einmal einen Windows-Desktop verwendet haben, wird es sich vertraut anfühlen: Dinge bleiben, wo Sie sie hingelegt haben, und eine Start-Schaltfläche öffnet das Menü. Dies wird **Launcher-Modus** genannt.
 

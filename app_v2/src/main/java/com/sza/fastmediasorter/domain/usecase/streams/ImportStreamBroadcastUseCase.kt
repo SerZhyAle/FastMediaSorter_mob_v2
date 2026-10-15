@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorParser
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
+import com.sza.fastmediasorter.domain.repository.BroadcastPasswordStore
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase.AddResult
 import timber.log.Timber
 import javax.inject.Inject
@@ -13,16 +14,41 @@ class ImportStreamBroadcastUseCase @Inject constructor(
     private val parser: BroadcastDescriptorParser,
     private val addStreamSourceUseCase: AddStreamSourceUseCase,
     private val repository: StreamSourceRepository,
+    private val passwordStore: BroadcastPasswordStore,
 ) {
-    suspend operator fun invoke(rawPayload: String): ImportResult =
+    /** [password] is what the person typed for a protected descriptor; null keeps the one already stored. */
+    suspend operator fun invoke(rawPayload: String, password: String? = null): ImportResult =
         when (val outcome = parser.parseDetailed(rawPayload)) {
-            is BroadcastDescriptorParser.ParseOutcome.Valid -> resolveImport(outcome.dto)
+            is BroadcastDescriptorParser.ParseOutcome.Valid -> resolveImport(outcome.dto, password)
             BroadcastDescriptorParser.ParseOutcome.UnsupportedVersion ->
                 ImportResult.UnsupportedVersion
             BroadcastDescriptorParser.ParseOutcome.Malformed -> ImportResult.InvalidDescriptor
         }
 
-    private suspend fun resolveImport(dto: BroadcastDescriptorDto): ImportResult {
+    /**
+     * True when [rawPayload] is a protected descriptor this device holds no password for: it carries `auth`, no own
+     * pair (item BF), and no row already keeps a password for the same user - so the person is asked once.
+     */
+    suspend fun needsPassword(rawPayload: String): Boolean {
+        val dto = (parser.parseDetailed(rawPayload) as? BroadcastDescriptorParser.ParseOutcome.Valid)?.dto
+        val auth = dto?.auth?.takeIf { it.isPasswordV1 }
+        if (auth == null || dto.credentials != null) return false
+        val known = dto.sourceId?.trim()?.takeIf { it.isNotEmpty() }?.let { repository.getBySourceDeviceId(it) }
+            ?: repository.getByUrl(dto.url.trim())
+        val kept = known?.let { passwordStore.get(it.id) }
+        return kept == null || kept.user != auth.user || kept.password == null
+    }
+
+    /**
+     * Replaces the password of an already imported protected stream after the broadcast refused the stored one or
+     * had none. False when the row has no `auth` user on record or the secret store refused the write.
+     */
+    suspend fun replacePassword(streamId: String, password: String): Boolean {
+        val user = passwordStore.get(streamId)?.user ?: return false
+        return passwordStore.put(streamId, user, password)
+    }
+
+    private suspend fun resolveImport(dto: BroadcastDescriptorDto, password: String?): ImportResult {
         val offered = dto.title?.trim()?.takeIf { it.isNotEmpty() }
         val deviceId = dto.sourceId?.trim()?.takeIf { it.isNotEmpty() }
         // S4160: the whole list is kept, so a broadcast reachable through an exchange server plays outside the
@@ -30,10 +56,28 @@ class ImportStreamBroadcastUseCase @Inject constructor(
         val endpoints = BroadcastEndpointCodec.encode(dto.endpoints)
         val known = deviceId?.let { repository.getBySourceDeviceId(it) }
             ?: endpoints?.let { repository.getByUrl(dto.url.trim()) }
-        return if (known == null) {
+        val result = if (known == null) {
             addNew(dto.url, offered ?: FALLBACK_TITLE, sourceDeviceId = deviceId, endpoints = endpoints)
         } else {
             refresh(known, Offer(dto.url, offered, endpoints))
+        }
+        if (result in KEPT_ROW) rememberPair(dto, known?.id, password)
+        return result
+    }
+
+    /**
+     * LIVE-BROADCAST item M: the row of a protected descriptor keeps its pair in the secret store - the user from
+     * `auth` and the password typed once. A new link user (a renewed broadcast) drops a password typed for the old one.
+     */
+    private suspend fun rememberPair(dto: BroadcastDescriptorDto, knownId: String?, typed: String?) {
+        val auth = dto.auth?.takeIf { it.isPasswordV1 } ?: return
+        val streamId = knownId ?: repository.getByUrl(dto.url.trim())?.id ?: return
+        // Item BF: an own broadcast's record carries the account pair, which answers with no question.
+        val own = dto.credentials
+        val user = own?.user ?: auth.user
+        val kept = passwordStore.get(streamId)?.takeIf { it.user == user }?.password
+        if (!passwordStore.put(streamId, user, typed ?: own?.password ?: kept)) {
+            Timber.w("ImportStreamBroadcastUseCase: the secret store refused the broadcast password")
         }
     }
 
@@ -94,6 +138,7 @@ class ImportStreamBroadcastUseCase @Inject constructor(
 
     private companion object {
         const val FALLBACK_TITLE = "Audio Broadcast"
+        val KEPT_ROW = setOf(ImportResult.Success, ImportResult.Updated, ImportResult.Duplicate)
 
         // A manufacturer model code as Build.MODEL reports it (SM-L310, SMR870): one token of capitals
         // and digits with at least one digit. A human name has a space or lowercase letters.

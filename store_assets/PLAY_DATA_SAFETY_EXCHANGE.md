@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.15 09:59</sub>
+<sub class="doc-stamp">26.10.15 14:25</sub>
 
 # Play Console - Data safety and account deletion, exchange between devices (S4241)
 
@@ -126,11 +126,12 @@ This file therefore answers **as an app that allows account creation** and meets
   folder and broadcast record, the clipboard, pairing codes and what was given to or by the account; the
   login becomes free.
 - **On the web:** a page of the media exchange portal, "How to delete an account", published by S4243. The
-  console field takes its address. Proposed address, to be confirmed against the page S4243 publishes:
+  console field takes its address. Confirmed address, written in the page's own file and in the app's
+  `MediaExchangePortalLinks.ACCOUNT_DELETION`:
   `https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/account-deletion.html`
   (`-ru` and `-uk` editions beside it). **Do not submit the form while the address does not answer a
-  page.** Until then the in-app "How to delete an account" button opens `exchange-server.html`, which is
-  not a deletion page.
+  page** - the portal is deployed by `jekyll-gh-pages.yml` on a push, so check the live address first. The
+  in-app "How to delete an account" button opens the same page.
 
 What the page must contain, from the same Google page:
 

@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.data.broadcast.exchange
 
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialRegistry
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastDigest
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeSession
@@ -44,6 +46,7 @@ class ExchangeRelayUploader @Inject constructor(
     private val keys: ExchangeRelayKeys,
     @ApplicationScope private val appScope: CoroutineScope,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val credentials: BroadcastCredentialRegistry,
 ) {
 
     private val mutableAccepted = MutableStateFlow<String?>(null)
@@ -108,6 +111,7 @@ class ExchangeRelayUploader @Inject constructor(
             val accepted = ring != null && accepted(session, broadcastId)
             if (ring != null && accepted) {
                 mutableAccepted.value = broadcastId
+                Timber.d("S4240: phone uploads a sealed relay epoch")
                 val sealer = ExchangeRelaySealer(broadcastId, source.contentType, ring) {
                     keys.isCurrent(broadcastId, ring)
                 }
@@ -137,12 +141,10 @@ class ExchangeRelayUploader @Inject constructor(
         if (!accepted) Timber.i("ExchangeRelayUploader: upload not accepted (%s)", answer?.string(KEY_REASON))
         return accepted
     }
+
     // Whole frames per chunk keep every chunk joinable; a few frames per chunk keep the framing overhead small.
     private fun forward(sourceUrl: String, writer: ExchangeRelayChunkWriter) {
-        val connection = (URL(sourceUrl).openConnection() as HttpURLConnection).apply {
-            connectTimeout = SOURCE_TIMEOUT_MS
-            readTimeout = SOURCE_TIMEOUT_MS
-        }
+        val connection = openSource(sourceUrl)
         val disconnect = Closeable { connection.disconnect() }
         openStreams.add(disconnect)
         try {
@@ -165,6 +167,26 @@ class ExchangeRelayUploader @Inject constructor(
             connection.disconnect()
         }
     }
+
+    // S4258: a protected broadcast's own server challenges this read like any listener's, loopback included,
+    // so the upload answers with the internal pair; the answer is sent and never logged.
+    private fun openSource(sourceUrl: String): HttpURLConnection {
+        val first = sourceConnection(sourceUrl, authorization = null)
+        val challenge = first.takeIf { it.responseCode == HttpURLConnection.HTTP_UNAUTHORIZED }
+            ?.getHeaderField(BroadcastDigest.HEADER_CHALLENGE)
+            ?: return first
+        first.disconnect()
+        val path = URL(sourceUrl).path
+        val answer = BroadcastDigest.answer(challenge, "GET", path, credentials.internalPair)
+        return sourceConnection(sourceUrl, answer)
+    }
+
+    private fun sourceConnection(sourceUrl: String, authorization: String?) =
+        (URL(sourceUrl).openConnection() as HttpURLConnection).apply {
+            connectTimeout = SOURCE_TIMEOUT_MS
+            readTimeout = SOURCE_TIMEOUT_MS
+            authorization?.let { setRequestProperty(BroadcastDigest.HEADER_AUTHORIZATION, it) }
+        }
 
     // Runs until the job is cancelled; a write to a dropped stream throws and the caller reconnects.
     private suspend fun pump(feed: ExchangeVideoRelayFeed, writer: ExchangeRelayChunkWriter) {

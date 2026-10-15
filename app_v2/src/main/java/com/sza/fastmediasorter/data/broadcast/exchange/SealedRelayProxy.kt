@@ -28,6 +28,8 @@ class SealedRelayProxy(
     private val host: String,
     private val broadcastId: String,
     private val groupKey: ByteArray,
+    /** S4258: the relay's complete Authorization header line for a protected broadcast; null sends none. */
+    private val authorization: () -> String? = { null },
     private val opener: () -> ExchangeConnection,
 ) : LoopbackEndpoint {
 
@@ -61,6 +63,7 @@ class SealedRelayProxy(
         try {
             client.use {
                 E2eRelayHttp.skipRequest(client.getInputStream())
+                Timber.d("S4240: phone plays a sealed relay through the opening proxy")
                 val player = client.getOutputStream()
                 val listener = E2eRelayListener(broadcastId, groupKey)
                 var end = listen(listener, player)
@@ -75,7 +78,7 @@ class SealedRelayProxy(
 
     private fun listen(listener: E2eRelayListener, player: OutputStream): E2eRelayEnd =
         opener().use { upstream ->
-            E2eRelayHttp.get(path, host, upstream.output)
+            E2eRelayHttp.get(path, host, upstream.output, authorization())
             val body = E2eRelayHttp.body(upstream.input)
             listener.pump(body, player) { mediaType -> answerHead(player, mediaType) }
         }

@@ -30,6 +30,11 @@ data class WearExchangeEntry(
     @SerializedName("features") val features: List<String>? = null,
     /** S4227: `welcome.accountKind` as last seen (`member` or `guest`, 19 item AO); null when never seen. */
     @SerializedName("accountKind") val accountKind: String? = null,
+    /**
+     * The public-key fingerprint of [pinnedCertificate] (19 item AY): a renewed leaf with this key passes with no
+     * prompt. Null without a pin, and from an older phone until the first matching connect fills it in.
+     */
+    @SerializedName("pinnedKey") val pinnedKey: String? = null,
 ) {
 
     /** Host lower-cased, port and login compared case-insensitively (5.1); the phone keys its entries alike. */
@@ -45,6 +50,10 @@ data class WearExchangeEntry(
     val clipboardEligible: Boolean
         get() = accountKind != ACCOUNT_KIND_GUEST && (features == null || FEATURE_CLIPBOARD in features)
 
+    /** Whether the watch may broadcast through this entry: never a `guest` account (19 item AO). */
+    val mayProduce: Boolean
+        get() = accountKind != ACCOUNT_KIND_GUEST
+
     /** The address the person connected to, the only server name the watch shows (contract 25 item DA). */
     val label: String
         get() = "$host:$port"
@@ -52,6 +61,7 @@ data class WearExchangeEntry(
     // DIAGNOSTIC-REPORT section 10: host, login and pin are private.
     override fun toString(): String =
         "WearExchangeEntry(port=$port, deviceId=$deviceId, pinned=${pinnedCertificate != null}, " +
+            "pinnedKey=${pinnedKey != null}, " +
             "outgoing=$outgoing, features=$features, accountKind=$accountKind)"
 
     companion object {

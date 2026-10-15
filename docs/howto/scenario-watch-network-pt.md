@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "Conecte o Smartwatch a NAS e Compartilhamentos de PC - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-network-pt.html
 ---
-<sub class="doc-stamp">26.09.25 02:21</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-network-pt.html
 > **Nível:** Intermediário &bull; **Tempo:** ~10 minutos &bull; **Dispositivo:** Smartwatch Wear OS
 
 > **Somente na versão completa** - este guia não está implementado na versão distribuída pelo Google Play. Ele se aplica à versão completa, um download direto do APK em [Downloads](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="scenario-watch-network" dir="/docs/howto/" current="pt" %}
 
 O FastMediaSorter no Wear OS se conecta diretamente ao armazenamento da sua rede doméstica (NAS, pastas compartilhadas de PC, servidores FTP ou SFTP) pelo Wi-Fi. Você pode navegar por arquivos remotos, transmitir música para fones de ouvido Bluetooth e sincronizar suas pastas favoritas sem precisar do seu celular.
 

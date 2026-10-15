@@ -49,6 +49,7 @@ import com.sza.fastmediasorter.ui.player.helpers.BackgroundAudioExitDialog
 import com.sza.fastmediasorter.ui.player.standalone.AudioStandaloneActivity
 import com.sza.fastmediasorter.ui.streams.helpers.StreamAtlasPromptManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastImportManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastPasswordPromptManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamDeviceBroadcastsManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager
@@ -264,6 +265,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode != android.app.Activity.RESULT_OK) return@registerForActivityResult
+        if (result.data?.getBooleanExtra(PlayerActivity.EXTRA_BROADCAST_PASSWORD_REQUIRED, false) == true) {
+            latestState.sources.firstOrNull { it.id == fullscreenSourceId }?.let(::askBroadcastPassword)
+            return@registerForActivityResult
+        }
         val url = result.data
             ?.getStringExtra(PlayerActivity.EXTRA_STREAM_THUMBNAIL_URL)
             ?: return@registerForActivityResult
@@ -455,6 +460,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     private val filterDialogManager by lazy { StreamsFilterDialogManager(this) }
 
+    private val broadcastPasswordPrompt by lazy { StreamBroadcastPasswordPromptManager(this) }
+
+    // The row the fullscreen player was opened for: its refusal result carries no row, and the password is kept
+    // per row, never per played address.
+    private var fullscreenSourceId: String? = null
+
     // S1474: the "about this channel" window. Both collaborators are passed as accessors rather than as
     // instances - `healthProbe` is lazy and `inlineAudio` is a lateinit created in onCreate, so reading
     // either at construction time would build one too early or throw.
@@ -526,6 +537,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     if (isPlaying) source?.let(::persistStreamResume) else clearStreamResume()
                 },
                 onError = ::showStreamUnavailable,
+                onPasswordRequired = ::askBroadcastPassword,
                 onSuccess = { viewModel.recordStreamPlaySuccess(it.id) },
                 // S1142: mirror the live now-playing track onto the active channel's grid tile. The id
                 // comes from the manager itself - reading it back via inlineAudio here crashed on the
@@ -610,7 +622,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             onToggle = deviceBroadcastsViewModel::toggle,
             onChosen = deviceBroadcastsViewModel::onBroadcastChosen,
             onPortalLink = {
-                MediaExchangePortalLinks.open(this, MediaExchangePortalLinks.Page.LIVE_BROADCAST)
+                Timber.d("S4273: broadcasts of my devices link opens the receive page")
+                MediaExchangePortalLinks.open(this, MediaExchangePortalLinks.Page.BROADCAST_RECEIVE)
             },
         )
     }
@@ -1000,6 +1013,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     tryRestoreScroll(latestState.sources.size)
                 }
                 StreamsViewModel.StreamsEvent.SuggestCatalogRefresh -> showCatalogRefreshSuggestion()
+                is StreamsViewModel.StreamsEvent.BroadcastPasswordRequired ->
+                    broadcastPasswordPrompt.show(refused = false) { password ->
+                        viewModel.onImportBroadcastDescriptor(event.payload, password)
+                    }
             }
         }
     }
@@ -1252,6 +1269,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // VIDEO / RTSP: open the existing fullscreen player. The stream URL is carried as the initial
         // path against the synthetic single-item resource id; the player classifies the scheme to a
         // stream ResourceType and routes it to the stream playback helper (S0565 Phase 04).
+        fullscreenSourceId = source.id
         Timber.i("StreamsActivity: launching fullscreen stream - %s", source.url)
         streamPlayerLauncher.launch(
             PlayerActivity.createIntent(
@@ -1373,6 +1391,14 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             onRemove = { viewModel.onRemove(source) },
             onDismiss = {},
         )
+    }
+
+    /** LIVE-BROADCAST item M: the broadcast refused this row's pair; the typed password replaces it and replays. */
+    private fun askBroadcastPassword(played: StreamSourceEntity) {
+        val source = played.copy(url = broadcastEndpoints.storedUrl(played.id, played.url))
+        broadcastPasswordPrompt.show(refused = true) { password ->
+            viewModel.onBroadcastPasswordEntered(source, password)
+        }
     }
 
     private fun confirmRemove(source: StreamSourceEntity) {

@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialRegistry
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -40,6 +41,9 @@ class BroadcastCaptureService : Service() {
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
+
+    @Inject
+    lateinit var credentialRegistry: BroadcastCredentialRegistry
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -115,7 +119,7 @@ class BroadcastCaptureService : Service() {
     @Suppress("ReturnCount")
     private suspend fun openSession() {
         val config = readSessionConfig()
-        val server = BroadcastHttpServer(this, config)
+        val server = BroadcastHttpServer(this, config, credentials = credentialRegistry::pairs)
         val port = server.start()
         if (port == -1) {
             _state.value = BroadcastState.Failed(

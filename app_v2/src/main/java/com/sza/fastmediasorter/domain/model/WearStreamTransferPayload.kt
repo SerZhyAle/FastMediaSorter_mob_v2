@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.model
 
+import com.google.gson.JsonObject
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -17,6 +18,36 @@ data class WearStreamTransferPayload(
     // behaves exactly as S1799 did, so the two sides never need to agree on a version.
     @SerializedName("open_now") val openNow: Boolean = false
 )
+
+/**
+ * S4261: a broadcast with a server endpoint or `auth` handed to the watch (LIVE-BROADCAST item P). Its own
+ * message path, so a watch build that does not know it stays silent instead of keeping a bare URL.
+ * Mirrored in the wear module; the snake_case names are the wire contract.
+ */
+data class WearBroadcastHandoffPayload(
+    @SerializedName("request_id") val requestId: String,
+    @SerializedName("name") val name: String,
+    @SerializedName("url") val url: String,
+    @SerializedName("media_kind") val mediaKind: String,
+    @SerializedName("open_now") val openNow: Boolean = false,
+    // The descriptor names no id, and a RELAY endpoint is valid only at `/v2/b/<id>/stream`.
+    @SerializedName("broadcast_id") val broadcastId: String,
+    @SerializedName("descriptor") val descriptor: JsonObject,
+    @SerializedName("pass") val pass: WearBroadcastPass? = null
+) {
+    // DEVICE-EXCHANGE item DK: a sealed endpoint's key opens the broadcast, so neither member reaches a log.
+    override fun toString(): String =
+        "WearBroadcastHandoffPayload(requestId=$requestId, mediaKind=$mediaKind, openNow=$openNow, " +
+            "protected=${pass != null})"
+}
+
+/** S4261: the pair the phone holds for a protected broadcast (DEVICE-EXCHANGE item CG); never printed. */
+data class WearBroadcastPass(
+    @SerializedName("user") val user: String,
+    @SerializedName("password") val password: String
+) {
+    override fun toString(): String = "WearBroadcastPass(user=***, password=***)"
+}
 
 /**
  * S1799: watch → phone answer for one stream transfer, correlated by [requestId].
@@ -40,5 +71,8 @@ data class WearStreamTransferAck(
          * the phone renders it as its own sentence rather than as a failure.
          */
         const val OUTCOME_NOT_FOREGROUND = "NOT_FOREGROUND"
+
+        /** S4261: a handed-off broadcast with no endpoint the watch plays, or protected without its pass. */
+        const val OUTCOME_UNPLAYABLE = "UNPLAYABLE"
     }
 }

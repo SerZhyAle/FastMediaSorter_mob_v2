@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Lecteur de musique embarqué (autoradio Android) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-fr.html
 ---
-<sub class="doc-stamp">26.09.25 02:12</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
 # 🚗 Lecteur de musique embarqué (autoradio Android)
 
 > **Niveau :** Débutant &bull; **Durée :** ~10 minutes &bull; **Édition :** Standard, Legacy, VR, noLegal (Lite lit l'audio local mais n'a pas de lecture en arrière-plan ni de flux ; Photos n'a pas d'audio)
-
-{% include lang-switcher.html doc="scenario-car-music" dir="/docs/howto/" current="fr" %}
 
 FastMediaSorter fonctionne très bien comme lecteur de musique embarqué sur les autoradios Android - accès instantané à toute votre collection musicale sur carte SD ou clé USB, avec la prise en charge des boutons du volant intégrée.
 

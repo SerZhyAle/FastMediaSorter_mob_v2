@@ -1,11 +1,13 @@
 package com.sza.fastmediasorter.data.repository
 
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.sza.fastmediasorter.data.security.e2e.E2eDeviceKey
 import com.sza.fastmediasorter.data.security.e2e.E2eRecipient
 import com.sza.fastmediasorter.data.security.e2e.E2eSealedBox
 import com.sza.fastmediasorter.data.security.e2e.E2eSelf
 import com.sza.fastmediasorter.domain.model.ExchangeSealIssue
+import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
 import com.sza.fastmediasorter.domain.model.SftpRendezvousResource
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
@@ -105,11 +107,85 @@ class ExchangeSealedContentOpenerTest {
         assertEquals(ExchangeSealIssue.E2E_MISSING, opened.sealIssue)
     }
 
+    private fun broadcastRecord(sealed: String?) = SftpRendezvousBroadcast(
+        broadcastId = BROADCAST,
+        deviceId = PRODUCER,
+        title = "Phone",
+        mode = "AUDIO_ONLY",
+        startedAtMs = null,
+        updatedAtMs = 0L,
+        descriptorJson = """{"schemaVersion":1,"url":"http://192.168.1.20:8768/a.aac","mode":"AUDIO_ONLY"}""",
+        writtenAtMs = 0L,
+        ttlSeconds = 0L,
+        sealed = sealed,
+    )
+
+    @Test
+    fun `an opened broadcast box hands its own pair to the descriptor in memory`() {
+        val payload = JsonObject().apply {
+            add(
+                "credentials",
+                JsonObject().apply {
+                    addProperty("user", "account")
+                    addProperty("password", "own-secret")
+                }
+            )
+        }
+        val to = listOf(E2eRecipient(CONSUMER, tablet.key.publicKey))
+        val box = E2eSealedBox.seal(payload, E2eSealedBox.broadcastContext(BROADCAST), phone, to).toString()
+
+        val opened = opener.openBroadcast(sealing, broadcastRecord(box))
+
+        val credentials = JsonParser.parseString(opened.descriptorJson).asJsonObject.getAsJsonObject("credentials")
+        assertEquals("account", credentials.get("user").asString)
+        assertEquals("own-secret", credentials.get("password").asString)
+        assertNull(opened.sealed)
+    }
+
+    @Test
+    fun `a broadcast without a box carries no credentials`() {
+        val opened = opener.openBroadcast(sealing, broadcastRecord(null))
+
+        assertNull(JsonParser.parseString(opened.descriptorJson).asJsonObject.get("credentials"))
+    }
+
+    @Test
+    fun `a guest opens a granted broadcast from the grant's first sender and refuses another key later`() {
+        val trust = ExchangeSealedContentOpener.GrantTrust(emptyMap())
+        val guest = ExchangeSealing(tablet, emptyList(), emptyMap(), emptyMap())
+
+        val first = opener.openBroadcast(guest, grantedBroadcast(phone), trust)
+        val forged = opener.openBroadcast(guest, grantedBroadcast(E2eSelf(PRODUCER, E2eDeviceKey.generate())), trust)
+
+        val credentials = JsonParser.parseString(first.descriptorJson).asJsonObject.getAsJsonObject("credentials")
+        assertEquals("grant-user", credentials.get("user").asString)
+        assertNull(first.sealIssue)
+        assertEquals(mapOf(GRANT to phone.key.kem), trust.learned)
+        assertNull(JsonParser.parseString(forged.descriptorJson).asJsonObject.get("credentials"))
+        assertEquals(ExchangeSealIssue.KEY_CHANGED, forged.sealIssue)
+    }
+
+    private fun grantedBroadcast(sender: E2eSelf): SftpRendezvousBroadcast {
+        val payload = JsonObject().apply {
+            add(
+                "credentials",
+                JsonObject().apply {
+                    addProperty("user", "grant-user")
+                    addProperty("password", "grant-secret")
+                }
+            )
+        }
+        val to = listOf(E2eRecipient(CONSUMER, tablet.key.publicKey))
+        val box = E2eSealedBox.seal(payload, E2eSealedBox.grantContext(GRANT), sender, to).toString()
+        return broadcastRecord(box).copy(grantId = GRANT)
+    }
+
     private companion object {
         const val PRODUCER = "phone-1"
         const val CONSUMER = "tablet-1"
         const val RESOURCE = "r-1"
         const val GRANT = "g-1"
+        const val BROADCAST = "b-1"
         const val KEY_HASH = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         const val FINGERPRINT = "SHA256:" + KEY_HASH
         const val CODE = "FMSSFTP1:h=192.168.1.20&p=2222&u=fms&pw=secret&fp=SHA256%3A" + KEY_HASH

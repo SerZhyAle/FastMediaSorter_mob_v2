@@ -13,9 +13,13 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ManageExchangeProducerUseCaseTest {
@@ -51,6 +55,30 @@ class ManageExchangeProducerUseCaseTest {
             server.setExchangeEnabled(true)
             server.applyExchangeSettings()
         }
+    }
+
+    @Test
+    fun `publishing through a guest outgoing entry asks for another one and changes nothing`() = runTest {
+        coEvery { accounts.outgoingEntry() } returns GUEST
+
+        assertEquals(ExchangePublishStart.NEEDS_OUTGOING, useCase.startPublishing())
+
+        coVerify(exactly = 0) { server.setExchangeEnabled(any()) }
+        verify(exactly = 0) { server.applyExchangeSettings() }
+    }
+
+    @Test
+    fun `the publish choice never lists a guest entry`() = runTest {
+        every { accounts.entries } returns flowOf(listOf(FIRST, GUEST, SECOND))
+
+        assertEquals(listOf(FIRST, SECOND), useCase.entries.first())
+    }
+
+    @Test
+    fun `only a guest account may not produce`() {
+        assertTrue(FIRST.mayProduce)
+        assertTrue(FIRST.copy(accountKind = DeviceExchangeAccountEntry.ACCOUNT_KIND_MEMBER).mayProduce)
+        assertFalse(GUEST.mayProduce)
     }
 
     @Test
@@ -144,5 +172,10 @@ class ManageExchangeProducerUseCaseTest {
             outgoing = true,
         )
         val SECOND = FIRST.copy(host = "other.example.net", deviceId = "BBBBBBBBBBBBBBBBBBBBBB", outgoing = false)
+        val GUEST = FIRST.copy(
+            host = "guest.example.net",
+            deviceId = "CCCCCCCCCCCCCCCCCCCCCC",
+            accountKind = DeviceExchangeAccountEntry.ACCOUNT_KIND_GUEST,
+        )
     }
 }

@@ -169,6 +169,20 @@
                 android:text="@string/broadcast_control_screen_action"
                 android:visibility="gone" />
 
+            <!-- S4273: SITE-STRUCTURE 0.2 item E - the page of going on air, visible before the broadcast starts. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBroadcastPortalStart"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:focusable="true"
+                android:clickable="true"
+                android:text="@string/exchange_portal_link_broadcast_start"
+                app:icon="@drawable/ic_live_broadcast" />
+
             <!-- LIVE STREAM CONTROLS CONTAINER -->
             <LinearLayout
                 android:id="@+id/layoutLiveControls"
@@ -328,6 +342,30 @@
                     android:textIsSelectable="true"
                     android:layout_marginBottom="@dimen/margin_small" />
 
+                <!-- Shown only for a protected broadcast: the password goes to the person apart from the link and the QR code. -->
+                <TextView
+                    android:id="@+id/tvSharePassword"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textIsSelectable="true"
+                    android:visibility="gone"
+                    android:layout_marginBottom="@dimen/margin_small" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnShareNewPassword"
+                    style="@style/Widget.FastMediaSorter.Button.Tonal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/touch_target_min_height"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:visibility="gone"
+                    android:contentDescription="@string/broadcast_share_new_password_cd"
+                    android:text="@string/broadcast_share_new_password"
+                    android:layout_marginBottom="@dimen/margin_small" />
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -396,7 +434,33 @@
                         app:autoSizeMinTextSize="@dimen/broadcast_share_button_text_size_min"
                         app:autoSizeMaxTextSize="@dimen/broadcast_share_button_text_size_max"
                         android:nextFocusLeft="@id/btnExportFile"
+                        android:nextFocusRight="@+id/btnShareGuests"
                         android:text="@string/broadcast_share_send_link" />
+
+                    <!-- Shown only while the broadcast is announced through an exchange server (DEVICE-EXCHANGE item BD). -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnShareGuests"
+                        style="@style/Widget.FastMediaSorter.Button.Outlined"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/margin_small"
+                        android:minHeight="@dimen/touch_target_min_height"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:visibility="gone"
+                        android:gravity="center"
+                        android:maxLines="2"
+                        android:breakStrategy="simple"
+                        android:hyphenationFrequency="none"
+                        android:paddingStart="@dimen/padding_tiny"
+                        android:paddingEnd="@dimen/padding_tiny"
+                        app:autoSizeTextType="uniform"
+                        app:autoSizeMinTextSize="@dimen/broadcast_share_button_text_size_min"
+                        app:autoSizeMaxTextSize="@dimen/broadcast_share_button_text_size_max"
+                        android:nextFocusLeft="@id/btnShareSend"
+                        android:contentDescription="@string/broadcast_guests_title"
+                        android:text="@string/broadcast_guests_button" />
                 </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton

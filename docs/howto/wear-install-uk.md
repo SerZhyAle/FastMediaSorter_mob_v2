@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Встановити FastMedia на годинник - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-uk.html
 ---
-<sub class="doc-stamp">26.09.30 13:01</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Встановити FastMedia на годинник
 
 > **Рівень:** для початківців &bull; **Час:** ~5 хвилин &bull; **Пристрій:** годинник на Wear OS, спарений з телефоном Android
 
 > **Дві версії.** Версія з Google Play - невеликий перший випуск: калькулятор, секундомір, міні-гра, налаштування та плитка «Програми». Музика, фото, мережеві папки та функції телефона є лише в повній версії - APK для прямого завантаження зі сторінки [Завантаження](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="wear-install" dir="/docs/howto/" current="uk" %}
 
 FastMedia Wear - це годинникова половина FastMediaSorter. Коли вона на зап'ястку, музика та фотографії грають просто з годинника, доступні папки, якими поділився спарений телефон, і мережеві ресурси, до яких годинник під'єднується самостійно. Ця сторінка встановлює застосунок і зв'язує дві половини.
 

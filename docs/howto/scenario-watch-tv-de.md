@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "TV-Sender auf Ihrer Smartwatch ansehen - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-de.html
 ---
-<sub class="doc-stamp">26.09.25 02:21</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-tv-de.html
 > **Niveau:** Anfänger &bull; **Zeit:** ~10 Minuten &bull; **Gerät:** Wear OS-Smartwatch
 
 > **Nur Vollversion** - diese Anleitung ist in der über Google Play vertriebenen Version nicht umgesetzt. Sie gilt für die Vollversion, einen direkten APK-Download von [Downloads](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="scenario-watch-tv" dir="/docs/howto/" current="de" %}
 
 FastMedia Wear spielt Live-TV- und Radiosender direkt an Ihrem Handgelenk ab. Die Uhr öffnet den Stream über ihr eigenes Wi-Fi, sodass Sie einen Sender, sobald er in der Liste ist, ansehen können, während das Handy in einem anderen Zimmer, in einer Tasche oder komplett ausgeschaltet ist.
 

@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "FastMediaSorter v2 - Полный список возможностей"
 permalink: /docs/FEATURES-ru.html
 ---
-<sub class="doc-stamp">26.10.15 00:39</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # FastMediaSorter v2 - Полный список возможностей
 

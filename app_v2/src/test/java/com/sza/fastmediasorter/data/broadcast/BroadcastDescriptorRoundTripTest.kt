@@ -75,6 +75,20 @@ class BroadcastDescriptorRoundTripTest {
     }
 
     @Test
+    fun testProtectedDescriptorKeepsItsAuthMarkerInEveryForm() {
+        val dto = BroadcastDescriptorDto(
+            url = "rtsp://192.168.1.7:8554/live",
+            mode = "VIDEO_AUDIO",
+            auth = BroadcastAuthDto(user = "listener"),
+        )
+
+        assertEquals(dto, parser.parse(serializer.serialize(dto)))
+        assertEquals(dto, parser.parse(serializer.serializeCompressed(dto)))
+        assertEquals(true, parser.parse(serializer.serialize(dto))?.isProtected)
+        assertEquals(false, dto.copy(auth = null).isProtected)
+    }
+
+    @Test
     fun testMalformedInputReturnsNull() {
         val parsed = parser.parse("not json or marker")
         assertNull(parsed)

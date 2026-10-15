@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "Wear OS - How to Set Up SMB Network Storage"
 permalink: /docs/WEAR_OS_SMB_SETUP.html
 ---
-<sub class="doc-stamp">26.10.01 17:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # Wear OS - How to Set Up SMB Network Storage
 

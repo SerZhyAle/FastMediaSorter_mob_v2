@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "کار میں میوزک پلیئر (Android ہیڈ یونٹ) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-ur.html
 ---
-<sub class="doc-stamp">26.09.25 02:17</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
 # 🚗 کار میں میوزک پلیئر (Android ہیڈ یونٹ)
 
 > **سطح:** ابتدائی &bull; **وقت:** ~10 منٹ &bull; **فلیور:** Standard, Legacy, VR, noLegal (Lite مقامی آڈیو چلاتا ہے مگر اس میں بیک گراؤنڈ پلے بیک اور Streams نہیں ہیں؛ Photos میں آڈیو نہیں ہے)
-
-{% include lang-switcher.html doc="scenario-car-music" dir="/docs/howto/" current="ur" %}
 
 FastMediaSorter Android ہیڈ یونٹس پر ایک بہترین کار میوزک پلیئر کے طور پر کام کرتا ہے - SD کارڈ یا USB ڈرائیو پر موجود آپ کے مکمل میوزک کلیکشن تک فوری رسائی، اسٹیئرنگ وہیل بٹن سپورٹ کے ساتھ۔
 

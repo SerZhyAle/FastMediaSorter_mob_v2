@@ -8,17 +8,17 @@ import org.junit.Test
 class WearPortalLinksTest {
 
     @Test
-    fun `each published language gets its own start page`() {
-        assertTrue(WearPortalLinks.portalUrl("en").endsWith("/media-exchange-portal/"))
-        assertTrue(WearPortalLinks.portalUrl("ru").endsWith("/media-exchange-portal/index-ru.html"))
-        assertTrue(WearPortalLinks.portalUrl("uk").endsWith("/media-exchange-portal/index-uk.html"))
+    fun `each published language gets its own watch page`() {
+        assertTrue(WearPortalLinks.watchExchangeUrl("en").endsWith("/media-exchange-portal/watch-exchange.html"))
+        assertTrue(WearPortalLinks.watchExchangeUrl("ru").endsWith("/media-exchange-portal/watch-exchange-ru.html"))
+        assertTrue(WearPortalLinks.watchExchangeUrl("uk").endsWith("/media-exchange-portal/watch-exchange-uk.html"))
     }
 
     @Test
     fun `a language without a portal edition gets the English page`() {
-        val english = WearPortalLinks.portalUrl("en")
-        assertEquals(english, WearPortalLinks.portalUrl("de"))
-        assertEquals(english, WearPortalLinks.portalUrl(""))
-        assertNotEquals(english, WearPortalLinks.portalUrl("RU"))
+        val english = WearPortalLinks.watchExchangeUrl("en")
+        assertEquals(english, WearPortalLinks.watchExchangeUrl("de"))
+        assertEquals(english, WearPortalLinks.watchExchangeUrl(""))
+        assertNotEquals(english, WearPortalLinks.watchExchangeUrl("RU"))
     }
 }

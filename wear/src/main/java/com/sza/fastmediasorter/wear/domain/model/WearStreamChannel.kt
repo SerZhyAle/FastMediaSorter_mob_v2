@@ -19,7 +19,10 @@ data class WearStreamChannel(
     // S1799: null = catalog row (every pre-existing stored file reads as null); ORIGIN_PHONE marks a
     // row transferred from the phone. Gson fills absent JSON fields with null regardless of Kotlin
     // defaults, so null-means-catalog is the only shape already-shipped channels.json files satisfy.
-    @SerializedName("origin") val origin: String? = null
+    @SerializedName("origin") val origin: String? = null,
+    // S4261: true when the secret store keeps this channel's descriptor and pass; null = played by its URL.
+    // The descriptor itself never enters this file - a sealed endpoint's key opens the broadcast.
+    @SerializedName("broadcast") val hasBroadcast: Boolean? = null
 ) {
     companion object {
         const val ORIGIN_PHONE = "PHONE"

@@ -101,8 +101,10 @@ object E2eRelayHttp {
     private const val MAX_HEAD_BYTES = 16 * 1024
     private const val HEX_RADIX = 16
 
-    fun get(path: String, host: String, output: OutputStream) {
-        val request = "GET $path HTTP/1.1\r\nHost: $host\r\nAccept: */*\r\nConnection: close\r\n\r\n"
+    /** [extraHeader] is one complete header line, e.g. the watch's Basic credentials, never logged; null adds none. */
+    fun get(path: String, host: String, output: OutputStream, extraHeader: String? = null) {
+        val extra = extraHeader?.let { "$it\r\n" }.orEmpty()
+        val request = "GET $path HTTP/1.1\r\nHost: $host\r\nAccept: */*\r\n${extra}Connection: close\r\n\r\n"
         output.write(request.toByteArray(Charsets.US_ASCII))
         output.flush()
     }

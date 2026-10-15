@@ -59,6 +59,13 @@ class HeifSupportUtilsTest {
         assertTrue(HeifSupportUtils.isAvifSupported())
     }
 
+    // ── isJxlSupported ───────────────────────────────────────────────────────
+
+    @Test
+    fun `isJxlSupported returns false`() {
+        assertFalse(HeifSupportUtils.isJxlSupported())
+    }
+
     // ── isSupported ──────────────────────────────────────────────────────────
 
     @Test
@@ -98,6 +105,16 @@ class HeifSupportUtilsTest {
     }
 
     @Test
+    fun `isSupported jxl returns false`() {
+        assertFalse(HeifSupportUtils.isSupported("jxl"))
+    }
+
+    @Test
+    fun `isSupported JXL uppercase returns false`() {
+        assertFalse(HeifSupportUtils.isSupported("JXL"))
+    }
+
+    @Test
     fun `isSupported jpg always returns true`() {
         setSdkInt(26)
         assertTrue(HeifSupportUtils.isSupported("jpg"))
@@ -130,6 +147,16 @@ class HeifSupportUtilsTest {
     @Test
     fun `minimumAndroidVersion returns correct string for avif`() {
         assertEquals("Android 12 (API 31)", HeifSupportUtils.minimumAndroidVersion("avif"))
+    }
+
+    @Test
+    fun `minimumAndroidVersion returns correct string for jxl`() {
+        assertEquals("Android native decode unsupported", HeifSupportUtils.minimumAndroidVersion("jxl"))
+    }
+
+    @Test
+    fun `minimumAndroidVersion returns correct string for JXL uppercase`() {
+        assertEquals("Android native decode unsupported", HeifSupportUtils.minimumAndroidVersion("JXL"))
     }
 
     @Test

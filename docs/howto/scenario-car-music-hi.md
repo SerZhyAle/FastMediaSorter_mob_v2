@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "इन-कार म्यूज़िक प्लेयर (Android हेड यूनिट) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-hi.html
 ---
-<sub class="doc-stamp">26.09.25 02:14</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
 # 🚗 इन-कार म्यूज़िक प्लेयर (Android हेड यूनिट)
 
 > **लेवल:** शुरुआती &bull; **समय:** ~10 मिनट &bull; **एडिशन:** Standard, Legacy, VR, noLegal (Lite लोकल ऑडियो चलाता है पर इसमें बैकग्राउंड प्लेबैक और Streams नहीं है; Photos में ऑडियो नहीं है)
-
-{% include lang-switcher.html doc="scenario-car-music" dir="/docs/howto/" current="hi" %}
 
 FastMediaSorter Android हेड यूनिट पर कार म्यूज़िक प्लेयर के रूप में बेहतरीन काम करता है - SD कार्ड या USB ड्राइव पर आपकी पूरी म्यूज़िक कलेक्शन तक तुरंत पहुंच, साथ में बना-बनाया स्टीयरिंग व्हील बटन सपोर्ट.
 

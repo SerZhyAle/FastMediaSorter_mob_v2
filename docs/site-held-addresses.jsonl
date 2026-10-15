@@ -50,9 +50,9 @@
 {"kind":"external","address":"docs/media-exchange-portal/windows-servers.html","holders":["FMS_W","StreamsPlayer","StreamsPlayer_mob"]}
 {"kind":"external","address":"docs/media-exchange-portal/windows-servers-ru.html","holders":["FMS_W","StreamsPlayer","StreamsPlayer_mob"]}
 {"kind":"external","address":"docs/media-exchange-portal/windows-servers-uk.html","holders":["FMS_W","StreamsPlayer","StreamsPlayer_mob"]}
-{"kind":"address","address":"docs/media-exchange-portal/","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt","wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearPortalLinks.kt","README.md","docs/README*.md"]}
-{"kind":"address","address":"docs/media-exchange-portal/index-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt","wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearPortalLinks.kt","docs/README*.md"]}
-{"kind":"address","address":"docs/media-exchange-portal/index-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt","wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearPortalLinks.kt","docs/README*.md"]}
+{"kind":"address","address":"docs/media-exchange-portal/","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt","README.md","docs/README*.md"]}
+{"kind":"address","address":"docs/media-exchange-portal/index-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt","docs/README*.md"]}
+{"kind":"address","address":"docs/media-exchange-portal/index-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt","docs/README*.md"]}
 {"kind":"address","address":"docs/media-exchange-portal/home-network.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
 {"kind":"address","address":"docs/media-exchange-portal/home-network-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
 {"kind":"address","address":"docs/media-exchange-portal/home-network-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
@@ -66,3 +66,33 @@
 {"kind":"address","address":"docs/media-exchange-portal/exchange-server.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
 {"kind":"address","address":"docs/media-exchange-portal/exchange-server-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
 {"kind":"address","address":"docs/media-exchange-portal/exchange-server-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/account-deletion.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/account-deletion-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/account-deletion-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/folders-exchange-server.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/folders-exchange-server-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/folders-exchange-server-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/folders-google-drive.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/folders-google-drive-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/folders-google-drive-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/broadcast-start.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/broadcast-start-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/broadcast-start-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/broadcast-receive.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/broadcast-receive-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/broadcast-receive-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/watch-exchange.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt","wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearPortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/watch-exchange-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt","wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearPortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/watch-exchange-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt","wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearPortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/schedule-remote-folders.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/schedule-remote-folders-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/schedule-remote-folders-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/phone-sharing.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/phone-sharing-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/phone-sharing-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/my-devices.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/my-devices-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"address","address":"docs/media-exchange-portal/my-devices-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/MediaExchangePortalLinks.kt"]}
+{"kind":"external","address":"docs/media-exchange-portal/account-deletion.html","holders":["Play Console"]}
+{"kind":"external","address":"docs/media-exchange-portal/account-deletion-ru.html","holders":["Play Console"]}
+{"kind":"external","address":"docs/media-exchange-portal/account-deletion-uk.html","holders":["Play Console"]}

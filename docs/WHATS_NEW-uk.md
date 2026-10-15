@@ -1,10 +1,10 @@
 ---
-layout: default
+layout: doc
 title: "Що нового у FastMediaSorter v2"
 permalink: /docs/WHATS_NEW-uk.html
 ---
 
-<sub class="doc-stamp">26.10.06 23:40</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # Що нового у FastMediaSorter v2
 

@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "Instala FastMedia en tu Reloj - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-es.html
 ---
-<sub class="doc-stamp">26.09.30 11:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="es" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/wear-install-es.html
 > **Nivel:** Principiante &bull; **Tiempo:** ~5 minutos &bull; **Dispositivo:** Smartwatch Wear OS emparejado con un teléfono Android
 
 > **Dos versiones.** La versión de Google Play es un pequeño primer lanzamiento: Calculadora, Cronómetro, Mini-juego, Configuración y el tile de Programas. Música, fotos, recursos de red y funciones del teléfono están solo en la versión completa, una descarga directa de APK desde [Descargas](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="wear-install" dir="/docs/howto/" current="es" %}
 
 FastMedia Wear es la mitad para el reloj de FastMediaSorter. Una vez que está en tu muñeca puedes reproducir música y ver fotos directamente desde el reloj, acceder a carpetas compartidas por tu teléfono emparejado, y abrir recursos de red a los que el reloj se conecta por su cuenta. Esta página lo instala y lo empareja.
 

@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Digital Photo Frame on Tablet - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame.html
 ---
-<sub class="doc-stamp">26.09.24 20:50</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 🖼️ Digital Photo Frame on Tablet
 
 > **Level:** Beginner &bull; **Time:** ~15 minutes &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (for NAS/cloud photos) or any flavor (for local photos)
-
-{% include lang-switcher.html doc="scenario-photo-frame" dir="/docs/howto/" current="en" %}
 
 Turn any Android tablet into a beautiful always-on digital photo frame - streaming your memories from a home NAS or cloud, with optional background music. Zero local storage used.
 

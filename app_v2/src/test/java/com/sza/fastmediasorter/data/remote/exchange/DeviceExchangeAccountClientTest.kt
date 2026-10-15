@@ -37,12 +37,15 @@ class DeviceExchangeAccountClientTest {
     private val trusts = mutableListOf<ExchangeTrust>()
     private var connectFailure: IOException? = null
     private val tokens = MemoryTokens()
+    private val pins = RecordingPinRecorder()
+    private var presentedLeaf = "SHA256:fake"
+    private var presentedKey: String? = null
 
     private val connector = object : ExchangeConnector {
         override fun connect(host: String, port: Int, trust: ExchangeTrust): ExchangeConnection {
             trusts += trust
             connectFailure?.let { throw it }
-            return ExchangeConnection(Socket(host, port), "SHA256:fake")
+            return ExchangeConnection(Socket(host, port), presentedLeaf, presentedKey)
         }
     }
 
@@ -59,7 +62,7 @@ class DeviceExchangeAccountClientTest {
         roles = listOf("resource-producer", "resource-consumer"),
     )
     private val e2eKeys = InMemoryE2eKeyStore()
-    private val client = DeviceExchangeAccountClient(connector, tokens, e2eKeys)
+    private val client = DeviceExchangeAccountClient(connector, tokens, e2eKeys, pins)
 
     @After
     fun tearDown() {
@@ -159,6 +162,73 @@ class DeviceExchangeAccountClientTest {
         assertEquals(DEVICE_ID, hello.string("deviceId"))
         assertEquals(TOKEN, hello.string("deviceToken"))
         assertEquals(30, hello.int("keepaliveSeconds"))
+    }
+
+    @Test
+    fun `a same-key renewal is written back as the entry's new leaf`() = runBlocking {
+        val pinned = entry.copy(pinnedKey = KEY)
+        tokens.save(pinned, TOKEN)
+        presentedLeaf = RENEWED_LEAF
+        presentedKey = KEY
+        serveOnce { DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME) }
+
+        client.openAuthenticated(pinned).close()
+
+        assertEquals(listOf<ExchangeTrust>(ExchangeTrust.Verified(PIN, KEY)), trusts)
+        assertEquals(listOf(RecordingPinRecorder.Recorded(pinned.identity, RENEWED_LEAF, KEY)), pins.recorded)
+    }
+
+    @Test
+    fun `a pin saved without its key learns the key of the leaf that matched`() = runBlocking {
+        tokens.save(entry, TOKEN)
+        presentedLeaf = PIN
+        presentedKey = KEY
+        serveOnce { DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME) }
+
+        client.openAuthenticated(entry).close()
+
+        assertEquals(listOf(RecordingPinRecorder.Recorded(entry.identity, PIN, KEY)), pins.recorded)
+    }
+
+    @Test
+    fun `a pinned entry that already knows its leaf and key records nothing`() = runBlocking {
+        val pinned = entry.copy(pinnedKey = KEY)
+        tokens.save(pinned, TOKEN)
+        presentedLeaf = PIN
+        presentedKey = KEY
+        serveOnce { DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME) }
+
+        client.openAuthenticated(pinned).close()
+
+        assertTrue(pins.recorded.isEmpty())
+    }
+
+    @Test
+    fun `an unpinned entry never gains a pin from a connect`() = runBlocking {
+        val trusted = entry.copy(pinnedCertificate = null)
+        tokens.save(trusted, TOKEN)
+        presentedLeaf = RENEWED_LEAF
+        presentedKey = KEY
+        serveOnce { DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME) }
+
+        client.openAuthenticated(trusted).close()
+
+        assertTrue(pins.recorded.isEmpty())
+    }
+
+    @Test
+    fun `an enrollment reports the leaf and key it accepted`() = runBlocking {
+        presentedLeaf = PIN
+        presentedKey = KEY
+        serveOnce {
+            DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_ENROLLED) { addProperty("deviceToken", TOKEN) }
+        }
+
+        val result = client.enroll(entry, DeviceExchangeCredential.Password(PASSWORD), enrollment)
+
+        val enrolled = result as DeviceExchangeEnrollResult.Enrolled
+        assertEquals(PIN, enrolled.leafFingerprint)
+        assertEquals(KEY, enrolled.keyFingerprint)
     }
 
     @Test
@@ -629,6 +699,8 @@ class DeviceExchangeAccountClientTest {
         const val NEW_TOKEN = "fresh-token-of-thirty-two-bytes-base64url-x"
         const val INVITATION = "q3Vb7YtK0xP2mN9s-_R4wA"
         const val PIN = "SHA256:pinned"
+        const val KEY = "SHA256:key"
+        const val RENEWED_LEAF = "SHA256:renewed"
         const val RESOURCE_ID = "q3Vb7YtK0xP2mN9sLfR4wA"
         const val SHARE_ID = "BBBBBBBBBBBBBBBBBBBBBB"
         const val PAYLOAD = "SSH-2.0-test\r\n"

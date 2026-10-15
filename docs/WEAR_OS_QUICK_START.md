@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "Wear OS Quick Start - Running in Android Studio"
 permalink: /docs/WEAR_OS_QUICK_START.html
 ---
-<sub class="doc-stamp">26.09.11 13:39</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # Wear OS Quick Start - Running in Android Studio
 

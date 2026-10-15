@@ -1,11 +1,11 @@
 ---
-layout: default
+layout: doc
 title: "Обзор архитектуры"
 permalink: /docs/V2_architecture_overview-ru.html
 lang: ru
 ---
 
-<sub class="doc-stamp">26.10.13 14:51</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ru" markdown="1">
 

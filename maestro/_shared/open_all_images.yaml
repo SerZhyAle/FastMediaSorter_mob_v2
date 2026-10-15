@@ -2,19 +2,17 @@ appId: com.sza.fastmediasorter.debug
 ---
 # Open the built-in virtual image resource after the Local tab is selected.
 # Its persisted name retains the locale active during initial provisioning, while the rest of the
-# app can use a later app locale. Support the two exact provisioning labels without regex matching.
+# app can use a later app locale. Support the two exact provisioning labels.
+#
+# S4252: this used to be one `when: visible` guard per label. Exactly one of the two labels exists
+# on any device, so one guard was always a failed lookup, and Maestro 2.6.1 spends ~7.3 s on a
+# failed lookup. One guard over both labels answers in a single successful lookup. The alternation
+# is two literal labels, not a wildcard pattern.
 
 - runFlow:
     when:
       visible:
-        text: "All Images"
+        text: "All Images|Все изображения"
     commands:
       - tapOn:
-          text: "All Images"
-- runFlow:
-    when:
-      visible:
-        text: "Все изображения"
-    commands:
-      - tapOn:
-          text: "Все изображения"
+          text: "All Images|Все изображения"

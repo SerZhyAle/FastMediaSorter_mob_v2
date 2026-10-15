@@ -26,6 +26,7 @@ class WearExchangeAccountClientTest {
             host: String,
             port: Int,
             pinned: String?,
+            pinnedKey: String?,
             readTimeoutMs: Int,
             network: Network?,
         ): WearExchangeConnection {
@@ -95,6 +96,7 @@ class WearExchangeAccountClientTest {
                 host: String,
                 port: Int,
                 pinned: String?,
+                pinnedKey: String?,
                 readTimeoutMs: Int,
                 network: Network?,
             ): WearExchangeConnection =

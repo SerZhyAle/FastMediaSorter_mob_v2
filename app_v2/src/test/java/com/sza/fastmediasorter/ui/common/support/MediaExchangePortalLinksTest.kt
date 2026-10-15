@@ -62,6 +62,47 @@ class MediaExchangePortalLinksTest {
     }
 
     @Test
+    fun `the account deletion page is a page of its own in each portal language`() {
+        val page = MediaExchangePortalLinks.Page.ACCOUNT_DELETION
+        assertTrue(MediaExchangePortalLinks.urlFor(page, "en").endsWith("/account-deletion.html"))
+        assertTrue(MediaExchangePortalLinks.urlFor(page, "ru").endsWith("/account-deletion-ru.html"))
+        assertTrue(MediaExchangePortalLinks.urlFor(page, "uk").endsWith("/account-deletion-uk.html"))
+        for (language in languages) {
+            assertNotEquals(
+                MediaExchangePortalLinks.urlFor(MediaExchangePortalLinks.Page.EXCHANGE_SERVER, language),
+                MediaExchangePortalLinks.urlFor(page, language),
+            )
+        }
+    }
+
+    @Test
+    fun `each scenario page of release 46 has the address of its own page`() {
+        val stems = mapOf(
+            MediaExchangePortalLinks.Page.FOLDERS_EXCHANGE_SERVER to "folders-exchange-server",
+            MediaExchangePortalLinks.Page.FOLDERS_GOOGLE_DRIVE to "folders-google-drive",
+            MediaExchangePortalLinks.Page.BROADCAST_START to "broadcast-start",
+            MediaExchangePortalLinks.Page.BROADCAST_RECEIVE to "broadcast-receive",
+            MediaExchangePortalLinks.Page.WATCH_EXCHANGE to "watch-exchange",
+            MediaExchangePortalLinks.Page.SCHEDULE_REMOTE_FOLDERS to "schedule-remote-folders",
+            MediaExchangePortalLinks.Page.PHONE_SHARING to "phone-sharing",
+            MediaExchangePortalLinks.Page.MY_DEVICES to "my-devices",
+        )
+        for ((page, stem) in stems) {
+            assertTrue(MediaExchangePortalLinks.urlFor(page, "en").endsWith("/$stem.html"))
+            assertTrue(MediaExchangePortalLinks.urlFor(page, "ru").endsWith("/$stem-ru.html"))
+            assertTrue(MediaExchangePortalLinks.urlFor(page, "uk").endsWith("/$stem-uk.html"))
+        }
+    }
+
+    @Test
+    fun `no two pages share an address`() {
+        val addresses = MediaExchangePortalLinks.Page.entries.flatMap { page ->
+            languages.map { MediaExchangePortalLinks.urlFor(page, it) }
+        }
+        assertEquals(addresses.size, addresses.toSet().size)
+    }
+
+    @Test
     fun `only the source-choosing surfaces carry a portal page`() {
         val mapped = UiSurface.entries.filter { MediaExchangePortalLinks.pageFor(it) != null }
         assertEquals(listOf(UiSurface.ADD_RESOURCE, UiSurface.CLOUD_PICKER).toSet(), mapped.toSet())

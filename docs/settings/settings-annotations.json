@@ -2073,6 +2073,21 @@
     "ru": "Открывает страницу портала о том, как добраться до ваших общих папок не из домашней сети, шаг за шагом.",
     "uk": "Відкриває сторінку порталу про те, як дістатися до ваших спільних тек не з домашньої мережі, крок за кроком."
   },
+  "btnSftpExchangeFoldersPortal": {
+    "en": "Opens the portal page about sharing a folder on this phone and opening it on another of your devices from any network.",
+    "ru": "Открывает страницу портала о том, как раздать папку с этого телефона и открыть её на другом вашем устройстве из любой сети.",
+    "uk": "Відкриває сторінку порталу про те, як роздати папку з цього телефона й відкрити її на іншому вашому пристрої з будь-якої мережі."
+  },
+  "btnDriveChannelPortal": {
+    "en": "Opens the portal page about Files via Google Drive: what goes through your own account, how long it takes and what the limits are.",
+    "ru": "Открывает страницу портала о функции «Файлы через Google Drive»: что идёт через ваш аккаунт, сколько это занимает и какие есть ограничения.",
+    "uk": "Відкриває сторінку порталу про функцію «Файли через Google Drive»: що йде через ваш акаунт, скільки це триває й які є обмеження."
+  },
+  "btnSftpServerPortal": {
+    "en": "Opens the portal page about the phone as a server: how long it keeps running, launcher mode and mobile data.",
+    "ru": "Открывает страницу портала о телефоне как сервере: сколько он работает, режим лаунчера и мобильный трафик.",
+    "uk": "Відкриває сторінку порталу про телефон як сервер: скільки він працює, режим лаунчера й мобільний трафік."
+  },
   "rowLetterboxHalo": {
     "en": "Softly fades the extended bars into the background around a photo. Needs the dynamic background.",
     "ru": "Плавно растворяет продлённые полосы вокруг фото в цвете фона. Работает при включённом динамическом фоне.",

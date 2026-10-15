@@ -10,6 +10,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -24,6 +25,7 @@ import com.sza.fastmediasorter.core.playback.resilience.StreamVideoFailure
 import com.sza.fastmediasorter.core.playback.resilience.StreamVideoRetryDecision
 import com.sza.fastmediasorter.core.playback.resilience.StreamVideoRetryPolicy
 import com.sza.fastmediasorter.di.StreamQualityMemoryEntryPoint
+import com.sza.fastmediasorter.domain.player.BroadcastPlaybackPairs
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
 import com.sza.fastmediasorter.util.applicationScope
@@ -32,6 +34,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.net.URI
+
+// S4258: a protected broadcast's pair reaches the RTSP source only, never the path, which is logged and shown.
+private fun VideoPlayerManager.rtspSourceFor(path: String, dataSourceFactory: DataSource.Factory) =
+    streamProtocolSupport.createRtspMediaSource(
+        Uri.parse(BroadcastPlaybackPairs.withRtspUserInfo(URI(path)).toString()),
+        dataSourceFactory,
+    )
 
 /**
  * Internet-stream playback: progressive http(s) audio/video, HLS/DASH VOD (auto-detected where the
@@ -63,7 +73,7 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
     val dataSourceFactory = StreamDataSourceFactoryProvider.create(context)
 
     // RTSP lives behind the flavor-gated interface; null means this build (lite/photos) lacks the module.
-    val rtspSource = if (isRtsp) streamProtocolSupport.createRtspMediaSource(uri, dataSourceFactory) else null
+    val rtspSource = if (isRtsp) rtspSourceFor(path, dataSourceFactory) else null
     if (isRtsp && rtspSource == null) {
         Timber.i("VideoPlayerManager.playStreamVideo: RTSP unsupported in this build - path=%s", path)
         playerCallback.showError(context.getString(R.string.streams_error_unsupported_in_build))
@@ -557,8 +567,11 @@ private fun VideoPlayerManager.streamPlaybackListener(
                     // S0936: a watchdog-triggered re-prepare buffers through the manager-level flag,
                     // which this listener cannot set locally - both recovery kinds share the label.
                     playerCallback.onStreamWaitPhase(
-                        if (reconnecting || streamWatchdogReconnecting) VideoPlayerManager.StreamWaitPhase.RECONNECTING
-                        else VideoPlayerManager.StreamWaitPhase.BUFFERING
+                        if (reconnecting || streamWatchdogReconnecting) {
+                            VideoPlayerManager.StreamWaitPhase.RECONNECTING
+                        } else {
+                            VideoPlayerManager.StreamWaitPhase.BUFFERING
+                        }
                     )
                 }
                 Player.STATE_READY -> {
@@ -630,7 +643,12 @@ private fun VideoPlayerManager.streamPlaybackListener(
             for (i in 0 until metadata.length()) {
                 when (val entry = metadata.get(i)) {
                     is IcyHeaders ->
-                        Timber.i("Stream ICY headers: name=%s genre=%s bitrate=%d", entry.name, entry.genre, entry.bitrate)
+                        Timber.i(
+                            "Stream ICY headers: name=%s genre=%s bitrate=%d",
+                            entry.name,
+                            entry.genre,
+                            entry.bitrate
+                        )
                     is IcyInfo -> {
                         val nowPlaying = entry.title?.takeIf { it.isNotBlank() } ?: continue
                         Timber.i("Stream ICY now-playing: %s", nowPlaying)

@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "🔧 Guia de Solução de Problemas"
 permalink: /docs/TROUBLESHOOTING-pt.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
 # 🔧 Guia de Solução de Problemas
 
 Guia atual de solução de problemas do FastMediaSorter v2. Use a grade canônica de versões em [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) quando o problema depender do caminho de build selecionado (Standard, Lite, Photos, Legacy ou XR / noLegal).
-
-{% include lang-switcher.html doc="TROUBLESHOOTING" dir="/docs/" current="pt" %}
 
 ---
 

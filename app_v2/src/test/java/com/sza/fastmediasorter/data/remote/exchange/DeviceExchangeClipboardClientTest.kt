@@ -58,7 +58,7 @@ class DeviceExchangeClipboardClientTest {
             ExchangeConnection(Socket(host, port), "SHA256:fake")
     }
     private val entry = DeviceExchangeAccountEntry("127.0.0.1", server.localPort, "owner", DEVICE_ID, null)
-    private val accounts = DeviceExchangeAccountClient(connector, tokens, InMemoryE2eKeyStore())
+    private val accounts = DeviceExchangeAccountClient(connector, tokens, InMemoryE2eKeyStore(), RecordingPinRecorder())
     private val client = DeviceExchangeClipboardClient(accounts)
 
     private val self = E2eSelf(DEVICE_ID, E2eDeviceKey.generate())

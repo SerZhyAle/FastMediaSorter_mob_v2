@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "🔧 Troubleshooting Guide"
 permalink: /docs/TROUBLESHOOTING-ur.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
 # 🔧 ٹربل شوٹنگ گائیڈ
 
 FastMediaSorter v2 کے لیے موجودہ ٹربل شوٹنگ گائیڈ۔ جب مسئلہ منتخب کردہ بلڈ پاتھ (Standard، Lite، Photos، Legacy، یا XR / noLegal) پر منحصر ہو تو [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) میں مستند فلیور میٹرکس استعمال کریں۔
-
-{% include lang-switcher.html doc="TROUBLESHOOTING" dir="/docs/" current="ur" %}
 
 ---
 

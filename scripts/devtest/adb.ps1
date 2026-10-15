@@ -257,7 +257,7 @@
   See where the matching controls actually are before tapping anything.
 
 .EXAMPLE
-  pwsh -NoProfile -File scripts/devtest/adb.ps1 tap-id -ResourceId rowLauncherModeEnabled
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 tap-id -ResourceId rowLauncherPrimaryWindow
   Tap the settings row by the name its layout gives it. The same call works on a device in any
   language, which the equivalent tap-label does not.
 
@@ -777,6 +777,9 @@ function Invoke-StateRestore {
         $original = $journal.entries[$key].original
         if ($key -like 'datastore.*') {
             $pkg = $key.Substring('datastore.'.Length)
+            # S4253: run-as requires the package to be installed on the device.
+            $pmList = (Invoke-Adb $Id @('shell', 'pm', 'list', 'packages', $pkg) -AllowFail) -join "`n"
+            if ($pmList -notmatch "package:$pkg\b") { continue }
             # Old journals captured runtime files too; filter both sides before comparing or restoring.
             $recorded = [ordered]@{}
             foreach ($name in $original.files.Keys) {
@@ -786,17 +789,17 @@ function Invoke-StateRestore {
             $fileDrift = @(Compare-DeviceStateFiles -Recorded $recorded -Current $current)
             if ($fileDrift.Count -eq 0) { continue }
             if (-not $ReportOnly) {
-                Invoke-Adb $Id @('shell', 'am', 'force-stop', $pkg) | Out-Null
+                Invoke-Adb $Id @('shell', 'am', 'force-stop', $pkg) -AllowFail | Out-Null
                 $saved = Get-StateDataStoreDir -JournalPath $Path -Pkg $pkg
                 foreach ($d in $fileDrift) {
                     if ($d.Action -eq 'remove') {
-                        Invoke-Adb $Id @('shell', "run-as $pkg rm -f files/datastore/$($d.Name)") | Out-Null
+                        Invoke-Adb $Id @('shell', "run-as $pkg rm -f files/datastore/$($d.Name)") -AllowFail | Out-Null
                         continue
                     }
                     $tmp = "/data/local/tmp/fms_state_$($d.Name)"
-                    Invoke-Adb $Id @('push', (Join-Path $saved $d.Name), $tmp) | Out-Null
-                    Invoke-Adb $Id @('shell', "chmod 644 $tmp") | Out-Null
-                    Invoke-Adb $Id @('shell', "run-as $pkg cp $tmp files/datastore/$($d.Name)") | Out-Null
+                    Invoke-Adb $Id @('push', (Join-Path $saved $d.Name), $tmp) -AllowFail | Out-Null
+                    Invoke-Adb $Id @('shell', "chmod 644 $tmp") -AllowFail | Out-Null
+                    Invoke-Adb $Id @('shell', "run-as $pkg cp $tmp files/datastore/$($d.Name)") -AllowFail | Out-Null
                     Invoke-Adb $Id @('shell', "rm -f $tmp") -AllowFail | Out-Null
                 }
             }

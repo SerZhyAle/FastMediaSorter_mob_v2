@@ -15,9 +15,12 @@ package com.sza.fastmediasorter.domain.model
  * browse affordance policies for text note, drawing and capture destination plus the
  * destination-list filter.
  *
- * Still reading [MediaResource.isReadOnly] alone: none. S2646 emptied this list; keep the line
- * rather than deleting it, because an empty list that is kept current is checkable by reading this
- * file, and an absent one is indistinguishable from one nobody maintains.
+ * Still reading [MediaResource.isReadOnly] alone: the scheduled-operation engine
+ * (`ExecuteScheduledOperationUseCase`, S4260). It enforces only the user policy up front, because a
+ * headless run has no probe to trust: the target pre-flight and the file layer judge actual
+ * writability per operation. S2646 had emptied this list; keep the line rather than deleting it,
+ * because a list that is kept current is checkable by reading this file, and an absent one is
+ * indistinguishable from one nobody maintains.
  *
  * [MediaResource.isReadOnly] is the authoritative user policy and always wins. Beyond it:
  * - network resources (SMB/SFTP/FTP): writable when reachable. The `isWritable` probe for these is a

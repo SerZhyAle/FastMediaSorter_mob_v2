@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Organizador de Downloads (Classificação Rápida) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-pt.html
 ---
-<sub class="doc-stamp">26.09.25 02:16</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
 # 🧹 Organizador de Downloads - Organize Arquivos com Um Toque
 
 > **Nível:** Iniciante &bull; **Edição:** Qualquer (Standard, Lite, Photos, Legacy, VR, noLegal)
-
-{% include lang-switcher.html doc="scenario-download-organizer" dir="/docs/howto/" current="pt" %}
 
 A **Classificação Rápida** é o recurso estrela do FastMediaSorter: configure suas pastas uma vez e depois organize centenas de arquivos apenas tocando em um número. Sem arrastar e soltar. Sem menus. Basta tocar em **1**, **2** ou **3** - e o arquivo vai para o lugar certo.
 

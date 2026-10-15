@@ -5,7 +5,7 @@ description: "Share folders from a media PC or a phone over your own router: dir
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/home-network.html
 ---
-<sub class="doc-stamp">26.10.10 14:45</sub>
+<sub class="doc-stamp">26.10.15 15:03</sub>
 
 # Home network: your storage, reachable from outside
 
@@ -44,7 +44,7 @@ Inside the home network the devices connect to each other directly, at full loca
 ![Detailed scheme. Outside devices connect to the router's public address 203.0.113.25 or a dynamic DNS name. The router forwards TCP 2222 to the media PC at 192.168.1.20 and TCP 2223 to the phone server at 192.168.1.42, both with reserved addresses. Devices inside the home network connect to the servers directly.](diagrams/home-scheme-en.svg)
 
 <div class="doc-callout doc-callout-note" markdown="1">
-**No public address from your provider?** Many mobile and some home providers put you behind carrier NAT, and then no forwarded port reaches your router. The first thing to try is IPv6: when the PC has an IPv6 address, the code from Share Manager already carries it, and it can reach the PC where forwarding cannot. A VPN to your home network still works; the [exchange server](exchange-server.html) is the way meant for this case, but it is not available yet.
+**No public address from your provider?** Many mobile and some home providers put you behind carrier NAT, and then no forwarded port reaches your router. The first thing to try is IPv6: when the PC has an IPv6 address, the code from Share Manager already carries it, and it can reach the PC where forwarding cannot. A VPN to your home network still works; the [exchange server](exchange-server.html) is the way meant for this case: every device dials out to it, so no forwarded port is needed on the devices' side. How a folder opens through it, step by step: [Folders through the exchange server](folders-exchange-server.html).
 </div>
 
 ## Step-by-step guides
@@ -53,6 +53,8 @@ Inside the home network the devices connect to each other directly, at full loca
 - [Connecting SFTP and FTP servers](../../documentation/network/sftp-ftp-servers.html)
 - [Sharing PC folders with Fast Media Sorter & Sharing for Windows](../../documentation/network/windows-companion.html)
 - [Turning the phone into an SFTP server](../../documentation/network/phone-as-sftp-server.html)
+- [The phone as a server: how long it lasts, launcher mode and mobile data](phone-sharing.html)
+- [Folders through the exchange server](folders-exchange-server.html)
 - [Adding network folders and cloud storage as sources](../../documentation/storage/network-and-cloud-sources.html)
 - [Publishing PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html), on the Windows product's site
 

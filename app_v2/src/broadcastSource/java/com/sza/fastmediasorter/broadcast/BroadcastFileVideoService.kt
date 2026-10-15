@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialRegistry
 import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeVideoRelayFeed
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,6 +55,11 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
+
+    @Inject
+    lateinit var credentialRegistry: BroadcastCredentialRegistry
+
+    private var rtspGate: RtspGatedPort? = null
 
     @Inject
     lateinit var relayFeed: ExchangeVideoRelayFeed
@@ -137,14 +143,19 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
 
         try {
             // Always headless: a file session has no preview surface anywhere.
+            val gated = RtspGatedPort(config.rtspPort, credentialRegistry)
+            rtspGate?.close()
+            rtspGate = gated
             val server = RtspServerFromFile(
                 this,
                 this,
-                config.rtspPort,
+                gated.innerPort,
                 { Timber.d("BroadcastFileVideoService: video decoder finished") },
                 { onFileDecoded() },
             )
             val streamClient = server.streamClient
+            gated.closeLibrary(streamClient)
+            gated.open()
             // The server announces an audio track in the SDP unless told otherwise.
             streamClient.setOnlyVideo(currentMode == BroadcastMode.VIDEO_ONLY)
             // One address family on the wire, for the same reason the camera session forces IPv4.
@@ -227,7 +238,7 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
     }
 
     private fun publishableEndpoint(libraryEndpoint: String, lanHost: String): String =
-        checkNotNull(RtspEndpointAddress.onLanHost(libraryEndpoint, lanHost)) {
+        checkNotNull(RtspEndpointAddress.onLanHost(libraryEndpoint, lanHost, rtspGate?.publicPort)) {
             "RTSP endpoint $libraryEndpoint cannot be published on $lanHost"
         }
 
@@ -347,6 +358,8 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
 
     private fun stopBroadcast() {
         releaseServer()
+        rtspGate?.close()
+        rtspGate = null
         _state.value = BroadcastState.Idle
         _listenerCount.value = 0
     }

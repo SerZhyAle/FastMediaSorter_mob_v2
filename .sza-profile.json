@@ -108,7 +108,8 @@
     "ownLineRegex": "^(timber\\.log\\.)?Timber\\.d\\(.*\\)$",
     "callTemplate": "Timber.d(\"{Id}: {Message}\")",
     "callName": "Timber.d",
-    "removeCommand": "pwsh -NoProfile -File scripts/quality/remove-ticket-probes.ps1 -Id {Id} -Force"
+    "removeCommand": "pwsh -NoProfile -File scripts/quality/remove-ticket-probes.ps1 -Id {Id} -Force",
+    "removeOnExit": true
   },
   "hooks": {
     "postClose": [

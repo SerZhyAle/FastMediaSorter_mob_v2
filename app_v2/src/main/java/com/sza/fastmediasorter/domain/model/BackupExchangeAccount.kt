@@ -22,4 +22,7 @@ data class BackupExchangeAccount(
     val autoAttach: Boolean = false,
     @SerializedName("outgoing")
     val outgoing: Boolean = false,
+    /** The key half of the pin (19 item AY); absent from a backup written before it existed. */
+    @SerializedName("pinnedKey")
+    val pinnedKey: String? = null,
 )

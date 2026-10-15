@@ -8,4 +8,11 @@
         android:icon="@drawable/ic_help_outline"
         android:title="@string/help"
         app:showAsAction="always" />
+
+    <!-- S4273: SITE-STRUCTURE 0.2 item E - the portal page of schedules over folders of other devices;
+         in the overflow, because this screen has no spare height on a landscape phone. -->
+    <item
+        android:id="@+id/action_portal"
+        android:title="@string/exchange_portal_link_schedule"
+        app:showAsAction="never" />
 </menu>

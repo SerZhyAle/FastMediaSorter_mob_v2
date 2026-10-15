@@ -24,4 +24,13 @@ data class BroadcastEndpointDto(
      * S4160/S4177: the exchange server certificate pin, written only for a self-signed deployment (7.7).
      */
     @SerializedName("certFingerprint") val certFingerprint: String? = null,
+    /** S4240: DEVICE-EXCHANGE 27 item DK - the endpoint is sealed; a record carries `v` only, the keys ride its box. */
+    @SerializedName("seal") val seal: BroadcastSealDto? = null,
 )
+
+/** `seal` of a sealed `RELAY` endpoint as the watch writes it into a record: the version alone. */
+data class BroadcastSealDto(@SerializedName("v") val v: Int = VERSION) {
+    companion object {
+        const val VERSION = 1
+    }
+}

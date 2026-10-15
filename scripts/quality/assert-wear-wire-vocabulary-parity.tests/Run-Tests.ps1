@@ -89,7 +89,9 @@ class BroadcastDescriptorSerializer {
     @'
 package com.sza.fastmediasorter.data.broadcast
 data class BroadcastDescriptorDto(
-    @SerializedName("url") val url: String
+    @SerializedName("url") val url: String,
+    @SerializedName("auth") val auth: String? = null,
+    @SerializedName("credentials") val credentials: String? = null
 )
 '@ | Set-Content (Join-Path $phoneBroadcast 'BroadcastDescriptorDto.kt') -Encoding utf8NoBOM
 
@@ -613,6 +615,23 @@ const val SOURCE_ID_VOICE_NOTE = "voice_note"
 '@ | Set-Content (Join-Path $sb.Watch 'domain/model/WearFavoriteRecord.kt') -Encoding utf8NoBOM
     $code = Invoke-GateOnSandbox $sb
     Assert-That "16. Favourite source id respelled on the watch alone" ($code -eq 1) "expected 1, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 17: a declared phone-only descriptor member disappears from the phone (S4261) ---
+#
+# A PhoneOnly entry the phone no longer declares would keep exempting a member nobody writes, so a
+# later watch-side member of that name would pass unchecked.
+$sb = New-FixtureSandbox
+try {
+    @'
+package com.sza.fastmediasorter.data.broadcast
+data class BroadcastDescriptorDto(
+    @SerializedName("url") val url: String,
+    @SerializedName("auth") val auth: String? = null
+)
+'@ | Set-Content (Join-Path $sb.Phone 'data/broadcast/BroadcastDescriptorDto.kt') -Encoding utf8NoBOM
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "17. PhoneOnly member no longer declared on the phone" ($code -eq 1) "expected 1, got $code"
 } finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
 
 Write-Host ''

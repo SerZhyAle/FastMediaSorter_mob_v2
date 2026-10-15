@@ -1,18 +1,16 @@
 ---
-layout: default
+layout: doc
 title: "FastMediaSorter v2"
 permalink: /docs/README-uk.html
 ---
 
-<sub class="doc-stamp">26.10.10 14:48</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # FastMediaSorter v2 🚀
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple?style=flat-square&logo=kotlin)
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
-
-{% include lang-switcher.html doc="README" dir="/docs/" current="uk" %}
 
 **📦 Завантажити:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
 

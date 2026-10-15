@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "🔧 Guide de dépannage"
 permalink: /docs/TROUBLESHOOTING-fr.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
 # 🔧 Guide de dépannage
 
 Guide de dépannage actuel pour FastMediaSorter v2. Utilisez la grille de flavors canonique dans [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) lorsque le problème dépend du chemin de build sélectionné (Standard, Lite, Photos, Legacy, ou XR / noLegal).
-
-{% include lang-switcher.html doc="TROUBLESHOOTING" dir="/docs/" current="fr" %}
 
 ---
 

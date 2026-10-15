@@ -8,7 +8,8 @@ import com.google.gson.annotations.SerializedName
  * account with a pairing code (contract DEVICE-EXCHANGE 5.3) and never sees the password.
  *
  * [pinnedCertificate] is the phone entry's trust decision: the leaf the user accepted, or null where the platform
- * trusts the server. The watch applies the same decision and refuses any other leaf.
+ * trusts the server. [pinnedKey] is that leaf's public-key fingerprint (19 item AY), so the watch accepts a same-key
+ * renewal and refuses any other leaf; an older phone sends none and the watch learns it on its first connect.
  *
  * Mirrored verbatim in the watch module - the two modules share no code, so these field names and this version
  * are the entire contract.
@@ -22,6 +23,7 @@ data class WearExchangeHandoverPayload(
     @SerializedName("pinnedCertificate") val pinnedCertificate: String?,
     @SerializedName("pairingCode") val pairingCode: String,
     @SerializedName("expiresAt") val expiresAt: String?,
+    @SerializedName("pinnedKey") val pinnedKey: String? = null,
 ) {
 
     // The code is a credential and the address and login are private (contract section 7.9).
@@ -63,7 +65,8 @@ sealed interface WearExchangeHandoverParseResult {
 
     data class Parsed(val payload: WearExchangeHandoverPayload) : WearExchangeHandoverParseResult
 
-    data class UnsupportedVersion(val version: Int) : WearExchangeHandoverParseResult
+    /** [requestId] is the sender's, so the refusal carries the id the sending side's correlator waits on. */
+    data class UnsupportedVersion(val version: Int, val requestId: String) : WearExchangeHandoverParseResult
 
     data object Malformed : WearExchangeHandoverParseResult
 }
@@ -75,11 +78,23 @@ object WearExchangeHandoverCodec {
         val payload = runCatching {
             gson.fromJson(String(bytes, Charsets.UTF_8), WearExchangeHandoverPayload::class.java)
         }.getOrNull()
+        // The version is judged before completeness: a newer format may rename the fields this build requires, and
+        // the refusal is only worth sending when it carries the id the sending side is waiting on.
         return when {
-            payload == null || !payload.isComplete() -> WearExchangeHandoverParseResult.Malformed
-            payload.formatVersion != WearExchangeHandoverPayload.FORMAT_VERSION ->
-                WearExchangeHandoverParseResult.UnsupportedVersion(payload.formatVersion)
+            payload == null -> WearExchangeHandoverParseResult.Malformed
+            payload.formatVersion != WearExchangeHandoverPayload.FORMAT_VERSION -> unsupported(payload)
+            !payload.isComplete() -> WearExchangeHandoverParseResult.Malformed
             else -> WearExchangeHandoverParseResult.Parsed(payload)
+        }
+    }
+
+    private fun unsupported(payload: WearExchangeHandoverPayload): WearExchangeHandoverParseResult {
+        // Gson ignores Kotlin nullability, so a missing key arrives as null in a non-null field.
+        val requestId: String? = payload.requestId
+        return if (requestId.isNullOrBlank()) {
+            WearExchangeHandoverParseResult.Malformed
+        } else {
+            WearExchangeHandoverParseResult.UnsupportedVersion(payload.formatVersion, requestId)
         }
     }
 

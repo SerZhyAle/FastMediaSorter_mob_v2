@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "📖 Посібники"
 permalink: /docs/HOW_TO-uk.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 📖 Посібники
 
@@ -13,8 +13,6 @@ permalink: /docs/HOW_TO-uk.html
 
 - **Групи сценаріїв** для живіших реальних workflows і комбінацій функцій.
 - **Базовий довідник по задачах** нижче для прямих однофункціональних рецептів.
-
-{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="uk" %}
 
 ---
 

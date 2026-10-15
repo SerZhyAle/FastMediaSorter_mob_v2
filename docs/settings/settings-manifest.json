@@ -1311,6 +1311,16 @@
       "titleUk": "Додаткові модулі"
     },
     {
+      "key": "btnDriveChannelPortal",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_cross_device_packets",
+      "kind": "BUTTON",
+      "titleEn": "About Files via Google Drive",
+      "titleRu": "О файлах через Google Drive",
+      "titleUk": "Про файли через Google Drive"
+    },
+    {
       "key": "btnExportFavorites",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1521,6 +1531,16 @@
       "titleUk": "Змінити"
     },
     {
+      "key": "btnSftpExchangeFoldersPortal",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "About folders through the exchange server",
+      "titleRu": "О папках через сервер обмена",
+      "titleUk": "Про папки через сервер обміну"
+    },
+    {
       "key": "btnSftpExchangeMyDevices",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1579,6 +1599,16 @@
       "titleEn": "New password",
       "titleRu": "Новый пароль",
       "titleUk": "Новий пароль"
+    },
+    {
+      "key": "btnSftpServerPortal",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "About the phone as a server",
+      "titleRu": "О телефоне как сервере",
+      "titleUk": "Про телефон як сервер"
     },
     {
       "key": "btnSftpServerShowQr",
@@ -3287,8 +3317,8 @@
       "layout": "fragment_settings_other",
       "kind": "BUTTON",
       "titleEn": "Retry",
-      "titleRu": "Повторить",
-      "titleUk": "Повторити"
+      "titleRu": "Повторить попытку",
+      "titleUk": "Повторити спробу"
     },
     {
       "key": "layoutExtensionsManager",

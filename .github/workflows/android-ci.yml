@@ -237,6 +237,10 @@ jobs:
   # exactly how an unjustified permission reaches a store listing. One gradle invocation produces
   # every flavor's merged manifest, then each is judged against docs/manifest-risk-registry.jsonl
   # with the flavor it belongs to, so a row claiming fewer flavors than it reaches fails too.
+  # S4267: the release variants are merged as well and each is paired - every service's
+  # foregroundServiceType needs its FOREGROUND_SERVICE_<TYPE> permission in the same merged
+  # manifest. The release overlay strips permissions on its own, so release is the variant where a
+  # typed service can lose its pair while every debug check stays green.
   # ─────────────────────────────────────────────
   manifest-risk:
     name: Manifest risk sweep (all flavors)
@@ -265,8 +269,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-      # One invocation for all nine variants: the manifest tasks share a configuration, and nine
-      # separate gradle starts would cost more than the merging itself.
+      # One invocation for all nineteen variants (nine debug, ten release): the manifest tasks share
+      # a configuration, and nineteen separate gradle starts would cost more than the merging itself.
       # chaquopy.enabled=false is load-bearing: any task name containing "noLegal" otherwise applies
       # Chaquopy, whose branch in app_v2/build.gradle.kts disables every non-noLegal variant, and
       # the seven other process*Manifest tasks then do not exist.
@@ -283,6 +287,16 @@ jobs:
           :app_v2:processFossDebugManifest
           :wear:processStandardDebugManifest
           :wear:processNoLegalDebugManifest
+          :app_v2:processStandardReleaseManifest
+          :app_v2:processNoLegalReleaseManifest
+          :app_v2:processLiteReleaseManifest
+          :app_v2:processPhotosReleaseManifest
+          :app_v2:processLegacyReleaseManifest
+          :app_v2:processVrReleaseManifest
+          :app_v2:processFossReleaseManifest
+          :app_v2:processXrReleaseManifest
+          :wear:processStandardReleaseManifest
+          :wear:processNoLegalReleaseManifest
           --stacktrace
 
       - name: Judge each merged manifest against the risk registry
@@ -316,6 +330,42 @@ jobs:
             }
           }
           if ($failed -gt 0) { throw "manifest-risk sweep: $failed variant(s) carry a declaration that docs/manifest-risk-registry.jsonl does not justify for that flavor." }
+
+      # S4267: pairs only (-PairingOnly). The registry rows do not list every flavor (xr is absent),
+      # and the debug loop above already judges every declaration a release overlay can only remove,
+      # so this step asks the one question that is release-specific. It runs after a failed judgement
+      # too: two findings of different kinds should not need two pushes to see.
+      - name: Pair every typed foreground service with its permission (release variants)
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: |
+          $variants = @(
+            @{ Module = 'app_v2'; Variant = 'standardRelease'; Flavor = 'standard' },
+            @{ Module = 'app_v2'; Variant = 'noLegalRelease';  Flavor = 'noLegal'  },
+            @{ Module = 'app_v2'; Variant = 'liteRelease';     Flavor = 'lite'     },
+            @{ Module = 'app_v2'; Variant = 'photosRelease';   Flavor = 'photos'   },
+            @{ Module = 'app_v2'; Variant = 'legacyRelease';   Flavor = 'legacy'   },
+            @{ Module = 'app_v2'; Variant = 'vrRelease';       Flavor = 'vr'       },
+            @{ Module = 'app_v2'; Variant = 'fossRelease';     Flavor = 'foss'     },
+            @{ Module = 'app_v2'; Variant = 'xrRelease';       Flavor = 'xr'       },
+            @{ Module = 'wear';   Variant = 'standardRelease'; Flavor = 'standard' },
+            @{ Module = 'wear';   Variant = 'noLegalRelease';  Flavor = 'noLegal'  }
+          )
+          $failed = 0
+          foreach ($v in $variants) {
+            $root = "$($v.Module)/build/intermediates/merged_manifests/$($v.Variant)"
+            $found = @(Get-ChildItem -Path $root -Recurse -File -Filter 'AndroidManifest.xml' -ErrorAction SilentlyContinue)
+            if ($found.Count -eq 0) {
+              Write-Host "foreground service pairing: no merged manifest under $root" -ForegroundColor Red
+              $failed++
+              continue
+            }
+            foreach ($m in $found) {
+              pwsh -NoProfile -File scripts/quality/assert-manifest-risk-diff.ps1 -Gate -PairingOnly -Manifests $m.FullName -Flavor $v.Flavor
+              if ($LASTEXITCODE -ne 0) { $failed++ }
+            }
+          }
+          if ($failed -gt 0) { throw "foreground service pairing: $failed release variant(s) declare a typed foreground service without its FOREGROUND_SERVICE_<TYPE> permission." }
 
   # ─────────────────────────────────────────────
   # Extra flavors only (lite, photos, legacy). standard is already built in

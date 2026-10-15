@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.15 09:57</sub>
+<sub class="doc-stamp">26.10.15 13:39</sub>
 
 # Security posture - what this app can touch and what it can send
 
@@ -44,7 +44,7 @@ the request itself.
 | `android.permission.EXPAND_STATUS_BAR` | `app_v2/src/main` | all seven | launcher shade-panel control | `-` | no |
 | `android.permission.FOREGROUND_SERVICE` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | every foreground service below | `-` | no |
 | `android.permission.FOREGROUND_SERVICE_CAMERA` | `app_v2/src/broadcastVideoBackground` | standard, noLegal | video broadcast that survives leaving the screen (S4235 enables for standard; legacy retains foreground-only) | `-` | no |
-| `android.permission.FOREGROUND_SERVICE_DATA_SYNC` | `app_v2/src/main` | all seven, debug build type only | scheduled file operations; the phone's folder-sharing service (S3041, lifetime S4225) | `-` | no |
+| `android.permission.FOREGROUND_SERVICE_DATA_SYNC` | `app_v2/src/main` | all seven in debug builds; in a release only noLegal, and standard when built with `fms.dataSyncFgsStandard=on` (S4271) | background file transfers and scheduled file operations; the phone's folder-sharing service (S3041, lifetime S4225) | `-` | no |
 | `android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | audio playback service | `-` | no |
 | `android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION` | `app_v2/src/screenCapture`, `app_v2/src/broadcastSource` | noLegal, standard, legacy | screen capture and screen recording (standard: when the capture suite is built); the phone-screen broadcast (S4233) | `-` | no |
 | `android.permission.FOREGROUND_SERVICE_MICROPHONE` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | quick voice recorder widget; watch voice recorder | `-` | no |

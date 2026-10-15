@@ -59,7 +59,7 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
 
     override fun getViewBinding(): ActivityMyDevicesBinding = ActivityMyDevicesBinding.inflate(layoutInflater)
 
-    override fun getMouseScrollTargetView(): View = binding.rvExchangeServers
+    override fun getMouseScrollTargetView(): View = binding.scrollExchangeServers
 
     override fun setupViews() {
         setSupportActionBar(binding.toolbar)
@@ -70,8 +70,16 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
         binding.btnExchangeAddServer.setOnClickListener {
             startActivity(ExchangeSignInActivity.createIntent(this))
         }
+        binding.btnExchangePortalAddServer.setOnClickListener {
+            MediaExchangePortalLinks.open(this, MediaExchangePortalLinks.Page.MY_DEVICES)
+        }
         binding.btnExchangePortalServer.setOnClickListener {
             MediaExchangePortalLinks.open(this, MediaExchangePortalLinks.Page.EXCHANGE_SERVER)
+        }
+        // The same condition as the Connect watch menu item: the page is about that action.
+        binding.btnExchangePortalWatch.isVisible = mediaCapabilities.supportsWearCompanion
+        binding.btnExchangePortalWatch.setOnClickListener {
+            MediaExchangePortalLinks.open(this, MediaExchangePortalLinks.Page.WATCH_EXCHANGE)
         }
     }
 

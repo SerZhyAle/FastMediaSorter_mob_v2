@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.model.DeviceExchangeInvitation
 import com.sza.fastmediasorter.domain.model.DeviceExchangePairingCode
 import com.sza.fastmediasorter.domain.model.DeviceExchangeWelcome
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import java.io.Closeable
 import java.io.IOException
@@ -71,6 +72,7 @@ class DeviceExchangeAccountClient @Inject constructor(
     private val connector: ExchangeConnector,
     private val tokens: DeviceExchangeTokenStore,
     private val e2eKeys: DeviceExchangeE2eKeyStore,
+    private val pins: ExchangePinRecorder,
 ) {
 
     /**
@@ -108,7 +110,7 @@ class DeviceExchangeAccountClient @Inject constructor(
         enrollment: DeviceExchangeEnrollment,
         request: DeviceExchangeEnvelope,
     ): DeviceExchangeEnrollResult = try {
-        val trust = ExchangeTrust.Verified(entry.pinnedCertificate)
+        val trust = entry.trust()
         Timber.d(
             "Exchange %s: %s:%d login=%s deviceId=%s pinned=%s roles=%s product=%s",
             request.type,
@@ -120,7 +122,8 @@ class DeviceExchangeAccountClient @Inject constructor(
             enrollment.roles,
             enrollment.productVersion,
         )
-        val answer = connector.connect(entry.host, entry.port, trust).use { stream ->
+        val connection = connector.connect(entry.host, entry.port, trust)
+        val answer = connection.use { stream ->
             // Never the password or the token: the envelope's type and size are enough to place a refusal.
             DeviceExchangeFrameCodec.write(stream.output, request)
             Timber.d("Exchange %s: envelope written, waiting for the answer", request.type)
@@ -140,7 +143,7 @@ class DeviceExchangeAccountClient @Inject constructor(
                 }
             }
         }
-        enrollAnswer(entry, answer)
+        enrollAnswer(entry, answer).withCertificate(connection)
     } catch (e: IOException) {
         Timber.w(e, "Exchange %s failed with %s: %s", request.type, e.javaClass.simpleName, e.message)
         connectFailure(e)
@@ -149,7 +152,8 @@ class DeviceExchangeAccountClient @Inject constructor(
     /**
      * Opens a stream authenticated by `hello`. A `device-revoked` refusal forgets the token: it is dead on
      * the server and only a new enrollment helps. A `signed-out` refusal keeps it (19 item AT): the entry stays
-     * and enrolls its own `deviceId` again, which rotates the token anyway.
+     * and enrolls its own `deviceId` again, which rotates the token anyway. A welcomed stream of a pinned entry
+     * writes back a renewed leaf or a missing key (19 item AY).
      *
      * @throws DeviceExchangeNotEnrolledException when [entry] holds no token.
      * @throws DeviceExchangeRefusedException when the server refused the token.
@@ -160,15 +164,51 @@ class DeviceExchangeAccountClient @Inject constructor(
         keepaliveSeconds: Int? = null
     ): DeviceExchangeSession {
         val token = tokens.token(entry) ?: throw DeviceExchangeNotEnrolledException()
-        val connection = connector.connect(entry.host, entry.port, ExchangeTrust.Verified(entry.pinnedCertificate))
+        val connection = connector.connect(entry.host, entry.port, entry.trust())
         val hello = helloEnvelope(entry, token, keepaliveSeconds)
         val answer = ask(connection, hello, DeviceExchangeFrameCodec.MAX_FRAME_BODY)
         if (answer?.type == DeviceExchangeEnvelope.TYPE_WELCOME) {
-            return DeviceExchangeSession(connection, answer.toWelcome())
+            return welcomed(entry, DeviceExchangeSession(connection, answer.toWelcome()))
         }
         connection.close()
         throw helloFailure(entry, answer)
     }
+
+    private suspend fun welcomed(entry: DeviceExchangeAccountEntry, session: DeviceExchangeSession) = try {
+        recordPin(entry, session.connection)
+        session
+    } catch (e: CancellationException) {
+        session.close()
+        throw e
+    }
+
+    // An entry's own pin carries its key (19 item AY); only it may renew, a descriptor's pin never does.
+    private fun DeviceExchangeAccountEntry.trust() = ExchangeTrust.Verified(pinnedCertificate, pinnedKey)
+
+    /**
+     * Keeps what a pinned entry learned on [connection]: the leaf of a same-key renewal, which the connector only
+     * accepted because the key matched, or the key of a pin saved before this build, which the leaf just matched.
+     * A failed write costs one prompt-free renewal at most, so the stream is not dropped for it.
+     */
+    private suspend fun recordPin(entry: DeviceExchangeAccountEntry, connection: ExchangeConnection) {
+        val leaf = connection.certificateFingerprint
+        val key = connection.keyFingerprint ?: return
+        val learned = entry.pinnedCertificate != null && (leaf != entry.pinnedCertificate || entry.pinnedKey == null)
+        if (!learned) return
+        Timber.d("S4257: phone keeps the learned pin of a pinned entry")
+        try {
+            pins.record(entry.identity, leaf, key)
+        } catch (e: IOException) {
+            Timber.w(e, "Exchange pin: the renewed certificate could not be kept")
+        }
+    }
+
+    private fun DeviceExchangeEnrollResult.withCertificate(connection: ExchangeConnection) =
+        if (this is DeviceExchangeEnrollResult.Enrolled) {
+            copy(leafFingerprint = connection.certificateFingerprint, keyFingerprint = connection.keyFingerprint)
+        } else {
+            this
+        }
 
     private suspend fun helloFailure(entry: DeviceExchangeAccountEntry, answer: DeviceExchangeEnvelope?): IOException {
         val reason = answer?.takeIf { it.type == DeviceExchangeEnvelope.TYPE_REFUSED }

@@ -116,6 +116,7 @@ class ConnectWatchToExchangeEntryUseCase @Inject constructor(
             pinnedCertificate = entry.pinnedCertificate,
             pairingCode = code.code,
             expiresAt = code.expiresAt,
+            pinnedKey = entry.pinnedKey,
         )
 
     private companion object {

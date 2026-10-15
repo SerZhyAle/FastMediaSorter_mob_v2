@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.cloud.helpers
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.sza.fastmediasorter.data.identity.transfer.TransferableSignInWriter
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInProviderKeys
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInRecord
@@ -21,16 +22,18 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import java.security.GeneralSecurityException
 
 /**
  * S2115: covers the purge of credential entries left by the removed plaintext fallback.
  * S2101: covers the transferable secret entry the manager publishes beside each credential write.
  *
  * AndroidKeyStore is unavailable in Robolectric's JVM, so `EncryptedSharedPreferences.create(..)`
- * throws here - which is the very condition the purge must survive. The accessors below therefore
- * exercise the real broken-Keystore path: the purge runs, and the encrypted access that follows is
- * caught and degrades to "no credentials". The transferable record is unaffected by that, since it
- * is written through a store of its own.
+ * throws here. The real `EncryptedPrefsOpener` answers that by emptying the file it could not open,
+ * and that file is the plaintext one the purge works on, so the purge could not be observed through
+ * it. The manager is therefore built with a stand-in opener that returns a separate real
+ * preferences file; the broken-Keystore path has a test of its own with an opener that throws. The
+ * transferable record is unaffected by either, since it is written through a store of its own.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -45,22 +48,29 @@ class DropboxCredentialsManagerTest {
         context = RuntimeEnvironment.getApplication()
         transferStore = FakeTransferableSignInStore()
         plainPrefs().edit().clear().commit()
+        standInPrefs().edit().clear().commit()
     }
 
     @After
     fun tearDown() {
         plainPrefs().edit().clear().commit()
+        standInPrefs().edit().clear().commit()
     }
 
     private fun plainPrefs() = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    private fun standInPrefs() = context.getSharedPreferences(STAND_IN_PREFS_NAME, Context.MODE_PRIVATE)
 
     /**
      * A real [TransferableSignInWriter] over a fake store, so the read-merge-write the manager
      * relies on is genuinely exercised rather than stubbed away.
      */
-    private fun buildManager(scope: CoroutineScope): DropboxCredentialsManager {
+    private fun buildManager(
+        scope: CoroutineScope,
+        openEncryptedPrefs: (Context, String) -> SharedPreferences = { _, _ -> standInPrefs() },
+    ): DropboxCredentialsManager {
         val writer = TransferableSignInWriter(transferStore)
-        return DropboxCredentialsManager(context, scope) { writer }
+        return DropboxCredentialsManager(context, scope, { writer }, openEncryptedPrefs)
     }
 
     private fun dropboxEntries(): List<TransferableSignInRecord.Entry> =
@@ -108,6 +118,19 @@ class DropboxCredentialsManagerTest {
         manager.clearStoredCredentials()
 
         assertTrue(plainPrefs().all.keys.contains(LEGACY_KEY))
+    }
+
+    @Test
+    fun `a broken keystore degrades to no credentials and still purges`() = runTest(UnconfinedTestDispatcher()) {
+        plainPrefs().edit().putString(LEGACY_KEY, LEAKED_JSON).commit()
+        val manager = buildManager(this) { _, _ -> throw GeneralSecurityException("keystore unavailable") }
+
+        assertNull("a store that cannot be opened holds no credentials", manager.loadStoredCredentials())
+
+        assertFalse(
+            "the purge runs before the store is touched, so a broken keystore must not keep the leak",
+            plainPrefs().all.keys.contains(LEGACY_KEY)
+        )
     }
 
     // region - S2101 transferable secret
@@ -237,6 +260,7 @@ class DropboxCredentialsManagerTest {
 
     private companion object {
         const val PREFS_NAME = "dropbox_credentials"
+        const val STAND_IN_PREFS_NAME = "dropbox_credentials_stand_in"
         const val LEGACY_KEY = "credentials_json"
         const val PER_ACCOUNT_PREFIX = "credentials_json_"
         const val UNRELATED_KEY = "some_other_setting"

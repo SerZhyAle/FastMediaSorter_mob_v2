@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "把本应用用作主屏幕 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.25 02:18</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 🖥️ 把本应用用作主屏幕
 
 > **难度：** 入门 &bull; **版本：** Standard / noLegal
-
-{% include lang-switcher.html doc="scenario-launcher-mode" dir="/docs/howto/" current="zh-Hans" %}
 
 FastMediaSorter 可以用自己的桌面替换设备的主屏幕 - 您的文件夹、时钟、天气、您的应用，以及沿一侧边缘排列的任务栏。如果您用过 Windows 桌面，会感到很熟悉：图标停在您放置的位置，开始按钮会打开菜单。这被称为**启动器模式**。
 

@@ -44,7 +44,7 @@ class ExchangeDirectoryDialogManager(
         view.rvExchangeDirectory.layoutManager = LinearLayoutManager(activity)
         view.btnExchangeDirectoryMyDevices.setOnClickListener { MyDevicesActivity.start(activity) }
         view.btnExchangePortalDirectory.setOnClickListener {
-            MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.EXCHANGE_SERVER)
+            MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.FOLDERS_EXCHANGE_SERVER)
         }
         binding = view
         dialog = MaterialAlertDialogBuilder(activity)

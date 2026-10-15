@@ -311,6 +311,7 @@ class SmbOperationsUseCase @Inject constructor(
             "jpg", "jpeg", "png", "bmp", "webp" -> MediaType.IMAGE
             "heic", "heif" -> MediaType.IMAGE   // API 28+ decodes natively; 26-27 shows placeholder
             "avif" -> MediaType.IMAGE            // API 31+ decodes natively; older shows placeholder
+            "jxl" -> MediaType.IMAGE             // unsupported natively; shows placeholder
             "gif" -> MediaType.GIF
             "mp4", "mov", "avi", "mkv", "wmv", "flv", "webm" -> MediaType.VIDEO
             "mp3", "aac", "flac", "ogg", "m4a" -> MediaType.AUDIO

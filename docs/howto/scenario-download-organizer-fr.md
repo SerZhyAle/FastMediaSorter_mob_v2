@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Organisateur de téléchargements (tri rapide) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-fr.html
 ---
-<sub class="doc-stamp">26.09.25 02:14</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
 # 🧹 Organisateur de téléchargements - trier les fichiers en un geste
 
 > **Niveau :** Débutant &bull; **Édition :** Toutes (Standard, Lite, Photos, Legacy, VR, noLegal)
-
-{% include lang-switcher.html doc="scenario-download-organizer" dir="/docs/howto/" current="fr" %}
 
 Le **tri rapide** est la fonctionnalité phare de FastMediaSorter : configurez vos dossiers une fois, puis triez des centaines de fichiers en appuyant simplement sur un chiffre. Pas de glisser-déposer. Pas de menus. Il suffit d'appuyer sur **1**, **2**, ou **3** - et le fichier part au bon endroit.
 

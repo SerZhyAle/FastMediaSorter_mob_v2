@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Usa l'app come schermata Home - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-it.html
 ---
-<sub class="doc-stamp">26.09.25 02:17</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="it" dir="ltr" markdown="1">
 
 # 🖥️ Usa l'app come schermata Home
 
 > **Livello:** Principiante &bull; **Edizione:** Standard / noLegal
-
-{% include lang-switcher.html doc="scenario-launcher-mode" dir="/docs/howto/" current="it" %}
 
 FastMediaSorter può sostituire la schermata Home del tuo dispositivo con un proprio desktop - le tue cartelle, un orologio, il meteo, le tue app e una taskbar lungo un bordo. Se hai mai usato un desktop Windows ti risulterà familiare: le cose restano dove le metti, e un pulsante Start apre il menu. Questa si chiama **modalità launcher**.
 

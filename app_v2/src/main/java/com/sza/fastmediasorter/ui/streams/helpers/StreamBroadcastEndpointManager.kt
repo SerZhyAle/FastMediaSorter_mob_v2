@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.domain.usecase.streams.ResolveBroadcastPlaybackUs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -43,7 +42,7 @@ class StreamBroadcastEndpointManager @Inject constructor(
         launch: (String) -> Unit,
     ): Job = scope.launch {
         val stored = storedUrl(id, url)
-        val playback = resolvePlayback(stored, endpoints)
+        val playback = resolvePlayback(stored, endpoints, streamId = id)
         when (playback) {
             is Playback.Playable -> {
                 storedUrls[id] = stored

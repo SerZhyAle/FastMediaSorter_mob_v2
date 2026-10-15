@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "📖 أدلة كيفية الاستخدام"
 permalink: /docs/HOW_TO-ar.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
@@ -15,8 +15,6 @@ permalink: /docs/HOW_TO-ar.html
 
 - **مجموعات السيناريوهات** لسير عمل أكثر ثراءً مستمد من الحياة الواقعية ولمجموعات من الميزات المدمجة معًا.
 - **مرجع المهام الأساسية** لوصفات مباشرة لميزة واحدة، أدناه.
-
-{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="ar" %}
 
 ---
 

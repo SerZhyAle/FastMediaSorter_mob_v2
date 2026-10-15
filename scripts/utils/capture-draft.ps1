@@ -74,7 +74,8 @@
     owner asked for. After the insert the ticket moves to BlockQuestions with a status note carrying
     'Parked finding, untriaged' and 'parked: yy-MM-dd', which keeps it out of the runner's automatic
     ranking until /spec-sweep Phase D triages it; archive-untriaged-drafts.ps1 archives it after 14
-    days untriaged. Measured 2026-10-13: the runner attempted three fresh parked drafts within half an
+    days untriaged, except a finding about a crash, a release or security (S4268), which only triage
+    removes. Measured 2026-10-13: the runner attempted three fresh parked drafts within half an
     hour of their capture, and 27% of September's tickets left no dev-log row.
 
 .PARAMETER RepoRoot
@@ -292,7 +293,8 @@ $statusShown = 'Draft'
 if ($Parked) {
     $deadline = (Get-Date).AddDays(14).ToString('yy-MM-dd')
     $note = "Parked finding, untriaged (S4190): /spec-sweep Phase D promotes it with a **Triage:** line or archives it; " +
-        "archived automatically after $deadline if still untriaged. parked: $((Get-Date).ToString('yy-MM-dd'))"
+        "archived automatically after $deadline if still untriaged, except a crash, release or security finding (S4268). " +
+        "parked: $((Get-Date).ToString('yy-MM-dd'))"
     $parkOut = & $pwshExe -NoProfile -File (Join-Path $RepoRoot 'scripts/spec_catalog/update.ps1') `
         -Id $id -Status BlockQuestions -StatusNote $note 2>&1 | Out-String
     if ($LASTEXITCODE -ne 0) {

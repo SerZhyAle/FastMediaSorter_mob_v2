@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Step-by-Step Guides - FastMediaSorter v2"
 permalink: /docs/howto/
 ---
-<sub class="doc-stamp">26.10.10 14:48</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Step-by-Step Guides
 
 Practical walkthroughs for real-world use cases. No prior experience needed - every step is explained from scratch.
-
-{% include lang-switcher.html doc="index" dir="/docs/howto/" current="en" %}
 
 > **Looking for the full manual?** The [FastMediaSorter documentation portal](../../documentation/index.html) is now the main reference: every feature, a glossary, an A-Z index and search across all pages. The scenarios below stay as quick task walkthroughs.
 

@@ -226,9 +226,10 @@ html[data-theme="light"] {
     Assert-That "Search shard traversal is refused" ($LASTEXITCODE -ne 0 -and ($out10 -match 'Invalid search shard name')) ($out10 -join '; ')
 
     # SITE-EXPERIENCE rules 2, 3, 4, 12 and 15 (S4099): one change per case against the valid tree.
-    function Test-PortalRule([string]$name, [string]$relative, [string]$pattern, [string]$replacement, [string]$expected) {
+    function Test-PortalRule([string]$name, [string]$relative, [string]$pattern, [string]$replacement, [string]$expected, [scriptblock]$Prepare) {
         $caseDir = Join-Path $scratchRoot ('s4099-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
         Initialize-SyntheticDocTree $caseDir
+        if ($Prepare) { & $Prepare $caseDir }
         $target = Join-Path $caseDir $relative
         $text = Get-Content -LiteralPath $target -Raw
         $changed = $text -replace $pattern, $replacement
@@ -253,6 +254,23 @@ html[data-theme="light"] {
     Test-PortalRule 'A style string inside a script is not judged (rule 4)' 'documentation/index.html' '<script src="assets/search.js"></script>' '<script>var html = ''<b style="color: red">x</b>'';</script><script src="assets/search.js"></script>' ''
     Test-PortalRule 'An empty search result without the query fails (rule 12)' 'documentation/assets/search.js' '\{query\}' '' 'SITE-EXPERIENCE rule 12'
     Test-PortalRule 'A page without its skip link fails (rule 15)' 'documentation/index.html' '<a class="doc-skip-link" href="#main-content">Skip to content</a>' '' 'skip link to #main-content'
+    # The docs/ pages in the portal shell (S4117): the layout is judged like a portal page, a page
+    # names the doc layout, and an include that is not in _includes/ is refused.
+    $caseLayout = Join-Path $scratchRoot 's4117-layout'
+    Initialize-SyntheticDocTree $caseLayout
+    New-Item -ItemType Directory -Path (Join-Path $caseLayout '_layouts') -Force | Out-Null
+    $layoutText = (Get-Content (Join-Path $caseLayout 'documentation/index.html') -Raw) -replace 'href="\.\./styles\.css"', 'href="{{ ''/styles.css'' | relative_url }}"' -replace '"assets/(docs\.css|search\.js)"', '"{{ ''/documentation/assets/$1'' | relative_url }}"'
+    Set-Content -LiteralPath (Join-Path $caseLayout '_layouts/doc.html') -Value $layoutText -Encoding utf8
+    Set-Content -LiteralPath (Join-Path $caseLayout 'docs/FAQ.md') -Value "---`nlayout: doc`n---`n# FAQ" -Encoding utf8
+    $outLayout = & $pwshExe -NoProfile -File $gateScript -RepoRoot $caseLayout 2>&1
+    Assert-That 'A docs/ page on the doc layout passes (S4117)' ($LASTEXITCODE -eq 0) ($outLayout -join '; ')
+    Test-PortalRule 'A docs/ layout without its skip link fails (S4117)' '_layouts/doc.html' '<a class="doc-skip-link" href="#main-content">Skip to content</a>' '' '_layouts/doc.html - the page does not open with a skip link' -Prepare {
+        param($dir)
+        New-Item -ItemType Directory -Path (Join-Path $dir '_layouts') -Force | Out-Null
+        Copy-Item -LiteralPath (Join-Path $dir 'documentation/index.html') -Destination (Join-Path $dir '_layouts/doc.html')
+    }
+    Test-PortalRule 'A docs/ page on another layout fails (S4117)' 'docs/PRIVACY_POLICY.md' '# Privacy Policy' "---`nlayout: default`n---`n# Privacy Policy" "layout 'default' is not the portal shell 'doc'"
+    Test-PortalRule 'A docs/ page including a missing file fails (S4117)' 'docs/PRIVACY_POLICY.md' '# Privacy Policy' "# Privacy Policy`n{% include lang-switcher.html doc=`"x`" %}" "includes 'lang-switcher.html', which is not in _includes/"
     Test-PortalRule 'A skip link after the chrome fails (rule 15)' 'documentation/index.html' '(<a class="doc-skip-link"[^>]*>[^<]*</a>)(\s*)(<header class="doc-header">.*?</header>)' '$3$2$1' 'skip link to #main-content'
 } finally {
     if (Test-Path -LiteralPath $scratchRoot) {

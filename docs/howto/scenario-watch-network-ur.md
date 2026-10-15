@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "اسمارٹ واچ کو NAS اور PC شیئرز سے جوڑیں - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-network-ur.html
 ---
-<sub class="doc-stamp">26.09.25 02:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-network-ur.html
 > **سطح:** درمیانی &bull; **وقت:** ~10 منٹ &bull; **ڈیوائس:** Wear OS اسمارٹ واچ
 
 > **صرف مکمل ورژن** - یہ رہنما Google Play کے ذریعے تقسیم کیے گئے ورژن میں شامل نہیں ہے۔ یہ مکمل ورژن پر لاگو ہوتا ہے، [Downloads](../DOWNLOADS.md) سے براہ راست APK ڈاؤن لوڈ۔
-
-{% include lang-switcher.html doc="scenario-watch-network" dir="/docs/howto/" current="ur" %}
 
 Wear OS پر FastMediaSorter Wi-Fi پر براہ راست آپ کے گھریلو نیٹ ورک اسٹوریج (NAS، PC شیئرڈ فولڈرز، FTP، یا SFTP سرورز) سے جڑتا ہے۔ آپ ریموٹ فائلیں براؤز کر سکتے ہیں، بلوٹوتھ ہیڈ فونز پر میوزک اسٹریم کر سکتے ہیں، اور اپنے فون کے بغیر اپنے پسندیدہ فولڈرز سنک کر سکتے ہیں۔
 

@@ -17,6 +17,9 @@
       H. a batch of one healthy and one artefact-less id -> `ARCHIVED: 1 of 2`, exit 1.
       I. an already-Archived record with no strategic file still carries its leftover tactical
          folder across - the S2617 refusal must not strand a partial move.
+      J. S4270 - with probes.removeOnExit true a record archived out of BlockNeedUserTest loses its
+         probes under a Code lock, a record in any other status keeps them, a failing remover
+         refuses that id; with the key false no probe is touched.
 
     Cases F-I need the S2617 refusal in the RESOLVED harness, which is the plugin cache unless
     $env:SZA_HARNESS_ROOT points elsewhere. While a canon edit sits undeployed the four SKIP with a
@@ -240,6 +243,99 @@ if (-not $prepared) {
 # The sandbox is gone, so this runs against production again - the fixture ids must not have reached it.
 $leak = & $pwshExe -NoProfile -File $selectPs1 -Id S9970 -Format json 2>&1 | Out-String
 Assert-That "E. fixture id absent from the production catalog" ($LASTEXITCODE -ne 0 -or $leak -notmatch '"S9970"') $leak
+
+# J. S4270. Not in the sandbox above: that one redirects only the journals, while the probe scan and
+# the remover judge the PROJECT's source tree, which must never be the live one here. A throwaway
+# project (SZA_PROJECT_ROOT) carries its own profile, catalog, sources, remover copy and lock
+# directory, and is driven through the harness archive.ps1 directly - the forwarder writes its own
+# repository into SZA_PROJECT_ROOT.
+. (Join-Path $repoRoot 'scripts/spec_catalog/_status-sets.ps1')
+$jArchive = $null
+try { $jArchive = Get-SzaHarnessScript 'spec_catalog/archive.ps1' } catch { $jArchive = $null }
+$jDeployed = $jArchive -and (Test-Path -LiteralPath $jArchive) -and
+    ((Select-String -LiteralPath $jArchive -Pattern 'Invoke-ProbeRemovalOnExit' -SimpleMatch -Quiet) -eq $true)
+if (-not $jDeployed) {
+    $script:skip += 4
+    Write-Host "  SKIP  S4270 probe removal on archive (cases J1-J4) - the resolved harness archive.ps1 predates it" -ForegroundColor Yellow
+}
+else {
+    $jRoot = Join-Path $repoRoot "temp/S2400/archive-tests/$runId-probe"
+    $jSrc = Join-Path $jRoot 'app_v2/src/main/java/p'
+    $jUtf8 = [System.Text.UTF8Encoding]::new($false)
+    $jProfilePath = Join-Path $repoRoot '.sza-profile.json'
+    $jLiveRemover = [string]((Get-Content -LiteralPath $jProfilePath -Raw | ConvertFrom-Json).probes.removeCommand)
+    # id, status, source file: two parked tickets with a probe each, and a Verified one whose
+    # leftover probe archive.ps1 must leave alone - only a BlockNeedUserTest record is its business.
+    $jFixtures = @(@('S9980', 'BlockNeedUserTest', 'A'), @('S9981', 'BlockNeedUserTest', 'B'), @('S9982', 'Verified', 'C'))
+
+    function Reset-ProbeProject([bool]$removeOnExit, [string]$removeCommand) {
+        if (Test-Path -LiteralPath $jRoot) { Remove-Item -LiteralPath $jRoot -Recurse -Force }
+        New-Item -ItemType Directory -Force -Path (Join-Path $jRoot 'PLAN'), (Join-Path $jRoot 'temp'),
+            (Join-Path $jRoot 'scripts/quality'), $jSrc | Out-Null
+        $tree = Get-Content -LiteralPath $jProfilePath -Raw | ConvertFrom-Json -AsHashtable
+        $tree['probes']['removeOnExit'] = $removeOnExit
+        $tree['probes']['removeCommand'] = $removeCommand
+        [System.IO.File]::WriteAllText((Join-Path $jRoot '.sza-profile.json'), ($tree | ConvertTo-Json -Depth 64), $jUtf8)
+        # The remover resolves the repository from its own location, so this copy rewrites only the
+        # fixture below it (S2925).
+        Copy-Item -LiteralPath (Join-Path $repoRoot 'scripts/quality/remove-ticket-probes.ps1') -Destination (Join-Path $jRoot 'scripts/quality')
+        [System.IO.File]::WriteAllText((Join-Path $jRoot 'CLAUDE.md'), "# sandbox`n", $jUtf8)
+        $jRows = foreach ($f in $jFixtures) {
+            $rel = "PLAN/$($f[0])_probe-fixture.md"
+            [System.IO.File]::WriteAllText((Join-Path $jRoot $rel), "# $($f[0])`n`n**Status:** $($f[1])`n", $jUtf8)
+            [System.IO.File]::WriteAllText((Join-Path $jSrc "$($f[2]).kt"),
+                ("package p`n`nimport timber.log.Timber`n`nfun f$($f[2])() {`n    Timber.d(`"$($f[0]): fixture`")`n" +
+                "    Timber.i(`"permanent`")`n}`n"), $jUtf8)
+            '{{"id":"{0}","name":"probe-fixture","status":"{1}","priority":50,"file":"{2}","created":"2026-10-15","updated":"2026-10-15 12:00"}}' -f $f[0], $f[1], $rel
+        }
+        [System.IO.File]::WriteAllLines((Join-Path $jRoot 'PLAN/spec-catalog.jsonl'), [string[]]$jRows, $jUtf8)
+    }
+
+    function Invoke-ProbeArchive([string]$ids) {
+        $out = @(& $pwshExe -NoProfile -File $jArchive -Id $ids 2>&1 6>&1 | ForEach-Object { [string]$_ }) -join "`n"
+        return [pscustomobject]@{
+            Code      = $LASTEXITCODE
+            Text      = $out
+            LocksLeft = @(Get-ChildItem -LiteralPath (Join-Path $jRoot 'temp') -Filter '*.LOCK' -File).Count
+        }
+    }
+
+    function Test-ProbeLeft([string]$file, [string]$id) {
+        $text = [System.IO.File]::ReadAllText((Join-Path $jSrc "$file.kt"))
+        return $text.Contains(('Timber.d("{0}:' -f $id))
+    }
+
+    $jInheritedRoot = $env:SZA_PROJECT_ROOT
+    try {
+        $env:SZA_PROJECT_ROOT = $jRoot
+        $env:FMS_SKIP_RELEASE_QUEUE = '1'
+
+        Reset-ProbeProject $true $jLiveRemover
+        $j1 = Invoke-ProbeArchive 'S9980,S9982'
+        Assert-That "J1. key on: a parked record is archived with its probe removed under a Code lock it frees" `
+            ($j1.Code -eq 0 -and $j1.Text -match 'ARCHIVED: 2 of 2' -and -not (Test-ProbeLeft 'A' 'S9980') -and
+            $j1.Text -match 'Code domains acquired: Code\.Phone' -and $j1.LocksLeft -eq 0) "exit $($j1.Code); locks $($j1.LocksLeft): $($j1.Text)"
+        Assert-That "J2. key on: a record in any other status keeps its probe" (Test-ProbeLeft 'C' 'S9982') $j1.Text
+
+        Reset-ProbeProject $true 'pwsh -NoProfile -Command exit 7'
+        $j3 = Invoke-ProbeArchive 'S9981'
+        $j3Active = @(Read-Rows (Join-Path $jRoot 'PLAN/spec-catalog.jsonl') |
+            Where-Object { $_.id -eq 'S9981' -and $_.status -eq 'BlockNeedUserTest' }).Count
+        Assert-That "J3. a failing remover refuses that id: exit 1, still active, probe kept, lock freed" `
+            ($j3.Code -eq 1 -and $j3.Text -match 'probe remover exited 7' -and $j3Active -eq 1 -and
+            (Test-ProbeLeft 'B' 'S9981') -and $j3.LocksLeft -eq 0) "exit $($j3.Code); active $j3Active; $($j3.Text)"
+
+        Reset-ProbeProject $false $jLiveRemover
+        $j4 = Invoke-ProbeArchive 'S9981'
+        Assert-That "J4. key off: the parked record is archived and its probe is not touched" `
+            ($j4.Code -eq 0 -and (Test-ProbeLeft 'B' 'S9981')) "exit $($j4.Code); $($j4.Text)"
+    }
+    finally {
+        $env:SZA_PROJECT_ROOT = $jInheritedRoot
+        Remove-Item Env:\FMS_SKIP_RELEASE_QUEUE -ErrorAction SilentlyContinue
+        if (Test-Path -LiteralPath $jRoot) { Remove-Item -LiteralPath $jRoot -Recurse -Force -ErrorAction SilentlyContinue }
+    }
+}
 
 # The skip count belongs on the summary line: a run that quietly dropped four cases and a run that
 # executed them both end in "0 failed", and only this number tells them apart.

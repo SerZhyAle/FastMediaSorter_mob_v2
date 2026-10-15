@@ -124,7 +124,13 @@ class WearServerClipboardClient @Inject constructor(
 
     private suspend fun askInfo(session: WearExchangeSession, entry: WearExchangeEntry): WearServerClipboardInfo {
         val refusal = featureRefusal(session.welcome, write = false)
-        if (refusal != null) return WearServerClipboardInfo.Failed(refusal)
+        return if (refusal != null) WearServerClipboardInfo.Failed(refusal) else askAllowedInfo(session, entry)
+    }
+
+    private suspend fun askAllowedInfo(
+        session: WearExchangeSession,
+        entry: WearExchangeEntry,
+    ): WearServerClipboardInfo {
         val sealing = sealingOf(session, entry)
         session.send(WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_CLIPBOARD_INFO))
         val state = awaitAnswer(session, WearExchangeEnvelope.TYPE_CLIPBOARD_STATE)
@@ -169,6 +175,7 @@ class WearServerClipboardClient @Inject constructor(
                     offer.size,
                     sealed.clearSha256,
                 )
+                Timber.d("S4240: watch seals a clipboard value")
                 val (box, contentKey) = E2eSealedBox.sealWithKey(
                     payload,
                     E2eSealedBox.CLIPBOARD_CONTEXT,
@@ -239,8 +246,23 @@ class WearServerClipboardClient @Inject constructor(
         onProgress: (Long) -> Unit,
     ): WearServerClipboardGet {
         val value = valueOf(members, read.clear)
-            ?: return WearServerClipboardGet.Failed(WearServerClipboardFailure.SEALED_FAILED)
-        val sink = prepareSink(value) ?: return WearServerClipboardGet.Declined(value)
+        val sink = value?.let { prepareSink(it) }
+        return when {
+            value == null -> WearServerClipboardGet.Failed(WearServerClipboardFailure.SEALED_FAILED)
+            sink == null -> WearServerClipboardGet.Declined(value)
+            receiveSealed(session, read, value, sink, onProgress) -> WearServerClipboardGet.Received(value)
+            else -> WearServerClipboardGet.Failed(WearServerClipboardFailure.SEALED_FAILED)
+        }
+    }
+
+    // True only when every segment opened and both digests and both sizes agree with the box.
+    private fun receiveSealed(
+        session: WearExchangeSession,
+        read: E2eClipboardRead.Opened,
+        value: WearServerClipboardValue,
+        sink: OutputStream,
+        onProgress: (Long) -> Unit,
+    ): Boolean {
         val sealedDigest = MessageDigest.getInstance(SHA_256)
         val input = E2eDigestInputStream(session.connection.input, read.sealedSize, sealedDigest, onProgress)
         val clearDigest = MessageDigest.getInstance(SHA_256)
@@ -252,15 +274,10 @@ class WearServerClipboardClient @Inject constructor(
             null
         }
         sink.flush()
-        val whole = opened == value.size &&
+        return opened == value.size &&
             input.count == read.sealedSize &&
             input.hexDigest().equals(read.sealedSha256, ignoreCase = true) &&
             E2eBytes.hex(clearDigest.digest()).equals(value.sha256, ignoreCase = true)
-        return if (whole) {
-            WearServerClipboardGet.Received(value)
-        } else {
-            WearServerClipboardGet.Failed(WearServerClipboardFailure.SEALED_FAILED)
-        }
     }
 
     // A full or failing disk on the watch is not the server's fault and must not read as one.
@@ -290,6 +307,7 @@ class WearServerClipboardClient @Inject constructor(
 
     private fun trustOf(sealing: WearSealing?): (String, ByteArray) -> Boolean =
         { from, key -> sealing?.trusts(from, key) == true }
+
     /** Reads past keepalives and change notices until [expected] or anything that ends the exchange. */
     private fun awaitAnswer(session: WearExchangeSession, expected: String): WearExchangeEnvelope {
         while (true) {
@@ -360,7 +378,6 @@ class WearServerClipboardClient @Inject constructor(
     class SinkWriteException(cause: IOException) : IOException("the value could not be written on the watch", cause)
 
     companion object {
-        private const val BUFFER_BYTES = 64 * 1024
         private const val INFO_READ_TIMEOUT_MS = WearExchangeConnector.ENROLL_READ_TIMEOUT_MS
 
         // Above the server's own 60-second silence bound (22 item BW), so the server is the one that gives up.

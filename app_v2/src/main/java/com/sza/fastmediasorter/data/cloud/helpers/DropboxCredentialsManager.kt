@@ -29,11 +29,24 @@ import javax.inject.Singleton
  * implementation stay readable and no re-authentication is forced.
  */
 @Singleton
-class DropboxCredentialsManager @Inject constructor(
-    @param:ApplicationContext private val context: Context,
-    @param:ApplicationScope private val appScope: CoroutineScope,
-    private val transferWriter: Lazy<TransferableSignInWriter>
+class DropboxCredentialsManager internal constructor(
+    private val context: Context,
+    private val appScope: CoroutineScope,
+    private val transferWriter: Lazy<TransferableSignInWriter>,
+    private val openEncryptedPrefs: (Context, String) -> SharedPreferences
 ) {
+    /**
+     * The opener is a parameter only so a JVM test, which has no AndroidKeyStore, can stand in for the
+     * encrypted store: the real opener empties the plaintext file whenever it fails, and the purge tests
+     * could not observe the purge through it.
+     */
+    @Inject
+    constructor(
+        @ApplicationContext context: Context,
+        @ApplicationScope appScope: CoroutineScope,
+        transferWriter: Lazy<TransferableSignInWriter>
+    ) : this(context, appScope, transferWriter, EncryptedPrefsOpener::open)
+
     companion object {
         private const val PREFS_NAME = "dropbox_credentials"
         private const val KEY_CREDENTIALS = "credentials_json" // Legacy single-account key
@@ -47,7 +60,7 @@ class DropboxCredentialsManager @Inject constructor(
      * EncryptedSharedPreferences only - never downgraded to unencrypted storage. A keyset the Keystore master
      * key no longer decrypts is reset once by [EncryptedPrefsOpener], so the store is not dead on every access.
      */
-    private val prefs: SharedPreferences by lazy { EncryptedPrefsOpener.open(context, PREFS_NAME) }
+    private val prefs: SharedPreferences by lazy { openEncryptedPrefs(context, PREFS_NAME) }
 
     /** Save under the legacy single-account key and, when the account is known, the per-account key. */
     fun saveCredentials(credentialsJson: String, accountEmail: String? = null) {

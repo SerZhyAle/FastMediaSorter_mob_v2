@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Open Your PC's Folders by Scanning One Code - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share.html
 ---
-<sub class="doc-stamp">26.09.24 06:25</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Open Your PC's Folders by Scanning One Code
 
 > **Level:** Beginner &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (Lite has no network sources; scanning needs a camera, the file method works everywhere)
-
-{% include lang-switcher.html doc="scenario-companion-share" dir="/docs/howto/" current="en" %}
 
 You run a small helper program on your Windows PC, pick the folders with your videos, music, documents, or photos, and it puts a code on the screen. On the phone you tap **Add**, hold the camera up to that code, and the PC folders are instantly connected - no typing an address, no port, no password, no cables.
 

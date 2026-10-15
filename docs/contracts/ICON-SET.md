@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.14 21:56</sub>
+<sub class="doc-stamp">26.10.15 12:30</sub>
 
 # Pointer - `ICON-SET`
 
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` |
-| **Version** | 0.32, draft. Owner: this product |
+| **Version** | 0.33, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 2 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
@@ -26,6 +26,8 @@
   `content.invitation` and `content.guest`, each under the canonical name of `DEVICE-EXCHANGE` 25 item CW. The
   path "via Google Drive" shows `brand.google-drive`, and a one-tone surface shows the words, never a drawn
   stand-in. The drawables are drawn into the product by S4237.
+- A retry control draws `action.retry` (0.33, S4255, section 18) and reads "Повторить попытку" /
+  "Повторити спробу" in ru/uk; the bare "Повторить" / "Повторити" stays the name of `action.redo`.
 - The documentation and the site show the meaning's glyph beside its name - never an emoji, never a
   picture chosen to decorate the page.
 - The glyphs, looks, `palette.json`, `CATALOG.md` and `gallery.html` are regenerated from this

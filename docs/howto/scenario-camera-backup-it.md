@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Backup fotografico pianificato sul PC - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-it.html
 ---
-<sub class="doc-stamp">26.09.25 02:13</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="it" dir="ltr" markdown="1">
 
 # 📷 Backup fotografico pianificato sul PC
 
 > **Livello:** Principiante &bull; **Durata:** ~15 minuti di configurazione &bull; **Edizione:** Standard, Photos, Legacy, VR, noLegal (servono fonti di rete - Lite non ne ha)
-
-{% include lang-switcher.html doc="scenario-camera-backup" dir="/docs/howto/" current="it" %}
 
 Copia automaticamente le nuove foto della fotocamera del telefono sul tuo computer di casa **ogni notte, via Wi-Fi**. Configuralo una volta sola: funzionerà per sempre senza alcuna azione manuale.
 

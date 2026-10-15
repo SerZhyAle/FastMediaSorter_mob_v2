@@ -1,9 +1,14 @@
 package com.sza.fastmediasorter.data.broadcast.exchange
 
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastDigest
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnection
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnector
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTrust
+import com.sza.fastmediasorter.data.security.e2e.E2eBytes
+import com.sza.fastmediasorter.data.security.e2e.E2eRelayRecords
+import com.sza.fastmediasorter.domain.player.BroadcastPlaybackPairs
+import timber.log.Timber
 import java.io.IOException
 import java.net.URI
 import javax.inject.Inject
@@ -27,12 +32,17 @@ class BroadcastLoopbackBridges @Inject constructor(
         }
     }
 
-    /** The loopback port of the forwarder for [tunnel]; each accepted connection is one `connect {broadcastId}`. */
+    /**
+     * The loopback port of the forwarder for [tunnel]; each accepted connection is one `connect {broadcastId}`. A
+     * sealed tunnel runs a TLS client inside that stream which accepts only the leaf pinned by `tunnelPin` (27 item
+     * DM); a different leaf ends the connection.
+     */
     @Throws(IOException::class)
     fun tunnelPort(tunnel: BroadcastExchangeEndpoint.Tunnel): Int {
-        val key = "tunnel|${tunnel.server.label}|${tunnel.scheme}|${tunnel.certFingerprint}|${tunnel.broadcastId}"
+        val key = "tunnel|${tunnel.server.label}|${tunnel.scheme}|${tunnel.certFingerprint}|${tunnel.broadcastId}" +
+            "|${tunnel.tunnelPin}"
         return portFor(key, label("tunnel", tunnel.server, tunnel.broadcastId)) {
-            DeviceExchangeAccountClient.connectByBroadcastId(
+            val stream = DeviceExchangeAccountClient.connectByBroadcastId(
                 connector = connector,
                 host = tunnel.server.host,
                 port = tunnel.server.port,
@@ -40,6 +50,11 @@ class BroadcastLoopbackBridges @Inject constructor(
                 scheme = tunnel.scheme,
                 trust = ExchangeTrust.Verified(tunnel.certFingerprint),
             )
+            Timber.d("S4240: phone opens a broadcast tunnel, pinned=${tunnel.tunnelPin != null}")
+            tunnel.tunnelPin?.let { pin ->
+                val tls = BroadcastTunnelTls.connect(pin, stream.input, stream.output, stream)
+                ExchangeConnection(tls, pin)
+            } ?: stream
         }
     }
 
@@ -59,7 +74,9 @@ class BroadcastLoopbackBridges @Inject constructor(
     @Throws(IOException::class)
     @Synchronized
     fun sealedRelayPort(relay: BroadcastExchangeEndpoint.Relay, groupKey: ByteArray): Int {
-        val key = "sealed|${relay.server.label}|${relay.certFingerprint}|${relay.broadcastId}"
+        // A new box brings a new group key, and a proxy holding the old one could open no later epoch.
+        val keyId = E2eBytes.hex(E2eRelayRecords.keyId(groupKey))
+        val key = "sealed|${relay.server.label}|${relay.certFingerprint}|${relay.broadcastId}|$keyId"
         val path = runCatching { URI(relay.url).rawPath }.getOrNull().orEmpty()
         return bridges.getOrPut(key) {
             SealedRelayProxy(
@@ -68,6 +85,11 @@ class BroadcastLoopbackBridges @Inject constructor(
                 host = relay.server.label,
                 broadcastId = relay.broadcastId,
                 groupKey = groupKey,
+                // The pair is read per listen stream, so a password typed after the proxy opened still reaches it.
+                authorization = {
+                    BroadcastPlaybackPairs.forUrl(relay.url)
+                        ?.let { "${BroadcastDigest.HEADER_AUTHORIZATION}: ${BroadcastDigest.basic(it)}" }
+                },
             ) {
                 connector.connect(relay.server.host, relay.server.port, ExchangeTrust.Verified(relay.certFingerprint))
             }

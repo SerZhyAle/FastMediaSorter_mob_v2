@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "গাড়িতে মিউজিক প্লেয়ার (অ্যান্ড্রয়েড হেড ইউনিট) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-bn.html
 ---
-<sub class="doc-stamp">26.09.25 02:14</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
 # 🚗 গাড়িতে মিউজিক প্লেয়ার (অ্যান্ড্রয়েড হেড ইউনিট)
 
 > **স্তর:** শিক্ষানবিস &bull; **সময়:** ~১০ মিনিট &bull; **ফ্লেভার:** Standard, Legacy, VR, noLegal (Lite স্থানীয় অডিও বাজায় কিন্তু এতে ব্যাকগ্রাউন্ড প্লেব্যাক ও Streams নেই; Photos-এ অডিও নেই)
-
-{% include lang-switcher.html doc="scenario-car-music" dir="/docs/howto/" current="bn" %}
 
 FastMediaSorter অ্যান্ড্রয়েড হেড ইউনিটে গাড়ির মিউজিক প্লেয়ার হিসেবে দারুণ কাজ করে - SD কার্ড বা USB ড্রাইভে থাকা আপনার সম্পূর্ণ মিউজিক সংগ্রহে তাৎক্ষণিক অ্যাক্সেস, বিল্ট-ইন স্টিয়ারিং হুইল বাটন সমর্থনসহ।
 

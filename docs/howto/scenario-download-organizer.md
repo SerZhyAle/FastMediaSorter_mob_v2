@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Download Organizer (Quick Sort) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer.html
 ---
-<sub class="doc-stamp">26.09.24 18:41</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 🧹 Download Organizer - Sort Files with One Tap
 
 > **Level:** Beginner &bull; **Flavor:** Any (Standard, Lite, Photos, Legacy, VR, noLegal)
-
-{% include lang-switcher.html doc="scenario-download-organizer" dir="/docs/howto/" current="en" %}
 
 **Quick Sort** is FastMediaSorter's star feature: set up your folders once, then sort hundreds of files by just tapping a number. No drag-and-drop. No menus. Just tap **1**, **2**, or **3** - and the file is gone to the right place.
 

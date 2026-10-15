@@ -55,6 +55,14 @@ class DeviceExchangeAccountRepository @Inject constructor(
 
     suspend fun outgoingEntry(): DeviceExchangeAccountEntry? = store.outgoing()
 
+    /**
+     * The outgoing entry while it may produce (19 item AO), null for a guest one: publish, broadcast and cast follow
+     * this, while receiving keeps following [outgoing], which a guest may do.
+     */
+    val producer: Flow<DeviceExchangeAccountEntry?> = outgoing.map { entry -> entry?.takeIf { it.mayProduce } }
+
+    suspend fun producerEntry(): DeviceExchangeAccountEntry? = outgoingEntry()?.takeIf { it.mayProduce }
+
     /** Makes [entry] the one outgoing entry; leaving the previous one as a producer is the caller's first step. */
     suspend fun setOutgoing(entry: DeviceExchangeAccountEntry) = store.setOutgoing(entry.identity)
 
@@ -99,11 +107,13 @@ class DeviceExchangeAccountRepository @Inject constructor(
         require(DeviceExchangeAccountEntry.isValidLogin(login)) { "login breaks the contract rule" }
         val fresh = DeviceExchangeAccountEntry(endpoint.host, endpoint.port, login, SftpShareId.generate(), pin)
         val held = store.entry(fresh.identity)
+        // The held key belongs to the held leaf only; a newly accepted leaf learns its own key from this exchange.
         val candidate = held?.copy(
             host = endpoint.host,
             port = endpoint.port,
             login = login,
             pinnedCertificate = pin ?: held.pinnedCertificate,
+            pinnedKey = held.pinnedKey.takeIf { pin == null || pin == held.pinnedCertificate },
         ) ?: fresh
         var enrolled = candidate
         Timber.d("Exchange enrollment: %s:%d login=%s heldEntry=%s", endpoint.host, endpoint.port, login, held != null)
@@ -124,7 +134,7 @@ class DeviceExchangeAccountRepository @Inject constructor(
                     pinCapable = pinCapable,
                     features = result.welcome.features,
                     accountKind = result.welcome.accountKind,
-                )
+                ).withAcceptedCertificate(result)
             )
         }
         Timber.d("Exchange enrollment finished: %s", result.javaClass.simpleName)
@@ -306,6 +316,22 @@ class DeviceExchangeAccountRepository @Inject constructor(
     private fun heldEndpoint(entry: DeviceExchangeAccountEntry): ExchangeEndpoint? {
         val host = if (':' in entry.host) "[${entry.host}]" else entry.host
         return ExchangeEndpoint.parse("$host:${entry.port}")
+    }
+
+    /**
+     * A pinned entry keeps the leaf and key the enrolling stream accepted (19 item AY): the accepted leaf itself, or
+     * a same-key renewal of the held one. A platform-trusted entry stays unpinned.
+     */
+    private fun DeviceExchangeAccountEntry.withAcceptedCertificate(
+        result: DeviceExchangeEnrollResult.Enrolled,
+    ): DeviceExchangeAccountEntry {
+        val leaf = result.leafFingerprint
+        val key = result.keyFingerprint
+        return if (pinnedCertificate != null && leaf != null && key != null) {
+            copy(pinnedCertificate = leaf, pinnedKey = key)
+        } else {
+            this
+        }
     }
 
     private fun DeviceExchangeEnrollResult.isIdCollision(): Boolean =

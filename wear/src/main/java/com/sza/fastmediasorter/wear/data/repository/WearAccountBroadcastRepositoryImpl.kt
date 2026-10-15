@@ -6,13 +6,16 @@ import com.sza.fastmediasorter.wear.data.exchange.WearDirectoryBroadcast
 import com.sza.fastmediasorter.wear.data.exchange.WearEntryDirectory
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeBroadcastDirectory
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeDirectoryState
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeE2e
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeEntry
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeEntryStore
 import com.sza.fastmediasorter.wear.domain.model.WearAccountBroadcast
 import com.sza.fastmediasorter.wear.domain.model.WearAccountBroadcastSection
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPlayback
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcasterGroup
 import com.sza.fastmediasorter.wear.domain.repository.WearAccountBroadcastRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,6 +29,8 @@ import javax.inject.Singleton
 class WearAccountBroadcastRepositoryImpl @Inject constructor(
     private val directory: WearExchangeBroadcastDirectory,
     private val resolver: WearBroadcastPlaybackResolver,
+    private val store: WearExchangeEntryStore,
+    private val e2e: WearExchangeE2e,
 ) : WearAccountBroadcastRepository {
 
     override fun observe(): Flow<List<WearAccountBroadcastSection>> = directory.observe().map { entries ->
@@ -37,8 +42,23 @@ class WearAccountBroadcastRepositoryImpl @Inject constructor(
         return if (record == null) {
             WearBroadcastPlayback.Unavailable(WearBroadcastPlayback.Reason.UNREACHABLE)
         } else {
-            resolver.resolve(record)
+            resolver.resolve(opened(entryIdentity, record))
         }
+    }
+
+    // S4240, 27 item DK: the box is opened only for the broadcast being played, against the devices the list holds -
+    // never an empty list, which would read as every trusted device having left the account.
+    private suspend fun opened(entryIdentity: String, record: WearDirectoryBroadcast): WearDirectoryBroadcast {
+        val entry = store.entries.first().firstOrNull { it.identity == entryIdentity }
+        val devices = directory.devicesHeld(entryIdentity)
+        val sealing = when {
+            record.sealed == null || entry == null -> null
+            devices == null -> e2e.trustedSealing(entry)
+            else -> e2e.sealing(entry, devices)
+        }
+        return sealing?.let {
+            record.copy(descriptor = it.openBroadcast(record.broadcastId, record.sealed, record.descriptor))
+        } ?: record
     }
 
     private fun section(held: WearEntryDirectory): WearAccountBroadcastSection {
@@ -69,7 +89,12 @@ class WearAccountBroadcastRepositoryImpl @Inject constructor(
 
     private fun toRow(entryIdentity: String, record: WearDirectoryBroadcast): WearAccountBroadcast {
         val isProtected = WearBroadcastEndpoints.isProtected(record.descriptor)
-        val endpoints = WearBroadcastEndpoints.parse(record.broadcastId, record.descriptor, record.mode)
+        val endpoints = WearBroadcastEndpoints.parse(
+            record.broadcastId,
+            record.descriptor,
+            record.mode,
+            boxPending = record.sealed != null,
+        )
         val modeOk = endpoints.any { WearBroadcastEndpoints.isPlayableMode(it.mode ?: record.mode) }
         return WearAccountBroadcast(
             entryIdentity = entryIdentity,

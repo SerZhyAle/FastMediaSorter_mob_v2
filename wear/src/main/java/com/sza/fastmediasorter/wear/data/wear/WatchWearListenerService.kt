@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.wear.domain.model.ListenRefusal
 import com.sza.fastmediasorter.wear.domain.model.ListenSessionPayloadCodec
 import com.sza.fastmediasorter.wear.domain.model.PhoneCameraSessionState
 import com.sza.fastmediasorter.wear.domain.model.SosMode
+import com.sza.fastmediasorter.wear.domain.model.WearBroadcastHandoffPayload
 import com.sza.fastmediasorter.wear.domain.model.WearDestinationId
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
@@ -339,6 +340,9 @@ class WatchWearListenerService : WearableListenerService() {
             WearDataLayerPaths.RESOURCE_PASS ->
                 applicationScope.launch { resourcePassReceiver.get().handle(event.sourceNodeId, event.data) }
 
+            // S4261: a broadcast with its descriptor and pass; joins this tail for the hand-over's reason above.
+            WearDataLayerPaths.STREAM_BROADCAST_PASS -> handleStreamBroadcastPass(event.sourceNodeId, event.data)
+
             else -> Timber.d("WatchWearListenerService: unhandled message path ${event.path}")
         }
     }
@@ -552,6 +556,36 @@ class WatchWearListenerService : WearableListenerService() {
             } ?: return@launch
             val result = storeTransferredStreamUseCase(payload)
             if (result.ack.outcome != WearStreamTransferAck.OUTCOME_ERROR) {
+                vibrateSuccess()
+            }
+            val ack = if (payload.openNow && result.channel != null) {
+                transferOutcomeCoordinator.streamAck(result.channel, payload.requestId)
+            } else {
+                result.ack
+            }
+            sendStreamTransferAck(nodeId, ack)
+        }
+    }
+
+    /**
+     * S4261: the hand-off of a broadcast with its descriptor (LIVE-BROADCAST item P), answered on the same ack as
+     * [handleStreamTransfer]. The payload may carry a password and `seal` keys, so a parse failure logs the exception
+     * class and nothing of the bytes.
+     */
+    private fun handleStreamBroadcastPass(nodeId: String, data: ByteArray) {
+        applicationScope.launch {
+            val payload = try {
+                val envelope = envelopeCodec.decode(data)
+                gson.fromJson(envelope.data.decodeToString(), WearBroadcastHandoffPayload::class.java)
+            } catch (e: Exception) {
+                e.rethrowIfCancellation()
+                Timber.e("Failed to deserialize a broadcast hand-off - %s", e.javaClass.simpleName)
+                null
+            } ?: return@launch
+            Timber.d("S4261: broadcast hand-off received, pass=%s", payload.pass != null)
+            val result = storeTransferredStreamUseCase.storeBroadcast(payload)
+            val outcome = result.ack.outcome
+            if (outcome != WearStreamTransferAck.OUTCOME_ERROR && outcome != WearStreamTransferAck.OUTCOME_UNPLAYABLE) {
                 vibrateSuccess()
             }
             val ack = if (payload.openNow && result.channel != null) {

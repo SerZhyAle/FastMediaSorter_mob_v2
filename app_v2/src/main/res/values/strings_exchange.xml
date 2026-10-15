@@ -272,4 +272,13 @@
     <string name="exchange_failure_key_changed">The protection key of this device has changed, so nothing is sent to it. Remove the device from the account and add it again.</string>
     <string name="exchange_failure_server_no_e2e">This server cannot carry protected content, so folders, broadcasts and the clipboard do not go through it.</string>
     <string name="exchange_failure_sealed_failed">This could not be opened on this device. Try again from the other device.</string>
+    <string name="exchange_server_honest_text">The exchange server connects your devices, so it knows the names of your account, devices, folders and broadcasts, sees which devices are online, and how much is sent and when. It cannot open what goes through it: folders and their files, broadcasts and the clipboard are encrypted on your device and opened only on your other devices or by the people you gave access to. To look inside, whoever runs the server would have to add a device of their own to your account, and it would appear in your list of devices.</string>
+    <string name="drive_channel_honest_text">Via Google Drive, files and the clipboard are kept in your own Google account, like your other files on Google Drive; no exchange server takes part.</string>
+    <string name="exchange_portal_link_folders_exchange_server">About folders through the exchange server</string>
+    <string name="exchange_portal_link_folders_google_drive">About Files via Google Drive</string>
+    <string name="exchange_portal_link_broadcast_start">How to go on air</string>
+    <string name="exchange_portal_link_schedule">About schedules for other devices</string>
+    <string name="exchange_portal_link_phone_sharing">About the phone as a server</string>
+    <string name="exchange_portal_link_my_devices">About adding a server</string>
+    <string name="exchange_portal_link_watch">About connecting a watch</string>
 </resources>

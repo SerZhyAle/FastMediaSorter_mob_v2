@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Put FastMedia on Your Watch - FastMediaSorter v2"
 permalink: /docs/howto/wear-install.html
 ---
-<sub class="doc-stamp">26.09.30 13:01</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Put FastMedia on Your Watch
 
 > **Level:** Beginner &bull; **Time:** ~5 minutes &bull; **Device:** Wear OS smartwatch paired with an Android phone
 
 > **Two versions.** The version from Google Play is a small first release: Calculator, Stopwatch, Mini-game, Settings and the Programs tile. Music, photos, network shares and phone features are in the full version only, a direct APK download from [Downloads](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="wear-install" dir="/docs/howto/" current="en" %}
 
 FastMedia Wear is the watch half of FastMediaSorter. Once it is on your wrist you can play music and view photos straight from the watch, reach folders shared by your paired phone, and open network shares the watch connects to on its own. This page gets it installed and paired.
 

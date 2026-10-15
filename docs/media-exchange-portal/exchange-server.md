@@ -1,81 +1,108 @@
 ---
 layout: doc
 title: "Exchange server: your devices from any network"
-description: "One account for all your devices and access from any network without router setup - what the exchange server will do, what it keeps and never keeps, and what works today instead."
+description: "One account for all your devices and access from any network without router setup - who runs an exchange server, how it works, what it sees and keeps, and how the versions of the programs get along."
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server.html
 ---
-<sub class="doc-stamp">26.10.10 14:45</sub>
+<sub class="doc-stamp">26.10.15 14:25</sub>
 
 # Exchange server: your devices from any network
 
-<div class="doc-callout doc-callout-warn" markdown="1">
-**Not available yet.** No public exchange server is running. The phone side is ready: the phone's SFTP server can already register on an exchange server (**Settings**, **General**, **Share over SFTP**, **Access from anywhere**), but there is no server to register on yet. Accounts, one folder list across devices and Cast between devices come with the server. Until then, use the ways listed under [What works today](#what-works-today).
-</div>
-
-The exchange server is for the case the [home network](home-network.html) cannot cover: a provider that gives you no public address, a hotel Wi-Fi, a mobile network. Every device dials out to the server, so nothing has to be opened in any router.
+The exchange server is for the case the [home network](home-network.html) cannot cover: a provider that gives you no public address, a hotel Wi-Fi, a mobile network. Every device dials out to the server, so nothing has to be opened in a router on the devices' side - only the server itself needs an address the devices can reach.
 
 ![An exchange server on the internet in the middle. Home and office Windows PCs share folders, a laptop sends and receives media, one phone opens any folder and another shares its own, and a watch and a TV receive media - all through the server.](diagrams/exchange-simple-en.svg)
 
-## How it will work
+## Who runs a server {#who-runs-a-server}
+
+- **You run your own.** A server is a program on a Windows PC, and whoever runs it is its owner. Nobody runs a server for everybody: the developer of the app runs none and offers none to the public.
+- **Or you join a server that a person you know runs for relatives and friends.** Its owner gives you an invitation, and you create an account on it.
+- **The owner decides who gets in.** An account is created only by an invitation, and the owner sets how many accounts the server takes (10 by default).
+
+Accounts, invitations and passwords are on their own page: [Accounts, invitations and passwords](exchange-accounts.html).
+
+## How it works {#how-it-will-work}
 
 1. **Each device signs in once** and keeps a device token, never your password.
 2. **A PC or a phone publishes** its shared folders.
 3. **Any other device lists** all your folders and attaches the ones it needs.
 4. **Opening a folder asks for a tunnel**, and the server joins the two outgoing connections without reading the bytes. Inside the tunnel the folder still travels over encrypted SFTP, end to end.
 
-On one Wi-Fi network the devices still connect to each other directly. A folder for someone outside your account travels by its own share link.
+On one Wi-Fi network the devices still connect to each other directly. A folder for someone outside your account is given by an invitation of the kind "guest" or by a link with a password - see [people outside your account](exchange-accounts.html#outside).
 
 ![Detailed scheme. The exchange server at a public address keeps accounts, enrolled devices, the directory of folders and broadcasts, and a user log. Windows PCs share folders over SFTP and work as clients; Android phones open any of those folders or share their own; a watch and an Android TV receive media. Every device keeps a control connection to the server; folders open through data tunnels the server splices.](diagrams/exchange-scheme-en.svg)
 
-## Where the server comes from
+## Where the server comes from {#where-the-server-comes-from}
 
-The exchange server is a program that is built as an optional component of the Windows package of [Fast Media Sorter & Sharing for Windows](windows-servers.html). It is unticked at installation and off until you enable it, and it is administered in Share Manager: accounts, devices, the public address, the certificate and running it as a Windows service. It is not in any released package yet.
+The exchange server is a part of [Fast Media Sorter & Sharing for Windows](windows-servers.html). That program comes in two models: the **viewer**, where the servers are optional components that stay off until you switch them on, and the **server**, built for a PC whose job is to stay available, where the viewer is the optional part. The Microsoft Store carries only the viewer, because a Store app cannot run as a Windows service.
 
-Whoever runs a server is its operator. An operator can see what is listed under **What the server keeps** below, and never your files, which pass through without being read. There is no public deployment: nobody runs a server for everybody, and nothing is available to use yet. How devices connect to a server is a proposal until two independent programs agree on it, so this page describes the idea, not a finished protocol.
+The server is administered in Share Manager: accounts and invitations, the public address, the certificate and running it as a Windows service. How to install it, what Windows says about the installer and how to check that it works from another network: [Installing and checking your exchange server](exchange-server-install.html).
 
-## What the server keeps
+## What the server sees {#what-the-server-sees}
+
+The exchange server connects your devices, so it knows the names of your account, devices, folders and broadcasts, sees which devices are online, and how much is sent and when. It cannot open what goes through it: folders and their files, broadcasts and the clipboard are encrypted on your device and opened only on your other devices or by the people you gave access to. To look inside, whoever runs the server would have to add a device of their own to your account, and it would appear in your list of devices.
+
+In a list, because without these the server could connect nothing:
+
+- **Seen:** the login and the kind of each account; the name, program, system and role of each device, and whether it is online; the names and paths of shared folders and the titles of broadcasts; who was given what; who connects to whom, when and from which address; and the size and timing of what is sent.
+- **Not seen:** your files and what is in them, the sign-in details of your folders, the picture and the sound of a broadcast, and everything about the clipboard except its size, its time and the device it came from.
+
+Encryption keeps whoever runs the server from reading. It does not make the server unstoppable: its owner can still switch it off or hold back what goes through it.
+
+## What the server keeps {#what-the-server-keeps}
 
 ![Three columns. On its disk: accounts with password hashes, enrolled devices, folder names, a user log. In memory only: folder access codes while a device is online, live tunnels and relay buffers, pairing codes. Never: your files, secrets in the log, your list for anyone outside your account.](diagrams/exchange-keeps-en.svg)
 
 On its disk:
 
-- Accounts: a login and a salted password hash.
-- Enrolled devices: name, type, last seen.
+- Accounts: a login, the kind of the account and a salted password hash.
+- Enrolled devices: name, type, last seen and the public key of the device.
+- Invitations, kept as hashes so that nobody can read one back, and the limits its owner set.
 - The names of shared folders.
-- A user log, with identifiers hashed.
+- A user log, with identifiers hashed, kept for the number of days its owner set.
 
 In memory only:
 
-- Folder access codes, while the device that shares the folder is online.
+- Folder access codes, encrypted on your device, while the device that shares the folder is online.
 - Live tunnels, and the last two seconds of a broadcast.
 - One-time pairing codes, valid for ten minutes.
+- The clipboard value of each account.
 
 Never:
 
 - Your files, photos and recordings - they pass through a tunnel and never touch the server's disk.
-- Passwords, tokens or pairing codes in the log.
+- Passwords, tokens, invitations or pairing codes in the log.
 - Your folder list, for anyone outside your account.
 
-## The clipboard on the server
+## The clipboard on the server {#the-clipboard-on-the-server}
 
-The phone has two programs for the clipboard of your own devices: **Send the clipboard to the server** and **Get the clipboard from the server**. You find them in the programs menu of the main window, on the quick-access panel, as launcher shortcuts and in the menu of the app icon.
+Two buttons - **Send the clipboard to the server** and **Get the clipboard from the server** - move one object between your own devices. The server holds one value for the account, in its memory only, and cannot read it. Where the buttons are and what the limits are: [Clipboard on the server](exchange-clipboard.html).
 
-- **One object at a time** - a text, a picture or one file. Several files or a folder go into one archive first; copy the archive and send it.
-- **Only the last value.** The server keeps the clipboard in its memory only: a new value replaces the old one, and a restart of the server loses it.
-- **Every account of the phone.** A send goes to every account the phone is signed in to, except a guest account.
-- **Whoever runs the server can see what you send** until end-to-end encryption arrives.
+## Accounts {#accounts}
 
-## What works today {#what-works-today}
+An account is a login and a password on one server. You create it from an invitation, change its password in any program that is signed in to it, and delete it in the app or by asking the server's owner: [Accounts, invitations and passwords](exchange-accounts.html) and [How to delete an account](account-deletion.html).
+
+## Programs of different versions {#versions}
+
+- **One contract, only growing.** The programs of the family follow one exchange contract. A new version of it only adds; a program that meets something it does not know skips it and does not fail.
+- **An older program meets a newer server, and the other way round.** What the other side lacks is not offered: a server that keeps no clipboard answers "This server does not keep the clipboard.", and a version that cannot play a broadcast says "This version cannot play it".
+- **Old codes keep working after an update**: `FMSSFTP1` codes, `.fmscfg` files, folders on your own network and saved schedules.
+- **One thing needs the same generation on both sides: encryption of content.** Folders, broadcasts and the clipboard go through a server only when the program and the server can both encrypt them end to end. With an older server the list of your devices still works, but nothing is sent through it until the server is updated; the program says so. Direct connections on your own network do not pass through a server and do not change.
+
+## Ways that need no server {#what-works-today}
 
 - **The home network**: a forwarded port and a public address or a dynamic DNS name make your folders reachable from anywhere - see [Home network](home-network.html).
 - **The Server edition of the Windows program** keeps a PC's folders available around the clock, with no exchange server: it runs the same SFTP sharing as a Windows service that starts at boot, and paired phones keep working - see [Windows servers](windows-servers.html).
 - **A VPN to your home network** works with every network folder, because the app then sees your home addresses as local ones.
-- **Google Drive keeps the phone's address up to date.** Switch on **Share access through Google Drive** in the phone's SFTP server card (it is off by default): while the server runs, the phone then writes its current address and sign-in details into the app's private space of your Google Drive. Another device signed in to the same Google account then opens the paired folder at its new address after a network change, without scanning the code again. The device still has to be able to reach the phone - on the same network, over a VPN or through a forwarded port; Drive only tells it where to look.
+- **Google Drive keeps the phone's address up to date.** Switch on **Share access through Google Drive** in the phone's SFTP server card (it is off by default): while the server runs, the phone then writes its current address and sign-in details into the app's private space of your Google Drive. Another device signed in to the same Google account then opens the paired folder at its new address after a network change, without scanning the code again. The device still has to be able to reach the phone - on the same network, over a VPN or through a forwarded port; Drive only tells it where to look. Via Google Drive, files and the clipboard are kept in your own Google account, like your other files on Google Drive; no exchange server takes part.
 - **Clouds** - Google Drive, Dropbox and OneDrive are a shared box every signed-in device opens - see [Clouds](clouds.html).
 
 ## Step-by-step guides
 
+- [Installing and checking your exchange server](exchange-server-install.html)
+- [Accounts, invitations and passwords](exchange-accounts.html)
+- [Clipboard on the server](exchange-clipboard.html)
+- [How to delete an account](account-deletion.html)
 - [Turning the phone into an SFTP server](../../documentation/network/phone-as-sftp-server.html)
 - [Sharing PC folders with Fast Media Sorter & Sharing for Windows](../../documentation/network/windows-companion.html)
 - [Google Drive integration](../../documentation/network/cloud-google-drive.html)

@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.wear.ui.streams
 
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastPassStore
+import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastPlaybackResolver
 import com.sza.fastmediasorter.wear.data.repository.WearFaviconAtlasStore
 import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
 import com.sza.fastmediasorter.wear.data.repository.WearStreamPinsRepository
@@ -184,6 +186,8 @@ class StreamsViewModelSearchTest {
                 playbackSetManager = mockk<PlaybackSetManager>(relaxed = true),
                 usageRepository = mockk<WearStreamUsageRepository>(relaxed = true),
                 preferencesRepository = mockk<WearPreferencesRepository>(relaxed = true),
+                passStore = mockk<WearBroadcastPassStore>(relaxed = true),
+                resolver = mockk<WearBroadcastPlaybackResolver>(relaxed = true),
             ),
             streamPinsRepository = streamPinsRepository,
             // S2149: no phone pins in these cases - the watch's own marks are what they exercise.

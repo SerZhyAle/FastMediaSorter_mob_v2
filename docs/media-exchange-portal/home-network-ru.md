@@ -5,7 +5,7 @@ description: "Раздача папок с медиа-ПК или телефон
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/home-network-ru.html
 ---
-<sub class="doc-stamp">26.10.10 14:45</sub>
+<sub class="doc-stamp">26.10.15 15:03</sub>
 
 # Домашняя сеть: ваше хранилище, доступное снаружи
 
@@ -46,7 +46,7 @@ permalink: /docs/media-exchange-portal/home-network-ru.html
 ![Карточка настройки домашней сети: телефон снаружи в 4G и телефон дома в Wi-Fi, роутер с закреплённым адресом ПК и пробросом порта 2222, ПК-хранилище с выбранными папками и QR-кодом, телевизор и ноутбуки дома.](from-windows/quick-scheme-3-router.svg)
 
 <div class="doc-callout doc-callout-note" markdown="1">
-**Провайдер не даёт публичный адрес?** Многие мобильные и часть домашних провайдеров ставят вас за NAT оператора, и тогда никакой проброшенный порт до роутера не доходит. Первое, что стоит попробовать, - IPv6: если у ПК есть адрес IPv6, код из Share Manager уже его несёт, и по нему можно дойти до ПК там, где проброс не работает. VPN в домашнюю сеть по-прежнему работает; для этого случая задуман [сервер обмена](exchange-server-ru.html), но он ещё не выпущен.
+**Провайдер не даёт публичный адрес?** Многие мобильные и часть домашних провайдеров ставят вас за NAT оператора, и тогда никакой проброшенный порт до роутера не доходит. Первое, что стоит попробовать, - IPv6: если у ПК есть адрес IPv6, код из Share Manager уже его несёт, и по нему можно дойти до ПК там, где проброс не работает. VPN в домашнюю сеть по-прежнему работает; для этого случая задуман [сервер обмена](exchange-server-ru.html): каждое устройство само подключается к нему, поэтому проброшенный порт на стороне устройств не нужен. Как папка открывается через него, по шагам: [Папки через сервер обмена](folders-exchange-server-ru.html).
 </div>
 
 ## Пошаговые инструкции
@@ -55,6 +55,8 @@ permalink: /docs/media-exchange-portal/home-network-ru.html
 - [Подключение серверов SFTP и FTP](../../documentation/network/sftp-ftp-servers-ru.html)
 - [Раздача папок ПК через Fast Media Sorter & Sharing for Windows](../../documentation/network/windows-companion-ru.html)
 - [Телефон как SFTP-сервер](../../documentation/network/phone-as-sftp-server-ru.html)
+- [Телефон как сервер: сколько он работает, режим лаунчера и мобильный трафик](phone-sharing-ru.html)
+- [Папки через сервер обмена](folders-exchange-server-ru.html)
 - [Сетевые папки и облачные хранилища как источники](../../documentation/storage/network-and-cloud-sources-ru.html)
 - [Публикация папок ПК для Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html) - на сайте продукта для Windows
 

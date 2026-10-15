@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: doc
 title: "Повідомлення про відкрите ПЗ"
 permalink: /docs/OPEN_SOURCE-uk.html
 ---

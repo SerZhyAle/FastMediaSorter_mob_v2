@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.data.exchange
 
+import com.sza.fastmediasorter.data.security.e2e.E2eBytes
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPlayback
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPlayback.Reason
 import kotlinx.coroutines.Dispatchers
@@ -93,7 +94,15 @@ class WearBroadcastPlaybackResolver @Inject constructor(
         endpoint: WearBroadcastEndpoint.Relay,
         credentials: WearBroadcastCredentials?,
     ): WearBroadcastPlayback = try {
-        playable(record, endpoint, bridges.open(endpoint, credentials?.let(::basicHeader)))
+        val header = credentials?.let(::basicHeader)
+        // 27 item DL: a sealed relay is no stream for any player, so it plays only through the opening proxy.
+        val groupKey = endpoint.groupKey?.let(E2eBytes::fromB64url)
+        val url = if (groupKey == null) {
+            bridges.open(endpoint, header)
+        } else {
+            bridges.openSealed(endpoint, groupKey, header)
+        }
+        playable(record, endpoint, url)
     } catch (e: IOException) {
         Timber.w("WearBroadcastPlaybackResolver: no loopback bridge - %s", e.javaClass.simpleName)
         WearBroadcastPlayback.Unavailable(Reason.UNREACHABLE)

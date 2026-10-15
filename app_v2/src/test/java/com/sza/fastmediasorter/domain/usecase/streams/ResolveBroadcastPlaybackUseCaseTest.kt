@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnection
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnector
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTrust
 import com.sza.fastmediasorter.domain.usecase.streams.ResolveBroadcastPlaybackUseCase.Playback
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -46,6 +47,7 @@ class ResolveBroadcastPlaybackUseCaseTest {
     private fun useCase(connector: ExchangeConnector) = ResolveBroadcastPlaybackUseCase(
         BroadcastEndpointProbe(connector),
         BroadcastLoopbackBridges(connector),
+        mockk(relaxed = true),
         Dispatchers.Unconfined,
     )
 

@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "Écouter de la musique sur votre montre - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music-fr.html
 ---
-<sub class="doc-stamp">26.09.25 02:17</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-music-fr.html
 > **Niveau :** Débutant &bull; **Durée :** ~5 minutes &bull; **Appareil :** Montre connectée Wear OS (associée à un téléphone Android)
 
 > **Version complète uniquement** - ce guide n'est pas implémenté dans la version distribuée via Google Play. Il s'applique à la version complète, un téléchargement direct de l'APK depuis [Téléchargements](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="scenario-watch-music" dir="/docs/howto/" current="fr" %}
 
 FastMediaSorter vous permet de parcourir et de lire votre collection musicale directement depuis votre montre connectée Wear OS. Vous pouvez diffuser des pistes partagées depuis votre téléphone associé ou lire des fichiers audio locaux stockés sur la montre, avec pochettes d'album, lecture aléatoire, contrôle du volume par la lunette rotative, lecture en arrière-plan qui survit à la fermeture de l'application, et un mode écran éteint qui garde la musique en marche avec l'affichage sombre.
 

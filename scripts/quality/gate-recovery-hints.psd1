@@ -135,6 +135,16 @@
         Fix   = 'A published page loads a third-party host the declaration does not name, a declared host is no longer loaded, a privacy page does not name a host, or an advertising host loads outside the landing. Add or remove the record in scripts/quality/site-origins.psd1 and the matching text in docs/PRIVACY_POLICY.md, -ru and -uk, or remove the load from the page the FAIL line names.'
     }
 
+    'released-addresses' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-released-addresses.ps1'
+        Fix   = 'A page a release carried (docs/site-released-addresses.jsonl) lost its address or a section anchor. Put the page back at its address, or retire it with scripts/docs/retire-docs-page.ps1 when its capability is gone - a move forwarder is not allowed for a released page. A reworded Markdown heading keeps its old anchor as ## New words {#old-id}; a removed HTML id goes back on the element that carried it. Never delete a line of the record.'
+    }
+
+    'portal-pages' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-portal-pages.ps1'
+        Fix   = 'The media exchange portal is out of step with scripts/docs/portal-sections.json. A new page base gets a section with its owning program; a section is written in en, ru and uk together; a picture exists as diagrams/<name>-<lang>.svg in every language and a page embeds only its own language; a stale scheme is re-rendered with pwsh -NoProfile -File scripts/docs/render-usage-schemes.ps1, never edited by hand.'
+    }
+
     'showcase-inventory' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-showcase-inventory.ps1'
         Fix   = 'A docs/FEATURES*.md or current docs/WHATS_NEW*.md bullet has no <!-- af: id --> anchor, anchors an id that is not an active docs/ALL_FEATURES.jsonl record, anchors a noLegal-only record in a public file, or its RU/UK copy anchors other ids than EN. Anchor the bullet to the record it announces, in all three locales at the same position; a capability with no record gets one through scripts/all_features/add.ps1, a removed one loses its bullet.'

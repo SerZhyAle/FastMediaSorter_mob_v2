@@ -53,7 +53,8 @@ object ImageLoadingDiagnostics {
                 msg.contains("ImageDecoder", ignoreCase = true) ||
                 msg.contains("HEIC", ignoreCase = true) ||
                 msg.contains("HEIF", ignoreCase = true) ||
-                msg.contains("AVIF", ignoreCase = true)
+                msg.contains("AVIF", ignoreCase = true) ||
+                msg.contains("JXL", ignoreCase = true)
         }
     }
 

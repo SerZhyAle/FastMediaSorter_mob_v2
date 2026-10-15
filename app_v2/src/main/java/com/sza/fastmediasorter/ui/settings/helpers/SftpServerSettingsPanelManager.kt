@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeGrantsUse
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeProducerUseCase
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageSftpServerUseCase
 import com.sza.fastmediasorter.service.SftpServerService
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.queryTreeDisplayName
@@ -114,6 +115,9 @@ class SftpServerSettingsPanelManager(
 
     private fun bindControls() {
         binding.rowSftpServerEnabled.setOnCheckedChangeListener(::onToggle)
+        binding.btnSftpServerPortal.setOnClickListener {
+            MediaExchangePortalLinks.open(fragment.requireActivity(), MediaExchangePortalLinks.Page.PHONE_SHARING)
+        }
         binding.btnSftpServerAddRoot.setOnClickListener { launchRootPicker(buildRootPickerIntent()) }
         binding.etSftpServerPort.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) savePort()

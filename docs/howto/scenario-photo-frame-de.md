@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Digitaler Bilderrahmen auf dem Tablet - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-de.html
 ---
-<sub class="doc-stamp">26.09.25 02:19</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
 # 🖼️ Digitaler Bilderrahmen auf dem Tablet
 
 > **Niveau:** Anfänger &bull; **Zeit:** ~15 Minuten &bull; **Edition:** Standard, Photos, Legacy, VR, noLegal (für NAS-/Cloud-Fotos) oder beliebige Edition (für lokale Fotos)
-
-{% include lang-switcher.html doc="scenario-photo-frame" dir="/docs/howto/" current="de" %}
 
 Verwandeln Sie jedes Android-Tablet in einen wunderschönen, dauerhaft aktiven digitalen Bilderrahmen - der Ihre Erinnerungen von einem Heim-NAS oder der Cloud streamt, mit optionaler Hintergrundmusik. Kein lokaler Speicherplatz wird verbraucht.
 

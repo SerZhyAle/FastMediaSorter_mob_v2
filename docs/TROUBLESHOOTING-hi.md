@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "🔧 समस्या निवारण गाइड"
 permalink: /docs/TROUBLESHOOTING-hi.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
 # 🔧 समस्या निवारण गाइड
 
 FastMediaSorter v2 के लिए मौजूदा समस्या निवारण गाइड. जब समस्या चुने गए बिल्ड पथ (Standard, Lite, Photos, Legacy, या XR / noLegal) पर निर्भर करती है तो [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) में दी गई कैनोनिकल संस्करण तालिका इस्तेमाल करें.
-
-{% include lang-switcher.html doc="TROUBLESHOOTING" dir="/docs/" current="hi" %}
 
 ---
 

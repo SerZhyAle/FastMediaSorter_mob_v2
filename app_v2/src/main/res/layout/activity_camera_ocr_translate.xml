@@ -353,7 +353,7 @@
                 android:nextFocusRight="@+id/btnCropOcrLang"
                 android:padding="0dp"
                 android:tooltipText="@string/camera_ocr_crop_retry"
-                app:icon="@drawable/ic_refresh"
+                app:icon="@drawable/ic_replay"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
                 app:iconSize="@dimen/icon_tier_20"

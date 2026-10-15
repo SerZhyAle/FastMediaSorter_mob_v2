@@ -357,6 +357,7 @@ object SftpRendezvousCodec {
             writtenAtMs = writtenAt,
             ttlSeconds = ttl,
             sealed = (body.get(KEY_SEALED) as? JsonObject)?.toString(),
+            grantId = body.string(KEY_GRANT_ID)?.takeIf(String::isNotBlank),
         )
     }
 

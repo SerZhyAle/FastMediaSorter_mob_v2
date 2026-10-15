@@ -76,6 +76,7 @@ class ConnectWatchToExchangeEntryUseCaseTest {
             val parsed = WearExchangeHandoverCodec.parse(thirdArg(), gson) as WearExchangeHandoverParseResult.Parsed
             assertEquals(CODE, parsed.payload.pairingCode)
             assertEquals(PIN, parsed.payload.pinnedCertificate)
+            assertEquals(KEY, parsed.payload.pinnedKey)
             assertEquals(LOGIN, parsed.payload.login)
             WearSyncEvents.emitExchangeHandoverAck(WearExchangeHandoverAck(parsed.payload.requestId, enrolled = true))
         }
@@ -151,6 +152,7 @@ class ConnectWatchToExchangeEntryUseCaseTest {
         const val EXPIRES_AT = "2026-10-11T12:10:00Z"
         const val LOGIN = "owner.home"
         const val PIN = "SHA256:pinned"
+        const val KEY = "SHA256:key"
         const val ACK_TIMEOUT_MS = 45_000L
         val NODES = listOf(WearNode("a", "Watch A"), WearNode("b", "Watch B"))
         val ENTRY = DeviceExchangeAccountEntry(
@@ -159,6 +161,7 @@ class ConnectWatchToExchangeEntryUseCaseTest {
             login = LOGIN,
             deviceId = "AAAAAAAAAAAAAAAAAAAAAA",
             pinnedCertificate = PIN,
+            pinnedKey = KEY,
         )
     }
 }

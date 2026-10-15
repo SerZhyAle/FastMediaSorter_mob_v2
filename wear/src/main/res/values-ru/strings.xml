@@ -115,7 +115,7 @@
     <string name="wear_video_continue">Продолжить</string>
     <string name="phone_resource_title">Телефон</string>
     <string name="phone_resource_loading">Загрузка с телефона..</string>
-    <string name="phone_resource_retry">Повторить</string>
+    <string name="phone_resource_retry">Повторить попытку</string>
     <string name="phone_resource_empty">Здесь нечего показать. Откройте другую папку или повторите.</string>
     <string name="phone_resource_unavailable">FastMediaSorter не отвечает на телефоне. Откройте его там и держите телефон рядом.</string>
     <string name="phone_resource_access_denied">Телефон не открывает эту папку для часов.</string>
@@ -1147,4 +1147,6 @@
     <string name="wear_exchange_reason_e2e_missing">Это устройство пока не умеет принимать защищённое содержимое, поэтому через сервер ему ничего не отправляется.</string>
     <string name="wear_exchange_reason_server_no_e2e">Этот сервер не умеет передавать защищённое содержимое, поэтому папки, трансляции и буфер через него не идут.</string>
     <string name="wear_exchange_reason_sealed_failed">Это не удалось открыть на этом устройстве. Повторите с другого устройства.</string>
+    <string name="wear_exchange_server_honest_text">Сервер обмена соединяет ваши устройства, поэтому знает имена вашего аккаунта, устройств, папок и трансляций, видит, какие устройства в сети, и сколько и когда передаётся. Открыть то, что идёт через него, он не может: папки и их файлы, трансляции и буфер шифруются на вашем устройстве и открываются только на других ваших устройствах или у тех, кому вы дали доступ. Чтобы заглянуть внутрь, тому, кто управляет сервером, пришлось бы добавить в ваш аккаунт своё устройство, и оно появилось бы в списке ваших устройств.</string>
+    <string name="wear_stream_broadcast_unplayable">Эта трансляция на часах не воспроизводится</string>
 </resources>

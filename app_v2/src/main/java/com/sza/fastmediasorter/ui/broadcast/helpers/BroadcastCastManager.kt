@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -103,7 +104,8 @@ class BroadcastCastManager @Inject constructor(
                 }
             }
             .setNeutralButton(R.string.exchange_portal_link_broadcast) { _, _ ->
-                MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.LIVE_BROADCAST)
+                Timber.d("S4273: cast picker link opens the receive page")
+                MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.BROADCAST_RECEIVE)
             }
             .setNegativeButton(R.string.cancel, null)
             .showBoundTo(activity)

@@ -1,0 +1,31 @@
+{
+  "_comment": "S4256 - the sections of the shared media exchange portal (docs/media-exchange-portal) and the program that owns each, contract DOC-EXTERNAL-QUALITY 0.11 section 9 item H. A section is a page base name; its three variants are <base>.md, <base>-ru.md and <base>-uk.md. A common section is the part every program's authors supplement and correct, published by the publisher. Read by scripts/quality/assert-portal-pages.ps1.",
+  "portal": "docs/media-exchange-portal",
+  "publisher": "fms-android",
+  "languages": ["en", "ru", "uk"],
+  "programs": {
+    "fms-android": "FastMediaSorter for Android (phone and watch), this repository",
+    "fms-windows": "Fast Media Sorter & Sharing for Windows"
+  },
+  "sections": [
+    { "page": "index", "owner": "fms-android", "common": true },
+    { "page": "clouds", "owner": "fms-android", "common": false },
+    { "page": "editions", "owner": "fms-android", "common": false },
+    { "page": "exchange-server", "owner": "fms-android", "common": true },
+    { "page": "exchange-server-install", "owner": "fms-android", "common": true },
+    { "page": "exchange-accounts", "owner": "fms-android", "common": true },
+    { "page": "exchange-clipboard", "owner": "fms-android", "common": true },
+    { "page": "account-deletion", "owner": "fms-android", "common": true },
+    { "page": "home-network", "owner": "fms-android", "common": true },
+    { "page": "live-broadcast", "owner": "fms-android", "common": true },
+    { "page": "folders-exchange-server", "owner": "fms-android", "common": true },
+    { "page": "folders-google-drive", "owner": "fms-android", "common": false },
+    { "page": "broadcast-start", "owner": "fms-android", "common": true },
+    { "page": "broadcast-receive", "owner": "fms-android", "common": true },
+    { "page": "watch-exchange", "owner": "fms-android", "common": false },
+    { "page": "schedule-remote-folders", "owner": "fms-android", "common": false },
+    { "page": "phone-sharing", "owner": "fms-android", "common": false },
+    { "page": "my-devices", "owner": "fms-android", "common": false },
+    { "page": "windows-servers", "owner": "fms-windows", "common": false }
+  ]
+}

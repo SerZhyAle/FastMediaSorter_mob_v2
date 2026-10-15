@@ -1,7 +1,11 @@
 package com.sza.fastmediasorter.data.remote.sftp.anywhere
 
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastTunnelTls
+import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeBroadcastGrants
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeChanged
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectory
@@ -43,6 +47,7 @@ import java.util.Collections
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
+import javax.net.ssl.SSLContext
 
 /**
  * The producer side of contract DEVICE-EXCHANGE sections 7.3-7.5 through the outgoing account entry: keeps the
@@ -63,6 +68,7 @@ class SftpServerTunnelManager @Inject constructor(
     private val source: SftpExchangeProducerSource,
     @ApplicationScope private val appScope: CoroutineScope,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val broadcastGrants: ExchangeBroadcastGrants,
 ) {
 
     private val mutableState = MutableStateFlow<SftpTunnelState>(SftpTunnelState.Off)
@@ -133,12 +139,25 @@ class SftpServerTunnelManager @Inject constructor(
         appScope.launch(ioDispatcher) { sendGrants(control) }
     }
 
+    /** Withdraws one grant on the live control stream (item BD); false when none is welcomed. Blocking. */
+    fun sendUngrant(grantId: String): Boolean = sendControl(ExchangeGrantEnvelopes.ungrant(grantId))
+
     // The server keeps a grant's `access` in memory only while this device is online, as it keeps `access` (7.9).
-    private suspend fun sendGrants(control: LiveControl) {
-        val target = share ?: return
+    // Item BD: a broadcast's guest grants live with the broadcast, so they go only while it is the announced one.
+    private suspend fun sendGrants(control: LiveControl, folders: Boolean = true) {
         val entry = control.entry ?: return
         val sealing = ExchangeGrantSealing(entry, control.serverSeals, control.grantAudience)
-        source.grantEnvelopes(target.localPort, target.hosts, sealing).forEach { sendQuietly(control.session, it) }
+        val target = share?.takeIf { folders }
+        target?.let { source.grantEnvelopes(it.localPort, it.hosts, sealing) }.orEmpty()
+            .forEach { sendGrant(control, it) }
+        if (control.announces(broadcast)) source.broadcastGrantEnvelopes(sealing).forEach { sendGrant(control, it) }
+    }
+
+    private fun sendGrant(control: LiveControl, envelope: DeviceExchangeEnvelope) {
+        if (!sendQuietly(control.session, envelope)) return
+        envelope.string(DeviceExchangeEnvelope.KEY_GRANT_ID)?.let { grantId ->
+            control.grantSent(grantId, envelope.string(DeviceExchangeAccountClient.KEY_BROADCAST_ID) != null)
+        }
     }
 
     /** Stops publishing the share; a live broadcast keeps the control stream and only the share leaves it. */
@@ -176,8 +195,9 @@ class SftpServerTunnelManager @Inject constructor(
         broadcast = publication
         val control = live.get()
         when {
-            control != null ->
-                appScope.launch(ioDispatcher) { announce(control, sealedPublication(control, publication)) }
+            control != null -> appScope.launch(ioDispatcher) {
+                if (announce(control, sealedPublication(control, publication))) sendGrants(control, folders = false)
+            }
             job?.isActive != true -> job = appScope.launch(ioDispatcher) { run() }
         }
     }
@@ -318,7 +338,8 @@ class SftpServerTunnelManager @Inject constructor(
                 sendQuietly(session, LIST)
                 sendQuietly(session, SUBSCRIBE)
             }
-            broadcast?.let { announce(control, sealedPublication(control, it)) }
+            val started = broadcast?.let { announce(control, sealedPublication(control, it)) } == true
+            if (started) sendGrants(control, folders = false)
             var envelope = session.receive()
             while (envelope != null) {
                 lastHeard.touch()
@@ -345,9 +366,11 @@ class SftpServerTunnelManager @Inject constructor(
         when (envelope.type) {
             DeviceExchangeEnvelope.TYPE_PUBLISHED ->
                 mutableState.value = SftpTunnelState.Registered(envelope.int(KEY_PUBLIC_PORT)?.takeIf { it > 0 })
-            DeviceExchangeEnvelope.TYPE_REFUSED -> return refusal(envelope.string(DeviceExchangeEnvelope.KEY_REASON))
+            DeviceExchangeEnvelope.TYPE_REFUSED -> return refusedOn(control, envelope)
             DeviceExchangeEnvelope.TYPE_GRANTED -> envelope.string(DeviceExchangeEnvelope.KEY_GRANT_ID)?.let { id ->
+                control.grantAnswered(id)
                 mutableGranted.value = mutableGranted.value + id
+                broadcastGrants.markGranted(id)
             }
             DeviceExchangeEnvelope.TYPE_CHANGED -> follow(tunnels, control, entry, envelope)
             in FORWARDED_TYPES -> {
@@ -356,13 +379,28 @@ class SftpServerTunnelManager @Inject constructor(
             }
             DeviceExchangeEnvelope.TYPE_OPEN -> envelope.string(DeviceExchangeAccountClient.KEY_TUNNEL_ID)?.let { id ->
                 val port = tunnelPort(envelope, sharePort)
-                if (port == null) {
-                    Timber.i("SftpServerTunnelManager: open for nothing this device serves now")
-                } else {
-                    tunnels.launch(ioDispatcher) { tunnel(entry, id, port) }
+                // 27 item DM: a broadcast tunnel runs inside the broadcast's own TLS, and never in clear.
+                val broadcastId = envelope.string(DeviceExchangeAccountClient.KEY_BROADCAST_ID)
+                val tls = broadcastId?.let(source::tunnelTls)
+                when {
+                    port == null -> Timber.i("SftpServerTunnelManager: open for nothing this device serves now")
+                    broadcastId != null && tls == null ->
+                        Timber.i("SftpServerTunnelManager: broadcast open refused, no tunnel identity")
+                    else -> tunnels.launch(ioDispatcher) { tunnel(entry, id, port, tls) }
                 }
             }
         }
+        return null
+    }
+
+    // Item BD: a grant's refusal carries no grantId, so a grant reason while a sent grant is unanswered belongs to
+    // the oldest one; ending the session for it would reconnect and be refused again in a loop.
+    private fun refusedOn(control: LiveControl, envelope: DeviceExchangeEnvelope): SessionOutcome? {
+        val reason = envelope.string(DeviceExchangeEnvelope.KEY_REASON)
+        val grant = control.takeIf { reason in GRANT_REFUSALS }?.oldestUnanswered() ?: return refusal(reason)
+        Timber.d("S4272: grant refusal kept the control stream")
+        if (grant.broadcast) broadcastGrants.markRefusedPending()
+        Timber.w("SftpServerTunnelManager: grant refused (%s)", reason)
         return null
     }
 
@@ -416,17 +454,19 @@ class SftpServerTunnelManager @Inject constructor(
         resealBroadcast(control, entry)
         val devices = control.directory?.directory?.devices
         val record = control.record
-        if (devices == null || record == null) return
-        val sealed = source.sealedRecord(entry, record, control.serverSeals, devices)
-        if (sealed.recipientsKey != control.recipientsKey) {
-            control.recipientsKey = sealed.recipientsKey
-            if (control.resourceId != null) sendQuietly(control.session, publishEnvelope(sealed.record))
+        if (devices != null && record != null) {
+            val sealed = source.sealedRecord(entry, record, control.serverSeals, devices)
+            if (sealed.recipientsKey != control.recipientsKey) {
+                control.recipientsKey = sealed.recipientsKey
+                if (control.resourceId != null) sendQuietly(control.session, publishEnvelope(sealed.record))
+            }
         }
-        // Item DJ: a grant is sent again with the same grantId and a new box when its guest's devices change.
+        // Item DJ: a grant is sent again with the same grantId and a new box when its guest's devices change; the
+        // audience arrives with the member's directory, so a broadcast's grants wait here for their first box.
         val grantKey = control.grantAudience?.let(ExchangeGrantAudiences::keyOf)
         if (grantKey != control.grantKey) {
             control.grantKey = grantKey
-            if (control.resourceId != null) sendGrants(control)
+            sendGrants(control, folders = control.resourceId != null)
         }
     }
 
@@ -470,7 +510,8 @@ class SftpServerTunnelManager @Inject constructor(
         false
     }
 
-    // Serialized per stream so a start can never arrive after the update meant to follow it.
+    // Serialized per stream so a start can never arrive after the update meant to follow it. True when a
+    // broadcast-start went out, which is when the broadcast's guest grants follow it.
     private fun announce(control: LiveControl, publication: ExchangeBroadcastPublication) = synchronized(control) {
         val id = publication.record.broadcastId
         val type = if (control.broadcastId == id) {
@@ -483,10 +524,26 @@ class SftpServerTunnelManager @Inject constructor(
             if (type == DeviceExchangeEnvelope.TYPE_BROADCAST_START) {
                 addProperty(KEY_MAX_LISTENERS, publication.maxListeners)
             }
+            // Item BF: on start and on every update, so a revoked pair leaves the relay with the next update.
+            if (publication.verifiers.isNotEmpty()) add(KEY_VERIFIERS, verifiersJson(publication))
         }
-        if (sendQuietly(control.session, envelope)) {
+        val sent = sendQuietly(control.session, envelope)
+        if (sent) {
             Timber.i("SftpServerTunnelManager: broadcast announced (%s)", type)
             control.broadcastId = id
+        }
+        sent && type == DeviceExchangeEnvelope.TYPE_BROADCAST_START
+    }
+
+    private fun verifiersJson(publication: ExchangeBroadcastPublication) = JsonArray().apply {
+        publication.verifiers.forEach { verifier ->
+            add(
+                JsonObject().apply {
+                    addProperty("user", verifier.user)
+                    addProperty("salt", verifier.salt)
+                    addProperty("hash", verifier.hash)
+                },
+            )
         }
     }
 
@@ -521,21 +578,28 @@ class SftpServerTunnelManager @Inject constructor(
         return sent
     }
 
-    private suspend fun tunnel(entry: DeviceExchangeAccountEntry, tunnelId: String, localPort: Int) {
+    /** [tls] answers a broadcast tunnel inside its own TLS (27 item DM); null splices the stream as it is. */
+    private suspend fun tunnel(entry: DeviceExchangeAccountEntry, tunnelId: String, localPort: Int, tls: SSLContext?) {
         var data: ExchangeConnection? = null
+        var secure: Socket? = null
         var local: Socket? = null
         try {
             val stream = track(client.attach(entry, tunnelId))
             data = stream
+            Timber.d("S4240: phone answers a tunnel stream, inner TLS=${tls != null}")
+            val clear: Socket = tls?.let { context ->
+                track(BroadcastTunnelTls.serve(context, stream.input, stream.output, stream)).also { secure = it }
+            } ?: stream.socket
             val server = track(Socket(LOOPBACK, localPort))
             local = server
             coroutineScope {
-                launch(ioDispatcher) { pump(stream.input, server.getOutputStream(), stream, server) }
-                launch(ioDispatcher) { pump(server.getInputStream(), stream.output, stream, server) }
+                launch(ioDispatcher) { pump(clear.getInputStream(), server.getOutputStream(), clear, server) }
+                launch(ioDispatcher) { pump(server.getInputStream(), clear.getOutputStream(), clear, server) }
             }
         } catch (e: IOException) {
             Timber.i(e, "SftpServerTunnelManager: tunnel could not be opened")
         } finally {
+            secure?.let(::close)
             data?.let(::close)
             local?.let(::close)
         }
@@ -620,7 +684,28 @@ class SftpServerTunnelManager @Inject constructor(
 
         @Volatile
         var broadcastId: String? = null
+
+        fun announces(publication: ExchangeBroadcastPublication?): Boolean =
+            publication != null && publication.record.broadcastId == broadcastId
+
+        /** Grants written and not answered yet, oldest first; a grant sent again is answered again. */
+        private val unanswered = ArrayDeque<SentGrant>()
+
+        @Synchronized
+        fun grantSent(grantId: String, broadcast: Boolean) {
+            unanswered.addLast(SentGrant(grantId, broadcast))
+        }
+
+        @Synchronized
+        fun grantAnswered(grantId: String) {
+            unanswered.indexOfFirst { it.grantId == grantId }.takeIf { it >= 0 }?.let(unanswered::removeAt)
+        }
+
+        @Synchronized
+        fun oldestUnanswered(): SentGrant? = unanswered.removeFirstOrNull()
     }
+
+    private data class SentGrant(val grantId: String, val broadcast: Boolean)
 
     private class LastHeard {
         @Volatile
@@ -647,6 +732,7 @@ class SftpServerTunnelManager @Inject constructor(
         const val KEY_RESOURCE = "resource"
         const val KEY_BROADCAST = "broadcast"
         const val KEY_MAX_LISTENERS = "maxListeners"
+        const val KEY_VERIFIERS = "verifiers"
         const val KEY_PUBLIC_PORT = "publicPort"
         const val INITIAL_BACKOFF_MS = 2_000L
         const val MAX_BACKOFF_MS = 120_000L
@@ -664,6 +750,10 @@ class SftpServerTunnelManager @Inject constructor(
         val LIST = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_LIST)
         val SUBSCRIBE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_SUBSCRIBE)
         val BYE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_BYE)
+        val GRANT_REFUSALS = setOf(
+            DeviceExchangeEnvelope.REASON_UNAVAILABLE,
+            DeviceExchangeEnvelope.REASON_NOT_PERMITTED,
+        )
         val PERMANENT_REFUSALS = setOf(
             DeviceExchangeEnvelope.REASON_BAD_CREDENTIALS,
             DeviceExchangeEnvelope.REASON_DEVICE_REVOKED,

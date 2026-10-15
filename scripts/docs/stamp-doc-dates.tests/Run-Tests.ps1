@@ -8,7 +8,8 @@
     Asserts where the stamp lands (after front matter and leading comments in Markdown, after <body>
     in HTML), that stripping it restores the original text byte for byte, that line endings and the
     BOM survive, and - on a scratch tree - that a second run writes nothing, that an edited file is
-    restamped from its own mtime, and that a generated file is left alone.
+    restamped from its own mtime, that a generated file is left alone, and that restamping a portal
+    recipe source hands its language to the page generator's -StampOnly exactly once.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/docs/stamp-doc-dates.tests/Run-Tests.ps1
@@ -115,6 +116,33 @@ try {
     $edited = [IO.File]::ReadAllText($editFile)
     Assert-That 'script: an edited file is restamped from its new mtime' ($edited.StartsWith('<sub class="doc-stamp">26.03.04 05:06</sub>'))
     Assert-That 'script: restamping keeps the body and adds no second stamp' ((([regex]::Matches($edited, 'doc-stamp')).Count -eq 1) -and $edited.Contains('more'))
+
+    # A stub page generator records each call, so the recipe hand-off is judged without a render.
+    $callLog = Join-Path $tmp 'generator-calls.log'
+    $stub = "param([switch]`$StampOnly, [string]`$Lang = 'en')`nAdd-Content -LiteralPath '$callLog' -Value `"`$Lang|`$StampOnly`"`nexit 0`n"
+    [IO.File]::WriteAllText((Join-Path $tmp 'scripts/docs/generate-docs-pages.ps1'), $stub, [Text.UTF8Encoding]::new($false))
+    New-Item -ItemType Directory -Path (Join-Path $tmp 'docs/content/recipes-ru') -Force | Out-Null
+    $recipeFile = Join-Path $tmp 'docs/content/recipes-ru/r.md'
+    $plainFile = Join-Path $tmp 'docs/plain2.md'
+    [IO.File]::WriteAllText($recipeFile, "---`npage_id: r`n---`n# R`n", [Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText($plainFile, "# Plain2`n", [Text.UTF8Encoding]::new($false))
+    foreach ($f in @($recipeFile, $plainFile)) { [IO.File]::SetLastWriteTime($f, $old) }
+    $getCalls = { if (Test-Path -LiteralPath $callLog) { @(Get-Content -LiteralPath $callLog) } else { @() } }
+
+    $null = & pwsh -NoProfile -File $runner -Files 'docs/content/recipes-ru/r.md,docs/plain2.md' -Check -Quiet
+    Assert-That 'recipe: -Check restamps no page' (@(& $getCalls).Count -eq 0)
+
+    $null = & pwsh -NoProfile -File $runner -Files 'docs/content/recipes-ru/r.md,docs/plain2.md' -Quiet
+    $calls = @(& $getCalls)
+    Assert-That 'recipe: a restamped source restamps its pages once, by language' (($calls.Count -eq 1) -and ($calls[0] -eq 'ru|True')) ($calls -join ';')
+
+    $null = & pwsh -NoProfile -File $runner -Files 'docs/content/recipes-ru/r.md' -Quiet
+    Assert-That 'recipe: a current source restamps no page' (@(& $getCalls).Count -eq 1)
+
+    Add-Content -LiteralPath $plainFile -Value 'more'
+    [IO.File]::SetLastWriteTime($plainFile, $newer)
+    $null = & pwsh -NoProfile -File $runner -Files 'docs/plain2.md' -Quiet
+    Assert-That 'recipe: a non-recipe document restamps no page' (@(& $getCalls).Count -eq 1)
 } finally {
     Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue
 }

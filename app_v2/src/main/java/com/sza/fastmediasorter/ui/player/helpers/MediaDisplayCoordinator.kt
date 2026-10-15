@@ -41,7 +41,7 @@ class MediaDisplayCoordinator(
             }
             else -> {
                 val ext = file.name.lowercase().substringAfterLast('.', "")
-                val imageExts = setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "heif", "heic", "avif")
+                val imageExts = setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "heif", "heic", "avif", "jxl")
                 if (ext in imageExts) {
                     Timber.w(
                         "MediaDisplayCoordinator: Unknown type ${file.type}, but extension suggests image - using displayImage()"

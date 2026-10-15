@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Поставить FastMedia на часы - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-ru.html
 ---
-<sub class="doc-stamp">26.09.30 13:01</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Поставить FastMedia на часы
 
 > **Уровень:** для начинающих &bull; **Время:** ~5 минут &bull; **Устройство:** часы на Wear OS, сопряжённые с телефоном Android
 
 > **Две версии.** Версия из Google Play - небольшой первый выпуск: калькулятор, секундомер, мини-игра, настройки и плитка «Программы». Музыка, фото, сетевые папки и функции телефона есть только в полной версии - APK для прямой загрузки со страницы [Загрузки](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="wear-install" dir="/docs/howto/" current="ru" %}
 
 FastMedia Wear - это часовая половина FastMediaSorter. Когда она на запястье, музыка и фотографии играют прямо с часов, доступны папки, которыми поделился сопряжённый телефон, и сетевые ресурсы, к которым часы подключаются сами. Эта страница ставит приложение и связывает две половины.
 

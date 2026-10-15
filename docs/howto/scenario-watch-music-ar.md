@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "الاستماع إلى الموسيقى على ساعتك - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music-ar.html
 ---
-<sub class="doc-stamp">26.09.25 02:25</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-music-ar.html
 > **المستوى:** مبتدئ &bull; **الوقت:** ~5 دقائق &bull; **الجهاز:** ساعة Wear OS ذكية (مقترنة بهاتف Android)
 
 > **الإصدار الكامل فقط** - هذا الدليل غير مطبّق في الإصدار الموزّع عبر Google Play. ينطبق على الإصدار الكامل، وهو تنزيل مباشر لملف APK من [التنزيلات](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="scenario-watch-music" dir="/docs/howto/" current="ar" %}
 
 يتيح لك FastMediaSorter تصفح وتشغيل مجموعتك الموسيقية مباشرة من ساعة Wear OS الذكية. يمكنك بث المقاطع المشتركة من هاتفك المقترن أو تشغيل ملفات صوتية محلية مخزّنة على الساعة، مع غلاف الألبوم، والتشغيل العشوائي، والتحكم بالصوت عبر الإطار الدوّار، والتشغيل في الخلفية الذي يستمر بعد مغادرة التطبيق، ووضع إطفاء الشاشة الذي يبقي الموسيقى تعمل مع إظلام الشاشة.
 

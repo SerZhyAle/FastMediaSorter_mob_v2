@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Organizzatore dei download (ordinamento rapido) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-it.html
 ---
-<sub class="doc-stamp">26.09.25 02:15</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="it" dir="ltr" markdown="1">
 
 # 🧹 Organizzatore dei download - Ordina i file con un tocco
 
 > **Livello:** Principiante &bull; **Edizione:** Qualsiasi (Standard, Lite, Photos, Legacy, VR, noLegal)
-
-{% include lang-switcher.html doc="scenario-download-organizer" dir="/docs/howto/" current="it" %}
 
 **L'ordinamento rapido** è la funzione di punta di FastMediaSorter: configura le tue cartelle una volta sola, poi ordina centinaia di file semplicemente toccando un numero. Niente trascinamento. Niente menu. Basta toccare **1**, **2** o **3** - e il file finisce subito al posto giusto.
 

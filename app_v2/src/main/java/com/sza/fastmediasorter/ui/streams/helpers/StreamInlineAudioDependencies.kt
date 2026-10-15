@@ -35,4 +35,7 @@ data class StreamInlineAudioCallbacks(
     // reference to this manager: the init-time StateFlow emit fires synchronously inside the constructor,
     // before that lateinit field is assigned, so reading it back crashed (UninitializedPropertyAccess).
     val onNowPlayingChanged: (playingId: String?, track: String?) -> Unit = { _, _ -> },
+    // LIVE-BROADCAST item M: a protected broadcast refused this device's pair, or it holds none. Retrying
+    // cannot help, so this replaces onError and the host asks for the password instead.
+    val onPasswordRequired: (StreamSourceEntity) -> Unit = {},
 )

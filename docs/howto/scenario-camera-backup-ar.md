@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "نسخ احتياطي مجدول للكاميرا إلى الكمبيوتر - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-ar.html
 ---
-<sub class="doc-stamp">26.09.25 02:14</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
 # 📷 نسخ احتياطي مجدول للكاميرا إلى الكمبيوتر
 
 > **المستوى:** مبتدئ &bull; **الوقت:** ~15 دقيقة للإعداد &bull; **الإصدار:** Standard وPhotos وLegacy وVR وnoLegal (يتطلب مصادر شبكة - لا تتوفر في Lite)
-
-{% include lang-switcher.html doc="scenario-camera-backup" dir="/docs/howto/" current="ar" %}
 
 انسخ الصور الجديدة تلقائيًا من كاميرا هاتفك إلى جهاز الكمبيوتر المنزلي **كل ليلة، عبر Wi-Fi**. أعدّه مرة واحدة - وسيعمل إلى الأبد دون أي إجراء يدوي.
 

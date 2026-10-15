@@ -10,20 +10,39 @@ appId: com.sza.fastmediasorter.debug
 # activity opens. A single guarded check that runs too early misses it and it then blocks titleText
 # for the caller. Settle and re-check twice so a late-appearing dialog is still dismissed; each pass
 # is a no-op when the dialog is absent.
+#
+# S4252: each pass used to be `when: visible` on the dialog title. On the usual run the dialog is
+# not there, so that guard was a failed lookup, and Maestro 2.6.1 spends ~7.3 s on a failed lookup
+# (measured 2026-10-15: two skipped guards, 7.4 s and 7.3 s, in front of every settings flow). A
+# lookup that succeeds answers in 0.2-1 s, so each pass now asks the question whose common answer
+# is a success - "is the dialog gone?" (`notVisible`, true when it is absent) - and only the rare
+# run where that fails goes on to tap. Same cost model and shape as permissions.yaml.
 - waitForAnimationToEnd
+- evalScript: ${output.cacheDialogUp = true}
 - runFlow:
     when:
-      visible:
+      notVisible:
         text: "Оптимизировать размер кэша?"
+    commands:
+      - evalScript: ${output.cacheDialogUp = false}
+- runFlow:
+    when:
+      true: ${output.cacheDialogUp}
     commands:
       - tapOn:
           text: "Оставить текущий"
       - waitForAnimationToEnd
 - waitForAnimationToEnd
+- evalScript: ${output.cacheDialogUp = true}
 - runFlow:
     when:
-      visible:
+      notVisible:
         text: "Оптимизировать размер кэша?"
+    commands:
+      - evalScript: ${output.cacheDialogUp = false}
+- runFlow:
+    when:
+      true: ${output.cacheDialogUp}
     commands:
       - tapOn:
           text: "Оставить текущий"

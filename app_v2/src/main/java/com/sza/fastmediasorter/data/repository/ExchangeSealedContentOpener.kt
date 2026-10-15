@@ -31,11 +31,12 @@ class ExchangeSealedContentOpener @Inject constructor(
 ) {
 
     suspend fun open(entry: DeviceExchangeAccountEntry, directory: DeviceExchangeDirectory): DeviceExchangeDirectory {
+        Timber.d("S4240: phone opens the sealed records of a directory")
         val sealing = e2e.sealing(entry, directory.devices)
         val grants = GrantTrust(e2e.grantSenders(entry))
         val opened = directory.copy(
             resources = directory.resources.map { openAccess(sealing, it, grants) },
-            broadcasts = directory.broadcasts.map { openBroadcast(sealing, it) },
+            broadcasts = directory.broadcasts.map { openBroadcast(sealing, it, grants) },
         )
         e2e.learnGrantSenders(entry, grants.learned)
         return opened
@@ -50,23 +51,45 @@ class ExchangeSealedContentOpener @Inject constructor(
      * from here on is the one a person would have handed over - every later step reads the keys from there. A box
      * that does not open leaves the sealed endpoints keyless, and a keyless sealed endpoint is never played.
      */
-    internal fun openBroadcast(sealing: ExchangeSealing, record: SftpRendezvousBroadcast): SftpRendezvousBroadcast {
+    internal fun openBroadcast(
+        sealing: ExchangeSealing,
+        record: SftpRendezvousBroadcast,
+        grants: GrantTrust = GrantTrust(emptyMap()),
+    ): SftpRendezvousBroadcast {
         val box = record.sealed?.let { runCatching { JsonParser.parseString(it) }.getOrNull() }
         val self = sealing.self
-        val opened = if (box == null || self == null) {
-            null
-        } else {
-            E2eSealedBox.open(box, E2eSealedBox.broadcastContext(record.broadcastId), self, sealing::trusts)
-                as? E2eOpenResult.Opened
+        val grantId = record.grantId
+        // Item DJ: a granted broadcast's box is the grant's, opened with the first sender key of that grant.
+        val result = when {
+            box == null || self == null -> null
+            grantId != null -> E2eSealedBox.open(box, E2eSealedBox.grantContext(grantId), self) { _, fromKey ->
+                grants.knows(grantId, fromKey) != false
+            }
+            else -> E2eSealedBox.open(box, E2eSealedBox.broadcastContext(record.broadcastId), self, sealing::trusts)
         }
+        val opened = result as? E2eOpenResult.Opened
+        Timber.d("S4272: guest opens a granted broadcast box")
+        if (grantId != null) opened?.let { grants.learn(grantId, it.fromKey) }
+        val issue = if (grantId == null || opened != null) null else grantIssue(result)
         val descriptor = runCatching { JsonParser.parseString(record.descriptorJson).asJsonObject }.getOrNull()
         return if (descriptor == null) {
-            record.copy(sealed = null)
+            record.copy(sealed = null, sealIssue = issue)
         } else {
             E2eBroadcastSeals.withKeys(descriptor, opened?.payload)
-            record.copy(descriptorJson = descriptor.toString(), sealed = null)
+            // Item BF: the pair rides on the opened descriptor, in memory only, so the broadcast asks nothing - the
+            // own pair for an own broadcast, the grant's pair for a guest (BD).
+            opened?.payload?.get(E2eBroadcastSeals.KEY_CREDENTIALS)?.takeIf { it.isJsonObject }
+                ?.let { descriptor.add(E2eBroadcastSeals.KEY_CREDENTIALS, it) }
+            record.copy(descriptorJson = descriptor.toString(), sealed = null, sealIssue = issue)
         }
     }
+
+    private fun grantIssue(result: E2eOpenResult?): ExchangeSealIssue =
+        if (result == E2eOpenResult.Failed(E2eOpenFailure.UNTRUSTED_SENDER)) {
+            ExchangeSealIssue.KEY_CHANGED
+        } else {
+            ExchangeSealIssue.SEALED_FAILED
+        }
 
     /**
      * The first sender key of each grant a guest has seen (27 item DJ). [learned] collects the keys of boxes that

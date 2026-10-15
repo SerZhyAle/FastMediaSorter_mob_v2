@@ -1424,6 +1424,16 @@ class PlayerActivity :
         )
     }
 
+    /**
+     * LIVE-BROADCAST item M: a protected broadcast refused the stream. Retrying cannot help, so the player closes and
+     * tells the streams list, which owns the row and asks for the password.
+     */
+    internal fun finishForBroadcastPassword() {
+        Toast.makeText(this, R.string.broadcast_password_protected, Toast.LENGTH_LONG).show()
+        setResult(Activity.RESULT_OK, Intent().putExtra(EXTRA_BROADCAST_PASSWORD_REQUIRED, true))
+        finish()
+    }
+
     companion object {
         private const val FMS_PLAYER_READY = "FMS_PLAYER_READY"
         private const val FMS_PLAYER_BACK_NAVIGATION = "FMS_PLAYER_BACK_NAVIGATION"
@@ -1452,6 +1462,7 @@ class PlayerActivity :
         // PiP window must be hosted by the player activity it opens.
         const val EXTRA_ENTER_PIP_ON_READY = "extra_enter_pip_on_ready"
         const val EXTRA_STREAM_THUMBNAIL_URL = "extra_stream_thumbnail_url"
+        const val EXTRA_BROADCAST_PASSWORD_REQUIRED = "extra_broadcast_password_required"
 
         fun createIntent(
             context: Context,

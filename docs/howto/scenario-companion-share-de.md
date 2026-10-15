@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Öffnen Sie die Ordner Ihres PCs durch Scannen eines einzigen Codes - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-de.html
 ---
-<sub class="doc-stamp">26.09.25 02:16</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Öffnen Sie die Ordner Ihres PCs durch Scannen eines einzigen Codes
 
 > **Niveau:** Anfänger &bull; **Edition:** Standard, Photos, Legacy, VR, noLegal (Lite hat keine Netzwerkquellen; das Scannen benötigt eine Kamera, die Dateimethode funktioniert überall)
-
-{% include lang-switcher.html doc="scenario-companion-share" dir="/docs/howto/" current="de" %}
 
 Sie starten ein kleines Hilfsprogramm auf Ihrem Windows-PC, wählen die Ordner mit Ihren Videos, Ihrer Musik, Dokumenten oder Fotos aus, und es zeigt einen Code auf dem Bildschirm an. Auf dem Handy tippen Sie auf **Hinzufügen**, halten die Kamera vor diesen Code, und die PC-Ordner sind sofort verbunden - keine Adresseingabe, kein Port, kein Passwort, keine Kabel.
 

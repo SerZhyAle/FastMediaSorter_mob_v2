@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "Watch a Live Broadcast - FastMediaSorter v2"
 permalink: /docs/howto/watch-broadcast.html
 ---
-<sub class="doc-stamp">26.09.24 04:02</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # <img src="../icons/doc/ic_live_broadcast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Watch a Live Broadcast
 
@@ -46,6 +46,8 @@ The broadcaster can hand the broadcast over in three ways, and all three carry t
 2. Add the broadcast on the phone first, as described above.
 3. On the broadcaster's phone screen there is a **Send to watch** button while the broadcast is live; from your own phone use the same action on the broadcast in the Streams list, and it lands on your paired watch.
 4. On the watch, open the broadcast and play it. The watch needs the same Wi-Fi as the broadcaster - it connects to the broadcaster directly, not through your phone.
+
+A broadcast that also goes through your exchange server plays on the watch over its own Wi-Fi or LTE, away from the broadcaster's network. A password-protected broadcast can be sent too: the watch gets the pass from your phone and never asks for the password. A saved protected broadcast is sent once you have opened it on the phone and entered its password.
 
 ---
 

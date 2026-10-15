@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.14 21:42</sub>
+<sub class="doc-stamp">26.10.15 14:49</sub>
 
 # Pointer - `LIVE-BROADCAST`
 
 | | |
 | --- | --- |
 | **Id** | `LIVE-BROADCAST` |
-| **Version** | 0.21, draft - amendment 15 is [PROPOSED]: the sources of a broadcast, sound and video on the watch and the phone's hand-off to the watch (items N to P); amendment 14 is [PROPOSED]: a broadcast link with a password (item M); amendment 13 is [PROPOSED]: PC producer, HTTP MPEG-TS video, `RELAY`/`TUNNEL` endpoints through `DEVICE-EXCHANGE`, receivers and cast. Owner: this product |
+| **Version** | 1.0, active - declared 2026-10-15 (S4245, the owner's decision 22 of milestone S4203: every section and amendment binds, and the contract only grows from here); amendment 16 adds item Q, the `seal` member of a `RELAY` and a `TUNNEL` endpoint; amendment 15, items N to P: the sources of a broadcast, sound and video on the watch and the phone's hand-off to the watch; amendment 14, item M: a broadcast link with a password; amendment 13: PC producer, HTTP MPEG-TS video, `RELAY`/`TUNNEL` endpoints through `DEVICE-EXCHANGE`, receivers and cast. Owner: this product |
 | **Home** | `live-broadcast/README.md` in the shared contracts catalog |
 | **Role here** | producer - the phone and watch audio broadcast; also reads its own descriptor on import |
 
@@ -15,8 +15,12 @@
   descriptor is created (producer rule 1).
 - Offer no in-stream metadata (producer rule 2).
 - One descriptor across link, import file and barcode (producer rule 3).
-- A stream kind moves from `[PROPOSED]` to `[CONTRACT]` only through the handshake of section 6 of the
-  contract, with a consumer verifying against a live broadcast (producer rule 4).
+- A kind's conformance is shown by the handshake of section 6 of the contract, a consumer verifying against a live
+  broadcast; since 1.0 it is evidence and no longer the gate between `[PROPOSED]` and `[CONTRACT]` (producer rule 4).
+- A `RELAY` and a `TUNNEL` endpoint of a sealed broadcast carry `seal` - `{v, key}` and `{v, pin}` in a descriptor
+  handed outside, `{v}` alone in a directory record - and the keys go only into a descriptor the person hands,
+  never through the exchange server or a log; an endpoint whose `seal.v` is unknown is skipped and never played as
+  clear bytes (1.0 item Q, S4245).
 - When reading a descriptor, refuse a `schemaVersion` above the supported one as its own outcome, not
   as "malformed".
 - Video: deliver the first picture within the keyframe interval plus 1 s of a listener connecting, and
@@ -31,8 +35,10 @@
   at once, and keep one stable `sourceId` where it runs one (0.21 items G and N); end a broadcast whose per-session
   platform grant ends, the phone's screen included (item N).
 - The watch broadcasts `AUDIO_ONLY` only and declares only what it plays; it plays sound and video (0.21 item O).
-- Hand a live broadcast to the watch as one URL with its title, kind and open-now flag, never as a bare URL when the
-  descriptor carries `auth`, and never over the phone-to-watch link as a stream (0.21 item P, S4217).
+- Hand a LAN-only broadcast without `auth` to the watch as one URL with its title, kind and open-now flag; hand one
+  with a `RELAY` or `TUNNEL` endpoint or with `auth` by its own message carrying the descriptor and, when protected,
+  the pass the phone holds, kept on the watch in its secret store; never hand a stored channel whose password was
+  never typed, and never pass the stream over the phone-to-watch link (0.21 item P, S4217, S4261).
 
 ## Where it lives here
 

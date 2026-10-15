@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Телевизор на смарт-часах - трансляции - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-ru.html
 ---
-<sub class="doc-stamp">26.09.24 06:25</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # <img src="../icons/doc/ic_stream.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Телевизор на смарт-часах
 
 > **Уровень:** Начальный &bull; **Время:** ~10 минут &bull; **Устройство:** Смарт-часы Wear OS
 
 > **Только в полной версии** - это руководство не реализовано в версии, распространяемой через Google Play. Оно относится к полной версии - APK для прямой загрузки со страницы [Загрузки](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="scenario-watch-tv" dir="/docs/howto/" current="ru" %}
 
 FastMedia Wear показывает телеканалы и радио прямо на запястье. Часы открывают трансляцию по своему Wi-Fi, поэтому, когда канал уже есть в списке, смотреть можно с телефоном в другой комнате, в сумке или вовсе выключенным.
 

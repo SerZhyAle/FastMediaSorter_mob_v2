@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "Mira Canales de TV en tu Smartwatch - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-es.html
 ---
-<sub class="doc-stamp">26.09.25 02:18</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="es" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-tv-es.html
 > **Nivel:** Principiante &bull; **Tiempo:** ~10 minutos &bull; **Dispositivo:** Smartwatch Wear OS
 
 > **Solo versión completa** - esta guía no está implementada en la versión distribuida a través de Google Play. Aplica a la versión completa, una descarga directa de APK desde [Descargas](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="scenario-watch-tv" dir="/docs/howto/" current="es" %}
 
 FastMedia Wear reproduce canales de TV y radio en vivo directamente en tu muñeca. El reloj abre la transmisión con su propio Wi-Fi, así que una vez que un canal está en la lista puedes verlo con el teléfono en otra habitación, en una bolsa, o completamente apagado.
 

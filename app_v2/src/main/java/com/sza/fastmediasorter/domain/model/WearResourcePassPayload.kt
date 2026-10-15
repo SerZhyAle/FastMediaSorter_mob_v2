@@ -49,7 +49,8 @@ sealed interface WearResourcePassParseResult {
 
     data class Parsed(val payload: WearResourcePassPayload) : WearResourcePassParseResult
 
-    data class UnsupportedVersion(val version: Int) : WearResourcePassParseResult
+    /** [requestId] is the sender's, so the refusal carries the id the sending side's correlator waits on. */
+    data class UnsupportedVersion(val version: Int, val requestId: String) : WearResourcePassParseResult
 
     data object Malformed : WearResourcePassParseResult
 }
@@ -61,11 +62,23 @@ object WearResourcePassCodec {
         val payload = runCatching {
             gson.fromJson(String(bytes, Charsets.UTF_8), WearResourcePassPayload::class.java)
         }.getOrNull()
+        // The version is judged before completeness: a newer format may rename the fields this build requires, and
+        // the refusal is only worth sending when it carries the id the sending side is waiting on.
         return when {
-            payload == null || !payload.isComplete() -> WearResourcePassParseResult.Malformed
-            payload.formatVersion != WearResourcePassPayload.FORMAT_VERSION ->
-                WearResourcePassParseResult.UnsupportedVersion(payload.formatVersion)
+            payload == null -> WearResourcePassParseResult.Malformed
+            payload.formatVersion != WearResourcePassPayload.FORMAT_VERSION -> unsupported(payload)
+            !payload.isComplete() -> WearResourcePassParseResult.Malformed
             else -> WearResourcePassParseResult.Parsed(payload)
+        }
+    }
+
+    private fun unsupported(payload: WearResourcePassPayload): WearResourcePassParseResult {
+        // Gson ignores Kotlin nullability, so a missing key arrives as null in a non-null field.
+        val requestId: String? = payload.requestId
+        return if (requestId.isNullOrBlank()) {
+            WearResourcePassParseResult.Malformed
+        } else {
+            WearResourcePassParseResult.UnsupportedVersion(payload.formatVersion, requestId)
         }
     }
 

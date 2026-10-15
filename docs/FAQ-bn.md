@@ -1,19 +1,17 @@
 ---
-layout: default
+layout: doc
 title: "❓ সচরাচর জিজ্ঞাসিত প্রশ্নাবলি (FAQ)"
 permalink: /docs/FAQ-bn.html
 lang: bn
 ---
 
-<sub class="doc-stamp">26.10.09 14:52</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" markdown="1">
 
 <div lang="bn" dir="ltr" markdown="1">
 
 # ❓ সচরাচর জিজ্ঞাসিত প্রশ্নাবলি (FAQ)
-
-{% include lang-switcher.html doc="FAQ" dir="/docs/" current="bn" %}
 
 ---
 

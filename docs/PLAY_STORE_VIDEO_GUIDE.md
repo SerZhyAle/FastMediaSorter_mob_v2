@@ -1,12 +1,28 @@
-<sub class="doc-stamp">26.04.14 22:54</sub>
+<sub class="doc-stamp">26.10.15 13:39</sub>
 
 # Google Play Console: Foreground Service Video Demonstration Guide
 
 To comply with Google Play policies for `FOREGROUND_SERVICE_DATA_SYNC` and `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, you must provide a video showing exactly why the app needs to run in the background.
 
-## Video 1: DATA_SYNC (Scheduled Operations & Sync)
+## Video 1: DATA_SYNC (Folder Sharing, Background Transfers, Scheduled Operations & Sync)
 
 This video should demonstrate that the app performs data-heavy tasks that must not be interrupted when the app is minimized.
+Record it on a `standard` build made with `-Pfms.dataSyncFgsStandard=on` (S4271); a default `standard` release carries no `dataSync` type. Declaration text: `store_assets/PLAY_FGS_DECLARATIONS.md`.
+
+### Scenario S: Folder Sharing (SFTP server)
+1.  **Start Recording** on the device.
+2.  Open **FastMediaSorter**, go to **Settings** and turn on folder sharing; pick a folder created for the recording.
+3.  Show the ongoing notification with the address and its **Stop** button.
+4.  **Minimize the app** (press the Home button).
+5.  From another device, connect over SFTP and list the shared folder, so the reviewer sees the server answering with the app in the background.
+6.  **Pull down the notification shade** to show the notification is still there.
+7.  Press **Stop** in the notification and show it disappear.
+8.  **Stop Recording**.
+
+### Scenario T: Background File Transfer
+1.  Start a **Copy** of several large files to a network folder from the browse screen.
+2.  **Minimize the app** and **pull down the notification shade** to show the transfer progress notification.
+3.  Re-open the app and show the finished copy.
 
 ### Scenario A: Scheduled File Operations
 1.  **Start Recording** on the device.

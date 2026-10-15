@@ -37,7 +37,8 @@ class RawSettingsRepositoryImpl @Inject constructor(
                 login = entry.login,
                 pinnedCertificate = entry.pinnedCertificate,
                 autoAttach = entry.autoAttach,
-                outgoing = entry.outgoing
+                outgoing = entry.outgoing,
+                pinnedKey = entry.pinnedKey
             )
         }
 
@@ -59,7 +60,8 @@ class RawSettingsRepositoryImpl @Inject constructor(
                 autoAttach = backup.autoAttach,
                 // Putting an outgoing entry clears the flag from every other one, so a restore must never
                 // take the role from an entry the user already chose on this device.
-                outgoing = backup.outgoing && accountStore.outgoing() == null
+                outgoing = backup.outgoing && accountStore.outgoing() == null,
+                pinnedKey = backup.pinnedKey?.takeIf { backup.pinnedCertificate != null }
             )
             if (accountStore.entry(entry.identity) == null) {
                 accountStore.put(entry)

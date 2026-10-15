@@ -241,7 +241,7 @@
             android:clickable="true"
             android:focusable="true"
             android:nextFocusUp="@id/checkExchangeSignInUseInvitationPassword"
-            android:text="@string/exchange_portal_link_server" />
+            android:text="@string/exchange_portal_link_my_devices" />
 
         <include
             android:id="@+id/exchangeFailurePanel"

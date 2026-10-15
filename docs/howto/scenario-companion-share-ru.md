@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Откройте папки ПК, отсканировав один код - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-ru.html
 ---
-<sub class="doc-stamp">26.09.24 06:25</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Откройте папки ПК, отсканировав один код
 
 > **Уровень:** Начинающий &bull; **Флейворы:** Standard, Photos, Legacy, VR, noLegal (в Lite сетевых источников нет; для скана нужна камера, способ с файлом работает везде)
-
-{% include lang-switcher.html doc="scenario-companion-share" dir="/docs/howto/" current="ru" %}
 
 На ПК с Windows вы запускаете небольшую программу-компаньон, выбираете папки с видео, музыкой, документами или фото - и она показывает на экране код. На телефоне вы нажимаете **Добавить**, подносите камеру к этому коду, и папки ПК тут же подключены - без ввода адреса, порта, пароля, без кабелей.
 

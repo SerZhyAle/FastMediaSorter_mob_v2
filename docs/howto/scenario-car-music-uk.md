@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Музика в автомобілі (Android-магнітола) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-uk.html
 ---
-<sub class="doc-stamp">26.09.24 20:50</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 🚗 Музика в автомобілі (Android-магнітола)
 
 > **Рівень:** Початківець &bull; **Час:** ~10 хвилин &bull; **Версія:** Standard, Legacy, VR, noLegal (Lite грає локальне аудіо, але без фонового відтворення та без Трансляцій; у Photos аудіо немає)
-
-{% include lang-switcher.html doc="scenario-car-music" dir="/docs/howto/" current="uk" %}
 
 FastMediaSorter чудово працює як автомобільний музичний плеєр на Android-магнітолах - миттєвий доступ до всієї колекції з SD-картки або USB, з підтримкою кнопок керма «з коробки».
 

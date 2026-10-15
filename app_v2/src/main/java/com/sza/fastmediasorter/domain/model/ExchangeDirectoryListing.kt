@@ -77,7 +77,10 @@ data class ExchangeListedDevice(
     val broadcasts: List<ExchangeListedBroadcast>,
 ) {
 
-    val online: Boolean get() = device?.isOnline ?: resources.any(ExchangeListedResource::online)
+    // Item BD: a guest lists no device of the owner, and a granted broadcast's record exists only while it is live.
+    val online: Boolean
+        get() = device?.isOnline
+            ?: (resources.any(ExchangeListedResource::online) || broadcasts.any { it.record.grantId != null })
 
     val paused: Boolean get() = !online && device?.isSharePaused == true
 }

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.service
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -7,6 +8,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.net.ConnectivityManager
 import android.net.LinkProperties
@@ -91,7 +93,11 @@ class SftpServerService : Service() {
 
     private fun startServer() {
         createChannel()
-        startForegroundCompat(buildNotification(getString(R.string.sftp_server_notification_starting)))
+        if (hasDataSyncPermission(this)) {
+            startForegroundCompat(buildNotification(getString(R.string.sftp_server_notification_starting)))
+        } else {
+            notify(buildNotification(getString(R.string.sftp_server_notification_starting)))
+        }
         watchState()
         watchNetwork()
         serviceScope.launch {
@@ -100,15 +106,22 @@ class SftpServerService : Service() {
     }
 
     /**
-     * Every entry point arrives through [Context.startForegroundService], the stop one included, so the
-     * foreground promise is paid before the service withdraws - the same race `SosService` documents.
+     * When [hasDataSyncPermission] holds, entry points arrive through [Context.startForegroundService]
+     * so the foreground promise is paid before the service withdraws. Otherwise it runs as a standard
+     * service while the app or launcher is in the foreground (S4263).
      */
     private fun stopServer(byUser: Boolean = false) {
         createChannel()
-        startForegroundCompat(buildNotification(getString(R.string.sftp_server_notification_starting)))
+        if (hasDataSyncPermission(this)) {
+            startForegroundCompat(buildNotification(getString(R.string.sftp_server_notification_starting)))
+        }
         endWatching()
         if (byUser) controller.stopByUser() else controller.stop()
-        removeForeground()
+        if (hasDataSyncPermission(this)) {
+            removeForeground()
+        } else {
+            getSystemService<NotificationManager>()?.cancel(NOTIFICATION_ID)
+        }
         stopSelf()
     }
 
@@ -242,18 +255,45 @@ class SftpServerService : Service() {
         private const val CHANNEL_ID = "sftp_server"
         private const val NOTIFICATION_ID = NotificationIds.SFTP_SERVER
 
+        fun hasDataSyncPermission(context: Context): Boolean {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.FOREGROUND_SERVICE_DATA_SYNC,
+                ) == PackageManager.PERMISSION_GRANTED
+            } else {
+                true
+            }
+        }
+
         fun start(context: Context) {
-            ContextCompat.startForegroundService(
-                context,
-                Intent(context, SftpServerService::class.java).setAction(ACTION_START),
-            )
+            val intent = Intent(context, SftpServerService::class.java).setAction(ACTION_START)
+            if (hasDataSyncPermission(context)) {
+                ContextCompat.startForegroundService(context, intent)
+            } else {
+                try {
+                    context.startService(intent)
+                } catch (e: IllegalStateException) {
+                    Timber.w(e, "SftpServerService: startService background limit reached")
+                } catch (e: SecurityException) {
+                    Timber.w(e, "SftpServerService: startService security error")
+                }
+            }
         }
 
         fun stop(context: Context) {
-            ContextCompat.startForegroundService(
-                context,
-                Intent(context, SftpServerService::class.java).setAction(ACTION_STOP),
-            )
+            val intent = Intent(context, SftpServerService::class.java).setAction(ACTION_STOP)
+            if (hasDataSyncPermission(context)) {
+                ContextCompat.startForegroundService(context, intent)
+            } else {
+                try {
+                    context.startService(intent)
+                } catch (e: IllegalStateException) {
+                    Timber.w(e, "SftpServerService: stopService intent limit reached")
+                } catch (e: SecurityException) {
+                    Timber.w(e, "SftpServerService: stopService security error")
+                }
+            }
         }
     }
 }

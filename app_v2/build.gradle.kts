@@ -467,6 +467,10 @@ val edgeGestureTileStandardEnabled =
 // S4030: rollback for the Play Contacts Permission declaration; 'off' strips READ_CONTACTS from standard only.
 val readContactsStandardEnabled =
     (providers.gradleProperty("fms.readContacts").orNull ?: "on").lowercase() != "off"
+// S4271: 'on' lets standard keep FOREGROUND_SERVICE_DATA_SYNC and the dataSync FGS types in a release; stays
+// 'off' until the Play Console dataSync declaration with its video is saved (the commit answers 403 before).
+val dataSyncFgsStandardEnabled =
+    (providers.gradleProperty("fms.dataSyncFgsStandard").orNull ?: "off").lowercase() != "off"
 // S1972: ABI splits, requested per invocation rather than per build type - `splits` is an
 // `android {}`-level block with no per-buildType form, so the debug builders pass
 // -Pfms.abiSplits=true and the release path passes nothing. Read here, at the top with the other
@@ -2102,6 +2106,14 @@ androidComponents {
         if (flavorName == "standard" && !readContactsStandardEnabled) {
             // S4030: the src/main READ_CONTACTS declaration is shared with noLegal, so the removal is an overlay.
             variant.sources.manifests.addStaticManifestFile("src/standardNoContacts/AndroidManifest.xml")
+        }
+        // S4263: FOREGROUND_SERVICE_DATA_SYNC and dataSync FGS type are kept for noLegal (sideload),
+        // but stripped from store release builds until the Play Console FGS declaration with video is saved.
+        // S4271: standard alone returns to dataSync through fms.dataSyncFgsStandard; every other flavor keeps the strip.
+        val keepsDataSyncFgs =
+            flavorName == "noLegal" || (flavorName == "standard" && dataSyncFgsStandardEnabled)
+        if (variant.buildType == "release" && !keepsDataSyncFgs) {
+            variant.sources.manifests.addStaticManifestFile("src/storeReleaseNoDataSync/AndroidManifest.xml")
         }
 
         // S1436: the two manifest-composition axes whose value is not a literal. Set here rather

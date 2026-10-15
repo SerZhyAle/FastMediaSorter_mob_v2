@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.broadcast
 
 import android.content.Context
 import com.sza.fastmediasorter.core.network.LanAddressResolver
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialPair
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastDigest
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.coroutines.flow.asStateFlow
 import timber.log.Timber
@@ -20,6 +22,8 @@ class BroadcastHttpServer(
     private val context: Context,
     private val config: BroadcastSessionConfig,
     private val lanAddressProvider: () -> String? = { LanAddressResolver(context).resolve() },
+    /** S4258: the pairs a protected broadcast accepts; null while it is not protected. */
+    private val credentials: () -> List<BroadcastCredentialPair>? = { null },
 ) {
 
     companion object {
@@ -35,6 +39,7 @@ class BroadcastHttpServer(
     }
 
     private var server: InternalServer? = null
+    private val nonce = BroadcastDigest.newNonce()
     private var activePort: Int = config.port
 
     private val clients = CopyOnWriteArrayList<ClientSink>()
@@ -185,6 +190,10 @@ class BroadcastHttpServer(
                 return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "404 Not Found")
             }
 
+            return unauthorized(session) ?: liveAudio()
+        }
+
+        private fun liveAudio(): Response {
             val clientStream = createClientStream()
             val response = newChunkedResponse(Response.Status.OK, "audio/aac", clientStream)
             response.addHeader("icy-name", config.streamTitle)
@@ -193,6 +202,22 @@ class BroadcastHttpServer(
             response.addHeader("icy-br", (config.bitRateBps / 1000).toString())
             response.addHeader("Accept-Ranges", "none")
             return response
+        }
+
+        // LIVE-BROADCAST item M: a missing or wrong pair gets the challenge and nothing finer. Tunnelled listeners
+        // arrive from loopback too, so no address is exempt.
+        private fun unauthorized(session: IHTTPSession): Response? {
+            val allowed = credentials() ?: return null
+            val answer = session.headers["authorization"]
+            val accepted = BroadcastDigest.verify(answer, session.method.name, allowed) { it == nonce } != null
+            Timber.d("S4258: http digest gate accepted=%b", accepted)
+            return if (accepted) {
+                null
+            } else {
+                newFixedLengthResponse(Response.Status.UNAUTHORIZED, MIME_PLAINTEXT, "").apply {
+                    addHeader(BroadcastDigest.HEADER_CHALLENGE, BroadcastDigest.httpChallenge(nonce))
+                }
+            }
         }
     }
 }

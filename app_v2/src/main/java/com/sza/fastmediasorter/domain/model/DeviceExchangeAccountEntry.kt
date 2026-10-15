@@ -33,11 +33,23 @@ data class DeviceExchangeAccountEntry(
     val features: List<String>? = null,
     /** The last `accountKind` (19 item AO); null until this build has seen a `welcome` or `enrolled`. */
     val accountKind: String? = null,
+    /**
+     * The public-key fingerprint of [pinnedCertificate] (19 item AY), so a renewed leaf with the same key passes
+     * with no prompt. Null without a pin, and on a pin saved before this build until a matching connect fills it.
+     */
+    val pinnedKey: String? = null,
 ) {
 
     /** Host lower-cased, port and login compared case-insensitively (5.1); the device token is kept under it. */
     val identity: String
         get() = host.lowercase(Locale.ROOT) + ":" + port + "/" + login.lowercase(Locale.ROOT)
+
+    /**
+     * Whether producer actions - publish, broadcast with its relay upload, cast - may go through this entry (19 item
+     * AO): never a `guest` account, which the server refuses them. Receiving stays open to a guest.
+     */
+    val mayProduce: Boolean
+        get() = accountKind != ACCOUNT_KIND_GUEST
 
     /**
      * Whether the clipboard actions may use this entry (22 items BV and CA): never a `guest` account, and only a
@@ -58,7 +70,7 @@ data class DeviceExchangeAccountEntry(
         "DeviceExchangeAccountEntry(host=$REDACTED, port=$port, login=$REDACTED, deviceId=$deviceId, " +
             "pinnedCertificate=${pinnedCertificate?.let { REDACTED }}, autoAttach=$autoAttach, " +
             "publicEndpoint=${publicEndpoint?.let { REDACTED }}, outgoing=$outgoing, pinCapable=$pinCapable, " +
-            "features=$features, accountKind=$accountKind)"
+            "features=$features, accountKind=$accountKind, pinnedKey=${pinnedKey?.let { REDACTED }})"
 
     companion object {
         const val FEATURE_CLIPBOARD = "clipboard"
@@ -182,7 +194,19 @@ data class DeviceExchangeWelcome(
 /** How an enrollment ended; only [Enrolled] stored a token. */
 sealed interface DeviceExchangeEnrollResult {
 
-    data class Enrolled(val welcome: DeviceExchangeWelcome) : DeviceExchangeEnrollResult
+    /**
+     * [leafFingerprint] and [keyFingerprint] name the certificate the enrolling stream accepted, which a pinned
+     * entry keeps as its pin (19 item AY); null where no TLS connector stood behind the answer.
+     */
+    data class Enrolled(
+        val welcome: DeviceExchangeWelcome,
+        val leafFingerprint: String? = null,
+        val keyFingerprint: String? = null,
+    ) : DeviceExchangeEnrollResult {
+        override fun toString(): String =
+            "Enrolled(welcome=$welcome, leafFingerprint=${leafFingerprint?.let { REDACTED }}, " +
+                "keyFingerprint=${keyFingerprint?.let { REDACTED }})"
+    }
 
     /** [reason] is a 7.10 reason, or [REASON_TOKEN_NOT_STORED] when the secret store refused the token. */
     data class Refused(val reason: String) : DeviceExchangeEnrollResult

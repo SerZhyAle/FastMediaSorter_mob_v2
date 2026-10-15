@@ -10,6 +10,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.core.security.PrivateDiagnosticValues
+import com.sza.fastmediasorter.data.remote.exchange.ExchangePinRecorder
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -29,7 +30,7 @@ import javax.inject.Singleton
 @Singleton
 class DeviceExchangeAccountStore @Inject constructor(
     private val dataStore: DataStore<Preferences>,
-) {
+) : ExchangePinRecorder {
 
     val entries: Flow<List<DeviceExchangeAccountEntry>> = dataStore.data
         .map { it[keyEntries] }
@@ -72,6 +73,23 @@ class DeviceExchangeAccountStore @Inject constructor(
         current.map { held -> held.copy(outgoing = held.identity == identity) }
     }
 
+    /**
+     * Writes [leaf] and [key] as the pin of the entry of [identity] (19 item AY), read inside the same edit so a
+     * concurrent change of another field survives. An entry that pins nothing stays platform-trusted: a pin is
+     * only ever the user's acceptance, never something a connect creates.
+     */
+    suspend fun recordPin(identity: String, leaf: String, key: String) = mutate { current ->
+        current.map { held ->
+            if (held.identity == identity && held.pinnedCertificate != null) {
+                held.copy(pinnedCertificate = leaf, pinnedKey = key)
+            } else {
+                held
+            }
+        }
+    }
+
+    override suspend fun record(identity: String, leaf: String, key: String) = recordPin(identity, leaf, key)
+
     private suspend fun mutate(change: (List<DeviceExchangeAccountEntry>) -> List<DeviceExchangeAccountEntry>) {
         dataStore.edit { preferences ->
             val updated = change(decode(preferences[keyEntries]))
@@ -104,8 +122,10 @@ class DeviceExchangeAccountStore @Inject constructor(
         val account = login?.let { name -> json.text(KEY_DEVICE_ID)?.takeIf(String::isNotBlank)?.let { name to it } }
         if (host == null || port == null || account == null) return null
         val pin = json.text(KEY_PIN)
+        // A key is half of a pin; without the leaf it would vouch for nothing.
+        val pinnedKey = pin?.let { json.text(KEY_PINNED_KEY) }
         val publicEndpoint = json.text(KEY_PUBLIC_ENDPOINT)
-        PrivateDiagnosticValues.register(host, account.first, pin, publicEndpoint)
+        PrivateDiagnosticValues.register(host, account.first, pin, pinnedKey, publicEndpoint)
         return DeviceExchangeAccountEntry(
             host = host,
             port = port,
@@ -118,6 +138,7 @@ class DeviceExchangeAccountStore @Inject constructor(
             pinCapable = json.flag(KEY_PIN_CAPABLE),
             features = json.textList(KEY_FEATURES),
             accountKind = json.text(KEY_ACCOUNT_KIND),
+            pinnedKey = pinnedKey,
         )
     }
 
@@ -136,6 +157,7 @@ class DeviceExchangeAccountStore @Inject constructor(
                     if (entry.pinCapable) addProperty(KEY_PIN_CAPABLE, true)
                     entry.features?.let { features -> add(KEY_FEATURES, JsonArray().apply { features.forEach(::add) }) }
                     entry.accountKind?.let { addProperty(KEY_ACCOUNT_KIND, it) }
+                    entry.pinnedKey?.let { addProperty(KEY_PINNED_KEY, it) }
                 }
             )
         }
@@ -166,5 +188,6 @@ class DeviceExchangeAccountStore @Inject constructor(
         const val KEY_PIN_CAPABLE = "pinCapable"
         const val KEY_FEATURES = "features"
         const val KEY_ACCOUNT_KIND = "accountKind"
+        const val KEY_PINNED_KEY = "pinnedKey"
     }
 }

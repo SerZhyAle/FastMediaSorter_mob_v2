@@ -543,6 +543,19 @@
       "notes": ""
     },
     {
+      "id": "I6",
+      "slug": "protected-broadcast-handed-off-with-pass",
+      "group": "I",
+      "channels": [
+        "/fms/phone/stream_broadcast_pass",
+        "/fms/watch/stream_transfer_ack"
+      ],
+      "logMarker": "/fms/phone/stream_broadcast_pass",
+      "requiresPair": true,
+      "expectation": "A broadcast with a relay endpoint or auth is sent with its descriptor and pass, stored on the watch and plays there through the relay without the phone; an older watch build does not answer.",
+      "notes": "S4261"
+    },
+    {
       "id": "J1",
       "slug": "show-on-phone-three-outcomes",
       "group": "J",

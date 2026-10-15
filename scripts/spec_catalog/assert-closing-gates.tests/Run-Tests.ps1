@@ -136,16 +136,17 @@ if (-not $fixPresent) {
     Assert-That "D1 [$subject] re-affirmation accepted" ($outcomeD -eq 'silent') "outcome=$outcomeD"
 }
 
-Write-Host "E: the EXIT from BlockNeedUserTest is gated (S2934)" -ForegroundColor Yellow
+Write-Host "E: the EXIT from BlockNeedUserTest (S2934, S4270)" -ForegroundColor Yellow
 # The direction the function never judged: it read $NewStatus only, so BlockNeedUserTest ->
 # In Progress left through the early return with no checker reached, and the probes stayed in
-# source owned by nobody. Cases below use live tickets rather than fixtures for the same reason
-# case D does - the subject of check-probe-absent.ps1 is the source tree, and a fixture tree would
-# certify a path no session walks.
+# source owned by nobody (S2934). S4270 made that exit REMOVE the probes when probes.removeOnExit
+# is true, so no case may take a live ticket that has a probe out of the status any more: in this
+# repository the gate would strip that ticket's real probes. E2 and E3 cannot reach the remover and
+# stay on live state; E4-E7 drive the exit in a throwaway project instead.
 $exitFixPresent = (Select-String -LiteralPath $libPath -Pattern 'S2934' -SimpleMatch -Quiet) -eq $true
 
 # A parked ticket excused in the baseline: it has no executable path to instrument, so it carries
-# no probe and is the natural negative fixture - nothing to leave behind, nothing to refuse.
+# no probe and is the natural negative fixture - nothing to remove, nothing to refuse.
 $excusedSubject = $null
 if ($probeLib -and (Test-Path -LiteralPath $probeLib) -and $roots.Count -gt 0) {
     $excusedIds = Get-ExcusedProbeTickets -BaselinePath (Get-ProbeBaselinePath -RepoRoot $repoRoot)
@@ -155,17 +156,9 @@ if ($probeLib -and (Test-Path -LiteralPath $probeLib) -and $roots.Count -gt 0) {
 }
 
 if (-not $exitFixPresent) {
-    Skip-Case 'E1' 'S2934 not in the resolved harness _lib.ps1 - the canon change is not deployed yet'
     Skip-Case 'E2' 'S2934 not in the resolved harness _lib.ps1 - the canon change is not deployed yet'
     Skip-Case 'E3' 'S2934 not in the resolved harness _lib.ps1 - the canon change is not deployed yet'
 } else {
-    if (-not $subject) {
-        Skip-Case 'E1' 'no BlockNeedUserTest ticket with a probe in the first 8 - no fixture for the refusal'
-    } else {
-        $outcomeE1 = Get-GateOutcome 'BlockNeedUserTest' 'In Progress' $subject
-        Assert-That "E1 [$subject] leaving with its probe still in source is refused" ($outcomeE1 -eq 'threw') "outcome=$outcomeE1"
-    }
-
     if (-not $excusedSubject) {
         Skip-Case 'E2' 'no excused parked ticket without a probe - no fixture for the clean exit'
     } else {
@@ -177,6 +170,104 @@ if (-not $exitFixPresent) {
     # checker would exit 2 and throw if it ran - silence is the proof it did not.
     $outcomeE3 = Get-GateOutcome 'Implemented' 'In Progress' $absentId
     Assert-That 'E3 an exit from another status runs nothing' ($outcomeE3 -eq 'silent') "outcome=$outcomeE3"
+}
+
+Write-Host "E4-E7: the exit removes the probes itself when probes.removeOnExit is true (S4270)" -ForegroundColor Yellow
+# Searched as text beside the resolved _lib.ps1, for the reason case F gives: a missing function is
+# the undeployed state these cases must SKIP on.
+$removalPresent = (Select-String -LiteralPath $libPath -Pattern 'function Invoke-ProbeRemovalOnExit' -SimpleMatch -Quiet) -eq $true
+# The harness update.ps1, never the forwarder: the forwarder writes its own repository into
+# SZA_PROJECT_ROOT, which would point the remover at the live tree.
+$harnessUpdate = Join-Path (Split-Path -Parent $libPath) 'update.ps1'
+if (-not $removalPresent -or -not (Test-Path -LiteralPath $harnessUpdate)) {
+    foreach ($case in @('E4', 'E5', 'E6', 'E7')) {
+        Skip-Case $case 'S4270 not in the resolved harness _lib.ps1 - the canon change is not deployed yet'
+    }
+} else {
+    # A throwaway project with its own profile, catalog, source file, remover copy and lock
+    # directory (locksDir is project-relative), so the Code lock the remover takes is the fixture's.
+    $px = Join-Path $repoRoot ('temp/scratch/closing-gates-probe-exit-' + [guid]::NewGuid().ToString('N'))
+    $pxKt = Join-Path $px 'app_v2/src/main/java/p/A.kt'
+    $pxKtText = "package p`n`nimport timber.log.Timber`n`nclass A {`n    fun a() {`n" +
+        "        Timber.d(`"S9002: exit fixture`")`n        work()`n        Timber.i(`"permanent`")`n    }`n}`n"
+    $pxUtf8 = [System.Text.UTF8Encoding]::new($false)
+    $pxPwsh = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:ProgramFiles\PowerShell\7\pwsh.exe" } else { 'pwsh' }
+    $liveProfilePath = Join-Path $repoRoot '.sza-profile.json'
+    $liveRemover = [string]((Get-Content -LiteralPath $liveProfilePath -Raw | ConvertFrom-Json).probes.removeCommand)
+
+    function Reset-ProbeProject([bool]$removeOnExit, [string]$removeCommand) {
+        if (Test-Path -LiteralPath $px) { Remove-Item -LiteralPath $px -Recurse -Force }
+        New-Item -ItemType Directory -Force -Path (Join-Path $px 'PLAN'), (Join-Path $px 'temp'),
+            (Join-Path $px 'scripts/quality'), (Split-Path -Parent $pxKt) | Out-Null
+        $tree = Get-Content -LiteralPath $liveProfilePath -Raw | ConvertFrom-Json -AsHashtable
+        $tree['probes']['removeOnExit'] = $removeOnExit
+        $tree['probes']['removeCommand'] = $removeCommand
+        [System.IO.File]::WriteAllText((Join-Path $px '.sza-profile.json'), ($tree | ConvertTo-Json -Depth 64), $pxUtf8)
+        # The remover resolves the repository from its own location, so this copy rewrites only the
+        # fixture below it (S2925).
+        Copy-Item -LiteralPath (Join-Path $repoRoot 'scripts/quality/remove-ticket-probes.ps1') -Destination (Join-Path $px 'scripts/quality')
+        [System.IO.File]::WriteAllText((Join-Path $px 'CLAUDE.md'), "# sandbox`n", $pxUtf8)
+        [System.IO.File]::WriteAllText((Join-Path $px 'PLAN/S9002_probe-exit.md'), "# S9002`n`n**Status:** BlockNeedUserTest`n", $pxUtf8)
+        [System.IO.File]::WriteAllText((Join-Path $px 'PLAN/spec-catalog.jsonl'),
+            ('{"id":"S9002","name":"probe-exit","status":"BlockNeedUserTest","priority":50,' +
+            '"file":"PLAN/S9002_probe-exit.md","created":"2026-10-15","updated":"2026-10-15 12:00"}' + "`n"), $pxUtf8)
+        [System.IO.File]::WriteAllText($pxKt, $pxKtText, $pxUtf8)
+    }
+
+    function Invoke-ProbeExit {
+        $out = @(& $pxPwsh -NoProfile -File $harnessUpdate -Id S9002 -Status 'In Progress' 2>&1 6>&1 |
+            ForEach-Object { [string]$_ }) -join "`n"
+        $code = $LASTEXITCODE
+        $record = Get-Content -LiteralPath (Join-Path $px 'PLAN/spec-catalog.jsonl') | Where-Object { $_.Trim() } |
+            ForEach-Object { $_ | ConvertFrom-Json } | Where-Object { $_.id -eq 'S9002' }
+        return [pscustomobject]@{
+            Code      = $code
+            Out       = $out
+            Status    = [string]$record.status
+            Source    = [System.IO.File]::ReadAllText($pxKt)
+            LocksLeft = @(Get-ChildItem -LiteralPath (Join-Path $px 'temp') -Filter '*.LOCK' -File).Count
+        }
+    }
+
+    $inheritedRoot = $env:SZA_PROJECT_ROOT
+    $inheritedSkip = $env:FMS_SKIP_RELEASE_QUEUE
+    try {
+        $env:SZA_PROJECT_ROOT = $px
+        $env:FMS_SKIP_RELEASE_QUEUE = '1'
+
+        Reset-ProbeProject $true $liveRemover
+        $r = Invoke-ProbeExit
+        Assert-That 'E4 key on: the exit is accepted and only the probe line goes, under a Code lock it frees' `
+            ($r.Code -eq 0 -and $r.Status -eq 'In Progress' -and $r.Source -notmatch 'S9002:' -and
+            $r.Source -match 'work\(\)' -and $r.Source -match 'Timber\.i\("permanent"\)' -and
+            $r.Out -match 'Code domains acquired: Code\.Phone' -and $r.LocksLeft -eq 0) `
+            "exit $($r.Code); status $($r.Status); locks $($r.LocksLeft); $($r.Out)"
+
+        Reset-ProbeProject $false $liveRemover
+        $r = Invoke-ProbeExit
+        Assert-That 'E5 key off: the S2934 refusal stands, names the remover and leaves the probe' `
+            ($r.Code -ne 0 -and $r.Status -eq 'BlockNeedUserTest' -and $r.Source -match 'S9002:' -and
+            $r.Out -match 'check-probe-absent\.ps1' -and $r.Out -match 'remove-ticket-probes\.ps1 -Id S9002') `
+            "exit $($r.Code); status $($r.Status); $($r.Out)"
+
+        Reset-ProbeProject $true 'pwsh -NoProfile -Command exit 7'
+        $r = Invoke-ProbeExit
+        Assert-That 'E6 a failing remover refuses the exit, keeps status and probe, and frees the lock' `
+            ($r.Code -ne 0 -and $r.Status -eq 'BlockNeedUserTest' -and $r.Source -match 'S9002:' -and
+            $r.Out -match 'probe remover exited 7' -and $r.LocksLeft -eq 0) `
+            "exit $($r.Code); status $($r.Status); locks $($r.LocksLeft); $($r.Out)"
+
+        Reset-ProbeProject $true ''
+        $r = Invoke-ProbeExit
+        Assert-That 'E7 key on with no remover configured is refused, naming both keys' `
+            ($r.Code -ne 0 -and $r.Status -eq 'BlockNeedUserTest' -and $r.Source -match 'S9002:' -and
+            $r.Out -match 'probes\.removeOnExit' -and $r.Out -match 'probes\.removeCommand') `
+            "exit $($r.Code); status $($r.Status); $($r.Out)"
+    } finally {
+        $env:SZA_PROJECT_ROOT = $inheritedRoot
+        $env:FMS_SKIP_RELEASE_QUEUE = $inheritedSkip
+        Remove-Item -LiteralPath $px -Recurse -Force -ErrorAction SilentlyContinue
+    }
 }
 
 Write-Host "F: a closing transition relocates small temp/ evidence before the gate (S3515)" -ForegroundColor Yellow

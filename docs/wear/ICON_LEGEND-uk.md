@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: doc
 title: "Легенда значків годинника"
 permalink: /docs/wear/ICON_LEGEND-uk.html
 ---

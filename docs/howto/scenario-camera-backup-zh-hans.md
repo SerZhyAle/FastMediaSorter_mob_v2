@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "定时相机备份到电脑 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.25 02:13</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 📷 定时相机备份到电脑
 
 > **难度：** 入门 &bull; **用时：** 设置约 15 分钟 &bull; **版本：** Standard、Photos、Legacy、VR、noLegal（需要网络资源 - Lite 没有）
-
-{% include lang-switcher.html doc="scenario-camera-backup" dir="/docs/howto/" current="zh-Hans" %}
 
 通过 Wi-Fi，**每晚**自动将手机相机拍摄的新照片复制到家里的电脑。设置一次即可永久运行，无需任何手动操作。
 

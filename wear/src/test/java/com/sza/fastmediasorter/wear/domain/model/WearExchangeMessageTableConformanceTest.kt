@@ -8,8 +8,9 @@ import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
 /**
- * Holds the watch's strings to the table of contract DEVICE-EXCHANGE section 25 key by key and language by
- * language (section 25, conformance paragraph). Skipped when the contracts catalogue is not on this machine.
+ * Holds the watch's strings to the message table of contract DEVICE-EXCHANGE items CZ and DR key by key and
+ * language by language (section 11, conformance of items CV to DA). Skipped when the contracts catalogue is not on
+ * this machine.
  */
 class WearExchangeMessageTableConformanceTest {
 
@@ -79,14 +80,17 @@ class WearExchangeMessageTableConformanceTest {
         val file = File(root, "device-exchange/README.md")
         assumeTrue("the contract file is not there", file.isFile)
         val lines = file.readLines(Charsets.UTF_8)
-        val start = lines.indexOfFirst { it.startsWith("## 25.") }
-        val end = lines.indexOfFirst { it.startsWith("## 26.") }
-        assumeTrue("section 25 is not in the contract", start in 0 until end)
-        // Section 27 item DR adds rows to the same table.
-        val sealedStart = lines.indexOfFirst { it.startsWith("## 27.") }
-        val sealedEnd = lines.indexOfFirst { it.startsWith("## Document log") }
-        val sealed = if (sealedStart in 0 until sealedEnd) lines.subList(sealedStart, sealedEnd) else emptyList()
-        return lines.subList(start, end) + sealed
+        // Found by item letter, never by section number: letters are permanent, the consolidation of 0.30 moved
+        // every section from 14 to 27. Item DR adds rows to the table.
+        return CONTRACT_ITEMS.flatMap { itemBlock(lines, it) }
+    }
+
+    // A present contract without the item fails rather than skips: a skip would stop guarding the table silently.
+    private fun itemBlock(lines: List<String>, letter: String): List<String> {
+        val start = lines.indexOfFirst { ITEM_HEADING.find(it)?.groupValues?.get(1) == letter }
+        check(start >= 0) { "item $letter is not in the contract" }
+        val next = (start + 1 until lines.size).firstOrNull { lines[it].startsWith("**") || lines[it].startsWith("#") }
+        return lines.subList(start, next ?: lines.size)
     }
 
     private fun resources(directory: String): Map<String, String> {
@@ -112,5 +116,7 @@ class WearExchangeMessageTableConformanceTest {
         const val COL_TEXT_EN = 3
         val KINDS = setOf("wire", "cast", "local", "state", "result", "wire, cast")
         val ESCAPE = Regex("""\\(.)""")
+        val ITEM_HEADING = Regex("""^\*\*([A-Z]{1,2})(?: \[[^\]]*])? - """)
+        val CONTRACT_ITEMS = listOf("CV", "CW", "CX", "CY", "CZ", "DA", "DR")
     }
 }

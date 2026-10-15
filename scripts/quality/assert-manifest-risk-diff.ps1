@@ -21,9 +21,18 @@
       (none)          every manifest of both modules - the project-wide verdict used by the fg
                       batch and by CI.
 
-    What it does NOT do: it reads SOURCE manifests. A risk that only appears after manifest
-    merging - a library's own declaration - is invisible here by construction, which is why the
-    per-flavor merged-manifest sweep in android-ci.yml exists beside it.
+    What it does NOT do on the two source selections: it reads SOURCE manifests. A risk that only
+    appears after manifest merging - a library's own declaration - is invisible there by
+    construction, which is why the per-flavor merged-manifest sweep in android-ci.yml exists
+    beside it.
+
+    FOREGROUND SERVICE PAIRING (S4267). A merged manifest is also judged for the pair the
+    platform enforces from API 34: every value of a service's android:foregroundServiceType
+    needs android.permission.FOREGROUND_SERVICE_<TYPE> as a uses-permission of the same manifest,
+    or startForeground() throws SecurityException. The pair exists only after merging - a release
+    overlay can strip the permission while the typed service stays declared - so it is checked on
+    the -Manifests path only. A permission carrying tools:node="remove", or android:maxSdkVersion
+    below 34, does not pair; shortService is the one type with no permission.
 
 .PARAMETER Gate
     Fail-closed: exit 1 on any unjustified declaration or malformed row.
@@ -43,6 +52,11 @@
     list that flavor is a finding of its own - the merged manifest is the only place a library's
     own declaration becomes visible, and the row's flavor list is the claim it contradicts.
 
+.PARAMETER PairingOnly
+    With -Manifests: judge only the foreground service pairs, not the registry rows and not the
+    flavor lists. The release sweep uses it so a flavor the registry does not list is still
+    paired. Without -Manifests there is no merged manifest to pair, so the run cannot verify.
+
 .PARAMETER RepoRoot
     The tree to scan.
 
@@ -53,9 +67,12 @@
 
 .NOTES
     Exit codes (CLAUDE.md Rule 7):
-      0 - pass: every declaration in the selection has a well-formed registry row, or a report run.
-      1 - fail: a declaration has no row, or a row lacks a justification or a scope.
-      2 - cannot verify: the registry is missing or holds a line that is not JSON.
+      0 - pass: every declaration in the selection has a well-formed registry row and every typed
+          foreground service of a merged manifest has its paired permission, or a report run.
+      1 - fail: a declaration has no row, a row lacks a justification or a scope, or a typed
+          foreground service has no paired permission.
+      2 - cannot verify: the registry is missing or holds a line that is not JSON, a merged
+          manifest is not well-formed XML, or -PairingOnly was given without -Manifests.
 #>
 [CmdletBinding()]
 param(
@@ -64,6 +81,7 @@ param(
     [switch]$List,
     [AllowEmptyCollection()][AllowNull()][string[]]$Manifests,
     [string]$Flavor,
+    [switch]$PairingOnly,
     [string]$RepoRoot,
     [string]$RegistryPath
 )
@@ -75,11 +93,19 @@ $repoRoot = if ($RepoRoot) { $RepoRoot } else { Split-Path -Parent (Split-Path -
 $repoRootSlash = ($repoRoot -replace '\\', '/').TrimEnd('/')
 . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
 
+$mergedMode = [bool]($Manifests -and (@(Expand-ChangedFiles -ChangedFiles $Manifests).Count -gt 0))
+if ($PairingOnly -and -not $mergedMode) {
+    Write-Error 'assert-manifest-risk-diff: -PairingOnly judges merged manifests, so it needs -Manifests.' -ErrorAction Continue
+    exit 2
+}
+
 $registryFile = if ($RegistryPath) { $RegistryPath } else { Join-Path $repoRoot 'docs/manifest-risk-registry.jsonl' }
-if (-not (Test-Path -LiteralPath $registryFile)) {
+# A pairing-only run never judges a row, so neither a missing nor a broken registry stops it.
+if (-not $PairingOnly -and -not (Test-Path -LiteralPath $registryFile)) {
     Write-Error "assert-manifest-risk-diff: registry not found: $registryFile" -ErrorAction Continue
     exit 2
 }
+$registryLines = if (-not $PairingOnly) { @(Get-Content -LiteralPath $registryFile) } else { @() }
 
 # ---------------------------------------------------------------------------
 # Registry
@@ -96,7 +122,7 @@ foreach ($module in @('app_v2', 'wear')) {
 $known = @{}
 $malformed = [System.Collections.Generic.List[string]]::new()
 $lineNo = 0
-foreach ($raw in (Get-Content -LiteralPath $registryFile)) {
+foreach ($raw in $registryLines) {
     $lineNo++
     $line = ([string]$raw).Trim()
     if (-not $line) { continue }
@@ -129,7 +155,7 @@ foreach ($raw in (Get-Content -LiteralPath $registryFile)) {
     }
 }
 
-if ($malformed.Count -gt 0) {
+if ($malformed.Count -gt 0 -and -not $PairingOnly) {
     Write-Host 'manifest-risk: the registry itself is malformed -'
     foreach ($m in $malformed) { Write-Host "  $m" }
     if ($Gate) { exit 1 }
@@ -191,7 +217,8 @@ function Add-Declaration([string]$Kind, [string]$Key, [string]$File) {
     $declarations.Add([pscustomobject]@{ Kind = $Kind; Key = $Key; File = $File })
 }
 
-foreach ($rel in $selection) {
+$declarationSources = if ($PairingOnly) { @() } else { $selection }
+foreach ($rel in $declarationSources) {
     $absolutePath = Join-Path $repoRoot $rel
     if (-not (Test-Path -LiteralPath $absolutePath -PathType Leaf)) { continue }
     $text = Get-Content -LiteralPath $absolutePath -Raw
@@ -222,6 +249,71 @@ foreach ($rel in $selection) {
 }
 
 # ---------------------------------------------------------------------------
+# Foreground service pairing - merged manifests only
+# ---------------------------------------------------------------------------
+$androidNs = 'http://schemas.android.com/apk/res/android'
+$toolsNs = 'http://schemas.android.com/tools'
+# The platform starts enforcing the typed permission at API 34, so a grant capped below it is no pair.
+$pairingApi = 34
+# The one type the platform lets a service declare with no permission of its own.
+$unpairedTypes = @('shortService')
+
+function Get-FgsPermission([string]$Type) {
+    'android.permission.FOREGROUND_SERVICE_' + [regex]::Replace($Type, '(?<=[a-z0-9])(?=[A-Z])', '_').ToUpperInvariant()
+}
+
+function Get-PairingFindings([string]$Rel, [string]$AbsolutePath) {
+    $doc = [System.Xml.XmlDocument]::new()
+    try { $doc.Load($AbsolutePath) }
+    catch {
+        Write-Error "assert-manifest-risk-diff: ${Rel} is not well-formed XML, so its foreground service pairs cannot be judged." -ErrorAction Continue
+        exit 2
+    }
+    $granted = @{}
+    foreach ($node in $doc.SelectNodes('//uses-permission | //uses-permission-sdk-23')) {
+        $name = $node.GetAttribute('name', $androidNs)
+        if (-not $name) { continue }
+        if ($node.GetAttribute('node', $toolsNs) -eq 'remove') { continue }
+        $cap = 0
+        if ([int]::TryParse($node.GetAttribute('maxSdkVersion', $androidNs), [ref]$cap) -and $cap -lt $pairingApi) { continue }
+        $granted[$name] = $true
+    }
+    $missing = [System.Collections.Generic.List[string]]::new()
+    foreach ($service in $doc.SelectNodes('//service')) {
+        $typeValue = $service.GetAttribute('foregroundServiceType', $androidNs)
+        if (-not $typeValue) { continue }
+        if ($service.GetAttribute('node', $toolsNs) -eq 'remove') { continue }
+        $serviceName = $service.GetAttribute('name', $androidNs)
+        foreach ($raw in ($typeValue -split '\|')) {
+            $type = $raw.Trim()
+            if (-not $type -or $unpairedTypes -contains $type) { continue }
+            if ($type -notmatch '^[a-z][A-Za-z]*$') {
+                $missing.Add("service '$serviceName' declares foregroundServiceType '$type', which names no permission to pair (${Rel})")
+                continue
+            }
+            $permission = Get-FgsPermission $type
+            if (-not $granted.ContainsKey($permission)) {
+                $missing.Add("service '$serviceName' declares foregroundServiceType '$type' but the merged manifest has no uses-permission $permission (${Rel})")
+            }
+        }
+    }
+    return $missing.ToArray()
+}
+
+$unpaired = [System.Collections.Generic.List[string]]::new()
+if ($mergedMode) {
+    foreach ($rel in $selection) {
+        $absolutePath = Join-Path $repoRoot $rel
+        # Nothing to pair is not a pass: the sweep would report the same green for a path nobody built.
+        if (-not (Test-Path -LiteralPath $absolutePath -PathType Leaf)) {
+            Write-Error "assert-manifest-risk-diff: merged manifest not found: ${rel}" -ErrorAction Continue
+            exit 2
+        }
+        foreach ($finding in @(Get-PairingFindings $rel $absolutePath)) { $unpaired.Add($finding) }
+    }
+}
+
+# ---------------------------------------------------------------------------
 # Verdict
 # ---------------------------------------------------------------------------
 $findings = [System.Collections.Generic.List[string]]::new()
@@ -245,18 +337,27 @@ foreach ($d in $declarations) {
     $findings.Add(("{0} '{1}' in {2}" -f $d.Kind, $d.Key, $d.File))
 }
 
-$scope = if ($Manifests -and $selection.Count -gt 0) { "merged manifests of flavor '$Flavor'" }
+$scope = if ($mergedMode) { "merged manifests of flavor '$Flavor'" }
     elseif ($ChangedFiles -and $selection.Count -gt 0 -and (@(Expand-ChangedFiles -ChangedFiles $ChangedFiles).Count -gt 0)) { 'changed set' }
     else { 'both modules' }
-Write-Host ("manifest-risk: {0} manifest(s) in the {1} | {2} declaration(s) | unjustified {3}" -f $selection.Count, $scope, $declarations.Count, $findings.Count)
+$pairingNote = if ($mergedMode) { " | unpaired {0}" -f $unpaired.Count } else { '' }
+Write-Host ("manifest-risk: {0} manifest(s) in the {1} | {2} declaration(s) | unjustified {3}{4}" -f $selection.Count, $scope, $declarations.Count, $findings.Count, $pairingNote)
 
 if ($findings.Count -gt 0) {
     foreach ($f in $findings) { Write-Host "  $f" }
     if ($Gate) {
         Write-Host 'FAIL: a manifest risk declaration has no row in docs/manifest-risk-registry.jsonl. Add one row per key - kind, key, modules, flavors, sources and a one-sentence justification a reviewer who has never seen the code can read - or drop the declaration.'
-        exit 1
     }
 }
+
+if ($unpaired.Count -gt 0) {
+    foreach ($f in $unpaired) { Write-Host "  $f" }
+    if ($Gate) {
+        Write-Host 'FAIL: a foreground service type has no paired FOREGROUND_SERVICE_<TYPE> permission in the merged manifest, so startForeground() throws SecurityException on Android 14+. Declare the permission (and remove a release overlay that strips it), or drop the type from the service.'
+    }
+}
+
+if ($Gate -and ($findings.Count -gt 0 -or $unpaired.Count -gt 0)) { exit 1 }
 
 if ($Gate -and $malformed.Count -gt 0) {
     Write-Error "assert-manifest-risk-diff: $($malformed.Count) registry row(s) are malformed - each is listed above with its line number. Give the row a justification and a scope, or delete it." -ErrorAction Continue

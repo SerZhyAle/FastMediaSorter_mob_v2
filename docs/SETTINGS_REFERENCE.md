@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: doc
 title: "Settings reference - what is what"
 permalink: /docs/SETTINGS_REFERENCE.html
 ---
@@ -25,6 +25,7 @@ _Generated from the app. Do not edit by hand._
 | Remove expired packets | Deletes the packets past their lifetime and the uploads that never finished, judged on Google Drive's clock. Packets still inside their lifetime are kept. |
 | Send to my device (Drive) | Sends this device's settings to your other devices as a packet in your Google Drive; any of them can apply it. |
 | Downloadable Extensions | Opens the downloadable extensions manager where you can install optional feature modules. |
+| About Files via Google Drive | Opens the portal page about Files via Google Drive: what goes through your own account, how long it takes and what the limits are. |
 | Export Favorites | Exports your saved favorites list to a file you can back up or transfer. Available when Favorites is enabled. |
 | Export resources to file | Saves all configured resources (folders, network connections) to an export file. |
 | Export All Settings to File | Saves all app settings to a file so you can restore or transfer them later. |
@@ -46,12 +47,14 @@ _Generated from the app. Do not edit by hand._
 | Restore settings from Google Drive | Restores app settings from a backup stored in your Google Drive account. |
 | Save Debug Logs | Saves the current debug log to a file on the device for sharing or inspection. |
 | Change | Picks which of your exchange servers the share is published through; the line above names the current outgoing server. |
+| About folders through the exchange server | Opens the portal page about sharing a folder on this phone and opening it on another of your devices from any network. |
 | My devices | Opens My devices, where you add, move, share and remove your exchange servers. |
 | New access link | Issues a new access link: every code shared before stops opening this server through the exchange server. |
 | About access from outside the home network | Opens the portal page about reaching your shared folders from outside the home network, step by step. |
 | Add folder | Picks a folder through the system picker and adds it to the folders the server shares. |
 | Code for older app versions | Shows the pairing code without the exchange server part, for a FastMediaSorter too old to read the new code; it connects on the local network only. |
 | New password | Replaces the server login password with a new random one; clients need the new password afterwards. |
+| About the phone as a server | Opens the portal page about the phone as a server: how long it keeps running, launcher mode and mobile data. |
 | Show pairing code | Shows a pairing code with the address, login and host key fingerprint for another FastMediaSorter to scan. |
 | Share Debug Logs | Shares the current debug log via the system share sheet. |
 | Show Log | Opens the full app log for review within the app. |

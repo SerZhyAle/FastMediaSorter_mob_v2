@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "पीसी पर शेड्यूल्ड कैमरा बैकअप - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-hi.html
 ---
-<sub class="doc-stamp">26.09.25 02:13</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
 # 📷 पीसी पर शेड्यूल्ड कैमरा बैकअप
 
 > **लेवल:** शुरुआती &bull; **समय:** ~15 मिनट सेटअप &bull; **एडिशन:** Standard, Photos, Legacy, VR, noLegal (नेटवर्क सोर्स चाहिए - Lite में कोई नहीं है)
-
-{% include lang-switcher.html doc="scenario-camera-backup" dir="/docs/howto/" current="hi" %}
 
 अपने फोन के कैमरे की नई फ़ोटो को **हर रात, Wi-Fi पर**, अपने घर के कंप्यूटर पर अपने आप कॉपी करें. एक बार सेट करें - यह बिना किसी मैनुअल काम के हमेशा चलता रहता है.
 

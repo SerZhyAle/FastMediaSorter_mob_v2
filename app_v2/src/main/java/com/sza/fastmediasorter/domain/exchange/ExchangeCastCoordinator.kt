@@ -48,7 +48,8 @@ import javax.inject.Singleton
  * one control stream ([SftpServerTunnelManager]). As a receiver it holds that stream while streams are on and an
  * outgoing entry exists, imports every offered broadcast as a live channel (9.5), and asks through a notification
  * unless the user chose "play at once". As a sender it lists the receivers on the same stream, so opening the
- * list never displaces the broadcast's control stream (7.3), and sends one `cast` per chosen receiver.
+ * list never displaces the broadcast's control stream (7.3), and sends one `cast` per chosen receiver. Receiving
+ * follows the outgoing entry whatever its kind; sending only one that may produce (19 item AO).
  */
 // Both halves of cast meet here on purpose: they share the one control stream and its single collector.
 @Suppress("LongParameterList")
@@ -71,8 +72,11 @@ class ExchangeCastCoordinator @Inject constructor(
     private val machine = ExchangeCastReceiverMachine()
     private val machineLock = Mutex()
 
-    /** A broadcast can be cast only through an outgoing entry, the one it is announced on (item AC). */
-    val castAvailable: Flow<Boolean> = accounts.outgoing.map { it != null }.distinctUntilChanged()
+    /**
+     * A broadcast can be cast only through an outgoing entry, the one it is announced on (item AC), and never a
+     * `guest` one, whose `cast` the server refuses (19 item AO).
+     */
+    val castAvailable: Flow<Boolean> = accounts.producer.map { it != null }.distinctUntilChanged()
 
     /** Every `cast-result` this device receives as a broadcaster (item R). */
     val results: Flow<ExchangeCastResult> = tunnel.controlEvents.mapNotNull(DeviceExchangeCastCodec::result)
@@ -106,7 +110,7 @@ class ExchangeCastCoordinator @Inject constructor(
      */
     suspend fun castTargets(): List<ExchangeCastTarget>? = withContext(ioDispatcher) {
         val descriptor = announcer.announcedDescriptor
-        val own = accounts.outgoing.first()?.deviceId
+        val own = accounts.producer.first()?.deviceId
         if (descriptor == null || own == null) return@withContext null
         withTimeoutOrNull(LIST_TIMEOUT_MS) { listOnControl() }
             ?.let { ExchangeCastRules.castTargets(it.devices, own, endpointPairs(descriptor)) }

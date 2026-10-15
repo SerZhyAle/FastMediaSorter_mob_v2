@@ -17,7 +17,7 @@
     <string name="camera_ocr_save_error">Не удалось сохранить текстовый файл</string>
     <string name="camera_ocr_camera_error">Не удалось запустить камеру или сделать снимок</string>
     <string name="camera_ocr_engine_error">Служба перевода в данный момент недоступна</string>
-    <string name="camera_ocr_crop_retry">Переснять</string>
+    <string name="camera_ocr_crop_retry">Повторить попытку</string>
     <string name="camera_ocr_crop_confirm">Применить</string>
     <string name="camera_ocr_crop_frame_desc">Рамка выделения области</string>
     <string name="start_player">Запустить плеер</string>
@@ -32,7 +32,7 @@
     <string name="edit">Редактировать</string>
     <string name="control">Настройки воспроизведения</string>
     <string name="undo">Отменить</string>
-    <string name="action_retry">Повторить</string>
+    <string name="action_retry">Повторить попытку</string>
     <string name="cancel">Отмена</string>
     <string name="sign_in">Войти</string>
     <string name="ok">ОК</string>
@@ -177,7 +177,7 @@
     <string name="connecting_to_resource">Подключение к %1$s..</string>
     <string name="scan_progress_indicator">Сканирование файлов</string>
     <string name="operation_progress_indicator">Операция в процессе</string>
-    <string name="retry">Повторить</string>
+    <string name="retry">Повторить попытку</string>
     <string name="select_resource_type">Выберите тип ресурса</string>
 
     <!-- Connection Error Messages -->
@@ -325,7 +325,7 @@
     <string name="btn_save_copy">Сохранить как копию</string>
     <string name="btn_save_as_copy">Сохранить как копию</string>
     <string name="btn_reset_changes">Сбросить изменения</string>
-    <string name="btn_retry">Повторить</string>
+    <string name="btn_retry">Повторить попытку</string>
     <string name="btn_test_connection">Проверить подключение</string>
     <string name="btn_use_suggested_name">Использовать предложенное имя</string>
     <string name="btn_use_name_format">Использовать \"%1$s\"</string>
@@ -1958,7 +1958,7 @@
     <string name="delivery_state_error">Не удалось скачать - проверьте соединение и повторите.</string>
     <string name="delivery_percent">%1$d%%</string>
     <string name="delivery_action_download">Скачать</string>
-    <string name="delivery_action_retry">Повторить</string>
+    <string name="delivery_action_retry">Попробовать снова</string>
     <string name="delivery_progress_content_description">Ход загрузки</string>
 
     <!-- Extensions Manager Strings -->
@@ -4455,4 +4455,29 @@
     <string name="broadcast_control_screen_action">Вещать экран</string>
     <string name="broadcast_notification_screen_title">Вещание экрана</string>
     <string name="broadcast_notification_screen_text">Идёт вещание экрана</string>
+    <string name="broadcast_share_password">Пароль: %1$s</string>
+    <string name="broadcast_share_new_password">Новый пароль</string>
+    <string name="broadcast_share_new_password_cd">Создать новый пароль трансляции. Старый перестанет работать</string>
+    <string name="broadcast_share_password_hint">Новый пароль задан. Сообщите его отдельно от ссылки - ни ссылка, ни QR-код его не содержат</string>
+    <string name="broadcast_password_title">Пароль трансляции</string>
+    <string name="broadcast_password_message">Введите пароль трансляции, который вам передали вместе со ссылкой.</string>
+    <string name="broadcast_password_protected">Трансляция защищена паролем</string>
+    <string name="broadcast_password_hint">Пароль</string>
+    <string name="broadcast_password_connect">Подключить</string>
+    <string name="broadcast_password_empty">Введите пароль</string>
+    <string name="stream_send_to_watch_unplayable">Часы не могут воспроизвести эту трансляцию</string>
+    <string name="stream_send_to_watch_password_first">Сначала откройте трансляцию на телефоне и введите пароль</string>
+    <string name="stream_send_to_watch_no_reply_update">Часы не ответили. Обновите приложение на часах и попробуйте снова</string>
+    <string name="broadcast_guests_button">Гости</string>
+    <string name="broadcast_guests_title">Выдать трансляцию гостю</string>
+    <string name="broadcast_guests_login_hint">Логин гостя</string>
+    <string name="broadcast_guests_give">Выдать</string>
+    <string name="broadcast_guests_withdraw">Отозвать</string>
+    <string name="broadcast_guests_state_pending">Ждёт ответа сервера</string>
+    <string name="broadcast_guests_state_granted">Выдано</string>
+    <string name="broadcast_guests_state_refused">Сервер отклонил выдачу</string>
+    <string name="broadcast_guests_empty">Гостей пока нет. Введите логин гостя, чтобы выдать ему эту трансляцию.</string>
+    <string name="broadcast_guests_withdraw_cd">Отозвать у %1$s</string>
+    <string name="broadcast_guests_login_invalid">Введите логин гостя: от 3 до 64 латинских букв, цифр, точек, дефисов или подчёркиваний</string>
+    <string name="broadcast_guests_give_failed">У этого гостя трансляция уже есть, или она больше не объявлена через сервер</string>
 </resources>

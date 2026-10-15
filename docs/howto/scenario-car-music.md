@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "In-Car Music Player (Android Head Unit) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music.html
 ---
-<sub class="doc-stamp">26.09.24 20:50</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 🚗 In-Car Music Player (Android Head Unit)
 
 > **Level:** Beginner &bull; **Time:** ~10 minutes &bull; **Flavor:** Standard, Legacy, VR, noLegal (Lite plays local audio but has no background playback and no Streams; Photos has no audio)
-
-{% include lang-switcher.html doc="scenario-car-music" dir="/docs/howto/" current="en" %}
 
 FastMediaSorter works great as a car music player on Android head units - instant access to your full music collection on SD card or USB drive, with steering wheel button support built in.
 

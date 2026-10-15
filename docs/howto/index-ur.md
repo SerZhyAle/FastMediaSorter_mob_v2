@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "قدم بہ قدم رہنما - FastMediaSorter v2"
 permalink: /docs/howto/index-ur.html
 ---
-<sub class="doc-stamp">26.09.25 02:14</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> قدم بہ قدم رہنما
 
 حقیقی زندگی کے استعمال کے لیے عملی رہنما اسباق۔ کسی پیشگی تجربے کی ضرورت نہیں - ہر مرحلہ شروع سے وضاحت کے ساتھ بیان کیا گیا ہے۔
-
-{% include lang-switcher.html doc="index" dir="/docs/howto/" current="ur" %}
 
 ---
 

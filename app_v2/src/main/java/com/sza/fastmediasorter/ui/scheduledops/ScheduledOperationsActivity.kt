@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityScheduledOperationsBinding
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -56,11 +57,16 @@ class ScheduledOperationsActivity : BaseActivity<ActivityScheduledOperationsBind
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if (item.itemId == R.id.action_help) {
-            DocsPageOpenManager.open(this, UiSurface.SCHEDULED_OPS)
-            true
-        } else {
-            super.onOptionsItemSelected(item)
+        return when (item.itemId) {
+            R.id.action_help -> {
+                DocsPageOpenManager.open(this, UiSurface.SCHEDULED_OPS)
+                true
+            }
+            R.id.action_portal -> {
+                MediaExchangePortalLinks.open(this, MediaExchangePortalLinks.Page.SCHEDULE_REMOTE_FOLDERS)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 

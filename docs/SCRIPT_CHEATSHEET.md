@@ -2816,6 +2816,20 @@ scripts/docs/Read-DocumentationSearchIndex.ps1
   (no param block)
 ```
 
+### record-released-addresses.ps1
+S4256 - record the address and the section anchors of every page a release publishes into docs/site-released-addresses.jsonl.
+
+```
+scripts/docs/record-released-addresses.ps1
+  S4256 - record the address and the section anchors of every page a release publishes into docs/site-released-addresses.jsonl.
+  Params:
+    -Release     (req)  [String]
+    -SiteRoot           [String] = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+    -RecordRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+    -Check              [SwitchParameter]
+  Exit: 0 the record was written (or, with -Check, is already current); 1 -Check: the record would gain a page or an anchor; 2 invalid input: the release is empty, a tree is missing or the record is unreadable
+```
+
 ### render-icon-legend.ps1
 S0815 Phase 03 - render the trilingual icon-legend pages.
 
@@ -2895,7 +2909,7 @@ scripts/docs/stamp-doc-dates.ps1
     -Now                      [SwitchParameter]
     -IncludeGenerated         [SwitchParameter]
     -Quiet                    [SwitchParameter]
-  Exit: 0 every considered document is stamped and current (or was stamped now); 1 -Check found a missing or stale stamp; 2 no input given, or a file could not be read or written
+  Exit: 0 every considered document is stamped and current (or was stamped now); 1 -Check found a missing or stale stamp; 2 no input given, a file could not be read or written, or a recipe page restamp failed
 ```
 
 ### strip-landing-filter-emoji.ps1
@@ -2992,6 +3006,15 @@ Monochrome ICON-SET glyphs for the documentation portal, as inline SVG.
 ```
 scripts/docs/lib/portal-glyphs.ps1
   Monochrome ICON-SET glyphs for the documentation portal, as inline SVG.
+  (no param block)
+```
+
+### released-addresses.ps1
+Shared helpers of the released-address record: the pages a site tree publishes and the section anchors of each (S4256).
+
+```
+scripts/docs/lib/released-addresses.ps1
+  Shared helpers of the released-address record: the pages a site tree publishes and the section anchors of each (S4256).
   (no param block)
 ```
 
@@ -4472,9 +4495,10 @@ scripts/quality/assert-manifest-risk-diff.ps1
     -List                 [SwitchParameter]
     -Manifests            [String[]]
     -Flavor               [String]
+    -PairingOnly          [SwitchParameter]
     -RepoRoot             [String]
     -RegistryPath         [String]
-  Exit: 0 - pass: every declaration in the selection has a well-formed registry row, or a report run.; 1 - fail: a declaration has no row, or a row lacks a justification or a scope.; 2 - cannot verify: the registry is missing or holds a line that is not JSON.
+  Exit: 0 - pass: every declaration in the selection has a well-formed registry row and every typed
 ```
 
 ### assert-memory-budget.ps1
@@ -4844,6 +4868,18 @@ scripts/quality/assert-play-listing-screenshot-geometry.ps1
   Exit: 0 - every composed screenshot is inside the band ceiling, its carousel's shape and Play
 ```
 
+### assert-portal-pages.ps1
+S4256 - holds the shared media exchange portal to its section manifest, its three-language page set and its rendered schemes.
+
+```
+scripts/quality/assert-portal-pages.ps1
+  S4256 - holds the shared media exchange portal to its section manifest, its three-language page set and its rendered schemes.
+  Params:
+    -Dimension         [String] = 'all'  {sections|variants|schemes|all}
+    -RepoRoot          [String] = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+  Exit: 0 every requested dimension passed; 1 at least one finding (each is named); 2 could not verify: the manifest is missing or malformed, the portal or the renderer is missing, or
+```
+
 ### assert-positioning-consistency.ps1
 S2271 gate: every positioning surface names the eight pillars of docs/POSITIONING*.md in order.
 
@@ -4935,6 +4971,18 @@ scripts/quality/assert-release-tree-binding.ps1
     -ExpectedVersionCode         [String]
     -BundleDir                   [String]
   Exit: 0 bound - every check passed.; 1 refused - at least one check failed; the artifact is not bound to the tested build.; 2 cannot verify - the worktree, a ref or the bundle metadata could not be read.
+```
+
+### assert-released-addresses.ps1
+S4256 - holds every released page to its address and its section anchors: a page a release carried still answers at its address with every anchor it had, or is retired behind a forwarder.
+
+```
+scripts/quality/assert-released-addresses.ps1
+  S4256 - holds every released page to its address and its section anchors: a page a release carried still answers at its address with every anchor it had, or is retired behind a forwarder.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+    -Quiet            [SwitchParameter]
+  Exit: 0 every released address answers with its page and its anchors, or is retired; 1 at least one finding (each is named); 2 could not verify: the record is missing, unreadable or malformed
 ```
 
 ### assert-resource-icon-parity.ps1
@@ -6615,6 +6663,19 @@ scripts/quality/assert-play-listing-screenshot-geometry.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (the venv python or Pillow absent, or the source
 ```
 
+## scripts\quality\assert-portal-pages.tests
+
+### Run-Tests.ps1
+S4256 - test suite for scripts/quality/assert-portal-pages.ps1.
+
+```
+scripts/quality/assert-portal-pages.tests/Run-Tests.ps1
+  S4256 - test suite for scripts/quality/assert-portal-pages.ps1.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+  Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: the gate script is missing
+```
+
 ## scripts\quality\assert-positioning-consistency.tests
 
 ### Run-Tests.ps1
@@ -6635,6 +6696,19 @@ scripts/quality/assert-release-tree-binding.tests/Run-Tests.ps1
   Run-Tests.ps1 - contract tests for assert-release-tree-binding.ps1 (S4057). Every case builds a throwaway git repository under the system temp directory, so no case reads the live release worktree or its tags.
   (no param block)
   Exit: 0 every case passed; 1 at least one case failed
+```
+
+## scripts\quality\assert-released-addresses.tests
+
+### Run-Tests.ps1
+S4256 - test suite for scripts/quality/assert-released-addresses.ps1 and its writer scripts/docs/record-released-addresses.ps1.
+
+```
+scripts/quality/assert-released-addresses.tests/Run-Tests.ps1
+  S4256 - test suite for scripts/quality/assert-released-addresses.ps1 and its writer scripts/docs/record-released-addresses.ps1.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+  Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: the gate or the writer is missing
 ```
 
 ## scripts\quality\assert-script-references.tests
@@ -9077,7 +9151,7 @@ scripts/utils/archive-untriaged-drafts.ps1
     -List                  [SwitchParameter]
     -RepoRoot              [String]
     -ArchiveScript         [String]
-  Exit: 0 - listed, or every expired ticket archived (including none).; 1 - archive.ps1 refused at least one id; its output is printed.; 2 - could not verify: the catalog journal is absent or unreadable.
+  Exit: 0 - listed, or every expired non-exempt ticket archived (including none); exempt tickets
 ```
 
 ### archive-vscode-cruft.ps1
@@ -9167,6 +9241,20 @@ scripts/utils/capture-draft.ps1
     -Parked                       [SwitchParameter]
     -RepoRoot                     [String] = ''
   Exit: 0 ticket created or text appended, or -WhatIf finished its dedup report.; 1 the catalog refused the insert, the spec file could not be written, or -Parked could not
+```
+
+### check-child-context.ps1
+Context bound for an unattended runner child (S4264): at a /spec-all stage boundary or a /spec-dev phase boundary, decide whether the child stops and hands the ticket back.
+
+```
+scripts/utils/check-child-context.ps1
+  Context bound for an unattended runner child (S4264): at a /spec-all stage boundary or a /spec-dev phase boundary, decide whether the child stops and hands the ticket back.
+  Params:
+    -Id         (req)  [String]
+    -Kind       (req)  [String]  {stage|phase}
+    -Boundary          [String] = ''
+    -Threshold         [Int32] = 0
+  Exit: 0 - continue: under the threshold, or a phase crossing the resolved runner cannot relaunch.; 2 - cannot verify: bad arguments, or the context could not be read; the child continues.; 3 - stop: threshold crossed, marker written.
 ```
 
 ### check-typo-lint.ps1
@@ -9710,7 +9798,7 @@ scripts/utils/new-localized-page.ps1
     -Root             [String]
     -DryRun           [SwitchParameter]
     -Help             [SwitchParameter]
-  Exit: 0 - every missing file created (or listed under -DryRun).; 1 - the language is not in _data/languages.yml, or is English.; 2 - a target file already exists; nothing was written.; 3 - cannot run: the page set, the language list or a source document is missing.
+  Exit: 0 - every missing file created (or listed under -DryRun).; 1 - the language is not in _data/languages.yml, or is English.; 2 - a target file already exists; nothing was written.; 3 - cannot run: the page set, the language list or a source document is missing, or a source
 ```
 
 ### normalize-all-features-areas.ps1

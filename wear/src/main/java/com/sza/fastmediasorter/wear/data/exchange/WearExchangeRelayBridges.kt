@@ -34,6 +34,29 @@ class WearExchangeRelayBridges @Inject constructor(
         return "http://${WearExchangeRelayEndpoint.LOOPBACK_HOST}:${held.bridge.port}${endpoint.path}"
     }
 
+    /**
+     * S4240: the loopback URL of the opening proxy for a sealed [endpoint] (27 item DL), which answers the player
+     * with clear media. It holds the group key, so it is never reused for another pick.
+     *
+     * @throws IOException when no local port could be bound.
+     */
+    @Synchronized
+    @Throws(IOException::class)
+    fun openSealed(endpoint: WearBroadcastEndpoint.Relay, groupKey: ByteArray, requestHeader: String?): String {
+        val proxy = WearSealedRelayProxy(
+            label = LABEL,
+            path = endpoint.path,
+            host = if (endpoint.port == HTTPS_PORT) endpoint.host else "${endpoint.host}:${endpoint.port}",
+            broadcastId = endpoint.broadcastId,
+            groupKey = groupKey,
+            requestHeader = requestHeader,
+        ) {
+            connector.connect(endpoint.host, endpoint.port, endpoint.certFingerprint)
+        }
+        keep(Held(key = null, hasHeader = true, bridge = proxy))
+        return "http://${WearExchangeRelayEndpoint.LOOPBACK_HOST}:${proxy.port}${endpoint.path}"
+    }
+
     @Synchronized
     fun closeAll() {
         bridges.forEach { it.bridge.close() }
@@ -44,16 +67,20 @@ class WearExchangeRelayBridges @Inject constructor(
         val bridge = WearExchangeLoopbackBridge(LABEL, requestHeader) {
             connector.connect(endpoint.host, endpoint.port, endpoint.certFingerprint)
         }
-        val held = Held(key, requestHeader != null, bridge)
+        return keep(Held(key, requestHeader != null, bridge))
+    }
+
+    private fun keep(held: Held): Held {
         bridges.addLast(held)
         while (bridges.size > MAX_BRIDGES) bridges.removeFirst().bridge.close()
         return held
     }
 
-    private class Held(val key: String, val hasHeader: Boolean, val bridge: WearExchangeLoopbackBridge)
+    private class Held(val key: String?, val hasHeader: Boolean, val bridge: WearLoopbackPort)
 
     internal companion object {
         const val MAX_BRIDGES = 2
         private const val LABEL = "list"
+        private const val HTTPS_PORT = 443
     }
 }

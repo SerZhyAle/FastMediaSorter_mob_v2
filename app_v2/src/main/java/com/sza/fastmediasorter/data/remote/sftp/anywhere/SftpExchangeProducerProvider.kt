@@ -2,7 +2,8 @@ package com.sza.fastmediasorter.data.remote.sftp.anywhere
 
 import android.os.Build
 import com.google.gson.JsonObject
-import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeRelayKeys
+import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastSealMaterial
+import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeBroadcastGrants
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
 import com.sza.fastmediasorter.data.remote.sftp.server.SftpServerIdentityStore
 import com.sza.fastmediasorter.data.repository.DeviceExchangeAccountRepository
@@ -23,8 +24,10 @@ import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import com.sza.fastmediasorter.domain.model.SftpRendezvousResource
 import com.sza.fastmediasorter.domain.model.SftpShareId
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
+import javax.net.ssl.SSLContext
 
 /**
  * What the guest grants are sealed with on one server (27 item DJ): [audience] maps each `grantId` to the guest's
@@ -45,12 +48,16 @@ data class SftpExchangeProducer(val entry: DeviceExchangeAccountEntry, val share
 /** What the tunnel manager publishes, and through which account entry. */
 interface SftpExchangeProducerSource {
 
-    /** Null while publishing is off, no entry is the outgoing one or the share id is not usable. */
+    /**
+     * Null while publishing is off, no entry is the outgoing one, the outgoing one is a `guest` account that may not
+     * publish (19 item AO), or the share id is not usable.
+     */
     suspend fun producer(): SftpExchangeProducer?
 
     /**
      * The entry the device publishes and broadcasts through (item AC), whether or not the share is published; a
-     * broadcast needs it with publishing off.
+     * broadcast needs it with publishing off. It is also the entry receiving runs on, so it stays a `guest` one
+     * too: what a guest may not send is gated by [producer] and by the broadcast announcer, never here.
      */
     suspend fun outgoingEntry(): DeviceExchangeAccountEntry? = producer()?.entry
 
@@ -69,6 +76,12 @@ interface SftpExchangeProducerSource {
         hosts: List<String>,
         sealing: ExchangeGrantSealing,
     ): List<DeviceExchangeEnvelope> = emptyList()
+
+    /**
+     * The `grant` envelopes of the live broadcast's guest grants (items BD, DJ, DK), each sealed to its guest's
+     * devices; a grant whose guest devices are not known yet is left out until the audience arrives.
+     */
+    suspend fun broadcastGrantEnvelopes(sealing: ExchangeGrantSealing): List<DeviceExchangeEnvelope> = emptyList()
 
     /**
      * Keeps what the control stream's `welcome` announced - above all whether the server carries `sealed`
@@ -97,6 +110,12 @@ interface SftpExchangeProducerSource {
         record: SftpRendezvousBroadcast,
         devices: List<SftpRendezvousDevice>,
     ): SealedBroadcastRecord = SealedBroadcastRecord(record, recipientsKey = "")
+
+    /**
+     * 27 item DM: the TLS server context a `TUNNEL` stream of [broadcastId] is answered with; null when the
+     * broadcast has no tunnel identity, and such a stream is never served in clear.
+     */
+    fun tunnelTls(broadcastId: String): SSLContext? = null
 }
 
 /** A broadcast record with its box; [recipientsKey] names who the box was sealed to and with which own key. */
@@ -116,8 +135,37 @@ class SftpExchangeProducerProvider @Inject constructor(
     private val grants: ExchangeGrantRepository,
     private val accountRepository: dagger.Lazy<DeviceExchangeAccountRepository>,
     private val e2e: ExchangeE2eRepository,
-    private val relayKeys: ExchangeRelayKeys,
+    private val seals: BroadcastSealMaterial,
+    private val broadcastGrants: ExchangeBroadcastGrants,
 ) : SftpExchangeProducerSource {
+
+    override suspend fun broadcastGrantEnvelopes(sealing: ExchangeGrantSealing): List<DeviceExchangeEnvelope> {
+        val self = e2e.self(sealing.entry)?.takeIf { sealing.serverSeals } ?: return emptyList()
+        return broadcastGrants.grants.value.mapNotNull { grant ->
+            val pair = seals.credentials.guestPair(grant.grantId) ?: return@mapNotNull null
+            val payload = JsonObject().apply {
+                add(E2eBroadcastSeals.KEY_CREDENTIALS, credentialsJson(pair.user, pair.password))
+                seals.relayKeys.linkKey(grant.broadcastId, grant.grantId)?.let {
+                    addProperty(E2eBroadcastSeals.KEY_RELAY_KEY, E2eBytes.b64url(it))
+                }
+                seals.tunnelIdentities.current(grant.broadcastId)?.pin?.let {
+                    addProperty(E2eBroadcastSeals.KEY_TUNNEL_PIN, it)
+                }
+            }
+            ExchangeGrantEnvelopes.broadcastGrant(grant.grantId, grant.guest, grant.broadcastId, payload) { box ->
+                val to = sealing.audience?.get(grant.grantId).orEmpty()
+                to.takeIf { it.isNotEmpty() }
+                    ?.let { E2eSealedBox.seal(box, E2eSealedBox.grantContext(grant.grantId), self, it) }
+            }
+        }
+    }
+
+    private fun credentialsJson(user: String, password: String) = JsonObject().apply {
+        addProperty(KEY_CREDENTIAL_USER, user)
+        addProperty(KEY_CREDENTIAL_PASSWORD, password)
+    }
+
+    override fun tunnelTls(broadcastId: String): SSLContext? = seals.tunnelIdentities.current(broadcastId)?.context
 
     override suspend fun sealedBroadcast(
         entry: DeviceExchangeAccountEntry,
@@ -127,13 +175,27 @@ class SftpExchangeProducerProvider @Inject constructor(
         val sealing = e2e.sealing(entry, devices)
         val self = sealing.self
         // A device that left takes the own group key with it: the next box and the next epoch use a new one (DL).
-        relayKeys.membersChanged(record.broadcastId, sealing.recipients.map { it.deviceId }.toSet())
-        val relayKey = relayKeys.ownKey(record.broadcastId)
+        seals.relayKeys.membersChanged(record.broadcastId, sealing.recipients.map { it.deviceId }.toSet())
+        val relayKey = seals.relayKeys.ownKey(record.broadcastId)
+        val tunnelPin = seals.tunnelIdentities.current(record.broadcastId)?.pin
+        val own = seals.credentials.ownPair
         val payload = JsonObject().apply {
             relayKey?.let { addProperty(E2eBroadcastSeals.KEY_RELAY_KEY, E2eBytes.b64url(it)) }
+            tunnelPin?.let { addProperty(E2eBroadcastSeals.KEY_TUNNEL_PIN, it) }
+            // Item BF and DK: the own pair reaches the account's devices only inside the box, never in clear.
+            own?.let { pair ->
+                add(
+                    E2eBroadcastSeals.KEY_CREDENTIALS,
+                    JsonObject().apply {
+                        addProperty(KEY_CREDENTIAL_USER, pair.user)
+                        addProperty(KEY_CREDENTIAL_PASSWORD, pair.password)
+                    },
+                )
+            }
         }
         val key = sealing.recipients.map { it.deviceId }.sorted().joinToString(",") +
-            "/" + relayKey?.let { E2eBytes.hex(E2eBytes.sha256(it)) }
+            "/" + relayKey?.let { E2eBytes.hex(E2eBytes.sha256(it)) } + "/" + tunnelPin +
+            "/" + own?.let { E2eBytes.hex(E2eBytes.sha256(it.password.toByteArray(Charsets.UTF_8))) }
         val sealed = if (self == null || sealing.recipients.isEmpty() || relayKey == null) {
             record.copy(sealed = null)
         } else {
@@ -163,6 +225,7 @@ class SftpExchangeProducerProvider @Inject constructor(
                 addProperty(KEY_DESCRIPTOR, descriptor)
                 record.root?.let { addProperty(KEY_ROOT, it) }
             }
+            Timber.d("S4240: phone publishes a folder with sealedAccess")
             val box = E2eSealedBox.seal(access, E2eSealedBox.accessContext(record.resourceId), self, recipients)
             SealedShareRecord(withheld.copy(sealedAccess = box.toString()), key)
         }
@@ -203,7 +266,7 @@ class SftpExchangeProducerProvider @Inject constructor(
 
     override suspend fun producer(): SftpExchangeProducer? {
         val config = settings.snapshot()
-        val entry = accounts.outgoing()
+        val entry = accounts.outgoing()?.takeIf { it.mayProduce }
         return if (config.enabled && entry != null && SftpShareId.isValid(config.shareId)) {
             SftpExchangeProducer(entry, config.shareId)
         } else {
@@ -250,6 +313,8 @@ class SftpExchangeProducerProvider @Inject constructor(
         const val WHOLE_SERVER_ROOT = "/"
 
         const val KEY_DESCRIPTOR = "descriptor"
+        const val KEY_CREDENTIAL_USER = "user"
+        const val KEY_CREDENTIAL_PASSWORD = "password"
         const val KEY_ROOT = "root"
     }
 }

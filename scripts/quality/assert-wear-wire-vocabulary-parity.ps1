@@ -39,6 +39,10 @@
     is not an exemption from checking, it is a different check, so the asymmetry stays legal only
     while it stays off the wire.
 
+    A classSerializedNames row may list PhoneOnly members with a PhoneOnlyReason: members only the
+    phone writes and the watch's reader never needs. A listed member the phone no longer declares is a
+    finding; a list with no reason is exit 2.
+
 .PARAMETER Gate
     Fail with exit 1 on a divergence. Without it a divergence is reported and the script exits 0,
     matching the advisory shape of the sibling gates in assert-fast-gates.ps1.
@@ -202,7 +206,9 @@ $vocabularies = @(
 
     @{ Name = 'BroadcastDescriptorDto @SerializedName fields'; Kind = 'Mirrored'; Compare = 'classSerializedNames'
        PhoneFile = 'data/broadcast/BroadcastDescriptorDto.kt'; WatchFile = 'data/broadcast/BroadcastDescriptorDto.kt'
-       Class = 'BroadcastDescriptorDto' },
+       Class = 'BroadcastDescriptorDto'
+       PhoneOnly = @('auth', 'credentials')
+       PhoneOnlyReason = 'The watch copy is write side only and the watch never announces a protected broadcast; a descriptor handed to the watch with auth travels as a JsonObject on stream_broadcast_pass and its pass is a separate WearBroadcastPass (S4261), so the watch DTO never reads either member.' },
 
     @{ Name = 'BroadcastEndpointDto @SerializedName fields'; Kind = 'Mirrored'; Compare = 'classSerializedNames'
        PhoneFile = 'data/broadcast/BroadcastEndpointDto.kt'; WatchFile = 'data/broadcast/BroadcastEndpointDto.kt'
@@ -302,6 +308,21 @@ foreach ($v in $vocabularies) {
         'classSerializedNames' {
             Get-KotlinClassSerializedName -Source $phone -ClassName $v.Class | ForEach-Object { $phoneMap[$_] = $_ }
             Get-KotlinClassSerializedName -Source $watch -ClassName $v.Class | ForEach-Object { $watchMap[$_] = $_ }
+        }
+    }
+
+    # A member only the phone ever writes is legal when the row names it with a reason; the watch's
+    # reader skips an unknown JSON member, so the asymmetry is one-way by construction.
+    if ($v.Contains('PhoneOnly')) {
+        if (-not $v.Contains('PhoneOnlyReason') -or [string]::IsNullOrWhiteSpace($v.PhoneOnlyReason)) {
+            $unreadable += "$($v.Name) - PhoneOnly members carry no PhoneOnlyReason."
+            continue
+        }
+        foreach ($member in $v.PhoneOnly) {
+            if (-not $phoneMap.Contains($member)) {
+                $problems += "$($v.Name) - PhoneOnly member '$member' is not declared on the phone side; drop it from the row."
+            }
+            $phoneMap.Remove($member)
         }
     }
 

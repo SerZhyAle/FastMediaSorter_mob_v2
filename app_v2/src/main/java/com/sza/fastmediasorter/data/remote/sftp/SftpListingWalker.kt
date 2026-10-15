@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.remote.sftp
 
+import androidx.annotation.WorkerThread
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.SftpException
 import timber.log.Timber
@@ -8,10 +9,14 @@ import java.util.Vector
 /**
  * The two directory walks behind [SftpClient.listFiles]. They are plain functions of a connected channel, so they
  * live apart from the client, which would otherwise outgrow the size one class may have.
+ *
+ * Both walks issue blocking `ls` calls and are only entered from the connection pool's confined `withConnection`
+ * lambda. The annotation states that for lint, which judges confinement inside one file and cannot see the caller.
  */
 internal object SftpListingWalker {
 
     // List files in single directory level (non-recursive)
+    @WorkerThread
     fun listFilesSingleLevel(
         channel: ChannelSftp,
         remotePath: String,
@@ -46,6 +51,7 @@ internal object SftpListingWalker {
     }
 
     // List files recursively in all subdirectories
+    @WorkerThread
     fun listFilesRecursive(
         channel: ChannelSftp,
         remotePath: String,

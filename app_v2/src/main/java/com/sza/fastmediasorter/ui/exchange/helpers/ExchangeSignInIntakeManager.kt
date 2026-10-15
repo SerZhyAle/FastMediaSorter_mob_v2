@@ -58,7 +58,7 @@ class ExchangeSignInIntakeManager(
         binding.btnExchangeSignInScan.setOnClickListener { launchers.scanQr() }
         binding.btnExchangeSignInFile.setOnClickListener { launchers.chooseFile() }
         binding.btnExchangePortalSignIn.setOnClickListener {
-            MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.EXCHANGE_SERVER)
+            MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.MY_DEVICES)
         }
         binding.etExchangeSignInIntake.setOnEditorActionListener { view, actionId, _ ->
             if (actionId != EditorInfo.IME_ACTION_GO) return@setOnEditorActionListener false

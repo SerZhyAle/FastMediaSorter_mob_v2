@@ -54,6 +54,9 @@ class WearExchangeBroadcastDirectory @Inject constructor(
     fun broadcast(entryIdentity: String, broadcastId: String): WearDirectoryBroadcast? =
         latest[entryIdentity]?.broadcasts?.get(broadcastId)
 
+    /** S4240: the devices [entryIdentity]'s list holds now, whose keys a listed broadcast's box is checked by. */
+    fun devicesHeld(entryIdentity: String): Collection<WearDirectoryDevice>? = latest[entryIdentity]?.devices?.values
+
     @OptIn(ExperimentalCoroutinesApi::class)
     fun observe(): Flow<List<WearEntryDirectory>> = store.entries
         .flatMapLatest { entries ->
@@ -68,8 +71,16 @@ class WearExchangeBroadcastDirectory @Inject constructor(
         }
         .flowOn(Dispatchers.IO)
 
-    private fun watch(entry: WearExchangeEntry): Flow<WearEntryDirectory> = channelFlow {
-        val holder = Holder()
+    /**
+     * S4240: the account's devices as [entry]'s directory lists them, null until the first answer - whom a sealed
+     * broadcast's box goes to (27 item DK). Nothing here is kept for [broadcast], so a broadcasting watch holds
+     * no other broadcast's credentials while nobody looks at the list (7.9).
+     */
+    fun devices(entry: WearExchangeEntry): Flow<Collection<WearDirectoryDevice>?> =
+        watch(entry, publish = false).map { it.state?.devices?.values }.distinctUntilChanged()
+
+    private fun watch(entry: WearExchangeEntry, publish: Boolean = true): Flow<WearEntryDirectory> = channelFlow {
+        val holder = Holder(publish)
         send(WearEntryDirectory(entry, null, isReachable = false))
         try {
             streams.live
@@ -84,7 +95,7 @@ class WearExchangeBroadcastDirectory @Inject constructor(
                 }
         } finally {
             // A broadcast's credentials live in memory only while a list is being looked at (7.9).
-            latest.remove(entry.identity)
+            if (publish) latest.remove(entry.identity)
         }
     }
 
@@ -131,14 +142,14 @@ class WearExchangeBroadcastDirectory @Inject constructor(
         }
     }
 
-    private inner class Holder {
+    private inner class Holder(private val publish: Boolean) {
         @Volatile
         var state: WearExchangeDirectoryState? = null
             private set
 
         fun replace(identity: String, next: WearExchangeDirectoryState) {
             state = next
-            latest[identity] = next
+            if (publish) latest[identity] = next
         }
     }
 

@@ -118,7 +118,8 @@ object ExchangeAttachPlanner {
         val pin = payload?.let { SshFingerprintNormalizer.canonical(it.hostKeyFingerprint) }
         if (payload == null || pin == null) return null
         val root = item.record.root?.let { if (it.startsWith(PATH_SEPARATOR)) it else PATH_SEPARATOR + it }.orEmpty()
-        val tunnel = SftpTunnelAddress.fromPairing(payload) ?: shareTunnel(item.record.shareId, entryEndpoint)
+        val tunnel = SftpTunnelAddress.fromPairing(payload)
+            ?: shareTunnel(item.record.shareId ?: item.record.resourceId, entryEndpoint)
         return Access(
             payload = payload,
             pin = pin,

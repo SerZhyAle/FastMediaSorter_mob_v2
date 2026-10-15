@@ -42,12 +42,13 @@ class RawSettingsRepositoryImplTest {
 
     @Test
     fun `an entry exports as an address a login and a pin without the device id`() = runTest {
-        accounts.put(entry(LOGIN_ONE, DEVICE_1).copy(pinnedCertificate = PIN, autoAttach = true, outgoing = true))
+        val pinned = entry(LOGIN_ONE, DEVICE_1).copy(pinnedCertificate = PIN, pinnedKey = KEY)
+        accounts.put(pinned.copy(autoAttach = true, outgoing = true))
 
         val exported = repository.exportExchangeAccounts().single()
 
         assertEquals(
-            BackupExchangeAccount(HOST, PORT, LOGIN_ONE, PIN, autoAttach = true, outgoing = true),
+            BackupExchangeAccount(HOST, PORT, LOGIN_ONE, PIN, autoAttach = true, outgoing = true, pinnedKey = KEY),
             exported
         )
     }
@@ -55,13 +56,16 @@ class RawSettingsRepositoryImplTest {
     @Test
     fun `a restored entry takes a fresh device id and waits for sign-in`() = runTest {
         val restored = repository.importExchangeAccounts(
-            listOf(BackupExchangeAccount(HOST, PORT, LOGIN_ONE, PIN, autoAttach = true, outgoing = true))
+            listOf(
+                BackupExchangeAccount(HOST, PORT, LOGIN_ONE, PIN, autoAttach = true, outgoing = true, pinnedKey = KEY)
+            )
         )
 
         val held = accounts.snapshot().single()
         assertEquals(1, restored)
         assertEquals(LOGIN_ONE, held.login)
         assertEquals(PIN, held.pinnedCertificate)
+        assertEquals(KEY, held.pinnedKey)
         assertTrue(held.deviceId.isNotBlank())
         assertTrue(held.autoAttach)
         assertTrue(held.outgoing)
@@ -142,5 +146,6 @@ class RawSettingsRepositoryImplTest {
         const val LOGIN_TWO = "bob.family"
         const val DEVICE_1 = "AAAAAAAAAAAAAAAAAAAAAA"
         const val PIN = "SHA256:47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU"
+        const val KEY = "SHA256:publicKeyFingerprint"
     }
 }

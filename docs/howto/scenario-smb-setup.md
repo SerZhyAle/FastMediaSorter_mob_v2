@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Connect to NAS / Windows Share (SMB) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-smb-setup.html
 ---
-<sub class="doc-stamp">26.09.24 06:25</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 🖥️ Connect to Home NAS / Windows Share (SMB)
 
 > **Level:** Beginner &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (Lite has no network sources)
-
-{% include lang-switcher.html doc="scenario-smb-setup" dir="/docs/howto/" current="en" %}
 
 SMB (also called Windows File Sharing or CIFS) lets you browse files on your home PC, laptop, or NAS device exactly like they were on your phone - no cables, no USB, just Wi-Fi.
 

@@ -1,11 +1,11 @@
 ---
-layout: default
+layout: doc
 title: "Technical Requirements"
 permalink: /docs/TECHNICAL_REQUIREMENTS.html
 lang: en
 ---
 
-<sub class="doc-stamp">26.10.06 14:18</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # Technical Requirements
 

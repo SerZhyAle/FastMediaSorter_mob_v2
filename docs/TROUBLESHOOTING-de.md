@@ -1,13 +1,11 @@
 ---
-layout: default
+layout: doc
 title: "🔧 Troubleshooting Guide"
 permalink: /docs/TROUBLESHOOTING-de.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="de" dir="ltr" markdown="1">
-
-{% include lang-switcher.html doc="TROUBLESHOOTING" dir="/docs/" current="de" %}
 
 # 🔧 Leitfaden zur Problembehebung
 

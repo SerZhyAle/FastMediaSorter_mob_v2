@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase.streams
 
+import com.sza.fastmediasorter.data.broadcast.BroadcastAuthDto
+import com.sza.fastmediasorter.data.broadcast.BroadcastCredentialsDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorParser
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorSerializer
@@ -7,6 +9,7 @@ import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
+import com.sza.fastmediasorter.domain.repository.BroadcastPasswordStore
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.testing.InMemoryRoomRule
@@ -48,7 +51,95 @@ class ImportStreamBroadcastUseCaseTest {
     private val parser = BroadcastDescriptorParser()
     private val serializer = BroadcastDescriptorSerializer()
     private val addStreamUseCase get() = AddStreamSourceUseCase(repo, StreamMediaKindClassifier(), stats)
-    private val importUseCase get() = ImportStreamBroadcastUseCase(parser, addStreamUseCase, repo)
+    private val passwords = FakeBroadcastPasswordStore()
+    private val importUseCase get() = ImportStreamBroadcastUseCase(parser, addStreamUseCase, repo, passwords)
+
+    private class FakeBroadcastPasswordStore : BroadcastPasswordStore {
+        val pairs = mutableMapOf<String, BroadcastPasswordStore.StoredPair>()
+        override suspend fun get(streamId: String) = pairs[streamId]
+        override suspend fun put(streamId: String, user: String, password: String?): Boolean {
+            pairs[streamId] = BroadcastPasswordStore.StoredPair(user, password)
+            return true
+        }
+        override suspend fun remove(streamId: String) {
+            pairs.remove(streamId)
+        }
+    }
+
+    private fun protectedDescriptor() = BroadcastDescriptorDto(
+        schemaVersion = 1,
+        url = "http://192.168.1.50:8768/live-audio.aac",
+        title = "Protected",
+        mode = "AUDIO_ONLY",
+        auth = BroadcastAuthDto(user = "listener"),
+    )
+
+    @Test
+    fun importProtectedDescriptor_keepsTypedPasswordForTheNewRow() = runTest {
+        val result = importUseCase(serializer.serialize(protectedDescriptor()), password = "s3cret")
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Success, result)
+        val id = requireNotNull(dao.getByUrl("http://192.168.1.50:8768/live-audio.aac")).id
+        assertEquals(BroadcastPasswordStore.StoredPair("listener", "s3cret"), passwords.pairs[id])
+    }
+
+    @Test
+    fun importProtectedDescriptorAgain_keepsThePasswordAlreadyTyped() = runTest {
+        importUseCase(serializer.serialize(protectedDescriptor()), password = "s3cret")
+        importUseCase(serializer.serialize(protectedDescriptor()))
+
+        val id = requireNotNull(dao.getByUrl("http://192.168.1.50:8768/live-audio.aac")).id
+        assertEquals("s3cret", passwords.pairs[id]?.password)
+    }
+
+    @Test
+    fun importProtectedDescriptorWithoutPassword_recordsTheUserOnly() = runTest {
+        importUseCase(serializer.serialize(protectedDescriptor()))
+
+        val id = requireNotNull(dao.getByUrl("http://192.168.1.50:8768/live-audio.aac")).id
+        assertEquals(BroadcastPasswordStore.StoredPair("listener", null), passwords.pairs[id])
+    }
+
+    @Test
+    fun importOwnProtectedDescriptor_keepsTheAccountPairFromTheBox() = runTest {
+        val own = protectedDescriptor().copy(credentials = BroadcastCredentialsDto("account", "own-secret"))
+
+        importUseCase(serializer.serialize(own))
+
+        val id = requireNotNull(dao.getByUrl("http://192.168.1.50:8768/live-audio.aac")).id
+        assertEquals(BroadcastPasswordStore.StoredPair("account", "own-secret"), passwords.pairs[id])
+    }
+
+    @Test
+    fun importUnprotectedDescriptor_storesNoPair() = runTest {
+        importUseCase(serializer.serialize(protectedDescriptor().copy(auth = null)), password = "ignored")
+
+        assertEquals(emptyMap<String, BroadcastPasswordStore.StoredPair>(), passwords.pairs)
+    }
+
+    @Test
+    fun needsPassword_asksOnlyForAProtectedDescriptorWithNoPairOnThisDevice() = runTest {
+        val protected = serializer.serialize(protectedDescriptor())
+        val own = serializer.serialize(
+            protectedDescriptor().copy(credentials = BroadcastCredentialsDto("account", "own-secret")),
+        )
+
+        assertEquals(true, importUseCase.needsPassword(protected))
+        assertEquals(false, importUseCase.needsPassword(own))
+        assertEquals(false, importUseCase.needsPassword(serializer.serialize(protectedDescriptor().copy(auth = null))))
+        importUseCase(protected, password = "s3cret")
+        assertEquals(false, importUseCase.needsPassword(protected))
+    }
+
+    @Test
+    fun replacePassword_keepsTheRecordedUserAndTheNewPassword() = runTest {
+        importUseCase(serializer.serialize(protectedDescriptor()), password = "old")
+        val id = requireNotNull(dao.getByUrl("http://192.168.1.50:8768/live-audio.aac")).id
+
+        assertEquals(true, importUseCase.replacePassword(id, "new"))
+        assertEquals(BroadcastPasswordStore.StoredPair("listener", "new"), passwords.pairs[id])
+        assertEquals(false, importUseCase.replacePassword("unknown-row", "new"))
+    }
 
     @Test
     fun importFromValidCompressedPayload_addsOrdinaryStreamSourceEntity() = runTest {

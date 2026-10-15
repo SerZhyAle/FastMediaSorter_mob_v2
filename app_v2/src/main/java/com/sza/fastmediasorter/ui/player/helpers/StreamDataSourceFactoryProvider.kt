@@ -10,6 +10,8 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.HttpDataSource
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.domain.player.BroadcastPasswordRequiredException
+import com.sza.fastmediasorter.domain.player.BroadcastPlaybackPairs
 import java.io.OutputStream
 
 /**
@@ -84,7 +86,39 @@ private class RadioHttpDataSource(
             mapOf(HEADER_ICY_METADATA to ICY_DISABLED)
         }
         val effectiveSpec = authSpec.withAdditionalHeaders(headers)
-        return delegate.open(effectiveSpec)
+        return try {
+            delegate.open(effectiveSpec)
+        } catch (e: HttpDataSource.InvalidResponseCodeException) {
+            if (e.responseCode != HTTP_UNAUTHORIZED) throw e
+            reopenWithBroadcastPair(effectiveSpec, e)
+        }
+    }
+
+    /**
+     * S4258, LIVE-BROADCAST item M: a protected broadcast answers 401 with its challenge, answered once with the
+     * pair bound to this address; without a pair, or with one it refuses, the player gets a typed refusal.
+     */
+    private fun reopenWithBroadcastPair(spec: DataSpec, refusal: HttpDataSource.InvalidResponseCodeException): Long {
+        val url = spec.uri.toString()
+        val challenge = refusal.headerFields.entries
+            .firstOrNull { it.key.equals(HEADER_CHALLENGE, ignoreCase = true) }
+            ?.value?.joinToString(", ")
+        val pathAndQuery = spec.uri.encodedPath.orEmpty().ifEmpty { "/" } +
+            spec.uri.encodedQuery?.let { "?$it" }.orEmpty()
+        val answer = BroadcastPlaybackPairs.answerFor(url, challenge, METHOD_GET, pathAndQuery)
+        if (answer == null) {
+            throw if (BroadcastPlaybackPairs.isProtected(url, challenge)) {
+                BroadcastPasswordRequiredException(refused = false)
+            } else {
+                refusal
+            }
+        }
+        delegate.close()
+        return try {
+            delegate.open(spec.withAdditionalHeaders(mapOf(HEADER_AUTHORIZATION to answer)))
+        } catch (e: HttpDataSource.InvalidResponseCodeException) {
+            throw if (e.responseCode == HTTP_UNAUTHORIZED) BroadcastPasswordRequiredException(refused = true) else e
+        }
     }
 
     private fun basicAuthHeaderValue(userInfo: String): String {
@@ -100,5 +134,8 @@ private class RadioHttpDataSource(
         const val HEADER_AUTHORIZATION = "Authorization"
         const val HEADER_ICY_METADATA = "Icy-MetaData"
         const val ICY_DISABLED = "0"
+        const val HTTP_UNAUTHORIZED = 401
+        const val HEADER_CHALLENGE = "WWW-Authenticate"
+        const val METHOD_GET = "GET"
     }
 }

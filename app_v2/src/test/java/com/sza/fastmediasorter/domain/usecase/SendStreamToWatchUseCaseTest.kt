@@ -1,12 +1,16 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
+import com.google.gson.JsonObject
+import com.sza.fastmediasorter.domain.model.WearBroadcastHandoffPayload
+import com.sza.fastmediasorter.domain.model.WearBroadcastPass
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.domain.model.WearNode
 import com.sza.fastmediasorter.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.domain.model.WearStreamTransferPayload
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
+import com.sza.fastmediasorter.domain.usecase.streams.BuildWatchBroadcastHandoffUseCase
 import com.sza.fastmediasorter.service.WearDataLayerPaths
 import com.sza.fastmediasorter.service.WearSyncEvents
 import kotlinx.coroutines.async
@@ -81,6 +85,46 @@ class SendStreamToWatchUseCaseTest {
             useCase(repository, timeoutMs = UNREACHED_TIMEOUT_MS)("t", "https://u", "AUDIO")
         }
         assertEquals(SendStreamToWatchUseCase.Outcome.WatchUnavailable, outcome)
+    }
+
+    private val handoff = BuildWatchBroadcastHandoffUseCase.Result.Handoff(
+        broadcastId = "b42",
+        mediaKind = "AUDIO",
+        descriptor = JsonObject().apply { addProperty("mode", "AUDIO_ONLY") },
+        pass = WearBroadcastPass("own", "secret"),
+    )
+
+    private fun handoffRequestId(repository: FakeWearableRepository): String {
+        val (path, bytes) = repository.sentMessages.single()
+        assertEquals(WearDataLayerPaths.STREAM_BROADCAST_PASS, path)
+        val payload = gson.fromJson(
+            envelopeCodec.decode(bytes).data.decodeToString(),
+            WearBroadcastHandoffPayload::class.java
+        )
+        assertEquals("b42", payload.broadcastId)
+        assertEquals("secret", payload.pass?.password)
+        return payload.requestId
+    }
+
+    @Test
+    fun `S4261 - the descriptor form goes on its own path and UNPLAYABLE maps to Unplayable`() = runBlocking {
+        val repository = FakeWearableRepository(nodes = listOf(WearNode("n1", "Watch")))
+        val result = async {
+            useCase(repository, timeoutMs = LONG_TIMEOUT_MS)("t", "https://u", "AUDIO", handoff = handoff)
+        }
+        awaitSend(repository)
+        WearSyncEvents.emitStreamTransferAck(
+            WearStreamTransferAck(handoffRequestId(repository), WearStreamTransferAck.OUTCOME_UNPLAYABLE)
+        )
+        assertEquals(SendStreamToWatchUseCase.Outcome.Unplayable, result.await())
+    }
+
+    @Test
+    fun `S4261 - silence to the descriptor form maps to NoReplyToBroadcast`() = runBlocking {
+        val repository = FakeWearableRepository(nodes = listOf(WearNode("n1", "Watch")))
+        val outcome = useCase(repository, timeoutMs = SHORT_TIMEOUT_MS)("t", "https://u", "AUDIO", handoff = handoff)
+        handoffRequestId(repository)
+        assertEquals(SendStreamToWatchUseCase.Outcome.NoReplyToBroadcast, outcome)
     }
 
     @Test

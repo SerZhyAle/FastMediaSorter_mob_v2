@@ -1,11 +1,11 @@
 ---
-layout: default
+layout: doc
 title: "Terminology Reference"
 permalink: /docs/V2_TERMS.html
 lang: en
 ---
 
-<sub class="doc-stamp">26.10.06 14:18</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # Terminology Reference
 

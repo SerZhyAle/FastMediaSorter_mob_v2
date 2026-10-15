@@ -17,6 +17,7 @@ class MediaExtensionsTest {
         assertTrue("Expected gif", MediaExtensions.isImage("gif"))
         assertTrue("Expected bmp", MediaExtensions.isImage("bmp"))
         assertTrue("Expected webp", MediaExtensions.isImage("webp"))
+        assertTrue("Expected jxl", MediaExtensions.isImage("jxl"))
     }
 
     @Test
@@ -108,6 +109,7 @@ class MediaExtensionsTest {
         assertEquals(MediaType.IMAGE, MediaExtensions.getMediaType("png"))
         assertEquals(MediaType.IMAGE, MediaExtensions.getMediaType("gif"))
         assertEquals(MediaType.IMAGE, MediaExtensions.getMediaType("webp"))
+        assertEquals(MediaType.IMAGE, MediaExtensions.getMediaType("jxl"))
     }
 
     @Test
@@ -145,7 +147,7 @@ class MediaExtensionsTest {
     @Test
     fun `IMAGE set contains common extensions`() {
         // v2 has fewer extensions than v2_6
-        val v2Images = setOf("jpg", "jpeg", "png", "gif", "bmp", "webp", "heic", "heif", "avif")
+        val v2Images = setOf("jpg", "jpeg", "png", "gif", "bmp", "webp", "heic", "heif", "avif", "jxl")
         assertEquals("Expected IMAGE set to match v2", v2Images, MediaExtensions.IMAGE)
     }
 

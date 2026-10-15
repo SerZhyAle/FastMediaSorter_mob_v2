@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.14 21:42</sub>
+<sub class="doc-stamp">26.10.15 14:50</sub>
 
 # Contract pointers
 
@@ -23,11 +23,11 @@ catalog registry to one set of ids and versions.
 | Pointer | Id | This product's role |
 | --- | --- | --- |
 | [`STREAM-BANK.md`](STREAM-BANK.md) | `STREAM-BANK` | owner; producer (publish script) and consumer (phone and watch importers) |
-| [`LIVE-BROADCAST.md`](LIVE-BROADCAST.md) | `LIVE-BROADCAST` | owner; producer (phone and watch audio broadcast), and a consumer of its own descriptor |
+| [`LIVE-BROADCAST.md`](LIVE-BROADCAST.md) | `LIVE-BROADCAST` | owner; producer and receiver (phone and watch), and a consumer of its own descriptor |
 | [`FMSCFG.md`](FMSCFG.md) | `FMSCFG` | consumer (the `.fmscfg` importer); also writes `.fmscfg` files and `FMSCFG1:` QR payloads |
 | [`SHARE-SESSION.md`](SHARE-SESSION.md) | `SHARE-SESSION` | client - the SFTP connection to a shared folder |
-| [`ANYWHERE-ACCESS.md`](ANYWHERE-ACCESS.md) | `ANYWHERE-ACCESS` | owner; reference producer (phone shares over rendezvous/tunnel) and consumer (reads others' shares) - [PROPOSED], nothing ships against it yet |
-| [`DEVICE-EXCHANGE.md`](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | owner; phone - resource producer and consumer, broadcaster, receiver; watch - broadcaster of sound and receiver of sound and video - [PROPOSED], nothing ships yet |
+| [`ANYWHERE-ACCESS.md`](ANYWHERE-ACCESS.md) | `ANYWHERE-ACCESS` | owner; reference producer (phone shares over rendezvous/tunnel) and consumer (reads others' shares) |
+| [`DEVICE-EXCHANGE.md`](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | owner; phone - resource producer and consumer, broadcaster, receiver; watch - broadcaster of sound and receiver of sound and video |
 | [`OCR-OVERLAY.md`](OCR-OVERLAY.md) | `OCR-OVERLAY` | consumer - the player's OCR + translation overlay |
 | [`LETTERBOX-FILL.md`](LETTERBOX-FILL.md) | `LETTERBOX-BARS`, `LETTERBOX-HALO` | consumer - the player's edge-extended background behind a fitted photo |
 | [`OCR-ACCURACY.md`](OCR-ACCURACY.md) | `OCR-ACCURACY` | owner of the record |

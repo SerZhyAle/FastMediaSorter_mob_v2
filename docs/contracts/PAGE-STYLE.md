@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.07 04:59</sub>
+<sub class="doc-stamp">26.10.15 19:36</sub>
 
 # Pointer - `PAGE-STYLE`
 
@@ -29,9 +29,9 @@
 - `index.html`, `nolegal.html` and their `-ru` / `-uk` translations at the repository root.
 - The landing in each further locale, `index-<slug>.html`, written by `scripts/site/generate-landing-pages.ps1`, which also renders the further-locale row under the header.
 - The documentation portal, `documentation/**/*.html`, written by `scripts/docs/generate-docs-pages.ps1`, `generate-glossary.ps1` and `generate-subject-index.ps1`. Its pages carry the section 7 resolver and the `sza-lang` writer; its 13-locale picker is not yet the section 4.2 secondary row.
-- The `docs/` reference pages move into the portal shell (owner decision, S4104): `_layouts/doc.html` is the Jekyll copy of the portal chrome, with the language menu built from the page's real `-ru` / `-uk` siblings. The trust group (`PRIVACY_POLICY*`, `TERMS_OF_SERVICE*`) uses it; every other `docs/` page still renders through the third-party `jekyll-theme-cayman` (`_config.yml`) until its own move.
+- The `docs/` reference pages render in the portal shell (owner decision, S4104; every group moved by S4117): `_layouts/doc.html` is the Jekyll copy of the portal chrome. Its header menu offers the page's real RU / EN / UA siblings, and a page with a further-locale sibling gets the section 4.2 text-only row under the header, built from `_data/languages.yml`. Only `docs/` files with no front matter (the developer notes) still render through the third-party `jekyll-theme-cayman` (`_config.yml`).
 
 ## Gate
 
-- `scripts/quality/assert-page-style.ps1` (release scope, PAGE-STYLE 1.2): the UA switcher label, the pre-paint before the first stylesheet validating `sza-theme` and reading `sza-lang` with `uk` mapped to `ua`, a script writing `sza-lang`, `data-lang` limited to ru / en / ua, every further-locale link above the H1 and without `data-lang`, and the reference kit byte-identical or its dated exception open in the registry.
-- `scripts/quality/assert-docs-portal-ui-ux.ps1` (per ticket, the documentation portal): the section 7 pre-paint validating `sza-theme` and reading `sza-lang` with `uk` mapped to `ua`, and a `sza-lang` writer on every page that offers `data-lang` links.
+- `scripts/quality/assert-page-style.ps1` (release scope, PAGE-STYLE 1.2): the UA switcher label, the pre-paint before the first stylesheet validating `sza-theme` and reading `sza-lang` with `uk` mapped to `ua`, a script writing `sza-lang`, `data-lang` limited to ru / en / ua, every further-locale link above the H1 and without `data-lang`, and the reference kit byte-identical or its dated exception open in the registry; `_layouts/doc.html` is judged as one of its pages.
+- `scripts/quality/assert-docs-portal-ui-ux.ps1` (per ticket, the documentation portal and `_layouts/doc.html`): the section 7 pre-paint validating `sza-theme` and reading `sza-lang` with `uk` mapped to `ua`, and a `sza-lang` writer on every page that offers `data-lang` links.

@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "टैबलेट पर डिजिटल फोटो फ्रेम - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-hi.html
 ---
-<sub class="doc-stamp">26.09.25 02:19</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
 # 🖼️ टैबलेट पर डिजिटल फोटो फ्रेम
 
 > **लेवल:** शुरुआती &bull; **समय:** ~15 मिनट &bull; **एडिशन:** Standard, Photos, Legacy, VR, noLegal (NAS/क्लाउड फ़ोटो के लिए) या कोई भी एडिशन (लोकल फ़ोटो के लिए)
-
-{% include lang-switcher.html doc="scenario-photo-frame" dir="/docs/howto/" current="hi" %}
 
 किसी भी Android टैबलेट को एक खूबसूरत, हमेशा चालू रहने वाले डिजिटल फोटो फ्रेम में बदलें - जो होम NAS या क्लाउड से आपकी यादें स्ट्रीम करे, साथ में वैकल्पिक बैकग्राउंड म्यूज़िक. लोकल स्टोरेज बिल्कुल इस्तेमाल नहीं होता.
 

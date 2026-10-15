@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.core.playback.resilience.StreamFailureClass
 import com.sza.fastmediasorter.core.playback.resilience.StreamInlineRetryDecision
 import com.sza.fastmediasorter.core.playback.resilience.StreamInlineRetryPolicy
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.domain.player.BroadcastPlaybackPairs
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.StreamDataSourceFactoryProvider
 import com.sza.fastmediasorter.ui.streams.StreamTitleFormatter
@@ -134,6 +135,11 @@ class StreamInlineAudioManager(
         override fun onPlayerError(error: PlaybackException) {
             val failed = currentSource
             Timber.w(error, "StreamInlineAudioManager: inline audio error - %s", failed?.url)
+            if (BroadcastPlaybackPairs.isPasswordRefusal(error)) {
+                stop()
+                failed?.let(callbacks.onPasswordRequired)
+                return
+            }
             val decision = retryPolicy.onFailure(
                 failure = error.toStreamFailure(),
                 hasEverPlayed = hasSuccessfulPlayback,

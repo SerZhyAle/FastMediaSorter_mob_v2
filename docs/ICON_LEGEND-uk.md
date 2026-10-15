@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: doc
 title: "Легенда значків"
 permalink: /docs/ICON_LEGEND-uk.html
 ---

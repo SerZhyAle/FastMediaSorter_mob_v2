@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "আপনার স্মার্টওয়াচে টিভি চ্যানেল দেখুন - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-bn.html
 ---
-<sub class="doc-stamp">26.09.25 02:23</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-tv-bn.html
 > **স্তর:** শিক্ষানবিস &bull; **সময়:** ~১০ মিনিট &bull; **ডিভাইস:** Wear OS স্মার্টওয়াচ
 
 > **শুধু ফুল ভার্সনে** - এই গাইডটা Google Play-এর মাধ্যমে বিতরণ করা সংস্করণে বাস্তবায়িত নেই। এটা ফুল ভার্সনের জন্য প্রযোজ্য, যা [Downloads](../DOWNLOADS.md) থেকে সরাসরি APK ডাউনলোড।
-
-{% include lang-switcher.html doc="scenario-watch-tv" dir="/docs/howto/" current="bn" %}
 
 FastMedia Wear আপনার কব্জিতেই সরাসরি লাইভ টিভি ও রেডিও চ্যানেল চালায়। ওয়াচটা নিজস্ব Wi-Fi-এর মাধ্যমে স্ট্রিমটা খোলে, তাই একবার একটা চ্যানেল তালিকায় থাকলে আপনি ফোনটা অন্য ঘরে, একটা ব্যাগে, বা সম্পূর্ণ বন্ধ রেখেও এটা দেখতে পারেন।
 

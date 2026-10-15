@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Usar o App como Sua Tela Inicial - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-pt.html
 ---
-<sub class="doc-stamp">26.09.25 02:18</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
 # 🖥️ Usar o App como Sua Tela Inicial
 
 > **Nível:** Iniciante &bull; **Edição:** Standard / noLegal
-
-{% include lang-switcher.html doc="scenario-launcher-mode" dir="/docs/howto/" current="pt" %}
 
 O FastMediaSorter pode substituir a tela inicial do seu dispositivo pela sua própria área de trabalho - suas pastas, um relógio, a previsão do tempo, seus apps e uma barra de tarefas ao longo de uma das bordas. Se você já usou uma área de trabalho do Windows, isso vai parecer familiar: as coisas ficam onde você as coloca, e um botão Iniciar abre o menu. Isso se chama **modo launcher**.
 

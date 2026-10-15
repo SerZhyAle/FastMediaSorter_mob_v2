@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
+import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastPassStore
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -25,7 +26,8 @@ import javax.inject.Singleton
 @Singleton
 class WearStreamChannelRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val gson: Gson
+    private val gson: Gson,
+    private val passStore: WearBroadcastPassStore
 ) : WearStreamChannelRepository {
 
     private val dir: File get() = File(context.filesDir, "streams")
@@ -53,6 +55,8 @@ class WearStreamChannelRepositoryImpl @Inject constructor(
         writeAtomically(channelsFile, json.toByteArray(Charsets.UTF_8))
         _channelsFlow.value = channels
         Timber.d("WearStreamChannelRepository: Saved ${channels.size} channels")
+        // S4261: a removed or replaced broadcast channel must not leave its pass on the watch.
+        passStore.retainOnly(channels.filter { it.hasBroadcast == true }.mapTo(HashSet()) { it.url })
     }
 
     override suspend fun upsertChannel(channel: WearStreamChannel): Boolean {
@@ -73,6 +77,7 @@ class WearStreamChannelRepositoryImpl @Inject constructor(
             channelsFile.delete()
         }
         _channelsFlow.value = emptyList()
+        passStore.retainOnly(emptySet())
     }
 
     private fun readChannelsFromFile(): List<WearStreamChannel> {

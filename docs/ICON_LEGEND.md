@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: doc
 title: "Icon legend"
 permalink: /docs/ICON_LEGEND.html
 ---

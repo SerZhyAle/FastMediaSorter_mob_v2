@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.broadcast
 
 import android.content.Context
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialPair
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastDigest
 import io.mockk.mockk
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -271,6 +273,47 @@ class BroadcastHttpServerTest {
         }
         assertEquals(200, connection.responseCode)
         return connection
+    }
+
+    @Test
+    fun `a protected server challenges first and streams to a right Digest answer`() {
+        val port = findFreePort()
+        val pair = BroadcastCredentialPair("listener", "secret-pass")
+        val config = BroadcastSessionConfig(
+            streamTitle = "Protected",
+            bitRateBps = 96_000,
+            port = port,
+            sampleRateHz = 48_000,
+            channelCount = 2,
+            sourceDeviceId = null,
+        )
+        val srv = BroadcastHttpServer(context, config, { TEST_SERVER_ADDRESS }, credentials = { listOf(pair) })
+        server = srv
+        assertEquals(port, srv.start())
+        val url = URL("http://127.0.0.1:$port$ENDPOINT")
+
+        val first = (url.openConnection() as HttpURLConnection).apply {
+            connectTimeout = 2000
+            readTimeout = 2000
+        }
+        val challenge = try {
+            assertEquals(401, first.responseCode)
+            requireNotNull(first.getHeaderField(BroadcastDigest.HEADER_CHALLENGE))
+        } finally {
+            first.disconnect()
+        }
+        assertTrue(challenge.indexOf("SHA-256") in 0 until challenge.indexOf("MD5"))
+
+        val second = (url.openConnection() as HttpURLConnection).apply {
+            connectTimeout = 2000
+            readTimeout = 2000
+            setRequestProperty("Authorization", BroadcastDigest.answer(challenge, "GET", ENDPOINT, pair))
+        }
+        try {
+            assertEquals(200, second.responseCode)
+        } finally {
+            second.disconnect()
+        }
     }
 
     private fun awaitListeners(srv: BroadcastHttpServer, expected: Int) {

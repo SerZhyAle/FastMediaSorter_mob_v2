@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "إطار الصور الرقمي على الجهاز اللوحي - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-ar.html
 ---
-<sub class="doc-stamp">26.09.25 02:23</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
 # 🖼️ إطار الصور الرقمي على الجهاز اللوحي
 
 > **المستوى:** مبتدئ &bull; **الوقت:** ~15 دقيقة &bull; **الإصدار:** Standard وPhotos وLegacy وVR وnoLegal (لصور NAS/السحابة) أو أي إصدار (للصور المحلية)
-
-{% include lang-switcher.html doc="scenario-photo-frame" dir="/docs/howto/" current="ar" %}
 
 حوّل أي جهاز لوحي يعمل بنظام Android إلى إطار صور رقمي جميل يعمل دون توقف - يبث ذكرياتك من جهاز NAS منزلي أو من السحابة، مع موسيقى خلفية اختيارية. لا يُستخدم أي تخزين محلي.
 

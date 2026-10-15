@@ -7,7 +7,7 @@ import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
 /**
- * S4237: holds this program's words for the terms of contract DEVICE-EXCHANGE section 25 item CW. The message
+ * S4237: holds this program's words for the terms of contract DEVICE-EXCHANGE item CW. The message
  * table of items CY and CZ is held by [ExchangeMessageTableConformanceTest]; this class holds the dictionary
  * around it - the clipboard operations, the link with a password, the Drive channel and the word "cast".
  * The table checks are skipped when the contracts catalogue is not on this machine.
@@ -63,10 +63,12 @@ class ExchangeTermsConformanceTest {
         val file = File(root, "device-exchange/README.md")
         assumeTrue("the contract file is not there", file.isFile)
         val lines = file.readLines(Charsets.UTF_8)
-        val start = lines.indexOfFirst { it.startsWith("## 25.") }
-        val end = lines.indexOfFirst { it.startsWith("## 26.") }
-        assumeTrue("section 25 is not in the contract", start in 0 until end)
-        return lines.subList(start, end)
+        // Found by item letter, never by section number: the consolidation of 0.30 moved sections 14 to 27, and a
+        // present contract without the item fails rather than skips, so the dictionary never stops being guarded.
+        val start = lines.indexOfFirst { ITEM_HEADING.find(it)?.groupValues?.get(1) == TERMS_ITEM }
+        check(start >= 0) { "item $TERMS_ITEM is not in the contract" }
+        val next = (start + 1 until lines.size).firstOrNull { lines[it].startsWith("**") || lines[it].startsWith("#") }
+        return lines.subList(start, next ?: lines.size)
             .filter { it.startsWith("| ") && !it.startsWith("| ---") }
             .map { line -> line.trim().removePrefix("|").removeSuffix("|").split(" | ").map { it.trim() } }
             .filter { it.size == TERM_COLUMNS }
@@ -97,6 +99,8 @@ class ExchangeTermsConformanceTest {
         const val PLATFORM_CASTING = "Google Cast"
         val CAST_WORD = Regex("""\bcasts?\b""", RegexOption.IGNORE_CASE)
         val ESCAPE = Regex("""\\(.)""")
+        val ITEM_HEADING = Regex("""^\*\*([A-Z]{1,2})(?: \[[^\]]*])? - """)
+        const val TERMS_ITEM = "CW"
 
         /** Item CW term cell -> the string keys that must read exactly as the term does. */
         val TERM_KEYS = mapOf(

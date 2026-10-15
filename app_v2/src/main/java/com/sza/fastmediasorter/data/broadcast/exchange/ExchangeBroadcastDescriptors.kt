@@ -56,6 +56,31 @@ object ExchangeBroadcastDescriptors {
         return lan.copy(endpoints = direct + listOfNotNull(relay) + tunnels)
     }
 
+    /**
+     * 27 item DK: the outward form of [descriptor] - the one a person hands over as a link, a file or a barcode -
+     * with the keys written into its sealed endpoints: [relayKey] (base64url) on `RELAY`, [tunnelPin] on `TUNNEL`.
+     * A sealed endpoint whose key is missing is left out, since nobody holding only this descriptor could play it.
+     * It never goes through the server.
+     */
+    fun withOutwardKeys(
+        descriptor: BroadcastDescriptorDto,
+        relayKey: String?,
+        tunnelPin: String?,
+    ): BroadcastDescriptorDto {
+        val endpoints = descriptor.endpoints?.mapNotNull { endpoint ->
+            val seal = endpoint.seal
+            when {
+                seal == null -> endpoint
+                endpoint.transport.equals(BroadcastExchangeEndpoints.TRANSPORT_RELAY, ignoreCase = true) ->
+                    relayKey?.let { endpoint.copy(seal = seal.copy(key = it)) }
+                endpoint.transport.equals(BroadcastExchangeEndpoints.TRANSPORT_TUNNEL, ignoreCase = true) ->
+                    tunnelPin?.let { endpoint.copy(seal = seal.copy(pin = it)) }
+                else -> endpoint
+            }
+        }
+        return descriptor.copy(endpoints = endpoints)
+    }
+
     /** The loopback port of each LAN service by tunnel scheme, which an `open` for the broadcast reaches (7.5). */
     fun localPorts(lan: BroadcastDescriptorDto): Map<String, Int> = lanEndpoints(lan)
         .mapNotNull { endpoint ->

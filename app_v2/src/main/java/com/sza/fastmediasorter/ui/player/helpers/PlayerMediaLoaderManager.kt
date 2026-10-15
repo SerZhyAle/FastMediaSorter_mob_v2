@@ -277,7 +277,7 @@ class PlayerMediaLoaderManager(
         
         // Safety check: never try to play image files with ExoPlayer
         val lowerPath = path.lowercase()
-        val imageExtensions = listOf(".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".heif", ".heic", ".avif")
+        val imageExtensions = listOf(".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".heif", ".heic", ".avif", ".jxl")
         if (imageExtensions.any { lowerPath.endsWith(it) }) {
             Timber.w("PlayerMediaLoaderManager.playVideo: Detected image file (${lowerPath.substringAfterLast('.')}), redirecting to displayImage()")
             displayImage(path)

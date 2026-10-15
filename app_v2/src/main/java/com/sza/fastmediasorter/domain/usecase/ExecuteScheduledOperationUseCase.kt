@@ -132,6 +132,11 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         val srcLabel = "${sourceResource.name} [${sourceResource.type.name}]"
         val dstLabel = targetResource?.let { "${it.name} [${it.type.name}]" } ?: "-"
 
+        val readOnlySide = readOnlyWriteSide(operation.operationType, sourceResource, targetResource)
+        if (readOnlySide != null) {
+            return skipped(operationId, readOnlySide, ts, opName, srcLabel, dstLabel)
+        }
+
         if (operation.operationType == ScheduledOpType.ARCHIVE) {
             val archiveScopeError = archiveScopeError(sourceResource, targetResource)
             if (archiveScopeError != null) {
@@ -523,6 +528,31 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             throw e
         } catch (e: Exception) {
             "$role '${resource.name}' is unreachable: ${e.message ?: "connection failed"}"
+        }
+    }
+
+    /**
+     * S4260: the engine enforces the user's read-only policy itself. The schedule dialog hides the write
+     * actions of a read-only source, but a schedule saved before the flag was switched on, or created
+     * through another path, still reaches this run. Only the sides the operation actually changes count:
+     * COPY and ARCHIVE write the target, MOVE also removes from the source, DELETE changes the source
+     * alone - so COPY out of a read-only source stays allowed.
+     *
+     * Returns why the run must be skipped, or null when no side it writes is read-only.
+     */
+    private fun readOnlyWriteSide(
+        type: ScheduledOpType,
+        source: MediaResource,
+        target: MediaResource?
+    ): String? {
+        val changesSource = type == ScheduledOpType.MOVE || type == ScheduledOpType.DELETE
+        val changesTarget = type != ScheduledOpType.DELETE
+        return when {
+            changesSource && source.isReadOnly ->
+                "Source '${source.name}' is read-only, ${type.name} would change it"
+            changesTarget && target != null && target.isReadOnly ->
+                "Target '${target.name}' is read-only, ${type.name} would write to it"
+            else -> null
         }
     }
 

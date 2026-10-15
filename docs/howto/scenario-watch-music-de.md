@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "Musik auf Ihrer Uhr hören - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music-de.html
 ---
-<sub class="doc-stamp">26.09.25 02:20</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-music-de.html
 > **Niveau:** Anfänger &bull; **Zeit:** ~5 Minuten &bull; **Gerät:** Wear OS-Smartwatch (gekoppelt mit Android-Handy)
 
 > **Nur Vollversion** - diese Anleitung ist in der über Google Play vertriebenen Version nicht umgesetzt. Sie gilt für die Vollversion, einen direkten APK-Download von [Downloads](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="scenario-watch-music" dir="/docs/howto/" current="de" %}
 
 Mit FastMediaSorter können Sie Ihre Musiksammlung direkt von Ihrer Wear OS-Smartwatch aus durchsuchen und abspielen. Sie können Titel streamen, die von Ihrem gekoppelten Handy freigegeben wurden, oder lokale Audiodateien abspielen, die auf der Uhr gespeichert sind - mit Cover-Art, Zufallswiedergabe, Lautstärkeregelung über die drehbare Lünette, Hintergrundwiedergabe, die das Verlassen der App übersteht, und einem Bildschirm-aus-Modus, der die Musik bei dunklem Display weiterlaufen lässt.
 

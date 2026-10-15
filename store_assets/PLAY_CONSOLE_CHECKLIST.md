@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.15 10:00</sub>
+<sub class="doc-stamp">26.10.15 13:39</sub>
 
 # Play Console Operator Checklist - S0135
 
@@ -217,7 +217,8 @@ Source of truth: `store_assets/PLAY_FGS_DECLARATIONS.md`. Pasted by hand, one vi
       (S4235) - the owner's step
 - [ ] `mediaProjection` declared or its text extended with the phone-screen broadcast (S4233)
 - [ ] `microphone` and `mediaPlayback` texts edited to the versions of the file
-- [ ] `dataSync` left alone until S4263 is decided
+- [ ] `dataSync` left alone for release 46 (S4263); declared with the owner's video before the release that sets
+      `fms.dataSyncFgsStandard=on` (S4271)
 - [ ] The declaration state and its date written into `docs/PLAY_PUBLISHING_STATE.md`
 
 ## D. App Category

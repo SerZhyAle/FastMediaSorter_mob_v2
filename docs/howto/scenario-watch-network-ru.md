@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Подключение часов к сетевым ресурсам NAS и ПК - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-network-ru.html
 ---
-<sub class="doc-stamp">26.09.24 06:25</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Подключение часов к сетевым ресурсам NAS и ПК
 
 > **Уровень:** Средний &bull; **Время:** ~10 минут &bull; **Устройство:** Смарт-часы Wear OS
 
 > **Только в полной версии** - это руководство не реализовано в версии, распространяемой через Google Play. Оно относится к полной версии - APK для прямой загрузки со страницы [Загрузки](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="scenario-watch-network" dir="/docs/howto/" current="ru" %}
 
 FastMediaSorter на Wear OS может подключаться напрямую к вашим домашним сетевым дискам (NAS, общим папкам ПК, FTP или SFTP-серверам) по Wi-Fi. Вы можете просматривать удалённые файлы, слушать музыку в Bluetooth-наушниках и синхронизировать избранные папки без участия телефона.
 

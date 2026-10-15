@@ -27,10 +27,7 @@ class WearResourcePassReceiver @Inject constructor(
         Timber.d("S4228: watch received a PIN pass from the phone")
         val ack = when (val parsed = WearResourcePassCodec.parse(data, gson)) {
             WearResourcePassParseResult.Malformed -> refusal(requestId = "", WearResourcePassReasons.MALFORMED)
-            is WearResourcePassParseResult.UnsupportedVersion -> {
-                Timber.w("Resource pass: unknown format version ${parsed.version}")
-                refusal(requestId = "", WearResourcePassReasons.UNSUPPORTED_VERSION)
-            }
+            is WearResourcePassParseResult.UnsupportedVersion -> unsupportedVersionRefusal(parsed)
             is WearResourcePassParseResult.Parsed -> keep(parsed.payload)
         }
         answer(nodeId, ack)
@@ -46,11 +43,6 @@ class WearResourcePassReceiver @Inject constructor(
         }
     }
 
-    private fun refusal(requestId: String, reason: String): WearResourcePassAck {
-        Timber.w("Resource pass: refused - %s", reason)
-        return WearResourcePassAck(requestId, stored = false, reason = reason)
-    }
-
     private suspend fun answer(nodeId: String, ack: WearResourcePassAck) {
         if (nodeId.isBlank()) return
         try {
@@ -64,6 +56,20 @@ class WearResourcePassReceiver @Inject constructor(
         } catch (e: ApiException) {
             // The PIN is kept either way; the phone only loses the confirmation and logs it as unanswered.
             Timber.e(e, "Resource pass: the answer could not be sent")
+        }
+    }
+
+    companion object {
+
+        /** Echoes the sender's request id, so the phone can pair the refusal with the pass it sent. */
+        fun unsupportedVersionRefusal(parsed: WearResourcePassParseResult.UnsupportedVersion): WearResourcePassAck {
+            Timber.w("Resource pass: unknown format version %d", parsed.version)
+            return refusal(parsed.requestId, WearResourcePassReasons.UNSUPPORTED_VERSION)
+        }
+
+        private fun refusal(requestId: String, reason: String): WearResourcePassAck {
+            Timber.w("Resource pass: refused - %s", reason)
+            return WearResourcePassAck(requestId, stored = false, reason = reason)
         }
     }
 }

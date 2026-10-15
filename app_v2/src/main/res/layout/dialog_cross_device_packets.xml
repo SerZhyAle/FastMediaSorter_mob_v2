@@ -31,9 +31,31 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_small"
         android:nextFocusUp="@+id/rowDriveChannelEnabled"
-        android:nextFocusDown="@+id/listCrossDevicePackets"
+        android:nextFocusDown="@+id/btnDriveChannelPortal"
         app:str_title="@string/drive_channel_background_title"
         app:str_subtitle="@string/drive_channel_background_subtitle" />
+
+    <!-- S4240: contract DEVICE-EXCHANGE 27 item DE - the Drive text, wherever the Drive channel is described. -->
+    <TextView
+        android:id="@+id/tvDriveChannelHonest"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:text="@string/drive_channel_honest_text"
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.HelperText" />
+
+    <!-- S4273: SITE-STRUCTURE 0.2 item E - the page of the Drive channel, where its switches are. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDriveChannelPortal"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:minHeight="@dimen/touch_target_min_height"
+        android:nextFocusUp="@+id/rowDriveChannelBackground"
+        android:nextFocusDown="@+id/listCrossDevicePackets"
+        android:text="@string/exchange_portal_link_folders_google_drive" />
 
     <TextView
         android:id="@+id/tvDriveChannelStatus"
@@ -61,7 +83,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/dialog_list_max_height"
         android:layout_marginBottom="@dimen/margin_small"
-        android:nextFocusUp="@+id/rowDriveChannelBackground"
+        android:nextFocusUp="@+id/btnDriveChannelPortal"
         android:nextFocusDown="@+id/btnCrossDeviceSendSettings" />
 
     <!-- S3040: runs while the settings packet upload (or any queue call) is in flight. -->

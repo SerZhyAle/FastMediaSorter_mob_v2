@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "FastMedia auf Ihrer Uhr einrichten - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-de.html
 ---
-<sub class="doc-stamp">26.09.30 11:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/wear-install-de.html
 > **Niveau:** Anfänger &bull; **Zeit:** ~5 Minuten &bull; **Gerät:** Wear OS-Smartwatch, gekoppelt mit einem Android-Handy
 
 > **Zwei Versionen.** Die Version aus Google Play ist eine kleine Erstveröffentlichung: Taschenrechner, Stoppuhr, Minispiel, Einstellungen und die Programme-Kachel. Musik, Fotos, Netzwerkfreigaben und Handy-Funktionen gibt es nur in der Vollversion, einem direkten APK-Download von [Downloads](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="wear-install" dir="/docs/howto/" current="de" %}
 
 FastMedia Wear ist die Uhr-Hälfte von FastMediaSorter. Sobald sie an Ihrem Handgelenk sitzt, können Sie Musik direkt von der Uhr abspielen und Fotos ansehen, auf Ordner zugreifen, die Ihr gekoppeltes Handy freigibt, und Netzwerkfreigaben öffnen, mit denen sich die Uhr selbstständig verbindet. Diese Seite bringt sie zur Installation und Kopplung.
 

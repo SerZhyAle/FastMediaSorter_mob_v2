@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.data.exchange
 
 import android.net.Network
+import timber.log.Timber
 import java.io.Closeable
 import java.io.IOException
 import javax.inject.Inject
@@ -87,7 +88,14 @@ class WearExchangeSessionOpener @Inject constructor(
         network: Network? = null,
     ): WearExchangeSession {
         val token = store.token(entry.identity) ?: throw WearExchangeNotEnrolledException()
-        val connection = connector.connect(entry.host, entry.port, entry.pinnedCertificate, readTimeoutMs, network)
+        val connection = connector.connect(
+            entry.host,
+            entry.port,
+            entry.pinnedCertificate,
+            entry.pinnedKey,
+            readTimeoutMs,
+            network,
+        )
         val session = try {
             WearExchangeFrameCodec.write(connection.output, hello(entry, token, keepaliveSeconds))
             WearExchangeSession(connection, welcomeOf(WearExchangeFrameCodec.read(connection.input)))
@@ -95,7 +103,7 @@ class WearExchangeSessionOpener @Inject constructor(
             connection.close()
             throw e
         }
-        remember(entry.identity, session.welcome)
+        remember(entry.identity, session.welcome, connection)
         return session
     }
 
@@ -103,12 +111,25 @@ class WearExchangeSessionOpener @Inject constructor(
      * S4227: keeps what this `welcome` said about the clipboard on the stored entry, so the "Send to.."
      * list and the get chip can judge an entry before any stream opens. The stored copy is re-read by
      * identity so a concurrent change of another field is never overwritten with a stale one.
+     *
+     * A pinned entry also keeps what [connection] taught it (19 item AY) - the leaf of a same-key renewal,
+     * which the connector accepted only because the key matched, or the key of a pin an older phone handed over
+     * without one, which the leaf just matched. An entry that pins nothing never gains a pin here.
      */
-    private suspend fun remember(identity: String, welcome: WearExchangeWelcome) {
+    private suspend fun remember(identity: String, welcome: WearExchangeWelcome, connection: WearExchangeConnection) {
         val stored = store.all().firstOrNull { it.identity == identity } ?: return
-        if (stored.features != welcome.features || stored.accountKind != welcome.accountKind) {
-            store.put(stored.copy(features = welcome.features, accountKind = welcome.accountKind))
-        }
+        val updated = stored.copy(features = welcome.features, accountKind = welcome.accountKind)
+            .withLearnedPin(connection)
+        Timber.d("S4257: watch keeps the learned pin of a pinned entry")
+        if (updated != stored) store.put(updated)
+    }
+
+    private fun WearExchangeEntry.withLearnedPin(connection: WearExchangeConnection): WearExchangeEntry {
+        val leaf = connection.certificateFingerprint
+        val key = connection.keyFingerprint
+        val learned = pinnedCertificate != null && leaf != null && key != null &&
+            (leaf != pinnedCertificate || pinnedKey == null)
+        return if (learned) copy(pinnedCertificate = leaf, pinnedKey = key) else this
     }
 
     private fun welcomeOf(answer: WearExchangeEnvelope?): WearExchangeWelcome = when (answer?.type) {

@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "ট্যাবলেটে ডিজিটাল ফটো ফ্রেম - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-bn.html
 ---
-<sub class="doc-stamp">26.09.25 02:19</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
 # 🖼️ ট্যাবলেটে ডিজিটাল ফটো ফ্রেম
 
 > **স্তর:** শিক্ষানবিস &bull; **সময়:** ~১৫ মিনিট &bull; **ফ্লেভার:** Standard, Photos, Legacy, VR, noLegal (NAS/cloud ছবির জন্য) অথবা যেকোনো ফ্লেভার (স্থানীয় ছবির জন্য)
-
-{% include lang-switcher.html doc="scenario-photo-frame" dir="/docs/howto/" current="bn" %}
 
 যেকোনো অ্যান্ড্রয়েড ট্যাবলেটকে একটা সুন্দর সবসময়-চালু থাকা ডিজিটাল ফটো ফ্রেমে পরিণত করুন - একটা বাড়ির NAS বা ক্লাউড থেকে আপনার স্মৃতি স্ট্রিম করে, ঐচ্ছিক ব্যাকগ্রাউন্ড মিউজিকসহ। কোনো স্থানীয় স্টোরেজ ব্যবহার হয় না।
 

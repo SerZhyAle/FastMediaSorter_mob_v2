@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "下载整理器（快速分类）- FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.25 02:17</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 🧹 下载整理器 - 一键分类文件
 
 > **难度：** 入门 &bull; **版本：** 任意版本（Standard、Lite、Photos、Legacy、VR、noLegal）
-
-{% include lang-switcher.html doc="scenario-download-organizer" dir="/docs/howto/" current="zh-Hans" %}
 
 **快速分类**是 FastMediaSorter 的招牌功能：只需设置一次文件夹，之后只要点击一个数字，就能分类数百个文件。不需要拖放，不需要菜单。只要点击 **1**、**2** 或 **3** - 文件就会立即送到正确的位置。
 

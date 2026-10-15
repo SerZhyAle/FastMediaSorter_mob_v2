@@ -1,12 +1,12 @@
-<sub class="doc-stamp">26.10.15 08:14</sub>
+<sub class="doc-stamp">26.10.15 19:15</sub>
 
 # Pointer - `DEVICE-EXCHANGE`
 
 | | |
 | --- | --- |
 | **Id** | `DEVICE-EXCHANGE` |
-| **Version** | 0.29, draft - end-to-end encryption of content, 2026-10-15 (section 27; section 26, 0.28, how long a phone shares and why it went offline; section 25, 0.27, the shared terms, the names of the programs and the one table of connection messages; section 24, 0.26, the path "via Google Drive" carrying files; section 23, 0.25, the roles of every product, the watch, the account's broadcast list, cast and the hand-over to the watch; section 22, 0.24, the clipboard; section 21, 0.23, folded the open proposals). Owner: FastMediaSorter Android |
-| **Home** | `device-exchange/README.md` in the shared contracts catalog |
+| **Version** | 1.1, active - 2026-10-15 (S4276: `vectors/fmsw-224/` adopted beside the earlier server corpus; no wire byte changes); 1.0 - declared 2026-10-15 (S4245, the owner's decision 22 of milestone S4203: every section binds, the text is that of 0.30 and no wire byte changes; the contract only grows from here); 0.30 - consolidation edition, 2026-10-15 (S4266: the amendments folded into the sections they amend, every item letter kept, old addresses mapped in `HISTORY.md`); 0.29 - end-to-end encryption of content (section 27; section 26, 0.28, how long a phone shares and why it went offline; section 25, 0.27, the shared terms, the names of the programs and the one table of connection messages; section 24, 0.26, the path "via Google Drive" carrying files; section 23, 0.25, the roles of every product, the watch, the account's broadcast list, cast and the hand-over to the watch; section 22, 0.24, the clipboard; section 21, 0.23, folded the open proposals). Owner: FastMediaSorter Android |
+| **Home** | `device-exchange/README.md` in the shared contracts catalog; `HISTORY.md` beside it holds the log and the map of old section addresses, `PHONE-AND-WATCH.md` the digest for the phone and the watch |
 | **Role here** | owner; phone - `fms-android`: resource producer and consumer, broadcaster, receiver, enrolls the watch; watch - `fms-wear`: broadcaster of sound only, receiver of sound and video, resource consumer through the phone's hand-over or its own entry, never a resource; phone and watch send and receive the clipboard (section 22). The exchange server is FMS_W's to implement |
 
 ## What this repository owes it once implementations exist
@@ -31,14 +31,15 @@
   no Drive channel of its own (items CO to CU). Delivered: `vectors/drive-packets-v1.json`, produced by
   `CrossDevicePacketCodecTest` (S4231, 2026-10-15).
 - Frames: at most 16384 bytes until `welcome` / `enrolled`, up to 262144 after, a record at most 16 KiB, no
-  paging; a relay chunk's length field, flag byte plus payload, is at most 1 MiB (section 15, items T and U).
+  paging; a relay chunk's length field, flag byte plus payload, is at most 1 MiB (items T and U).
 - Every outsider `connect` is TLS only; there is no plain fallback (item V).
 - A share's `access` reaches Drive only with the user's explicit opt-in, off by default and worded to name
   Google; a Drive record without `access` is listed and cannot be attached (item X).
 - Read and write the `FMSEXCH1` connection string by its content - paste, `.fmsexch` file, QR - with the
-  WHATWG form-urlencoded canonical bytes, and replay `vectors/connection-string-v1.json` (section 5.5).
+  WHATWG form-urlencoded canonical bytes, and replay `vectors/connection-string-v1.json` and
+  `vectors/fmsw-224/connection-string-v1.json`, the latter with the `i` cases of item AR (section 5.5).
 - Hold several account entries, a `deviceId` each, identified by address and login; bind an attached resource
-  to that identity and its `resourceId`; removing an entry revokes its own device (section 16, items AA, AB).
+  to that identity and its `resourceId`; removing an entry revokes its own device (items AA, AB).
 - Publish and broadcast through one outgoing entry; leaving it as a producer unpublishes and keeps the entry;
   declare every role at `enroll` (item AC).
 - Play the exchange endpoints of any server a broadcast descriptor names, with no entry for it (item AF).
@@ -47,7 +48,7 @@
 - Register by invitation - the `i` of an invitation string or a typed shared invitation password - and offer
   account deletion beside it; change the password only with the old one; on `signed-out` keep the entry and ask
   for the password again; sign out on this device by removing the entry; hide producer actions on a `guest`
-  account (section 19, items AO to AV).
+  account (items AO to AV).
 - Keep the server key hash beside the leaf pin and accept a leaf renewed with the same key with no prompt; hand
   both values to the watch; negotiate TLS 1.2 at least (items AX and AY).
 - Write `hostKeyFingerprint` and `root` on every `sftp-share` record; keep one record per resource identity with every
@@ -71,14 +72,13 @@
   CB).
 - Never connect on a connection string that arrived from outside the screen: fill the form, show the host:port of `x`
   before the password field, send the password to that endpoint only, and treat a string whose `fp` names another key as a
-  changed certificate (section 21, item BN). Order two records of one id by the store's order and not by `updatedAt` (item
+  changed certificate (item BN). Order two records of one id by the store's order and not by `updatedAt` (item
   BP); report a stream closed with no frame after the handshake as unanswered, and refuse a credential that is empty or
   unread before the wire (item BR).
 - Bind an imported live channel to the entry that listed it and end it only by that entry's own directory; reach a server named
   by a descriptor with no entry for it (items BJ and BK); end running broadcasts first when leaving an entry (item BL).
 - Declare the roles of item CE with the `product` values `fms-android` and `fms-wear`; tell a watch by `product`
-  and never by `platform`; the watch declares only what its build plays and never `resource-producer` (section 23,
-  items CE and CH).
+  and never by `platform`; the watch declares only what its build plays and never `resource-producer` (items CE and CH).
 - Carry no stream over the phone-to-watch link: the hand-over of an entry (address, trust decision, one-time
   pairing code, no password), the hand-over of a resource (identity and pass, owed) and the hand-off of a live
   broadcast are small items, and every byte of data goes over the watch's own Wi-Fi or LTE; trust and passwords
@@ -91,8 +91,7 @@
   broadcast (item CI). "Cast" is the act of 7.8 and not the platform's casting to a television (item CJ).
 - Say every term of item CW in the words of the table, in the language shown - exchange server, direct access (the
   sharing service), via Google Drive / via GD, broadcast, the clipboard and its four operations, the invitation
-  kinds "own device or family" and "guest", a link with a password - and never a wire value as a word (section 25,
-  items CV and CW).
+  kinds "own device or family" and "guest", a link with a password - and never a wire value as a word (items CV and CW).
 - Name the Windows program "Fast Media Sorter & Sharing for Windows", leave the platform word out of a store
   title and keep it elsewhere, and never write "mobile" for a program or a device (item CX).
 - Show a failed connection with the one table of item CZ: what happened, then what to try from the ladder of item
@@ -112,8 +111,12 @@
 - Send and get the clipboard as kind `sealed` in 64 KiB segments; never place a value that fails to open (item DN).
 - Send no content through a server whose `features` lacks `sealed` (`server-no-e2e`) and use no clear content from a
   device without `e2eKey` (`e2e-missing`); leave the Drive path unsealed; show the honest text of item DE wherever the
-  server or the Drive channel is described, and the four rows of item DR (items DO to DR). Produce
-  `vectors/e2e-v1.json` (S4240).
+  server or the Drive channel is described, and the four rows of item DR (items DO to DR). Delivered:
+  `vectors/e2e-v1.json`, produced by `E2eVectorsGenerator` and replayed by `E2eVectorsTest` in the phone and
+  watch modules (S4240, 2026-10-15).
+- Section 27 is met in code on the phone and the watch (S4240, 2026-10-15): device keys and trust, sealed access,
+  grants, clipboard, relay and broadcast tunnel, the outward descriptor's keys and the honest text. The joint run
+  with a server that lists `sealed` (rung 2 and rung 4 of item DR's conformance paragraph) is S4244.
 
 ## Where it will live here
 
@@ -131,29 +134,31 @@
 - S4160 - receiving a broadcast from any exchange server its descriptor names, and the broadcast's own share
   carrying its exchange endpoints.
 - S4172 - the 0.19 read (section 17) and this product's registry row.
-- S4200 - the bounds of an `enroll` (section 18, items AM and AN) and the unanswered-enroll result.
+- S4200 - the bounds of an `enroll` (items AM and AN) and the unanswered-enroll result.
 - S4201 - the PIN proof, its entry and its storage (section 17, items AG to AJ).
-- S4214 - the owner's account decisions folded as 0.21 (section 19, items AO to AZ).
+- S4214 - the owner's account decisions folded as 0.21 (items AO to AZ).
 - S4223 - the phone's registration, password, sign-out and account deletion flows against 0.21.
 - S4215 - the owner's resource and outward-access decisions folded as 0.22 (section 20, items BA to BH), with
   `ANYWHERE-ACCESS` 0.14 and `LIVE-BROADCAST` item M.
 - S4224 - the phone's one resource record across every channel against 0.22.
 - S4216 - the owner's clipboard decisions and the platform research folded as 0.24 (section 22, items BU to CD).
 - S4226, S4227 - the clipboard on the phone (buttons and shortcuts) and on the watch ("Send to.." and the player).
-- S4212 - the proposals left open beside the contract answered as 0.23 (section 21, items BI to BT), with FMS_W's server
+- S4212 - the proposals left open beside the contract answered as 0.23 (items BI to BT), with FMS_W's server
   corpus adopted as `vectors/server-frames-v2.json` and `vectors/server-records-v1.json`.
 - S4217 - the roles of every product, the watch's two modes, the account's broadcast list, cast and the hand-over to
-  the watch folded as 0.25 (section 23, items CE to CK), with `LIVE-BROADCAST` items N to P.
+  the watch folded as 0.25 (items CE to CK), with `LIVE-BROADCAST` items N to P.
 - S4228, S4229, S4230 - the watch's resources through the phone, its broadcasts by address and from the list, and its
   "Send to.." with no phone, against 0.25.
 - S4218 - the owner's Drive decisions folded as 0.26 (section 24, items CL to CU): the Drive channel carries files.
 - S4231 - the phone's path via GD against 0.26, with the packet vector file.
-- S4219 - the owner's terms, names and connection-message decisions folded as 0.27 (section 25, items CV to DA).
+- S4219 - the owner's terms, names and connection-message decisions folded as 0.27 (items CV to DA).
 - S4236 - the check ladder and the shared texts in the phone and watch programs against 0.27.
 - S4237 - the terms, the name and the icons in strings, README and listings against 0.27.
 - S4239 - the owner's decision 18 folded as 0.29 (section 27, items DE to DR): content sealed end to end, the honest text.
 - S4240 - sealing on the phone and the watch against 0.29, with `vectors/e2e-v1.json`.
-- S4225 - the phone share's lifetime and the reason it went offline folded as 0.28 (section 26, items DB to DD): the share resumes when the app is shown, a platform limit is written as `offlineReason: time-limit` on the Drive device record, and the consumer shows the `share-paused` row.
+- S4225 - the phone share's lifetime and the reason it went offline folded as 0.28 (items DB to DD): the share resumes when the app is shown, a platform limit is written as `offlineReason: time-limit` on the Drive device record, and the consumer shows the `share-paused` row.
+- S4245 - the contract at 1.0: the status of every section is binding, the ladder of section 11 is evidence, `vectors/drive-packets-v1.json` and `vectors/e2e-v1.json` are named as delivered, and the `seal` mirror of item DK is item Q of `LIVE-BROADCAST`.
+- S4276 - the contract at 1.1: `vectors/fmsw-224/connection-string-v1.json` is replayed by `ExchangeConnectionStringVectorsTest`; the transcripts of `vectors/fmsw-224/frames-v2.json` have no client replay yet.
 
 ## Original resource PIN (section 17, items AG to AL)
 

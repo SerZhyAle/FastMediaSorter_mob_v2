@@ -2,13 +2,21 @@ package com.sza.fastmediasorter.data.remote.sftp.anywhere
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialRegistry
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastVerifier
+import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastTunnelTls
+import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeBroadcastGrants
+import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeRelayKeys
+import com.sza.fastmediasorter.data.broadcast.exchange.TunnelTestIdentity
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeFrameCodec
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeTokenStore
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeBroadcastPublication
 import com.sza.fastmediasorter.data.remote.exchange.InMemoryE2eKeyStore
+import com.sza.fastmediasorter.data.remote.exchange.RecordingPinRecorder
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.ExchangeBroadcastGrant
 import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import com.sza.fastmediasorter.domain.model.SftpRendezvousResource
@@ -28,6 +36,7 @@ import java.net.Socket
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import javax.net.ssl.SSLContext
 import kotlin.concurrent.thread
 
 /**
@@ -91,15 +100,26 @@ class SftpServerTunnelManagerTest {
             sealing: ExchangeGrantSealing,
         ): List<DeviceExchangeEnvelope> = grants
 
+        override suspend fun broadcastGrantEnvelopes(sealing: ExchangeGrantSealing): List<DeviceExchangeEnvelope> =
+            broadcastGrantEnvelopes
+
         override suspend fun sealedRecord(
             entry: DeviceExchangeAccountEntry,
             record: SftpRendezvousResource,
             serverSeals: Boolean,
             devices: List<SftpRendezvousDevice>?,
         ): SealedShareRecord = sealer(record, serverSeals, devices)
+
+        override fun tunnelTls(broadcastId: String): SSLContext = TunnelTestIdentity.context()
     }
 
     private var grants: List<DeviceExchangeEnvelope> = emptyList()
+
+    private var broadcastGrantEnvelopes: List<DeviceExchangeEnvelope> = emptyList()
+
+    private val credentials = BroadcastCredentialRegistry(Dispatchers.Unconfined)
+    private val relayKeys = ExchangeRelayKeys()
+    private val broadcastGrants = ExchangeBroadcastGrants(credentials, relayKeys)
 
     private var sealer: (SftpRendezvousResource, Boolean, List<SftpRendezvousDevice>?) -> SealedShareRecord =
         { record, _, _ -> SealedShareRecord(record, "") }
@@ -192,10 +212,11 @@ class SftpServerTunnelManagerTest {
     private fun withManager(block: suspend (SftpServerTunnelManager) -> Unit) = runBlocking(Dispatchers.IO) {
         val manager =
             SftpServerTunnelManager(
-                DeviceExchangeAccountClient(connector, tokens, InMemoryE2eKeyStore()),
+                DeviceExchangeAccountClient(connector, tokens, InMemoryE2eKeyStore(), RecordingPinRecorder()),
                 source,
                 this,
                 Dispatchers.IO,
+                broadcastGrants,
             )
         try {
             block(manager)
@@ -391,12 +412,19 @@ class SftpServerTunnelManagerTest {
             data.put(read(tunnel))
             write(tunnel, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
             data.put(read(tunnel))
-            tunnel.getOutputStream().apply {
+            // 27 item DM: the consumer's bytes cross the server inside the broadcast's own pinned TLS.
+            val tls = BroadcastTunnelTls.connect(
+                TunnelTestIdentity.pin,
+                tunnel.getInputStream(),
+                tunnel.getOutputStream(),
+                tunnel,
+            )
+            tls.getOutputStream().apply {
                 write(PAYLOAD.toByteArray())
                 flush()
             }
             val reply = ByteArray(PAYLOAD.length)
-            readFully(tunnel.getInputStream(), reply)
+            readFully(tls.getInputStream(), reply)
             echoed.put(String(reply))
         }
 
@@ -407,6 +435,9 @@ class SftpServerTunnelManagerTest {
         assertEquals(DeviceExchangeEnvelope.TYPE_BROADCAST_START, start.type)
         assertEquals(BROADCAST_ID, start.obj("broadcast")?.get("broadcastId")?.asString)
         assertEquals(0, start.int("maxListeners"))
+        val verifier = start.members.getAsJsonArray("verifiers").single().asJsonObject
+        assertEquals("listener", verifier.get("user").asString)
+        assertEquals("aGFzaA", verifier.get("hash").asString)
         assertEquals(DeviceExchangeEnvelope.TYPE_HELLO, poll(data).type)
         assertEquals(TUNNEL_ID, poll(data).string("tunnelId"))
         assertEquals(PAYLOAD, echoed.poll(WAIT_SECONDS, TimeUnit.SECONDS))
@@ -466,6 +497,68 @@ class SftpServerTunnelManagerTest {
         assertEquals(DeviceExchangeEnvelope.TYPE_BYE, poll(farewell).type)
     }
 
+    @Test
+    fun `a refused broadcast grant keeps the control stream and marks the grant refused`() = withManager { manager ->
+        credentials.begin(BROADCAST_ID)
+        relayKeys.begin(BROADCAST_ID)
+        val grant = checkNotNull(broadcastGrants.add(BROADCAST_ID, "bob"))
+        broadcastGrantEnvelopes = listOf(
+            DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_GRANT) {
+                addProperty(DeviceExchangeEnvelope.KEY_GRANT_ID, grant.grantId)
+                addProperty("broadcastId", BROADCAST_ID)
+            }
+        )
+        val control = ArrayBlockingQueue<DeviceExchangeEnvelope>(4)
+        thread(isDaemon = true) {
+            val stream = exchange.accept()
+            control.put(read(stream))
+            write(stream, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+            control.put(read(stream))
+            control.put(read(stream))
+            write(stream, DeviceExchangeEnvelope.refused(DeviceExchangeEnvelope.REASON_UNAVAILABLE))
+            control.put(read(stream))
+            stream.getInputStream().read()
+        }
+
+        manager.announceBroadcast(publication(localServer.localPort))
+
+        assertEquals(DeviceExchangeEnvelope.TYPE_HELLO, poll(control).type)
+        assertEquals(DeviceExchangeEnvelope.TYPE_BROADCAST_START, poll(control).type)
+        val sent = poll(control)
+        assertEquals(DeviceExchangeEnvelope.TYPE_GRANT, sent.type)
+        assertEquals(BROADCAST_ID, sent.string("broadcastId"))
+        withTimeout(WAIT_SECONDS * MILLIS) {
+            broadcastGrants.grants.first { all -> all.single().state == ExchangeBroadcastGrant.State.REFUSED }
+        }
+        assertTrue(manager.sendUngrant(grant.grantId))
+        val ungrant = poll(control)
+        assertEquals(DeviceExchangeEnvelope.TYPE_UNGRANT, ungrant.type)
+        assertEquals(grant.grantId, ungrant.string(DeviceExchangeEnvelope.KEY_GRANT_ID))
+        assertEquals(1, connections.get())
+        assertEquals(SftpTunnelState.Off, manager.state.value)
+    }
+
+    @Test
+    fun `a refused with no grant pending still ends the session`() = withManager { manager ->
+        val control = ArrayBlockingQueue<DeviceExchangeEnvelope>(2)
+        thread(isDaemon = true) {
+            exchange.accept().use { stream ->
+                control.put(read(stream))
+                write(stream, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+                control.put(read(stream))
+                write(stream, DeviceExchangeEnvelope.refused(DeviceExchangeEnvelope.REASON_UNAVAILABLE))
+                stream.getInputStream().read()
+            }
+        }
+
+        manager.announceBroadcast(publication(localServer.localPort))
+
+        assertEquals(DeviceExchangeEnvelope.TYPE_HELLO, poll(control).type)
+        assertEquals(DeviceExchangeEnvelope.TYPE_BROADCAST_START, poll(control).type)
+        val refused = withTimeout(WAIT_SECONDS * MILLIS) { manager.state.first { it is SftpTunnelState.Refused } }
+        assertEquals(SftpTunnelState.Refused(DeviceExchangeEnvelope.REASON_UNAVAILABLE), refused)
+    }
+
     private fun publication(httpPort: Int) = ExchangeBroadcastPublication(
         record = SftpRendezvousBroadcast(
             broadcastId = BROADCAST_ID,
@@ -480,6 +573,7 @@ class SftpServerTunnelManagerTest {
         ),
         maxListeners = ExchangeBroadcastPublication.NO_LISTENER_CAP,
         localPorts = mapOf(ExchangeBroadcastPublication.SCHEME_HTTP to httpPort),
+        verifiers = listOf(BroadcastVerifier(user = "listener", salt = "c2FsdA", hash = "aGFzaA")),
     )
 
     private fun published(publicPort: Int) = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_PUBLISHED) {

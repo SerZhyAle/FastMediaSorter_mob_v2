@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "📖 হাউ-টু নির্দেশিকা"
 permalink: /docs/HOW_TO-bn.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
@@ -15,8 +15,6 @@ permalink: /docs/HOW_TO-bn.html
 
 - বাস্তব জীবনের সমৃদ্ধ কর্মপ্রবাহ এবং ফিচারগুলোর সমন্বয়ের জন্য **দৃশ্যকল্প গ্রুপ**।
 - নিচে সরাসরি একক-ফিচার রেসিপির জন্য **মূল কাজের নির্দেশিকা**।
-
-{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="bn" %}
 
 ---
 

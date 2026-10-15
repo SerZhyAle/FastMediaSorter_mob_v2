@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "अपनी वॉच पर संगीत सुनें - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music-hi.html
 ---
-<sub class="doc-stamp">26.09.25 02:21</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-music-hi.html
 > **लेवल:** शुरुआती &bull; **समय:** ~5 मिनट &bull; **डिवाइस:** Wear OS स्मार्टवॉच (Android फोन के साथ पेयर की हुई)
 
 > **सिर्फ़ फुल वर्शन** - यह गाइड Google Play से मिलने वाले वर्शन में लागू नहीं है. यह फुल वर्शन पर लागू होता है, जो [Downloads](../DOWNLOADS.md) से सीधा APK डाउनलोड है.
-
-{% include lang-switcher.html doc="scenario-watch-music" dir="/docs/howto/" current="hi" %}
 
 FastMediaSorter आपको अपनी म्यूज़िक कलेक्शन सीधे अपनी Wear OS स्मार्टवॉच से ब्राउज़ और चलाने देता है. आप अपनी पेयर की हुई फोन से शेयर किए गए ट्रैक स्ट्रीम कर सकते हैं या वॉच में सेव लोकल ऑडियो फ़ाइलें चला सकते हैं, साथ में कवर आर्ट, शफल, रोटरी बेज़ल वॉल्यूम कंट्रोल, ऐप छोड़ने पर भी चलने वाला बैकग्राउंड प्लेबैक, और डिस्प्ले अंधेरा रखते हुए म्यूज़िक चालू रखने वाला स्क्रीन-ऑफ मोड.
 

@@ -48,6 +48,26 @@ object ExchangeGrantEnvelopes {
         }
     }
 
+    /**
+     * The `grant` of a live broadcast to [guest] (items BD, DJ, DK): [payload] - `{credentials, relayKey, tunnelPin}`
+     * - goes only inside the box [seal] makes for the guest's devices; with no box there is no grant (item DP).
+     */
+    fun broadcastGrant(
+        grantId: String,
+        guest: String,
+        broadcastId: String,
+        payload: JsonObject,
+        seal: (payload: JsonObject) -> JsonObject?,
+    ): DeviceExchangeEnvelope? {
+        val box = seal(payload) ?: return null
+        return DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_GRANT) {
+            addProperty(DeviceExchangeEnvelope.KEY_GRANT_ID, grantId)
+            addProperty(DeviceExchangeEnvelope.KEY_GUEST, guest)
+            addProperty(DeviceExchangeAccountClient.KEY_BROADCAST_ID, broadcastId)
+            add(KEY_SEALED, box)
+        }
+    }
+
     fun ungrant(grantId: String): DeviceExchangeEnvelope =
         DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_UNGRANT) {
             addProperty(DeviceExchangeEnvelope.KEY_GRANT_ID, grantId)

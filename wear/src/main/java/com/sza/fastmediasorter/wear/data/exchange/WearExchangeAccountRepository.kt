@@ -15,6 +15,8 @@ data class WearExchangeJoin(
     val login: String,
     val pinnedCertificate: String?,
     val pairingCode: String,
+    /** The key half of the phone entry's pin (19 item AY); null from an older phone or without a pin. */
+    val pinnedKey: String? = null,
 ) {
     override fun toString(): String = "WearExchangeJoin(port=$port, pinned=${pinnedCertificate != null})"
 }
@@ -49,6 +51,7 @@ class WearExchangeAccountRepository @Inject constructor(
             port = join.port,
             login = join.login,
             pinnedCertificate = join.pinnedCertificate,
+            pinnedKey = join.pinnedKey,
         )
         var enrolled = candidate
         var result = client.enroll(candidate, join.pairingCode, profile, e2e.keyFor(candidate.deviceId))

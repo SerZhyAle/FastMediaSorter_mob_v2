@@ -260,6 +260,12 @@ if (-not $Json) {
 
 # --- Install, clear the buffer, launch ---------------------------------------------------------
 
+# S4253: Uninstall the prior release build if present so the sweep begins from a clean state.
+# A missing package (adb.ps1 exit 4) is not an error. On a clean install, lastUsedApp is null,
+# so the Home section slot displays Broadcast instead of a previously opened app (S3116/S2509).
+$unArgs = @('uninstall', '-Package', $RELEASE_PACKAGE, '-DeviceId', $id, '-Yes')
+$null = Invoke-AdbVerb -Arguments $unArgs
+
 $install = Invoke-AdbVerb -Arguments @('install', '-Module', 'wear', '-Apk', $apk.path, '-DeviceId', $id)
 if ($install.Exit -ne 0) { Stop-Run 1 "install failed: $($install.Output)" }
 

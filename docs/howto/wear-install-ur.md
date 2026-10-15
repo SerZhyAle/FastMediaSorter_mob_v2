@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "اپنی واچ پر FastMedia انسٹال کریں - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-ur.html
 ---
-<sub class="doc-stamp">26.09.30 11:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/wear-install-ur.html
 > **سطح:** ابتدائی &bull; **وقت:** ~5 منٹ &bull; **ڈیوائس:** Android فون کے ساتھ پیئرڈ Wear OS اسمارٹ واچ
 
 > **دو ورژنز۔** Google Play کا ورژن ایک چھوٹا پہلا ریلیز ہے: Calculator، Stopwatch، Mini-game، Settings اور Programs ٹائل۔ میوزک، تصاویر، نیٹ ورک شیئرز اور فون کی خصوصیات صرف مکمل ورژن میں ہیں، [Downloads](../DOWNLOADS.md) سے براہ راست APK ڈاؤن لوڈ۔
-
-{% include lang-switcher.html doc="wear-install" dir="/docs/howto/" current="ur" %}
 
 FastMedia Wear، FastMediaSorter کا واچ والا حصہ ہے۔ ایک بار یہ آپ کی کلائی پر ہو تو آپ سیدھا واچ سے میوزک چلا سکتے ہیں اور تصاویر دیکھ سکتے ہیں، اپنے پیئرڈ فون کے شیئر کردہ فولڈرز تک پہنچ سکتے ہیں، اور نیٹ ورک شیئرز کھول سکتے ہیں جن سے واچ خود جڑتی ہے۔ یہ صفحہ اسے انسٹال اور پیئر کرواتا ہے۔
 

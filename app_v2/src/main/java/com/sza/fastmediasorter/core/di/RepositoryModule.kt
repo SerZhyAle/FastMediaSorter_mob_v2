@@ -8,8 +8,11 @@ import com.sza.fastmediasorter.data.game.GameStateRepositoryImpl
 import com.sza.fastmediasorter.data.local.ContentMediaAddressResolver
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeE2eKeyStore
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeTokenStore
+import com.sza.fastmediasorter.data.remote.exchange.ExchangePinRecorder
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeResourcePinStore
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.DefaultExchangeTunnelRouter
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnector
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTunnelRouter
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpExchangeProducerProvider
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpExchangeProducerSource
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.TlsExchangeConnector
@@ -30,6 +33,8 @@ import com.sza.fastmediasorter.data.repository.StorageVolumeRepositoryImpl
 import com.sza.fastmediasorter.data.repository.StorageVolumeSource
 import com.sza.fastmediasorter.data.repository.StreamingCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl
+import com.sza.fastmediasorter.data.repository.settings.DeviceExchangeAccountStore
+import com.sza.fastmediasorter.data.repository.settings.KeystoreBroadcastPasswordStore
 import com.sza.fastmediasorter.data.repository.settings.KeystoreDeviceExchangeE2eKeyStore
 import com.sza.fastmediasorter.data.repository.settings.KeystoreDeviceExchangeTokenStore
 import com.sza.fastmediasorter.data.repository.settings.KeystoreExchangeResourcePinStore
@@ -49,6 +54,7 @@ import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
 import com.sza.fastmediasorter.domain.game.GameStateRepository
 import com.sza.fastmediasorter.domain.port.MediaAddressResolver
 import com.sza.fastmediasorter.domain.repository.BatteryRuntimeEstimator
+import com.sza.fastmediasorter.domain.repository.BroadcastPasswordStore
 import com.sza.fastmediasorter.domain.repository.DeviceMemoryRepository
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.repository.FavoritesRepository
@@ -295,4 +301,16 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindExchangeResourcePinStore(impl: KeystoreExchangeResourcePinStore): ExchangeResourcePinStore
+
+    @Binds
+    @Singleton
+    abstract fun bindBroadcastPasswordStore(impl: KeystoreBroadcastPasswordStore): BroadcastPasswordStore
+
+    @Binds
+    @Singleton
+    abstract fun bindExchangePinRecorder(impl: DeviceExchangeAccountStore): ExchangePinRecorder
+
+    @Binds
+    @Singleton
+    abstract fun bindExchangeTunnelRouter(impl: DefaultExchangeTunnelRouter): ExchangeTunnelRouter
 }

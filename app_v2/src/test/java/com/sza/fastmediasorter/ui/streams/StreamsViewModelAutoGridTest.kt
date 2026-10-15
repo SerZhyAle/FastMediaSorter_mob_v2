@@ -79,6 +79,7 @@ class StreamsViewModelAutoGridTest {
             // S1799: wear-send gate and use case are inert in this grid-focused test.
             mediaCapabilities = mockk(relaxed = true),
             sendStreamToWatchUseCase = mockk(relaxed = true),
+            buildWatchBroadcastHandoff = mockk(relaxed = true),
             observeStreamCollections = observeStreamCollections,
         )
     }

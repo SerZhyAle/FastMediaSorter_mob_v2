@@ -3,7 +3,7 @@ layout: doc
 title: "Privacy Policy for FastMediaSorter"
 permalink: /docs/PRIVACY_POLICY.html
 ---
-<sub class="doc-stamp">26.10.15 09:55</sub>
+<sub class="doc-stamp">26.10.15 14:25</sub>
 
 # Privacy Policy for FastMediaSorter
 
@@ -219,7 +219,7 @@ This section applies when you connect your own devices to each other, the way yo
 ### Deleting your account
 
 - **In the app:** open My devices, open the menu of the server card, and choose Delete my account. The server then erases at once the account and its password hash, every device record and token, every folder and broadcast record, the clipboard, any pairing codes, and whatever was given to or by the account; its broadcasts, tunnels and uploads end, and the login becomes free. The app forgets the server, its token and the stored PIN codes. Folders you had connected stay in your list and show as no longer published until you remove them.
-- **Without the app,** for instance after losing the phone: the page "How to delete an account" of the media exchange portal, <https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/exchange-server.html>, lists both ways. The person who runs a server can delete any account on it, so for a server that is not yours, ask them.
+- **Without the app,** for instance after losing the phone: the page "How to delete an account" of the media exchange portal, <https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/account-deletion.html>, lists both ways. The person who runs a server can delete any account on it, so for a server that is not yours, ask them.
 - **What stays.** The server's log, for the retention period its operator set; copies of files already delivered to your other devices or to the people you gave access to; and what is in your own Google Drive, which you delete there.
 - **Signing out on this device** only forgets the sign-in on this device. The account and its other devices stay.
 

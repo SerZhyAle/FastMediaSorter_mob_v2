@@ -115,6 +115,52 @@ class DeviceExchangeAccountRepositoryTest {
     }
 
     @Test
+    fun `an enrollment with an accepted pin keeps the leaf and key it was answered on`() = runTest {
+        enrollAnswers(enrolled().copy(leafFingerprint = PIN, keyFingerprint = KEY))
+
+        repository().enroll(SERVER_A, LOGIN, PIN, password, enrollment)
+
+        val held = store.snapshot().single()
+        assertEquals(PIN, held.pinnedCertificate)
+        assertEquals(KEY, held.pinnedKey)
+    }
+
+    @Test
+    fun `a platform-trusted enrollment stays unpinned whatever leaf it saw`() = runTest {
+        enrollAnswers(enrolled().copy(leafFingerprint = PIN, keyFingerprint = KEY))
+
+        repository().enroll(SERVER_A, LOGIN, null, password, enrollment)
+
+        val held = store.snapshot().single()
+        assertNull(held.pinnedCertificate)
+        assertNull(held.pinnedKey)
+    }
+
+    @Test
+    fun `a newly accepted leaf does not inherit the key of the replaced one`() = runTest {
+        store.put(held(SERVER_A).copy(pinnedCertificate = PIN, pinnedKey = KEY))
+        val sent = mutableListOf<DeviceExchangeAccountEntry>()
+        coEvery { client.enroll(any(), any(), any()) } answers {
+            sent += firstArg<DeviceExchangeAccountEntry>()
+            enrolled()
+        }
+
+        repository().enroll(SERVER_A, LOGIN, OTHER_PIN, password, enrollment)
+
+        assertEquals(OTHER_PIN, sent.single().pinnedCertificate)
+        assertNull(sent.single().pinnedKey)
+    }
+
+    @Test
+    fun `a guest outgoing entry is no producer`() = runTest {
+        store.put(held(SERVER_A).copy(outgoing = true, accountKind = DeviceExchangeAccountEntry.ACCOUNT_KIND_GUEST))
+        val repository = repository()
+
+        assertNull(repository.producerEntry())
+        assertEquals(LOGIN, repository.outgoingEntry()?.login)
+    }
+
+    @Test
     fun `an enrollment keeps the features and the account kind it was answered with`() = runTest {
         enrollAnswers(
             DeviceExchangeEnrollResult.Enrolled(
@@ -360,5 +406,7 @@ class DeviceExchangeAccountRepositoryTest {
         const val OTHER_DEVICE = "BBBBBBBBBBBBBBBBBBBBBB"
         const val TOKEN = "device-token"
         const val PIN = "SHA256:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU"
+        const val OTHER_PIN = "SHA256:otherLeafFingerprint"
+        const val KEY = "SHA256:publicKeyFingerprint"
     }
 }

@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: doc
 title: "Уведомления об открытом ПО"
 permalink: /docs/OPEN_SOURCE-ru.html
 ---

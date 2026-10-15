@@ -138,7 +138,9 @@ class ResolveWearLaunchAddressUseCase @Inject constructor(
             .firstOrNull { normalizeWearStreamUrl(it.url) == ref.normalizedUrl }
             ?: return null
         val playback = prepareWearStreamPlayback(channel)
-        return WearLaunchAddress.StreamPlayback(playback.fileId, playback.isVideo)
+        // S4261: a handed-off broadcast that plays from nowhere here has no player to open; the launch lands
+        // where an unknown target does instead of on a player with nothing selected.
+        return WearLaunchAddress.StreamPlayback(playback.fileId, playback.isVideo).takeUnless { playback.unplayable }
     }
 
     private suspend fun resolveFile(target: WearLaunchTarget.File): WearLaunchAddress {

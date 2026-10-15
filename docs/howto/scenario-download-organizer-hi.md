@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "डाउनलोड ऑर्गनाइज़र (क्विक सॉर्ट) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-hi.html
 ---
-<sub class="doc-stamp">26.09.25 02:16</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
 # 🧹 डाउनलोड ऑर्गनाइज़र - एक टैप से फ़ाइलें छांटें
 
 > **लेवल:** शुरुआती &bull; **एडिशन:** कोई भी (Standard, Lite, Photos, Legacy, VR, noLegal)
-
-{% include lang-switcher.html doc="scenario-download-organizer" dir="/docs/howto/" current="hi" %}
 
 **Quick Sort** FastMediaSorter की सबसे खास सुविधा है: अपने फ़ोल्डर एक बार सेट करें, फिर सिर्फ़ एक नंबर टैप करके सैकड़ों फ़ाइलें छांटें. कोई ड्रैग-एंड-ड्रॉप नहीं. कोई मेनू नहीं. बस **1**, **2**, या **3** टैप करें - और फ़ाइल सही जगह पहुंच जाती है.
 

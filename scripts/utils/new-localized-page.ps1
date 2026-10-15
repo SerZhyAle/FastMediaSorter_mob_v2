@@ -6,9 +6,10 @@
     Reads the page set from scripts/docs/localized-page-set.json and the language from
     _data/languages.yml. For each English source document it creates <base>-<slug>.md beside it,
     carrying the source's layout and title, a permalink of the same shape with -<slug> before the
-    extension, the page-language switcher include, and a body wrapped in a lang/dir container so a
-    right-to-left language renders right-to-left under the shared theme layout. The body is the
-    marker TODO(S1211-translate) until a translator replaces it.
+    extension, and a body wrapped in a lang/dir container so a right-to-left language renders
+    right-to-left. The language links need nothing in the page: _layouts/doc.html builds them from
+    the sibling files (S4117). The body is the marker TODO(S1211-translate) until a translator
+    replaces it.
 
     Nothing is overwritten: an existing target stops the run before any file is written.
     The landing page is not scaffolded here - scripts/site/generate-landing-pages.ps1 writes it
@@ -32,7 +33,8 @@
       0 - every missing file created (or listed under -DryRun).
       1 - the language is not in _data/languages.yml, or is English.
       2 - a target file already exists; nothing was written.
-      3 - cannot run: the page set, the language list or a source document is missing.
+      3 - cannot run: the page set, the language list or a source document is missing, or a source
+          lacks its layout or permalink.
 #>
 [CmdletBinding()]
 param(
@@ -94,9 +96,8 @@ foreach ($rel in $set.documents) {
     $layout = [regex]::Match($text, '(?m)^layout:\s*(.+?)\s*$').Groups[1].Value
     $title = [regex]::Match($text, '(?m)^title:\s*(.+?)\s*$').Groups[1].Value
     $permalink = [regex]::Match($text, '(?m)^permalink:\s*(\S+)\s*$').Groups[1].Value
-    $switcher = [regex]::Match($text, '\{% include lang-switcher\.html doc="([^"]+)" dir="([^"]+)" current="en" %\}')
-    if (-not $layout -or -not $permalink -or -not $switcher.Success) {
-        Write-Host "new-localized-page: CANNOT RUN - $rel lacks layout, permalink or the switcher include" -ForegroundColor Yellow
+    if (-not $layout -or -not $permalink) {
+        Write-Host "new-localized-page: CANNOT RUN - $rel lacks layout or permalink" -ForegroundColor Yellow
         exit 3
     }
     $newPermalink = if ($permalink.EndsWith('/')) { "${permalink}index-$($lang.slug).html" } else { $permalink -replace '\.html$', "-$($lang.slug).html" }
@@ -107,8 +108,6 @@ foreach ($rel in $set.documents) {
         "permalink: $newPermalink"
         '---'
         "<div lang=`"$($lang.code)`" dir=`"$($lang.dir)`" markdown=`"1`">"
-        ''
-        "{% include lang-switcher.html doc=`"$($switcher.Groups[1].Value)`" dir=`"$($switcher.Groups[2].Value)`" current=`"$($lang.code)`" %}"
         ''
         'TODO(S1211-translate)'
         ''

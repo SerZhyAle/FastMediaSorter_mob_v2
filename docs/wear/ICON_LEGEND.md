@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: doc
 title: "Watch icon legend"
 permalink: /docs/wear/ICON_LEGEND.html
 ---

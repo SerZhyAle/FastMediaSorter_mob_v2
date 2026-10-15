@@ -26,6 +26,14 @@ appId: com.sza.fastmediasorter.debug
 # answered by a success - the check that is fast for one is the slow one for the other - so the
 # order favours the restored player, which is the usual start of a flow after a flow that opened
 # a file.
+#
+# The settle window after the back press is not optional. Measured 2026-10-15 on the test phone
+# (add_resource_forms, a flow that starts with the app parked in "All music"): the tabs were visible
+# right after the back, and about 0.3-0.5 s later the app reopened the restored browse screen, so
+# the positive check below said "home" and the final assertion then waited 17 s for tabs that were
+# gone. The old cascade survived this only because every back was followed by
+# waitForAnimationToEnd and a fresh guard. `extendedWaitUntil notVisible` returns the moment the
+# tabs vanish (the escape then runs) and costs its full timeout, flagged WARNED, when they stay.
 - runFlow:
     when:
       notVisible:
@@ -36,6 +44,11 @@ appId: com.sza.fastmediasorter.debug
           visible:
             id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
           timeout: 2000
+          optional: true
+      - extendedWaitUntil:
+          notVisible:
+            id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+          timeout: 1500
           optional: true
 
 - evalScript: ${output.homeReached = false}

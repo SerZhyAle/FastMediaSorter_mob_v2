@@ -2,11 +2,13 @@ package com.sza.fastmediasorter.wear.di
 
 import android.os.Build
 import com.sza.fastmediasorter.wear.BuildConfig
+import com.sza.fastmediasorter.wear.data.exchange.EncryptedWearBroadcastPassStore
 import com.sza.fastmediasorter.wear.data.exchange.EncryptedWearExchangeE2eStore
 import com.sza.fastmediasorter.wear.data.exchange.EncryptedWearExchangeEntryStore
 import com.sza.fastmediasorter.wear.data.exchange.EncryptedWearResourcePinStore
 import com.sza.fastmediasorter.wear.data.exchange.SocketWearLanEndpointProbe
 import com.sza.fastmediasorter.wear.data.exchange.TlsWearExchangeConnector
+import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastPassStore
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeConnector
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeDeviceProfile
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeE2eStore
@@ -41,6 +43,10 @@ abstract class WearExchangeModule {
     // S4228: the PINs of protected exchange folders, in the same encrypted file.
     @Binds
     abstract fun bindResourcePinStore(impl: EncryptedWearResourcePinStore): WearResourcePinStore
+
+    // S4261: the descriptor and pass of a broadcast handed off from the phone, in the same encrypted file.
+    @Binds
+    abstract fun bindBroadcastPassStore(impl: EncryptedWearBroadcastPassStore): WearBroadcastPassStore
 
     // S4229: the account's broadcast list and the probe that tells a reachable LAN endpoint from a far one.
     @Binds

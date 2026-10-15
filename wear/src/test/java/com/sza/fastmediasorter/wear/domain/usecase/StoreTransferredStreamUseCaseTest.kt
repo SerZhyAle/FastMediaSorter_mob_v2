@@ -1,5 +1,11 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastPassStore
+import com.sza.fastmediasorter.wear.data.exchange.WearStoredBroadcast
+import com.sza.fastmediasorter.wear.domain.model.WearBroadcastHandoffPayload
+import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPass
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferPayload
@@ -9,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -48,12 +55,62 @@ class StoreTransferredStreamUseCaseTest {
         }
     }
 
+    private class FakePassStore(var refuseWrites: Boolean = false) : WearBroadcastPassStore {
+        val stored = mutableMapOf<String, WearStoredBroadcast>()
+
+        override suspend fun get(url: String): WearStoredBroadcast? = stored[url]
+
+        override suspend fun save(url: String, value: WearStoredBroadcast): Boolean {
+            if (!refuseWrites) stored[url] = value
+            return !refuseWrites
+        }
+
+        override suspend fun forget(url: String) {
+            stored.remove(url)
+        }
+
+        override suspend fun retainOnly(urls: Set<String>) {
+            stored.keys.retainAll(urls)
+        }
+    }
+
+    private val passStore = FakePassStore()
+
     private fun useCase(repository: FakeRepository) =
         StoreTransferredStreamUseCase(
             repository = repository,
             classifier = ClassifyWearStreamMediaKindUseCase(),
-            requestWearTileRefreshUseCase = mockk(relaxed = true)
+            requestWearTileRefreshUseCase = mockk(relaxed = true),
+            passStore = passStore
         )
+
+    private fun endpoint(transport: String, url: String) = JsonObject().apply {
+        addProperty("transport", transport)
+        addProperty("url", url)
+    }
+
+    private fun descriptor(vararg endpoints: JsonObject, protected: Boolean = true) = JsonObject().apply {
+        addProperty("mode", "AUDIO_ONLY")
+        add("endpoints", JsonArray().apply { endpoints.forEach(::add) })
+        if (protected) {
+            add("auth", JsonObject().apply { addProperty("scheme", "password-v1") })
+        }
+    }
+
+    private val relay = endpoint("RELAY", "https://relay.example/v2/b/b1/stream")
+
+    private fun broadcast(
+        descriptor: JsonObject,
+        pass: WearBroadcastPass? = WearBroadcastPass("own", "secret")
+    ) = WearBroadcastHandoffPayload(
+        requestId = "req-2",
+        name = "Phone live",
+        url = "http://192.168.1.20:8080/live",
+        mediaKind = "AUDIO",
+        broadcastId = "b1",
+        descriptor = descriptor,
+        pass = pass
+    )
 
     private fun payload(
         url: String = "https://radio.example/stream",
@@ -149,5 +206,64 @@ class StoreTransferredStreamUseCaseTest {
             val repository = FakeRepository(throwCancellation = true)
             useCase(repository)(payload())
         }
+    }
+
+    @Test
+    fun `S4261 - a protected broadcast with its pass is stored with the descriptor kept apart`() = runBlocking {
+        val repository = FakeRepository()
+
+        val result = useCase(repository).storeBroadcast(broadcast(descriptor(relay)))
+
+        assertEquals(WearStreamTransferAck.OUTCOME_STORED, result.ack.outcome)
+        assertEquals(true, repository.channels.single().hasBroadcast)
+        assertEquals("secret", passStore.stored.getValue("http://192.168.1.20:8080/live").pass?.password)
+    }
+
+    @Test
+    fun `S4261 - a protected broadcast without its pass is unplayable and stores nothing`() = runBlocking {
+        val repository = FakeRepository()
+
+        val result = useCase(repository).storeBroadcast(broadcast(descriptor(relay), pass = null))
+
+        assertEquals(WearStreamTransferAck.OUTCOME_UNPLAYABLE, result.ack.outcome)
+        assertEquals(0, repository.channels.size)
+        assertEquals(0, passStore.stored.size)
+    }
+
+    @Test
+    fun `S4261 - a tunnel-only broadcast is unplayable`() = runBlocking {
+        val repository = FakeRepository()
+        val tunnel = endpoint("TUNNEL", "https://tunnel.example/t/abc")
+
+        val result = useCase(repository).storeBroadcast(broadcast(descriptor(tunnel)))
+
+        assertEquals(WearStreamTransferAck.OUTCOME_UNPLAYABLE, result.ack.outcome)
+        assertNull(result.channel)
+        assertEquals(0, repository.channels.size)
+    }
+
+    @Test
+    fun `S4261 - a refused secret write is an error and stores no channel`() = runBlocking {
+        val repository = FakeRepository()
+        passStore.refuseWrites = true
+
+        val result = useCase(repository).storeBroadcast(broadcast(descriptor(relay)))
+
+        assertEquals(WearStreamTransferAck.OUTCOME_ERROR, result.ack.outcome)
+        assertEquals("secret store refused", result.ack.message)
+        assertEquals(0, repository.channels.size)
+    }
+
+    @Test
+    fun `S4261 - a plain transfer after a broadcast forgets the stored pass`() = runBlocking {
+        val repository = FakeRepository()
+        val store = useCase(repository)
+        store.storeBroadcast(broadcast(descriptor(relay)))
+        assertNotNull(passStore.stored["http://192.168.1.20:8080/live"])
+
+        store(payload(url = "http://192.168.1.20:8080/live"))
+
+        assertNull(repository.channels.single().hasBroadcast)
+        assertNull(passStore.stored["http://192.168.1.20:8080/live"])
     }
 }

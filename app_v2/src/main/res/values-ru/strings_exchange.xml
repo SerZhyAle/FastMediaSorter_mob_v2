@@ -251,7 +251,7 @@
     <string name="drive_channel_browse_waiting">Ждём ответа %1$s через Google Drive. Было в сети %2$s.</string>
     <string name="drive_channel_browse_waiting_unknown">Ждём ответа %1$s через Google Drive.</string>
     <string name="drive_channel_browse_timeout">%1$s не ответило через Google Drive. Убедитесь, что устройство включено и приложение на нём открыто, затем попробуйте снова.</string>
-    <string name="drive_channel_browse_retry">Повторить</string>
+    <string name="drive_channel_browse_retry">Попробовать снова</string>
     <string name="drive_channel_browse_locked">Эта папка защищена PIN-кодом. Откройте её по прямому подключению.</string>
     <string name="drive_channel_browse_not_permitted">Этот путь находится вне общей папки.</string>
     <string name="drive_channel_browse_unavailable">%1$s сейчас не раздаёт эту папку через Google Drive. Включите там раздачу и файлы через Google Drive или подключитесь напрямую.</string>
@@ -272,4 +272,13 @@
     <string name="exchange_failure_key_changed">Ключ защиты этого устройства изменился, поэтому ему ничего не отправляется. Удалите устройство из аккаунта и добавьте его снова.</string>
     <string name="exchange_failure_server_no_e2e">Этот сервер не умеет передавать защищённое содержимое, поэтому папки, трансляции и буфер через него не идут.</string>
     <string name="exchange_failure_sealed_failed">Это не удалось открыть на этом устройстве. Повторите с другого устройства.</string>
+    <string name="exchange_server_honest_text">Сервер обмена соединяет ваши устройства, поэтому знает имена вашего аккаунта, устройств, папок и трансляций, видит, какие устройства в сети, и сколько и когда передаётся. Открыть то, что идёт через него, он не может: папки и их файлы, трансляции и буфер шифруются на вашем устройстве и открываются только на других ваших устройствах или у тех, кому вы дали доступ. Чтобы заглянуть внутрь, тому, кто управляет сервером, пришлось бы добавить в ваш аккаунт своё устройство, и оно появилось бы в списке ваших устройств.</string>
+    <string name="drive_channel_honest_text">Через Google Drive файлы и буфер хранятся в вашем собственном аккаунте Google, как и другие ваши файлы на Google Drive; сервер обмена в этом не участвует.</string>
+    <string name="exchange_portal_link_folders_exchange_server">О папках через сервер обмена</string>
+    <string name="exchange_portal_link_folders_google_drive">О файлах через Google Drive</string>
+    <string name="exchange_portal_link_broadcast_start">Как выйти в эфир</string>
+    <string name="exchange_portal_link_schedule">О расписаниях для других устройств</string>
+    <string name="exchange_portal_link_phone_sharing">О телефоне как сервере</string>
+    <string name="exchange_portal_link_my_devices">О добавлении сервера</string>
+    <string name="exchange_portal_link_watch">О подключении часов</string>
 </resources>

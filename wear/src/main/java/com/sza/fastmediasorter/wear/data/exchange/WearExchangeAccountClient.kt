@@ -30,7 +30,7 @@ class WearExchangeAccountClient @Inject constructor(
         profile: WearExchangeDeviceProfile,
         key: E2eDeviceKey? = null,
     ): WearExchangeEnrollResult = try {
-        val answer = connector.connect(entry.host, entry.port, entry.pinnedCertificate).use { stream ->
+        val answer = connector.connect(entry.host, entry.port, entry.pinnedCertificate, entry.pinnedKey).use { stream ->
             WearExchangeFrameCodec.write(stream.output, enrollEnvelope(entry, pairingCode, profile, key))
             WearExchangeFrameCodec.read(stream.input).also { answer ->
                 // The enrolled stream is authenticated and would become the control stream; this one only enrolls.
@@ -57,7 +57,7 @@ class WearExchangeAccountClient @Inject constructor(
      * @throws IOException when the server cannot be reached, refuses the token or the write fails.
      */
     fun revokeOwnDevice(entry: WearExchangeEntry, token: String, productVersion: String) {
-        connector.connect(entry.host, entry.port, entry.pinnedCertificate).use { stream ->
+        connector.connect(entry.host, entry.port, entry.pinnedCertificate, entry.pinnedKey).use { stream ->
             WearExchangeFrameCodec.write(stream.output, helloEnvelope(entry, token, productVersion))
             val answer = WearExchangeFrameCodec.read(stream.input)
             if (answer?.type != WearExchangeEnvelope.TYPE_WELCOME) {

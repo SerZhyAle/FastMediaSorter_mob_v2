@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Internet Radio & Streams - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 📻 Internet Radio & Streams
 
 > **Level:** Beginner - **Time:** ~10 minutes - **Flavor:** Standard, Legacy, VR, noLegal (Streams are absent in Lite and Photos)
-
-{% include lang-switcher.html doc="scenario-internet-radio" dir="/docs/howto/" current="en" %}
 
 FastMediaSorter includes a dedicated Streams screen for internet audio and video sources. Add any internet radio URL, import an .m3u playlist, or browse a curated station catalog - no separate radio app needed. Works great on Android car head units, audio players, phones, and tablets.
 

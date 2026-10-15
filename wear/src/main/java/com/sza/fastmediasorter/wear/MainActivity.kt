@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.BadParcelableException
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
@@ -41,6 +42,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.content.ContextCompat
@@ -1138,10 +1140,17 @@ private fun OpenStreamOnWatchEffect(
     prepareStreamPlayback: PrepareWearStreamPlaybackUseCase,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
+    val unplayable = stringResource(R.string.wear_stream_broadcast_unplayable)
     LaunchedEffect(navController) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             WatchStreamOpenEvents.requestFlow.collect { channel ->
                 val target = prepareStreamPlayback(channel)
+                if (target.unplayable) {
+                    // No "opened" confirmation: nothing plays, so the phone must not say it is playing.
+                    Toast.makeText(context, unplayable, Toast.LENGTH_SHORT).show()
+                    return@collect
+                }
                 val route = if (target.isVideo) {
                     WearRoutes.videoPlayer(target.fileId)
                 } else {

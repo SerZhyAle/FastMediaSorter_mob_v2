@@ -2,6 +2,9 @@ package com.sza.fastmediasorter.wear.data.exchange
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.sza.fastmediasorter.data.security.e2e.E2eBroadcastSeals
+import com.sza.fastmediasorter.data.security.e2e.E2eBytes
+import com.sza.fastmediasorter.data.security.e2e.E2eRelayRecords
 import timber.log.Timber
 import java.net.URI
 import java.net.URISyntaxException
@@ -21,11 +24,30 @@ sealed interface WearBroadcastEndpoint {
         val path: String,
         val certFingerprint: String?,
         override val mode: String?,
+        val broadcastId: String = "",
+        /** S4240, 27 item DK: the group key (base64url) of a sealed relay, played only through the opening proxy. */
+        val groupKey: String? = null,
     ) : WearBroadcastEndpoint {
 
-        // 7.9: neither the server address nor the broadcast id reaches a log.
-        override fun toString(): String = "Relay(pinned=${certFingerprint != null}, mode=$mode)"
+        // 7.9: neither the server address nor the broadcast id reaches a log, and a group key opens the broadcast.
+        override fun toString(): String =
+            "Relay(pinned=${certFingerprint != null}, mode=$mode, sealed=${groupKey != null})"
     }
+}
+
+/** S4240: what an endpoint's `seal` (contract DEVICE-EXCHANGE 27 item DK) lets the watch do with it. */
+sealed interface WearRelaySeal {
+    data object Clear : WearRelaySeal
+
+    class Keyed(val groupKey: String) : WearRelaySeal {
+        override fun toString(): String = "Keyed(***)"
+    }
+
+    /** A known version whose key still rides the record's box: playable once the box opens, never before. */
+    data object Pending : WearRelaySeal
+
+    /** An unknown version or a malformed key: never played, and never as clear bytes. */
+    data object Unplayable : WearRelaySeal
 }
 
 /**
@@ -64,13 +86,22 @@ object WearBroadcastEndpoints {
     fun isProtected(descriptor: JsonObject?): Boolean =
         descriptor?.get(KEY_AUTH)?.takeIf(JsonElement::isJsonObject) != null
 
-    /** The playable endpoints of [descriptor] in the order given; [recordMode] is the fallback of an unmarked one. */
-    fun parse(broadcastId: String, descriptor: JsonObject?, recordMode: String?): List<WearBroadcastEndpoint> {
+    /**
+     * The playable endpoints of [descriptor] in the order given; [recordMode] is the fallback of an unmarked one.
+     * [boxPending] lists a sealed relay whose key is still in the record's unopened box, for the list row alone:
+     * such an endpoint carries no key and is never handed to a player.
+     */
+    fun parse(
+        broadcastId: String,
+        descriptor: JsonObject?,
+        recordMode: String?,
+        boxPending: Boolean = false,
+    ): List<WearBroadcastEndpoint> {
         val fallbackMode = descriptor?.text(KEY_MODE) ?: recordMode
         val listed = descriptor?.get(KEY_ENDPOINTS)?.takeIf(JsonElement::isJsonArray)?.asJsonArray?.toList().orEmpty()
             .filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject)
         val sources = listed.ifEmpty { listOfNotNull(descriptor?.let(::legacyEndpoint)) }
-        return sources.mapNotNull { endpoint(broadcastId, it, mode = it.text(KEY_MODE) ?: fallbackMode) }
+        return sources.mapNotNull { endpoint(broadcastId, it, it.text(KEY_MODE) ?: fallbackMode, boxPending) }
     }
 
     // A descriptor without an endpoint list is read as one endpoint from its own `url`, like the producer's.
@@ -82,12 +113,42 @@ object WearBroadcastEndpoints {
         }
     }
 
-    private fun endpoint(broadcastId: String, record: JsonObject, mode: String?): WearBroadcastEndpoint? {
+    private fun endpoint(
+        broadcastId: String,
+        record: JsonObject,
+        mode: String?,
+        boxPending: Boolean,
+    ): WearBroadcastEndpoint? {
         val uri = parseUri(record.text(KEY_URL))
         return when (record.text(KEY_TRANSPORT)?.uppercase()) {
             TRANSPORT_HTTP, TRANSPORT_RTSP -> uri?.let { lan(it, mode) }
-            TRANSPORT_RELAY -> uri?.let { relay(it, broadcastId, record.text(KEY_CERT_FINGERPRINT), mode) }
+            TRANSPORT_RELAY -> {
+                val seal = relaySeal(record)
+                val listed = seal is WearRelaySeal.Clear || seal is WearRelaySeal.Keyed ||
+                    (boxPending && seal == WearRelaySeal.Pending)
+                uri?.takeIf { listed }
+                    ?.let { relay(it, broadcastId, record.text(KEY_CERT_FINGERPRINT), mode) }
+                    ?.copy(groupKey = (seal as? WearRelaySeal.Keyed)?.groupKey)
+            }
             else -> null
+        }
+    }
+
+    /** The `seal` of [endpoint]: none, a version-1 seal with or without its 32-byte group key, or anything else. */
+    fun relaySeal(endpoint: JsonObject): WearRelaySeal {
+        val seal = endpoint.get(E2eBroadcastSeals.KEY_SEAL) ?: return WearRelaySeal.Clear
+        val members = seal.takeIf(JsonElement::isJsonObject)?.asJsonObject
+        val version = members?.get(E2eBroadcastSeals.KEY_V)?.takeIf(JsonElement::isJsonPrimitive)
+            ?.let { runCatching { it.asInt }.getOrNull() }
+        val text = members?.text(E2eBroadcastSeals.KEY_KEY)
+        val key = text?.takeIf {
+            runCatching { E2eBytes.fromB64url(it) }.getOrNull()?.size == E2eRelayRecords.GROUP_KEY_LENGTH
+        }
+        return when {
+            version != E2eBroadcastSeals.VERSION -> WearRelaySeal.Unplayable
+            key != null -> WearRelaySeal.Keyed(key)
+            text == null -> WearRelaySeal.Pending
+            else -> WearRelaySeal.Unplayable
         }
     }
 
@@ -101,7 +162,14 @@ object WearBroadcastEndpoints {
         val valid = uri.scheme.equals(SCHEME_HTTPS, true) && !uri.host.isNullOrEmpty() &&
             uri.rawPath == "/v2/b/$broadcastId/stream"
         return if (valid) {
-            WearBroadcastEndpoint.Relay(uri.host, uri.port.takeIf { it > 0 } ?: HTTPS_PORT, uri.rawPath, pin, mode)
+            WearBroadcastEndpoint.Relay(
+                host = uri.host,
+                port = uri.port.takeIf { it > 0 } ?: HTTPS_PORT,
+                path = uri.rawPath,
+                certFingerprint = pin,
+                mode = mode,
+                broadcastId = broadcastId,
+            )
         } else {
             null
         }

@@ -8,9 +8,9 @@ import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
 /**
- * Holds this program's strings to the table of contract DEVICE-EXCHANGE section 25 key by key and language by
- * language: the contract produces no machine-readable copy, so each product checks its own words (section 25,
- * conformance paragraph). Skipped when the contracts catalogue is not on this machine.
+ * Holds this program's strings to the tables of contract DEVICE-EXCHANGE items CY, CZ and DR key by key and
+ * language by language: the contract produces no machine-readable copy, so each product checks its own words
+ * (section 11, conformance of items CV to DA). Skipped when the contracts catalogue is not on this machine.
  */
 class ExchangeMessageTableConformanceTest {
 
@@ -123,14 +123,17 @@ class ExchangeMessageTableConformanceTest {
         val file = File(root, "device-exchange/README.md")
         assumeTrue("the contract file is not there", file.isFile)
         val lines = file.readLines(Charsets.UTF_8)
-        val start = lines.indexOfFirst { it.startsWith("## 25.") }
-        val end = lines.indexOfFirst { it.startsWith("## 26.") }
-        assumeTrue("section 25 is not in the contract", start in 0 until end)
-        // Section 27 item DR adds four rows to the same table; section 26 item DD is a standalone product string.
-        val sealedStart = lines.indexOfFirst { it.startsWith("## 27.") }
-        val sealedEnd = lines.indexOfFirst { it.startsWith("## Document log") }
-        val sealed = if (sealedStart in 0 until sealedEnd) lines.subList(sealedStart, sealedEnd) else emptyList()
-        return lines.subList(start, end) + sealed
+        // Found by item letter, never by section number: letters are permanent, the consolidation of 0.30 moved
+        // every section from 14 to 27. Item DR adds four rows to the table; item DD is a standalone product string.
+        return CONTRACT_ITEMS.flatMap { itemBlock(lines, it) }
+    }
+
+    // A present contract without the item fails rather than skips: a skip would stop guarding the table silently.
+    private fun itemBlock(lines: List<String>, letter: String): List<String> {
+        val start = lines.indexOfFirst { ITEM_HEADING.find(it)?.groupValues?.get(1) == letter }
+        check(start >= 0) { "item $letter is not in the contract" }
+        val next = (start + 1 until lines.size).firstOrNull { lines[it].startsWith("**") || lines[it].startsWith("#") }
+        return lines.subList(start, next ?: lines.size)
     }
 
     private fun resources(directory: String): Map<String, String> {
@@ -159,5 +162,7 @@ class ExchangeMessageTableConformanceTest {
         val CODE_CELL = Regex("""`([a-z0-9-]+)`(.*)""")
         val KINDS = setOf("wire", "cast", "local", "state", "result", "wire, cast")
         val ESCAPE = Regex("""\\(.)""")
+        val ITEM_HEADING = Regex("""^\*\*([A-Z]{1,2})(?: \[[^\]]*])? - """)
+        val CONTRACT_ITEMS = listOf("CV", "CW", "CX", "CY", "CZ", "DA", "DR")
     }
 }

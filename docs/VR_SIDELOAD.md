@@ -1,10 +1,10 @@
 ---
-layout: default
+layout: doc
 title: "VR Sideloading Guide"
 permalink: /docs/VR_SIDELOAD.html
 ---
 
-<sub class="doc-stamp">26.09.10 21:57</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # VR Sideloading Guide
 

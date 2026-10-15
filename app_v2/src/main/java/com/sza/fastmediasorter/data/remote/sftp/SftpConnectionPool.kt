@@ -12,7 +12,9 @@ import com.sza.fastmediasorter.data.network.exceptions.NetworkAccessDeniedExcept
 import com.sza.fastmediasorter.data.network.exceptions.NetworkErrorClassifier
 import com.sza.fastmediasorter.data.network.exceptions.NetworkHostKeyChangedException
 import com.sza.fastmediasorter.data.network.exceptions.NetworkPinRefusedException
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTunnelProxy
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTunnelRouter
 import com.sza.fastmediasorter.domain.model.SftpTunnelAddress.forLog
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import kotlinx.coroutines.CancellationException
@@ -60,6 +62,8 @@ enum class ChannelPurpose { PLAYBACK, FILE_OPS }
  */
 class SftpConnectionPool(
     private val onFirstUseHostKey: (host: String, port: Int, fingerprint: String) -> Unit = { _, _, _ -> },
+    private val router: ExchangeTunnelRouter? = null,
+    private val client: DeviceExchangeAccountClient? = null,
 ) {
 
     /** Single SFTP channel with its serialization mutex and declared purpose. */
@@ -302,7 +306,7 @@ class SftpConnectionPool(
             val jsch = JSch()
             applyIdentity(jsch, info, namePrefix = "key")
             val session = jsch.getSession(info.username, info.host, info.port)
-            ExchangeTunnelProxy.attachIfTunnel(session, info.host)
+            ExchangeTunnelProxy.attachIfTunnel(session, info.host, router = router, client = client)
             applyAuth(session, info)
             session.timeout = SOCKET_TIMEOUT
             // Keep-alive lets JSch's own thread detect a half-open socket and fail the session,
@@ -568,7 +572,7 @@ class SftpConnectionPool(
             val jsch = JSch()
             applyIdentity(jsch, info, namePrefix = "exoplayer_key")
             val session = jsch.getSession(info.username, info.host, info.port)
-            ExchangeTunnelProxy.attachIfTunnel(session, info.host)
+            ExchangeTunnelProxy.attachIfTunnel(session, info.host, router = router, client = client)
             applyAuth(session, info)
             session.timeout = SOCKET_TIMEOUT
             // Keep-alive lets JSch's own thread detect a half-open socket and fail the session,

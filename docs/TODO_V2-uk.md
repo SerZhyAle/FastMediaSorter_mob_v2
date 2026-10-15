@@ -1,11 +1,11 @@
 ---
-layout: default
+layout: doc
 title: "Розвиток продукту"
 permalink: /docs/TODO_V2-uk.html
 lang: uk
 ---
 
-<sub class="doc-stamp">26.10.06 21:33</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="uk" markdown="1">
 

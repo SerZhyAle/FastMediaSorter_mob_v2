@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "车载音乐播放器（Android 车机）- FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.25 02:14</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 🚗 车载音乐播放器（Android 车机）
 
 > **难度：** 入门 &bull; **用时：** 约 10 分钟 &bull; **版本：** Standard、Legacy、VR、noLegal（Lite 可播放本地音频，但没有后台播放和 Streams 功能；Photos 没有音频功能）
-
-{% include lang-switcher.html doc="scenario-car-music" dir="/docs/howto/" current="zh-Hans" %}
 
 FastMediaSorter 非常适合作为 Android 车机上的音乐播放器 - 即时访问 SD 卡或 U 盘上的完整音乐收藏，并内置方向盘按键支持。
 
