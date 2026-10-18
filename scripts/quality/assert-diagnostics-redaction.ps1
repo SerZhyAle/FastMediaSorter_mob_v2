@@ -116,6 +116,11 @@ $countInText = {
 }
 
 if ($Gate -and $ChangedFiles -and (@(Expand-ChangedFiles -ChangedFiles $ChangedFiles).Count -gt 0)) {
+    if (@(Expand-ChangedFiles -ChangedFiles $ChangedFiles | Where-Object { $_ -match '\.kt$' }).Count -eq 0) {
+        Write-EmptySetPass -GateName 'assert-diagnostics-redaction'
+        exit 0
+    }
+    Assert-GitHeadResolvable -GateName 'assert-diagnostics-redaction' -RepoRoot $repoRoot
     $delta = Measure-ChangedFileGrowth -ChangedFiles $ChangedFiles -RepoRoot $repoRoot -Extensions @('.kt') -CountInText $countInText
     Write-Host ("diagnostics-redaction (changed set): new occurrence(s) {0}" -f $delta.Growth)
     if ($delta.Growth -gt 0) {

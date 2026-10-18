@@ -488,7 +488,7 @@ if ($UpdateBaseline) {
     $currentKeys = @($findings | ForEach-Object { $_.Key })
     $writeAllowed = Test-BaselineWrite -Gate 'assert-migration-schema-conformance' `
         -Previous $previous -Current $currentKeys -Reason $Reason
-    if (-not $writeAllowed) { exit 2 }
+    if (-not $writeAllowed) { Write-Host 'assert-migration-schema-conformance: COULD NOT VERIFY (see the error above)'; exit 2 }
     $scope = $null
     try {
         $scope = Enter-CodeLockOrExit -Path $baselineFile `

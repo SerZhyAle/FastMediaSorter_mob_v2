@@ -369,5 +369,9 @@ if ($Gate -and $malformed.Count -gt 0) {
     Write-Host "assert-manifest-risk-diff: FAIL ($($malformed.Count) registry row(s) are malformed)"
     exit 1
 }
+if ($selection.Count -eq 0) {
+    Write-EmptySetPass -GateName 'assert-manifest-risk-diff'
+    exit 0
+}
 Write-Host 'assert-manifest-risk-diff: PASS'
 exit 0

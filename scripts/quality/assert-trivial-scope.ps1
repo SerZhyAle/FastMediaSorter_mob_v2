@@ -85,6 +85,7 @@ $ErrorActionPreference = 'Stop'
 
 function Stop-BadInvocation([string]$Reason) {
     Write-Host "trivial-scope: cannot judge - $Reason"
+    Write-Host "assert-trivial-scope: COULD NOT VERIFY ($Reason)"
     exit 2
 }
 
@@ -103,6 +104,7 @@ if ($LASTEXITCODE -ne 0) { Stop-BadInvocation "'$RepoRoot' is not a git work tre
 $label = if ($Id) { "$Id " } else { '' }
 function Stop-Escalate([string]$Reason) {
     Write-Host "trivial-scope: ${label}ESCALATE - $Reason"
+    Write-Host "assert-trivial-scope: FAIL (${label}ESCALATE - $Reason)"
     exit 1
 }
 function Get-BaselinePath([string]$Ticket) {
@@ -150,12 +152,14 @@ if ($RecordBaseline) {
     if ($snapshot.Sha) {
         Set-Content -LiteralPath $basePath -Value $snapshot.Sha -Encoding ascii
         Write-Host "trivial-scope: ${label}baseline $($snapshot.Sha)"
+        Write-Host "assert-trivial-scope: PASS (${label}baseline recorded)"
         exit 0
     }
     # The marker line lets the judging run repeat the warning instead of passing HEAD off as a snapshot.
     Set-Content -LiteralPath $basePath -Value @($head, $HeadFallbackMarker) -Encoding ascii
     Write-Host "trivial-scope: ${label}snapshot failed - $($snapshot.Reason)"
     Write-Host "trivial-scope: ${label}fallback to HEAD $head - uncommitted sibling lines will read as this ticket's"
+    Write-Host "assert-trivial-scope: PASS (${label}baseline recorded from the HEAD fallback)"
     exit 0
 }
 
@@ -273,5 +277,5 @@ foreach ($path in $judgedChanged) {
     }
 }
 
-Write-Host "trivial-scope: ${label}PASS - $total file(s) within the Trivial checklist."
+Write-Host "assert-trivial-scope: PASS (${label}$total file(s) within the Trivial checklist)"
 exit 0

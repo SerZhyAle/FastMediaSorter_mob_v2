@@ -65,11 +65,11 @@ if (-not $RepoRoot) { $RepoRoot = Split-Path -Parent (Split-Path -Parent $PSScri
 $wearList = @($WearVerdicts | ForEach-Object { ([string]$_) -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 
 if ($NoWear -and [string]::IsNullOrWhiteSpace($NoWearReason)) {
-    Write-Host 'assert-sweep-verdicts: REFUSED - -NoWear needs -NoWearReason; an unexplained missing watch verdict is the silent drop this check exists to catch.' -ForegroundColor Red
+    Write-Host 'assert-sweep-verdicts: COULD NOT VERIFY (-NoWear needs -NoWearReason; an unexplained missing watch verdict is the silent drop this check exists to catch)' -ForegroundColor Red
     exit 2
 }
 if (-not $NoWear -and $wearList.Count -eq 0) {
-    Write-Host 'assert-sweep-verdicts: REFUSED - no watch verdict given. Pass -WearVerdicts, or -NoWear -NoWearReason <why> for a release with no watch build.' -ForegroundColor Red
+    Write-Host 'assert-sweep-verdicts: COULD NOT VERIFY (no watch verdict given; pass -WearVerdicts, or -NoWear -NoWearReason <why> for a release with no watch build)' -ForegroundColor Red
     exit 2
 }
 

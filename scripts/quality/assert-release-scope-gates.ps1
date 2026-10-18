@@ -463,6 +463,7 @@ if ($OnlyGroups.Count -gt 0) {
                 $unknownGroups.Count, ($unknownGroups -join ', ')) -ForegroundColor Red
             Write-Host ("  known groups: {0}" -f ($knownGroups -join ', ')) -ForegroundColor Red
             Write-Host "  A comma list passed through 'pwsh -File' arrives as one string - use a wrapper .ps1 that calls this script with -OnlyGroups @('a','b'), or pass -Command." -ForegroundColor Red
+            Write-Host 'assert-release-scope-gates: COULD NOT VERIFY (see the error above)'
             exit 2
         }
     }

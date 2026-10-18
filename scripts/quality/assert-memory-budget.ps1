@@ -122,6 +122,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $repoRoot '.claude'))) {
 
 if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
     Write-Error "assert-memory-budget: memory index not found at $Path - nothing was judged." -ErrorAction Continue
+    Write-Host 'assert-memory-budget: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -140,6 +141,7 @@ $overshoot = $bytes - $MaxBytes
 if ($UpdateBaseline) {
     if ($bytes -gt $MaxBytes) {
         Write-Error ("assert-memory-budget: refusing to RAISE the ceiling {0} -> {1} B." -f $MaxBytes, $bytes) -ErrorAction Continue
+        Write-Host 'assert-memory-budget: FAIL (see the findings above)'
         exit 1
     }
     # min(), not the measured size: the ceiling must still never rise, and the slack is granted

@@ -12,8 +12,12 @@ function Get-LegacyTestCountWriter {
     [CmdletBinding()]
     param([string[]]$Files, [string]$RepoRoot)
 
-    $counter = '(?:\{\d+(?:[^}]*)\}|\$[\w:.]+|\$\([^\r\n]*?\)|\d+)'
-    $legacy = "(?i)(?:$counter\s+(?:tests?\s+)?(?:passed|failed|skipped|tests\b)|\b(?:passed|failed|skipped|tests|total|run)\s*[:=]\s*$counter)"
+    $legacyCounter = '(?:\{\d+[^}]*\}|\$[\w:.]+|\$\([^\r\n]*?\)|\d+)'
+    $counter = '(?:\{\d+(?::[dD]\d*)?\}|\$[\w:]+|\$\([^\r\n]*?\)|\d+)'
+    # The last alternative is the pass/fail pair in either spelling ("RESULT | pass: N | fail: M",
+    # "PASS: N | FAIL: M"). It needs both halves on one literal because a lone "FAIL: <name>" is the
+    # per-case failure line of the same suites, not a count.
+    $legacy = "(?i)(?:$legacyCounter\s+(?:tests?\s+)?(?:passed|failed|skipped|tests\b)|\b(?:passed|failed|skipped|tests|total|run)\s*[:=]\s*$legacyCounter|\bpass(?:ed)?\s*[:=]\s*$legacyCounter[^\r\n]{0,40}?\bfail(?:ed)?\s*[:=]\s*$legacyCounter)"
     foreach ($file in $Files) {
         $tokens = $null
         $parseErrors = $null
@@ -53,7 +57,8 @@ function Get-LegacyTestCountWriter {
                         $node -is [System.Management.Automation.Language.ExpandableStringExpressionAst]
                 }, $false))
                 $assignedCounts = @($assignedStrings | Where-Object {
-                    $_.StringConstantType -notmatch 'HereString' -and $_.Value -match $legacy
+                    $_.StringConstantType -notmatch 'HereString' -and
+                        ($_.Value -match $legacy -or $_.Value -match '(?i)\b(?:run|skipped)=')
                 })
                 if ($assignedCounts.Count -eq 0) { continue }
                 $strings += $assignedCounts

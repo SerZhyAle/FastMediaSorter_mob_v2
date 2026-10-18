@@ -30,7 +30,7 @@
 # Exit codes:
 #   0   every case passed (skips are not failures).
 #   1   at least one case failed.
-#   2   could not look - the harness _lib.ps1 did not resolve, or the catalog is unreadable.
+#   2   could not look - unresolved harness, unreadable catalog, or no executed test.
 
 [CmdletBinding(PositionalBinding = $false)]
 param()
@@ -325,10 +325,10 @@ if (-not $relocator -or -not (Test-Path -LiteralPath $relocator) -or -not $reloc
 }
 
 Write-Host ""
-$summary = "assert-closing-gates tests: $(if ($script:fail) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=$script:skip)"
+$summary = "assert-closing-gates tests: $(if ($script:fail) { 'FAIL' } elseif ($script:pass -eq 0) { 'COULD NOT VERIFY' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=$script:skip)"
 if ($script:fail -eq 0) {
     Write-Host $summary -ForegroundColor Green
-    exit 0
+    exit $(if ($script:pass -eq 0) { 2 } else { 0 })
 }
 Write-Host $summary -ForegroundColor Red
 exit 1

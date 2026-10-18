@@ -120,6 +120,12 @@ if ($findings.Count -gt 0) {
     exit 0
 }
 
+if ($ChangedFiles -and $candidates.Count -eq 0) {
+    . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+    Write-EmptySetPass -GateName 'assert-script-file-size'
+    exit 0
+}
+
 $scopeNote = if ($ChangedFiles) { 'in the changed set' } else { 'in scripts/, .claude/ and the repository root' }
 Write-Host "assert-script-file-size: PASS ($($candidates.Count) script(s) $scopeNote, none above the $MaxLines-line ceiling)" -ForegroundColor Green
 exit 0

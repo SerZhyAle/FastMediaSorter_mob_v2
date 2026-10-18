@@ -72,6 +72,7 @@ $checker = Join-Path $repoRoot 'scripts/check-doc-vs-gradle.ps1'
 
 if (-not (Test-Path -LiteralPath $checker)) {
     Write-Error "doc-vs-gradle checker not found: $checker" -ErrorAction Continue
+    Write-Host 'assert-doc-pin-drift: FAIL (see the findings above)'
     exit 1
 }
 
@@ -138,6 +139,7 @@ if ($checkerExit -ne 0 -or $claimFindings.Count -gt 0) {
         $findings = @(@($output | Where-Object { $_ -match '^(FAIL|INCONSISTENT|MISSING)\s*\|' }) + $claimFindings)
         if ($findings.Count -eq 0) { $findings = @('drift reported by check-doc-vs-gradle.ps1') }
         Write-NotChargedVerdict -GateName 'assert-doc-pin-drift' -Findings $findings
+        Write-Host 'assert-doc-pin-drift: PASS WITH ADVISORIES (see the findings above)'
         exit 3
     }
     if ($checkerExit -ne 0) {

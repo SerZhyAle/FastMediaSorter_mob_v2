@@ -44,6 +44,7 @@ $committed = Join-Path $RepoRoot '_data/languages.yml'
 
 if (-not (Test-Path -LiteralPath $generator)) {
     Write-Host "assert-site-languages-current: generator missing: $generator" -ForegroundColor Red
+    Write-Host 'assert-site-languages-current: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 

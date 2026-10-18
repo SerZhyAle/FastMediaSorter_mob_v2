@@ -524,6 +524,7 @@ $count = $divergences.Count
 if ($UpdateBaseline) {
     if ($count -gt $baseline) {
         Write-Error "assert-wear-walk-contract: refusing to raise the baseline from $baseline to $count - the ratchet only tightens. Repair the entries instead." -ErrorAction Continue
+        Write-Host 'assert-wear-walk-contract: FAIL (see the findings above)'
         exit 1
     }
     $scope = $null

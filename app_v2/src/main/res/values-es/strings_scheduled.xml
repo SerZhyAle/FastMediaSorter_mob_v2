@@ -98,4 +98,11 @@
     <string name="scheduled_op_last_success_never">Aún no hay ninguna ejecución correcta</string>
     <string name="scheduled_op_filter_conditions">+ condiciones</string>
     <string name="scheduled_ops_op_archive">Archivar</string>
+    <string name="scheduled_op_history">Historial</string>
+    <string name="scheduled_op_history_line_ok">%1$s · Correcto · %2$d archivos</string>
+    <string name="scheduled_op_history_line_skipped">%1$s · Omitido · %2$s</string>
+    <string name="scheduled_op_history_line_error">%1$s · Error · %2$d archivos · %3$s</string>
+    <string name="scheduled_op_badge_error">La última ejecución falló. Abre el Historial para ver los detalles.</string>
+    <string name="scheduled_op_badge_skipped">La última ejecución se omitió: no se pudo acceder a uno de los lados. Se vuelve a intentar en el siguiente turno.</string>
+    <string name="scheduled_ops_notif_failed_title">Falló la operación programada</string>
 </resources>

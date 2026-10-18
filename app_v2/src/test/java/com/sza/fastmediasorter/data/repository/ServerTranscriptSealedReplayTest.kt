@@ -5,6 +5,8 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectory
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeSealedContentOpener
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeSealing
 import com.sza.fastmediasorter.data.remote.exchange.InMemoryE2eKeyStore
 import com.sza.fastmediasorter.data.repository.settings.ExchangeE2eTrustStore
 import com.sza.fastmediasorter.data.security.e2e.E2eBytes

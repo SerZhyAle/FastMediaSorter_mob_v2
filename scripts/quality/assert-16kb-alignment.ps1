@@ -1,7 +1,9 @@
 #requires -Version 7.0
 <#
-  assert-16kb-alignment.ps1 (S1149)
+.SYNOPSIS
+  Asserts every shipped 64-bit native .so is 16 KB page-size aligned (S1149).
 
+.DESCRIPTION
   Assert every shipped 64-bit native .so is 16 KB page-size aligned, as required by
   Google Play for apps targeting Android 15+ (API >= 35). Generalizes the one-off
   readelf check in scripts/builders/build-ffmpeg-dts.sh so future native-dependency

@@ -10,9 +10,9 @@ import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeBroadcastAnnounce
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeCastCodec
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectory
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeSealedContentOpener
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpServerTunnelManager
 import com.sza.fastmediasorter.data.repository.DeviceExchangeAccountRepository
-import com.sza.fastmediasorter.data.repository.ExchangeSealedContentOpener
 import com.sza.fastmediasorter.domain.model.ExchangeCastAction
 import com.sza.fastmediasorter.domain.model.ExchangeCastOffer
 import com.sza.fastmediasorter.domain.model.ExchangeCastReceiverMachine

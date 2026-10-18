@@ -102,6 +102,14 @@ $normChanged = @($ChangedFiles |
         ForEach-Object { $_.Trim().Replace('\', '/') -replace '^\./', '' } |
         Where-Object { $_ -match '(?i)\.md$' })
 
+. (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+# A declared set holding no .md file is the empty determined set (CHECK-VERDICT rule 2.12), not the
+# unscoped run: falling through here charged the whole docs corpus to a change that touched none of it.
+if ((Test-ChangeSetDeclared -ChangedFiles $ChangedFiles) -and $normChanged.Count -eq 0) {
+    Write-EmptySetPass -GateName 'assert-doc-house-style'
+    exit 0
+}
+
 $judged = New-Object System.Collections.Generic.List[string]
 $scope = 'docs corpus'
 if ($normChanged.Count -gt 0) {

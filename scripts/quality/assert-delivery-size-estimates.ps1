@@ -41,6 +41,10 @@
     item A.1). An unreadable release then ends `NOT APPLICABLE (..)` with exit 0 instead of
     `COULD NOT VERIFY (..)` with exit 2.
 
+.PARAMETER GhPath
+    The gh executable to read the published release with. Without it the gate looks on PATH and
+    under Program Files. A path that does not exist is "no gh", with no further search.
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-delivery-size-estimates.ps1
 
@@ -62,6 +66,7 @@
 param(
     [switch]$Quiet,
     [switch]$AllowOffline,
+    [string]$GhPath,
     # Share of the published size a compiled fallback may differ by before it is a finding. The
     # payloads grow continuously, so a tight bound would report the ordinary week; 25% is the point
     # past which the number stops being a useful promise.
@@ -137,12 +142,19 @@ if ($missing.Count -gt 0) {
 
 # Same discovery the publisher uses (StreamPublisher.Artwork.ps1 Get-GhExe): gh is routinely absent
 # from PATH on this machine while installed under Program Files.
-$ghCommand = Get-Command gh -ErrorAction SilentlyContinue
-$ghPath = if ($ghCommand) { $ghCommand.Source } else { $null }
-if (-not $ghPath) {
-    foreach ($root in @($env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ }) {
-        $candidate = Join-Path $root 'GitHub CLI\gh.exe'
-        if (Test-Path $candidate) { $ghPath = $candidate; break }
+if ($PSBoundParameters.ContainsKey('GhPath')) {
+    # An explicit path is taken as the whole answer, so a test can state "no gh" without depending on
+    # what the machine has installed.
+    $ghPath = if ($GhPath -and (Test-Path -LiteralPath $GhPath)) { $GhPath } else { $null }
+}
+else {
+    $ghCommand = Get-Command gh -ErrorAction SilentlyContinue
+    $ghPath = if ($ghCommand) { $ghCommand.Source } else { $null }
+    if (-not $ghPath) {
+        foreach ($root in @($env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ }) {
+            $candidate = Join-Path $root 'GitHub CLI\gh.exe'
+            if (Test-Path $candidate) { $ghPath = $candidate; break }
+        }
     }
 }
 if (-not $ghPath) {

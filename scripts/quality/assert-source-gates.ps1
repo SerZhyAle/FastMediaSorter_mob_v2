@@ -99,6 +99,7 @@ if ($Only) {
     $unknown = @($wanted | Where-Object { $_ -notin $rules.Name })
     if ($unknown.Count -gt 0) {
         Write-Error "assert-source-gates: unknown rule name(s): $($unknown -join ', '). Known: $($rules.Name -join ', ')." -ErrorAction Continue
+        Write-Host 'assert-source-gates: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     $rules = @($rules | Where-Object { $_.Name -in $wanted })
@@ -272,6 +273,7 @@ $roots = @($rules | ForEach-Object { $_.Roots } | Select-Object -Unique)
 $existingRoots = @($roots | Where-Object { Test-Path (Join-Path $repoRoot $_) })
 if ($existingRoots.Count -eq 0) {
     Write-Error "assert-source-gates: none of the source roots exist under $repoRoot - nothing was scanned." -ErrorAction Continue
+    Write-Host 'assert-source-gates: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 

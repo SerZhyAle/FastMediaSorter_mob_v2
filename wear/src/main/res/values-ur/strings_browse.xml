@@ -11,4 +11,7 @@
     <string name="browse_network_error_timeout">وقت پر کوئی جواب نہیں مل سکا۔ نیٹ ورک چیک کریں اور دوبارہ کوشش کریں۔</string>
     <string name="browse_network_error_auth">غلط صارف نام یا پاس ورڈ۔ اپنے فون پر وسیلہ اپ ڈیٹ کریں۔</string>
     <string name="browse_network_error_unknown_host">اس نیٹ ورک پر کمپیوٹر نہیں ملا۔ وائی فائی کنکشن چیک کریں۔</string>
+    <string name="exchange_folder_needs_own_network">یہ فولڈر صرف گھڑی کے اپنے Wi-Fi یا LTE پر کھلتا ہے۔ گھڑی پر Wi-Fi یا LTE آن کریں۔</string>
+    <string name="exchange_folder_pin_on_phone">یہ فولڈر محفوظ ہے، اور اس کا PIN فون پر درج کیا جاتا ہے۔ فون پر فولڈر کھولیں اور PIN درج کریں۔</string>
+    <string name="exchange_folder_connect_watch_on_phone">گھر سے باہر اس فولڈر کے لیے گھڑی کا سرور سے منسلک ہونا ضروری ہے۔ فون پر گھڑی کو منسلک کریں۔</string>
 </resources>

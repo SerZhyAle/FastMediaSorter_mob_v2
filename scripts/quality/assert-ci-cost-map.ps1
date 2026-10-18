@@ -93,6 +93,7 @@ function Write-Info([string] $Message) {
 
 function Fail-Unverifiable([string] $Message) {
     Write-Error "assert-ci-cost-map: $Message" -ErrorAction Continue
+    Write-Host 'assert-ci-cost-map: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 

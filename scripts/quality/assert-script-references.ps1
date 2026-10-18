@@ -335,6 +335,7 @@ if ($Memory) {
     if ($unresolved.Count -gt 0) {
         Write-Host "assert-script-references (memory): FAIL - $($unresolved.Count) memory path(s) resolve to no script." -ForegroundColor Red
         Write-Host "  Mark a deliberate one with 'Historical:' or 'External:' on its line or the line above."
+        Write-Host 'assert-script-references: FAIL (see the findings above)'
         exit 1
     }
     Write-Host "assert-script-references (memory): PASS - every memory script path resolves." -ForegroundColor Green
@@ -420,6 +421,7 @@ if ($Docs) {
         Write-Host ("assert-script-references (docs): FAIL - {0} document reference(s) name a script that does not exist." -f $new.Count) -ForegroundColor Red
         foreach ($key in $new) { Write-Host ("  {0}  (line {1})" -f $key, $entries[$key].Line) -ForegroundColor Red }
         Write-Host "  Fix the reference, or say so on its line: a script outside this repository is marked 'External:', a retired one 'Historical:'."
+        Write-Host 'assert-script-references: FAIL (see the findings above)'
         exit 1
     }
 

@@ -98,4 +98,11 @@
     <string name="scheduled_op_last_success_never">Noch kein erfolgreicher Lauf</string>
     <string name="scheduled_op_filter_conditions">+ Bedingungen</string>
     <string name="scheduled_ops_op_archive">Archivieren</string>
+    <string name="scheduled_op_history">Verlauf</string>
+    <string name="scheduled_op_history_line_ok">%1$s · OK · Dateien: %2$d</string>
+    <string name="scheduled_op_history_line_skipped">%1$s · Übersprungen · %2$s</string>
+    <string name="scheduled_op_history_line_error">%1$s · Fehlgeschlagen · Dateien: %2$d · %3$s</string>
+    <string name="scheduled_op_badge_error">Der letzte Lauf ist fehlgeschlagen. Öffne den Verlauf für Details.</string>
+    <string name="scheduled_op_badge_skipped">Der letzte Lauf wurde übersprungen: Eine Seite war nicht erreichbar. Beim nächsten Termin wird es erneut versucht.</string>
+    <string name="scheduled_ops_notif_failed_title">Geplanter Vorgang fehlgeschlagen</string>
 </resources>

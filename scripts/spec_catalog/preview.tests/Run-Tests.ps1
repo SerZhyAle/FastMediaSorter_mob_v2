@@ -50,7 +50,8 @@
 #   0   all cases pass (or non-S2834 cases pass when harness is current).
 #   1   at least one case failed.
 #   2   could not verify: the resolved SZA harness predates S2834 and does not define
-#       Test-BlockerReleased, so cases A and I were skipped. Distinct from 1 because "the rule is
+#       Test-BlockerReleased, so cases A and I were skipped; also returned if no test executed.
+#       Distinct from 1 because "the rule is
 #       broken" and "the copy of the rule on this machine is older than the suite" call for opposite
 #       reactions - the second is fixed by a plugin update, not by an edit. 2 and not 3 because that
 #       is the code run-script-suites.ps1 reads as "could not verify" and routes to its advisory
@@ -575,8 +576,8 @@ if ($script:fail -gt 0) {
     Write-Host "preview tests: FAIL (run=$($script:pass + $script:fail) skipped=$($script:skipped + $script:optionalSkipped))" -ForegroundColor Red
     exit 1
 }
-if ($script:skipped -gt 0) {
-    Write-Host "preview tests: COULD NOT VERIFY (run=$($script:pass + $script:fail) skipped=$($script:skipped + $script:optionalSkipped); harness predates S2834)" -ForegroundColor Yellow
+if ($script:skipped -gt 0 -or $script:pass -eq 0) {
+    Write-Host "preview tests: COULD NOT VERIFY (run=$($script:pass + $script:fail) skipped=$($script:skipped + $script:optionalSkipped); required harness missing or no tests executed)" -ForegroundColor Yellow
     exit 2
 }
 Write-Host "preview tests: PASS (run=$($script:pass + $script:fail) skipped=$($script:skipped + $script:optionalSkipped))" -ForegroundColor Green

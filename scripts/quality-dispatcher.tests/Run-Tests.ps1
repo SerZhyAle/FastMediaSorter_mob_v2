@@ -1,10 +1,20 @@
 #requires -Version 7.0
 # Subject: scripts/quality.tests/Run-Tests.ps1
-# Exit codes: 0 = all assertions passed; 1 = an assertion failed.
+# Exit codes: 0 = all assertions passed; 1 = an assertion failed; 2 = fixture/harness unavailable.
 [CmdletBinding()]
 param()
 
 $ErrorActionPreference = 'Stop'
+trap {
+    $passVariable = Get-Variable -Name passed -Scope Script -ErrorAction SilentlyContinue
+    $failVariable = Get-Variable -Name failed -Scope Script -ErrorAction SilentlyContinue
+    $passCount = if ($null -ne $passVariable) { [int]$passVariable.Value } else { 0 }
+    $failCount = if ($null -ne $failVariable) { [int]$failVariable.Value } else { 0 }
+    $word = if ($failCount) { 'FAIL' } else { 'COULD NOT VERIFY' }
+    Write-Host "  Fixture/harness error: $($_.Exception.Message)"
+    Write-Host "quality-dispatcher.tests: $word (run=$($passCount + $failCount) skipped=0)"
+    exit $(if ($failCount) { 1 } else { 2 })
+}
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $subject = Join-Path $repoRoot 'scripts/quality.tests/Run-Tests.ps1'
 $fixtureRoot = [IO.Path]::GetFullPath((Join-Path $repoRoot "temp/scratch/quality-dispatcher-tests-$PID"))
@@ -28,6 +38,11 @@ $cases = @(
     @{ Name='advisory'; Codes=@(3); Words=@('PASS WITH ADVISORIES'); Exit=3; Word='PASS WITH ADVISORIES' },
     @{ Name='queued'; Codes=@(4); Words=@('COULD NOT VERIFY'); Exit=2; Word='COULD NOT VERIFY' },
     @{ Name='unknown'; Codes=@(7); Words=@('FAIL'); Exit=1; Word='FAIL' },
+    @{ Name='missing-verdict'; Codes=@(0); Words=@('legacy success'); Exit=2; Word='COULD NOT VERIFY' },
+    @{ Name='lowercase-verdict'; Codes=@(0); Words=@('pass'); Exit=2; Word='COULD NOT VERIFY' },
+    @{ Name='contradictory-failure'; Codes=@(0); Words=@('FAIL'); Exit=1; Word='FAIL' },
+    @{ Name='contradictory-unverified'; Codes=@(0); Words=@('COULD NOT VERIFY'); Exit=2; Word='COULD NOT VERIFY' },
+    @{ Name='contradictory-advisory'; Codes=@(0); Words=@('PASS WITH ADVISORIES'); Exit=3; Word='PASS WITH ADVISORIES' },
     @{ Name='disabled'; Codes=@(0,0); Words=@('NOT APPLICABLE','NOT APPLICABLE'); Exit=0; Word='NOT APPLICABLE' },
     @{ Name='mixed-disabled'; Codes=@(0,0); Words=@('NOT APPLICABLE','PASS'); Exit=0; Word='PASS' },
     @{ Name='failure-precedence'; Codes=@(2,3,1); Words=@('COULD NOT VERIFY','PASS WITH ADVISORIES','FAIL'); Exit=1; Word='FAIL' },

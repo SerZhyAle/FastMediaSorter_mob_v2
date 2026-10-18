@@ -3,6 +3,7 @@
      (5 landscape) is set at runtime, so this layout only widens the grid side padding to keep the
      wider tile grid centred. Rule 11 landscape counterpart of layout/activity_edit_app_launch_panel.xml. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -53,15 +54,16 @@
             android:text="@string/app_launch_panel_reset" />
 
         <!-- S4328: the "?" at the row's end; landscape twin of the portrait button. -->
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnHelpHeader"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="4dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            style="@style/Widget.FastMediaSorter.Button.Icon"
+            android:layout_width="@dimen/token_touch_target_min"
+            android:layout_height="@dimen/token_touch_target_min"
+            android:layout_marginStart="@dimen/token_spacing_4"
             android:contentDescription="@string/help"
             android:focusable="true"
-            android:src="@drawable/ic_help_outline" />
+            app:icon="@drawable/ic_help_outline"
+            app:iconTint="?attr/colorControlNormal" />
 
     </LinearLayout>
 

@@ -59,6 +59,28 @@ function Get-GitRenameSource {
     catch { return '' }
 }
 
+# S4378 (CHECK-VERDICT rule 2.12): Get-GitHeadText answers '' for a failing git, which the delta below reads as
+# "every occurrence is new". A tree whose HEAD cannot be resolved is an undetermined baseline, not a finding:
+# COULD NOT VERIFY, exit 2. Memoised, because a delta check may call this once per rule.
+$script:headResolvable = $null
+function Assert-GitHeadResolvable {
+    param(
+        [Parameter(Mandatory)][string]$GateName,
+        [Parameter(Mandatory)][string]$RepoRoot
+    )
+    if ($null -eq $script:headResolvable) {
+        $script:headResolvable = $false
+        try {
+            & git -C $RepoRoot rev-parse --verify --quiet HEAD *> $null
+            $script:headResolvable = ($LASTEXITCODE -eq 0)
+        }
+        catch { $script:headResolvable = $false }
+    }
+    if ($script:headResolvable) { return }
+    Write-Host ("{0}: COULD NOT VERIFY (no resolvable HEAD to measure the delta against)" -f $GateName)
+    exit 2
+}
+
 function Measure-ChangedFileGrowth {
     param(
         [Parameter(Mandatory)][AllowEmptyCollection()][string[]]$ChangedFiles,

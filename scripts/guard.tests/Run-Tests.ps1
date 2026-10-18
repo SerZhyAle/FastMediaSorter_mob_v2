@@ -102,5 +102,5 @@ Assert-Case -Name 'legacy_only.kt.txt (explicit)' -ExpectBlocking $true -ExpectE
 $r4 = Invoke-Guard -GuardArgs @('-ScanFile', $legacyFixture, '-LegacyAudit')
 Assert-Case -Name 'legacy_only.kt.txt (-LegacyAudit)' -ExpectBlocking $false -ExpectExit 0 -Result $r4 -ExpectLegacyPositive
 
-Write-Host ("RESULT | pass: {0} | fail: {1}" -f $script:pass, $script:fail)
+Write-Host "guard.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -eq 0) { exit 0 } else { exit 1 }

@@ -296,6 +296,12 @@ if ($List -or ($Gate -and $findings.Count -gt 0)) {
     }
 }
 
+if (-not $Full -and $selection.Count -eq 0) {
+    . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+    Write-EmptySetPass -GateName 'assert-no-secrets'
+    exit 0
+}
+
 if ($Gate -and $findings.Count -gt 0) {
     Write-Host 'FAIL: a secret-shaped literal is in the scanned set. Move it out of the source (a local properties file, an ambient CI token, or the encrypted store), or - only for a fixture or test-only literal - add an entry with its reason to scripts/quality/no-secrets-allowlist.txt.'
     Write-Host "assert-no-secrets: FAIL ($(@($findings).Count) secret-shaped literal(s) in the scanned set)"

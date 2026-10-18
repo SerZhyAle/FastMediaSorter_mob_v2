@@ -38,14 +38,15 @@
             android:textStyle="bold" />
 
         <!-- S4328: the "?" at the row's end; CONTEXT-HELP rule 2. -->
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnHelpHeader"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            style="@style/Widget.FastMediaSorter.Button.Icon"
+            android:layout_width="@dimen/token_touch_target_min"
+            android:layout_height="@dimen/token_touch_target_min"
             android:contentDescription="@string/help"
             android:focusable="true"
-            android:src="@drawable/ic_help_outline" />
+            app:icon="@drawable/ic_help_outline"
+            app:iconTint="?attr/colorControlNormal" />
 
     </LinearLayout>
 

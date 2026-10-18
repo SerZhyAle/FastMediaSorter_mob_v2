@@ -280,4 +280,27 @@
     <string name="cross_device_transfer_expired_removed">الحزم المنتهية الصلاحية التي تمت إزالتها: %1$d</string>
     <string name="setting_mic_recording_destination_default_recordings">الافتراضي: مجلد Recordings (Music في Android 11 والإصدارات الأقدم)</string>
     <string name="setting_screen_recording_destination_default_movies">الافتراضي: مجلد Movies</string>
+    <string name="drive_channel_enabled_title">الملفات عبر Google Drive</string>
+    <string name="drive_channel_enabled_subtitle">أرسل الملفات واستقبلها بين أجهزتك عبر Google Drive الخاص بك، دون خادم التبادل</string>
+    <string name="drive_channel_background_title">التحقق عبر Google Drive في الخلفية</string>
+    <string name="drive_channel_background_subtitle">كل 15 دقيقة، لتتمكن أجهزتك الأخرى من فتح المجلدات المشتركة لهذا الهاتف أثناء إغلاق التطبيق</string>
+    <string name="drive_channel_row_from">من %1$s</string>
+    <string name="drive_channel_row_for_device">إلى %1$s</string>
+    <string name="drive_channel_row_for_any">إلى أي من أجهزتي</string>
+    <string name="drive_channel_row_waiting">في انتظار الاستلام</string>
+    <string name="drive_channel_delete_without_receiving">حذف دون استلام</string>
+    <string name="drive_channel_delete">حذف</string>
+    <string name="drive_channel_deleted">تمت الإزالة من Google Drive الخاص بك.</string>
+    <string name="drive_channel_sign_in_required">سجّل الدخول إلى Google مرة أخرى لاستخدام الملفات عبر Google Drive. لم يُحذف شيء.</string>
+    <string name="drive_channel_daily_limit">تم بلوغ حد الرفع اليومي في Google Drive، حاول مرة أخرى لاحقًا.</string>
+    <string name="drive_channel_not_enough_space">لا توجد مساحة كافية على Google Drive الخاص بك: %1$s متاحة. حرّر مساحة في حساب Google الخاص بك ثم حاول مرة أخرى.</string>
+    <string name="drive_channel_too_large">هذا أكبر من %1$s، وهو أقصى ما يحمله نقل واحد عبر Google Drive. أرسل عددًا أقل من الملفات دفعة واحدة.</string>
+    <string name="drive_channel_backing_off">طلب Google Drive التمهّل. سيُعاد التحقق قريبًا.</string>
+    <string name="drive_channel_off_hint">الملفات عبر Google Drive معطّلة. فعّلها في الإعدادات، «عمليات النقل المعلّقة بين الأجهزة».</string>
+    <string name="drive_channel_delete_message">يُزال من Google Drive الخاص بك لجميع أجهزتك. تبقى الملفات التي استُلمت بالفعل في مكانها.</string>
+    <string name="drive_channel_send_title">الإرسال عبر Google Drive إلى</string>
+    <string name="drive_channel_send_any">أي من أجهزتي</string>
+    <string name="drive_channel_send_no_devices">لم يستخدم أي من أجهزتك الأخرى Google Drive بعد. فعّل «الملفات عبر Google Drive» على الجهاز الآخر أيضًا ثم حاول مرة أخرى.</string>
+    <string name="drive_channel_send_waiting_for">في انتظار استلام %1$s له عبر Google Drive.</string>
+    <string name="drive_channel_send_waiting_any">في انتظار استلام أحد أجهزتك له عبر Google Drive.</string>
 </resources>

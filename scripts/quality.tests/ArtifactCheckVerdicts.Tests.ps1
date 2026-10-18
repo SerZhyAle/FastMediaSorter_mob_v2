@@ -1,15 +1,18 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    S4367: tests for the exit-0 paths CHECK-VERDICT 0.12 item A.2 made exit 2 - the artifact and
+    S4367, S4379: tests for the exit-0 paths CHECK-VERDICT 0.12 item A.2 made exit 2 - the artifact and
     tool checks assert-16kb-alignment, assert-meta-packaging-limits, assert-wear-64bit-abi and
-    assert-codex-transcript-hygiene - and for the release-scope runner's opt-in flag.
+    assert-codex-transcript-hygiene, then assert-wear-phone-identity-parity and
+    assert-stream-asset-revisions - for the opt-in flags the batch runners pass, and for the empty
+    determined set of assert-icon-style.
 
 .DESCRIPTION
-    A check whose requested work did not run (no built artifact, no tool, no rollout) must end
-    `<subject>: COULD NOT VERIFY (..)` with exit 2, and a caller that declared the artifact
-    optional (-AllowMissingArtifact) gets `NOT APPLICABLE` with exit 0 - never a pass. The last
-    stdout line is the verdict in every case (rule 2.11).
+    A check whose requested work did not run (no built artifact, no tool, no rollout, no keystore
+    properties, no catalog) must end `<subject>: COULD NOT VERIFY (..)` with exit 2, and a caller
+    that declared the input optional (-AllowMissingArtifact, -AllowOffline, -AllowNoCatalog) gets
+    `NOT APPLICABLE` with exit 0 - never a pass. A comparison that ran and mismatched stays FAIL.
+    The last stdout line is the verdict in every case (rule 2.11).
 
     Hermetic: each artifact check is copied into a sandbox tree whose repo root holds no build
     output, so "no artifact" is true whatever the working tree looks like. Nothing outside the
@@ -199,12 +202,104 @@ try {
         Assert-LastLine $r.Lines '^assert-codex-transcript-hygiene: COULD NOT VERIFY \(' 'verdict'
     }
 
-    # --- the release-scope runner opts the two artifact gates in --------------------------------
+    # --- assert-delivery-size-estimates ---------------------------------------------------------
+    $delivery = Join-Path $repoRoot 'scripts/quality/assert-delivery-size-estimates.ps1'
+    $noGh = Join-Path $sandbox 'no-such-gh.exe'
+    Test-Case 'delivery: no gh is COULD NOT VERIFY, exit 2' {
+        $r = Invoke-Check $delivery @('-GhPath', $noGh)
+        Assert-Equal 2 $r.Exit 'exit code'
+        Assert-LastLine $r.Lines '^assert-delivery-size-estimates: COULD NOT VERIFY \(gh not available' 'verdict'
+    }
+    Test-Case 'delivery: no gh with -AllowOffline is NOT APPLICABLE, exit 0' {
+        $r = Invoke-Check $delivery @('-GhPath', $noGh, '-AllowOffline')
+        Assert-Equal 0 $r.Exit 'exit code'
+        Assert-LastLine $r.Lines '^assert-delivery-size-estimates: NOT APPLICABLE \(gh not available' 'verdict'
+    }
+
+    # --- assert-wear-phone-identity-parity ------------------------------------------------------
+    $identityRoot = Join-Path $sandbox 'identity'
+    New-Item -ItemType Directory -Path (Join-Path $identityRoot 'scripts/quality') -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $repoRoot 'scripts/quality/assert-wear-phone-identity-parity.ps1') -Destination (Join-Path $identityRoot 'scripts/quality') -Force
+    $identity = Join-Path $identityRoot 'scripts/quality/assert-wear-phone-identity-parity.ps1'
+    function Write-Gradle([string]$Module, [string]$AppId) {
+        $dir = Join-Path $identityRoot $Module
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $dir 'build.gradle.kts') -Encoding ASCII -Value @(
+            "android { defaultConfig { applicationId = `"$AppId`" } }",
+            'val keys = findRootSecretFile(".secrets/keystore.properties", "keystore.properties")')
+    }
+    Test-Case 'identity: matching ids with no keystore properties is COULD NOT VERIFY, exit 2' {
+        Write-Gradle 'app_v2' 'com.example.app'
+        Write-Gradle 'wear' 'com.example.app'
+        $r = Invoke-Check $identity @('-Gate')
+        Assert-Equal 2 $r.Exit 'exit code'
+        Assert-LastLine $r.Lines '^assert-wear-phone-identity-parity: COULD NOT VERIFY \(not compared: release signing' 'verdict'
+    }
+    Test-Case 'identity: an id mismatch beside the missing keystore is FAIL, exit 1' {
+        Write-Gradle 'wear' 'com.example.other'
+        $r = Invoke-Check $identity @('-Gate')
+        Assert-Equal 1 $r.Exit 'exit code'
+        Assert-LastLine $r.Lines '^assert-wear-phone-identity-parity: FAIL \(' 'verdict'
+    }
+    Test-Case 'identity: matching ids and one keystore on both sides is PASS, exit 0' {
+        Write-Gradle 'wear' 'com.example.app'
+        $secrets = Join-Path $identityRoot '.secrets'
+        New-Item -ItemType Directory -Path $secrets -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $secrets 'keystore.properties') -Encoding ASCII -Value @('storeFile=release.jks', 'keyAlias=release')
+        $r = Invoke-Check $identity @('-Gate')
+        Assert-Equal 0 $r.Exit 'exit code'
+        Assert-LastLine $r.Lines '^assert-wear-phone-identity-parity: PASS \(' 'verdict'
+    }
+
+    # --- assert-stream-asset-revisions ----------------------------------------------------------
+    $streamRev = Join-Path $repoRoot 'scripts/quality/assert-stream-asset-revisions.ps1'
+    $noCatalog = Join-Path $sandbox 'no-catalog'
+    Test-Case 'stream: an unreachable catalog is COULD NOT VERIFY, exit 2' {
+        $r = Invoke-Check $streamRev @('-Gate', '-Quiet', '-CatalogRoot', $noCatalog)
+        Assert-Equal 2 $r.Exit 'exit code'
+        Assert-LastLine $r.Lines '^assert-stream-asset-revisions: COULD NOT VERIFY \(' 'verdict'
+    }
+    Test-Case 'stream: an unset FMS_CONTRACTS_ROOT is COULD NOT VERIFY, exit 2' {
+        $savedRoot = [Environment]::GetEnvironmentVariable('FMS_CONTRACTS_ROOT')
+        try {
+            [Environment]::SetEnvironmentVariable('FMS_CONTRACTS_ROOT', $null)
+            $r = Invoke-Check $streamRev @('-Gate', '-Quiet')
+        }
+        finally { [Environment]::SetEnvironmentVariable('FMS_CONTRACTS_ROOT', $savedRoot) }
+        Assert-Equal 2 $r.Exit 'exit code'
+        Assert-LastLine $r.Lines '^assert-stream-asset-revisions: COULD NOT VERIFY \(' 'verdict'
+    }
+    Test-Case 'stream: an unreachable catalog with -AllowNoCatalog is NOT APPLICABLE, exit 0' {
+        $r = Invoke-Check $streamRev @('-Gate', '-Quiet', '-CatalogRoot', $noCatalog, '-AllowNoCatalog')
+        Assert-Equal 0 $r.Exit 'exit code'
+        Assert-LastLine $r.Lines '^assert-stream-asset-revisions: NOT APPLICABLE \(' 'verdict'
+    }
+
+    # --- assert-icon-style ----------------------------------------------------------------------
+    $iconStyle = Join-Path $repoRoot 'scripts/quality/assert-icon-style.ps1'
+    Test-Case 'icon-style: a changed set with no product glyph is PASS over 0 files, exit 0' {
+        $r = Invoke-Check $iconStyle @('-Gate', '-Quiet', '-ChangedFiles', 'docs/none.md')
+        Assert-Equal 0 $r.Exit 'exit code'
+        Assert-LastLine $r.Lines '^assert-icon-style: PASS \(0 file\(s\) inspected\)$' 'verdict'
+    }
+
+    # --- the fast-gates batch opts the stream gate in -------------------------------------------
+    Test-Case 'fast-gates: assert-stream-asset-revisions.ps1 is passed -AllowNoCatalog' {
+        $fastText = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts/quality/assert-fast-gates.ps1') -Raw
+        if ($fastText -notmatch "'assert-stream-asset-revisions\.ps1'\s*=\s*@\([^)]*'-AllowNoCatalog'") {
+            throw 'the gate table has no -AllowNoCatalog entry for assert-stream-asset-revisions.ps1'
+        }
+    }
+
+    # --- the release-scope runner opts the artifact and network gates in ------------------------
     $runnerText = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts/quality/assert-release-scope-gates.ps1') -Raw
-    foreach ($gate in 'assert-wear-64bit-abi.ps1', 'assert-meta-packaging-limits.ps1') {
-        Test-Case "runner: $gate is passed -AllowMissingArtifact" {
-            $pattern = "'" + [regex]::Escape($gate) + "'\s*=\s*@\('-AllowMissingArtifact'\)"
-            if ($runnerText -notmatch $pattern) { throw "the gate table has no -AllowMissingArtifact entry for $gate" }
+    foreach ($pair in @(
+            @('assert-wear-64bit-abi.ps1', '-AllowMissingArtifact'),
+            @('assert-meta-packaging-limits.ps1', '-AllowMissingArtifact'),
+            @('assert-delivery-size-estimates.ps1', '-AllowOffline'))) {
+        Test-Case "runner: $($pair[0]) is passed $($pair[1])" {
+            $pattern = "'" + [regex]::Escape($pair[0]) + "'\s*=\s*@\('" + [regex]::Escape($pair[1]) + "'\)"
+            if ($runnerText -notmatch $pattern) { throw "the gate table has no $($pair[1]) entry for $($pair[0])" }
         }
     }
 }
@@ -213,6 +308,6 @@ finally {
 }
 
 Write-Host ''
-Write-Host ("ArtifactCheckVerdicts.Tests: run={0} skipped=0 failed={1}" -f ($script:pass + $script:fail), $script:fail)
+Write-Host "ArtifactCheckVerdicts.Tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

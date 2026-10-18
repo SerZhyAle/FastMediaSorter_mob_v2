@@ -150,12 +150,14 @@ if ($UpdateBaseline) {
 
 if (-not (Test-Path -LiteralPath $baselineFile)) {
     Write-Error "baseline file not found at $baselineFile - run with -UpdateBaseline to seed it" -ErrorAction Continue
+    Write-Host 'assert-tactical-step-form: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 $raw = (Get-Content -LiteralPath $baselineFile -Raw).Trim()
 $baseline = 0
 if (-not [int]::TryParse($raw, [ref]$baseline)) {
     Write-Error "baseline file is not a single integer: $baselineFile" -ErrorAction Continue
+    Write-Host 'assert-tactical-step-form: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 

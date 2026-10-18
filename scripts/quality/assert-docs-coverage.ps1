@@ -56,11 +56,13 @@ $pageManifestPath = Join-Path $docsDir 'docs-pages-manifest.jsonl'
 
 if (-not (Test-Path $coverageManifestPath)) {
     Write-Error "assert-docs-coverage: Coverage manifest missing at $coverageManifestPath"
+    Write-Host 'assert-docs-coverage: FAIL (see the findings above)'
     exit 1
 }
 
 if (-not (Test-Path $pageManifestPath)) {
     Write-Error "assert-docs-coverage: Page manifest missing at $pageManifestPath"
+    Write-Host 'assert-docs-coverage: FAIL (see the findings above)'
     exit 1
 }
 

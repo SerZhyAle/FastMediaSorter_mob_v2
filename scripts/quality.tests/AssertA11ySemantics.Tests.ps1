@@ -11,9 +11,10 @@
     the real exit code. A refusal path that is never executed is the same unobserved green the
     gate was written to end.
 
-    The fixture tree is not a git repository on purpose. The scoped -ChangedFiles path treats a
-    file with no HEAD copy as wholly new, which is the fail-closed reading, so the same fixtures
-    exercise both the full-scan verdict and the changed-set verdict.
+    The fixture tree is a git repository holding one empty commit. The scoped -ChangedFiles path
+    treats a file with no HEAD copy as wholly new, which is the fail-closed reading, so the same
+    fixtures exercise both the full-scan verdict and the changed-set verdict; a tree with no
+    resolvable HEAD at all is refused with exit 2 and is not a fixture of this suite.
 
 .NOTES
     Exit codes (CLAUDE.md Rule 7):
@@ -55,10 +56,18 @@ $kotlinDir = Join-Path $fixtureRoot 'app_v2/src/main/java/com/sza/fastmediasorte
 $baseline = Join-Path $fixtureRoot 'baseline.txt'
 $allowlist = Join-Path $fixtureRoot 'allowlist.txt'
 
+# The scoped path refuses a tree whose HEAD cannot be resolved (exit 2, CHECK-VERDICT rule 2.12), so the
+# fixture is a repository holding one empty commit: every fixture file is absent from HEAD, hence wholly new.
+function Initialize-FixtureRepo {
+    & git -C $fixtureRoot init --quiet 2>$null | Out-Null
+    & git -C $fixtureRoot -c user.name=fixture -c user.email=fixture@example.invalid -c commit.gpgsign=false commit --quiet --allow-empty -m fixture 2>$null | Out-Null
+}
+
 function Reset-Fixture {
     if (Test-Path -LiteralPath $fixtureRoot) { Remove-Item -LiteralPath $fixtureRoot -Recurse -Force }
     New-Item -ItemType Directory -Path $layoutDir -Force | Out-Null
     New-Item -ItemType Directory -Path $kotlinDir -Force | Out-Null
+    Initialize-FixtureRepo
     Set-Content -LiteralPath $allowlist -Value @('# fixture allowlist') -Encoding UTF8
     Set-Content -LiteralPath $baseline -Value '0' -Encoding UTF8
 }

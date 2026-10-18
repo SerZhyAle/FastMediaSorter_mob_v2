@@ -171,6 +171,7 @@ if (Test-Path -LiteralPath $baselinePath) {
         $parts = $line -split '\|', 2
         if ($parts.Count -lt 2 -or -not $parts[1].Trim()) {
             Write-Host "assert-wear-wire-nullability: baseline line ${lineNo} carries no justification: $line"
+            Write-Host 'assert-wear-wire-nullability: COULD NOT VERIFY (see the error above)'
             exit 2
         }
         $exempt[$parts[0].Trim().ToLowerInvariant()] = $parts[1].Trim()
@@ -184,6 +185,7 @@ foreach ($rel in $declaredInputs) {
     if (-not (Test-Path -LiteralPath $full)) {
         Write-Host "assert-wear-wire-nullability: declared input is missing: $rel"
         Write-Host '  Either the envelope moved and this list was not updated, or the list names a file that never existed.'
+        Write-Host 'assert-wear-wire-nullability: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     $fileText[$rel] = Get-Content -LiteralPath $full

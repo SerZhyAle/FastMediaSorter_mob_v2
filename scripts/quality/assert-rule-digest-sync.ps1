@@ -175,24 +175,28 @@ if (-not (Test-Path -LiteralPath (Join-Path $repoRoot '.claude'))) {
 $authorityText = Read-RepoFile $authorityPath
 if ($null -eq $authorityText) {
     Write-Error "assert-rule-digest-sync: authority not found: $authorityPath" -ErrorAction Continue
+    Write-Host 'assert-rule-digest-sync: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
 $ruleNumbers = Get-AuthorityRuleNumbers $authorityText
 if ($ruleNumbers.Count -eq 0) {
     Write-Error "assert-rule-digest-sync: no numbered rules parsed from $authorityPath - the 'Strict Rules' heading or its list shape changed." -ErrorAction Continue
+    Write-Host 'assert-rule-digest-sync: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
 $closingGateText = Read-RepoFile $closingGatePath
 if ($null -eq $closingGateText) {
     Write-Error "assert-rule-digest-sync: closing-gate detail file not found: $closingGatePath" -ErrorAction Continue
+    Write-Host 'assert-rule-digest-sync: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
 $closingGates = Get-ClosingGateLabelTokens $closingGateText
 if ($null -eq $closingGates) {
     Write-Error "assert-rule-digest-sync: no 'Closing gates' section in $closingGatePath - the heading or its list shape changed." -ErrorAction Continue
+    Write-Host 'assert-rule-digest-sync: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -200,6 +204,7 @@ foreach ($digest in $fullDigestPaths) {
     $text = Read-RepoFile $digest
     if ($null -eq $text) {
         Write-Error "assert-rule-digest-sync: declared full digest not found: $digest" -ErrorAction Continue
+        Write-Host 'assert-rule-digest-sync: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     $uncited = @($ruleNumbers | Where-Object { -not (Test-RuleCited $text $_) })
@@ -216,6 +221,7 @@ foreach ($pointer in $pointerPaths) {
     $text = Read-RepoFile $pointer
     if ($null -eq $text) {
         Write-Error "assert-rule-digest-sync: declared pointer not found: $pointer" -ErrorAction Continue
+        Write-Host 'assert-rule-digest-sync: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     foreach ($target in @($authorityPath) + $fullDigestPaths) {
@@ -236,9 +242,10 @@ if ($failures.Count -gt 0) {
         ForEach-Object { Join-Path $repoRoot $_ }
     if (-not (Test-FixedInputsChargeable -ChangedFiles $ChangedFiles -InputPaths $declaredInputs)) {
         Write-NotChargedVerdict -GateName 'assert-rule-digest-sync' -Findings @($failures)
+        Write-Host 'assert-rule-digest-sync: PASS WITH ADVISORIES (see the findings above)'
         exit 3
     }
-    if ($Gate) { exit 1 }
+    if ($Gate) { Write-Host 'assert-rule-digest-sync: FAIL (see the findings above)'; exit 1 }
     exit 0
 }
 

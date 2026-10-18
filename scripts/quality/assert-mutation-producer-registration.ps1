@@ -356,7 +356,7 @@ if ($findings.Count -gt 0) {
 }
 
 if ($findings.Count -gt 0 -or $reasonless.Count -gt 0 -or $badRefresh.Count -gt 0) {
-    if ($Gate) { exit 1 }
+    if ($Gate) { Write-Host 'assert-mutation-producer-registration: FAIL (see the findings above)'; exit 1 }
     exit 0
 }
 

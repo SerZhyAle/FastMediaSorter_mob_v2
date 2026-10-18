@@ -432,7 +432,10 @@ $gates = [ordered]@{
     # hard-code revisioned asset names and never roll forward, and nothing here deletes an asset -
     # so a pinned revision survives only because no action removes it. Reads the pinned names from
     # stream-catalog/CONSUMERS.md and the revision defaults from the publisher; two file reads.
-    'assert-stream-asset-revisions.ps1'         = @('-Quiet')
+    # -AllowNoCatalog: the GitHub Static Gates job runs this batch on a clone with no catalog. Without
+    # the flag the gate answers COULD NOT VERIFY (exit 2) there, an UNVERIFIED row on every run; with
+    # it the clone ends `NOT APPLICABLE`, counted with the skipped and never with the passed.
+    'assert-stream-asset-revisions.ps1'         = @('-Quiet', '-AllowNoCatalog')
     # S3420: the vendored FDSEC-FORMAT conformance vectors against the catalog copy they came from.
     # The vectors decide conformance, so a catalog regeneration would otherwise leave FdSecVectorsTest
     # green against stale bytes. Hashes a few small files; exit 3 (SKIP) without FMS_CONTRACTS_ROOT.
@@ -856,8 +859,8 @@ if ($results.Count -eq 0 -and $skippedRows.Count -eq 0 -and $notApplicableRows.C
     exit 0
 }
 if ($notApplicableRows.Count -gt 0) { $counts += ", $($notApplicableRows.Count) not applicable" }
-$verdict = if ($split) { "PASS (every gate judging your set is green; $counts)." } else { "PASS (all fast gates green; $counts)." }
-if ($skippedRows.Count -gt 0 -and $showSummary) { $verdict += " $($skippedRows.Count) gate(s) NOT RUN - see the block above." }
-Write-Host "assert-fast-gates: $verdict" -ForegroundColor Green
+$verdictDetail = if ($split) { "every gate judging your set is green; $counts" } else { "all fast gates green; $counts" }
+$notRunNote = if ($skippedRows.Count -gt 0 -and $showSummary) { " $($skippedRows.Count) gate(s) NOT RUN - see the block above." } else { '' }
+Write-Host "assert-fast-gates: PASS ($verdictDetail).$notRunNote" -ForegroundColor Green
 if ($showSummary) { Write-Host "protocol: $protocolPath" -ForegroundColor DarkGray }
 exit 0

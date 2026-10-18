@@ -259,5 +259,5 @@ Assert-Equal 'the switch on another action is refused'     $true  ($wrongAction.
 
 Remove-Item -Recurse -Force $sandbox
 
-Write-Host ("RESULT | pass: {0} | fail: {1}" -f $script:pass, $script:fail)
+Write-Host "set-android-string-reaffirm.Tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -eq 0) { exit 0 } else { exit 1 }

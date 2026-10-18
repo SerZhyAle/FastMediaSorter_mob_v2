@@ -75,32 +75,32 @@ class SendResourcePassesToWatchUseCase @Inject constructor(
             .onFailure { it.warnUnlessCancellation("Resource pass: send to ${node.id} failed") }
             .isSuccess
     }
-}
 
-/** What names a protected exchange folder on both devices: its binding and its identity (20 item BA). */
-private class PassKey(val binding: ExchangeBinding, val fingerprint: String, val root: String) {
+    /** What names a protected exchange folder on both devices: its binding and its identity (20 item BA). */
+    private class PassKey(val binding: ExchangeBinding, val fingerprint: String, val root: String) {
 
-    val account: String get() = binding.sourceKey
+        val account: String get() = binding.sourceKey
 
-    val resourceId: String get() = binding.resourceId
+        val resourceId: String get() = binding.resourceId
 
-    companion object {
-        fun of(resource: MediaResource): PassKey? {
-            val binding = bindingOf(resource)
-            val fingerprint = SshFingerprintNormalizer.canonical(resource.hostKeyFingerprint)
-            val root = SftpPathUtils.parseSftpPath(resource.path)?.remotePath?.trim('/')?.takeIf { it.isNotEmpty() }
-            return if (binding == null || fingerprint == null || root == null) {
-                null
-            } else {
-                PassKey(binding, fingerprint, root)
+        companion object {
+            fun of(resource: MediaResource): PassKey? {
+                val binding = bindingOf(resource)
+                val fingerprint = SshFingerprintNormalizer.canonical(resource.hostKeyFingerprint)
+                val root = SftpPathUtils.parseSftpPath(resource.path)?.remotePath?.trim('/')?.takeIf { it.isNotEmpty() }
+                return if (binding == null || fingerprint == null || root == null) {
+                    null
+                } else {
+                    PassKey(binding, fingerprint, root)
+                }
             }
-        }
 
-        private fun bindingOf(resource: MediaResource): ExchangeBinding? {
-            val account = resource.exchangeAccount
-            val resourceId = resource.exchangeResourceId
-            val sftp = resource.type == ResourceType.SFTP
-            return if (sftp && account != null && resourceId != null) ExchangeBinding(account, resourceId) else null
+            private fun bindingOf(resource: MediaResource): ExchangeBinding? {
+                val account = resource.exchangeAccount
+                val resourceId = resource.exchangeResourceId
+                val sftp = resource.type == ResourceType.SFTP
+                return if (sftp && account != null && resourceId != null) ExchangeBinding(account, resourceId) else null
+            }
         }
     }
 }

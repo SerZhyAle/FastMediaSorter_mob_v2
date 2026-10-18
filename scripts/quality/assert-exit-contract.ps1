@@ -104,13 +104,25 @@
     path-plus-command identities in test-count-baseline.txt allow only the existing residue;
     new writers and stale residue fail. Check aggregators count checks and are outside this rule.
 
+    RULE H - a failing or undecided path names its verdict (S4367, contract CHECK-VERDICT rule 2.11:
+    the verdict line is owed on every path that sets a verdict code, the failure path included). In
+    every `assert-*.ps1` an `exit 1`, `exit 2` or `exit 3` with a constant code must have the check's
+    own `<basename>: FAIL | COULD NOT VERIFY | PASS WITH ADVISORIES | PASS | NOT APPLICABLE` in a code
+    line within the eight code lines above it, because a run that dies on that path otherwise hands
+    its caller a number and a prose error nobody can match. Read off the parser, so a string that
+    merely contains "exit 2" is not a site; `exit $code` is not judged (its value is not statically
+    known); an exit that follows a `| ConvertTo-Json` pipeline within twelve lines is exempt, because
+    its stdout is a JSON document by contract and a text line would corrupt it. Measured 2026-10-18:
+    96 sites in 49 of 169 checks. No baseline: S4367 gave every one its line.
+
     Exit codes:
       0 - no unreachable exit site, no silent script, Rule C at or below baseline,
-          no unlisted or stale Rule D entry (or report mode).
+          no unlisted or stale Rule D entry, no Rule H site (or report mode).
       1 - substantive failure: an unreachable exit site, a silent script, Rule C
           above its baseline, a Rule D check with no verdict line / a stale listing,
           a Rule E line spelling exit 2 other than COULD NOT VERIFY, or a Rule F line
-          spelling NOT APPLICABLE in lowercase, or new/stale Rule G test counters.
+          spelling NOT APPLICABLE in lowercase, new/stale Rule G test counters, or a Rule H
+          exit site with no verdict line of its own.
       2 - the gate itself cannot run (scan root missing). Distinct from 1 on purpose -
           this gate must not commit the very sin it audits.
 
@@ -149,6 +161,7 @@ $ErrorActionPreference = 'Stop'
 # The gate's own refusal path must reach its own exit code - see the note above.
 function Reject([string]$msg) {
     Write-Error $msg -ErrorAction Continue
+    Write-Host "assert-exit-contract: COULD NOT VERIFY ($msg)"
     exit 2
 }
 
@@ -364,6 +377,8 @@ $reasonless = @()
 $parseFallback = @()
 $noVerdict = @()
 $verdictScanned = @()
+# Rule H: exit 1|2|3 sites of a check with no verdict line of its own above them.
+$exitNoVerdict = @()
 $oldSpelling = @()
 # Rule E reads the suites too: the main scan skips them for rule A's sake, but a suite asserting the
 # old word is exactly what would pin a subject to it.
@@ -436,6 +451,24 @@ foreach ($f in $files) {
         $subject = [regex]::Escape($f.BaseName)
         if (-not (($code -match "$($subject):\s*PASS") -and ($code -match "$($subject):\s*FAIL"))) {
             $noVerdict += $rel
+        }
+
+        # Rule H (S4367, CHECK-VERDICT rule 2.11): the same name must stand within eight code lines above
+        # every constant exit 1|2|3. The parser keeps a string that merely says "exit 2" out of the count.
+        $verdictRx = [regex]::new("$($subject):\s*(PASS WITH ADVISORIES|PASS|FAIL|COULD NOT VERIFY|NOT APPLICABLE)")
+        $hAst = [System.Management.Automation.Language.Parser]::ParseInput(($lines -join "`n"), [ref]$null, [ref]$null)
+        foreach ($exitAst in $hAst.FindAll({ param($n) $n -is [System.Management.Automation.Language.ExitStatementAst] }, $true)) {
+            if (-not $exitAst.Pipeline) { continue }
+            $exitExpr = $exitAst.Pipeline.GetPureExpression()
+            if ($exitExpr -isnot [System.Management.Automation.Language.ConstantExpressionAst] -or $exitExpr.Value -isnot [int]) { continue }
+            if ($exitExpr.Value -lt 1 -or $exitExpr.Value -gt 3) { continue }
+            $exitLine = $exitAst.Extent.StartLineNumber
+            $above = @(for ($k = [Math]::Max(1, $exitLine - 8); $k -le $exitLine; $k++) { if ($lines[$k - 1] -notmatch '^\s*#') { $lines[$k - 1] } })
+            if ($verdictRx.IsMatch($above -join "`n")) { continue }
+            # A verb that renders JSON owes its caller a JSON document, not a text line.
+            $jsonAbove = @(for ($k = [Math]::Max(1, $exitLine - 12); $k -lt $exitLine; $k++) { $lines[$k - 1] }) -join "`n"
+            if ($jsonAbove -match '\|\s*ConvertTo-Json') { continue }
+            $exitNoVerdict += [pscustomobject]@{ File = $rel; Line = $exitLine; Code = $exitExpr.Value }
         }
     }
 
@@ -642,11 +675,22 @@ if (-not $Quiet) {
 }
 Write-Host ("assert-exit-contract rule G: expected: 0 new/stale | actual: {0} new, {1} stale (residue {2})" -f $testCountResidue.New.Count, $testCountResidue.Stale.Count, $testCountResidue.Count)
 
-if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0 -or $reasonless.Count -gt $reasonBaseline -or $newNoVerdict.Count -gt 0 -or $staleVerdict.Count -gt 0 -or $oldSpelling.Count -gt 0 -or $naSpelling.Count -gt 0 -or $testCountResidue.New.Count -gt 0 -or $testCountResidue.Stale.Count -gt 0)) {
-    Write-Host 'assert-exit-contract: FAIL - unreachable or silent exit, missing verdict, invalid verdict spelling, or new/stale legacy test counters.' -ForegroundColor Red
+if (-not $Quiet) {
+    foreach ($x in $exitNoVerdict) {
+        Write-Host ("  {0}:{1}  exit {2} with no '<name>: FAIL | COULD NOT VERIFY | PASS WITH ADVISORIES' verdict line within eight lines above" -f $x.File, $x.Line, $x.Code) -ForegroundColor Red
+    }
+    if ($exitNoVerdict.Count -gt 0) {
+        Write-Host ''
+        Write-Host "  Fix: print the check's own verdict line right before the exit - FAIL for 1, COULD NOT VERIFY for 2, PASS WITH ADVISORIES for 3 (CHECK-VERDICT rule 2.11)." -ForegroundColor Yellow
+    }
+}
+Write-Host ("assert-exit-contract rule H: expected: 0 | actual: {0} exit site(s) of a check with no verdict line of its own" -f $exitNoVerdict.Count)
+
+if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0 -or $reasonless.Count -gt $reasonBaseline -or $newNoVerdict.Count -gt 0 -or $staleVerdict.Count -gt 0 -or $oldSpelling.Count -gt 0 -or $naSpelling.Count -gt 0 -or $testCountResidue.New.Count -gt 0 -or $testCountResidue.Stale.Count -gt 0 -or $exitNoVerdict.Count -gt 0)) {
+    Write-Host 'assert-exit-contract: FAIL - unreachable or silent exit, missing verdict, invalid verdict spelling, new/stale legacy test counters, or an exit site with no verdict line of its own.' -ForegroundColor Red
     exit 1
 }
-if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0 -and $newNoVerdict.Count -eq 0 -and $staleVerdict.Count -eq 0 -and $oldSpelling.Count -eq 0 -and $naSpelling.Count -eq 0 -and $testCountResidue.New.Count -eq 0 -and $testCountResidue.Stale.Count -eq 0) {
+if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0 -and $newNoVerdict.Count -eq 0 -and $staleVerdict.Count -eq 0 -and $oldSpelling.Count -eq 0 -and $naSpelling.Count -eq 0 -and $testCountResidue.New.Count -eq 0 -and $testCountResidue.Stale.Count -eq 0 -and $exitNoVerdict.Count -eq 0) {
     Write-Host 'assert-exit-contract: PASS - every exit code is reachable, every scanned script sets one, and every check names its verdict.' -ForegroundColor Green
 }
 exit 0

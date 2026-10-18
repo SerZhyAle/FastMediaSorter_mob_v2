@@ -11,4 +11,7 @@
     <string name="browse_network_error_timeout">Pas de réponse à temps. Vérifiez le réseau et réessayez.</string>
     <string name="browse_network_error_auth">Nom d\'utilisateur ou mot de passe incorrect. Mettez à jour la ressource sur votre téléphone.</string>
     <string name="browse_network_error_unknown_host">Ordinateur introuvable sur ce réseau. Vérifiez le Wi-Fi.</string>
+    <string name="exchange_folder_needs_own_network">Ce dossier ne s\'ouvre que via le Wi-Fi ou la LTE propre à la montre. Activez le Wi-Fi ou la LTE sur la montre.</string>
+    <string name="exchange_folder_pin_on_phone">Ce dossier est protégé, son code PIN se saisit sur le téléphone. Ouvrez le dossier sur le téléphone et saisissez le code PIN.</string>
+    <string name="exchange_folder_connect_watch_on_phone">Hors de chez vous, ce dossier exige que la montre soit connectée au serveur. Connectez la montre depuis le téléphone.</string>
 </resources>

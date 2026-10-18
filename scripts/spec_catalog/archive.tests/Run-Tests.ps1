@@ -40,7 +40,7 @@
     Exit codes:
       0  all cases pass.
       1  at least one case failed.
-      2  the fixtures could not be prepared.
+      2  the fixtures could not be prepared, or no test executed.
 #>
 [CmdletBinding()]
 param()
@@ -339,6 +339,10 @@ else {
 
 # The skip count belongs on the summary line: a run that quietly dropped four cases and a run that
 # executed them both end in "0 failed", and only this number tells them apart.
+if (($script:pass + $script:fail) -eq 0) {
+    Write-Host "archive.tests: COULD NOT VERIFY (run=0 skipped=$script:skip)"
+    exit 2
+}
 Write-Host "archive.tests: $(if ($script:fail) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=$script:skip)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

@@ -272,5 +272,5 @@ Assert-Equal 'on-list powerSavingTrigger -> exit 0' 0 $r.Exit
 
 if (Test-Path $sandbox) { Remove-Item -Recurse -Force $sandbox }
 
-Write-Host ("RESULT | pass: {0} | fail: {1}" -f $script:pass, $script:fail)
+Write-Host "check-device-profile-presets.Tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -eq 0) { exit 0 } else { exit 1 }

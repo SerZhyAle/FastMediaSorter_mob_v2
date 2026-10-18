@@ -569,6 +569,12 @@ if ($schemaFindings.Count -gt 0 -or $corpusFindings.Count -gt 0) {
     exit 1
 }
 
+if ($scope -eq 'changed set' -and $pages.Count -eq 0) {
+    . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+    Write-EmptySetPass -GateName 'assert-docs-termbase' -Note ("  termbase: {0} record(s), {1} forbidden synonym(s); no corpus page in the changed set." -f $records.Count, $matchers.Count)
+    exit 0
+}
+
 Write-Host ("assert-docs-termbase: PASS - {0} record(s), {1} forbidden synonym(s), {2} page(s) judged [{3}], {4}." -f `
         $records.Count, $matchers.Count, $pages.Count, $scope, $elapsed) -ForegroundColor Green
 exit 0

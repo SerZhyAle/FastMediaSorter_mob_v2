@@ -183,6 +183,12 @@ if (-not $Quiet) {
     Write-Host "assert-qualified-gradle-tasks: scanned $scanned file(s)."
 }
 
+if ($findings.Count -eq 0 -and $ChangedFiles -and $scanned -eq 0) {
+    . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+    Write-EmptySetPass -GateName 'assert-qualified-gradle-tasks'
+    exit 0
+}
+
 if ($findings.Count -eq 0) {
     Write-Host 'assert-qualified-gradle-tasks: PASS - every Gradle task name carries its module segment.'
     exit 0
@@ -200,5 +206,5 @@ $message = (
 # Built above rather than passed inline: assert-exit-contract looks back only 4 lines for the reason,
 # so a multi-line Write-Error argument reads as an exit with nothing printed.
 Write-Error $message -ErrorAction Continue
-if ($Gate) { exit 1 }
+if ($Gate) { Write-Host 'assert-qualified-gradle-tasks: FAIL (see the findings above)'; exit 1 }
 exit 0

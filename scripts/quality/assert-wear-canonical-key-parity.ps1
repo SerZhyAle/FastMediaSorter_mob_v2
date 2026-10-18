@@ -150,6 +150,7 @@ if ($findings.Count -eq 0) {
 if (-not (Test-FixedInputsChargeable -ChangedFiles $ChangedFiles `
             -InputPaths @($watchEnumPath, $phoneCatalogPath, $baselinePath))) {
     Write-NotChargedVerdict -GateName 'assert-wear-canonical-key-parity' -Findings $findings
+    Write-Host 'assert-wear-canonical-key-parity: PASS WITH ADVISORIES (see the findings above)'
     exit 3
 }
 

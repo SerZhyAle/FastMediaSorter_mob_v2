@@ -91,6 +91,11 @@ if ($ChangedFiles) {
     # disagree about what is in scope.
     $expanded = @(Expand-ChangedFiles -ChangedFiles $ChangedFiles)
     $scoped = @($expanded | Where-Object { Test-InSymmetryScope $_ })
+    if (@($expanded | Where-Object { $_ -match '\.kt$' }).Count -eq 0 -or $scoped.Count -eq 0) {
+        Write-EmptySetPass -GateName 'assert-listener-symmetry'
+        exit 0
+    }
+    Assert-GitHeadResolvable -GateName 'assert-listener-symmetry' -RepoRoot $repoRoot
     $countFn = { param($t) Get-FileImbalance $t }
     $d = Measure-ChangedFileGrowth -ChangedFiles $scoped -RepoRoot $repoRoot -Extensions @('.kt') -CountInText $countFn
     Write-Host ("listener-symmetry [delta over changed files]: new imbalance {0}" -f $d.Growth)

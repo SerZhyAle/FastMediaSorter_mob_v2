@@ -374,11 +374,11 @@ if ($Gate -and $ChangedFiles -and (@(Expand-ChangedFiles -ChangedFiles $ChangedF
         }
     }
     if ($subject.Count -eq 0) {
-        Write-Host 'a11y-semantics [scoped]: no layout or Kotlin source in the changed set - nothing to judge.'
-        Write-Host 'assert-a11y-semantics: PASS (scoped).'
+        Write-EmptySetPass -GateName 'assert-a11y-semantics' -Note 'a11y-semantics [scoped]: no layout or Kotlin source in the changed set - nothing to judge.'
         exit 0
     }
 
+    Assert-GitHeadResolvable -GateName 'assert-a11y-semantics' -RepoRoot $repoRoot
     $delta = Measure-ChangedFileGrowth -ChangedFiles $subject -RepoRoot $repoRoot -Extensions @('.xml', '.kt') -CountInText $countInText
     Write-Host ("a11y-semantics [scoped to {0} changed file(s)]: new finding(s) {1}" -f $subject.Count, $delta.Growth)
     if ($List) {

@@ -30,8 +30,9 @@
 
 .NOTES
     Exit codes:
-      0 - every case passed, or the resolved harness predates a fix and its cases were skipped.
+      0 - at least one case executed and every executed case passed.
       1 - a case failed.
+      2 - no test executed.
 #>
 [CmdletBinding()]
 param()
@@ -761,5 +762,5 @@ if ($failures -gt 0) {
     Write-Host "run-spec-queue tests: FAIL (run=$caseCount skipped=$skipped)" -ForegroundColor Red
     exit 1
 }
-Write-Host "run-spec-queue tests: PASS (run=$caseCount skipped=$skipped)" -ForegroundColor Green
-exit 0
+Write-Host "run-spec-queue tests: $(if ($caseCount -eq 0) { 'COULD NOT VERIFY' } else { 'PASS' }) (run=$caseCount skipped=$skipped)" -ForegroundColor Green
+exit $(if ($caseCount -eq 0) { 2 } else { 0 })

@@ -133,6 +133,7 @@ if (-not $BaselineFile) { $BaselineFile = Join-Path $PSScriptRoot 'always-loaded
 
 if (-not (Test-Path -LiteralPath $BaselineFile -PathType Leaf)) {
     Write-Error "assert-always-loaded-budget: baseline not found at $BaselineFile - nothing was judged." -ErrorAction Continue
+    Write-Host 'assert-always-loaded-budget: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -146,12 +147,14 @@ foreach ($raw in Get-Content -LiteralPath $BaselineFile) {
     $parts = $line -split '\|'
     if ($parts.Count -lt 3) {
         Write-Error ("assert-always-loaded-budget: baseline line {0} is malformed - expected 'path|ceiling|stretch|hint', got '{1}'." -f $lineNo, $line) -ErrorAction Continue
+        Write-Host 'assert-always-loaded-budget: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     $ceiling = 0
     $stretch = 0
     if (-not [int]::TryParse($parts[1].Trim(), [ref]$ceiling) -or -not [int]::TryParse($parts[2].Trim(), [ref]$stretch)) {
         Write-Error ("assert-always-loaded-budget: baseline line {0} carries a non-numeric ceiling or stretch." -f $lineNo) -ErrorAction Continue
+        Write-Host 'assert-always-loaded-budget: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     $entries.Add([pscustomobject]@{
@@ -165,6 +168,7 @@ foreach ($raw in Get-Content -LiteralPath $BaselineFile) {
 
 if ($entries.Count -eq 0) {
     Write-Error "assert-always-loaded-budget: the baseline carries no entries - nothing was judged." -ErrorAction Continue
+    Write-Host 'assert-always-loaded-budget: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -177,6 +181,7 @@ if ($Path) {
     $narrowed = @($entries | Where-Object { $_.RelPath -ieq $wanted })
     if ($narrowed.Count -eq 0) {
         Write-Error ("assert-always-loaded-budget: '{0}' is not an always-loaded file - the baseline does not list it." -f $wanted) -ErrorAction Continue
+        Write-Host 'assert-always-loaded-budget: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     $entries = [System.Collections.Generic.List[object]]::new()
@@ -197,6 +202,7 @@ foreach ($e in $entries) {
     $full = Join-Path $repoRoot $e.RelPath
     if (-not (Test-Path -LiteralPath $full -PathType Leaf)) {
         Write-Error ("assert-always-loaded-budget: '{0}' is listed in the baseline but does not exist - either restore it or drop its line." -f $e.RelPath) -ErrorAction Continue
+        Write-Host 'assert-always-loaded-budget: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     $bytes = Measure-InjectedBytes $full
@@ -266,6 +272,7 @@ if ($UpdateBaseline) {
             Write-Host ("  {0}: {1} B is ABOVE the {2} B ceiling by {3} B." -f $r.RelPath, $r.Bytes, $r.Ceiling, $r.Overshoot) -ForegroundColor Red
         }
         Write-Error ("assert-always-loaded-budget: refusing to RAISE a ceiling for {0} file(s). A ceiling goes down on a run that passed and never up - that is the whole mechanism, and three manual cleanups were undone in the month before it existed." -f $raised.Count) -ErrorAction Continue
+        Write-Host 'assert-always-loaded-budget: FAIL (see the findings above)'
         exit 1
     }
     $text = Get-Content -LiteralPath $BaselineFile -Raw
@@ -351,6 +358,7 @@ if ($Gate -and $over.Count -gt 0) {
         "     it down."
     ) -join "`n"
     Write-Error $why -ErrorAction Continue
+    Write-Host 'assert-always-loaded-budget: FAIL (see the findings above)'
     exit 1
 }
 

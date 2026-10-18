@@ -45,8 +45,14 @@ class WearExchangeDirectoryClient @Inject constructor(
                 val reply = async(start = CoroutineStart.UNDISPATCHED) {
                     streams.events.first { it.identity == entry.identity && it.envelope.type in ANSWERS }.envelope
                 }
-                if (!streams.send(entry.identity, LIST)) reply.cancel()
-                runCatching { reply.await() }.getOrNull()
+                if (streams.send(entry.identity, LIST)) {
+                    reply.await()
+                } else {
+                    // Cancelling the waiter and returning null is the "no answer" outcome. Awaiting the cancelled
+                    // child would throw its own CancellationException, which a caller must not mistake for its own.
+                    reply.cancel()
+                    null
+                }
             }
         }
         if (answer?.type != WearExchangeEnvelope.TYPE_DIRECTORY) {

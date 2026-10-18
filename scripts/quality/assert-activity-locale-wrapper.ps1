@@ -138,6 +138,12 @@ foreach ($full in $candidates) {
 
 $scopeLabel = if ($ChangedFiles) { "$checked changed file(s)" } else { 'app_v2 (all non-test source sets)' }
 
+if ($ChangedFiles -and $checked -eq 0) {
+    . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+    Write-EmptySetPass -GateName 'assert-activity-locale-wrapper'
+    exit 0
+}
+
 if ($violations.Count -eq 0) {
     Write-Host "assert-activity-locale-wrapper: PASS - $activities Activity declaration(s) in $scopeLabel, all wrapped; $($excused.Count) excused by baseline."
     exit 0
@@ -156,5 +162,5 @@ $message = @(
     '    <repo-relative path> | <why wrapping breaks this one>'
 ) -join "`n"
 Write-Error $message -ErrorAction Continue
-if ($Gate) { exit 1 }
+if ($Gate) { Write-Host 'assert-activity-locale-wrapper: FAIL (see the findings above)'; exit 1 }
 exit 0

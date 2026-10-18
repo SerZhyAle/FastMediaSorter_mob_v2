@@ -53,6 +53,7 @@ $repoRoot = if ($env:FMS_REPO_ROOT) { $env:FMS_REPO_ROOT } else { Split-Path -Pa
 $inventoryLib = Join-Path $repoRoot 'scripts/utils/temp-root-inventory.ps1'
 if (-not (Test-Path -LiteralPath $inventoryLib)) {
     Write-Error "assert-temp-root-inventory: inventory library not found at $inventoryLib" -ErrorAction Continue
+    Write-Host 'assert-temp-root-inventory: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 . $inventoryLib
@@ -60,6 +61,7 @@ if (-not (Test-Path -LiteralPath $inventoryLib)) {
 $target = if ($Root) { $Root } else { Join-Path $repoRoot 'temp' }
 if (-not (Test-Path -LiteralPath $target -PathType Container)) {
     Write-Error "assert-temp-root-inventory: root not found at $target" -ErrorAction Continue
+    Write-Host 'assert-temp-root-inventory: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -67,6 +69,7 @@ try {
     $inventory = Get-TempRootInventory -RepoRoot $repoRoot
 } catch {
     Write-Error "assert-temp-root-inventory: the inventory could not be resolved - $($_.Exception.Message)" -ErrorAction Continue
+    Write-Host 'assert-temp-root-inventory: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 

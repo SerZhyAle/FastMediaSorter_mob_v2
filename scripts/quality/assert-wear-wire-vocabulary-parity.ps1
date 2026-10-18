@@ -377,7 +377,8 @@ if (-not $Quiet) {
 }
 
 if ($unreadable.Count -gt 0) {
-    foreach ($u in $unreadable) { Write-Error "assert-wear-wire-vocabulary-parity: COULD NOT CHECK - $u" -ErrorAction Continue }
+    foreach ($u in $unreadable) { Write-Error "assert-wear-wire-vocabulary-parity: could not read - $u" -ErrorAction Continue }
+    Write-Host 'assert-wear-wire-vocabulary-parity: COULD NOT VERIFY (a vocabulary side could not be read)'
     exit 2
 }
 
@@ -394,10 +395,12 @@ if ($problems.Count -gt 0) {
     )
     if (-not (Test-FixedInputsChargeable -ChangedFiles $ChangedFiles -InputPaths $declaredInputs)) {
         Write-NotChargedVerdict -GateName 'assert-wear-wire-vocabulary-parity' -Findings @($problems)
+        Write-Host "assert-wear-wire-vocabulary-parity: PASS WITH ADVISORIES ($(@($problems).Count) divergence(s) not charged to this run)"
         exit 3
     }
     foreach ($p in $problems) { Write-Error "assert-wear-wire-vocabulary-parity: $p" -ErrorAction Continue }
-    if ($Gate) { exit 1 }
+    if ($Gate) { Write-Host "assert-wear-wire-vocabulary-parity: FAIL ($(@($problems).Count) divergence(s))"; exit 1 }
+    Write-Host "assert-wear-wire-vocabulary-parity: PASS (report mode, -Gate not set; $(@($problems).Count) divergence(s) listed above)"
     exit 0
 }
 

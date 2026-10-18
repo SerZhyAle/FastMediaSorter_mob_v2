@@ -116,6 +116,7 @@ foreach ($rootFile in $scanRootFiles) {
 
 if ($filesToScan.Count -eq 0) {
     Write-Error "assert-retired-dependency-names: no scan root existed - nothing was examined." -ErrorAction Continue
+    Write-Host 'assert-retired-dependency-names: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 

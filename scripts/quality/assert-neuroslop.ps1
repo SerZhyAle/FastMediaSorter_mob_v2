@@ -58,6 +58,7 @@ $failures = 0
 if (-not (Test-Path $runner)) {
     Write-Host 'neuroslop: MISSING assert-source-gates.ps1 - cannot judge anything.' -ForegroundColor Red
     Write-Error 'assert-neuroslop: the combined source-gate runner is absent; nothing was scanned.' -ErrorAction Continue
+    Write-Host 'assert-neuroslop: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 

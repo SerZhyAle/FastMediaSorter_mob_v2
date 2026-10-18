@@ -11,4 +11,7 @@
     <string name="browse_network_error_timeout">Sin respuesta a tiempo. Comprueba la red e inténtalo de nuevo.</string>
     <string name="browse_network_error_auth">Nombre de usuario o contraseña incorrectos. Actualiza el recurso en tu teléfono.</string>
     <string name="browse_network_error_unknown_host">Ordenador no encontrado en esta red. Comprueba la conexión Wi-Fi.</string>
+    <string name="exchange_folder_needs_own_network">Esta carpeta solo se abre con el Wi-Fi o el LTE propios del reloj. Activa el Wi-Fi o el LTE en el reloj.</string>
+    <string name="exchange_folder_pin_on_phone">Esta carpeta está protegida y su PIN se introduce en el teléfono. Abre la carpeta en el teléfono e introduce el PIN.</string>
+    <string name="exchange_folder_connect_watch_on_phone">Fuera de casa, esta carpeta necesita que el reloj esté conectado al servidor. Conecta el reloj desde el teléfono.</string>
 </resources>

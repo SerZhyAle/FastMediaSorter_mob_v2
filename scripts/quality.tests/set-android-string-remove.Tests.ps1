@@ -174,5 +174,5 @@ Assert-Equal 'and says why'                                $true ($both.Output -
 
 Remove-Item -Recurse -Force $sandbox
 
-Write-Host ("RESULT | pass: {0} | fail: {1}" -f $script:pass, $script:fail)
+Write-Host "set-android-string-remove.Tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -eq 0) { exit 0 } else { exit 1 }

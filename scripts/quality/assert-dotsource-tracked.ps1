@@ -126,7 +126,10 @@ $discoveryRoot = (Resolve-Path -LiteralPath $discoveryRoot).Path
 # describes the tree as it was - the 2026-09-06 measurement found two dot-sources to paths that no
 # longer exist in there, and neither is fixable or should be. Anything under a build/ segment is
 # generated output, and V1/v2_6/spec_v2 are the read-only legacy checkouts.
-$script:ExcludedFirstSegments = @('temp', 'V1', 'v2_6', 'spec_v2', '.git', '.gradle', 'node_modules')
+# PLAN/ is gitignored as a whole (zero tracked files), so a consumer there and its target are equally
+# absent from a fresh clone: nothing can fail to parse that was ever delivered, and staging a PLAN
+# attachment would force-add a file into an ignored tree.
+$script:ExcludedFirstSegments = @('temp', 'PLAN', 'V1', 'v2_6', 'spec_v2', '.git', '.gradle', 'node_modules')
 $script:ExcludedPrefixes = @('dev/archive/', 'PLAN/archive/')
 
 function Test-PathExcluded([string]$RelativeForward) {
@@ -385,7 +388,11 @@ if (-not $Quiet -and $absentTargets.Count -gt 0) {
 }
 
 if ($untracked.Count -eq 0) {
-    if (-not $Quiet) {
+    if ($changedPaths.Count -gt 0 -and $candidates.Count -eq 0) {
+        . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+        Write-EmptySetPass -GateName 'assert-dotsource-tracked'
+    }
+    elseif (-not $Quiet) {
         Write-Host 'assert-dotsource-tracked: PASS - every judged dot-source target is in the git index.' -ForegroundColor Green
     }
     exit 0

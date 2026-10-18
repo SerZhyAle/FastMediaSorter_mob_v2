@@ -3,12 +3,11 @@
     Runs the custom lint detectors' own unit suite: :lint-rules:test.
 
 .DESCRIPTION
-    S1195: the project's five custom detectors are what `lintStandardDebug` enforces, but their
+    S1195: the project's custom detectors are what `lintStandardDebug` enforces, but their
     test suite was reachable from no script, no a.ps1 target and no CI job - configured strictly,
-    never run. This is the fast red/green loop that makes a detector change verifiable without
-    paying the ~7 minute cost of a full lint run.
+    never run. This verifies detector changes independently of a full application lint run.
 
-    Rule 23: acquires temp/BUILD.LOCK for the whole gradle invocation and releases it on both the
+    Rule 23: acquires the build lock for the whole gradle invocation and releases it on both the
     success and the failure path.
 
 .PARAMETER Tests
@@ -19,11 +18,10 @@
 
 .EXITCODES
     0 - the suite ran and passed.
-    1 - BUILD.LOCK held by a live build, or the gradle run failed (gradle's own exit code is
-        propagated verbatim, and gradle reports 1 for a test failure).
-    2 - the run reported success but produced no test-result XML, so nothing was actually
-        verified. Distinguished from a real failure because the fix is different: a silently
-        empty suite is a harness defect, not a detector defect.
+    1 - Gradle reported a build/test failure, or a structured report records failures/errors.
+    2 - missing/unreadable reports, zero executed tests, skipped declared tests, a worker death,
+        or an unexpected Gradle exit code prevented verification.
+    4 - queued on the build lock; nothing inspected.
 #>
 
 param(
@@ -32,9 +30,17 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$verdict = [pscustomobject]@{ Code = 2; Word = 'COULD NOT VERIFY'; Run = 0; Skipped = 0 }
+trap {
+    Write-Host "  Lint-rules harness error: $($_.Exception.Message)"
+    if ($verdict.Code -ne 1) { $verdict.Code = 2; $verdict.Word = 'COULD NOT VERIFY' }
+    Write-Host "check-lint-rules: $($verdict.Word) (run=$($verdict.Run) skipped=$($verdict.Skipped))"
+    exit $verdict.Code
+}
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
 . "$PSScriptRoot\..\quality\lib\check-subject.ps1"
+. "$PSScriptRoot\lib\lint-rules-test-outcome.ps1"
 Enter-BuildLockOrExit -Reason "check-lint-rules.ps1"
 try {
 
@@ -59,8 +65,11 @@ try {
     }
     Write-Host "Command: .\gradlew.bat $($gradleArgs -join ' ')" -ForegroundColor DarkGray
 
+    $startedUtc = [datetime]::UtcNow
+    $gradleOutput = [System.Collections.Generic.List[string]]::new()
     & "$projectRoot\gradlew.bat" @gradleArgs 2>&1 | ForEach-Object {
         $line = [string]$_
+        $gradleOutput.Add($line)
         if ($Quiet -and ($line -match " UP-TO-DATE$" -or $line -match " NO-SOURCE$" -or $line -match " FROM-CACHE$")) {
             return
         }
@@ -69,35 +78,23 @@ try {
 
     $gradleExit = $LASTEXITCODE
 
-    if ($gradleExit -ne 0) {
-        Write-Host "`nLint-rules tests FAILED (gradle exit $gradleExit)." -ForegroundColor Red
-        Write-Host "Report: lint-rules/build/reports/tests/test/index.html" -ForegroundColor Gray
-        exit $gradleExit
-    }
-
-    # A green gradle verdict over an empty suite proves nothing - the whole reason this script
-    # exists is that "the tests pass" was an unverifiable claim. Count the cases and say so.
     $resultsDir = Join-Path $projectRoot "lint-rules\build\test-results\test"
     $resultFiles = @(Get-ChildItem -LiteralPath $resultsDir -Filter "TEST-*.xml" -ErrorAction SilentlyContinue)
-    if ($resultFiles.Count -eq 0) {
-        Write-Error "No test-result XML under $resultsDir - the suite reported success without running." -ErrorAction Continue
-        exit 2
-    }
-
-    $total = 0
-    $failed = 0
-    $skipped = 0
-    foreach ($file in $resultFiles) {
-        [xml]$xml = Get-Content -LiteralPath $file.FullName -Raw
-        $total += [int]$xml.testsuite.tests
-        $failed += [int]$xml.testsuite.failures + [int]$xml.testsuite.errors
-        $skipped += [int]$xml.testsuite.skipped
-    }
-
-    # CHECK-VERDICT 0.13 count grammar: run = executed tests, skipped = not passed.
-    Write-Host "`nLint-rules tests passed: run=$($total - $skipped) skipped=$skipped." -ForegroundColor Green
-
+    $verdict = Get-LintRulesSuiteVerdict -ReportPaths @($resultFiles | ForEach-Object FullName) `
+        -GradleExitCode $gradleExit -GradleOutput @($gradleOutput) -StartedUtc $startedUtc
+    foreach ($reason in $verdict.Reasons) { Write-Host "  $reason" }
+    if ($verdict.Code -ne 0) { Write-Host 'Report: lint-rules/build/reports/tests/test/index.html' }
+}
+catch {
+    Write-Host "  Lint-rules verification could not complete: $($_.Exception.Message)"
+    if ($verdict.Code -ne 1) { $verdict.Code = 2; $verdict.Word = 'COULD NOT VERIFY' }
 }
 finally {
-    Exit-AgentLock -Name Build
+    try { Exit-AgentLock -Name Build }
+    catch {
+        Write-Host "  Build lock release failed: $($_.Exception.Message)"
+        if ($verdict.Code -ne 1) { $verdict.Code = 2; $verdict.Word = 'COULD NOT VERIFY' }
+    }
 }
+Write-Host "check-lint-rules: $($verdict.Word) (run=$($verdict.Run) skipped=$($verdict.Skipped))"
+exit $verdict.Code

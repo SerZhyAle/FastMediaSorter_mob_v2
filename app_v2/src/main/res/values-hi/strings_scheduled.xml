@@ -97,4 +97,11 @@
     <string name="scheduled_op_last_success_never">अभी तक कोई सफल रन नहीं</string>
     <string name="scheduled_op_filter_conditions">+ शर्तें</string>
     <string name="scheduled_ops_op_archive">पुरालेख</string>
+    <string name="scheduled_op_history">इतिहास</string>
+    <string name="scheduled_op_history_line_ok">%1$s · ठीक · %2$d फ़ाइलें</string>
+    <string name="scheduled_op_history_line_skipped">%1$s · छोड़ा गया · %2$s</string>
+    <string name="scheduled_op_history_line_error">%1$s · विफल · %2$d फ़ाइलें · %3$s</string>
+    <string name="scheduled_op_badge_error">पिछला रन विफल रहा। विवरण के लिए इतिहास खोलें।</string>
+    <string name="scheduled_op_badge_skipped">पिछला रन छोड़ा गया: एक पक्ष तक पहुँचा नहीं जा सका। अगले स्लॉट में फिर कोशिश की जाएगी।</string>
+    <string name="scheduled_ops_notif_failed_title">निर्धारित ऑपरेशन विफल रहा</string>
 </resources>

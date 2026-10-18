@@ -28,9 +28,9 @@
 # Usage:  pwsh -NoProfile -File scripts/spec_catalog/check-block-note.tests/Run-Tests.ps1
 #
 # Exit codes:
-#   0   all cases pass (or the resolved harness predates the fix and they were skipped).
+#   0   at least one case executed and all executed cases passed.
 #   1   at least one case failed.
-#   2   the fixtures could not be prepared.
+#   2   the fixtures could not be prepared, or no test executed.
 
 [CmdletBinding()]
 param()
@@ -248,6 +248,10 @@ Write-Host ''
 # The skip count rides in the summary line rather than only in the SKIP notice above it: the gate
 # that runs this suite reports the last line, and "13 passed" and "0 passed, 13 skipped" must not
 # read the same.
+if (($script:pass + $script:fail) -eq 0) {
+    Write-Host "check-block-note: COULD NOT VERIFY (run=0 skipped=$script:skipped)"
+    exit 2
+}
 Write-Host "check-block-note: $(if ($script:fail) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=$script:skipped)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

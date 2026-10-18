@@ -98,4 +98,11 @@
     <string name="scheduled_op_last_success_never">ابھی تک کوئی کامیاب رن نہیں</string>
     <string name="scheduled_op_filter_conditions">+ شرائط</string>
     <string name="scheduled_ops_op_archive">آرکائیو</string>
+    <string name="scheduled_op_history">تاریخچہ</string>
+    <string name="scheduled_op_history_line_ok">%1$s · ٹھیک · %2$d فائلیں</string>
+    <string name="scheduled_op_history_line_skipped">%1$s · چھوڑا گیا · %2$s</string>
+    <string name="scheduled_op_history_line_error">%1$s · ناکام · %2$d فائلیں · %3$s</string>
+    <string name="scheduled_op_badge_error">آخری رن ناکام رہا۔ تفصیلات کے لیے تاریخچہ کھولیں۔</string>
+    <string name="scheduled_op_badge_skipped">آخری رن چھوڑ دیا گیا: ایک فریق تک رسائی نہیں ہو سکی۔ اگلے وقت پر دوبارہ کوشش کی جاتی ہے۔</string>
+    <string name="scheduled_ops_notif_failed_title">شیڈول کیا ہوا آپریشن ناکام ہو گیا</string>
 </resources>

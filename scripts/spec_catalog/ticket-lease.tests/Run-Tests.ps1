@@ -56,7 +56,7 @@
     Exit codes:
       0 - every case passed; the sandbox is deleted.
       1 - at least one case failed; the sandbox is kept and its path printed.
-      2 - the sandbox could not be prepared.
+      2 - the sandbox could not be prepared, or no test executed.
 #>
 [CmdletBinding()]
 param()
@@ -555,11 +555,11 @@ finally {
     if ($script:fail -eq 0) {
         Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue
         Write-Host 'sandbox removed.' -ForegroundColor Cyan
-        Write-Host "ticket-lease tests: PASS (run=$($script:pass + $script:fail) skipped=$script:skipped)" -ForegroundColor Cyan
+        Write-Host "ticket-lease tests: $(if ($script:pass -eq 0) { 'COULD NOT VERIFY' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=$script:skipped)" -ForegroundColor Cyan
     } else {
         Write-Host "sandbox kept: $sandbox" -ForegroundColor Yellow
         Write-Host "ticket-lease tests: FAIL (run=$($script:pass + $script:fail) skipped=$script:skipped)" -ForegroundColor Yellow
     }
 }
 
-exit ($(if ($script:fail -gt 0) { 1 } else { 0 }))
+exit ($(if ($script:fail -gt 0) { 1 } elseif ($script:pass -eq 0) { 2 } else { 0 }))

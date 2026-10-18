@@ -100,6 +100,7 @@ $ParameterRestoredFields = @{
 
 function Fail-CannotVerify([string]$message) {
     Write-Error "assert-launcher-reset-coverage: $message" -ErrorAction Continue
+    Write-Host 'assert-launcher-reset-coverage: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -204,6 +205,7 @@ if ($unexcusedPreserved.Count -gt 0 -or $droppedExcusal.Count -gt 0 -or $stale.C
         exit 3
     }
     Write-Error $summary -ErrorAction Continue
+    Write-Host 'assert-launcher-reset-coverage: FAIL (see the findings above)'
     exit 1
 }
 

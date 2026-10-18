@@ -11,4 +11,7 @@
     <string name="browse_network_error_timeout">समय पर कोई उत्तर नहीं। नेटवर्क की जांच करें और पुनः प्रयास करें।</string>
     <string name="browse_network_error_auth">गलत उपयोगकर्ता नाम या पासवर्ड। अपने फ़ोन पर संसाधन अपडेट करें।</string>
     <string name="browse_network_error_unknown_host">इस नेटवर्क पर कंप्यूटर नहीं मिला। वाई-फाई कनेक्शन की जांच करें।</string>
+    <string name="exchange_folder_needs_own_network">यह फ़ोल्डर केवल घड़ी के अपने Wi-Fi या LTE पर खुलता है। घड़ी पर Wi-Fi या LTE चालू करें।</string>
+    <string name="exchange_folder_pin_on_phone">यह फ़ोल्डर सुरक्षित है, और इसका PIN फ़ोन पर दर्ज होता है। फ़ोन पर फ़ोल्डर खोलें और PIN दर्ज करें।</string>
+    <string name="exchange_folder_connect_watch_on_phone">घर से बाहर इस फ़ोल्डर के लिए घड़ी का सर्वर से जुड़ा होना ज़रूरी है। फ़ोन पर घड़ी कनेक्ट करें।</string>
 </resources>

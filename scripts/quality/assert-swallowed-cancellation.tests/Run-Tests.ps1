@@ -690,8 +690,8 @@ $gateScript = Join-Path $repoRoot 'scripts/quality/assert-swallowed-cancellation
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
     "$env:ProgramFiles\PowerShell\7\pwsh.exe"
 } else { 'pwsh' }
-& $pwshExe -NoProfile -File $gateScript -Gate | Out-Null
-Assert-That 'L1 full-tree gate is green' ($LASTEXITCODE -eq 0) "gate exited $LASTEXITCODE"
+$liveOutput = @(& $pwshExe -NoProfile -File $gateScript -Gate 2>&1)
+Assert-That 'L1 full-tree gate is green' ($LASTEXITCODE -eq 0) "gate exited $LASTEXITCODE; $($liveOutput -join ' | ')"
 
 Write-Host ''
 Write-Host "assert-swallowed-cancellation tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"

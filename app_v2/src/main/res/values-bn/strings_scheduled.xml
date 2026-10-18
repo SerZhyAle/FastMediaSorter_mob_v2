@@ -98,4 +98,11 @@
     <string name="scheduled_op_last_success_never">এখনও কোনো সফল রান নেই</string>
     <string name="scheduled_op_filter_conditions">+ শর্ত</string>
     <string name="scheduled_ops_op_archive">আর্কাইভ</string>
+    <string name="scheduled_op_history">ইতিহাস</string>
+    <string name="scheduled_op_history_line_ok">%1$s · সফল · %2$dটি ফাইল</string>
+    <string name="scheduled_op_history_line_skipped">%1$s · এড়ানো হয়েছে · %2$s</string>
+    <string name="scheduled_op_history_line_error">%1$s · ব্যর্থ · %2$dটি ফাইল · %3$s</string>
+    <string name="scheduled_op_badge_error">সর্বশেষ চালানো ব্যর্থ হয়েছে। বিস্তারিত জানতে ইতিহাস খুলুন।</string>
+    <string name="scheduled_op_badge_skipped">সর্বশেষ চালানো এড়ানো হয়েছে: একটি প্রান্তে পৌঁছানো যায়নি। পরবর্তী নির্ধারিত সময়ে আবার চেষ্টা করা হবে।</string>
+    <string name="scheduled_ops_notif_failed_title">নির্ধারিত অপারেশন ব্যর্থ হয়েছে</string>
 </resources>

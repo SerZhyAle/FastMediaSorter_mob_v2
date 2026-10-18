@@ -22,8 +22,6 @@
         android:id="@+id/rowStreamTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:focusable="true"
-        android:clickable="true"
         app:sir_title="@string/settings_broadcast_stream_title"
         app:sir_hint="@string/broadcast_default_stream_title" />
 
@@ -49,8 +47,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
             android:layout_marginBottom="@dimen/margin_tiny"
-            android:focusable="true"
-            android:clickable="true"
             app:sir_title="@string/settings_broadcast_port"
             app:sir_inputType="2"
             app:sir_inline="true"

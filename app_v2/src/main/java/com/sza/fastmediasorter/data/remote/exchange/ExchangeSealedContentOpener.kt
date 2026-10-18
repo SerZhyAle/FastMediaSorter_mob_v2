@@ -1,8 +1,8 @@
-package com.sza.fastmediasorter.data.repository
+package com.sza.fastmediasorter.data.remote.exchange
 
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectory
+import com.sza.fastmediasorter.data.repository.ExchangeE2eRepository
 import com.sza.fastmediasorter.data.security.e2e.E2eBroadcastSeals
 import com.sza.fastmediasorter.data.security.e2e.E2eBytes
 import com.sza.fastmediasorter.data.security.e2e.E2eOpenFailure

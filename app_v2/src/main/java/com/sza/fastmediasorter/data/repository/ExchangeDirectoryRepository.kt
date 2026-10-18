@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.repository
 import com.sza.fastmediasorter.data.cloud.GoogleDriveSftpRendezvousDataSource
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectory
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectoryWatcher
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeSealedContentOpener
 import com.sza.fastmediasorter.data.repository.settings.SftpRendezvousIdentityStore
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.ExchangeDirectoryListing

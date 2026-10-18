@@ -49,11 +49,19 @@ $loggingDir = Join-Path $fixtureRoot 'wear/src/main/java/com/sza/fastmediasorter
 $otherDir = Join-Path $fixtureRoot 'app_v2/src/main/java/com/sza/fastmediasorter/data/files'
 $baseline = Join-Path $fixtureRoot 'baseline.txt'
 
+# The scoped path refuses a tree whose HEAD cannot be resolved (exit 2, CHECK-VERDICT rule 2.12), so the
+# fixture is a repository holding one empty commit: every fixture file is absent from HEAD, hence wholly new.
+function Initialize-FixtureRepo {
+    & git -C $fixtureRoot init --quiet 2>$null | Out-Null
+    & git -C $fixtureRoot -c user.name=fixture -c user.email=fixture@example.invalid -c commit.gpgsign=false commit --quiet --allow-empty -m fixture 2>$null | Out-Null
+}
+
 function Reset-Fixture {
     if (Test-Path -LiteralPath $fixtureRoot) { Remove-Item -LiteralPath $fixtureRoot -Recurse -Force }
     New-Item -ItemType Directory -Path $modelDir -Force | Out-Null
     New-Item -ItemType Directory -Path $loggingDir -Force | Out-Null
     New-Item -ItemType Directory -Path $otherDir -Force | Out-Null
+    Initialize-FixtureRepo
     Set-Content -LiteralPath $baseline -Value '0' -Encoding UTF8
 }
 

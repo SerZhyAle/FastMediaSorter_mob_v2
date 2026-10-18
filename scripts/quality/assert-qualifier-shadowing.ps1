@@ -51,6 +51,7 @@ $resRoot = Join-Path $repoRoot 'app_v2/src/main/res'
 
 if (-not (Test-Path $resRoot)) {
     Write-Error "assert-qualifier-shadowing: cannot run - resource root missing: $resRoot" -ErrorAction Continue
+    Write-Host 'assert-qualifier-shadowing: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 

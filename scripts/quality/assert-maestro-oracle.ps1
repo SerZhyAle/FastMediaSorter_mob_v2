@@ -81,6 +81,7 @@ $scanRoots = @(
 
 if ($scanRoots.Count -eq 0) {
     Write-Error 'assert-maestro-oracle: no Maestro flow directory found - nothing to verify.' -ErrorAction Continue
+    Write-Host 'assert-maestro-oracle: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -154,6 +155,7 @@ foreach ($root in $scanRoots) {
             $lines = Get-Content -LiteralPath $file.FullName
         } catch {
             Write-Error "assert-maestro-oracle: cannot read $rel - $($_.Exception.Message)" -ErrorAction Continue
+            Write-Host 'assert-maestro-oracle: COULD NOT VERIFY (see the error above)'
             exit 2
         }
 

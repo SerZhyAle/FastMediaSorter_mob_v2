@@ -39,6 +39,7 @@ $ErrorActionPreference = 'Stop'
 $generator = Join-Path (Split-Path -Parent $PSScriptRoot) 'wear/generate-wear-resource-icons.ps1'
 if (-not (Test-Path $generator)) {
     Write-Host "assert-resource-icon-parity: generator not found: $generator"
+    Write-Host 'assert-resource-icon-parity: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 

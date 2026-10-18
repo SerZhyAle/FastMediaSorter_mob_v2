@@ -199,9 +199,9 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnHelpHeader"
             style="@style/Widget.FastMediaSorter.Camera.OverlayButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
+            android:layout_width="@dimen/token_touch_target_min"
+            android:layout_height="@dimen/token_touch_target_min"
+            android:layout_marginStart="@dimen/token_spacing_8"
             android:contentDescription="@string/help"
             android:focusable="true"
             android:minWidth="0dp"

@@ -33,7 +33,7 @@ $docDir   = Join-Path $repoRoot 'docs/icons/doc'
 $fail = 0
 function Bad([string]$m) { Write-Host "  FAIL: $m" -ForegroundColor Red; $script:fail++ }
 
-if (-not (Test-Path $mapPath)) { Write-Host "doc-icons-sync: map missing"; exit 2 }
+if (-not (Test-Path $mapPath)) { Write-Host "doc-icons-sync: map missing"; Write-Host 'assert-doc-icons-sync: COULD NOT VERIFY (see the error above)'; exit 2 }
 $map = Get-Content -LiteralPath $mapPath -Raw | ConvertFrom-Json
 
 # 1 + 2: map <-> asset coverage.

@@ -49,6 +49,7 @@ try {
 }
 catch {
     Write-Error $_.Exception.Message -ErrorAction Continue
+    Write-Host 'assert-ticket-acceptance-probes: COULD NOT VERIFY (the contract scan raised an error)'
     exit 2
 }
 
@@ -61,5 +62,6 @@ if (-not $Quiet -and $failures.Count -gt 0) {
 }
 Write-Host ("assert-ticket-acceptance-probes: expected: 0 | actual: {0} (contracts: {1})" -f $failures.Count, $results.Count)
 
-if ($Gate -and $failures.Count -gt 0) { exit 1 }
+if ($Gate -and $failures.Count -gt 0) { Write-Host "assert-ticket-acceptance-probes: FAIL ($($failures.Count) contract(s) failed)"; exit 1 }
+Write-Host ("assert-ticket-acceptance-probes: PASS ({0} contract(s){1})" -f $results.Count, $(if ($failures.Count -gt 0) { '; report mode, -Gate not set' } else { '' }))
 exit 0

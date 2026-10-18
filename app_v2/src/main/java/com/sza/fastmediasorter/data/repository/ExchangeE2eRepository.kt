@@ -1,11 +1,11 @@
 package com.sza.fastmediasorter.data.repository
 
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeE2eKeyStore
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeSealing
 import com.sza.fastmediasorter.data.repository.settings.ExchangeE2eTrustStore
 import com.sza.fastmediasorter.data.security.e2e.E2eDeviceKey
 import com.sza.fastmediasorter.data.security.e2e.E2ePeer
 import com.sza.fastmediasorter.data.security.e2e.E2ePeerState
-import com.sza.fastmediasorter.data.security.e2e.E2eRecipient
 import com.sza.fastmediasorter.data.security.e2e.E2eRecipients
 import com.sza.fastmediasorter.data.security.e2e.E2eSelf
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
@@ -13,18 +13,6 @@ import com.sza.fastmediasorter.domain.model.ExchangeSealState
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import javax.inject.Inject
 import javax.inject.Singleton
-
-/** Who a box of one entry goes to, and how each listed device stands (contract items DG and DR). */
-class ExchangeSealing(
-    /** This device as a sender and reader; null for an entry enrolled before 0.29, which seals nothing. */
-    val self: E2eSelf?,
-    val recipients: List<E2eRecipient>,
-    val states: Map<String, ExchangeSealState>,
-    private val trusted: Map<String, String>,
-) {
-    /** The opening check of item DH: [fromKey] is the key this device trusts for [from]. */
-    fun trusts(from: String, fromKey: ByteArray): Boolean = E2eRecipients.trusts(trusted, from, fromKey)
-}
 
 /**
  * The phone's side of the trust rules: the entry's own key, the keys it trusts, and the recipients it seals to,
@@ -59,7 +47,8 @@ class ExchangeE2eRepository @Inject constructor(
         return ExchangeSealing(self, recipients, states, trusted)
     }
 
-    suspend fun grantSenders(entry: DeviceExchangeAccountEntry): Map<String, String> = trust.grantSenders(entry.deviceId)
+    suspend fun grantSenders(entry: DeviceExchangeAccountEntry): Map<String, String> =
+        trust.grantSenders(entry.deviceId)
 
     suspend fun learnGrantSenders(entry: DeviceExchangeAccountEntry, firstSeen: Map<String, String>) =
         trust.learnGrantSenders(entry.deviceId, firstSeen)

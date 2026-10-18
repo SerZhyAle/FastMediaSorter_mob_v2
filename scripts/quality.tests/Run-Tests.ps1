@@ -57,17 +57,20 @@ $failed = 0
 $cannotVerify = 0
 $advisories = 0
 $notApplicable = 0
+$deciders = [System.Collections.Generic.List[string]]::new()
 
 foreach ($file in $testFiles) {
     $childOutput = @(& $pwshExe -NoProfile -NonInteractive -File $file.FullName 2>&1)
     $code = [int]$LASTEXITCODE
     foreach ($line in $childOutput) { Write-Host "$line" }
+    $childWord = ''
+    if ($childOutput.Count -gt 0 -and [string]$childOutput[-1] -cmatch '^[^:\r\n]+: (PASS WITH ADVISORIES|COULD NOT VERIFY|NOT APPLICABLE|PASS|FAIL)(?:\s|\(|$)') {
+        $childWord = $Matches[1]
+    }
 
     $verdict = switch ($code) {
         0 {
-            if ($childOutput.Count -gt 0 -and [string]$childOutput[-1] -match ': NOT APPLICABLE(?:\s|\(|$)') {
-                'NOT APPLICABLE'
-            } else { 'PASS' }
+            if ($childWord) { $childWord } else { 'COULD NOT VERIFY' }
         }
         2 { 'COULD NOT VERIFY' }
         3 { 'PASS WITH ADVISORIES' }
@@ -86,6 +89,9 @@ foreach ($file in $testFiles) {
     elseif ($verdict -eq 'COULD NOT VERIFY') { $cannotVerify++ }
     elseif ($verdict -eq 'PASS WITH ADVISORIES') { $advisories++ }
     elseif ($verdict -eq 'NOT APPLICABLE') { $notApplicable++ }
+    if ($verdict -in @('FAIL', 'COULD NOT VERIFY', 'PASS WITH ADVISORIES')) {
+        $deciders.Add("$($file.Name)=$verdict")
+    }
 
     Write-Host ("SUITE | {0,-13} | {1} | exit {2}" -f $verdict, $file.Name, $code) -ForegroundColor $colour
 }
@@ -95,7 +101,7 @@ $word = if ($failed -gt 0) { 'FAIL' }
     elseif ($advisories -gt 0) { 'PASS WITH ADVISORIES' }
     elseif ($notApplicable -eq $testFiles.Count) { 'NOT APPLICABLE' }
     else { 'PASS' }
-Write-Host "quality.tests: $word ($($testFiles.Count) child checks; failed=$failed; unverified=$cannotVerify; advisory=$advisories; disabled=$notApplicable)" -ForegroundColor Cyan
+Write-Host "quality.tests: $word ($($testFiles.Count) child checks; failed=$failed; unverified=$cannotVerify; advisory=$advisories; disabled=$notApplicable; decisive=[$($deciders -join ', ')])" -ForegroundColor Cyan
 
 if ($failed -gt 0) { exit 1 }
 if ($cannotVerify -gt 0) { exit 2 }

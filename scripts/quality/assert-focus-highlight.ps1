@@ -90,7 +90,8 @@ $rxElement = [regex]'(?s)<([A-Za-z][\w.]*)\b([^>]*?)/?>'
 $intrinsicFocus = @(
     'Button', 'ImageButton', 'MaterialButton', 'ExtendedFloatingActionButton',
     'FloatingActionButton', 'Chip', 'ChipGroup',
-    'EditText', 'TextInputEditText', 'AutoCompleteTextView', 'MultiAutoCompleteTextView',
+    'EditText', 'TextInputEditText', 'SafeSelectionTextInputEditText',
+    'AutoCompleteTextView', 'MultiAutoCompleteTextView',
     'MaterialAutoCompleteTextView',
     'CheckBox', 'MaterialCheckBox', 'RadioButton', 'MaterialRadioButton',
     'Switch', 'SwitchCompat', 'SwitchMaterial', 'ToggleButton', 'CheckedTextView',
@@ -138,6 +139,11 @@ $materialCardForegroundPattern = [regex]'(?s)<com\.google\.android\.material\.ca
 function Test-Covered([string]$attrs, [string]$shortTag) {
     if ($intrinsicFocus -contains $shortTag) { return $true }
     if ($customFocusViews -contains $shortTag) { return $true }
+    # Only value-as-text mode makes the dropdown wrapper its own trigger and installs a ripple.
+    # The ordinary compound row delegates focus to its inner Material field instead.
+    if ($shortTag -eq 'SettingsDropdownRow' -and $attrs -match 'app:sdr_valueAsText\s*=\s*"true"') {
+        return $true
+    }
     # Custom subclasses of intrinsically-focusable widgets (e.g. VerticalSeekBar, a
     # *Switch) inherit the framework thumb/track focus rendering.
     if ($shortTag -match '(SeekBar|Switch)$') { return $true }
@@ -236,10 +242,15 @@ if ($named.Count -gt 0) {
     # interactive element to judge.
     $layouts = @($subject | Where-Object { $_ -match '/res/layout[^/]*/' })
     if ($layouts.Count -eq 0) {
-        Write-Host 'focus-highlight [scoped]: no app_v2 layout in the changed set - nothing to judge.'
-        Write-Host 'assert-focus-highlight: PASS (scoped).'
+        $note = 'focus-highlight [scoped]: no app_v2 layout in the changed set - nothing to judge.'
+        if ($subject.Count -eq 0) { Write-EmptySetPass -GateName 'assert-focus-highlight' -Note $note }
+        else {
+            Write-Host $note
+            Write-Host ("assert-focus-highlight: PASS ({0} file(s) inspected)" -f $subject.Count)
+        }
         exit 0
     }
+    Assert-GitHeadResolvable -GateName 'assert-focus-highlight' -RepoRoot $repoRoot
 
     $growth = Measure-ChangedFileGrowth `
         -ChangedFiles $layouts `

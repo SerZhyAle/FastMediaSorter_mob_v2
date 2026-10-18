@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearAccountFolder
 import com.sza.fastmediasorter.wear.domain.model.WearEndpoint
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -35,7 +36,7 @@ class AttachAccountFolderUseCase @Inject constructor(
         } ?: incoming
         repository.upsertSource(applied)
         Timber.i("Account folder attached (updated=%s)", existing != null)
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 
     companion object {
         /** The SFTP source a folder opens as: first host as server, the whole host list as its address group. */

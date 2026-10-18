@@ -70,6 +70,7 @@ elseif (-not [IO.Path]::IsPathRooted($ManifestPath)) { $ManifestPath = Join-Path
 
 if (-not (Test-Path -LiteralPath $ManifestPath -PathType Leaf)) {
     Write-Error "assert-android-xr-manifest: manifest not found: $ManifestPath" -ErrorAction Continue
+    Write-Host 'assert-android-xr-manifest: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -79,6 +80,7 @@ try {
 }
 catch {
     Write-Error "assert-android-xr-manifest: not well-formed XML: $ManifestPath - $($_.Exception.Message)" -ErrorAction Continue
+    Write-Host 'assert-android-xr-manifest: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -164,6 +166,7 @@ if ($ChangedFiles) {
     $touched = @($set | Where-Object { $p = $_; $inputs | Where-Object { $p -like "*$_" } })
     if ($touched.Count -eq 0) {
         Write-Host "assert-android-xr-manifest: $($findings.Count) finding(s) in $relative, which this change does not touch"
+        Write-Host 'assert-android-xr-manifest: PASS WITH ADVISORIES (see the findings above)'
         exit 3
     }
 }

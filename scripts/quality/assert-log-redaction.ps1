@@ -147,6 +147,11 @@ $countInText = {
 # Scoped run: judge what the changed files introduced against their HEAD copies.
 # ---------------------------------------------------------------------------
 if ($Gate -and $ChangedFiles -and (@(Expand-ChangedFiles -ChangedFiles $ChangedFiles).Count -gt 0)) {
+    if (@(Expand-ChangedFiles -ChangedFiles $ChangedFiles | Where-Object { $_ -match '\.kt$' }).Count -eq 0) {
+        Write-EmptySetPass -GateName 'assert-log-redaction'
+        exit 0
+    }
+    Assert-GitHeadResolvable -GateName 'assert-log-redaction' -RepoRoot $repoRoot
     $delta = Measure-ChangedFileGrowth -ChangedFiles $ChangedFiles -RepoRoot $repoRoot -Extensions @('.kt') -CountInText $countInText
     Write-Host ("log-redaction (changed set): new occurrence(s) {0}" -f $delta.Growth)
     if ($delta.Growth -gt 0) {

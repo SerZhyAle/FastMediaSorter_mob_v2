@@ -46,9 +46,11 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
      reached 142.8 s and were preempted into the background twice, delivering the verdict the way
      Rule 26 forbids. S2451 made the children concurrent - 117 s -> 32 s, same gates, same verdicts -
      so the margin is real again, but it is now bounded by the slowest single gate rather than by
-     the batch's size. -->
+     the batch's size. The `assert-detekt.ps1 -Module app_v2` row below was re-measured on
+     2026-10-18: median 47.2 s over 6 journalled runs (it read 20.3 s before) - still far under
+     the 120 s threshold, so the verdict is unchanged. -->
 
-| `assert-detekt.ps1 -Module app_v2` | 20.3 s | foreground |
+| `assert-detekt.ps1 -Module app_v2` | 47.2 s | foreground |
 | `detekt-scoped.ps1 -ChangedFiles <1 file>` | 2.1 s | foreground |
 | `detekt-scoped.ps1 -ChangedFiles <2 files>` | 3.3 s | foreground |
 | `detekt-preflight` step inside `post-change.ps1` | 3.1 s | foreground |

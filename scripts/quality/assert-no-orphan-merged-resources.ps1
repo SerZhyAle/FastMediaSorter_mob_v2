@@ -174,4 +174,5 @@ if ($Fix) {
     Write-Host "assert-no-orphan-merged-resources: removed $($orphans.Count) artifact(s) and the incremental merge state - rebuild to re-merge." -ForegroundColor Yellow
 }
 
+Write-Host 'assert-no-orphan-merged-resources: FAIL (see the findings above)'
 exit 1

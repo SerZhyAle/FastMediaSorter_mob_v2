@@ -336,6 +336,7 @@ if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
         $why = 'assert-detekt: cannot narrow - the detekt report predates the changed files, so it ' +
         'describes a different tree. Fix the gradle failure above, then re-run.'
         Write-Error $why -ErrorAction Continue
+        Write-Host 'assert-detekt: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     $report = Get-DetektFindings -RepoRoot $repoRoot -Modules $reportModules
@@ -347,6 +348,7 @@ if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
         $why = "assert-detekt: cannot narrow a project-wide detekt failure - $($report.Reason). " +
         'Re-run detekt so the report exists; refusing to report PASS without reading it.'
         Write-Error $why -ErrorAction Continue
+        Write-Host 'assert-detekt: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     $findingFiles = @(@($report.Findings) | ForEach-Object { $_.File } | Select-Object -Unique)

@@ -11,4 +11,7 @@
     <string name="browse_network_error_timeout">Keine Antwort in der Zeit. Prüfen Sie das Netzwerk und versuchen Sie es erneut.</string>
     <string name="browse_network_error_auth">Falscher Benutzername oder falsches Passwort. Aktualisieren Sie die Ressource auf Ihrem Telefon.</string>
     <string name="browse_network_error_unknown_host">Computer in diesem Netzwerk nicht gefunden. Wi-Fi prüfen.</string>
+    <string name="exchange_folder_needs_own_network">Dieser Ordner öffnet sich nur über das eigene Wi-Fi oder LTE der Uhr. Schalte Wi-Fi oder LTE auf der Uhr ein.</string>
+    <string name="exchange_folder_pin_on_phone">Dieser Ordner ist geschützt, die PIN wird auf dem Telefon eingegeben. Öffne den Ordner auf dem Telefon und gib die PIN ein.</string>
+    <string name="exchange_folder_connect_watch_on_phone">Unterwegs braucht dieser Ordner eine Verbindung der Uhr zum Server. Verbinde die Uhr über das Telefon.</string>
 </resources>

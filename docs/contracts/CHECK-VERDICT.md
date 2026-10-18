@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.18 17:45</sub>
+<sub class="doc-stamp">26.10.18 22:13</sub>
 
 # Pointer - `CHECK-VERDICT`
 
@@ -14,8 +14,10 @@
 - Four exit codes with fixed meanings; exit `2` prints `COULD NOT VERIFY` and is never collapsed into
   a pass (rules 1, 2, 5).
 - `4` means only "queued on a lock domain, nothing looked at"; the closure facade converts it to `2`.
-- Every `assert-*` check names itself on a `PASS` / `FAIL` verdict line; the legacy residue is the
-  shrink-only `scripts/quality/verdict-line-baseline.txt`.
+- Every `assert-*` check names itself on a `PASS` / `FAIL` verdict line; the two rows left in the
+  shrink-only `scripts/quality/verdict-line-baseline.txt` are advisory-only checks with no failing path.
+  Rule H of the gate also refuses an `exit 1`, `exit 2` or `exit 3` that has no verdict line of its own
+  above it (rule 11).
 - Every non-zero exit prints its reason, and every documented code is reachable.
 - One machine-readable verdict line, the last line on stdout, owed on every path that sets a code,
   the failure path included; advisories are named, not counted (rules 5, 11).
@@ -23,13 +25,19 @@
   run that executed no tests, is `2` (rule 12).
 - A wrapper over a runner that reports skips as passes counts the skips, prints the count, and makes
   a skip over a declared input `2` (rule 13).
+- Test count writers use `run=N skipped=M`; executed tests include failures and exclude skips
+  (0.13). Rule G rejects new legacy writers and stale entries in `test-count-baseline.txt`.
 - An aggregator quotes its children's verdict lines and answers FAIL, then COULD NOT VERIFY, then
   PASS WITH ADVISORIES, then PASS (rule 14).
 - A wrapper of a product command maps each of its outcomes to `0`, `1`, `2` or `3` on purpose
   (rule 15).
 - A check whose work the caller deliberately switched off exits `0` and ends `<subject>: NOT APPLICABLE`;
   one whose work was requested and did not run stays `2` (0.12, section 10 item A). An aggregator whose
-  quoted children all answered it answers it, and counts such a child with the skipped.
+  quoted children all answered it answers it, and counts such a child with the skipped. The release-scope
+  runner declares an unbuilt VR or wear APK and an unreachable delivery release optional by passing the
+  gate's `-AllowMissingArtifact` / `-AllowOffline`, and the fast-gates batch declares a clone with no
+  contracts catalog acceptable by passing `-AllowNoCatalog` to the stream asset gate; run plainly, the
+  same gate is `2`.
 - Only a change set the caller declared narrows a finding to the advisory class; a set a check derives
   for itself does not (0.12, section 10 item B).
 

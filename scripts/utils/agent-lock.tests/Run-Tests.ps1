@@ -26,8 +26,9 @@
 
 .NOTES
     Exit codes:
-      0 - every case passed.
+      0 - at least one case executed and every executed case passed.
       1 - a case failed.
+      2 - no test executed.
 #>
 [CmdletBinding()]
 param()
@@ -1106,8 +1107,8 @@ $guardSource = Get-Content -LiteralPath $agentLockSourcePath -Raw
         Write-Output "agent-lock tests: FAIL (run=$script:caseCount skipped=$totalSkipped)"
         exit 1
     }
-    Write-Output "agent-lock tests: PASS (run=$script:caseCount skipped=$totalSkipped)"
-    exit 0
+    Write-Output "agent-lock tests: $(if ($script:caseCount -eq 0) { 'COULD NOT VERIFY' } else { 'PASS' }) (run=$script:caseCount skipped=$totalSkipped)"
+    exit $(if ($script:caseCount -eq 0) { 2 } else { 0 })
 }
 finally {
     $env:JAVA_HOME = $originalJavaHome

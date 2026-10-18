@@ -320,14 +320,14 @@
                 android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
-                android:paddingStart="4dp"
-                android:paddingEnd="8dp"
+                android:paddingStart="@dimen/token_spacing_4"
+                android:paddingEnd="@dimen/token_spacing_8"
                 android:text=""
+                android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Title"
                 android:textColor="?attr/colorControlNormal"
-                android:textSize="16sp"
                 app:icon="@drawable/ic_help_outline"
                 app:iconGravity="textStart"
-                app:iconPadding="4dp"
+                app:iconPadding="@dimen/token_spacing_4"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconTint="?attr/colorControlNormal" />
 

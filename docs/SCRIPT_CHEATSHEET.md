@@ -888,7 +888,7 @@ scripts/builders/check-lint-rules.ps1
   Params:
     -Tests         [String]
     -Quiet         [SwitchParameter]
-  Exit: 0 - the suite ran and passed.; 2 - the run reported success but produced no test-result XML, so nothing was actually
+  Exit: 0 - the suite ran and passed.; 1 - Gradle reported a build/test failure, or a structured report records failures/errors.; 2 - missing/unreadable reports, zero executed tests, skipped declared tests, a worker death,; 4 - queued on the build lock; nothing inspected.
 ```
 
 ### check-lint.ps1
@@ -1143,6 +1143,17 @@ scripts/builders/build-sbom.tests/Run-Tests.ps1
   (no param block)
 ```
 
+## scripts\builders\check-lint-rules.tests
+
+### Run-Tests.ps1
+Subject: scripts/builders/lib/lint-rules-test-outcome.ps1, scripts/builders/gradle-run-verdict.ps1
+
+```
+scripts/builders/check-lint-rules.tests/Run-Tests.ps1
+  Subject: scripts/builders/lib/lint-rules-test-outcome.ps1, scripts/builders/gradle-run-verdict.ps1
+  (no param block)
+```
+
 ## scripts\builders\device-build-mode.tests
 
 ### Run-Tests.ps1
@@ -1199,6 +1210,15 @@ Contract set for gradle-worker-reaper.ps1 - the selection rule and the stop.
 ```
 scripts/builders/gradle-worker-reaper.tests/Run-Tests.ps1
   Contract set for gradle-worker-reaper.ps1 - the selection rule and the stop.
+  (no param block)
+```
+
+## scripts\builders\lib
+
+### lint-rules-test-outcome.ps1
+
+```
+scripts/builders/lib/lint-rules-test-outcome.ps1
   (no param block)
 ```
 
@@ -3412,9 +3432,11 @@ scripts/post-change.tests/Run-Tests.ps1
 ## scripts\quality
 
 ### assert-16kb-alignment.ps1
+Asserts every shipped 64-bit native .so is 16 KB page-size aligned (S1149).
 
 ```
 scripts/quality/assert-16kb-alignment.ps1
+  Asserts every shipped 64-bit native .so is 16 KB page-size aligned (S1149).
   Params:
     -ScanRoot         [String[]]
     -Readelf          [String]
@@ -3712,6 +3734,7 @@ scripts/quality/assert-delivery-size-estimates.ps1
   Params:
     -Quiet                    [SwitchParameter]
     -AllowOffline             [SwitchParameter]
+    -GhPath                   [String]
     -TolerancePercent         [Double] = 25.0
   Exit: 0 - every compiled fallback is within tolerance of its published asset, or -AllowOffline was
 ```
@@ -4072,7 +4095,7 @@ scripts/quality/assert-exit-contract.ps1
     -Path                   [String] = ''
     -Quiet                  [SwitchParameter]
     -ReasonBaseline         [Int32] = -1
-  Exit: 0 - no unreachable exit site, no silent script, Rule C at or below baseline,
+  Exit: 96 sites in 49 of 169 checks. No baseline: S4367 gave every one its line.
 ```
 
 ### assert-fast-gates.ps1
@@ -4405,7 +4428,7 @@ scripts/quality/assert-icon-style.ps1
     -Gate                 [SwitchParameter]
     -Quiet                [SwitchParameter]
     -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-  Exit: 0 - every judged glyph holds the style or is excused; no stale exception (full run).; 1 - a glyph breaks a rule nobody excused, or an exception is stale.; 2 - could not verify: no repo venv, the measure failed, or a drawable could not be converted.; 3 - advisory: -ChangedFiles carries no product glyph, dimens, layout, exceptions file or rule
+  Exit: 0 - every judged glyph holds the style or is excused; no stale exception (full run). A
 ```
 
 ### assert-install-trust.ps1
@@ -5381,11 +5404,12 @@ Contract gate: every pinned stream-catalog asset the publisher still owns must k
 scripts/quality/assert-stream-asset-revisions.ps1
   Contract gate: every pinned stream-catalog asset the publisher still owns must keep being published.
   Params:
-    -Gate                [SwitchParameter]
-    -Quiet               [SwitchParameter]
-    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
-  Exit: 0 every `default` pinned asset is still produced by the publisher.; 1 a pinned asset marked `default` would stop being published - the run is refused.; 2 the gate itself cannot run: the publisher is missing, the markers are absent, the
+    -Gate                   [SwitchParameter]
+    -Quiet                  [SwitchParameter]
+    -AllowNoCatalog         [SwitchParameter]
+    -RepoRoot               [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -CatalogRoot            [String] = $env:FMS_CONTRACTS_ROOT
+  Exit: 0 every `default` pinned asset is still produced by the publisher; or NOT APPLICABLE
 ```
 
 ### assert-stream-facet-values.ps1
@@ -5640,7 +5664,7 @@ scripts/quality/assert-wear-phone-identity-parity.ps1
     -PhoneStoreFileOverride             [String]
     -WearStoreFileOverride              [String]
     -Gate                               [SwitchParameter]
-  Exit: 0 - parity holds on every comparison that could run, OR an input could not be
+  Exit: 0 - parity holds and every comparison ran (application id and release signing).; 1 - at least one comparison mismatches; output names both values of the pair. A mismatch that; 2 - could not verify (CHECK-VERDICT 0.12 item A.2): an override parameter passed empty, a module
 ```
 
 ### assert-wear-record-merge-parity.ps1
@@ -6122,6 +6146,17 @@ scripts/quality/summarize-audit-slices.ps1
   Exit: 0 - campaign closed: every slice Verified or Archived, 0 uncovered, 0 duplicated, no P0/P1 without action, no unlanded assignment.; 3 - campaign open: at least one slice open or not created, an uncovered file, a P0/P1 without action, a shallow slice or an unlanded assignment; the report is still written.; 2 - cannot verify: the manifest, the catalog or a child's spec file cannot be read, the schema or the parent does not match, or an unexpected error ended the run.
 ```
 
+## scripts\quality-dispatcher.tests
+
+### Run-Tests.ps1
+Subject: scripts/quality.tests/Run-Tests.ps1
+
+```
+scripts/quality-dispatcher.tests/Run-Tests.ps1
+  Subject: scripts/quality.tests/Run-Tests.ps1
+  (no param block)
+```
+
 ## scripts\quality.tests
 
 ### android-string-liveness.Tests.ps1
@@ -6134,11 +6169,11 @@ scripts/quality.tests/android-string-liveness.Tests.ps1
 ```
 
 ### ArtifactCheckVerdicts.Tests.ps1
-S4367: tests for the exit-0 paths CHECK-VERDICT 0.12 item A.2 made exit 2 - the artifact and tool checks assert-16kb-alignment, assert-meta-packaging-limits, assert-wear-64bit-abi and assert-codex-transcript-hygiene - and for the release-scope runner's opt-in flag.
+S4367, S4379: tests for the exit-0 paths CHECK-VERDICT 0.12 item A.2 made exit 2 - the artifact and tool checks assert-16kb-alignment, assert-meta-packaging-limits, assert-wear-64bit-abi and assert-codex-transcript-hygiene, then assert-wear-phone-identity-parity and assert-stream-asset-revisions - for the opt-in flags the batch runners pass, and for the empty determined set of assert-icon-style.
 
 ```
 scripts/quality.tests/ArtifactCheckVerdicts.Tests.ps1
-  S4367: tests for the exit-0 paths CHECK-VERDICT 0.12 item A.2 made exit 2 - the artifact and tool checks assert-16kb-alignment, assert-meta-packaging-limits, assert-wear-64bit-abi and assert-codex-transcript-hygiene - and for the release-scope runner's opt-in flag.
+  S4367, S4379: tests for the exit-0 paths CHECK-VERDICT 0.12 item A.2 made exit 2 - the artifact and tool checks assert-16kb-alignment, assert-meta-packaging-limits, assert-wear-64bit-abi and assert-codex-transcript-hygiene, then assert-wear-phone-identity-parity and assert-stream-asset-revisions - for the opt-in flags the batch runners pass, and for the empty determined set of assert-icon-style.
   (no param block)
   Exit: 0 every test passed.; 1 at least one test failed.
 ```
@@ -6336,8 +6371,9 @@ S2126: entry point for the quality.tests suite - runs each sibling *.Tests.ps1 i
 ```
 scripts/quality.tests/Run-Tests.ps1
   S2126: entry point for the quality.tests suite - runs each sibling *.Tests.ps1 in its own process.
-  (no param block)
-  Exit: 0 every test file passed, or the folder holds no test file.; 1 at least one test file failed.; 2 no test file failed, but at least one could not verify its environment.
+  Params:
+    -TestRoot         [String] = $PSScriptRoot
+  Exit: 0 every test file passed or was deliberately disabled.; 1 at least one test file failed.; 2 no test file failed, but a file could not verify, queued, or discovery found no test files.; 3 no file failed or could not verify, but at least one reported an advisory.
 ```
 
 ### seed-locale-fingerprints.Tests.ps1
@@ -8767,7 +8803,7 @@ Regression suite for scripts/spec_catalog/archive.ps1 - the one-process batch pa
 scripts/spec_catalog/archive.tests/Run-Tests.ps1
   Regression suite for scripts/spec_catalog/archive.ps1 - the one-process batch path (S2400).
   (no param block)
-  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared, or no test executed.
 ```
 
 ## scripts\spec_catalog\assert-closing-gates.tests
@@ -8779,7 +8815,7 @@ Run-Tests.ps1 (S2656) - regression suite for WHICH checkers Assert-ClosingGates 
 scripts/spec_catalog/assert-closing-gates.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2656) - regression suite for WHICH checkers Assert-ClosingGates runs on a
   (no param block)
-  Exit: 0 every case passed (skips are not failures).; 1 at least one case failed.; 2 could not look - the harness _lib.ps1 did not resolve, or the catalog is unreadable.
+  Exit: 0 every case passed (skips are not failures).; 1 at least one case failed.; 2 could not look - unresolved harness, unreadable catalog, or no executed test.
 ```
 
 ## scripts\spec_catalog\check-audit-recorded.tests
@@ -8803,7 +8839,7 @@ Run-Tests.ps1 (S2581) - regression suite for scripts/spec_catalog/check-block-no
 scripts/spec_catalog/check-block-note.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2581) - regression suite for scripts/spec_catalog/check-block-note.ps1 and the
   (no param block)
-  Exit: 0 all cases pass (or the resolved harness predates the fix and they were skipped).; 1 at least one case failed.; 2 the fixtures could not be prepared.
+  Exit: 0 at least one case executed and all executed cases passed.; 1 at least one case failed.; 2 the fixtures could not be prepared, or no test executed.
 ```
 
 ## scripts\spec_catalog\check-headings-unique.tests
@@ -8910,7 +8946,7 @@ Subject: scripts/spec_catalog/update.ps1, scripts/spec_catalog/close.ps1
 scripts/spec_catalog/spec-header-sync.tests/Run-Tests.ps1
   Subject: scripts/spec_catalog/update.ps1, scripts/spec_catalog/close.ps1
   (no param block)
-  Exit: 1 = a contract failed,; 2 = could not verify (harness unresolvable, fixture could not be built).
+  Exit: 1 = a contract failed,; 2 = could not verify (harness unresolvable or too old, fixture could not be built).
 ```
 
 ## scripts\spec_catalog\spec-next-preflight.tests
@@ -8946,7 +8982,7 @@ Contract suite for ticket leases (S2404): the handoff identity channel.
 scripts/spec_catalog/ticket-lease.tests/Run-Tests.ps1
   Contract suite for ticket leases (S2404): the handoff identity channel.
   (no param block)
-  Exit: 0 - every case passed; the sandbox is deleted.; 1 - at least one case failed; the sandbox is kept and its path printed.; 2 - the sandbox could not be prepared.
+  Exit: 0 - every case passed; the sandbox is deleted.; 1 - at least one case failed; the sandbox is kept and its path printed.; 2 - the sandbox could not be prepared, or no test executed.
 ```
 
 ## scripts\spec_catalog\update.tests
@@ -9066,7 +9102,7 @@ S2126: entry point for the streams.tests suite - runs the folder's Pester specs.
 scripts/streams.tests/Run-Tests.ps1
   S2126: entry point for the streams.tests suite - runs the folder's Pester specs.
   (no param block)
-  Exit: 0 every Pester test passed.; 1 at least one Pester test failed.; 2 could not verify - the Pester module is not installed.
+  Exit: 0 every Pester test passed.; 1 at least one Pester test failed.; 2 could not verify - missing Pester, zero executed tests, or skipped declared tests.
 ```
 
 ### StreamPublisher.Artwork.Tests.ps1
@@ -10534,7 +10570,7 @@ Regression tests for agent-lock.ps1: the domain taxonomy (S2109), the stale-JAVA
 scripts/utils/agent-lock.tests/Run-Tests.ps1
   Regression tests for agent-lock.ps1: the domain taxonomy (S2109), the stale-JAVA_HOME snapshot repair (S1928), the BUILD.LOCK fail-fast refusal's exit code (S2058) and the two liveness keep-signals of S2408 (a running owner process; a session writing only into its subagent subtree).
   (no param block)
-  Exit: 0 - every case passed.; 1 - a case failed.
+  Exit: 0 - at least one case executed and every executed case passed.; 1 - a case failed.; 2 - no test executed.
 ```
 
 ## scripts\utils\agent-watchdog.tests
@@ -10814,7 +10850,7 @@ Regression tests for the queue runner: the idle-run series (S2695) and the per-i
 scripts/utils/run-spec-queue.tests/Run-Tests.ps1
   Regression tests for the queue runner: the idle-run series (S2695) and the per-instance child invocation - command, argument template and their fallbacks (S2698).
   (no param block)
-  Exit: 0 - every case passed, or the resolved harness predates a fix and its cases were skipped.; 1 - a case failed.
+  Exit: 0 - at least one case executed and every executed case passed.; 1 - a case failed.; 2 - no test executed.
 ```
 
 ## scripts\utils\script-help-text.tests
