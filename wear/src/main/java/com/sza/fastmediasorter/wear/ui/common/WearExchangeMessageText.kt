@@ -38,6 +38,7 @@ private val MESSAGE_RES: Map<WearExchangeMessage, Int> = mapOf(
     WearExchangeMessage.E2E_MISSING to R.string.wear_exchange_reason_e2e_missing,
     WearExchangeMessage.SERVER_NO_E2E to R.string.wear_exchange_reason_server_no_e2e,
     WearExchangeMessage.SEALED_FAILED to R.string.wear_exchange_reason_sealed_failed,
+    WearExchangeMessage.FORMAT_UNSUPPORTED to R.string.wear_exchange_reason_format_unsupported,
     WearExchangeMessage.REFUSED to R.string.wear_exchange_reason_refused,
 )
 

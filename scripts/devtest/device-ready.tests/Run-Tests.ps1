@@ -206,7 +206,7 @@ finally {
 }
 
 Write-Host ''
-Write-Host "device-ready.tests: $script:passed passed, $([Math]::Max($script:failed, 0)) failed"
+Write-Host "device-ready.tests: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"
 if ($script:failed -lt 0) { exit 2 }
 if ($script:failed -gt 0) { exit 1 }
 exit 0

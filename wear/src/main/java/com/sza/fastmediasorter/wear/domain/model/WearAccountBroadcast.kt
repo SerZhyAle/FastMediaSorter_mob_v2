@@ -13,13 +13,17 @@ data class WearAccountBroadcast(
     val isProtected: Boolean,
     /** False for a mode the watch does not decode, or a protected one with no endpoint it can answer (item CH). */
     val isPlayable: Boolean,
+    /** True when the broadcast descriptor carries an unsupported schemaVersion (LIVE-BROADCAST 1.1). */
+    val isFormatUnsupported: Boolean = false,
 ) {
 
     val isVideo: Boolean
         get() = mode?.uppercase() in VIDEO_MODES
 
     // DEVICE-EXCHANGE 7.9: a broadcast id is a capability and a log names it by a hash only.
-    override fun toString(): String = "WearAccountBroadcast(mode=$mode, protected=$isProtected, playable=$isPlayable)"
+    override fun toString(): String =
+        "WearAccountBroadcast(mode=$mode, protected=$isProtected, playable=$isPlayable, " +
+            "formatUnsupported=$isFormatUnsupported)"
 
     private companion object {
         val VIDEO_MODES = setOf("VIDEO_AUDIO", "VIDEO_ONLY")

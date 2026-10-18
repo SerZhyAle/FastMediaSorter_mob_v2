@@ -216,5 +216,5 @@ Assert-That 'an absent journal is could-not-verify, not a finding' ([int]$LASTEX
 if (Test-Path -LiteralPath $scratch) { Remove-Item -LiteralPath $scratch -Recurse -Force }
 
 Write-Host ""
-Write-Host ("measure-gate-frequency.tests: {0} passed, {1} failed." -f $script:pass, $script:fail) -ForegroundColor ($script:fail -gt 0 ? 'Red' : 'Green')
+Write-Host "measure-gate-frequency.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 exit ($script:fail -gt 0 ? 1 : 0)

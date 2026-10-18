@@ -88,6 +88,8 @@ class WearAccountBroadcastRepositoryImpl @Inject constructor(
             .sortedWith(compareByDescending<WearBroadcasterGroup> { it.isOnline }.thenBy { it.deviceName.orEmpty() })
 
     private fun toRow(entryIdentity: String, record: WearDirectoryBroadcast): WearAccountBroadcast {
+        val schema = WearBroadcastEndpoints.schemaVersion(record.descriptor)
+        val formatUnsupported = schema > WearBroadcastEndpoints.SUPPORTED_SCHEMA_VERSION
         val isProtected = WearBroadcastEndpoints.isProtected(record.descriptor)
         val endpoints = WearBroadcastEndpoints.parse(
             record.broadcastId,
@@ -102,7 +104,8 @@ class WearAccountBroadcastRepositoryImpl @Inject constructor(
             title = record.title,
             mode = record.mode,
             isProtected = isProtected,
-            isPlayable = modeOk && (!isProtected || record.credentials != null),
+            isPlayable = !formatUnsupported && modeOk && (!isProtected || record.credentials != null),
+            isFormatUnsupported = formatUnsupported,
         )
     }
 

@@ -248,7 +248,6 @@ Write-Host ''
 # The skip count rides in the summary line rather than only in the SKIP notice above it: the gate
 # that runs this suite reports the last line, and "13 passed" and "0 passed, 13 skipped" must not
 # read the same.
-$skipNote = if ($script:skipped -gt 0) { ", $script:skipped case(s) skipped" } else { '' }
-Write-Host ("check-block-note: {0} passed, {1} failed{2}" -f $script:pass, $script:fail, $skipNote)
+Write-Host "check-block-note: $(if ($script:fail) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=$script:skipped)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

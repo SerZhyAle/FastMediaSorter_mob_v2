@@ -174,16 +174,20 @@ class MyDevicesViewModel @Inject constructor(
 
     fun intakeText(text: String): ExchangeIntakeOutcome = when (val kind = dispatchIntakeText.dispatch(text)) {
         is IntakeTextDispatch.ExchangeString -> ExchangeIntakeOutcome.Filled(kind.value)
-        is IntakeTextDispatch.NewerExchangeMajor -> ExchangeIntakeOutcome.Refused(R.string.exchange_signin_update_app)
+        is IntakeTextDispatch.NewerExchangeMajor -> formatUnsupported(kind.major)
         else -> ExchangeIntakeOutcome.Refused(R.string.exchange_signin_refused)
     }
 
     fun intakeFile(result: ExchangeConnectionStringResult): ExchangeIntakeOutcome = when (result) {
         is ExchangeConnectionStringResult.Read -> ExchangeIntakeOutcome.Filled(result.value)
-        is ExchangeConnectionStringResult.NewerMajor -> ExchangeIntakeOutcome.Refused(
-            R.string.exchange_signin_update_app
-        )
+        is ExchangeConnectionStringResult.NewerMajor -> formatUnsupported(result.major)
         is ExchangeConnectionStringResult.Refused -> ExchangeIntakeOutcome.Refused(R.string.exchange_signin_refused)
+    }
+
+    private fun formatUnsupported(major: Int): ExchangeIntakeOutcome {
+        Timber.i("DEVICE-EXCHANGE: connection string major %d refused as format-unsupported", major)
+        Timber.d("S4353: sign-in connection string refused as format-unsupported")
+        return ExchangeIntakeOutcome.Refused(ExchangeMessageText.what(ExchangeMessage.FORMAT_UNSUPPORTED))
     }
 
     suspend fun readConnectionFile(

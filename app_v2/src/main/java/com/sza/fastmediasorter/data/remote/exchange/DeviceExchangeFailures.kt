@@ -10,6 +10,12 @@ class DeviceExchangeRefusedException(val reason: String) : IOException("exchange
 /** The entry holds no device token: it was never enrolled, or its token was revoked and forgotten. */
 class DeviceExchangeNotEnrolledException : IOException("no device token for this exchange account entry")
 
+/** An `admin-reply {ok:false}`: [code] is one of `administration-reply-codes`, never a `refused.reason`. */
+class DeviceExchangeAdminReplyException(val code: String) : IOException("exchange admin reply: $code")
+
+/** The administration session ended under the client: its token lapsed or the stream closed. */
+class DeviceExchangeAdminSessionLapsedException : IOException("exchange admin session lapsed")
+
 private const val KEY_ACCOUNT = "account"
 private const val KEY_PUBLIC_ENDPOINT = "publicEndpoint"
 private const val KEY_KEEPALIVE_SECONDS = "keepaliveSeconds"

@@ -527,7 +527,7 @@ class BackedFlagsStore(private val gson: Gson, private val context: Context) {
     ($result.text -notmatch 'unannotated:[^\r\n]*\blabel\b') "getter-only label was reported: $($result.text)"
 
     Write-Host ''
-    Write-Host "  $script:pass passed, $script:fail failed."
+    Write-Host "assert-gson-persistence-contract.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 }
 finally {
     foreach ($root in $script:roots) {

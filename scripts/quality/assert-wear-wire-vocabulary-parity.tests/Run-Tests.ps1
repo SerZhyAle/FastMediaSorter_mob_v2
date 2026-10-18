@@ -636,7 +636,7 @@ data class BroadcastDescriptorDto(
 
 Write-Host ''
 if ($script:fail -gt 0) {
-    Write-Host "assert-wear-wire-vocabulary-parity.tests: FAIL - $($script:fail) case(s) failed, $($script:pass) passed." -ForegroundColor Red
+    Write-Host "assert-wear-wire-vocabulary-parity.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
     exit 1
 }
 Write-Host "assert-wear-wire-vocabulary-parity.tests: PASS - $($script:pass) case(s)." -ForegroundColor Green

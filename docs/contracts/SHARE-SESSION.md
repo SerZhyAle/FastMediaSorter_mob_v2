@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.14 01:28</sub>
+<sub class="doc-stamp">26.10.18 17:45</sub>
 
 # Pointer - `SHARE-SESSION`
 
 | | |
 | --- | --- |
 | **Id** | `SHARE-SESSION` |
-| **Version** | 1.2, active. Owner: FMS Companion (the worker holds the server guarantees) |
+| **Version** | 1.3, active. Owner: FMS Companion (the worker holds the server guarantees) |
 | **Home** | `remote-folder-access/README.md` in the shared contracts catalog |
 | **Role here** | client - the SFTP connection to a folder shared by the companion |
 

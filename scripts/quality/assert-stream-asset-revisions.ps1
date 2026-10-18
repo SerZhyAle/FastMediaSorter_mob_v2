@@ -57,11 +57,19 @@ $ErrorActionPreference = 'Stop'
 
 function Deny([string] $message, [int] $code) {
     Write-Error "stream-asset-revisions: $message" -ErrorAction Continue
+    # CHECK-VERDICT rules 2.5 and 2.11: the verdict line is last on stdout, on the failure path too.
+    if ($code -eq 1) {
+        Write-Host 'assert-stream-asset-revisions: FAIL (a pinned asset would stop being published)'
+    }
+    else {
+        Write-Host 'assert-stream-asset-revisions: COULD NOT VERIFY (see the error above)'
+    }
     exit $code
 }
 
 function Skip([string] $message) {
     if (-not $Quiet) { Write-Host "stream-asset-revisions: SKIP - $message" }
+    Write-Host "assert-stream-asset-revisions: PASS WITH ADVISORIES (skipped - $message)"
     exit 3
 }
 
@@ -155,11 +163,9 @@ if ($lost.Count -gt 0) {
         "the STREAM-BANK consumer registry in the same change - a frozen row is never republished but is never deleted either.") 1
 }
 
-if (-not $Quiet) {
-    $defaults = ($pinned | Where-Object { $_.Coverage -eq 'default' }).Count
-    $frozen = ($pinned | Where-Object { $_.Coverage -eq 'frozen' }).Count
-    Write-Host ("assert-stream-asset-revisions: PASS - {0} pinned asset(s) still published, {1} frozen and untouched." -f `
-        $defaults, $frozen) -ForegroundColor Green
-}
+$defaults = ($pinned | Where-Object { $_.Coverage -eq 'default' }).Count
+$frozen = ($pinned | Where-Object { $_.Coverage -eq 'frozen' }).Count
+Write-Host ("assert-stream-asset-revisions: PASS - {0} pinned asset(s) still published, {1} frozen and untouched." -f `
+    $defaults, $frozen) -ForegroundColor Green
 
 exit 0

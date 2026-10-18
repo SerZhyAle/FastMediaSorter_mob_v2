@@ -9,10 +9,12 @@ import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.repository.BroadcastPasswordStore
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.testing.InMemoryRoomRule
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -196,6 +198,27 @@ class ImportStreamBroadcastUseCaseTest {
         val result = importUseCase(serializer.serialize(dto))
 
         assertEquals(ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion, result)
+    }
+
+    // LIVE-BROADCAST 1.1: a schemaVersion 2 descriptor is refused before any field is used, nothing is imported,
+    // and the refusal shown is the canonical format-unsupported text.
+    @Test
+    fun importSchemaVersionTwo_importsNothingAndMapsToFormatUnsupported() = runTest {
+        val dto = watchDto(FIRST_URL, endpoints = exchangeEndpoints("a"))
+            .copy(schemaVersion = 2, auth = BroadcastAuthDto(user = "listener"))
+
+        val result = importUseCase(serializer.serializeCompressed(dto), password = "s3cret")
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion, result)
+        assertEquals(0, dao.observeAll().first().size)
+        assertEquals(emptyMap<String, BroadcastPasswordStore.StoredPair>(), passwords.pairs)
+        val shown = RuntimeEnvironment.getApplication().getString(
+            ExchangeMessageText.what(ExchangeMessage.FORMAT_UNSUPPORTED),
+        )
+        assertEquals(
+            "This format is newer than this program supports. Nothing was imported. Use a compatible program.",
+            shown,
+        )
     }
 
     // S2813: the four ways a scanned descriptor can meet the catalog. They differ only in stored

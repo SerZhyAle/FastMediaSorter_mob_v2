@@ -79,7 +79,6 @@
     <string name="exchange_signin_fingerprint_present">سرٹیفکیٹ پن کیا گیا: %1$s</string>
     <string name="exchange_signin_fingerprint_absent">سرٹیفکیٹ پن نہیں کیا گیا: سرور کو سسٹم سرٹیفکیٹس کے مقابل جانچا جاتا ہے۔</string>
     <string name="exchange_signin_refused">یہ سرور کا متن نہیں ہے۔ متن چیک کریں اور دوبارہ کوشش کریں۔</string>
-    <string name="exchange_signin_update_app">اس متن کے لیے ایپ کا نیا ورژن درکار ہے۔ ایپ اپ ڈیٹ کریں اور دوبارہ کوشش کریں۔</string>
     <string name="add_resource_my_devices">میرے آلات سے</string>
     <string name="add_resource_my_devices_description">وہ وسائل جو آپ کے دوسرے آلات آپ کے تبادلہ سرور یا Google Drive کے ذریعے شائع کرتے ہیں</string>
     <string name="exchange_directory_attach">جوڑیں</string>

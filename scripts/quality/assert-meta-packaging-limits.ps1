@@ -20,27 +20,48 @@
   a listing immersive rather than 2D.
 
   Exit codes:
-    0 - every executed measurement passes, OR there is nothing to verify (no built
-        VR-flavor release APK on the tree - advisory skip, stated in output).
+    0 - every measurement ran and passes (the -ObbPath measurement runs only when -ObbPath is
+        passed; that is stated in the output, not counted), OR the caller passed
+        -AllowMissingArtifact and no APK is built: `NOT APPLICABLE`, never a pass.
     1 - at least one measurement exceeds or misses its limit; every failing
         measurement is named as measured value vs limit.
-    2 - usage error (-ApkPath/-ObbPath passed but not found, -ApkPath is not a
-        readable zip while every measurement else passed).
+    2 - could not verify (CHECK-VERDICT 0.12 item A.2): no built VR-flavor release APK on the
+        tree (unless -AllowMissingArtifact, below), -ApkPath/-ObbPath passed but not found,
+        -ApkPath is not a readable zip, a threshold missing from the catalog, or a measurement
+        whose tool (apksigner, aapt2) is not installed. A failing measurement outranks it:
+        exit 1.
+
+  The last stdout line is the verdict: `assert-meta-packaging-limits: PASS`, `: FAIL (..)`,
+  `: COULD NOT VERIFY (..)` or `: NOT APPLICABLE (..)`.
 
   -Gate is accepted for uniformity with the other scripts/quality/assert-*.ps1 gates
   and is a no-op here: batch runners invoke every gate with -Gate, and a
   parameter-binding error must not read as a FAIL of the thing being audited.
+
+  -AllowMissingArtifact is the caller declaring the VR-flavor APK optional for this run - the
+  release-scope runner passes it, because that APK exists only when the VR flavor was built.
+  With it, an absent APK ends `NOT APPLICABLE (..)` with exit 0, which every aggregator counts
+  as skipped, never as passed (CHECK-VERDICT 0.12 item A.1). Without it an absent APK is
+  exit 2. A missing tool (apksigner, aapt2) is exit 2 either way: that is not the caller's choice.
 #>
 [CmdletBinding()]
 param(
     [string] $ApkPath,
     [string] $ObbPath,
-    [switch] $Gate
+    [switch] $Gate,
+    [switch] $AllowMissingArtifact
 )
 
 $ErrorActionPreference = 'Stop'
 
 function Write-FailLine([string] $m) { Write-Error $m -ErrorAction Continue }
+
+# Exit 2 with the verdict line last on stdout (CHECK-VERDICT rules 2.5 and 2.11).
+function Stop-CouldNotVerify([string] $Why) {
+    Write-FailLine "[meta] $Why"
+    Write-Host "assert-meta-packaging-limits: COULD NOT VERIFY ($Why)"
+    exit 2
+}
 
 # scripts/quality -> scripts -> repo root
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
@@ -60,29 +81,24 @@ $pairs = @(@('MetaMaxApkBytes', $maxApk), @('MetaMaxObbBytes', $maxObb), @('Meta
 $pairs += @($manifestKeys | ForEach-Object { , @($_, $thresholds[$_]) })
 foreach ($pair in $pairs) {
     if ($null -eq $pair[1]) {
-        Write-FailLine "[meta] Usage error: $($pair[0]) missing from store-prepublish-thresholds.psd1."
-        exit 2
+        Stop-CouldNotVerify "Usage error: $($pair[0]) missing from store-prepublish-thresholds.psd1."
     }
 }
 
 # --- Resolve the artifact ----------------------------------------------------
 if ($PSBoundParameters.ContainsKey('ApkPath')) {
     if ([string]::IsNullOrWhiteSpace($ApkPath)) {
-        Write-FailLine '[meta] Usage error: -ApkPath was passed empty.'
-        exit 2
+        Stop-CouldNotVerify 'Usage error: -ApkPath was passed empty.'
     }
     if (-not (Test-Path $ApkPath)) {
-        Write-FailLine "[meta] Usage error: -ApkPath not found: $ApkPath"
-        exit 2
+        Stop-CouldNotVerify "Usage error: -ApkPath not found: $ApkPath"
     }
     if ($PSBoundParameters.ContainsKey('ObbPath')) {
         if ([string]::IsNullOrWhiteSpace($ObbPath)) {
-            Write-FailLine '[meta] Usage error: -ObbPath was passed empty.'
-            exit 2
+            Stop-CouldNotVerify 'Usage error: -ObbPath was passed empty.'
         }
         if (-not (Test-Path $ObbPath)) {
-            Write-FailLine "[meta] Usage error: -ObbPath not found: $ObbPath"
-            exit 2
+            Stop-CouldNotVerify "Usage error: -ObbPath not found: $ObbPath"
         }
     }
     $apk = (Resolve-Path $ApkPath).Path
@@ -95,12 +111,18 @@ else {
         Sort-Object LastWriteTime -Descending |
         Select-Object -First 1 -ExpandProperty FullName
     if (-not $apk) {
-        Write-Host "[meta] No built VR-flavor release APK under $apkRoot. Nothing to verify - advisory skip (exit 0)."
-        exit 0
+        if ($AllowMissingArtifact) {
+            Write-Host "assert-meta-packaging-limits: NOT APPLICABLE (no built VR-flavor release APK under $apkRoot; -AllowMissingArtifact)"
+            exit 0
+        }
+        Stop-CouldNotVerify "no built VR-flavor release APK under $apkRoot; build the vr release first"
     }
 }
 
 $failures = 0
+# Measurements whose tool is not installed. A failing measurement outranks them (exit 1); with none
+# failing they make the run COULD NOT VERIFY (CHECK-VERDICT 0.12 item A.2), never a pass.
+$unverified = [System.Collections.Generic.List[string]]::new()
 
 # --- Measurement 1: APK size vs MetaMaxApkBytes ------------------------------
 $apkBytes = (Get-Item -Path $apk).Length
@@ -152,7 +174,8 @@ function Resolve-BuildTool([string] $FileName, [string] $CommandName) {
 
 $apksigner = Resolve-BuildTool 'apksigner.bat' 'apksigner'
 if (-not $apksigner) {
-    Write-Host '[meta] Signature scheme: apksigner not found (SDK build-tools or PATH) - measurement skipped. Advisory skip of this measurement only.'
+    Write-Host '[meta] Signature scheme: apksigner not found (SDK build-tools or PATH) - measurement did not run.'
+    $unverified.Add('signature schemes: apksigner not found')
 }
 else {
     # apksigner judges v1 only for SDK levels below 24 and otherwise prints "v1 scheme: false" even
@@ -200,8 +223,7 @@ catch {
         $failures++
     }
     else {
-        Write-FailLine "[meta] Usage error: cannot open $apk as a zip archive: $($_.Exception.Message)"
-        exit 2
+        Stop-CouldNotVerify "Usage error: cannot open $apk as a zip archive: $($_.Exception.Message)"
     }
 }
 
@@ -260,7 +282,8 @@ function Test-TrueValue([string] $Value) { return $Value -in @('true', '0xffffff
 
 $aapt2 = Resolve-BuildTool 'aapt2.exe' 'aapt2'
 if (-not $aapt2) {
-    Write-Host '[meta] Manifest: aapt2 not found (SDK build-tools or PATH) - measurement skipped. Advisory skip of this measurement only.'
+    Write-Host '[meta] Manifest: aapt2 not found (SDK build-tools or PATH) - measurement did not run.'
+    $unverified.Add('release manifest: aapt2 not found')
 }
 else {
     $tree = Read-ManifestTree @(& $aapt2 dump xmltree --file AndroidManifest.xml $apk 2>&1 | ForEach-Object { "$_" })
@@ -334,8 +357,14 @@ else {
 
 if ($failures -gt 0) {
     Write-FailLine "[meta] $failures Meta packaging violation(s) in $apk."
+    Write-Host "assert-meta-packaging-limits: FAIL ($failures Meta packaging violation(s))"
     exit 1
 }
 
-Write-Host "[meta] PASS - every executed measurement is within the Meta VRC packaging limits."
+if ($unverified.Count -gt 0) {
+    Stop-CouldNotVerify ("a measurement did not run - " + ($unverified -join '; '))
+}
+
+Write-Host "[meta] every measurement is within the Meta VRC packaging limits."
+Write-Host "assert-meta-packaging-limits: PASS"
 exit 0

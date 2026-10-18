@@ -57,4 +57,11 @@ if ($List) { $forward.List = $true }
 if ($ChangedFiles) { $forward.ChangedFiles = $ChangedFiles }
 
 & (Join-Path $PSScriptRoot 'assert-source-gates.ps1') @forward
-exit $LASTEXITCODE
+$code = $LASTEXITCODE
+# CHECK-VERDICT rule 5: the verdict line names this wrapper, not the aggregator it forwards to.
+switch ($code) {
+    0 { Write-Host 'assert-swallowed-cancellation: PASS' }
+    1 { Write-Host 'assert-swallowed-cancellation: FAIL' }
+    default { Write-Host "assert-swallowed-cancellation: COULD NOT VERIFY (assert-source-gates exited $code)" }
+}
+exit $code

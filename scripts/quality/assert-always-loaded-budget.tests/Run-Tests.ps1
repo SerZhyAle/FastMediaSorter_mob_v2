@@ -150,6 +150,6 @@ $r = Invoke-Gate @('-Gate')
 Assert 'C10 a file inside its granted slack passes -Gate' ($r.Code -eq 0) "exit $($r.Code): $($r.Out)"
 
 if (Test-Path -LiteralPath $sandbox) { Remove-Item -LiteralPath $sandbox -Recurse -Force }
-Write-Host ("assert-always-loaded-budget tests: {0} passed, {1} failed" -f $script:pass, $script:fail)
+Write-Host "assert-always-loaded-budget tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

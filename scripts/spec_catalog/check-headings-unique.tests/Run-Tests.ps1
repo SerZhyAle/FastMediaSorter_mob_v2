@@ -190,6 +190,6 @@ $h = Invoke-Gate 'NOPE'
 Assert-That "H. malformed id exits 2, not 1" ($h.Code -eq 2) "exit $($h.Code): $($h.Text)"
 
 Write-Host ""
-Write-Host ("passed: {0}  failed: {1}" -f $script:pass, $script:fail) -ForegroundColor Cyan
+Write-Host "check-headings-unique.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

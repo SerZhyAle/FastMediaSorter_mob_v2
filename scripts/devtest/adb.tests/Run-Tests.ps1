@@ -802,6 +802,6 @@ if (Test-Path -LiteralPath $missFile) {
 Remove-Item -LiteralPath $runDir -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host ""
-Write-Host "passed: $script:passed  failed: $script:failed"
+Write-Host "adb.tests: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"
 if ($script:failed -gt 0) { exit 1 }
 exit 0

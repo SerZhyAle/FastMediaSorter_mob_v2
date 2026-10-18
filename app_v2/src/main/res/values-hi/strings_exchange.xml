@@ -79,7 +79,6 @@
     <string name="exchange_signin_fingerprint_present">प्रमाणपत्र पिन किया गया: %1$s</string>
     <string name="exchange_signin_fingerprint_absent">कोई प्रमाणपत्र पिन नहीं: सर्वर की जाँच सिस्टम प्रमाणपत्रों से की जाती है।</string>
     <string name="exchange_signin_refused">यह सर्वर स्ट्रिंग नहीं है। टेक्स्ट जांचें और फिर कोशिश करें।</string>
-    <string name="exchange_signin_update_app">इस स्ट्रिंग के लिए ऐप का नया वर्शन चाहिए। ऐप अपडेट करें और फिर कोशिश करें।</string>
     <string name="add_resource_my_devices">मेरे डिवाइस से</string>
     <string name="add_resource_my_devices_description">आपके अन्य डिवाइस आपके एक्सचेंज सर्वर या Google Drive के ज़रिए जो संसाधन प्रकाशित करते हैं</string>
     <string name="exchange_directory_attach">अटैच करें</string>

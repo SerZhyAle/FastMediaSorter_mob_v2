@@ -12,6 +12,9 @@ interface InputBindingDao {
     @Query("SELECT * FROM input_bindings")
     fun observeAll(): Flow<List<InputBindingEntity>>
 
+    @Query("SELECT * FROM input_bindings")
+    suspend fun getAll(): List<InputBindingEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entity: InputBindingEntity)
 
@@ -29,7 +32,4 @@ interface InputBindingDao {
 
     @Query("DELETE FROM input_bindings")
     suspend fun deleteAll()
-
-    @Query("SELECT EXISTS(SELECT 1 FROM input_bindings)")
-    suspend fun hasAny(): Boolean
 }

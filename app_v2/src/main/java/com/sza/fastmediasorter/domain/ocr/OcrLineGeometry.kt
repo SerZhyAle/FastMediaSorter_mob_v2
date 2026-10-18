@@ -15,7 +15,7 @@ object OcrLineGeometry {
     /**
      * How many times taller than the line's median a word must be before it can be called an artifact.
      *
-     * Inherited from the neighbouring project's measurement, not derived on our own material. S1717 owns
+     * Inherited from the neighbouring project's measurement, not derived on our own material. S2065 owns
      * deriving it; until then, changing it here is a guess with a number attached.
      */
     const val DEFAULT_MAX_HEIGHT_RATIO: Float = 2.0f

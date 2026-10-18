@@ -44,7 +44,9 @@ function Get-Archived([string] $Root) {
     return ''
 }
 
+$script:executed = 0
 function Assert-Case([string] $Name, [scriptblock] $Body) {
+    $script:executed++
     try {
         $message = & $Body
         if ($message) { Write-Host "FAIL  $Name - $message" -ForegroundColor Red; $script:failures++ }
@@ -149,6 +151,6 @@ finally {
 }
 
 Write-Host ''
-if ($failures -gt 0) { Write-Host "archive-untriaged-drafts tests: $failures case(s) failed" -ForegroundColor Red; exit 1 }
-Write-Host 'archive-untriaged-drafts tests: all cases passed' -ForegroundColor Green
+if ($failures -gt 0) { Write-Host "archive-untriaged-drafts tests: $(if ($failures -gt 0) { 'FAIL' } else { 'PASS' }) (run=$script:executed skipped=0)"; exit 1 }
+Write-Host "archive-untriaged-drafts tests: $(if ($failures -gt 0) { 'FAIL' } else { 'PASS' }) (run=$script:executed skipped=0)"
 exit 0

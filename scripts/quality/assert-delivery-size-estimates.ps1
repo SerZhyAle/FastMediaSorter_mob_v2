@@ -28,27 +28,40 @@
     session's diff can be blamed for a publish someone else made; every finding names its own asset
     and both numbers; and correcting a batch of them costs one edit whenever it is done.
 
-    OFFLINE IS NOT A DEFECT. Without gh, without a network, or on an HTTP failure this exits 0 with
-    a printed advisory. The release-scope runner collapses every non-zero code to FAIL, and failing
-    a release because the machine could not reach GitHub would teach exactly one lesson - to stop
-    reading this gate's output.
+    OFFLINE IS NOT A DEFECT, BUT IT IS NOT A PASS EITHER. Without gh, without a network, on an HTTP
+    failure, or when the release carries none of the assets compared, nothing was inspected. Run
+    plainly that is COULD NOT VERIFY with exit 2 (CHECK-VERDICT 0.12 item A.2). The release-scope
+    runner collapses every non-zero code to FAIL, and failing a release because the machine could
+    not reach GitHub would teach exactly one lesson - to stop reading this gate's output - so that
+    runner passes -AllowOffline: the same situation then ends `NOT APPLICABLE` with exit 0, which
+    every aggregator counts as skipped and never as passed.
+
+.PARAMETER AllowOffline
+    The caller declares an unreachable or empty release acceptable for this run (CHECK-VERDICT 0.12
+    item A.1). An unreadable release then ends `NOT APPLICABLE (..)` with exit 0 instead of
+    `COULD NOT VERIFY (..)` with exit 2.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-delivery-size-estimates.ps1
 
 .NOTES
     Exit codes:
-      0 - every compiled fallback is within tolerance of its published asset, or the release could
-          not be read (advisory printed; being offline is not a finding).
+      0 - every compiled fallback is within tolerance of its published asset, or -AllowOffline was
+          passed and the release could not be read (`NOT APPLICABLE`, never a pass).
       1 - at least one fallback drifted past the tolerance. The output names the asset, both byte
           counts and the literal to write.
-      2 - the check could not happen: the source file is missing, or a constant it must read is not
-          in it any more.
+      2 - could not verify: the source file is missing, a constant it must read is not in it any
+          more, or the release could not be read (no gh, no network, no compared asset) and
+          -AllowOffline was not passed.
+
+    The last stdout line is the verdict: `assert-delivery-size-estimates: PASS (..)`, `: FAIL (..)`,
+    `: COULD NOT VERIFY (..)` or `: NOT APPLICABLE (..)`.
 #>
 
 [CmdletBinding()]
 param(
     [switch]$Quiet,
+    [switch]$AllowOffline,
     # Share of the published size a compiled fallback may differ by before it is a finding. The
     # payloads grow continuously, so a tight bound would report the ordinary week; 25% is the point
     # past which the number stops being a useful promise.
@@ -57,6 +70,17 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+# The release could not be read, so nothing was compared. The caller's -AllowOffline decides whether
+# that is its own choice (NOT APPLICABLE, exit 0) or a check that did not run (COULD NOT VERIFY, exit 2).
+function Stop-NothingCompared([string]$Why) {
+    if ($AllowOffline) {
+        Write-Host "assert-delivery-size-estimates: NOT APPLICABLE ($Why; -AllowOffline)"
+        exit 0
+    }
+    Write-Host "assert-delivery-size-estimates: COULD NOT VERIFY ($Why)" -ForegroundColor Yellow
+    exit 2
+}
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $inventoryPath = Join-Path $repoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/data/delivery/DeliverableInventoryImpl.kt'
@@ -103,11 +127,11 @@ $expectations = @(
 
 $missing = @($expectations | Where-Object { $null -eq $_.compiled })
 if ($missing.Count -gt 0) {
+    Write-Host 'A renamed constant is a decision, not a drift - point this gate at the new name.' -ForegroundColor Yellow
     foreach ($entry in $missing) {
         Write-Host ("assert-delivery-size-estimates: COULD NOT VERIFY - {0} not found in {1}" -f `
                 $entry.constant, (Split-Path -Leaf $inventoryPath)) -ForegroundColor Yellow
     }
-    Write-Host 'A renamed constant is a decision, not a drift - point this gate at the new name.' -ForegroundColor Yellow
     exit 2
 }
 
@@ -122,8 +146,7 @@ if (-not $ghPath) {
     }
 }
 if (-not $ghPath) {
-    Write-Host 'assert-delivery-size-estimates: ADVISORY - gh not available, published sizes not read.' -ForegroundColor Yellow
-    exit 0
+    Stop-NothingCompared 'gh not available, published sizes not read'
 }
 
 $published = $null
@@ -139,11 +162,11 @@ catch {
 }
 
 if (-not $published -or $published.Count -eq 0) {
-    Write-Host ("assert-delivery-size-estimates: ADVISORY - release {0} could not be read; nothing compared." -f $releaseTag) -ForegroundColor Yellow
-    exit 0
+    Stop-NothingCompared ("release {0} could not be read; nothing compared" -f $releaseTag)
 }
 
 $findings = @()
+$compared = 0
 foreach ($entry in $expectations) {
     $absent = @($entry.assets | Where-Object { -not $published.ContainsKey($_) })
     if ($absent.Count -gt 0) {
@@ -151,6 +174,7 @@ foreach ($entry in $expectations) {
                 $entry.label, ($absent -join ', ')) -ForegroundColor Yellow
         continue
     }
+    $compared++
     $actual = ($entry.assets | ForEach-Object { $published[$_] } | Measure-Object -Sum).Sum
     $driftShare = [math]::Abs($actual - $entry.compiled) / [double]$actual * 100.0
     if (-not $Quiet) {
@@ -168,6 +192,10 @@ foreach ($entry in $expectations) {
     }
 }
 
+if ($compared -eq 0) {
+    Stop-NothingCompared ("release {0} carries none of the compared assets" -f $releaseTag)
+}
+
 if ($findings.Count -eq 0) {
     Write-Host ("assert-delivery-size-estimates: PASS (every fallback within {0:N0}% of its published asset)." -f $TolerancePercent) -ForegroundColor Green
     exit 0
@@ -182,4 +210,5 @@ foreach ($finding in $findings) {
 Write-Host ''
 Write-Host 'These are the OFFLINE fallbacks: a user with no network sees them and cannot tell they are wrong.' -ForegroundColor Yellow
 Write-Host ("Source: {0}" -f $inventoryPath) -ForegroundColor Yellow
+Write-Host ("assert-delivery-size-estimates: FAIL ({0} fallback(s) past the {1:N0}% tolerance)" -f $findings.Count, $TolerancePercent) -ForegroundColor Red
 exit 1

@@ -30,11 +30,30 @@ Describe 'StreamPublisher.Common' {
         (Get-ProtocolFromUrl 'https://example.test/live' '') | Should Be 'ICECAST'
     }
 
-    It 'folds unknown topics into the closed rubric set' {
+    It 'folds unknown topics into the closed rubric set and keeps a blank topic blank' {
         (Get-CanonicalTopic 'Adult Contemporary') | Should Be 'Pop'
-        (Get-CanonicalTopic '') | Should Be 'General'
+        # STREAM-BANK 2.4: the fallback never invents a filter id for a row that stated no topic.
+        (Get-CanonicalTopic '') | Should Be ''
+        (Get-CanonicalTopic 'test') | Should Be 'Test'
         (Map-IptvTopic 'sports') | Should Be 'Sports'
         (Map-IptvTopic 'unknown-category') | Should Be 'General'
+    }
+
+    It 'holds every topic fold vector shared with the phone and the watch' {
+        $vectors = Join-Path $PSScriptRoot '..\..\app_v2\src\test\resources\stream-bank\topic-fold-v1.tsv'
+        $failures = @()
+        $count = 0
+        # The raw column is untrimmed: a whitespace-only raw value is a vector, not a blank line.
+        foreach ($line in [System.IO.File]::ReadAllLines($vectors, [System.Text.Encoding]::UTF8)) {
+            if ($line.Length -eq 0 -or $line.StartsWith('#')) { continue }
+            $parts = $line.Split("`t")
+            $in = $parts[0]; $want = if ($parts.Count -gt 1) { $parts[1] } else { '' }
+            $got = Get-CanonicalTopic $in
+            $count++
+            if ($got -cne $want) { $failures += "'$in' => '$got' (want '$want')" }
+        }
+        $count | Should BeGreaterThan 64
+        ($failures -join '; ') | Should Be ''
     }
 
     It 'normalizes each grouping facet; only category keeps an unknown value for review' {

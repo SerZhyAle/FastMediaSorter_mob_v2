@@ -3763,7 +3763,6 @@
     <string name="broadcast_import_dialog_title">Імпорт трансляції</string>
     <string name="broadcast_import_option_qr">Сканувати QR-код</string>
     <string name="broadcast_import_malformed">Невірний формат опису трансляції</string>
-    <string name="broadcast_import_unsupported_version">Непідтримувана версія опису трансляції</string>
     <string name="broadcast_import_success">Канал трансляції додано</string>
     <string name="broadcast_import_option_file">Обрати файл опису</string>
     <string name="launcher_settings_unit_system_title">Система одиниць</string>
@@ -4480,4 +4479,5 @@
     <string name="help_with_key">Довідка (F1)</string>
     <string name="broadcast_control_group_commands">Керування ефіром</string>
     <string name="broadcast_control_group_share">Посилання й обмін</string>
+    <string name="msg_transfer_same_folder_refused">Це та сама папка, де лежить файл. Виберіть інше призначення.</string>
 </resources>

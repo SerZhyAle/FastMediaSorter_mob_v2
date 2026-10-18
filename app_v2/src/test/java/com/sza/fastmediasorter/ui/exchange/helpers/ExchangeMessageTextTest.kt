@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.ui.exchange.helpers
 
+import com.sza.fastmediasorter.domain.model.ExchangeAdminReplyCode
 import com.sza.fastmediasorter.domain.model.ExchangeCheckStep
 import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class ExchangeMessageTextTest {
@@ -20,6 +22,20 @@ class ExchangeMessageTextTest {
         val steps = ExchangeCheckStep.entries.map { ExchangeMessageText.advice(it) }
         assertEquals(rows.size, rows.toSet().size)
         assertEquals(steps.size, steps.toSet().size)
+    }
+
+    @Test
+    fun `every administration reply code has its own words`() {
+        val words = ExchangeAdminReplyCode.entries.map { ExchangeMessageText.adminReply(it) }
+        words.forEach { assertNotEquals(0, it) }
+        assertEquals(words.size, words.toSet().size)
+    }
+
+    @Test
+    fun `admin-disabled carries its own advice and no step`() {
+        assertNotEquals(0, ExchangeMessageText.what(ExchangeMessage.ADMIN_DISABLED))
+        assertNull(ExchangeMessage.ADMIN_DISABLED.step)
+        assertEquals(ExchangeMessage.ADMIN_DISABLED, ExchangeMessage.ofWire("admin-disabled"))
     }
 
     @Test

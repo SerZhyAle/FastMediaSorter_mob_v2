@@ -199,12 +199,14 @@ $gates = [ordered]@{
     # release APK, and the packaging gate measures the built VR-flavor APK against the Meta VRC
     # limits - a miss reaches a user only when the owner submits an artifact to a store; each gate
     # names its own measured pair or ABI set; and re-running one costs about a second. Thresholds
-    # come from store-prepublish-thresholds.psd1, so a store policy change is a data edit. Each gate
-    # degrades to a stated advisory skip (exit 0) when its artifact is not built yet, which is the
-    # same semantics the delivery-size gate above accepts for an unreachable release.
+    # come from store-prepublish-thresholds.psd1, so a store policy change is a data edit. The two
+    # artifact gates are passed -AllowMissingArtifact (S4367): this runner declares the VR and wear
+    # APKs optional, because they exist only when those flavors were built, so an unbuilt one ends
+    # `NOT APPLICABLE` with exit 0 and is counted as skipped below, never as passed. Run without the
+    # flag, the same gate answers COULD NOT VERIFY with exit 2 (CHECK-VERDICT 0.12 item A).
     'assert-wear-phone-identity-parity.ps1' = @()   # S3364 - subject: the shipped phone+wear identity pair
-    'assert-wear-64bit-abi.ps1'             = @()   # S3364 - subject: the shipped wear release APK
-    'assert-meta-packaging-limits.ps1'      = @()   # S3364 - subject: the shipped VR-flavor release APK
+    'assert-wear-64bit-abi.ps1'             = @('-AllowMissingArtifact')   # S3364 - subject: the shipped wear release APK
+    'assert-meta-packaging-limits.ps1'      = @('-AllowMissingArtifact')   # S3364 - subject: the shipped VR-flavor release APK
     # S3371. The numeric performance budgets in scripts/quality/perf-budgets.json, the first of them
     # the Wear cold start S3368 won. Rule 33 puts it here on all four criteria: a cold start
     # regresses because of a new dependency, an added initializer or something nobody in this
@@ -233,10 +235,12 @@ $gates = [ordered]@{
     # only when a build ships; its subject is a release published by a run no session's diff
     # contains; each finding prints its asset, both byte counts and the literal to write; and
     # correcting them is one edit whenever it is done. It is also the only member that reads the
-    # network, so it answers an unreachable release with exit 0 and a printed advisory - the loop
-    # below collapses every non-zero code to FAIL, and an offline machine is not a defect.
+    # network. The loop below collapses every non-zero code to FAIL, and an offline machine is not a
+    # defect, so it is passed -AllowOffline (S4367): an unreachable release ends `NOT APPLICABLE`
+    # with exit 0, counted as skipped and never as passed. Run without the flag, the same gate
+    # answers COULD NOT VERIFY with exit 2 (CHECK-VERDICT 0.12 item A).
     # Not passed -Quiet: the per-payload drift line is the report, green or red.
-    'assert-delivery-size-estimates.ps1' = @()
+    'assert-delivery-size-estimates.ps1' = @('-AllowOffline')
     'assert-unreferenced-strings.ps1'  = @('-Quiet')
     'assert-splash-brand-sync.ps1'     = @('-Quiet')
     'assert-icon-inventory-sync.ps1'   = @()

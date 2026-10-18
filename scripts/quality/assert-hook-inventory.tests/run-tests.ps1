@@ -431,6 +431,6 @@ Invoke-Case -Name 'a plugin hook no row names is an advisory, not a failure' -Ex
 }
 
 Write-Host ""
-Write-Host "passed: $passed  failed: $failed"
+Write-Host "assert-hook-inventory.tests: $(if ($failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($passed + $failed) skipped=0)"
 if ($failed -gt 0) { exit 1 }
 exit 0

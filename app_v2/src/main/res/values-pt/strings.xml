@@ -3351,7 +3351,6 @@
     <string name="broadcast_import_dialog_title">Importar transmissão em direto</string>
     <string name="broadcast_import_option_qr">Ler código QR</string>
     <string name="broadcast_import_malformed">Formato de descritor de transmissão inválido</string>
-    <string name="broadcast_import_unsupported_version">Versão do descritor de transmissão não suportada</string>
     <string name="broadcast_import_success">Canal de transmissão adicionado</string>
     <string name="broadcast_import_option_file">Selecionar ficheiro descritor</string>
     <string name="launcher_settings_unit_system_title">Sistema de unidades</string>

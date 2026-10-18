@@ -198,7 +198,7 @@ class ExchangeSealedContentOpener @Inject constructor(
     private fun sameHostKey(resource: SftpRendezvousResource, descriptor: String): Boolean {
         val opened = SshFingerprintNormalizer.canonical(SftpPairingPayload.decode(descriptor)?.hostKeyFingerprint)
         val listed = resource.hostKeyFingerprint?.let(SshFingerprintNormalizer::canonical)
-        return opened != null && (listed == null || listed == opened)
+        return opened == null || listed == null || listed == opened
     }
 
     private fun SftpRendezvousResource.unusable(issue: ExchangeSealIssue) =

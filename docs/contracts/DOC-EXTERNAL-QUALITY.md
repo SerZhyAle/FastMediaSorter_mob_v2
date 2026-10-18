@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.14 21:54</sub>
+<sub class="doc-stamp">26.10.18 17:45</sub>
 
 # Pointer - `DOC-EXTERNAL-QUALITY`
 
 | | |
 | --- | --- |
 | **Id** | `DOC-EXTERNAL-QUALITY` |
-| **Version** | 0.11, draft; wire carrier: documentation corpus and web rendering structure. Owner: this product |
+| **Version** | 0.12, draft; wire carrier: documentation corpus and web rendering structure. Owner: this product |
 | **Home** | `documentation-quality/README.md` section 3, in the shared contracts catalog |
 | **Role here** | owner and reference implementation |
 

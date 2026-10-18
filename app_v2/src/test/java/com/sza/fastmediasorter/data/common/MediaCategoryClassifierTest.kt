@@ -8,32 +8,38 @@ import org.junit.Test
 
 class MediaCategoryClassifierTest {
 
-    private val table = mapOf(
+    // MEDIA-CLASSIFICATION 0.11 rule 1, copied verbatim (order and leading dots included) so a product-only
+    // extension fails the comparison below instead of passing in both copies. `.jxl` is the one entry past the
+    // copy: it enters rule 1 IMAGE with the owner amendment MEDIA-CLASSIFICATION 0.12.
+    private val contractTable = mapOf(
         MediaCategory.IMAGE to listOf(
-            "jpg", "jpeg", "png", "webp", "gif", "bmp", "avif", "heic", "heif", "jxl", "svg", "tiff", "ico", "wmf", "emf",
-        ),
+            ".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".avif", ".heic", ".heif", ".svg", ".tiff", ".ico",
+            ".wmf", ".emf",
+        ) + listOf(".jxl"),
         MediaCategory.VIDEO to listOf(
-            "mp4", "mkv", "mov", "webm", "3gp", "flv", "wmv", "m4v", "avi", "mpg", "mpeg", "ts", "m2ts", "vob",
-            "ogv", "divx", "m2v", "mts", "3g2", "asf",
+            ".mp4", ".mkv", ".mov", ".webm", ".3gp", ".flv", ".wmv", ".m4v", ".avi", ".mpg", ".mpeg", ".ts", ".m2ts",
+            ".vob", ".ogv", ".divx", ".m2v", ".mts", ".3g2", ".asf",
         ),
         MediaCategory.AUDIO to listOf(
-            "mp3", "m4a", "flac", "aac", "ogg", "wma", "opus", "amr", "awb", "ac3", "ec3", "ac4", "adts", "thd",
-            "mka", "oga", "caf", "alac", "mia", "mid", "midi", "wav", "wave",
+            ".mp3", ".m4a", ".flac", ".aac", ".ogg", ".wma", ".opus", ".amr", ".awb", ".ac3", ".ec3", ".ac4", ".adts",
+            ".thd", ".mka", ".oga", ".caf", ".alac", ".mia", ".mid", ".midi", ".wav", ".wave",
         ),
-        MediaCategory.BOOK to listOf("epub", "pdf", "cbz", "cbr", "fb2", "mobi"),
-        MediaCategory.STREAM to listOf("m3u", "m3u8", "pls", "xspf", "fmsbcast"),
+        MediaCategory.BOOK to listOf(".epub", ".pdf", ".cbz", ".cbr", ".fb2", ".mobi"),
+        MediaCategory.STREAM to listOf(".m3u", ".m3u8", ".pls", ".xspf", ".fmsbcast"),
         MediaCategory.CONTAINER to listOf(
-            "fd-sec", "zip", "rar", "7z", "tar", "gz", "bz2", "xz", "cab", "arj", "lzh", "iso", "dmg", "img",
-            "vhd", "vdi", "qcow2", "vmdk",
+            ".fd-sec", ".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz", ".cab", ".arj", ".lzh", ".iso", ".dmg",
+            ".img", ".vhd", ".vdi", ".qcow2", ".vmdk",
         ),
         MediaCategory.DOCUMENT to listOf(
-            "doc", "docx", "rtf", "odt", "xls", "xlsx", "ods", "ppt", "pptx", "odp", "txt", "md", "json", "xml",
-            "csv", "tsv", "yaml", "yml", "toml", "ini", "conf",
+            ".doc", ".docx", ".rtf", ".odt", ".xls", ".xlsx", ".ods", ".ppt", ".pptx", ".odp", ".txt", ".md", ".json",
+            ".xml", ".csv", ".tsv", ".yaml", ".yml", ".toml", ".ini", ".conf",
         ),
     )
 
+    private val table = contractTable.mapValues { (_, extensions) -> extensions.map { it.removePrefix(".") } }
+
     @Test
-    fun `every extension of the 0_10 table resolves to its category in any case`() {
+    fun `every extension of the contract table resolves to its category in any case`() {
         table.forEach { (category, extensions) ->
             extensions.forEach { ext ->
                 assertEquals(ext, category, MediaCategoryClassifier.classify("file.$ext"))

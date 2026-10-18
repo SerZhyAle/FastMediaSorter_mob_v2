@@ -239,6 +239,15 @@ class WearBroadcastPlaybackResolverTest {
     private fun resolve(record: WearDirectoryBroadcast): WearBroadcastPlayback =
         runBlocking { resolver.resolve(record) }
 
+    @Test
+    fun `a record with an unsupported higher descriptor schemaVersion resolves to FORMAT_UNSUPPORTED`() {
+        val higherSchema = """{"schemaVersion":2,"endpoints":[{"url":"http://10.0.0.2:8080/","transport":"HTTP"}]}"""
+        val playback = resolve(record(descriptor = higherSchema, mode = "AUDIO_ONLY"))
+
+        val unavailable = playback as WearBroadcastPlayback.Unavailable
+        assertEquals(Reason.FORMAT_UNSUPPORTED, unavailable.reason)
+    }
+
     private fun record(
         descriptor: String,
         mode: String,

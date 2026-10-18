@@ -173,8 +173,7 @@ try {
 }
 finally {
     Write-Host ''
-    Write-Host ("room-databases registry: {0} passed, {1} failed." -f $script:pass, $script:fail) `
-        -ForegroundColor $(if ($script:fail -eq 0) { 'Green' } else { 'Red' })
+    Write-Host "room-databases registry: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 }
 
 exit $(if ($script:fail -eq 0) { 0 } else { 1 })

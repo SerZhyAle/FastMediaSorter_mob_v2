@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.15 19:36</sub>
+<sub class="doc-stamp">26.10.18 18:09</sub>
 
 # Pointer - `PAGE-STYLE`
 
 | | |
 | --- | --- |
 | **Id** | `PAGE-STYLE` |
-| **Version** | 1.6, active. Owner: the sza.od.ua hub |
+| **Version** | 3.1, active. Owner: the sza.od.ua hub |
 | **Home** | `product-web-pages/PAGE-STYLE.md` in the shared contracts catalog |
 | **Role here** | consumer - the product site's landing and sideload pages, and the documentation portal (per-language documentation pages, section 6) |
 
@@ -20,6 +20,9 @@
   it (sections 0 and 4.7).
 - The kit's fonts and tokens, 44 px touch targets, `prefers-reduced-motion`.
 - Fill the screen (1.3, section 5 "Width"): `--wide` is `100%`, no page wrapper carries a `max-width` or a centred `margin: auto`; the hero opens with the identity block (section 4.1b) and the header brand is text only. The 1920 / 2560 px measurement is in the catalog's `product-web-pages/README.md` section 2 (S4106).
+- Buttons follow `BUTTONS`, disclosure groups `COLLAPSIBLE-GROUP` and target sizes `UI-SIZING` (2.0 to 3.1); the
+  vendored kit alone is a provenance check, not conformance, so a page links an identified adapter after it
+  (section 4.6) and claims no rendered conformance without evidence.
 - Monochrome `ICON-SET` glyphs beside labels, never emoji.
 - Walk the per-site acceptance checklist (section 11) before publishing a page change.
 - The deviations currently open are recorded as exceptions in the catalog's registry.

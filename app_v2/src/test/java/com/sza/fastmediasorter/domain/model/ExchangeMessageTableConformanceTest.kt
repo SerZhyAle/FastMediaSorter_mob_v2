@@ -52,7 +52,7 @@ class ExchangeMessageTableConformanceTest {
     fun `the catalogue matches the table in rows and in steps`() {
         val byKey = messageRows().associateBy { messageKey(it.first) }
         val tableKeys = ExchangeMessage.entries
-            .filter { it.kind != ExchangeMessage.Kind.PRODUCT && it != ExchangeMessage.REFUSED }
+            .filter { it.kind !in NOT_IN_README && it != ExchangeMessage.REFUSED }
             .associateBy(::keyOf)
         assertEquals(byKey.keys, tableKeys.keys)
         tableKeys.forEach { (key, message) ->
@@ -77,6 +77,36 @@ class ExchangeMessageTableConformanceTest {
             listOf("The server refused this.", "Сервер отказал в этом.", "Сервер відмовив у цьому."),
             values,
         )
+    }
+
+    @Test
+    fun `the admin-disabled row of the web binding is held word for word in the three authored languages`() {
+        val lines = contractFile(WEB_BINDING).readLines(Charsets.UTF_8)
+        val row = tableRows(lines).singleOrNull { it.first == "`${ExchangeMessage.ADMIN_DISABLED.code}`" }
+        checkNotNull(row) { "the admin-disabled row is not in $WEB_BINDING" }
+        val key = keyOf(ExchangeMessage.ADMIN_DISABLED)
+        val actual = locales.map { resources(it)[key] }
+        assertEquals(locales.indices.map(row::text), actual)
+    }
+
+    @Test
+    fun `every administration reply code is held word for word and the codes match the enum`() {
+        val lines = contractFile(REMOTE_ADMIN).readLines(Charsets.UTF_8)
+        val start = lines.indexOfFirst { it.startsWith(REPLY_CODES_HEADING) }
+        check(start >= 0) { "$REPLY_CODES_HEADING is not in $REMOTE_ADMIN" }
+        val end = (start + 1 until lines.size).firstOrNull { lines[it].startsWith("## ") } ?: lines.size
+        val rows = tableRows(lines.subList(start, end), REPLY_CODE_COLUMNS).filter { CODE_CELL.matches(it.first) }
+        val codes = rows.map { stripTicks(it.first) }
+        assertEquals(ExchangeAdminReplyCode.entries.map { it.code }.toSet(), codes.toSet())
+        val mismatches = rows.flatMap { row ->
+            val key = "exchange_admin_reply_" + stripTicks(row.first).replace('-', '_')
+            locales.indices.mapNotNull { locale ->
+                val expected = row.cells[REPLY_TEXT_EN + locale]
+                val actual = resources(locales[locale])[key]
+                expected.takeIf { it != actual }?.let { "$key [${locales[locale]}]: '$actual' != '$it'" }
+            }
+        }
+        assertTrue(mismatches.joinToString("\n"), mismatches.isEmpty())
     }
 
     private fun keyOf(message: ExchangeMessage): String {
@@ -111,18 +141,26 @@ class ExchangeMessageTableConformanceTest {
 
     private fun stepRows(): List<Row> = tableRows().filter { it.first.toIntOrNull() != null }
 
-    private fun tableRows(): List<Row> = contractSection()
+    private fun tableRows(): List<Row> = tableRows(contractSection())
+
+    // A binding document indents its table under a bullet, so a row is recognised after trimming.
+    private fun tableRows(lines: List<String>, columns: Int = COLUMNS): List<Row> = lines
+        .map(String::trim)
         .filter { it.startsWith("| ") && !it.startsWith("| ---") }
-        .map { line -> line.trim().removePrefix("|").removeSuffix("|").split(" | ").map { it.trim() } }
-        .filter { it.size == COLUMNS }
+        .map { line -> line.removePrefix("|").removeSuffix("|").split(" | ").map { it.trim() } }
+        .filter { it.size == columns }
         .map(::Row)
 
-    private fun contractSection(): List<String> {
+    private fun contractFile(name: String): File {
         val root = System.getenv("FMS_CONTRACTS_ROOT")
         assumeTrue("FMS_CONTRACTS_ROOT is not set", !root.isNullOrBlank())
-        val file = File(root, "device-exchange/README.md")
+        val file = File(root, name)
         assumeTrue("the contract file is not there", file.isFile)
-        val lines = file.readLines(Charsets.UTF_8)
+        return file
+    }
+
+    private fun contractSection(): List<String> {
+        val lines = contractFile(README).readLines(Charsets.UTF_8)
         // Found by item letter, never by section number: letters are permanent, the consolidation of 0.30 moved
         // every section from 14 to 27. Item DR adds four rows to the table; item DD is a standalone product string.
         return CONTRACT_ITEMS.flatMap { itemBlock(lines, it) }
@@ -159,6 +197,13 @@ class ExchangeMessageTableConformanceTest {
         const val COL_THIRD = 2
         const val COL_TEXT_EN = 3
         const val NO_STEP = "-"
+        const val REPLY_CODE_COLUMNS = 4
+        const val REPLY_TEXT_EN = 1
+        const val README = "device-exchange/README.md"
+        const val WEB_BINDING = "device-exchange/WEB-BINDING.md"
+        const val REMOTE_ADMIN = "device-exchange/REMOTE-ADMIN.md"
+        const val REPLY_CODES_HEADING = "## administration-reply-codes"
+        val NOT_IN_README = setOf(ExchangeMessage.Kind.PRODUCT, ExchangeMessage.Kind.BINDING)
         val CODE_CELL = Regex("""`([a-z0-9-]+)`(.*)""")
         val KINDS = setOf("wire", "cast", "local", "state", "result", "wire, cast")
         val ESCAPE = Regex("""\\(.)""")

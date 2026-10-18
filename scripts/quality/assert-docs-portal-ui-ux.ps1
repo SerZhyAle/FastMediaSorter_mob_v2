@@ -32,6 +32,10 @@
       portal chrome, is judged by every page check above; a docs/**/*.md page naming a layout names
       `doc` (SITE-EXPERIENCE rules 1, 3, 5); and a page's {% include NAME %} names a file in
       _includes/, because a missing include fails the whole Pages build, not one page.
+    - Footer scope (S4366: PAGE-CONTENT 1.5, SITE-FAMILY-MAP 1.5, SITE-STRUCTURE 0.3): the footer of every
+      non-help portal page, of _layouts/doc.html and of 404.html links mailto:sza@ukr.net, github.com/SerZhyAle,
+      https://sza.od.ua and the Support page; search.js reads both ?lang= and the legacy ?l= (PAGE-STYLE 3.1
+      item 1).
 
 .PARAMETER RepoRoot
     Target repository root path.
@@ -53,7 +57,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '../docs/Read-DocumentationSearchIndex.ps1')
 . (Join-Path $PSScriptRoot 'lib/check-subject.ps1')
-Write-CheckSubject -Axes ([ordered]@{ module = 'site'; scope = 'docs-portal-ui-ux'; files = 'documentation/**/*.html,_layouts/doc.html,docs/**/*.md,documentation/assets/docs.css,documentation/assets/search.js' })
+Write-CheckSubject -Axes ([ordered]@{ module = 'site'; scope = 'docs-portal-ui-ux'; files = 'documentation/**/*.html,_layouts/doc.html,404.html,docs/**/*.md,documentation/assets/docs.css,documentation/assets/search.js' })
 
 $docRoot = Join-Path $RepoRoot 'documentation'
 $docsCssPath = Join-Path $docRoot 'assets/docs.css'
@@ -210,6 +214,11 @@ if (-not (Test-Path -LiteralPath $searchJsPath)) {
         ([regex]::Matches($js, "empty:\s*'[^']*\{query\}")).Count -lt 3 -or $js -notmatch 'emptyResult\(query\);') {
         $errors.Add("search.js: an empty result does not repeat the query in en/ru/uk and link the subject index (SITE-EXPERIENCE rule 12)")
     }
+
+    # PAGE-STYLE 3.1 item 1: the locale query reader honours the canonical `lang` and the legacy `l`.
+    if ($js -notmatch "\.get\('lang'\)" -or $js -notmatch "\.get\('l'\)") {
+        $errors.Add("search.js: the locale query reader does not read both ?lang= and the legacy ?l= (PAGE-STYLE 3.1 item 1)")
+    }
 }
 
 # -------------------------------------------------------------------------
@@ -227,6 +236,25 @@ if (Test-Path -LiteralPath $docLayoutPath -PathType Leaf) {
 $checkedPages = 0
 $checkedImages = 0
 $checkedLinks = 0
+
+# The footer text of a page, judged for the contact line, the hub link and the Support link.
+function Get-FooterContactGap([string]$Html) {
+    $footer = [regex]::Match($Html, '(?is)<footer\b.*?</footer>').Value
+    $gaps = [System.Collections.Generic.List[string]]::new()
+    if ($footer -notmatch 'mailto:sza@ukr\.net') { $gaps.Add('the contact sza@ukr.net') }
+    if ($footer -notmatch 'github\.com/SerZhyAle') { $gaps.Add('the GitHub contact SerZhyAle') }
+    if ($footer -notmatch 'href="https://sza\.od\.ua/?"') { $gaps.Add('the hub link https://sza.od.ua') }
+    if ($footer -notmatch 'href="[^"]*SUPPORT(-[a-z-]+)?(\.html)?[^"]*"') { $gaps.Add('the Support page link') }
+    return $gaps
+}
+
+# The not-found page is a child page outside the portal tree: its footer is judged, nothing else here.
+$notFoundPath = Join-Path $RepoRoot '404.html'
+if (Test-Path -LiteralPath $notFoundPath -PathType Leaf) {
+    foreach ($missing in (Get-FooterContactGap (Get-Content -LiteralPath $notFoundPath -Raw -Encoding utf8))) {
+        $errors.Add("404.html - footer lacks $missing")
+    }
+}
 
 foreach ($file in $htmlFiles) {
     $checkedPages++
@@ -281,6 +309,12 @@ foreach ($file in $htmlFiles) {
     # 3f. Search integration
     if (-not $isHelpPage -and $content -notmatch 'search\.js') {
         $errors.Add("$relPath - missing search.js client script inclusion")
+    }
+
+    # 3f-ter. Footer scope (PAGE-CONTENT 1.5, SITE-FAMILY-MAP 1.5, SITE-STRUCTURE 0.3): a child or portal
+    # page footer carries the contact, the hub and the Support page. A help page keeps its help footer.
+    if (-not $isHelpPage -and $content -match '<footer\b') {
+        foreach ($missing in (Get-FooterContactGap $content)) { $errors.Add("$relPath - footer lacks $missing") }
     }
 
     # 3f-bis. SITE-EXPERIENCE rules 2, 3, 4 and 15 on the page itself (S4099).

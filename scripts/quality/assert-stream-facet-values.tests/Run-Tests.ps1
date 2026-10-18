@@ -63,6 +63,6 @@ try {
     foreach ($d in $sandboxes) { Remove-Item -LiteralPath $d -Recurse -Force -ErrorAction SilentlyContinue }
 }
 
-Write-Host ("assert-stream-facet-values.tests: {0} passed, {1} failed" -f $passed, $failed)
+Write-Host "assert-stream-facet-values.tests: $(if ($failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($passed + $failed) skipped=0)"
 if ($failed -gt 0) { exit 1 }
 exit 0

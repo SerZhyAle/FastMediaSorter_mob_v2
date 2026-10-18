@@ -693,8 +693,9 @@ finally {
 }
 
 if ($script:daFailed.Count) {
-    Write-Host ("da.tests: FAIL - {0} passed, {1} failed: {2}" -f $script:daPassed, $script:daFailed.Count, ($script:daFailed -join ' | '))
+    Write-Host ($script:daFailed -join ' | ')
+    Write-Host "da.tests: FAIL (run=$($script:daPassed + $script:daFailed.Count) skipped=0)"
     exit 1
 }
-Write-Host ("da.tests: PASS - {0} cases" -f $script:daPassed)
+Write-Host "da.tests: PASS (run=$script:daPassed skipped=0)"
 exit 0

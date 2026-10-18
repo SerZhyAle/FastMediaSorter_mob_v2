@@ -694,6 +694,6 @@ $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
 Assert-That 'L1 full-tree gate is green' ($LASTEXITCODE -eq 0) "gate exited $LASTEXITCODE"
 
 Write-Host ''
-Write-Host ("assert-swallowed-cancellation tests: {0} passed, {1} failed." -f $script:pass, $script:fail)
+Write-Host "assert-swallowed-cancellation tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

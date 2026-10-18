@@ -68,6 +68,15 @@ data class WearExchangeRelayEndpoint(
             offer: WearExchangeEnvelope,
             descriptor: JsonObject? = descriptorOf(offer),
         ): WearExchangeRelayEndpoint? {
+            val schema = WearBroadcastEndpoints.schemaVersion(descriptor)
+            if (schema > WearBroadcastEndpoints.SUPPORTED_SCHEMA_VERSION) {
+                Timber.w(
+                    "WearExchangeRelayEndpoint: LIVE-BROADCAST descriptor schemaVersion %d is unsupported " +
+                        "(format-unsupported)",
+                    schema,
+                )
+                return null
+            }
             val record = offer.obj(KEY_BROADCAST)
             val broadcastId = broadcastIdOf(offer)
             val endpoint = descriptor?.relayEndpoint()

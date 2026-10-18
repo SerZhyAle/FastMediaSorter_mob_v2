@@ -703,8 +703,29 @@ if ($gradleExit -ne 0) {
     exit $gradleExit
 }
 
-Write-Host "`nFast check passed." -ForegroundColor Green
-[System.IO.File]::AppendAllLines($tempLogPath, [string[]]@("Fast check passed successfully."))
+# CHECK-VERDICT 0.13: a test verdict line that reports counts uses `run=N skipped=M` (run = executed,
+# skipped = not passed). Counted only from XML this run wrote: an up-to-date test task rewrites none, and
+# counting the previous run's reports would put another run's numbers on this run's green line (S1920).
+$passLine = "Fast check passed."
+if ($Mode -eq 'Unit' -and $script:unitTaskDir) {
+    $unitReports = @(Get-FilteredTestReportFile -ProjectRoot $projectRoot -Module $Module `
+            -TaskDir $script:unitTaskDir -Since $script:gradleStartedAt)
+    if ($unitReports.Count -gt 0) {
+        $unitTotal = 0
+        $unitSkipped = 0
+        foreach ($report in $unitReports) {
+            [xml]$suiteXml = [System.IO.File]::ReadAllText($report.FullName)
+            $unitTotal += [int]$suiteXml.testsuite.tests
+            $unitSkipped += [int]$suiteXml.testsuite.skipped
+        }
+        $passLine = "Fast check passed. run=$($unitTotal - $unitSkipped) skipped=$unitSkipped"
+    }
+    else {
+        Write-Host "No test report written by this run (test task up to date) - no counts to print." -ForegroundColor DarkYellow
+    }
+}
+Write-Host "`n$passLine" -ForegroundColor Green
+[System.IO.File]::AppendAllLines($tempLogPath, [string[]]@($passLine))
 
 
 

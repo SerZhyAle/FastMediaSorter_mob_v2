@@ -61,6 +61,15 @@ class WearExchangeMessageTest {
     }
 
     @Test
+    fun `format unsupported code and message resource`() {
+        assertEquals("format-unsupported", WearExchangeMessage.FORMAT_UNSUPPORTED.code)
+        assertEquals(
+            R.string.wear_exchange_reason_format_unsupported,
+            WearExchangeMessage.FORMAT_UNSUPPORTED.messageRes(),
+        )
+    }
+
+    @Test
     fun `a failure reads as the row of item CZ`() {
         assertEquals(
             WearExchangeMessage.RATE_LIMITED,

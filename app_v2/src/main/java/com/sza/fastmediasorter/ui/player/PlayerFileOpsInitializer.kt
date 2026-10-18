@@ -69,9 +69,9 @@ internal class PlayerFileOpsInitializer(
             callback = buildDestinationButtonsCallback(),
             // TV remote / D-pad / hardware keyboard all number the slots; touch-only does not.
             shouldNumberSlots = { activity.shouldNumberOperationSlots() },
-            // Reflect the key actually bound to the slot; null falls back to the position digit in refreshSlotBadges.
-            slotKeyGlyph = { slot ->
-                activity.keyBindingManager.triggersFor("sorting.op_slot_$slot")
+            // The key actually bound to the slot command; null falls back to the position digit.
+            slotKeyGlyph = { commandId ->
+                activity.keyBindingManager.triggersFor(commandId)
                     .filterIsInstance<InputTrigger.Key>()
                     .firstOrNull()
                     ?.let { slotLabelFormatter.format(it) }
@@ -132,6 +132,7 @@ internal class PlayerFileOpsInitializer(
             activity.playerFolderPickerHandler.requestFolderPick(operationType, credId)
         }
         override fun getCurrentResourceId(): Long = activity.intent.getLongExtra("resourceId", -1)
+        override fun getCurrentFilePath(): String? = activity.viewModel.state.value.currentFile?.path
         override fun onUpdateCommandAvailability() {
             activity.updateCommandAvailability(activity.viewModel.state.value)
         }

@@ -90,7 +90,7 @@ if (-not $full) {
         $sizeRun = [bool]($set | Where-Object { $_ -match 'app_v2/src/main/res/(values[^/]*/dimens|layout[^/]*/[^/]+)\.xml$' })
         if (-not $targets.Count -and -not $sizeRun) {
             if (-not $Quiet) { Write-Host '  no product glyph, exceptions file or rule library in the set - nothing judged' }
-            Get-Verdict 3 'ADVISORY'
+            Get-Verdict 3 'PASS WITH ADVISORIES (no product glyph in the changed set; nothing judged)'
         }
     }
 }
@@ -220,6 +220,8 @@ if ($failures.Count) {
     foreach ($f in $failures) { Write-Host "  - $f" }
     Write-Host '  fix: bring the glyph inside ICON-RENDER 0.10 section 10 item A or the size onto a tier (@dimen/icon_tier_NN),'
     Write-Host '       or add "name | rule | reason" to scripts/quality/icon-style-exceptions.txt; delete a stale line'
-    Get-Verdict 1 'FAIL'
+    Write-Host "assert-icon-style: FAIL ($($failures.Count) finding(s))"
+    exit 1
 }
-Get-Verdict 0 'PASS'
+Write-Host 'assert-icon-style: PASS'
+exit 0

@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.07 04:59</sub>
+<sub class="doc-stamp">26.10.18 17:45</sub>
 
 # Pointer - `PAGE-CONTENT`
 
 | | |
 | --- | --- |
 | **Id** | `PAGE-CONTENT` |
-| **Version** | 1.4, active. Owner: the sza.od.ua hub |
+| **Version** | 1.5, active. Owner: the sza.od.ua hub |
 | **Home** | `product-web-pages/PAGE-CONTENT.md` in the shared contracts catalog |
 | **Role here** | consumer - the product site's landing and sideload pages |
 

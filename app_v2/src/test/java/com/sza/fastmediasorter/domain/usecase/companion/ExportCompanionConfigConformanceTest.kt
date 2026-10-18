@@ -33,7 +33,8 @@ import java.util.zip.GZIPInputStream
  * its OWN bytes for stated inputs, and every way those bytes differ from the canonical vectors is named:
  * key order is the canonical one, every key is a documented one, and the only v2 fields written at their
  * import default are the itemized ones below. `createdAt` is the one value that is not a function of the
- * input, so it is shape-checked and then masked.
+ * input, so it is shape-checked and then masked. `readOnly` sits outside the v2 default table: FMSCFG 2.5
+ * makes producers write it explicitly, `true` included, so it is pinned in the bytes, not itemized.
  *
  * A change to an expected string here is a change to what the app writes at a contract boundary - agree it
  * with the contract owner first (docs/contracts/FMSCFG.md).
@@ -220,7 +221,8 @@ class ExportCompanionConfigConformanceTest {
         const val EXPECTED_READ_ONLY = "{\"schemaVersion\":2,\"resourceName\":\"Home PC\",\"protocol\":\"sftp\"," +
             "\"accessPaths\":[{\"kind\":\"lan\",\"host\":\"192.168.1.23\",\"port\":2022}],\"username\":\"fms\"," +
             "\"password\":\"k7PmQ2wXr9TzS4vGnHb3JdLe\",\"hostKeyFingerprintSha256\":\"$FINGERPRINT\"," +
-            "\"roots\":[{\"virtualPath\":\"/Photos\",\"label\":\"Home PC\",\"mediaTypes\":[\"image\",\"video\"]," +
+            "\"roots\":[{\"virtualPath\":\"/Photos\",\"label\":\"Home PC\",\"readOnly\":true," +
+            "\"mediaTypes\":[\"image\",\"video\"]," +
             "\"scanSubdirectories\":false,\"slideshowInterval\":10}],\"createdAt\":\"$MASK\"}"
 
         const val EXPECTED_DESTINATION = "{\"schemaVersion\":2,\"resourceName\":\"Drop Box\",\"protocol\":\"sftp\"," +

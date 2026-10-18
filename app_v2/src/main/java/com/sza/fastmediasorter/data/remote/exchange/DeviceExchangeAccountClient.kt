@@ -19,17 +19,9 @@ import com.sza.fastmediasorter.domain.model.DeviceExchangePairingCode
 import com.sza.fastmediasorter.domain.model.DeviceExchangeWelcome
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.Closeable
 import java.io.IOException
-import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -173,7 +165,10 @@ class DeviceExchangeAccountClient @Inject constructor(
     ): DeviceExchangeSession {
         val token = tokens.token(entry) ?: throw DeviceExchangeNotEnrolledException()
         val hello = helloEnvelope(entry, token, keepaliveSeconds)
-        val (connection, answer) = closingOnCancel({ opened -> closeQuietly(opened.first) }) { adopt ->
+        val release: (Pair<ExchangeConnection, DeviceExchangeEnvelope?>) -> Unit = { opened ->
+            ExchangeStreamOpening.closeQuietly(opened.first)
+        }
+        val (connection, answer) = ExchangeStreamOpening.closingOnCancel(release) { adopt ->
             val connection = connector.connect(entry.host, entry.port, entry.trust(), adopt)
             connection to ask(connection, hello, DeviceExchangeFrameCodec.MAX_FRAME_BODY)
         }
@@ -182,64 +177,6 @@ class DeviceExchangeAccountClient @Inject constructor(
         }
         connection.close()
         throw helloFailure(entry, answer)
-    }
-
-    /**
-     * Runs the blocking [open] so that a cancelled caller closes the socket [open] adopted at once, whatever stage
-     * it blocks in, and a result that completes after the cancellation goes to [release] instead of the caller.
-     * The closer is a child of its own: the caller's thread is the one blocked, so only another worker can close.
-     */
-    private suspend fun <T> closingOnCancel(release: (T) -> Unit, open: ((Closeable) -> Unit) -> T): T {
-        val slot = AtomicReference<Any?>(null)
-        val opened = ArrayList<T>(1)
-        try {
-            coroutineScope {
-                val closer = launch(start = CoroutineStart.UNDISPATCHED) {
-                    try {
-                        awaitCancellation()
-                    } finally {
-                        claim(slot, CANCELLED)?.let(::closeQuietly)
-                    }
-                }
-                val scope = coroutineContext.job
-                try {
-                    // The job turns inactive the moment it is cancelled, before the closer is dispatched to run.
-                    opened += open { socket ->
-                        if (!scope.isActive || !slot.compareAndSet(null, socket)) closeQuietly(socket)
-                    }
-                    claim(slot, HANDED_OVER)
-                } finally {
-                    closer.cancel()
-                }
-            }
-            // A cancellation that landed while the stream was opening has closed it already.
-            currentCoroutineContext().ensureActive()
-            return opened.single()
-        } catch (e: CancellationException) {
-            opened.forEach(release)
-            throw e
-        } catch (e: IOException) {
-            // A socket closed by cancellation fails its blocking call; that is the cancellation, not the server.
-            currentCoroutineContext().ensureActive()
-            throw e
-        }
-    }
-
-    // Moves [slot] to [state] unless it is already final, answering the socket it held, if any.
-    private fun claim(slot: AtomicReference<Any?>, state: Any): Closeable? {
-        while (true) {
-            val current = slot.get()
-            if (current === CANCELLED || current === HANDED_OVER) return null
-            if (slot.compareAndSet(current, state)) return current as? Closeable
-        }
-    }
-
-    private fun closeQuietly(closeable: Closeable) {
-        try {
-            closeable.close()
-        } catch (e: IOException) {
-            Timber.d(e, "Exchange connect: closing an abandoned socket failed")
-        }
     }
 
     private suspend fun welcomed(entry: DeviceExchangeAccountEntry, session: DeviceExchangeSession) = try {
@@ -571,8 +508,6 @@ class DeviceExchangeAccountClient @Inject constructor(
         private const val KEY_EXPIRES_AT = "expiresAt"
         private const val MAX_UNRELATED_ENVELOPES = 8
         private const val INITIAL_ANSWER_TIMEOUT_MS = 15_000
-        private val CANCELLED = Any()
-        private val HANDED_OVER = Any()
         private val PAIRING_ANSWERS =
             setOf(DeviceExchangeEnvelope.TYPE_PAIRING_CODE, DeviceExchangeEnvelope.TYPE_REFUSED)
         private val DIRECTORY_ANSWERS =

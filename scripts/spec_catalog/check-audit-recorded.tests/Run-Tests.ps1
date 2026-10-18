@@ -157,6 +157,6 @@ $g = Invoke-Gate 'NOPE'
 Assert-That "G. malformed id exits 2, not 1" ($g.Code -eq 2) "exit $($g.Code): $($g.Text)"
 
 Write-Host ""
-Write-Host ("passed: {0}  failed: {1}" -f $script:pass, $script:fail) -ForegroundColor Cyan
+Write-Host "check-audit-recorded.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

@@ -146,10 +146,12 @@ function Write-IdList {
 if ($Update -and -not $Reason) {
     Write-Error ("${gateName}: -Update requires -Reason. Re-freezing accepts every live lint finding as " +
         'permanent; an unexplained snapshot rewrite is the event this gate exists to prevent.') -ErrorAction Continue
+    Write-Host 'assert-lint-baseline-absorption: COULD NOT VERIFY (-Update requires a -Reason)'
     exit 2
 }
 if (($BaselineFile -or $SnapshotFile) -and -not $PSBoundParameters.ContainsKey('Module')) {
     Write-Error "${gateName}: -BaselineFile/-SnapshotFile need an explicit -Module." -ErrorAction Continue
+    Write-Host 'assert-lint-baseline-absorption: COULD NOT VERIFY (a path override needs an explicit -Module)'
     exit 2
 }
 
@@ -224,14 +226,15 @@ foreach ($m in $modules) {
     Write-Host "  $counts - the baseline can shrink while absorbing, so the gate compares sets." -ForegroundColor Yellow
 }
 
-if ($cannotVerify) { exit 2 }
-if ($Update) { exit 0 }
+if ($cannotVerify) { Write-Host 'assert-lint-baseline-absorption: COULD NOT VERIFY (a snapshot or baseline could not be read)'; exit 2 }
+if ($Update) { Write-Host 'assert-lint-baseline-absorption: PASS (snapshot updated)'; exit 0 }
 
 if ($anyAbsorbed) {
     Write-Host ''
     Write-Host 'Fix the finding rather than freezing it. If the re-freeze is intentional, accept it:' -ForegroundColor Yellow
     Write-Host "-Update -Reason '<why>', then close through post-change.ps1 so the accepted findings" -ForegroundColor Yellow
     Write-Host 'have a dev-log row naming them.' -ForegroundColor Yellow
-    if ($Gate) { exit 1 }
+    if ($Gate) { Write-Host 'assert-lint-baseline-absorption: FAIL (absorbed findings above)'; exit 1 }
 }
+Write-Host ("assert-lint-baseline-absorption: PASS ({0})" -f $(if ($anyAbsorbed) { 'report mode, -Gate not set' } else { 'no absorbed finding' }))
 exit 0

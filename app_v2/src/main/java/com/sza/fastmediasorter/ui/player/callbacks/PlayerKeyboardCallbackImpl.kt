@@ -2,10 +2,15 @@ package com.sza.fastmediasorter.ui.player.callbacks
 
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.helpers.PlayerHelpEntryManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
+import com.sza.fastmediasorter.ui.player.helpers.StillImageZoomManager
+import com.sza.fastmediasorter.ui.player.helpers.ViewerKeyStepMath
+import com.sza.fastmediasorter.ui.player.helpers.ZoomAction
+import timber.log.Timber
 
 /**
  * Implementation of PlayerKeyboardHandler.PlayerKeyboardCallback extracted from PlayerActivity.
@@ -74,14 +79,64 @@ class PlayerKeyboardCallbackImpl(
         return available
     }
 
-    override fun onOperationSlot(slotIndex: Int): Boolean =
-        activity.dialogAndUiStateManager.triggerOperationSlot(slotIndex)
+    override fun onMoveToSlot(slot: Int): Boolean =
+        activity.dialogAndUiStateManager.triggerMoveSlot(slot)
+
+    override fun onCopyToSlot(slot: Int): Boolean =
+        activity.dialogAndUiStateManager.triggerCopySlot(slot)
+
+    // Created on first zoom key: the surface exists only while the activity binding is alive.
+    private val stillZoom: StillImageZoomManager by lazy {
+        StillImageZoomManager(activity.activityBinding.photoView) {
+            val file = viewModel.state.value.currentFile
+            if (file?.width != null && file.height != null) file.width to file.height else null
+        }
+    }
+
+    override fun onZoom(action: ZoomAction): Boolean {
+        Timber.d("S4362: onZoom action=$action")
+        return when (viewModel.state.value.currentFile?.type) {
+            MediaType.VIDEO -> videoZoomAction(action)
+            MediaType.IMAGE, MediaType.GIF -> stillZoomAction(action)
+            else -> false
+        }
+    }
+
+    override fun onZoomAt(factor: Float, x: Float, y: Float): Boolean =
+        when (viewModel.state.value.currentFile?.type) {
+            MediaType.VIDEO -> activity.gestureSetupManager.videoZoom.zoomAt(factor, x, y)
+            MediaType.IMAGE, MediaType.GIF -> stillZoom.zoomAt(factor, x, y)
+            else -> false
+        }
+
+    private fun videoZoomAction(action: ZoomAction): Boolean {
+        val video = activity.gestureSetupManager.videoZoom
+        return when (action) {
+            ZoomAction.IN -> video.zoomIn()
+            ZoomAction.OUT -> video.zoomOut()
+            ZoomAction.FIT -> video.fit()
+            ZoomAction.ACTUAL_SIZE -> video.actualSize()
+        }
+    }
+
+    private fun stillZoomAction(action: ZoomAction): Boolean = when (action) {
+        ZoomAction.IN -> stillZoom.zoomIn()
+        ZoomAction.OUT -> stillZoom.zoomOut()
+        ZoomAction.FIT -> stillZoom.fit()
+        ZoomAction.ACTUAL_SIZE -> stillZoom.actualSize()
+    }
 
     override fun onShowEditDialog() {
         val currentFile = viewModel.state.value.currentFile
         when (currentFile?.type) {
             MediaType.IMAGE -> {
-                if (activity.isAnimatedImagePath(currentFile.path)) activity.dialogAndUiStateManager.showGifEditDialog() else activity.dialogAndUiStateManager.showImageEditDialog()
+                if (activity.isAnimatedImagePath(
+                        currentFile.path
+                    )) {
+                    activity.dialogAndUiStateManager.showGifEditDialog()
+                } else {
+                    activity.dialogAndUiStateManager.showImageEditDialog()
+                }
             }
             MediaType.GIF -> activity.dialogAndUiStateManager.showGifEditDialog()
             // Keep keyboard-triggered Edit aligned with the visible video command-panel entry point.
@@ -149,9 +204,11 @@ class PlayerKeyboardCallbackImpl(
 
     override fun onSeekForward(seconds: Int) {
         val player = getActivePlayer() ?: return
-        player.seekTo((player.currentPosition + seconds * 1000L).coerceAtMost(
-            player.duration.takeIf { it > 0 } ?: Long.MAX_VALUE
-        ))
+        player.seekTo(
+            (player.currentPosition + seconds * 1000L).coerceAtMost(
+                player.duration.takeIf { it > 0 } ?: Long.MAX_VALUE
+            )
+        )
     }
 
     override fun onSeekBackward(seconds: Int) {
@@ -161,8 +218,11 @@ class PlayerKeyboardCallbackImpl(
 
     override fun onEpubScrollDelta(verticalScroll: Float) {
         if (activity._epubViewerManager != null) {
-            if (verticalScroll > 0) activity.epubViewerManager.showPreviousChapter()
-            else activity.epubViewerManager.showNextChapter()
+            if (verticalScroll > 0) {
+                activity.epubViewerManager.showPreviousChapter()
+            } else {
+                activity.epubViewerManager.showNextChapter()
+            }
         }
     }
 
@@ -214,6 +274,66 @@ class PlayerKeyboardCallbackImpl(
     override fun onToggleFavourite() = viewModel.toggleFavorite()
     override fun onUndoOperation() = viewModel.undoLastOperation()
     override fun onToggleBlackScreen() = activity.toggleBlackScreenOverlay()
+
     // S0162: keyboard shortcut for rotation toggle - same action as the command panel button
     override fun onToggleRotationSensor() = viewModel.toggleRotationSensor()
+
+    // ── VIEWER-KEYBOARD actions (INPUT-PARITY 0.4) ──────────────────────────
+
+    // A step that cannot move (already at the edge) is still consumed so the key does not fall to focus traversal.
+    override fun onStepFiles(offset: Int): Boolean {
+        val state = viewModel.state.value
+        ViewerKeyStepMath.offsetTarget(state.currentIndex, state.files.size, offset)
+            ?.let { activity.navigationManager.navigateToIndexFromControl(it) }
+        return true
+    }
+
+    override fun onEdgeFile(last: Boolean): Boolean {
+        val state = viewModel.state.value
+        ViewerKeyStepMath.edgeTarget(state.currentIndex, state.files.size, last)
+            ?.let { activity.navigationManager.navigateToIndexFromControl(it) }
+        return true
+    }
+
+    override fun onRandomFile(): Boolean {
+        activity.navigationManager.navigateRandomFromButton()
+        return true
+    }
+
+    override fun onRotateContent(clockwise: Boolean): Boolean {
+        if (clockwise) viewModel.rotateSession90() else viewModel.rotateSessionCounter90()
+        activity.applyContentRotation(viewModel.state.value.sessionRotationAngle)
+        return true
+    }
+
+    override fun onChangeSpeed(faster: Boolean): Boolean {
+        val handle = activity.videoPlayerHandle
+        handle.setPlaybackSpeed(ViewerKeyStepMath.nextSpeed(handle.getPlaybackSpeed(), faster))
+        return true
+    }
+
+    override fun onCycleAudioTrack(): Boolean {
+        val manager = activity._videoPlayerManager ?: return false
+        val tracks = manager.getAvailableAudioTracks()
+        val next = ViewerKeyStepMath.nextTrackIndex(tracks.indexOfFirst { it.isSelected }, tracks.size)
+            ?.let { tracks[it] }
+        next?.let { manager.selectAudioTrack(it.groupIndex, it.trackIndex) }
+        return next != null
+    }
+
+    // S starts the slideshow and, while it runs, halves the interval down to the MEDIA-VIEWER 1 s floor;
+    // I switches to shuffled order first and starts it.
+    override fun onStartSlideshow(random: Boolean): Boolean {
+        val state = viewModel.state.value
+        if (random) viewModel.setPlaybackOrderMode(PlaybackOrderMode.SHUFFLE)
+        if (!state.isSlideShowActive) {
+            viewModel.setSlideShowActive(true)
+            activity.showSlideshowEnabledMessage()
+        } else if (!random) {
+            viewModel.setSlideShowInterval(ViewerKeyStepMath.fasterSlideshowIntervalMs(state.slideShowInterval))
+        }
+        activity.dialogAndUiStateManager.updateSlideShowButton()
+        activity.navigationManager.updateSlideshowState()
+        return true
+    }
 }

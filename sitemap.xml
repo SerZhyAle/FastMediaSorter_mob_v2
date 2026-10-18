@@ -569,6 +569,27 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SETTINGS_REFERENCE.html"/>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SUPPORT.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SUPPORT.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SUPPORT-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SUPPORT-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SUPPORT.html"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SUPPORT-ru.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SUPPORT.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SUPPORT-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SUPPORT-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SUPPORT.html"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SUPPORT-uk.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SUPPORT.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SUPPORT-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SUPPORT-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SUPPORT.html"/>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/V2_Specification.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/V2_Specification.html"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/V2_Specification-ru.html"/>

@@ -88,6 +88,6 @@ Assert-Equal 1 $oldCoverage.suppressed 'the historical text-only rule swallowed 
 Assert-Equal 0 $newCoverage.suppressed 'the current rule swallows nothing the pattern matched'
 
 Write-Host ''
-Write-Host "adb-log-filter: $script:passed passed, $script:failed failed"
+Write-Host "adb-log-filter: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"
 if ($script:failed -gt 0) { exit 1 }
 exit 0

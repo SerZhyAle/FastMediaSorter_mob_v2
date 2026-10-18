@@ -132,6 +132,6 @@ $fragmentCross['documentation/topic.html'] = New-Page '/documentation/topic.html
 Test-Case 'a missing cross-page fragment fails' $fragmentCross @() 1 "missing fragment 'two'" $true
 
 Write-Host ""
-Write-Host "Summary: $script:pass passed, $script:fail failed" -ForegroundColor $(if ($script:fail -eq 0) { 'Green' } else { 'Red' })
+Write-Host "assert-docs-crosslinks.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

@@ -10,8 +10,12 @@ import javax.inject.Singleton
  *
  * The publisher already refuses a malformed set, so this parser's job is to survive an unexpected
  * payload without costing the caller the bank it imported successfully in the same run: an unknown
- * `schemaVersion` yields an empty result, and a single collection missing its members or its `en` name
- * is dropped rather than made fatal.
+ * `schemaVersion` or a malformed payload yields a REFUSED result, and a single collection missing its
+ * members or its `en` name is dropped rather than made fatal.
+ *
+ * Refused and empty are different answers (STREAM-BANK 2.4 SB-A7): a valid entry with an empty
+ * `collections` array is the publisher clearing the set, while a refusal must keep the stored set, so
+ * the caller reads [ParsedStreamCollections.refused] before replacing anything.
  *
  * Deliberately free of Android framework and Room types beyond `org.json`, so the whole contract is
  * testable as plain Kotlin against a string. The result holders are nested members rather than
@@ -34,15 +38,17 @@ class StreamCollectionsJsonParser @Inject constructor() {
     /** Outcome of one parse: what survived, and how much was dropped for the log. */
     data class ParsedStreamCollections(
         val collections: List<ParsedStreamCollection>,
-        val droppedCollections: Int
+        val droppedCollections: Int,
+        /** True when the whole entry was not understood; the stored set must then stay as it is. */
+        val refused: Boolean = false
     ) {
         companion object {
-            val EMPTY = ParsedStreamCollections(emptyList(), 0)
+            val REFUSED = ParsedStreamCollections(emptyList(), 0, refused = true)
         }
     }
 
     fun parse(json: String): ParsedStreamCollections = when (val root = readRoot(json)) {
-        null -> ParsedStreamCollections.EMPTY
+        null -> ParsedStreamCollections.REFUSED
         else -> parseCollections(root)
     }
 
@@ -64,7 +70,11 @@ class StreamCollectionsJsonParser @Inject constructor() {
     }
 
     private fun parseCollections(root: JSONObject): ParsedStreamCollections {
-        val array = root.optJSONArray("collections") ?: return ParsedStreamCollections.EMPTY
+        val array = root.optJSONArray("collections")
+        if (array == null) {
+            Timber.w("Stream collections: no collections array, ignoring the entry")
+            return ParsedStreamCollections.REFUSED
+        }
         val parsed = ArrayList<ParsedStreamCollection>(array.length())
         var dropped = 0
         for (index in 0 until array.length()) {

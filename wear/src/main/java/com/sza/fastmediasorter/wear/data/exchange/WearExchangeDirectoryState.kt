@@ -4,6 +4,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.sza.fastmediasorter.data.security.e2e.E2eDeviceKey
 import com.sza.fastmediasorter.data.security.e2e.E2ePeer
+import timber.log.Timber
 import java.time.Instant
 
 /** A device of the account as the directory lists it (contract DEVICE-EXCHANGE 6.1), reduced to what the list shows. */
@@ -158,14 +159,23 @@ class WearExchangeDirectoryState private constructor(
             val id = record.text(KEY_BROADCAST_ID)
             val deviceId = record.text(KEY_DEVICE_ID)
             val descriptor = record.get(KEY_DESCRIPTOR)?.takeIf(JsonElement::isJsonObject)?.asJsonObject
+            val schema = WearBroadcastEndpoints.schemaVersion(descriptor)
+            val unsupportedSchema = schema > WearBroadcastEndpoints.SUPPORTED_SCHEMA_VERSION
+            if (unsupportedSchema) {
+                Timber.w(
+                    "WearExchangeDirectoryState: LIVE-BROADCAST descriptor schemaVersion %d is unsupported " +
+                        "(format-unsupported)",
+                    schema,
+                )
+            }
             return if (id == null || deviceId == null) {
                 null
             } else {
                 WearDirectoryBroadcast(
                     broadcastId = id,
                     deviceId = deviceId,
-                    title = record.text(KEY_TITLE) ?: descriptor?.text(KEY_TITLE),
-                    mode = record.text(KEY_MODE) ?: descriptor?.text(KEY_MODE),
+                    title = record.text(KEY_TITLE) ?: descriptor?.takeUnless { unsupportedSchema }?.text(KEY_TITLE),
+                    mode = record.text(KEY_MODE) ?: descriptor?.takeUnless { unsupportedSchema }?.text(KEY_MODE),
                     descriptor = descriptor,
                     credentials = credentials(record),
                     sealed = record.get(KEY_SEALED)?.takeIf(JsonElement::isJsonObject)?.asJsonObject,

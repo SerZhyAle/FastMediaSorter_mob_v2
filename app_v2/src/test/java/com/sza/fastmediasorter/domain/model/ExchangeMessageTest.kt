@@ -45,6 +45,7 @@ class ExchangeMessageTest {
             ExchangeMessage.SERVER_NO_E2E to "operator",
             ExchangeMessage.SEALED_FAILED to null,
             ExchangeMessage.REFUSED to "operator",
+            ExchangeMessage.ADMIN_DISABLED to null,
             ExchangeMessage.TOKEN_NOT_STORED to null,
         )
         assertEquals(ExchangeMessage.entries.toSet(), expected.keys)

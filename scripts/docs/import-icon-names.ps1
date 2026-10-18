@@ -20,6 +20,9 @@
       - a candidate equal to another meaning's name in that language is refused ("Zurück" is nav.back, never
         media.previous), and the record keeps whatever name it already had; when two candidates collide, the
         record that already carries the word keeps it, and when neither does, both are refused;
+      - a name made normative by a dated consolidation amendment (the record's "normative" field, or the
+        script's table, which cites ICON-SET 0.34 for app.help) is never replaced: a differing product wording
+        is printed as a refused conflict;
       - an existing name from another product that differs from the chosen wording is replaced.
 
     A locale with a script subtag is written under its language code (zh-Hans -> zh). Only the "name" object of
@@ -120,7 +123,14 @@ for ($i = 0; $i -lt $lines.Count; $i++) {
     if ([string]::IsNullOrWhiteSpace($lines[$i])) { continue }
     try { $r = $lines[$i] | ConvertFrom-Json -AsHashtable }
     catch { Stop-Verdict 1 'FAIL' @("vocabulary.jsonl:$($i + 1) is not valid JSON") }
-    $records.Add([pscustomobject]@{ Line = $i; Id = $r['id']; Name = $r['name']; Candidates = @{}; Ties = @() })
+    $records.Add([pscustomobject]@{ Line = $i; Id = $r['id']; Name = $r['name']; Normative = $r['normative']; Candidates = @{}; Ties = @() })
+}
+
+# A dated consolidation amendment that fixes a meaning's names "prevails over conflicting earlier text", rule 3
+# included, so the product wording must never overwrite them. The record's own "normative" field cites the
+# amendment when the vocabulary carries one; this table covers the amendments written before that field existed.
+$normativeByAmendment = @{
+    'app.help' = 'ICON-SET 0.34, amendment 2026-10-17 (proposal consolidation)'
 }
 
 function Find-Keys($name, [bool] $exact) {
@@ -164,8 +174,19 @@ foreach ($rec in $records) {
     }
 }
 
-# A refusal restores the record's old name, which may collide with a candidate elsewhere, so refuse until stable.
 $refused = @{}
+foreach ($rec in $records) {
+    $cite = if ($rec.Normative) { "$($rec.Normative)" } else { $normativeByAmendment[$rec.Id] }
+    if (-not $cite) { continue }
+    foreach ($code in @($rec.Candidates.Keys)) {
+        $old = $rec.Name[$code]
+        if ($old -and $old -cne $rec.Candidates[$code]) {
+            $refused["$($rec.Id)|$code"] = "$($rec.Id) $code - normative name '$old' ($cite) differs from the product's '$($rec.Candidates[$code])'; align the product string or amend the contract"
+        }
+    }
+}
+
+# A refusal restores the record's old name, which may collide with a candidate elsewhere, so refuse until stable.
 $byId = @{}
 foreach ($rec in $records) { $byId[$rec.Id] = $rec }
 do {

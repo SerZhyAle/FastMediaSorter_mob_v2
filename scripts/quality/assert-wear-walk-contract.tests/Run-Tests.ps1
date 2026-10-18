@@ -239,6 +239,6 @@ Assert-Case -Label 'a marker over a tree with no HomeSectionCatalog is could-not
     -Result (Invoke-Gate -ScreenListName 'screens-paired-phone.json' -SourceDir 'src-scoped' -AsGate)
 
 Write-Host ""
-Write-Host "assert-wear-walk-contract.tests: $script:passed passed, $script:failed failed."
+Write-Host "assert-wear-walk-contract.tests: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"
 if ($script:failed -gt 0) { exit 1 }
 exit 0

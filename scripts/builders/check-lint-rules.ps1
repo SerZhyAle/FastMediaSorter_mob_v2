@@ -94,7 +94,8 @@ try {
         $skipped += [int]$xml.testsuite.skipped
     }
 
-    Write-Host "`nLint-rules tests passed: $($total - $failed - $skipped)/$total (skipped $skipped)." -ForegroundColor Green
+    # CHECK-VERDICT 0.13 count grammar: run = executed tests, skipped = not passed.
+    Write-Host "`nLint-rules tests passed: run=$($total - $skipped) skipped=$skipped." -ForegroundColor Green
 
 }
 finally {

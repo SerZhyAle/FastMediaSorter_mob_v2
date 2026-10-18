@@ -189,6 +189,6 @@ finally {
     Remove-Item -LiteralPath $fixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-Write-Host ("AssertDiagnosticsRedaction.Tests: {0} passed, {1} failed." -f $script:pass, $script:fail)
+Write-Host "AssertDiagnosticsRedaction.Tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

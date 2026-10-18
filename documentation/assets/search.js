@@ -246,13 +246,23 @@
         var languageMenu = document.getElementById('langMenu');
         if (languageButton && languageMenu) {
             // Preserve old bookmarked query URLs while using real translated pages for new links.
-            var legacy = new URLSearchParams(window.location.search).get('lang');
-            var legacyLink = ['en', 'ru', 'uk'].indexOf(legacy) >= 0 ?
-                languageMenu.querySelector('a[data-lang="' + legacy + '"]') : null;
+            // PAGE-STYLE 3.1 item 1: a shipped `lang` wins, else a shipped legacy `l`; anything else is ignored.
+            var query = new URLSearchParams(window.location.search);
+            var shippedLink = function (code) {
+                return ['en', 'ru', 'uk'].indexOf(code) >= 0 ?
+                    languageMenu.querySelector('a[data-lang="' + code + '"]') : null;
+            };
+            var legacy = query.get('lang');
+            var legacyLink = shippedLink(legacy);
+            if (!legacyLink) {
+                legacy = query.get('l');
+                legacyLink = shippedLink(legacy);
+            }
             if (legacyLink && legacy !== lang) {
                 var destination = new URL(legacyLink.href);
                 var params = new URLSearchParams(window.location.search);
                 params.delete('lang');
+                params.delete('l');
                 destination.search = params.toString();
                 destination.hash = window.location.hash;
                 window.location.replace(destination.href);

@@ -529,6 +529,44 @@ class LauncherDesktopRepositoryImplTest {
         assertEquals("the refused resize must keep the last valid size", 2, storedCell(growing)?.spanH)
     }
 
+    @Test
+    fun `adding cell outside sections lands above first header when space is available`() = runTest {
+        val secId = add(section(row = 2))!!
+        val placedId = repository.addCellOutsideSections(cell(row = 0, col = 0), columns = 4)
+        assertNotNull(placedId)
+        val placed = storedCell(placedId!!)!!
+        assertEquals(0, placed.rowIndex)
+        assertEquals(0, placed.colIndex)
+        val sec = storedCell(secId)!!
+        assertEquals(2, sec.rowIndex)
+        val sectionsInOrder = listOf(sec.toDomainOrNull()!!)
+        assertNull(LauncherSectionMembership.ownerOf(placed.toDomainOrNull()!!, sectionsInOrder))
+    }
+
+    @Test
+    fun `adding cell outside sections pushes headers down when unsectioned rows are full`() = runTest {
+        val secId = add(section(row = 0))!!
+        val placedId = repository.addCellOutsideSections(cell(row = 0, col = 0), columns = 4)
+        assertNotNull(placedId)
+        val placed = storedCell(placedId!!)!!
+        assertEquals(0, placed.rowIndex)
+        assertEquals(0, placed.colIndex)
+        val pushedSec = storedCell(secId)!!
+        assertEquals("section header pushed down by cell spanH", 1, pushedSec.rowIndex)
+        val sectionsInOrder = listOf(pushedSec.toDomainOrNull()!!)
+        assertNull(LauncherSectionMembership.ownerOf(placed.toDomainOrNull()!!, sectionsInOrder))
+    }
+
+    @Test
+    fun `adding cell outside sections when no headers exist seats cell via first free slot`() = runTest {
+        val placedId = repository.addCellOutsideSections(cell(row = 0, col = 0), columns = 4)
+        assertNotNull(placedId)
+        val placed = storedCell(placedId!!)!!
+        assertEquals(0, placed.rowIndex)
+        assertEquals(0, placed.colIndex)
+        assertNull(LauncherSectionMembership.ownerOf(placed.toDomainOrNull()!!, emptyList()))
+    }
+
     // S1742 section-block operations - swap, remove, resort, clearAll - live in
     // LauncherSectionBlockOpsTest (S2599). They left with the LargeClass ceiling, and the seam is the
     // subject: this class covers where ONE cell may sit, that one covers a band of rows moving as a unit.

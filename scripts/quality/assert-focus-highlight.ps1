@@ -208,6 +208,7 @@ if ($named.Count -gt 0) {
         $full = if ([System.IO.Path]::IsPathRooted($rel)) { $rel } else { Join-Path $repoRoot $rel }
         if (-not (Test-Path -LiteralPath $full)) {
             Write-Error "assert-focus-highlight: changed file not found - $rel" -ErrorAction Continue
+            Write-Host 'assert-focus-highlight: COULD NOT VERIFY (a named changed file was not found)'
             exit 2
         }
     }
@@ -227,6 +228,7 @@ if ($named.Count -gt 0) {
     if ($cardHits.Count -gt 0) {
         Write-Host 'FAIL: MaterialCardView overwrites android:foreground during construction.'
         $cardHits | ForEach-Object { Write-Host "  $_" }
+        Write-Host 'assert-focus-highlight: FAIL (MaterialCardView overwrites android:foreground during construction)'
         exit 1
     }
 
@@ -261,6 +263,7 @@ if ($named.Count -gt 0) {
             if ($row.New -gt 0) { Write-Host ("  {0}: HEAD {1} -> working {2}" -f $row.Path, $row.Head, $row.Work) }
         }
         Write-Host ('FAIL: a changed layout added ' + $growth.Growth + ' interactive view(s) without a visible focus indication (Rule 16). Add a focus foreground/background, a ?attr/selectableItemBackground ripple, or use a Material/framework control.')
+        Write-Host "assert-focus-highlight: FAIL ($($growth.Growth) new interactive view(s) without a focus indication)"
         exit 1
     }
     Write-Host 'assert-focus-highlight: PASS (no new focus gap in the changed layouts).'
@@ -272,6 +275,7 @@ if ($named.Count -gt 0) {
 # ---------------------------------------------------------------------------------------------
 if (-not (Test-Path -LiteralPath $resRoot)) {
     Write-Error "assert-focus-highlight: scan root not found - $resRoot" -ErrorAction Continue
+    Write-Host "assert-focus-highlight: COULD NOT VERIFY (scan root not found - $resRoot)"
     exit 2
 }
 
@@ -308,6 +312,7 @@ foreach ($dir in $layoutDirs) {
 if ($materialCardForegroundHits.Count -gt 0) {
     Write-Host 'FAIL: MaterialCardView overwrites android:foreground during construction.'
     $materialCardForegroundHits | ForEach-Object { Write-Host "  $_" }
+    Write-Host 'assert-focus-highlight: FAIL (MaterialCardView overwrites android:foreground during construction)'
     exit 1
 }
 
@@ -325,6 +330,7 @@ if ($UpdateBaseline) {
         if (-not (Test-Path $baselineFile)) {
             Set-Content -LiteralPath $baselineFile -Value "$current"
             Write-Host "focus-highlight baseline SEEDED: $current"
+            Write-Host "assert-focus-highlight: PASS (baseline seeded at $current)"
             exit 0
         }
         $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
@@ -337,15 +343,18 @@ if ($UpdateBaseline) {
         }
         else {
             Write-Error "Refusing to RAISE baseline ($baseline -> $current). New interactive view(s) lack a focus indication - add a focus-state foreground/background, a ?attr/selectableItemBackground ripple, or use a Material/framework control." -ErrorAction Continue
+            Write-Host "assert-focus-highlight: FAIL (refusing to raise the baseline $baseline -> $current)"
             exit 1
         }
     }
     finally { Exit-CodeLockScope -Scope $scope }
+    Write-Host "assert-focus-highlight: PASS (baseline update ran; actual $current)"
     exit 0
 }
 
 if (-not (Test-Path $baselineFile)) {
     Write-Host "focus-highlight: NO BASELINE yet | actual $current - run -UpdateBaseline to seed."
+    Write-Host "assert-focus-highlight: PASS (no baseline yet; actual $current)"
     exit 0
 }
 $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
@@ -353,9 +362,11 @@ $delta = $current - $baseline
 Write-Host ("focus-highlight in src/main: baseline {0} | actual {1} | delta {2:+#;-#;0}" -f $baseline, $current, $delta)
 if ($Gate -and $current -gt $baseline) {
     Write-Host "FAIL: interactive views without a visible focus indication grew above baseline (Rule 16). Add a focus foreground/background, a ?attr/selectableItemBackground ripple, or use a Material/framework control."
+    Write-Host "assert-focus-highlight: FAIL (findings grew from the baseline $baseline to $current)"
     exit 1
 }
 if ($current -lt $baseline) {
     Write-Host "Note: count is below baseline - run -UpdateBaseline to ratchet the cap down."
 }
+Write-Host "assert-focus-highlight: PASS (baseline $baseline, actual $current)"
 exit 0

@@ -96,6 +96,7 @@ $repoRootSlash = ($repoRoot -replace '\\', '/').TrimEnd('/')
 $mergedMode = [bool]($Manifests -and (@(Expand-ChangedFiles -ChangedFiles $Manifests).Count -gt 0))
 if ($PairingOnly -and -not $mergedMode) {
     Write-Error 'assert-manifest-risk-diff: -PairingOnly judges merged manifests, so it needs -Manifests.' -ErrorAction Continue
+    Write-Host 'assert-manifest-risk-diff: COULD NOT VERIFY (-PairingOnly needs -Manifests)'
     exit 2
 }
 
@@ -103,6 +104,7 @@ $registryFile = if ($RegistryPath) { $RegistryPath } else { Join-Path $repoRoot 
 # A pairing-only run never judges a row, so neither a missing nor a broken registry stops it.
 if (-not $PairingOnly -and -not (Test-Path -LiteralPath $registryFile)) {
     Write-Error "assert-manifest-risk-diff: registry not found: $registryFile" -ErrorAction Continue
+    Write-Host "assert-manifest-risk-diff: COULD NOT VERIFY (registry not found: $registryFile)"
     exit 2
 }
 $registryLines = if (-not $PairingOnly) { @(Get-Content -LiteralPath $registryFile) } else { @() }
@@ -129,6 +131,7 @@ foreach ($raw in $registryLines) {
     try { $row = $line | ConvertFrom-Json }
     catch {
         Write-Error "assert-manifest-risk-diff: line ${lineNo} of the registry is not JSON." -ErrorAction Continue
+        Write-Host "assert-manifest-risk-diff: COULD NOT VERIFY (line $lineNo of the registry is not JSON)"
         exit 2
     }
     $kind = if ($row.PSObject.Properties.Name -contains 'kind') { [string]$row.kind } else { '' }
@@ -158,7 +161,7 @@ foreach ($raw in $registryLines) {
 if ($malformed.Count -gt 0 -and -not $PairingOnly) {
     Write-Host 'manifest-risk: the registry itself is malformed -'
     foreach ($m in $malformed) { Write-Host "  $m" }
-    if ($Gate) { exit 1 }
+    if ($Gate) { Write-Host "assert-manifest-risk-diff: FAIL ($($malformed.Count) registry row(s) are malformed)"; exit 1 }
 }
 
 # ---------------------------------------------------------------------------
@@ -267,6 +270,7 @@ function Get-PairingFindings([string]$Rel, [string]$AbsolutePath) {
     try { $doc.Load($AbsolutePath) }
     catch {
         Write-Error "assert-manifest-risk-diff: ${Rel} is not well-formed XML, so its foreground service pairs cannot be judged." -ErrorAction Continue
+        Write-Host "assert-manifest-risk-diff: COULD NOT VERIFY ($Rel is not well-formed XML)"
         exit 2
     }
     $granted = @{}
@@ -307,6 +311,7 @@ if ($mergedMode) {
         # Nothing to pair is not a pass: the sweep would report the same green for a path nobody built.
         if (-not (Test-Path -LiteralPath $absolutePath -PathType Leaf)) {
             Write-Error "assert-manifest-risk-diff: merged manifest not found: ${rel}" -ErrorAction Continue
+            Write-Host "assert-manifest-risk-diff: COULD NOT VERIFY (merged manifest not found: $rel)"
             exit 2
         }
         foreach ($finding in @(Get-PairingFindings $rel $absolutePath)) { $unpaired.Add($finding) }
@@ -357,10 +362,12 @@ if ($unpaired.Count -gt 0) {
     }
 }
 
-if ($Gate -and ($findings.Count -gt 0 -or $unpaired.Count -gt 0)) { exit 1 }
+if ($Gate -and ($findings.Count -gt 0 -or $unpaired.Count -gt 0)) { Write-Host "assert-manifest-risk-diff: FAIL ($($findings.Count) finding(s), $($unpaired.Count) unpaired foreground service(s))"; exit 1 }
 
 if ($Gate -and $malformed.Count -gt 0) {
     Write-Error "assert-manifest-risk-diff: $($malformed.Count) registry row(s) are malformed - each is listed above with its line number. Give the row a justification and a scope, or delete it." -ErrorAction Continue
+    Write-Host "assert-manifest-risk-diff: FAIL ($($malformed.Count) registry row(s) are malformed)"
     exit 1
 }
+Write-Host 'assert-manifest-risk-diff: PASS'
 exit 0

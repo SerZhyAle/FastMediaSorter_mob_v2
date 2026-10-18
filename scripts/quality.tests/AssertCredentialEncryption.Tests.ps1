@@ -203,6 +203,6 @@ finally {
     Remove-Item -LiteralPath $fixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-Write-Host ("AssertCredentialEncryption.Tests: {0} passed, {1} failed." -f $script:pass, $script:fail)
+Write-Host "AssertCredentialEncryption.Tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

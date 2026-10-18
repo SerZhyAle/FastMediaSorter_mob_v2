@@ -152,7 +152,6 @@ Assert-Case -Name '-Help exits clean' -Expected 0 -Arguments @('-Help')
 if (-not $KeepArtifacts) { Remove-Item $workDir -Recurse -Force -ErrorAction SilentlyContinue }
 
 Write-Host ''
-Write-Host ("wear-ink-clip contract: {0} passed, {1} failed" -f $script:passed, $script:failed) `
-    -ForegroundColor $(if ($script:failed -gt 0) { 'Red' } else { 'Cyan' })
+Write-Host "wear-ink-clip contract: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"
 if ($script:failed -gt 0) { exit 1 }
 exit 0

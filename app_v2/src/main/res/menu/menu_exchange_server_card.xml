@@ -13,6 +13,9 @@
         android:id="@+id/action_exchange_share"
         android:title="@string/exchange_devices_menu_share" />
     <item
+        android:id="@+id/action_exchange_administer"
+        android:title="@string/exchange_devices_menu_administer" />
+    <item
         android:id="@+id/action_exchange_auto_attach"
         android:checkable="true"
         android:title="@string/exchange_devices_menu_auto_attach" />

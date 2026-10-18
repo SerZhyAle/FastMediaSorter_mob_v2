@@ -174,6 +174,7 @@ if ($PSCmdlet.ParameterSetName -eq 'Update') {
         if (-not (Test-Path $baselineFile)) {
             Set-Content -LiteralPath $baselineFile -Value "$current"
             Write-Host "dialog-cancel-style baseline SEEDED: $current"
+            Write-Host "assert-dialog-cancel-style: PASS (baseline seeded at $current)"
             exit 0
         }
         $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
@@ -186,15 +187,18 @@ if ($PSCmdlet.ParameterSetName -eq 'Update') {
         }
         else {
             Write-Error "Refusing to RAISE baseline ($baseline -> $current). Apply style=`"$cancelStyle`" to the cancel button - see docs/ARCHITECTURE.md `"Button Taxonomy`"."
+            Write-Host "assert-dialog-cancel-style: FAIL (refusing to raise the baseline $baseline -> $current)"
             exit 1
         }
     }
     finally { Exit-CodeLockScope -Scope $scope }
+    Write-Host "assert-dialog-cancel-style: PASS (baseline update ran; actual $current)"
     exit 0
 }
 
 if (-not (Test-Path $baselineFile)) {
     Write-Host "dialog-cancel-style: NO BASELINE yet | actual $current - run -UpdateBaseline to seed."
+    Write-Host "assert-dialog-cancel-style: PASS (no baseline yet; actual $current)"
     exit 0
 }
 $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
@@ -202,9 +206,11 @@ $delta = $current - $baseline
 Write-Host ("dialog-cancel-style in dialog/bottom-sheet layouts: baseline {0} | actual {1} | delta {2:+#;-#;0}" -f $baseline, $current, $delta)
 if ($Gate -and $current -gt $baseline) {
     Write-Host "FAIL: a dialog/bottom-sheet cancel button is not using @style/Widget.FastMediaSorter.Button.DialogCancel, or a layout with a DialogDestructive button gives no safe view android:focusedByDefault=`"true`". Apply the S0538/S0684 cancel slot style (soft-pink tonal, shorter + narrower), and put the default focus on the cancel (S4051), never on the destructive button - run with -List for the file and class, see docs/ARCHITECTURE.md `"Button Taxonomy`"."
+    Write-Host "assert-dialog-cancel-style: FAIL (findings grew from the baseline $baseline to $current)"
     exit 1
 }
 if ($current -lt $baseline) {
     Write-Host "Note: count is below baseline - run -UpdateBaseline to ratchet the cap down."
 }
+Write-Host "assert-dialog-cancel-style: PASS (baseline $baseline, actual $current)"
 exit 0

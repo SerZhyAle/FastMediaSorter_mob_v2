@@ -28,4 +28,11 @@ if ($Gate) { $argsToPass += '-Gate' }
 if ($Explain) { $argsToPass += '-Explain' }
 
 & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'assert-source-gates.ps1') @argsToPass
-exit $LASTEXITCODE
+$code = $LASTEXITCODE
+# CHECK-VERDICT rule 5: the verdict line names this wrapper, not the aggregator it forwards to.
+switch ($code) {
+    0 { Write-Host 'assert-appsettings-persistence: PASS' }
+    1 { Write-Host 'assert-appsettings-persistence: FAIL' }
+    default { Write-Host "assert-appsettings-persistence: COULD NOT VERIFY (assert-source-gates exited $code)" }
+}
+exit $code

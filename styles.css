@@ -2519,7 +2519,8 @@ html[data-theme="light"] .btn-ghost {
 html[data-theme="light"] .btn-primary,
 html[data-theme="light"] .seg a.on,
 html[data-theme="light"] .seg button.on,
-html[data-theme="light"] .seg button[aria-pressed="true"] {
+html[data-theme="light"] .seg button[aria-pressed="true"],
+html[data-theme="light"] .skip-link {
     background: var(--acc-strong);
 }
 /* Author display rules must not reveal controls hidden by the broadcast fallback. */

@@ -38,7 +38,7 @@
     <string name="create_folder_title">مجلد جديد</string>
     <string name="create_folder_hint">اسم المجلد</string>
     <string name="error_invalid_folder_name">اسم مجلد غير صالح</string>
-    <string name="help">المساعدة</string>
+    <string name="help">مساعدة</string>
     <string name="yes">نعم</string>
     <string name="no">لا</string>
     <string name="select_all">تحديد الكل</string>
@@ -3364,7 +3364,6 @@
     <string name="broadcast_import_dialog_title">استيراد بث مباشر</string>
     <string name="broadcast_import_option_qr">مسح رمز QR</string>
     <string name="broadcast_import_malformed">صيغة واصف البث غير صالحة</string>
-    <string name="broadcast_import_unsupported_version">إصدار واصف البث غير مدعوم</string>
     <string name="broadcast_import_success">تمت إضافة قناة البث</string>
     <string name="broadcast_import_option_file">اختيار ملف الواصف</string>
     <string name="launcher_settings_unit_system_title">نظام الوحدات</string>

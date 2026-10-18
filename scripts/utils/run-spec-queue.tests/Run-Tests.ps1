@@ -758,9 +758,8 @@ if (-not $hasPlannedId) {
 
 Write-Host ''
 if ($failures -gt 0) {
-    Write-Host ("run-spec-queue tests: FAIL ({0} of {1} case(s))" -f $failures, $caseCount) -ForegroundColor Red
+    Write-Host "run-spec-queue tests: FAIL (run=$caseCount skipped=$skipped)" -ForegroundColor Red
     exit 1
 }
-$skipNote = if ($skipped -gt 0) { ", $skipped skipped" } else { '' }
-Write-Host ("run-spec-queue tests: PASS ({0} case(s){1})" -f $caseCount, $skipNote) -ForegroundColor Green
+Write-Host "run-spec-queue tests: PASS (run=$caseCount skipped=$skipped)" -ForegroundColor Green
 exit 0

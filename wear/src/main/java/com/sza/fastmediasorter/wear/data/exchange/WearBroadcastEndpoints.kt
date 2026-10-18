@@ -56,6 +56,7 @@ sealed interface WearRelaySeal {
  */
 object WearBroadcastEndpoints {
 
+    const val SUPPORTED_SCHEMA_VERSION = 1
     const val MODE_AUDIO_ONLY = "AUDIO_ONLY"
     const val MODE_VIDEO_AUDIO = "VIDEO_AUDIO"
     const val MODE_VIDEO_ONLY = "VIDEO_ONLY"
@@ -68,6 +69,7 @@ object WearBroadcastEndpoints {
     private const val HTTPS_PORT = 443
     private const val HTTP_PORT = 80
     private const val RTSP_PORT = 554
+    private const val KEY_SCHEMA_VERSION = "schemaVersion"
     private const val KEY_ENDPOINTS = "endpoints"
     private const val KEY_TRANSPORT = "transport"
     private const val KEY_MODE = "mode"
@@ -81,6 +83,11 @@ object WearBroadcastEndpoints {
     fun isPlayableMode(mode: String?): Boolean = mode?.uppercase() in playableModes
 
     fun isVideo(mode: String?): Boolean = mode?.uppercase().let { it == MODE_VIDEO_AUDIO || it == MODE_VIDEO_ONLY }
+
+    /** The schemaVersion of [descriptor], or [SUPPORTED_SCHEMA_VERSION] if missing or not an integer. */
+    fun schemaVersion(descriptor: JsonObject?): Int =
+        descriptor?.get(KEY_SCHEMA_VERSION)?.takeIf { it.isJsonPrimitive }
+            ?.let { runCatching { it.asInt }.getOrNull() } ?: SUPPORTED_SCHEMA_VERSION
 
     /** Item M: a descriptor with an `auth` object demands the challenge be answered on every endpoint. */
     fun isProtected(descriptor: JsonObject?): Boolean =
@@ -97,6 +104,15 @@ object WearBroadcastEndpoints {
         recordMode: String?,
         boxPending: Boolean = false,
     ): List<WearBroadcastEndpoint> {
+        val schema = schemaVersion(descriptor)
+        if (schema > SUPPORTED_SCHEMA_VERSION) {
+            Timber.w(
+                "WearBroadcastEndpoints: LIVE-BROADCAST descriptor schemaVersion %d is unsupported " +
+                    "(format-unsupported)",
+                schema,
+            )
+            return emptyList()
+        }
         val fallbackMode = descriptor?.text(KEY_MODE) ?: recordMode
         val listed = descriptor?.get(KEY_ENDPOINTS)?.takeIf(JsonElement::isJsonArray)?.asJsonArray?.toList().orEmpty()
             .filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject)

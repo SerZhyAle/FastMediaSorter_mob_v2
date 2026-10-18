@@ -540,6 +540,7 @@ if (Test-Path -LiteralPath $exemptionPath) {
         if ($trimmed -notmatch '^(\S+)\s*::\s*(\S.*)$') {
             $msg = "assert-gson-persistence-contract: exemption line ${lineNumber} carries no justification - '$trimmed'."
             Write-Error $msg -ErrorAction Continue
+            Write-Host 'assert-gson-persistence-contract: COULD NOT VERIFY (an exemption line carries no justification)'
             exit 2
         }
         $exemptions[$Matches[1]] = $Matches[2]
@@ -636,6 +637,7 @@ foreach ($moduleName in $modules) {
 if ($rootsScanned -eq 0) {
     $msg = "assert-gson-persistence-contract: no source root readable for module(s) $($modules -join ', ')."
     Write-Error $msg -ErrorAction Continue
+    Write-Host "assert-gson-persistence-contract: COULD NOT VERIFY (no source root readable for module(s) $($modules -join ', '))"
     exit 2
 }
 
@@ -884,8 +886,9 @@ if ($failed) {
     if ($enumOffenders.Count -gt 0) { Write-Host "  note: $EnumConstantMessage" }
     $msg = "assert-gson-persistence-contract: $($violations.Count) unpinned model(s), $($enumOffenders.Count) model(s) with unpinned enum constants, $($unresolvedPoints.Count) point(s) with an unresolvable type; $carried."
     Write-Error $msg -ErrorAction Continue
+    Write-Host "assert-gson-persistence-contract: FAIL ($($violations.Count) unpinned model(s), $($enumOffenders.Count) with unpinned enum constants, $($unresolvedPoints.Count) unresolvable point(s))"
     exit 1
 }
 
-Write-Host "assert-gson-persistence-contract: every durable model pins its wire names; $carried."
+Write-Host "assert-gson-persistence-contract: PASS (every durable model pins its wire names; $carried)"
 exit 0

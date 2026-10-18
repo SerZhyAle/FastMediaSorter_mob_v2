@@ -169,14 +169,11 @@
     <string name="kbm_help_op_refresh">تحديث</string>
     <string name="kbm_help_op_rename">إعادة تسمية</string>
     <string name="kbm_help_op_view">عرض / معاينة</string>
-    <string name="kbm_help_player_frame_step">إطار للخلف / للأمام</string>
     <string name="kbm_help_player_fullscreen">تبديل وضع ملء الشاشة</string>
     <string name="kbm_help_player_info">معلومات الملف</string>
     <string name="kbm_help_player_mute">كتم الصوت</string>
-    <string name="kbm_help_player_playpause">تشغيل / إيقاف مؤقت</string>
     <string name="kbm_help_player_prev_next">الملف السابق / الملف التالي</string>
     <string name="kbm_help_player_save">حفظ لقطة / الحالية</string>
-    <string name="kbm_help_player_seek_10s">التقديم −10 ث / +10 ث</string>
     <string name="kbm_help_player_seek_60s">التقديم −60 ث / +60 ث</string>
     <string name="kbm_help_player_volume">رفع / خفض مستوى الصوت</string>
     <string name="kbm_help_section_dialog">حوار</string>

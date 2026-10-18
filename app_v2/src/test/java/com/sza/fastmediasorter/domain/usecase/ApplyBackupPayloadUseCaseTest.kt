@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.testing.createAppSettings
 import com.sza.fastmediasorter.testing.createMediaResource
+import com.sza.fastmediasorter.testing.createScheduledOperation
 import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import io.mockk.Runs
@@ -273,6 +274,33 @@ class ApplyBackupPayloadUseCaseTest {
         assertEquals("sftp://new:2222/Photos", updated.captured.path)
         assertEquals("SHA256:fresh", updated.captured.hostKeyFingerprint)
         assertEquals(listOf(HostPort("tunnel.example", 8443)), updated.captured.altAccessPaths)
+    }
+
+    @Test
+    fun `S4350 restored enabled operations are queued through the paused-aware call only`() = runTest {
+        val src = createMediaResource(id = 5L, path = "/src", type = ResourceType.LOCAL)
+        val dst = createMediaResource(id = 6L, path = "/dst", type = ResourceType.LOCAL)
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(src, dst)
+        val stored = createScheduledOperation(id = 7L, sourceResourceId = 5L, targetResourceId = 6L)
+        coEvery { scheduledRepo.upsert(any()) } returns stored.id
+        coEvery { scheduledRepo.getById(stored.id) } returns stored
+
+        useCase(
+            BackupPayload(
+                scheduledOperations = listOf(
+                    BackupScheduledOperation(
+                        sourceResourcePath = "/src",
+                        sourceResourceType = "LOCAL",
+                        operationType = "COPY",
+                        targetResourcePath = "/dst",
+                        targetResourceType = "LOCAL"
+                    )
+                )
+            )
+        )
+
+        coVerify(exactly = 1) { workManagerScheduler.scheduleOperationUnlessPaused(stored) }
+        coVerify(exactly = 0) { workManagerScheduler.scheduleOperation(any()) }
     }
 
     private companion object {

@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.SameFolderTransferPolicy
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
@@ -71,6 +72,21 @@ class FileOperationsHandler(
         val act = context as? Activity ?: return false
         return act.isFinishing || act.isDestroyed
     }
+
+    /**
+     * MEDIA-VIEWER rule 4: a transfer aimed at the folder the file already lives in is refused
+     * before enqueue; nothing moves and no callback fires. Returns true when the toast was shown.
+     */
+    private fun sameFolderRefused(currentFile: MediaFile, destinationPath: String): Boolean {
+        if (!SameFolderTransferPolicy.isSameFolder(currentFile.path, destinationPath)) return false
+        Toast.makeText(
+            appCtx,
+            appCtx.getString(com.sza.fastmediasorter.R.string.msg_transfer_same_folder_refused),
+            Toast.LENGTH_LONG,
+        ).show()
+        return true
+    }
+
     interface FileOperationCallback {
         fun onBeforeMove(movedFilePath: String)
         fun onBeforeDelete(deletedFilePath: String)
@@ -87,6 +103,8 @@ class FileOperationsHandler(
      */
     fun performCopy(destination: MediaResource) {
         val currentFile = callback.getCurrentFile() ?: return
+        Timber.d("S4362: performCopy entered")
+        if (sameFolderRefused(currentFile, destination.path)) return
 
         appScope.launch {
             val destinationReachabilityError = checkSmbDestinationReachability(destination)
@@ -142,6 +160,8 @@ class FileOperationsHandler(
      */
     fun performMove(destination: MediaResource) {
         val currentFile = callback.getCurrentFile() ?: return
+        Timber.d("S4362: performMove entered")
+        if (sameFolderRefused(currentFile, destination.path)) return
         callback.onBeforeMove(currentFile.path)
 
         appScope.launch {
@@ -192,6 +212,8 @@ class FileOperationsHandler(
 
     fun performCopyToPath(destinationPath: String) {
         val currentFile = callback.getCurrentFile() ?: return
+        Timber.d("S4362: performCopyToPath entered")
+        if (sameFolderRefused(currentFile, destinationPath)) return
         appScope.launch {
             val settings = settingsRepository.getSettings().first()
             val folderName = destinationLabel(destinationPath)
@@ -234,6 +256,8 @@ class FileOperationsHandler(
 
     fun performMoveToPath(destinationPath: String) {
         val currentFile = callback.getCurrentFile() ?: return
+        Timber.d("S4362: performMoveToPath entered")
+        if (sameFolderRefused(currentFile, destinationPath)) return
         callback.onBeforeMove(currentFile.path)
 
         appScope.launch {

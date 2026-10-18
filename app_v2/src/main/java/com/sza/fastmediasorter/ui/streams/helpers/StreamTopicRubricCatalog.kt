@@ -9,13 +9,15 @@ import com.sza.fastmediasorter.R
  *
  * The `topic` cell of `streams.csv` used to be free text from whatever source supplied the row, so it
  * could not be translated - 437 distinct values, most of them used once. The offline collector now
- * folds every topic into the 31 rubrics below (`Get-CanonicalTopic` in `collect-stream-candidates.ps1`),
+ * folds every topic into the 32 rubrics below (`Get-CanonicalTopic` in `collect-stream-candidates.ps1`),
  * and a closed set is small enough to carry real translations.
  *
  * The catalog id stays the untranslated English rubric, because that is what ships in the CSV and what
  * [com.sza.fastmediasorter.ui.streams.StreamsViewModel.StreamsFilter] matches on; only the label shown
- * to the user is localized. An id this build does not know - a catalog published by a newer collector,
- * or a hand-added channel - falls back to its raw text rather than disappearing from the picker.
+ * to the user is localized. Catalog import folds every topic through
+ * [com.sza.fastmediasorter.domain.streams.facets.StreamTopicFolding], so under the STREAM-BANK 2.4 topic
+ * law an id this build does not know reaches this catalog as `General`, never as raw text. A value that
+ * bypasses the import - a hand-added channel - still falls back to its raw text in [label].
  */
 object StreamTopicRubricCatalog {
 

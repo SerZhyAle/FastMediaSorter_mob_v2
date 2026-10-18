@@ -99,6 +99,6 @@ try {
     foreach ($f in $fixtures) { Remove-Item -LiteralPath $f -Recurse -Force -ErrorAction SilentlyContinue }
 }
 
-Write-Host "assert-positioning-consistency tests: $passed passed, $failed failed"
+Write-Host "assert-positioning-consistency tests: $(if ($failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($passed + $failed) skipped=0)"
 if ($failed -gt 0) { exit 1 }
 exit 0

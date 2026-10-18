@@ -376,6 +376,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $RepoRoot '.claude'))) {
 
 if (-not (Test-Path -LiteralPath $InventoryPath)) {
     Write-Error "hook-inventory: docs/AGENT_HOOKS.md not found - cannot verify" -ErrorAction Continue
+    Write-Host 'assert-hook-inventory: COULD NOT VERIFY (docs/AGENT_HOOKS.md not found)'
     exit 2
 }
 
@@ -383,6 +384,7 @@ try {
     $inventoryRows = Get-InventoryRows $InventoryPath
 } catch {
     Write-Error "hook-inventory: could not parse docs/AGENT_HOOKS.md - $($_.Exception.Message)" -ErrorAction Continue
+    Write-Host 'assert-hook-inventory: COULD NOT VERIFY (docs/AGENT_HOOKS.md could not be parsed)'
     exit 2
 }
 
@@ -395,6 +397,7 @@ foreach ($row in $inventoryRows) {
 
 if ($inventory.Count -eq 0) {
     Write-Error "hook-inventory: the '## Inventory' table in docs/AGENT_HOOKS.md yielded no hook names - cannot verify" -ErrorAction Continue
+    Write-Host 'assert-hook-inventory: COULD NOT VERIFY (the inventory table yielded no hook names)'
     exit 2
 }
 
@@ -402,6 +405,7 @@ if ($inventory.Count -eq 0) {
 
 if (-not (Test-Path -LiteralPath $ProjectSettings)) {
     Write-Error "hook-inventory: .claude/settings.json not found - cannot verify the project half" -ErrorAction Continue
+    Write-Host 'assert-hook-inventory: COULD NOT VERIFY (.claude/settings.json not found)'
     exit 2
 }
 
@@ -409,6 +413,7 @@ try {
     $projectRegistered = Get-HookNamesFromSettings $ProjectSettings
 } catch {
     Write-Error "hook-inventory: could not parse .claude/settings.json - $($_.Exception.Message)" -ErrorAction Continue
+    Write-Host 'assert-hook-inventory: COULD NOT VERIFY (.claude/settings.json could not be parsed)'
     exit 2
 }
 
@@ -480,6 +485,7 @@ if (-not $plugin.Judged) {
 
 if (-not (Test-Path -LiteralPath $RuleSheetPath)) {
     Write-Error "hook-inventory: $RuleSheetPath not found - cannot verify the rule sheet" -ErrorAction Continue
+    Write-Host 'assert-hook-inventory: COULD NOT VERIFY (the rule sheet was not found)'
     exit 2
 }
 
@@ -487,6 +493,7 @@ try {
     $sheetNames = Get-HookNamesFromRuleSheet $RuleSheetPath
 } catch {
     Write-Error "hook-inventory: could not parse $RuleSheetPath - $($_.Exception.Message)" -ErrorAction Continue
+    Write-Host 'assert-hook-inventory: COULD NOT VERIFY (the rule sheet could not be parsed)'
     exit 2
 }
 
@@ -504,6 +511,7 @@ if (Test-Path -LiteralPath $McpConfigPath) {
         $mcpJson = Get-Content -LiteralPath $McpConfigPath -Raw | ConvertFrom-Json
     } catch {
         Write-Error "hook-inventory: could not parse $McpConfigPath - $($_.Exception.Message)" -ErrorAction Continue
+        Write-Host 'assert-hook-inventory: COULD NOT VERIFY (the .mcp.json file could not be parsed)'
         exit 2
     }
     if ($null -ne $mcpJson -and $mcpJson.PSObject.Properties['mcpServers'] -and $null -ne $mcpJson.mcpServers) {
@@ -584,7 +592,8 @@ if ($failures.Count -gt 0) {
     # The reason must sit immediately before the exit: assert-exit-contract.ps1 walks back a bounded
     # number of lines looking for a printed reason, and the block above is longer than that window.
     Write-Error ("hook-inventory: FAIL - {0} divergence(s) between docs/AGENT_HOOKS.md and the live registrations." -f $failures.Count) -ErrorAction Continue
-    if ($Gate) { exit 1 }
+    if ($Gate) { Write-Host "assert-hook-inventory: FAIL ($($failures.Count) divergence(s) between docs/AGENT_HOOKS.md and the live registrations)"; exit 1 }
+    Write-Host "assert-hook-inventory: PASS (report mode, -Gate not set; $($failures.Count) divergence(s) above)"
     exit 0
 }
 
@@ -595,5 +604,5 @@ $scope = if ($halves.Count -eq 1) { 'project only' } else { $halves -join ' + ' 
 $liveCount = New-Object System.Collections.Generic.HashSet[string]
 foreach ($n in $registered) { [void]$liveCount.Add($n) }
 foreach ($n in $plugin.Names) { [void]$liveCount.Add($n) }
-Write-Host "hook-inventory: PASS ($($liveCount.Count) registered hook(s), $scope; rule sheet covers all $($inventory.Count) inventory hook(s); $($mcpServers.Count) .mcp.json server(s) listed and guarded)"
+Write-Host "assert-hook-inventory: PASS ($($liveCount.Count) registered hook(s), $scope; rule sheet covers all $($inventory.Count) inventory hook(s); $($mcpServers.Count) .mcp.json server(s) listed and guarded)"
 exit 0

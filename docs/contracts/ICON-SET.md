@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.15 12:30</sub>
+<sub class="doc-stamp">26.10.18 17:46</sub>
 
 # Pointer - `ICON-SET`
 
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` |
-| **Version** | 0.33, draft. Owner: this product |
+| **Version** | 0.34, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 2 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
@@ -28,6 +28,7 @@
   stand-in. The drawables are drawn into the product by S4237.
 - A retry control draws `action.retry` (0.33, S4255, section 18) and reads "Повторить попытку" /
   "Повторити спробу" in ru/uk; the bare "Повторить" / "Повторити" stays the name of `action.redo`.
+- The help action draws `app.help` and reads its normative name in every shipped locale (0.34).
 - The documentation and the site show the meaning's glyph beside its name - never an emoji, never a
   picture chosen to decorate the page.
 - The glyphs, looks, `palette.json`, `CATALOG.md` and `gallery.html` are regenerated from this

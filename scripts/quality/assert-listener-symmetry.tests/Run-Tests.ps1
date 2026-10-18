@@ -146,8 +146,8 @@ Assert-That 'G1 repo scan exits 0' ($gateExit -eq 0) "expected 0, got $gateExit"
 
 Write-Host ''
 if ($script:fail -eq 0) {
-    Write-Host "assert-listener-symmetry tests: $script:pass passed" -ForegroundColor Green
+    Write-Host "assert-listener-symmetry tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
     exit 0
 }
-Write-Host "assert-listener-symmetry tests: $script:pass passed, $script:fail FAILED" -ForegroundColor Red
+Write-Host "assert-listener-symmetry tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 exit 1

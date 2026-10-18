@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.exchange.helpers
 import android.content.Context
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.ExchangeAdminReplyCode
 import com.sza.fastmediasorter.domain.model.ExchangeCheckStep
 import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.WearExchangeHandoverReasons
@@ -49,8 +50,23 @@ object ExchangeMessageText {
         ExchangeMessage.KEY_CHANGED to R.string.exchange_failure_key_changed,
         ExchangeMessage.SERVER_NO_E2E to R.string.exchange_failure_server_no_e2e,
         ExchangeMessage.SEALED_FAILED to R.string.exchange_failure_sealed_failed,
+        ExchangeMessage.FORMAT_UNSUPPORTED to R.string.exchange_format_unsupported,
         ExchangeMessage.REFUSED to R.string.exchange_failure_refused,
         ExchangeMessage.TOKEN_NOT_STORED to R.string.exchange_failure_token_not_stored,
+        ExchangeMessage.ADMIN_DISABLED to R.string.exchange_failure_admin_disabled,
+    )
+
+    private val ADMIN_REPLY: Map<ExchangeAdminReplyCode, Int> = mapOf(
+        ExchangeAdminReplyCode.BAD_REQUEST to R.string.exchange_admin_reply_bad_request,
+        ExchangeAdminReplyCode.NO_ACCOUNT to R.string.exchange_admin_reply_no_account,
+        ExchangeAdminReplyCode.EXISTS to R.string.exchange_admin_reply_exists,
+        ExchangeAdminReplyCode.BAD_LOGIN to R.string.exchange_admin_reply_bad_login,
+        ExchangeAdminReplyCode.WEAK_PASSWORD to R.string.exchange_admin_reply_weak_password,
+        ExchangeAdminReplyCode.NOT_FOUND to R.string.exchange_admin_reply_not_found,
+        ExchangeAdminReplyCode.CAPACITY to R.string.exchange_admin_reply_capacity,
+        ExchangeAdminReplyCode.BAD_KIND to R.string.exchange_admin_reply_bad_kind,
+        ExchangeAdminReplyCode.BAD_LIMIT to R.string.exchange_admin_reply_bad_limit,
+        ExchangeAdminReplyCode.INTERNAL to R.string.exchange_admin_reply_internal,
     )
 
     private val ADVICE: Map<ExchangeCheckStep, Int> = mapOf(
@@ -74,6 +90,10 @@ object ExchangeMessageText {
     /** What happened, in the table's words. */
     @StringRes
     fun what(message: ExchangeMessage): Int = checkNotNull(WHAT[message]) { "no words for $message" }
+
+    /** The words of a failed `admin-reply` (`REMOTE-ADMIN.md` `administration-reply-codes`). */
+    @StringRes
+    fun adminReply(code: ExchangeAdminReplyCode): Int = checkNotNull(ADMIN_REPLY[code]) { "no words for $code" }
 
     /** What to try for one step of the ladder. */
     @StringRes

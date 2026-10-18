@@ -3778,7 +3778,6 @@
     <string name="broadcast_import_dialog_title">Импорт трансляции</string>
     <string name="broadcast_import_option_qr">Сканировать QR-код</string>
     <string name="broadcast_import_malformed">Неверный формат описания трансляции</string>
-    <string name="broadcast_import_unsupported_version">Неподдерживаемая версия описания трансляции</string>
     <string name="broadcast_import_success">Канал трансляции добавлен</string>
     <string name="broadcast_import_option_file">Выбрать файл описания</string>
     <string name="launcher_settings_unit_system_title">Система единиц</string>
@@ -4495,4 +4494,5 @@
     <string name="help_with_key">Справка (F1)</string>
     <string name="broadcast_control_group_commands">Управление эфиром</string>
     <string name="broadcast_control_group_share">Ссылка и обмен</string>
+    <string name="msg_transfer_same_folder_refused">Это и есть папка файла. Выберите другое назначение.</string>
 </resources>

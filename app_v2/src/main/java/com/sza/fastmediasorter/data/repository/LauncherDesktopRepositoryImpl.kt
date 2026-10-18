@@ -195,6 +195,72 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             }
         }
 
+    override suspend fun addCellOutsideSections(cell: LauncherCell, columns: Int): Long? =
+        withContext(Dispatchers.IO) {
+            if (columns < MIN_SPAN) {
+                Timber.w("Launcher desktop: cannot place a cell on a %d-column grid", columns)
+                return@withContext null
+            }
+            val normalized = cell.normalized()
+            val candidate = normalized.copy(spanW = normalized.spanW.coerceAtMost(columns))
+            db.withTransaction {
+                val headerRows = cellDao.sectionHeaderRows(
+                    orientation = candidate.orientation.name,
+                    screenIndex = candidate.screenIndex,
+                    kind = LauncherCellKind.SECTION.name,
+                )
+                if (headerRows.isEmpty()) {
+                    val anchor = findFreeAnchor(candidate, columns) ?: return@withTransaction null
+                    Timber.i(
+                        "Launcher desktop: placing cell outside sections (no headers on screen) at %d,%d",
+                        anchor.row,
+                        anchor.col
+                    )
+                    return@withTransaction cellDao.upsert(
+                        candidate.copy(rowIndex = anchor.row, colIndex = anchor.col).toEntity()
+                    )
+                }
+
+                val firstHeaderRow = headerRows.minOrNull() ?: 0
+                val scanSpanW = candidate.spanW.coerceAtMost(columns)
+                val lastCol = columns - scanSpanW
+
+                val freeAnchor = if (firstHeaderRow > 0) {
+                    scanRows(
+                        rows = 0 until firstHeaderRow,
+                        candidate = candidate,
+                        scanSpanW = scanSpanW,
+                        headerRows = headerRows,
+                        firstColOfRow = { 0 },
+                        lastCol = lastCol,
+                    )
+                } else {
+                    null
+                }
+
+                val anchor = if (freeAnchor != null) {
+                    freeAnchor
+                } else {
+                    Timber.i(
+                        "Launcher desktop: pushing rows from %d down by %d to open unsectioned slot for %dx%d cell",
+                        firstHeaderRow,
+                        candidate.spanH,
+                        candidate.spanW,
+                        candidate.spanH,
+                    )
+                    cellDao.pushRowsDown(
+                        orientation = candidate.orientation.name,
+                        screenIndex = candidate.screenIndex,
+                        fromRow = firstHeaderRow,
+                        delta = candidate.spanH,
+                    )
+                    GridAnchor(firstHeaderRow, 0)
+                }
+                Timber.i("Launcher desktop: placing cell outside sections at %d,%d", anchor.row, anchor.col)
+                cellDao.upsert(candidate.copy(rowIndex = anchor.row, colIndex = anchor.col).toEntity())
+            }
+        }
+
     /**
      * S2018: opens a row at the end of [header]'s section by moving everything below it down.
      *

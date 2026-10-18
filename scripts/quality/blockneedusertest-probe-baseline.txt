@@ -17,6 +17,7 @@
 # NOT a place to park a ticket that genuinely should carry a probe. If the ticket changed Kotlin,
 # add the probe instead.
 #
+S4352  Resources and documentation only (dimens.xml, themes.xml, settings-scope-exclusions.json); no Kotlin flow touched, so no Timber probe can exist. Verification is visual check of button corner radii, touch targets, and group headers in emulator/device.
 S4299  Manifest-only singleTask launch mode for BroadcastControlActivity; no Kotlin touched. Android task reuse happens before onCreate, so dumpsys activity identity and reopening the picker after Quick Settings re-entry prove the fix.
 S4081  Manifest-only provider SUPPORTED_TYPES repair; no Kotlin touched. Platform discovery precedes provider code, so a Timber probe cannot observe rejected metadata. Wear Services checker logs, fresh face photo-slot binding and the favourites icon picker are the evidence.
 
@@ -122,3 +123,5 @@ S4302  Host-side devtest script only (scripts/devtest/adb.ps1); no .kt touched, 
 S4331  Resources-only Network Monitor tile autosize floor; no Kotlin path changed. Verify summary inflation in both orientations on a sw320dp-band emulator.
 
 S4344  Layout and dimens XML only - equal halves on the four broadcast live control buttons and the light row, portrait and landscape; no Kotlin flow changed, so no entry point can carry a probe. Same class as S3168 and S3236. The device check is opening a live camera+mic broadcast at font_scale 1.6 and reading the four buttons as an aligned grid whose labels break only at word boundaries.
+
+S4366  Website only (docs/SUPPORT*.md, _layouts/doc.html, 404.html, the landings, the portal shell and its regenerated pages, search.js, styles.css); no .kt touched, so no source probe can instrument it. The check is a browser render of the published site after the next Pages deploy.

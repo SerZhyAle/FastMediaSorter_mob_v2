@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.17 00:31</sub>
+<sub class="doc-stamp">26.10.18 17:46</sub>
 
 # Pointer - `DEVICE-EXCHANGE`
 
 | | |
 | --- | --- |
 | **Id** | `DEVICE-EXCHANGE` |
-| **Version** | 1.2, active - 2026-10-17 (S4272: item DJ gains the registering first box of a grant, item DH allows its empty `keys`; no wire member changes); 1.1 - 2026-10-15 (S4276: `vectors/fmsw-224/` adopted beside the earlier server corpus; no wire byte changes); 1.0 - declared 2026-10-15 (S4245, the owner's decision 22 of milestone S4203: every section binds, the text is that of 0.30 and no wire byte changes; the contract only grows from here); 0.30 - consolidation edition, 2026-10-15 (S4266: the amendments folded into the sections they amend, every item letter kept, old addresses mapped in `HISTORY.md`); 0.29 - end-to-end encryption of content (section 27; section 26, 0.28, how long a phone shares and why it went offline; section 25, 0.27, the shared terms, the names of the programs and the one table of connection messages; section 24, 0.26, the path "via Google Drive" carrying files; section 23, 0.25, the roles of every product, the watch, the account's broadcast list, cast and the hand-over to the watch; section 22, 0.24, the clipboard; section 21, 0.23, folded the open proposals). Owner: FastMediaSorter Android |
+| **Version** | 1.4, active - 2026-10-18 (S4356: `REMOTE-ADMIN.md`, the administration stream, its operations and the ten reply codes); 1.3 - 2026-10-17 (the consolidation amendment: a higher `FMSEXCH` prefix answers the canonical `format-unsupported` refusal, and the server transcript corpora are the client's replay evidence); 1.2 - 2026-10-17 (S4272: item DJ gains the registering first box of a grant, item DH allows its empty `keys`; no wire member changes); 1.1 - 2026-10-15 (S4276: `vectors/fmsw-224/` adopted beside the earlier server corpus; no wire byte changes); 1.0 - declared 2026-10-15 (S4245, the owner's decision 22 of milestone S4203: every section binds, the text is that of 0.30 and no wire byte changes; the contract only grows from here); 0.30 - consolidation edition, 2026-10-15 (S4266: the amendments folded into the sections they amend, every item letter kept, old addresses mapped in `HISTORY.md`); 0.29 - end-to-end encryption of content (section 27; section 26, 0.28, how long a phone shares and why it went offline; section 25, 0.27, the shared terms, the names of the programs and the one table of connection messages; section 24, 0.26, the path "via Google Drive" carrying files; section 23, 0.25, the roles of every product, the watch, the account's broadcast list, cast and the hand-over to the watch; section 22, 0.24, the clipboard; section 21, 0.23, folded the open proposals). Owner: FastMediaSorter Android |
 | **Home** | `device-exchange/README.md` in the shared contracts catalog; `HISTORY.md` beside it holds the log and the map of old section addresses, `PHONE-AND-WATCH.md` the digest for the phone and the watch |
 | **Role here** | owner; phone - `fms-android`: resource producer and consumer, broadcaster, receiver, enrolls the watch; watch - `fms-wear`: broadcaster of sound only, receiver of sound and video, resource consumer through the phone's hand-over or its own entry, never a resource; phone and watch send and receive the clipboard (section 22). The exchange server is FMS_W's to implement |
 
@@ -33,6 +33,9 @@
 - Frames: at most 16384 bytes until `welcome` / `enrolled`, up to 262144 after, a record at most 16 KiB, no
   paging; a relay chunk's length field, flag byte plus payload, is at most 1 MiB (items T and U).
 - Every outsider `connect` is TLS only; there is no plain fallback (item V).
+- Refuse a connection string with a higher `FMSEXCH` prefix before reading any key, with the canonical
+  `format-unsupported` text in the app language and no update demand; the wire `version-unsupported` keeps its
+  own words (1.3).
 - A share's `access` reaches Drive only with the user's explicit opt-in, off by default and worded to name
   Google; a Drive record without `access` is listed and cannot be attached (item X).
 - Read and write the `FMSEXCH1` connection string by its content - paste, `.fmsexch` file, QR - with the
@@ -117,6 +120,11 @@
 - Section 27 is met in code on the phone and the watch (S4240, 2026-10-15): device keys and trust, sealed access,
   grants, clipboard, relay and broadcast tunnel, the outward descriptor's keys and the honest text. The joint run
   with a server that lists `sealed` (rung 2 and rung 4 of item DR's conformance paragraph) is S4244.
+- Administer the server over the network as 1.4 `REMOTE-ADMIN` describes (`native-administration-stream`,
+  `administration-operations`, `administration-reply-codes`): the administration client, session, repository, use
+  case and screen of S4356 implement the client side of every carried operation, with the operator password typed
+  each time and nothing of the session kept. It stays `partial` until the joint run against FMS_Win 245, the
+  server that accepts the stream.
 
 ## Where it will live here
 
@@ -159,6 +167,8 @@
 - S4225 - the phone share's lifetime and the reason it went offline folded as 0.28 (items DB to DD): the share resumes when the app is shown, a platform limit is written as `offlineReason: time-limit` on the Drive device record, and the consumer shows the `share-paused` row.
 - S4245 - the contract at 1.0: the status of every section is binding, the ladder of section 11 is evidence, `vectors/drive-packets-v1.json` and `vectors/e2e-v1.json` are named as delivered, and the `seal` mirror of item DK is item Q of `LIVE-BROADCAST`.
 - S4276 - the contract at 1.1: `vectors/fmsw-224/connection-string-v1.json` is replayed by `ExchangeConnectionStringVectorsTest`; the transcripts of `vectors/fmsw-224/frames-v2.json` have no client replay yet.
+- S4356 - the phone as a `REMOTE-ADMIN` client at 1.4: the administration stream client, the words of the ten
+  reply codes and the screen; the joint on-device run against FMS_Win 245 is what remains of 1.4 here.
 
 ## Original resource PIN (section 17, items AG to AL)
 

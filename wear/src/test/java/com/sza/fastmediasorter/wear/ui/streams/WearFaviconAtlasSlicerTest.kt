@@ -38,4 +38,11 @@ class WearFaviconAtlasSlicerTest {
         assertTrue(slicer.isInBounds(255, 512, 512))
         assertFalse(slicer.isInBounds(256, 512, 512))
     }
+
+    @Test
+    fun `isInBounds rejects indices whose pixel rect would overflow Int`() {
+        // Under the old multiplication predicate both indices wrapped to a top of -32 and passed.
+        assertFalse(slicer.isInBounds(Int.MAX_VALUE, 512, 512))
+        assertFalse(slicer.isInBounds(Int.MAX_VALUE - 15, 512, 512))
+    }
 }

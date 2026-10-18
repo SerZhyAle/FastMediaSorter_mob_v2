@@ -320,6 +320,22 @@ class NetworkErrorClassifierTest {
         assertFalse(result is NetworkHostKeyChangedException)
     }
 
+    // SHARE-SESSION 1.3: a server at capacity closes before its banner, and JSch 0.2.26 Session.connect reports
+    // that EOF as this exact message; the client must read it as an undetermined transport outcome.
+    @Test
+    fun `pre-banner close is a transient connection loss, not auth or host key`() {
+        val direct = JSchException(JSCH_PRE_BANNER_CLOSE)
+        val pooled = IOException("Failed to establish SFTP connection: $JSCH_PRE_BANNER_CLOSE", direct)
+
+        listOf(direct, pooled).forEach { error ->
+            val result = NetworkErrorClassifier.classify(error)
+            assertTrue(result is NetworkConnectionLostException)
+            assertFalse(result is NetworkAccessDeniedException)
+            assertFalse(result is NetworkHostKeyChangedException)
+            assertTrue(NetworkErrorClassifier.isTransient(result))
+        }
+    }
+
     @Test
     fun `isTransient false for NetworkHostKeyChangedException`() {
         assertFalse(NetworkErrorClassifier.isTransient(NetworkHostKeyChangedException()))
@@ -357,5 +373,9 @@ class NetworkErrorClassifierTest {
         )
 
         assertEquals("SHA256:exp" to "SHA256:act", HostKeyMismatchFinder.find(classified))
+    }
+
+    private companion object {
+        const val JSCH_PRE_BANNER_CLOSE = "connection is closed by foreign host"
     }
 }

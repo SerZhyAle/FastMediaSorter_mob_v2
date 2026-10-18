@@ -25,6 +25,8 @@ class CommandGroupTest {
     @Test
     fun `operation slots win over sorting actions`() {
         assertEquals(CommandGroup.OPERATION_SLOTS, CommandGroup.of(CommandId.OPERATION_SLOT_1))
+        assertEquals(CommandGroup.OPERATION_SLOTS, CommandGroup.of(CommandId.COPY_SLOT_5))
+        assertEquals(CommandGroup.OPERATION_SLOTS, CommandGroup.of(CommandId.COPY_SLOT_10))
     }
 
     @Test

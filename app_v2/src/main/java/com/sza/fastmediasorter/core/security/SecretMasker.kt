@@ -14,6 +14,7 @@ package com.sza.fastmediasorter.core.security
  * connection string under a harmless-looking key is still redacted field by field. Section 10 (0.13) adds the
  * exchange account values: a pairing code and a certificate fingerprint by key name and by the `SHA256:` shape, a
  * login and a server address through [PrivateDiagnosticValues], since neither has a shape a pattern could find.
+ * Version 0.14 adds a whole PEM private-key block, redacted before every other rule.
  * The wear module restates the key and shape rules in `WearSecretMasker`; a change here belongs there too.
  */
 object SecretMasker {
@@ -63,6 +64,13 @@ object SecretMasker {
     // The exchange pin form: `SHA256:` and the unpadded base64 of a 32-byte digest, found under any key or none.
     private val CERT_FINGERPRINT = Regex("""(?<![A-Za-z0-9+/])(SHA256:)[A-Za-z0-9+/]{43}(?![A-Za-z0-9+/=])""")
 
+    // DIAGNOSTIC-REPORT 0.14: a private key goes whole, armour included. Without its own END line the block runs to
+    // the end of the message, so no surviving text can begin inside it.
+    private val PRIVATE_KEY_BLOCK = Regex(
+        """-----BEGIN ([A-Z0-9 ]*)PRIVATE KEY-----.*?(?:-----END \1PRIVATE KEY-----|\z)""",
+        RegexOption.DOT_MATCHES_ALL
+    )
+
     /** Replace a value whole: `"mySecret123"` -> `"[REDACTED]"`. */
     fun maskFull(value: String?): String {
         if (value.isNullOrEmpty()) return EMPTY
@@ -90,7 +98,7 @@ object SecretMasker {
 
     /** Redact every secret shape in free text; a key name and an HTTP auth scheme stay visible. */
     fun sanitize(text: String): String {
-        val withoutKnownValues = PrivateDiagnosticValues.redact(text)
+        val withoutKnownValues = PrivateDiagnosticValues.redact(text.replace(PRIVATE_KEY_BLOCK, REDACTED))
         return maskAppData(maskFingerprints(maskPathCredentials(maskSecretValues(maskUserinfo(withoutKnownValues)))))
     }
 

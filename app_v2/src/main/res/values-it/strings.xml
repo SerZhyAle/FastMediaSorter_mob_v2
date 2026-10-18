@@ -35,7 +35,7 @@
     <string name="create_folder_title">Nuova cartella</string>
     <string name="create_folder_hint">Nome cartella</string>
     <string name="error_invalid_folder_name">Nome cartella non valido</string>
-    <string name="help">Guida</string>
+    <string name="help">Aiuto</string>
     <string name="yes">Sì</string>
     <string name="no">No</string>
     <string name="select_all">Seleziona tutto</string>
@@ -3352,7 +3352,6 @@
     <string name="broadcast_import_dialog_title">Importa trasmissione dal vivo</string>
     <string name="broadcast_import_option_qr">Scansiona il codice QR</string>
     <string name="broadcast_import_malformed">Formato del descrittore di trasmissione non valido</string>
-    <string name="broadcast_import_unsupported_version">Versione del descrittore di trasmissione non supportata</string>
     <string name="broadcast_import_success">Canale di trasmissione aggiunto</string>
     <string name="broadcast_import_option_file">Seleziona il file descrittore</string>
     <string name="launcher_settings_unit_system_title">Sistema di unità</string>

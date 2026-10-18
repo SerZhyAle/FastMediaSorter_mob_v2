@@ -3835,7 +3835,6 @@
     <string name="broadcast_import_dialog_title">Import Live Broadcast</string>
     <string name="broadcast_import_option_qr">Scan QR Code</string>
     <string name="broadcast_import_malformed">Invalid broadcast descriptor format</string>
-    <string name="broadcast_import_unsupported_version">Unsupported broadcast descriptor version</string>
     <string name="broadcast_import_success">Broadcast channel added</string>
     <string name="broadcast_import_option_file">Select Descriptor File</string>
     <string name="launcher_settings_unit_system_title">Unit system</string>
@@ -4558,4 +4557,5 @@
     <string name="help_with_key">Help (F1)</string>
     <string name="broadcast_control_group_commands">Live controls</string>
     <string name="broadcast_control_group_share">Link and sharing</string>
+    <string name="msg_transfer_same_folder_refused">This is already the file\'s folder. Pick a different destination.</string>
 </resources>

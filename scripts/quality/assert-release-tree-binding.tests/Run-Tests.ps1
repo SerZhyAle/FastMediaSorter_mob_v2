@@ -93,6 +93,6 @@ Assert-Case 'no bundle metadata cannot be verified' 2 (Invoke-Gate $root @('-Tag
 foreach ($f in $fixtures) { Remove-Item -LiteralPath $f -Recurse -Force -ErrorAction SilentlyContinue }
 
 Write-Host ''
-Write-Host ("assert-release-tree-binding tests: {0} passed, {1} failed" -f $passed, $failed)
+Write-Host "assert-release-tree-binding tests: $(if ($failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($passed + $failed) skipped=0)"
 if ($failed -gt 0) { exit 1 }
 exit 0

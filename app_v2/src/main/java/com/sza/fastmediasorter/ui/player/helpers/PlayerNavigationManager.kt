@@ -187,10 +187,17 @@ class PlayerNavigationManager(
         // Wrapped offset keeps all non-current files equally likely without allocating candidates.
         val randomOffset = Random.nextInt(files.size - 1) + 1
         val randomIndex = (currentIndex + randomOffset) % files.size
-        activity.onManualSlideshowNavigation()
-        viewModel.jumpToIndex(randomIndex, manual = true)
+        navigateToIndexFromControl(randomIndex)
+    }
 
-        if (currentState.currentFile?.type == MediaType.AUDIO) {
+    /** A manual jump to [index] (random file, keyboard steps, first / last) with the side effects of a manual step. */
+    fun navigateToIndexFromControl(index: Int) {
+        val wasAudio = viewModel.state.value.currentFile?.type == MediaType.AUDIO
+        activity.onManualSlideshowNavigation()
+        viewModel.jumpToIndex(index, manual = true)
+        restartSlideshowTimerAfterManualStep()
+
+        if (wasAudio) {
             activity.advanceAudioBackgroundPhoto()
             activity.updateAudioSlideshowCurrentSongLabel()
         }
@@ -221,6 +228,7 @@ class PlayerNavigationManager(
             activity.onManualSlideshowNavigation()
         }
         viewModel.previousFile(skipDocuments, manual)
+        if (manual) restartSlideshowTimerAfterManualStep()
         // Advance to next photo if was playing audio (file type checked before navigation)
         if (currentFileBeforeNav?.type == MediaType.AUDIO) {
             activity.advanceAudioBackgroundPhoto()
@@ -239,6 +247,7 @@ class PlayerNavigationManager(
             activity.onManualSlideshowNavigation()
         }
         viewModel.nextFile(skipDocuments, manual)
+        if (manual) restartSlideshowTimerAfterManualStep()
         // Advance to next photo if was playing audio (file type checked before navigation)
         if (currentFileBeforeNav?.type == MediaType.AUDIO) {
             activity.advanceAudioBackgroundPhoto()
@@ -248,21 +257,12 @@ class PlayerNavigationManager(
     }
 
     /**
-     * Handle slideshow control from UI
+     * MEDIA-VIEWER rule 5.8: a manual step keeps the show running and the next automatic advance
+     * waits a full interval from it, rather than firing on the schedule the step interrupted.
+     * Runs after the index moved so the play-to-end suppression judges the file now on screen.
      */
-    fun handleSlideshowControl() {
-        syncMediaLibraryMode()
-        if (slideshowController.isActive()) {
-            if (slideshowController.isPaused()) {
-                slideshowController.resumeSlideshow()
-            } else {
-                slideshowController.pauseSlideshow()
-            }
-        } else {
-            // Start slideshow with current interval
-            val interval = viewModel.state.value.slideShowInterval.toInt()
-            slideshowController.startSlideshow(interval)
-        }
+    private fun restartSlideshowTimerAfterManualStep() {
+        slideshowController.restartTimer()
     }
 
     /**

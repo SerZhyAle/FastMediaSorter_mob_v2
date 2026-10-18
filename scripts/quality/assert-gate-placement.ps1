@@ -147,6 +147,7 @@ try {
 }
 catch {
     Write-Error "assert-gate-placement: COULD NOT VERIFY - $($_.Exception.Message)" -ErrorAction Continue
+    Write-Host 'assert-gate-placement: COULD NOT VERIFY (the registry could not be read)'
     exit 2
 }
 
@@ -157,6 +158,7 @@ $journalPath = if ($Journal) { $Journal } else { Join-Path $RepoRoot 'PLAN/spec-
 $statusMap = Get-GatePlacementJournalStatuses -Path $journalPath
 if (-not $statusMap) {
     Write-Error "assert-gate-placement: COULD NOT VERIFY - the spec-catalog journal is missing or unreadable: $journalPath" -ErrorAction Continue
+    Write-Host 'assert-gate-placement: COULD NOT VERIFY (the spec-catalog journal is missing or unreadable)'
     exit 2
 }
 
@@ -386,7 +388,7 @@ if (-not $Quiet) {
 }
 
 if ($findings.Count -eq 0) {
-    if (-not $Quiet) { Write-Host 'assert-gate-placement: PASS (registry matches the wiring).' -ForegroundColor Green }
+    Write-Host 'assert-gate-placement: PASS (registry matches the wiring).' -ForegroundColor Green
     exit 0
 }
 
@@ -411,7 +413,11 @@ if (Get-Command Test-FixedInputsChargeable -ErrorAction SilentlyContinue) {
 
 if (-not $chargeable) {
     Write-NotChargedVerdict -GateName 'assert-gate-placement' -Findings $findings
-    if (-not $Gate) { exit 0 }
+    if (-not $Gate) {
+        Write-Host "assert-gate-placement: PASS (report mode, -Gate not set; $($findings.Count) divergence(s) not charged to this run)"
+        exit 0
+    }
+    Write-Host "assert-gate-placement: PASS WITH ADVISORIES ($($findings.Count) divergence(s) not charged to this run)"
     exit 3
 }
 
@@ -422,6 +428,7 @@ Write-Host ''
 Write-Host '  The registry is scripts/quality/gate-placement.jsonl - one JSON object per line, fields:'
 Write-Host '  gate, kind, scope, decided, ticket, basis (judged|seeded), reason.'
 
-if (-not $Gate) { exit 0 }
+if (-not $Gate) { Write-Host "assert-gate-placement: PASS (report mode, -Gate not set; $($findings.Count) finding(s) above)"; exit 0 }
 
+Write-Host "assert-gate-placement: FAIL ($($findings.Count) finding(s))"
 exit 1

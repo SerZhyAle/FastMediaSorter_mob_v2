@@ -99,13 +99,18 @@
     as a pass. Every scanned script, the suites included, is refused when a code line carries a
     lowercase "<subject>: not applicable". No baseline: S4130 migrated the two sites it measured.
 
+    RULE G - test counter writers use run=N skipped=M (CHECK-VERDICT 0.13).
+    The parser distinguishes live output commands from comments and fixture bodies. Exact
+    path-plus-command identities in test-count-baseline.txt allow only the existing residue;
+    new writers and stale residue fail. Check aggregators count checks and are outside this rule.
+
     Exit codes:
       0 - no unreachable exit site, no silent script, Rule C at or below baseline,
           no unlisted or stale Rule D entry (or report mode).
       1 - substantive failure: an unreachable exit site, a silent script, Rule C
           above its baseline, a Rule D check with no verdict line / a stale listing,
           a Rule E line spelling exit 2 other than COULD NOT VERIFY, or a Rule F line
-          spelling NOT APPLICABLE in lowercase.
+          spelling NOT APPLICABLE in lowercase, or new/stale Rule G test counters.
       2 - the gate itself cannot run (scan root missing). Distinct from 1 on purpose -
           this gate must not commit the very sin it audits.
 
@@ -139,6 +144,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'lib/test-count-contract.ps1')
 
 # The gate's own refusal path must reach its own exit code - see the note above.
 function Reject([string]$msg) {
@@ -375,6 +381,21 @@ $oldSpellingPattern = '(?-i)CANNOT[ ]VERIFY|[A-Za-z0-9)-]: (cannot|could not)[ ]
 # the aggregators read it off the verdict line case-sensitively and a lowercase spelling counts as a pass.
 $naSpellingPattern = '(?-i)[A-Za-z0-9)-]: not[ ]applicable\b'
 $naSpelling = @()
+$testCountBaselineFile = Join-Path $PSScriptRoot 'test-count-baseline.txt'
+$testCountBaseline = if (-not $Path -and (Test-Path -LiteralPath $testCountBaselineFile)) {
+    @(Get-Content -LiteralPath $testCountBaselineFile)
+} else { @() }
+try {
+    $testCountFiles = @(foreach ($root in $scanRoots) {
+        if (Test-Path -LiteralPath $root -PathType Leaf) { Get-Item -LiteralPath $root }
+        else { Get-ChildItem -LiteralPath $root -Recurse -File -Filter *.ps1 }
+    })
+    $legacyTestCounts = @(Get-LegacyTestCountWriter -Files @($testCountFiles.FullName) -RepoRoot $repoRoot)
+    $testCountResidue = Get-TestCountResidue -Writers $legacyTestCounts -Baseline $testCountBaseline
+} catch {
+    Write-Host "assert-exit-contract: COULD NOT VERIFY - $($_.Exception.Message)"
+    exit 2
+}
 foreach ($f in $spellingFiles) {
     $spellLines = Get-Content -LiteralPath $f.FullName -ErrorAction SilentlyContinue
     if (-not $spellLines) { continue }
@@ -430,7 +451,15 @@ foreach ($f in $files) {
         }
         if ($line -match '<#') { $inBlockComment = ($line -notmatch '#>'); continue }
         if ($line -match '^\s*#') { continue }
+        # Token offsets distinguish trailing comments from executable exits without stripping '#'
+        # inside a string. Rule C remains line-based for its reason lookback.
         if ($line -notmatch '(^|\s|\}|;)exit\s+([1-9]\d*)\b') { continue }
+        $commentTokens = $null
+        $commentErrors = $null
+        [void][System.Management.Automation.Language.Parser]::ParseInput($line, [ref]$commentTokens, [ref]$commentErrors)
+        $trailingComment = @($commentTokens | Where-Object Kind -eq Comment | Select-Object -First 1)
+        $exitLine = if ($trailingComment.Count) { $line.Substring(0, $trailingComment[0].Extent.StartOffset) } else { $line }
+        if ($exitLine -notmatch '(^|\s|\}|;)exit\s+([1-9]\d*)\b') { continue }
         $exitCode = [int]$Matches[2]
 
         $hasReason = $false
@@ -605,11 +634,19 @@ if (-not $Quiet -and $naSpelling.Count -gt 0) {
 
 Write-Host ("assert-exit-contract: expected: 0 | actual: {0} unreachable exit site(s), {1} silent script(s), {2} reasonless exit(s) (baseline {3}), {4} verdict-less check(s) of {5} (residue {6}, stale {7}), {8} old exit-2 spelling(s), {9} lowercase not-applicable spelling(s)" -f $findings.Count, $silent.Count, $reasonless.Count, $reasonBaseline, $newNoVerdict.Count, $verdictScanned.Count, $verdictResidue.Count, $staleVerdict.Count, $oldSpelling.Count, $naSpelling.Count)
 
-if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0 -or $reasonless.Count -gt $reasonBaseline -or $newNoVerdict.Count -gt 0 -or $staleVerdict.Count -gt 0 -or $oldSpelling.Count -gt 0 -or $naSpelling.Count -gt 0)) {
-    Write-Host 'assert-exit-contract: FAIL - a script cannot deliver the exit code it means to send, exits without saying why, names no verdict, or misspells COULD NOT VERIFY or NOT APPLICABLE.' -ForegroundColor Red
+if (-not $Quiet) {
+    foreach ($writer in $testCountResidue.New) {
+        Write-Host ("  {0}:{1} legacy test counters: {2}" -f $writer.File, $writer.Line, $writer.Text)
+    }
+    foreach ($entry in $testCountResidue.Stale) { Write-Host "  stale test-count baseline: $entry" }
+}
+Write-Host ("assert-exit-contract rule G: expected: 0 new/stale | actual: {0} new, {1} stale (residue {2})" -f $testCountResidue.New.Count, $testCountResidue.Stale.Count, $testCountResidue.Count)
+
+if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0 -or $reasonless.Count -gt $reasonBaseline -or $newNoVerdict.Count -gt 0 -or $staleVerdict.Count -gt 0 -or $oldSpelling.Count -gt 0 -or $naSpelling.Count -gt 0 -or $testCountResidue.New.Count -gt 0 -or $testCountResidue.Stale.Count -gt 0)) {
+    Write-Host 'assert-exit-contract: FAIL - unreachable or silent exit, missing verdict, invalid verdict spelling, or new/stale legacy test counters.' -ForegroundColor Red
     exit 1
 }
-if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0 -and $newNoVerdict.Count -eq 0 -and $staleVerdict.Count -eq 0 -and $oldSpelling.Count -eq 0 -and $naSpelling.Count -eq 0) {
+if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0 -and $newNoVerdict.Count -eq 0 -and $staleVerdict.Count -eq 0 -and $oldSpelling.Count -eq 0 -and $naSpelling.Count -eq 0 -and $testCountResidue.New.Count -eq 0 -and $testCountResidue.Stale.Count -eq 0) {
     Write-Host 'assert-exit-contract: PASS - every exit code is reachable, every scanned script sets one, and every check names its verdict.' -ForegroundColor Green
 }
 exit 0

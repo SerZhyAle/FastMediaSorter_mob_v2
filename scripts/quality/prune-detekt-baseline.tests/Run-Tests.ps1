@@ -256,5 +256,5 @@ if ($script:Failed -gt 0) {
     Write-Error "prune-detekt-baseline tests: $($script:Passed) passed, $($script:Failed) FAILED" -ErrorAction Continue
     exit 1
 }
-Write-Host "prune-detekt-baseline tests: $($script:Passed) passed" -ForegroundColor Green
+Write-Host "prune-detekt-baseline tests: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"
 exit 0

@@ -1,0 +1,69 @@
+<?xml version="1.0" ?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
+    
+
+    <com.sza.fastmediasorter.ui.common.widget.StandardToolbar android:id="@+id/toolbar" style="@style/Widget.FastMediaSorter.Toolbar.Primary" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:nextFocusDown="@id/edit_exchange_admin_password" app:navigationIcon="@drawable/ic_arrow_back" app:title="@string/exchange_admin_title"/>
+    
+
+    <androidx.core.widget.NestedScrollView android:id="@+id/scroll_exchange_admin" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:fillViewport="true">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                <com.google.android.material.card.MaterialCardView android:id="@+id/card_exchange_admin_sign_in" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="@dimen/margin_small">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/margin_small">
+                        <TextView android:id="@+id/text_exchange_admin_address" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/margin_small" android:text="@string/exchange_admin_address" android:textAppearance="?attr/textAppearanceBodyMedium"/>
+                        <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/exchange_admin_password_label">
+                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/edit_exchange_admin_password" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="@dimen/touch_target_min_height" android:inputType="textPassword" android:autofillHints="no" android:importantForAutofill="no" android:saveEnabled="false" android:freezesText="false" android:focusable="true" android:clickable="true" android:nextFocusUp="@id/toolbar" android:nextFocusDown="@id/btn_exchange_admin_sign_in" android:nextFocusForward="@id/btn_exchange_admin_sign_in" android:imeOptions="actionDone"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+                        <TextView android:id="@+id/text_exchange_admin_password_note" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/margin_small" android:text="@string/exchange_admin_password_note" android:textAppearance="?attr/textAppearanceBodyMedium"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_exchange_admin_sign_in" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="@dimen/touch_target_min_height" android:focusable="true" android:clickable="true" android:nextFocusUp="@id/edit_exchange_admin_password" android:nextFocusDown="@id/edit_exchange_admin_password" android:nextFocusForward="@id/edit_exchange_admin_password" android:text="@string/exchange_admin_sign_in"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView android:id="@+id/card_exchange_admin_disabled" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="@dimen/margin_small" android:visibility="gone">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/margin_small">
+                        <TextView android:id="@+id/text_exchange_admin_disabled" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/margin_small" android:text="@string/exchange_failure_admin_disabled" android:textAppearance="?attr/textAppearanceBodyMedium"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+                <include android:id="@+id/exchange_admin_failure" layout="@layout/view_exchange_failure_panel"/>
+                <com.google.android.material.card.MaterialCardView android:id="@+id/card_exchange_admin_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="@dimen/margin_small" android:visibility="gone">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/margin_small">
+                        <TextView android:id="@+id/text_exchange_admin_status_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/margin_small" android:text="@string/exchange_admin_section_status" android:textAppearance="?attr/textAppearanceBodyMedium"/>
+                        <TextView android:id="@+id/text_exchange_admin_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/margin_small" android:text="@string/exchange_admin_signing_in" android:textAppearance="?attr/textAppearanceBodyMedium"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_exchange_admin_sign_out" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="@dimen/touch_target_min_height" android:focusable="true" android:clickable="true" android:nextFocusUp="@id/toolbar" android:nextFocusDown="@id/btn_exchange_admin_add_account" android:nextFocusForward="@id/btn_exchange_admin_add_account" android:text="@string/exchange_admin_sign_out"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/content_exchange_admin_sections" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <com.google.android.material.card.MaterialCardView android:id="@+id/card_exchange_admin_accounts" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="@dimen/margin_small">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/margin_small">
+                        <TextView android:id="@+id/title_exchange_admin_accounts" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/margin_small" android:text="@string/exchange_admin_section_accounts" android:textAppearance="?attr/textAppearanceBodyMedium"/>
+                        <androidx.recyclerview.widget.RecyclerView android:id="@+id/list_exchange_admin_accounts" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" android:contentDescription="@string/exchange_admin_section_accounts"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_exchange_admin_add_account" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="@dimen/touch_target_min_height" android:focusable="true" android:clickable="true" android:nextFocusUp="@id/btn_exchange_admin_sign_out" android:nextFocusDown="@id/btn_exchange_admin_create_invitation" android:nextFocusForward="@id/btn_exchange_admin_create_invitation" android:text="@string/exchange_admin_add_account"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView android:id="@+id/card_exchange_admin_invitations" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="@dimen/margin_small">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/margin_small">
+                        <TextView android:id="@+id/title_exchange_admin_invitations" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/margin_small" android:text="@string/exchange_admin_section_invitations" android:textAppearance="?attr/textAppearanceBodyMedium"/>
+                        <androidx.recyclerview.widget.RecyclerView android:id="@+id/list_exchange_admin_invitations" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" android:contentDescription="@string/exchange_admin_section_invitations"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_exchange_admin_create_invitation" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="@dimen/touch_target_min_height" android:focusable="true" android:clickable="true" android:nextFocusUp="@id/btn_exchange_admin_add_account" android:nextFocusDown="@id/btn_exchange_admin_shared_save" android:nextFocusForward="@id/btn_exchange_admin_shared_save" android:text="@string/exchange_admin_create_invitation"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView android:id="@+id/card_exchange_admin_shared" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="@dimen/margin_small">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/margin_small">
+                        <TextView android:id="@+id/title_exchange_admin_shared" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/margin_small" android:text="@string/exchange_admin_section_shared" android:textAppearance="?attr/textAppearanceBodyMedium"/>
+                        <LinearLayout android:id="@+id/fields_exchange_admin_shared" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_exchange_admin_shared_save" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="@dimen/touch_target_min_height" android:focusable="true" android:clickable="true" android:nextFocusUp="@id/btn_exchange_admin_create_invitation" android:nextFocusDown="@id/btn_exchange_admin_limits_save" android:nextFocusForward="@id/btn_exchange_admin_limits_save" android:text="@string/exchange_admin_save"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView android:id="@+id/card_exchange_admin_limits" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="@dimen/margin_small">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/margin_small">
+                        <TextView android:id="@+id/title_exchange_admin_limits" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/margin_small" android:text="@string/exchange_admin_section_limits" android:textAppearance="?attr/textAppearanceBodyMedium"/>
+                        <LinearLayout android:id="@+id/fields_exchange_admin_limits" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_exchange_admin_limits_save" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="@dimen/touch_target_min_height" android:focusable="true" android:clickable="true" android:nextFocusUp="@id/btn_exchange_admin_shared_save" android:nextFocusDown="@id/btn_exchange_admin_sign_out" android:nextFocusForward="@id/btn_exchange_admin_sign_out" android:text="@string/exchange_admin_save"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+    
+
+</LinearLayout>

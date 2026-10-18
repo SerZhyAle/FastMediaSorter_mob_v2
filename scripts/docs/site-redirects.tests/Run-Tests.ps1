@@ -36,7 +36,9 @@ foreach ($required in @($generator, $retire, $gate, $notFound)) {
 }
 
 $script:failures = 0
+$script:executed = 0
 function Assert-That([bool]$Condition, [string]$Name) {
+    $script:executed++
     if ($Condition) { Write-Host "  ok   $Name" -ForegroundColor Green }
     else { Write-Host "  FAIL $Name" -ForegroundColor Red; $script:failures++ }
 }
@@ -203,6 +205,6 @@ finally {
     foreach ($s in $sites) { if (Test-Path -LiteralPath $s) { Remove-Item -LiteralPath $s -Recurse -Force } }
 }
 
-if ($script:failures -gt 0) { Write-Host "site-redirects tests: $script:failures failure(s)" -ForegroundColor Red; exit 1 }
-Write-Host 'site-redirects tests: PASS' -ForegroundColor Green
+if ($script:failures -gt 0) { Write-Host "site-redirects tests: $(if ($script:failures -gt 0) { 'FAIL' } else { 'PASS' }) (run=$script:executed skipped=0)"; exit 1 }
+Write-Host "site-redirects tests: $(if ($script:failures -gt 0) { 'FAIL' } else { 'PASS' }) (run=$script:executed skipped=0)"
 exit 0

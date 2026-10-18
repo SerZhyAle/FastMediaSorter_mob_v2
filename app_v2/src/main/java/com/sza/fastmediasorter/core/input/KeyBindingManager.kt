@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.core.input
 
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.data.input.InputBindingRepository
+import com.sza.fastmediasorter.domain.input.BindingSource
 import com.sza.fastmediasorter.domain.input.InputSurface
 import com.sza.fastmediasorter.domain.input.InputTrigger
 import kotlinx.coroutines.CoroutineScope
@@ -22,7 +23,9 @@ class KeyBindingManager @Inject constructor(
     init {
         repository.observeResolvedBindings()
             .onEach { bindings ->
-                triggerToCommands = bindings.groupBy(
+                // A user remap must beat a default added later on the same key, so overrides lead every
+                // candidate list and resolve() picks them first (S4362, MEDIA-VIEWER remap preservation).
+                triggerToCommands = bindings.sortedBy { it.source != BindingSource.OVERRIDE }.groupBy(
                     keySelector = { it.trigger },
                     valueTransform = { it.commandId }
                 )

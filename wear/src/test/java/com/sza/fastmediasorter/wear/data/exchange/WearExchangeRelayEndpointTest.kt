@@ -55,6 +55,16 @@ class WearExchangeRelayEndpointTest {
         assertNull(WearExchangeRelayEndpoint.fromOffer(video))
     }
 
+    @Test
+    fun `an offer with an unsupported higher descriptor schemaVersion is not played`() {
+        val higherSchema = WearExchangeEnvelope.decode(
+            """{"schemaVersion":2,"type":"cast-offer","broadcast":{"broadcastId":"b1","descriptor":{""" +
+                """"schemaVersion":2,"endpoints":[{"url":"$RELAY_URL","transport":"RELAY","mode":"AUDIO_ONLY"}]}}}""",
+        )
+
+        assertNull(WearExchangeRelayEndpoint.fromOffer(higherSchema))
+    }
+
     private fun offer(url: String): WearExchangeEnvelope = WearExchangeEnvelope.decode(
         """{"schemaVersion":2,"type":"cast-offer","fromDeviceId":"p","broadcastId":"b1",""" +
             """"broadcast":{"broadcastId":"b1","title":"Phone","mode":"AUDIO_ONLY","descriptor":{"endpoints":[""" +

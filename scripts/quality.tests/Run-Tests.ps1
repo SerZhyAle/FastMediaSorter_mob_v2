@@ -21,9 +21,10 @@
 
 .NOTES
     Exit codes (CLAUDE.md Rule 7):
-      0  every test file passed, or the folder holds no test file.
+      0  every test file passed or was deliberately disabled.
       1  at least one test file failed.
-      2  no test file failed, but at least one could not verify its environment.
+      2  no test file failed, but a file could not verify, queued, or discovery found no test files.
+      3  no file failed or could not verify, but at least one reported an advisory.
 #>
 # Subject: scripts/utils/set-android-string.ps1, scripts/utils/locale-set.ps1, scripts/utils/seed-locale-tranche.ps1, scripts/utils/locale-bulk-export.ps1
 #
@@ -34,46 +35,69 @@
 # one level in, which is why it is declared here rather than left to the folder name.
 
 [CmdletBinding()]
-param()
+param([string]$TestRoot = $PSScriptRoot)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+trap {
+    Write-Host "quality.tests: COULD NOT VERIFY ($($_.Exception.Message -replace '\s+', ' '))"
+    exit 2
+}
 
-$testsRoot = $PSScriptRoot
+$testsRoot = $TestRoot
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:ProgramFiles\PowerShell\7\pwsh.exe" } else { 'pwsh' }
 
 $testFiles = @(Get-ChildItem -LiteralPath $testsRoot -Filter '*.Tests.ps1' -File | Sort-Object Name)
 if ($testFiles.Count -eq 0) {
-    Write-Host 'quality.tests: PASS - no test file in this folder.' -ForegroundColor Green
-    exit 0
+    Write-Host 'quality.tests: COULD NOT VERIFY (0 file(s) discovered; no tests ran).' -ForegroundColor Yellow
+    exit 2
 }
 
 $failed = 0
 $cannotVerify = 0
+$advisories = 0
+$notApplicable = 0
 
 foreach ($file in $testFiles) {
-    & $pwshExe -NoProfile -NonInteractive -File $file.FullName
+    $childOutput = @(& $pwshExe -NoProfile -NonInteractive -File $file.FullName 2>&1)
     $code = [int]$LASTEXITCODE
+    foreach ($line in $childOutput) { Write-Host "$line" }
 
     $verdict = switch ($code) {
-        0 { 'PASS' }
-        2 { 'CANNOT-VERIFY' }
+        0 {
+            if ($childOutput.Count -gt 0 -and [string]$childOutput[-1] -match ': NOT APPLICABLE(?:\s|\(|$)') {
+                'NOT APPLICABLE'
+            } else { 'PASS' }
+        }
+        2 { 'COULD NOT VERIFY' }
+        3 { 'PASS WITH ADVISORIES' }
+        4 { 'COULD NOT VERIFY' }
         default { 'FAIL' }
     }
     $colour = switch ($verdict) {
         'PASS' { 'Green' }
-        'CANNOT-VERIFY' { 'Yellow' }
+        'COULD NOT VERIFY' { 'Yellow' }
+        'PASS WITH ADVISORIES' { 'Yellow' }
+        'NOT APPLICABLE' { 'DarkGray' }
         default { 'Red' }
     }
 
     if ($verdict -eq 'FAIL') { $failed++ }
-    elseif ($verdict -eq 'CANNOT-VERIFY') { $cannotVerify++ }
+    elseif ($verdict -eq 'COULD NOT VERIFY') { $cannotVerify++ }
+    elseif ($verdict -eq 'PASS WITH ADVISORIES') { $advisories++ }
+    elseif ($verdict -eq 'NOT APPLICABLE') { $notApplicable++ }
 
     Write-Host ("SUITE | {0,-13} | {1} | exit {2}" -f $verdict, $file.Name, $code) -ForegroundColor $colour
 }
 
-Write-Host ("quality.tests: {0} file(s) | failed: {1} | could not verify: {2}" -f $testFiles.Count, $failed, $cannotVerify) -ForegroundColor Cyan
+$word = if ($failed -gt 0) { 'FAIL' }
+    elseif ($cannotVerify -gt 0) { 'COULD NOT VERIFY' }
+    elseif ($advisories -gt 0) { 'PASS WITH ADVISORIES' }
+    elseif ($notApplicable -eq $testFiles.Count) { 'NOT APPLICABLE' }
+    else { 'PASS' }
+Write-Host "quality.tests: $word ($($testFiles.Count) child checks; failed=$failed; unverified=$cannotVerify; advisory=$advisories; disabled=$notApplicable)" -ForegroundColor Cyan
 
 if ($failed -gt 0) { exit 1 }
 if ($cannotVerify -gt 0) { exit 2 }
+if ($advisories -gt 0) { exit 3 }
 exit 0

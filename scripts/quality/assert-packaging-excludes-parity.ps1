@@ -108,6 +108,7 @@ function Get-PackagingExcludes {
     $path = Get-BuildFilePath -Module $Module
     if (-not (Test-Path $path)) {
         Write-Error "assert-packaging-excludes-parity: build file not found - '$path'." -ErrorAction Continue
+        Write-Host "assert-packaging-excludes-parity: COULD NOT VERIFY (build file not found - '$path')"
         exit 2
     }
 
@@ -120,6 +121,7 @@ function Get-PackagingExcludes {
     $resourcesBlock = Get-NestedBlockText -Text $text -Path @('packaging', 'resources')
     if ($null -eq $resourcesBlock) {
         Write-Error "assert-packaging-excludes-parity: '$path' has no packaging { resources { } } block - nothing to compare." -ErrorAction Continue
+        Write-Host "assert-packaging-excludes-parity: COULD NOT VERIFY ('$path' has no packaging resources block)"
         exit 2
     }
 
@@ -128,6 +130,7 @@ function Get-PackagingExcludes {
     $found = [regex]::Matches($resourcesBlock, 'excludes\s*\+=\s*"(?<value>[^"]+)"')
     if ($found.Count -eq 0) {
         Write-Error "assert-packaging-excludes-parity: '$path' declares no packaging exclusions at all - nothing to compare." -ErrorAction Continue
+        Write-Host "assert-packaging-excludes-parity: COULD NOT VERIFY ('$path' declares no packaging exclusions)"
         exit 2
     }
 
@@ -183,10 +186,9 @@ if ($violations.Count -gt 0) {
         Write-Host "  $violation"
     }
     Write-Host '  Fix: copy the missing excludes line into the module packaging { resources { } } block.'
+    Write-Host 'assert-packaging-excludes-parity: FAIL (a module does not repeat a shared payload exclusion)'
     exit 1
 }
 
-if (-not $Quiet) {
-    Write-Host "assert-packaging-excludes-parity: OK - every module sharing a library repeats its payload exclusions."
-}
+Write-Host 'assert-packaging-excludes-parity: PASS (every module sharing a library repeats its payload exclusions)'
 exit 0

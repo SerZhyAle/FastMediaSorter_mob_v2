@@ -182,6 +182,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                     customPathPicker.launch(operationType)
                 }
                 override fun getCurrentResourceId(): Long = -1L
+                override fun getCurrentFilePath(): String? = viewModel.state.value.mediaFile?.path
                 override fun onUpdateCommandAvailability() { /* panels are self-managed in standalone */ }
                 override fun shouldShowDestinationPanels(): Boolean =
                     viewModel.state.value.mediaFile != null && !destinationPanelsSuppressed
@@ -387,7 +388,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             onEpubPreviousPage = { epubViewerManager.showPreviousChapter() },
             onEpubHome = { epubViewerManager.showFirstChapter() },
             onShowHelp = { com.sza.fastmediasorter.ui.player.helpers.PlayerHelpEntryManager.open(this) },
-        ).handler
+        ).handler.also { it.textInputFocused = { currentFocus?.onCheckIsTextEditor() == true } }
     }
 
     override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {

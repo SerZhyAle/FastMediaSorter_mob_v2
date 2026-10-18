@@ -370,6 +370,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                 override fun onUndoOperation() {}
             },
             keyBindingManager = keyBindingManager,
+            textInputFocused = { currentFocus?.onCheckIsTextEditor() == true },
         )
     }
 

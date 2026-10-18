@@ -99,7 +99,7 @@ class AppStartupInitializer @Inject constructor(
         runDeferredTask("migrate-thumbnail-cache") { migrateThumbnailCache() }
         runDeferredTask("cleanup-old-thumbnails") { cleanupOldThumbnails() }
         if (ChromeOsCompat.isChromeOs(context)) {
-            runDeferredTask("apply-chromeos-defaults") { applyDefaultsChromeOsIfEmpty() }
+            runDeferredTask("retire-chromeos-seed") { retireChromeOsSeed() }
         }
         runDeferredTask("connection-throttle-bootstrap") { ensureConnectionThrottleManagerInitialized() }
     }
@@ -141,15 +141,17 @@ class AppStartupInitializer @Inject constructor(
             .onFailure { Timber.e(it, "AppStartupInitializer: deferred task failed - %s", label) }
     }
 
-    private suspend fun applyDefaultsChromeOsIfEmpty() {
+    // Older builds seeded Chrome OS key defaults as override rows, which beat the binding table's
+    // VIEWER-KEYBOARD defaults (S4363). The seed is dropped only while all of it is untouched.
+    private suspend fun retireChromeOsSeed() {
         try {
-            val bindings = inputBindingRepository.get()
-            if (!bindings.hasOverrides()) {
-                bindings.insertAllAsOverrides(defaultsMapLoader.get().loadChromeOsDefaults())
-                Timber.i("AppStartupInitializer: Chrome OS keybinding defaults applied")
+            Timber.d("S4363: checking the retired Chrome OS keybinding seed")
+            val seed = defaultsMapLoader.get().retiredChromeOsSeed()
+            if (inputBindingRepository.get().removeUntouchedSeed(seed)) {
+                Timber.i("AppStartupInitializer: retired the Chrome OS keybinding seed")
             }
         } catch (e: Exception) {
-            Timber.e(e, "Failed to apply Chrome OS keybinding defaults")
+            Timber.e(e, "Failed to retire the Chrome OS keybinding seed")
         }
     }
 

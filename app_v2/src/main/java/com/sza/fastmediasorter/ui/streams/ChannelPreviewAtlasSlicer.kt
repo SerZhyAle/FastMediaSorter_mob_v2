@@ -52,13 +52,11 @@ class ChannelPreviewAtlasSlicer(
     /**
      * True only when [index] is non-negative and its tile rect fits inside an `atlasWidth x
      * atlasHeight` sheet. A stale/oversized index (e.g. an old sidecar pointing past a shrunk sheet)
-     * is out of bounds -> no tile, never a crash.
+     * is out of bounds -> no tile, never a crash. Compared in tile units (STREAM-BANK 2.4 SB-A12):
+     * the pixel rect overflows Int for an index near Int.MAX_VALUE and wraps back inside the sheet.
      */
-    fun isInBounds(index: Int, atlasWidth: Int, atlasHeight: Int): Boolean {
-        if (index < 0) return false
-        val rect = rectFor(index)
-        return rect.right <= atlasWidth && rect.bottom <= atlasHeight
-    }
+    fun isInBounds(index: Int, atlasWidth: Int, atlasHeight: Int): Boolean =
+        index >= 0 && index % COLS < atlasWidth / TILE_W && index / COLS < atlasHeight / TILE_H
 
     /**
      * The 240x135 tile bitmap for [index], or null when the atlas is absent or the index is out of

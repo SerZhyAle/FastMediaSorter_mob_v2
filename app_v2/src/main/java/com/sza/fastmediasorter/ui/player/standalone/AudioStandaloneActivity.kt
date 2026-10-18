@@ -176,6 +176,7 @@ class AudioStandaloneActivity :
                     customPathPicker.launch(operationType)
                 }
                 override fun getCurrentResourceId(): Long = -1L
+                override fun getCurrentFilePath(): String? = viewModel.state.value.mediaFile?.path
                 override fun onUpdateCommandAvailability() { /* panels are self-managed in standalone */ }
                 override fun shouldShowDestinationPanels(): Boolean = viewModel.state.value.mediaFile != null
             },
@@ -317,7 +318,7 @@ class AudioStandaloneActivity :
             onPreviousFile = { if (!streamMode) viewModel.pagePrevious() },
             onToggleSlideshow = { if (!streamMode) viewModel.toggleSlideshow() },
             onShowHelp = { com.sza.fastmediasorter.ui.player.helpers.PlayerHelpEntryManager.open(this) },
-        ).handler
+        ).handler.also { it.textInputFocused = { currentFocus?.onCheckIsTextEditor() == true } }
     }
 
     override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {

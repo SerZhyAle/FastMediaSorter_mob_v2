@@ -45,6 +45,7 @@ $preflight = Join-Path $repoRoot 'scripts/spec_catalog/spec-next-preflight.ps1'
 
 $script:pass = 0
 $script:fail = 0
+$script:skipped = 0
 function Assert-That([string]$Name, [bool]$Condition, [string]$Detail = '') {
     if ($Condition) { $script:pass++; Write-Host "  PASS  $Name" -ForegroundColor Green }
     else { $script:fail++; Write-Host "  FAIL  $Name`n        $Detail" -ForegroundColor Red }
@@ -92,6 +93,7 @@ $hasClaim = (Test-Path -LiteralPath $harnessPreflight) -and
 if (-not $hasClaim) {
     Write-Host '  SKIP pick-and-claim (whole suite) - the resolved harness predates spec-next-preflight.ps1 -Claim.' -ForegroundColor DarkGray
     Write-Host '        Run with SZA_HARNESS_ROOT pointed at the canon checkout, or update the plugin: claude plugin update sza@sza-unified-rules' -ForegroundColor DarkGray
+    Write-Host 'spec-next-preflight tests: COULD NOT VERIFY (run=0 skipped=0; harness does not support claim)' -ForegroundColor Yellow
     exit 2
 }
 
@@ -159,6 +161,7 @@ try {
         $second = Invoke-Preflight @('-Claim', '-ClaimAs', $idB, '-Reason', 'preflight-tests-b')
         if ($null -eq $second.Payload.selected) {
             Write-Host "  SKIP second picker - the live queue holds only one claimable ticket ($($second.Payload.selected_none_reason))." -ForegroundColor DarkGray
+            $script:skipped += 2
         } else {
             $pickB = [string]$second.Payload.selected.id
             $leasedSeen = @($second.Payload.leased_ids | ForEach-Object { [string]$_.id })
@@ -219,6 +222,7 @@ try {
         }
         if ($picks.Count -lt 2) {
             Write-Host "  SKIP the race - the live queue offered $($picks.Count) claimable ticket(s) beside the two already held." -ForegroundColor DarkGray
+            $script:skipped += 3
         } else {
             $distinct = @($picks | Select-Object -Unique)
             Assert-That 'pickers ranking at once come back with different tickets' ($distinct.Count -eq $picks.Count) `
@@ -238,13 +242,14 @@ finally {
 
 Write-Host ''
 if ($script:fail -gt 0) {
-    Write-Host ("spec-next-preflight tests: FAIL ({0} failed, {1} passed) - sandbox kept at {2}" -f $script:fail, $script:pass, $sandbox) -ForegroundColor Red
+    Write-Host "sandbox kept at $sandbox" -ForegroundColor Red
+    Write-Host "spec-next-preflight tests: FAIL (run=$($script:pass + $script:fail) skipped=$script:skipped)" -ForegroundColor Red
     exit 1
 }
 Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue
 if ($couldNotVerify) {
-    Write-Host ("spec-next-preflight tests: could not verify the claim ({0} passed)" -f $script:pass) -ForegroundColor Yellow
+    Write-Host "spec-next-preflight tests: COULD NOT VERIFY (run=$($script:pass + $script:fail) skipped=$script:skipped; no claimable ticket)" -ForegroundColor Yellow
     exit 2
 }
-Write-Host ("spec-next-preflight tests: PASS ({0} passed, 0 failed)" -f $script:pass) -ForegroundColor Green
+Write-Host "spec-next-preflight tests: PASS (run=$($script:pass + $script:fail) skipped=$script:skipped)" -ForegroundColor Green
 exit 0

@@ -169,14 +169,11 @@
     <string name="kbm_help_op_refresh">刷新</string>
     <string name="kbm_help_op_rename">重命名</string>
     <string name="kbm_help_op_view">查看/预览</string>
-    <string name="kbm_help_player_frame_step">镜头后移/前移</string>
     <string name="kbm_help_player_fullscreen">切换全屏</string>
     <string name="kbm_help_player_info">文件信息</string>
     <string name="kbm_help_player_mute">切换静音</string>
-    <string name="kbm_help_player_playpause">播放/暂停</string>
     <string name="kbm_help_player_prev_next">上一个/下一个文件</string>
     <string name="kbm_help_player_save">保存快照/当前</string>
-    <string name="kbm_help_player_seek_10s">快进 −10秒 / +10秒</string>
     <string name="kbm_help_player_seek_60s">快进 −60秒 / +60秒</string>
     <string name="kbm_help_player_volume">音量增大/减小</string>
     <string name="kbm_help_section_dialog">对话框</string>

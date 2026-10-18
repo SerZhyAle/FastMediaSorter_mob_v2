@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.15 14:59</sub>
+<sub class="doc-stamp">26.10.18 15:46</sub>
 
 # Play publishing state
 
@@ -184,6 +184,26 @@ indicator never existed on a Wear OS 4+ watch. The letter repeats neither the li
 2026-09-24 nor the large-font claim of 2026-09-11. Both artifacts of that submission, phone
 `260924231` and watch `260924236` (`2.60.9242.311`), still read `completed` in block 2 - a rejected
 release keeps that status, as block 2 explains.
+
+**Transcribed:** 2026-10-18, from the owner's Play verdict letter of 2026-10-18 (06:04 -0700),
+Routing ID `ZLFS`. **A different app:** the watch face `com.sza.fastmediasorter.watchface`, versionCode
+`261014176` (`2.61.0141.706`, `wear:production`), not the phone and watch app this file otherwise
+records.
+
+`Rejected` - one row, dated 2026-10-18, Wear:
+
+| Row | Claim | Carrier |
+|-----|-------|---------|
+| 1 | `Issue found: Play listing icon` / "Your app icon don't accurately represent the watch face." - area `In-app experience`, screenshot of the launcher icon (the brand waves on a dark dial, no time) | no ticket - icon re-captured from the face 2026-10-18, `play/watchface/README.md` |
+
+The rejected bundle was built 2026-10-14, before the icon redraw of 2026-10-15; that redraw was still
+a drawing (thick bright waves the face does not draw), so it was replaced by a capture of the real face
+in the launcher icon, the picker preview, the store icon and the icon tile of the feature graphic.
+
+Republished 2026-10-18: bundle `261018159` (`2.61.0181.546`) on the face's `wear:production` and the
+three-locale listing committed, both **held** - Play refuses automatic review while the rejection
+stands, so nothing is in review until the owner sends it from `Publishing overview`. The face's
+`wear:internal` still holds the 2026-09-30 draft `260930119`, which carries the original icon.
 
 ### Contacts Permission declaration (S4030)
 

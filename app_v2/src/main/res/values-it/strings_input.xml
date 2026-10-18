@@ -169,14 +169,11 @@
     <string name="kbm_help_op_refresh">Aggiorna</string>
     <string name="kbm_help_op_rename">Rinominare</string>
     <string name="kbm_help_op_view">Visualizza / anteprima</string>
-    <string name="kbm_help_player_frame_step">Telaio avanti/indietro</string>
     <string name="kbm_help_player_fullscreen">Attiva/disattiva la modalità a schermo intero</string>
     <string name="kbm_help_player_info">Informazioni sul file</string>
     <string name="kbm_help_player_mute">Attiva/disattiva l\'audio</string>
-    <string name="kbm_help_player_playpause">Riproduci / Pausa</string>
     <string name="kbm_help_player_prev_next">File precedente/successivo</string>
     <string name="kbm_help_player_save">Salva istantanea / corrente</string>
-    <string name="kbm_help_player_seek_10s">Salta −10s / +10s</string>
     <string name="kbm_help_player_seek_60s">Salta −60s / +60s</string>
     <string name="kbm_help_player_volume">Aumenta/diminuisci il volume</string>
     <string name="kbm_help_section_dialog">Dialogo</string>

@@ -128,7 +128,7 @@ try {
 }
 finally {
     Write-Host ""
-    Write-Host ("Result: {0} passed, {1} failed" -f $script:pass, $script:fail) -ForegroundColor ($script:fail -gt 0 ? 'Red' : 'Green')
+    Write-Host "assert-orientation-layout-pairing.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 }
 
 if ($script:fail -gt 0) { exit 1 }

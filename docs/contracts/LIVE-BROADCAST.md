@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.15 14:49</sub>
+<sub class="doc-stamp">26.10.18 17:46</sub>
 
 # Pointer - `LIVE-BROADCAST`
 
 | | |
 | --- | --- |
 | **Id** | `LIVE-BROADCAST` |
-| **Version** | 1.0, active - declared 2026-10-15 (S4245, the owner's decision 22 of milestone S4203: every section and amendment binds, and the contract only grows from here); amendment 16 adds item Q, the `seal` member of a `RELAY` and a `TUNNEL` endpoint; amendment 15, items N to P: the sources of a broadcast, sound and video on the watch and the phone's hand-off to the watch; amendment 14, item M: a broadcast link with a password; amendment 13: PC producer, HTTP MPEG-TS video, `RELAY`/`TUNNEL` endpoints through `DEVICE-EXCHANGE`, receivers and cast. Owner: this product |
+| **Version** | 1.1, active - 2026-10-17 (the consolidation amendment: a descriptor of a higher `schemaVersion` answers the canonical `format-unsupported` refusal); 1.0 - declared 2026-10-15 (S4245, the owner's decision 22 of milestone S4203: every section and amendment binds, and the contract only grows from here); amendment 16 adds item Q, the `seal` member of a `RELAY` and a `TUNNEL` endpoint; amendment 15, items N to P: the sources of a broadcast, sound and video on the watch and the phone's hand-off to the watch; amendment 14, item M: a broadcast link with a password; amendment 13: PC producer, HTTP MPEG-TS video, `RELAY`/`TUNNEL` endpoints through `DEVICE-EXCHANGE`, receivers and cast. Owner: this product |
 | **Home** | `live-broadcast/README.md` in the shared contracts catalog |
 | **Role here** | producer - the phone and watch audio broadcast; also reads its own descriptor on import |
 
@@ -22,7 +22,7 @@
   never through the exchange server or a log; an endpoint whose `seal.v` is unknown is skipped and never played as
   clear bytes (1.0 item Q, S4245).
 - When reading a descriptor, refuse a `schemaVersion` above the supported one as its own outcome, not
-  as "malformed".
+  as "malformed", with the canonical `format-unsupported` text and no partial import (1.1).
 - Video: deliver the first picture within the keyframe interval plus 1 s of a listener connecting, and
   request an IDR when a listener attaches (0.17 item I, `[CONTRACT]` for the RTSP kinds).
 - A producer with several sources names each `sourceId` as `<deviceSourceId>:<source>` (0.15 item G).

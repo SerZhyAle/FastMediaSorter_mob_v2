@@ -1,16 +1,19 @@
 package com.sza.fastmediasorter.data.streams
 
 import com.sza.fastmediasorter.domain.streams.facets.StreamFacetFolding
+import com.sza.fastmediasorter.domain.streams.facets.StreamTopicFolding
 import java.util.Locale
 import javax.inject.Inject
 
 /**
  * Keeps catalog-origin facet identifiers stable when an older asset or a manually maintained source
- * still uses a known predecessor spelling. Category and topic keep an unknown non-blank value visible
- * for a newer catalog; language and country fold to the closed sets of STREAM-BANK 2.3 (amendment O) -
- * a language cell with nothing recognized reads `english`, a country that is not an assigned ISO 3166-1
- * alpha-2 code is blank - so a bank imported from an older publish and a rewritten one converge on the
- * same ids.
+ * still uses a known predecessor spelling. Category keeps an unknown non-blank value visible for a newer
+ * catalog. Topic follows the STREAM-BANK 2.4 topic law through the fold shared with the publisher and the
+ * watch: an unknown non-blank topic reads `General`, a blank one stays blank, and any case of a rubric id
+ * or alias lands on the canonical id. Language and country fold to the closed sets of STREAM-BANK 2.3
+ * (amendment O) - a language cell with nothing recognized reads `english`, a country that is not an
+ * assigned ISO 3166-1 alpha-2 code is blank. So a bank imported from an older publish and a rewritten one
+ * converge on the same ids.
  */
 class StreamCatalogFacetNormalizer @Inject constructor() {
 
@@ -35,16 +38,7 @@ class StreamCatalogFacetNormalizer @Inject constructor() {
         else -> value.trim()
     }
 
-    private fun canonicalTopic(value: String): String = when (normalized(value)) {
-        "adult contemporary", "pop" -> "Pop"
-        "christian", "religious" -> "Religious"
-        "children", "kids" -> "Kids"
-        "blues", "jazz & blues" -> "Jazz & Blues"
-        "country", "country & folk" -> "Country & Folk"
-        "movies", "movie", "open movies", "movies & series" -> "Movies & Series"
-        "science", "documentary" -> "Documentary"
-        else -> value.trim()
-    }
+    private fun canonicalTopic(value: String): String = StreamTopicFolding.canonicalTopic(value).orEmpty()
 
     private fun canonicalLanguages(value: String): String = StreamFacetFolding.foldLanguages(value)
 

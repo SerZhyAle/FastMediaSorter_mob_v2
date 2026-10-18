@@ -339,7 +339,6 @@ else {
 
 # The skip count belongs on the summary line: a run that quietly dropped four cases and a run that
 # executed them both end in "0 failed", and only this number tells them apart.
-$skipTail = if ($script:skip -gt 0) { ", {0} case(s) skipped" -f $script:skip } else { '' }
-Write-Host ("archive.tests: {0} passed, {1} failed{2}" -f $script:pass, $script:fail, $skipTail) -ForegroundColor $(if ($script:fail) { 'Red' } else { 'Green' })
+Write-Host "archive.tests: $(if ($script:fail) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=$script:skip)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

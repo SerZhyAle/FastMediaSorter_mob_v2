@@ -47,14 +47,26 @@ enum class ExchangeMessage(val code: String, val kind: Kind, val step: ExchangeC
     SERVER_NO_E2E("server-no-e2e", Kind.STATE, ExchangeCheckStep.OPERATOR),
     SEALED_FAILED("sealed-failed", Kind.LOCAL, null),
 
+    /**
+     * A connection string or broadcast descriptor of a higher major than this program reads (amendment 2026-10-17,
+     * shared with LIVE-BROADCAST). The text is fixed by the contract and never asks the user to update.
+     */
+    FORMAT_UNSUPPORTED("format-unsupported", Kind.LOCAL, null),
+
     /** An unknown `refused.reason` (7.10): the generic refusal, sent to whoever runs the server. */
     REFUSED("refused", Kind.WIRE, ExchangeCheckStep.OPERATOR),
+
+    /** The sign-in of an administration stream reached a server whose remote administration is turned off. */
+    ADMIN_DISABLED("admin-disabled", Kind.BINDING, null),
 
     /** This device's secret store refused the token it was given; not a table row. */
     TOKEN_NOT_STORED("token-not-stored", Kind.PRODUCT, null);
 
-    /** Where the row comes from: a wire refusal, a cast result, a local class, a state or a plain result. */
-    enum class Kind { WIRE, CAST, LOCAL, STATE, RESULT, PRODUCT }
+    /**
+     * Where the row comes from: a wire refusal, a cast result, a local class, a state or a plain result.
+     * [BINDING] is a row a binding document of the contract adds to item CZ (`WEB-BINDING.md`), not the README table.
+     */
+    enum class Kind { WIRE, CAST, LOCAL, STATE, RESULT, PRODUCT, BINDING }
 
     /** A failure with no reason of its own on the wire is walked along the ladder (item CY), not shown at once. */
     val walked: Boolean get() = code in WALKED_CODES
@@ -66,6 +78,7 @@ enum class ExchangeMessage(val code: String, val kind: Kind, val step: ExchangeC
         private const val REASON_LIMIT_REACHED = "limit-reached"
 
         private val WALKED_CODES = setOf("unreachable", "unanswered", "tls-failed")
+        private val REFUSAL_KINDS = setOf(Kind.WIRE, Kind.BINDING)
 
         /**
          * The row for a `refused.reason`. [oneTimeCode] picks the "login or one-time code" text of
@@ -78,7 +91,7 @@ enum class ExchangeMessage(val code: String, val kind: Kind, val step: ExchangeC
                 REASON_TOKEN_NOT_STORED -> TOKEN_NOT_STORED
                 REASON_BAD_CREDENTIALS -> if (oneTimeCode) BAD_CREDENTIALS_ONE_TIME_CODE else BAD_CREDENTIALS
                 REASON_LIMIT_REACHED -> if (clipboardSend) LIMIT_REACHED_CLIPBOARD else LIMIT_REACHED
-                else -> entries.firstOrNull { it.kind == Kind.WIRE && it.code == reason } ?: REFUSED
+                else -> entries.firstOrNull { it.kind in REFUSAL_KINDS && it.code == reason } ?: REFUSED
             }
 
         /** The row for a reason of a `cast-result` (14.5 item R); anything else is the generic refusal. */

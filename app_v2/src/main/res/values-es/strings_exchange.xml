@@ -79,7 +79,6 @@
     <string name="exchange_signin_fingerprint_present">Certificado fijado: %1$s</string>
     <string name="exchange_signin_fingerprint_absent">Sin certificado fijado: el servidor se comprueba con los certificados del sistema.</string>
     <string name="exchange_signin_refused">Esto no es una cadena de servidor. Revisa el texto e inténtalo de nuevo.</string>
-    <string name="exchange_signin_update_app">Esta cadena requiere una versión más reciente de la aplicación. Actualiza la aplicación e inténtalo de nuevo.</string>
     <string name="add_resource_my_devices">De mis dispositivos</string>
     <string name="add_resource_my_devices_description">Recursos que tus otros dispositivos publican a través de tu servidor de intercambio o de Google Drive</string>
     <string name="exchange_directory_attach">Vincular</string>

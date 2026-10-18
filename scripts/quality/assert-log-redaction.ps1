@@ -154,8 +154,10 @@ if ($Gate -and $ChangedFiles -and (@(Expand-ChangedFiles -ChangedFiles $ChangedF
             Write-Host ("  {0}: +{1}" -f $f.Path, $f.New)
         }
         Write-Host 'FAIL: a Timber call in your changed files interpolates a credential without the masking seam. Wrap the value in SecretMasker.mask / maskFull / maskPath, or log the fact instead of the value.'
+        Write-Host 'assert-log-redaction: FAIL (a Timber call in a changed file interpolates a credential unmasked)'
         exit 1
     }
+    Write-Host 'assert-log-redaction: PASS (no new unmasked interpolation in the changed files)'
     exit 0
 }
 
@@ -191,6 +193,7 @@ if ($PSCmdlet.ParameterSetName -eq 'Update') {
         if (-not (Test-Path -LiteralPath $baselineFile)) {
             Set-Content -LiteralPath $baselineFile -Value "$current"
             Write-Host "log-redaction baseline SEEDED: $current"
+            Write-Host "assert-log-redaction: PASS (baseline seeded at $current)"
             exit 0
         }
         $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
@@ -203,15 +206,18 @@ if ($PSCmdlet.ParameterSetName -eq 'Update') {
         }
         else {
             Write-Error "Refusing to RAISE baseline ($baseline -> $current). Route the value through SecretMasker instead."
+            Write-Host "assert-log-redaction: FAIL (refusing to raise the baseline $baseline -> $current)"
             exit 1
         }
     }
     finally { Exit-CodeLockScope -Scope $scope }
+    Write-Host "assert-log-redaction: PASS (baseline update ran; actual $current)"
     exit 0
 }
 
 if (-not (Test-Path -LiteralPath $baselineFile)) {
     Write-Host "log-redaction: NO BASELINE yet | actual $current - run -UpdateBaseline to seed."
+    Write-Host "assert-log-redaction: PASS (no baseline yet; actual $current)"
     exit 0
 }
 $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
@@ -219,9 +225,11 @@ $delta = $current - $baseline
 Write-Host ("unmasked credential interpolations in network Timber calls: baseline {0} | actual {1} | delta {2:+#;-#;0}" -f $baseline, $current, $delta)
 if ($Gate -and $current -gt $baseline) {
     Write-Host 'FAIL: a Timber call in the network trees interpolates a credential without the masking seam. Wrap the value in SecretMasker.mask / maskFull / maskPath, or log the fact instead of the value.'
+    Write-Host "assert-log-redaction: FAIL (unmasked interpolations grew from the baseline $baseline to $current)"
     exit 1
 }
 if ($current -lt $baseline) {
     Write-Host 'Note: count is below baseline - run -UpdateBaseline to ratchet the cap down.'
 }
+Write-Host "assert-log-redaction: PASS (baseline $baseline, actual $current)"
 exit 0

@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.09.30 08:56</sub>
+<sub class="doc-stamp">26.10.18 19:09</sub>
 
 # Pointer - `INPUT-PARITY`
 
 | | |
 | --- | --- |
 | **Id** | `INPUT-PARITY` |
-| **Version** | 0.3, draft. Owner: shared, one steward per device column |
+| **Version** | 0.4, draft. Owner: shared, one steward per device column |
 | **Home** | `input-controls/README.md` in the shared contracts catalog |
 | **Role here** | steward of the touch, gamepad and TV remote / D-pad columns |
 
@@ -19,7 +19,9 @@
 - Focus moved by D-pad or gamepad stays visible (rule 2).
 - No system button is bound: gamepad `Guide`, the remote's `Home`, the system back gesture keep their
   platform meaning (rule 3).
-- The deviations currently open are recorded as exceptions in the catalog's registry.
+- The deviations currently open are recorded as exceptions in the catalog's registry. The 0.4 `VIEWER-KEYBOARD.md`
+  player defaults ship in `default_bindings.json` and `PlayerKeyboardHandler` (S4363); the rows still open
+  (`G`, `N`, `F4`, frame step, A-B loop, the standalone hosts) are the exception carried by S4373.
 
 `INPUT-CHORD`, the chord notation beside it in the same folder, is not adopted: our bindings are stored as an
 internal key-code record that never leaves the app, and in-window shortcuts are outside its scope.

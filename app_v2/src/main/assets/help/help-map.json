@@ -169,6 +169,8 @@
       "reason": "One QR code with its hint; the text on screen is the whole explanation (CONTEXT-HELP rule 4)." },
     { "id": "ExchangeSignInActivity", "name": "Sign in to the exchange server", "form": "inherit", "parent": "MyDevicesActivity",
       "reason": "A transparent host that shows the same quick sign-in dialog as the My devices screen; the My devices page explains the connection string and the sign-in fields." },
+    { "id": "ExchangeServerAdminActivity", "name": "Manage exchange server", "form": "inherit", "parent": "MyDevicesActivity",
+      "reason": "Opened only from a server card of My devices; the My devices page explains server administration." },
     { "id": "BroadcastEntryActivity", "name": "Live broadcast entry", "form": "none",
       "reason": "A routing proxy with no window: the shortcut, tile, widget and panel entries open the broadcast control screen through it, and it closes at once (CONTEXT-HELP rule 4)." },
     { "id": "BroadcastShareActivity", "name": "Broadcast share entry", "form": "none",

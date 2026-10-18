@@ -42,6 +42,7 @@ $validate = Join-Path $repoRoot 'scripts/spec_catalog/validate.ps1'
 
 if (-not (Test-Path $validate)) {
     Write-Error "validate.ps1 not found at $validate" -ErrorAction Continue
+    Write-Host 'assert-spec-catalog-valid: COULD NOT VERIFY (validate.ps1 not found)'
     exit 2
 }
 
@@ -58,10 +59,9 @@ $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:Prog
 $validOk = ($LASTEXITCODE -eq 0)
 
 if (-not $validOk) {
-    if (-not $Quiet) { Write-Host "assert-spec-catalog-valid: spec catalog validation FAILED" -ForegroundColor Red }
-    if ($Gate) { exit 1 }
-} else {
-    if (-not $Quiet) { Write-Host "assert-spec-catalog-valid: PASS (spec catalog structure and file mapping valid)." -ForegroundColor Green }
+    Write-Host 'assert-spec-catalog-valid: FAIL (spec catalog validation failed)' -ForegroundColor Red
+    exit 1
 }
 
-exit $(if ($validOk) { 0 } else { 1 })
+Write-Host 'assert-spec-catalog-valid: PASS (spec catalog structure and file mapping valid)' -ForegroundColor Green
+exit 0

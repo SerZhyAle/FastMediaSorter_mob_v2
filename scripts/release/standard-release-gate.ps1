@@ -11,6 +11,8 @@
     2. smoke    : standard-release-smoke.ps1 -Json
                   (R8/shrink breakage => hard-stop, §5.3; no-device/infra exit 2 =>
                    recorded coverage gap, waiver-eligible, NOT a FAIL).
+    2b. align16k: assert-16kb-alignment.ps1 (misaligned 64-bit .so => hard-stop; exit 2 =
+                  could not verify => recorded coverage gap, waiver-eligible, never "ok").
     3. coverage : docs/release/standard-coverage-matrix.json parses; `not`/`partial`
                   groups and `coverageGaps` are waiver-eligible (§5.4).
     4. waiver   : store_assets/release_waivers/<VersionName>.md presence resolves
@@ -93,10 +95,14 @@ if (-not $SkipSmoke) {
 # Hard-stop: a misaligned .so is a certain Play rejection, not a waiver-eligible gap.
 $align16kStatus = 'skipped'
 $align16kHardFail = $false
+$align16kGap = $false   # exit 2 = could not verify: a coverage gap, waiver-eligible like the smoke, never 'ok'
 if (Test-Path $align16kTool) {
     & pwsh -NoProfile -File $align16kTool *> $null
-    if ($LASTEXITCODE -eq 1) { $align16kStatus = 'misaligned'; $align16kHardFail = $true }
-    else { $align16kStatus = 'ok' }
+    switch ($LASTEXITCODE) {
+        0 { $align16kStatus = 'ok' }
+        1 { $align16kStatus = 'misaligned'; $align16kHardFail = $true }
+        default { $align16kStatus = 'could-not-verify (coverage gap)'; $align16kGap = $true }
+    }
 }
 
 # 3. coverage manifest
@@ -111,7 +117,7 @@ $hasWaiver  = [bool]($waiverFile -and (Test-Path $waiverFile))
 
 # ---- fold into verdict --------------------------------------------------
 $hardStop = $surfaceHardFail -or $smokeHardFail -or $align16kHardFail
-$waiverEligible = $smokeGap -or ($notCovered.Count -gt 0) -or ($partial.Count -gt 0) -or ($gaps.Count -gt 0)
+$waiverEligible = $smokeGap -or $align16kGap -or ($notCovered.Count -gt 0) -or ($partial.Count -gt 0) -or ($gaps.Count -gt 0)
 
 if ($hardStop)                              { $verdict = 'FAIL';   $code = 1 }
 elseif ($waiverEligible -and $hasWaiver)    { $verdict = 'WAIVED'; $code = 3 }
@@ -121,7 +127,7 @@ else                                        { $verdict = 'PASS';   $code = 0 }
 $breakdown = [ordered]@{
     surface  = [ordered]@{ exit = $surfaceExit; hardFail = $surfaceHardFail }
     smoke    = [ordered]@{ status = $smokeStatus; hardFail = $smokeHardFail; coverageGap = $smokeGap }
-    align16k = [ordered]@{ status = $align16kStatus; hardFail = $align16kHardFail }
+    align16k = [ordered]@{ status = $align16kStatus; hardFail = $align16kHardFail; coverageGap = $align16kGap }
     coverage = [ordered]@{ notCovered = $notCovered.Count; partial = $partial.Count; gaps = $gaps.Count }
     waiver   = [ordered]@{ file = $(if ($waiverFile) { "store_assets/release_waivers/$VersionName.md" } else { '' }); present = $hasWaiver }
 }

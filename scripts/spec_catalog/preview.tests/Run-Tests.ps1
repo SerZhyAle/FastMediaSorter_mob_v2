@@ -90,6 +90,7 @@ $env:FMS_SKIP_RELEASE_QUEUE = '1'
 $script:pass = 0
 $script:fail = 0
 $script:skipped = 0
+$script:optionalSkipped = 0
 
 function Assert-That([string]$name, [bool]$ok, [string]$detail) {
     if ($ok) {
@@ -195,7 +196,10 @@ try {
         $blocked = @(& $pwshExe -NoProfile -File $searchPs1 -Status BlockByOtherTask -Format json | ConvertFrom-Json)
         # An empty live set is a journal state, not a predicate regression - case I pins the rule hermetically.
         # Skip-Case is not used: its counter means "the harness predates S2834" and turns the suite into exit 2.
-        if ($blocked.Count -eq 0) { Write-Host '  SKIP  A0 - the catalog holds no BlockByOtherTask spec today; case I still pins the rule' -ForegroundColor DarkGray }
+        if ($blocked.Count -eq 0) {
+            Write-Host '  SKIP  A0 - the catalog holds no BlockByOtherTask spec today; case I still pins the rule' -ForegroundColor DarkGray
+            $script:optionalSkipped++
+        }
         foreach ($b in $blocked) {
             $pv = Get-Preview $b.id
             $skip = if ($pv -and $pv.auto_skip) { $pv.auto_skip } else { 'null' }
@@ -568,12 +572,12 @@ finally {
 
 Write-Host ''
 if ($script:fail -gt 0) {
-    Write-Host "preview tests: $script:pass passed, $script:fail FAILED" -ForegroundColor Red
+    Write-Host "preview tests: FAIL (run=$($script:pass + $script:fail) skipped=$($script:skipped + $script:optionalSkipped))" -ForegroundColor Red
     exit 1
 }
 if ($script:skipped -gt 0) {
-    Write-Host "preview tests: COULD NOT VERIFY - $script:pass passed, $script:skipped skipped (the resolved SZA harness predates S2834)" -ForegroundColor Yellow
+    Write-Host "preview tests: COULD NOT VERIFY (run=$($script:pass + $script:fail) skipped=$($script:skipped + $script:optionalSkipped); harness predates S2834)" -ForegroundColor Yellow
     exit 2
 }
-Write-Host "preview tests: $script:pass passed" -ForegroundColor Green
+Write-Host "preview tests: PASS (run=$($script:pass + $script:fail) skipped=$($script:skipped + $script:optionalSkipped))" -ForegroundColor Green
 exit 0

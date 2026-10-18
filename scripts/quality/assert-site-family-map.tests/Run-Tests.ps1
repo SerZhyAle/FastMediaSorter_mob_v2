@@ -146,5 +146,5 @@ finally {
     foreach ($dir in $fixtures) { Remove-Item -LiteralPath $dir -Recurse -Force -ErrorAction SilentlyContinue }
 }
 
-Write-Host "assert-site-family-map suite: $passed passed, $failed failed"
+Write-Host "assert-site-family-map suite: $(if ($failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($passed + $failed) skipped=0)"
 exit ([int]($failed -gt 0))

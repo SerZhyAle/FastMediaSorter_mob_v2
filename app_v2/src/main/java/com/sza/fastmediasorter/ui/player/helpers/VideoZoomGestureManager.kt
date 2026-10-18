@@ -1,12 +1,10 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
-import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewTreeObserver
-import androidx.core.view.ViewCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.ui.PlayerView
@@ -27,7 +25,6 @@ class VideoZoomGestureManager(
     private var downY = 0f
     private val touchSlop = ViewConfiguration.get(playerView.context).scaledTouchSlop
     private var observer: ViewTreeObserver? = null
-    private var keyHost: View? = null
     private var observedPlayer: Player? = null
     private var observedItem: MediaItem? = null
     private var surfaceWidth = 0
@@ -48,51 +45,18 @@ class VideoZoomGestureManager(
         }
     ).apply { isQuickScaleEnabled = false }
 
-    private val keyListener = ViewCompat.OnUnhandledKeyEventListenerCompat { _, event ->
-        if (!isVideoActive() || event.action != KeyEvent.ACTION_DOWN) {
-            false
-        } else {
-            when (event.keyCode) {
-                KeyEvent.KEYCODE_PLUS, KeyEvent.KEYCODE_EQUALS, KeyEvent.KEYCODE_NUMPAD_ADD -> zoomBy(ZOOM_STEP)
-                KeyEvent.KEYCODE_MINUS, KeyEvent.KEYCODE_NUMPAD_SUBTRACT -> zoomBy(1f / ZOOM_STEP)
-                KeyEvent.KEYCODE_0, KeyEvent.KEYCODE_NUMPAD_0 -> {
-                    reset()
-                    true
-                }
-                else -> false
-            }
-        }
-    }
-
     init {
         playerView.addOnAttachStateChangeListener(this)
-        playerView.setOnGenericMotionListener { _, event ->
-            if (isVideoActive() && event.actionMasked == MotionEvent.ACTION_SCROLL &&
-                event.metaState and KeyEvent.META_CTRL_ON != 0
-            ) {
-                val scroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
-                when {
-                    scroll > 0f -> zoomBy(ZOOM_STEP)
-                    scroll < 0f -> zoomBy(1f / ZOOM_STEP)
-                    else -> false
-                }
-            } else {
-                false
-            }
-        }
         if (playerView.isAttachedToWindow) onViewAttachedToWindow(playerView)
     }
 
     override fun onViewAttachedToWindow(view: View) {
         observer = playerView.viewTreeObserver.also { it.addOnPreDrawListener(this) }
-        keyHost = playerView.rootView.also { ViewCompat.addOnUnhandledKeyEventListener(it, keyListener) }
     }
 
     override fun onViewDetachedFromWindow(view: View) {
         observer?.takeIf { it.isAlive }?.removeOnPreDrawListener(this)
         observer = null
-        keyHost?.let { ViewCompat.removeOnUnhandledKeyEventListener(it, keyListener) }
-        keyHost = null
         reset()
         observedPlayer = null
         observedItem = null
@@ -102,7 +66,6 @@ class VideoZoomGestureManager(
     fun release() {
         onViewDetachedFromWindow(playerView)
         playerView.removeOnAttachStateChangeListener(this)
-        playerView.setOnGenericMotionListener(null)
     }
 
     override fun onPreDraw(): Boolean {
@@ -167,6 +130,39 @@ class VideoZoomGestureManager(
     private fun isVideoActive(): Boolean =
         playerView.visibility == View.VISIBLE && playerView.player?.videoSize?.width?.let { it > 0 } == true
 
+    // ── command zoom surface (MEDIA-VIEWER rules 3.1-3.2): keys and Ctrl+wheel route here ──
+
+    fun zoomIn(): Boolean = zoomBy(ViewerZoomMath.STEP)
+
+    fun zoomOut(): Boolean = zoomBy(1f / ViewerZoomMath.STEP)
+
+    /** Zoom by [factor] around ([focusX], [focusY]) in the PlayerView's coordinate space. */
+    fun zoomAt(factor: Float, focusX: Float, focusY: Float): Boolean {
+        changeScale(scale * factor, focusX, focusY)
+        return true
+    }
+
+    /** Back to the fitted size (scale 1). */
+    fun fit(): Boolean {
+        reset()
+        return true
+    }
+
+    /** One video pixel per screen pixel, relative to the frame fitted into the view. */
+    fun actualSize(): Boolean {
+        val width = playerView.player?.videoSize?.width ?: 0
+        val height = playerView.player?.videoSize?.height ?: 0
+        if (width <= 0 || height <= 0) return false
+        val target = ViewerZoomMath.actualSizeScale(
+            width,
+            height,
+            playerView.width.toFloat(),
+            playerView.height.toFloat(),
+        )
+        changeScale(target, playerView.width / CENTER_DIVISOR, playerView.height / CENTER_DIVISOR)
+        return true
+    }
+
     private fun zoomBy(factor: Float): Boolean {
         changeScale(scale * factor, playerView.width / CENTER_DIVISOR, playerView.height / CENTER_DIVISOR)
         return true
@@ -207,7 +203,6 @@ class VideoZoomGestureManager(
     companion object {
         private const val MIN_SCALE = 1f
         private const val MAX_SCALE = 5f
-        private const val ZOOM_STEP = 1.25f
         private const val CENTER_DIVISOR = 2f
     }
 }

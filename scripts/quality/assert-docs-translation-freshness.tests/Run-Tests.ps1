@@ -86,6 +86,6 @@ $driftedUk = "---`ncanonical_url: documentation/browsing/sorting-uk.html`npage_i
 Test-Case 'a reordered key skeleton in a translation fails' $russian @() 1 'YAML key-sequence drift in UK: sorting.md' $driftedUk
 
 Write-Host ""
-Write-Host "Summary: $script:pass passed, $script:fail failed" -ForegroundColor $(if ($script:fail -eq 0) { 'Green' } else { 'Red' })
+Write-Host "assert-docs-translation-freshness.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

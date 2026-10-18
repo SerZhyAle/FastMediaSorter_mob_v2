@@ -139,8 +139,10 @@ function Get-SeedWithAnnouncement {
     return ([string]::Join("`r`n", $lines.ToArray()) + "`r`n")
 }
 
+$script:executed = 0
 function Assert-Case {
     param([string] $Name, [scriptblock] $Body)
+    $script:executed++
     try {
         $message = & $Body
         if ($message) {
@@ -529,8 +531,8 @@ finally {
 }
 
 if ($failures -gt 0) {
-    Write-Host "release-freeze tests: $failures case(s) failed." -ForegroundColor Red
+    Write-Host "release-freeze tests: $(if ($failures -gt 0) { 'FAIL' } else { 'PASS' }) (run=$script:executed skipped=0)"
     exit 1
 }
-Write-Host 'release-freeze tests: all cases passed.' -ForegroundColor Green
+Write-Host "release-freeze tests: $(if ($failures -gt 0) { 'FAIL' } else { 'PASS' }) (run=$script:executed skipped=0)"
 exit 0

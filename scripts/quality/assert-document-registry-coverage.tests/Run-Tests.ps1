@@ -219,6 +219,5 @@ Assert-That 'no parameter-binding error on the runner shape' `
 Remove-Item -LiteralPath $sandboxRoot -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host ''
-Write-Host ("assert-document-registry-coverage.tests: {0} passed, {1} failed" -f $script:pass, $script:fail) `
-    -ForegroundColor $(if ($script:fail -eq 0) { 'Green' } else { 'Red' })
+Write-Host "assert-document-registry-coverage.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 exit $(if ($script:fail -eq 0) { 0 } else { 1 })

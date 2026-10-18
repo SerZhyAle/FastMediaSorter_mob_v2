@@ -2,6 +2,28 @@
 <resources>
     <!-- ===== COMMON DIMENSIONS ===== -->
 
+    <!-- Canonical UI-SIZING 1.0 tokens (S4352) -->
+    <dimen name="token_spacing_4">4dp</dimen>
+    <dimen name="token_spacing_8">8dp</dimen>
+    <dimen name="token_spacing_12">12dp</dimen>
+    <dimen name="token_spacing_16">16dp</dimen>
+    <dimen name="token_spacing_24">24dp</dimen>
+    <dimen name="token_spacing_32">32dp</dimen>
+
+    <dimen name="token_radius_8">8dp</dimen>
+    <dimen name="token_radius_12">12dp</dimen>
+    <dimen name="token_radius_16">16dp</dimen>
+
+    <dimen name="token_icon_16">16dp</dimen>
+    <dimen name="token_icon_20">20dp</dimen>
+    <dimen name="token_icon_24">24dp</dimen>
+    <dimen name="token_icon_32">32dp</dimen>
+    <dimen name="token_icon_40">40dp</dimen>
+    <dimen name="token_icon_48">48dp</dimen>
+
+    <dimen name="token_pointer_target_min">32dp</dimen>
+    <dimen name="token_touch_target_min">48dp</dimen>
+
     <!-- Text sizes -->
     <dimen name="text_size_huge">24sp</dimen>
     <dimen name="text_size_large">18sp</dimen>

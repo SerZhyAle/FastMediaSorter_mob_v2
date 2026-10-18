@@ -79,7 +79,6 @@
     <string name="exchange_signin_fingerprint_present">সার্টিফিকেট পিন করা হয়েছে: %1$s</string>
     <string name="exchange_signin_fingerprint_absent">কোনো সার্টিফিকেট পিন নেই: সার্ভার সিস্টেম সার্টিফিকেটের সঙ্গে যাচাই করা হয়।</string>
     <string name="exchange_signin_refused">এটি সার্ভার স্ট্রিং নয়। লেখাটি পরীক্ষা করে আবার চেষ্টা করুন।</string>
-    <string name="exchange_signin_update_app">এই স্ট্রিংয়ের জন্য অ্যাপের নতুন সংস্করণ লাগবে। অ্যাপ আপডেট করে আবার চেষ্টা করুন।</string>
     <string name="add_resource_my_devices">আমার ডিভাইস থেকে</string>
     <string name="add_resource_my_devices_description">আপনার অন্য ডিভাইস আপনার এক্সচেঞ্জ সার্ভার বা Google Drive-এর মাধ্যমে যেসব রিসোর্স প্রকাশ করে</string>
     <string name="exchange_directory_attach">যুক্ত করুন</string>

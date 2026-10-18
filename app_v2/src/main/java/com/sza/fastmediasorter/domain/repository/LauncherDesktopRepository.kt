@@ -63,6 +63,19 @@ interface LauncherDesktopRepository {
      */
     suspend fun addCellInSection(cell: LauncherCell, columns: Int, sectionKey: String): Long?
 
+    /**
+     * S4357: places [cell] outside any section on [cell]'s screen.
+     *
+     * Scans for an anchor above the first section header of [cell.orientation] and [cell.screenIndex].
+     * When space above the first header is exhausted (or when the first header is at row 0), pushes
+     * all rows starting at the first header down by [cell.spanH] to open an unsectioned row directly
+     * above the first header, seating [cell] at that row.
+     *
+     * When the screen holds no section headers, falls back to [addCellInFirstFreeSlot].
+     */
+    suspend fun addCellOutsideSections(cell: LauncherCell, columns: Int): Long? =
+        addCellInFirstFreeSlot(cell, columns)
+
     suspend fun removeCell(id: Long)
 
     /**

@@ -43,6 +43,7 @@ $env:FMS_AGENT_CHAT_ROOT = Join-Path $repoRoot 'temp/S2372/chat-agent-lock-tests
 $originalJavaHome = $env:JAVA_HOME
 $persistedUser = [Environment]::GetEnvironmentVariable('JAVA_HOME', 'User')
 $failures = 0
+$script:caseCount = 0
 
 # S2577 case 10's child process, written to the sandbox at run time. It lives here as a literal
 # here-string rather than as a sibling file because it is not independently runnable: it only means
@@ -367,6 +368,7 @@ function Invoke-BoundedProbe {
 
 function Assert-Case {
     param([Parameter(Mandatory)][string]$Name, [Parameter(Mandatory)][bool]$Ok, [string]$Detail)
+    $script:caseCount++
     if ($Ok) { Write-Output "  PASS $Name" }
     else { Write-Output "  FAIL $Name - $Detail"; $script:failures++ }
 }
@@ -1099,13 +1101,12 @@ $guardSource = Get-Content -LiteralPath $agentLockSourcePath -Raw
         }
     }
 
+    $totalSkipped = $s2577Skipped + $s2582Skipped + $s2697Skipped
     if ($failures -gt 0) {
-        Write-Output "agent-lock tests: FAIL ($failures case(s))"
+        Write-Output "agent-lock tests: FAIL (run=$script:caseCount skipped=$totalSkipped)"
         exit 1
     }
-    $totalSkipped = $s2577Skipped + $s2582Skipped + $s2697Skipped
-    $skipNote = if ($totalSkipped -gt 0) { ", $totalSkipped skipped" } else { '' }
-    Write-Output "agent-lock tests: PASS (JAVA_HOME snapshot repair, both directions$skipNote)"
+    Write-Output "agent-lock tests: PASS (run=$script:caseCount skipped=$totalSkipped)"
     exit 0
 }
 finally {

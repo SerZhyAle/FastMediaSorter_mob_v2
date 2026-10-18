@@ -3345,7 +3345,6 @@
     <string name="broadcast_import_dialog_title">লাইভ সম্প্রচার আমদানি করুন</string>
     <string name="broadcast_import_option_qr">QR কোড স্ক্যান করুন</string>
     <string name="broadcast_import_malformed">সম্প্রচার ডেসক্রিপ্টরের বিন্যাস অবৈধ</string>
-    <string name="broadcast_import_unsupported_version">সম্প্রচার ডেসক্রিপ্টরের সংস্করণ সমর্থিত নয়</string>
     <string name="broadcast_import_success">সম্প্রচার চ্যানেল যোগ হয়েছে</string>
     <string name="broadcast_import_option_file">ডেসক্রিপ্টর ফাইল নির্বাচন করুন</string>
     <string name="launcher_settings_unit_system_title">একক পদ্ধতি</string>

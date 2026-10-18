@@ -52,6 +52,16 @@ class WearBroadcastPlaybackResolver @Inject constructor(
 ) {
 
     suspend fun resolve(record: WearDirectoryBroadcast): WearBroadcastPlayback = withContext(Dispatchers.IO) {
+        val schema = WearBroadcastEndpoints.schemaVersion(record.descriptor)
+        if (schema > WearBroadcastEndpoints.SUPPORTED_SCHEMA_VERSION) {
+            Timber.d("S4364: descriptor schemaVersion is unsupported")
+            Timber.w(
+                "WearBroadcastPlaybackResolver: LIVE-BROADCAST descriptor schemaVersion %d is unsupported " +
+                    "(format-unsupported)",
+                schema,
+            )
+            return@withContext WearBroadcastPlayback.Unavailable(Reason.FORMAT_UNSUPPORTED)
+        }
         val all = WearBroadcastEndpoints.parse(record.broadcastId, record.descriptor, record.mode)
         val playable = all.filter { WearBroadcastEndpoints.isPlayableMode(it.mode ?: record.mode) }
         when {

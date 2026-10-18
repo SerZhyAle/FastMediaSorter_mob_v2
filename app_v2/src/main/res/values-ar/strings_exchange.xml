@@ -79,7 +79,6 @@
     <string name="exchange_signin_fingerprint_present">الشهادة المثبّتة: %1$s</string>
     <string name="exchange_signin_fingerprint_absent">لا توجد شهادة مثبّتة: يُتحقَّق من الخادم مقابل شهادات النظام.</string>
     <string name="exchange_signin_refused">هذا ليس نص خادم. تحقق من النص وحاول مرة أخرى.</string>
-    <string name="exchange_signin_update_app">يتطلب هذا النص إصدارًا أحدث من التطبيق. حدّث التطبيق وحاول مرة أخرى.</string>
     <string name="add_resource_my_devices">من أجهزتي</string>
     <string name="add_resource_my_devices_description">الموارد التي تنشرها أجهزتك الأخرى عبر خادم التبادل أو Google Drive</string>
     <string name="exchange_directory_attach">ربط</string>

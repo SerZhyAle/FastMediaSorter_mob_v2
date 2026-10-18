@@ -325,10 +325,10 @@ if (-not $relocator -or -not (Test-Path -LiteralPath $relocator) -or -not $reloc
 }
 
 Write-Host ""
-$summary = "assert-closing-gates tests: $script:pass passed, $script:skip skipped"
+$summary = "assert-closing-gates tests: $(if ($script:fail) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=$script:skip)"
 if ($script:fail -eq 0) {
     Write-Host $summary -ForegroundColor Green
     exit 0
 }
-Write-Host "$summary, $script:fail FAILED" -ForegroundColor Red
+Write-Host $summary -ForegroundColor Red
 exit 1

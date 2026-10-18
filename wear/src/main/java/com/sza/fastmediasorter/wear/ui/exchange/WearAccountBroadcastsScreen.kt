@@ -54,6 +54,8 @@ fun WearAccountBroadcastsScreen(
     val context = LocalContext.current
     val unreachable = stringResource(WearExchangeMessage.UNREACHABLE_DEVICE.messageRes()) +
         "\n" + stringResource(EXCHANGE_DETAILS_ON_PHONE_RES)
+    val formatUnsupported = stringResource(WearExchangeMessage.FORMAT_UNSUPPORTED.messageRes()) +
+        "\n" + stringResource(EXCHANGE_DETAILS_ON_PHONE_RES)
     val unplayable = stringResource(R.string.wear_exchange_broadcast_unplayable)
 
     LaunchedEffect(viewModel) {
@@ -68,7 +70,11 @@ fun WearAccountBroadcastsScreen(
                 )
                 is WearAccountBroadcastEvent.Unavailable -> Toast.makeText(
                     context,
-                    if (event.reason == WearBroadcastPlayback.Reason.UNREACHABLE) unreachable else unplayable,
+                    when (event.reason) {
+                        WearBroadcastPlayback.Reason.UNREACHABLE -> unreachable
+                        WearBroadcastPlayback.Reason.FORMAT_UNSUPPORTED -> formatUnsupported
+                        else -> unplayable
+                    },
                     Toast.LENGTH_SHORT,
                 ).show()
             }
@@ -171,13 +177,14 @@ private fun BroadcastChip(
         if (broadcast.isVideo) R.string.wear_exchange_broadcast_video else R.string.wear_exchange_broadcast_sound,
     )
     val caption = when {
+        broadcast.isFormatUnsupported -> stringResource(WearExchangeMessage.FORMAT_UNSUPPORTED.messageRes())
         !broadcast.isPlayable -> stringResource(R.string.wear_exchange_broadcast_unplayable)
         broadcast.isProtected -> "$kind · ${stringResource(R.string.wear_exchange_broadcast_protected)}"
         else -> kind
     }
     Chip(
         onClick = { onPlay(broadcast, fallbackTitle) },
-        enabled = broadcast.isPlayable,
+        enabled = broadcast.isPlayable || broadcast.isFormatUnsupported,
         label = { Text(text = broadcast.title ?: fallbackTitle, maxLines = 1) },
         secondaryLabel = { Text(text = caption, maxLines = 1) },
         colors = ChipDefaults.secondaryChipColors(),

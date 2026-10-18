@@ -1,4 +1,5 @@
 # Run-Tests.ps1 (S1070) - regression suite for scripts/quality/assert-exit-contract.ps1.
+# Subject: scripts/quality/lib/test-count-contract.ps1
 #
 # The gate finds sites where a bare Write-Error under $ErrorActionPreference = 'Stop' raises a
 # terminating error, so the `exit N` written after it never runs and the process reports 1 instead.
@@ -373,9 +374,52 @@ exit 0
     Assert-That 'M4 gate exits 0 for prose with no subject colon' ((Invoke-Gate $naProse) -eq 0) 'expected 0'
 
     # --- H: live regression - the real tree stays clean (all 18 S1070 sites cured). ---
+    $commentExit = New-Fixture 'comment-exit.ps1' '$coverage = $false # exit 2 means missing coverage'
+    & $pwshExe -NoProfile -File $gate -Gate -Path $commentExit -ReasonBaseline 0 *> $null
+    Assert-That 'C trailing comment is not an executable exit' ($LASTEXITCODE -eq 0) 'expected 0'
+    . (Join-Path $repoRoot 'scripts/quality/lib/test-count-contract.ps1')
+    $legacySummary = 'Write-Host ("sample.tests: {0} passed, {1} failed" -f $pass, $fail)'
+    $legacyCounter = New-Fixture 'sample.tests.ps1' $legacySummary
+    $legacyWriters = @(Get-LegacyTestCountWriter -Files @($legacyCounter) -RepoRoot $sandbox)
+    Assert-That 'G1 format-string test counters are detected' ($legacyWriters.Count -eq 1) 'expected one writer'
+    Assert-That 'G2 new legacy writer is refused' ((Invoke-Gate $legacyCounter) -eq 1) 'expected 1'
+    $canonical = New-Fixture 'canonical.tests.ps1' 'Write-Host "sample: PASS (run=$($pass + $fail) skipped=$skip)"'
+    Assert-That 'G3 canonical counts are accepted' ((Invoke-Gate $canonical) -eq 0) 'expected 0'
+    $interpolated = New-Fixture 'interpolated.tests.ps1' 'Write-Host "sample: $pass passed, $fail failed"'
+    Assert-That 'G4 interpolated legacy counts are refused' ((Invoke-Gate $interpolated) -eq 1) 'expected 1'
+    $fixtureOnly = New-Fixture 'fixture.tests.ps1' ('$body = @' + "'`n" + $legacySummary + "`n'@`n")
+    Assert-That 'G5 fixture body is not a writer' ((Invoke-Gate $fixtureOnly) -eq 0) 'expected 0'
+    $commentOnly = New-Fixture 'comment.tests.ps1' ('# ' + $legacySummary)
+    Assert-That 'G6 comments are not writers' ((Invoke-Gate $commentOnly) -eq 0) 'expected 0'
+    $readerOnly = New-Fixture 'reader.tests.ps1' ('$result -match ''sample.tests: {0} passed, {1} failed''')
+    Assert-That 'G7 reader assertion is not a writer' ((Invoke-Gate $readerOnly) -eq 0) 'expected 0'
+    $aggregator = New-Fixture 'aggregate.ps1' 'Write-Host "aggregate: PASS ($pass passed, $skip skipped)"'
+    Assert-That 'G8 check aggregator keeps check counts' ((Invoke-Gate $aggregator) -eq 0) 'expected 0'
+    $probeDiagnostic = New-Fixture 'probe.tests.ps1' 'Write-Host "sample.tests: probe failed:`n$probeOut"'
+    Assert-That 'G8 diagnostic child output is not a count' ((Invoke-Gate $probeDiagnostic) -eq 0) 'expected 0'
+    $assignedSummary = New-Fixture 'assigned.tests.ps1' ('$summary = "sample: $pass passed, $fail failed"' + "`n" + 'Write-Host $summary')
+    Assert-That 'G8 assigned legacy summary is refused' ((Invoke-Gate $assignedSummary) -eq 1) 'expected 1'
+    $otherScope = New-Fixture 'scope.tests.ps1' ('$summary = "safe"; function Other { $summary = "other: 3 passed" }; Write-Host $summary')
+    Assert-That 'G8 another function assignment does not change the writer' ((Invoke-Gate $otherScope) -eq 0) 'expected 0'
+    $tableRow = New-Fixture 'wrapper.ps1' 'Write-Host ("pass {0} tests {1} failed {2} skipped {3}" -f 1, 2, 0, 0)'
+    Assert-That 'G8 an intermediate table row is not a verdict' ((Invoke-Gate $tableRow) -eq 0) 'expected 0'
+    $dispatcher = New-Fixture 'dispatcher.tests.ps1' 'Write-Host "dispatcher: 3 file(s) | failed: 0"'
+    Assert-That 'G8 child-file counts are aggregator counts' ((Invoke-Gate $dispatcher) -eq 0) 'expected 0'
+    foreach ($badCounts in @('run=abc skipped=abc', 'run=-1 skipped=0', 'run=1 skipped=0.5', 'skipped=0 run=1')) {
+        $invalid = New-Fixture 'invalid.tests.ps1' ('Write-Host "sample: PASS (' + $badCounts + ')"')
+        Assert-That "G8 malformed counters $badCounts are refused" ((Invoke-Gate $invalid) -eq 1) 'expected 1'
+    }
+    $residue = Get-TestCountResidue -Writers $legacyWriters -Baseline @($legacyWriters[0].Key)
+    Assert-That 'G9 exact residue is accepted' ($residue.New.Count -eq 0 -and $residue.Stale.Count -eq 0) 'expected clean residue'
+    $stale = Get-TestCountResidue -Writers @() -Baseline @($legacyWriters[0].Key)
+    Assert-That 'G10 cured writer makes residue stale' ($stale.Stale.Count -eq 1) 'expected stale entry'
+    $replacement = @(Get-LegacyTestCountWriter -Files @($interpolated) -RepoRoot $sandbox)
+    $swapped = Get-TestCountResidue -Writers $replacement -Baseline @($legacyWriters[0].Key)
+    Assert-That 'G11 fixing one writer cannot pay for another' ($swapped.New.Count -eq 1 -and $swapped.Stale.Count -eq 1) 'expected new and stale'
+
     Write-Host 'H: the repository scripts/ tree has no unreachable exit site' -ForegroundColor Yellow
-    & $pwshExe -NoProfile -File $gate -Gate -Quiet *> $null
-    Assert-That 'H1 repo scan exits 0' ($LASTEXITCODE -eq 0) "expected 0, got $LASTEXITCODE"
+    $liveVerdict = & $pwshExe -NoProfile -File $gate -Gate -Quiet 2>&1
+    Assert-That 'H1 repo scan exits 0' ($LASTEXITCODE -eq 0) "expected 0, got $LASTEXITCODE; $($liveVerdict -join ' | ')"
 }
 finally {
     Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue
@@ -384,8 +428,8 @@ finally {
 
 Write-Host ''
 if ($script:fail -eq 0) {
-    Write-Host "assert-exit-contract tests: $script:pass passed" -ForegroundColor Green
+    Write-Host "assert-exit-contract tests: PASS (run=$($script:pass + $script:fail) skipped=0)" -ForegroundColor Green
     exit 0
 }
-Write-Host "assert-exit-contract tests: $script:pass passed, $script:fail FAILED" -ForegroundColor Red
+Write-Host "assert-exit-contract tests: FAIL (run=$($script:pass + $script:fail) skipped=0)" -ForegroundColor Red
 exit 1

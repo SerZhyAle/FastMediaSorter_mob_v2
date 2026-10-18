@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.streams
 
+import com.sza.fastmediasorter.domain.streams.facets.StreamTopicFolding
+import com.sza.fastmediasorter.ui.streams.helpers.StreamTopicRubricCatalog
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -34,21 +36,36 @@ class StreamCatalogFacetNormalizerTest {
     }
 
     @Test
-    fun `blank stays blank, unknown category and topic stay visible, language and country close`() {
+    fun `blank stays blank, unknown category stays visible, topic language and country close`() {
         val facets = normalizer.normalize("", "Future topic", "Future language", "Atlantis")
 
         assertEquals("", facets.category)
-        assertEquals("Future topic", facets.topic)
+        // STREAM-BANK 2.4 topic law: an unknown non-blank topic reads General.
+        assertEquals("General", facets.topic)
         // STREAM-BANK 2.3: nothing recognized reads english, and a non-code country is blank.
         assertEquals("english", facets.language)
         assertEquals("", facets.country)
 
         val blank = normalizer.normalize("", "", "", "")
+        assertEquals("", blank.topic)
         assertEquals("", blank.language)
         assertEquals("", blank.country)
 
         val unknownCategory = normalizer.normalize("Future Category", "", "", "")
         assertEquals("Future Category", unknownCategory.category)
+    }
+
+    @Test
+    fun `a rubric id in any case folds to the canonical id`() {
+        assertEquals("News", normalizer.normalize("", "news", "", "").topic)
+        assertEquals("Test", normalizer.normalize("", "test", "", "").topic)
+        assertEquals("Jazz & Blues", normalizer.normalize("", "jazz & blues", "", "").topic)
+    }
+
+    @Test
+    fun `every rubric the fold produces has a localized label`() {
+        val unlabelled = StreamTopicFolding.rubricIds.filter { StreamTopicRubricCatalog.labelRes(it) == null }
+        assertEquals(emptyList<String>(), unlabelled)
     }
 
     @Test

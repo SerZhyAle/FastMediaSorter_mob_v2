@@ -196,6 +196,6 @@ finally {
     foreach ($dir in $fixtures) { Remove-Item -LiteralPath $dir -Recurse -Force -ErrorAction SilentlyContinue }
 }
 
-Write-Host "assert-page-style tests: $passed passed, $failed failed"
+Write-Host "assert-page-style tests: $(if ($failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($passed + $failed) skipped=0)"
 if ($failed -gt 0) { exit 1 }
 exit 0

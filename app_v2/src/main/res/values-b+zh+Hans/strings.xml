@@ -3342,7 +3342,6 @@
     <string name="broadcast_import_dialog_title">导入实时广播</string>
     <string name="broadcast_import_option_qr">扫描二维码</string>
     <string name="broadcast_import_malformed">广播描述符格式无效</string>
-    <string name="broadcast_import_unsupported_version">不支持的广播描述符版本</string>
     <string name="broadcast_import_success">已添加广播频道</string>
     <string name="broadcast_import_option_file">选择描述符文件</string>
     <string name="launcher_settings_unit_system_title">单位制式</string>

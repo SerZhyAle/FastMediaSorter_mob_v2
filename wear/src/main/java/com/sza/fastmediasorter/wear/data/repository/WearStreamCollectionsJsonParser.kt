@@ -11,10 +11,12 @@ import javax.inject.Singleton
 /**
  * S2669: reads the `collections.json` entry of the stream-catalog archive on the watch.
  *
- * The rules are the phone parser's, deliberately: an unknown `schemaVersion` yields an empty result
- * (the producer is entitled to raise the version, and guessing at an unknown shape would be worse
- * than showing today's screen), and a single collection missing its members or its `en` name is
- * dropped rather than fatal, so a malformed payload never costs the bank imported in the same run.
+ * The rules are the phone parser's, deliberately: an unknown `schemaVersion` or a malformed payload
+ * yields a REFUSED result (the producer is entitled to raise the version, and guessing at an unknown
+ * shape would be worse than showing today's screen), and a single collection missing its members or
+ * its `en` name is dropped rather than fatal, so a malformed payload never costs the bank imported in
+ * the same run. Refused is not empty (STREAM-BANK 2.4 SB-A7): an empty `collections` array clears the
+ * stored set, a refusal must keep it, so the caller reads [ParsedCollections.refused] first.
  * The two parsers live in different modules with nothing else forcing them to agree, which is why
  * the mirrored test carries the same cases over the same payload text.
  *
@@ -24,8 +26,18 @@ import javax.inject.Singleton
 @Singleton
 class WearStreamCollectionsJsonParser @Inject constructor() {
 
-    fun parse(json: String): List<WearStreamCollection> = when (val root = readRoot(json)) {
-        null -> emptyList()
+    /** Outcome of one parse; [refused] means the whole entry was not understood. */
+    data class ParsedCollections(
+        val collections: List<WearStreamCollection>,
+        val refused: Boolean = false
+    ) {
+        companion object {
+            val REFUSED = ParsedCollections(emptyList(), refused = true)
+        }
+    }
+
+    fun parse(json: String): ParsedCollections = when (val root = readRoot(json)) {
+        null -> ParsedCollections.REFUSED
         else -> parseCollections(root)
     }
 
@@ -51,9 +63,12 @@ class WearStreamCollectionsJsonParser @Inject constructor() {
         return objectRoot
     }
 
-    private fun parseCollections(root: JsonObject): List<WearStreamCollection> {
+    private fun parseCollections(root: JsonObject): ParsedCollections {
         val array = root.get("collections")?.takeIf(JsonElement::isJsonArray)?.asJsonArray
-            ?: return emptyList()
+        if (array == null) {
+            Timber.w("Wear stream collections: no collections array, ignoring the entry")
+            return ParsedCollections.REFUSED
+        }
         val parsed = ArrayList<WearStreamCollection>(array.size())
         var dropped = 0
         for (element in array) {
@@ -65,7 +80,7 @@ class WearStreamCollectionsJsonParser @Inject constructor() {
         }
         // Delivery order, ties by id: the repository stores what it is handed and the picker reads
         // top to bottom, so the curator's `order` reaches the wearer without a second sort anywhere.
-        return parsed.sortedWith(compareBy<WearStreamCollection> { it.sortOrder }.thenBy { it.id })
+        return ParsedCollections(parsed.sortedWith(compareBy<WearStreamCollection> { it.sortOrder }.thenBy { it.id }))
     }
 
     /** One collection, or null when it is incomplete and must be dropped without failing the rest. */

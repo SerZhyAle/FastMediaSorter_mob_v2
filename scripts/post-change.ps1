@@ -1526,15 +1526,16 @@ else {
 # even on a full non-ScopeToFile run - this is the gate's first landing, and research/05 records
 # why it starts advisory rather than blocking a closure on an unproven mechanism. It judges a
 # Codex session's OWN rollout transcript, which is not a repo file at all, so there is no
-# -ChangedFiles form to scope it by; the gate itself is a no-op (exit 0, "not applicable") for
-# any runtime that is not Codex and for a ticket with no matching rollout, so this call cannot
-# turn an ordinary Claude Code, Gemini or ZCode closure into a failure.
+# -ChangedFiles form to scope it by; the gate itself answers NOT APPLICABLE (exit 0) for a Claude
+# Code process and for a named non-Codex runtime with no matching rollout, and COULD NOT VERIFY
+# (exit 2, an advisory here) for a ticket with no matching rollout on a process nothing identifies,
+# so this call cannot turn an ordinary Claude Code, Gemini or ZCode closure into a failure.
 # S3177: -Target too - Codex closed S3103 with the id in -Target only, and the gate was skipped.
 $codexHygieneTicketId = if ("$Target $Description" -match '(S\d{4})') { $Matches[1] } else { $null }
 if ($codexHygieneTicketId) {
     Invoke-AdvisoryStep "codex-transcript-hygiene-gate" {
         & pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-codex-transcript-hygiene.ps1") -Id $codexHygieneTicketId
-    } -AdvisoryDetails ("$codexHygieneTicketId`'s Codex session transcript carries a bounded-read finding - " +
+    } -AdvisoryDetails ("$codexHygieneTicketId`'s Codex session transcript carries a bounded-read finding, or no rollout names the ticket (could not verify) - " +
         "pwsh -NoProfile -File scripts/quality/assert-codex-transcript-hygiene.ps1 -Id $codexHygieneTicketId for detail.")
 }
 else {

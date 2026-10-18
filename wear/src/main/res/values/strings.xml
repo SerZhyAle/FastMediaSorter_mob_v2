@@ -1147,4 +1147,5 @@
     <string name="wear_exchange_reason_sealed_failed">This could not be opened on this device. Try again from the other device.</string>
     <string name="wear_exchange_server_honest_text">The exchange server connects your devices, so it knows the names of your account, devices, folders and broadcasts, sees which devices are online, and how much is sent and when. It cannot open what goes through it: folders and their files, broadcasts and the clipboard are encrypted on your device and opened only on your other devices or by the people you gave access to. To look inside, whoever runs the server would have to add a device of their own to your account, and it would appear in your list of devices.</string>
     <string name="wear_stream_broadcast_unplayable">This broadcast doesn\'t play on the watch</string>
+    <string name="wear_exchange_reason_format_unsupported">This format is newer than this program supports. Nothing was imported. Use a compatible program.</string>
 </resources>

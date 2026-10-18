@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStor
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.StreamDefaultSort
 import com.sza.fastmediasorter.domain.model.StreamMediaTypeFilter
 import com.sza.fastmediasorter.domain.model.StreamResumeState
@@ -41,6 +42,7 @@ import com.sza.fastmediasorter.domain.usecase.streams.ReorderPinnedStreamUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import com.sza.fastmediasorter.ui.streams.helpers.StreamTopicLabelProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -490,8 +492,11 @@ class StreamsViewModel @Inject constructor(
             ImportStreamBroadcastUseCase.ImportResult.InvalidUrl -> R.string.streams_error_invalid_url
             ImportStreamBroadcastUseCase.ImportResult.InvalidDescriptor ->
                 R.string.broadcast_import_malformed
-            ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion ->
-                R.string.broadcast_import_unsupported_version
+            ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion -> {
+                Timber.i("LIVE-BROADCAST: descriptor schema above supported refused as format-unsupported")
+                Timber.d("S4353: broadcast import refused as format-unsupported")
+                ExchangeMessageText.what(ExchangeMessage.FORMAT_UNSUPPORTED)
+            }
         }
         _events.send(StreamsEvent.Message(messageRes))
     }

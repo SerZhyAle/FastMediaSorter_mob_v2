@@ -75,7 +75,6 @@
     <string name="exchange_signin_fingerprint_present">Certificato fissato: %1$s</string>
     <string name="exchange_signin_fingerprint_absent">Nessun certificato fissato: il server viene verificato con i certificati di sistema.</string>
     <string name="exchange_signin_refused">Questa non è una stringa del server. Controlla il testo e riprova.</string>
-    <string name="exchange_signin_update_app">Questa stringa richiede una versione più recente dell\'app. Aggiorna l\'app e riprova.</string>
     <string name="add_resource_my_devices">Dai miei dispositivi</string>
     <string name="add_resource_my_devices_description">Risorse che i tuoi altri dispositivi pubblicano tramite il tuo server di scambio o Google Drive</string>
     <string name="exchange_directory_attach">Collega</string>

@@ -259,8 +259,10 @@ class ApplyBackupPayloadUseCase @Inject constructor(
         }
 
         // Reschedule enabled operations after the transaction commits (WorkManager runs outside the tx).
+        // The restored settings (and so a paused scheduler) are already written, so a pause keeps these
+        // rows stored without queueing a run that would fire under "Pause all".
         enabledScheduledOpIds.forEach { id ->
-            scheduledOperationRepository.getById(id)?.let { workManagerScheduler.scheduleOperation(it) }
+            scheduledOperationRepository.getById(id)?.let { workManagerScheduler.scheduleOperationUnlessPaused(it) }
         }
 
         // 7. Saved site authorizations (overwrite per host+accountId).

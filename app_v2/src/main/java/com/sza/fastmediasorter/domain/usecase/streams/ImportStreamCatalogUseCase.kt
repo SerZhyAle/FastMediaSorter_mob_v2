@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.streams.StreamCatalogFacetNormalizer
 import com.sza.fastmediasorter.domain.delivery.DeliveryAssets
+import com.sza.fastmediasorter.domain.streams.facets.StreamBankFetchRetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -145,12 +146,18 @@ class ImportStreamCatalogUseCase @Inject constructor(
      * A null argument means the archive carried no such entry, which leaves the stored set ALONE rather
      * than clearing it - an already-released archive has no entry, and clearing on its absence would
      * empty the strip on every import from an older publication. To clear, the publisher ships the
-     * entry with an empty `collections` array.
+     * entry with an empty `collections` array. A refused entry (STREAM-BANK 2.4 SB-A7: unknown
+     * `schemaVersion`, malformed JSON) keeps the stored set for the same reason.
      */
     private suspend fun applyCollections(json: String?) {
         if (json == null) return
         try {
-            collectionRepository.replaceAll(collectionsParser.parse(json))
+            val parsed = collectionsParser.parse(json)
+            if (parsed.refused) {
+                Timber.w("Stream catalog import: collections entry refused; the stored set is kept")
+                return
+            }
+            collectionRepository.replaceAll(parsed)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.w(e, "Stream catalog import: collections could not be stored; the bank is unaffected")
@@ -160,7 +167,8 @@ class ImportStreamCatalogUseCase @Inject constructor(
     /**
      * Downloads the catalog zip and returns its [CatalogPayload] (CSV text + optional atlas PNG), or
      * null when the archive has no usable CSV. The zip is consumed in a SINGLE pass capturing both
-     * entries; per-entry reads are capped to guard against a malformed/oversized zip.
+     * entries; per-entry reads are capped to guard against a malformed/oversized zip. A 404 during the
+     * publish window is retried through [StreamBankFetchRetry] before it becomes a failure.
      */
     private suspend fun downloadCatalog(): CatalogPayload? {
         val request = Request.Builder().url(CATALOG_URL).build()
@@ -170,10 +178,21 @@ class ImportStreamCatalogUseCase @Inject constructor(
         val client = okHttpClient.newBuilder()
             .callTimeout(CATALOG_CALL_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .build()
-        client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) error("HTTP ${response.code}")
-            val stream = response.body?.byteStream() ?: error("empty response body")
-            return extractCatalog(stream)
+        val outcome = StreamBankFetchRetry.fetch(
+            onRetry = { attempt -> Timber.i("Stream catalog import: HTTP 404 on attempt %d, retrying", attempt) }
+        ) {
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val stream = response.body?.byteStream() ?: error("empty response body")
+                    StreamBankFetchRetry.Attempt.Done(extractCatalog(stream))
+                } else {
+                    StreamBankFetchRetry.Attempt.HttpStatus(response.code)
+                }
+            }
+        }
+        return when (outcome) {
+            is StreamBankFetchRetry.Attempt.Done -> outcome.value
+            is StreamBankFetchRetry.Attempt.HttpStatus -> error("HTTP ${outcome.code}")
         }
     }
 

@@ -33,6 +33,12 @@ enum class WearExchangeMessage(val code: String) {
     SERVER_NO_E2E("server-no-e2e"),
     SEALED_FAILED("sealed-failed"),
 
+    /**
+     * A broadcast descriptor of a higher major than this program reads (amendment 2026-10-17, LIVE-BROADCAST 1.1).
+     * The text is fixed by the contract and never asks the user to update.
+     */
+    FORMAT_UNSUPPORTED("format-unsupported"),
+
     /** An unknown `refused.reason` (7.10): the generic refusal. */
     REFUSED("refused");
 

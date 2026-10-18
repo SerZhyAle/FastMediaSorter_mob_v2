@@ -20,6 +20,8 @@
       edition badge, an empty search result without the query, a page without its skip link.
     - An in-app help page under documentation/help/ without the site chrome passes, and still fails on a
       missing viewport tag; the same page outside documentation/help/ fails.
+    - Footer scope (S4366): a portal page footer without the hub, the Support or the contact link fails, a
+      404.html footer without the contact fails, and a search.js without the legacy ?l= reader fails.
 
 .NOTES
     Exit codes:
@@ -124,6 +126,8 @@ html[data-theme="light"] {
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
     document.addEventListener('keydown', function(e) {});
+    var query = new URLSearchParams(window.location.search);
+    var wanted = query.get('lang') || query.get('l');
 })();
 '@
         Set-Content -LiteralPath (Join-Path $assetsDir 'search.js') -Value $js -Encoding utf8
@@ -155,7 +159,7 @@ html[data-theme="light"] {
         <img src="assets/docs.css" alt="Valid asset reference">
         <a href="../docs/PRIVACY_POLICY.html">Privacy</a>
     </main>
-    <footer class="doc-footer">Footer</footer>
+    <footer class="doc-footer"><a href="../docs/SUPPORT.html">Support</a> <a href="mailto:sza@ukr.net">sza@ukr.net</a> <a href="https://github.com/SerZhyAle">GitHub</a> <a href="https://sza.od.ua">sza.od.ua</a></footer>
     <script src="assets/search.js"></script>
 </body>
 </html>
@@ -164,6 +168,7 @@ html[data-theme="light"] {
 
         # Jekyll markdown source
         Set-Content -LiteralPath (Join-Path $docsDir 'PRIVACY_POLICY.md') -Value '# Privacy Policy' -Encoding utf8
+        Set-Content -LiteralPath (Join-Path $docsDir 'SUPPORT.md') -Value '# Support' -Encoding utf8
     }
 
     # Test 2: Synthetic valid tree passes
@@ -255,6 +260,15 @@ html[data-theme="light"] {
     Test-PortalRule 'A style element fails (rule 4)' 'documentation/index.html' '</head>' '<style>.x { color: red; }</style></head>' 'a <style> element'
     Test-PortalRule 'A style string inside a script is not judged (rule 4)' 'documentation/index.html' '<script src="assets/search.js"></script>' '<script>var html = ''<b style="color: red">x</b>'';</script><script src="assets/search.js"></script>' ''
     Test-PortalRule 'An empty search result without the query fails (rule 12)' 'documentation/assets/search.js' '\{query\}' '' 'SITE-EXPERIENCE rule 12'
+    # S4366: the footer scope of a child or portal page, and the legacy locale query.
+    Test-PortalRule 'A footer without the hub link fails (S4366)' 'documentation/index.html' ' <a href="https://sza\.od\.ua">sza\.od\.ua</a>' '' 'footer lacks the hub link'
+    Test-PortalRule 'A footer without the Support link fails (S4366)' 'documentation/index.html' '<a href="\.\./docs/SUPPORT\.html">Support</a> ' '' 'footer lacks the Support page link'
+    Test-PortalRule 'A footer without the contact fails (S4366)' 'documentation/index.html' ' <a href="mailto:sza@ukr\.net">sza@ukr\.net</a>' '' 'footer lacks the contact sza@ukr.net'
+    Test-PortalRule 'A not-found page without the contact fails (S4366)' '404.html' 'mailto:sza@ukr\.net' 'mailto:nobody@example.org' '404.html - footer lacks the contact' -Prepare {
+        param($dir)
+        Set-Content -LiteralPath (Join-Path $dir '404.html') -Value '<footer><a href="SUPPORT.html">S</a> <a href="mailto:sza@ukr.net">m</a> <a href="https://github.com/SerZhyAle">g</a> <a href="https://sza.od.ua">h</a></footer>' -Encoding utf8
+    }
+    Test-PortalRule 'A search.js without the legacy ?l= reader fails (S4366)' 'documentation/assets/search.js' " \|\| query\.get\('l'\)" '' 'PAGE-STYLE 3.1 item 1'
     Test-PortalRule 'A page without its skip link fails (rule 15)' 'documentation/index.html' '<a class="doc-skip-link" href="#main-content">Skip to content</a>' '' 'skip link to #main-content'
     # The docs/ pages in the portal shell (S4117): the layout is judged like a portal page, a page
     # names the doc layout, and an include that is not in _includes/ is refused.
@@ -318,6 +332,6 @@ html[data-theme="light"] {
     }
 }
 
-Write-Host "`nSuite Result: $($script:pass) passed, $($script:fail) failed." -ForegroundColor $(if ($script:fail -eq 0) { 'Green' } else { 'Red' })
+Write-Host "assert-docs-portal-ui-ux.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

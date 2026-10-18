@@ -3,7 +3,7 @@ layout: doc
 title: "Privacy Policy for FastMediaSorter"
 permalink: /docs/PRIVACY_POLICY.html
 ---
-<sub class="doc-stamp">26.10.15 14:25</sub>
+<sub class="doc-stamp">26.10.18 20:20</sub>
 
 # Privacy Policy for FastMediaSorter
 
@@ -81,11 +81,16 @@ device only:
 
 ## Logging and Debug Files
 
-- In DEBUG builds the app may optionally write diagnostic logs to a file in the app-specific external storage directory to help troubleshooting when ADB is not available.  
- 	- Location (example): `/Android/data/com.sza.fastmediasorter.debug/files/logs/` on the device storage.  
- 	- These log files may include timestamps, log levels, component tags, and messages produced by the app and may include non-sensitive metadata such as file names and server addresses used by the app during operation.  
- 	- Logs do NOT contain stored passwords in plaintext (sensitive credentials are handled using secure storage).  
- 	- File logging is only enabled in debug builds and can be disabled by using the release build or by changing debug settings.  
+The app keeps a diagnostic log in a file on your device, to help find the cause of a problem when no computer is connected. The app never sends this log anywhere by itself.
+
+- **Release builds (the version you install from a store)**: only warnings and errors are written, together with short summaries of stream and audio playback sessions. A crash also leaves its own report file.
+- **Debug builds** (builds made for testing): everything the app logs is written, down to the finest detail.
+- **Location**: the app's own folder on the device storage, `/Android/data/<app package>/files/logs/`. The store version uses `/Android/data/com.sza.fastmediasorter/files/logs/` and a debug build uses `/Android/data/com.sza.fastmediasorter.debug/files/logs/`. When that storage is not available, the app's private storage is used instead.
+- **What it contains**: timestamps, severity levels, component tags and messages written by the app, the app version and build number, and the technical trace of an error. A message may name a file or a server the app was working with, such as a file name or a server address. File contents are not logged.
+- **What is masked**: before a line is written, the app replaces passwords, tokens, keys, PIN codes, certificate fingerprints and the login and password inside a network address with `[REDACTED]`, and shortens the path of its private folder. Saved passwords live in the device's secure storage and are not written to the log.
+- **How long it stays**: the app keeps the ten newest files, each up to about 5 MB, and deletes older ones by itself. Uninstalling the app, or clearing its storage in Android settings, removes them all.
+- **Nothing is uploaded**: the log leaves the device only when you send it yourself. In Settings, on the General tab, "Share Debug Logs" packs the files into one archive and opens the Android share menu, and "Save Debug Logs" writes the same archive into a folder you pick. After a crash the app offers to prepare an email with the report; you can decline, and if you accept, the email opens in your mail app and nothing is sent until you press send. The login and server address of an exchange account are removed once more when the archive is packed.
+- **Debug option**: a debug build can also copy the session log next to the files you are browsing, but only when you turn that option on.
 
 ## Cloud Storage Integration (Google Drive, OneDrive, Dropbox)
 
@@ -356,18 +361,20 @@ The app uses open-source libraries for functionality (not data collection):
 - **Glide**: Image loading and caching
 - **Room**: Local database
 - **Hilt/Dagger**: Dependency injection
-- **Timber**: Logging (debug builds only)
+- **Timber**: Logging (everything in debug builds, only warnings and errors in release builds)
 
 None of these libraries collect or transmit user data.
 
-## Debug Logging (Debug Builds Only)
+## Diagnostic Log Summary {#debug-logging-debug-builds-only}
 
-Debug builds may write diagnostic logs:
+The details are in "Logging and Debug Files" above. In short:
 
-- **Location**: `/Android/data/com.sza.fastmediasorter.debug/files/logs/`
-- **Content**: Timestamps, component tags, error messages, file names
+- **Debug builds**: write the full diagnostic log to a file on the device
+- **Release builds**: write only warnings and errors, stream and audio session summaries and crash reports to a file on the device
+- **Location**: `/Android/data/<app package>/files/logs/`
+- **Content**: Timestamps, component tags, error messages, file names and server addresses
 - **NOT included**: Passwords, credentials, file content
-- **Release builds**: No file logging
+- **Leaves the device**: only when you share or save it yourself
 
 ## Data Retention
 

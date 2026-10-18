@@ -162,6 +162,6 @@ Assert-Equal $true  $empty.visible 'a visible keyboard with no region is still v
 Assert-Equal $false (Test-PointUnderImeRegion -X 540 -Y 2000 -Region $empty) 'an empty region covers no point - the tap is not refused'
 
 Write-Host ""
-Write-Host "passed: $script:passed  failed: $script:failed"
+Write-Host "adb-tap-id.tests: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"
 if ($script:failed -gt 0) { exit 1 }
 exit 0

@@ -98,6 +98,6 @@ finally {
 }
 
 Write-Host ""
-Write-Host "prerelease-wear-half.tests: $script:passed passed, $script:failed failed."
+Write-Host "prerelease-wear-half.tests: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"
 if ($script:failed -gt 0) { exit 1 }
 exit 0

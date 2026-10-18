@@ -211,6 +211,6 @@ finally {
     foreach ($p in $fixtures) { Remove-Item -LiteralPath $p -Recurse -Force -ErrorAction SilentlyContinue }
 }
 
-Write-Host "assert-icon-contract tests: $passed passed, $failed failed"
+Write-Host "assert-icon-contract tests: $(if ($failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($passed + $failed) skipped=0)"
 if ($failed -gt 0) { exit 1 }
 exit 0

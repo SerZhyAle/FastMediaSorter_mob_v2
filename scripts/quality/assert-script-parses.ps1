@@ -63,11 +63,13 @@ $defaultRoots = @(
 $scanRoots = if ($Path) { @($Path) } else { $defaultRoots | Where-Object { Test-Path $_ } }
 if ($scanRoots.Count -eq 0) {
     Write-Error "script-parses: cannot run - no scan root found under: $repoRoot" -ErrorAction Continue
+    Write-Host "assert-script-parses: COULD NOT VERIFY (no scan root found under: $repoRoot)"
     exit 2
 }
 foreach ($r in $scanRoots) {
     if (-not (Test-Path $r)) {
         Write-Error "script-parses: cannot run - scan root not found: $r" -ErrorAction Continue
+        Write-Host "assert-script-parses: COULD NOT VERIFY (scan root not found: $r)"
         exit 2
     }
 }
@@ -109,10 +111,9 @@ if ($broken.Count -gt 0) {
         }
     }
     Write-Error ("script-parses: FAIL - expected: 0 unparseable scripts | actual: {0} of {1} scanned. A file the parser refuses cannot be executed at all - repair or delete it." -f $broken.Count, $files.Count) -ErrorAction Continue
+    Write-Host ("assert-script-parses: FAIL ({0} of {1} scanned script(s) do not parse)" -f $broken.Count, $files.Count)
     exit 1
 }
 
-if (-not $Quiet) {
-    Write-Host ("script-parses: PASS - expected: 0 unparseable scripts | actual: 0 of {0} scanned." -f $files.Count) -ForegroundColor Green
-}
+Write-Host ("assert-script-parses: PASS (expected: 0 unparseable scripts | actual: 0 of {0} scanned)" -f $files.Count) -ForegroundColor Green
 exit 0

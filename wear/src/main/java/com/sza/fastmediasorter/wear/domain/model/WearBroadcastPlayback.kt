@@ -28,5 +28,8 @@ sealed interface WearBroadcastPlayback {
 
         /** Every endpoint the watch can use failed to answer, or the broadcast ended before the tap. */
         UNREACHABLE,
+
+        /** A broadcast descriptor with an unsupported schemaVersion (LIVE-BROADCAST 1.1). */
+        FORMAT_UNSUPPORTED,
     }
 }

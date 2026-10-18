@@ -14,6 +14,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import kotlin.random.Random
 
 /**
  * Owns navigation between files and the adjacent-file / lookahead computations that drive
@@ -222,19 +223,9 @@ class PlayerNavigationCoordinator(
                 val shuffleIndices = currentState.shuffleIndices
                 val pos = shuffleIndices.indexOf(currentState.currentIndex)
                 if (pos == -1 || pos >= shuffleIndices.size - 1) {
-                    val files = currentState.files
-                    val newIndices = files.indices.toMutableList().also { it.shuffle(kotlin.random.Random) }
-                    val curIdx = currentState.currentIndex
-                    val curPos = newIndices.indexOf(curIdx)
-                    if (curPos == 0 && newIndices.size > 1) {
-                        val swap = kotlin.random.Random.nextInt(1, newIndices.size)
-                        newIndices[0] = newIndices[swap].also { newIndices[swap] = newIndices[0] }
-                    } else if (curPos > 0) {
-                        newIndices.removeAt(curPos)
-                        newIndices.add(0, curIdx)
-                    }
+                    val newIndices = drawShuffleCycle(currentState.files.size, currentState.currentIndex)
                     updateState { it.copy(shuffleIndices = newIndices) }
-                    stateFlow.value.shuffleIndices[0]
+                    newIndices[0]
                 } else {
                     shuffleIndices[pos + 1]
                 }
@@ -463,6 +454,23 @@ class PlayerNavigationCoordinator(
             } catch (e: Exception) {
                 e.errorUnlessCancellation("Failed to save lastViewedFile")
             }
+        }
+    }
+
+    companion object {
+        /**
+         * MEDIA-VIEWER rule 5: a new shuffle cycle never opens on the file just shown, otherwise the
+         * seam step re-shows it for a whole slideshow interval. Swapping a leading [current] with a
+         * uniformly chosen later slot keeps the draw uniform over the permutations that qualify.
+         * A single file has nothing else to show, so it stays first.
+         */
+        internal fun drawShuffleCycle(size: Int, current: Int, random: Random = Random): List<Int> {
+            val order = (0 until size).toMutableList().also { it.shuffle(random) }
+            if (order.size > 1 && order[0] == current) {
+                val swap = random.nextInt(1, order.size)
+                order[0] = order[swap].also { order[swap] = order[0] }
+            }
+            return order
         }
     }
 }

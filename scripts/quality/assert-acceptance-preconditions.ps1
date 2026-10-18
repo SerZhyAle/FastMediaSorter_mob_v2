@@ -158,12 +158,14 @@ $specFiles = if ($Path) {
         # Not Write-Error: with $ErrorActionPreference = 'Stop' it terminates the script before the
         # exit below, so the documented code 2 would never actually be delivered (CLAUDE.md Rule 7).
         [Console]::Error.WriteLine("assert-acceptance-preconditions: cannot read '$Path'")
+        Write-Host "assert-acceptance-preconditions: COULD NOT VERIFY (cannot read '$Path')"
         exit 2
     }
     @(Get-Item -LiteralPath $Path)
 } else {
     if (-not (Test-Path -LiteralPath $planRoot)) {
         [Console]::Error.WriteLine("assert-acceptance-preconditions: cannot read the spec corpus at '$planRoot'")
+        Write-Host "assert-acceptance-preconditions: COULD NOT VERIFY (cannot read the spec corpus at '$planRoot')"
         exit 2
     }
     @(Get-ChildItem -LiteralPath $planRoot -Filter 'S*.md' -File)
@@ -195,6 +197,7 @@ if ($UpdateBaseline) {
     }
     $currentKeys = @(@($violations) | ForEach-Object { $_.Key })
     if (-not (Test-BaselineWrite -Gate 'assert-acceptance-preconditions' -Previous $previous -Current $currentKeys -Reason $Reason)) {
+        Write-Host 'assert-acceptance-preconditions: COULD NOT VERIFY (the baseline write was refused)'
         exit 2
     }
     $scope = $null
@@ -204,6 +207,7 @@ if ($UpdateBaseline) {
     }
     finally { Exit-CodeLockScope -Scope $scope }
     Write-Host "assert-acceptance-preconditions: baseline rewritten with $(@($violations).Count) entry(ies)."
+    Write-Host 'assert-acceptance-preconditions: PASS (baseline rewritten)'
     exit 0
 }
 
@@ -234,5 +238,6 @@ if (-not $Quiet) {
         @($new).Count, @($specFiles).Count, @($baseline).Count)
 }
 
-if ($Gate -and $new.Count -gt 0) { exit 1 }
+if ($Gate -and $new.Count -gt 0) { Write-Host "assert-acceptance-preconditions: FAIL ($($new.Count) new violation(s))"; exit 1 }
+Write-Host ("assert-acceptance-preconditions: PASS ({0} new violation(s){1})" -f @($new).Count, $(if ($new.Count -gt 0) { '; report mode, -Gate not set' } else { '' }))
 exit 0

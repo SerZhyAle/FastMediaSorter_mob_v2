@@ -76,6 +76,7 @@ $repoRootSlash = ($repoRoot -replace '\\', '/').TrimEnd('/')
 $allowlistFile = if ($AllowlistPath) { $AllowlistPath } else { Join-Path $PSScriptRoot 'no-secrets-allowlist.txt' }
 if (-not (Test-Path -LiteralPath $allowlistFile)) {
     Write-Error "assert-no-secrets: allowlist not found: $allowlistFile" -ErrorAction Continue
+    Write-Host "assert-no-secrets: COULD NOT VERIFY (allowlist not found: $allowlistFile)"
     exit 2
 }
 
@@ -117,6 +118,7 @@ foreach ($rawLine in (Get-Content -LiteralPath $allowlistFile)) {
 if ($allowlistErrors.Count -gt 0) {
     Write-Host 'assert-no-secrets: the allowlist itself is malformed -'
     foreach ($e in $allowlistErrors) { Write-Host "  $e" }
+    Write-Host 'assert-no-secrets: FAIL (the allowlist itself is malformed)'
     exit 1
 }
 
@@ -160,16 +162,19 @@ $selection = [System.Collections.Generic.List[string]]::new()
 if ($Full) {
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
         Write-Error 'assert-no-secrets: -Full needs git on PATH to read the index.' -ErrorAction Continue
+        Write-Host 'assert-no-secrets: COULD NOT VERIFY (-Full needs git on PATH to read the index)'
         exit 2
     }
     $inside = & git -C $repoRoot rev-parse --is-inside-work-tree 2>&1
     if ($LASTEXITCODE -ne 0 -or ("$inside").Trim() -ne 'true') {
         Write-Error "assert-no-secrets: -Full needs a git work tree at $repoRoot." -ErrorAction Continue
+        Write-Host "assert-no-secrets: COULD NOT VERIFY (-Full needs a git work tree at $repoRoot)"
         exit 2
     }
     $printed = & git -C $repoRoot -c core.quotepath=off ls-files 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Error 'assert-no-secrets: git ls-files failed.' -ErrorAction Continue
+        Write-Host 'assert-no-secrets: COULD NOT VERIFY (git ls-files failed)'
         exit 2
     }
     foreach ($line in $printed) {
@@ -293,6 +298,8 @@ if ($List -or ($Gate -and $findings.Count -gt 0)) {
 
 if ($Gate -and $findings.Count -gt 0) {
     Write-Host 'FAIL: a secret-shaped literal is in the scanned set. Move it out of the source (a local properties file, an ambient CI token, or the encrypted store), or - only for a fixture or test-only literal - add an entry with its reason to scripts/quality/no-secrets-allowlist.txt.'
+    Write-Host "assert-no-secrets: FAIL ($(@($findings).Count) secret-shaped literal(s) in the scanned set)"
     exit 1
 }
+Write-Host ("assert-no-secrets: PASS ({0} finding(s){1})" -f @($findings).Count, $(if (@($findings).Count -gt 0) { '; report mode, -Gate not set' } else { '' }))
 exit 0

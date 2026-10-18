@@ -133,6 +133,23 @@ class WearExchangeDirectoryStateTest {
         assertFalse(record.credentials.toString().contains("alice"))
     }
 
+    @Test
+    fun `a descriptor with a higher schemaVersion is never partially used`() {
+        val state = WearExchangeDirectoryState.of(
+            WearExchangeEnvelope.decode(
+                """{"schemaVersion":2,"type":"directory","revision":1,"broadcasts":[{"broadcastId":"b_new",""" +
+                    """"deviceId":"d1","descriptor":{""" +
+                    """"schemaVersion":2,"title":"FutureTitle","mode":"FUTURE_MODE"}}]}""",
+            ),
+        )
+
+        val record = state.broadcasts.getValue("b_new")
+
+        assertNull(record.title)
+        assertNull(record.mode)
+        assertNotNull(record.descriptor)
+    }
+
     private fun directory(): WearExchangeEnvelope = WearExchangeEnvelope.decode(
         """{"schemaVersion":2,"type":"directory","revision":5,"devices":[""" +
             """{"deviceId":"d1","deviceName":"Phone","product":"fms-android","presence":"online"},""" +

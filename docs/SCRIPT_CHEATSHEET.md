@@ -3420,7 +3420,7 @@ scripts/quality/assert-16kb-alignment.ps1
     -Readelf          [String]
     -MinAlign         [Int32] = 16384
     -Gate             [SwitchParameter]
-  Exit: 0 - all checked 64-bit .so have every LOAD segment aligned >= 16 KB, OR nothing
+  Exit: 0 - all checked 64-bit .so have every LOAD segment aligned >= 16 KB.; 1 - at least one 64-bit .so has a LOAD segment below 16 KB (Play would reject).; 2 - could not verify: no scan root exists, no 64-bit .so was found, readelf/llvm-readelf
 ```
 
 ### assert-a11y-semantics.ps1
@@ -3479,6 +3479,7 @@ scripts/quality/assert-activity-logic-not-growing.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
+  Exit: 0 { Write-Host 'assert-activity-logic-not-growing: PASS' }; 1 { Write-Host 'assert-activity-logic-not-growing: FAIL' }
 ```
 
 ### assert-allfeatures-sync.ps1
@@ -3535,6 +3536,7 @@ scripts/quality/assert-appsettings-persistence.ps1
   Params:
     -Gate            [SwitchParameter]
     -Explain         [SwitchParameter]
+  Exit: 0 { Write-Host 'assert-appsettings-persistence: PASS' }; 1 { Write-Host 'assert-appsettings-persistence: FAIL' }
 ```
 
 ### assert-archive-artefacts.ps1
@@ -3655,7 +3657,7 @@ scripts/quality/assert-codex-transcript-hygiene.ps1
   Advisory closing-gate (S3141): judge the Codex session transcript that authored the given ticket against the bounded-read protocol, and flag it if it did not follow one.
   Params:
     -Id  (req)  [String]
-  Exit: 0 - NOT APPLICABLE on a Claude Code process (S4130), nothing inspected when no rollout
+  Exit: 0 - NOT APPLICABLE on a Claude Code process (S4130) or on a named non-Codex runtime with
 ```
 
 ### assert-contract-pointers.ps1
@@ -3709,8 +3711,9 @@ scripts/quality/assert-delivery-size-estimates.ps1
   Gate: every download size compiled into the app still describes the asset it names (S2652).
   Params:
     -Quiet                    [SwitchParameter]
+    -AllowOffline             [SwitchParameter]
     -TolerancePercent         [Double] = 25.0
-  Exit: 0 - every compiled fallback is within tolerance of its published asset, or the release could
+  Exit: 0 - every compiled fallback is within tolerance of its published asset, or -AllowOffline was
 ```
 
 ### assert-deobfuscation-retained.ps1
@@ -3739,6 +3742,7 @@ scripts/quality/assert-deprecated-pm-flags.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
+  Exit: 0 { Write-Host 'assert-deprecated-pm-flags: PASS' }; 1 { Write-Host 'assert-deprecated-pm-flags: FAIL' }
 ```
 
 ### assert-detekt-baseline-absorption.ps1
@@ -4270,6 +4274,7 @@ scripts/quality/assert-globalscope.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
+  Exit: 0 { Write-Host 'assert-globalscope: PASS' }; 1 { Write-Host 'assert-globalscope: FAIL' }
 ```
 
 ### assert-gson-persistence-contract.ps1
@@ -4597,10 +4602,11 @@ Measures a built VR-flavor APK against the Meta VRC packaging limits (S3364).
 scripts/quality/assert-meta-packaging-limits.ps1
   Measures a built VR-flavor APK against the Meta VRC packaging limits (S3364).
   Params:
-    -ApkPath         [String]
-    -ObbPath         [String]
-    -Gate            [SwitchParameter]
-  Exit: 0 - every executed measurement passes, OR there is nothing to verify (no built
+    -ApkPath                      [String]
+    -ObbPath                      [String]
+    -Gate                         [SwitchParameter]
+    -AllowMissingArtifact         [SwitchParameter]
+  Exit: 0 - every measurement ran and passes (the -ObbPath measurement runs only when -ObbPath is
 ```
 
 ### assert-migration-schema-conformance.ps1
@@ -4780,6 +4786,7 @@ scripts/quality/assert-non-null-assertion.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
+  Exit: 0 { Write-Host 'assert-non-null-assertion: PASS' }; 1 { Write-Host 'assert-non-null-assertion: FAIL' }
 ```
 
 ### assert-notification-small-icon.ps1
@@ -5549,6 +5556,7 @@ scripts/quality/assert-unsafe-collect.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
+  Exit: 0 { Write-Host 'assert-unsafe-collect: PASS' }; 1 { Write-Host 'assert-unsafe-collect: FAIL' }
 ```
 
 ### assert-untracked-dialogs.ps1
@@ -5562,6 +5570,7 @@ scripts/quality/assert-untracked-dialogs.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
+  Exit: 0 { Write-Host 'assert-untracked-dialogs: PASS' }; 1 { Write-Host 'assert-untracked-dialogs: FAIL' }
 ```
 
 ### assert-watchface-listing-live.ps1
@@ -5587,9 +5596,10 @@ Asserts that a built wear APK carries the arm64-v8a ABI required by Google Play 
 scripts/quality/assert-wear-64bit-abi.ps1
   Asserts that a built wear APK carries the arm64-v8a ABI required by Google Play (S3364).
   Params:
-    -ApkPath         [String]
-    -Gate            [SwitchParameter]
-  Exit: 0 - arm64-v8a present in the checked APK, OR no built wear release artifact
+    -ApkPath                      [String]
+    -Gate                         [SwitchParameter]
+    -AllowMissingArtifact         [SwitchParameter]
+  Exit: 0 - arm64-v8a present in the checked APK.; 1 - the artifact exists but carries no arm64-v8a; output names the ABI set.; 2 - could not verify (CHECK-VERDICT 0.12 item A.2): no built wear release artifact exists
 ```
 
 ### assert-wear-canonical-key-parity.ps1
@@ -6121,6 +6131,16 @@ android-string-liveness.Tests.ps1 (S1568) - regression tests for the shared live
 scripts/quality.tests/android-string-liveness.Tests.ps1
   android-string-liveness.Tests.ps1 (S1568) - regression tests for the shared liveness library.
   (no param block)
+```
+
+### ArtifactCheckVerdicts.Tests.ps1
+S4367: tests for the exit-0 paths CHECK-VERDICT 0.12 item A.2 made exit 2 - the artifact and tool checks assert-16kb-alignment, assert-meta-packaging-limits, assert-wear-64bit-abi and assert-codex-transcript-hygiene - and for the release-scope runner's opt-in flag.
+
+```
+scripts/quality.tests/ArtifactCheckVerdicts.Tests.ps1
+  S4367: tests for the exit-0 paths CHECK-VERDICT 0.12 item A.2 made exit 2 - the artifact and tool checks assert-16kb-alignment, assert-meta-packaging-limits, assert-wear-64bit-abi and assert-codex-transcript-hygiene - and for the release-scope runner's opt-in flag.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.
 ```
 
 ### AssertA11ySemantics.Tests.ps1
@@ -7469,6 +7489,15 @@ S1338: one walk of the source tree, many matchers.
 ```
 scripts/quality/lib/source-scan.ps1
   S1338: one walk of the source tree, many matchers.
+  (no param block)
+```
+
+### test-count-contract.ps1
+CHECK-VERDICT 0.13 counts tests, while check aggregators retain rule 14's grammar.
+
+```
+scripts/quality/lib/test-count-contract.ps1
+  CHECK-VERDICT 0.13 counts tests, while check aggregators retain rule 14's grammar.
   (no param block)
 ```
 

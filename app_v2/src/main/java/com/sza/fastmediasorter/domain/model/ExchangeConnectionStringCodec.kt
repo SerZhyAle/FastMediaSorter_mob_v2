@@ -184,7 +184,7 @@ object ExchangeConnectionStringCodec {
             URL_PREFIX.containsMatchIn(text) -> ExchangeConnectionStringLookalike.URL
             else -> null
         }
-        // `FMSEXCH0:` and `FMSEXCH01:` are no version of this format; only a major above 1 asks for an update.
+        // `FMSEXCH0:` and `FMSEXCH01:` are no version of this format; only a major above 1 is `format-unsupported`.
         return if (digits != null && digits.first() != '0' && digits != "1") {
             ExchangeConnectionStringResult.NewerMajor(digits.toIntOrNull() ?: Int.MAX_VALUE)
         } else {

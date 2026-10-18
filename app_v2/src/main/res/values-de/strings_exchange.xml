@@ -76,7 +76,6 @@
     <string name="exchange_signin_fingerprint_present">Zertifikat angeheftet: %1$s</string>
     <string name="exchange_signin_fingerprint_absent">Kein Zertifikat angeheftet: Der Server wird anhand der Systemzertifikate geprüft.</string>
     <string name="exchange_signin_refused">Das ist keine Serverzeichenfolge. Prüfe den Text und versuche es erneut.</string>
-    <string name="exchange_signin_update_app">Diese Zeichenfolge benötigt eine neuere Version der App. Aktualisiere die App und versuche es erneut.</string>
     <string name="add_resource_my_devices">Von meinen Geräten</string>
     <string name="add_resource_my_devices_description">Ressourcen, die deine anderen Geräte über deinen Austauschserver oder Google Drive veröffentlichen</string>
     <string name="exchange_directory_attach">Einbinden</string>

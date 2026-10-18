@@ -310,7 +310,7 @@ if (-not $Gate -and -not $Quiet -and ($actual -gt 0 -or $missingProbe.Count -gt 
     Write-Host '  Re-run with -Gate for the fail-closed verdict - that is how a.ps1 fg invokes it.'
 }
 
-if ($Gate -and $actual -gt 0) { exit 1 }
+if ($Gate -and $actual -gt 0) { Write-Host "assert-no-ticket-logs: FAIL ($actual forbidden log id(s))"; exit 1 }
 # S1912: a missing probe is fatal on a project-wide run - the release path and assert-fast-gates.ps1
 # both take that branch - but exits 3 for a caller that named its changed set, so post-change.ps1 can
 # report it without charging one session for another session's half-finished ticket.
@@ -318,6 +318,12 @@ if ($Gate -and $missingProbe.Count -gt 0) {
     # S2075: the listing above is gated on -not $Quiet, so a -Quiet -Gate caller used to hit this exit
     # with nothing printed at all. This line always fires, independent of -Quiet.
     Write-Error ("assert-no-ticket-logs: {0} BlockNeedUserTest ticket(s) missing a probe in source - {1}" -f $missingProbe.Count, ($missingProbe -join ', ')) -ErrorAction Continue
-    if ($scoped) { exit 3 } else { exit 1 }
+    if ($scoped) {
+        Write-Host "assert-no-ticket-logs: PASS WITH ADVISORIES ($($missingProbe.Count) BlockNeedUserTest ticket(s) missing a probe in source)"
+        exit 3
+    }
+    Write-Host "assert-no-ticket-logs: FAIL ($($missingProbe.Count) BlockNeedUserTest ticket(s) missing a probe in source)"
+    exit 1
 }
+Write-Host ("assert-no-ticket-logs: PASS ({0} forbidden log id(s), {1} missing probe(s){2})" -f $actual, $missingProbe.Count, $(if (-not $Gate -and ($actual -gt 0 -or $missingProbe.Count -gt 0)) { '; audit mode, -Gate not set' } else { '' }))
 exit 0

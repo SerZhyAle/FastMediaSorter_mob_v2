@@ -56,6 +56,7 @@ $generator = Join-Path $repoRoot 'scripts/utils/generate-splash-brand.ps1'
 
 if (-not (Test-Path -LiteralPath $generator)) {
     Write-Error "assert-splash-brand-sync: generator not found: $generator" -ErrorAction Continue
+    Write-Host "assert-splash-brand-sync: COULD NOT VERIFY (generator not found: $generator)"
     exit 2
 }
 
@@ -87,13 +88,15 @@ foreach ($d in $diverged) {
 if ($diverged.Count -gt 0) {
     $names = ($diverged | ForEach-Object { $_.Module }) -join ', '
     Write-Error "assert-splash-brand-sync: hand-edited or stale splash drawables in $names - regenerate with scripts/utils/generate-splash-brand.ps1 -Module <m>" -ErrorAction Continue
+    Write-Host "assert-splash-brand-sync: FAIL (hand-edited or stale splash drawables in $names)"
     exit 1
 }
 if ($unverifiable.Count -gt 0) {
     $names = ($unverifiable | ForEach-Object { $_.Module }) -join ', '
     Write-Error "assert-splash-brand-sync: COULD NOT VERIFY $names - python with fontTools is required" -ErrorAction Continue
+    Write-Host "assert-splash-brand-sync: COULD NOT VERIFY (python with fontTools is required for $names)"
     exit 2
 }
 
-if (-not $Quiet) { Write-Host 'assert-splash-brand-sync: PASS (every generated splash drawable matches its source).' }
+Write-Host 'assert-splash-brand-sync: PASS (every generated splash drawable matches its source).'
 exit 0

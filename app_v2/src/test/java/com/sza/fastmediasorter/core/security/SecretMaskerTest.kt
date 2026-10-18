@@ -42,6 +42,26 @@ class SecretMaskerTest {
         assertEquals(text, SecretMasker.sanitize(text))
     }
 
+    // DIAGNOSTIC-REPORT 0.14: synthetic key bytes; the block goes whole and the text after its END line stays.
+    @Test
+    fun `a PEM private-key block is redacted whole`() {
+        val masked = SecretMasker.sanitize(
+            "loaded\n-----BEGIN PRIVATE KEY-----\nFAKEKEYBYTES0001\nFAKEKEYBYTES0002\n" +
+                "-----END PRIVATE KEY-----\nnext password=hunter2",
+        )
+
+        assertEquals("loaded\n[REDACTED]\nnext password=[REDACTED]", masked)
+    }
+
+    @Test
+    fun `an unmatched PEM BEGIN redacts to the end of the message`() {
+        val masked = SecretMasker.sanitize(
+            "key: -----BEGIN EC PRIVATE KEY-----\nFAKEKEYBYTES0003\n-----END RSA PRIVATE KEY-----\ntail",
+        )
+
+        assertEquals("key: [REDACTED]", masked)
+    }
+
     @Test
     fun `sanitize masks the bearer token and keeps the scheme`() {
         val out = SecretMasker.sanitize("Authorization: Bearer abc.def.ghi")

@@ -82,6 +82,7 @@
   {%- assign t_langs = 'Языки' -%}
   {%- assign t_privacy = 'Политика конфиденциальности' -%}
   {%- assign t_terms = 'Условия использования' -%}
+  {%- assign t_support = 'Поддержка' -%}
   {%- assign t_footer = 'Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.' -%}
 {%- elsif doc_lang == 'uk' -%}
   {%- assign doc_suffix = '-uk' -%}
@@ -99,6 +100,7 @@
   {%- assign t_langs = 'Мови' -%}
   {%- assign t_privacy = 'Політика конфіденційності' -%}
   {%- assign t_terms = 'Умови використання' -%}
+  {%- assign t_support = 'Підтримка' -%}
   {%- assign t_footer = 'Fast Media Sorter &copy; 2026 SerZhyAle. Безкоштовний органайзер із відкритим вихідним кодом.' -%}
 {%- else -%}
   {%- assign doc_suffix = '' -%}
@@ -116,6 +118,7 @@
   {%- assign t_langs = 'Languages' -%}
   {%- assign t_privacy = 'Privacy Policy' -%}
   {%- assign t_terms = 'Terms of Service' -%}
+  {%- assign t_support = 'Support' -%}
   {%- assign t_footer = 'Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.' -%}
 {%- endif -%}
 {%- assign doc_portal = '/documentation/' -%}
@@ -305,6 +308,9 @@
                 <a href="{{ '/docs/TERMS_OF_SERVICE' | append: doc_suffix | append: '.html' | relative_url }}">{{ t_terms }}</a>
                 <a href="{{ doc_portal | append: 'design-system/index.html' | relative_url }}">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+                <a href="{{ '/docs/SUPPORT' | append: doc_suffix | append: '.html' | relative_url }}">{{ t_support }}</a>
+                <a href="mailto:sza@ukr.net">sza@ukr.net</a>
+                <a href="https://sza.od.ua">sza.od.ua</a>
             </div>
         </div>
     </footer>

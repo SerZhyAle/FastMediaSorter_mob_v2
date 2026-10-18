@@ -349,6 +349,29 @@
          via materialSwitchStyle so any bare MaterialSwitch matches the one inside SettingsToggleRow. -->
     <style name="Widget.FastMediaSorter.Switch" parent="Widget.Material3.CompoundButton.MaterialSwitch" />
 
+    <!-- S4352: canonical BOOLEAN-OPTION 2.0 preference and checkbox styles -->
+    <style name="Widget.FastMediaSorter.Preference.BooleanOption" parent="">
+        <item name="android:minHeight">@dimen/token_touch_target_min</item>
+        <item name="android:paddingStart">@dimen/token_spacing_12</item>
+        <item name="android:paddingEnd">@dimen/token_spacing_12</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.CheckBox" parent="Widget.Material3.CompoundButton.CheckBox">
+        <item name="android:minWidth">@dimen/token_touch_target_min</item>
+        <item name="android:minHeight">@dimen/token_touch_target_min</item>
+    </style>
+
+    <!-- S4352: canonical COLLAPSIBLE-GROUP 1.1 and SETTINGS-NAVIGATION 2.0 styles -->
+    <style name="Widget.FastMediaSorter.SettingsGroup.Header" parent="">
+        <item name="android:minHeight">@dimen/token_touch_target_min</item>
+        <item name="android:paddingStart">@dimen/token_spacing_12</item>
+        <item name="android:paddingEnd">@dimen/token_spacing_12</item>
+        <item name="android:textSize">@dimen/settings_group_header_text_size</item>
+        <item name="android:focusable">true</item>
+    </style>
+
     <style name="Widget.FastMediaSorter.SettingsButton.Outlined" parent="Widget.FastMediaSorter.Button.Outlined">
         <item name="android:textSize">@dimen/toggler_title_text_size</item>
         <item name="android:textStyle">normal</item>
@@ -390,21 +413,29 @@
     <style name="Widget.FastMediaSorter.Button.Filled" parent="Widget.Material3.Button">
         <item name="android:letterSpacing">0</item>
         <item name="textAllCaps">false</item>
+        <item name="cornerRadius">@dimen/token_radius_12</item>
+        <item name="android:minHeight">@dimen/token_touch_target_min</item>
     </style>
 
     <style name="Widget.FastMediaSorter.Button.Tonal" parent="Widget.Material3.Button.TonalButton">
         <item name="android:letterSpacing">0</item>
         <item name="textAllCaps">false</item>
+        <item name="cornerRadius">@dimen/token_radius_12</item>
+        <item name="android:minHeight">@dimen/token_touch_target_min</item>
     </style>
 
     <style name="Widget.FastMediaSorter.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
         <item name="android:letterSpacing">0</item>
         <item name="textAllCaps">false</item>
+        <item name="cornerRadius">@dimen/token_radius_12</item>
+        <item name="android:minHeight">@dimen/token_touch_target_min</item>
     </style>
 
     <style name="Widget.FastMediaSorter.Button.Text" parent="Widget.Material3.Button.TextButton">
         <item name="android:letterSpacing">0</item>
         <item name="textAllCaps">false</item>
+        <item name="cornerRadius">@dimen/token_radius_12</item>
+        <item name="android:minHeight">@dimen/token_touch_target_min</item>
     </style>
 
     <!-- S3249: the icon-button token every ActionBarView child is built with. The two minimums are

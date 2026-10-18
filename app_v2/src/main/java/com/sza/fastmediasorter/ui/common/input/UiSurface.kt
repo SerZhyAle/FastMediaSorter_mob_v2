@@ -1,7 +1,5 @@
 package com.sza.fastmediasorter.ui.common.input
 
-import com.sza.fastmediasorter.domain.input.InputSurface
-
 /**
  * Semantic UI surface profile used by the shared keyboard parser to resolve
  * surface-appropriate shortcut mapping.
@@ -11,8 +9,7 @@ import com.sza.fastmediasorter.domain.input.InputSurface
  * [InputAction] for the same physical key.
  *
  * This is a screen-identity enum of the UI layer; it is deliberately distinct
- * from the domain [InputSurface] resolve-bucket. Use [toResolveSurface] to
- * bridge from a screen identity to the binding-resolution surface.
+ * from the domain InputSurface resolve-bucket used by the binding table.
  *
  * Latin-only policy for letter shortcuts applies regardless of surface.
  */
@@ -70,35 +67,4 @@ enum class UiSurface {
 
     /** Wear OS companion sync and pairing surface. */
     WEAR_COMPANION,
-}
-
-/**
- * Maps a UI [UiSurface] (screen identity) to the domain [InputSurface]
- * resolve-bucket that the key-binding system understands, or null when the
- * screen does not participate in binding resolution.
- *
- * Domain resolve-surfaces are intentionally fewer than UI surfaces: only
- * player, browser, dialog and VR carry remappable bindings. Screens with no
- * domain equivalent (MAIN, SETTINGS, forms, pickers, ..) return null so the
- * binding key-space stays free of phantom surfaces.
- */
-fun UiSurface.toResolveSurface(): InputSurface? = when (this) {
-    UiSurface.PLAYER -> InputSurface.PLAYER
-    UiSurface.VR_PLAYER -> InputSurface.VR
-    UiSurface.BROWSE -> InputSurface.BROWSER
-    UiSurface.DIALOG -> InputSurface.DIALOG
-    UiSurface.MAIN,
-    UiSurface.SETTINGS,
-    UiSurface.ADD_RESOURCE,
-    UiSurface.CLOUD_PICKER,
-    UiSurface.DUPLICATES,
-    UiSurface.RESOURCE_EDITOR,
-    UiSurface.RECEIVE_SHARE,
-    UiSurface.WIDGET_CONFIG,
-    UiSurface.WELCOME,
-    UiSurface.SCHEDULED_OPS,
-    UiSurface.STREAMS,
-    UiSurface.AUTH_SESSIONS,
-    UiSurface.KEYBINDING_REMAP,
-    UiSurface.WEAR_COMPANION -> null
 }

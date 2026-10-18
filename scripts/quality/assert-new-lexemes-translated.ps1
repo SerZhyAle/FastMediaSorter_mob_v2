@@ -88,6 +88,7 @@ $registryVersion = Get-LocaleFingerprintsSchemaVersion -Path $FingerprintsPath
 if ($registryVersion -lt 2) {
     $msg = "assert-new-lexemes-translated: fingerprint registry at $FingerprintsPath declares identity schema v$registryVersion, but this gate reads v2 (module-qualified, S1858) - cannot verify. Migrate it: pwsh -NoProfile -File scripts/quality/migrate-locale-fingerprints-module.ps1"
     Write-Error $msg -ErrorAction Continue
+    Write-Host 'assert-new-lexemes-translated: COULD NOT VERIFY (the fingerprint registry is older than the identity schema this gate reads)'
     exit 2
 }
 
@@ -95,11 +96,13 @@ $producer = Join-Path $repoRoot 'scripts/utils/list-new-lexemes.ps1'
 if (-not (Test-Path -LiteralPath $producer)) {
     $msg = "assert-new-lexemes-translated: producer not found at $producer - cannot verify."
     Write-Error $msg -ErrorAction Continue
+    Write-Host 'assert-new-lexemes-translated: COULD NOT VERIFY (the producer was not found)'
     exit 2
 }
 if (-not (Test-Path -LiteralPath $BaselinePath)) {
     $msg = "assert-new-lexemes-translated: baseline not found at $BaselinePath - cannot tell a new gap from one that predates the rule. Regenerate it per its header comment."
     Write-Error $msg -ErrorAction Continue
+    Write-Host 'assert-new-lexemes-translated: COULD NOT VERIFY (the baseline was not found)'
     exit 2
 }
 
@@ -109,11 +112,13 @@ $producerExit = $LASTEXITCODE
 if ($producerExit -eq 1) {
     $msg = 'assert-new-lexemes-translated: list-new-lexemes.ps1 could not read the corpus (exit 1) - cannot verify.'
     Write-Error $msg -ErrorAction Continue
+    Write-Host 'assert-new-lexemes-translated: COULD NOT VERIFY (list-new-lexemes.ps1 could not read the corpus)'
     exit 2
 }
 
 if ($producerExit -eq 0) {
     Write-Host 'assert-new-lexemes-translated: expected: 0 | actual: 0 untranslated new string(s).'
+    Write-Host 'assert-new-lexemes-translated: PASS (0 untranslated new string(s))'
     exit 0
 }
 
@@ -122,6 +127,7 @@ $textPath = Join-Path $OutDir 'new_lexemes_en.txt'
 if (-not (Test-Path -LiteralPath $indexPath)) {
     $msg = "assert-new-lexemes-translated: the producer reported new strings but wrote no sidecar at $indexPath - cannot verify."
     Write-Error $msg -ErrorAction Continue
+    Write-Host 'assert-new-lexemes-translated: COULD NOT VERIFY (the producer wrote no sidecar)'
     exit 2
 }
 
@@ -151,4 +157,5 @@ if (-not $Quiet) {
 
 $summary = "assert-new-lexemes-translated: expected: 0 | actual: $($keys.Count) untranslated new string(s) - the release is blocked until they are translated."
 Write-Host $summary
+Write-Host "assert-new-lexemes-translated: FAIL ($($keys.Count) untranslated new string(s))"
 exit 1

@@ -114,6 +114,26 @@ class WearLogBufferTest {
         )
     }
 
+    // DIAGNOSTIC-REPORT 0.14: synthetic key bytes; the block goes whole and the text after its END line stays.
+    @Test
+    fun `a PEM private-key block is redacted whole`() {
+        val masked = WearSecretMasker.sanitize(
+            "loaded\n-----BEGIN RSA PRIVATE KEY-----\nFAKEKEYBYTES0001\nFAKEKEYBYTES0002\n" +
+                "-----END RSA PRIVATE KEY-----\nnext password=hunter2",
+        )
+
+        assertEquals("loaded\n[REDACTED]\nnext password=[REDACTED]", masked)
+    }
+
+    @Test
+    fun `an unmatched PEM BEGIN redacts to the end of the message`() {
+        val masked = WearSecretMasker.sanitize(
+            "key: -----BEGIN OPENSSH PRIVATE KEY-----\nFAKEKEYBYTES0003\n-----END RSA PRIVATE KEY-----\ntail",
+        )
+
+        assertEquals("key: [REDACTED]", masked)
+    }
+
     @Test
     fun `concurrent appends leave the buffer readable and within the ceiling`() {
         val threads = Executors.newFixedThreadPool(THREAD_COUNT)

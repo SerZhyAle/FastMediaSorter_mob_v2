@@ -14,12 +14,24 @@ object CommandId {
     const val FRAME_STEP_FORWARD = "playback.frame_step_forward"
     const val FRAME_STEP_BACKWARD = "playback.frame_step_backward"
     const val SLIDESHOW_TOGGLE = "playback.slideshow_toggle"
+    const val SLIDESHOW_START = "playback.slideshow_start"
+    const val SLIDESHOW_RANDOM = "playback.slideshow_random"
 
     // --- NAVIGATION ---
+    // The 5s and 30s ids are frozen storage keys for stored remaps; their steps are 10 s and 60 s.
     const val SEEK_FORWARD_5S = "navigation.seek_forward_5s"
     const val SEEK_BACKWARD_5S = "navigation.seek_backward_5s"
     const val SEEK_FORWARD_30S = "navigation.seek_forward_30s"
     const val SEEK_BACKWARD_30S = "navigation.seek_backward_30s"
+    const val SEEK_FORWARD_3S = "navigation.seek_forward_3s"
+    const val SEEK_BACKWARD_3S = "navigation.seek_backward_3s"
+    const val NEXT_OR_SEEK_FORWARD = "navigation.next_or_seek_forward"
+    const val PREVIOUS_OR_SEEK_BACKWARD = "navigation.previous_or_seek_backward"
+    const val STEP_FORWARD_TEN = "navigation.step_forward_ten"
+    const val STEP_BACK_TEN = "navigation.step_back_ten"
+    const val STEP_FORWARD_HUNDRED = "navigation.step_forward_hundred"
+    const val STEP_BACK_HUNDRED = "navigation.step_back_hundred"
+    const val RANDOM_FILE = "navigation.random_file"
     const val SEEK_MICRO_FORWARD = "navigation.seek_micro_forward"
     const val SEEK_MICRO_BACKWARD = "navigation.seek_micro_backward"
     const val SEEK_MACRO_FORWARD = "navigation.seek_macro_forward"
@@ -36,7 +48,9 @@ object CommandId {
     const val ZOOM_OUT = "view.zoom_out"
     const val ZOOM_RESET = "view.zoom_reset"
     const val ROTATE = "view.rotate"
+    const val ROTATE_COUNTER = "view.rotate_counter"
     const val FIT_SCREEN = "view.fit_screen"
+    const val ZOOM_ACTUAL_SIZE = "view.zoom_actual_size"
     const val FULLSCREEN = "view.fullscreen"
     const val ROTATION_TOGGLE = "view.rotation_toggle"
     const val PAN = "view.pan"
@@ -76,7 +90,8 @@ object CommandId {
     const val SAVE = "sorting.save"
 
     // --- OPERATION_SLOTS ---
-    // Group-agnostic positional shortcuts: launch the Nth button of the addressable Copy/Move group.
+    // Global destination slots (MEDIA-VIEWER rule 4): slot N is the Nth destination in user order, the current
+    // resource included. Op slots move there; copy slots copy there. Op ids keep their names so stored remaps survive.
     const val OPERATION_SLOT_1 = "sorting.op_slot_1"
     const val OPERATION_SLOT_2 = "sorting.op_slot_2"
     const val OPERATION_SLOT_3 = "sorting.op_slot_3"
@@ -87,6 +102,16 @@ object CommandId {
     const val OPERATION_SLOT_8 = "sorting.op_slot_8"
     const val OPERATION_SLOT_9 = "sorting.op_slot_9"
     const val OPERATION_SLOT_10 = "sorting.op_slot_10"
+    const val COPY_SLOT_1 = "sorting.copy_slot_1"
+    const val COPY_SLOT_2 = "sorting.copy_slot_2"
+    const val COPY_SLOT_3 = "sorting.copy_slot_3"
+    const val COPY_SLOT_4 = "sorting.copy_slot_4"
+    const val COPY_SLOT_5 = "sorting.copy_slot_5"
+    const val COPY_SLOT_6 = "sorting.copy_slot_6"
+    const val COPY_SLOT_7 = "sorting.copy_slot_7"
+    const val COPY_SLOT_8 = "sorting.copy_slot_8"
+    const val COPY_SLOT_9 = "sorting.copy_slot_9"
+    const val COPY_SLOT_10 = "sorting.copy_slot_10"
 
     // --- BROWSER_ACTIONS ---
     const val BROWSER_SELECT = "browser.select"

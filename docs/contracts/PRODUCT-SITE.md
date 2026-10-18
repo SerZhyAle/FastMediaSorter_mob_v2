@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.14 21:54</sub>
+<sub class="doc-stamp">26.10.18 17:45</sub>
 
 # Pointer - `SITE-STRUCTURE`, `SITE-EXPERIENCE` and `SITE-REPRESENTATION`
 
 | | |
 | --- | --- |
 | **Id** | `SITE-STRUCTURE`, `SITE-EXPERIENCE`, `SITE-REPRESENTATION` |
-| **Version** | 0.2, 0.3, 0.1, draft (in the order of the ids above); wire carrier: none - a page set, a stylesheet layer and a content model. Owner: this product |
+| **Version** | 0.3, 0.4, 0.1, draft (in the order of the ids above); wire carrier: none - a page set, a stylesheet layer and a content model. Owner: this product |
 | **Home** | `product-site/README.md` in the shared contracts catalog |
 | **Role here** | owner and reference implementation - the product site: landing, sideload pages, documentation portal and the `docs/` reference pages |
 

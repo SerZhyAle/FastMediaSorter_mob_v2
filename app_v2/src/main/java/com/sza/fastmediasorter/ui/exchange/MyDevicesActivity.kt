@@ -125,6 +125,7 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
                 R.id.action_exchange_make_outgoing -> viewModel.makeOutgoing(entry)
                 R.id.action_exchange_connect_watch -> viewModel.connectWatch(entry)
                 R.id.action_exchange_share -> dialogs.showShare(entry)
+                R.id.action_exchange_administer -> startActivity(ExchangeServerAdminActivity.createIntent(this, entry))
                 R.id.action_exchange_auto_attach -> viewModel.setAutoAttach(entry, !entry.autoAttach)
                 R.id.action_exchange_sign_in_again -> signInAgain(entry)
                 R.id.action_exchange_change_password -> accountDialogs.showChangePassword(entry)

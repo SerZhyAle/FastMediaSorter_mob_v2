@@ -79,7 +79,6 @@
     <string name="exchange_signin_fingerprint_present">Certificat épinglé : %1$s</string>
     <string name="exchange_signin_fingerprint_absent">Aucun certificat épinglé : le serveur est vérifié à l\'aide des certificats du système.</string>
     <string name="exchange_signin_refused">Ce n\'est pas une chaîne de serveur. Vérifiez le texte et réessayez.</string>
-    <string name="exchange_signin_update_app">Cette chaîne nécessite une version plus récente de l\'application. Mettez à jour l\'application et réessayez.</string>
     <string name="add_resource_my_devices">Depuis mes appareils</string>
     <string name="add_resource_my_devices_description">Ressources que vos autres appareils publient via votre serveur d\'échange ou Google Drive</string>
     <string name="exchange_directory_attach">Rattacher</string>
