@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Kryvavitsa and the Monster</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Kryvavitsa and the Monster</span>
+</nav>
+<header class="hero">
+<h1>Kryvavitsa and the Monster</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">A small turn-based puzzle on a grid. Lead the blue Monster to the green exit before the red Kryvavitsa and her purple helpers corner you: you move one cell per turn, the enemies answer after each move, and every level is a bigger board.</p>
+<figure class="shot">
+<img class="on-light" src="../img/game-en-light.webp" alt="Kryvavitsa and the Monster">
+<img class="on-dark" src="../img/game-en-dark.webp" alt="Kryvavitsa and the Monster">
+</figure>
+<h2>In this order</h2>
+<ol class="order">
+<li>Open the game from the programs menu, the programs panel, the launcher or a home-screen widget. It is off after installation, so switch Mini-game on first in Settings, on the Management tab, in the group Additional programs and scenarios. The game saves itself and continues where you left it.</li>
+<li>The first time, press How to play? <a class="ref" href="#help">11</a>: its own screen shows what every color on the board means and the rules.</li>
+<li>Move one cell per turn on the board <a class="ref" href="#board">5</a>: swipe anywhere on it, tap the side of the Monster where you want to go, press the arrows <a class="ref" href="#arrows">6</a>, or use the keyboard or a D-pad. After each move the enemies move too.</li>
+<li>Push gray walls into free cells to clear a path. If an enemy ends up on your cell or next to it, the level is lost.</li>
+<li>Next turn <a class="ref" href="#skip">7</a> skips your step while the enemies still move, for the moments when standing still is safer than moving.</li>
+<li>Reaching the exit gives +1000 and the next level starts by itself after a second, or at once with Next level <a class="ref" href="#reset">8</a>. Level <a class="ref" href="#level">2</a>, Score <a class="ref" href="#score">3</a> and Turns <a class="ref" href="#turns">4</a> keep count above the board.</li>
+<li>If a level goes wrong, Restart level <a class="ref" href="#restart-level">9</a> starts it again on a fresh board for 500 points; Reset <a class="ref" href="#reset">8</a> throws the whole game away and starts from level 1. Mode <a class="ref" href="#mode">10</a> changes how the board looks.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Top bar and counters</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Back</span><span class="one">Leaves the game and returns to where you came from.</span></span></summary>
+<div class="full">
+<p>The game saves itself after every move, so leaving does not lose your place: when you open the game again it continues with the same level, score and turns. The Back button of the device does the same.</p>
+<dl class="facts">
+<dt>Shortcut</dt><dd><kbd>Esc</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="level">
+<summary><span class="mk">2</span><span><span class="name">Level</span><span class="one">Shows which level you are on.</span></span></summary>
+<div class="full">
+<p>You start at level 1. The board grows as the level goes up - 8 by 8 cells at first, one cell more every third level, up to 20 by 20 - and more purple enemies appear on it.</p>
+</div>
+</details>
+<details class="el" id="score">
+<summary><span class="mk">3</span><span><span class="name">Score</span><span class="one">Your points: moves cost, pushes and the exit pay.</span></span></summary>
+<div class="full">
+<p>Every turn costs 10 points, also a skipped one. Pushing a wall gives +10, crushing a purple enemy +50 and reaching the exit +1000. The score never goes below zero. Restarting a level costs 500 points.</p>
+</div>
+</details>
+<details class="el" id="turns">
+<summary><span class="mk">4</span><span><span class="name">Turns</span><span class="one">How many turns you have played in this game.</span></span></summary>
+<div class="full">
+<p>A step and a skipped turn both count. The number keeps growing from level to level and starts again from zero only when you reset the game.</p>
+</div>
+</details>
+<h3>Board and moves</h3>
+<details class="el" id="board">
+<summary><span class="mk">5</span><span><span class="name">Game board</span><span class="one">The playing field: the Monster, the exit, the enemies and the walls.</span></span></summary>
+<div class="full">
+<p>Blue is the Monster you control, green is the exit, red is the Kryvavitsa that hunts you, purple are her lesser helpers that wander at random, gray blocks are walls you can push, and the thick border cannot be crossed. A swipe in any direction, or a tap above, below or beside the Monster, moves it one cell that way; a tap right on the Monster does nothing. When you are caught, a line joins you to the enemy and a short message appears.</p>
+</div>
+</details>
+<details class="el" id="arrows">
+<summary><span class="mk">6</span><span><span class="name">Arrow buttons</span><span class="one">Four buttons that move the Monster one cell up, down, left or right.</span></span></summary>
+<div class="full">
+<p>They do the same as a swipe or a tap on the board, which makes them handy when you prefer buttons or play with one hand. A move into the border or into a wall that cannot be pushed is refused and costs nothing. The keyboard works too: the arrow keys, W A S D or the numeric keypad.</p>
+<dl class="facts">
+<dt>Shortcut</dt><dd><kbd>Arrow keys</kbd> / <kbd>W, A, S, D</kbd> / <kbd>Numpad 8, 4, 2, 6</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="skip">
+<summary><span class="mk">7</span><span><span class="name">Next turn</span><span class="one">Lets the enemies move while the Monster stays where it is.</span></span></summary>
+<div class="full">
+<p>It counts as a turn and costs 10 points, like a step. Use it when every step would bring you next to an enemy and waiting is safer.</p>
+</div>
+</details>
+<h3>Game actions</h3>
+<details class="el" id="reset">
+<summary><span class="mk">8</span><span><span class="name">Reset</span><span class="one">Starts the next step of the game: a new game, the next level, or a restart after a defeat.</span></span></summary>
+<div class="full">
+<p>Its label follows the situation. While you are playing it reads Reset and starts a brand new game from level 1, with score and turns at zero, without asking. After you reach the exit it reads Next level and moves on to the next board. After you were caught it reads Restart level and tries the same level again on a fresh board.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Reset throws away the level, score and turns of the running game, and there is no way back to them - only a new game from level 1. Restart level after a defeat costs 500 points.</dd>
+<dt>Shortcut</dt><dd><kbd>Enter</kbd> / <kbd>Space</kbd> / <kbd>D-pad center</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="restart-level">
+<summary><span class="mk">9</span><span><span class="name">Restart level</span><span class="one">Starts the current level over on a fresh board when you are stuck.</span></span></summary>
+<div class="full">
+<p>The level number stays, the board is generated again, and the price is the same as being caught: 500 points, never taking the score below zero. The button is shown only while a level is running; after a defeat the main button takes this label and does the same.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The current board and 500 points are lost, and the old board does not come back.</dd>
+<dt>Shortcut</dt><dd><kbd>R</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="mode">
+<summary><span class="mk">10</span><span><span class="name">Game mode</span><span class="one">Changes how the board looks: Classic, Kryvavitsa or Contrast.</span></span></summary>
+<div class="full">
+<p>The button carries the name of the current mode. Press it to open the list Game mode and pick another one. Classic draws colored balls, Kryvavitsa draws figures - a man, a woman with a machine gun, women with knives, a door - and Contrast uses solid tiles in the classic colors. Only the look changes: the rules, your position and your score stay as they are. The choice is remembered.</p>
+</div>
+</details>
+<details class="el" id="help">
+<summary><span class="mk">11</span><span><span class="name">How to play?</span><span class="one">Opens the game's own help screen with the legend and the rules.</span></span></summary>
+<div class="full">
+<p>The screen is called How to play and has its own Back button. It tells the goal, shows what each color or figure on the board means (it follows the mode you chose) and lists the rules and the score. Close it to return to your game exactly as it was.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-operations.html"><b>Settings: Management</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/mini-game.html"><b>The Mini-Game - Kryvavitsa and the Monster</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/built-in-mini-apps.html"><b>Built-in Programs - Switching Them On, the Lights, the Mirror and the SOS Signal</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

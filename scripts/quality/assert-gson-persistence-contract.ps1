@@ -477,6 +477,19 @@ function Get-EnumConstant {
     return $constants
 }
 
+# A property with its own getter and no initializer has no backing field, so Gson never reads or writes
+# it. Reporting one as unannotated asks for a pin on a name that never reaches the JSON. The getter may
+# sit on the line below the declaration; an initializer on that line means the property is backed.
+function Test-ComputedProperty {
+    param([string]$Line, [int]$TailStart, [string]$NextLine)
+
+    $tail = $Line.Substring($TailStart)
+    $equals = $tail.IndexOf('=')
+    $head = if ($equals -ge 0) { $tail.Substring(0, $equals) } else { $tail }
+    if ($head -match '\bget\s*\(\s*\)') { return $true }
+    return ($equals -lt 0 -and $NextLine -match '^\s*get\s*\(\s*\)')
+}
+
 function Get-ModelProperty {
     param([object]$Declaration)
 
@@ -485,7 +498,10 @@ function Get-ModelProperty {
     # models in this tree are written. Carrying it forward is what separates "unannotated" from "annotated
     # on the previous line" - reading only the property's own line reports a pinned model as broken.
     $pending = ''
-    foreach ($text in (Get-DeclarationBlock -Declaration $Declaration)) {
+    $block = @(Get-DeclarationBlock -Declaration $Declaration)
+    for ($i = 0; $i -lt $block.Count; $i++) {
+        $text = $block[$i]
+        $nextLine = if ($i + 1 -lt $block.Count) { $block[$i + 1] } else { '' }
         # A compact declaration puts several properties on one line, so every match on the line counts, and
         # each match carries its own annotations - reading them from the whole line would credit one
         # property's annotation to its neighbour.
@@ -499,6 +515,7 @@ function Get-ModelProperty {
             $pending = ''
             # Gson skips a transient field entirely, so its name never reaches the JSON.
             if ($carried -match '@Transient') { continue }
+            if (Test-ComputedProperty -Line $text -TailStart ($match.Index + $match.Length) -NextLine $nextLine) { continue }
             $properties.Add([pscustomobject]@{
                     name      = $match.Groups[1].Value
                     type      = Get-TypeExpression -Text $text -Start ($match.Index + $match.Length)

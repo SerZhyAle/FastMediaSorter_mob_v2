@@ -64,6 +64,26 @@ object E2eSealedBox {
         random: E2eRandom = E2eRandom.secure,
     ): Pair<JsonObject, ByteArray> {
         require(recipients.isNotEmpty()) { "a box needs a recipient" }
+        return box(payload, context, sender, recipients, random)
+    }
+
+    /**
+     * The registering box of a grant's first `grant` (item DJ): `keys` empty and the payload `{}`, so it carries no
+     * secret and opens for nobody; it only lets the server hold the grant and name the guest's devices.
+     */
+    fun registration(context: String, sender: E2eSelf, random: E2eRandom = E2eRandom.secure): JsonObject =
+        box(JsonObject(), context, sender, emptyList(), random).first
+
+    /** True for a box that addresses no device - a grant's registering box, never opened (item DJ). */
+    fun addressesNobody(box: JsonElement?): Boolean = parse(box)?.entries?.isEmpty() == true
+
+    private fun box(
+        payload: JsonObject,
+        context: String,
+        sender: E2eSelf,
+        recipients: List<E2eRecipient>,
+        random: E2eRandom,
+    ): Pair<JsonObject, ByteArray> {
         require(recipients.size <= MAX_RECIPIENTS) { "a box addresses at most $MAX_RECIPIENTS recipients" }
         val aad = E2eBytes.utf8(context)
         val contentKey = random.next(CONTENT_KEY_LENGTH)

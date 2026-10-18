@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Statistics</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Statistics</span>
+</nav>
+<header class="hero">
+<h1>Statistics</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">Statistics shows what FastMediaSorter has done for you: files sorted, space freed, time spent in the player and more. The numbers are counted on your device and nothing is sent anywhere automatically - you decide whether to share a summary with the author.</p>
+<h2>In this order</h2>
+<ol class="order">
+<li>Open Statistics from Settings, on the General tab: the row appears under the Statistics collection switch while collection is on.</li>
+<li>On a new install the screen starts with a short note <a class="ref" href="#empty-state">1</a>. The numbers fill in as you sort, view and capture files.</li>
+<li>Read the four cards <a class="ref" href="#summary-cards">2</a> for your all-time totals, and the bar <a class="ref" href="#distribution">3</a> for how your files divide by kind.</li>
+<li>Tap a section title <a class="ref" href="#sections">4</a> to fold or unfold the details; each row <a class="ref" href="#metric-rows">5</a> is one counter, and counters at zero are left out.</li>
+<li>Read the note at the bottom <a class="ref" href="#privacy-note">6</a>: it says where the data lives and who sends it.</li>
+<li>Press Export <a class="ref" href="#export">7</a> to save the report as a text file or pass it to any app.</li>
+<li>Press Send to author <a class="ref" href="#send-to-author">8</a> to open your email app with the same report attached. Read it, and send it only if you want to.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Your totals</h3>
+<details class="el" id="empty-state">
+<summary><span class="mk">1</span><span><span class="name">No activity yet. Your stats will fill in as you sort, view and capture files.</span><span class="one">Tells you that nothing has been counted yet.</span></span></summary>
+<div class="full">
+<p>A new install, or one where collection was just turned back on, shows this message above the cards. It goes away after the first counted action. The Usage section below it already holds the launch count and the date of the first launch, which are counted even when collection is off.</p>
+</div>
+</details>
+<details class="el" id="summary-cards">
+<summary><span class="mk">2</span><span><span class="name">Summary cards</span><span class="one">Four all-time totals at a glance.</span></span></summary>
+<div class="full">
+<p>Sorted counts the files you copied or moved. Freed space is the space your deletions gave back. Player time is how long you watched video and listened to audio in the app, together. Viewed is how many images, videos, audio files and documents you opened. These are totals since counting began; the screen has no period and no reset button. To start over, turn Statistics collection off and on again in Settings.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Turning collection off erases the detailed counters for good. The launch count, the first-launch date and the first installed version are kept.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="distribution">
+<summary><span class="mk">3</span><span><span class="name">By type</span><span class="one">Splits the files you worked with by kind.</span></span></summary>
+<div class="full">
+<p>The bar shows how the files you copied, moved or deleted divide into Images, Video, Audio, Documents and Other. The legend gives each share in percent and its number of files. The bar appears only once there is something to show, and a kind with nothing in it is left out.</p>
+</div>
+</details>
+<h3>Details by section</h3>
+<details class="el" id="sections">
+<summary><span class="mk">4</span><span><span class="name">Category sections</span><span class="one">Groups the detailed counters by what you did.</span></span></summary>
+<div class="full">
+<p>There are six sections: Operations, Capture, Viewing, Editing, Sources and Usage. Tap a title to fold or unfold its rows, which is handy on a small screen. Sources is shown only in editions with network folders or cloud storage. A section with nothing to show is left out; Usage always stays.</p>
+</div>
+</details>
+<details class="el" id="metric-rows">
+<summary><span class="mk">5</span><span><span class="name">Counter rows</span><span class="one">One counter per row: what you did and how often.</span></span></summary>
+<div class="full">
+<p>Each row has an icon, a name and a number. A size or a time shows beside the number where it makes sense, for example the space freed next to Deleted or the listening time next to Audio played.</p>
+<p>Operations covers copying, moving, deleting, archiving, extracting, renaming, favorites, scheduled runs and undo. Capture covers photos, videos, voice notes and screenshots. Viewing covers images viewed, videos watched, audio played, documents opened, slideshows and streams. Editing covers image edits, drawings and notes. Sources counts connected sources and added streams. Usage shows app launches, the first launch, the first installed version and, while collection is on, sessions and active time. A counter at zero is not shown, so each section lists only what you really did.</p>
+</div>
+</details>
+<h3>Privacy and sharing</h3>
+<details class="el" id="privacy-note">
+<summary><span class="mk">6</span><span><span class="name">This data stays on your device. You send the summary to the author yourself, from your own email app.</span><span class="one">Says where the numbers live and who sends them.</span></span></summary>
+<div class="full">
+<p>The data is collected on your device and nothing is sent automatically - there is no background upload. The only way it leaves the phone is when you press Send to author or Export and then send the report yourself. The numbers are counts, sizes and times; they contain no file names and no paths. Collection can be switched off at any time with Statistics collection in Settings.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Switching collection off erases the detailed counters, and they cannot be brought back. Only the launch count, the first-launch date and the first installed version stay.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="export">
+<summary><span class="mk">7</span><span><span class="name">Export</span><span class="one">Saves the report as a text file, or passes it to any app.</span></span></summary>
+<div class="full">
+<p>Builds a plain-text report of the numbers on this screen and opens the Android share menu with it as a file, so you can save it to a folder or send it through an app of your choice. Besides the totals, the report names the app version, the edition, the phone model and the Android version, and nothing that identifies you. Nothing leaves the phone until you pick an app in the share menu.</p>
+</div>
+</details>
+<details class="el" id="send-to-author">
+<summary><span class="mk">8</span><span><span class="name">Send to author</span><span class="one">Prepares an email to the author with the report attached.</span></span></summary>
+<div class="full">
+<p>Opens your own email app with the author's address, a ready-made subject and the same text report attached. The message goes out only when you press send there, so you can read the report first and drop it if you change your mind. If no app on the phone can send it, the app says to install a mail or sharing app and try again.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="settings-general.html"><b>Settings: General</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/usage-statistics.html"><b>Usage Statistics - What You Have Sorted, Viewed and Freed</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/privacy-and-network-security.html"><b>Privacy, Saved Sign-ins and Error Reports - Staying in Control and Reporting Problems Well</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

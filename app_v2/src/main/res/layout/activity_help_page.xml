@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4288: no layout-land variant - one header row above a full-size WebView reflows on rotation. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/helpPageRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/titleRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="@dimen/dimension_zero"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/backButton"
+            style="@style/Widget.FastMediaSorter.Button.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/back"
+            android:nextFocusRight="@id/btnKeyboardShortcuts"
+            android:nextFocusDown="@id/helpWebView"
+            app:icon="@drawable/ic_arrow_back"
+            app:iconTint="?attr/colorOnPrimary" />
+
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/help_page_title"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.Bar.Title"
+            android:textColor="?attr/colorOnPrimary"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnKeyboardShortcuts"
+            style="@style/Widget.FastMediaSorter.Button.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/help_keyboard_shortcuts"
+            android:nextFocusLeft="@id/backButton"
+            android:nextFocusRight="@id/btnOpenOnSite"
+            android:nextFocusDown="@id/helpWebView"
+            android:visibility="gone"
+            app:icon="@drawable/ic_shortcut_overview"
+            app:iconTint="?attr/colorOnPrimary"
+            tools:visibility="visible" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOpenOnSite"
+            style="@style/Widget.FastMediaSorter.Button.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/help_open_on_site"
+            android:nextFocusLeft="@id/btnKeyboardShortcuts"
+            android:nextFocusDown="@id/helpWebView"
+            app:icon="@drawable/ic_open_in_browse"
+            app:iconTint="?attr/colorOnPrimary" />
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/webContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <WebView
+            android:id="@+id/helpWebView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:focusable="true"
+            android:nextFocusUp="@id/backButton" />
+
+    </FrameLayout>
+
+</LinearLayout>

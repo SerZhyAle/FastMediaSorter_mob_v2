@@ -35,12 +35,18 @@ object E2eSegmentStream {
         E2eBytes.concat(E2eBytes.i2osp(index, INDEX_LENGTH), byteArrayOf(if (last) LAST_FLAG else NOT_LAST_FLAG))
 
     /** Seals [input] to [output]; returns the number of clear bytes read. */
-    fun seal(input: InputStream, output: OutputStream, valueKey: ByteArray): Long {
+    fun seal(
+        input: InputStream,
+        output: OutputStream,
+        valueKey: ByteArray,
+        checkActive: () -> Unit = {},
+    ): Long {
         var index = 0L
         var total = 0L
         var current = readSegment(input, SEGMENT_SIZE)
         require(current.isNotEmpty()) { "a sealed clipboard value is never empty" }
         while (true) {
+            checkActive()
             val next = readSegment(input, SEGMENT_SIZE)
             val last = next.isEmpty()
             output.write(E2eAead.seal(valueKey, nonce(index, last), ByteArray(0), current))
@@ -58,12 +64,18 @@ object E2eSegmentStream {
      * Opens [input] to [output]; returns the number of clear bytes written. Throws on any failed
      * segment - the caller discards everything it wrote, because nothing partial may be placed.
      */
-    fun open(input: InputStream, output: OutputStream, valueKey: ByteArray): Long {
+    fun open(
+        input: InputStream,
+        output: OutputStream,
+        valueKey: ByteArray,
+        checkActive: () -> Unit = {},
+    ): Long {
         val source = PushbackInputStream(input, 1)
         var index = 0L
         var total = 0L
         var done = false
         while (!done) {
+            checkActive()
             val sealed = readSegment(source, SEGMENT_SIZE + E2eAead.TAG_LENGTH)
             if (sealed.size <= E2eAead.TAG_LENGTH) {
                 throw E2eSegmentException("segment $index is missing or short")

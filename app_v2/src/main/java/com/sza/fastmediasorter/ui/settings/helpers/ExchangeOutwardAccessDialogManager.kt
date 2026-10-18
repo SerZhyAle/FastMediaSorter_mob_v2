@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * "Access from outside" for one shared folder (contract DEVICE-EXCHANGE items BD and BE, owner decision В12): the
@@ -49,15 +50,23 @@ class ExchangeOutwardAccessDialogManager(
                 view.textOutwardLinkResult.text = null
             }
             .showBoundTo(fragment) ?: return
+        // S4348: a per-dialog guard - the container rebuilds only when the pair really changed.
+        var rendered: Pair<List<ExchangeGrant>, Set<String>>? = null
         watch = fragment.viewLifecycleOwner.collectOnLifecycle(
             combine(grants.grants(rootUri), grants.confirmed, ::Pair)
-        ) { (list, confirmed) -> renderGrants(view, list, confirmed) }
+        ) { (list, confirmed) ->
+            val seen = list to confirmed
+            if (seen == rendered) return@collectOnLifecycle
+            rendered = seen
+            renderGrants(view, list, confirmed)
+        }
         view.btnOutwardCreateLink.setOnClickListener { createLink(view, rootUri, rootName) }
         view.btnOutwardInviteGuest.setOnClickListener { inviteGuest(view, rootUri, rootName) }
         view.btnExchangePortalOutward.setOnClickListener {
             MediaExchangePortalLinks.open(fragment.requireActivity(), MediaExchangePortalLinks.Page.EXCHANGE_SERVER)
         }
         dialog.setCanceledOnTouchOutside(false)
+        Timber.d("S4348: outward access dialog shown")
     }
 
     private fun renderGrants(
@@ -65,6 +74,7 @@ class ExchangeOutwardAccessDialogManager(
         list: List<ExchangeGrant>,
         confirmed: Set<String>,
     ) {
+        Timber.d("S4348: outward grants render")
         val container = view.containerOutwardGrants
         container.removeAllViews()
         view.textOutwardEmpty.isVisible = list.isEmpty()

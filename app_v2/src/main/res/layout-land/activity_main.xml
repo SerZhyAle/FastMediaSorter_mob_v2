@@ -283,7 +283,7 @@
                 android:focusable="true"
                 android:clickable="true"
                 android:nextFocusLeft="@id/btnSettings"
-                android:nextFocusRight="@id/btnStartPlayer"
+                android:nextFocusRight="@id/btnHelp"
                 android:nextFocusDown="@id/tabResourceTypes"
                 android:contentDescription="@string/tab_favorites"
                 android:insetLeft="0dp"
@@ -303,6 +303,38 @@
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconTint="?attr/colorControlNormal" />
 
+            <!-- S4288: help sits on the reading-start side of the trailing Start Player (CONTEXT-HELP rule 2);
+                 it overflows like any command, and the "⋮" menu already carries the same Help item. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHelp"
+                style="@style/Widget.FastMediaSorter.Button.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/control_button_size"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:foreground="@drawable/focus_button_background"
+                android:focusable="true"
+                android:clickable="true"
+                android:nextFocusLeft="@id/btnFavorites"
+                android:nextFocusRight="@id/btnStartPlayer"
+                android:nextFocusDown="@id/tabResourceTypes"
+                android:contentDescription="@string/help"
+                android:insetLeft="0dp"
+                android:insetTop="0dp"
+                android:insetRight="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="8dp"
+                android:text=""
+                android:textColor="?attr/colorControlNormal"
+                android:textSize="16sp"
+                app:icon="@drawable/ic_help_outline"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal" />
+
             <!-- Start Player - double sized PLAY icon -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnStartPlayer"
@@ -313,7 +345,7 @@
                 android:foreground="@drawable/focus_button_background"
                 android:focusable="true"
                 android:clickable="true"
-                android:nextFocusLeft="@id/btnFavorites"
+                android:nextFocusLeft="@id/btnHelp"
                 android:nextFocusDown="@id/tabResourceTypes"
                 android:contentDescription="@string/start_player"
                 android:insetLeft="0dp"

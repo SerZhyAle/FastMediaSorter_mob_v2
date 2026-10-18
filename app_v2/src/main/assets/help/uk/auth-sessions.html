@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="uk" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Довідка - Збережені авторизації</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Зміст довідки">
+<a href="index.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Збережені авторизації</span>
+</nav>
+<header class="hero">
+<h1>Збережені авторизації</h1>
+</header>
+<h2>Для чого цей екран</h2>
+<p class="lead">«Збережені авторизації» - список входів, які вбудований браузер запам’ятовує для сайтів, щоб застосунок міг брати вміст із сайтів, що вимагають акаунт, і не просив входити знову. Тут їх додають, перейменовують, оновлюють і видаляють. Відкривається з налаштувань, вкладка «Загальні», розділ «Авторизація й акаунти».</p>
+<figure class="shot">
+<img class="on-light" src="../img/auth-sessions-uk-light.webp" alt="Збережені авторизації">
+<img class="on-dark" src="../img/auth-sessions-uk-dark.webp" alt="Збережені авторизації">
+</figure>
+<h2>Порядок дій</h2>
+<ol class="order">
+<li>Натисніть «+ Додати авторизацію» <a class="ref" href="#add-authorization">2</a> і виберіть сайт зі списку або «Ввести адресу вручну» для іншого.</li>
+<li>На сторінці, що відкрилася <a class="ref" href="#web-page">12</a>, увійдіть так само, як у звичайному браузері, і натисніть «Зберегти авторизацію» <a class="ref" href="#web-save">13</a>.</li>
+<li>Дайте акаунту зрозумілу назву <a class="ref" href="#web-name-account">15</a> і натисніть «Зберегти».</li>
+<li>Акаунт з’явиться в списку під своїм сайтом <a class="ref" href="#sessions-list">5</a>. Щоб додати другий акаунт на той самий сайт, натисніть плюс у заголовку сайту <a class="ref" href="#host-add-account">7</a>.</li>
+<li>Коли сайт перестає приймати збережений вхід, натисніть «Увійти знову» <a class="ref" href="#relogin">9</a>. «Перейменувати акаунт» <a class="ref" href="#rename">10</a> змінює лише назву тут.</li>
+<li>«Видалити збережену авторизацію» <a class="ref" href="#delete">11</a> прибирає непотрібний вхід після підтвердження.</li>
+<li>Нічого на цьому екрані зберігати не потрібно: кожна зміна застосовується одразу, а «Назад» <a class="ref" href="#back">1</a> просто закриває екран.</li>
+</ol>
+<h2>Елементи</h2>
+<div class="elements">
+<h3>Список</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Назад</span><span class="one">Закриває список.</span></span></summary>
+<div class="full">
+<p>Усе на цьому екрані застосовується в момент дії, тож під час виходу нічого підтверджувати не потрібно.</p>
+</div>
+</details>
+<details class="el" id="add-authorization">
+<summary><span class="mk">2</span><span><span class="name">+ Додати авторизацію</span><span class="one">Починає новий вхід на сайт.</span></span></summary>
+<div class="full">
+<p>Спершу пропонується список відомих сайтів; останній рядок, «Ввести адресу вручну», просить повну вебадресу, що починається з http або https. Після вибору сайту його сторінка входу відкривається у вікні входу, описаному наприкінці цієї сторінки. Адреси в доменах Google відкриваються в браузері з Custom Tabs; якщо такого браузера немає, вікно «Потрібен браузер» підкаже, що встановити.</p>
+</div>
+</details>
+<details class="el" id="help-menu">
+<summary><span class="mk">3</span><span><span class="name">Довідка</span><span class="one">Відкриває довідку з цього екрана.</span></span></summary>
+<div class="full">
+<p>Пункт міститься в додатковому меню на панелі, бо потрібен рідко.</p>
+<dl class="facts">
+<dt>Сполучення клавіш</dt><dd><kbd>F1</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="info">
+<summary><span class="mk">4</span><span><span class="name">Пояснення</span><span class="one">Коротке нагадування про те, що таке збережена авторизація.</span></span></summary>
+<div class="full">
+<p>Кожен запис зберігає куки одного акаунта на одному сайті. Запис «Не авторизовано (ви відмовились)» створено, коли у вікні входу ви обрали «Не пропонувати», і він не дає вікну з’являтися для цього сайту знову. Щоб додати другий акаунт на той самий сайт, скористайтеся «+ Додати авторизацію» або плюсом у заголовку сайту.</p>
+</div>
+</details>
+<details class="el" id="sessions-list">
+<summary><span class="mk">5</span><span><span class="name">Список входів</span><span class="one">Усі збережені входи, згруповані за сайтами.</span></span></summary>
+<div class="full">
+<p>У кожного сайту є заголовок із назвою: Instagram, Threads і Facebook впізнаються за іменем, в інших сайтів показано адресу. Під заголовком ідуть акаунти цього сайту. Доки ви не зберегли перший вхід, список порожній.</p>
+</div>
+</details>
+<details class="el" id="empty">
+<summary><span class="mk">6</span><span><span class="name">Немає збережених авторизацій</span><span class="one">Повідомляє, що поки нічого не збережено.</span></span></summary>
+<div class="full">
+<p>Напис замінює список, доки записів немає. Натисніть «+ Додати авторизацію» на панелі, щоб зберегти першу.</p>
+</div>
+</details>
+<h3>Сайти й акаунти</h3>
+<details class="el" id="host-add-account">
+<summary><span class="mk">7</span><span><span class="name">Додати ще один акаунт</span><span class="one">Додає ще один акаунт на той самий сайт.</span></span></summary>
+<div class="full">
+<p>Плюс у заголовку сайту відкриває сторінку входу цього сайту. Натисніть його, якщо на одному сайті у вас два акаунти й потрібні обидва.</p>
+</div>
+</details>
+<details class="el" id="account-row">
+<summary><span class="mk">8</span><span><span class="name">Запис про акаунт</span><span class="one">Один збережений вхід: назва й подробиці.</span></span></summary>
+<div class="full">
+<p>Під назвою сірий рядок показує, скільки куки зберігається, коли запис збережено й коли його востаннє використовували, або «ще не використовувалась». Запис «Не авторизовано (ви відмовились)» - не справжній вхід: він лише пам’ятає, що ви відмовилися входити на цей сайт, і застосунок перестає пропонувати. У нього є лише кнопка видалення; видаліть його, щоб вас запитали знову.</p>
+</div>
+</details>
+<details class="el" id="relogin">
+<summary><span class="mk">9</span><span><span class="name">Увійти знову</span><span class="one">Входить на той самий сайт заново й оновлює запис.</span></span></summary>
+<div class="full">
+<p>Стане в пригоді, коли сайт більше не приймає збережений вхід, наприклад сплив термін або ви змінили пароль. Сторінка входу відкривається без старих куки, тож сайт починає з чистого аркуша. У записів-відмов кнопки немає.</p>
+</div>
+</details>
+<details class="el" id="rename">
+<summary><span class="mk">10</span><span><span class="name">Перейменувати акаунт</span><span class="one">Змінює назву акаунта в цьому списку.</span></span></summary>
+<div class="full">
+<p>Відкриється невелике вікно з поточною назвою. Введіть нову й натисніть «OK»; порожня назва ігнорується. Сам вхід не зачіпається. У записів-відмов кнопки немає.</p>
+</div>
+</details>
+<details class="el" id="delete">
+<summary><span class="mk">11</span><span><span class="name">Видалити збережену авторизацію</span><span class="one">Видаляє збережений вхід із застосунку.</span></span></summary>
+<div class="full">
+<p>Вікно спитає «Видалити вхід для» з назвою акаунта й запропонує «OK» та «Скасувати». Після «OK» куки цього акаунта видаляються, а запис зникає зі списку.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Збережений вхід втрачається й не відновлюється; ваш акаунт на сайті не зачіпається. Щоб повернути вхід, увійдіть заново через «+ Додати авторизацію» або плюс у заголовку сайту.</dd>
+</dl>
+</div>
+</details>
+<h3>Вікно входу</h3>
+<details class="el" id="web-page">
+<summary><span class="mk">12</span><span><span class="name">Сторінка входу</span><span class="one">Власна сторінка входу сайту, показана всередині застосунку.</span></span></summary>
+<div class="full">
+<p>Входьте так, як просить сайт, зокрема з кодом, який він надсилає. Сторінка відкривається без входу: старі куки спершу видаляються, щоб попередній сеанс не заважав. Залежно від налаштування «Захищати секретні екрани» вікно приховане від знімків екрана й списку нещодавніх застосунків.</p>
+</div>
+</details>
+<details class="el" id="web-save">
+<summary><span class="mk">13</span><span><span class="name">Зберегти авторизацію</span><span class="one">Зберігає щойно виконаний вхід.</span></span></summary>
+<div class="full">
+<p>Кнопка лишається неактивною, доки сторінка не встановить хоча б один куки, тож спершу увійдіть; якщо натиснути надто рано, застосунок нагадає про вхід. Після натискання з’явиться вікно з проханням назвати акаунт.</p>
+</div>
+</details>
+<details class="el" id="web-cancel">
+<summary><span class="mk">14</span><span><span class="name">Скасувати</span><span class="one">Закриває вікно входу, нічого не зберігаючи.</span></span></summary>
+<div class="full">
+<p>Натисніть, якщо відкрили не той сайт або передумали.</p>
+</div>
+</details>
+<details class="el" id="web-name-account">
+<summary><span class="mk">15</span><span><span class="name">Назвіть акаунт</span><span class="one">Дає збереженому входу зрозумілу вам назву.</span></span></summary>
+<div class="full">
+<p>У полі вже стоїть назва, яку застосунку вдалося прочитати з входу, або «Акаунт за замовчуванням», якщо прочитати нічого не вийшло. Натисніть «Зберегти», щоб запам’ятати запис; якщо той самий акаунт цього сайту вже збережено, застосунок оновить його запис, а не додасть другий. Після цього куки й кеш у вікні входу очищаються, а запис з’являється у списку.</p>
+</div>
+</details>
+</div>
+<h2>Пов'язане</h2>
+<ul class="related">
+<li><a href="settings-general.html"><b>Налаштування: Загальні</b><span class="pill">Екран</span></a></li>
+<li><a href="add-resource.html"><b>Додати ресурс</b><span class="pill">Екран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/privacy-and-network-security-uk.html"><b>Privacy, Saved Sign-ins and Error Reports - Staying in Control and Reporting Problems Well</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="index.html"><b>Зміст довідки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Зміст довідки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
+</footer>
+</main>
+</body>
+</html>

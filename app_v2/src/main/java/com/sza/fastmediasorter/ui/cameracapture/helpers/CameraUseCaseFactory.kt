@@ -4,6 +4,7 @@ import android.os.Build
 import android.util.Rational
 import android.util.Size
 import android.view.Surface
+import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraInfo
@@ -181,7 +182,12 @@ internal class CameraUseCaseFactory(
          * S1189: a lens entry always binds its LOGICAL camera - a physical sub-lens is not
          * selectable on its own, it is named on the use-case builders instead.
          */
-        fun selectorFor(entry: CameraLensEntry): CameraSelector = selectorFor(entry.cameraInfo)
+        fun selectorFor(entry: CameraLensEntry): CameraSelector = entry.cameraInfo?.let(::selectorFor)
+            ?: CameraSelector.Builder()
+                .addCameraFilter { infos ->
+                    infos.filter { Camera2CameraInfo.from(it).cameraId == entry.logicalCameraId }
+                }
+                .build()
 
         private const val FOUR_THREE = 4f / 3f
         private const val SIXTEEN_NINE = 16f / 9f

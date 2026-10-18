@@ -3195,7 +3195,6 @@
     <string name="exif_orientation_rotate_270">Um 270° im Uhrzeigersinn gedreht</string>
     <string name="exif_orientation_unknown">Unbekannt (%1$d)</string>
     <string name="storage_reach_limited_browse">In diesem Ordner sind nur Fotos, Videos und Audio verfügbar. Um Dokumente zu sehen, fügen Sie den Ordner erneut hinzu und wählen Sie ihn im Systemfenster für Ordner aus.</string>
-    <string name="file_count_reach_limited">%1$s - nur Fotos, Video und Audio</string>
     <string name="reach_limited_nothing_readable">Dokumente können nicht gelesen werden</string>
     <string name="storage_reach_limited_virtual">Dokumente und andere Dateien auf diesem Gerät sind für die App nicht sichtbar. Um sie zu öffnen, fügen Sie den benötigten Ordner über das Systemordnerfenster hinzu.</string>
     <string name="storage_reach_limited_browse_reconnect">In diesem Ordner sind nur Fotos, Videos und Audio verfügbar. Um Dokumente zu sehen, öffnen Sie das Drei-Punkte-Menü in der Ordnerzeile auf dem Hauptbildschirm und wählen Sie Ressource neu verbinden.</string>

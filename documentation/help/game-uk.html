@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="uk" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Довідка - Кривавиця і Чудовисько</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Зміст довідки">
+<a href="index-uk.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Кривавиця і Чудовисько</span>
+</nav>
+<header class="hero">
+<h1>Кривавиця і Чудовисько</h1>
+</header>
+<h2>Для чого цей екран</h2>
+<p class="lead">Невелика покрокова головоломка на клітинковому полі. Проведіть синє Чудовисько до зеленого виходу, доки червона Кривавиця та її фіолетові помічниці не загнали вас у кут: ви ходите на одну клітинку, після кожного ходу рухаються вороги, а кожен наступний рівень - це більше поле.</p>
+<figure class="shot">
+<img class="on-light" src="img/game-uk-light.webp" alt="Кривавиця і Чудовисько">
+<img class="on-dark" src="img/game-uk-dark.webp" alt="Кривавиця і Чудовисько">
+</figure>
+<h2>Порядок дій</h2>
+<ol class="order">
+<li>Відкрийте гру з меню програм, із панелі програм, із лаунчера або віджетом на домашньому екрані. Після встановлення вона вимкнена, тому спершу ввімкніть «Мінігра» в «Налаштуваннях», на вкладці «Управління», у групі «Додаткові програми та сценарії». Гра сама зберігається і продовжується з того місця, де ви зупинилися.</li>
+<li>Уперше натисніть «Як грати?» <a class="ref" href="#help">11</a>: на окремому екрані показано, що означає кожен колір на полі, і описано правила.</li>
+<li>Ходіть на одну клітинку за хід по полю <a class="ref" href="#board">5</a>: проведіть пальцем будь-де, торкніться поля з того боку від Чудовиська, куди хочете піти, натисніть трикутники <a class="ref" href="#arrows">6</a> або скористайтеся клавіатурою чи D-pad. Після кожного ходу рухаються й вороги.</li>
+<li>Штовхайте сірі стіни у вільні клітинки, щоб розчистити шлях. Якщо ворог опиняється на вашій клітинці або поруч, рівень програно.</li>
+<li>«Наступний хід» <a class="ref" href="#skip">7</a> пропускає ваш крок, а вороги все одно ходять: так роблять, коли стояти на місці безпечніше, ніж іти.</li>
+<li>Вихід приносить +1000, і наступний рівень починається сам за секунду або одразу за «Наступний рівень» <a class="ref" href="#reset">8</a>. «Рівень» <a class="ref" href="#level">2</a>, «Рахунок» <a class="ref" href="#score">3</a> і «Ходи» <a class="ref" href="#turns">4</a> ведуть облік над полем.</li>
+<li>Якщо рівень не вдався, «Почати рівень заново» <a class="ref" href="#restart-level">9</a> запускає його знову на новому полі за 500 очок, а «Скинути» <a class="ref" href="#reset">8</a> відкидає всю гру й починає з рівня 1. «Режим гри» <a class="ref" href="#mode">10</a> змінює вигляд поля.</li>
+</ol>
+<h2>Елементи</h2>
+<div class="elements">
+<h3>Верхній рядок і лічильники</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Назад</span><span class="one">Виходить із гри туди, звідки ви прийшли.</span></span></summary>
+<div class="full">
+<p>Гра зберігається після кожного ходу, тому вихід не втрачає ваше місце: коли ви відкриєте гру знову, вона продовжиться з тим самим рівнем, рахунком і ходами. Кнопка «Назад» на пристрої робить те саме.</p>
+<dl class="facts">
+<dt>Сполучення клавіш</dt><dd><kbd>Esc</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="level">
+<summary><span class="mk">2</span><span><span class="name">Рівень</span><span class="one">Показує, на якому ви рівні.</span></span></summary>
+<div class="full">
+<p>Ви починаєте з рівня 1. Із зростанням рівня поле збільшується - спершу 8 на 8 клітинок, потім на клітинку більше щотретього рівня, до 20 на 20 - і на ньому з'являється більше фіолетових ворогів.</p>
+</div>
+</details>
+<details class="el" id="score">
+<summary><span class="mk">3</span><span><span class="name">Рахунок</span><span class="one">Ваші очки: ходи коштують, поштовхи й вихід приносять.</span></span></summary>
+<div class="full">
+<p>Кожен хід коштує 10 очок, зокрема й пропущений. Поштовх стіни дає +10, розчавлена фіолетова помічниця +50, а вихід +1000. Рахунок ніколи не опускається нижче нуля. Початок рівня заново коштує 500 очок.</p>
+</div>
+</details>
+<details class="el" id="turns">
+<summary><span class="mk">4</span><span><span class="name">Ходи</span><span class="one">Скільки ходів ви зробили в цій грі.</span></span></summary>
+<div class="full">
+<p>Зараховуються і крок, і пропущений хід. Число росте від рівня до рівня й обнуляється, лише коли ви скидаєте гру.</p>
+</div>
+</details>
+<h3>Поле і ходи</h3>
+<details class="el" id="board">
+<summary><span class="mk">5</span><span><span class="name">Ігрове поле</span><span class="one">Ігрове поле: Чудовисько, вихід, вороги та стіни.</span></span></summary>
+<div class="full">
+<p>Синій - Чудовисько, яким ви керуєте, зелений - вихід, червона - Кривавиця, що йде за вами, фіолетові - її помічниці, які блукають випадково, сірі блоки - стіни, які можна штовхати, а товсту рамку перетнути не можна. Свайп у будь-який бік або дотик вище, нижче чи збоку від Чудовиська зсувають його на одну клітинку в цей бік; дотик точно по Чудовиську нічого не робить. Коли вас спіймали, лінія з'єднує вас із ворогом і з'являється коротке повідомлення.</p>
+</div>
+</details>
+<details class="el" id="arrows">
+<summary><span class="mk">6</span><span><span class="name">Кнопки-трикутники</span><span class="one">Чотири кнопки рухають Чудовисько на одну клітинку вгору, вниз, ліворуч або праворуч.</span></span></summary>
+<div class="full">
+<p>Вони роблять те саме, що свайп чи дотик до поля, і стануть у пригоді, якщо вам зручніші кнопки або ви граєте однією рукою. Хід у рамку або в стіну, яку не можна штовхнути, відхиляється і нічого не коштує. Працює й клавіатура: стрілки, W A S D або цифровий блок.</p>
+<dl class="facts">
+<dt>Сполучення клавіш</dt><dd><kbd>Arrow keys</kbd> / <kbd>W, A, S, D</kbd> / <kbd>Numpad 8, 4, 2, 6</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="skip">
+<summary><span class="mk">7</span><span><span class="name">Наступний хід</span><span class="one">Дає ворогам ходити, поки Чудовисько стоїть на місці.</span></span></summary>
+<div class="full">
+<p>Це зараховується як хід і коштує 10 очок, як крок. Користуйтеся, коли будь-який крок приведе вас до ворога, а чекати безпечніше.</p>
+</div>
+</details>
+<h3>Дії в грі</h3>
+<details class="el" id="reset">
+<summary><span class="mk">8</span><span><span class="name">Скинути</span><span class="one">Запускає наступний крок гри: нову гру, наступний рівень або повтор після поразки.</span></span></summary>
+<div class="full">
+<p>Напис залежить від ситуації. Поки ви граєте, написано «Скинути», і кнопка починає зовсім нову гру з рівня 1, з нульовими рахунком і ходами, не питаючи. Після виходу написано «Наступний рівень», і кнопка переходить на наступне поле. Якщо вас спіймали, написано «Почати рівень заново», і кнопка пробує той самий рівень ще раз на новому полі.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>«Скинути» викидає рівень, рахунок і ходи гри, що триває, і повернути їх не можна - лише почати нову гру з рівня 1. «Почати рівень заново» після поразки коштує 500 очок.</dd>
+<dt>Сполучення клавіш</dt><dd><kbd>Enter</kbd> / <kbd>Space</kbd> / <kbd>D-pad center</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="restart-level">
+<summary><span class="mk">9</span><span><span class="name">Почати рівень заново</span><span class="one">Запускає поточний рівень заново на новому полі, якщо ви застрягли.</span></span></summary>
+<div class="full">
+<p>Номер рівня лишається, поле створюється знову, а ціна така сама, як за поразку: 500 очок, рахунок не падає нижче нуля. Кнопку видно лише поки триває рівень; після поразки її назва переходить до головної кнопки, і вона робить те саме.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Поточне поле та 500 очок втрачаються, а попереднє поле не повернути.</dd>
+<dt>Сполучення клавіш</dt><dd><kbd>R</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="mode">
+<summary><span class="mk">10</span><span><span class="name">Режим гри</span><span class="one">Змінює вигляд поля: «Класика», «Кривавиця» або «На контрасті».</span></span></summary>
+<div class="full">
+<p>На кнопці написано назву поточного режиму. Натисніть її, щоб відкрити список «Режим гри» і вибрати інший. «Класика» малює кольорові кульки, «Кривавиця» - фігури: чоловіка, жінку з автоматом, жінок із ножами, двері, а «На контрасті» використовує суцільні плитки в класичних кольорах. Змінюється лише вигляд: правила, ваша позиція та рахунок залишаються колишніми. Вибір запам'ятовується.</p>
+</div>
+</details>
+<details class="el" id="help">
+<summary><span class="mk">11</span><span><span class="name">Як грати?</span><span class="one">Відкриває власний екран допомоги гри з легендою та правилами.</span></span></summary>
+<div class="full">
+<p>Екран називається «Як грати» і має власну кнопку «Назад». Він розповідає про мету, показує, що означає кожен колір чи фігура на полі (це залежить від вибраного режиму), і перелічує правила та рахунок. Закрийте його, щоб повернутися в гру точно туди, де ви були.</p>
+</div>
+</details>
+</div>
+<h2>Пов'язане</h2>
+<ul class="related">
+<li><a href="main-uk.html"><b>Головний екран</b><span class="pill">Екран</span></a></li>
+<li><a href="settings-operations-uk.html"><b>Налаштування: Управління</b><span class="pill">Екран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/mini-game-uk.html"><b>The Mini-Game - Kryvavitsa and the Monster</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/built-in-mini-apps-uk.html"><b>Built-in Programs - Switching Them On, the Lights, the Mirror and the SOS Signal</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="index-uk.html"><b>Зміст довідки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index-uk.html">Зміст довідки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
+</footer>
+</main>
+</body>
+</html>

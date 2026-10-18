@@ -18,6 +18,9 @@
 #   FMS_STUB_SECURE    1 = the focused window carries FLAG_SECURE
 #   FMS_STUB_WATCH     1 = ro.build.characteristics reports a watch
 #   FMS_STUB_HANG      comma-separated device ids whose `devices` probe never answers (S3486)
+#   FMS_STUB_AVD_NAMES comma-separated target=avdname pairs `emu avd name` answers from; a target with
+#                      no pair answers nothing, like a console that names no AVD (S4304)
+#   FMS_STUB_SERIALNO  what `getprop ro.serialno` reports (default EMULATOR35X1) (S4304)
 #
 # Exit codes:
 #   0  - the call matched the table
@@ -70,7 +73,16 @@ switch -Regex ($sig) {
         Write-Output 'Pixel 7'; Write-Output '14'; Write-Output '34'; exit 0
     }
     '^shell getprop ro\.product\.model$'          { Write-Output 'Pixel 7'; exit 0 }
-    '^shell getprop ro\.serialno$'                { Write-Output 'EMULATOR35X1'; exit 0 }
+    '^shell getprop ro\.serialno$'                {
+        Write-Output $(if ($env:FMS_STUB_SERIALNO) { $env:FMS_STUB_SERIALNO } else { 'EMULATOR35X1' })
+        exit 0
+    }
+    # S4304: the emulator console names the running AVD, then OK. A target with no pair stays silent.
+    '^emu avd name$' {
+        $pair = @("$env:FMS_STUB_AVD_NAMES" -split ',' | Where-Object { $_ -like "$target=*" }) | Select-Object -First 1
+        if ($pair) { Write-Output $pair.Substring($target.Length + 1); Write-Output 'OK' }
+        exit 0
+    }
     '^shell getprop ro\.build\.version\.release$' { Write-Output '14'; exit 0 }
     '^shell getprop ro\.build\.version\.sdk$'     { Write-Output '34'; exit 0 }
     '^shell getprop ro\.build\.characteristics$'  {

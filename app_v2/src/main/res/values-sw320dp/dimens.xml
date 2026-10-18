@@ -21,6 +21,8 @@
     
     <!-- Text sizes - slightly reduced but still readable -->
     <dimen name="text_size_small">10sp</dimen>
+    <!-- AppCompat requires a floor below the 10sp maximum used in this band. -->
+    <dimen name="network_monitor_tile_title_text_size_min">9sp</dimen>
     <dimen name="item_title_text_size">14sp</dimen>
     <dimen name="item_subtitle_text_size">12sp</dimen>
     <dimen name="item_detail_text_size">10sp</dimen>

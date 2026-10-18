@@ -57,62 +57,24 @@
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <!-- MODE & CAMERA SELECTION -->
-            <TextView
-                android:id="@+id/tvModeHeader"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/broadcast_entry_mode_label"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorOnSurface"
-                android:layout_marginBottom="@dimen/margin_small" />
-
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/cgBroadcastMode"
+            <!-- MODE & CAMERA SELECTION: S4336 the owner moved both choices to a list - one dropdown row
+                 each, the option list lives in code (mode) or in the lens enumeration (camera). -->
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowBroadcastMode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/margin_small"
-                app:singleSelection="true">
+                app:sdr_title="@string/broadcast_entry_mode_label"
+                app:sdr_valueAsText="true" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipModeAudioOnly"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:text="@string/broadcast_entry_mode_audio_only" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipModeVideoAudio"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/broadcast_entry_mode_video_audio" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipModeVideoOnly"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/broadcast_entry_mode_video_only" />
-            </com.google.android.material.chip.ChipGroup>
-
-            <TextView
-                android:id="@+id/tvLensHeader"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/broadcast_entry_lens_label"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorOnSurface"
-                android:visibility="gone" />
-
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/cgLensSelection"
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowLensSelection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/margin_small"
                 android:visibility="gone"
-                app:singleSelection="true" />
+                app:sdr_title="@string/broadcast_entry_lens_label"
+                app:sdr_valueAsText="true" />
 
             <!-- BROADCAST SETTINGS CARD -->
             <com.google.android.material.card.MaterialCardView
@@ -192,8 +154,25 @@
                 android:layout_marginBottom="@dimen/margin_normal"
                 android:visibility="gone">
 
-                <LinearLayout
+                <!-- S4336: the live commands are covered by a collapsible group; the stop button stays
+                     outside it so stopping never hides behind an expansion. -->
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerLiveCommands"
                     android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:csh_title="@string/broadcast_control_group_commands" />
+
+                <LinearLayout
+                    android:id="@+id/containerLiveCommands"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- S4344: equal halves - wrap_content let the wider label squeeze the loser into a
+                         mid-word-wrapping sliver at large font scales (S3168 recipe, share row). -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="horizontal"
@@ -202,12 +181,21 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnToggleCamera"
                         style="@style/Widget.FastMediaSorter.Button.Tonal"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="@dimen/margin_small"
                         android:minHeight="@dimen/touch_target_min_height"
                         android:focusable="true"
                         android:clickable="true"
+                        android:maxLines="2"
+                        android:breakStrategy="simple"
+                        android:hyphenationFrequency="none"
+                        android:paddingStart="@dimen/padding_tiny"
+                        android:paddingEnd="@dimen/padding_tiny"
+                        app:autoSizeTextType="uniform"
+                        app:autoSizeMinTextSize="@dimen/broadcast_control_live_button_text_size_min"
+                        app:autoSizeMaxTextSize="@dimen/broadcast_control_live_button_text_size_max"
                         android:nextFocusRight="@+id/btnToggleMic"
                         android:nextFocusDown="@+id/btnSwitchCamera"
                         android:text="@string/broadcast_control_camera_on"
@@ -216,11 +204,20 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnToggleMic"
                         style="@style/Widget.FastMediaSorter.Button.Tonal"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
                         android:minHeight="@dimen/touch_target_min_height"
                         android:focusable="true"
                         android:clickable="true"
+                        android:maxLines="2"
+                        android:breakStrategy="simple"
+                        android:hyphenationFrequency="none"
+                        android:paddingStart="@dimen/padding_tiny"
+                        android:paddingEnd="@dimen/padding_tiny"
+                        app:autoSizeTextType="uniform"
+                        app:autoSizeMinTextSize="@dimen/broadcast_control_live_button_text_size_min"
+                        app:autoSizeMaxTextSize="@dimen/broadcast_control_live_button_text_size_max"
                         android:nextFocusLeft="@+id/btnToggleCamera"
                         android:nextFocusDown="@+id/btnScreenOff"
                         android:text="@string/broadcast_control_mic_on"
@@ -237,32 +234,111 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSwitchCamera"
                         style="@style/Widget.FastMediaSorter.Button.Outlined"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="@dimen/margin_small"
                         android:minHeight="@dimen/touch_target_min_height"
                         android:focusable="true"
                         android:clickable="true"
+                        android:maxLines="2"
+                        android:breakStrategy="simple"
+                        android:hyphenationFrequency="none"
+                        android:paddingStart="@dimen/padding_tiny"
+                        android:paddingEnd="@dimen/padding_tiny"
+                        app:autoSizeTextType="uniform"
+                        app:autoSizeMinTextSize="@dimen/broadcast_control_live_button_text_size_min"
+                        app:autoSizeMaxTextSize="@dimen/broadcast_control_live_button_text_size_max"
                         android:nextFocusUp="@+id/btnToggleCamera"
                         android:nextFocusRight="@+id/btnScreenOff"
-                        android:nextFocusDown="@+id/btnSendToWatch"
+                        android:nextFocusDown="@+id/btnToggleTorch"
                         android:text="@string/broadcast_control_switch_camera"
                         app:icon="@drawable/ic_camera_switch" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnScreenOff"
                         style="@style/Widget.FastMediaSorter.Button.Outlined"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
                         android:minHeight="@dimen/touch_target_min_height"
                         android:focusable="true"
                         android:clickable="true"
+                        android:maxLines="2"
+                        android:breakStrategy="simple"
+                        android:hyphenationFrequency="none"
+                        android:paddingStart="@dimen/padding_tiny"
+                        android:paddingEnd="@dimen/padding_tiny"
+                        app:autoSizeTextType="uniform"
+                        app:autoSizeMinTextSize="@dimen/broadcast_control_live_button_text_size_min"
+                        app:autoSizeMaxTextSize="@dimen/broadcast_control_live_button_text_size_max"
                         android:contentDescription="@string/broadcast_control_screen_off_cd"
                         android:nextFocusUp="@+id/btnToggleMic"
                         android:nextFocusLeft="@+id/btnSwitchCamera"
-                        android:nextFocusDown="@+id/btnSendToWatch"
+                        android:nextFocusDown="@+id/btnLightFrame"
                         android:text="@string/broadcast_control_screen_off"
                         app:icon="@drawable/ic_black_screen" />
+                </LinearLayout>
+
+                <!-- S4281: low-light aids for a camera session. The row and the flashlight are shown by code: the
+                     flashlight only when the lens on air has a flash, the whole row never in a file or screen session. -->
+                <LinearLayout
+                    android:id="@+id/rowLightControls"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:visibility="gone">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnToggleTorch"
+                        style="@style/Widget.FastMediaSorter.Button.Tonal"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/margin_small"
+                        android:minHeight="@dimen/touch_target_min_height"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:maxLines="2"
+                        android:breakStrategy="simple"
+                        android:hyphenationFrequency="none"
+                        android:paddingStart="@dimen/padding_tiny"
+                        android:paddingEnd="@dimen/padding_tiny"
+                        app:autoSizeTextType="uniform"
+                        app:autoSizeMinTextSize="@dimen/broadcast_control_live_button_text_size_min"
+                        app:autoSizeMaxTextSize="@dimen/broadcast_control_live_button_text_size_max"
+                        android:contentDescription="@string/broadcast_control_torch_cd"
+                        android:nextFocusUp="@+id/btnSwitchCamera"
+                        android:nextFocusRight="@+id/btnLightFrame"
+                        android:nextFocusDown="@+id/btnSendToWatch"
+                        android:text="@string/broadcast_control_torch_off"
+                        app:icon="@drawable/ic_camera_flash_off" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnLightFrame"
+                        style="@style/Widget.FastMediaSorter.Button.Tonal"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:minHeight="@dimen/touch_target_min_height"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:maxLines="2"
+                        android:breakStrategy="simple"
+                        android:hyphenationFrequency="none"
+                        android:paddingStart="@dimen/padding_tiny"
+                        android:paddingEnd="@dimen/padding_tiny"
+                        app:autoSizeTextType="uniform"
+                        app:autoSizeMinTextSize="@dimen/broadcast_control_live_button_text_size_min"
+                        app:autoSizeMaxTextSize="@dimen/broadcast_control_live_button_text_size_max"
+                        android:contentDescription="@string/broadcast_control_light_frame_cd"
+                        android:nextFocusUp="@+id/btnScreenOff"
+                        android:nextFocusLeft="@+id/btnToggleTorch"
+                        android:nextFocusDown="@+id/btnSendToWatch"
+                        android:text="@string/broadcast_control_light_frame_off"
+                        app:icon="@drawable/ic_front_flashlight" />
                 </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
@@ -276,7 +352,7 @@
                     android:visibility="gone"
                     android:focusable="true"
                     android:clickable="true"
-                    android:nextFocusUp="@+id/btnScreenOff"
+                    android:nextFocusUp="@+id/btnLightFrame"
                     android:nextFocusDown="@+id/btnStopBroadcast"
                     android:text="@string/stream_action_send_to_watch"
                     app:icon="@drawable/ic_watch" />
@@ -293,10 +369,11 @@
                     android:visibility="gone"
                     android:focusable="true"
                     android:clickable="true"
-                    android:nextFocusUp="@+id/btnScreenOff"
+                    android:nextFocusUp="@+id/btnLightFrame"
                     android:nextFocusDown="@+id/btnStopBroadcast"
-                    android:text="@string/exchange_cast_send"
-                    app:icon="@drawable/ic_cast" />
+                        android:text="@string/exchange_cast_send"
+                        app:icon="@drawable/ic_cast" />
+                </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnStopBroadcast"
@@ -322,6 +399,20 @@
                 android:gravity="center_horizontal"
                 android:visibility="gone"
                 android:layout_marginTop="@dimen/margin_small">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerSharePanel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:csh_title="@string/broadcast_control_group_share" />
+
+                <LinearLayout
+                    android:id="@+id/containerSharePanel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
 
                 <ImageView
                     android:id="@+id/ivShareQr"
@@ -487,6 +578,7 @@
                     android:nextFocusUp="@id/btnBroadcastHelp"
                     android:text="@string/broadcast_portal_help"
                     app:icon="@drawable/ic_live_broadcast" />
+                </LinearLayout>
             </LinearLayout>
 
         </LinearLayout>

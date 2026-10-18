@@ -137,6 +137,26 @@ class StreamVideoRetryPolicyTest {
         assertEquals(SURFACE, policy.onFailure(transient(READ_POSITION_ERROR_CODE)))
     }
 
+    /**
+     * S4258: Media3 reports a refused RTSP answer ("OPTIONS 401") under an IO code the ladder retries, so the
+     * refusal flag, not the class, decides - and it spends no budget a real network drop would need.
+     */
+    @Test
+    fun `a refused broadcast password surfaces at once and spends no retry`() {
+        val policy = StreamVideoRetryPolicy()
+
+        val refusal = failure(
+            failureClass = StreamFailureClass.TRANSIENT_NETWORK,
+            errorCode = StreamFailureClass.ERROR_CODE_IO_UNSPECIFIED,
+            isRtsp = true,
+            isPasswordRefusal = true,
+        )
+
+        assertEquals(SURFACE, policy.onFailure(refusal))
+        assertEquals(SURFACE, policy.onFailure(refusal))
+        assertEquals(retry(DOUBLING_DELAY_1_MS, FIRST), policy.onFailure(transient()))
+    }
+
     @Test
     fun `all four unconditionally recoverable codes take the transient ladder`() {
         UNCONDITIONALLY_RECOVERABLE_CODES.forEach { errorCode ->
@@ -164,7 +184,8 @@ class StreamVideoRetryPolicyTest {
         failureClass: StreamFailureClass,
         errorCode: Int,
         isRtsp: Boolean = false,
-    ): StreamVideoFailure = StreamVideoFailure(failureClass, errorCode, isRtsp)
+        isPasswordRefusal: Boolean = false,
+    ): StreamVideoFailure = StreamVideoFailure(failureClass, errorCode, isRtsp, isPasswordRefusal)
 
     private fun reAnchor(delayMs: Long, attempt: Int): StreamVideoRetryDecision =
         StreamVideoRetryDecision.ReAnchor(delayMs, attempt)

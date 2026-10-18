@@ -44,6 +44,13 @@ class KeybindingRemapActivity : BaseActivity<ActivityKeybindingRemapBinding>() {
 
     override fun setupViews() {
         binding.backButton.setOnClickListener { finish() }
+        binding.btnHelpHeader.setOnClickListener {
+            com.sza.fastmediasorter.ui.common.help.HelpOpenManager.openIfPresent(
+                this,
+                "KeybindingRemapActivity",
+                UiSurface.KEYBINDING_REMAP,
+            )
+        }
 
         setupAdapter()
         setupSearch()

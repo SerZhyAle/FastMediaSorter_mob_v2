@@ -54,6 +54,11 @@ class ResourceTablePaneManager(
     private var tableAdapter: ResourceTableAdapter? = null
     private var appliedQuery: String? = null
 
+    /** Cached inputs to [ResourceTableRowsBuilder.build] to avoid rebuilding rows on every emission. */
+    private var cachedResources: List<MediaResource>? = null
+    private var cachedTableQuery: String? = null
+    private var cachedTableSort: ResourceTableSort? = null
+
     /** Rows currently on screen, in display order. */
     private var rows: List<MediaResource> = emptyList()
     private var selected: MediaResource? = null
@@ -93,10 +98,18 @@ class ResourceTablePaneManager(
         if (!show) return
         val view = ensurePane()
         syncSearchField(state.tableQuery)
-        rows = ResourceTableRowsBuilder.build(state.resources, state.tableQuery, state.tableSort, ::keysOf)
+        val inputsChanged = state.resources !== cachedResources ||
+            state.tableQuery != cachedTableQuery ||
+            state.tableSort != cachedTableSort
+        if (inputsChanged) {
+            cachedResources = state.resources
+            cachedTableQuery = state.tableQuery
+            cachedTableSort = state.tableSort
+            rows = ResourceTableRowsBuilder.build(state.resources, state.tableQuery, state.tableSort, ::keysOf)
+            tableAdapter?.submitList(rows)
+        }
         // A selection the search hides is not acted on from the panel: the user can no longer see it.
         selected = state.selectedResource?.let { current -> rows.firstOrNull { it.id == current.id } }
-        tableAdapter?.submitList(rows)
         tableAdapter?.setSelectedResource(selected?.id)
         view.tvResourceTableNoMatch.isVisible = rows.isEmpty()
         view.tvResourceTableCount.text =

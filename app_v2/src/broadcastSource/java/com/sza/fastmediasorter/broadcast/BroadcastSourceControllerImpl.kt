@@ -43,7 +43,6 @@ class BroadcastSourceControllerImpl @Inject constructor(
                 VideoBroadcastService.declaredForegroundServiceTypes(context) and
                     ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
                 ) != 0
-        Timber.d("S4235: cameraSurvivesBackground=%b", survives)
         survives
     }
 
@@ -149,6 +148,10 @@ class BroadcastSourceControllerImpl @Inject constructor(
         if (isVideoLive()) VideoBroadcastService.toggleMicrophone(context)
     }
 
+    override fun toggleTorch() {
+        if (isVideoLive()) VideoBroadcastService.toggleTorch(context)
+    }
+
     override fun selectLens(lensId: String) {
         if (isVideoLive()) VideoBroadcastService.selectLens(context, lensId)
     }
@@ -180,10 +183,15 @@ class BroadcastSourceControllerImpl @Inject constructor(
         }
     }
 
-    /** Stops both capture services and returns once neither is on the air any more. */
+    /**
+     * Stops the capture services that are on the air and returns once neither is. An idle service gets
+     * no stop, for the reason [stopSourceSessionsAndWait] gives: on an audio-video crossing the idle
+     * target service would otherwise be created by the stop intent and then brought down under the
+     * startForegroundService() that follows (device run 2026-10-16, S4285).
+     */
     private suspend fun stopCapturedSessionsAndWait() {
-        BroadcastCaptureService.stop(context)
-        VideoBroadcastService.stop(context)
+        if (BroadcastCaptureService.state.value is BroadcastState.Live) BroadcastCaptureService.stop(context)
+        if (VideoBroadcastService.state.value is BroadcastState.Live) VideoBroadcastService.stop(context)
         BroadcastCaptureService.state.first { it !is BroadcastState.Live }
         VideoBroadcastService.state.first { it !is BroadcastState.Live }
     }

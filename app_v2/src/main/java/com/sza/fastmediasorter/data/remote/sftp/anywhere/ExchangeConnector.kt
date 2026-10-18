@@ -28,6 +28,14 @@ interface ExchangeConnector {
      * refuses the certificate the server presented, and [IOException] when it cannot be reached.
      */
     fun connect(host: String, port: Int, trust: ExchangeTrust): ExchangeConnection
+
+    /**
+     * As [connect], handing [adopt] the socket before any blocking stage, so a cancelled owner can close a TCP
+     * connect or a TLS handshake still in progress. A connector with no socket of its own adopts the finished
+     * connection instead.
+     */
+    fun connect(host: String, port: Int, trust: ExchangeTrust, adopt: (Closeable) -> Unit): ExchangeConnection =
+        connect(host, port, trust).also(adopt)
 }
 
 /** How the server's certificate is judged (contract DEVICE-EXCHANGE 7.1 with amendment D). */
@@ -100,12 +108,24 @@ object ExchangeTrustDecision {
  * written, so a refused server receives nothing but the handshake.
  */
 @Singleton
-class TlsExchangeConnector @Inject constructor() : ExchangeConnector {
+class TlsExchangeConnector internal constructor(private val handshakeTimeoutMs: Int) : ExchangeConnector {
 
-    override fun connect(host: String, port: Int, trust: ExchangeTrust): ExchangeConnection {
+    @Inject
+    constructor() : this(HANDSHAKE_TIMEOUT_MS)
+
+    override fun connect(host: String, port: Int, trust: ExchangeTrust): ExchangeConnection =
+        connect(host, port, trust) { }
+
+    override fun connect(
+        host: String,
+        port: Int,
+        trust: ExchangeTrust,
+        adopt: (Closeable) -> Unit,
+    ): ExchangeConnection {
         val inspector = InspectingTrustManager(platformTrustManager())
         val context = SSLContext.getInstance(TLS).apply { init(null, arrayOf(inspector), null) }
         val socket = context.socketFactory.createSocket() as SSLSocket
+        adopt(socket)
         try {
             val address = InetSocketAddress(host, port)
             // DIAGNOSTIC-REPORT section 10: a connect failure names the address in its message, by name and by IP.
@@ -114,7 +134,10 @@ class TlsExchangeConnector @Inject constructor() : ExchangeConnector {
             ExchangeTlsProtocols.restrict(socket)
             socket.connect(address, CONNECT_TIMEOUT_MS)
             Timber.d("Exchange connect: TCP established to %s:%d, starting TLS handshake", host, port)
+            // A peer that accepts TCP and never speaks TLS would otherwise hold the socket and its IO worker forever.
+            socket.soTimeout = handshakeTimeoutMs
             socket.startHandshake()
+            socket.soTimeout = 0
         } catch (e: IOException) {
             // The class and message are what tells a refused port, a timeout and a failed handshake apart.
             Timber.w(e, "Exchange connect failed before any envelope (%s:%d, %s)", host, port, e.javaClass.simpleName)
@@ -192,6 +215,7 @@ class TlsExchangeConnector @Inject constructor() : ExchangeConnector {
     companion object {
         private const val TLS = "TLS"
         private const val CONNECT_TIMEOUT_MS = 15_000
+        private const val HANDSHAKE_TIMEOUT_MS = 15_000
 
         /**
          * `SHA256:` plus the unpadded base64 digest of [der] - the leaf DER, or its public key's encoding for the

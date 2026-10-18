@@ -524,8 +524,37 @@ function Test-DaComponentResolves {
     #>
     param([Parameter(Mandatory)][string]$Serial, [Parameter(Mandatory)][string]$Component)
     $r = Invoke-DaAdb -Serial $Serial -Arguments @('shell', 'cmd', 'package', 'resolve-activity', '--brief', '-n', $Component) -TimeoutMs 15000
-    $last = @($r.Lines | Where-Object { $_.Trim() } | Select-Object -Last 1)
-    return ($r.ExitCode -eq 0 -and $last -and $last[0] -match '^[\w.]+/[\w.$]+$' -and $last[0] -notmatch 'ResolverActivity')
+    return ($r.ExitCode -eq 0 -and $null -ne (ConvertFrom-DaResolvedComponent -Lines $r.Lines))
+}
+
+function ConvertFrom-DaResolvedComponent {
+    <#
+    .SYNOPSIS
+        The package/activity named on the last line of `cmd package resolve-activity --brief`, or $null when nothing
+        resolved or only the chooser did.
+    .PARAMETER Lines
+        Output lines of the command.
+    #>
+    param([string[]]$Lines)
+    $last = @($Lines | Where-Object { "$_".Trim() } | Select-Object -Last 1)
+    if (-not $last) { return $null }
+    $c = "$($last[0])".Trim()
+    if ($c -notmatch '^[\w.]+/[\w.$]+$' -or $c -match 'ResolverActivity') { return $null }
+    return $c
+}
+
+function Resolve-DaStockSettingsComponent {
+    <#
+    .SYNOPSIS
+        The image's own settings activity (android.settings.SETTINGS), or $null; a watch image has no
+        com.android.settings, so the calibration control is resolved instead of assumed.
+    .PARAMETER Serial
+        A serial that already passed Assert-DaEmulatorTarget.
+    #>
+    param([Parameter(Mandatory)][string]$Serial)
+    $r = Invoke-DaAdb -Serial $Serial -Arguments @('shell', 'cmd', 'package', 'resolve-activity', '--brief', '-a', 'android.settings.SETTINGS') -TimeoutMs 15000
+    if ($r.ExitCode -ne 0) { return $null }
+    return (ConvertFrom-DaResolvedComponent -Lines $r.Lines)
 }
 
 function Invoke-DaCalibration {
@@ -539,7 +568,8 @@ function Invoke-DaCalibration {
     .PARAMETER ControlPackage
         Stock package used as the idle process.
     .PARAMETER ControlComponent
-        Stock activity started before measuring.
+        Stock activity started before measuring. When it does not resolve on the image (a watch), the image's own
+        settings activity and its package replace ControlComponent and ControlPackage, and the record names them.
     .PARAMETER ProbePeriodMs
         Period of the probe loop whose lateness is measured.
     .PARAMETER Ticks
@@ -574,7 +604,10 @@ function Invoke-DaCalibration {
     $runDir = Join-Path $paths.Runs $RunId
     New-Item -ItemType Directory -Path $runDir -Force | Out-Null
     if (-not (Test-DaComponentResolves -Serial $Serial -Component $ControlComponent)) {
-        return [pscustomobject]@{ Code = $codes.Refused; Reason = "control component $ControlComponent does not resolve on this image"; RecordPath = $null }
+        $stock = Resolve-DaStockSettingsComponent -Serial $Serial
+        if (-not $stock) { return [pscustomobject]@{ Code = $codes.Refused; Reason = "control component $ControlComponent does not resolve on this image, and no settings activity resolves either"; RecordPath = $null } }
+        $ControlComponent = $stock
+        $ControlPackage = ($stock -split '/')[0]
     }
     $startedAt = (Get-Date).ToUniversalTime().ToString('o')
     $startedMono = Get-DaMonotonicMs

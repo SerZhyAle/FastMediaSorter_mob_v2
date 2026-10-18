@@ -31,9 +31,10 @@ class WearExchangeCastMachineTest {
 
         val actions = machine.onUserAnswer("b1", accepted = true)
 
+        // S4339: the acceptance dismiss keeps the endpoint - the Play that follows it still needs it.
         assertEquals(
             listOf(
-                WearExchangeCastAction.Dismiss("b1"),
+                WearExchangeCastAction.Dismiss("b1", keepsEndpoint = true),
                 WearExchangeCastAction.Answer(offer, true, null),
                 WearExchangeCastAction.Play(offer),
             ),

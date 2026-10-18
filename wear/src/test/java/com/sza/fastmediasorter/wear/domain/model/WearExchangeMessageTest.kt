@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.domain.model
 
+import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeCertificateChangedException
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeCertificateUntrustedException
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeFailureClassifier
@@ -7,8 +8,12 @@ import com.sza.fastmediasorter.wear.data.exchange.WearExchangeNotEnrolledExcepti
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeRefusedException
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeWireException
 import com.sza.fastmediasorter.wear.ui.common.messageRes
+import com.sza.fastmediasorter.wear.ui.exchange.WearAccountBroadcastsUiState
+import com.sza.fastmediasorter.wear.ui.exchange.sectionBroadcastStatusRes
+import com.sza.fastmediasorter.wear.ui.exchange.topLevelBroadcastStatusRes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import java.io.IOException
 import java.net.ConnectException
@@ -93,5 +98,68 @@ class WearExchangeMessageTest {
     fun `a wrapped refusal is still found in the cause chain`() {
         val wrapped = IOException("outer", WearExchangeRefusedException("signed-out"))
         assertEquals(WearExchangeMessage.SIGNED_OUT, WearExchangeFailureClassifier.of(wrapped))
+    }
+
+    @Test
+    fun `topLevelBroadcastStatusRes maps unanswered and empty states to loading, failed, and empty`() {
+        assertEquals(
+            R.string.wear_exchange_broadcasts_loading,
+            topLevelBroadcastStatusRes(
+                WearAccountBroadcastsUiState(sections = emptyList(), hasAnswered = false, isGraceOver = false),
+            ),
+        )
+        assertEquals(
+            R.string.wear_exchange_broadcasts_failed,
+            topLevelBroadcastStatusRes(
+                WearAccountBroadcastsUiState(sections = emptyList(), hasAnswered = false, isGraceOver = true),
+            ),
+        )
+        assertEquals(
+            R.string.wear_exchange_broadcasts_empty,
+            topLevelBroadcastStatusRes(
+                WearAccountBroadcastsUiState(sections = emptyList(), hasAnswered = true, isGraceOver = false),
+            ),
+        )
+        assertEquals(
+            R.string.wear_exchange_broadcasts_empty,
+            topLevelBroadcastStatusRes(
+                WearAccountBroadcastsUiState(sections = emptyList(), hasAnswered = true, isGraceOver = true),
+            ),
+        )
+    }
+
+    @Test
+    fun `sectionBroadcastStatusRes maps pending, failed, and loaded section states`() {
+        val pending = WearAccountBroadcastSection(
+            entryIdentity = "e1",
+            entryLabel = "ex.example:7443",
+            groups = emptyList(),
+            isReachable = false,
+            isLoaded = false,
+        )
+        assertNull(
+            topLevelBroadcastStatusRes(
+                WearAccountBroadcastsUiState(sections = listOf(pending), hasAnswered = true, isGraceOver = false),
+            ),
+        )
+        assertEquals(R.string.wear_exchange_broadcasts_loading, sectionBroadcastStatusRes(pending, isGraceOver = false))
+        assertEquals(R.string.wear_exchange_broadcasts_failed, sectionBroadcastStatusRes(pending, isGraceOver = true))
+        val unreachablePending = pending.copy(failure = WearExchangeMessage.UNREACHABLE_SERVER)
+        assertNull(sectionBroadcastStatusRes(unreachablePending, isGraceOver = false))
+
+        val emptyLoaded = pending.copy(isReachable = true, isLoaded = true)
+        assertEquals(
+            R.string.wear_exchange_broadcasts_empty,
+            sectionBroadcastStatusRes(emptyLoaded, isGraceOver = false),
+        )
+
+        val populatedGroup = WearBroadcasterGroup(
+            deviceName = "Phone",
+            isOnline = true,
+            broadcasts = listOf(
+                WearAccountBroadcast("e1", "b1", "Desk", "AUDIO_ONLY", isProtected = false, isPlayable = true),
+            ),
+        )
+        assertNull(sectionBroadcastStatusRes(emptyLoaded.copy(groups = listOf(populatedGroup)), isGraceOver = true))
     }
 }

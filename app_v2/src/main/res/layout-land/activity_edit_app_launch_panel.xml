@@ -52,6 +52,17 @@
             android:nextFocusLeft="@id/backButton"
             android:text="@string/app_launch_panel_reset" />
 
+        <!-- S4328: the "?" at the row's end; landscape twin of the portrait button. -->
+        <ImageButton
+            android:id="@+id/btnHelpHeader"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/help"
+            android:focusable="true"
+            android:src="@drawable/ic_help_outline" />
+
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView

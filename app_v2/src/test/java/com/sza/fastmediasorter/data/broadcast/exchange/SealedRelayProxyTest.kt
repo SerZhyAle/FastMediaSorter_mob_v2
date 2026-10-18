@@ -12,6 +12,8 @@ import java.io.ByteArrayOutputStream
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 /** The opening proxy of contract DEVICE-EXCHANGE 27 item DL, fed the relay chunks of `vectors/e2e-v1.json`. */
@@ -62,6 +64,71 @@ class SealedRelayProxyTest {
         assertTrue(head, head.contains("Content-Type: ${relay.get("mediaType").asString}"))
         val clear = chunks.flatMap { chunk -> chunk.getAsJsonArray("clearMedia").map { it.asString } }
         assertEquals(clear.joinToString(""), E2eBytes.hex(body))
+    }
+
+    @Test
+    fun closeUnblocksSilentClientBeforeRequestHeadersComplete() {
+        val groupKey = ByteArray(32)
+        val proxy = SealedRelayProxy(
+            label = "test",
+            path = "/v2/b/x/stream",
+            host = "exchange.example",
+            broadcastId = "b-1",
+            groupKey = groupKey,
+        ) {
+            ExchangeConnection(Socket(InetAddress.getLoopbackAddress(), upstream.localPort), "")
+        }.also(closeables::add)
+
+        Socket(BroadcastExchangeEndpoints.LOOPBACK_HOST, proxy.port).use { client ->
+            client.soTimeout = TIMEOUT_MS
+            client.getOutputStream().apply {
+                write("GET /v2/b/x/stream HTTP/1.1\r\n".toByteArray(Charsets.US_ASCII))
+                flush()
+            }
+            proxy.close()
+            val read = runCatching { client.getInputStream().read() }.getOrDefault(-1)
+            assertEquals(-1, read)
+        }
+    }
+
+    @Test
+    fun closeTearsDownActiveUpstreamConnection() {
+        val peerAccepted = CountDownLatch(1)
+        val peerEOF = CountDownLatch(1)
+        thread(isDaemon = true) {
+            upstream.accept().use { peer ->
+                peer.soTimeout = TIMEOUT_MS
+                peerAccepted.countDown()
+                runCatching {
+                    while (peer.getInputStream().read() >= 0) {
+                        // Drain request bytes until proxy.close() closes the upstream socket.
+                    }
+                }
+                peerEOF.countDown()
+            }
+        }
+        val proxy = SealedRelayProxy(
+            label = "test",
+            path = "/v2/b/x/stream",
+            host = "exchange.example",
+            broadcastId = "b-1",
+            groupKey = ByteArray(32),
+        ) {
+            ExchangeConnection(Socket(InetAddress.getLoopbackAddress(), upstream.localPort), "")
+        }.also(closeables::add)
+
+        Socket(BroadcastExchangeEndpoints.LOOPBACK_HOST, proxy.port).use { client ->
+            client.soTimeout = TIMEOUT_MS
+            client.getOutputStream().apply {
+                write("GET /v2/b/x/stream HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n".toByteArray(Charsets.US_ASCII))
+                flush()
+            }
+            assertTrue(peerAccepted.await(TIMEOUT_MS.toLong(), TimeUnit.MILLISECONDS))
+            proxy.close()
+            val read = runCatching { client.getInputStream().read() }.getOrDefault(-1)
+            assertEquals(-1, read)
+            assertTrue(peerEOF.await(TIMEOUT_MS.toLong(), TimeUnit.MILLISECONDS))
+        }
     }
 
     private fun serveOnce(payloads: List<ByteArray>) {

@@ -431,6 +431,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     override fun setupViews() {
         com.sza.fastmediasorter.ui.browse.managers.BrowseEdgeToEdgeHelper.apply(binding)
         com.sza.fastmediasorter.utils.GlideCacheStats.reset()
+        com.sza.fastmediasorter.ui.browse.helpers.BrowseHelpEntryManager.bindHeaderButton(this, binding.btnHelpHeader)
         restitchBrowseControlChain()
         passwordManager = ResourcePasswordManager(context = this, layoutInflater = layoutInflater)
         Timber.d("showVideoThumbnails initialized: $showVideoThumbnails")

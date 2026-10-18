@@ -1,0 +1,352 @@
+{
+  "help": "settings-playback",
+  "surface": "SettingsActivity",
+  "elements": [
+    { "id": "default-sort", "viewId": "spinnerSortMode", "labelKey": "default_sort_mode" },
+    { "id": "slideshow-interval", "viewId": "etSlideshowInterval", "labelKey": "slideshow_interval_inline" },
+    { "id": "play-to-end", "viewId": "rowPlayToEnd", "labelKey": "play_video_to_end" },
+    { "id": "allow-rename", "viewId": "rowAllowRename", "labelKey": "allow_rename" },
+    { "id": "allow-delete", "viewId": "rowAllowDelete", "labelKey": "allow_delete" },
+    { "id": "confirm-delete", "viewId": "rowConfirmDelete", "labelKey": "confirm_delete" },
+    { "id": "hide-system-ui", "viewId": "rowHideSystemUiInFullscreen", "labelKey": "hide_system_ui_in_fullscreen" },
+    { "id": "follow-rotation", "viewId": "rowFollowSystemRotationPlayer", "labelKey": "setting_follow_system_rotation_player_title" },
+    { "id": "show-command-panel", "viewId": "rowShowCommandPanel", "labelKey": "show_command_panel_by_default" },
+    { "id": "panel-auto-hide", "viewId": "rowPlayerPanelAutoHide", "labelKey": "player_panel_auto_hide_seconds" },
+    { "id": "black-screen", "viewId": "rowShowBlackScreenButton", "labelKey": "settings_black_screen_button_title" },
+    { "id": "pip", "viewId": "rowEnablePip", "labelKey": "setting_enable_pip" },
+    { "id": "big-buttons", "viewId": "rowBigButtonsMode", "labelKey": "big_buttons_mode_title" },
+    { "id": "small-controls", "viewId": "rowSmallControls", "labelKey": "small_controls" },
+    { "id": "disable-nine-zone", "viewId": "rowDisableNineZone", "labelKey": "disable_nine_zone_tracking" },
+    { "id": "show-hint", "viewId": "rowShowPlayerHint", "labelKey": "show_player_hint" },
+    { "id": "always-show-zones", "viewId": "rowAlwaysShowTouchZones", "labelKey": "always_show_touch_zones_overlay" },
+    { "id": "show-hint-now", "viewId": "btnShowHintNow", "labelKey": "show_hint_now" },
+    { "id": "background-audio", "viewId": "rowEnablePersistentAudioPlayback", "labelKey": "background_audio_setting_title" },
+    { "id": "exit-behavior", "viewId": "radioGroupExitBehavior", "labelKey": "background_audio_exit_behavior_title" },
+    { "id": "now-playing-panel", "viewId": "rowShowNowPlayingPanel", "labelKey": "show_now_playing_panel_title" },
+    { "id": "reset-playback", "viewId": "btnResetPlaybackSection", "labelKey": "reset_playback_section" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "settings-general" },
+    { "help": "settings-media" },
+    { "help": "settings-operations" },
+    { "pageId": "settings.playback-and-sorting-preferences" },
+    { "pageId": "settings.settings-overview-and-search" },
+    { "pageId": "player.video-playback-controls" },
+    { "pageId": "player.pip-and-background-play" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Settings: Player",
+      "purpose": "Player holds the settings for viewing and playing your files: default order, slideshow timing, what you may do to a file while viewing it, player controls, touch zones and background audio.",
+      "orderNote": "There is no fixed order here - every option works on its own. They are grouped below by the same section headers you see on the tab.",
+      "groups": [
+        { "title": "Sorting, slideshow and playback order", "elements": ["default-sort", "slideshow-interval", "play-to-end"] },
+        { "title": "Deletion and renaming in player", "elements": ["allow-rename", "allow-delete", "confirm-delete"] },
+        { "title": "Player interface and commands", "elements": ["hide-system-ui", "follow-rotation", "show-command-panel", "panel-auto-hide", "black-screen", "pip", "big-buttons", "small-controls"] },
+        { "title": "Touch zones and on-screen hints", "elements": ["disable-nine-zone", "show-hint", "always-show-zones", "show-hint-now"] },
+        { "title": "Background audio playback", "elements": ["background-audio", "exit-behavior", "now-playing-panel"] },
+        { "title": "Reset", "elements": ["reset-playback"] }
+      ],
+      "elements": {
+        "default-sort": {
+          "summary": "Sets the default order of files.",
+          "details": "Choose manual order, or sort by name, date, size or type, each ascending or descending."
+        },
+        "slideshow-interval": {
+          "summary": "Sets how long each image stays on screen in a slideshow.",
+          "details": "From 1 to 3600 seconds; the default is 10. Videos play to the end or follow this timer, depending on the next option."
+        },
+        "play-to-end": {
+          "summary": "Lets video and audio in a slideshow finish before moving on.",
+          "details": "Without it, the slideshow interval decides when to move to the next file."
+        },
+        "allow-rename": {
+          "summary": "Allows renaming a file from inside the player.",
+          "details": "Handy while you sort: rename the current file without going back to the file browser."
+        },
+        "allow-delete": {
+          "summary": "Allows deleting a file from inside the player.",
+          "details": "Handy while you sort: remove the current file without going back to the file browser.",
+          "undo": "On local resources a deleted file waits in a hidden .trash folder, so you can bring it back with Undo before the resource is closed. On some network or cloud resources a deletion is permanent."
+        },
+        "confirm-delete": {
+          "summary": "Asks before a file is deleted in the player.",
+          "details": "Turn it off if you prefer deleting with one tap."
+        },
+        "hide-system-ui": {
+          "summary": "Hides the status bar and navigation in fullscreen.",
+          "details": "The picture gets the whole screen."
+        },
+        "follow-rotation": {
+          "summary": "Lets the player follow the system auto-rotate.",
+          "details": "It works independently of the app-wide setting, so the rest of the app can stay as it is."
+        },
+        "show-command-panel": {
+          "summary": "Opens the command panel automatically when the player starts.",
+          "details": "The panel gives quick access to copy, move, delete and other file actions."
+        },
+        "panel-auto-hide": {
+          "summary": "Sets how many seconds the player panel stays before it hides.",
+          "details": "A shorter time clears the screen sooner; a longer one keeps the buttons within reach."
+        },
+        "black-screen": {
+          "summary": "Adds a button that blanks the screen while playback continues.",
+          "details": "It sits in the player toolbar, so the screen goes dark while audio or video keeps playing."
+        },
+        "pip": {
+          "summary": "Adds a Picture-in-Picture button to the player.",
+          "details": "The player also enters Picture-in-Picture on its own when you press Home (Android 12 and newer)."
+        },
+        "big-buttons": {
+          "summary": "Makes player buttons larger and full-width.",
+          "details": "It suits car head units. The top toolbar shows 5 to 9 buttons depending on the width, and the rest move to the three-dots menu. In landscape, the tall bottom panel can reduce the playback area."
+        },
+        "small-controls": {
+          "summary": "Shrinks the bottom control buttons in the player.",
+          "details": "Useful on smaller screens or when you want a less intrusive interface."
+        },
+        "disable-nine-zone": {
+          "summary": "Switches the player from 9 touch zones to 3.",
+          "details": "With the 9-zone grid off, the player uses three zones: previous, zoom and next. Tap the left edge to open the command panel for file actions."
+        },
+        "show-hint": {
+          "summary": "Shows the touch zones hint the first time you open the player.",
+          "details": "The overlay explains the nine zones: back, copy, rename, previous, move, next, command panel, delete and slideshow."
+        },
+        "always-show-zones": {
+          "summary": "Keeps a semi-transparent grid of touch zones over the media.",
+          "details": "It shows in fullscreen mode and helps while you learn which zone does what."
+        },
+        "show-hint-now": {
+          "summary": "Shows the touch zones hint again the next time you open the player.",
+          "details": "Use it to see the scheme once more."
+        },
+        "background-audio": {
+          "summary": "Keeps audio playing when the app is minimized.",
+          "details": "Music continues in the background. If notifications are blocked, a button appears here to manage that permission."
+        },
+        "exit-behavior": {
+          "summary": "Chooses what happens to background audio when you leave the player or streams.",
+          "details": "Asking every time is the default. You can also always stop the audio or always keep it playing. The choice appears once background playback is on."
+        },
+        "now-playing-panel": {
+          "summary": "Shows a mini player bar while you browse images and other files.",
+          "details": "The bar lets you control the track that is playing and leads back to the full audio player."
+        },
+        "reset-playback": {
+          "summary": "Returns only this tab to its defaults.",
+          "details": "Settings on the other tabs keep their values. The app asks you to confirm first."
+        }
+      }
+    },
+    "ru": {
+      "title": "Настройки: Плеер",
+      "purpose": "На вкладке «Плеер» собраны настройки просмотра и воспроизведения файлов: порядок по умолчанию, время слайд-шоу, что можно делать с файлом во время просмотра, управление плеером, сенсорные зоны и фоновое аудио.",
+      "orderNote": "Единого порядка здесь нет - каждый параметр работает сам по себе. Ниже они сгруппированы по тем же заголовкам разделов, что и на вкладке.",
+      "groups": [
+        { "title": "Сортировка, слайд-шоу и порядок запуска", "elements": ["default-sort", "slideshow-interval", "play-to-end"] },
+        { "title": "Удаление и переименование в плеере", "elements": ["allow-rename", "allow-delete", "confirm-delete"] },
+        { "title": "Интерфейс и команды плеера", "elements": ["hide-system-ui", "follow-rotation", "show-command-panel", "panel-auto-hide", "black-screen", "pip", "big-buttons", "small-controls"] },
+        { "title": "Сенсорные зоны и экранные подсказки", "elements": ["disable-nine-zone", "show-hint", "always-show-zones", "show-hint-now"] },
+        { "title": "Фоновое воспроизведение аудио", "elements": ["background-audio", "exit-behavior", "now-playing-panel"] },
+        { "title": "Сброс", "elements": ["reset-playback"] }
+      ],
+      "elements": {
+        "default-sort": {
+          "summary": "Задаёт порядок файлов по умолчанию.",
+          "details": "Можно выбрать ручной порядок или сортировку по имени, дате, размеру и типу - по возрастанию или по убыванию."
+        },
+        "slideshow-interval": {
+          "summary": "Задаёт, сколько секунд каждое изображение остаётся на экране в слайд-шоу.",
+          "details": "От 1 до 3600 секунд, по умолчанию 10. Видео играет до конца или подчиняется этому таймеру - это зависит от следующего параметра."
+        },
+        "play-to-end": {
+          "summary": "Даёт видео и аудио в слайд-шоу доиграть до конца.",
+          "details": "Без этого параметра к следующему файлу переходят по интервалу слайд-шоу."
+        },
+        "allow-rename": {
+          "summary": "Разрешает переименовывать файл прямо в плеере.",
+          "details": "Удобно при разборе файлов: переименуйте текущий файл, не возвращаясь в браузер файлов."
+        },
+        "allow-delete": {
+          "summary": "Разрешает удалять файл прямо в плеере.",
+          "details": "Удобно при разборе файлов: удалите текущий файл, не возвращаясь в браузер файлов.",
+          "undo": "На локальных ресурсах удалённый файл ждёт в скрытой папке .trash, и его можно вернуть кнопкой «Отменить», пока ресурс не закрыт. На некоторых сетевых и облачных ресурсах удаление необратимо."
+        },
+        "confirm-delete": {
+          "summary": "Спрашивает подтверждение перед удалением файла в плеере.",
+          "details": "Выключите, если предпочитаете удалять одним нажатием."
+        },
+        "hide-system-ui": {
+          "summary": "Скрывает строку состояния и навигацию в полноэкранном режиме.",
+          "details": "Изображению достаётся весь экран."
+        },
+        "follow-rotation": {
+          "summary": "Поворачивает экран плеера вслед за автоповоротом системы.",
+          "details": "Работает независимо от общей настройки приложения, поэтому остальное приложение остаётся как было."
+        },
+        "show-command-panel": {
+          "summary": "Автоматически открывает панель команд при входе в плеер.",
+          "details": "Панель даёт быстрый доступ к копированию, перемещению, удалению и другим действиям с файлом."
+        },
+        "panel-auto-hide": {
+          "summary": "Задаёт, через сколько секунд панель плеера скрывается.",
+          "details": "Меньшее значение быстрее освобождает экран, большее дольше оставляет кнопки под рукой."
+        },
+        "black-screen": {
+          "summary": "Добавляет кнопку, которая гасит экран, пока воспроизведение продолжается.",
+          "details": "Кнопка находится на панели плеера: экран темнеет, а аудио или видео играет дальше."
+        },
+        "pip": {
+          "summary": "Добавляет в плеер кнопку «картинка в картинке».",
+          "details": "Плеер также сам переходит в режим «картинка в картинке», когда вы нажимаете «Домой» (Android 12 и новее)."
+        },
+        "big-buttons": {
+          "summary": "Увеличивает кнопки плеера и растягивает их на всю ширину.",
+          "details": "Режим подходит для автомагнитол. Вверху помещается от 5 до 9 кнопок, в зависимости от ширины, остальные уходят в меню с тремя точками. В альбомной ориентации высокая нижняя панель может уменьшить область воспроизведения."
+        },
+        "small-controls": {
+          "summary": "Уменьшает нижние кнопки управления в плеере.",
+          "details": "Полезно на небольших экранах или когда хочется менее заметного интерфейса."
+        },
+        "disable-nine-zone": {
+          "summary": "Переключает плеер с 9 сенсорных зон на 3.",
+          "details": "Когда сетка из 9 зон выключена, в плеере три зоны: предыдущий, масштаб и следующий. Нажмите левый край, чтобы открыть панель команд с действиями над файлом."
+        },
+        "show-hint": {
+          "summary": "Показывает подсказку о сенсорных зонах при первом открытии плеера.",
+          "details": "Схема объясняет девять зон: назад, копировать, переименовать, предыдущий, переместить, следующий, панель команд, удалить и слайд-шоу."
+        },
+        "always-show-zones": {
+          "summary": "Держит поверх медиа полупрозрачную сетку сенсорных зон.",
+          "details": "Она видна в полноэкранном режиме и помогает запомнить, какая зона что делает."
+        },
+        "show-hint-now": {
+          "summary": "Покажет подсказку о сенсорных зонах при следующем открытии плеера.",
+          "details": "Нажмите, чтобы увидеть схему ещё раз."
+        },
+        "background-audio": {
+          "summary": "Не прерывает звук, когда приложение свёрнуто.",
+          "details": "Музыка продолжает играть в фоне. Если уведомления заблокированы, здесь появляется кнопка для управления этим разрешением."
+        },
+        "exit-behavior": {
+          "summary": "Выбирает, что будет с фоновым звуком, когда вы выходите из плеера или трансляций.",
+          "details": "По умолчанию приложение спрашивает каждый раз. Можно также всегда останавливать звук или всегда продолжать воспроизведение. Выбор появляется, когда включено фоновое воспроизведение."
+        },
+        "now-playing-panel": {
+          "summary": "Показывает мини-плеер, пока вы просматриваете изображения и другие файлы.",
+          "details": "Панель позволяет управлять играющим треком и возвращает в полный аудиоплеер."
+        },
+        "reset-playback": {
+          "summary": "Возвращает к значениям по умолчанию только эту вкладку.",
+          "details": "Настройки на других вкладках сохраняются. Перед сбросом приложение просит подтвердить действие."
+        }
+      }
+    },
+    "uk": {
+      "title": "Налаштування: Плеєр",
+      "purpose": "На вкладці «Плеєр» зібрано налаштування перегляду й відтворення файлів: порядок за замовчуванням, час слайдшоу, що можна робити з файлом під час перегляду, керування плеєром, сенсорні зони та фонове аудіо.",
+      "orderNote": "Єдиного порядку тут немає - кожен параметр працює сам по собі. Нижче їх згруповано за тими самими заголовками розділів, що й на вкладці.",
+      "groups": [
+        { "title": "Сортування, слайд-шоу й порядок запуску", "elements": ["default-sort", "slideshow-interval", "play-to-end"] },
+        { "title": "Видалення й перейменування у плеєрі", "elements": ["allow-rename", "allow-delete", "confirm-delete"] },
+        { "title": "Інтерфейс і команди плеєра", "elements": ["hide-system-ui", "follow-rotation", "show-command-panel", "panel-auto-hide", "black-screen", "pip", "big-buttons", "small-controls"] },
+        { "title": "Сенсорні зони й екранні підказки", "elements": ["disable-nine-zone", "show-hint", "always-show-zones", "show-hint-now"] },
+        { "title": "Фонове відтворення аудіо", "elements": ["background-audio", "exit-behavior", "now-playing-panel"] },
+        { "title": "Скидання", "elements": ["reset-playback"] }
+      ],
+      "elements": {
+        "default-sort": {
+          "summary": "Задає порядок файлів за замовчуванням.",
+          "details": "Можна вибрати ручний порядок або сортування за іменем, датою, розміром і типом - за зростанням чи за спаданням."
+        },
+        "slideshow-interval": {
+          "summary": "Задає, скільки секунд кожне зображення лишається на екрані в слайдшоу.",
+          "details": "Від 1 до 3600 секунд, за замовчуванням 10. Відео грає до кінця або підкоряється цьому таймеру - це залежить від наступного параметра."
+        },
+        "play-to-end": {
+          "summary": "Дає відео й аудіо в слайдшоу дограти до кінця.",
+          "details": "Без цього параметра до наступного файлу переходять за інтервалом слайдшоу."
+        },
+        "allow-rename": {
+          "summary": "Дозволяє перейменовувати файл просто в плеєрі.",
+          "details": "Зручно під час розбирання файлів: перейменуйте поточний файл, не повертаючись у браузер файлів."
+        },
+        "allow-delete": {
+          "summary": "Дозволяє видаляти файл просто в плеєрі.",
+          "details": "Зручно під час розбирання файлів: видаліть поточний файл, не повертаючись у браузер файлів.",
+          "undo": "На локальних ресурсах видалений файл чекає в прихованій папці .trash, і його можна повернути кнопкою «Скасувати», поки ресурс не закрито. На деяких мережевих і хмарних ресурсах видалення незворотне."
+        },
+        "confirm-delete": {
+          "summary": "Питає підтвердження перед видаленням файлу в плеєрі.",
+          "details": "Вимкніть, якщо віддаєте перевагу видаленню одним дотиком."
+        },
+        "hide-system-ui": {
+          "summary": "Ховає рядок стану й навігацію в повноекранному режимі.",
+          "details": "Зображенню дістається весь екран."
+        },
+        "follow-rotation": {
+          "summary": "Повертає екран плеєра услід за автоповоротом системи.",
+          "details": "Працює незалежно від загального налаштування застосунку, тож решта застосунку лишається як була."
+        },
+        "show-command-panel": {
+          "summary": "Автоматично відкриває панель команд під час входу в плеєр.",
+          "details": "Панель дає швидкий доступ до копіювання, переміщення, видалення й інших дій із файлом."
+        },
+        "panel-auto-hide": {
+          "summary": "Задає, через скільки секунд панель плеєра ховається.",
+          "details": "Менше значення швидше звільняє екран, більше - довше залишає кнопки під рукою."
+        },
+        "black-screen": {
+          "summary": "Додає кнопку, що гасить екран, поки відтворення триває.",
+          "details": "Кнопка міститься на панелі плеєра: екран темніє, а аудіо чи відео грає далі."
+        },
+        "pip": {
+          "summary": "Додає до плеєра кнопку «картинка в картинці».",
+          "details": "Плеєр також сам переходить у режим «картинка в картинці», коли ви натискаєте «Додому» (Android 12 і новіші)."
+        },
+        "big-buttons": {
+          "summary": "Збільшує кнопки плеєра й розтягує їх на всю ширину.",
+          "details": "Режим пасує автомагнітолам. Угорі вміщується від 5 до 9 кнопок, залежно від ширини, решта йде в меню з трьома крапками. В альбомній орієнтації висока нижня панель може зменшити область відтворення."
+        },
+        "small-controls": {
+          "summary": "Зменшує нижні кнопки керування в плеєрі.",
+          "details": "Корисно на невеликих екранах або коли хочеться менш помітного інтерфейсу."
+        },
+        "disable-nine-zone": {
+          "summary": "Перемикає плеєр із 9 сенсорних зон на 3.",
+          "details": "Коли сітку з 9 зон вимкнено, у плеєрі три зони: попередній, масштаб і наступний. Натисніть лівий край, щоб відкрити панель команд із діями над файлом."
+        },
+        "show-hint": {
+          "summary": "Показує підказку про сенсорні зони під час першого відкривання плеєра.",
+          "details": "Схема пояснює дев’ять зон: назад, копіювати, перейменувати, попередній, перемістити, наступний, панель команд, видалити та слайдшоу."
+        },
+        "always-show-zones": {
+          "summary": "Тримає поверх медіа напівпрозору сітку сенсорних зон.",
+          "details": "Вона видна в повноекранному режимі й допомагає запам’ятати, яка зона що робить."
+        },
+        "show-hint-now": {
+          "summary": "Покаже підказку про сенсорні зони під час наступного відкривання плеєра.",
+          "details": "Натисніть, щоб побачити схему ще раз."
+        },
+        "background-audio": {
+          "summary": "Не перериває звук, коли застосунок згорнуто.",
+          "details": "Музика продовжує грати у фоні. Якщо сповіщення заблоковано, тут з’являється кнопка для керування цим дозволом."
+        },
+        "exit-behavior": {
+          "summary": "Обирає, що станеться з фоновим звуком, коли ви виходите з плеєра чи трансляцій.",
+          "details": "За замовчуванням застосунок питає щоразу. Можна також завжди зупиняти звук або завжди продовжувати відтворення. Вибір з’являється, коли ввімкнено фонове відтворення."
+        },
+        "now-playing-panel": {
+          "summary": "Показує міні-плеєр, поки ви переглядаєте зображення й інші файли.",
+          "details": "Панель дає змогу керувати треком, що грає, і повертає до повного аудіоплеєра."
+        },
+        "reset-playback": {
+          "summary": "Повертає до значень за замовчуванням лише цю вкладку.",
+          "details": "Налаштування на інших вкладках зберігаються. Перед скиданням застосунок просить підтвердити дію."
+        }
+      }
+    }
+  }
+}

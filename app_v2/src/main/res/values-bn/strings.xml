@@ -3194,7 +3194,6 @@
     <string name="exif_orientation_rotate_270">ঘড়ির কাঁটার দিকে ২৭০° ঘোরানো</string>
     <string name="exif_orientation_unknown">অজানা (%1$d)</string>
     <string name="storage_reach_limited_browse">এই ফোল্ডারে কেবল ছবি, ভিডিও ও অডিও পাওয়া যায়। নথি দেখতে ফোল্ডারটি আবার যোগ করুন এবং সিস্টেমের ফোল্ডার উইন্ডোতে সেটি বেছে নিন।</string>
-    <string name="file_count_reach_limited">%1$s - শুধু ছবি, ভিডিও ও অডিও</string>
     <string name="reach_limited_nothing_readable">নথি পড়া যায় না</string>
     <string name="storage_reach_limited_virtual">এই ডিভাইসের নথি ও অন্যান্য ফাইল অ্যাপের কাছে দৃশ্যমান নয়। সেগুলো খুলতে, প্রয়োজনীয় ফোল্ডারটি সিস্টেম ফোল্ডার উইন্ডোর মাধ্যমে যোগ করুন।</string>
     <string name="storage_reach_limited_browse_reconnect">এই ফোল্ডারে কেবল ছবি, ভিডিও ও অডিও পাওয়া যায়। নথি দেখতে প্রধান স্ক্রিনে ফোল্ডারের সারির তিন-বিন্দু মেনু খুলুন এবং রিসোর্স পুনঃসংযোগ বেছে নিন।</string>

@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.serialization.InstantTypeAdapter
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore
 import com.sza.fastmediasorter.domain.model.UnitSystem
+import com.sza.fastmediasorter.domain.model.WatchScreenshotOutcome
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
 import com.sza.fastmediasorter.domain.usecase.EnsureWatchResourceUseCase
@@ -72,6 +73,7 @@ class WearSyncViewModelTest {
     private lateinit var wearSettingsMirrorStore: SharedPreferencesWearSettingsMirrorStore
     private lateinit var pushWearSettingsUseCase: PushWearSettingsUseCase
     private lateinit var outbound: WearOutboundUseCases
+    private lateinit var requestWatchScreenshotUseCase: RequestWatchScreenshotUseCase
     private lateinit var importWatchSourcesUseCase: ImportWatchSourcesUseCase
     private lateinit var getPairedWatchStatusUseCase: GetPairedWatchStatusUseCase
     private lateinit var ensureWatchResourceUseCase: EnsureWatchResourceUseCase
@@ -102,7 +104,7 @@ class WearSyncViewModelTest {
         val startWatchListeningUseCase = mockk<StartWatchListeningUseCase>(relaxed = true)
         val stopWatchListeningUseCase = mockk<StopWatchListeningUseCase>(relaxed = true)
         val sendClipboardTextToWatchUseCase = mockk<SendClipboardTextToWatchUseCase>(relaxed = true)
-        val requestWatchScreenshotUseCase = mockk<RequestWatchScreenshotUseCase>(relaxed = true)
+        requestWatchScreenshotUseCase = mockk<RequestWatchScreenshotUseCase>(relaxed = true)
 
         outbound = WearOutboundUseCases(
             sendResources = sendResourcesToWatchUseCase,
@@ -343,5 +345,67 @@ class WearSyncViewModelTest {
             runCurrent()
 
             assertEquals(WearSyncUiState.Idle, viewModel.uiState.value)
+        }
+
+    @Test
+    fun `S4282 a captured screenshot is held and its button opens Browse on the landing resource`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            coEvery { requestWatchScreenshotUseCase() } returns
+                WatchScreenshotOutcome.Captured("shot.png", capturedAtEpochMillis = 9_000L, browseResourceId = 12L)
+            val viewModel = createViewModel()
+            runCurrent()
+            val events = mutableListOf<WearWatchResourceEvent>()
+            val collectJob = launch { viewModel.watchResourceEvents.toList(events) }
+
+            viewModel.requestWatchScreenshot()
+            runCurrent()
+            viewModel.openLastWatchScreenshots()
+            runCurrent()
+
+            assertEquals(LastWatchScreenshot(9_000L, 12L), viewModel.lastWatchScreenshot.value)
+            assertEquals(listOf<WearWatchResourceEvent>(WearWatchResourceEvent.Open(12L)), events)
+            collectJob.cancel()
+        }
+
+    @Test
+    fun `S4282 a later failed ask keeps the previous screenshot`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            coEvery { requestWatchScreenshotUseCase() } returnsMany listOf(
+                WatchScreenshotOutcome.Captured("shot.png", capturedAtEpochMillis = 9_000L, browseResourceId = 12L),
+                WatchScreenshotOutcome.WatchDidNotAnswer
+            )
+            val viewModel = createViewModel()
+            runCurrent()
+
+            viewModel.requestWatchScreenshot()
+            runCurrent()
+            viewModel.requestWatchScreenshot()
+            runCurrent()
+
+            assertEquals(LastWatchScreenshot(9_000L, 12L), viewModel.lastWatchScreenshot.value)
+            assertEquals(
+                ClipboardSendOutcomeText(R.string.wear_screenshot_no_answer),
+                viewModel.screenshotRequestOutcome.value
+            )
+        }
+
+    @Test
+    fun `S4282 a screenshot outside every resource shows its time and opens nothing`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            coEvery { requestWatchScreenshotUseCase() } returns
+                WatchScreenshotOutcome.Captured("shot.png", capturedAtEpochMillis = 9_000L, browseResourceId = null)
+            val viewModel = createViewModel()
+            runCurrent()
+            val events = mutableListOf<WearWatchResourceEvent>()
+            val collectJob = launch { viewModel.watchResourceEvents.toList(events) }
+
+            viewModel.requestWatchScreenshot()
+            runCurrent()
+            viewModel.openLastWatchScreenshots()
+            runCurrent()
+
+            assertEquals(LastWatchScreenshot(9_000L, null), viewModel.lastWatchScreenshot.value)
+            assertTrue(events.isEmpty())
+            collectJob.cancel()
         }
 }

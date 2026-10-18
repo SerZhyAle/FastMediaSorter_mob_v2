@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.10 14:48</sub>
+<sub class="doc-stamp">26.10.16 22:21</sub>
 
 # FastMediaSorter v2 🚀
 
@@ -331,6 +331,8 @@ Downloads folder cluttered? Open it in the source panel, set up destination butt
 **🌐 Official Website:** [https://serzhyale.github.io/FastMediaSorter_mob_v2/](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
 
 **📘 User Documentation:** [step-by-step guides for every feature, with search](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/)
+
+**❓ In-app Help:** [a help page for each main screen](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/help/index.html) - inside the app the `?` button and F1 open the same pages without internet.
 
 **🔁 Media Exchange Portal:** [which way fits you to move and open media between your own phone, watch, TV, VR headset and Windows PC](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/)
 

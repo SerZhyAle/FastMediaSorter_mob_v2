@@ -2,10 +2,9 @@ package com.sza.fastmediasorter.ui.player.callbacks
 
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import com.sza.fastmediasorter.ui.player.helpers.PlayerHelpEntryManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
 
 /**
@@ -189,7 +188,7 @@ class PlayerKeyboardCallbackImpl(
     }
 
     override fun onShowHelp() {
-        InputHelpDialogFragment.show(activity.supportFragmentManager, UiSurface.PLAYER)
+        PlayerHelpEntryManager.open(activity)
     }
 
     override fun onDocumentSearch() {

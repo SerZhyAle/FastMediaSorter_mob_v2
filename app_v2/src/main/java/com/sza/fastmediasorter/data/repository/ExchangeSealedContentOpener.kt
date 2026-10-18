@@ -34,10 +34,21 @@ class ExchangeSealedContentOpener @Inject constructor(
         Timber.d("S4240: phone opens the sealed records of a directory")
         val sealing = e2e.sealing(entry, directory.devices)
         val grants = GrantTrust(e2e.grantSenders(entry))
+        // Item DJ: a granted record whose box is the registering one is not listed until its replacing box arrives;
+        // a device with no key of its own still lists it, so it can show why nothing will open.
+        val registering = { grantId: String?, box: String? ->
+            sealing.self != null && grantId != null &&
+                E2eSealedBox.addressesNobody(box?.let { runCatching { JsonParser.parseString(it) }.getOrNull() })
+        }
         val opened = directory.copy(
-            resources = directory.resources.map { openAccess(sealing, it, grants) },
-            broadcasts = directory.broadcasts.map { openBroadcast(sealing, it, grants) },
+            resources = directory.resources.filterNot { registering(it.grantId, it.sealedAccess) }
+                .map { openAccess(sealing, it, grants) },
+            broadcasts = directory.broadcasts.filterNot { registering(it.grantId, it.sealed) }
+                .map { openBroadcast(sealing, it, grants) },
         )
+        if (opened.broadcasts.size + opened.resources.size < directory.broadcasts.size + directory.resources.size) {
+            Timber.d("S4272: guest hides a granted record that carries only the registering box")
+        }
         e2e.learnGrantSenders(entry, grants.learned)
         return opened
     }
@@ -68,7 +79,6 @@ class ExchangeSealedContentOpener @Inject constructor(
             else -> E2eSealedBox.open(box, E2eSealedBox.broadcastContext(record.broadcastId), self, sealing::trusts)
         }
         val opened = result as? E2eOpenResult.Opened
-        Timber.d("S4272: guest opens a granted broadcast box")
         if (grantId != null) opened?.let { grants.learn(grantId, it.fromKey) }
         val issue = if (grantId == null || opened != null) null else grantIssue(result)
         val descriptor = runCatching { JsonParser.parseString(record.descriptorJson).asJsonObject }.getOrNull()

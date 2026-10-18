@@ -700,6 +700,63 @@ if (-not $hasComplexityRule) {
 }
 
 Write-Host ''
+Write-Host "run-spec-queue tests - the child's session id is chosen before the pick" -ForegroundColor Cyan
+
+# The reservation is made in the child's name, so the id has to exist before the ranking runs. The
+# function is lifted the same way as Resolve-RunOutcome, with the CLI's --help probe stubbed: the
+# real one starts the agent CLI.
+$plannedRunner = $null
+try {
+    . (Join-Path $repoRoot 'scripts/utils/agent-lock-domains.ps1')
+    $plannedRunner = Get-SzaHarnessScript 'batch/run-spec-queue.ps1'
+} catch {
+    $plannedRunner = $null
+}
+$hasPlannedId = $plannedRunner -and (Test-Path -LiteralPath $plannedRunner) -and
+    (Select-String -LiteralPath $plannedRunner -Pattern 'function Get-PlannedChildSessionId' -Quiet)
+if (-not $hasPlannedId) {
+    Write-Host '  SKIP planned child session id (5 cases) - the resolved harness predates pick-and-claim.' -ForegroundColor DarkGray
+    Write-Host '        Run with SZA_HARNESS_ROOT pointed at the canon checkout to execute them.' -ForegroundColor DarkGray
+    $skipped += 5
+} else {
+    $plannedAst = [System.Management.Automation.Language.Parser]::ParseFile($plannedRunner, [ref]$null, [ref]$null)
+    $plannedFn = $plannedAst.FindAll({
+            param($n)
+            $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'Get-PlannedChildSessionId'
+        }, $true)
+    if ($plannedFn.Count -eq 0) { throw "function Get-PlannedChildSessionId not found in $plannedRunner" }
+    . ([scriptblock]::Create($plannedFn[0].Extent.Text))
+    $script:cliTakesSessionId = $true
+    function Test-ChildTakesSessionId { return $script:cliTakesSessionId }
+
+    $plainTemplate = @('-p', '{prompt}', '--permission-mode', '{permissionMode}', '--model', '{model}')
+    $guidOut = [guid]::Empty
+    $fresh1 = Get-PlannedChildSessionId -Template $plainTemplate
+    $fresh2 = Get-PlannedChildSessionId -Template $plainTemplate
+    Assert-Case -Name 'a plain template gets a fresh guid per launch' `
+        -Ok ([guid]::TryParse([string]$fresh1, [ref]$guidOut) -and $fresh1 -ne $fresh2) `
+        -Detail "expected: two different guids | actual: '$fresh1' / '$fresh2'"
+
+    $pinned = '0f0e0d0c-0b0a-0908-0706-050403020100'
+    $pinnedOut = Get-PlannedChildSessionId -Template ($plainTemplate + @('--session-id', $pinned))
+    Assert-Case -Name 'a template naming its own guid is obeyed' -Ok ($pinnedOut -eq $pinned) `
+        -Detail "expected: $pinned | actual: '$pinnedOut'"
+
+    $badPinned = Get-PlannedChildSessionId -Template ($plainTemplate + @('--session-id', 'not-a-guid'))
+    Assert-Case -Name 'a template naming a non-guid session gets none' -Ok ($null -eq $badPinned) `
+        -Detail "expected: null | actual: '$badPinned'"
+
+    $resumed = Get-PlannedChildSessionId -Template ($plainTemplate + @('--resume'))
+    Assert-Case -Name 'a resuming template gets none - the CLI refuses --session-id beside it' -Ok ($null -eq $resumed) `
+        -Detail "expected: null | actual: '$resumed'"
+
+    $script:cliTakesSessionId = $false
+    $noFlag = Get-PlannedChildSessionId -Template $plainTemplate
+    Assert-Case -Name 'a CLI that does not list --session-id gets none' -Ok ($null -eq $noFlag) `
+        -Detail "expected: null | actual: '$noFlag'"
+}
+
+Write-Host ''
 if ($failures -gt 0) {
     Write-Host ("run-spec-queue tests: FAIL ({0} of {1} case(s))" -f $failures, $caseCount) -ForegroundColor Red
     exit 1

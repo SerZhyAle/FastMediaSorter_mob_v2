@@ -3681,7 +3681,6 @@
     <string name="exif_orientation_rotate_270">Rotated 270° clockwise</string>
     <string name="exif_orientation_unknown">Unknown (%1$d)</string>
     <string name="storage_reach_limited_browse">Only photos, video and audio are available in this folder. To view documents, add the folder again and select it in the system folder window.</string>
-    <string name="file_count_reach_limited">%1$s - photos, video and audio only</string>
     <string name="reach_limited_nothing_readable">Documents cannot be read</string>
     <string name="storage_reach_limited_virtual">Documents and other files on this device are not visible to the app. To open them, add the folder you need through the system folder window.</string>
     <string name="storage_reach_limited_browse_reconnect">Only photos, video and audio are available in this folder. To view documents, open the three-dots menu on the folder row on the main screen and select Reconnect resource.</string>
@@ -4543,4 +4542,20 @@
     <string name="broadcast_guests_withdraw_cd">Withdraw from %1$s</string>
     <string name="broadcast_guests_login_invalid">Enter the guest\'s login: 3 to 64 letters, digits, dots, dashes or underscores</string>
     <string name="broadcast_guests_give_failed">This guest already has the broadcast, or it is no longer announced through the server</string>
+    <string name="broadcast_control_torch_on">Flashlight ON</string>
+    <string name="broadcast_control_torch_off">Flashlight OFF</string>
+    <string name="broadcast_control_torch_cd">Turn the camera flash on or off to light the scene</string>
+    <string name="broadcast_control_light_frame_on">Bright frame ON</string>
+    <string name="broadcast_control_light_frame_off">Bright frame OFF</string>
+    <string name="broadcast_control_light_frame_cd">Turn the bright white frame around the screen edges on or off to light your face</string>
+    <string name="wear_screenshot_last_at">Last screenshot: %1$s</string>
+    <string name="wear_screenshot_open_browse">Open in Browse</string>
+    <string name="help_page_title">Help</string>
+    <string name="help_open_on_site">Open in new window on the site</string>
+    <string name="help_keyboard_shortcuts">All shortcuts</string>
+    <string name="help_external_link_title">Open in the browser?</string>
+    <string name="help_external_link_message">This link leads outside the app and opens in your browser.</string>
+    <string name="help_with_key">Help (F1)</string>
+    <string name="broadcast_control_group_commands">Live controls</string>
+    <string name="broadcast_control_group_share">Link and sharing</string>
 </resources>

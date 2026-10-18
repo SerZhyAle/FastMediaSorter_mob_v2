@@ -54,4 +54,22 @@ object E2eRecipients {
     /** Whether [fromKey] is the key this device trusts for [from] - the opening check of item DH. */
     fun trusts(trusted: Map<String, String>, from: String, fromKey: ByteArray): Boolean =
         trusted[from]?.let(E2eDeviceKey::decodeKem)?.let { E2eBytes.constantTimeEquals(it, fromKey) } == true
+
+    /** Canonical identity of a single recipient (`deviceId:hex(publicKey)`). */
+    fun keyOf(recipient: E2eRecipient): String = "${recipient.deviceId}:${E2eBytes.hex(recipient.publicKey)}"
+
+    /**
+     * Canonical order-independent identity of [recipients], sorted deterministically by `(deviceId, hex(publicKey))`.
+     */
+    fun keyOf(recipients: Collection<E2eRecipient>): String =
+        recipients.map { it.deviceId to E2eBytes.hex(it.publicKey) }
+            .sortedWith(compareBy<Pair<String, String>> { it.first }.thenBy { it.second })
+            .joinToString(",") { "${it.first}:${it.second}" }
+
+    /** Canonical identity of [self] and [recipients] for a sealed box; empty when neither is present. */
+    fun keyOf(self: E2eSelf?, recipients: Collection<E2eRecipient>): String {
+        val sender = self?.let { "${it.deviceId}:${E2eBytes.hex(it.key.publicKey)}" }.orEmpty()
+        val to = keyOf(recipients)
+        return if (sender.isEmpty() && to.isEmpty()) "" else "$sender|$to"
+    }
 }

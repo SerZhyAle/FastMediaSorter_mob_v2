@@ -5,6 +5,8 @@ import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemExchangeDirectoryRowBinding
@@ -13,26 +15,24 @@ import com.sza.fastmediasorter.domain.model.ExchangeDirectorySource
 import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.ExchangeResourceAccess
 import com.sza.fastmediasorter.ui.exchange.ExchangeDirectoryRow
-import timber.log.Timber
 
 /**
  * The rows of "From my devices": a device line with presence in words, never colour alone (S4116 3.3), then its
  * resources with a mark for those that can be attached, then the attached resources the listing no longer shows.
  * A protected resource names its PIN in words (S4201); an attached one that waits for its PIN opens the prompt.
+ * S4348: the dialog keeps one adapter for its lifetime and the manager submitList()s into it, so an emission
+ * rebinds only the rows that changed instead of throwing away the holder pool and the scroll position.
  */
 class ExchangeDirectoryAdapter(
-    private val rows: List<ExchangeDirectoryRow>,
     private val onToggle: (ExchangeDirectoryRow.Resource, Boolean) -> Unit,
     private val onPinNeeded: (ExchangeDirectoryRow.Resource) -> Unit,
-    private val driveChannelOn: Boolean = false,
-) : RecyclerView.Adapter<ExchangeDirectoryAdapter.Holder>() {
-
-    override fun getItemCount(): Int = rows.size
+    private val driveChannelOn: Boolean,
+) : ListAdapter<ExchangeDirectoryRow, ExchangeDirectoryAdapter.Holder>(Diff) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
         Holder(ItemExchangeDirectoryRowBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
-    override fun onBindViewHolder(holder: Holder, position: Int) = holder.bind(rows[position])
+    override fun onBindViewHolder(holder: Holder, position: Int) = holder.bind(getItem(position))
 
     inner class Holder(private val binding: ItemExchangeDirectoryRowBinding) : RecyclerView.ViewHolder(binding.root) {
 
@@ -65,7 +65,6 @@ class ExchangeDirectoryAdapter(
             bindHeader(row.title)
             // Item DA of DEVICE-EXCHANGE: a message of the shared table is shown whole, never joined with other text.
             if (row.paused) {
-                Timber.d("S4225: device row shows share-paused")
                 binding.textExchangeDirectoryDetails.setText(R.string.exchange_share_paused)
                 return
             }
@@ -124,5 +123,20 @@ class ExchangeDirectoryAdapter(
             ExchangeAttachmentState.UNAVAILABLE -> R.string.exchange_directory_unavailable
             ExchangeAttachmentState.AVAILABLE -> R.string.exchange_directory_resource_attached
         }
+    }
+
+    private object Diff : DiffUtil.ItemCallback<ExchangeDirectoryRow>() {
+        override fun areItemsTheSame(oldItem: ExchangeDirectoryRow, newItem: ExchangeDirectoryRow): Boolean = when {
+            oldItem is ExchangeDirectoryRow.Device && newItem is ExchangeDirectoryRow.Device ->
+                oldItem.title == newItem.title
+            oldItem is ExchangeDirectoryRow.Resource && newItem is ExchangeDirectoryRow.Resource ->
+                oldItem.binding == newItem.binding
+            oldItem is ExchangeDirectoryRow.Attached && newItem is ExchangeDirectoryRow.Attached ->
+                oldItem.name == newItem.name
+            else -> oldItem == newItem
+        }
+
+        override fun areContentsTheSame(oldItem: ExchangeDirectoryRow, newItem: ExchangeDirectoryRow): Boolean =
+            oldItem == newItem
     }
 }

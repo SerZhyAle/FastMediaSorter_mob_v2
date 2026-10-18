@@ -13,7 +13,8 @@ Set-StrictMode -Version Latest
 $script:SiteBaseUrl = 'https://serzhyale.github.io/FastMediaSorter_mob_v2'
 $script:ForwarderMarkerRegex = '<meta\s+name="fms-forwarder"\s+content="(moved|retired)"'
 # Hubs and indexes written by their own generators or by hand, not by generate-docs-pages.ps1.
-$script:DeclaredHubRegex = '^documentation/((index|overview|subject-index)(-ru|-uk)?\.html|design-system/index\.html|general/glossary(-ru|-uk)?\.html)$'
+# documentation/help/ is written by scripts/docs/help/generate-help-pages.ps1 (CONTEXT-HELP, S4288).
+$script:DeclaredHubRegex = '^documentation/((index|overview|subject-index)(-ru|-uk)?\.html|design-system/index\.html|general/glossary(-ru|-uk)?\.html|help/[a-z0-9-]+(-ru|-uk)?\.html)$'
 
 function Read-JsonlRecords {
     param([Parameter(Mandatory)][string]$Path)
@@ -223,11 +224,28 @@ function Get-RepoRelativePath {
 }
 
 # The registry refuses a file under an indexable record that neither declares a permalink nor is named in
-# sitemap_exclude, and a forwarder has no permalink by design. The rows below are therefore derived from the
-# manifest, never hand-written, so a new forwarder needs no registry edit of its own.
+# sitemap_exclude. Two groups under the docs-corpus-pages glob have no permalink by design, and their rows are
+# derived, never hand-written, so a new member needs no registry edit of its own:
+# - a forwarder, derived from the redirect manifest;
+# - an in-app help page, derived from the files under documentation/help/ (CONTEXT-HELP rule 10: a help page is
+#   a copy for the application, not a site page, so the sitemap must not announce it).
 $script:ForwarderExcludeReason = 'Forwarder left at a moved or retired address; it announces nothing and only answers old links'
+$script:HelpPageExcludeReason = 'In-app help page copied to the portal for the application to link to; read inside the app, so not a site page and not announced'
 $script:ForwarderExcludeRecordId = 'docs-corpus-pages'
 $script:ForwarderExcludePathRegex = '^documentation/[^/]+/[^/]+\.html$'
+
+# Repo-relative paths of the generated help pages, in a stable order. The glob matches the one the registry
+# record uses for the whole corpus, so the rows can never name a file the validator would not look at.
+function Get-HelpPagePaths {
+    param([Parameter(Mandatory)][string]$SiteRoot)
+    $dir = Join-Path $SiteRoot 'documentation/help'
+    if (-not (Test-Path -LiteralPath $dir)) { return , @() }
+    $paths = [string[]]@(Get-ChildItem -LiteralPath $dir -File -Filter '*.html' |
+            ForEach-Object { 'documentation/help/' + $_.Name })
+    # Ordinal, because the rows are compared byte for byte and a culture-aware order differs between machines.
+    [Array]::Sort($paths, [StringComparer]::Ordinal)
+    return , $paths
+}
 
 function Find-JsonArrayEnd {
     param([Parameter(Mandatory)][string]$Text, [Parameter(Mandatory)][int]$OpenIndex)
@@ -246,10 +264,16 @@ function Find-JsonArrayEnd {
     return -1
 }
 
-# Returns the registry text with the forwarder rows of the manifest merged into the record's
-# sitemap_exclude; every other row and every other byte of the file is kept.
-function Get-RegistryWithForwarderExclusions {
-    param([Parameter(Mandatory)][string]$RegistryText, [Parameter(Mandatory)]$Records)
+# Returns the registry text with the derived rows merged into the record's sitemap_exclude: a forwarder row for
+# every manifest record under the corpus glob, then a help-page row for every path in -HelpPagePaths. A row
+# carrying either derived reason is dropped and re-derived; every other row and every other byte of the file is
+# kept. A path already named by a kept row is not named twice, so a hand-written reason always wins.
+function Get-RegistryWithDerivedExclusions {
+    param(
+        [Parameter(Mandatory)][string]$RegistryText,
+        [Parameter(Mandatory)]$Records,
+        [string[]]$HelpPagePaths = @()
+    )
     $lineMatch = [regex]::Match($RegistryText, '(?m)^\{"id":"' + [regex]::Escape($script:ForwarderExcludeRecordId) + '".*$')
     if (-not $lineMatch.Success) { throw "registry record '$script:ForwarderExcludeRecordId' not found" }
     $line = $lineMatch.Value
@@ -259,14 +283,21 @@ function Get-RegistryWithForwarderExclusions {
     $existing = @()
     if ($record.PSObject.Properties.Name -contains 'sitemap_exclude') { $existing = @($record.sitemap_exclude) }
     $rows = [System.Collections.Generic.List[string]]::new()
+    $named = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
     foreach ($row in $existing) {
-        if ($row.reason -ceq $script:ForwarderExcludeReason) { continue }
+        if ($row.reason -ceq $script:ForwarderExcludeReason -or $row.reason -ceq $script:HelpPageExcludeReason) { continue }
+        if ($row.PSObject.Properties.Name -contains 'path') { [void]$named.Add([string]$row.path) }
         $rows.Add(($row | ConvertTo-Json -Compress))
     }
     $forwarders = @($Records | Where-Object { $_.from_path -match $script:ForwarderExcludePathRegex } |
             ForEach-Object { $_.from_path } | Sort-Object -Unique)
     foreach ($path in $forwarders) {
+        if (-not $named.Add([string]$path)) { continue }
         $rows.Add(([ordered]@{ path = $path; reason = $script:ForwarderExcludeReason } | ConvertTo-Json -Compress))
+    }
+    foreach ($path in $HelpPagePaths) {
+        if (-not $named.Add([string]$path)) { continue }
+        $rows.Add(([ordered]@{ path = $path; reason = $script:HelpPageExcludeReason } | ConvertTo-Json -Compress))
     }
     $newArray = '[' + ($rows -join ',') + ']'
     $key = '"sitemap_exclude":['

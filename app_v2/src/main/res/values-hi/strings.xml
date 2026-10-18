@@ -3192,7 +3192,6 @@
     <string name="exif_orientation_rotate_270">घड़ी की दिशा में 270° घुमाया गया</string>
     <string name="exif_orientation_unknown">अज्ञात (%1$d)</string>
     <string name="storage_reach_limited_browse">इस फ़ोल्डर में केवल फ़ोटो, वीडियो और ऑडियो उपलब्ध हैं। दस्तावेज़ देखने के लिए फ़ोल्डर फिर से जोड़ें और उसे सिस्टम की फ़ोल्डर विंडो में चुनें।</string>
-    <string name="file_count_reach_limited">%1$s - केवल फ़ोटो, वीडियो और ऑडियो</string>
     <string name="reach_limited_nothing_readable">दस्तावेज़ पढ़े नहीं जा सकते</string>
     <string name="storage_reach_limited_virtual">इस डिवाइस पर मौजूद दस्तावेज़ और अन्य फ़ाइलें ऐप को दिखाई नहीं देतीं. उन्हें खोलने के लिए, ज़रूरी फ़ोल्डर को सिस्टम फ़ोल्डर विंडो के ज़रिए जोड़ें.</string>
     <string name="storage_reach_limited_browse_reconnect">इस फ़ोल्डर में केवल फ़ोटो, वीडियो और ऑडियो उपलब्ध हैं। दस्तावेज़ देखने के लिए मुख्य स्क्रीन पर फ़ोल्डर की पंक्ति का तीन-बिंदु मेनू खोलें और संसाधन पुनः जोड़ें चुनें।</string>

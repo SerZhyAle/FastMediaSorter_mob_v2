@@ -370,8 +370,9 @@
         <!-- S2508: Live Broadcast share activity (QR code barcode display + file export) -->
         <activity android:name=".ui.broadcast.BroadcastShareActivity" android:exported="false" android:label="@string/broadcast_share_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
-        <!-- S3038: Live Broadcast control activity (camera preview, toggles, listener count, screen off) -->
-        <activity android:name=".ui.broadcast.BroadcastControlActivity" android:exported="false" android:label="@string/broadcast_control_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <!-- Re-entry above a picker must reuse its owner: two control activities would share the
+             singleton manager's launchers, and destroying either would detach the surviving screen. -->
+        <activity android:name=".ui.broadcast.BroadcastControlActivity" android:exported="false" android:launchMode="singleTask" android:label="@string/broadcast_control_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <!-- S2818: broadcast entry confirmation - the screen the shortcut, QS tile and widget open.
              No intent filter: surfaces launch it by explicit component. No orientation|screenSize in
@@ -399,6 +400,10 @@
         </activity>
 
         <activity android:name=".ui.keybinding.KeybindingRemapActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
+
+        <!-- S4288: offline help page viewer. Rotation is absorbed so the WebView keeps its page history
+             and scroll position instead of reloading the start page. -->
+        <activity android:name=".ui.common.help.HelpPageActivity" android:exported="false" android:label="@string/help_page_title" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" />
 
         <!-- S0623 Phase 04: standalone Edit-panel screen for the app-launch panel. Launched internally
              from the panel dialog; recreated on rotation so the grid picks the portrait/landscape span. -->

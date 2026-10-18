@@ -77,7 +77,10 @@ $Script:GradleModuleTable = @(
         # S0403 added Foss (F-Droid). It is last because the first entry is the module default, and
         # a build that names no flavor still means Standard. S0556 added Xr (Android XR store build).
         Flavors        = @('Standard', 'NoLegal', 'Lite', 'Photos', 'Legacy', 'Vr', 'Xr', 'Foss')
-        BuildTypes     = @('Debug', 'Release')
+        # S4332: Benchmark is app_v2's debug-signed minified build type (initWith release,
+        # isMinifyEnabled = true), enabled for the Standard flavor so keep-rule edits in the working
+        # tree can be proven against R8 before the release worktree build.
+        BuildTypes     = @('Debug', 'Release', 'Benchmark')
         BuildDomain    = 'Build.Phone'
         DeviceModule   = 'app_v2'
         LinksResources = $true

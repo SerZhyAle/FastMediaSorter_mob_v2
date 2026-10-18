@@ -12,8 +12,10 @@
              -Module named a project the registry does not know; -Flavor named one the module does
              not declare, or was passed to a module that declares none; -BuildType named a build type
              the module does not declare, or the module declares none at all (S2123 - lint-rules has
-             no Android plugin); -AlsoAssemble was passed without -Mode Unit or with -BuildType
-             Release (S3514); -BuildType Release was combined with -Mode Assemble, which is
+             no Android plugin); -BuildType Benchmark was combined with a non-Standard -Flavor
+             (S4332 - app_v2 enables the benchmark build type on standard only); -AlsoAssemble was
+             passed without -Mode Unit or with a non-Debug -BuildType (S3514); -BuildType Release was
+             combined with -Mode Assemble, which is
              refused - see below; or (S2363) the connected-test target could not be resolved to
              exactly one device - no adb, no device online, several online with no -DeviceId, or
              -DeviceId passed to a mode that touches no device at all); or (S2584) this module's
@@ -165,6 +167,14 @@ else {
     $BuildType = Get-GradleModuleDefaultBuildType -Name $Module
 }
 
+# S4332: app_v2/build.gradle.kts disables the benchmark build type on every flavor except standard
+# (beforeVariants selector). Refusing here with exit 2 avoids launching Gradle on a variant task name
+# the build disabled.
+if ($BuildType -eq 'Benchmark' -and $Flavor -ne 'Standard') {
+    Write-Error "check-standard-fast: -BuildType Benchmark is enabled only for -Flavor Standard in '$Module' (app_v2/build.gradle.kts disables non-standard benchmark variants) - got -Flavor $Flavor." -ErrorAction Continue
+    exit 2
+}
+
 # S1988/S1873: -Mode Assemble is the only mode that packages an installable artifact, and its version
 # stamp below is written for a debug build. A release APK produced here would be unsigned and stamped
 # wrong while looking exactly like the real thing, which is the failure S1873 records. Release
@@ -173,7 +183,7 @@ if ($BuildType -eq 'Release' -and $Mode -eq 'Assemble') {
     Write-Error "check-standard-fast: -BuildType Release is refused with -Mode Assemble - use the release worktree (.\a.ps1 r / nl / vr) to package." -ErrorAction Continue
     exit 2
 }
-if ($AlsoAssemble -and ($Mode -ne 'Unit' -or $BuildType -eq 'Release')) {
+if ($AlsoAssemble -and ($Mode -ne 'Unit' -or $BuildType -ne 'Debug')) {
     Write-Error "check-standard-fast: -AlsoAssemble packages a debug APK beside a unit run, so it needs -Mode Unit and a debug build type - got -Mode $Mode -BuildType $BuildType. Use -Mode Assemble for the APK alone." -ErrorAction Continue
     exit 2
 }
@@ -396,7 +406,7 @@ function Get-GradleTaskList {
         # first execution of that comparison anywhere was on the owner's phone, which then reset the
         # database. Needs a connected device or emulator.
         "ConnectedAndroidTest" { return @(":${Module}:connected${variant}${BuildType}AndroidTest") }
-        "Assemble" { return @(":${Module}:assemble${variant}Debug") }
+        "Assemble" { return @(":${Module}:assemble${variant}${BuildType}") }
         default { throw "Unsupported mode: $Mode" }
     }
 }

@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.input.TvNavAction
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityStopwatchBinding
+import com.sza.fastmediasorter.ui.common.help.HelpToolbarEntryManager
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.stopwatch.helpers.MediaPlayerStopwatchAudioOutput
 import com.sza.fastmediasorter.ui.stopwatch.helpers.StopwatchAudioManager
@@ -67,6 +68,7 @@ class StopwatchActivity : BaseActivity<ActivityStopwatchBinding>() {
     override fun setupViews() {
         binding.root.applySystemBarInsetPadding()
         binding.toolbar.setUpNavigation(this)
+        HelpToolbarEntryManager.install(binding.toolbar, this, getHelpSurfaceId(), null)
         regionBinder = StopwatchRegionBinder(
             binding = binding,
             onStartOrLap = viewModel::startOrLap,

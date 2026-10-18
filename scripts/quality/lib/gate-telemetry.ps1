@@ -39,7 +39,7 @@ function Write-GateBatchTelemetryRecord {
         [Parameter(Mandatory = $true)][string]$Runner,
         [Parameter(Mandatory = $true)][int]$ExitCode,
         [Parameter(Mandatory = $true)][int]$ElapsedMs,
-        [ValidateSet('set', 'tree', 'split')]
+        [ValidateSet('set', 'set-named', 'tree', 'split')]
         [string]$Scope
     )
 
@@ -62,7 +62,7 @@ function Write-GateTelemetryRecord {
         [Parameter(Mandatory = $true)][string]$Status,
         [Parameter(Mandatory = $true)][int]$ExitCode,
         [Parameter(Mandatory = $true)][int]$ElapsedMs,
-        [ValidateSet('set', 'tree', 'split')]
+        [ValidateSet('set', 'set-named', 'tree', 'split')]
         [string]$Scope,
         [int]$FindingCount,
         [string[]]$FindingPaths,

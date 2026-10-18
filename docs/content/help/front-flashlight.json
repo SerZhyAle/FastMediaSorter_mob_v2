@@ -1,0 +1,198 @@
+{
+  "help": "front-flashlight",
+  "surface": "FrontFlashlightActivity",
+  "elements": [
+    { "id": "glow-screen", "viewId": "flashlightRoot" },
+    { "id": "clock", "viewId": "tvClock" },
+    { "id": "color", "viewId": "btnColor", "labelKey": "front_flashlight_color_button" },
+    { "id": "brightness", "viewId": "brightnessBar" },
+    { "id": "picker-preview" },
+    { "id": "picker-palette" },
+    { "id": "picker-cancel", "labelKey": "cancel" },
+    { "id": "picker-ok", "labelKey": "ok" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "settings-operations" },
+    { "help": "water-flashlight" },
+    { "help": "mirror" },
+    { "pageId": "programs.built-in-mini-apps" },
+    { "pageId": "launcher.home-screen-widgets" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Front flashlight",
+      "purpose": "The front flashlight turns the whole screen into a lamp: a lit field in the color you choose, at the brightness you choose, with a clock on it. Use it as a light in a dark room.",
+      "steps": [
+        "Open Front flashlight from the programs menu, the programs panel or a home-screen widget. If it is not offered, switch it on first in Settings, on the Management tab, in the group Additional programs and scenarios. The whole screen (1) lights up at full brightness.",
+        "Press Light color (3) if white is not what you need, pick a color in the palette (6) and confirm with OK (8). The choice is remembered for next time.",
+        "Set the brightness with one of the five steps (4), or swipe up or down anywhere on the screen. Both move the same five steps.",
+        "The clock (2) shows the time while the lamp is on, so you do not need to switch it off to check.",
+        "Tap an empty spot of the screen (1) to close the lamp. With a keyboard or a D-pad, press Enter."
+      ],
+      "groups": [
+        { "title": "The lit screen", "elements": ["glow-screen", "clock"] },
+        { "title": "Light controls", "elements": ["color", "brightness"] },
+        { "title": "Select Color dialog", "elements": ["picker-preview", "picker-palette", "picker-cancel", "picker-ok"] }
+      ],
+      "elements": {
+        "glow-screen": {
+          "name": "Lit screen",
+          "summary": "The whole window glows in the color you chose, so the screen works as a lamp.",
+          "details": "The glow covers the entire window, also the areas behind the camera cutout and the system bars, and the screen stays awake for as long as the lamp is open. Only the brightness of this window is raised, never the brightness setting of the phone, so closing the lamp leaves the phone exactly as bright as it was.\n\nA short tap on an empty spot closes the lamp. A swipe up or down changes the brightness; a sideways swipe does nothing. If one of the controls has the focus, Enter presses that control instead of closing.",
+          "shortcut": "Enter / D-pad center"
+        },
+        "clock": {
+          "name": "Clock",
+          "summary": "Shows the time on the glow, a quarter of the way down.",
+          "details": "The time is drawn in black and moves on at the start of every minute. Whether it reads in 12 or 24 hours follows the unit system of the app (Metric shows 24 hours, US shows 12), not the clock format of the device. It is only a display: a tap on it closes the lamp like a tap anywhere else."
+        },
+        "color": {
+          "summary": "Chooses another color for the light.",
+          "details": "Opens the dialog with a palette of colors. The first time the light is white; after that the lamp opens in the color you picked last. A warm yellow is easy for reading, and a red keeps your eyes used to the dark."
+        },
+        "brightness": {
+          "name": "Brightness steps",
+          "summary": "Five steps from dim to full light, one tap each.",
+          "details": "Tap a step to set the brightness; the step the window is lit at is highlighted. The lowest step is dim but not black, so the screen never looks switched off.\n\nA swipe up or down anywhere on the screen moves through the same five steps: up is brighter, down is dimmer, and one sweep across the whole height covers the full range. The lamp always opens at the brightest step, because the brightness is not remembered."
+        },
+        "picker-preview": {
+          "name": "Current color",
+          "summary": "Shows the color you are about to apply, with its name.",
+          "details": "The square and the name next to it change as soon as you tap a color in the palette. Nothing reaches the lamp until you press OK."
+        },
+        "picker-palette": {
+          "name": "Color palette",
+          "summary": "Thirty ready colors to choose from.",
+          "details": "Tap a color to select it: a check mark marks the choice and the preview above follows. You can try as many as you like before you confirm. The palette holds reds, blues, greens, yellows and oranges, earth tones, grays, black and white."
+        },
+        "picker-cancel": {
+          "summary": "Closes the dialog and keeps the color the lamp already has.",
+          "details": "Nothing changes: the lamp keeps the color it had before you opened the dialog.",
+          "shortcut": "Esc"
+        },
+        "picker-ok": {
+          "summary": "Applies the selected color to the lamp.",
+          "details": "The glow changes at once and the color is saved, so the lamp opens in it next time. The button has the focus when the dialog opens, so with a keyboard one press of Enter is enough.",
+          "shortcut": "Enter"
+        }
+      }
+    },
+    "ru": {
+      "title": "Фронтальный фонарик",
+      "purpose": "Фронтальный фонарик превращает весь экран в лампу: светящееся поле выбранного цвета и яркости с часами. Пригодится как свет в тёмной комнате.",
+      "steps": [
+        "Откройте «Фронтальный фонарик» из меню программ, с панели программ или виджетом на домашнем экране. Если его там нет, сначала включите его в «Настройках», на вкладке «Управление», в группе «Дополнительные программы и сценарии». Весь экран (1) загорится на полную яркость.",
+        "Нажмите «Цвет свечения» (3), если вам нужен не белый, выберите цвет в палитре (6) и подтвердите кнопкой «ОК» (8). Выбор запоминается до следующего раза.",
+        "Задайте яркость одной из пяти ступеней (4) или свайпом вверх либо вниз в любом месте экрана. Оба способа переключают те же пять ступеней.",
+        "Часы (2) показывают время, пока лампа горит, так что выключать её ради этого не нужно.",
+        "Коснитесь пустого места экрана (1), чтобы закрыть лампу. С клавиатурой или D-pad нажмите Enter."
+      ],
+      "groups": [
+        { "title": "Светящийся экран", "elements": ["glow-screen", "clock"] },
+        { "title": "Управление светом", "elements": ["color", "brightness"] },
+        { "title": "Диалог «Выберите цвет»", "elements": ["picker-preview", "picker-palette", "picker-cancel", "picker-ok"] }
+      ],
+      "elements": {
+        "glow-screen": {
+          "name": "Светящийся экран",
+          "summary": "Всё окно светится выбранным цветом, и экран работает как лампа.",
+          "details": "Свечение занимает всё окно, в том числе области за вырезом камеры и системными панелями, а экран не гаснет, пока лампа открыта. Повышается только яркость этого окна, а не настройка яркости телефона, поэтому после закрытия лампы телефон остаётся ровно таким, каким был.\n\nКороткое касание пустого места закрывает лампу. Свайп вверх или вниз меняет яркость, а свайп вбок ничего не делает. Если фокус стоит на одном из элементов управления, Enter нажимает его, а не закрывает лампу.",
+          "shortcut": "Enter / D-pad center"
+        },
+        "clock": {
+          "name": "Часы",
+          "summary": "Показывают время на светящемся поле, на четверти высоты экрана.",
+          "details": "Время нарисовано чёрным и обновляется в начале каждой минуты. В каком формате оно показано, 12 или 24 часа, зависит от системы единиц приложения (метрическая показывает 24 часа, американская - 12), а не от формата часов устройства. Это только индикатор: касание часов закрывает лампу так же, как касание любого другого места."
+        },
+        "color": {
+          "summary": "Выбирает другой цвет света.",
+          "details": "Открывает диалог с палитрой цветов. В первый раз свет белый, потом лампа открывается в том цвете, который вы выбрали в последний раз. Тёплый жёлтый удобен для чтения, а красный не мешает глазам, привыкшим к темноте."
+        },
+        "brightness": {
+          "name": "Ступени яркости",
+          "summary": "Пять ступеней от тусклого света до полного, каждая - одним касанием.",
+          "details": "Коснитесь ступени, чтобы задать яркость: ступень, на которой сейчас горит окно, подсвечена. Самая низкая ступень тусклая, но не чёрная, поэтому экран никогда не выглядит выключенным.\n\nСвайп вверх или вниз в любом месте экрана переключает те же пять ступеней: вверх - ярче, вниз - тусклее, а один проход по всей высоте охватывает весь диапазон. Лампа всегда открывается на самой яркой ступени, потому что яркость не запоминается."
+        },
+        "picker-preview": {
+          "name": "Текущий цвет",
+          "summary": "Показывает цвет, который вы собираетесь применить, и его название.",
+          "details": "Квадрат и название рядом с ним меняются, как только вы касаетесь цвета в палитре. До нажатия «ОК» на лампу ничего не попадает."
+        },
+        "picker-palette": {
+          "name": "Палитра цветов",
+          "summary": "Тридцать готовых цветов на выбор.",
+          "details": "Коснитесь цвета, чтобы выбрать его: галочка отмечает выбор, а образец выше следует за ним. Пробуйте сколько угодно, пока не подтвердили. В палитре есть красные, синие, зелёные, жёлтые и оранжевые оттенки, землистые тона, серые, чёрный и белый."
+        },
+        "picker-cancel": {
+          "summary": "Закрывает диалог и оставляет тот цвет, который у лампы уже есть.",
+          "details": "Ничего не меняется: лампа сохраняет цвет, который был до открытия диалога.",
+          "shortcut": "Esc"
+        },
+        "picker-ok": {
+          "summary": "Применяет выбранный цвет к лампе.",
+          "details": "Свечение меняется сразу, а цвет сохраняется, так что в следующий раз лампа откроется в нём. При открытии диалога фокус стоит на этой кнопке, поэтому с клавиатуры достаточно одного нажатия Enter.",
+          "shortcut": "Enter"
+        }
+      }
+    },
+    "uk": {
+      "title": "Фронтальний ліхтарик",
+      "purpose": "Фронтальний ліхтарик перетворює весь екран на лампу: світне поле вибраного кольору й яскравості з годинником. Стане в пригоді як світло в темній кімнаті.",
+      "steps": [
+        "Відкрийте «Фронтальний ліхтарик» з меню програм, із панелі програм або віджетом на домашньому екрані. Якщо його там немає, спершу ввімкніть його в «Налаштуваннях», на вкладці «Управління», у групі «Додаткові програми та сценарії». Увесь екран (1) засвітиться на повну яскравість.",
+        "Натисніть «Колір свічення» (3), якщо вам потрібен не білий, виберіть колір у палітрі (6) і підтвердьте кнопкою «OK» (8). Вибір запам'ятовується до наступного разу.",
+        "Задайте яскравість однією з п'яти ступенів (4) або свайпом угору чи вниз у будь-якому місці екрана. Обидва способи перемикають ті самі п'ять ступенів.",
+        "Годинник (2) показує час, поки лампа світить, тож вимикати її заради цього не потрібно.",
+        "Торкніться порожнього місця екрана (1), щоб закрити лампу. З клавіатурою або D-pad натисніть Enter."
+      ],
+      "groups": [
+        { "title": "Світний екран", "elements": ["glow-screen", "clock"] },
+        { "title": "Керування світлом", "elements": ["color", "brightness"] },
+        { "title": "Діалог «Виберіть колір»", "elements": ["picker-preview", "picker-palette", "picker-cancel", "picker-ok"] }
+      ],
+      "elements": {
+        "glow-screen": {
+          "name": "Світний екран",
+          "summary": "Усе вікно світиться вибраним кольором, і екран працює як лампа.",
+          "details": "Свічення займає все вікно, зокрема ділянки за вирізом камери та системними панелями, а екран не гасне, поки лампа відкрита. Підвищується лише яскравість цього вікна, а не налаштування яскравості телефона, тому після закриття лампи телефон лишається таким, яким був.\n\nКороткий дотик до порожнього місця закриває лампу. Свайп угору чи вниз змінює яскравість, а свайп убік нічого не робить. Якщо фокус стоїть на одному з елементів керування, Enter натискає його, а не закриває лампу.",
+          "shortcut": "Enter / D-pad center"
+        },
+        "clock": {
+          "name": "Годинник",
+          "summary": "Показує час на світному полі, на чверті висоти екрана.",
+          "details": "Час намальовано чорним, і він оновлюється на початку кожної хвилини. У якому форматі його показано, 12 чи 24 години, залежить від системи одиниць застосунку (метрична показує 24 години, американська - 12), а не від формату годинника пристрою. Це лише індикатор: дотик до годинника закриває лампу так само, як дотик до будь-якого іншого місця."
+        },
+        "color": {
+          "summary": "Вибирає інший колір світла.",
+          "details": "Відкриває діалог із палітрою кольорів. Уперше світло біле, потім лампа відкривається в тому кольорі, який ви вибрали востаннє. Теплий жовтий зручний для читання, а червоний не заважає очам, що звикли до темряви."
+        },
+        "brightness": {
+          "name": "Ступені яскравості",
+          "summary": "П'ять ступенів від тьмяного світла до повного, кожен - одним дотиком.",
+          "details": "Торкніться ступеня, щоб задати яскравість: ступінь, на якому зараз світить вікно, підсвічений. Найнижчий ступінь тьмяний, але не чорний, тому екран ніколи не здається вимкненим.\n\nСвайп угору чи вниз у будь-якому місці екрана перемикає ті самі п'ять ступенів: угору - яскравіше, вниз - тьмяніше, а один прохід по всій висоті охоплює весь діапазон. Лампа завжди відкривається на найяскравішому ступені, бо яскравість не запам'ятовується."
+        },
+        "picker-preview": {
+          "name": "Поточний колір",
+          "summary": "Показує колір, який ви збираєтеся застосувати, і його назву.",
+          "details": "Квадрат і назва поруч із ним змінюються, щойно ви торкаєтеся кольору в палітрі. До натискання «OK» на лампу нічого не потрапляє."
+        },
+        "picker-palette": {
+          "name": "Палітра кольорів",
+          "summary": "Тридцять готових кольорів на вибір.",
+          "details": "Торкніться кольору, щоб вибрати його: галочка позначає вибір, а зразок угорі йде за ним. Пробуйте скільки завгодно, поки не підтвердили. У палітрі є червоні, сині, зелені, жовті й оранжеві відтінки, землисті тони, сірі, чорний і білий."
+        },
+        "picker-cancel": {
+          "summary": "Закриває діалог і залишає той колір, який у лампи вже є.",
+          "details": "Нічого не змінюється: лампа зберігає колір, який був до відкриття діалогу.",
+          "shortcut": "Esc"
+        },
+        "picker-ok": {
+          "summary": "Застосовує вибраний колір до лампи.",
+          "details": "Свічення змінюється одразу, а колір зберігається, тож наступного разу лампа відкриється в ньому. Під час відкриття діалогу фокус стоїть на цій кнопці, тому з клавіатури достатньо одного натискання Enter.",
+          "shortcut": "Enter"
+        }
+      }
+    }
+  }
+}

@@ -37,8 +37,8 @@ import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.input.UiSurface
-import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -669,7 +669,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     true
                 }
                 R.id.action_help -> {
-                    DocsPageOpenManager.open(this, UiSurface.STREAMS)
+                    HelpOpenManager.open(this, StreamsActivity::class.java.simpleName, UiSurface.STREAMS)
                     true
                 }
                 else -> false

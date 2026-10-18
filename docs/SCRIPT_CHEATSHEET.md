@@ -2943,6 +2943,61 @@ scripts/docs/update-docs-shell.ps1
   Exit: 0 - every hub is current, or the requested shell updates were written.; 1 - Check found at least one stale shell.
 ```
 
+## scripts\docs\help
+
+### capture-help-screenshots.ps1
+Captures the in-app help screenshots with numbered markers, per locale and theme (CONTEXT-HELP rule 14).
+
+```
+scripts/docs/help/capture-help-screenshots.ps1
+  Captures the in-app help screenshots with numbered markers, per locale and theme (CONTEXT-HELP rule 14).
+  Params:
+    -DeviceId               [String]
+    -Package                [String] = 'com.sza.fastmediasorter.debug'
+    -Help                   [String] = ''
+    -Locales                [String[]] = @('en', 'ru', 'uk')
+    -Themes                 [String[]] = @('light', 'dark')  {light|dark}
+    -Width                  [Int32] = 540
+    -LandscapeWidth         [Int32] = 960
+    -Quality                [Int32] = 80  {range 0..100}
+    -OutRoot                [String] = ''
+    -SkipSeed               [SwitchParameter]
+    -SettleSeconds          [Int32] = 3
+    -F1Proof                [SwitchParameter]
+  Exit: 0 - every requested page was captured; 1 - a required element was missing from a frame, or a capture step failed; the other pages were still captured; 2 - no device, no adb.ps1, no ffmpeg with libwebp, System.Drawing unavailable, or the help map / a page source is missing
+```
+
+### generate-help-pages.ps1
+Generates the offline in-app help pages (CONTEXT-HELP 0.1) and their portal copies from one source per surface.
+
+```
+scripts/docs/help/generate-help-pages.ps1
+  Generates the offline in-app help pages (CONTEXT-HELP 0.1) and their portal copies from one source per surface.
+  Params:
+    -RepoRoot           [String] = (Join-Path $PSScriptRoot '../../..')
+    -Date               [String] = (Get-Date -Format 'yyyy-MM-dd')
+    -Locales            [String[]] = @('en', 'ru', 'uk')
+    -SourceRoot         [String] = ''
+    -MapPath            [String] = ''
+    -ImageRoot          [String] = ''
+    -OutAssets          [String] = ''
+    -OutPortal          [String] = ''
+  Exit: 0 - pages written (or already up to date); 1 - source error: a mapped help id has no source file, a source is invalid or lacks a locale, a labelKey is
+```
+
+### list-help-surfaces.ps1
+Enumerates the phone app's user-facing surfaces for the in-app help map (CONTEXT-HELP rule 19).
+
+```
+scripts/docs/help/list-help-surfaces.ps1
+  Enumerates the phone app's user-facing surfaces for the in-app help map (CONTEXT-HELP rule 19).
+  Params:
+    -Json             [SwitchParameter]
+    -RepoRoot         [String] = ''
+    -Module           [String] = 'phone'  {phone|wear}
+  Exit: 0 - surfaces listed; 2 - the manifest or the source root was not found
+```
+
 ## scripts\docs\lib
 
 ### doc-stamp.ps1
@@ -3062,11 +3117,11 @@ scripts/docs/oss-notices.tests/Run-Tests.ps1
 ## scripts\docs\site-redirects.tests
 
 ### Run-Tests.ps1
-S4097 - test suite for the forwarder generator, the retire command and the site-address gate.
+S4097 - test suite for the forwarder generator, the retire command and the site-address gate; S4333 adds the derived sitemap_exclude rows of the in-app help pages.
 
 ```
 scripts/docs/site-redirects.tests/Run-Tests.ps1
-  S4097 - test suite for the forwarder generator, the retire command and the site-address gate.
+  S4097 - test suite for the forwarder generator, the retire command and the site-address gate; S4333 adds the derived sitemap_exclude rows of the in-app help pages.
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
   Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: a script under test or the real 404.html is missing
@@ -4258,16 +4313,33 @@ scripts/quality/assert-harness-drift.ps1
   Exit: 0 - looked, and the running harness matches the canon checkout.; 2 - could not look: no resolvable harness, or no canon checkout on this machine. Distinct from 3
 ```
 
+### assert-help-map.ps1
+S4288 gate for contract CONTEXT-HELP rule 19: every phone surface has a help-map row, and every page row has its pages.
+
+```
+scripts/quality/assert-help-map.ps1
+  S4288 gate for contract CONTEXT-HELP rule 19: every phone surface has a help-map row, and every page row has its pages.
+  Params:
+    -Root                 [String]
+    -ChangedFiles         [String[]]
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -Help                 [SwitchParameter]
+  Exit: 0 - the map covers every surface and every page row is complete.; 1 - at least one finding, charged to this run.; 2 - cannot verify: the map, the baseline, the enumerator or the surface sources are missing or unreadable;
+```
+
 ### assert-hook-inventory.ps1
 
 ```
 scripts/quality/assert-hook-inventory.ps1
   Params:
-    -Gate                       [SwitchParameter]
-    -RepoRoot                   [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-    -GlobalSettingsPath         [String] = (Join-Path $HOME '.claude/settings.json')
-    -RuleSheetPath              [String] = (Join-Path $RepoRoot 'docs/NON_CLAUDE_RUNTIME_RULES.md')
-    -McpConfigPath              [String] = (Join-Path $RepoRoot '.mcp.json')
+    -Gate                         [SwitchParameter]
+    -RepoRoot                     [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -GlobalSettingsPath           [String] = (Join-Path $HOME '.claude/settings.json')
+    -RuleSheetPath                [String] = (Join-Path $RepoRoot 'docs/NON_CLAUDE_RUNTIME_RULES.md')
+    -McpConfigPath                [String] = (Join-Path $RepoRoot '.mcp.json')
+    -InstalledPluginsPath         [String] = (Join-Path $HOME '.claude/plugins/installed_plugins.json')
+    -PluginName                   [String] = 'sza'
   Exit: 0 in sync, or a divergence was reported without -Gate (advisories may print in both); 1 a real divergence between the registered set, the inventory, the rule sheet and the MCP server table, with -Gate; 2 could not verify - the inventory, .claude/settings.json or the rule sheet is missing or unparsable, or .mcp.json is unparsable
 ```
 
@@ -6493,6 +6565,18 @@ scripts/quality/assert-gson-persistence-contract.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\assert-help-map.tests
+
+### Run-Tests.ps1
+Contract tests for assert-help-map.ps1 (S4288, CONTEXT-HELP rule 19).
+
+```
+scripts/quality/assert-help-map.tests/Run-Tests.ps1
+  Contract tests for assert-help-map.ps1 (S4288, CONTEXT-HELP rule 19).
+  (no param block)
+  Exit: 0 - every case passed; 1 - at least one case failed
+```
+
 ## scripts\quality\assert-hook-inventory.tests
 
 ### run-tests.ps1
@@ -7212,6 +7296,15 @@ requires -Version 7.0
 ```
 scripts/quality/lib/locale-fingerprints.ps1
   requires -Version 7.0
+  (no param block)
+```
+
+### loopback-endpoint-close.ps1
+S4337: matcher for loopback endpoint close() implementations that shut down the executor/listener without closing tracked active client/upstream connections. Also hosts Find-UnregisteredResultLauncherLines (S3886) to keep source-matchers.ps1 below the 2000-line ceiling.
+
+```
+scripts/quality/lib/loopback-endpoint-close.ps1
+  S4337: matcher for loopback endpoint close() implementations that shut down the executor/listener without closing tracked active client/upstream connections. Also hosts Find-UnregisteredResultLauncherLines (S3886) to keep source-matchers.ps1 below the 2000-line ceiling.
   (no param block)
 ```
 
@@ -8789,6 +8882,18 @@ scripts/spec_catalog/spec-header-sync.tests/Run-Tests.ps1
   Subject: scripts/spec_catalog/update.ps1, scripts/spec_catalog/close.ps1
   (no param block)
   Exit: 1 = a contract failed,; 2 = could not verify (harness unresolvable, fixture could not be built).
+```
+
+## scripts\spec_catalog\spec-next-preflight.tests
+
+### Run-Tests.ps1
+Contract suite for spec-next-preflight.ps1 -Claim: the pick and the ticket lease as one step.
+
+```
+scripts/spec_catalog/spec-next-preflight.tests/Run-Tests.ps1
+  Contract suite for spec-next-preflight.ps1 -Claim: the pick and the ticket lease as one step.
+  (no param block)
+  Exit: 0 - every case passed; the sandbox is deleted.; 1 - at least one case failed; the sandbox is kept and its path printed.; 2 - could not verify: the resolved harness predates -Claim, the sandbox could not be prepared,
 ```
 
 ## scripts\spec_catalog\spec-preamble.tests

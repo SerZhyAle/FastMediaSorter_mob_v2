@@ -210,12 +210,17 @@ class BroadcastHttpServer(
             val allowed = credentials() ?: return null
             val answer = session.headers["authorization"]
             val accepted = BroadcastDigest.verify(answer, session.method.name, allowed) { it == nonce } != null
-            Timber.d("S4258: http digest gate accepted=%b", accepted)
             return if (accepted) {
                 null
             } else {
                 newFixedLengthResponse(Response.Status.UNAUTHORIZED, MIME_PLAINTEXT, "").apply {
-                    addHeader(BroadcastDigest.HEADER_CHALLENGE, BroadcastDigest.httpChallenge(nonce))
+                    // NanoHTTPD keeps one value per header name and writes it verbatim, so the second challenge
+                    // rides in the first value behind its own field line; a second map key would print in hash
+                    // order and could put MD5 ahead of SHA-256.
+                    Timber.d("S4258: http 401 with one challenge field per algorithm")
+                    val fieldBreak = "\r\n${BroadcastDigest.HEADER_CHALLENGE}: "
+                    val fields = BroadcastDigest.httpChallenges(nonce).joinToString(fieldBreak)
+                    addHeader(BroadcastDigest.HEADER_CHALLENGE, fields)
                 }
             }
         }

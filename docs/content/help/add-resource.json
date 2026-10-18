@@ -1,0 +1,729 @@
+{
+  "help": "add-resource",
+  "surface": "AddResourceActivity",
+  "elements": [
+    { "id": "back", "viewId": "toolbar", "labelKey": "back" },
+    { "id": "type-local", "viewId": "cardLocalFolder", "labelKey": "local_folder" },
+    { "id": "type-network", "viewId": "cardNetworkFolder", "labelKey": "network_folder" },
+    { "id": "type-sftp", "viewId": "cardSftpFolder", "labelKey": "sftp_ftp_folder" },
+    { "id": "type-cloud", "viewId": "cardCloudStorage", "labelKey": "cloud_storage" },
+    { "id": "type-stream", "viewId": "cardStream", "labelKey": "resource_type_stream" },
+    { "id": "type-watch", "viewId": "cardPairedWatch", "labelKey": "paired_watch" },
+    { "id": "type-my-devices", "viewId": "cardMyDevices", "labelKey": "add_resource_my_devices" },
+    { "id": "import-file", "viewId": "btnImportFromFile", "labelKey": "resource_import_from_file" },
+    { "id": "import-barcode", "viewId": "btnImportFromBarcode", "labelKey": "resource_import_from_barcode" },
+    { "id": "add-to-resources", "viewId": "btnAddToResources", "labelKey": "add_to_resources_button" },
+    { "id": "local-scan", "labelKey": "scan_button" },
+    { "id": "local-add-manually", "labelKey": "add_manually_button" },
+    { "id": "local-list", "labelKey": "resources_to_add" },
+    { "id": "cloud-providers", "labelKey": "select_cloud_provider" },
+    { "id": "smb-scan-network", "labelKey": "scan_network_button" },
+    { "id": "smb-server", "labelKey": "smb_server" },
+    { "id": "smb-username", "labelKey": "smb_username" },
+    { "id": "smb-password", "labelKey": "smb_password" },
+    { "id": "smb-test", "labelKey": "smb_test_connection" },
+    { "id": "smb-scan-shares", "labelKey": "smb_scan_shares" },
+    { "id": "smb-share-name", "labelKey": "smb_share_name" },
+    { "id": "smb-resource-name", "labelKey": "resource_name" },
+    { "id": "smb-scanning", "labelKey": "label_scanning_settings" },
+    { "id": "smb-media-types", "labelKey": "label_media_types" },
+    { "id": "smb-additional", "labelKey": "label_additional_options" },
+    { "id": "smb-add", "labelKey": "smb_add_manual_resource" },
+    { "id": "sftp-pc-guide", "labelKey": "companion_publish_folders_guide" },
+    { "id": "sftp-protocol", "labelKey": "protocol_selection" },
+    { "id": "sftp-host", "labelKey": "sftp_host" },
+    { "id": "sftp-auth", "labelKey": "sftp_auth_method_label" },
+    { "id": "sftp-test", "labelKey": "sftp_test_connection" },
+    { "id": "sftp-verification", "labelKey": "sftp_server_verification_title" },
+    { "id": "sftp-remote-path", "labelKey": "sftp_remote_path" },
+    { "id": "sftp-sections" },
+    { "id": "sftp-add", "labelKey": "sftp_add_resource" },
+    { "id": "discovery-status" },
+    { "id": "discovery-hosts" },
+    { "id": "discovery-stop", "labelKey": "stop" },
+    { "id": "discovery-cancel", "labelKey": "cancel" },
+    { "id": "picker-refresh" },
+    { "id": "picker-add-as-destination", "labelKey": "add_as_destination" },
+    { "id": "picker-scan-subdirectories", "labelKey": "scan_subdirectories" },
+    { "id": "picker-folder-list" },
+    { "id": "picker-enter", "labelKey": "enter" },
+    { "id": "picker-select", "labelKey": "select" },
+    { "id": "picker-back", "labelKey": "back" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "settings-general" },
+    { "help": "resource-editor" },
+    { "help": "auth-sessions" },
+    { "help": "my-devices" },
+    { "help": "streams" },
+    { "pageId": "storage.storage-sources-setup" },
+    { "pageId": "storage.network-and-cloud-sources" },
+    { "pageId": "network.windows-companion" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Add Resource",
+      "purpose": "Add Resource is where you connect a new place with your files to the app: a folder on the device, a network share, an SFTP or FTP server, a cloud folder, an internet stream or your watch. Pick a type, fill in a short form, and the new resource appears in the list on the main screen.",
+      "steps": [
+        "Choose what to add: Local Folder (2) for this device, Network Folder (3) for an SMB share, SFTP / FTP (4), Cloud Storage (5), Stream (6), Paired watch (7) or From my devices (8). Types that are switched off in Settings or missing from your edition are not listed, and if you press Add on the main screen while a type tab is open, that type's form opens at once.",
+        "Device folder: press SCAN (12) to get suggestions or Add Manually (13) to pick a folder yourself, tick what you want in the list (14), then press Add to Resources (11).",
+        "Network share: enter the server address (17), or find it with Scan Network (16). Add the username (18) and password (19), check them with Test connection (20), choose the share with Scan host (21) or type its name (22), then press Add This Resource (27).",
+        "SFTP or FTP: choose the protocol (29), enter the host (30) and the sign-in (31), try Test Connection (32), set the remote path (34) and press Add Resource (36).",
+        "Cloud storage: tap a provider (15), sign in, then open folders with Enter (45) and press Select (46) on the one you want to add.",
+        "Have a ready configuration from the Windows companion? Import from file (9) or Import by barcode (10) saves you typing all of this.",
+        "Back (1) leaves the screen without adding anything that is not saved yet."
+      ],
+      "groups": [
+        { "title": "Choosing what to add", "elements": ["back", "type-local", "type-network", "type-sftp", "type-cloud", "type-stream", "type-watch", "type-my-devices", "import-file", "import-barcode", "add-to-resources"] },
+        { "title": "Local folder and cloud storage", "elements": ["local-scan", "local-add-manually", "local-list", "cloud-providers"] },
+        { "title": "Network share (SMB) form", "elements": ["smb-scan-network", "smb-server", "smb-username", "smb-password", "smb-test", "smb-scan-shares", "smb-share-name", "smb-resource-name", "smb-scanning", "smb-media-types", "smb-additional", "smb-add"] },
+        { "title": "SFTP / FTP form", "elements": ["sftp-pc-guide", "sftp-protocol", "sftp-host", "sftp-auth", "sftp-test", "sftp-verification", "sftp-remote-path", "sftp-sections", "sftp-add"] },
+        { "title": "Network Discovery dialog", "elements": ["discovery-status", "discovery-hosts", "discovery-stop", "discovery-cancel"] },
+        { "title": "Cloud folder pickers (Google Drive, OneDrive, Dropbox)", "elements": ["picker-refresh", "picker-add-as-destination", "picker-scan-subdirectories", "picker-folder-list", "picker-enter", "picker-select", "picker-back"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Leaves this screen without adding what you have not saved yet.",
+          "details": "From the type list or from any form, the button takes you back to the screen you came from, usually the main screen. It does not step back from a form to the type list - to choose another type, open Add again. What you typed in a form and did not add is dropped.",
+          "shortcut": "Esc / F10"
+        },
+        "type-local": {
+          "summary": "Adds a folder, or a collection of media, from this device.",
+          "details": "Opens the Local Folder form: let the app scan for folders that hold media, or pick any folder yourself, a memory card or USB drive included. This card is always here. When every remote source is switched off or missing from your edition, it is the only choice, so the screen skips the type list and opens this form straight away."
+        },
+        "type-network": {
+          "summary": "Adds a shared folder from a PC or NAS over SMB.",
+          "details": "Opens the SMB form, which takes the server address, the sign-in and the share name. The card shows up only when SMB is available in your edition and switched on in Settings, General tab, Remote resources (SMB/(S)FTP/Cloud)."
+        },
+        "type-sftp": {
+          "summary": "Adds a folder on an SFTP or FTP server.",
+          "details": "Opens the SFTP / FTP form, where you choose the protocol and sign in with a password or an SSH key. The card shows up when SFTP or FTP is available in your edition and switched on in Settings, General tab, Remote resources. The two import buttons are repeated at the top of that form."
+        },
+        "type-cloud": {
+          "summary": "Adds a folder from Google Drive, OneDrive or Dropbox.",
+          "details": "Opens the list of cloud providers. Cloud storage is not part of every edition, and the card shows up only while at least one cloud provider is switched on in Settings, General tab, Remote resources."
+        },
+        "type-stream": {
+          "summary": "Adds an internet stream by its web address.",
+          "details": "Instead of a form on this screen, it opens the resource editor for a new stream. There you give the stream a name and its address (http, https or rtsp), and add a comment or a PIN if you want. It then joins your resources like any other."
+        },
+        "type-watch": {
+          "summary": "Adds your paired watch as a resource.",
+          "details": "A watch has no address or password, so the app asks for one thing only: a name (the suggestion is Watch). There is just one paired watch; if it is already in your resources you get a note instead of a duplicate. The card shows up only in editions that can work with a watch."
+        },
+        "type-my-devices": {
+          "summary": "Attaches resources that your other devices publish.",
+          "details": "Opens a list of the resources your other devices share through your exchange server or Google Drive. Tick the ones you need and press Attach, or press Attach all listed to take everything on the list. The card is shown together with the SFTP / FTP card, because attached resources connect as SFTP resources."
+        },
+        "import-file": {
+          "summary": "Creates resources from a configuration file prepared on a PC.",
+          "details": "Pick the configuration file that the Windows companion saved. The app reads it, adds new resources, updates the ones that already exist, tells you how many changed and closes this screen. If the file carries no password, a window shows the server and asks for it first. A damaged file, or one made by a newer version, is refused with a message."
+        },
+        "import-barcode": {
+          "summary": "Creates resources from a QR code shown by the PC companion.",
+          "details": "Opens the camera to scan the code, then imports exactly as a file would. A pairing code from another phone's built-in SFTP server works here too - it fills in the SFTP / FTP form for you to check and save. The button is hidden on devices without a camera, VR headsets included; use the Import from file button there."
+        },
+        "add-to-resources": {
+          "summary": "Saves the folders you ticked in the local list.",
+          "details": "The button appears only once the Local Folder form has something in its list. It adds every ticked row as a resource, tells you how many were added and closes the screen. With nothing ticked you get a reminder to select at least one. If your Quick Sort list is full, the resources are still added, but the surplus ones are left out of Quick Sort and the message says how many."
+        },
+        "local-scan": {
+          "summary": "Looks for folders with media on this device.",
+          "details": "Builds a list of suggestions: the standard folders, folders that contain media, and collections such as Recent Media or All Music. Folders and collections you have already added are left out. Nothing is saved yet - tick what you want in the list below and press Add to Resources."
+        },
+        "local-add-manually": {
+          "summary": "Picks a folder or a collection yourself.",
+          "details": "Opens the Select Folder window. Its Virtual resources buttons (Recent Media, All Music, All Videos, Camera Photos, All Images, All Documents) add that collection at once and close this screen. Quick Select Common Folders offers the device root, DCIM, Pictures, Download, Documents and the WhatsApp, Telegram and Instagram folders; Removable media lists connected cards and drives; a path field (only where the app may read paths) and the system picker cover the rest. A folder you pick lands in the list below already ticked.\n\nWhen Android first needs All files access, a window explains it and lets you grant it or continue with limited access."
+        },
+        "local-list": {
+          "summary": "The folders found or picked, ready to be ticked and added.",
+          "details": "Each row has a checkbox, a name you can edit, the path, the file count and one letter per media type - tap a letter to switch that type on or off. Under them sit Mark for Quick Sort, Read-only mode, Scan subdirectories and All Files. A folder that cannot be written to cannot be marked for Quick Sort. The list stays hidden until the first folder arrives."
+        },
+        "cloud-providers": {
+          "summary": "Signs in to Google Drive, OneDrive or Dropbox, then lets you pick a folder.",
+          "details": "Every card shows Not connected, or Connected as and the account. Tap a provider: if you have signed in before, you choose an account or Add New Account, otherwise sign-in starts at once. When it succeeds, the folder picker opens (see the last group of this page)."
+        },
+        "smb-scan-network": {
+          "summary": "Finds computers with shared folders on your local network.",
+          "details": "Opens the Network Discovery window and scans your local network. Pick a computer from its list: its address goes into Server IP and the app lists its shares for you. On some Android versions the app first asks for permission to reach devices on the local network."
+        },
+        "smb-server": {
+          "summary": "The address of the computer or NAS that shares the folder.",
+          "details": "Type an IP address. The field starts with the first three numbers of your phone's own address, so usually you only add the last one. An empty or invalid address stops Test connection and Scan host with a message."
+        },
+        "smb-username": {
+          "summary": "The account that is allowed to open the share.",
+          "details": "Type the name of the account on the server. A Windows domain, if you use one, goes under Additional Options."
+        },
+        "smb-password": {
+          "summary": "The password of that account.",
+          "details": "It is saved with the resource, so the app can connect on its own later. While this form is open, the screen can be hidden from screenshots and the recent apps view, depending on the Secure sensitive screens setting."
+        },
+        "smb-test": {
+          "summary": "Checks the address and the sign-in before you save.",
+          "details": "Connects with what you typed and shows Connection Test - Success or Connection Test - Failed in a window. Nothing is saved."
+        },
+        "smb-scan-shares": {
+          "summary": "Lists the shared folders a server offers.",
+          "details": "Asks the server which shares it has and shows them in a list. Pick one and its name goes into the ShareName/subfolder field. The list also holds names you typed by hand earlier, marked with a tick, and a line to type a name yourself. If the server shows nothing, a message says so and you type the name instead. Fill in Server IP first, or you get a reminder."
+        },
+        "smb-share-name": {
+          "summary": "The shared folder to open, and optionally a subfolder inside it.",
+          "details": "For example Common or Photos. Take it from the Scan host list or type it yourself; backslashes are turned into slashes."
+        },
+        "smb-resource-name": {
+          "summary": "How the resource is called in your list.",
+          "details": "If you leave it empty, the app uses the share name. You can rename the resource later in its editor."
+        },
+        "smb-scanning": {
+          "summary": "Decides which files of the share the app looks at.",
+          "details": "A collapsible section with five choices. Scan subdirectories looks for media in all nested folders. All Files shows every file type, not only media. Show subfolders separately lists subfolders as items you tap to enter. Disable thumbnails shows extension icons instead of previews. Remember file list for this resource keeps a copy of the list on the device for faster loading."
+        },
+        "smb-media-types": {
+          "summary": "Chooses which kinds of files the resource shows.",
+          "details": "Tick Images, Videos, Audio, GIFs, Text, PDF, EPUB and DOC - only the types that are turned on in Settings and available in your edition are listed. The button at the top, Custom at first, opens Resource Profile with ready sets: Audio Library, Video Library, Photo Storage, Documents and File Manager Mode. All Files in the section above ticks every type and locks the boxes."
+        },
+        "smb-additional": {
+          "summary": "Optional extras: Quick Sort, read-only, a comment, a PIN, the domain and the port.",
+          "details": "Mark for Quick Sort registers the share as a destination for sorting. Read-only mode blocks copy, move and delete on it, and switches Quick Sort off. Comment is a note for yourself, and PIN Code (Optional) protects the resource with 4-6 digits. Domain is for Windows domain accounts, and Port is 445 unless your server listens elsewhere."
+        },
+        "smb-add": {
+          "summary": "Saves the share as a resource.",
+          "details": "Saves the sign-in details, adds the resource, shows a message and closes this screen. If the share cannot be reached right away, you are told so, but the resource is still added - check the share name and access, then fix them in the editor."
+        },
+        "sftp-pc-guide": {
+          "summary": "Opens the guide for publishing PC folders to the app.",
+          "details": "The link sits at the top of the form next to the two import buttons and opens the companion's setup guide in your browser. Use it when you have not published any PC folders yet and have nothing to import."
+        },
+        "sftp-protocol": {
+          "summary": "Chooses SFTP (secure, over SSH) or plain FTP.",
+          "details": "SFTP uses port 22 and FTP uses port 21; the port field follows your choice unless you typed another number. FTP is not encrypted, so prefer SFTP when the server offers it. The Server verification block below applies to SFTP only and is hidden for FTP."
+        },
+        "sftp-host": {
+          "summary": "The name or IP address of the server, and its port.",
+          "details": "Type the host name or the address. The port is filled in for you (22 for SFTP, 21 for FTP); change it only if your server listens elsewhere. An empty or invalid host is refused with a message."
+        },
+        "sftp-auth": {
+          "summary": "Signs in with a password or with an SSH key.",
+          "details": "Password asks for the username and the password. SSH Key asks for the username and the private key - paste the key text or press Load File to read it from a file - plus a passphrase if the key has one. SSH keys work with SFTP only; FTP always uses a password."
+        },
+        "sftp-test": {
+          "summary": "Checks the address and the sign-in before you save.",
+          "details": "Connects with what you typed and reports success or failure in a window. When the server shows its host key and the verification field is still empty, the window offers Pin Host Key, which copies the key into Server verification for you."
+        },
+        "sftp-verification": {
+          "summary": "Locks the connection to one genuine server.",
+          "details": "Paste the server's host key fingerprint in SHA256 format and the app refuses any other machine that answers at this address. That protects you from someone pretending to be your server. It is optional and applies to SFTP only; the easiest way to fill it is Test Connection and then Pin Host Key."
+        },
+        "sftp-remote-path": {
+          "summary": "The folder on the server that becomes the resource.",
+          "details": "For example /home/user/media, or / for everything the account can see. Right below it, Resource Name is the label in your list; if you leave it empty, the app makes one up."
+        },
+        "sftp-sections": {
+          "name": "Scanning, media types and additional options",
+          "summary": "Three collapsible sections that work exactly as in the network share form.",
+          "details": "Content Scanning Conditions, Media Types and Additional Options hold the same choices as for an SMB share: subdirectories, All Files, thumbnails, media types with the profile button, Quick Sort, Read-only mode, a comment and a PIN. Open them only if the defaults do not suit you."
+        },
+        "sftp-add": {
+          "summary": "Saves the server folder as a resource.",
+          "details": "Needs a host and at least one media type; otherwise a message tells you what is missing. After saving, the screen closes. If the server cannot be reached right away, the resource is still added and a message says it is unavailable for now, so you can correct the details later in the editor."
+        },
+        "discovery-status": {
+          "name": "Scan status",
+          "summary": "Shows how far the search has come.",
+          "details": "While it works, the line shows the part of the network being checked and a counter. When the search ends it says Scan complete."
+        },
+        "discovery-hosts": {
+          "name": "Found devices",
+          "summary": "Lists devices on your network that offer file sharing.",
+          "details": "Each row shows the device name, its address and the services it offers - SMB, FTP or SFTP. Tap a row to use that device: its address goes into the Server IP field, the window closes and the app lists its shares. If nothing turns up, a note says No devices found yet; make sure you are on the same Wi-Fi and press Scan Again."
+        },
+        "discovery-stop": {
+          "summary": "Stops the search, or starts it again.",
+          "details": "While the scan runs, the button reads Stop and ends the search without closing the window. Once the scan has finished or been stopped, it reads Scan Again and searches once more."
+        },
+        "discovery-cancel": {
+          "summary": "Closes the window without choosing a device.",
+          "details": "A scan that is still running is stopped as well."
+        },
+        "picker-refresh": {
+          "name": "Pull down to refresh",
+          "summary": "Reloads the folders of the level you are on.",
+          "details": "Drag the list down to load it again, for example after you created a folder in the cloud. The keyboard does the same.",
+          "shortcut": "Ctrl+Shift+R / Ctrl+F5"
+        },
+        "picker-add-as-destination": {
+          "summary": "Also marks the chosen folder for Quick Sort.",
+          "details": "When ticked, the folder you select becomes a Quick Sort destination as well as a resource. Tick it before you press Select; it starts unticked."
+        },
+        "picker-scan-subdirectories": {
+          "summary": "Includes everything inside the chosen folder.",
+          "details": "When ticked, which it is at the start, media is searched in all folders nested under the one you select. Untick it to look at the top level only."
+        },
+        "picker-folder-list": {
+          "name": "Folder list",
+          "summary": "The folders of your cloud storage, one level at a time.",
+          "details": "The toolbar shows the path you are in. Tap a row to go into that folder; each row also has its own Enter and Select buttons, and Back below the top level. If a level has no folders, a note says so.",
+          "shortcut": "Enter"
+        },
+        "picker-enter": {
+          "summary": "Opens the folder to show the folders inside it.",
+          "details": "Does the same as tapping the row. Use it to go down to the folder you really want before you press Select."
+        },
+        "picker-select": {
+          "summary": "Adds this folder to your resources.",
+          "details": "Creates a cloud resource from the folder, using your Add as destination and Scan subdirectories choices and the media types enabled in Settings. You see Resource added and land on the main screen. A folder you added before is refused with a note.",
+          "undo": "Nothing in the cloud changes. To undo it, delete the resource on the main screen; the folder stays where it is."
+        },
+        "picker-back": {
+          "summary": "Goes up one level.",
+          "details": "The button appears on rows below the top level. The toolbar arrow and the Back button of the device do the same, and from the top level they close the picker. Esc closes it too.",
+          "shortcut": "Backspace"
+        }
+      }
+    },
+    "ru": {
+      "title": "Добавить ресурс",
+      "purpose": "«Добавить ресурс» - экран, где вы подключаете к приложению новое место с файлами: папку на устройстве, сетевую папку, сервер SFTP или FTP, облачную папку, интернет-трансляцию или часы. Выберите тип, заполните короткую форму - и новый ресурс появится в списке на главном экране.",
+      "steps": [
+        "Выберите, что добавить: «Локальная папка» (2) - папка на устройстве, «Сетевая папка» (3) - ресурс SMB, затем «SFTP / FTP» (4), «Облачное хранилище» (5), «Трансляция» (6), «Спаренные часы» (7) или «С моих устройств» (8). Типы, выключенные в настройках или отсутствующие в вашей редакции, не показываются, а если нажать «Добавить» на главном экране при открытой вкладке типа, сразу откроется форма этого типа.",
+        "Папка на устройстве: нажмите «СКАНИРОВАТЬ» (12), чтобы получить подсказки, или «Добавить вручную» (13), чтобы выбрать папку самому; отметьте нужное в списке (14) и нажмите «Добавить к ресурсам» (11).",
+        "Сетевая папка: введите адрес сервера (17) или найдите его через «Сканировать сеть» (16). Укажите имя пользователя (18) и пароль (19), проверьте их кнопкой «Тест соединения» (20), выберите папку через «Сканировать хост» (21) или впишите её имя (22) и нажмите «Добавить этот ресурс» (27).",
+        "SFTP или FTP: выберите протокол (29), введите хост (30) и данные для входа (31), проверьте кнопкой «Проверить соединение» (32), укажите путь на сервере (34) и нажмите «Добавить ресурс» (36).",
+        "Облачное хранилище: нажмите на сервис (15), войдите в аккаунт, затем заходите в папки кнопкой «Внутрь» (45) и нажмите «Выбор» (46) у нужной папки.",
+        "Есть готовая конфигурация от программы-компаньона для Windows? «Импорт из файла» (9) или «Импорт по штрих-коду» (10) избавят от ввода всех данных вручную.",
+        "«Назад» (1) закрывает экран, ничего не добавляя из того, что ещё не сохранено."
+      ],
+      "groups": [
+        { "title": "Что добавить", "elements": ["back", "type-local", "type-network", "type-sftp", "type-cloud", "type-stream", "type-watch", "type-my-devices", "import-file", "import-barcode", "add-to-resources"] },
+        { "title": "Локальная папка и облако", "elements": ["local-scan", "local-add-manually", "local-list", "cloud-providers"] },
+        { "title": "Форма сетевой папки (SMB)", "elements": ["smb-scan-network", "smb-server", "smb-username", "smb-password", "smb-test", "smb-scan-shares", "smb-share-name", "smb-resource-name", "smb-scanning", "smb-media-types", "smb-additional", "smb-add"] },
+        { "title": "Форма SFTP / FTP", "elements": ["sftp-pc-guide", "sftp-protocol", "sftp-host", "sftp-auth", "sftp-test", "sftp-verification", "sftp-remote-path", "sftp-sections", "sftp-add"] },
+        { "title": "Окно «Обнаружение сети»", "elements": ["discovery-status", "discovery-hosts", "discovery-stop", "discovery-cancel"] },
+        { "title": "Выбор облачной папки (Google Диск, OneDrive, Dropbox)", "elements": ["picker-refresh", "picker-add-as-destination", "picker-scan-subdirectories", "picker-folder-list", "picker-enter", "picker-select", "picker-back"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Закрывает экран, не добавляя то, что вы ещё не сохранили.",
+          "details": "И из списка типов, и из любой формы кнопка возвращает на экран, с которого вы пришли, - обычно на главный. Из формы к списку типов она не возвращает: чтобы выбрать другой тип, откройте «Добавить» заново. Введённое в форме, но не добавленное пропадёт.",
+          "shortcut": "Esc / F10"
+        },
+        "type-local": {
+          "summary": "Добавляет папку или подборку медиа с этого устройства.",
+          "details": "Открывает форму локальной папки: приложение может само найти папки с медиа, или вы выбираете любую папку сами, в том числе на карте памяти или USB-накопителе. Эта карточка есть всегда. Если все удалённые источники выключены или недоступны в вашей редакции, выбирать больше не из чего, и экран пропускает список типов и сразу открывает эту форму."
+        },
+        "type-network": {
+          "summary": "Добавляет общую папку с компьютера или NAS по протоколу SMB.",
+          "details": "Открывает форму SMB: адрес сервера, вход и имя общей папки. Карточка появляется, только если SMB есть в вашей редакции и включён в настройках, на вкладке «Общие», в разделе «Удалённые ресурсы (SMB/(S)FTP/Облако)»."
+        },
+        "type-sftp": {
+          "summary": "Добавляет папку на сервере SFTP или FTP.",
+          "details": "Открывает форму SFTP / FTP: там выбирают протокол и входят по паролю или по SSH-ключу. Карточка видна, если SFTP или FTP есть в вашей редакции и включены в настройках, на вкладке «Общие», в разделе «Удалённые ресурсы». Две кнопки импорта повторяются в верхней части этой формы."
+        },
+        "type-cloud": {
+          "summary": "Добавляет папку из Google Диска, OneDrive или Dropbox.",
+          "details": "Открывает список облачных сервисов. Облако есть не во всех редакциях, а карточка видна, только пока в настройках, на вкладке «Общие», в разделе «Удалённые ресурсы», включён хотя бы один облачный сервис."
+        },
+        "type-stream": {
+          "summary": "Добавляет интернет-трансляцию по её адресу.",
+          "details": "Вместо формы на этом экране открывается редактор ресурса для новой трансляции. Там вы задаёте название и адрес (http, https или rtsp), а при желании комментарий и ПИН-код. После сохранения трансляция появляется среди ресурсов, как и любой другой."
+        },
+        "type-watch": {
+          "summary": "Добавляет ваши спаренные часы как ресурс.",
+          "details": "У часов нет ни адреса, ни пароля, поэтому приложение спрашивает только название (предлагается «Часы»). Спаренные часы одни, и если они уже есть среди ресурсов, вы увидите сообщение вместо дубликата. Карточка есть только в редакциях, которые умеют работать с часами."
+        },
+        "type-my-devices": {
+          "summary": "Подключает ресурсы, которые публикуют ваши другие устройства.",
+          "details": "Открывает список ресурсов, которыми ваши другие устройства делятся через сервер обмена или Google Диск. Отметьте нужные и нажмите «Подключить» либо «Подключить все», чтобы взять весь список. Карточка показывается вместе с карточкой SFTP / FTP: подключённые ресурсы работают как SFTP."
+        },
+        "import-file": {
+          "summary": "Создаёт ресурсы из файла конфигурации, подготовленного на компьютере.",
+          "details": "Выберите файл конфигурации, который сохранила программа-компаньон для Windows. Приложение прочитает его, добавит новые ресурсы, обновит уже существующие, сообщит, сколько изменилось, и закроет этот экран. Если в файле нет пароля, сначала появится окно с названием сервера и запросом пароля. Повреждённый файл или файл от более новой версии отклоняется с сообщением."
+        },
+        "import-barcode": {
+          "summary": "Создаёт ресурсы по QR-коду, который показывает программа на компьютере.",
+          "details": "Открывает камеру для сканирования кода и затем импортирует всё так же, как из файла. Код сопряжения со встроенного SFTP-сервера другого телефона тоже подойдёт: он заполнит форму SFTP / FTP, а вам останется проверить данные и сохранить. На устройствах без камеры, включая VR-гарнитуры, кнопки нет - используйте кнопку «Импорт из файла»."
+        },
+        "add-to-resources": {
+          "summary": "Сохраняет папки, отмеченные в локальном списке.",
+          "details": "Кнопка появляется, только когда в форме локальной папки есть что добавлять. Она добавляет каждую отмеченную строку как ресурс, сообщает, сколько добавлено, и закрывает экран. Если ничего не отмечено, вы получите напоминание выбрать хотя бы один ресурс. Если список быстрой сортировки заполнен, ресурсы всё равно добавятся, но лишние окажутся без отметки быстрой сортировки, и в сообщении будет указано, сколько их."
+        },
+        "local-scan": {
+          "summary": "Ищет на устройстве папки с медиа.",
+          "details": "Составляет список подсказок: стандартные папки, папки с медиафайлами и подборки вроде «Недавние медиа» или «Вся музыка». Уже добавленные папки и подборки в список не попадают. Пока ничего не сохраняется - отметьте нужное в списке ниже и нажмите «Добавить к ресурсам»."
+        },
+        "local-add-manually": {
+          "summary": "Выбирает папку или подборку вручную.",
+          "details": "Открывает окно «Выбрать папку». Кнопки раздела «Виртуальные ресурсы» («Недавние медиа», «Вся музыка», «Всё видео», «Фото с камеры», «Все изображения», «Все документы») сразу добавляют подборку и закрывают этот экран. «Быстрый выбор стандартных папок» предлагает корень памяти, DCIM, Pictures, Download, «Документы» и папки WhatsApp, Telegram и Instagram; «Съёмные носители» показывает подключённые карты и накопители; остальное покрывают поле для пути (только там, где приложению разрешено читать пути) и системный выбор папки. Выбранная папка попадает в список ниже уже с галочкой.\n\nЕсли Android сначала требует «Доступ ко всем файлам», окно объяснит это и предложит предоставить доступ или продолжить с ограничениями."
+        },
+        "local-list": {
+          "summary": "Найденные или выбранные папки - отметьте нужные и добавьте.",
+          "details": "В каждой строке есть флажок, название, которое можно изменить, путь, число файлов и по одной букве на каждый тип медиа - нажмите на букву, чтобы включить или выключить этот тип. Ниже - «Быстрая сортировка», «Только чтение», «С подпапками» и «Все файлы». Папку, в которую нельзя записывать, нельзя отметить для быстрой сортировки. Пока не пришла первая папка, список скрыт."
+        },
+        "cloud-providers": {
+          "summary": "Входит в Google Диск, OneDrive или Dropbox и даёт выбрать папку.",
+          "details": "На каждой карточке написано «Не подключено» либо «Подключено как» и аккаунт. Нажмите на сервис: если вы уже входили, выберите аккаунт или «Добавить новый аккаунт», иначе вход начнётся сразу. После успешного входа откроется выбор папки (см. последнюю группу на этой странице)."
+        },
+        "smb-scan-network": {
+          "summary": "Находит в локальной сети компьютеры с общими папками.",
+          "details": "Открывает окно «Обнаружение сети» и сканирует вашу локальную сеть. Выберите компьютер в списке: его адрес попадёт в поле «IP сервера», а приложение покажет его общие папки. На некоторых версиях Android сначала запрашивается разрешение на доступ к устройствам в локальной сети."
+        },
+        "smb-server": {
+          "summary": "Адрес компьютера или NAS, который раздаёт папку.",
+          "details": "Введите IP-адрес. Поле начинается с первых трёх чисел адреса самого телефона, так что обычно остаётся дописать последнее. Пустой или неверный адрес останавливает «Тест соединения» и «Сканировать хост» с сообщением."
+        },
+        "smb-username": {
+          "summary": "Учётная запись, которой разрешено открывать папку.",
+          "details": "Введите имя учётной записи на сервере. Домен Windows, если он используется, указывается в разделе «Дополнительные параметры»."
+        },
+        "smb-password": {
+          "summary": "Пароль этой учётной записи.",
+          "details": "Он сохраняется вместе с ресурсом, чтобы приложение потом подключалось само. Пока эта форма открыта, экран может скрываться от снимков экрана и списка недавних приложений - это зависит от настройки «Защищать секретные экраны»."
+        },
+        "smb-test": {
+          "summary": "Проверяет адрес и вход, прежде чем вы сохраните ресурс.",
+          "details": "Подключается с тем, что вы ввели, и показывает в окне «Тест соединения - Успешно» или «Тест соединения - Ошибка». Ничего не сохраняется."
+        },
+        "smb-scan-shares": {
+          "summary": "Показывает общие папки, которые предлагает сервер.",
+          "details": "Спрашивает у сервера, какие общие папки у него есть, и выводит их списком. Выберите одну - её имя попадёт в поле «Имя общего ресурса /подпапка». В списке также есть имена, которые вы вводили вручную раньше, они отмечены галочкой, и строка для ввода имени самостоятельно. Если сервер ничего не показал, вы увидите сообщение и впишете имя сами. Сначала заполните «IP сервера», иначе придёт напоминание."
+        },
+        "smb-share-name": {
+          "summary": "Общая папка, которую нужно открыть, и при желании подпапка в ней.",
+          "details": "Например, Common или Photos. Возьмите имя из списка «Сканировать хост» или впишите сами; обратные косые черты заменяются на обычные."
+        },
+        "smb-resource-name": {
+          "summary": "Как ресурс называется в вашем списке.",
+          "details": "Если оставить поле пустым, приложение возьмёт имя общей папки. Позже ресурс можно переименовать в его редакторе."
+        },
+        "smb-scanning": {
+          "summary": "Определяет, какие файлы общей папки учитывает приложение.",
+          "details": "Сворачиваемый раздел с пятью параметрами. «С подпапками» ищет медиа во всех вложенных папках. «Все файлы» показывает файлы любых типов, а не только медиа. «Показывать подпапки отдельно» выводит подпапки как элементы, в которые заходят нажатием. «Отключить миниатюры» показывает значки расширений вместо превью. «Запоминать список файлов для этого ресурса» хранит копию списка на устройстве, чтобы он открывался быстрее."
+        },
+        "smb-media-types": {
+          "summary": "Выбирает, какие виды файлов показывает ресурс.",
+          "details": "Отметьте «Изображения», «Видео», «Аудио», GIFs, «Текст», PDF, EPUB и DOC - в списке есть только типы, включённые в настройках и доступные в вашей редакции. Кнопка сверху, сначала «Пользовательский», открывает «Профиль ресурса» с готовыми наборами: «Аудиотека», «Видеотека», «Фотохранилище», «Документы» и «Файловый менеджер». «Все файлы» в разделе выше отмечает все типы и блокирует флажки."
+        },
+        "smb-additional": {
+          "summary": "Необязательное: быстрая сортировка, только чтение, комментарий, ПИН-код, домен и порт.",
+          "details": "«Быстрая сортировка» делает папку местом назначения для сортировки. «Только чтение» запрещает в ней копирование, перемещение и удаление и выключает быструю сортировку. «Комментарий» - заметка для себя, а «ПИН-код (необязательно)» защищает ресурс 4-6 цифрами. «Домен (необязательно)» нужен для доменных учётных записей Windows, а «Порт» - 445, если ваш сервер не слушает другой."
+        },
+        "smb-add": {
+          "summary": "Сохраняет общую папку как ресурс.",
+          "details": "Сохраняет данные для входа, добавляет ресурс, показывает сообщение и закрывает этот экран. Если до папки сразу не удалось достучаться, вы узнаете об этом, но ресурс всё равно добавится - проверьте имя папки и доступ и поправьте их в редакторе."
+        },
+        "sftp-pc-guide": {
+          "summary": "Открывает руководство по публикации папок ПК для приложения.",
+          "details": "Ссылка находится в верхней части формы рядом с двумя кнопками импорта и открывает в браузере руководство по настройке программы-компаньона. Пригодится, если вы ещё не опубликовали папки на ПК и импортировать нечего."
+        },
+        "sftp-protocol": {
+          "summary": "Выбирает SFTP (защищённый, через SSH) или обычный FTP.",
+          "details": "SFTP использует порт 22, FTP - порт 21; поле порта меняется вслед за выбором, если вы не вводили другой номер. FTP не шифруется, поэтому по возможности выбирайте SFTP. Блок «Проверка сервера» ниже относится только к SFTP и для FTP скрыт."
+        },
+        "sftp-host": {
+          "summary": "Имя или IP-адрес сервера и его порт.",
+          "details": "Введите имя хоста или адрес. Порт подставляется сам (22 для SFTP, 21 для FTP); меняйте его, только если сервер слушает другой. Пустой или неверный хост отклоняется с сообщением."
+        },
+        "sftp-auth": {
+          "summary": "Вход по паролю или по SSH-ключу.",
+          "details": "«Пароль» запрашивает имя пользователя и пароль. «SSH ключ» запрашивает имя пользователя и приватный ключ - вставьте текст ключа или нажмите «Загрузить», чтобы прочитать его из файла, - а также парольную фразу, если она у ключа есть. SSH-ключи работают только с SFTP; для FTP всегда нужен пароль."
+        },
+        "sftp-test": {
+          "summary": "Проверяет адрес и вход, прежде чем вы сохраните ресурс.",
+          "details": "Подключается с тем, что вы ввели, и сообщает в окне, получилось ли. Если сервер показал свой ключ, а поле проверки ещё пусто, окно предложит «Закрепить ключ» - он сам попадёт в «Проверку сервера»."
+        },
+        "sftp-verification": {
+          "summary": "Привязывает соединение к одному настоящему серверу.",
+          "details": "Вставьте отпечаток ключа сервера в формате SHA256, и приложение откажется работать с любой другой машиной, отвечающей по этому адресу. Так вы защищены от подмены сервера. Это необязательно и относится только к SFTP; проще всего нажать «Проверить соединение», а затем «Закрепить ключ»."
+        },
+        "sftp-remote-path": {
+          "summary": "Папка на сервере, которая станет ресурсом.",
+          "details": "Например, /home/user/media или /, если нужно всё, что видит учётная запись. Сразу под ним поле «Название ресурса» - подпись в вашем списке; если оставить его пустым, приложение придумает название само."
+        },
+        "sftp-sections": {
+          "name": "Сканирование, типы медиа и дополнительные параметры",
+          "summary": "Три сворачиваемых раздела, которые работают так же, как в форме сетевой папки.",
+          "details": "«Условия сканирования содержимого», «Типы медиа» и «Дополнительные параметры» содержат те же варианты, что и для папки SMB: подпапки, «Все файлы», миниатюры, типы медиа с кнопкой профиля, «Быстрая сортировка», «Только чтение», комментарий и ПИН-код. Открывайте их, только если настройки по умолчанию вам не подходят."
+        },
+        "sftp-add": {
+          "summary": "Сохраняет папку на сервере как ресурс.",
+          "details": "Нужны хост и хотя бы один тип медиа, иначе сообщение подскажет, чего не хватает. После сохранения экран закрывается. Если до сервера сразу не удалось достучаться, ресурс всё равно добавится, а сообщение скажет, что он пока недоступен, - данные можно поправить позже в редакторе."
+        },
+        "discovery-status": {
+          "name": "Ход поиска",
+          "summary": "Показывает, как далеко продвинулся поиск.",
+          "details": "Пока идёт поиск, строка показывает проверяемую часть сети и счётчик. Когда поиск закончен, появляется «Сканирование завершено»."
+        },
+        "discovery-hosts": {
+          "name": "Найденные устройства",
+          "summary": "Список устройств в сети, которые раздают файлы.",
+          "details": "В каждой строке - имя устройства, его адрес и службы, которые оно предлагает: SMB, FTP или SFTP. Нажмите на строку, чтобы выбрать устройство: его адрес попадёт в поле «IP сервера», окно закроется, а приложение покажет общие папки. Если ничего не найдено, появится надпись «Устройства пока не найдены»; убедитесь, что вы в той же сети Wi-Fi, и нажмите «Сканировать снова»."
+        },
+        "discovery-stop": {
+          "summary": "Останавливает поиск или запускает его снова.",
+          "details": "Пока поиск идёт, кнопка называется «Стоп» и прекращает его, не закрывая окно. Когда поиск завершён или остановлен, она называется «Сканировать снова» и запускает поиск заново."
+        },
+        "discovery-cancel": {
+          "summary": "Закрывает окно, не выбирая устройство.",
+          "details": "Незавершённый поиск при этом тоже останавливается."
+        },
+        "picker-refresh": {
+          "name": "Потянуть вниз, чтобы обновить",
+          "summary": "Заново загружает папки текущего уровня.",
+          "details": "Потяните список вниз, чтобы загрузить его снова, например после того, как вы создали папку в облаке. С клавиатуры то же делает сочетание клавиш.",
+          "shortcut": "Ctrl+Shift+R / Ctrl+F5"
+        },
+        "picker-add-as-destination": {
+          "summary": "Заодно отмечает выбранную папку для быстрой сортировки.",
+          "details": "Если флажок стоит, выбранная папка станет не только ресурсом, но и местом назначения для быстрой сортировки. Отметьте его до нажатия «Выбор»; сначала он снят."
+        },
+        "picker-scan-subdirectories": {
+          "summary": "Включает всё, что лежит внутри выбранной папки.",
+          "details": "Если флажок стоит (сначала он стоит), медиа ищутся во всех папках, вложенных в выбранную. Снимите его, чтобы смотреть только верхний уровень."
+        },
+        "picker-folder-list": {
+          "name": "Список папок",
+          "summary": "Папки вашего облачного хранилища, по одному уровню.",
+          "details": "На панели сверху - путь, где вы находитесь. Нажмите на строку, чтобы зайти в папку; у каждой строки есть и свои кнопки «Внутрь» и «Выбор», а ниже верхнего уровня - «Назад». Если на уровне нет папок, об этом сообщит надпись.",
+          "shortcut": "Enter"
+        },
+        "picker-enter": {
+          "summary": "Открывает папку, чтобы показать папки внутри неё.",
+          "details": "Делает то же, что нажатие на строку. Спускайтесь с её помощью к нужной папке, прежде чем нажать «Выбор»."
+        },
+        "picker-select": {
+          "summary": "Добавляет эту папку в ваши ресурсы.",
+          "details": "Создаёт облачный ресурс из папки с учётом ваших флажков «Добавить в назначения» и «С подпапками» и типов медиа, включённых в настройках. Вы увидите «Ресурс добавлен» и окажетесь на главном экране. Папку, которую вы уже добавляли, приложение отклонит с пояснением.",
+          "undo": "В облаке ничего не меняется. Чтобы отменить, удалите ресурс на главном экране - папка останется на месте."
+        },
+        "picker-back": {
+          "summary": "Поднимается на один уровень выше.",
+          "details": "Кнопка есть у строк ниже верхнего уровня. Стрелка на панели и кнопка «Назад» на устройстве делают то же, а с верхнего уровня закрывают выбор папки. Esc тоже закрывает его.",
+          "shortcut": "Backspace"
+        }
+      }
+    },
+    "uk": {
+      "title": "Додати ресурс",
+      "purpose": "«Додати ресурс» - екран, де ви підключаєте до застосунку нове місце з файлами: папку на пристрої, мережеву папку, сервер SFTP чи FTP, хмарну папку, інтернет-трансляцію або годинник. Оберіть тип, заповніть коротку форму - і новий ресурс з’явиться в списку на головному екрані.",
+      "steps": [
+        "Оберіть, що додати: «Локальна папка» (2) - папка на пристрої, «Мережева папка» (3) - ресурс SMB, далі «SFTP / FTP» (4), «Хмарне сховище» (5), «Трансляція» (6), «Спарений годинник» (7) або «З моїх пристроїв» (8). Типи, вимкнені в налаштуваннях або відсутні у вашій редакції, не показуються, а якщо натиснути «Додати» на головному екрані при відкритій вкладці типу, одразу відкриється форма цього типу.",
+        "Папка на пристрої: натисніть «СКАНУВАТИ» (12), щоб отримати підказки, або «Додати вручну» (13), щоб обрати папку самому; позначте потрібне в списку (14) і натисніть «Додати до ресурсів» (11).",
+        "Мережева папка: введіть адресу сервера (17) або знайдіть її через «Сканувати мережу» (16). Вкажіть ім’я користувача (18) і пароль (19), перевірте їх кнопкою «Тест з'єднання» (20), оберіть папку через «Сканувати хост» (21) або впишіть її ім’я (22) і натисніть «Додати цей ресурс» (27).",
+        "SFTP або FTP: оберіть протокол (29), введіть хост (30) і дані для входу (31), перевірте кнопкою «Перевірити з'єднання» (32), вкажіть шлях на сервері (34) і натисніть «Додати ресурс» (36).",
+        "Хмарне сховище: натисніть на сервіс (15), увійдіть в акаунт, потім заходьте в папки кнопкою «Всередину» (45) і натисніть «Вибір» (46) біля потрібної папки.",
+        "Маєте готову конфігурацію від companion-застосунку для Windows? «Імпорт із файлу» (9) або «Імпорт за штрих-кодом» (10) позбавлять від введення всіх даних уручну.",
+        "«Назад» (1) закриває екран, нічого не додаючи з того, що ще не збережено."
+      ],
+      "groups": [
+        { "title": "Що додати", "elements": ["back", "type-local", "type-network", "type-sftp", "type-cloud", "type-stream", "type-watch", "type-my-devices", "import-file", "import-barcode", "add-to-resources"] },
+        { "title": "Локальна папка і хмара", "elements": ["local-scan", "local-add-manually", "local-list", "cloud-providers"] },
+        { "title": "Форма мережевої папки (SMB)", "elements": ["smb-scan-network", "smb-server", "smb-username", "smb-password", "smb-test", "smb-scan-shares", "smb-share-name", "smb-resource-name", "smb-scanning", "smb-media-types", "smb-additional", "smb-add"] },
+        { "title": "Форма SFTP / FTP", "elements": ["sftp-pc-guide", "sftp-protocol", "sftp-host", "sftp-auth", "sftp-test", "sftp-verification", "sftp-remote-path", "sftp-sections", "sftp-add"] },
+        { "title": "Вікно «Виявлення мережі»", "elements": ["discovery-status", "discovery-hosts", "discovery-stop", "discovery-cancel"] },
+        { "title": "Вибір хмарної папки (Google Диск, OneDrive, Dropbox)", "elements": ["picker-refresh", "picker-add-as-destination", "picker-scan-subdirectories", "picker-folder-list", "picker-enter", "picker-select", "picker-back"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Закриває екран, не додаючи те, що ви ще не зберегли.",
+          "details": "І зі списку типів, і з будь-якої форми кнопка повертає на екран, з якого ви прийшли, - зазвичай на головний. З форми до списку типів вона не повертає: щоб обрати інший тип, відкрийте «Додати» знову. Введене у формі, але не додане, пропаде.",
+          "shortcut": "Esc / F10"
+        },
+        "type-local": {
+          "summary": "Додає папку або добірку медіа з цього пристрою.",
+          "details": "Відкриває форму локальної папки: застосунок може сам знайти папки з медіа, або ви обираєте будь-яку папку самі, зокрема на карті пам’яті чи USB-накопичувачі. Ця картка є завжди. Якщо всі віддалені джерела вимкнено або їх немає у вашій редакції, вибирати більше нема з чого, тож екран пропускає список типів і одразу відкриває цю форму."
+        },
+        "type-network": {
+          "summary": "Додає спільну папку з комп’ютера чи NAS за протоколом SMB.",
+          "details": "Відкриває форму SMB: адреса сервера, вхід і назва спільної папки. Картка з’являється, лише якщо SMB є у вашій редакції та ввімкнений у налаштуваннях, на вкладці «Загальні», у розділі «Віддалені ресурси (SMB/(S)FTP/Хмара)»."
+        },
+        "type-sftp": {
+          "summary": "Додає папку на сервері SFTP або FTP.",
+          "details": "Відкриває форму SFTP / FTP: там обирають протокол і входять за паролем або SSH-ключем. Картка видима, якщо SFTP чи FTP є у вашій редакції та ввімкнені в налаштуваннях, на вкладці «Загальні», у розділі «Віддалені ресурси». Дві кнопки імпорту повторюються у верхній частині цієї форми."
+        },
+        "type-cloud": {
+          "summary": "Додає папку з Google Диска, OneDrive або Dropbox.",
+          "details": "Відкриває список хмарних сервісів. Хмара є не в усіх редакціях, а картка видима, лише поки в налаштуваннях, на вкладці «Загальні», у розділі «Віддалені ресурси», ввімкнено хоча б один хмарний сервіс."
+        },
+        "type-stream": {
+          "summary": "Додає інтернет-трансляцію за її адресою.",
+          "details": "Замість форми на цьому екрані відкривається редактор ресурсу для нової трансляції. Там ви задаєте назву й адресу (http, https або rtsp), а за бажання - коментар чи ПІН-код. Після збереження трансляція з’являється серед ресурсів, як і будь-який інший."
+        },
+        "type-watch": {
+          "summary": "Додає ваш спарений годинник як ресурс.",
+          "details": "Годинник не має ні адреси, ні пароля, тож застосунок питає лише назву (пропонується «Годинник»). Спареного годинника один, і якщо він уже є серед ресурсів, ви побачите повідомлення замість дубліката. Картка є лише в редакціях, які вміють працювати з годинником."
+        },
+        "type-my-devices": {
+          "summary": "Підключає ресурси, які публікують ваші інші пристрої.",
+          "details": "Відкриває список ресурсів, якими ваші інші пристрої діляться через сервер обміну або Google Диск. Позначте потрібні й натисніть «Підключити» або «Підключити всі», щоб узяти весь список. Картка показується разом із карткою SFTP / FTP: підключені ресурси працюють як SFTP."
+        },
+        "import-file": {
+          "summary": "Створює ресурси з файлу конфігурації, підготовленого на комп’ютері.",
+          "details": "Виберіть файл конфігурації, який зберіг companion-застосунок для Windows. Застосунок прочитає його, додасть нові ресурси, оновить наявні, повідомить, скільки змінилося, і закриє цей екран. Якщо у файлі немає пароля, спершу з’явиться вікно з назвою сервера й запитом пароля. Пошкоджений файл або файл від новішої версії відхиляється з повідомленням."
+        },
+        "import-barcode": {
+          "summary": "Створює ресурси за QR-кодом, який показує програма на комп’ютері.",
+          "details": "Відкриває камеру для сканування коду й далі імпортує все так, як із файлу. Код сполучення з вбудованого SFTP-сервера іншого телефона теж підійде: він заповнить форму SFTP / FTP, а вам залишиться перевірити дані й зберегти. На пристроях без камери, зокрема VR-гарнітурах, кнопки немає - скористайтеся кнопкою «Імпорт із файлу»."
+        },
+        "add-to-resources": {
+          "summary": "Зберігає папки, позначені в локальному списку.",
+          "details": "Кнопка з’являється, лише коли у формі локальної папки є що додавати. Вона додає кожен позначений рядок як ресурс, повідомляє, скільки додано, і закриває екран. Якщо нічого не позначено, ви отримаєте нагадування вибрати хоча б один ресурс. Якщо список швидкого сортування заповнений, ресурси все одно додадуться, але зайві будуть без позначки швидкого сортування, а в повідомленні буде вказано, скільки їх."
+        },
+        "local-scan": {
+          "summary": "Шукає на пристрої папки з медіа.",
+          "details": "Складає список підказок: стандартні папки, папки з медіафайлами та добірки на кшталт «Нещодавні медіа» або «Вся музика». Уже додані папки й добірки до списку не потрапляють. Поки що нічого не зберігається - позначте потрібне в списку нижче й натисніть «Додати до ресурсів»."
+        },
+        "local-add-manually": {
+          "summary": "Обирає папку або добірку вручну.",
+          "details": "Відкриває вікно «Вибрати папку». Кнопки розділу «Віртуальні ресурси» («Нещодавні медіа», «Вся музика», «Усі відео», «Фото з камери», «Усі зображення», «Усі документи») одразу додають добірку й закривають цей екран. «Швидкий вибір стандартних папок» пропонує корінь пам’яті, DCIM, Pictures, Download, «Документи» та папки WhatsApp, Telegram і Instagram; «Знімні носії» показують підключені картки й накопичувачі; решту покривають поле для шляху (лише там, де застосунку дозволено читати шляхи) та системний вибір папки. Обрана папка потрапляє до списку нижче вже з галочкою.\n\nЯкщо Android спершу вимагає «Доступ до всіх файлів», вікно пояснить це й запропонує надати доступ або продовжити з обмеженнями."
+        },
+        "local-list": {
+          "summary": "Знайдені або обрані папки - позначте потрібні й додайте.",
+          "details": "У кожному рядку є прапорець, назва, яку можна змінити, шлях, кількість файлів і по одній літері на кожен тип медіа - натисніть на літеру, щоб увімкнути чи вимкнути цей тип. Нижче - «Швидке сортування», «Лише читання», «З підпапками» та «Усі файли». Папку, до якої не можна записувати, не можна позначити для швидкого сортування. Поки не надійшла перша папка, список схований."
+        },
+        "cloud-providers": {
+          "summary": "Входить у Google Диск, OneDrive або Dropbox і дає обрати папку.",
+          "details": "На кожній картці написано «Не підключено» або «Підключено як» і акаунт. Натисніть на сервіс: якщо ви вже входили, оберіть акаунт або «Додати новий акаунт», інакше вхід почнеться одразу. Після успішного входу відкриється вибір папки (див. останню групу на цій сторінці)."
+        },
+        "smb-scan-network": {
+          "summary": "Знаходить у локальній мережі комп’ютери зі спільними папками.",
+          "details": "Відкриває вікно «Виявлення мережі» і сканує вашу локальну мережу. Оберіть комп’ютер у списку: його адреса потрапить у поле «IP сервера», а застосунок покаже його спільні папки. На деяких версіях Android спершу запитується дозвіл на доступ до пристроїв у локальній мережі."
+        },
+        "smb-server": {
+          "summary": "Адреса комп’ютера чи NAS, що роздає папку.",
+          "details": "Введіть IP-адресу. Поле починається з перших трьох чисел адреси самого телефона, тож зазвичай лишається дописати останнє. Порожня або хибна адреса зупиняє «Тест з'єднання» та «Сканувати хост» із повідомленням."
+        },
+        "smb-username": {
+          "summary": "Обліковий запис, якому дозволено відкривати папку.",
+          "details": "Введіть ім’я облікового запису на сервері. Домен Windows, якщо він використовується, вказується в розділі «Додаткові параметри»."
+        },
+        "smb-password": {
+          "summary": "Пароль цього облікового запису.",
+          "details": "Він зберігається разом із ресурсом, щоб застосунок потім підключався сам. Поки ця форма відкрита, екран може ховатися від знімків екрана й списку нещодавніх застосунків - це залежить від налаштування «Захищати секретні екрани»."
+        },
+        "smb-test": {
+          "summary": "Перевіряє адресу й вхід, перш ніж ви збережете ресурс.",
+          "details": "Підключається з тим, що ви ввели, і показує у вікні «Тест з'єднання - Успішно» або «Тест з'єднання - Помилка». Нічого не зберігається."
+        },
+        "smb-scan-shares": {
+          "summary": "Показує спільні папки, які пропонує сервер.",
+          "details": "Питає в сервера, які спільні папки в нього є, і виводить їх списком. Оберіть одну - її назва потрапить у поле «Ім'я ресурсу /папки». У списку також є назви, які ви вводили вручну раніше, вони позначені галочкою, і рядок для введення назви самостійно. Якщо сервер нічого не показав, ви побачите повідомлення й впишете назву самі. Спершу заповніть «IP сервера», інакше надійде нагадування."
+        },
+        "smb-share-name": {
+          "summary": "Спільна папка, яку потрібно відкрити, і за бажання підпапка в ній.",
+          "details": "Наприклад, Common або Photos. Візьміть назву зі списку «Сканувати хост» або впишіть сами; зворотні похилі риски замінюються на звичайні."
+        },
+        "smb-resource-name": {
+          "summary": "Як ресурс називається у вашому списку.",
+          "details": "Якщо залишити поле порожнім, застосунок візьме назву спільної папки. Пізніше ресурс можна перейменувати в його редакторі."
+        },
+        "smb-scanning": {
+          "summary": "Визначає, які файли спільної папки враховує застосунок.",
+          "details": "Розділ, що згортається, з п’ятьма параметрами. «З підпапками» шукає медіа в усіх вкладених папках. «Усі файли» показує файли будь-яких типів, а не лише медіа. «Показувати підпапки окремо» виводить підпапки як елементи, у які заходять натисканням. «Вимкнути мініатюри» показує значки розширень замість превʼю. «Запамʼятовувати список файлів для цього ресурсу» зберігає копію списку на пристрої, щоб він відкривався швидше."
+        },
+        "smb-media-types": {
+          "summary": "Обирає, які види файлів показує ресурс.",
+          "details": "Позначте «Зображення», «Відео», «Аудіо», GIFs, «Текст», PDF, EPUB і DOC - у списку є лише типи, ввімкнені в налаштуваннях і доступні у вашій редакції. Кнопка згори, спочатку «Довільний», відкриває «Профіль ресурсу» з готовими наборами: «Аудіотека», «Відеотека», «Фотосховище», «Документи» та «Файловий менеджер». «Усі файли» в розділі вище позначає всі типи й блокує прапорці."
+        },
+        "smb-additional": {
+          "summary": "Необов’язкове: швидке сортування, лише читання, коментар, ПІН-код, домен і порт.",
+          "details": "«Швидке сортування» робить папку місцем призначення для сортування. «Лише читання» забороняє в ній копіювання, переміщення й видалення та вимикає швидке сортування. «Коментар» - нотатка для себе, а «ПІН-код (необов'язково)» захищає ресурс 4-6 цифрами. «Домен (необов'язково)» потрібен для доменних облікових записів Windows, а «Порт» - 445, якщо ваш сервер не слухає іншого."
+        },
+        "smb-add": {
+          "summary": "Зберігає спільну папку як ресурс.",
+          "details": "Зберігає дані для входу, додає ресурс, показує повідомлення й закриває цей екран. Якщо до папки одразу не вдалося достукатися, ви дізнаєтеся про це, але ресурс усе одно додасться - перевірте назву папки й доступ та виправте їх у редакторі."
+        },
+        "sftp-pc-guide": {
+          "summary": "Відкриває посібник із публікації папок ПК для застосунку.",
+          "details": "Посилання міститься у верхній частині форми поруч із двома кнопками імпорту й відкриває в браузері посібник із налаштування companion-застосунку. Стане в пригоді, якщо ви ще не опублікували папки на ПК і імпортувати нічого."
+        },
+        "sftp-protocol": {
+          "summary": "Обирає SFTP (захищений, через SSH) або звичайний FTP.",
+          "details": "SFTP використовує порт 22, FTP - порт 21; поле порту змінюється слідом за вибором, якщо ви не вводили інший номер. FTP не шифрується, тож за можливості обирайте SFTP. Блок «Перевірка сервера» нижче стосується лише SFTP і для FTP схований."
+        },
+        "sftp-host": {
+          "summary": "Назва або IP-адреса сервера та його порт.",
+          "details": "Введіть назву хоста або адресу. Порт підставляється сам (22 для SFTP, 21 для FTP); змінюйте його, лише якщо сервер слухає інший. Порожній або хибний хост відхиляється з повідомленням."
+        },
+        "sftp-auth": {
+          "summary": "Вхід за паролем або за SSH-ключем.",
+          "details": "«Пароль» запитує ім’я користувача й пароль. «SSH ключ» запитує ім’я користувача та приватний ключ - вставте текст ключа або натисніть «Завантажити», щоб прочитати його з файлу, - а також парольну фразу, якщо вона в ключа є. SSH-ключі працюють лише з SFTP; для FTP завжди потрібен пароль."
+        },
+        "sftp-test": {
+          "summary": "Перевіряє адресу й вхід, перш ніж ви збережете ресурс.",
+          "details": "Підключається з тим, що ви ввели, і повідомляє у вікні, чи вдалося. Якщо сервер показав свій ключ, а поле перевірки ще порожнє, вікно запропонує «Закріпити ключ» - він сам потрапить у «Перевірку сервера»."
+        },
+        "sftp-verification": {
+          "summary": "Прив’язує з’єднання до одного справжнього сервера.",
+          "details": "Вставте відбиток ключа сервера у форматі SHA256, і застосунок відмовиться працювати з будь-якою іншою машиною, що відповідає за цією адресою. Так ви захищені від підміни сервера. Це необов’язково й стосується лише SFTP; найпростіше натиснути «Перевірити з'єднання», а потім «Закріпити ключ»."
+        },
+        "sftp-remote-path": {
+          "summary": "Папка на сервері, яка стане ресурсом.",
+          "details": "Наприклад, /home/user/media або /, якщо потрібне все, що бачить обліковий запис. Одразу під ним поле «Назва ресурсу» - підпис у вашому списку; якщо залишити його порожнім, застосунок вигадає назву сам."
+        },
+        "sftp-sections": {
+          "name": "Сканування, типи медіа та додаткові параметри",
+          "summary": "Три розділи, що згортаються, працюють так само, як у формі мережевої папки.",
+          "details": "«Умови сканування вмісту», «Типи медіа» та «Додаткові параметри» містять ті самі варіанти, що й для папки SMB: підпапки, «Усі файли», мініатюри, типи медіа з кнопкою профілю, «Швидке сортування», «Лише читання», коментар і ПІН-код. Відкривайте їх, лише якщо типові налаштування вам не підходять."
+        },
+        "sftp-add": {
+          "summary": "Зберігає папку на сервері як ресурс.",
+          "details": "Потрібні хост і хоча б один тип медіа, інакше повідомлення підкаже, чого бракує. Після збереження екран закривається. Якщо до сервера одразу не вдалося достукатися, ресурс усе одно додасться, а повідомлення скаже, що він поки недоступний, - дані можна виправити пізніше в редакторі."
+        },
+        "discovery-status": {
+          "name": "Перебіг пошуку",
+          "summary": "Показує, як далеко просунувся пошук.",
+          "details": "Поки триває пошук, рядок показує частину мережі, що перевіряється, і лічильник. Коли пошук завершено, з’являється «Сканування завершено»."
+        },
+        "discovery-hosts": {
+          "name": "Знайдені пристрої",
+          "summary": "Список пристроїв у мережі, що роздають файли.",
+          "details": "У кожному рядку - назва пристрою, його адреса та служби, які він пропонує: SMB, FTP або SFTP. Натисніть на рядок, щоб обрати пристрій: його адреса потрапить у поле «IP сервера», вікно закриється, а застосунок покаже спільні папки. Якщо нічого не знайдено, з’явиться напис «Пристрої поки не знайдені»; переконайтеся, що ви в тій самій мережі Wi-Fi, і натисніть «Сканувати знову»."
+        },
+        "discovery-stop": {
+          "summary": "Зупиняє пошук або запускає його знову.",
+          "details": "Поки пошук триває, кнопка називається «Стоп» і припиняє його, не закриваючи вікно. Коли пошук завершено або зупинено, вона називається «Сканувати знову» і запускає пошук наново."
+        },
+        "discovery-cancel": {
+          "summary": "Закриває вікно, не обираючи пристрій.",
+          "details": "Незавершений пошук при цьому теж зупиняється."
+        },
+        "picker-refresh": {
+          "name": "Потягнути вниз, щоб оновити",
+          "summary": "Заново завантажує папки поточного рівня.",
+          "details": "Потягніть список вниз, щоб завантажити його знову, наприклад після того, як ви створили папку в хмарі. З клавіатури те саме робить поєднання клавіш.",
+          "shortcut": "Ctrl+Shift+R / Ctrl+F5"
+        },
+        "picker-add-as-destination": {
+          "summary": "Заодно позначає обрану папку для швидкого сортування.",
+          "details": "Якщо прапорець стоїть, обрана папка стане не лише ресурсом, а й місцем призначення для швидкого сортування. Позначте його до натискання «Вибір»; спочатку він знятий."
+        },
+        "picker-scan-subdirectories": {
+          "summary": "Охоплює все, що лежить усередині обраної папки.",
+          "details": "Якщо прапорець стоїть (спочатку він стоїть), медіа шукаються в усіх папках, вкладених в обрану. Зніміть його, щоб дивитися лише верхній рівень."
+        },
+        "picker-folder-list": {
+          "name": "Список папок",
+          "summary": "Папки вашого хмарного сховища, по одному рівню.",
+          "details": "На панелі згори - шлях, де ви перебуваєте. Натисніть на рядок, щоб зайти в папку; у кожного рядка є й власні кнопки «Всередину» та «Вибір», а нижче верхнього рівня - «Назад». Якщо на рівні немає папок, про це повідомить напис.",
+          "shortcut": "Enter"
+        },
+        "picker-enter": {
+          "summary": "Відкриває папку, щоб показати папки всередині неї.",
+          "details": "Робить те саме, що натискання на рядок. Спускайтеся з її допомогою до потрібної папки, перш ніж натиснути «Вибір»."
+        },
+        "picker-select": {
+          "summary": "Додає цю папку до ваших ресурсів.",
+          "details": "Створює хмарний ресурс із папки з урахуванням ваших прапорців «Додати до призначень» і «З підпапками» та типів медіа, увімкнених у налаштуваннях. Ви побачите «Ресурс додано» й опинитеся на головному екрані. Папку, яку ви вже додавали, застосунок відхилить із поясненням.",
+          "undo": "У хмарі нічого не змінюється. Щоб скасувати, видаліть ресурс на головному екрані - папка залишиться на місці."
+        },
+        "picker-back": {
+          "summary": "Піднімається на один рівень вище.",
+          "details": "Кнопка є у рядків нижче верхнього рівня. Стрілка на панелі та кнопка «Назад» на пристрої роблять те саме, а з верхнього рівня закривають вибір папки. Esc теж закриває його.",
+          "shortcut": "Backspace"
+        }
+      }
+    }
+  }
+}

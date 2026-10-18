@@ -144,6 +144,23 @@ class WatchListenSessionManagerTest {
     }
 
     @Test
+    fun `stop while awaiting withdraws the request and tells the watch`() = runTest {
+        manager.start()
+        val requestId = repository.startedRequestIds.single()
+
+        manager.stop()
+
+        assertEquals(WearListenState.Idle(), manager.listenState.value)
+        assertEquals(listOf(requestId), repository.stoppedRequestIds)
+        assertFalse("no stream may open for a withdrawn request", playback.started)
+
+        WearSyncEvents.emitListenAck(ackFor(requestId, host = "10.0.0.9"))
+
+        assertEquals(WearListenState.Idle(), manager.listenState.value)
+        assertFalse("a late address for a withdrawn request must never reach the player", playback.started)
+    }
+
+    @Test
     fun `playback ended elsewhere ends the session and tells the watch once`() = runTest {
         manager.start()
         val requestId = repository.startedRequestIds.single()

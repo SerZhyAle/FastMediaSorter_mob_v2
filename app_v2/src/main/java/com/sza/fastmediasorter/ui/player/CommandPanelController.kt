@@ -19,13 +19,12 @@ import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.common.popupIconColor
-import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner
 import com.sza.fastmediasorter.ui.player.helpers.LanguageBadgeDrawable
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBigButtonsModeManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
+import com.sza.fastmediasorter.ui.player.helpers.PlayerHelpEntryManager
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -777,9 +776,7 @@ class CommandPanelController(
             R.id.menu_rotate_content -> callback.onRotateContent90Clicked()
             R.id.menu_rotate_content_ccw -> callback.onRotateContentCounter90Clicked()
             R.id.menu_help -> {
-                (binding.root.context as? androidx.fragment.app.FragmentActivity)?.let { activity ->
-                    DocsPageOpenManager.open(activity, UiSurface.PLAYER)
-                }
+                (binding.root.context as? androidx.fragment.app.FragmentActivity)?.let(PlayerHelpEntryManager::open)
             }
         }
     }

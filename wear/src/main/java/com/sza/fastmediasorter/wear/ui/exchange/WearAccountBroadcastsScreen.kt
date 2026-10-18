@@ -100,24 +100,50 @@ private fun ScalingLazyListScope.broadcastItems(
     fallbackTitle: String,
     onPlay: (WearAccountBroadcast, String) -> Unit,
 ) {
-    val sections = state.sections
-    val showHeaders = sections.size > 1
-    if (!state.hasAnswered || sections.isEmpty()) {
-        item { StatusLine(R.string.wear_exchange_broadcasts_loading) }
+    val topStatusRes = topLevelBroadcastStatusRes(state)
+    if (topStatusRes != null) {
+        Timber.d("S4340: broadcasts top status=%d", topStatusRes)
+        item { StatusLine(topStatusRes) }
         return
     }
+    val sections = state.sections
+    val showHeaders = sections.size > 1
     sections.forEach { section ->
         if (showHeaders) {
             item(key = "entry:${section.entryIdentity}") { SectionHeader(section.entryLabel) }
         }
+        val statusRes = sectionBroadcastStatusRes(section, state.isGraceOver)
         when {
             !section.isLoaded && section.failure != null -> item { FailureLines(section.failure) }
-            !section.isLoaded && !state.isGraceOver -> item { StatusLine(R.string.wear_exchange_broadcasts_loading) }
-            !section.isLoaded -> item { StatusLine(R.string.wear_exchange_broadcasts_failed) }
-            section.groups.isEmpty() -> item { StatusLine(R.string.wear_exchange_broadcasts_empty) }
+            statusRes != null -> item { StatusLine(statusRes) }
             else -> groupItems(section, fallbackTitle, onPlay)
         }
     }
+}
+
+/**
+ * Resolves the screen-wide status string when the upstream has not answered yet or answered with no entries,
+ * or null when per-entry sections should be drawn.
+ */
+@StringRes
+internal fun topLevelBroadcastStatusRes(state: WearAccountBroadcastsUiState): Int? = when {
+    !state.hasAnswered && !state.isGraceOver -> R.string.wear_exchange_broadcasts_loading
+    !state.hasAnswered -> R.string.wear_exchange_broadcasts_failed
+    state.sections.isEmpty() -> R.string.wear_exchange_broadcasts_empty
+    else -> null
+}
+
+/**
+ * Resolves the status string for a section without a wire failure, or null when the section draws [FailureLines]
+ * or its loaded [WearBroadcasterGroup] rows.
+ */
+@StringRes
+internal fun sectionBroadcastStatusRes(section: WearAccountBroadcastSection, isGraceOver: Boolean): Int? = when {
+    !section.isLoaded && section.failure != null -> null
+    !section.isLoaded && !isGraceOver -> R.string.wear_exchange_broadcasts_loading
+    !section.isLoaded -> R.string.wear_exchange_broadcasts_failed
+    section.groups.isEmpty() -> R.string.wear_exchange_broadcasts_empty
+    else -> null
 }
 
 private fun ScalingLazyListScope.groupItems(

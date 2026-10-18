@@ -70,6 +70,7 @@ import com.sza.fastmediasorter.ui.player.print.PrintDispatchActivity
 import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.UserActionLogger
+import com.sza.fastmediasorter.utils.applyTopSystemBarInsetMargin
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.Lazy
@@ -626,6 +627,9 @@ class PhotoVideoStandaloneActivity :
             }
         }
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
+        // S4305: this host keeps the status bar visible (S0920) and the media area runs under it once the
+        // command panel is hidden, so the exit overlay needs the bar's height as extra top margin.
+        btnFullscreenExit.applyTopSystemBarInsetMargin()
     }
 
     private fun setupCloseButton() {
@@ -880,12 +884,7 @@ class PhotoVideoStandaloneActivity :
                 updateFullscreenExitButtonVisibility()
             },
             onToggleRotationSensor = { viewModel.toggleRotationSensor() },
-            onShowHelp = {
-                com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.show(
-                    supportFragmentManager,
-                    com.sza.fastmediasorter.ui.common.input.UiSurface.PLAYER
-                )
-            },
+            onShowHelp = { com.sza.fastmediasorter.ui.player.helpers.PlayerHelpEntryManager.open(this) },
         ).handler
     }
 

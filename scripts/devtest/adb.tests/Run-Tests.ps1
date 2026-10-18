@@ -125,6 +125,10 @@ $stubDefaults = @{
     # names a body here makes the stub answer it verbatim; the empty default keeps the passthrough.
     # Lives in this table so Invoke-Verb resets it for every case like the rest of the stub input.
     FMS_STUB_DUMPSYS_PACKAGE = ''
+    # S4304: the emulator console's AVD name and the reported ro.serialno. An empty serial keeps the
+    # stub's emulator default, so every case starts from one emulator named Pixel_9.
+    FMS_STUB_AVD_NAMES = 'emulator-5554=Pixel_9'
+    FMS_STUB_SERIALNO  = ''
 }
 
 # Run one verb through the real adb.ps1 and bring back the process exit code plus the parsed object.
@@ -436,7 +440,7 @@ try {
     if (Assert-Envelope $r 'state-begin' $true 0) {
         Assert-DataFields $r 'state-begin' @('id', 'journal', 'keys', 'dataStoreFiles', 'restoredLeftovers')
         Assert-Equal 1 $r.json.data.dataStoreFiles 'state-begin -Json: the app DataStore file is snapshotted'
-        Assert-True ("$($r.json.data.journal)" -like '*DEVICE.STATE*EMULATOR35X1.json') 'state-begin: the journal is keyed by ro.serialno, not the adb id' "$($r.json.data.journal)"
+        Assert-True ("$($r.json.data.journal)" -like '*DEVICE.STATE*avd-Pixel_9.json') "state-begin: an emulator's journal is keyed by its AVD name, not ro.serialno" "$($r.json.data.journal)"
     }
 
     $r = Invoke-Verb @('shell', '-Cmd', 'wm density 380')
@@ -462,6 +466,40 @@ try {
         Assert-Equal 'wm.density' (@($r.json.data.restoredLeftovers)[0].key) 'state-begin puts back what a run without a journal left'
     }
     Invoke-Verb @('state-check') | Out-Null
+
+    # S4304: two emulators of one image report one ro.serialno. A restore on the second must not apply
+    # what the first left, and each closes its own journal.
+    $twoEmulators = @{
+        FMS_STUB_DEVICES   = 'emulator-5554,emulator-5556'
+        FMS_STUB_AVD_NAMES = 'emulator-5554=Pixel_9,emulator-5556=Pixel_6'
+    }
+    $r = Invoke-Verb @('shell', '-Cmd', 'wm density 380', '-DeviceId', 'emulator-5554') -Stub $twoEmulators
+    Assert-Envelope $r 'shell' $true 0 | Out-Null
+    $firstJournal = Join-Path $env:FMS_DEVICE_STATE_ROOT 'temp/DEVICE.STATE/avd-Pixel_9.json'
+    Assert-True (Test-Path -LiteralPath $firstJournal) 'two emulators: the first emulator recorded its change under avd-Pixel_9' $firstJournal
+    $r = Invoke-Verb @('state-begin', '-DeviceId', 'emulator-5556') -Stub $twoEmulators
+    if (Assert-Envelope $r 'state-begin' $true 0) {
+        Assert-True ("$($r.json.data.journal)" -like '*DEVICE.STATE*avd-Pixel_6.json') 'two emulators: the second emulator opens its own journal, avd-Pixel_6' "$($r.json.data.journal)"
+        Assert-Equal 0 @($r.json.data.restoredLeftovers).Count 'two emulators: state-begin on the second restores nothing the first left'
+        Assert-True (Test-Path -LiteralPath $densityMarker) 'two emulators: the first emulator density override survives the second state-begin'
+        Assert-True (Test-Path -LiteralPath $firstJournal) 'two emulators: the first emulator journal is untouched by the second state-begin'
+    }
+    $r = Invoke-Verb @('state-check', '-DeviceId', 'emulator-5554') -Stub $twoEmulators
+    if (Assert-Envelope $r 'state-check' $true 0) {
+        Assert-True (-not (Test-Path -LiteralPath $densityMarker)) 'two emulators: state-check on the first removes its density override'
+    }
+    $r = Invoke-Verb @('state-check', '-DeviceId', 'emulator-5556') -Stub $twoEmulators
+    if (Assert-Envelope $r 'state-check' $true 0) {
+        Assert-True (-not (Test-Path -LiteralPath "$($r.json.data.journal)")) 'two emulators: state-check on the second closes its own journal'
+    }
+
+    # S4304: a physical device keeps its ro.serialno key; the wireless watch's adb id moves between sessions.
+    $physical = @{ FMS_STUB_DEVICES = 'RFCR110NBQJ'; FMS_STUB_SERIALNO = 'RFCR110NBQJ' }
+    $r = Invoke-Verb @('state-begin') -Stub $physical
+    if (Assert-Envelope $r 'state-begin' $true 0) {
+        Assert-True ("$($r.json.data.journal)" -like '*DEVICE.STATE*RFCR110NBQJ.json') 'state-begin: a physical device journal stays keyed by ro.serialno' "$($r.json.data.journal)"
+    }
+    Invoke-Verb @('state-check') -Stub $physical | Out-Null
 
     # Runtime updates must survive both a normal close and recovery of a pre-allowlist journal.
     $dataStoreDir = Join-Path $runDir 'datastore'

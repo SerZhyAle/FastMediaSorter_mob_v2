@@ -1,0 +1,598 @@
+{
+  "help": "settings-general",
+  "surface": "SettingsActivity",
+  "elements": [
+    { "id": "language", "viewId": "rowLanguage", "labelKey": "language" },
+    { "id": "color-theme", "viewId": "spinnerColorTheme", "labelKey": "color_theme" },
+    { "id": "device-profile", "viewId": "rowDeviceProfile", "labelKey": "settings_profile_title" },
+    { "id": "compact", "viewId": "rowCompactElements", "labelKey": "compact_elements" },
+    { "id": "animations", "viewId": "rowDisableAnimations", "labelKey": "pref_disable_animations_title" },
+    { "id": "power-saving", "viewId": "rowPowerSaving", "labelKey": "pref_power_saving_title" },
+    { "id": "favorites", "viewId": "rowEnableFavorites", "labelKey": "enable_favorites" },
+    { "id": "separate-window", "viewId": "rowAllowSeparateWindow", "labelKey": "setting_allow_separate_window" },
+    { "id": "grid-cell-size", "viewId": "rowResourceGridCellSize", "labelKey": "pref_resource_grid_cell_size_title" },
+    { "id": "programs-panel", "viewId": "rowShowProgramsPanel", "labelKey": "setting_show_programs_panel_title" },
+    { "id": "all-files", "viewId": "rowAllFiles", "labelKey": "setting_all_files_allow_title" },
+    { "id": "hidden-files", "viewId": "rowShowHiddenFiles", "labelKey": "show_hidden_files" },
+    { "id": "subfolders", "viewId": "rowShowSubfoldersAsItems", "labelKey": "show_subfolders_as_items" },
+    { "id": "swipe-left", "viewId": "rowBrowseSwipeLeftAction", "labelKey": "setting_browse_swipe_left_action_title" },
+    { "id": "swipe-right", "viewId": "rowBrowseSwipeRightAction", "labelKey": "setting_browse_swipe_right_action_title" },
+    { "id": "smb", "viewId": "rowSourceSmb", "labelKey": "settings_remote_source_smb_title" },
+    { "id": "ftp", "viewId": "rowSourceFtp", "labelKey": "settings_remote_source_ftp_title" },
+    { "id": "cloud", "viewId": "rowSourceCloud", "labelKey": "settings_remote_source_cloud_title" },
+    { "id": "sftp-server", "viewId": "rowSftpServerEnabled", "labelKey": "settings_sftp_server_enable_title" },
+    { "id": "saved-auth", "viewId": "row_saved_authorizations", "labelKey": "setting_saved_authorizations_title" },
+    { "id": "secure-screens", "viewId": "rowSecureSensitiveScreens", "labelKey": "settings_secure_sensitive_screens_title" },
+    { "id": "export-settings", "viewId": "btnExportSettings", "labelKey": "export_settings" },
+    { "id": "import-settings", "viewId": "btnImportSettings", "labelKey": "import_settings" },
+    { "id": "backup", "viewId": "btnBackup", "labelKey": "backup_to_google_drive" },
+    { "id": "restore", "viewId": "btnRestore", "labelKey": "restore_from_google_drive" },
+    { "id": "reset-settings", "viewId": "btnResetSettings", "labelKey": "reset_settings_to_defaults" },
+    { "id": "parallelism", "viewId": "actvNetworkParallelism", "labelKey": "network_parallelism_title" },
+    { "id": "prefetch", "viewId": "actvPrefetchCache", "labelKey": "pref_prefetch_cache_title" },
+    { "id": "background-sync", "viewId": "rowEnableBackgroundSync", "labelKey": "enable_background_sync" },
+    { "id": "thumb-preload", "viewId": "rowEnableThumbnailPreload", "labelKey": "thumbnail_preload_title" },
+    { "id": "cache-limit", "viewId": "actvCacheSizeLimit", "labelKey": "cache_size_limit" },
+    { "id": "clear-cache", "viewId": "btnClearCache", "labelKey": "clear_cache" },
+    { "id": "statistics", "viewId": "rowEnableStatistics", "labelKey": "settings_statistics_collection_title" },
+    { "id": "extensions", "viewId": "btnDownloadableExtensions", "labelKey": "ext_manager_title" },
+    { "id": "permissions", "viewId": "btnPermissionsManagement", "labelKey": "settings_category_permissions" },
+    { "id": "system-info", "viewId": "btnSystemInfo", "labelKey": "settings_system_info_button" },
+    { "id": "user-guide", "viewId": "btnUserGuide", "labelKey": "user_guide" },
+    { "id": "welcome", "viewId": "btnOpenWelcome", "labelKey": "open_welcome_tutorial" },
+    { "id": "reset-general", "viewId": "btnResetGeneralSection", "labelKey": "reset_general_section" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "settings-media" },
+    { "help": "settings-playback" },
+    { "help": "settings-operations" },
+    { "help": "welcome" },
+    { "help": "keybinding-remap" },
+    { "help": "auth-sessions" },
+    { "help": "statistics" },
+    { "help": "wear-companion" },
+    { "help": "my-devices" },
+    { "help": "system-info" },
+    { "pageId": "settings.settings-overview-and-search" },
+    { "pageId": "settings.display-and-appearance" },
+    { "pageId": "settings.backup-and-device-sync" },
+    { "pageId": "general.backup-and-restore" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Settings: General",
+      "purpose": "General holds the settings that apply to the whole app: language and theme, the file browser, network sources, backups and caches. Come here when something should look, behave or connect differently everywhere.",
+      "orderNote": "There is no fixed order here - every option works on its own. They are grouped below by the same section headers you see on the tab.",
+      "groups": [
+        { "title": "General interface settings", "elements": ["language", "color-theme", "device-profile", "compact", "animations", "power-saving", "favorites", "separate-window"] },
+        { "title": "Main screen interface", "elements": ["grid-cell-size", "programs-panel"] },
+        { "title": "File browser interface", "elements": ["all-files", "hidden-files", "subfolders", "swipe-left", "swipe-right"] },
+        { "title": "Remote resources (SMB/(S)FTP/Cloud)", "elements": ["smb", "ftp", "cloud"] },
+        { "title": "Share over SFTP", "elements": ["sftp-server"] },
+        { "title": "Authorization and accounts", "elements": ["saved-auth", "secure-screens"] },
+        { "title": "Backups, restore and settings export", "elements": ["export-settings", "import-settings", "backup", "restore", "reset-settings"] },
+        { "title": "Background sync, network and cache", "elements": ["parallelism", "prefetch", "background-sync", "thumb-preload", "cache-limit", "clear-cache", "statistics"] },
+        { "title": "Tools, guides and reset", "elements": ["extensions", "permissions", "system-info", "user-guide", "welcome", "reset-general"] }
+      ],
+      "elements": {
+        "language": {
+          "summary": "Sets the language of the whole app.",
+          "details": "Pick a language from the list and the screens switch to it. You can also choose it on the first page of the welcome wizard."
+        },
+        "color-theme": {
+          "summary": "Chooses a light, dark or colored theme.",
+          "details": "Auto follows your device. The other options are Light, Dark, and green, blue or red variants of both."
+        },
+        "device-profile": {
+          "summary": "Applies a ready-made set of defaults for the kind of device you use.",
+          "details": "Profiles cover a personal smartphone, tablet, TV box, car head unit, photo frame, e-book reader and more. One pick tunes many settings at once, so the app suits the device without manual work. Choose Other to keep your settings as they are.",
+          "undo": "Before a profile overwrites your settings, the app tells you how many it will change. Cancel keeps everything as it is."
+        },
+        "compact": {
+          "summary": "Makes everything smaller, so more fits on screen.",
+          "details": "Lists, buttons and text shrink by half. Touch targets get smaller too, so try it on a large screen first."
+        },
+        "animations": {
+          "summary": "Turns off transitions and decorative animations.",
+          "details": "Handy if animations distract you or the device feels sluggish."
+        },
+        "power-saving": {
+          "summary": "Calms the app down when the battery runs low.",
+          "details": "It stops continuous animation and stops holding the screen on. Choose when it starts: never, always, or below a battery level you pick."
+        },
+        "favorites": {
+          "summary": "Turns the Favorites feature on or off.",
+          "details": "With it on, you can mark files as favorites, see them in one list and put them on a home screen widget. The Favorites button on the main screen appears along with it."
+        },
+        "separate-window": {
+          "summary": "Adds an action that opens a folder or file in a new window.",
+          "details": "The action shows up in the file browser and the player. It is useful on tablets, foldables, Chromebooks and large displays with several windows. When it is off, everything opens in the current window."
+        },
+        "grid-cell-size": {
+          "summary": "Sets how big resource tiles are in grid view.",
+          "details": "It applies to the resource list on the main screen. Smaller cells fit more resources, larger ones are easier to read. Grid view itself is switched on with the view button on the main screen."
+        },
+        "programs-panel": {
+          "summary": "Shows the programs menu as a bar above the resource list.",
+          "details": "The bar mirrors the programs from the menu, so they are one tap away. While the panel is on, the three-dots button is hidden."
+        },
+        "all-files": {
+          "summary": "Allows the All Files mode for resources.",
+          "details": "In that mode a resource shows and manages every file type, not just media: documents, archives and other files too. This switch only permits it, so you still turn it on for each resource."
+        },
+        "hidden-files": {
+          "summary": "Shows files and folders whose names start with a dot.",
+          "details": "Such items are normally hidden. Turn it on when you need to reach them from the file browser, and off to keep lists tidy."
+        },
+        "subfolders": {
+          "summary": "Lists subfolders as items you can tap.",
+          "details": "Subfolders appear in the file list next to files. Tap one to go inside."
+        },
+        "swipe-left": {
+          "summary": "Chooses what swiping a file row to the left does.",
+          "details": "Pick an action such as open in player, send to, info, favorite, copy, move, rename, extract archive or delete, or no action at all. Actions that change files work only in folders you can write to."
+        },
+        "swipe-right": {
+          "summary": "Chooses what swiping a file row to the right does.",
+          "details": "Pick an action such as open in player, send to, info, favorite, copy, move, rename, extract archive or delete, or no action at all. Actions that change files work only in folders you can write to."
+        },
+        "smb": {
+          "summary": "Turns on connecting to shared folders on your local network.",
+          "details": "Use it for a home NAS, a Windows PC with file sharing on, or a router with a USB drive. With it on, you can add SMB resources, and the SMB tab appears on the main screen."
+        },
+        "ftp": {
+          "summary": "Turns on connecting to servers over FTP and SFTP.",
+          "details": "Use it for a home server, a NAS, web hosting or a router that supports (S)FTP. With it on, you can add such resources, and the S/FTP tab appears on the main screen."
+        },
+        "cloud": {
+          "summary": "Turns on cloud storage: Google Drive, OneDrive and Dropbox.",
+          "details": "Connect an account and your cloud folders open right inside the app. With it on, the Cloud tab appears on the main screen."
+        },
+        "sftp-server": {
+          "summary": "Lets other devices open folders from this one over SFTP.",
+          "details": "Add at least one shared folder, choose password or SSH key sign-in and a port from 1024 to 65535, then turn the server on. Another device connects with the address shown here, or by scanning the pairing code in FastMediaSorter. After you change its settings, turn the server off and on again to apply them."
+        },
+        "saved-auth": {
+          "summary": "Reviews the sign-ins the app saved from its web sign-in screen.",
+          "details": "The in-app web sign-in keeps cookies and logins so the app can download files from sites that need you signed in. Open this screen to remove the ones you no longer need."
+        },
+        "secure-screens": {
+          "summary": "Hides sensitive screens from screenshots and the Recents preview.",
+          "details": "It covers screens that show passwords. They cannot be captured in a screenshot and do not appear in the Recents preview."
+        },
+        "export-settings": {
+          "summary": "Saves all settings to a file.",
+          "details": "The file is FastMediaSorter_export.xml in the Downloads folder. Keep it to move your setup to another device or to return to it later."
+        },
+        "import-settings": {
+          "summary": "Loads settings from the export file.",
+          "details": "It reads FastMediaSorter_export.xml from the Downloads folder, so put the file there first - for example one exported on another device.",
+          "undo": "Export your current settings first if you may want to go back to them."
+        },
+        "backup": {
+          "summary": "Saves your settings to your Google Drive.",
+          "details": "A backup holds all settings, the resource list, network passwords and saved site sign-ins, so keep the backup file private. Cloud sign-ins for Google Drive, OneDrive and Dropbox are not included. Once a backup exists, its date and account are shown below."
+        },
+        "restore": {
+          "summary": "Brings settings back from your Google Drive backup.",
+          "details": "Use it on a new device or after a reset. Cloud sign-ins are not part of a backup, so sign in to Google Drive, OneDrive or Dropbox again afterwards."
+        },
+        "reset-settings": {
+          "summary": "Returns all settings to their defaults.",
+          "details": "Your resources and destinations stay in place. The app asks you to confirm before it resets anything.",
+          "undo": "Export your settings first if you may want them back."
+        },
+        "parallelism": {
+          "summary": "Sets how many network operations run at once.",
+          "details": "Values run from 1 to 24 and the default is 4. More at once can be faster on a fast network; fewer is gentler on a slow connection or a small server."
+        },
+        "prefetch": {
+          "summary": "Sets how much of a streamed video is buffered ahead.",
+          "details": "Less (0.5x) saves disk space and bandwidth, but playback may stutter on a slow network. Auto lets the player decide. More (2x) plays smoother on an unstable network and uses more disk space."
+        },
+        "background-sync": {
+          "summary": "Checks network resources for file changes in the background.",
+          "details": "Choose how often it checks, or run a check right away with the Sync Now button. A line below shows when the last sync happened."
+        },
+        "thumb-preload": {
+          "summary": "Prepares thumbnails for network videos and PDFs after each sync.",
+          "details": "Thumbnails are made in the background, so they are ready when you open the folder. A separate option limits this to unmetered networks such as Wi-Fi."
+        },
+        "cache-limit": {
+          "summary": "Sets how much disk space the image cache may use.",
+          "details": "The cache keeps thumbnails and previews so they load fast next time. Enter a size in megabytes, or press Auto and the app picks one from the storage your device has. The default is 2 GB."
+        },
+        "clear-cache": {
+          "summary": "Clears the app cache to free space.",
+          "details": "It removes thumbnails, previews and temporary files downloaded from the network. The current cache size is shown next to the button, and the app asks you to confirm first. The cache fills up again as you browse.",
+          "undo": "Cached items are only copies, so nothing of yours is lost; the first view of a folder may just be slower."
+        },
+        "statistics": {
+          "summary": "Collects usage statistics on your device.",
+          "details": "The data stays on the device and nothing is sent automatically. While collection is on, a Statistics row appears that opens what was gathered."
+        },
+        "extensions": {
+          "summary": "Manages optional parts of the app that you download.",
+          "details": "Extensions, such as text recognition, translation or extra decoders, are downloaded only when you want them and can be deleted again to free space."
+        },
+        "permissions": {
+          "summary": "Shows what the app may access and lets you grant it.",
+          "details": "Each permission has a short note on what it is for. Grant what you need, and open system settings for the ones Android does not let the app request on its own."
+        },
+        "system-info": {
+          "summary": "Opens a screen with information about your device and the app.",
+          "details": "It shows technical details about this device and the app."
+        },
+        "user-guide": {
+          "summary": "Opens the online user guide in your browser.",
+          "details": "The guide opens in Russian, Ukrainian or English, depending on the app language."
+        },
+        "welcome": {
+          "summary": "Opens the welcome wizard again.",
+          "details": "Go through the first-run pages once more: language, theme, device profile, network sources, capabilities and permissions."
+        },
+        "reset-general": {
+          "summary": "Returns only this tab to its defaults.",
+          "details": "Settings on the other tabs keep their values. The app asks you to confirm first."
+        }
+      }
+    },
+    "ru": {
+      "title": "Настройки: Общие",
+      "purpose": "На вкладке «Общие» собраны настройки, которые действуют на всё приложение: язык и тема, браузер файлов, сетевые источники, резервные копии и кэш. Заходите сюда, когда что-то должно выглядеть, работать или подключаться иначе везде.",
+      "orderNote": "Единого порядка здесь нет - каждый параметр работает сам по себе. Ниже они сгруппированы по тем же заголовкам разделов, что и на вкладке.",
+      "groups": [
+        { "title": "Общие настройки интерфейса", "elements": ["language", "color-theme", "device-profile", "compact", "animations", "power-saving", "favorites", "separate-window"] },
+        { "title": "Интерфейс главного экрана", "elements": ["grid-cell-size", "programs-panel"] },
+        { "title": "Интерфейс браузера файлов", "elements": ["all-files", "hidden-files", "subfolders", "swipe-left", "swipe-right"] },
+        { "title": "Удалённые ресурсы (SMB/(S)FTP/Облако)", "elements": ["smb", "ftp", "cloud"] },
+        { "title": "Доступ по SFTP", "elements": ["sftp-server"] },
+        { "title": "Авторизация и аккаунты", "elements": ["saved-auth", "secure-screens"] },
+        { "title": "Резервные копии, восстановление и экспорт", "elements": ["export-settings", "import-settings", "backup", "restore", "reset-settings"] },
+        { "title": "Фоновая синхронизация, сеть и кэш", "elements": ["parallelism", "prefetch", "background-sync", "thumb-preload", "cache-limit", "clear-cache", "statistics"] },
+        { "title": "Инструменты, руководство и сброс", "elements": ["extensions", "permissions", "system-info", "user-guide", "welcome", "reset-general"] }
+      ],
+      "elements": {
+        "language": {
+          "summary": "Задаёт язык всего приложения.",
+          "details": "Выберите язык в списке, и экраны переключатся на него. Тот же выбор есть на первой странице мастера приветствия."
+        },
+        "color-theme": {
+          "summary": "Выбирает светлую, тёмную или цветную тему.",
+          "details": "«Авто» следует за устройством. Остальные варианты: светлая, тёмная и зелёный, синий или красный оттенок каждой."
+        },
+        "device-profile": {
+          "summary": "Применяет готовый набор настроек под тип вашего устройства.",
+          "details": "Профили есть для личного смартфона, планшета, ТВ-приставки, автомагнитолы, фоторамки, электронной книги и не только. Один выбор настраивает сразу много параметров, и приложение подходит устройству без ручной возни. «Другой / Без изменений» оставляет ваши настройки как есть.",
+          "undo": "Перед тем как профиль перезапишет настройки, приложение покажет, сколько параметров изменится. «Отмена» оставит всё как есть."
+        },
+        "compact": {
+          "summary": "Уменьшает всё, чтобы на экране помещалось больше.",
+          "details": "Списки, кнопки и текст уменьшаются вдвое. Зоны нажатия тоже становятся меньше, поэтому сначала попробуйте на большом экране."
+        },
+        "animations": {
+          "summary": "Отключает переходы и декоративные анимации.",
+          "details": "Пригодится, если анимации отвлекают или устройство работает медленно."
+        },
+        "power-saving": {
+          "summary": "Успокаивает приложение, когда заряд на исходе.",
+          "details": "Останавливается непрерывная анимация, и приложение перестаёт удерживать экран включённым. Выберите, когда это начинается: никогда, всегда или ниже выбранного уровня заряда."
+        },
+        "favorites": {
+          "summary": "Включает или выключает «Избранное».",
+          "details": "Когда оно включено, файлы можно отмечать избранными, смотреть их одним списком и выводить на виджет рабочего стола. Кнопка «Избранное» на главном экране появляется вместе с ним."
+        },
+        "separate-window": {
+          "summary": "Добавляет действие «Открыть в новом окне».",
+          "details": "Действие появляется в браузере файлов и в плеере. Оно удобно на планшетах, складных устройствах, Chromebook и больших экранах с несколькими окнами. Когда оно выключено, всё открывается в текущем окне."
+        },
+        "grid-cell-size": {
+          "summary": "Задаёт размер плиток ресурсов в виде сетки.",
+          "details": "Относится к списку ресурсов на главном экране. Мелкие ячейки вмещают больше ресурсов, крупные удобнее читать. Сама сетка включается кнопкой вида на главном экране."
+        },
+        "programs-panel": {
+          "summary": "Показывает меню программ полосой над списком ресурсов.",
+          "details": "Полоса дублирует программы из меню, и они оказываются под рукой в одно касание. Пока панель включена, кнопка с тремя точками скрыта."
+        },
+        "all-files": {
+          "summary": "Разрешает режим «Все файлы» для ресурсов.",
+          "details": "В этом режиме ресурс показывает и позволяет изменять файлы любых типов, а не только медиа: документы, архивы и прочее. Переключатель лишь разрешает режим, а включать его нужно отдельно для каждого ресурса."
+        },
+        "hidden-files": {
+          "summary": "Показывает файлы и папки, имена которых начинаются с точки.",
+          "details": "Обычно такие объекты скрыты. Включите, если нужно добраться до них из браузера файлов, и выключите, чтобы списки оставались аккуратными."
+        },
+        "subfolders": {
+          "summary": "Показывает подпапки отдельными элементами списка.",
+          "details": "Подпапки появляются в списке файлов рядом с файлами. Нажмите подпапку, чтобы зайти в неё."
+        },
+        "swipe-left": {
+          "summary": "Выбирает, что делает жест по строке файла влево.",
+          "details": "Можно назначить, например, открытие в плеере, «Отправить», сведения, избранное, копирование, перемещение, переименование, распаковку архива, удаление или ничего. Действия, которые меняют файлы, работают только в папках, куда можно записывать."
+        },
+        "swipe-right": {
+          "summary": "Выбирает, что делает жест по строке файла вправо.",
+          "details": "Можно назначить, например, открытие в плеере, «Отправить», сведения, избранное, копирование, перемещение, переименование, распаковку архива, удаление или ничего. Действия, которые меняют файлы, работают только в папках, куда можно записывать."
+        },
+        "smb": {
+          "summary": "Включает подключение к общим папкам в локальной сети.",
+          "details": "Подойдёт для домашнего NAS, компьютера с Windows и включённым общим доступом или роутера с USB-диском. Когда переключатель включён, можно добавлять SMB-ресурсы, а на главном экране появляется вкладка SMB."
+        },
+        "ftp": {
+          "summary": "Включает подключение к серверам по FTP и SFTP.",
+          "details": "Подойдёт для домашнего сервера, NAS, веб-хостинга или роутера с поддержкой (S)FTP. Когда переключатель включён, можно добавлять такие ресурсы, а на главном экране появляется вкладка S/FTP."
+        },
+        "cloud": {
+          "summary": "Включает облачные хранилища: Google Drive, OneDrive и Dropbox.",
+          "details": "Подключите аккаунт, и облачные папки откроются прямо в приложении. Когда переключатель включён, на главном экране появляется вкладка «Облако»."
+        },
+        "sftp-server": {
+          "summary": "Позволяет другим устройствам открывать папки с этого устройства по SFTP.",
+          "details": "Добавьте хотя бы одну общую папку, выберите вход по паролю или SSH-ключу и порт от 1024 до 65535, затем включите сервер. Другое устройство подключится по показанному здесь адресу или по коду сопряжения в FastMediaSorter. Изменив настройки, выключите и снова включите сервер, чтобы они вступили в силу."
+        },
+        "saved-auth": {
+          "summary": "Показывает входы, которые приложение сохранило на экране веб-входа.",
+          "details": "Экран веб-входа в приложении хранит cookie и логины, чтобы приложение могло скачивать файлы с сайтов, где нужен вход. Откройте этот экран и удалите то, что больше не нужно."
+        },
+        "secure-screens": {
+          "summary": "Прячет важные экраны от скриншотов и превью в списке недавних.",
+          "details": "Касается экранов, на которых видны пароли: их нельзя снять на скриншот, и они не показываются в превью списка недавних приложений."
+        },
+        "export-settings": {
+          "summary": "Сохраняет все настройки в файл.",
+          "details": "Файл FastMediaSorter_export.xml лежит в папке Downloads. Он пригодится, чтобы перенести настройки на другое устройство или вернуться к ним позже."
+        },
+        "import-settings": {
+          "summary": "Загружает настройки из файла экспорта.",
+          "details": "Читает FastMediaSorter_export.xml из папки Downloads, поэтому сначала положите туда файл - например, выгруженный на другом устройстве.",
+          "undo": "Если вы можете захотеть вернуться к нынешним настройкам, сначала экспортируйте их."
+        },
+        "backup": {
+          "summary": "Сохраняет настройки в вашем Google Drive.",
+          "details": "В резервную копию входят все настройки, список ресурсов, сетевые пароли и сохранённые входы на сайты, поэтому храните файл копии в тайне. Входы в облака (Google Drive, OneDrive, Dropbox) не сохраняются. Когда копия появится, ниже будут видны её дата и аккаунт."
+        },
+        "restore": {
+          "summary": "Возвращает настройки из резервной копии в Google Drive.",
+          "details": "Пригодится на новом устройстве или после сброса. Входы в облака в копию не входят, поэтому потом войдите в Google Drive, OneDrive или Dropbox заново."
+        },
+        "reset-settings": {
+          "summary": "Возвращает все настройки к значениям по умолчанию.",
+          "details": "Ресурсы и назначения остаются на месте. Перед сбросом приложение просит подтвердить действие.",
+          "undo": "Если вы можете захотеть вернуть настройки, сначала экспортируйте их."
+        },
+        "parallelism": {
+          "summary": "Задаёт, сколько сетевых операций выполняется одновременно.",
+          "details": "Значения от 1 до 24, по умолчанию 4. Больше операций сразу могут работать быстрее в быстрой сети, меньше - бережнее для медленного соединения или слабого сервера."
+        },
+        "prefetch": {
+          "summary": "Задаёт, какая часть потокового видео буферизуется вперёд.",
+          "details": "«Меньше» (0,5×) экономит место и трафик, но в медленной сети воспроизведение может прерываться. «Авто» оставляет выбор плееру. «Больше» (2×) воспроизводит плавнее в нестабильной сети и занимает больше места на диске."
+        },
+        "background-sync": {
+          "summary": "Проверяет сетевые ресурсы на изменения файлов в фоне.",
+          "details": "Выберите, как часто проверять, или запустите проверку сразу кнопкой «Синхронизировать сейчас». Строка ниже показывает, когда синхронизация была в последний раз."
+        },
+        "thumb-preload": {
+          "summary": "Готовит превью сетевых видео и PDF после каждой синхронизации.",
+          "details": "Превью создаются в фоне, и к моменту, когда вы откроете папку, они уже готовы. Отдельный параметр ограничивает это сетями без ограничений по трафику, например Wi-Fi."
+        },
+        "cache-limit": {
+          "summary": "Задаёт, сколько места на диске может занять кэш изображений.",
+          "details": "В кэше хранятся превью и миниатюры, чтобы в следующий раз они открывались быстро. Введите размер в мегабайтах или нажмите «Авто» - приложение подберёт его по объёму памяти устройства. По умолчанию это 2 ГБ."
+        },
+        "clear-cache": {
+          "summary": "Очищает кэш приложения, чтобы освободить место.",
+          "details": "Удаляются превью, миниатюры и временные файлы, скачанные из сети. Рядом с кнопкой показан текущий размер кэша, а перед очисткой приложение просит подтвердить действие. Кэш наполнится заново по мере просмотра.",
+          "undo": "В кэше лежат только копии, поэтому ваши файлы не пострадают; первый просмотр папки может пройти медленнее."
+        },
+        "statistics": {
+          "summary": "Собирает статистику использования на вашем устройстве.",
+          "details": "Данные остаются на устройстве, автоматически ничего не отправляется. Пока сбор включён, появляется строка «Статистика», которая открывает собранное."
+        },
+        "extensions": {
+          "summary": "Управляет необязательными частями приложения, которые вы загружаете.",
+          "details": "Расширения - например, распознавание текста, перевод или дополнительные декодеры - загружаются только когда они нужны и удаляются, чтобы освободить место."
+        },
+        "permissions": {
+          "summary": "Показывает, к чему у приложения есть доступ, и позволяет выдать его.",
+          "details": "У каждого разрешения есть короткая подпись о том, зачем оно нужно. Выдайте нужное, а для тех, что Android не даёт запросить напрямую, откройте системные настройки."
+        },
+        "system-info": {
+          "summary": "Открывает экран со сведениями об устройстве и приложении.",
+          "details": "Там собраны технические данные об этом устройстве и приложении."
+        },
+        "user-guide": {
+          "summary": "Открывает руководство пользователя в браузере.",
+          "details": "Руководство открывается на русском, украинском или английском - в зависимости от языка приложения."
+        },
+        "welcome": {
+          "summary": "Снова открывает мастер приветствия.",
+          "details": "Пройдите страницы первого запуска ещё раз: язык, тема, профиль устройства, сетевые источники, возможности и разрешения."
+        },
+        "reset-general": {
+          "summary": "Возвращает к значениям по умолчанию только эту вкладку.",
+          "details": "Настройки на других вкладках сохраняются. Перед сбросом приложение просит подтвердить действие."
+        }
+      }
+    },
+    "uk": {
+      "title": "Налаштування: Загальні",
+      "purpose": "На вкладці «Загальні» зібрано налаштування, що діють на весь застосунок: мова й тема, браузер файлів, мережеві джерела, резервні копії та кеш. Заходьте сюди, коли щось має виглядати, працювати чи підключатися інакше скрізь.",
+      "orderNote": "Єдиного порядку тут немає - кожен параметр працює сам по собі. Нижче їх згруповано за тими самими заголовками розділів, що й на вкладці.",
+      "groups": [
+        { "title": "Загальні налаштування інтерфейсу", "elements": ["language", "color-theme", "device-profile", "compact", "animations", "power-saving", "favorites", "separate-window"] },
+        { "title": "Інтерфейс головного екрана", "elements": ["grid-cell-size", "programs-panel"] },
+        { "title": "Інтерфейс браузера файлів", "elements": ["all-files", "hidden-files", "subfolders", "swipe-left", "swipe-right"] },
+        { "title": "Віддалені ресурси (SMB/(S)FTP/Хмара)", "elements": ["smb", "ftp", "cloud"] },
+        { "title": "Доступ через SFTP", "elements": ["sftp-server"] },
+        { "title": "Авторизація й акаунти", "elements": ["saved-auth", "secure-screens"] },
+        { "title": "Резервні копії, відновлення й експорт", "elements": ["export-settings", "import-settings", "backup", "restore", "reset-settings"] },
+        { "title": "Фонова синхронізація, мережа й кеш", "elements": ["parallelism", "prefetch", "background-sync", "thumb-preload", "cache-limit", "clear-cache", "statistics"] },
+        { "title": "Інструменти, керівництво та скидання", "elements": ["extensions", "permissions", "system-info", "user-guide", "welcome", "reset-general"] }
+      ],
+      "elements": {
+        "language": {
+          "summary": "Задає мову всього застосунку.",
+          "details": "Оберіть мову зі списку, і екрани перемкнуться на неї. Той самий вибір є на першій сторінці майстра привітання."
+        },
+        "color-theme": {
+          "summary": "Обирає світлу, темну або кольорову тему.",
+          "details": "«Авто» стежить за пристроєм. Інші варіанти: світла, темна та зелений, синій або червоний відтінок кожної."
+        },
+        "device-profile": {
+          "summary": "Застосовує готовий набір налаштувань під тип вашого пристрою.",
+          "details": "Профілі є для особистого смартфона, планшета, ТВ-приставки, автомагнітоли, фоторамки, електронної книги та не тільки. Один вибір налаштовує одразу багато параметрів, і застосунок пасує пристрою без ручної метушні. «Інший / Без змін» залишає ваші налаштування як є.",
+          "undo": "Перш ніж профіль перезапише налаштування, застосунок покаже, скільки параметрів зміниться. «Скасувати» залишить усе як є."
+        },
+        "compact": {
+          "summary": "Зменшує все, щоб на екрані вміщалося більше.",
+          "details": "Списки, кнопки й текст зменшуються вдвічі. Зони натискання теж стають меншими, тож спершу спробуйте на великому екрані."
+        },
+        "animations": {
+          "summary": "Вимикає переходи та декоративні анімації.",
+          "details": "Стане в пригоді, якщо анімації відволікають або пристрій працює повільно."
+        },
+        "power-saving": {
+          "summary": "Заспокоює застосунок, коли заряд на межі.",
+          "details": "Зупиняється безперервна анімація, а застосунок перестає утримувати екран ввімкненим. Оберіть, коли це починається: ніколи, завжди або нижче вибраного рівня заряду."
+        },
+        "favorites": {
+          "summary": "Вмикає або вимикає «Обране».",
+          "details": "Коли його ввімкнено, файли можна позначати обраними, бачити їх одним списком і виводити на віджет робочого стола. Кнопка «Обране» на головному екрані з’являється разом з ним."
+        },
+        "separate-window": {
+          "summary": "Додає дію «Відкрити в новому вікні».",
+          "details": "Дія з’являється в браузері файлів і в плеєрі. Вона зручна на планшетах, складних пристроях, Chromebook та великих екранах із кількома вікнами. Коли її вимкнено, усе відкривається в поточному вікні."
+        },
+        "grid-cell-size": {
+          "summary": "Задає розмір плиток ресурсів у вигляді сітки.",
+          "details": "Стосується списку ресурсів на головному екрані. Дрібні комірки вміщують більше ресурсів, більші - зручніше читати. Саму сітку вмикає кнопка вигляду на головному екрані."
+        },
+        "programs-panel": {
+          "summary": "Показує меню програм смугою над списком ресурсів.",
+          "details": "Смуга дублює програми з меню, і вони опиняються під рукою в один дотик. Поки панель увімкнено, кнопка з трьома крапками прихована."
+        },
+        "all-files": {
+          "summary": "Дозволяє режим «Усі файли» для ресурсів.",
+          "details": "У цьому режимі ресурс показує й дає змінювати файли будь-яких типів, а не лише медіа: документи, архіви та інше. Перемикач лише дозволяє режим, а вмикати його потрібно окремо для кожного ресурсу."
+        },
+        "hidden-files": {
+          "summary": "Показує файли й папки, імена яких починаються з крапки.",
+          "details": "Зазвичай такі об’єкти приховані. Увімкніть, якщо треба дістатися до них із браузера файлів, і вимкніть, щоб списки лишалися охайними."
+        },
+        "subfolders": {
+          "summary": "Показує підпапки окремими елементами списку.",
+          "details": "Підпапки з’являються в списку файлів поруч із файлами. Натисніть підпапку, щоб зайти в неї."
+        },
+        "swipe-left": {
+          "summary": "Обирає, що робить жест по рядку файлу ліворуч.",
+          "details": "Можна призначити, наприклад, відкриття в плеєрі, «Надіслати», відомості, обране, копіювання, переміщення, перейменування, розпакування архіву, видалення або нічого. Дії, що змінюють файли, працюють лише в папках, куди можна записувати."
+        },
+        "swipe-right": {
+          "summary": "Обирає, що робить жест по рядку файлу праворуч.",
+          "details": "Можна призначити, наприклад, відкриття в плеєрі, «Надіслати», відомості, обране, копіювання, переміщення, перейменування, розпакування архіву, видалення або нічого. Дії, що змінюють файли, працюють лише в папках, куди можна записувати."
+        },
+        "smb": {
+          "summary": "Вмикає підключення до спільних папок у локальній мережі.",
+          "details": "Підійде для домашнього NAS, комп’ютера з Windows і ввімкненим спільним доступом або роутера з USB-диском. Коли перемикач увімкнено, можна додавати SMB-ресурси, а на головному екрані з’являється вкладка SMB."
+        },
+        "ftp": {
+          "summary": "Вмикає підключення до серверів через FTP і SFTP.",
+          "details": "Підійде для домашнього сервера, NAS, вебхостингу або роутера з підтримкою (S)FTP. Коли перемикач увімкнено, можна додавати такі ресурси, а на головному екрані з’являється вкладка S/FTP."
+        },
+        "cloud": {
+          "summary": "Вмикає хмарні сховища: Google Drive, OneDrive і Dropbox.",
+          "details": "Підключіть акаунт, і хмарні папки відкриються просто в застосунку. Коли перемикач увімкнено, на головному екрані з’являється вкладка «Хмара»."
+        },
+        "sftp-server": {
+          "summary": "Дозволяє іншим пристроям відкривати папки з цього пристрою через SFTP.",
+          "details": "Додайте хоча б одну спільну папку, оберіть вхід за паролем або SSH-ключем і порт від 1024 до 65535, а тоді ввімкніть сервер. Інший пристрій підключиться за показаною тут адресою або за кодом сполучення у FastMediaSorter. Змінивши налаштування, вимкніть і знову ввімкніть сервер, щоб вони набули чинності."
+        },
+        "saved-auth": {
+          "summary": "Показує входи, які застосунок зберіг на екрані вебвходу.",
+          "details": "Екран вебвходу в застосунку зберігає cookie та логіни, щоб застосунок міг завантажувати файли із сайтів, де потрібен вхід. Відкрийте цей екран і видаліть те, що вже не потрібне."
+        },
+        "secure-screens": {
+          "summary": "Ховає важливі екрани від скриншотів і прев’ю в списку нещодавніх.",
+          "details": "Стосується екранів, на яких видно паролі: їх не можна зняти на скриншот, і вони не показуються в прев’ю списку нещодавніх застосунків."
+        },
+        "export-settings": {
+          "summary": "Зберігає всі налаштування у файл.",
+          "details": "Файл FastMediaSorter_export.xml лежить у папці Downloads. Він стане в пригоді, щоб перенести налаштування на інший пристрій або повернутися до них пізніше."
+        },
+        "import-settings": {
+          "summary": "Завантажує налаштування з файлу експорту.",
+          "details": "Читає FastMediaSorter_export.xml із папки Downloads, тому спершу покладіть туди файл - наприклад, вивантажений на іншому пристрої.",
+          "undo": "Якщо ви можете захотіти повернутися до поточних налаштувань, спершу експортуйте їх."
+        },
+        "backup": {
+          "summary": "Зберігає налаштування у вашому Google Drive.",
+          "details": "До резервної копії входять усі налаштування, список ресурсів, мережеві паролі та збережені входи на сайти, тож тримайте файл копії в таємниці. Входи в хмари (Google Drive, OneDrive, Dropbox) не зберігаються. Коли копія з’явиться, нижче буде видно її дату й акаунт."
+        },
+        "restore": {
+          "summary": "Повертає налаштування з резервної копії в Google Drive.",
+          "details": "Стане в пригоді на новому пристрої або після скидання. Входи в хмари до копії не входять, тож потім увійдіть у Google Drive, OneDrive або Dropbox знову."
+        },
+        "reset-settings": {
+          "summary": "Повертає всі налаштування до значень за замовчуванням.",
+          "details": "Ресурси й призначення залишаються на місці. Перед скиданням застосунок просить підтвердити дію.",
+          "undo": "Якщо ви можете захотіти повернути налаштування, спершу експортуйте їх."
+        },
+        "parallelism": {
+          "summary": "Задає, скільки мережевих операцій виконується одночасно.",
+          "details": "Значення від 1 до 24, за замовчуванням 4. Більше операцій одразу можуть працювати швидше в швидкій мережі, менше - дбайливіше для повільного з’єднання чи слабкого сервера."
+        },
+        "prefetch": {
+          "summary": "Задає, яка частина потокового відео буферизується наперед.",
+          "details": "«Менше» (0,5×) заощаджує місце й трафік, але в повільній мережі відтворення може уривчастись. «Авто» залишає вибір плеєру. «Більше» (2×) відтворює плавніше в нестабільній мережі й займає більше місця на диску."
+        },
+        "background-sync": {
+          "summary": "Перевіряє мережеві ресурси на зміни файлів у фоні.",
+          "details": "Оберіть, як часто перевіряти, або запустіть перевірку одразу кнопкою «Синхронізувати зараз». Рядок нижче показує, коли синхронізація була востаннє."
+        },
+        "thumb-preload": {
+          "summary": "Готує мініатюри мережевих відео та PDF після кожної синхронізації.",
+          "details": "Мініатюри створюються у фоні, і на момент, коли ви відкриєте папку, вони вже готові. Окремий параметр обмежує це мережами без обмежень за трафіком, як-от Wi-Fi."
+        },
+        "cache-limit": {
+          "summary": "Задає, скільки місця на диску може зайняти кеш зображень.",
+          "details": "У кеші зберігаються прев’ю й мініатюри, щоб наступного разу вони відкривалися швидко. Введіть розмір у мегабайтах або натисніть «Авто» - застосунок підбере його за обсягом пам’яті пристрою. За замовчуванням це 2 ГБ."
+        },
+        "clear-cache": {
+          "summary": "Очищає кеш застосунку, щоб звільнити місце.",
+          "details": "Видаляються прев’ю, мініатюри й тимчасові файли, завантажені з мережі. Поруч із кнопкою показано поточний розмір кешу, а перед очищенням застосунок просить підтвердити дію. Кеш наповниться знову в міру перегляду.",
+          "undo": "У кеші лежать лише копії, тож ваші файли не постраждають; перший перегляд папки може бути повільнішим."
+        },
+        "statistics": {
+          "summary": "Збирає статистику використання на вашому пристрої.",
+          "details": "Дані лишаються на пристрої, автоматично нічого не надсилається. Поки збирання ввімкнено, з’являється рядок «Статистика», що відкриває зібране."
+        },
+        "extensions": {
+          "summary": "Керує необов’язковими частинами застосунку, які ви завантажуєте.",
+          "details": "Розширення - наприклад, розпізнавання тексту, переклад чи додаткові декодери - завантажуються лише коли вони потрібні й видаляються, щоб звільнити місце."
+        },
+        "permissions": {
+          "summary": "Показує, до чого застосунок має доступ, і дає змогу надати його.",
+          "details": "У кожного дозволу є короткий підпис про те, навіщо він потрібен. Надайте потрібне, а для тих, що Android не дає запитати напряму, відкрийте системні налаштування."
+        },
+        "system-info": {
+          "summary": "Відкриває екран із відомостями про пристрій і застосунок.",
+          "details": "Там зібрано технічні дані про цей пристрій і застосунок."
+        },
+        "user-guide": {
+          "summary": "Відкриває керівництво користувача в браузері.",
+          "details": "Керівництво відкривається українською, російською або англійською - залежно від мови застосунку."
+        },
+        "welcome": {
+          "summary": "Знову відкриває майстер привітання.",
+          "details": "Пройдіть сторінки першого запуску ще раз: мова, тема, профіль пристрою, мережеві джерела, можливості та дозволи."
+        },
+        "reset-general": {
+          "summary": "Повертає до значень за замовчуванням лише цю вкладку.",
+          "details": "Налаштування на інших вкладках зберігаються. Перед скиданням застосунок просить підтвердити дію."
+        }
+      }
+    }
+  }
+}

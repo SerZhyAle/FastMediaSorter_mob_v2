@@ -1,0 +1,192 @@
+{
+  "help": "statistics",
+  "surface": "StatisticsActivity",
+  "elements": [
+    { "id": "empty-state", "viewId": "tvEmptyMessage", "labelKey": "statistics_empty" },
+    { "id": "summary-cards", "viewId": "tvCardValue" },
+    { "id": "distribution", "viewId": "barContainer", "labelKey": "statistics_distribution_title" },
+    { "id": "sections", "viewId": "csh_title" },
+    { "id": "metric-rows", "viewId": "tvMetricValue" },
+    { "id": "privacy-note", "viewId": "tvPrivacyNote", "labelKey": "statistics_privacy_note" },
+    { "id": "export", "viewId": "btnExport", "labelKey": "statistics_export" },
+    { "id": "send-to-author", "viewId": "btnSendToAuthor", "labelKey": "statistics_send_to_author" }
+  ],
+  "related": [
+    { "help": "settings-general" },
+    { "pageId": "programs.usage-statistics" },
+    { "pageId": "settings.privacy-and-network-security" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Statistics",
+      "purpose": "Statistics shows what FastMediaSorter has done for you: files sorted, space freed, time spent in the player and more. The numbers are counted on your device and nothing is sent anywhere automatically - you decide whether to share a summary with the author.",
+      "steps": [
+        "Open Statistics from Settings, on the General tab: the row appears under the Statistics collection switch while collection is on.",
+        "On a new install the screen starts with a short note (1). The numbers fill in as you sort, view and capture files.",
+        "Read the four cards (2) for your all-time totals, and the bar (3) for how your files divide by kind.",
+        "Tap a section title (4) to fold or unfold the details; each row (5) is one counter, and counters at zero are left out.",
+        "Read the note at the bottom (6): it says where the data lives and who sends it.",
+        "Press Export (7) to save the report as a text file or pass it to any app.",
+        "Press Send to author (8) to open your email app with the same report attached. Read it, and send it only if you want to."
+      ],
+      "groups": [
+        { "title": "Your totals", "elements": ["empty-state", "summary-cards", "distribution"] },
+        { "title": "Details by section", "elements": ["sections", "metric-rows"] },
+        { "title": "Privacy and sharing", "elements": ["privacy-note", "export", "send-to-author"] }
+      ],
+      "elements": {
+        "empty-state": {
+          "summary": "Tells you that nothing has been counted yet.",
+          "details": "A new install, or one where collection was just turned back on, shows this message above the cards. It goes away after the first counted action. The Usage section below it already holds the launch count and the date of the first launch, which are counted even when collection is off."
+        },
+        "summary-cards": {
+          "name": "Summary cards",
+          "summary": "Four all-time totals at a glance.",
+          "details": "Sorted counts the files you copied or moved. Freed space is the space your deletions gave back. Player time is how long you watched video and listened to audio in the app, together. Viewed is how many images, videos, audio files and documents you opened. These are totals since counting began; the screen has no period and no reset button. To start over, turn Statistics collection off and on again in Settings.",
+          "undo": "Turning collection off erases the detailed counters for good. The launch count, the first-launch date and the first installed version are kept."
+        },
+        "distribution": {
+          "summary": "Splits the files you worked with by kind.",
+          "details": "The bar shows how the files you copied, moved or deleted divide into Images, Video, Audio, Documents and Other. The legend gives each share in percent and its number of files. The bar appears only once there is something to show, and a kind with nothing in it is left out."
+        },
+        "sections": {
+          "name": "Category sections",
+          "summary": "Groups the detailed counters by what you did.",
+          "details": "There are six sections: Operations, Capture, Viewing, Editing, Sources and Usage. Tap a title to fold or unfold its rows, which is handy on a small screen. Sources is shown only in editions with network folders or cloud storage. A section with nothing to show is left out; Usage always stays."
+        },
+        "metric-rows": {
+          "name": "Counter rows",
+          "summary": "One counter per row: what you did and how often.",
+          "details": "Each row has an icon, a name and a number. A size or a time shows beside the number where it makes sense, for example the space freed next to Deleted or the listening time next to Audio played.\n\nOperations covers copying, moving, deleting, archiving, extracting, renaming, favorites, scheduled runs and undo. Capture covers photos, videos, voice notes and screenshots. Viewing covers images viewed, videos watched, audio played, documents opened, slideshows and streams. Editing covers image edits, drawings and notes. Sources counts connected sources and added streams. Usage shows app launches, the first launch, the first installed version and, while collection is on, sessions and active time. A counter at zero is not shown, so each section lists only what you really did."
+        },
+        "privacy-note": {
+          "summary": "Says where the numbers live and who sends them.",
+          "details": "The data is collected on your device and nothing is sent automatically - there is no background upload. The only way it leaves the phone is when you press Send to author or Export and then send the report yourself. The numbers are counts, sizes and times; they contain no file names and no paths. Collection can be switched off at any time with Statistics collection in Settings.",
+          "undo": "Switching collection off erases the detailed counters, and they cannot be brought back. Only the launch count, the first-launch date and the first installed version stay."
+        },
+        "export": {
+          "summary": "Saves the report as a text file, or passes it to any app.",
+          "details": "Builds a plain-text report of the numbers on this screen and opens the Android share menu with it as a file, so you can save it to a folder or send it through an app of your choice. Besides the totals, the report names the app version, the edition, the phone model and the Android version, and nothing that identifies you. Nothing leaves the phone until you pick an app in the share menu."
+        },
+        "send-to-author": {
+          "summary": "Prepares an email to the author with the report attached.",
+          "details": "Opens your own email app with the author's address, a ready-made subject and the same text report attached. The message goes out only when you press send there, so you can read the report first and drop it if you change your mind. If no app on the phone can send it, the app says to install a mail or sharing app and try again."
+        }
+      }
+    },
+    "ru": {
+      "title": "Статистика",
+      "purpose": "Статистика показывает, что FastMediaSorter сделал для вас: сколько файлов отсортировано, сколько места освобождено, сколько времени вы провели в плеере и многое другое. Числа считаются на вашем устройстве, и ничего не отправляется автоматически - делиться ли сводкой с автором, решаете вы.",
+      "steps": [
+        "Откройте «Статистику» в настройках, на вкладке «Общие»: строка появляется под переключателем «Сбор статистики», пока сбор включён.",
+        "После новой установки экран начинается с короткого сообщения (1). Числа заполняются по мере того, как вы сортируете, просматриваете и снимаете файлы.",
+        "По четырём карточкам (2) видны итоги за всё время, а по полосе (3) - как файлы делятся по типам.",
+        "Нажмите на заголовок раздела (4), чтобы свернуть или развернуть подробности; каждая строка (5) - один счётчик, нулевые счётчики не показываются.",
+        "Прочитайте заметку внизу (6): в ней сказано, где хранятся данные и кто их отправляет.",
+        "Нажмите «Экспорт» (7), чтобы сохранить отчёт текстовым файлом или передать его любому приложению.",
+        "Нажмите «Отправить автору» (8), чтобы открыть почтовое приложение с тем же отчётом во вложении. Прочитайте его и отправляйте, только если хотите."
+      ],
+      "groups": [
+        { "title": "Ваши итоги", "elements": ["empty-state", "summary-cards", "distribution"] },
+        { "title": "Подробности по разделам", "elements": ["sections", "metric-rows"] },
+        { "title": "Конфиденциальность и отправка", "elements": ["privacy-note", "export", "send-to-author"] }
+      ],
+      "elements": {
+        "empty-state": {
+          "summary": "Сообщает, что пока ничего не посчитано.",
+          "details": "После новой установки или после повторного включения сбора это сообщение стоит над карточками. Оно пропадает после первого учтённого действия. В разделе «Использование» ниже уже есть число запусков и дата первого запуска - их считают, даже когда сбор выключен."
+        },
+        "summary-cards": {
+          "name": "Сводные карточки",
+          "summary": "Четыре итога за всё время с первого взгляда.",
+          "details": "«Отсортировано» считает файлы, которые вы скопировали или переместили. «Освобождено» - место, которое вернули удаления. «Время в плеере» - сколько вы смотрели видео и слушали аудио в приложении, вместе. «Просмотрено» - сколько изображений, видео, аудиофайлов и документов вы открывали. Это итоги с начала подсчёта: у экрана нет периода и нет кнопки сброса. Чтобы начать заново, выключите и снова включите «Сбор статистики» в настройках.",
+          "undo": "При выключении сбора подробные счётчики стираются безвозвратно. Число запусков, дата первого запуска и версия первой установки сохраняются."
+        },
+        "distribution": {
+          "summary": "Делит файлы, с которыми вы работали, по типам.",
+          "details": "Полоса показывает, как файлы, которые вы скопировали, переместили или удалили, делятся на изображения, видео, аудио, документы и прочее. В легенде у каждого типа указаны доля в процентах и число файлов. Полоса появляется, только когда есть что показать, а тип без файлов в неё не попадает."
+        },
+        "sections": {
+          "name": "Разделы статистики",
+          "summary": "Группирует подробные счётчики по тому, что вы делали.",
+          "details": "Разделов шесть: «Операции», «Захват», «Просмотр», «Редактирование», «Источники» и «Использование». Нажмите на заголовок, чтобы свернуть или развернуть строки раздела, - это удобно на маленьком экране. «Источники» есть только в редакциях с сетевыми папками или облачными хранилищами. Раздел, в котором нечего показать, не выводится; «Использование» остаётся всегда."
+        },
+        "metric-rows": {
+          "name": "Строки счётчиков",
+          "summary": "Один счётчик на строку: что вы делали и сколько раз.",
+          "details": "В каждой строке есть значок, название и число. Где это уместно, рядом с числом стоит размер или время - например, освобождённое место рядом с «Удалено» или время прослушивания рядом с «Прослушано аудио».\n\n«Операции» - копирование, перемещение, удаление, архивирование, извлечение, переименование, избранное, запуски по расписанию и отмена. «Захват» - фото, видео, голосовые заметки и снимки экрана. «Просмотр» - просмотренные изображения, видео, проигранное аудио, открытые документы, показы слайдов и потоки. «Редактирование» - правки изображений, рисунки и заметки. «Источники» считают подключённые источники и добавленные потоки. «Использование» показывает запуски приложения, первый запуск, версию первой установки и, пока сбор включён, сессии и активное время. Нулевой счётчик не показывается, поэтому в каждом разделе только то, что вы действительно делали."
+        },
+        "privacy-note": {
+          "summary": "Объясняет, где хранятся числа и кто их отправляет.",
+          "details": "Данные собираются на вашем устройстве, и ничего не отправляется автоматически - фоновой отправки нет. Они покидают телефон, только когда вы нажимаете «Отправить автору» или «Экспорт» и затем сами отправляете отчёт. Это количества, размеры и время: в них нет ни имён файлов, ни путей. Сбор можно выключить в любой момент переключателем «Сбор статистики» в настройках.",
+          "undo": "При выключении сбора подробные счётчики стираются, и вернуть их нельзя. Остаются только число запусков, дата первого запуска и версия первой установки."
+        },
+        "export": {
+          "summary": "Сохраняет отчёт текстовым файлом или передаёт его любому приложению.",
+          "details": "Собирает текстовый отчёт с числами этого экрана и открывает меню «Поделиться» Android с этим файлом: его можно сохранить в папку или отправить через любое приложение. Кроме итогов в отчёте указаны версия приложения, редакция, модель телефона и версия Android - и ничего, что вас идентифицирует. Пока вы не выберете приложение в меню, из телефона ничего не уходит."
+        },
+        "send-to-author": {
+          "summary": "Готовит письмо автору с отчётом во вложении.",
+          "details": "Открывает ваше почтовое приложение с адресом автора, готовой темой и тем же текстовым отчётом во вложении. Письмо уходит, только когда вы сами нажмёте отправку, так что отчёт можно сначала прочитать и отказаться. Если на телефоне нет приложения, которое может отправить письмо, приложение предложит установить почтовый клиент или приложение для обмена и повторить."
+        }
+      }
+    },
+    "uk": {
+      "title": "Статистика",
+      "purpose": "Статистика показує, що FastMediaSorter зробив для вас: скільки файлів відсортовано, скільки місця звільнено, скільки часу ви провели в плеєрі та багато іншого. Числа рахуються на вашому пристрої, і нічого не надсилається автоматично - чи ділитися зведенням з автором, вирішуєте ви.",
+      "steps": [
+        "Відкрийте «Статистику» в налаштуваннях, на вкладці «Загальні»: рядок з’являється під перемикачем «Збір статистики», поки збір увімкнено.",
+        "Після нового встановлення екран починається з короткого повідомлення (1). Числа заповнюються в міру того, як ви сортуєте, переглядаєте та знімаєте файли.",
+        "За чотирма картками (2) видно підсумки за весь час, а за смугою (3) - як файли діляться за типами.",
+        "Натисніть на заголовок розділу (4), щоб згорнути чи розгорнути подробиці; кожен рядок (5) - один лічильник, нульові лічильники не показуються.",
+        "Прочитайте нотатку внизу (6): у ній сказано, де зберігаються дані та хто їх надсилає.",
+        "Натисніть «Експорт» (7), щоб зберегти звіт текстовим файлом або передати його будь-якому застосунку.",
+        "Натисніть «Надіслати автору» (8), щоб відкрити поштовий застосунок з тим самим звітом у вкладенні. Прочитайте його й надсилайте, лише якщо хочете."
+      ],
+      "groups": [
+        { "title": "Ваші підсумки", "elements": ["empty-state", "summary-cards", "distribution"] },
+        { "title": "Подробиці за розділами", "elements": ["sections", "metric-rows"] },
+        { "title": "Конфіденційність і надсилання", "elements": ["privacy-note", "export", "send-to-author"] }
+      ],
+      "elements": {
+        "empty-state": {
+          "summary": "Повідомляє, що поки нічого не пораховано.",
+          "details": "Після нового встановлення або після повторного ввімкнення збору це повідомлення стоїть над картками. Воно зникає після першої врахованої дії. У розділі «Використання» нижче вже є кількість запусків і дата першого запуску - їх рахують, навіть коли збір вимкнено."
+        },
+        "summary-cards": {
+          "name": "Зведені картки",
+          "summary": "Чотири підсумки за весь час з першого погляду.",
+          "details": "«Відсортовано» рахує файли, які ви скопіювали або перемістили. «Звільнено» - місце, яке повернули видалення. «Час у плеєрі» - скільки ви дивилися відео й слухали аудіо в застосунку, разом. «Переглянуто» - скільки зображень, відео, аудіофайлів і документів ви відкривали. Це підсумки від початку підрахунку: в екрана немає періоду й немає кнопки скидання. Щоб почати спочатку, вимкніть і знову ввімкніть «Збір статистики» в налаштуваннях.",
+          "undo": "Під час вимкнення збору докладні лічильники стираються безповоротно. Кількість запусків, дата першого запуску та версія першого встановлення зберігаються."
+        },
+        "distribution": {
+          "summary": "Ділить файли, з якими ви працювали, за типами.",
+          "details": "Смуга показує, як файли, які ви скопіювали, перемістили чи видалили, діляться на зображення, відео, аудіо, документи та інше. У легенді біля кожного типу вказано частку у відсотках і кількість файлів. Смуга з’являється, лише коли є що показати, а тип без файлів у неї не потрапляє."
+        },
+        "sections": {
+          "name": "Розділи статистики",
+          "summary": "Групує докладні лічильники за тим, що ви робили.",
+          "details": "Розділів шість: «Операції», «Захоплення», «Перегляд», «Редагування», «Джерела» та «Використання». Натисніть на заголовок, щоб згорнути чи розгорнути рядки розділу, - це зручно на малому екрані. «Джерела» є лише у редакціях з мережевими папками або хмарними сховищами. Розділ, у якому нічого показувати, не виводиться; «Використання» лишається завжди."
+        },
+        "metric-rows": {
+          "name": "Рядки лічильників",
+          "summary": "Один лічильник на рядок: що ви робили і скільки разів.",
+          "details": "У кожному рядку є значок, назва й число. Де це доречно, поруч із числом стоїть розмір або час - наприклад, звільнене місце поруч із «Видалено» чи час прослуховування поруч з «Прослухано аудіо».\n\n«Операції» - копіювання, переміщення, видалення, архівування, видобування, перейменування, обране, запуски за розкладом і скасування. «Захоплення» - фото, відео, голосові нотатки та знімки екрана. «Перегляд» - переглянуті зображення, відео, відтворене аудіо, відкриті документи, показ слайдів і потоки. «Редагування» - правки зображень, малюнки й нотатки. «Джерела» рахують підключені джерела та додані потоки. «Використання» показує запуски застосунку, перший запуск, версію першого встановлення і, поки збір увімкнено, сесії й активний час. Нульовий лічильник не показується, тому в кожному розділі лише те, що ви справді робили."
+        },
+        "privacy-note": {
+          "summary": "Пояснює, де зберігаються числа і хто їх надсилає.",
+          "details": "Дані збираються на вашому пристрої, і нічого не надсилається автоматично - фонового надсилання немає. Вони залишають телефон, лише коли ви натискаєте «Надіслати автору» або «Експорт» і потім самі надсилаєте звіт. Це кількості, розміри та час: у них немає ні імен файлів, ні шляхів. Збір можна вимкнути будь-коли перемикачем «Збір статистики» в налаштуваннях.",
+          "undo": "Під час вимкнення збору докладні лічильники стираються, і повернути їх не можна. Лишаються тільки кількість запусків, дата першого запуску та версія першого встановлення."
+        },
+        "export": {
+          "summary": "Зберігає звіт текстовим файлом або передає його будь-якому застосунку.",
+          "details": "Складає текстовий звіт із числами цього екрана й відкриває меню «Поділитися» Android з цим файлом: його можна зберегти в теку або надіслати через будь-який застосунок. Окрім підсумків, у звіті вказано версію застосунку, редакцію, модель телефона та версію Android - і нічого, що вас ідентифікує. Доки ви не виберете застосунок у меню, з телефона нічого не йде."
+        },
+        "send-to-author": {
+          "summary": "Готує листа авторові зі звітом у вкладенні.",
+          "details": "Відкриває ваш поштовий застосунок з адресою автора, готовою темою та тим самим текстовим звітом у вкладенні. Лист іде, лише коли ви самі натиснете надсилання, тож звіт можна спершу прочитати й відмовитися. Якщо на телефоні немає застосунку, який може надіслати лист, застосунок запропонує встановити поштовий клієнт або застосунок для обміну та повторити."
+        }
+      }
+    }
+  }
+}

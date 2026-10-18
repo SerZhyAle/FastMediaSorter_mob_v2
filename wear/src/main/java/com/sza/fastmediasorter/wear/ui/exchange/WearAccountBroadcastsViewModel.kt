@@ -15,11 +15,12 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -41,7 +42,9 @@ sealed interface WearAccountBroadcastEvent {
 
 /**
  * S4229: the account's broadcasts of every exchange entry (contract DEVICE-EXCHANGE item CI). The list is read
- * only while this ViewModel's flow is collected, the person picks, and nothing here starts a broadcast by itself.
+ * only while this ViewModel's flow is collected (S4339: after [SUBSCRIPTION_GRACE_MS] without a subscriber the
+ * upstream is cancelled, which is what drops the directory's credentials), the person picks, and nothing here
+ * starts a broadcast by itself.
  */
 @HiltViewModel
 class WearAccountBroadcastsViewModel @Inject constructor(
@@ -49,8 +52,19 @@ class WearAccountBroadcastsViewModel @Inject constructor(
     private val playBroadcast: PlayAccountBroadcastUseCase,
 ) : ViewModel() {
 
-    private val mutableState = MutableStateFlow(WearAccountBroadcastsUiState())
-    val uiState: StateFlow<WearAccountBroadcastsUiState> = mutableState.asStateFlow()
+    private val graceOver = MutableStateFlow(false)
+
+    val uiState: StateFlow<WearAccountBroadcastsUiState> = combine(
+        observeBroadcasts()
+            .catch { Timber.w(it, "WearAccountBroadcastsViewModel: the list flow failed") },
+        graceOver,
+    ) { sections, isGraceOver ->
+        WearAccountBroadcastsUiState(sections = sections, hasAnswered = true, isGraceOver = isGraceOver)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(SUBSCRIPTION_GRACE_MS),
+        initialValue = WearAccountBroadcastsUiState(),
+    )
 
     private val channel = Channel<WearAccountBroadcastEvent>(Channel.BUFFERED)
     val events: Flow<WearAccountBroadcastEvent> = channel.receiveAsFlow()
@@ -59,13 +73,8 @@ class WearAccountBroadcastsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            observeBroadcasts()
-                .catch { Timber.w(it, "WearAccountBroadcastsViewModel: the list flow failed") }
-                .collect { sections -> mutableState.update { it.copy(sections = sections, hasAnswered = true) } }
-        }
-        viewModelScope.launch {
             delay(LOADING_GRACE_MS)
-            mutableState.update { it.copy(isGraceOver = true) }
+            graceOver.value = true
         }
     }
 
@@ -88,5 +97,8 @@ class WearAccountBroadcastsViewModel @Inject constructor(
     private companion object {
         // A server that has not answered by now is shown as failed instead of loading for ever.
         const val LOADING_GRACE_MS = 15_000L
+
+        // S4339: how long the last subscriber's absence leaves the directory - and its credentials - collected.
+        const val SUBSCRIPTION_GRACE_MS = 5_000L
     }
 }

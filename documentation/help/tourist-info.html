@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Tourist</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Tourist</span>
+</nav>
+<header class="hero">
+<h1>Tourist</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">A dashboard for a walk, a ride or a trip: speed, altitude, direction, coordinates, steps, weather and more, each on a tile. One tile is shown large at the top, the rest wait below, and buttons let you open a map, share where you are or call for help.</p>
+<h2>In this order</h2>
+<ol class="order">
+<li>If a card at the top asks for a permission <a class="ref" href="#permission-card">1</a>, press its button <a class="ref" href="#permission-action">2</a>. Speed, altitude, coordinates and sun times need location; steps need physical activity.</li>
+<li>The large tile <a class="ref" href="#main-tile">3</a> shows one reading, speed to begin with. Tap any tile in the grid <a class="ref" href="#tiles">14</a> to bring it up to the top; the app remembers your choice.</li>
+<li>Read the value <a class="ref" href="#reading">5</a>. Some tiles add a picture: the coordinates <a class="ref" href="#coordinates-view">6</a>, a compass rose <a class="ref" href="#compass-rose">7</a>, an arrow <a class="ref" href="#direction-arrow">8</a> or a level bubble <a class="ref" href="#level-bubble">9</a>. The line below <a class="ref" href="#detail-line">13</a> gives the context.</li>
+<li>Trip tiles keep adding up as you move. Reset <a class="ref" href="#main-reset">4</a> on the large tile, or Reset trip <a class="ref" href="#reset-trip">17</a>, starts them again from zero.</li>
+<li>Map <a class="ref" href="#open-map">15</a> shows where you are in a map app, and Share <a class="ref" href="#share-location">16</a> sends your position to someone.</li>
+<li>SOS signal <a class="ref" href="#sos">18</a> opens the emergency signal. The Stopwatch tile has its own keys: Start / Stop <a class="ref" href="#stopwatch-toggle">10</a>, Reset <a class="ref" href="#stopwatch-reset">11</a> and Open stopwatch <a class="ref" href="#stopwatch-open">12</a>. The Counter tile opens the counter when you tap it.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Permission card</h3>
+<details class="el" id="permission-card">
+<summary><span class="mk">1</span><span><span class="name">Permission required</span><span class="one">Appears when a permission is missing and says what stops working without it.</span></span></summary>
+<div class="full">
+<p>Location is asked first: without it speed, altitude, coordinates and sun times cannot be shown. When location is granted but physical activity is not, the card asks for that instead and says steps are not counted. The card disappears once nothing is missing, and comes back if you withdraw a permission later.</p>
+</div>
+</details>
+<details class="el" id="permission-action">
+<summary><span class="mk">2</span><span><span class="name">Allow / Open settings</span><span class="one">Asks the system for the permission, or opens the app settings if the system will not ask again.</span></span></summary>
+<div class="full">
+<p>The key says Allow while Android can still show the request. After you have declined it for good, the key says Open settings and takes you to the app page, where you can switch the permission on yourself. Location is requested as an exact and an approximate choice, so you may grant the approximate one; some tiles are then less precise.</p>
+</div>
+</details>
+<h3>The large tile</h3>
+<details class="el" id="main-tile">
+<summary><span class="mk">3</span><span><span class="name">Large tile</span><span class="one">The tile you are looking at, shown big at the top.</span></span></summary>
+<div class="full">
+<p>It has an icon, a name, the reading and a line of detail. Speed is shown at first, and the app remembers the last tile you chose. Tapping the card itself does something only for two tiles: Coordinates copies them to the clipboard, and Counter opens the counter. On a tile whose sensor is missing the card says so, for example Sensor unavailable or Acquiring fix..</p>
+</div>
+</details>
+<details class="el" id="main-reset">
+<summary><span class="mk">4</span><span><span class="name">Reset</span><span class="one">Starts the trip, or the step count, again from zero.</span></span></summary>
+<div class="full">
+<p>The key is shown only on the tiles that accumulate: Speed, Steps, Trip distance, Ascent, Time on trip, Moving time and Average speed. On Steps it resets only the steps; on the others it resets the whole trip (distance, top speed, ascent, times and average speed together). There is no question first.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The trip, or the steps, return to zero at once and cannot be restored.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="reading">
+<summary><span class="mk">5</span><span><span class="name">Reading</span><span class="one">The value of the tile in large digits, with its unit.</span></span></summary>
+<div class="full">
+<p>Units follow the unit system chosen in Settings, Metric or US, and switch when you change it. While a sensor is warming up, the reading says why instead of showing a number: Acquiring fix.., Collecting readings.., Waiting for the sensor.. or No data yet - needs a GPS fix and internet.</p>
+</div>
+</details>
+<details class="el" id="coordinates-view">
+<summary><span class="mk">6</span><span><span class="name">Coordinates view</span><span class="one">Latitude and longitude, shown instead of a single number.</span></span></summary>
+<div class="full">
+<p>It appears when the large tile is Coordinates and reads Lat and Lon with four decimals; before a fix it shows dashes. Tap the large card to copy the pair with five decimals; the copied text is shown for a moment. Share sends the same position.</p>
+</div>
+</details>
+<details class="el" id="compass-rose">
+<summary><span class="mk">7</span><span><span class="name">Compass rose</span><span class="one">A dial that turns as you turn, with the heading in degrees.</span></span></summary>
+<div class="full">
+<p>It appears when the large tile is Compass. The dial turns so that north stays north, the number is the heading in degrees and the word beside it the compass direction. The detail line says whether the reading is magnetic north or true north and warns when something near the phone, such as metal or electronics, disturbs the sensor.</p>
+</div>
+</details>
+<details class="el" id="direction-arrow">
+<summary><span class="mk">8</span><span><span class="name">Direction arrow</span><span class="one">An arrow that points the way a value is heading.</span></span></summary>
+<div class="full">
+<p>It shows on Course, where it points the way you are moving (start moving to see it), on Wind, and on Pressure, where the arrow tilts up, down or sideways for rising, falling or steady air pressure.</p>
+</div>
+</details>
+<details class="el" id="level-bubble">
+<summary><span class="mk">9</span><span><span class="name">Level bubble</span><span class="one">A spirit level for the phone: the bubble floats to the high side.</span></span></summary>
+<div class="full">
+<p>It appears when the large tile is Level. Lay the phone flat and the bubble sits in the middle of the ring; a tilt of about 30 degrees pushes it to the edge. The detail line gives the pitch and roll in degrees.</p>
+</div>
+</details>
+<details class="el" id="stopwatch-toggle">
+<summary><span class="mk">10</span><span><span class="name">Start / Stop</span><span class="one">Starts or stops the small stopwatch on this tile.</span></span></summary>
+<div class="full">
+<p>The Stopwatch tile is a simple stopwatch of its own: one person, no laps. The key says Start while it is stopped and Stop while it runs. The reading counts minutes and seconds. It keeps counting when you turn the phone.</p>
+</div>
+</details>
+<details class="el" id="stopwatch-reset">
+<summary><span class="mk">11</span><span><span class="name">Reset</span><span class="one">Sets the tile's stopwatch back to zero and stops it.</span></span></summary>
+<div class="full">
+<p>Use it between two measurements.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The time is lost at once and cannot be restored.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="stopwatch-open">
+<summary><span class="mk">12</span><span><span class="name">Open stopwatch</span><span class="one">Opens the full Stopwatch program.</span></span></summary>
+<div class="full">
+<p>That program times up to four people with laps, music and a result you can send. The small stopwatch on this tile is separate and does not carry over.</p>
+</div>
+</details>
+<details class="el" id="detail-line">
+<summary><span class="mk">13</span><span><span class="name">Detail line</span><span class="one">A line under the reading that explains it.</span></span></summary>
+<div class="full">
+<p>It differs from tile to tile: for Speed the top speed and the trip distance, for Satellites how many are used and in view, for Sun / Daylight sunrise and sunset, for Level the pitch and roll, and so on. When the value is only a guess it says Approximate and what it is waiting for.</p>
+</div>
+</details>
+<h3>Other tiles</h3>
+<details class="el" id="tiles">
+<summary><span class="mk">14</span><span><span class="name">Other tiles</span><span class="one">All the other readings, in a grid of two columns; tap one to bring it to the top.</span></span></summary>
+<div class="full">
+<p>The grid lists every tile except the one at the top. Tiles whose hardware your phone lacks are left out, not shown empty. Trip and movement: Speed, Altitude, Steps, Trip distance, Ascent, Slope, Time on trip, Moving time, Average speed, Cadence and Course. Position and sensors: Compass, Coordinates, Satellites, GPS accuracy, Level, Light, Magnetic field, Pressure and Barometric altitude. Sun and weather: Sun / Daylight, Weather, Dew point, Wind, Feels like, Humidity, UV index, Chance of precipitation, Cloud cover and Visibility. Watch: Heart rate and Body temperature, in editions that pair with a watch. Tools: Stopwatch and Counter.</p>
+<p>Steps and Cadence need a step counter and the physical activity permission, and Pressure and Barometric altitude need a barometer. The weather tiles need a GPS fix and an internet connection. The watch tiles show your watch's latest reading, or ask you to open Tourist on the watch.</p>
+</div>
+</details>
+<h3>Action buttons</h3>
+<details class="el" id="open-map">
+<summary><span class="mk">15</span><span><span class="name">Map</span><span class="one">Shows your position in a map app.</span></span></summary>
+<div class="full">
+<p>It hands your coordinates to the map app on the phone; with no map app installed it opens the map page in the browser. Without a fix yet, it opens the map app with no point, and if the phone has no map app, a short message says that the position is still being acquired.</p>
+</div>
+</details>
+<details class="el" id="share-location">
+<summary><span class="mk">16</span><span><span class="name">Share</span><span class="one">Sends your position to someone as a message with a map link.</span></span></summary>
+<div class="full">
+<p>It opens the system share sheet with your coordinates and a link to them on a map. Wait for a fix first; until then a message says the position is still being acquired. Whoever receives it learns where you are, so choose the recipient with care.</p>
+</div>
+</details>
+<details class="el" id="reset-trip">
+<summary><span class="mk">17</span><span><span class="name">Reset Trip</span><span class="one">Starts the trip again from zero.</span></span></summary>
+<div class="full">
+<p>It clears the trip distance, top speed, ascent, time on trip, moving time and average speed together. When the large tile is Steps, it resets the step count instead. It works from any tile and does not ask first.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The trip returns to zero at once and the values cannot be restored.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="sos">
+<summary><span class="mk">18</span><span><span class="name">SOS signal</span><span class="one">Opens the SOS emergency signal.</span></span></summary>
+<div class="full">
+<p>It takes you to the SOS screen, where you choose a siren, a flashing light or both, and start the signal. It is here because this screen is where you already are when something goes wrong outdoors.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="tourist-counter.html"><b>Counter</b><span class="pill">Screen</span></a></li>
+<li><a href="stopwatch.html"><b>Stopwatch</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-operations.html"><b>Settings: Management</b><span class="pill">Screen</span></a></li>
+<li><a href="sos.html"><b>SOS emergency signal</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/built-in-mini-apps.html"><b>Built-in Programs - Switching Them On, the Lights, the Mirror and the SOS Signal</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/permissions-guide.html"><b>Understanding App Permissions</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

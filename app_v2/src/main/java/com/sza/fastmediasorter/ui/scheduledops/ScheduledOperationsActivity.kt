@@ -9,8 +9,8 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityScheduledOperationsBinding
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.input.UiSurface
-import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -59,7 +59,7 @@ class ScheduledOperationsActivity : BaseActivity<ActivityScheduledOperationsBind
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_help -> {
-                DocsPageOpenManager.open(this, UiSurface.SCHEDULED_OPS)
+                HelpOpenManager.open(this, ScheduledOperationsActivity::class.java.simpleName, UiSurface.SCHEDULED_OPS)
                 true
             }
             R.id.action_portal -> {

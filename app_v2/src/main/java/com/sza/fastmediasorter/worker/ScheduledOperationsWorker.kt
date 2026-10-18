@@ -101,7 +101,6 @@ class ScheduledOperationsWorker @AssistedInject constructor(
             val foregroundNote = enterForeground()
 
             val execResult = executeScheduledOperationUseCase(operationId)
-            Timber.d("S4211: run op=$operationId outcome=${execResult.outcome} files=${execResult.filesProcessed}")
 
             // Update lastRunAt, lastRunStatus, lastSuccessAt, nextRunAt in DB; rescheduling is handled by the
             // WorkManagerScheduler observer. The row is re-read: the user may have edited it mid-run.

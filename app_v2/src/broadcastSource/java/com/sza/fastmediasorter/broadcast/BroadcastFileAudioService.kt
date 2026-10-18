@@ -55,6 +55,7 @@ class BroadcastFileAudioService : Service() {
     private var httpServer: BroadcastHttpServer? = null
 
     private val isPlaying = AtomicBoolean(false)
+    private val stateLock = Any()
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -220,12 +221,26 @@ class BroadcastFileAudioService : Service() {
             abortSession(BroadcastFailure.ENCODER_UNAVAILABLE, "AAC codec unavailable") {}
             return null
         }
-        _state.value = BroadcastState.Live(
+        val live = BroadcastState.Live(
             descriptor = dto,
             startedAtElapsedRealtimeMs = SystemClock.elapsedRealtime(),
             source = BROADCAST_SOURCE_FILE,
         )
-        return encoder
+        val published = synchronized(stateLock) {
+            if (isPlaying.get()) {
+                _state.value = live
+                true
+            } else {
+                false
+            }
+        }
+        if (!published) {
+            encoder.stop()
+            decoder.release()
+            server.stop()
+            clearServer(server)
+        }
+        return if (published) encoder else null
     }
 
     /**
@@ -308,10 +323,12 @@ class BroadcastFileAudioService : Service() {
 
     private fun stopBroadcast() {
         // The playback loop sees the flag on its next paced wake and leaves the file alone.
-        isPlaying.set(false)
+        synchronized(stateLock) {
+            isPlaying.set(false)
+            _state.value = BroadcastState.Idle
+        }
         httpServer?.stop()
         httpServer = null
-        _state.value = BroadcastState.Idle
         _listenerCount.value = 0
     }
 

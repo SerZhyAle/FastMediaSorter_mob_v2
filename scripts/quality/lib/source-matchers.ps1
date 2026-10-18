@@ -28,6 +28,7 @@
 . (Join-Path $PSScriptRoot 'caption-value-split.ps1')
 . (Join-Path $PSScriptRoot 'settings-snapshot-write.ps1')
 . (Join-Path $PSScriptRoot 'main-thread-bitmap-decode.ps1')
+. (Join-Path $PSScriptRoot 'loopback-endpoint-close.ps1')
 
 # --- rule predicates -------------------------------------------------------------------
 # Kept as named functions rather than inline lambdas so the two multi-step heuristics
@@ -1947,19 +1948,22 @@ function Get-SourceRules {
             CountInText  = { param($t) @(Find-UnregisteredResultLauncherLines $t).Count }
             LocateInText = { param($t) Find-UnregisteredResultLauncherLines $t }
             FailMessage  = 'an ActivityResultLauncher registered with the lifecycle-less register(key, contract, callback) and never unregistered (S3886). Release it with launcher.unregister() when its owner dies - a DefaultLifecycleObserver on the owner''s lifecycle (the fragment''s viewLifecycleOwner for a view-scoped manager) - or use the four-argument register(key, lifecycleOwner, contract, callback) when the owner is not yet STARTED.'
+        },
+        # S4337: a ServerSocket-backed LoopbackEndpoint or WearExchangeRelayEndpoint close() must close
+        # tracked active client and upstream sockets before shutting down workers, because shutdownNow()
+        # does not wake blocked SocketInputStream.read() calls.
+        [pscustomobject]@{
+            Name         = 'loopback-endpoint-close'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src', 'wear/src')
+            PathFilter   = '^(app_v2|wear)/src/(?!androidTest/|test|benchmark/)'
+            Baseline     = 'loopback-endpoint-close-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-LoopbackEndpointCloseText $t }
+            LocateInText = { param($t) Find-LoopbackEndpointCloseLines $t }
+            FailMessage  = 'a ServerSocket-backed LoopbackEndpoint/WearExchangeRelayEndpoint close() that stops the listener/workers without closing tracked active connections (S4337). Close all registered client and upstream sockets in close() before shutdownNow().'
         }
     )
-}
-
-function Find-UnregisteredResultLauncherLines([string]$Text) {
-    if ([string]::IsNullOrEmpty($Text)) { return }
-    if ($Text -notmatch 'activityResultRegistry') { return }
-    if ($Text -match '\.unregister\s*\(') { return }
-    # The second argument is the contract; the lifecycle overload puts its owner there instead.
-    $rx = [regex]'\.register\s*\(\s*[^,()]+,\s*[\w.]*Contract'
-    foreach ($m in $rx.Matches($Text)) {
-        $Text.Substring(0, $m.Index).Split("`n").Count
-    }
 }
 
 <#

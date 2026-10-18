@@ -2,14 +2,18 @@ package com.sza.fastmediasorter.data.repository
 
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectory
 import com.sza.fastmediasorter.data.security.e2e.E2eDeviceKey
 import com.sza.fastmediasorter.data.security.e2e.E2eRecipient
 import com.sza.fastmediasorter.data.security.e2e.E2eSealedBox
 import com.sza.fastmediasorter.data.security.e2e.E2eSelf
+import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.ExchangeSealIssue
 import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
 import com.sza.fastmediasorter.domain.model.SftpRendezvousResource
+import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -95,6 +99,27 @@ class ExchangeSealedContentOpenerTest {
         val access = JsonObject().apply { add("access", JsonObject().apply { addProperty("descriptor", CODE) }) }
         val to = listOf(E2eRecipient(CONSUMER, tablet.key.publicKey))
         return E2eSealedBox.seal(access, E2eSealedBox.grantContext(GRANT), sender, to).toString()
+    }
+
+    @Test
+    fun `a guest does not list a record that carries only the registering box`() = runTest {
+        val e2e = mockk<ExchangeE2eRepository>(relaxed = true)
+        coEvery { e2e.sealing(any(), any()) } returns ExchangeSealing(tablet, emptyList(), emptyMap(), emptyMap())
+        coEvery { e2e.grantSenders(any()) } returns emptyMap()
+        val registering = E2eSealedBox.registration(E2eSealedBox.grantContext(GRANT), phone).toString()
+        val directory = DeviceExchangeDirectory(
+            revision = 1L,
+            devices = emptyList(),
+            resources = listOf(grantRecord(registering), grantRecord(grantBox(phone)).copy(resourceId = "r-2")),
+            broadcasts = listOf(broadcastRecord(registering).copy(grantId = GRANT)),
+        )
+
+        val guest = DeviceExchangeAccountEntry("h", PORT, "bob", CONSUMER, null)
+
+        val opened = ExchangeSealedContentOpener(e2e).open(guest, directory)
+
+        assertEquals(listOf("r-2"), opened.resources.map { it.resourceId })
+        assertEquals(emptyList<SftpRendezvousBroadcast>(), opened.broadcasts)
     }
 
     @Test
@@ -186,6 +211,7 @@ class ExchangeSealedContentOpenerTest {
         const val RESOURCE = "r-1"
         const val GRANT = "g-1"
         const val BROADCAST = "b-1"
+        const val PORT = 7443
         const val KEY_HASH = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         const val FINGERPRINT = "SHA256:" + KEY_HASH
         const val CODE = "FMSSFTP1:h=192.168.1.20&p=2222&u=fms&pw=secret&fp=SHA256%3A" + KEY_HASH

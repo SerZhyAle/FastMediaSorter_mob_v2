@@ -108,7 +108,7 @@ class LauncherInstantPhotoCaptureManager(
 
     // Facing alone binds the default lens of that side, not the lens the user configured.
     private fun selectorFor(entry: CameraLensEntry): CameraSelector =
-        runCatching { entry.cameraInfo.cameraSelector }.getOrElse {
+        runCatching { entry.cameraInfo?.cameraSelector }.getOrNull() ?: run {
             CameraSelector.Builder().requireLensFacing(entry.lensFacing).build()
         }
 

@@ -41,10 +41,17 @@ data class WearServerClipboardValue(
     override fun toString(): String = "WearServerClipboardValue(kind=$kind, size=$size)"
 
     private companion object {
-        fun parseInstantMillis(text: String): Long? = try {
-            Instant.parse(text).toEpochMilli()
-        } catch (e: DateTimeParseException) {
-            null
+        // Instant.parse accepts years far beyond what epoch millis can hold, and toEpochMilli throws there.
+        private val EARLIEST_MILLIS_INSTANT: Instant = Instant.ofEpochMilli(Long.MIN_VALUE)
+        private val LATEST_MILLIS_INSTANT: Instant = Instant.ofEpochMilli(Long.MAX_VALUE)
+
+        fun parseInstantMillis(text: String): Long? {
+            val instant = try {
+                Instant.parse(text)
+            } catch (e: DateTimeParseException) {
+                null
+            }
+            return instant?.takeIf { it in EARLIEST_MILLIS_INSTANT..LATEST_MILLIS_INSTANT }?.toEpochMilli()
         }
     }
 }

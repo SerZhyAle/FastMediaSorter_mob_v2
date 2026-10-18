@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.15 14:50</sub>
+<sub class="doc-stamp">26.10.17 00:51</sub>
 
 # Contract pointers
 
@@ -38,6 +38,7 @@ catalog registry to one set of ids and versions.
 | [`ICON-EXTERNAL.md`](ICON-EXTERNAL.md) | `ICON-EXTERNAL` | owner; phone, launcher and watch |
 | [`CHECK-VERDICT.md`](CHECK-VERDICT.md) | `CHECK-VERDICT` | owner and reference implementation |
 | [`CHECK-BASELINE.md`](CHECK-BASELINE.md) | `CHECK-BASELINE` | owner |
+| [`CONTEXT-HELP.md`](CONTEXT-HELP.md) | `CONTEXT-HELP` | consumer - the phone app's F1 and `?` help, help map and offline help pages; the watch app's reasoned `none` map |
 | [`CHECK-PLACEMENT.md`](CHECK-PLACEMENT.md) | `CHECK-PLACEMENT` | owner |
 | [`BUILD-EVIDENCE.md`](BUILD-EVIDENCE.md) | `BUILD-EVIDENCE` | owner |
 | [`ICON-RENDER.md`](ICON-RENDER.md) | `ICON-RENDER` | owner and reference implementation; phone, launcher, watch, docs and site |

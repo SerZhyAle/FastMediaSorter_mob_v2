@@ -26,8 +26,8 @@ import com.sza.fastmediasorter.data.browser.CctUnavailableException
 import com.sza.fastmediasorter.data.browser.GoogleDomainBrowserLauncher
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.databinding.FragmentAuthSessionsListBinding
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.input.UiSurface
-import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
@@ -113,7 +113,11 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
                 true
             }
             R.id.action_help -> {
-                DocsPageOpenManager.open(requireActivity(), UiSurface.AUTH_SESSIONS)
+                HelpOpenManager.open(
+                    requireActivity(),
+                    AuthSessionsActivity::class.java.simpleName,
+                    UiSurface.AUTH_SESSIONS,
+                )
                 true
             }
             else -> false

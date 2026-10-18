@@ -94,9 +94,12 @@ internal object GoogleDriveResumableUploader {
         data class Incomplete(val confirmed: Long) : PutOutcome
     }
 
-    private class Session(private val sessionUri: String, private val token: String, private val size: Long) {
-
-        private val backoff = JitteredBackoff()
+    internal class Session(
+        private val sessionUri: String,
+        private val token: String,
+        private val size: Long,
+        private val backoff: JitteredBackoff = JitteredBackoff()
+    ) {
 
         fun finishEmpty(): JSONObject =
             (put(ByteArray(0), 0, 0, "bytes */0") as? PutOutcome.Complete)?.json
@@ -108,11 +111,32 @@ internal object GoogleDriveResumableUploader {
             var attempts = 0
             var done: JSONObject? = null
             while (done == null && sentFrom < length) {
-                val outcome = runCatching { putRange(buffer, sentFrom, length, offset) }
-                    .getOrElse { error -> recover(error, ++attempts) }
+                currentCoroutineContext().ensureActive()
+                val attemptsBox = intArrayOf(attempts)
+                val outcome = try {
+                    putRange(buffer, sentFrom, length, offset)
+                } catch (error: IOException) {
+                    attemptsBox[0]++
+                    val rec = recover(error, attemptsBox)
+                    attempts = attemptsBox[0]
+                    rec
+                }
                 when (outcome) {
                     is PutOutcome.Complete -> done = outcome.json
-                    is PutOutcome.Incomplete -> sentFrom = resumeIndex(outcome.confirmed, offset)
+                    is PutOutcome.Incomplete -> {
+                        val nextSentFrom = resumeIndex(outcome.confirmed, offset)
+                        if (nextSentFrom <= sentFrom) {
+                            attempts++
+                            if (attempts > MAX_TRANSIENT_RETRIES) {
+                                val message = "Drive upload stalled: no progress at offset $offset after $attempts"
+                                throw IOException(message)
+                            }
+                            delay(backoff.nextDelayMs())
+                        } else {
+                            sentFrom = nextSentFrom
+                            attempts = 0
+                        }
+                    }
                 }
             }
             return done
@@ -131,12 +155,23 @@ internal object GoogleDriveResumableUploader {
         }
 
         // A transient failure waits, then asks Drive how much it holds, so the next PUT resumes there.
-        private suspend fun recover(error: Throwable, attempt: Int): PutOutcome {
-            error.rethrowIfCancellation()
-            val failure = error as? DriveAppDataFailure ?: DriveAppDataFailure.Network(error)
-            if (!failure.isTransient || attempt > MAX_TRANSIENT_RETRIES) throw failure
-            delay(backoff.nextDelayMs())
-            return put(ByteArray(0), 0, 0, "bytes */$size")
+        private suspend fun recover(initialError: IOException, attemptsBox: IntArray): PutOutcome {
+            initialError.rethrowIfCancellation()
+            var currentError: IOException = initialError
+            while (true) {
+                currentCoroutineContext().ensureActive()
+                val failure = currentError as? DriveAppDataFailure ?: DriveAppDataFailure.Network(currentError)
+                if (!failure.isTransient || attemptsBox[0] > MAX_TRANSIENT_RETRIES) throw failure
+                delay(backoff.nextDelayMs())
+                try {
+                    currentCoroutineContext().ensureActive()
+                    return put(ByteArray(0), 0, 0, "bytes */$size")
+                } catch (probeError: IOException) {
+                    probeError.rethrowIfCancellation()
+                    attemptsBox[0]++
+                    currentError = probeError
+                }
+            }
         }
 
         private fun put(buffer: ByteArray, from: Int, count: Int, contentRange: String): PutOutcome {

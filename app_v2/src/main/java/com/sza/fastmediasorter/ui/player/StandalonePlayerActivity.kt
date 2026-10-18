@@ -30,13 +30,12 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
-import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
 import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeAugmentingCallback
 import com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerDisplayMode
+import com.sza.fastmediasorter.ui.player.helpers.PlayerHelpEntryManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
 import com.sza.fastmediasorter.ui.player.helpers.PlayerOrientationModeManager
 import com.sza.fastmediasorter.ui.player.helpers.SearchControlsManager
@@ -354,7 +353,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                     p.volume = (p.volume + delta * 0.1f).coerceIn(0f, 1f)
                 }
                 override fun onShowHelp() {
-                    InputHelpDialogFragment.show(supportFragmentManager, UiSurface.PLAYER)
+                    PlayerHelpEntryManager.open(this@StandalonePlayerActivity)
                 }
                 override fun onDocumentSearch() {
                     searchControlsManager?.showSearchPanel()
@@ -834,10 +833,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                         true
                     }
                     R.id.menu_help -> {
-                        com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager.open(
-                            this,
-                            com.sza.fastmediasorter.ui.common.input.UiSurface.PLAYER
-                        )
+                        PlayerHelpEntryManager.open(this)
                         true
                     }
                     else -> false

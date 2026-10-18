@@ -35,7 +35,7 @@
     <string name="cancel">Скасувати</string>
     <string name="sign_in">Увійти</string>
     <string name="ok">OK</string>
-    <string name="help">Допомога</string>
+    <string name="help">Довідка</string>
     <string name="yes">Так</string>
     <string name="no">Ні</string>
     <string name="select_all">Вибрати все</string>
@@ -3609,7 +3609,6 @@
     <string name="exif_orientation_rotate_270">Повернуто на 270° за годинниковою стрілкою</string>
     <string name="exif_orientation_unknown">Невідомо (%1$d)</string>
     <string name="storage_reach_limited_browse">У цій папці доступні лише фото, відео та звук. Щоб побачити документи, додайте папку знову й виберіть її у системному вікні.</string>
-    <string name="file_count_reach_limited">%1$s - лише фото, відео та звук</string>
     <string name="reach_limited_nothing_readable">Документи не читаються</string>
     <string name="storage_reach_limited_virtual">Документи та інші файли на цьому пристрої застосунку не видно. Щоб відкрити їх, додайте потрібну папку через системне вікно вибору.</string>
     <string name="storage_reach_limited_browse_reconnect">У цій папці доступні лише фото, відео та звук. Щоб побачити документи, відкрийте меню з трьома крапками в рядку папки на головному екрані та виберіть «Перепідключити ресурс».</string>
@@ -4465,4 +4464,20 @@
     <string name="broadcast_guests_withdraw_cd">Відкликати в %1$s</string>
     <string name="broadcast_guests_login_invalid">Введіть логін гостя: від 3 до 64 латинських літер, цифр, крапок, дефісів або підкреслень</string>
     <string name="broadcast_guests_give_failed">Цей гість уже має трансляцію, або її більше не оголошено через сервер</string>
+    <string name="broadcast_control_torch_on">Ліхтарик УВІМК</string>
+    <string name="broadcast_control_torch_off">Ліхтарик ВИМК</string>
+    <string name="broadcast_control_torch_cd">Увімкнути або вимкнути спалах камери, щоб підсвітити кадр</string>
+    <string name="broadcast_control_light_frame_on">Яскрава рамка УВІМК</string>
+    <string name="broadcast_control_light_frame_off">Яскрава рамка ВИМК</string>
+    <string name="broadcast_control_light_frame_cd">Увімкнути або вимкнути яскраву білу рамку по краях екрана, щоб підсвітити обличчя</string>
+    <string name="wear_screenshot_last_at">Останній знімок: %1$s</string>
+    <string name="wear_screenshot_open_browse">Відкрити в Перегляді</string>
+    <string name="help_page_title">Довідка</string>
+    <string name="help_open_on_site">Відкрити в новому вікні на сайті</string>
+    <string name="help_keyboard_shortcuts">Усі комбінації клавіш</string>
+    <string name="help_external_link_title">Відкрити в браузері?</string>
+    <string name="help_external_link_message">Це посилання веде за межі застосунку й відкриється в браузері.</string>
+    <string name="help_with_key">Довідка (F1)</string>
+    <string name="broadcast_control_group_commands">Керування ефіром</string>
+    <string name="broadcast_control_group_share">Посилання й обмін</string>
 </resources>

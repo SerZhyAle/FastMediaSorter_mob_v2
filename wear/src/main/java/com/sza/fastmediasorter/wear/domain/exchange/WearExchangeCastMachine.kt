@@ -14,7 +14,14 @@ sealed interface WearExchangeCastAction {
 
     data class Ask(val offer: WearExchangeCastOffer) : WearExchangeCastAction
     data class Play(val offer: WearExchangeCastOffer) : WearExchangeCastAction
-    data class Dismiss(val broadcastId: String) : WearExchangeCastAction
+
+    /**
+     * Ends the question. [keepsEndpoint] marks the acceptance ordering: an accepted answer dismisses its question
+     * before it plays, so the offer's relay endpoint must survive that one dismiss - every other dismiss (stop,
+     * expiry, decline, a withdrawn question) is terminal and releases what the offer held.
+     */
+    data class Dismiss(val broadcastId: String, val keepsEndpoint: Boolean = false) : WearExchangeCastAction
+
     data class StopPlaying(val broadcastId: String) : WearExchangeCastAction
 }
 
@@ -54,7 +61,7 @@ class WearExchangeCastMachine {
         return if (accepted) {
             playing += broadcastId
             listOf(
-                WearExchangeCastAction.Dismiss(broadcastId),
+                WearExchangeCastAction.Dismiss(broadcastId, keepsEndpoint = true),
                 WearExchangeCastAction.Answer(offer, true, null),
                 WearExchangeCastAction.Play(offer),
             )

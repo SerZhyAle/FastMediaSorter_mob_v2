@@ -29,6 +29,7 @@ class WearTouristTripTracker @Inject constructor(
     private val trendCalculator = WearPressureTrendCalculator()
     private val calibrator = WearBarometricAltitudeCalibrator()
     private val loadMutex = Mutex()
+    private val persistMutex = Mutex()
     private val state = MutableStateFlow(WearTripSnapshot.EMPTY)
     private val slopeWindow = MutableStateFlow<List<Pair<Double, Double>>>(emptyList())
 
@@ -92,8 +93,13 @@ class WearTouristTripTracker @Inject constructor(
     suspend fun persist(nowMillis: Long = System.currentTimeMillis()) {
         // Never write before the stored trip was read: an empty in-memory trip would overwrite it.
         if (!loaded) return
-        lastPersistedAtMillis = nowMillis
-        preferences.setTouristTrip(WearTripSnapshotCodec.encode(state.value))
+        // Capture and write under one lock: a writer that captured the trip before a reset finishes its write
+        // before the reset's own write captures, so the last write on disk is always the newest state.
+        persistMutex.withLock {
+            preferences.setTouristTrip(WearTripSnapshotCodec.encode(state.value))
+            // After the write only: a failed write must not hold back the next attempt for a whole interval.
+            lastPersistedAtMillis = maxOf(lastPersistedAtMillis, nowMillis)
+        }
     }
 
     suspend fun reset() {

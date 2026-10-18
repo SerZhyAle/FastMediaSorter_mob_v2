@@ -1,0 +1,559 @@
+{
+  "help": "settings-operations",
+  "surface": "SettingsActivity",
+  "elements": [
+    { "id": "enable-copying", "viewId": "rowEnableCopying", "labelKey": "enable_copying" },
+    { "id": "overwrite-copy", "viewId": "rowOverwriteOnCopy", "labelKey": "overwrite_on_copy" },
+    { "id": "next-after-copy", "viewId": "rowGoToNextAfterCopy", "labelKey": "go_to_next_after_copy" },
+    { "id": "enable-moving", "viewId": "rowEnableMoving", "labelKey": "enable_moving" },
+    { "id": "overwrite-move", "viewId": "rowOverwriteOnMove", "labelKey": "overwrite_on_move" },
+    { "id": "safe-mode", "viewId": "rowEnableSafeMode", "labelKey": "enable_safe_mode" },
+    { "id": "confirm-delete", "viewId": "rowConfirmDelete", "labelKey": "confirm_delete_safe_mode" },
+    { "id": "confirm-move", "viewId": "rowConfirmMove", "labelKey": "confirm_move_safe_mode" },
+    { "id": "use-trash", "viewId": "rowUseTrash", "labelKey": "use_trash" },
+    { "id": "max-destinations", "viewId": "etMaxRecipients", "labelKey": "max_recipients" },
+    { "id": "add-destination", "viewId": "btnAddDestination", "labelKey": "add_destination" },
+    { "id": "destinations-list", "viewId": "rvDestinations", "labelKey": "destinations_list_header" },
+    { "id": "scheduled-ops", "viewId": "rowEnableScheduledOps", "labelKey": "scheduled_ops_toggle" },
+    { "id": "manage-scheduled", "viewId": "btnOpenScheduledOpsScreen", "labelKey": "scheduled_ops_settings_open" },
+    { "id": "detailed-errors", "viewId": "rowDetailedErrors", "labelKey": "show_detailed_errors" },
+    { "id": "resume-playback", "viewId": "rowResumeOnNextLaunch", "labelKey": "setting_resume_on_next_launch" },
+    { "id": "remember-file-list", "viewId": "rowDefaultRememberFileList", "labelKey": "default_remember_file_list" },
+    { "id": "camera-photo", "viewId": "rowCameraToResourceEnabled", "labelKey": "setting_camera_to_resource_enabled_title" },
+    { "id": "video-recording", "viewId": "rowVideoCaptureEnabled", "labelKey": "setting_video_capture_enable_title" },
+    { "id": "mic-recording", "viewId": "rowMicRecordingEnabled", "labelKey": "settings_mic_recording_enable_title" },
+    { "id": "screen-recording", "viewId": "rowScreenRecordingEnabled", "labelKey": "settings_screen_recording_enable_title" },
+    { "id": "wear-companion", "viewId": "rowEnableWearCompanion", "labelKey": "settings_enable_wear_companion" },
+    { "id": "camera-ocr", "viewId": "rowCameraOcrTranslationEnabled", "labelKey": "setting_camera_ocr_translation_title" },
+    { "id": "calculator", "viewId": "rowEnableCalculator", "labelKey": "calculator_title" },
+    { "id": "stopwatch", "viewId": "rowEnableStopwatch", "labelKey": "stopwatch_title" },
+    { "id": "network-monitor", "viewId": "rowEnableNetworkMonitor", "labelKey": "settings_enable_network_monitor" },
+    { "id": "system-info-program", "viewId": "rowEnableSystemInfo", "labelKey": "settings_enable_system_info" },
+    { "id": "prevent-sleep", "viewId": "rowPreventSleep", "labelKey": "prevent_sleep" },
+    { "id": "link-autodownload", "viewId": "rowLinkAutodownloadEnabled", "labelKey": "link_autodownload_master_label" },
+    { "id": "home-widget", "viewId": "buttonAddHomeWidget", "labelKey": "settings_add_home_widget_title" },
+    { "id": "default-apps", "viewId": "btnOpenDefaultAppsDialog", "labelKey": "settings_open_default_apps_dialog" },
+    { "id": "gesture-overlay", "viewId": "rowGestureOverlayEnabled", "labelKey": "setting_gesture_overlay_title" },
+    { "id": "edge-gesture-config", "viewId": "btnOpenEdgeGestureConfig", "labelKey": "setting_edge_gesture_config_button" },
+    { "id": "keybindings", "viewId": "rowControlsKeybindings", "labelKey": "settings_controls_keybindings_title" },
+    { "id": "reset-operations", "viewId": "btnResetOperationsSection", "labelKey": "reset_operations_section" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "settings-general" },
+    { "help": "settings-media" },
+    { "help": "settings-playback" },
+    { "pageId": "settings.controls-and-key-remapping" },
+    { "pageId": "storage.file-copy-move-delete" },
+    { "pageId": "storage.destination-targets-setup" },
+    { "pageId": "storage.scheduled-operations" },
+    { "pageId": "capture.edge-gestures-and-quick-access-panel" },
+    { "pageId": "programs.built-in-mini-apps" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Settings: Management",
+      "purpose": "Management is where you set how files are copied, moved and deleted, which resources are Quick Sort destinations, what the app records and runs in the background, and which extra programs and gestures are on.",
+      "orderNote": "There is no fixed order here - every option works on its own. They are grouped below by the same section headers you see on the tab. Some groups, such as Wear Companion or Scheduled operations, show up only where the device or edition supports them.",
+      "groups": [
+        { "title": "Copy, move and overwrite behavior", "elements": ["enable-copying", "overwrite-copy", "next-after-copy", "enable-moving", "overwrite-move"] },
+        { "title": "File deletion and trash", "elements": ["safe-mode", "confirm-delete", "confirm-move", "use-trash"] },
+        { "title": "Quick Sort destinations", "elements": ["max-destinations", "add-destination", "destinations-list"] },
+        { "title": "Scheduled operations by schedule", "elements": ["scheduled-ops", "manage-scheduled"] },
+        { "title": "App behavior and operating rules", "elements": ["detailed-errors", "resume-playback", "remember-file-list"] },
+        { "title": "Photography", "elements": ["camera-photo"] },
+        { "title": "Video recording", "elements": ["video-recording"] },
+        { "title": "Voice recorder", "elements": ["mic-recording"] },
+        { "title": "Screen recording", "elements": ["screen-recording"] },
+        { "title": "Wear Companion", "elements": ["wear-companion"] },
+        { "title": "Additional programs and scenarios", "elements": ["camera-ocr", "calculator", "stopwatch", "network-monitor", "system-info-program"] },
+        { "title": "Operating system interaction", "elements": ["prevent-sleep", "link-autodownload", "home-widget", "default-apps"] },
+        { "title": "Edge screen gestures", "elements": ["gesture-overlay", "edge-gesture-config"] },
+        { "title": "Controls & Keybindings", "elements": ["keybindings"] },
+        { "title": "Reset", "elements": ["reset-operations"] }
+      ],
+      "elements": {
+        "enable-copying": {
+          "summary": "Allows copying files into your destination folders.",
+          "details": "Pair it with the Quick Sort destinations below to copy the current file in one tap."
+        },
+        "overwrite-copy": {
+          "summary": "Replaces a file with the same name when copying.",
+          "details": "It applies when the destination already holds a file with the same name.",
+          "undo": "An overwritten file is replaced by the new one, so leave this off unless you are sure."
+        },
+        "next-after-copy": {
+          "summary": "Moves on to the next file after a successful copy.",
+          "details": "It speeds up sorting a batch of files, because you do not have to navigate by hand."
+        },
+        "enable-moving": {
+          "summary": "Allows moving files into your destination folders.",
+          "details": "Pair it with the Quick Sort destinations below to move the current file in one tap."
+        },
+        "overwrite-move": {
+          "summary": "Replaces a file with the same name when moving.",
+          "details": "It applies when the destination already holds a file with the same name.",
+          "undo": "An overwritten file is replaced by the new one, so leave this off unless you are sure."
+        },
+        "safe-mode": {
+          "summary": "Asks for confirmation before delete and move.",
+          "details": "When it is on, the app asks before deleting or moving files, to prevent accidental data loss. The two options below switch the questions separately."
+        },
+        "confirm-delete": {
+          "summary": "Asks before files are deleted.",
+          "details": "The Player tab has its own switch for deleting inside the player."
+        },
+        "confirm-move": {
+          "summary": "Asks before files are moved.",
+          "details": "Moving changes where a file lives, so the question gives you a chance to stop."
+        },
+        "use-trash": {
+          "summary": "Moves deleted files to a hidden .trash folder instead of deleting them for good.",
+          "details": "On local resources you can bring a file back with Undo before the resource is closed. Network and cloud files are always deleted permanently. On Android 12 and newer, some shared folders need the Media management permission; without it, deletion may be permanent. With the option off, files are deleted at once and the space is freed immediately.",
+          "undo": "The trash is a safety net, not an archive: emptying it with the Delete all in trash button removes those files for good."
+        },
+        "max-destinations": {
+          "summary": "Limits how many Quick Sort destinations you can have.",
+          "details": "From 1 to 30. Each destination gets a number and a color for easy identification."
+        },
+        "add-destination": {
+          "summary": "Marks another resource as a Quick Sort destination.",
+          "details": "The button shows up once you have resources that are not destinations yet. Add resources on the main screen first, then mark them here."
+        },
+        "destinations-list": {
+          "summary": "Your Quick Sort destinations, in the order of their numbers.",
+          "details": "Each row shows the destination's number and color, its name and its path. Use the arrows to reorder and the delete button to remove it from the list.",
+          "undo": "Removing a destination only unmarks the resource. The resource and its files stay where they are."
+        },
+        "scheduled-ops": {
+          "summary": "Turns scheduled runs on or off.",
+          "details": "When it is off, nothing runs on schedule, but your operations stay saved. Switch it on and they carry on."
+        },
+        "manage-scheduled": {
+          "summary": "Opens the window where you create and manage scheduled operations.",
+          "details": "A scheduled operation copies, moves or deletes files in the background on a schedule you set."
+        },
+        "detailed-errors": {
+          "summary": "Shows the full error details instead of simplified messages.",
+          "details": "Useful when you are chasing a problem or reporting one."
+        },
+        "resume-playback": {
+          "summary": "Reopens the last played file when the app starts.",
+          "details": "It continues from where you left off."
+        },
+        "remember-file-list": {
+          "summary": "Saves the file list of new resources so they open faster.",
+          "details": "After a scan the list is stored in the app database, and next time it loads at once. Use Refresh to pick up changes made outside the app. This is only the default for new resources."
+        },
+        "camera-photo": {
+          "summary": "Shows the camera command in the file browser.",
+          "details": "New photos are saved to the resource you are browsing. Nearby options let you ask for a file name, open the photo for editing, copy it to the clipboard, tag it with the location and choose another destination."
+        },
+        "video-recording": {
+          "summary": "Shows a command to record video straight into the current resource.",
+          "details": "A second option opens the finished video in the player, and you can choose another destination folder."
+        },
+        "mic-recording": {
+          "summary": "Shows a microphone button in the file browser.",
+          "details": "Audio is recorded to a resource you pick or to the Downloads folder. You can also have the app ask for a file name each time."
+        },
+        "screen-recording": {
+          "summary": "Records the whole screen to a video file, with sound from the microphone.",
+          "details": "A stop control and a timer appear while recording. You can choose where the video is saved."
+        },
+        "wear-companion": {
+          "summary": "Shows the watch companion in the programs panel and menu.",
+          "details": "Turn it on if you have a Wear OS watch. The companion opens from there and decides what this phone shares with the watch."
+        },
+        "camera-ocr": {
+          "summary": "Turns on the quick photo, text recognition and translation flow.",
+          "details": "Take a photo and the app recognizes and translates its text. A second option skips the translation and shows the recognized text as it is."
+        },
+        "calculator": {
+          "summary": "Adds the Calculator program.",
+          "details": "It shows up in the programs menu, the quick-access panel and on the launcher desktop."
+        },
+        "stopwatch": {
+          "summary": "Adds the Stopwatch program.",
+          "details": "It shows up in the programs menu, the quick-access panel and on the launcher desktop. Its own settings are one row below."
+        },
+        "network-monitor": {
+          "summary": "Adds a diagnostic program for the network.",
+          "details": "It shows the connection, the signal and the network details."
+        },
+        "system-info-program": {
+          "summary": "Shows system information in the programs panel and menu.",
+          "details": "Turn it on to reach it without opening Settings."
+        },
+        "prevent-sleep": {
+          "summary": "Keeps the screen on while you use the app.",
+          "details": "While you view media files, the device does not sleep or dim during playback or viewing."
+        },
+        "link-autodownload": {
+          "summary": "Downloads a file from a link shared to the app.",
+          "details": "When you share an http(s) link to FastMediaSorter, the linked file is fetched into the resource you choose. Another option opens it in the built-in player right after a successful download; otherwise you get a short message."
+        },
+        "home-widget": {
+          "summary": "Lets you place an app widget on the Android home screen.",
+          "details": "Choose a widget and put it on your home screen."
+        },
+        "default-apps": {
+          "summary": "Opens the dialog for making FastMediaSorter a default app.",
+          "details": "It has a button for each file type - images, audio, video and documents - plus two switches: show the app in Open with and handle media buttons, and accept files shared from other apps. Everything applies at once."
+        },
+        "gesture-overlay": {
+          "summary": "Shows thin gesture strips at the screen edges, over other apps.",
+          "details": "Up to four strips, two on each side. A swipe from a strip runs the action assigned to it, such as a screenshot, the camera, the flashlight, volume or brightness, or opening an app. It needs the Display over other apps permission."
+        },
+        "edge-gesture-config": {
+          "summary": "Opens the setup for edge gestures.",
+          "details": "Choose which zones are on, whether their guides are visible, and the action for each swipe direction: up, down or inward."
+        },
+        "keybindings": {
+          "summary": "Opens key and button remapping for media controls.",
+          "details": "Any command can be reassigned to a D-pad button, a gamepad button, a keyboard key or a mouse button."
+        },
+        "reset-operations": {
+          "summary": "Returns only this tab to its defaults.",
+          "details": "Settings on the other tabs keep their values. The app asks you to confirm first."
+        }
+      }
+    },
+    "ru": {
+      "title": "Настройки: Управление",
+      "purpose": "На вкладке «Управление» вы настраиваете, как копируются, перемещаются и удаляются файлы, какие ресурсы служат назначениями быстрой сортировки, что приложение записывает и делает в фоне и какие дополнительные программы и жесты включены.",
+      "orderNote": "Единого порядка здесь нет - каждый параметр работает сам по себе. Ниже они сгруппированы по тем же заголовкам разделов, что и на вкладке. Некоторые группы, например «Wear-компаньон» или запланированные операции, есть только там, где их поддерживают устройство или версия приложения.",
+      "groups": [
+        { "title": "Копирование, перемещение и перезапись", "elements": ["enable-copying", "overwrite-copy", "next-after-copy", "enable-moving", "overwrite-move"] },
+        { "title": "Удаление файлов, корзина", "elements": ["safe-mode", "confirm-delete", "confirm-move", "use-trash"] },
+        { "title": "Назначения быстрой сортировки", "elements": ["max-destinations", "add-destination", "destinations-list"] },
+        { "title": "Запланированные операции по расписанию", "elements": ["scheduled-ops", "manage-scheduled"] },
+        { "title": "Поведение и правила программы", "elements": ["detailed-errors", "resume-playback", "remember-file-list"] },
+        { "title": "Фотографирование", "elements": ["camera-photo"] },
+        { "title": "Видеосъёмка", "elements": ["video-recording"] },
+        { "title": "Диктофон", "elements": ["mic-recording"] },
+        { "title": "Запись видео с экрана", "elements": ["screen-recording"] },
+        { "title": "Wear-компаньон", "elements": ["wear-companion"] },
+        { "title": "Дополнительные программы и сценарии", "elements": ["camera-ocr", "calculator", "stopwatch", "network-monitor", "system-info-program"] },
+        { "title": "Взаимодействие с операционной системой", "elements": ["prevent-sleep", "link-autodownload", "home-widget", "default-apps"] },
+        { "title": "Жесты с краёв экрана", "elements": ["gesture-overlay", "edge-gesture-config"] },
+        { "title": "Управление и клавиши", "elements": ["keybindings"] },
+        { "title": "Сброс", "elements": ["reset-operations"] }
+      ],
+      "elements": {
+        "enable-copying": {
+          "summary": "Разрешает копировать файлы в папки-назначения.",
+          "details": "Вместе с назначениями быстрой сортировки ниже позволяет копировать текущий файл одним нажатием."
+        },
+        "overwrite-copy": {
+          "summary": "Заменяет файл с тем же именем при копировании.",
+          "details": "Действует, когда в назначении уже лежит файл с таким именем.",
+          "undo": "Перезаписанный файл заменяется новым, поэтому не включайте параметр, если не уверены."
+        },
+        "next-after-copy": {
+          "summary": "Переходит к следующему файлу после успешного копирования.",
+          "details": "Ускоряет разбор пачки файлов: вручную переходить не нужно."
+        },
+        "enable-moving": {
+          "summary": "Разрешает перемещать файлы в папки-назначения.",
+          "details": "Вместе с назначениями быстрой сортировки ниже позволяет переместить текущий файл одним нажатием."
+        },
+        "overwrite-move": {
+          "summary": "Заменяет файл с тем же именем при перемещении.",
+          "details": "Действует, когда в назначении уже лежит файл с таким именем.",
+          "undo": "Перезаписанный файл заменяется новым, поэтому не включайте параметр, если не уверены."
+        },
+        "safe-mode": {
+          "summary": "Спрашивает подтверждение перед удалением и перемещением.",
+          "details": "Когда режим включён, приложение спрашивает перед удалением или перемещением файлов, чтобы не потерять данные случайно. Два параметра ниже включают вопросы по отдельности."
+        },
+        "confirm-delete": {
+          "summary": "Спрашивает подтверждение перед удалением файлов.",
+          "details": "У вкладки «Плеер» есть свой переключатель для удаления внутри плеера."
+        },
+        "confirm-move": {
+          "summary": "Спрашивает подтверждение перед перемещением файлов.",
+          "details": "Перемещение меняет место файла, поэтому вопрос даёт возможность остановиться."
+        },
+        "use-trash": {
+          "summary": "Отправляет удалённые файлы в скрытую папку .trash, а не стирает их насовсем.",
+          "details": "На локальных ресурсах файл можно вернуть кнопкой «Отменить», пока ресурс не закрыт. Сетевые и облачные файлы всегда удаляются безвозвратно. В Android 12 и новее некоторым общим папкам нужно разрешение «Управление медиафайлами»; без него удаление может стать необратимым. Когда параметр выключен, файлы удаляются сразу, а место освобождается немедленно.",
+          "undo": "Корзина - это страховка, а не архив: если очистить её кнопкой «Удалить всё в корзине», эти файлы пропадут насовсем."
+        },
+        "max-destinations": {
+          "summary": "Ограничивает число назначений быстрой сортировки.",
+          "details": "От 1 до 30. У каждого назначения есть номер и цвет, чтобы его было легко узнать."
+        },
+        "add-destination": {
+          "summary": "Отмечает ещё один ресурс как назначение быстрой сортировки.",
+          "details": "Кнопка появляется, когда есть ресурсы, которые ещё не стали назначениями. Сначала добавьте ресурсы на главном экране, а потом отметьте их здесь."
+        },
+        "destinations-list": {
+          "summary": "Ваши назначения быстрой сортировки по порядку номеров.",
+          "details": "В строке видны номер и цвет назначения, его имя и путь. Стрелки меняют порядок, а кнопка удаления убирает назначение из списка.",
+          "undo": "Удаление назначения лишь снимает отметку с ресурса. Сам ресурс и его файлы остаются на месте."
+        },
+        "scheduled-ops": {
+          "summary": "Включает и выключает запуск по расписанию.",
+          "details": "Пока параметр выключен, ничего не запускается по расписанию, но ваши операции сохраняются. Включите, и они продолжат работу."
+        },
+        "manage-scheduled": {
+          "summary": "Открывает окно, где вы создаёте запланированные операции и управляете ими.",
+          "details": "Запланированная операция копирует, перемещает или удаляет файлы в фоне по расписанию, которое вы задаёте."
+        },
+        "detailed-errors": {
+          "summary": "Показывает полные сведения об ошибке вместо упрощённых сообщений.",
+          "details": "Пригодится, когда вы ищете причину проблемы или сообщаете о ней."
+        },
+        "resume-playback": {
+          "summary": "Открывает последний проигрываемый файл при запуске приложения.",
+          "details": "Воспроизведение продолжается с того места, где вы остановились."
+        },
+        "remember-file-list": {
+          "summary": "Сохраняет список файлов новых ресурсов, чтобы они открывались быстрее.",
+          "details": "После сканирования список хранится в базе приложения, и в следующий раз загружается сразу. Чтобы подхватить изменения, сделанные вне приложения, нажмите «Обновить». Это лишь значение по умолчанию для новых ресурсов."
+        },
+        "camera-photo": {
+          "summary": "Показывает команду камеры в браузере файлов.",
+          "details": "Новые фото сохраняются в ресурс, который вы просматриваете. Рядом есть параметры: спрашивать имя файла, открывать фото для правки, копировать его в буфер обмена, добавлять геометку и выбрать другое место сохранения."
+        },
+        "video-recording": {
+          "summary": "Показывает команду записи видео прямо в текущий ресурс.",
+          "details": "Дополнительный параметр открывает готовое видео в плеере, а ещё можно выбрать другую папку для сохранения."
+        },
+        "mic-recording": {
+          "summary": "Показывает кнопку микрофона в браузере файлов.",
+          "details": "Звук записывается в выбранный ресурс или в папку Downloads. Можно также включить вопрос об имени файла при каждой записи."
+        },
+        "screen-recording": {
+          "summary": "Записывает весь экран в видеофайл со звуком с микрофона.",
+          "details": "Во время записи появляются кнопка остановки и таймер. Место сохранения видео можно выбрать."
+        },
+        "wear-companion": {
+          "summary": "Показывает Wear-компаньон в панели программ и в меню.",
+          "details": "Включите, если у вас есть часы с Wear OS. Компаньон открывается оттуда и решает, чем этот телефон делится с часами."
+        },
+        "camera-ocr": {
+          "summary": "Включает быстрый сценарий: фото, распознавание текста и перевод.",
+          "details": "Сделайте снимок, и приложение распознает текст и переведёт его. Дополнительный параметр пропускает перевод и показывает распознанный текст как есть."
+        },
+        "calculator": {
+          "summary": "Добавляет программу «Калькулятор».",
+          "details": "Она появляется в меню программ, на панели быстрого доступа и на рабочем столе лаунчера."
+        },
+        "stopwatch": {
+          "summary": "Добавляет программу «Секундомер».",
+          "details": "Она появляется в меню программ, на панели быстрого доступа и на рабочем столе лаунчера. Её настройки - строкой ниже."
+        },
+        "network-monitor": {
+          "summary": "Добавляет диагностическую программу для сети.",
+          "details": "Она показывает соединение, уровень сигнала и сведения о сети."
+        },
+        "system-info-program": {
+          "summary": "Показывает сведения о системе в панели программ и в меню.",
+          "details": "Включите, чтобы открывать их, не заходя в настройки."
+        },
+        "prevent-sleep": {
+          "summary": "Не гасит экран, пока вы пользуетесь приложением.",
+          "details": "Пока вы смотрите медиафайлы, устройство не засыпает и не тускнеет ни при воспроизведении, ни при просмотре."
+        },
+        "link-autodownload": {
+          "summary": "Скачивает файл по ссылке, присланной в приложение.",
+          "details": "Когда вы делитесь с FastMediaSorter ссылкой http(s), файл по ссылке загружается в выбранный ресурс. Дополнительный параметр сразу открывает его во встроенном плеере после успешной загрузки; иначе вы увидите короткое сообщение."
+        },
+        "home-widget": {
+          "summary": "Позволяет поместить виджет приложения на домашний экран Android.",
+          "details": "Выберите виджет и разместите его на домашнем экране."
+        },
+        "default-apps": {
+          "summary": "Открывает окно, где FastMediaSorter можно назначить приложением по умолчанию.",
+          "details": "В нём по кнопке на каждый тип файлов - изображения, аудио, видео и документы - и два переключателя: показывать приложение в «Открыть с помощью» и обрабатывать медиакнопки, а также принимать файлы из других приложений. Всё применяется сразу."
+        },
+        "gesture-overlay": {
+          "summary": "Показывает тонкие полосы жестов по краям экрана поверх других приложений.",
+          "details": "До четырёх полос, по две с каждой стороны. Свайп от полосы запускает назначенное действие: скриншот, камеру, фонарик, громкость или яркость, открытие приложения. Нужно разрешение «Поверх других приложений»."
+        },
+        "edge-gesture-config": {
+          "summary": "Открывает настройку жестов с краёв экрана.",
+          "details": "Выберите, какие зоны включены, видны ли их подсказки и какое действие назначено на каждое направление свайпа: вверх, вниз или внутрь."
+        },
+        "keybindings": {
+          "summary": "Открывает переназначение клавиш и кнопок для управления медиа.",
+          "details": "Любую команду можно назначить на кнопку D-pad, кнопку геймпада, клавишу клавиатуры или кнопку мыши."
+        },
+        "reset-operations": {
+          "summary": "Возвращает к значениям по умолчанию только эту вкладку.",
+          "details": "Настройки на других вкладках сохраняются. Перед сбросом приложение просит подтвердить действие."
+        }
+      }
+    },
+    "uk": {
+      "title": "Налаштування: Управління",
+      "purpose": "На вкладці «Управління» ви налаштовуєте, як копіюються, переміщуються й видаляються файли, які ресурси служать призначеннями швидкого сортування, що застосунок записує та робить у фоні й які додаткові програми та жести ввімкнено.",
+      "orderNote": "Єдиного порядку тут немає - кожен параметр працює сам по собі. Нижче їх згруповано за тими самими заголовками розділів, що й на вкладці. Деякі групи, наприклад «Wear-супутник» чи заплановані операції, є лише там, де їх підтримують пристрій або версія застосунку.",
+      "groups": [
+        { "title": "Копіювання, переміщення й перезапис", "elements": ["enable-copying", "overwrite-copy", "next-after-copy", "enable-moving", "overwrite-move"] },
+        { "title": "Видалення файлів, кошик", "elements": ["safe-mode", "confirm-delete", "confirm-move", "use-trash"] },
+        { "title": "Призначення швидкого сортування", "elements": ["max-destinations", "add-destination", "destinations-list"] },
+        { "title": "Заплановані операції за розкладом", "elements": ["scheduled-ops", "manage-scheduled"] },
+        { "title": "Поведінка й правила програми", "elements": ["detailed-errors", "resume-playback", "remember-file-list"] },
+        { "title": "Фотографування", "elements": ["camera-photo"] },
+        { "title": "Відеозйомка", "elements": ["video-recording"] },
+        { "title": "Диктофон", "elements": ["mic-recording"] },
+        { "title": "Запис відео з екрана", "elements": ["screen-recording"] },
+        { "title": "Wear-супутник", "elements": ["wear-companion"] },
+        { "title": "Додаткові програми та сценарії", "elements": ["camera-ocr", "calculator", "stopwatch", "network-monitor", "system-info-program"] },
+        { "title": "Взаємодія з операційною системою", "elements": ["prevent-sleep", "link-autodownload", "home-widget", "default-apps"] },
+        { "title": "Жести з країв екрана", "elements": ["gesture-overlay", "edge-gesture-config"] },
+        { "title": "Керування та клавіші", "elements": ["keybindings"] },
+        { "title": "Скидання", "elements": ["reset-operations"] }
+      ],
+      "elements": {
+        "enable-copying": {
+          "summary": "Дозволяє копіювати файли в папки-призначення.",
+          "details": "Разом із призначеннями швидкого сортування нижче дає змогу копіювати поточний файл одним дотиком."
+        },
+        "overwrite-copy": {
+          "summary": "Замінює файл із тим самим іменем під час копіювання.",
+          "details": "Діє, коли в призначенні вже лежить файл з таким іменем.",
+          "undo": "Перезаписаний файл замінюється новим, тож не вмикайте параметр, якщо не впевнені."
+        },
+        "next-after-copy": {
+          "summary": "Переходить до наступного файлу після успішного копіювання.",
+          "details": "Пришвидшує розбирання пачки файлів: вручну переходити не потрібно."
+        },
+        "enable-moving": {
+          "summary": "Дозволяє переміщувати файли в папки-призначення.",
+          "details": "Разом із призначеннями швидкого сортування нижче дає змогу перемістити поточний файл одним дотиком."
+        },
+        "overwrite-move": {
+          "summary": "Замінює файл із тим самим іменем під час переміщення.",
+          "details": "Діє, коли в призначенні вже лежить файл з таким іменем.",
+          "undo": "Перезаписаний файл замінюється новим, тож не вмикайте параметр, якщо не впевнені."
+        },
+        "safe-mode": {
+          "summary": "Питає підтвердження перед видаленням і переміщенням.",
+          "details": "Коли режим увімкнено, застосунок питає перед видаленням або переміщенням файлів, щоб випадково не втратити дані. Два параметри нижче вмикають запитання окремо."
+        },
+        "confirm-delete": {
+          "summary": "Питає підтвердження перед видаленням файлів.",
+          "details": "У вкладки «Плеєр» є власний перемикач для видалення всередині плеєра."
+        },
+        "confirm-move": {
+          "summary": "Питає підтвердження перед переміщенням файлів.",
+          "details": "Переміщення змінює місце файлу, тож запитання дає змогу зупинитися."
+        },
+        "use-trash": {
+          "summary": "Відправляє видалені файли в приховану папку .trash, а не стирає їх назавжди.",
+          "details": "На локальних ресурсах файл можна повернути кнопкою «Скасувати», поки ресурс не закрито. Мережеві й хмарні файли завжди видаляються безповоротно. В Android 12 і новіших деяким спільним папкам потрібен дозвіл «Керування медіафайлами»; без нього видалення може стати незворотним. Коли параметр вимкнено, файли видаляються одразу, а місце звільняється негайно.",
+          "undo": "Кошик - це страховка, а не архів: якщо очистити його кнопкою «Видалити все в кошику», ці файли зникнуть назавжди."
+        },
+        "max-destinations": {
+          "summary": "Обмежує кількість призначень швидкого сортування.",
+          "details": "Від 1 до 30. У кожного призначення є номер і колір, щоб його було легко впізнати."
+        },
+        "add-destination": {
+          "summary": "Позначає ще один ресурс як призначення швидкого сортування.",
+          "details": "Кнопка з’являється, коли є ресурси, які ще не стали призначеннями. Спершу додайте ресурси на головному екрані, а тоді позначте їх тут."
+        },
+        "destinations-list": {
+          "summary": "Ваші призначення швидкого сортування за порядком номерів.",
+          "details": "У рядку видно номер і колір призначення, його назву та шлях. Стрілки змінюють порядок, а кнопка видалення прибирає призначення зі списку.",
+          "undo": "Видалення призначення лише знімає позначку з ресурсу. Сам ресурс і його файли залишаються на місці."
+        },
+        "scheduled-ops": {
+          "summary": "Вмикає й вимикає запуск за розкладом.",
+          "details": "Поки параметр вимкнено, нічого не запускається за розкладом, але ваші операції зберігаються. Увімкніть, і вони продовжать роботу."
+        },
+        "manage-scheduled": {
+          "summary": "Відкриває вікно, де ви створюєте заплановані операції й керуєте ними.",
+          "details": "Запланована операція копіює, переміщує або видаляє файли у фоні за розкладом, який ви задаєте."
+        },
+        "detailed-errors": {
+          "summary": "Показує повні відомості про помилку замість спрощених повідомлень.",
+          "details": "Стане в пригоді, коли ви шукаєте причину проблеми або повідомляєте про неї."
+        },
+        "resume-playback": {
+          "summary": "Відкриває останній відтворюваний файл під час запуску застосунку.",
+          "details": "Відтворення продовжується з того місця, де ви зупинилися."
+        },
+        "remember-file-list": {
+          "summary": "Зберігає список файлів нових ресурсів, щоб вони відкривалися швидше.",
+          "details": "Після сканування список зберігається в базі застосунку, і наступного разу завантажується одразу. Щоб підхопити зміни, зроблені поза застосунком, натисніть «Оновити». Це лише значення за замовчуванням для нових ресурсів."
+        },
+        "camera-photo": {
+          "summary": "Показує команду камери в браузері файлів.",
+          "details": "Нові фото зберігаються в ресурс, який ви переглядаєте. Поруч є параметри: питати ім’я файлу, відкривати фото для редагування, копіювати його в буфер обміну, додавати геотеґ і вибрати інше місце збереження."
+        },
+        "video-recording": {
+          "summary": "Показує команду запису відео просто в поточний ресурс.",
+          "details": "Додатковий параметр відкриває готове відео в плеєрі, а ще можна вибрати іншу папку для збереження."
+        },
+        "mic-recording": {
+          "summary": "Показує кнопку мікрофона в браузері файлів.",
+          "details": "Звук записується у вибраний ресурс або в папку Downloads. Можна також увімкнути запитання про ім’я файлу під час кожного запису."
+        },
+        "screen-recording": {
+          "summary": "Записує весь екран у відеофайл зі звуком із мікрофона.",
+          "details": "Під час запису з’являються кнопка зупинки й таймер. Місце збереження відео можна вибрати."
+        },
+        "wear-companion": {
+          "summary": "Показує Wear-супутник на панелі програм і в меню.",
+          "details": "Увімкніть, якщо у вас є годинник із Wear OS. Супутник відкривається звідти й вирішує, чим цей телефон ділиться з годинником."
+        },
+        "camera-ocr": {
+          "summary": "Вмикає швидкий сценарій: фото, розпізнавання тексту й переклад.",
+          "details": "Зробіть знімок, і застосунок розпізнає текст та перекладе його. Додатковий параметр пропускає переклад і показує розпізнаний текст як є."
+        },
+        "calculator": {
+          "summary": "Додає програму «Калькулятор».",
+          "details": "Вона з’являється в меню програм, на панелі швидкого доступу та на робочому столі лаунчера."
+        },
+        "stopwatch": {
+          "summary": "Додає програму «Секундомір».",
+          "details": "Вона з’являється в меню програм, на панелі швидкого доступу та на робочому столі лаунчера. Її налаштування - рядком нижче."
+        },
+        "network-monitor": {
+          "summary": "Додає діагностичну програму для мережі.",
+          "details": "Вона показує з’єднання, рівень сигналу та відомості про мережу."
+        },
+        "system-info-program": {
+          "summary": "Показує відомості про систему на панелі програм і в меню.",
+          "details": "Увімкніть, щоб відкривати їх, не заходячи в налаштування."
+        },
+        "prevent-sleep": {
+          "summary": "Не гасить екран, поки ви користуєтеся застосунком.",
+          "details": "Поки ви переглядаєте медіафайли, пристрій не засинає й не тьмяніє ні під час відтворення, ні під час перегляду."
+        },
+        "link-autodownload": {
+          "summary": "Завантажує файл за посиланням, надісланим у застосунок.",
+          "details": "Коли ви ділитеся з FastMediaSorter посиланням http(s), файл за посиланням завантажується у вибраний ресурс. Додатковий параметр одразу відкриває його у вбудованому плеєрі після успішного завантаження; інакше ви побачите коротке повідомлення."
+        },
+        "home-widget": {
+          "summary": "Дає змогу розмістити віджет застосунку на домашньому екрані Android.",
+          "details": "Виберіть віджет і розмістіть його на домашньому екрані."
+        },
+        "default-apps": {
+          "summary": "Відкриває вікно, де FastMediaSorter можна призначити застосунком за замовчуванням.",
+          "details": "У ньому по кнопці на кожен тип файлів - зображення, аудіо, відео й документи - і два перемикачі: показувати застосунок у «Відкрити за допомогою» та обробляти медіакнопки, а також приймати файли з інших застосунків. Усе застосовується одразу."
+        },
+        "gesture-overlay": {
+          "summary": "Показує тонкі смуги жестів по краях екрана поверх інших застосунків.",
+          "details": "До чотирьох смуг, по дві з кожного боку. Свайп від смуги запускає призначену дію: скриншот, камеру, ліхтарик, гучність чи яскравість, відкривання застосунку. Потрібен дозвіл «Поверх інших застосунків»."
+        },
+        "edge-gesture-config": {
+          "summary": "Відкриває налаштування жестів із країв екрана.",
+          "details": "Виберіть, які зони ввімкнено, чи видно їхні підказки та яка дія призначена на кожен напрямок свайпу: угору, вниз або всередину."
+        },
+        "keybindings": {
+          "summary": "Відкриває перепризначення клавіш і кнопок для керування медіа.",
+          "details": "Будь-яку команду можна призначити на кнопку D-pad, кнопку геймпада, клавішу клавіатури або кнопку миші."
+        },
+        "reset-operations": {
+          "summary": "Повертає до значень за замовчуванням лише цю вкладку.",
+          "details": "Налаштування на інших вкладках зберігаються. Перед скиданням застосунок просить підтвердити дію."
+        }
+      }
+    }
+  }
+}

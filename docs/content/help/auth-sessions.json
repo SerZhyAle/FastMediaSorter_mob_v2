@@ -1,0 +1,286 @@
+{
+  "help": "auth-sessions",
+  "surface": "AuthSessionsActivity",
+  "elements": [
+    { "id": "back", "viewId": "toolbar", "labelKey": "back" },
+    { "id": "add-authorization", "labelKey": "auth_sessions_add_button" },
+    { "id": "help-menu", "labelKey": "help" },
+    { "id": "info", "viewId": "tvAuthSessionsInfo" },
+    { "id": "sessions-list", "viewId": "rvAuthSessions" },
+    { "id": "empty", "viewId": "tvAuthSessionsEmpty", "labelKey": "auth_sessions_empty" },
+    { "id": "host-add-account", "labelKey": "s0155_add_account_label" },
+    { "id": "account-row" },
+    { "id": "relogin", "labelKey": "s0155_relogin_account_label" },
+    { "id": "rename", "labelKey": "s0155_rename_account_title" },
+    { "id": "delete", "labelKey": "auth_sessions_delete_button_desc" },
+    { "id": "web-page" },
+    { "id": "web-save", "labelKey": "webview_auth_save_button" },
+    { "id": "web-cancel", "labelKey": "webview_auth_cancel_button" },
+    { "id": "web-name-account", "labelKey": "s0155_name_account_title" }
+  ],
+  "related": [
+    { "help": "settings-general" },
+    { "help": "add-resource" },
+    { "pageId": "settings.privacy-and-network-security" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Saved authorizations",
+      "purpose": "Saved authorizations lists the sign-ins that the in-app web browser keeps for websites, so the app can fetch content from sites that need an account without asking you to sign in again. Here you add, rename, renew and delete them. Open it from Settings, General tab, Authorization and accounts.",
+      "steps": [
+        "Press + Add authorization (2) and choose a site from the list, or Enter address manually for another one.",
+        "Sign in on the page that opens (12) the way you would in a browser, then press Save authorization (13).",
+        "Give the account a name you will recognize (15) and press Save.",
+        "The account appears under its site in the list (5). To add a second account for the same site, press the plus in the site's header (7).",
+        "When a site stops accepting a saved sign-in, press Sign in again (9). Rename account (10) changes only the name shown here.",
+        "Delete saved authorization (11) removes a sign-in you no longer need, after you confirm.",
+        "Nothing on this screen needs saving: every change applies at once, and Back (1) simply leaves."
+      ],
+      "groups": [
+        { "title": "The list", "elements": ["back", "add-authorization", "help-menu", "info", "sessions-list", "empty"] },
+        { "title": "Sites and accounts", "elements": ["host-add-account", "account-row", "relogin", "rename", "delete"] },
+        { "title": "Sign-in window", "elements": ["web-page", "web-save", "web-cancel", "web-name-account"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Leaves the list.",
+          "details": "Everything on this screen is applied the moment you do it, so there is nothing to confirm when you leave."
+        },
+        "add-authorization": {
+          "summary": "Starts a new sign-in for a website.",
+          "details": "The first choice is a list of known sites; the last line, Enter address manually, asks for a full web address that starts with http or https. After you pick a site, its sign-in page opens in the sign-in window described at the end of this page. Addresses on Google domains open in a Custom Tabs browser instead; if no such browser is installed, a Browser needed window explains what to install."
+        },
+        "help-menu": {
+          "summary": "Opens the help for this screen.",
+          "details": "It sits in the overflow menu of the toolbar, because it is rarely needed.",
+          "shortcut": "F1"
+        },
+        "info": {
+          "name": "Explanation",
+          "summary": "A short reminder of what a saved authorization is.",
+          "details": "Each entry stores the cookies of one account on one site. An entry marked Not authorized (you declined) was created when you chose Do not ask in a sign-in prompt, and it stops the prompt from appearing for that site again. To add a second account for the same site, use + Add authorization or the plus in the site's header."
+        },
+        "sessions-list": {
+          "name": "Sign-in list",
+          "summary": "All saved sign-ins, grouped by site.",
+          "details": "Every site has a header with its name; Instagram, Threads and Facebook are recognized by name, other sites show their address. The accounts of that site follow the header. The list stays empty until you save your first sign-in."
+        },
+        "host-add-account": {
+          "summary": "Adds another account for the same site.",
+          "details": "The plus in a site's header opens that site's sign-in page. Use it when you have two accounts on one site and want both to be available."
+        },
+        "account-row": {
+          "name": "Account entry",
+          "summary": "One saved sign-in: its name and its details.",
+          "details": "Under the name, a grey line shows how many cookies are stored, when the entry was saved and when it was last used, or not yet used. An entry called Not authorized (you declined) is not a real sign-in: it only remembers that you declined to sign in to that site, so the app stops offering. It has the delete button only; delete it to be asked again."
+        },
+        "relogin": {
+          "summary": "Signs in to the same site again and renews the entry.",
+          "details": "Use it when a site no longer accepts the saved sign-in, for example because it expired or you changed the password. The sign-in page opens with no old cookies, so the site starts from a clean state. The button is not shown for declined entries."
+        },
+        "rename": {
+          "summary": "Changes the name the account has in this list.",
+          "details": "A small window with the current name opens. Type a new one and press OK; an empty name is ignored. The sign-in itself is not touched. The button is not shown for declined entries."
+        },
+        "delete": {
+          "summary": "Removes a saved sign-in from the app.",
+          "details": "A window asks Delete sign-in for and the account name, with OK and Cancel. After OK, the cookies stored for that account are gone and the entry disappears from the list.",
+          "undo": "The saved sign-in is lost and cannot be restored; your account on the site is not touched. To get it back, sign in again with + Add authorization or the plus in the site's header."
+        },
+        "empty": {
+          "summary": "Tells you that nothing is saved yet.",
+          "details": "The note replaces the list while there are no entries. Press + Add authorization in the toolbar to save the first one."
+        },
+        "web-page": {
+          "name": "Sign-in page",
+          "summary": "The site's own sign-in page, shown inside the app.",
+          "details": "Sign in the way the site asks, including any code it sends you. The page starts signed out: old cookies are cleared first, so a leftover session cannot get in the way. Depending on the Secure sensitive screens setting, the window is hidden from screenshots and the recent apps view."
+        },
+        "web-save": {
+          "summary": "Stores the sign-in you just made.",
+          "details": "The button stays dimmed until the page has set at least one cookie, so sign in first; if you press it too early, the app reminds you to sign in. After the press, a window asks you to name the account."
+        },
+        "web-cancel": {
+          "summary": "Closes the sign-in window and saves nothing.",
+          "details": "Use it if you opened the wrong site or changed your mind."
+        },
+        "web-name-account": {
+          "summary": "Gives the saved sign-in a name you will recognize.",
+          "details": "The field already holds a name that the app could read from the sign-in, or Default account if it could not read any. Press Save to store the entry; if the same account of that site is already stored, the app updates that entry instead of adding a second one. The sign-in window is then cleared of cookies and cache, and the entry appears in the list."
+        }
+      }
+    },
+    "ru": {
+      "title": "Сохранённые авторизации",
+      "purpose": "«Сохранённые авторизации» - список входов, которые встроенный браузер запоминает для сайтов, чтобы приложение могло брать содержимое с сайтов, требующих аккаунт, и не просило входить снова. Здесь их добавляют, переименовывают, обновляют и удаляют. Открывается из настроек, вкладка «Общие», раздел «Авторизация и аккаунты».",
+      "steps": [
+        "Нажмите «+ Добавить авторизацию» (2) и выберите сайт из списка или «Ввести адрес вручную» для другого.",
+        "На открывшейся странице (12) войдите так же, как в обычном браузере, и нажмите «Сохранить авторизацию» (13).",
+        "Дайте аккаунту понятное название (15) и нажмите «Сохранить».",
+        "Аккаунт появится в списке под своим сайтом (5). Чтобы добавить второй аккаунт на тот же сайт, нажмите плюс в заголовке сайта (7).",
+        "Когда сайт перестаёт принимать сохранённый вход, нажмите «Войти снова» (9). «Переименовать аккаунт» (10) меняет только название здесь.",
+        "«Удалить сохранённую авторизацию» (11) убирает ненужный вход после подтверждения.",
+        "Ничего на этом экране сохранять не нужно: каждое изменение применяется сразу, а «Назад» (1) просто закрывает экран."
+      ],
+      "groups": [
+        { "title": "Список", "elements": ["back", "add-authorization", "help-menu", "info", "sessions-list", "empty"] },
+        { "title": "Сайты и аккаунты", "elements": ["host-add-account", "account-row", "relogin", "rename", "delete"] },
+        { "title": "Окно входа", "elements": ["web-page", "web-save", "web-cancel", "web-name-account"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Закрывает список.",
+          "details": "Всё на этом экране применяется в момент действия, поэтому при выходе ничего подтверждать не нужно."
+        },
+        "add-authorization": {
+          "summary": "Начинает новый вход на сайт.",
+          "details": "Сначала предлагается список известных сайтов; последняя строка, «Ввести адрес вручную», просит полный веб-адрес, который начинается с http или https. После выбора сайта его страница входа открывается в окне входа, описанном в конце этой страницы. Адреса в доменах Google открываются в браузере с Custom Tabs; если такого браузера нет, окно «Нужен браузер» подскажет, что установить."
+        },
+        "help-menu": {
+          "summary": "Открывает справку по этому экрану.",
+          "details": "Пункт находится в дополнительном меню на панели, потому что нужен редко.",
+          "shortcut": "F1"
+        },
+        "info": {
+          "name": "Пояснение",
+          "summary": "Короткое напоминание о том, что такое сохранённая авторизация.",
+          "details": "Каждая запись хранит куки одного аккаунта на одном сайте. Запись «Не авторизован (вы отказались)» создана, когда в окне входа вы выбрали «Не предлагать», и она не даёт окну появляться для этого сайта снова. Чтобы добавить второй аккаунт на тот же сайт, используйте «+ Добавить авторизацию» или плюс в заголовке сайта."
+        },
+        "sessions-list": {
+          "name": "Список входов",
+          "summary": "Все сохранённые входы, сгруппированные по сайтам.",
+          "details": "У каждого сайта есть заголовок с названием: Instagram, Threads и Facebook узнаются по имени, у остальных сайтов показан адрес. Под заголовком идут аккаунты этого сайта. Пока вы не сохранили первый вход, список пуст."
+        },
+        "host-add-account": {
+          "summary": "Добавляет ещё один аккаунт на тот же сайт.",
+          "details": "Плюс в заголовке сайта открывает страницу входа этого сайта. Нажмите его, если на одном сайте у вас два аккаунта и нужны оба."
+        },
+        "account-row": {
+          "name": "Запись об аккаунте",
+          "summary": "Один сохранённый вход: название и подробности.",
+          "details": "Под названием серая строка показывает, сколько куки хранится, когда запись сохранена и когда использовалась в последний раз либо «ещё не использовалась». Запись «Не авторизован (вы отказались)» не настоящий вход: она лишь помнит, что вы отказались входить на этот сайт, и приложение перестаёт предлагать. У неё только кнопка удаления; удалите её, чтобы вас спросили снова."
+        },
+        "relogin": {
+          "summary": "Входит на тот же сайт заново и обновляет запись.",
+          "details": "Пригодится, когда сайт больше не принимает сохранённый вход, например истёк срок или вы сменили пароль. Страница входа открывается без старых куки, так что сайт начинает с чистого листа. У отказных записей кнопки нет."
+        },
+        "rename": {
+          "summary": "Меняет название аккаунта в этом списке.",
+          "details": "Откроется небольшое окно с текущим названием. Введите новое и нажмите «ОК»; пустое название игнорируется. Сам вход не затрагивается. У отказных записей кнопки нет."
+        },
+        "delete": {
+          "summary": "Удаляет сохранённый вход из приложения.",
+          "details": "Окно спросит «Удалить вход для» с названием аккаунта и предложит «ОК» и «Отмена». После «ОК» куки этого аккаунта удаляются, а запись исчезает из списка.",
+          "undo": "Сохранённый вход теряется и не восстанавливается; ваш аккаунт на сайте не затрагивается. Чтобы вернуть вход, войдите заново через «+ Добавить авторизацию» или плюс в заголовке сайта."
+        },
+        "empty": {
+          "summary": "Сообщает, что пока ничего не сохранено.",
+          "details": "Надпись заменяет список, пока записей нет. Нажмите «+ Добавить авторизацию» на панели, чтобы сохранить первую."
+        },
+        "web-page": {
+          "name": "Страница входа",
+          "summary": "Собственная страница входа сайта, показанная внутри приложения.",
+          "details": "Входите так, как просит сайт, включая код, который он присылает. Страница открывается без входа: старые куки сначала удаляются, чтобы прежний сеанс не мешал. В зависимости от настройки «Защищать секретные экраны» окно скрыто от снимков экрана и списка недавних приложений."
+        },
+        "web-save": {
+          "summary": "Сохраняет только что выполненный вход.",
+          "details": "Кнопка остаётся неактивной, пока страница не установит хотя бы один куки, так что сначала войдите; если нажать слишком рано, приложение напомнит о входе. После нажатия появится окно с просьбой назвать аккаунт."
+        },
+        "web-cancel": {
+          "summary": "Закрывает окно входа, ничего не сохраняя.",
+          "details": "Нажмите, если открыли не тот сайт или передумали."
+        },
+        "web-name-account": {
+          "summary": "Даёт сохранённому входу понятное вам название.",
+          "details": "В поле уже стоит название, которое приложению удалось прочитать из входа, или «Аккаунт по умолчанию», если прочитать ничего не вышло. Нажмите «Сохранить», чтобы запомнить запись; если тот же аккаунт этого сайта уже сохранён, приложение обновит его запись, а не добавит вторую. После этого куки и кэш в окне входа очищаются, а запись появляется в списке."
+        }
+      }
+    },
+    "uk": {
+      "title": "Збережені авторизації",
+      "purpose": "«Збережені авторизації» - список входів, які вбудований браузер запам’ятовує для сайтів, щоб застосунок міг брати вміст із сайтів, що вимагають акаунт, і не просив входити знову. Тут їх додають, перейменовують, оновлюють і видаляють. Відкривається з налаштувань, вкладка «Загальні», розділ «Авторизація й акаунти».",
+      "steps": [
+        "Натисніть «+ Додати авторизацію» (2) і виберіть сайт зі списку або «Ввести адресу вручну» для іншого.",
+        "На сторінці, що відкрилася (12), увійдіть так само, як у звичайному браузері, і натисніть «Зберегти авторизацію» (13).",
+        "Дайте акаунту зрозумілу назву (15) і натисніть «Зберегти».",
+        "Акаунт з’явиться в списку під своїм сайтом (5). Щоб додати другий акаунт на той самий сайт, натисніть плюс у заголовку сайту (7).",
+        "Коли сайт перестає приймати збережений вхід, натисніть «Увійти знову» (9). «Перейменувати акаунт» (10) змінює лише назву тут.",
+        "«Видалити збережену авторизацію» (11) прибирає непотрібний вхід після підтвердження.",
+        "Нічого на цьому екрані зберігати не потрібно: кожна зміна застосовується одразу, а «Назад» (1) просто закриває екран."
+      ],
+      "groups": [
+        { "title": "Список", "elements": ["back", "add-authorization", "help-menu", "info", "sessions-list", "empty"] },
+        { "title": "Сайти й акаунти", "elements": ["host-add-account", "account-row", "relogin", "rename", "delete"] },
+        { "title": "Вікно входу", "elements": ["web-page", "web-save", "web-cancel", "web-name-account"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Закриває список.",
+          "details": "Усе на цьому екрані застосовується в момент дії, тож під час виходу нічого підтверджувати не потрібно."
+        },
+        "add-authorization": {
+          "summary": "Починає новий вхід на сайт.",
+          "details": "Спершу пропонується список відомих сайтів; останній рядок, «Ввести адресу вручну», просить повну вебадресу, що починається з http або https. Після вибору сайту його сторінка входу відкривається у вікні входу, описаному наприкінці цієї сторінки. Адреси в доменах Google відкриваються в браузері з Custom Tabs; якщо такого браузера немає, вікно «Потрібен браузер» підкаже, що встановити."
+        },
+        "help-menu": {
+          "summary": "Відкриває довідку з цього екрана.",
+          "details": "Пункт міститься в додатковому меню на панелі, бо потрібен рідко.",
+          "shortcut": "F1"
+        },
+        "info": {
+          "name": "Пояснення",
+          "summary": "Коротке нагадування про те, що таке збережена авторизація.",
+          "details": "Кожен запис зберігає куки одного акаунта на одному сайті. Запис «Не авторизовано (ви відмовились)» створено, коли у вікні входу ви обрали «Не пропонувати», і він не дає вікну з’являтися для цього сайту знову. Щоб додати другий акаунт на той самий сайт, скористайтеся «+ Додати авторизацію» або плюсом у заголовку сайту."
+        },
+        "sessions-list": {
+          "name": "Список входів",
+          "summary": "Усі збережені входи, згруповані за сайтами.",
+          "details": "У кожного сайту є заголовок із назвою: Instagram, Threads і Facebook впізнаються за іменем, в інших сайтів показано адресу. Під заголовком ідуть акаунти цього сайту. Доки ви не зберегли перший вхід, список порожній."
+        },
+        "host-add-account": {
+          "summary": "Додає ще один акаунт на той самий сайт.",
+          "details": "Плюс у заголовку сайту відкриває сторінку входу цього сайту. Натисніть його, якщо на одному сайті у вас два акаунти й потрібні обидва."
+        },
+        "account-row": {
+          "name": "Запис про акаунт",
+          "summary": "Один збережений вхід: назва й подробиці.",
+          "details": "Під назвою сірий рядок показує, скільки куки зберігається, коли запис збережено й коли його востаннє використовували, або «ще не використовувалась». Запис «Не авторизовано (ви відмовились)» - не справжній вхід: він лише пам’ятає, що ви відмовилися входити на цей сайт, і застосунок перестає пропонувати. У нього є лише кнопка видалення; видаліть його, щоб вас запитали знову."
+        },
+        "relogin": {
+          "summary": "Входить на той самий сайт заново й оновлює запис.",
+          "details": "Стане в пригоді, коли сайт більше не приймає збережений вхід, наприклад сплив термін або ви змінили пароль. Сторінка входу відкривається без старих куки, тож сайт починає з чистого аркуша. У записів-відмов кнопки немає."
+        },
+        "rename": {
+          "summary": "Змінює назву акаунта в цьому списку.",
+          "details": "Відкриється невелике вікно з поточною назвою. Введіть нову й натисніть «OK»; порожня назва ігнорується. Сам вхід не зачіпається. У записів-відмов кнопки немає."
+        },
+        "delete": {
+          "summary": "Видаляє збережений вхід із застосунку.",
+          "details": "Вікно спитає «Видалити вхід для» з назвою акаунта й запропонує «OK» та «Скасувати». Після «OK» куки цього акаунта видаляються, а запис зникає зі списку.",
+          "undo": "Збережений вхід втрачається й не відновлюється; ваш акаунт на сайті не зачіпається. Щоб повернути вхід, увійдіть заново через «+ Додати авторизацію» або плюс у заголовку сайту."
+        },
+        "empty": {
+          "summary": "Повідомляє, що поки нічого не збережено.",
+          "details": "Напис замінює список, доки записів немає. Натисніть «+ Додати авторизацію» на панелі, щоб зберегти першу."
+        },
+        "web-page": {
+          "name": "Сторінка входу",
+          "summary": "Власна сторінка входу сайту, показана всередині застосунку.",
+          "details": "Входьте так, як просить сайт, зокрема з кодом, який він надсилає. Сторінка відкривається без входу: старі куки спершу видаляються, щоб попередній сеанс не заважав. Залежно від налаштування «Захищати секретні екрани» вікно приховане від знімків екрана й списку нещодавніх застосунків."
+        },
+        "web-save": {
+          "summary": "Зберігає щойно виконаний вхід.",
+          "details": "Кнопка лишається неактивною, доки сторінка не встановить хоча б один куки, тож спершу увійдіть; якщо натиснути надто рано, застосунок нагадає про вхід. Після натискання з’явиться вікно з проханням назвати акаунт."
+        },
+        "web-cancel": {
+          "summary": "Закриває вікно входу, нічого не зберігаючи.",
+          "details": "Натисніть, якщо відкрили не той сайт або передумали."
+        },
+        "web-name-account": {
+          "summary": "Дає збереженому входу зрозумілу вам назву.",
+          "details": "У полі вже стоїть назва, яку застосунку вдалося прочитати з входу, або «Акаунт за замовчуванням», якщо прочитати нічого не вийшло. Натисніть «Зберегти», щоб запам’ятати запис; якщо той самий акаунт цього сайту вже збережено, застосунок оновить його запис, а не додасть другий. Після цього куки й кеш у вікні входу очищаються, а запис з’являється у списку."
+        }
+      }
+    }
+  }
+}

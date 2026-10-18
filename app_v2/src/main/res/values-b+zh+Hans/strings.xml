@@ -3191,7 +3191,6 @@
     <string name="exif_orientation_rotate_270">顺时针旋转 270°</string>
     <string name="exif_orientation_unknown">未知 (%1$d)</string>
     <string name="storage_reach_limited_browse">此文件夹中只有照片、视频和音频可用。要查看文档，请重新添加该文件夹并在系统文件夹窗口中选择它。</string>
-    <string name="file_count_reach_limited">%1$s - 仅照片、视频和音频</string>
     <string name="reach_limited_nothing_readable">无法读取文档</string>
     <string name="storage_reach_limited_virtual">此设备上的文档及其他文件对本应用不可见。要打开它们，请通过系统文件夹窗口添加所需的文件夹。</string>
     <string name="storage_reach_limited_browse_reconnect">此文件夹中只有照片、视频和音频可用。要查看文档，请在主屏幕的文件夹行上打开三点菜单并选择重新连接资源。</string>

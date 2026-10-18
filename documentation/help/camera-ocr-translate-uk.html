@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="uk" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Довідка - Швидкий переклад з камери</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Зміст довідки">
+<a href="index-uk.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Швидкий переклад з камери</span>
+</nav>
+<header class="hero">
+<h1>Швидкий переклад з камери</h1>
+</header>
+<h2>Для чого цей екран</h2>
+<p class="lead">Сфотографуйте друкований текст - вивіску, меню, сторінку - і застосунок прочитає його та перекладе вибраною вами мовою. Переклад і вихідний текст зібрано на одному екрані, і обидва можна зберегти в текстовий файл.</p>
+<h2>Порядок дій</h2>
+<ol class="order">
+<li>Відкрийте «Швидкий переклад з камери» з меню програм, із панелі швидкого доступу або з робочого столу лаунчера; вмикається він у «Налаштуваннях», на вкладці «Управління», у групі «Додаткові програми та сценарії». Екран одразу відкриває вбудовану камеру, тож сфотографуйте текст. Уперше може знадобитися завантажити модулі розпізнавання тексту. Знімок екрана, надісланий сюди, обходиться без камери. Якщо вийти з камери без знімка, екран закриється.</li>
+<li>Стан обрізання: фото з'являється <a class="ref" href="#crop-preview">1</a> під рамкою <a class="ref" href="#crop-frame">2</a>. Потягніть за сторону чи кут рамки, щоб охопити лише потрібний текст, або не чіпайте рамку, і буде використано все фото. «Повторити спробу» <a class="ref" href="#crop-retry">3</a> відкидає фото й знову відкриває камеру.</li>
+<li>Перевірте мови під фото: ліва кнопка <a class="ref" href="#crop-source-lang">4</a> - мова тексту, а AUTO дає змогу застосунку визначити її самому; права кнопка <a class="ref" href="#crop-target-lang">6</a> - мова перекладу, а стрілка <a class="ref" href="#crop-arrow">5</a> показує напрямок. Кожна відкриває список із пошуком. Якщо переклад вимкнено, лишається тільки перша кнопка.</li>
+<li>Натисніть «Застосувати» <a class="ref" href="#crop-confirm">7</a>. Обрізане фото зберігається в теку «Камера» телефона, а стан завантаження <a class="ref" href="#loading">8</a> показує перебіг роботи, поки текст читається й перекладається.</li>
+<li>Стан результату: зверху переклад <a class="ref" href="#translation-card">9</a>, нижче вихідний текст <a class="ref" href="#original-card">10</a>. Натисніть і утримуйте слово, щоб виділити текст і знайти його в Google або передати число в калькулятор.</li>
+<li>«Налаштування» <a class="ref" href="#settings">11</a> змінюють мови або вимикають переклад і запускають розпізнавання знову на тому самому фото. «Зберегти в .txt» <a class="ref" href="#save-txt">12</a> записує текст у файл, «Наступне фото» <a class="ref" href="#next-photo">13</a> робить ще один знімок, а «Закрити» <a class="ref" href="#close">14</a> виходить.</li>
+<li>Порожній стан: якщо текст не знайдено, повідомлення <a class="ref" href="#empty-message">15</a> просить зробити фото чіткішим. «Наступне фото» <a class="ref" href="#empty-retry">16</a> пробує знову, а «Закрити» <a class="ref" href="#empty-close">17</a> виходить.</li>
+</ol>
+<h2>Елементи</h2>
+<div class="elements">
+<h3>Стан обрізання</h3>
+<details class="el" id="crop-preview">
+<summary><span class="mk">1</span><span><span class="name">Фото для читання</span><span class="one">Щойно зроблене фото, готове до обрізання.</span></span></summary>
+<div class="full">
+<p>Воно займає місце над кнопками й вписане в екран. Читається лише частина всередині рамки.</p>
+</div>
+</details>
+<details class="el" id="crop-frame">
+<summary><span class="mk">2</span><span><span class="name">Рамка виділення області</span><span class="one">Рамка, що позначає частину фото, яку потрібно прочитати.</span></span></summary>
+<div class="full">
+<p>Потягніть за сторону чи кут, щоб змінити розмір рамки, і перетягуйте всередині неї, щоб зсунути; решту фото затемнено. Якщо рамку не чіпати зовсім, використовується все фото. З клавіатурою чи D-pad клавіша Enter вмикає й вимикає режим зміни розміру, а стрілки зсувають рамку потрошку.</p>
+<dl class="facts">
+<dt>Сполучення клавіш</dt><dd><kbd>Enter</kbd> / <kbd>D-pad center</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="crop-retry">
+<summary><span class="mk">3</span><span><span class="name">Повторити спробу</span><span class="one">Відкидає фото й знову відкриває камеру.</span></span></summary>
+<div class="full">
+<p>Стане в пригоді, коли текст розмитий або обрізаний. Поточне фото не зберігається.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Відкинуте фото зникає, і повернути його не можна; зніміть нове.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="crop-source-lang">
+<summary><span class="mk">4</span><span><span class="name">Мова розпізнавання</span><span class="one">Задає мову тексту на фото.</span></span></summary>
+<div class="full">
+<p>На кнопці прапор і код, наприклад AUTO, що означає: застосунок визначає мову сам. Дотик відкриває список із полем пошуку; введіть частину назви й торкніться мови. Виберіть мову самі, якщо AUTO помиляється. Вибір запам'ятовується до наступного разу.</p>
+</div>
+</details>
+<details class="el" id="crop-arrow">
+<summary><span class="mk">5</span><span><span class="name">Стрілка напрямку</span><span class="one">Показує, що текст перекладається з лівої мови на праву.</span></span></summary>
+<div class="full">
+<p>Це лише знак, натискати його не можна. Він видимий разом із правою кнопкою тільки коли переклад доступний: переклад увімкнено в налаштуваннях, а «Тільки розпізнавання» вимкнено.</p>
+</div>
+</details>
+<details class="el" id="crop-target-lang">
+<summary><span class="mk">6</span><span><span class="name">Мова перекладу</span><span class="one">Задає мову, на яку перекладається текст.</span></span></summary>
+<div class="full">
+<p>Кнопка з'являється лише коли переклад доступний. Дотик відкриває такий самий список із пошуком. Перший переклад на мову може потребувати завантаження моделі приблизно в 30 МБ; застосунок спитає, перш ніж завантажувати. Вибір запам'ятовується до наступного разу.</p>
+</div>
+</details>
+<details class="el" id="crop-confirm">
+<summary><span class="mk">7</span><span><span class="name">Застосувати</span><span class="one">Запускає читання й переклад виділеної рамкою частини фото.</span></span></summary>
+<div class="full">
+<p>Частина всередині рамки, а якщо рамку не чіпали - все фото, вирізається й зберігається картинкою в теку «Камера» телефона (у «Завантаження», якщо ця тека не приймає запис). Потім починається розпізнавання, і стан завантаження бере керування на себе.</p>
+</div>
+</details>
+<h3>Стан завантаження</h3>
+<details class="el" id="loading">
+<summary><span class="mk">8</span><span><span class="name">Екран перебігу роботи</span><span class="one">Показує, що фото обробляється.</span></span></summary>
+<div class="full">
+<p>Індикатор і рядок тексту повідомляють, що відбувається: спершу «Обробка фото..», потім «Розпізнавання та переклад..» з проханням зачекати, якщо робиться переклад. Увесь цей час екран не реагує на дотики. Якщо моделі перекладу бракує, застосунок спершу спитає, чи завантажувати її.</p>
+</div>
+</details>
+<h3>Стан результату</h3>
+<details class="el" id="translation-card">
+<summary><span class="mk">9</span><span><span class="name">Переклад</span><span class="one">Перекладений текст, великий і зверху.</span></span></summary>
+<div class="full">
+<p>Картка є лише якщо переклад зроблено; за ввімкненого «Тільки розпізнавання» її немає. Якщо текст довгий, прокручуйте всередині картки. Натисніть і утримуйте, щоб виділити текст: у меню виділення є «Шукати в Google» і, якщо калькулятор увімкнено, «Калькулятор».</p>
+</div>
+</details>
+<details class="el" id="original-card">
+<summary><span class="mk">10</span><span><span class="name">Оригінальний текст</span><span class="one">Текст точно так, як його прочитано з фото.</span></span></summary>
+<div class="full">
+<p>Стане в пригоді, щоб перевірити, що прочитало розпізнавання, або як сам результат за вимкненого перекладу. Картка прокручується й виділяється так само, як переклад. На розмитих або декоративних літерах розпізнавання помиляється, тож за дивного слова звірте його з фото.</p>
+</div>
+</details>
+<details class="el" id="settings">
+<summary><span class="mk">11</span><span><span class="name">Налаштування</span><span class="one">Відкриває діалог із мовами та перемикачем «Тільки розпізнавання».</span></span></summary>
+<div class="full">
+<p>Змінюйте мови, не знімаючи нове фото. Інша мова тексту читає те саме фото заново, а інша мова перекладу лише перекладає наявний текст. Діалог описано в останній групі.</p>
+</div>
+</details>
+<details class="el" id="save-txt">
+<summary><span class="mk">12</span><span><span class="name">Зберегти в .txt</span><span class="one">Зберігає результат у текстовий файл.</span></span></summary>
+<div class="full">
+<p>Файл потрапляє в теку «Документи» телефона, а якщо вона не приймає запис, - у «Завантаження»; повідомлення називає теку й ім'я файлу. З перекладом у файлі дві частини з позначками TRANSLATION і ORIGINAL, без нього - лише розпізнаний текст. Кожне збереження створює новий файл зі своїм ім'ям.</p>
+</div>
+</details>
+<details class="el" id="next-photo">
+<summary><span class="mk">13</span><span><span class="name">Наступне фото</span><span class="one">Відкриває камеру для наступного фото.</span></span></summary>
+<div class="full">
+<p>Результат на екрані лишається, поки нове фото не зроблено й не оброблено. Якщо вийти з камери без знімка, ви повернетеся до поточного результату.</p>
+</div>
+</details>
+<details class="el" id="close">
+<summary><span class="mk">14</span><span><span class="name">Закрити</span><span class="one">Виходить з екрана.</span></span></summary>
+<div class="full">
+<p>Результат сам не зберігається. Спершу збережіть текст, якщо він потрібен; обрізане фото вже лежить у теці «Камера» телефона.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Розпізнаний текст і переклад під час закриття зникають; щоб отримати їх знову, зніміть нове фото.</dd>
+</dl>
+</div>
+</details>
+<h3>Порожній стан</h3>
+<details class="el" id="empty-message">
+<summary><span class="mk">15</span><span><span class="name">Текст на зображенні не знайдено</span><span class="one">Повідомляє, що на фото текст не знайдено.</span></span></summary>
+<div class="full">
+<p>Екран показує повідомлення «Текст на зображенні не знайдено» і радить переконатися, що на фото є чіткий текст. Найчастіше причина в розмитому знімку, слабкому світлі або рамці, що пройшла повз текст.</p>
+</div>
+</details>
+<details class="el" id="empty-retry">
+<summary><span class="mk">16</span><span><span class="name">Наступне фото</span><span class="one">Відкриває камеру, щоб спробувати ще раз.</span></span></summary>
+<div class="full">
+<p>Знімається нове фото, і знову йде крок обрізання. Вибрані мови зберігаються.</p>
+</div>
+</details>
+<details class="el" id="empty-close">
+<summary><span class="mk">17</span><span><span class="name">Закрити</span><span class="one">Виходить з екрана без результату.</span></span></summary>
+<div class="full">
+<p>Не зберігається нічого, крім обрізаного фото, яке вже потрапило в теку «Камера» на кроці обрізання.</p>
+</div>
+</details>
+<h3>Діалог налаштувань</h3>
+<details class="el" id="d-source">
+<summary><span class="mk">18</span><span><span class="name">Вихідна мова</span><span class="one">Мова тексту, за якою фото читається заново.</span></span></summary>
+<div class="full">
+<p>Дотик відкриває список із пошуком. Зміна мови читає те саме фото заново з новою мовою й перекладає результат. Рядок сірий і недоступний, якщо фото вже не зберігається, наприклад після перезапуску екрана системою.</p>
+</div>
+</details>
+<details class="el" id="d-target">
+<summary><span class="mk">19</span><span><span class="name">Перекласти на</span><span class="one">Мова, на яку перекладається текст.</span></span></summary>
+<div class="full">
+<p>Дотик відкриває список із пошуком. Зміна лише цього рядка перекладає вже прочитаний текст, не читаючи фото заново. Рядок сірий, якщо переклад вимкнено в налаштуваннях або ввімкнено «Тільки розпізнавання».</p>
+</div>
+</details>
+<details class="el" id="d-ocr-only">
+<summary><span class="mk">20</span><span><span class="name">Тільки розпізнавання</span><span class="one">Пропускає переклад і показує лише розпізнаний текст.</span></span></summary>
+<div class="full">
+<p>Коли його ввімкнено, картка перекладу й мова перекладу зникають, а вихідний текст - увесь результат. Вимкніть, щоб знову отримувати переклад. Вибір запам'ятовується до наступного разу.</p>
+</div>
+</details>
+<details class="el" id="d-cancel">
+<summary><span class="mk">21</span><span><span class="name">Скасувати</span><span class="one">Закриває діалог і нічого не змінює.</span></span></summary>
+<div class="full">
+<p>Мови та перемикач «Тільки розпізнавання» лишаються такими, якими були.</p>
+</div>
+</details>
+<details class="el" id="d-apply">
+<summary><span class="mk">22</span><span><span class="name">Застосувати</span><span class="one">Зберігає вибір і оновлює результат.</span></span></summary>
+<div class="full">
+<p>Вибір стає налаштуваннями застосунку. Текст за потреби читається або перекладається заново, і екран показує новий результат.</p>
+</div>
+</details>
+</div>
+<h2>Пов'язане</h2>
+<ul class="related">
+<li><a href="camera-capture-uk.html"><b>Камера</b><span class="pill">Екран</span></a></li>
+<li><a href="main-uk.html"><b>Головний екран</b><span class="pill">Екран</span></a></li>
+<li><a href="settings-operations-uk.html"><b>Налаштування: Управління</b><span class="pill">Екран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/ocr-text-recognition-uk.html"><b>Extracting Text with Offline OCR</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/inline-translation-uk.html"><b>Translating Extracted Text</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="index-uk.html"><b>Зміст довідки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index-uk.html">Зміст довідки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
+</footer>
+</main>
+</body>
+</html>

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.broadcast
 
 import android.content.Context
+import android.hardware.camera2.CameraManager
 import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import com.sza.fastmediasorter.domain.model.WearCameraLensDto
@@ -37,8 +38,7 @@ class ListBroadcastCameraLensesUseCase @Inject constructor(
     private val enumeration = CameraLensEnumerationManager()
 
     suspend operator fun invoke(): BroadcastCameraLenses = withContext(Dispatchers.IO) {
-        val provider = cameraProvider()
-        if (provider == null) BroadcastCameraLenses.EMPTY else toWire(enumeration.expand(provider))
+        toWire(lensEntries())
     }
 
     /**
@@ -47,7 +47,7 @@ class ListBroadcastCameraLensesUseCase @Inject constructor(
      * two identical choices; the watch keeps the unfiltered set above.
      */
     suspend fun listOptions(): BroadcastLensChoice = withContext(Dispatchers.IO) {
-        val entries = cameraProvider()?.let { enumeration.select(enumeration.expand(it)) }.orEmpty()
+        val entries = enumeration.select(lensEntries())
         if (entries.isEmpty()) {
             BroadcastLensChoice.EMPTY
         } else {
@@ -62,6 +62,27 @@ class ListBroadcastCameraLensesUseCase @Inject constructor(
                 initialLensId = entries[enumeration.initialLensIndex(entries)].id,
             )
         }
+    }
+
+    private fun lensEntries(): List<CameraLensEntry> = withCamera2Fallback(
+        cameraX = cameraProvider()?.let(enumeration::expand).orEmpty(),
+        camera2 = { context.getSystemService(CameraManager::class.java)?.let(enumeration::expand).orEmpty() },
+    )
+
+    /**
+     * S4287: CameraX first, because it is the source the capture screen binds and its set is the
+     * reference; Camera2 only when CameraX answers with nothing, which is what it does while the live
+     * broadcast's own Camera2 client holds the camera - the moment the owner opens "Switch camera".
+     */
+    internal fun withCamera2Fallback(
+        cameraX: List<CameraLensEntry>,
+        camera2: () -> List<CameraLensEntry>,
+    ): List<CameraLensEntry> {
+        if (cameraX.isNotEmpty()) return cameraX
+        val fallback = camera2()
+        Timber.d("S4287: Camera2 fallback lenses %s", fallback.map { it.id })
+        Timber.i("Broadcast lens list: CameraX listed no camera, Camera2 listed %d lens(es)", fallback.size)
+        return fallback
     }
 
     private fun cameraProvider(): ProcessCameraProvider? =

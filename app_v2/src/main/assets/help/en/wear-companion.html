@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Wear Companion</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Wear Companion</span>
+</nav>
+<header class="hero">
+<h1>Wear Companion</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">The Wear companion is this phone's control panel for your Wear OS watch. Choose which network resources the watch gets, set how the watch looks and behaves, pin channels for it, and use the watch from the phone: listen through its microphone, send the clipboard, ask for a screenshot.</p>
+<h2>In this order</h2>
+<ol class="order">
+<li>Open the companion from the Wear Companion group on the Management tab of Settings, or from the programs. It works with a Wear OS watch paired to this phone and exists only in the editions that have it (Standard and noLegal).</li>
+<li>To send folders to the watch, press Resources for the watch <a class="ref" href="#select-resources">6</a>, tick the network resources in the list <a class="ref" href="#sel-list">18</a>, then press Push to Watch <a class="ref" href="#push-to-watch">5</a>.</li>
+<li>Choose how the watch behaves in the settings groups <a class="ref" href="#watch-settings">13</a> and what its face buttons do <a class="ref" href="#face-buttons">11</a>. Settings you change wait on the phone until you press Sync settings <a class="ref" href="#push-settings">2</a>; face buttons and pinned channels reach the watch by themselves.</li>
+<li>The line under Sync settings <a class="ref" href="#sync-status">3</a> shows when the last sync was confirmed, or Never synced.</li>
+<li>To pin channels for the watch, open Watch stream pins <a class="ref" href="#stream-pins">12</a> and press Add channels; the list that opens (19 to 24) has filters and a search. The group is there only while Streams is on.</li>
+<li>The cards and buttons in Watch operations act on the watch right now: Listen to the watch <a class="ref" href="#listen-watch">10</a>, Send clipboard <a class="ref" href="#send-clipboard">8</a>, Request a watch screenshot <a class="ref" href="#request-screenshot">9</a> and Add or open the watch <a class="ref" href="#watch-resource">7</a>.</li>
+<li>The links at the bottom <a class="ref" href="#doc-links">14</a> open pages of the website about the watch and send the watch face to your watch.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>The window header and its content</h3>
+<details class="el" id="toolbar">
+<summary><span class="mk">1</span><span><span class="name">Wear Companion</span><span class="one">The header of the window, with the way back, the sync button and the time of the last sync.</span></span></summary>
+<div class="full">
+<p>The arrow closes the window. Sync settings and the line under it stay in the header even when a group below is folded, so the one button that sends your edits is always within reach.</p>
+</div>
+</details>
+<details class="el" id="push-settings">
+<summary><span class="mk">2</span><span><span class="name">Sync settings</span><span class="one">Sends the watch settings you edited on this phone to the watch.</span></span></summary>
+<div class="full">
+<p>Settings you change in the groups below stay on the phone until you press this button. Pressing it sends them in one go and then waits for the watch to confirm that it applied them; the button is off while it works. If the watch does not answer in time, a short message says it may be off or out of range, and you can press again. The buttons of the watch face and the pinned channels do not wait for it - they reach the watch by themselves.</p>
+</div>
+</details>
+<details class="el" id="sync-status">
+<summary><span class="mk">3</span><span><span class="name">Sync status</span><span class="one">Says when the settings were last synced.</span></span></summary>
+<div class="full">
+<p>It shows Last synced with the date and time of the last confirmed exchange, or Never synced before the first one. A press that did not reach the watch leaves the previous time in place, so the line never claims a sync that did not happen.</p>
+</div>
+</details>
+<details class="el" id="companion-content">
+<summary><span class="mk">4</span><span><span class="name">Companion content</span><span class="one">The scrolling area with every group of controls.</span></span></summary>
+<div class="full">
+<p>The area is divided into folding groups: Watch operations (open from the start), Watch face buttons, Watch stream pins (only while Streams is on) and the watch settings groups Media types, Slideshow, Screen and Other, which all start folded. Tap a group's title to open or fold it; a folded settings group shows a one-line summary of its state. On a wide screen the rows sit in two columns. The controls inside are described under Inside the window.</p>
+</div>
+</details>
+<h3>Inside the window</h3>
+<details class="el" id="push-to-watch">
+<summary><span class="mk">5</span><span><span class="name">Push to Watch</span><span class="one">Sends the ticked network resources to the watch.</span></span></summary>
+<div class="full">
+<p>A small window shows the progress and then the result: how many resources were sent, how many were removed from the watch because you unticked them, or a note that nothing is ticked yet. If the watch does not confirm, you can press Retry or Cancel. It sends the choice made in Resources for the watch; only SMB, FTP and SFTP resources can go to the watch.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Pushing again after changing the ticks replaces what the watch has. A resource you unticked is removed from the watch; ticking it and pushing again sends it back.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="select-resources">
+<summary><span class="mk">6</span><span><span class="name">Resources for the watch</span><span class="one">Opens the list where you choose which network resources the watch gets.</span></span></summary>
+<div class="full">
+<p>The button is shown only in editions that have the Wear companion. Your ticks are saved as you make them; nothing is sent until you press Push to Watch.</p>
+</div>
+</details>
+<details class="el" id="watch-resource">
+<summary><span class="mk">7</span><span><span class="name">Add or open the watch</span><span class="one">Adds the watch as a resource of this phone, and opens it later.</span></span></summary>
+<div class="full">
+<p>The first tap adds a resource named after your watch and a message confirms it; every later tap opens the watch's own files in the file browser. If something goes wrong, a general error message appears.</p>
+</div>
+</details>
+<details class="el" id="send-clipboard">
+<summary><span class="mk">8</span><span><span class="name">Send clipboard to the watch</span><span class="one">Sends the text on this phone's clipboard to the watch.</span></span></summary>
+<div class="full">
+<p>A line under the button tells what came of it: the watch took the text, the clipboard was empty, no watch is within reach, or the watch declined. There is no button here to fetch the watch's clipboard: the watch sends its own from its Clipboard program, and the text lands on this phone's clipboard with a notification.</p>
+</div>
+</details>
+<details class="el" id="request-screenshot">
+<summary><span class="mk">9</span><span><span class="name">Request a watch screenshot</span><span class="one">Asks the watch to take a picture of its own screen.</span></span></summary>
+<div class="full">
+<p>What arrives is the screen of the watch app, not the watch face or other apps. The picture does not appear here: it travels the ordinary watch-file route and a notification announces it. Under the button you see when the last screenshot arrived, with Open in Browse when the picture lies in a folder the app knows.</p>
+</div>
+</details>
+<details class="el" id="listen-watch">
+<summary><span class="mk">10</span><span><span class="name">Listen to the watch</span><span class="one">Lets you hear what the watch's microphone hears.</span></span></summary>
+<div class="full">
+<p>Start listening sends a request, and the watch asks its wearer to confirm. While it waits, a spinner and Stop listening let you withdraw the request; once confirmed, you hear the sound until you stop. Sound travels over Wi-Fi, not Bluetooth, so the watch must be on Wi-Fi. If the request is declined, expires or the watch is busy, a red line in the card says why.</p>
+</div>
+</details>
+<details class="el" id="face-buttons">
+<summary><span class="mk">11</span><span><span class="name">Watch face buttons</span><span class="one">Chooses what the four buttons of the watch face do.</span></span></summary>
+<div class="full">
+<p>Tap one of the four buttons - Left outer button, Left inner button, Right inner button or Right outer button - to open a list of choices, split into Watch sections (such as Resources, Streams or Programs), Watch programs (such as Calculator, Stopwatch, SOS or Voice recorder), App data (such as Now playing or Last opened resource), System (such as Battery, Date or Alarms) and No button, where you pick Empty. A pick reaches the watch by itself, with no need for Sync settings. The group starts folded.</p>
+</div>
+</details>
+<details class="el" id="stream-pins">
+<summary><span class="mk">12</span><span><span class="name">Watch stream pins</span><span class="one">The channels the watch lists first - the same ones you pinned in Streams.</span></span></summary>
+<div class="full">
+<p>The group appears only while Streams is on. It edits the pinned channels of the Streams screen, in the same order: what you pin or move here changes the Pinned section there, and the other way round. Folded, it shows how many channels are pinned. Open it to see them in order, each with Move up, Move down and Unpin, an Add channels button that opens the channel picker (the last group of this page) and Send to the watch now. Changes reach the watch on their own; Send to the watch now pushes the list again and a line says whether the watch has it.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Unpin removes the pin everywhere, in the Streams screen too. The channel itself stays in the catalog, and you can pin it again.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="watch-settings">
+<summary><span class="mk">13</span><span><span class="name">Watch settings groups</span><span class="one">What the watch itself shows, plays and how it looks.</span></span></summary>
+<div class="full">
+<p>Four folded groups. Media types holds switches for Audio, Video, Images, Documents and Show streams. Slideshow has the switch and the interval. Screen sets the view of the home and files screens, the watch background and color scheme, and keeping the watch screen on. Other covers album art, animations, watch power saving and background playback. Changes stay on the phone until you press Sync settings.</p>
+</div>
+</details>
+<details class="el" id="doc-links">
+<summary><span class="mk">14</span><span><span class="name">Links at the bottom</span><span class="one">Pages to read more about the watch, and the way to get the watch face.</span></span></summary>
+<div class="full">
+<p>All about the watch and How to install on a watch open pages of the project website in your browser. Get the watch face asks your watch to open the watch face page in Google Play, where you tap Install on the watch; with no watch connected, or a watch without Google Play, the page opens on this phone instead.</p>
+</div>
+</details>
+<h3>Resources for the watch screen</h3>
+<details class="el" id="sel-hint">
+<summary><span class="mk">15</span><span><span class="name">Hint</span><span class="one">Says what can be sent to the watch.</span></span></summary>
+<div class="full">
+<p>Only network resources - SMB, FTP and SFTP - can go to the watch, so only those are listed. Tick the ones you want it to have.</p>
+</div>
+</details>
+<details class="el" id="sel-select-all">
+<summary><span class="mk">16</span><span><span class="name">Select all</span><span class="one">Ticks every resource in the list.</span></span></summary>
+<div class="full">
+<p>The choice is saved at once. The button is hidden while the list is empty. To clear a tick, tap its box again; there is no button that clears all of them.</p>
+</div>
+</details>
+<details class="el" id="sel-empty">
+<summary><span class="mk">17</span><span><span class="name">Empty list message</span><span class="one">Tells you that there is nothing to send yet.</span></span></summary>
+<div class="full">
+<p>It appears when you have no SMB, FTP or SFTP resources. Add one on the main screen, then come back to pick what the watch gets.</p>
+</div>
+</details>
+<details class="el" id="sel-list">
+<summary><span class="mk">18</span><span><span class="name">Resource list</span><span class="one">The network resources, each with a box to tick.</span></span></summary>
+<div class="full">
+<p>Resources sit under a header with a count; tap the header to fold or unfold the group. The categories are Virtual resources, Internal resources and External resources, and since only network resources can go to the watch, you normally see External resources. Tap a row or its box to tick it. Every tick is saved at once, so you can leave the screen any way you like. Nothing is sent from here: press Push to Watch in the companion window.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Unticking changes only the choice. The resource stays on the phone; with the next push the watch drops it, and ticking it and pushing again sends it back.</dd>
+</dl>
+</div>
+</details>
+<h3>Pin a channel for the watch window</h3>
+<details class="el" id="pick-media-kind">
+<summary><span class="mk">19</span><span><span class="name">Media type</span><span class="one">Shows all channels, only audio or only video.</span></span></summary>
+<div class="full">
+<p>Three buttons: All, Audio and Video. The choice combines with the topic, language and search below.</p>
+</div>
+</details>
+<details class="el" id="pick-topic">
+<summary><span class="mk">20</span><span><span class="name">Topic</span><span class="one">Narrows the list to one topic.</span></span></summary>
+<div class="full">
+<p>A drop-down that starts at All; pick a topic such as News or Jazz &amp; Blues. Choosing a topic, a language or typing two letters is what lets a very large catalog show its channels at all.</p>
+</div>
+</details>
+<details class="el" id="pick-language">
+<summary><span class="mk">21</span><span><span class="name">Language</span><span class="one">Narrows the list to one language.</span></span></summary>
+<div class="full">
+<p>A drop-down that starts at All. It works together with the topic and the search.</p>
+</div>
+</details>
+<details class="el" id="pick-sort">
+<summary><span class="mk">22</span><span><span class="name">Sort</span><span class="one">Orders the channels in the picker.</span></span></summary>
+<div class="full">
+<p>The same choices as on the Streams screen: By name, By topic, By language, By country or Recently added. It orders exactly the channels the filters and the search kept.</p>
+</div>
+</details>
+<details class="el" id="pick-search">
+<summary><span class="mk">23</span><span><span class="name">Type to search</span><span class="one">Finds a channel by typing.</span></span></summary>
+<div class="full">
+<p>Type part of a name; the list narrows as you type and the cross at the end clears the field. With a very large catalog the picker first asks you to type two characters or pick a topic or language.</p>
+</div>
+</details>
+<details class="el" id="pick-list">
+<summary><span class="mk">24</span><span><span class="name">Channel list</span><span class="one">The channels you can pin - tap one to pin it.</span></span></summary>
+<div class="full">
+<p>Tap a channel and the window closes at once: the channel is pinned at the top of the pinned list, which is also the Pinned section of Streams. At most two hundred channels are shown; if more match, a line says how many and asks you to refine the search. A tap outside the window closes it without pinning anything.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="settings-operations.html"><b>Settings: Management</b><span class="pill">Screen</span></a></li>
+<li><a href="streams.html"><b>Streams</b><span class="pill">Screen</span></a></li>
+<li><a href="my-devices.html"><b>My devices</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-general.html"><b>Settings: General</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/installation-and-pairing.html"><b>Putting FastMediaSorter on Your Watch - Installing, Pairing and the Wear Companion</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html"><b>Keeping the Phone and the Watch in Step - Network Folders and Watch Settings</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/phone-and-network-folders-on-watch.html"><b>Opening the Phone's and Network Folders on the Watch</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

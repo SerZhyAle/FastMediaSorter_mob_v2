@@ -93,6 +93,74 @@ Assert-Equal 0 $byLabel.Count 'a node without an identifier is never matched by 
 $absent = @(Select-UiNodesById $nodes 'rowNothingHere')
 Assert-Equal 0 $absent.Count 'an identifier that is not on screen matches nothing - the caller taps nothing'
 
+# ---- the soft keyboard's region (S4290) ------------------------------------------------------------
+# The IME block is the shape recorded on emulator-5554 (Android 15, Gboard) with the keyboard shown.
+# The neighbouring window's region is constructed to the same shape: it must never be read as the keyboard's.
+$imeDump = @'
+  Window #6 Window{ab5c413 u0 com.android.settings/com.android.settings.homepage.SettingsHomepageActivity}:
+    mOwnerUid=10140 showForAllUsers=false package=com.android.settings appop=NONE
+    touchable region=SkRegion((0,0,1080,2424))
+    isOnScreen=true
+    isVisible=true
+  Window #7 Window{737a0f2 u0 InputMethod}:
+    mOwnerUid=10156 showForAllUsers=false package=com.google.android.inputmethod.latin appop=NONE
+    mGivenContentInsets=[0,1399][0,0] mGivenVisibleInsets=[0,1399][0,0]
+    touchable region=SkRegion((0,1541,1080,2424))
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+    isOnScreen=true
+    isVisible=true
+  Window #8 Window{c0285d u0 com.android.settings/com.android.settings.homepage.SettingsHomepageActivity}:
+    isVisible=false
+'@
+$shown = Get-ImeTouchRegion $imeDump
+Assert-Equal $true  $shown.visible 'an open keyboard is read as visible'
+Assert-Equal 'com.google.android.inputmethod.latin' $shown.package 'the keyboard reports its own package, so the refusal can name it'
+Assert-Equal 1 @($shown.rects).Count 'only the InputMethod block is read - the neighbouring window region is not the keyboard'
+Assert-Equal 1541 $shown.rects[0].y1 'the region top is the keyboard top, not the window top'
+
+Assert-Equal $true  (Test-PointUnderImeRegion -X 540  -Y 1600 -Region $shown) 'a centre inside the keyboard region is under it'
+Assert-Equal $false (Test-PointUnderImeRegion -X 540  -Y 1540 -Region $shown) 'a centre one pixel above the keyboard top is clear of it'
+Assert-Equal $true  (Test-PointUnderImeRegion -X 1079 -Y 2423 -Region $shown) 'the last pixel inside the keyboard is under it'
+Assert-Equal $false (Test-PointUnderImeRegion -X 1080 -Y 2000 -Region $shown) 'the right edge is exclusive - a centre there is clear of the keyboard'
+Assert-Equal $false (Test-PointUnderImeRegion -X 540  -Y 2424 -Region $shown) 'the bottom edge is exclusive'
+
+# A keyboard with its window present but hidden prints no touchable region: nothing is under it.
+$hiddenDump = @'
+  Window #7 Window{737a0f2 u0 InputMethod}:
+    mOwnerUid=10156 showForAllUsers=false package=com.google.android.inputmethod.latin appop=NONE
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    isOnScreen=false
+    isVisible=false
+'@
+$hidden = Get-ImeTouchRegion $hiddenDump
+Assert-Equal $false $hidden.visible 'a hidden keyboard is not visible, even though its window exists'
+Assert-Equal $false (Test-PointUnderImeRegion -X 540 -Y 2000 -Region $hidden) 'a hidden keyboard covers no point'
+
+$absentIme = Get-ImeTouchRegion ''
+Assert-Equal $false $absentIme.visible 'a dump with no InputMethod window reads as no keyboard'
+
+# A keyboard split into two pieces: every rectangle on the line counts, not only the first.
+$splitDump = @'
+  Window #7 Window{737a0f2 u0 InputMethod}:
+    mOwnerUid=10156 showForAllUsers=false package=org.example.ime appop=NONE
+    touchable region=SkRegion((0,1541,1080,2000),(0,2000,1080,2424))
+    isVisible=true
+'@
+$split = Get-ImeTouchRegion $splitDump
+Assert-Equal 2 @($split.rects).Count 'both rectangles of a split region are kept'
+Assert-Equal $true (Test-PointUnderImeRegion -X 540 -Y 2100 -Region $split) 'a centre in the second piece is under the keyboard'
+
+# A visible keyboard with an empty region covers nothing: the tap goes to the node.
+$emptyDump = @'
+  Window #7 Window{737a0f2 u0 InputMethod}:
+    mOwnerUid=10156 showForAllUsers=false package=com.google.android.inputmethod.latin appop=NONE
+    touchable region=SkRegion()
+    isVisible=true
+'@
+$empty = Get-ImeTouchRegion $emptyDump
+Assert-Equal $true  $empty.visible 'a visible keyboard with no region is still visible'
+Assert-Equal $false (Test-PointUnderImeRegion -X 540 -Y 2000 -Region $empty) 'an empty region covers no point - the tap is not refused'
+
 Write-Host ""
 Write-Host "passed: $script:passed  failed: $script:failed"
 if ($script:failed -gt 0) { exit 1 }

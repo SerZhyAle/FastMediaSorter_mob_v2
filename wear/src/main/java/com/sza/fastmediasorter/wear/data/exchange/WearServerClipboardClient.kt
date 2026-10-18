@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardFailure
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardKind
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardOffer
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardValue
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
@@ -190,7 +191,7 @@ class WearServerClipboardClient @Inject constructor(
     }
 
     // Null when the server answered `clipboard-stored`.
-    private fun transfer(
+    private suspend fun transfer(
         session: WearExchangeSession,
         source: InputStream,
         size: Long,
@@ -200,7 +201,10 @@ class WearServerClipboardClient @Inject constructor(
         val ready = awaitAnswer(session, WearExchangeEnvelope.TYPE_CLIPBOARD_READY)
         return if (ready.type == WearExchangeEnvelope.TYPE_CLIPBOARD_READY) {
             val clear = E2eDigestInputStream(source, size, MessageDigest.getInstance(SHA_256), onProgress)
-            val sent = E2eSegmentStream.seal(clear, session.connection.output, valueKey)
+        val context = coroutineContext
+            val sent = E2eSegmentStream.seal(clear, session.connection.output, valueKey) {
+                context.ensureActive()
+            }
             if (sent != size) throw SourceUnreadableException()
             session.connection.output.flush()
             val stored = awaitAnswer(session, WearExchangeEnvelope.TYPE_CLIPBOARD_STORED)
@@ -256,7 +260,7 @@ class WearServerClipboardClient @Inject constructor(
     }
 
     // True only when every segment opened and both digests and both sizes agree with the box.
-    private fun receiveSealed(
+    private suspend fun receiveSealed(
         session: WearExchangeSession,
         read: E2eClipboardRead.Opened,
         value: WearServerClipboardValue,
@@ -267,8 +271,11 @@ class WearServerClipboardClient @Inject constructor(
         val input = E2eDigestInputStream(session.connection.input, read.sealedSize, sealedDigest, onProgress)
         val clearDigest = MessageDigest.getInstance(SHA_256)
         val target = SinkStream(DigestOutputStream(sink, clearDigest))
+        val context = coroutineContext
         val opened = try {
-            E2eSegmentStream.open(input, target, E2eSegmentStream.valueKey(read.contentKey))
+            E2eSegmentStream.open(input, target, E2eSegmentStream.valueKey(read.contentKey)) {
+                context.ensureActive()
+            }
         } catch (e: E2eSegmentException) {
             Timber.w("Clipboard get: a segment did not open (%s)", e.javaClass.simpleName)
             null

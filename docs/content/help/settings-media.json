@@ -1,0 +1,672 @@
+{
+  "help": "settings-media",
+  "surface": "SettingsActivity",
+  "elements": [
+    { "id": "support-images", "viewId": "rowSupportImages", "labelKey": "support_images_description" },
+    { "id": "support-gifs", "viewId": "rowSupportGifs", "labelKey": "support_gif_description" },
+    { "id": "full-size-images", "viewId": "rowLoadFullSizeImages", "labelKey": "load_full_size_images" },
+    { "id": "crop-fullscreen", "viewId": "rowCropImagesToFullscreen", "labelKey": "pref_crop_images_fullscreen_title" },
+    { "id": "dynamic-background", "viewId": "rowDynamicBackground", "labelKey": "pref_dynamic_background_title" },
+    { "id": "slideshow-music", "viewId": "rowSlideshowBackgroundMusic", "labelKey": "enable_slideshow_background_music" },
+    { "id": "default-image-viewer", "viewId": "btnSetDefaultImageViewer", "labelKey": "settings_set_default_image_viewer" },
+    { "id": "support-video", "viewId": "rowSupportVideos", "labelKey": "support_video_description" },
+    { "id": "video-thumbnails", "viewId": "rowShowVideoThumbnails", "labelKey": "show_video_thumbnails" },
+    { "id": "video-fullscreen", "viewId": "rowOpenVideoInFullscreen", "labelKey": "setting_open_video_in_fullscreen_title" },
+    { "id": "video-frame-clipboard", "viewId": "rowVideoFrameCopyToClipboard", "labelKey": "setting_video_frame_copy_to_clipboard_title" },
+    { "id": "default-video-player", "viewId": "btnSetDefaultVideoPlayer", "labelKey": "settings_set_default_video_player" },
+    { "id": "support-audio", "viewId": "rowSupportAudio", "labelKey": "support_audio_description" },
+    { "id": "audio-covers", "viewId": "rowSearchAudioCoversOnline", "labelKey": "search_audio_covers_online" },
+    { "id": "audio-photos", "viewId": "rowEnablePhotosDuringAudio", "labelKey": "enable_photos_during_audio_description" },
+    { "id": "audio-empty-state", "viewId": "rowAudioEmptyStateMode", "labelKey": "audio_empty_state_label" },
+    { "id": "default-audio-player", "viewId": "btnSetDefaultAudioPlayer", "labelKey": "settings_set_default_audio_player" },
+    { "id": "support-text", "viewId": "rowSupportText", "labelKey": "support_text_description" },
+    { "id": "support-pdf", "viewId": "rowSupportPdf", "labelKey": "support_pdf_description" },
+    { "id": "support-epub", "viewId": "rowSupportEpub", "labelKey": "support_epub_description" },
+    { "id": "support-office", "viewId": "rowSupportOfficeDocuments", "labelKey": "support_office_documents_description" },
+    { "id": "default-docs-viewer", "viewId": "btnSetDefaultDocsViewer", "labelKey": "settings_set_default_docs_viewer" },
+    { "id": "enable-ocr", "viewId": "rowEnableOcr", "labelKey": "enable_ocr" },
+    { "id": "enable-translation", "viewId": "rowEnableTranslation", "labelKey": "enable_translation" },
+    { "id": "translation-source", "viewId": "spinnerTranslationSourceLanguage", "labelKey": "translation_source_language" },
+    { "id": "translation-target", "viewId": "spinnerTranslationTargetLanguage", "labelKey": "translation_target_language" },
+    { "id": "ocr-translation-downloads", "viewId": "layoutExtensionsManager", "labelKey": "ext_shortcut_packs_title" },
+    { "id": "enable-streams", "viewId": "rowEnableStreams", "labelKey": "settings_streams_toggle" },
+    { "id": "streams-sort", "viewId": "rowDefaultSort", "labelKey": "settings_streams_default_sort" },
+    { "id": "streams-filter", "viewId": "rowDefaultMediaFilter", "labelKey": "settings_streams_default_filter" },
+    { "id": "catalog-refresh", "viewId": "rowCatalogRefresh", "labelKey": "settings_streams_catalog_refresh" },
+    { "id": "streams-audio-language", "viewId": "rowDefaultAudioLanguage", "labelKey": "settings_streams_default_audio_language" },
+    { "id": "streams-subtitle-language", "viewId": "rowDefaultSubtitleLanguage", "labelKey": "settings_streams_default_subtitle_language" },
+    { "id": "smart-buffering", "viewId": "rowSmartBuffering", "labelKey": "settings_streams_smart_buffering" },
+    { "id": "cast-play-at-once", "viewId": "rowCastPlayAtOnce", "labelKey": "settings_streams_cast_play_at_once" },
+    { "id": "streams-pip", "viewId": "rowStreamsEnablePip", "labelKey": "setting_enable_pip" },
+    { "id": "clear-play-marks", "viewId": "btnClearPlayStatuses", "labelKey": "settings_streams_clear_statuses" },
+    { "id": "enable-broadcast", "viewId": "rowEnableBroadcasting", "labelKey": "settings_broadcast_enable_title" },
+    { "id": "broadcast-title", "viewId": "rowStreamTitle", "labelKey": "settings_broadcast_stream_title" },
+    { "id": "broadcast-port", "viewId": "rowPort", "labelKey": "settings_broadcast_port" },
+    { "id": "bit-rate", "viewId": "rowBitRate", "labelKey": "settings_broadcast_bit_rate" },
+    { "id": "audio-format", "viewId": "rowAudioFormat", "labelKey": "settings_broadcast_audio_format" },
+    { "id": "mic-gain", "viewId": "rowMicGain", "labelKey": "settings_broadcast_mic_gain" },
+    { "id": "feedback-guard", "viewId": "rowFeedbackGuard", "labelKey": "settings_broadcast_feedback_guard" },
+    { "id": "auto-share", "viewId": "rowAutoOpenShare", "labelKey": "settings_broadcast_auto_share" },
+    { "id": "reset-media", "viewId": "btnResetMediaSection", "labelKey": "reset_media_section" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "broadcast" },
+    { "help": "settings-general" },
+    { "help": "settings-playback" },
+    { "help": "settings-operations" },
+    { "pageId": "settings.settings-overview-and-search" },
+    { "pageId": "images.viewer-and-gestures" },
+    { "pageId": "documents.pdf-epub-viewing" },
+    { "pageId": "streams.live-stream-playback" },
+    { "pageId": "tools.ocr-text-recognition" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Settings: Media",
+      "purpose": "Media is where you decide which kinds of files the app handles and how each kind behaves: images, video, audio, documents, translation, streams and live broadcasting.",
+      "orderNote": "There is no fixed order here - every option works on its own. The tab folds into groups, one per kind of media, and each group lists its options below. Some groups, such as Streams and Broadcast, show up only in editions that include them.",
+      "groups": [
+        { "title": "Images, GIFs and slideshow", "elements": ["support-images", "support-gifs", "full-size-images", "crop-fullscreen", "dynamic-background", "slideshow-music", "default-image-viewer"] },
+        { "title": "Video and player settings", "elements": ["support-video", "video-thumbnails", "video-fullscreen", "video-frame-clipboard", "default-video-player"] },
+        { "title": "Audio playback, covers and visuals", "elements": ["support-audio", "audio-covers", "audio-photos", "audio-empty-state", "default-audio-player"] },
+        { "title": "Text, PDF, EPUB and Office viewing", "elements": ["support-text", "support-pdf", "support-epub", "support-office", "default-docs-viewer"] },
+        { "title": "Translation, digitization (OCR)", "elements": ["enable-ocr", "enable-translation", "translation-source", "translation-target", "ocr-translation-downloads"] },
+        { "title": "Streams", "elements": ["enable-streams", "streams-sort", "streams-filter", "catalog-refresh", "streams-audio-language", "streams-subtitle-language", "smart-buffering", "cast-play-at-once", "streams-pip", "clear-play-marks"] },
+        { "title": "Broadcast", "elements": ["enable-broadcast", "broadcast-title", "broadcast-port", "bit-rate", "audio-format", "mic-gain", "feedback-guard", "auto-share"] },
+        { "title": "Reset", "elements": ["reset-media"] }
+      ],
+      "elements": {
+        "support-images": {
+          "summary": "Lets the app view static images.",
+          "details": "JPG, PNG, WEBP, HEIC and other image formats become viewable. Turn it off if you never use the app for pictures."
+        },
+        "support-gifs": {
+          "summary": "Plays animated GIFs in the file browser and player.",
+          "details": "Turn it on to see GIFs move. The same page also sets size limits for images and animations."
+        },
+        "full-size-images": {
+          "summary": "Loads original-resolution images so you can zoom in.",
+          "details": "It enables pinch-to-zoom and rotation gestures in command panel mode, but uses more data and memory. By default the app loads images at 1920 px; over the network, the original is downloaded for zooming, which is slower."
+        },
+        "crop-fullscreen": {
+          "summary": "Fills the whole screen when image and device orientation match.",
+          "details": "In fullscreen and slideshow, a landscape image on a landscape screen (or portrait on portrait) is cropped to fill it. With the option off, every image fits inside the screen without cropping."
+        },
+        "dynamic-background": {
+          "summary": "Fills the empty bars around an image with its own edge colors.",
+          "details": "It softens letterboxing and pillarboxing when an image does not match the screen shape. Plain backgrounds get a uniform fill; busier ones get streaks that continue the picture."
+        },
+        "slideshow-music": {
+          "summary": "Plays music while a slideshow runs.",
+          "details": "Tracks from the resource you choose play in random order during image and GIF slideshows. Pick a resource that holds your music; the picker appears when the option is on."
+        },
+        "default-image-viewer": {
+          "summary": "Makes FastMediaSorter the app that opens your images.",
+          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+        },
+        "support-video": {
+          "summary": "Lets the app play video.",
+          "details": "MP4, MKV, MOV, WEBM and other video formats become playable in the built-in player."
+        },
+        "video-thumbnails": {
+          "summary": "Shows a preview frame for each video in the file browser.",
+          "details": "The first frame of the video becomes its thumbnail. For network files it can take two seconds or more, because the file has to be downloaded and processed first."
+        },
+        "video-fullscreen": {
+          "summary": "Starts videos from the file browser in fullscreen.",
+          "details": "A video you open from the file browser goes straight into fullscreen playback."
+        },
+        "video-frame-clipboard": {
+          "summary": "Also copies each extracted video frame to the clipboard.",
+          "details": "When you extract a frame from a video, it also goes to the clipboard, ready to paste."
+        },
+        "default-video-player": {
+          "summary": "Makes FastMediaSorter the app that plays your videos.",
+          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+        },
+        "support-audio": {
+          "summary": "Lets the app play audio.",
+          "details": "MP3, FLAC, AAC, OGG and other audio formats become playable."
+        },
+        "audio-covers": {
+          "summary": "Looks online for covers of tracks that have none embedded.",
+          "details": "Covers are downloaded from the internet. A Search only on Wi-Fi option appears next to it, so mobile data stays untouched."
+        },
+        "audio-photos": {
+          "summary": "Shows random photos while audio plays.",
+          "details": "Photos come from the resource you pick, one random photo per song. Only still images are used; videos are ignored."
+        },
+        "audio-empty-state": {
+          "summary": "Chooses what the player shows for a track without cover art.",
+          "details": "Pick a plain black background, a music note with pulse rings, breathing bars, waves and particles, or a visualization video."
+        },
+        "default-audio-player": {
+          "summary": "Makes FastMediaSorter the app that plays your music.",
+          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+        },
+        "support-text": {
+          "summary": "Lets the app open plain text files.",
+          "details": "That covers .txt, .md, .log, .json and .xml files."
+        },
+        "support-pdf": {
+          "summary": "Opens PDF files in the built-in viewer.",
+          "details": "There is also a separate option for large PDF thumbnails; it is slower."
+        },
+        "support-epub": {
+          "summary": "Reads EPUB e-books.",
+          "details": "The reader has bookmarks and a table of contents."
+        },
+        "support-office": {
+          "summary": "Opens Office documents with another app.",
+          "details": "DOC, DOCX, RTF and ODT open in an external app, not in FastMediaSorter itself."
+        },
+        "default-docs-viewer": {
+          "summary": "Makes FastMediaSorter the app that opens your documents.",
+          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+        },
+        "enable-ocr": {
+          "summary": "Turns on text recognition for images and PDFs.",
+          "details": "Text is extracted so you can copy it. The font size and font family for the recognized text are set just below."
+        },
+        "enable-translation": {
+          "summary": "Turns on translation of text recognized in images.",
+          "details": "The visible text is translated from the original language into the one you choose below. Translation packs can be installed from the downloads row."
+        },
+        "translation-source": {
+          "summary": "Chooses the language of the text you want to translate.",
+          "details": "The swap button between the two language fields flips them in one tap."
+        },
+        "translation-target": {
+          "summary": "Chooses the language to translate into.",
+          "details": "Translations appear in this language. When you need the other direction, swap the two languages with the button between them."
+        },
+        "ocr-translation-downloads": {
+          "summary": "Opens the downloads for text recognition and translation.",
+          "details": "Install the OCR and translation packs you need, and remove them again to free space."
+        },
+        "enable-streams": {
+          "summary": "Turns on internet audio, video and RTSP streams.",
+          "details": "Streams add a channel catalog and playback for online radio and television. The options below tune how they behave."
+        },
+        "streams-sort": {
+          "summary": "Chooses the default order of the channel list.",
+          "details": "Order by name, topic, language, country or recently added."
+        },
+        "streams-filter": {
+          "summary": "Chooses which channels show by default.",
+          "details": "All channels, only audio, or only video."
+        },
+        "catalog-refresh": {
+          "summary": "Decides when the channel list gets updated.",
+          "details": "Choose between updating only when you ask, a suggestion when you open Streams, or automatic updates on Wi-Fi."
+        },
+        "streams-audio-language": {
+          "summary": "Picks the audio language streams start with.",
+          "details": "Choose Default, English, Russian or Ukrainian."
+        },
+        "streams-subtitle-language": {
+          "summary": "Picks the subtitle language streams start with.",
+          "details": "Choose Default, English, Russian or Ukrainian."
+        },
+        "smart-buffering": {
+          "summary": "Gives streams a bigger start-up cushion.",
+          "details": "Streams start with a bigger buffer and reconnect quietly when the connection is shaky."
+        },
+        "cast-play-at-once": {
+          "summary": "Starts a cast from another device without asking.",
+          "details": "Normally a cast your other device sends here waits for you to accept it. With this on, it starts playing right away."
+        },
+        "streams-pip": {
+          "summary": "Adds a Picture-in-Picture button to the player.",
+          "details": "The player also enters Picture-in-Picture on its own when you press Home (Android 12 and newer)."
+        },
+        "clear-play-marks": {
+          "summary": "Clears the green and red play marks on all channels.",
+          "details": "The channels themselves stay. The app asks you to confirm first.",
+          "undo": "Only the marks are removed; the channels stay where they are."
+        },
+        "enable-broadcast": {
+          "summary": "Allows live audio broadcasting from this device.",
+          "details": "With it on, broadcast shortcuts appear in the app. The options below set the title, port, sound quality and microphone behavior."
+        },
+        "broadcast-title": {
+          "summary": "Names your broadcast.",
+          "details": "This is the name your broadcast goes by. The default is Phone Broadcast."
+        },
+        "broadcast-port": {
+          "summary": "Sets the network port for the broadcast.",
+          "details": "The app accepts ports from 1 to 65535. Change it only if you have a reason, for example another app that already uses the current port."
+        },
+        "bit-rate": {
+          "summary": "Sets the sound quality of the broadcast.",
+          "details": "Choose 128, 192, 256 or 320 kbps. Higher means better sound and more data."
+        },
+        "audio-format": {
+          "summary": "Sets the sample rate and the number of channels.",
+          "details": "Choose 44.1 or 48 kHz, in mono or stereo."
+        },
+        "mic-gain": {
+          "summary": "Sets how loud your microphone is in the broadcast.",
+          "details": "Choose from 50% to 400%. 100% leaves the level unchanged."
+        },
+        "feedback-guard": {
+          "summary": "Prevents the squeal when a listener nearby plays the broadcast aloud.",
+          "details": "It turns the microphone gain down when the broadcast is played aloud close to the microphone, so the sound cannot build up."
+        },
+        "auto-share": {
+          "summary": "Opens the share screen when a broadcast starts.",
+          "details": "You do not have to open it yourself."
+        },
+        "reset-media": {
+          "summary": "Returns only this tab to its defaults.",
+          "details": "Settings on the other tabs keep their values. The app asks you to confirm first."
+        }
+      }
+    },
+    "ru": {
+      "title": "Настройки: Медиа",
+      "purpose": "На вкладке «Медиа» вы решаете, какие виды файлов обрабатывает приложение и как ведёт себя каждый вид: изображения, видео, аудио, документы, перевод, трансляции и живое вещание.",
+      "orderNote": "Единого порядка здесь нет - каждый параметр работает сам по себе. Вкладка сворачивается в группы, по одной на каждый вид медиа, и в каждой группе перечислены её параметры. Некоторые группы, например «Трансляции» и «Вещание», есть только в тех версиях приложения, где они предусмотрены.",
+      "groups": [
+        { "title": "Изображения, GIF и слайд-шоу", "elements": ["support-images", "support-gifs", "full-size-images", "crop-fullscreen", "dynamic-background", "slideshow-music", "default-image-viewer"] },
+        { "title": "Видео, настройки плеера", "elements": ["support-video", "video-thumbnails", "video-fullscreen", "video-frame-clipboard", "default-video-player"] },
+        { "title": "Аудио, обложки и фоновые визуализации", "elements": ["support-audio", "audio-covers", "audio-photos", "audio-empty-state", "default-audio-player"] },
+        { "title": "Просмотр текста, PDF, EPUB и Office", "elements": ["support-text", "support-pdf", "support-epub", "support-office", "default-docs-viewer"] },
+        { "title": "Перевод, оцифровка (OCR)", "elements": ["enable-ocr", "enable-translation", "translation-source", "translation-target", "ocr-translation-downloads"] },
+        { "title": "Трансляции", "elements": ["enable-streams", "streams-sort", "streams-filter", "catalog-refresh", "streams-audio-language", "streams-subtitle-language", "smart-buffering", "cast-play-at-once", "streams-pip", "clear-play-marks"] },
+        { "title": "Вещание", "elements": ["enable-broadcast", "broadcast-title", "broadcast-port", "bit-rate", "audio-format", "mic-gain", "feedback-guard", "auto-share"] },
+        { "title": "Сброс", "elements": ["reset-media"] }
+      ],
+      "elements": {
+        "support-images": {
+          "summary": "Позволяет приложению показывать статичные изображения.",
+          "details": "Становятся доступны JPG, PNG, WEBP, HEIC и другие форматы. Выключите, если приложение не нужно вам для картинок."
+        },
+        "support-gifs": {
+          "summary": "Воспроизводит анимированные GIF в браузере файлов и плеере.",
+          "details": "Включите, чтобы GIF двигались. На этой же странице задаются ограничения размера для изображений и анимаций."
+        },
+        "full-size-images": {
+          "summary": "Загружает изображения в исходном разрешении, чтобы их можно было увеличивать.",
+          "details": "Включает жесты масштабирования щипком и поворота в режиме панели команд, но расходует больше трафика и памяти. По умолчанию изображения загружаются с разрешением 1920 px; по сети для увеличения скачивается оригинал, и это медленнее."
+        },
+        "crop-fullscreen": {
+          "summary": "Заполняет весь экран, если ориентация изображения и устройства совпадает.",
+          "details": "В полноэкранном режиме и слайд-шоу горизонтальное изображение на горизонтальном экране (или вертикальное на вертикальном) обрезается по размеру экрана. Когда параметр выключен, любое изображение целиком помещается в экран без обрезки."
+        },
+        "dynamic-background": {
+          "summary": "Заполняет пустые поля вокруг изображения цветами его краёв.",
+          "details": "Смягчает полосы по бокам или сверху и снизу, когда изображение не совпадает по форме с экраном. Простой фон закрашивается однородно, а сложный продолжается лучами, как продолжение картинки."
+        },
+        "slideshow-music": {
+          "summary": "Включает музыку во время слайд-шоу.",
+          "details": "Во время показа изображений и GIF играют треки из выбранного ресурса в случайном порядке. Выберите ресурс с вашей музыкой; выбор появляется, когда параметр включён."
+        },
+        "default-image-viewer": {
+          "summary": "Назначает FastMediaSorter приложением для открытия изображений.",
+          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+        },
+        "support-video": {
+          "summary": "Позволяет приложению воспроизводить видео.",
+          "details": "MP4, MKV, MOV, WEBM и другие форматы воспроизводятся во встроенном плеере."
+        },
+        "video-thumbnails": {
+          "summary": "Показывает кадр-превью для каждого видео в браузере файлов.",
+          "details": "Первый кадр ролика становится его миниатюрой. Для сетевых файлов это может занять две секунды и больше: сначала файл нужно скачать и обработать."
+        },
+        "video-fullscreen": {
+          "summary": "Запускает видео из браузера файлов сразу на весь экран.",
+          "details": "Видео, открытое из браузера файлов, сразу воспроизводится в полноэкранном режиме."
+        },
+        "video-frame-clipboard": {
+          "summary": "Заодно копирует каждый извлечённый кадр в буфер обмена.",
+          "details": "Когда вы извлекаете кадр из видео, он ещё и попадает в буфер обмена - его можно сразу вставить."
+        },
+        "default-video-player": {
+          "summary": "Назначает FastMediaSorter приложением для воспроизведения видео.",
+          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+        },
+        "support-audio": {
+          "summary": "Позволяет приложению воспроизводить аудио.",
+          "details": "MP3, FLAC, AAC, OGG и другие аудиоформаты становятся доступны для воспроизведения."
+        },
+        "audio-covers": {
+          "summary": "Ищет в интернете обложки для треков, в которых они не встроены.",
+          "details": "Обложки скачиваются из интернета. Рядом появляется параметр «Искать только по Wi-Fi», чтобы мобильный трафик не тратился."
+        },
+        "audio-photos": {
+          "summary": "Показывает случайные фото, пока играет аудио.",
+          "details": "Фото берутся из выбранного ресурса, по одному случайному на каждую песню. Используются только неподвижные изображения, видео пропускаются."
+        },
+        "audio-empty-state": {
+          "summary": "Выбирает, что плеер показывает для трека без обложки.",
+          "details": "Можно оставить чёрный фон или выбрать ноту с пульсирующими кольцами, дышащие столбики, волны и частицы либо видеовизуализацию."
+        },
+        "default-audio-player": {
+          "summary": "Назначает FastMediaSorter приложением для воспроизведения музыки.",
+          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+        },
+        "support-text": {
+          "summary": "Позволяет приложению открывать текстовые файлы.",
+          "details": "Это файлы .txt, .md, .log, .json и .xml."
+        },
+        "support-pdf": {
+          "summary": "Открывает PDF во встроенном просмотрщике.",
+          "details": "Для PDF есть и отдельный параметр с крупными миниатюрами, он работает медленнее."
+        },
+        "support-epub": {
+          "summary": "Читает электронные книги EPUB.",
+          "details": "В читалке есть закладки и оглавление."
+        },
+        "support-office": {
+          "summary": "Открывает офисные документы в другом приложении.",
+          "details": "DOC, DOCX, RTF и ODT открываются во внешнем приложении, а не в самом FastMediaSorter."
+        },
+        "default-docs-viewer": {
+          "summary": "Назначает FastMediaSorter приложением для открытия документов.",
+          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+        },
+        "enable-ocr": {
+          "summary": "Включает распознавание текста на изображениях и в PDF.",
+          "details": "Текст извлекается, и его можно скопировать. Размер и шрифт распознанного текста задаются чуть ниже."
+        },
+        "enable-translation": {
+          "summary": "Включает перевод текста, распознанного на изображениях.",
+          "details": "Видимый текст переводится с исходного языка на выбранный ниже. Пакеты перевода можно установить в строке загрузок."
+        },
+        "translation-source": {
+          "summary": "Выбирает язык текста, который нужно перевести.",
+          "details": "Кнопка обмена между двумя полями языков меняет их местами одним нажатием."
+        },
+        "translation-target": {
+          "summary": "Выбирает язык, на который переводить.",
+          "details": "Переводы появляются на этом языке. Когда нужно перевести в обратную сторону, поменяйте языки местами кнопкой между ними."
+        },
+        "ocr-translation-downloads": {
+          "summary": "Открывает загрузки для распознавания текста и перевода.",
+          "details": "Установите нужные пакеты OCR и перевода, а потом удалите их, чтобы освободить место."
+        },
+        "enable-streams": {
+          "summary": "Включает интернет-трансляции: аудио, видео и RTSP.",
+          "details": "Трансляции дают каталог каналов и воспроизведение онлайн-радио и телевидения. Параметры ниже настраивают их работу."
+        },
+        "streams-sort": {
+          "summary": "Выбирает порядок списка каналов по умолчанию.",
+          "details": "Можно упорядочить по названию, рубрике, языку, стране или по времени добавления."
+        },
+        "streams-filter": {
+          "summary": "Выбирает, какие каналы показывать по умолчанию.",
+          "details": "Все каналы, только аудио или только видео."
+        },
+        "catalog-refresh": {
+          "summary": "Определяет, когда обновляется список каналов.",
+          "details": "Можно обновлять только по вашей просьбе, предлагать обновление при открытии трансляций или обновлять автоматически по Wi-Fi."
+        },
+        "streams-audio-language": {
+          "summary": "Выбирает язык звука, с которого начинаются трансляции.",
+          "details": "Доступны варианты: по умолчанию, английский, русский и украинский."
+        },
+        "streams-subtitle-language": {
+          "summary": "Выбирает язык субтитров, с которого начинаются трансляции.",
+          "details": "Доступны варианты: по умолчанию, английский, русский и украинский."
+        },
+        "smart-buffering": {
+          "summary": "Даёт трансляциям больший запас буфера на старте.",
+          "details": "Трансляции стартуют с большим буфером и тихо переподключаются, когда соединение нестабильно."
+        },
+        "cast-play-at-once": {
+          "summary": "Запускает трансляцию с другого устройства без вопроса.",
+          "details": "Обычно трансляция, которую другое ваше устройство передаёт сюда, ждёт вашего «Принять». Когда параметр включён, она начинается сразу."
+        },
+        "streams-pip": {
+          "summary": "Добавляет в плеер кнопку «картинка в картинке».",
+          "details": "Плеер также сам переходит в режим «картинка в картинке», когда вы нажимаете «Домой» (Android 12 и новее)."
+        },
+        "clear-play-marks": {
+          "summary": "Стирает зелёные и красные отметки воспроизведения на всех каналах.",
+          "details": "Сами каналы остаются. Перед очисткой приложение просит подтвердить действие.",
+          "undo": "Удаляются только отметки; сами каналы остаются на месте."
+        },
+        "enable-broadcast": {
+          "summary": "Разрешает вести живое аудиовещание с этого устройства.",
+          "details": "Когда параметр включён, в приложении появляются ярлыки вещания. Параметры ниже задают название, порт, качество звука и работу микрофона."
+        },
+        "broadcast-title": {
+          "summary": "Даёт вещанию название.",
+          "details": "Под этим названием идёт ваше вещание. По умолчанию - «Вещание с телефона»."
+        },
+        "broadcast-port": {
+          "summary": "Задаёт сетевой порт для вещания.",
+          "details": "Приложение принимает порты от 1 до 65535. Меняйте его, только если есть причина, например другое приложение уже использует текущий порт."
+        },
+        "bit-rate": {
+          "summary": "Задаёт качество звука вещания.",
+          "details": "Доступны 128, 192, 256 и 320 кбит/с. Чем выше значение, тем лучше звук и тем больше трафика."
+        },
+        "audio-format": {
+          "summary": "Задаёт частоту дискретизации и число каналов.",
+          "details": "Доступны 44,1 и 48 кГц, моно или стерео."
+        },
+        "mic-gain": {
+          "summary": "Задаёт громкость вашего микрофона в вещании.",
+          "details": "Можно выбрать от 50% до 400%. При 100% уровень не меняется."
+        },
+        "feedback-guard": {
+          "summary": "Не даёт возникнуть свисту, когда слушатель рядом включает вещание вслух.",
+          "details": "Если вещание звучит вслух рядом с микрофоном, усиление микрофона уменьшается, и звук не может нарастать."
+        },
+        "auto-share": {
+          "summary": "Открывает экран отправки, когда вещание начинается.",
+          "details": "Открывать его самому не нужно."
+        },
+        "reset-media": {
+          "summary": "Возвращает к значениям по умолчанию только эту вкладку.",
+          "details": "Настройки на других вкладках сохраняются. Перед сбросом приложение просит подтвердить действие."
+        }
+      }
+    },
+    "uk": {
+      "title": "Налаштування: Медіа",
+      "purpose": "На вкладці «Медіа» ви вирішуєте, які види файлів обробляє застосунок і як поводиться кожен вид: зображення, відео, аудіо, документи, переклад, трансляції та живе мовлення.",
+      "orderNote": "Єдиного порядку тут немає - кожен параметр працює сам по собі. Вкладка згортається в групи, по одній на кожен вид медіа, і в кожній групі перелічено її параметри. Деякі групи, наприклад «Трансляції» та «Мовлення», є лише в тих версіях застосунку, де вони передбачені.",
+      "groups": [
+        { "title": "Зображення, GIF і слайд-шоу", "elements": ["support-images", "support-gifs", "full-size-images", "crop-fullscreen", "dynamic-background", "slideshow-music", "default-image-viewer"] },
+        { "title": "Відео, налаштування плеєра", "elements": ["support-video", "video-thumbnails", "video-fullscreen", "video-frame-clipboard", "default-video-player"] },
+        { "title": "Аудіо, обкладинки й фонові візуалізації", "elements": ["support-audio", "audio-covers", "audio-photos", "audio-empty-state", "default-audio-player"] },
+        { "title": "Перегляд тексту, PDF, EPUB і Office", "elements": ["support-text", "support-pdf", "support-epub", "support-office", "default-docs-viewer"] },
+        { "title": "Переклад, оцифрування (OCR)", "elements": ["enable-ocr", "enable-translation", "translation-source", "translation-target", "ocr-translation-downloads"] },
+        { "title": "Трансляції", "elements": ["enable-streams", "streams-sort", "streams-filter", "catalog-refresh", "streams-audio-language", "streams-subtitle-language", "smart-buffering", "cast-play-at-once", "streams-pip", "clear-play-marks"] },
+        { "title": "Мовлення", "elements": ["enable-broadcast", "broadcast-title", "broadcast-port", "bit-rate", "audio-format", "mic-gain", "feedback-guard", "auto-share"] },
+        { "title": "Скидання", "elements": ["reset-media"] }
+      ],
+      "elements": {
+        "support-images": {
+          "summary": "Дозволяє застосунку показувати статичні зображення.",
+          "details": "Стають доступними JPG, PNG, WEBP, HEIC та інші формати. Вимкніть, якщо застосунок не потрібен вам для картинок."
+        },
+        "support-gifs": {
+          "summary": "Відтворює анімовані GIF у браузері файлів і плеєрі.",
+          "details": "Увімкніть, щоб GIF рухалися. На цій самій сторінці задаються обмеження розміру для зображень і анімацій."
+        },
+        "full-size-images": {
+          "summary": "Завантажує зображення у початковій роздільності, щоб їх можна було збільшувати.",
+          "details": "Вмикає жести масштабування щипком і повороту у режимі панелі команд, але витрачає більше трафіку й пам’яті. За замовчуванням зображення завантажуються з роздільністю 1920 px; мережею для збільшення завантажується оригінал, і це повільніше."
+        },
+        "crop-fullscreen": {
+          "summary": "Заповнює весь екран, якщо орієнтація зображення й пристрою збігається.",
+          "details": "У повноекранному режимі та слайд-шоу горизонтальне зображення на горизонтальному екрані (або вертикальне на вертикальному) обрізається за розміром екрана. Коли параметр вимкнено, будь-яке зображення цілком вміщається в екран без обрізання."
+        },
+        "dynamic-background": {
+          "summary": "Заповнює порожні поля навколо зображення кольорами його країв.",
+          "details": "Пом’якшує смуги збоку або зверху й знизу, коли зображення не збігається за формою з екраном. Простий фон зафарбовується однорідно, а складніший продовжується променями, як продовження картинки."
+        },
+        "slideshow-music": {
+          "summary": "Вмикає музику під час слайд-шоу.",
+          "details": "Під час показу зображень і GIF грають треки з вибраного ресурсу у випадковому порядку. Виберіть ресурс зі своєю музикою; вибір з’являється, коли параметр увімкнено."
+        },
+        "default-image-viewer": {
+          "summary": "Призначає FastMediaSorter застосунком для відкривання зображень.",
+          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+        },
+        "support-video": {
+          "summary": "Дозволяє застосунку відтворювати відео.",
+          "details": "MP4, MKV, MOV, WEBM та інші формати відтворюються у вбудованому плеєрі."
+        },
+        "video-thumbnails": {
+          "summary": "Показує кадр-прев’ю для кожного відео у браузері файлів.",
+          "details": "Перший кадр ролика стає його мініатюрою. Для мережевих файлів це може тривати дві секунди й довше: спершу файл треба завантажити й обробити."
+        },
+        "video-fullscreen": {
+          "summary": "Запускає відео з браузера файлів одразу на весь екран.",
+          "details": "Відео, відкрите з браузера файлів, одразу відтворюється у повноекранному режимі."
+        },
+        "video-frame-clipboard": {
+          "summary": "Заодно копіює кожен добутий кадр у буфер обміну.",
+          "details": "Коли ви добуваєте кадр із відео, він ще й потрапляє у буфер обміну - його можна одразу вставити."
+        },
+        "default-video-player": {
+          "summary": "Призначає FastMediaSorter застосунком для відтворення відео.",
+          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+        },
+        "support-audio": {
+          "summary": "Дозволяє застосунку відтворювати аудіо.",
+          "details": "MP3, FLAC, AAC, OGG та інші аудіоформати стають доступними для відтворення."
+        },
+        "audio-covers": {
+          "summary": "Шукає в інтернеті обкладинки для треків, у яких їх не вбудовано.",
+          "details": "Обкладинки завантажуються з інтернету. Поруч з’являється параметр «Шукати тільки по Wi-Fi», щоб мобільний трафік не витрачався."
+        },
+        "audio-photos": {
+          "summary": "Показує випадкові фото, поки грає аудіо.",
+          "details": "Фото беруться з вибраного ресурсу, по одному випадковому на кожну пісню. Використовуються лише нерухомі зображення, відео пропускаються."
+        },
+        "audio-empty-state": {
+          "summary": "Обирає, що плеєр показує для треку без обкладинки.",
+          "details": "Можна залишити чорний фон або обрати ноту з пульсуючими кільцями, дихаючі стовпчики, хвилі та частинки чи відеовізуалізацію."
+        },
+        "default-audio-player": {
+          "summary": "Призначає FastMediaSorter застосунком для відтворення музики.",
+          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+        },
+        "support-text": {
+          "summary": "Дозволяє застосунку відкривати текстові файли.",
+          "details": "Це файли .txt, .md, .log, .json і .xml."
+        },
+        "support-pdf": {
+          "summary": "Відкриває PDF у вбудованому переглядачі.",
+          "details": "Для PDF є й окремий параметр із великими мініатюрами, він працює повільніше."
+        },
+        "support-epub": {
+          "summary": "Читає електронні книги EPUB.",
+          "details": "У читалці є закладки та зміст."
+        },
+        "support-office": {
+          "summary": "Відкриває офісні документи у іншому застосунку.",
+          "details": "DOC, DOCX, RTF і ODT відкриваються у зовнішньому застосунку, а не в самому FastMediaSorter."
+        },
+        "default-docs-viewer": {
+          "summary": "Призначає FastMediaSorter застосунком для відкривання документів.",
+          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+        },
+        "enable-ocr": {
+          "summary": "Вмикає розпізнавання тексту на зображеннях і в PDF.",
+          "details": "Текст видобувається, і його можна скопіювати. Розмір і шрифт розпізнаного тексту задаються трохи нижче."
+        },
+        "enable-translation": {
+          "summary": "Вмикає переклад тексту, розпізнаного на зображеннях.",
+          "details": "Видимий текст перекладається з вихідної мови на вибрану нижче. Пакети перекладу можна встановити в рядку завантажень."
+        },
+        "translation-source": {
+          "summary": "Обирає мову тексту, який потрібно перекласти.",
+          "details": "Кнопка обміну між двома полями мов міняє їх місцями одним натисканням."
+        },
+        "translation-target": {
+          "summary": "Обирає мову, якою перекладати.",
+          "details": "Переклади з’являються цією мовою. Коли треба перекласти у зворотний бік, поміняйте мови місцями кнопкою між ними."
+        },
+        "ocr-translation-downloads": {
+          "summary": "Відкриває завантаження для розпізнавання тексту й перекладу.",
+          "details": "Установіть потрібні пакети OCR і перекладу, а потім видаліть їх, щоб звільнити місце."
+        },
+        "enable-streams": {
+          "summary": "Вмикає інтернет-трансляції: аудіо, відео та RTSP.",
+          "details": "Трансляції дають каталог каналів і відтворення онлайн-радіо та телебачення. Параметри нижче налаштовують їхню роботу."
+        },
+        "streams-sort": {
+          "summary": "Обирає порядок списку каналів за замовчуванням.",
+          "details": "Можна впорядкувати за назвою, рубрикою, мовою, країною або за часом додавання."
+        },
+        "streams-filter": {
+          "summary": "Обирає, які канали показувати за замовчуванням.",
+          "details": "Усі канали, лише аудіо або лише відео."
+        },
+        "catalog-refresh": {
+          "summary": "Визначає, коли оновлюється список каналів.",
+          "details": "Можна оновлювати лише на ваше прохання, пропонувати оновлення під час відкривання трансляцій або оновлювати автоматично через Wi-Fi."
+        },
+        "streams-audio-language": {
+          "summary": "Обирає мову звуку, з якої починаються трансляції.",
+          "details": "Доступні варіанти: за замовчуванням, англійська, російська й українська."
+        },
+        "streams-subtitle-language": {
+          "summary": "Обирає мову субтитрів, з якої починаються трансляції.",
+          "details": "Доступні варіанти: за замовчуванням, англійська, російська й українська."
+        },
+        "smart-buffering": {
+          "summary": "Дає трансляціям більший запас буфера на старті.",
+          "details": "Трансляції стартують із більшим буфером і тихо перепідключаються, коли з’єднання нестабільне."
+        },
+        "cast-play-at-once": {
+          "summary": "Запускає трансляцію з іншого пристрою без питання.",
+          "details": "Зазвичай трансляція, яку інший ваш пристрій передає сюди, чекає на ваше «Прийняти». Коли параметр увімкнено, вона починається одразу."
+        },
+        "streams-pip": {
+          "summary": "Додає до плеєра кнопку «картинка в картинці».",
+          "details": "Плеєр також сам переходить у режим «картинка в картинці», коли ви натискаєте «Додому» (Android 12 і новіші)."
+        },
+        "clear-play-marks": {
+          "summary": "Стирає зелені та червоні позначки відтворення на всіх каналах.",
+          "details": "Самі канали залишаються. Перед очищенням застосунок просить підтвердити дію.",
+          "undo": "Видаляються лише позначки; самі канали залишаються на місці."
+        },
+        "enable-broadcast": {
+          "summary": "Дозволяє вести живе аудіомовлення з цього пристрою.",
+          "details": "Коли параметр увімкнено, в застосунку з’являються ярлики мовлення. Параметри нижче задають назву, порт, якість звуку й роботу мікрофона."
+        },
+        "broadcast-title": {
+          "summary": "Дає мовленню назву.",
+          "details": "Під цією назвою йде ваше мовлення. За замовчуванням - «Мовлення з телефона»."
+        },
+        "broadcast-port": {
+          "summary": "Задає мережевий порт для мовлення.",
+          "details": "Застосунок приймає порти від 1 до 65535. Змінюйте його, лише якщо є причина, наприклад інший застосунок уже використовує поточний порт."
+        },
+        "bit-rate": {
+          "summary": "Задає якість звуку мовлення.",
+          "details": "Доступні 128, 192, 256 і 320 кбіт/с. Чим вище значення, тим кращий звук і тим більше трафіку."
+        },
+        "audio-format": {
+          "summary": "Задає частоту дискретизації та кількість каналів.",
+          "details": "Доступні 44,1 і 48 кГц, моно або стерео."
+        },
+        "mic-gain": {
+          "summary": "Задає гучність вашого мікрофона у мовленні.",
+          "details": "Можна вибрати від 50% до 400%. За 100% рівень не змінюється."
+        },
+        "feedback-guard": {
+          "summary": "Не дає виникнути свисту, коли слухач поруч вмикає мовлення вголос.",
+          "details": "Якщо мовлення звучить вголос поруч із мікрофоном, посилення мікрофона зменшується, і звук не може наростати."
+        },
+        "auto-share": {
+          "summary": "Відкриває екран надсилання, коли мовлення починається.",
+          "details": "Відкривати його самому не потрібно."
+        },
+        "reset-media": {
+          "summary": "Повертає до значень за замовчуванням лише цю вкладку.",
+          "details": "Налаштування на інших вкладках зберігаються. Перед скиданням застосунок просить підтвердити дію."
+        }
+      }
+    }
+  }
+}

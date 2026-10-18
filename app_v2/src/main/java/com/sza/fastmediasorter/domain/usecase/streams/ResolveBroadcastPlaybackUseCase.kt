@@ -46,7 +46,6 @@ class ResolveBroadcastPlaybackUseCase @Inject constructor(
      * whose stored broadcast pair the played address answers a protected broadcast's challenge with (item M).
      */
     suspend operator fun invoke(url: String, endpoints: String?, streamId: String? = null): Playback {
-        Timber.d("S4258: resolve broadcast playback, stored pair=%b", streamId != null)
         if (endpoints == null) return Playback.Playable(url)
         val pair = streamId?.let { passwords.get(it) }
             ?.let { stored -> stored.password?.let { BroadcastCredentialPair(stored.user, it) } }

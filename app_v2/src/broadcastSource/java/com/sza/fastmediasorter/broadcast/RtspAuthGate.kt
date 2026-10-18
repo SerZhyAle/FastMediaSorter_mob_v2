@@ -14,6 +14,7 @@ import java.net.ServerSocket
 import java.net.Socket
 import java.util.Locale
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.Semaphore
 import kotlin.concurrent.thread
 
 /**
@@ -21,7 +22,9 @@ import kotlin.concurrent.thread
  * only, while a protected broadcast must take an RTSP Digest answer from any of its pairs; so the library listens on
  * an inner port closed by [innerPair], and this gate listens on the advertised one. It checks the first request of a
  * connection against [pairs] (null = unprotected), swaps the answer for the inner Basic pair and passes the bytes
- * through. Tunnelled listeners arrive from loopback like the phone itself, so no address skips the check.
+ * through. A connection keeps the pair that opened it and is closed once [pairs] no longer holds that pair (a
+ * renewed link password). Tunnelled listeners arrive from loopback like the phone itself, so no address skips the
+ * check.
  *
  * RTP is carried inside the RTSP connection only: the library would send UDP to the gate's loopback address, so a
  * `SETUP` asking for UDP gets `461 Unsupported Transport` and the client falls back to TCP.
@@ -31,13 +34,18 @@ class RtspAuthGate(
     private val innerPort: Int,
     private val pairs: () -> List<BroadcastCredentialPair>?,
     private val innerPair: BroadcastCredentialPair,
+    private val maxConnections: Int = MAX_CONCURRENT_CONNECTIONS,
+    private val firstRequestTimeoutMs: Int = FIRST_REQUEST_TIMEOUT_MS,
 ) {
 
     private val nonce = BroadcastDigest.newNonce()
+    private val lock = Any()
     private val open = CopyOnWriteArrayList<Closeable>()
+    private val connectionSlots = Semaphore(maxConnections)
 
     @Volatile
     private var listener: ServerSocket? = null
+    private var stopped = false
 
     /** Binds [publicPort]; false when it is taken, so the caller fails the session as it did for the library. */
     fun start(): Boolean = try {
@@ -45,7 +53,10 @@ class RtspAuthGate(
             reuseAddress = true
             bind(InetSocketAddress(publicPort))
         }
-        listener = socket
+        synchronized(lock) {
+            stopped = false
+            listener = socket
+        }
         thread(name = "rtsp-auth-gate", isDaemon = true) { acceptLoop(socket) }
         true
     } catch (e: IOException) {
@@ -54,10 +65,29 @@ class RtspAuthGate(
     }
 
     fun stop() {
-        listener?.let(::closeQuietly)
-        listener = null
-        open.forEach(::closeQuietly)
-        open.clear()
+        val (server, active) = synchronized(lock) {
+            stopped = true
+            val currentListener = listener
+            listener = null
+            val snapshot = open.toList()
+            open.clear()
+            currentListener to snapshot
+        }
+        server?.let(::closeQuietly)
+        active.forEach(::closeQuietly)
+    }
+
+    private fun track(closeable: Closeable): Boolean {
+        val admitted = synchronized(lock) {
+            if (stopped || listener == null) {
+                false
+            } else {
+                open.add(closeable)
+                true
+            }
+        }
+        if (!admitted) closeQuietly(closeable)
+        return admitted
     }
 
     private fun acceptLoop(socket: ServerSocket) {
@@ -68,25 +98,49 @@ class RtspAuthGate(
                 Timber.d("RtspAuthGate: accept ended - %s", e.message)
                 return
             }
-            thread(name = "rtsp-auth-gate-client", isDaemon = true) { serve(client) }
+            if (!connectionSlots.tryAcquire()) {
+                Timber.w("RtspAuthGate: connection limit (%d) reached, dropping peer", maxConnections)
+                closeQuietly(client)
+            } else if (!track(client)) {
+                connectionSlots.release()
+                return
+            } else {
+                thread(name = "rtsp-auth-gate-client", isDaemon = true) {
+                    try {
+                        serve(client)
+                    } finally {
+                        connectionSlots.release()
+                    }
+                }
+            }
         }
     }
 
+    // Every stream is taken before a worker thread starts and the whole body is guarded: a client that connects and
+    // closes at once must end its own connection, never throw out of a daemon thread and take the process down.
     private fun serve(client: Socket) {
-        open.add(client)
-        val inner = try {
-            Socket(LOOPBACK, innerPort)
-        } catch (e: IOException) {
-            Timber.w("RtspAuthGate: inner server unreachable - %s", e.message)
-            closeQuietly(client)
-            open.remove(client)
-            return
-        }
-        open.add(inner)
-        val clientOut = client.getOutputStream()
-        thread(name = "rtsp-auth-gate-down", isDaemon = true) { pipe(inner.getInputStream(), clientOut, client, inner) }
+        Timber.d("S4258: rtsp gate serves a connection")
+        var inner: Socket? = null
         try {
-            relayRequests(BufferedInputStream(client.getInputStream()), inner.getOutputStream(), clientOut)
+            client.soTimeout = firstRequestTimeoutMs
+            val clientOut = client.getOutputStream()
+            val clientIn = BufferedInputStream(client.getInputStream())
+            val session = Session()
+            var innerOut: OutputStream? = null
+            fun ensureUpstream(): OutputStream {
+                innerOut?.let { return it }
+                client.soTimeout = 0
+                val upstream = Socket(LOOPBACK, innerPort)
+                if (!track(upstream)) throw IOException("gate stopped")
+                inner = upstream
+                val innerIn = upstream.getInputStream()
+                val out = upstream.getOutputStream().also { innerOut = it }
+                thread(name = "rtsp-auth-gate-down", isDaemon = true) {
+                    pipe(innerIn, clientOut, client, upstream, session)
+                }
+                return out
+            }
+            while (relayNext(clientIn, ::ensureUpstream, clientOut, session)) Unit
         } catch (e: IOException) {
             Timber.d("RtspAuthGate: client connection ended - %s", e.message)
         } finally {
@@ -94,52 +148,95 @@ class RtspAuthGate(
         }
     }
 
-    private fun relayRequests(input: BufferedInputStream, innerOut: OutputStream, clientOut: OutputStream) {
-        var authenticated = false
-        while (true) {
-            input.mark(1)
-            val first = input.read()
-            if (first < 0) return
-            input.reset()
-            if (first == INTERLEAVED_MARKER) {
-                copyInterleavedFrame(input, innerOut)
-                continue
-            }
-            val request = RtspRequest.read(input) ?: return
-            val verdict = judge(request, authenticated)
-            if (verdict.reply != null) {
-                synchronized(clientOut) {
-                    clientOut.write(verdict.reply.toByteArray(Charsets.ISO_8859_1))
-                    clientOut.flush()
-                }
-            } else {
-                authenticated = true
-                innerOut.write(request.withAuthorization(BroadcastDigest.basic(innerPair)))
-                innerOut.flush()
-            }
+    /** What one client connection may do: the pair its first accepted request answered with, null until then. */
+    private class Session {
+        @Volatile
+        var pair: BroadcastCredentialPair? = null
+
+        // Touched by the downstream pipe thread only.
+        private var checkedAtNanos = System.nanoTime()
+
+        /** True once the pair that opened this connection is no longer among [allowed] (item BF revocation). */
+        fun revoked(allowed: List<BroadcastCredentialPair>?): Boolean {
+            val held = pair ?: return false
+            return allowed != null && held !in allowed
+        }
+
+        /** [revoked] against a fresh read of [pairs], at most once per interval: the pipe calls it for every packet. */
+        fun revokedThrottled(pairs: () -> List<BroadcastCredentialPair>?): Boolean {
+            val now = System.nanoTime()
+            if (now - checkedAtNanos < REVOCATION_CHECK_NANOS) return false
+            checkedAtNanos = now
+            return revoked(pairs())
         }
     }
 
-    private class Verdict(val reply: String?)
+    /** Relays what the client sent next; false once the connection is over. */
+    private fun relayNext(
+        input: BufferedInputStream,
+        innerOut: () -> OutputStream,
+        clientOut: OutputStream,
+        session: Session,
+    ): Boolean {
+        input.mark(1)
+        val first = input.read()
+        input.reset()
+        return when {
+            first < 0 -> false
+            first == INTERLEAVED_MARKER -> {
+                if (pairs() != null && session.pair == null) return false
+                copyInterleavedFrame(input, innerOut())
+                true
+            }
+            else -> RtspRequest.read(input)?.let { relayRequest(it, innerOut, clientOut, session) } ?: false
+        }
+    }
 
-    private fun judge(request: RtspRequest, authenticated: Boolean): Verdict {
-        Timber.d("S4258: rtsp gate judges %s, authenticated=%b", request.method, authenticated)
+    private fun relayRequest(
+        request: RtspRequest,
+        innerOut: () -> OutputStream,
+        clientOut: OutputStream,
+        session: Session,
+    ): Boolean {
+        val verdict = judge(request, session)
+        if (verdict.reply == null) {
+            val out = innerOut()
+            out.write(request.withAuthorization(BroadcastDigest.basic(innerPair)))
+            out.flush()
+        } else {
+            synchronized(clientOut) {
+                clientOut.write(verdict.reply.toByteArray(Charsets.ISO_8859_1))
+                clientOut.flush()
+            }
+        }
+        return !verdict.closes
+    }
+
+    private class Verdict(val reply: String?, val closes: Boolean = false)
+
+    // The pair that opened a connection is judged again by every later request, because a client that never
+    // re-sends its Authorization (RTSP clients differ) must still lose the session when the pair is revoked.
+    private fun judge(request: RtspRequest, session: Session): Verdict {
         val cseq = request.header("cseq")
         val transport = request.header("transport")
         val wantsUdp = request.method.equals("SETUP", ignoreCase = true) && transport != null &&
             !transport.uppercase(Locale.ROOT).contains(TCP_TRANSPORT)
         val allowed = pairs()
-        val refused = !authenticated && allowed != null &&
-            BroadcastDigest.verify(request.header("authorization"), request.method, allowed) { it == nonce } == null
+        val challenge = Verdict(
+            reply(UNAUTHORIZED, cseq, "${BroadcastDigest.HEADER_CHALLENGE}: " + BroadcastDigest.rtspChallenge(nonce)),
+        )
+        if (allowed != null && session.pair == null) {
+            session.pair = BroadcastDigest.verify(request.header("authorization"), request.method, allowed) {
+                it == nonce
+            }
+            if (session.pair == null) return challenge
+        }
         return when {
-            refused -> Verdict(
-                reply(
-                    UNAUTHORIZED,
-                    cseq,
-                    "${BroadcastDigest.HEADER_CHALLENGE}: " +
-                        BroadcastDigest.rtspChallenge(nonce)
-                )
-            )
+            session.revoked(allowed) -> {
+                Timber.d("S4258: rtsp gate answers a request of a revoked pair")
+                Timber.d("RtspAuthGate: the pair of an open connection was revoked - closing it")
+                Verdict(challenge.reply, closes = true)
+            }
             wantsUdp -> Verdict(reply(UNSUPPORTED_TRANSPORT, cseq, null))
             else -> Verdict(null)
         }
@@ -162,16 +259,23 @@ class RtspAuthGate(
         out.flush()
     }
 
-    private fun pipe(from: InputStream, to: OutputStream, client: Socket, inner: Socket) {
+    // A quiet client sends nothing for long stretches while the stream keeps flowing down this pipe, so the pipe
+    // is where a revoked pair is noticed without waiting for the client's next request.
+    private fun pipe(from: InputStream, to: OutputStream, client: Socket, inner: Socket, session: Session) {
         val buffer = ByteArray(PIPE_BUFFER_BYTES)
         try {
-            while (true) {
-                val read = from.read(buffer)
-                if (read < 0) break
+            var read = from.read(buffer)
+            while (read >= 0) {
+                if (session.revokedThrottled(pairs)) {
+                    Timber.d("S4258: rtsp gate closes a streaming connection after revocation")
+                    Timber.d("RtspAuthGate: the pair of a streaming connection was revoked - closing it")
+                    break
+                }
                 synchronized(to) {
                     to.write(buffer, 0, read)
                     to.flush()
                 }
+                read = from.read(buffer)
             }
         } catch (e: IOException) {
             Timber.d("RtspAuthGate: server side ended - %s", e.message)
@@ -180,11 +284,13 @@ class RtspAuthGate(
         }
     }
 
-    private fun closeBoth(client: Socket, inner: Socket) {
+    private fun closeBoth(client: Socket, inner: Socket?) {
+        synchronized(lock) {
+            open.remove(client)
+            inner?.let(open::remove)
+        }
         closeQuietly(client)
-        closeQuietly(inner)
-        open.remove(client)
-        open.remove(inner)
+        inner?.let(::closeQuietly)
     }
 
     private fun closeQuietly(closeable: Closeable) {
@@ -260,6 +366,9 @@ class RtspAuthGate(
         const val INTERLEAVED_HEADER_BYTES = 4
         const val MAX_HEAD_BYTES = 16 * 1024
         const val PIPE_BUFFER_BYTES = 16 * 1024
+        const val MAX_CONCURRENT_CONNECTIONS = 16
+        const val FIRST_REQUEST_TIMEOUT_MS = 5_000
+        const val REVOCATION_CHECK_NANOS = 250_000_000L
         const val BYTE_MASK = 0xFF
         const val BITS_PER_BYTE = 8
         const val LENGTH_HIGH_INDEX = 2

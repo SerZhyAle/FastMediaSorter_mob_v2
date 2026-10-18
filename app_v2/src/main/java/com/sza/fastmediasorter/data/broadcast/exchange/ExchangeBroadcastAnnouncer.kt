@@ -138,7 +138,6 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
         val revision = credentials.revision.value
         if (descriptor == announced.value && revision == announcedRevision) return
         val verifiers = credentials.verifiers()
-        Timber.d("S4258: announce broadcast with %d verifiers", verifiers.size)
         announced.value = descriptor
         announcedRevision = revision
         producer.announceBroadcast(publication(held, entry, descriptor).copy(verifiers = verifiers))

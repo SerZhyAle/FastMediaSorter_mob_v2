@@ -675,7 +675,11 @@ private fun VideoPlayerManager.streamPlaybackListener(
                 failureClass = StreamFailureClass.classify(error.errorCode, error.httpStatusOrNull()),
                 errorCode = error.errorCode,
                 isRtsp = isRtsp,
+                isPasswordRefusal = BroadcastPlaybackPairs.isPasswordRefusal(error),
             )
+            if (failure.isPasswordRefusal) {
+                Timber.d("S4258: video player surfaces a refused broadcast password without retry")
+            }
             when (val decision = retryPolicy.onFailure(failure)) {
                 is StreamVideoRetryDecision.ReAnchor -> {
                     Timber.w(

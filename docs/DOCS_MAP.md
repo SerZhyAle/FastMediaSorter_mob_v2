@@ -1,5 +1,5 @@
 ---
-layout: doc
+layout: default
 title: Project Documentation Map
 permalink: /docs/DOCS_MAP.html
 ---

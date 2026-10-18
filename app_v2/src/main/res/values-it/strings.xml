@@ -3201,7 +3201,6 @@
     <string name="exif_orientation_rotate_270">Ruotata di 270° in senso orario</string>
     <string name="exif_orientation_unknown">Sconosciuto (%1$d)</string>
     <string name="storage_reach_limited_browse">In questa cartella sono disponibili solo foto, video e audio. Per vedere i documenti, aggiungi di nuovo la cartella e selezionala nella finestra di sistema delle cartelle.</string>
-    <string name="file_count_reach_limited">%1$s - solo foto, video e audio</string>
     <string name="reach_limited_nothing_readable">I documenti non possono essere letti</string>
     <string name="storage_reach_limited_virtual">I documenti e gli altri file su questo dispositivo non sono visibili all\'app. Per aprirli, aggiungi la cartella che ti serve tramite la finestra delle cartelle di sistema.</string>
     <string name="storage_reach_limited_browse_reconnect">In questa cartella sono disponibili solo foto, video e audio. Per vedere i documenti, apri il menu a tre puntini sulla riga della cartella nella schermata principale e scegli Riconnetti risorsa.</string>

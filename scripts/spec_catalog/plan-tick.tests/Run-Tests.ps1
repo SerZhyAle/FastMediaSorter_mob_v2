@@ -291,6 +291,49 @@ try {
     Assert-That -Case 'H' -What 'completion date withdrawn with it' -Condition ($headerReopened -match '\*\*Completed:\*\* -')
     $cases++
 
+    # S4307: skipped phases finish the dependency, while blocked and active phases do not.
+    foreach ($scenario in @(
+        @{ Case = 'M'; Status = '⏭ Skipped'; Finished = 2 },
+        @{ Case = 'N'; Status = '⛔ Blocked'; Finished = 1 },
+        @{ Case = 'O'; Status = '🚧 In Progress'; Finished = 1 }
+    )) {
+        Write-Host "case $($scenario.Case) - Done plus $($scenario.Status)" -ForegroundColor Cyan
+        Reset-Fixture
+        $indexText = [IO.File]::ReadAllText($indexFile).Replace('⬜ Not started', $scenario.Status)
+        [IO.File]::WriteAllText($indexFile, $indexText)
+        $result = Invoke-Tick -Arguments @('-Id', 'S9991', '-Phase', '01', '-Steps', '2,3', '-State', 'Done')
+        $counter = @([IO.File]::ReadAllLines($indexFile) | Where-Object { $_ -match '^\*\*Phases:' })
+        Assert-That -Case $scenario.Case -What 'exit 0' -Condition ($result.exitCode -eq 0) -Detail $result.text
+        Assert-That -Case $scenario.Case -What 'finished counter' -Condition ($counter[0] -eq "**Phases:** $($scenario.Finished) / 2 done") -Detail $counter[0]
+        $cases++
+    }
+
+    Write-Host 'case P - counter suffix survives recomputation' -ForegroundColor Cyan
+    Reset-Fixture
+    $suffix = ' (1 skipped, 1 added) - operator note'
+    $indexText = [IO.File]::ReadAllText($indexFile).Replace('0 / 2 done', "0 / 2 done$suffix").Replace('⬜ Not started', '⏭ Skipped')
+    [IO.File]::WriteAllText($indexFile, $indexText)
+    $result = Invoke-Tick -Arguments @('-Id', 'S9991', '-Phase', '01', '-Steps', '2,3', '-State', 'Done')
+    $counter = @([IO.File]::ReadAllLines($indexFile) | Where-Object { $_ -match '^\*\*Phases:' })
+    Assert-That -Case 'P' -What 'exit 0' -Condition ($result.exitCode -eq 0) -Detail $result.text
+    Assert-That -Case 'P' -What 'counter changes and suffix stays exact' -Condition ($counter[0] -ceq "**Phases:** 2 / 2 done$suffix") -Detail $counter[0]
+    $cases++
+
+    Write-Host 'case Q - ticking a skipped phase keeps the operator label' -ForegroundColor Cyan
+    Reset-Fixture
+    $label = '⏭ Skipped - module removed'
+    [IO.File]::WriteAllText($phaseFile, [IO.File]::ReadAllText($phaseFile).Replace('⬜ Not started', $label))
+    $indexText = [IO.File]::ReadAllText($indexFile).Replace('🚧 In Progress', $label).Replace('⬜ Not started', '✅ Done')
+    [IO.File]::WriteAllText($indexFile, $indexText)
+    $result = Invoke-Tick -Arguments @('-Id', 'S9991', '-Phase', '01', '-Steps', '2,3', '-State', 'Done')
+    $indexText = [IO.File]::ReadAllText($indexFile)
+    Assert-That -Case 'Q' -What 'exit 0' -Condition ($result.exitCode -eq 0) -Detail $result.text
+    Assert-That -Case 'Q' -What 'phase header keeps label and reason' -Condition ([IO.File]::ReadAllText($phaseFile).Contains("**Status:** $label"))
+    $row = @([IO.File]::ReadAllLines($indexFile) | Where-Object { $_ -match '^\| 01 ' })
+    Assert-That -Case 'Q' -What 'index keeps label and updates steps' -Condition ($row[0].Contains("| $label | 3/3 |")) -Detail $row[0]
+    Assert-That -Case 'Q' -What 'updated skipped row counts as finished' -Condition ($indexText.Contains('**Phases:** 2 / 2 done'))
+    $cases++
+
     # ---- compact layout (S2666) ----------------------------------------------
     if (-not $compactCapable) {
         Write-Host "  SKIP S2666 compact shape (4 cases) - the resolved harness has no compact phase resolution" -ForegroundColor DarkGray
@@ -356,5 +399,5 @@ if ($failures.Count -gt 0) {
 }
 
 $skipNote = if ($skipped -gt 0) { ", $skipped case(s) skipped" } else { '' }
-Write-Host "plan-tick.tests: PASS - $cases cases passed$skipNote (A batch, B counters, C reversal, D unknown step, E divergence, F checkbox, G trace, H phase header, I compact tick, J compact isolation, K compact checkbox, L compact index refusal)." -ForegroundColor Green
+Write-Host "plan-tick.tests: PASS - $cases cases passed$skipNote (A batch, B counters, C reversal, D unknown step, E divergence, F checkbox, G trace, H phase header, I compact tick, J compact isolation, K compact checkbox, L compact index refusal, M skipped, N blocked, O in progress, P suffix, Q operator label)." -ForegroundColor Green
 exit 0

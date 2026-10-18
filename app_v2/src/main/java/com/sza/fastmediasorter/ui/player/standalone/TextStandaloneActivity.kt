@@ -296,12 +296,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             onTextScrollUp = { textViewerManager.scrollUp() },
             onTextHome = { textViewerManager.scrollToTop() },
             onTextEnd = { textViewerManager.scrollToBottom() },
-            onShowHelp = {
-                com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.show(
-                    supportFragmentManager,
-                    com.sza.fastmediasorter.ui.common.input.UiSurface.PLAYER
-                )
-            },
+            onShowHelp = { com.sza.fastmediasorter.ui.player.helpers.PlayerHelpEntryManager.open(this) },
         ).handler
     }
 

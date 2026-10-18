@@ -19,10 +19,11 @@ appId: com.sza.fastmediasorter.debug
 #    android:id/button1 left the dialog standing and the role with the previous launcher. The rows
 #    share one id (title_and_subtitle) and their position is not stable - on test phone SM-G996U1
 #    (Android 15, 2026-10-15) the current default sits in row 0 - so the row is picked by the app
-#    label, which is the same brand name in every locale. The system cuts a long label after
-#    "Fast Media Sorter & Orga" and appends an ellipsis in the dialog (measured on the Pixel_9
-#    AVD, API 35), so the match is a prefix pattern; the dialog title starts with "Set", so the
-#    pattern never matches the title.
+#    label, which is the same brand name in every locale. The system cuts the label to
+#    "Fast Media Sorter & Orga" plus an ellipsis in the dialog (measured on the Pixel_9 AVD, API 35,
+#    2026-10-17), so the row is matched by that exact text: the Oracle convention forbids a regex
+#    selector (maestro/WRITING_TESTS.md). The dialog title carries the same cut label inside a longer
+#    sentence, so the exact match never hits the title.
 #  - Question shape: "Make <app> the default home app?" with button1 only; the row step is skipped.
 # Ids are used rather than labels because this dialog is rendered in the DEVICE locale, which is not
 # the app locale the rest of the suite matches against.
@@ -61,10 +62,10 @@ appId: com.sza.fastmediasorter.debug
       - runFlow:
           when:
             visible:
-              text: "Fast Media Sorter.*"
+              text: "Fast Media Sorter & Orga…"
           commands:
             - tapOn:
-                text: "Fast Media Sorter.*"
+                text: "Fast Media Sorter & Orga…"
       - tapOn:
           id: "android:id/button1"
       - waitForAnimationToEnd

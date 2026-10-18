@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.ui.cameracapture.helpers
 
 import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
+import android.hardware.camera2.CameraMetadata
 import android.os.Build
 import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.core.CameraInfo
@@ -41,6 +43,30 @@ class CameraLensEnumerationManager {
     }
 
     /**
+     * S4287: the same set read straight from Camera2. CameraX removes a camera another client holds
+     * from [ProcessCameraProvider.availableCameraInfos], while the camera service describes every camera
+     * whoever has it open - and a live broadcast is exactly such a client. Entries carry no CameraInfo.
+     */
+    fun expand(cameraManager: CameraManager): List<CameraLensEntry> {
+        val ids = runCatching { cameraManager.cameraIdList.toList() }.getOrElse {
+            Timber.w(it, "CameraLensEnumeration: Camera2 enumeration failed")
+            return emptyList()
+        }
+        val entries = mutableListOf<CameraLensEntry>()
+        ids.forEach { logicalId ->
+            val logical = characteristicsOf(cameraManager, logicalId)
+                ?.takeIf(::isBackwardCompatible) ?: return@forEach
+            entries += camera2EntryOf(logical, logicalId, null, logical)
+            physicalIdsOf(logical).forEach { physicalId ->
+                characteristicsOf(cameraManager, physicalId)?.let { physical ->
+                    entries += camera2EntryOf(logical, logicalId, physicalId, physical)
+                }
+            }
+        }
+        return withEquivalents(entries.sortedWith(lensOrder))
+    }
+
+    /**
      * S1261 (defect D1): the entry a fresh session should bind - the MAIN back lens, the one whose
      * equivalent multiplier is closest to 1 (tie-breaks: has flash, then logical over physical).
      * The list is sorted widest-first, so "first back" used to open the screen on the ultra-wide
@@ -58,8 +84,7 @@ class CameraLensEnumerationManager {
         ) ?: 0
     }
 
-    private fun hasFlash(entry: CameraLensEntry): Boolean =
-        runCatching { entry.cameraInfo.hasFlashUnit() }.getOrDefault(false)
+    private fun hasFlash(entry: CameraLensEntry): Boolean = entry.hasFlashUnit
 
     /**
      * S1261: fills [CameraLensEntry.equivalentMultiplier] once the whole set is known - the
@@ -174,7 +199,65 @@ class CameraLensEnumerationManager {
         // some firmwares - and this floor (0.57 on the S25 FE) is the whole point of the ticket.
         parentLogicalMinZoom = runCatching { bindInfo.zoomState.value?.minZoomRatio }.getOrNull()
             ?: zoomFloorOf(bindInfo) ?: 0f,
+        hasFlashUnit = runCatching { bindInfo.hasFlashUnit() }.getOrDefault(false),
     )
+
+    /** The Camera2 twin of [entryOf]: [logical] plays the bind camera, [lens] the described lens. */
+    private fun camera2EntryOf(
+        logical: CameraCharacteristics,
+        logicalId: String,
+        physicalId: String?,
+        lens: CameraCharacteristics,
+    ): CameraLensEntry {
+        val logicalFloor = zoomFloorOf(logical)
+        return CameraLensEntry(
+            cameraInfo = null,
+            logicalCameraId = logicalId,
+            physicalCameraId = physicalId,
+            lensFacing = facingOf(lens),
+            focalLengthMm = lens.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)?.firstOrNull() ?: 0f,
+            // Same rule as the CameraX source: only a logical camera has a zoom range of its own.
+            minZoomRatio = logicalFloor.takeIf { physicalId == null } ?: CameraRuntimeCapabilities.DEFAULT_ZOOM,
+            minFocusDistanceDiopters = lens.get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE) ?: 0f,
+            sensorWidthMm = lens.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE)?.width ?: 0f,
+            parentLogicalMinZoom = logicalFloor ?: 0f,
+            hasFlashUnit = logical.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true,
+        )
+    }
+
+    /**
+     * CameraX names front and back with Camera2's own values; its external constant is opt-in API, so
+     * any other facing keeps the raw Camera2 value, which is the number CameraX reports for it.
+     */
+    private fun facingOf(lens: CameraCharacteristics): Int {
+        val facing = lens.get(CameraCharacteristics.LENS_FACING)
+        return when (facing) {
+            CameraMetadata.LENS_FACING_FRONT -> CameraSelector.LENS_FACING_FRONT
+            CameraMetadata.LENS_FACING_BACK, null -> CameraSelector.LENS_FACING_BACK
+            else -> facing
+        }
+    }
+
+    /** The cameras CameraX admits: a depth-only or otherwise non-standard camera opens nothing to stream. */
+    private fun isBackwardCompatible(characteristics: CameraCharacteristics): Boolean =
+        characteristics.get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES)
+            ?.contains(CameraMetadata.REQUEST_AVAILABLE_CAPABILITIES_BACKWARD_COMPATIBLE) == true
+
+    private fun physicalIdsOf(logical: CameraCharacteristics): Set<String> {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return emptySet()
+        return logical.physicalCameraIds
+    }
+
+    private fun characteristicsOf(cameraManager: CameraManager, id: String): CameraCharacteristics? =
+        runCatching { cameraManager.getCameraCharacteristics(id) }.getOrElse {
+            Timber.w(it, "CameraLensEnumeration: Camera2 characteristics of %s unreadable", id)
+            null
+        }
+
+    private fun zoomFloorOf(characteristics: CameraCharacteristics): Float? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
+        return characteristics.get(CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE)?.lower
+    }
 
     /** S1261: the logical camera's declared zoom-ratio floor straight from Camera2 (API 30+). */
     private fun zoomFloorOf(info: CameraInfo): Float? {

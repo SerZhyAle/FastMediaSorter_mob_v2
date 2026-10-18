@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.security.e2e
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -62,6 +63,28 @@ class E2eRecipientsTest {
         assertTrue(E2eRecipients.trusts(trusted, "dev-0", keys[0].publicKey))
         assertFalse(E2eRecipients.trusts(trusted, "dev-0", keys[1].publicKey))
         assertFalse(E2eRecipients.trusts(trusted, "dev-1", keys[1].publicKey))
+    }
+
+    @Test
+    fun `keyOf changes when a recipient or sender key rotates, and ignores recipient order`() {
+        val dev0Old = E2eRecipient("dev-0", keys[0].publicKey)
+        val dev0New = E2eRecipient("dev-0", keys[1].publicKey)
+        val dev1 = E2eRecipient("dev-1", keys[2].publicKey)
+        val selfOld = E2eSelf(SELF, keys[3])
+        val selfNew = E2eSelf(SELF, keys[4])
+
+        assertNotEquals(E2eRecipients.keyOf(listOf(dev0Old, dev1)), E2eRecipients.keyOf(listOf(dev0New, dev1)))
+        assertEquals(E2eRecipients.keyOf(listOf(dev0Old, dev1)), E2eRecipients.keyOf(listOf(dev1, dev0Old)))
+        assertEquals(E2eRecipients.keyOf(listOf(dev0Old, dev0New)), E2eRecipients.keyOf(listOf(dev0New, dev0Old)))
+        assertNotEquals(
+            E2eRecipients.keyOf(selfOld, listOf(dev0Old, dev1)),
+            E2eRecipients.keyOf(selfNew, listOf(dev0Old, dev1)),
+        )
+        assertEquals(
+            E2eRecipients.keyOf(selfOld, listOf(dev0Old, dev1)),
+            E2eRecipients.keyOf(selfOld, listOf(dev1, dev0Old)),
+        )
+        assertEquals("", E2eRecipients.keyOf(null, emptyList()))
     }
 
     private companion object {

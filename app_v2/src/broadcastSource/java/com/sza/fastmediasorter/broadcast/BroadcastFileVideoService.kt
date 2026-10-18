@@ -14,7 +14,9 @@ import android.provider.OpenableColumns
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.pedro.common.ConnectChecker
-import com.pedro.rtspserver.RtspServerFromFile
+import com.pedro.encoder.input.sources.audio.AudioFileSource
+import com.pedro.encoder.input.sources.audio.NoAudioSource
+import com.pedro.rtspserver.RtspServerStream
 import com.pedro.rtspserver.server.ClientListener
 import com.pedro.rtspserver.server.IpType
 import com.pedro.rtspserver.server.ServerClient
@@ -43,11 +45,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 /**
- * S4234: broadcasts a stored video file as the phone's ordinary RTSP session. The library's
- * [RtspServerFromFile] decodes the file and re-encodes it into the same server a camera session
- * uses, so the endpoint, the descriptor and the relay tap are the ones every receiver already
- * knows (LIVE-BROADCAST 0.21 item N: a source is not a kind). The end of the file ends the
- * broadcast: the decoders report it finished, the service takes itself off the air.
+ * S4234: broadcasts a stored video file as the phone's ordinary RTSP session. The file is decoded
+ * and re-encoded into the same server a camera session uses, so the endpoint, the descriptor and
+ * the relay tap are the ones every receiver already knows (LIVE-BROADCAST 0.21 item N: a source is
+ * not a kind). The video track is decoded by [BroadcastFileVideoSource], not by the library's file
+ * decoder, which drops most frames of a file with B-frames (S4300); the audio track goes through
+ * the library's [AudioFileSource]. The end of the video track ends the broadcast.
  */
 @Suppress("MagicNumber", "TooManyFunctions")
 @AndroidEntryPoint
@@ -59,6 +62,7 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
     @Inject
     lateinit var credentialRegistry: BroadcastCredentialRegistry
 
+    @Volatile
     private var rtspGate: RtspGatedPort? = null
 
     @Inject
@@ -67,12 +71,13 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     @Volatile
-    private var fileServer: RtspServerFromFile? = null
+    private var fileServer: RtspServerStream? = null
 
     @Volatile
     private var relayTap: RelayTapRecordController? = null
 
     private val isStreaming = AtomicBoolean(false)
+    private val stateLock = Any()
 
     // Written before the session opens on the IO scope, read by the descriptor builder.
     @Volatile
@@ -146,14 +151,15 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
             val gated = RtspGatedPort(config.rtspPort, credentialRegistry)
             rtspGate?.close()
             rtspGate = gated
-            val server = RtspServerFromFile(
-                this,
-                this,
-                gated.innerPort,
-                { Timber.d("BroadcastFileVideoService: video decoder finished") },
-                { onFileDecoded() },
-            )
-            val streamClient = server.streamClient
+            val video = BroadcastFileVideoSource(this, uri) { onFileDecoded() }
+            if (!video.open()) {
+                video.release()
+                failOpen("The file's video track did not prepare")
+                return
+            }
+            val audio = if (currentMode == BroadcastMode.VIDEO_ONLY) NoAudioSource() else AudioFileSource(this, uri)
+            val server = RtspServerStream(this, gated.innerPort, this, video, audio)
+            val streamClient = server.getStreamClient()
             gated.closeLibrary(streamClient)
             gated.open()
             // The server announces an audio track in the SDP unless told otherwise.
@@ -165,18 +171,15 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
             val tap = RelayTapRecordController(relayFeed, hasAudio = currentMode != BroadcastMode.VIDEO_ONLY)
             server.setRecordController(tap)
             relayTap = tap
-
-            if (!server.prepareVideo(this, uri)) {
-                failOpen("The file's video track did not prepare")
-                return
-            }
-            if (currentMode != BroadcastMode.VIDEO_ONLY && !server.prepareAudio(this, uri, config.bitRateBps)) {
-                failOpen("The file's audio track did not prepare")
-                return
-            }
-            // Published before startStream: a stop landing after this line finds the server in the
-            // field, and one landing before it is caught by the recheck below.
+            // Published before the prepares: a failure below releases the sources through it, a stop
+            // landing after this line finds the server in the field, one before it the recheck below.
             fileServer = server
+
+            val prepareFailure = prepareEncoders(server, video, tracks, config)
+            if (prepareFailure != null) {
+                failOpen(prepareFailure)
+                return
+            }
             if (!isStreaming.get()) {
                 discardStoppedServer(server)
                 return
@@ -184,7 +187,7 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
             server.startStream()
 
             val endpoint = publishableEndpoint(streamClient.getEndPointConnection(), lanHost)
-            _state.value = BroadcastState.Live(
+            val live = BroadcastState.Live(
                 descriptor = liveDescriptor(endpoint, resolveDisplayName(uri), config),
                 startedAtElapsedRealtimeMs = SystemClock.elapsedRealtime(),
                 cameraEnabled = false,
@@ -192,6 +195,18 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
                 activeLensId = null,
                 source = BROADCAST_SOURCE_FILE,
             )
+            val published = synchronized(stateLock) {
+                if (isStreaming.get()) {
+                    _state.value = live
+                    true
+                } else {
+                    false
+                }
+            }
+            if (!published) {
+                discardStoppedServer(server)
+                return
+            }
             Timber.d("BroadcastFileVideoService: RTSP file streaming started at %s", endpoint)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
@@ -207,7 +222,42 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
         }
     }
 
-    /** The library reports the file played out on a decoder thread; the ending mirrors a natural stop. */
+    /**
+     * Sizes the encoders from the file's own tracks. Returns why a track did not prepare, or null.
+     * The audio source refuses a rate or channel layout other than the file's by throwing.
+     * A file with no audio track still prepares the audio encoder, from the session config: the library
+     * starts it unconditionally and throws when it was never prepared. [NoAudioSource] feeds it nothing.
+     */
+    private fun prepareEncoders(
+        server: RtspServerStream,
+        video: BroadcastFileVideoSource,
+        tracks: FileTracks,
+        config: BroadcastSessionConfig,
+    ): String? {
+        val videoReady = preparesWithoutRefusal {
+            server.prepareVideo(video.trackWidth, video.trackHeight, FILE_VIDEO_BITRATE_BPS, video.trackFps)
+        }
+        val audioReady = videoReady && preparesWithoutRefusal {
+            val silent = currentMode == BroadcastMode.VIDEO_ONLY
+            val sampleRateHz = if (silent) config.sampleRateHz else tracks.sampleRateHz
+            val channelCount = if (silent) config.channelCount else tracks.channelCount
+            server.prepareAudio(sampleRateHz, channelCount > 1, config.bitRateBps)
+        }
+        return when {
+            !videoReady -> "The file's video track did not prepare"
+            !audioReady -> "The file's audio track did not prepare"
+            else -> null
+        }
+    }
+
+    private inline fun preparesWithoutRefusal(prepare: () -> Boolean): Boolean = try {
+        prepare()
+    } catch (e: IllegalArgumentException) {
+        Timber.w(e, "BroadcastFileVideoService: encoder refused the file's track")
+        false
+    }
+
+    /** The video source reports the track played out on its pump thread; the ending mirrors a natural stop. */
     private fun onFileDecoded() {
         Timber.d("S4234: video file decoded to its end, broadcast over")
         serviceScope.launch {
@@ -277,18 +327,15 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
         val extractor = MediaExtractor()
         try {
             extractor.setDataSource(this, uri, null)
-            var hasVideo = false
-            var hasAudio = false
+            var tracks = FileTracks(hasVideo = false, hasAudio = false)
             for (index in 0 until extractor.trackCount) {
-                val kind = extractor.getTrackFormat(index)
-                    .getString(MediaFormat.KEY_MIME)
-                    ?.substringBefore('/')
-                when (kind) {
-                    "video" -> hasVideo = true
-                    "audio" -> hasAudio = true
+                val format = extractor.getTrackFormat(index)
+                when (format.getString(MediaFormat.KEY_MIME)?.substringBefore('/')) {
+                    "video" -> tracks = tracks.copy(hasVideo = true)
+                    "audio" -> if (!tracks.hasAudio) tracks = tracks.withAudio(format)
                 }
             }
-            return FileTracks(hasVideo, hasAudio)
+            return tracks
         } catch (e: Exception) {
             Timber.w(e, "BroadcastFileVideoService: tracks of %s unreadable", uri)
             return FileTracks(hasVideo = false, hasAudio = false)
@@ -297,7 +344,19 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
         }
     }
 
-    private data class FileTracks(val hasVideo: Boolean, val hasAudio: Boolean)
+    private data class FileTracks(
+        val hasVideo: Boolean,
+        val hasAudio: Boolean,
+        val sampleRateHz: Int = 0,
+        val channelCount: Int = 0,
+    ) {
+        // The first audio track is the one the library's audio source decodes.
+        fun withAudio(format: MediaFormat) = copy(
+            hasAudio = true,
+            sampleRateHz = format.getInteger(MediaFormat.KEY_SAMPLE_RATE),
+            channelCount = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT),
+        )
+    }
 
     private suspend fun readSessionConfig(): BroadcastSessionConfig {
         val settings = settingsRepository.getSettings().first()
@@ -342,9 +401,12 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
     }
 
     private fun releaseServer() {
+        isStreaming.set(false)
         val server = fileServer
-        if (server != null && server.isStreaming) {
-            server.stopStream()
+        if (server != null) {
+            if (server.isStreaming) server.stopStream()
+            // Ends the video pump and the audio decoder, and closes both extractors.
+            server.release()
         }
         fileServer = null
         relayTap?.release()
@@ -352,7 +414,7 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
     }
 
     /** A server the stop path already took is left alone: the field may by now hold a newer session's. */
-    private fun discardStoppedServer(server: RtspServerFromFile) {
+    private fun discardStoppedServer(server: RtspServerStream) {
         if (fileServer === server) releaseServer()
     }
 
@@ -360,7 +422,9 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
         releaseServer()
         rtspGate?.close()
         rtspGate = null
-        _state.value = BroadcastState.Idle
+        synchronized(stateLock) {
+            _state.value = BroadcastState.Idle
+        }
         _listenerCount.value = 0
     }
 
@@ -390,7 +454,7 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
     // A fresh listener joins the live edge: the re-encoded stream carries keyframes on its schedule,
     // and requestKeyFrame is what turns the wait into one keyframe interval at most.
     override fun onClientConnected(client: ServerClient) {
-        fileServer?.requestKeyFrame()
+        fileServer?.requestKeyframe()
         publishListenerCount()
     }
 
@@ -401,7 +465,7 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
     override fun onClientNewBitrate(bitrate: Long, client: ServerClient) = Unit
 
     private fun publishListenerCount() {
-        _listenerCount.value = fileServer?.streamClient?.getNumClients() ?: 0
+        _listenerCount.value = fileServer?.getStreamClient()?.getNumClients() ?: 0
     }
 
     override fun onAuthError() {
@@ -414,6 +478,9 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
 
     companion object {
         const val ACTION_STOP = "com.sza.fastmediasorter.broadcast.action.FILE_VIDEO_STOP"
+
+        /** The bitrate the library's file server defaulted to, kept when S4300 moved the session off it. */
+        private const val FILE_VIDEO_BITRATE_BPS = 1_228_800
 
         private val _state = MutableStateFlow<BroadcastState>(BroadcastState.Idle)
         val state: StateFlow<BroadcastState> = _state.asStateFlow()

@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.core.clipboard.ExchangeClipboardFileNames
 import com.sza.fastmediasorter.core.clipboard.ExchangeClipboardFiles
 import com.sza.fastmediasorter.core.clipboard.ExchangeClipboardPlacer
 import com.sza.fastmediasorter.core.clipboard.ExchangeClipboardReader
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardEntryFailure
@@ -38,10 +39,14 @@ import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
@@ -65,6 +70,7 @@ class ExchangeClipboardTransferWorker @AssistedInject constructor(
     private val getClipboard: GetClipboardFromServerUseCase,
     private val files: ExchangeClipboardFiles,
     private val placer: ExchangeClipboardPlacer,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : CoroutineWorker(context, params) {
 
     private val sending: Boolean get() = inputData.getString(KEY_DIRECTION) == DIRECTION_SEND
@@ -153,7 +159,7 @@ class ExchangeClipboardTransferWorker @AssistedInject constructor(
         failures: List<ExchangeClipboardEntryFailure> = emptyList(),
     ) = Report(outcome, context.getString(headline), detailOf(failures))
 
-    private fun prepareSource(owned: MutableList<File>): Prepared? {
+    private suspend fun prepareSource(owned: MutableList<File>): Prepared? {
         val kind = ExchangeClipboardKind.fromWire(inputData.getString(KEY_KIND))
         val staged = inputData.getString(KEY_STAGED_PATH)?.let(::File)?.takeIf { it.length() > 0 }
         val uri = inputData.getString(KEY_URI)?.let(Uri::parse)
@@ -169,7 +175,7 @@ class ExchangeClipboardTransferWorker @AssistedInject constructor(
     }
 
     // 22 item BW: the size goes out before any byte, so a source that cannot state it is copied first.
-    private fun preparedContent(
+    private suspend fun preparedContent(
         kind: ExchangeClipboardKind,
         uri: Uri,
         mimeType: String,
@@ -183,7 +189,7 @@ class ExchangeClipboardTransferWorker @AssistedInject constructor(
             else -> null
         }
         val size = declaredSize?.takeIf { it > 0 }
-        val copy = if (size == null) stageCopy(uri).also(owned::add) else null
+        val copy = if (size == null) stageCopy(uri, owned) else null
         val length = size ?: copy?.length() ?: 0L
         if (length <= 0L) return null
         val meta = ExchangeClipboardMeta(kind, length, mimeType, name)
@@ -205,9 +211,35 @@ class ExchangeClipboardTransferWorker @AssistedInject constructor(
         null to null
     }
 
-    private fun stageCopy(uri: Uri): File {
+    // Ownership is registered before the first byte: doWork's finally deletes only what this run owns,
+    // so a copy that fails part-way must already be owned or its orphan stays in cache/outgoing. The
+    // chunk loop checks cancellation, so a replaced send stops before EOF instead of staging on to it.
+    private suspend fun stageCopy(uri: Uri, owned: MutableList<File>): File {
         val copy = files.newOutgoingFile(STAGED_EXTENSION)
-        openUri(uri).use { input -> copy.outputStream().use { input.copyTo(it) } }
+        owned += copy
+        try {
+            withContext(ioDispatcher) {
+                openUri(uri).use { input ->
+                    copy.outputStream().use { output ->
+                        val buffer = ByteArray(COPY_BUFFER_BYTES)
+                        while (true) {
+                            currentCoroutineContext().ensureActive()
+                            val read = input.read(buffer)
+                            if (read < 0) break
+                            output.write(buffer, 0, read)
+                        }
+                        currentCoroutineContext().ensureActive()
+                    }
+                }
+            }
+        } catch (e: IOException) {
+            copy.delete()
+            currentCoroutineContext().ensureActive()
+            throw e
+        } catch (e: CancellationException) {
+            copy.delete()
+            throw e
+        }
         return copy
     }
 
@@ -365,6 +397,7 @@ class ExchangeClipboardTransferWorker @AssistedInject constructor(
         private const val PROGRESS_MAX = 1000
         private const val MAX_DETAIL_CHARS = 4000
         private const val STAGED_EXTENSION = "part"
+        private const val COPY_BUFFER_BYTES = 64 * 1024
         private val DESCRIBE_COLUMNS = arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE)
     }
 }

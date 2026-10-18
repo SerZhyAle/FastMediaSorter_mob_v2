@@ -316,12 +316,7 @@ class AudioStandaloneActivity :
             onNextFile = { if (!streamMode) viewModel.pageNext() },
             onPreviousFile = { if (!streamMode) viewModel.pagePrevious() },
             onToggleSlideshow = { if (!streamMode) viewModel.toggleSlideshow() },
-            onShowHelp = {
-                com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.show(
-                    supportFragmentManager,
-                    com.sza.fastmediasorter.ui.common.input.UiSurface.PLAYER
-                )
-            },
+            onShowHelp = { com.sza.fastmediasorter.ui.player.helpers.PlayerHelpEntryManager.open(this) },
         ).handler
     }
 

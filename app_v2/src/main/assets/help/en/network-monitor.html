@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Network Monitor</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Network Monitor</span>
+</nav>
+<header class="hero">
+<h1>Network Monitor</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">A live view of your connections: Wi-Fi, mobile network, Bluetooth and satellites, with signal graphs and the details of the active link. It also holds checks you can run, such as speed, ping and a scan of your local network, and keeps a history of what you measured.</p>
+<h2>In this order</h2>
+<ol class="order">
+<li>Start on the summary. The card at the top <a class="ref" href="#active-connection">1</a> says what you are connected to and whether the internet works; below it are your local address <a class="ref" href="#local-ip">2</a>, your external address <a class="ref" href="#external-ip">3</a> and the speed right now <a class="ref" href="#current-speed">4</a>.</li>
+<li>Each tile <a class="ref" href="#tile-wifi">5</a> opens one section. The line on a tile says in words whether the section works on this device, needs a permission, or has nothing to show, so you know before you open it.</li>
+<li>Wi-Fi <a class="ref" href="#wifi-radio">13</a>, mobile network <a class="ref" href="#mobile-sims">18</a> and Bluetooth <a class="ref" href="#bt-radio">20</a> show what you are connected to, with a signal graph. Satellites <a class="ref" href="#gnss-satellites">23</a> shows how many satellites the phone sees and where it thinks it is.</li>
+<li>Internet <a class="ref" href="#internet-path">27</a> draws the path from the phone to the internet and the traffic now. Pick what to check <a class="ref" href="#internet-target">29</a>, then check a resource, scan the local network, look up the external address or measure the speed. A notice <a class="ref" href="#notice-continue">50</a> may come first.</li>
+<li>Tools <a class="ref" href="#tools-host">35</a> pings a host, traces its route and scans a range of addresses. Resource speed <a class="ref" href="#speed-target">42</a> measures the speed to one of your resources.</li>
+<li>Every check you run is kept in History <a class="ref" href="#history-list">45</a>. Export it <a class="ref" href="#history-export">46</a> to send the list to someone, or clear it <a class="ref" href="#history-clear">47</a>.</li>
+<li>If the screen says that Network Monitor is off, press <a class="ref" href="#off-open-settings">49</a> to open Settings and turn it on.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Summary</h3>
+<details class="el" id="active-connection">
+<summary><span class="mk">1</span><span><span class="name">Active connection</span><span class="one">Tells you what you are connected to and whether it reaches the internet.</span></span></summary>
+<div class="full">
+<p>The headline reads like Wi-Fi - MyNetwork - Internet works. The last part says whether the internet works, whether the network wants you to sign in, whether you are connected without internet, or whether you are offline. With nothing connected the card says so and suggests turning on Wi-Fi or mobile data.</p>
+<p>The readings are refreshed about once a second while this screen is open.</p>
+</div>
+</details>
+<details class="el" id="local-ip">
+<summary><span class="mk">2</span><span><span class="name">Local IP</span><span class="one">The address of your phone inside the network you are on.</span></span></summary>
+<div class="full">
+<p>Tap the row to copy the address. The row is shown only while something is connected. If the phone has no address yet, it says Unknown.</p>
+</div>
+</details>
+<details class="el" id="external-ip">
+<summary><span class="mk">3</span><span><span class="name">External IP</span><span class="one">The address the internet sees for you, shown only when you ask.</span></span></summary>
+<div class="full">
+<p>It stays hidden until you tap the row, because finding it means asking a public service on the internet. The row then says Asking.. and shows the address; tap it again to copy it. The address is kept only while the app runs and is never written to the history.</p>
+<p>The same lookup is under Internet, where it comes with a notice first.</p>
+</div>
+</details>
+<details class="el" id="current-speed">
+<summary><span class="mk">4</span><span><span class="name">Current speed</span><span class="one">How much data is flowing to and from this phone right now.</span></span></summary>
+<div class="full">
+<p>Two figures: incoming with a down arrow and outgoing with an up arrow, counted for the whole phone, not just this app. It is a live reading, not a speed test; the graph is in the Internet section. The row is hidden while nothing is connected.</p>
+</div>
+</details>
+<details class="el" id="tile-wifi">
+<summary><span class="mk">5</span><span><span class="name">Wi-Fi</span><span class="one">Opens the Wi-Fi section.</span></span></summary>
+<div class="full">
+<p>The tile shows the network name and the link speed when the phone knows them. Its status line says Available, or why not: Permission not granted, Nothing connected right now, or No such hardware on this device. Before the first reading it says Open to check.</p>
+</div>
+</details>
+<details class="el" id="tile-mobile">
+<summary><span class="mk">6</span><span><span class="name">Mobile</span><span class="one">Opens the mobile network section.</span></span></summary>
+<div class="full">
+<p>The tile shows the name of the operator whose SIM is used for data. The status line works as on every tile.</p>
+</div>
+</details>
+<details class="el" id="tile-bluetooth">
+<summary><span class="mk">7</span><span><span class="name">Bluetooth</span><span class="one">Opens the Bluetooth section.</span></span></summary>
+<div class="full">
+<p>The tile shows how many devices are connected right now, for example Connected now: 2.</p>
+</div>
+</details>
+<details class="el" id="tile-satellites">
+<summary><span class="mk">8</span><span><span class="name">Satellites</span><span class="one">Opens the satellites section.</span></span></summary>
+<div class="full">
+<p>This tile uses the location receiver of the phone. If location is switched off in the system settings, the status line says so: Location is switched off in system settings.</p>
+</div>
+</details>
+<details class="el" id="tile-internet">
+<summary><span class="mk">9</span><span><span class="name">Internet</span><span class="one">Opens the Internet section with the path, the traffic and the checks.</span></span></summary>
+<div class="full">
+<p>Once you have looked up your external address in this session, the tile shows it.</p>
+</div>
+</details>
+<details class="el" id="tile-history">
+<summary><span class="mk">10</span><span><span class="name">History</span><span class="one">Opens the list of the measurements you ran.</span></span></summary>
+<div class="full">
+<p>Checks you start from Internet, Tools and Resource speed end up here.</p>
+</div>
+</details>
+<details class="el" id="tile-tools">
+<summary><span class="mk">11</span><span><span class="name">Tools</span><span class="one">Opens ping, traceroute and the subnet scan.</span></span></summary>
+<div class="full">
+<p>These are for people who need to check a particular host or look at a local network.</p>
+</div>
+</details>
+<details class="el" id="tile-resource-speed">
+<summary><span class="mk">12</span><span><span class="name">Resource Speed</span><span class="one">Opens the speed test for one of your resources.</span></span></summary>
+<div class="full">
+<p>It measures how fast files move to and from a network or cloud resource you added to the app.</p>
+</div>
+</details>
+<h3>Wi-Fi, mobile network and Bluetooth</h3>
+<details class="el" id="wifi-radio">
+<summary><span class="mk">13</span><span><span class="name">Wi-Fi radio</span><span class="one">Turns the Wi-Fi radio on or off.</span></span></summary>
+<div class="full">
+<p>Android 10 and later usually do not let an app switch Wi-Fi by itself. When you tap the switch, the app tries, and if the system refuses it opens the system Wi-Fi panel instead; the switch moves when the panel changes the state. Where the device allows no switching at all, the switch is grayed out with a short explanation. If the state cannot be read it says State unknown.</p>
+<p>Tap the section heading to open the system Wi-Fi settings.</p>
+</div>
+</details>
+<details class="el" id="wifi-network">
+<summary><span class="mk">14</span><span><span class="name">Network</span><span class="one">The network you are connected to, its frequency, link speed and Wi-Fi standard.</span></span></summary>
+<div class="full">
+<p>The network name needs the precise location permission, because Android treats a Wi-Fi name as location data. Without it that row says Permission not granted. Tap to grant it, or Permission is blocked. Tap to open app settings, and the rest of the rows still work. When nothing is connected, the block is replaced by the reason.</p>
+</div>
+</details>
+<details class="el" id="wifi-hotspot">
+<summary><span class="mk">15</span><span><span class="name">Hotspot</span><span class="one">Shows whether your phone is sharing its connection as a hotspot.</span></span></summary>
+<div class="full">
+<p>It reads Hotspot: On, Off or Not determined. Tap it to open the system hotspot settings. The row is hidden when the phone cannot tell.</p>
+</div>
+</details>
+<details class="el" id="wifi-signal-chart">
+<summary><span class="mk">16</span><span><span class="name">Signal</span><span class="one">A graph of the Wi-Fi signal strength over the last minutes.</span></span></summary>
+<div class="full">
+<p>One reading a second, in dBm; a value closer to 0 is a stronger signal. Under the graph you see now, lowest, highest and the trend: rising, falling or steady. Until the first readings arrive it says Collecting readings.. and the graph stays empty. It needs the precise location permission.</p>
+<p>Tap the graph to restart it and begin collecting from now. A screen reader announces the restart.</p>
+</div>
+</details>
+<details class="el" id="link-details">
+<summary><span class="mk">17</span><span><span class="name">Link details</span><span class="one">The technical details of the active connection.</span></span></summary>
+<div class="full">
+<p>Interface, IPv4 and IPv6 addresses, DNS servers, gateway, whether there is a default route, a proxy and the bandwidth estimates for incoming and outgoing data. A missing value reads Unknown. Handy when you need to tell a support person what your network looks like.</p>
+</div>
+</details>
+<details class="el" id="mobile-sims">
+<summary><span class="mk">18</span><span><span class="name">SIM cards</span><span class="one">How many modems are active and which operator each SIM belongs to.</span></span></summary>
+<div class="full">
+<p>The number of active modems needs no permission. The SIM rows show the operator of SIM 1 and SIM 2 and mark the one preferred for data; they need the phone permission, and without it the section says Permission not granted. Tap to grant it. Each SIM gets its own signal graph that you can restart by tapping it.</p>
+</div>
+</details>
+<details class="el" id="mobile-open-system">
+<summary><span class="mk">19</span><span><span class="name">Open system network settings</span><span class="one">Opens the system screen where mobile data and SIMs are controlled.</span></span></summary>
+<div class="full">
+<p>Android does not let an app switch mobile data or choose a SIM, and a note on the screen says so. This button takes you to the system network settings, where you can.</p>
+</div>
+</details>
+<details class="el" id="bt-radio">
+<summary><span class="mk">20</span><span><span class="name">Bluetooth radio</span><span class="one">Turns the Bluetooth radio on or off.</span></span></summary>
+<div class="full">
+<p>It works like the Wi-Fi switch: the app tries, and if the system refuses it opens the system Bluetooth settings. Tap the section heading to open them directly. The Adapter row says On, Off or Not on this device.</p>
+</div>
+</details>
+<details class="el" id="bt-devices">
+<summary><span class="mk">21</span><span><span class="name">Connected now</span><span class="one">Lists the devices connected now and the ones only paired.</span></span></summary>
+<div class="full">
+<p>Two lists: Connected now and Paired, not connected, each with a note when it is empty. Reading them needs the Bluetooth permission (Nearby devices on Android 12 and later); without it the lists say Permission not granted, and a tap asks for it.</p>
+</div>
+</details>
+<details class="el" id="bt-picker">
+<summary><span class="mk">22</span><span><span class="name">Chart a connected device</span><span class="one">Chooses a connected device to draw its signal graph.</span></span></summary>
+<div class="full">
+<p>The list offers the devices connected now. Once you pick one, a Device signal graph appears and fills in once a second; tap the graph to restart it. With no connected device the field says there is nothing to chart.</p>
+</div>
+</details>
+<h3>Satellites and Internet</h3>
+<details class="el" id="gnss-satellites">
+<summary><span class="mk">23</span><span><span class="name">Satellites in view</span><span class="one">How many satellites the phone sees, and how many it uses to fix its position.</span></span></summary>
+<div class="full">
+<p>Below the two counts is a line for each satellite: the system and number, the signal strength in dB-Hz, and whether it is counted in the position. A message says Searching for satellites.. until the first ones are found. A signal strength graph follows; tap it to restart.</p>
+<p>This section needs the precise location permission and location switched on. Tapping the heading or either count opens the system location settings.</p>
+</div>
+</details>
+<details class="el" id="gnss-position">
+<summary><span class="mk">24</span><span><span class="name">Position</span><span class="one">Your coordinates, how accurate they are and when they were fixed.</span></span></summary>
+<div class="full">
+<p>Latitude and longitude, the accuracy (for example ±5 m) and the time of the fix. Without a fix, or without the permission, the block gives the reason instead. The coordinates stay on the screen and are not sent anywhere.</p>
+</div>
+</details>
+<details class="el" id="gnss-record">
+<summary><span class="mk">25</span><span><span class="name">Record the track on this device</span><span class="one">Records the path you move along while this screen is open.</span></span></summary>
+<div class="full">
+<p>The track stays on this device and is written only while the screen is open. Nothing is sent anywhere. While it records, a line counts the recorded points.</p>
+</div>
+</details>
+<details class="el" id="gnss-share">
+<summary><span class="mk">26</span><span><span class="name">Share the track file</span><span class="one">Sends the recorded track file to another app.</span></span></summary>
+<div class="full">
+<p>The button appears once there is a track file. It opens the system share sheet with a CSV file. If a newer recording has replaced the file, a note asks you to turn recording on and try again.</p>
+</div>
+</details>
+<details class="el" id="internet-path">
+<summary><span class="mk">27</span><span><span class="name">Path to the internet</span><span class="one">Draws the way from your phone to the internet in four steps.</span></span></summary>
+<div class="full">
+<p>This device, Gateway (your router), DNS and Internet, each with its address or state and a mark showing whether it answers. Where the line breaks is where to look: the router, the name servers or the connection beyond them.</p>
+</div>
+</details>
+<details class="el" id="internet-traffic">
+<summary><span class="mk">28</span><span><span class="name">Traffic on this device</span><span class="one">Shows the traffic of the whole phone, now and over the last minutes.</span></span></summary>
+<div class="full">
+<p>Incoming now and Outgoing now, with a graph beneath. It counts everything the phone moves, not only this app. Tap the graph to restart it.</p>
+</div>
+</details>
+<details class="el" id="internet-target">
+<summary><span class="mk">29</span><span><span class="name">What to check</span><span class="one">Chooses what the checks below look at: the internet or one of your resources.</span></span></summary>
+<div class="full">
+<p>The list starts with The internet and continues with the resources you added. Check the selected resource is available only when a resource is chosen.</p>
+</div>
+</details>
+<details class="el" id="internet-check-resource">
+<summary><span class="mk">30</span><span><span class="name">Check the selected resource</span><span class="one">Checks whether the selected resource answers.</span></span></summary>
+<div class="full">
+<p>It tries to reach the resource with its saved address and credentials and says The resource answered, or that it did not, so you check the address and credentials. If the resource was deleted meanwhile, the result says so.</p>
+</div>
+</details>
+<details class="el" id="internet-scan">
+<summary><span class="mk">31</span><span><span class="name">Scan the local network</span><span class="one">Looks for devices on your local network and the ports they have open.</span></span></summary>
+<div class="full">
+<p>Fill in the From and To addresses, or keep the range filled in for your own network. The result tells how many of the probed addresses answered and lists them with their open ports. A range that is too large or not a pair of addresses is refused with a hint. On newer Android versions the scan needs the local-network permission; if it is missing, the result tells you to grant it in the system settings and try again.</p>
+<p>The scan contacts addresses on your network. Some office and campus networks treat that as unwanted, so the app shows a notice the first time in a session.</p>
+</div>
+</details>
+<details class="el" id="internet-external-ip">
+<summary><span class="mk">32</span><span><span class="name">Show the external address</span><span class="one">Asks a public service for the address the internet sees.</span></span></summary>
+<div class="full">
+<p>The result shows the address and a note on whether it is your own or the operator translates it between its customers. If the router does not answer, the note says it can tell nothing either way. If no service answers, it says so and suggests trying again. The first time in a session a notice explains that the service sees the address it answers to.</p>
+</div>
+</details>
+<details class="el" id="internet-speed">
+<summary><span class="mk">33</span><span><span class="name">Measure the speed</span><span class="one">Measures download and upload speed to the internet or to the chosen resource.</span></span></summary>
+<div class="full">
+<p>The test downloads and uploads about 20 MB in total, so a notice appears first. On a network the phone knows as metered the notice appears every time, and without your approval nothing is measured. The result shows both speeds in Mbps. If the test cannot finish, the result asks you to check the connection.</p>
+</div>
+</details>
+<details class="el" id="internet-stop">
+<summary><span class="mk">34</span><span><span class="name">Stop</span><span class="one">Stops the check that is running.</span></span></summary>
+<div class="full">
+<p>It appears with a progress bar while a check runs. Stop it at any time; the other checks stay unavailable until the running one finishes or is stopped.</p>
+</div>
+</details>
+<h3>Tools, resource speed and history</h3>
+<details class="el" id="tools-host">
+<summary><span class="mk">35</span><span><span class="name">IP or host name</span><span class="one">The address or name of the host to ping or trace.</span></span></summary>
+<div class="full">
+<p>Type an IP address or a host name. Below the field are chips with the hosts you used before: tap one to reuse it, tap its cross to forget it.</p>
+</div>
+</details>
+<details class="el" id="tools-ping">
+<summary><span class="mk">36</span><span><span class="name">Ping</span><span class="one">Sends a few small requests to the host and reports how fast it answers.</span></span></summary>
+<div class="full">
+<p>The console lists each attempt with its time in milliseconds, or No answer in time, and ends with how many of the attempts answered. A name that does not resolve or a missing network is reported in the console too.</p>
+</div>
+</details>
+<details class="el" id="tools-traceroute">
+<summary><span class="mk">37</span><span><span class="name">Traceroute</span><span class="one">Shows the hops between your phone and the host.</span></span></summary>
+<div class="full">
+<p>Each hop that answers is listed with its time. The trace ends when the host is reached or after the maximum number of hops. Use it to see where a connection slows down or stops.</p>
+</div>
+</details>
+<details class="el" id="tools-scan">
+<summary><span class="mk">38</span><span><span class="name">Scan the local network</span><span class="one">Looks for devices that answer in an address range.</span></span></summary>
+<div class="full">
+<p>It works like the scan in Internet, with the same From and To fields, and writes the answering addresses into the console. Use it only on networks that are yours.</p>
+</div>
+</details>
+<details class="el" id="tools-console">
+<summary><span class="mk">39</span><span><span class="name">Console output</span><span class="one">Shows the results of ping, traceroute and the scan as text.</span></span></summary>
+<div class="full">
+<p>Before anything runs it says that results will appear here. While an operation runs, a progress bar with Stop appears above the console.</p>
+</div>
+</details>
+<details class="el" id="tools-copy">
+<summary><span class="mk">40</span><span><span class="name">Copy</span><span class="one">Copies the console text to the clipboard.</span></span></summary>
+<div class="full">
+<p>Use it to paste the results into a message or a note. With an empty console nothing is copied.</p>
+</div>
+</details>
+<details class="el" id="tools-clear">
+<summary><span class="mk">41</span><span><span class="name">Clear</span><span class="one">Empties the console.</span></span></summary>
+<div class="full">
+<p>Only the text on the screen is removed. The measurements already written to the history stay there.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The console text is lost with no way back. Copy it first if you need it.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="speed-target">
+<summary><span class="mk">42</span><span><span class="name">Target Resource</span><span class="one">Chooses what to measure the speed to: the internet or one resource.</span></span></summary>
+<div class="full">
+<p>The list starts with The internet and continues with the network and cloud resources you added.</p>
+</div>
+</details>
+<details class="el" id="speed-start">
+<summary><span class="mk">43</span><span><span class="name">Measure the speed</span><span class="one">Measures how fast data moves to and from the chosen target.</span></span></summary>
+<div class="full">
+<p>It first checks that the target answers, then measures. A progress bar with Stop is shown while it runs. On a metered network a window asks first whether to go on.</p>
+</div>
+</details>
+<details class="el" id="speed-results">
+<summary><span class="mk">44</span><span><span class="name">Speed Results</span><span class="one">The download and upload speeds measured, in Mbps.</span></span></summary>
+<div class="full">
+<p>Download and Upload, each in megabits per second. A resource that is read-only shows (Read-only resource) in place of the upload, because uploading would write to it. Under the figures a status line says that the measurement finished, was stopped, or why it failed.</p>
+</div>
+</details>
+<details class="el" id="history-list">
+<summary><span class="mk">45</span><span><span class="name">History</span><span class="one">The measurements you ran, newest first.</span></span></summary>
+<div class="full">
+<p>Each row has the kind (Speed, Resource check, External address, Network scan, Ping or Traceroute), the network it ran on, the time and whether it answered. The list is kept on this device. While it is empty the screen says there are no measurements yet.</p>
+</div>
+</details>
+<details class="el" id="history-export">
+<summary><span class="mk">46</span><span><span class="name">Export</span><span class="one">Sends the whole list as a text file.</span></span></summary>
+<div class="full">
+<p>It opens the system share sheet with a plain text file. If the file cannot be prepared, a note asks you to free some space. The button is shown only when the list has rows.</p>
+</div>
+</details>
+<details class="el" id="history-clear">
+<summary><span class="mk">47</span><span><span class="name">Clear</span><span class="one">Deletes every stored measurement.</span></span></summary>
+<div class="full">
+<p>A window asks first. The button is shown only when the list has rows.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Every measurement is removed from the device and cannot be restored. Export the list first if you still need it.</dd>
+</dl>
+</div>
+</details>
+<h3>When Network Monitor is off</h3>
+<details class="el" id="off-notice">
+<summary><span class="mk">48</span><span><span class="name">Network Monitor is off</span><span class="one">Tells you that Network Monitor is switched off in Settings.</span></span></summary>
+<div class="full">
+<p>Instead of the sections you see a short message and, where the feature exists, a button. In some editions Network Monitor is not part of the app at all; the message then says so and has no button. The screen does not show the message while it is still checking whether the monitor is on.</p>
+</div>
+</details>
+<details class="el" id="off-open-settings">
+<summary><span class="mk">49</span><span><span class="name">Open settings</span><span class="one">Opens Settings on the tab where Network Monitor is switched on.</span></span></summary>
+<div class="full">
+<p>It takes you to the Management tab, where the switch is under Additional programs and scenarios (the message on this screen calls it Operations). Turn it on, come back, and the summary appears.</p>
+</div>
+</details>
+<h3>Notice and confirmation windows</h3>
+<details class="el" id="notice-continue">
+<summary><span class="mk">50</span><span><span class="name">Continue</span><span class="one">Goes ahead with the check after you have read the notice.</span></span></summary>
+<div class="full">
+<p>The notice says what the check does: that the speed test uses about 20 MB of traffic, that the scan contacts your local network, that the external address lookup is passed to a public service, or that this network charges for traffic. The traffic, scan and address notices come once per session; the metered notice comes before every speed test.</p>
+</div>
+</details>
+<details class="el" id="notice-cancel">
+<summary><span class="mk">51</span><span><span class="name">Cancel</span><span class="one">Closes the notice and does not run the check.</span></span></summary>
+<div class="full">
+<p>Nothing is sent and nothing is measured.</p>
+</div>
+</details>
+<details class="el" id="clear-confirm">
+<summary><span class="mk">52</span><span><span class="name">Clear</span><span class="one">Confirms that you want to clear the measurement history.</span></span></summary>
+<div class="full">
+<p>The window says the stored measurements will be removed from this device and suggests exporting first.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The measurements are deleted for good. Export them before you confirm if you may need them.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="clear-cancel">
+<summary><span class="mk">53</span><span><span class="name">Cancel</span><span class="one">Closes the window and keeps the history.</span></span></summary>
+<div class="full">
+<p>Nothing is deleted.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-operations.html"><b>Settings: Management</b><span class="pill">Screen</span></a></li>
+<li><a href="system-info.html"><b>System information</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/network-monitor.html"><b>Checking Your Connection with Network Monitor</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/permissions-guide.html"><b>Understanding App Permissions</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

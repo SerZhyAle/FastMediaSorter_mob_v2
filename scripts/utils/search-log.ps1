@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env pwsh
+#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Android logcat analysis utility for FastMediaSorter v2.
@@ -684,12 +684,40 @@ if ($AppOnly) {
         # threadtime / time captures carry no package field, so the test above can never match and
         # used to return zero without a word - indistinguishable from "the flow never ran", which is
         # the worst possible answer on a verification path. Recover the app's PIDs from the capture
-        # itself; a restart during the run simply contributes another PID.
-        $appPids = @($parsed | ForEach-Object {
-            if ($_.Msg -match 'Start proc (\d+):com\.sza\.fastmediasorter') { $Matches[1] }
-        } | Sort-Object -Unique)
+        # itself; a restart during the run simply contributes another PID (S1387, S4306).
+        $appPidsSet = [System.Collections.Generic.HashSet[string]]::new()
+        foreach ($entry in $parsed) {
+            if ($entry.Msg -match '(?:Start proc|Killing|obituary of)\s+(\d+):com\.sza\.fastmediasorter' -or
+                $entry.Msg -match 'Process\s+com\.sza\.fastmediasorter[^\n(]*\(\s*pid\s+(\d+)\s*\)' -or
+                $entry.Msg -match 'Process:\s*com\.sza\.fastmediasorter[^\n,]*, PID:\s*(\d+)') {
+                $null = $appPidsSet.Add($Matches[1])
+            }
+            if ($entry.Tag -match '^FastMediaSorter') {
+                $pidOnly = ($entry.PID -replace '-.*$').Trim()
+                if ($pidOnly -match '^\d+$' -and $pidOnly -ne '0') {
+                    $null = $appPidsSet.Add($pidOnly)
+                }
+            }
+            if ($entry.Continuation.Count -gt 0) {
+                foreach ($c in $entry.Continuation) {
+                    if ($c -match '(?:Start proc|Killing|obituary of)\s+(\d+):com\.sza\.fastmediasorter' -or
+                        $c -match 'Process:\s*com\.sza\.fastmediasorter[^\n,]*, PID:\s*(\d+)') {
+                        $null = $appPidsSet.Add($Matches[1])
+                    }
+                    if ($c -match 'FAST MEDIA SORTER') {
+                        $pidOnly = ($entry.PID -replace '-.*$').Trim()
+                        if ($pidOnly -match '^\d+$' -and $pidOnly -ne '0') {
+                            $null = $appPidsSet.Add($pidOnly)
+                        }
+                    }
+                }
+            }
+        }
+        $appPids = @($appPidsSet | Sort-Object)
         if ($appPids.Count -gt 0) {
-            $pidPattern = '^(' + (($appPids | ForEach-Object { [regex]::Escape($_) }) -join '|') + ')-'
+            # S4306: format 5 TIME captures store PID without a trailing '-TID' dash (just "PID"),
+            # while format 4 THREADTIME stores "PID-TID". Match either a trailing dash or end-of-string.
+            $pidPattern = '^(' + (($appPids | ForEach-Object { [regex]::Escape($_) }) -join '|') + ')(?:-|$)'
             $results = $results | Where-Object { $_.PID -match $pidPattern }
             Write-Out "-AppOnly: capture has no package field; filtered by app PID(s) $($appPids -join ', ') recovered from the log." "DarkGray"
         }

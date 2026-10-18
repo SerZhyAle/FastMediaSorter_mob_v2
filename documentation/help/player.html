@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Player</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Player</span>
+</nav>
+<header class="hero">
+<h1>Player</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">The player opens a file from the file browser: it plays a video or music, shows a photo, and reads a document, a book or a text. The same screen has the buttons to move on to another file, to file the one you are on and to share it.</p>
+<figure class="shot">
+<img class="on-light" src="img/player-en-light.webp" alt="Player">
+<img class="on-dark" src="img/player-en-dark.webp" alt="Player">
+</figure>
+<h2>In this order</h2>
+<ol class="order">
+<li>Open a file from the file browser. A video starts in full screen: tap the picture to bring the buttons back, and use Fullscreen <a class="ref" href="#fullscreen">13</a> to switch between the picture alone and the picture with the command panel.</li>
+<li>Play/Pause <a class="ref" href="#play-pause">19</a> starts and stops playback; Rewind <a class="ref" href="#rewind">18</a> and Forward <a class="ref" href="#forward">20</a> jump 10 seconds, and the seek bar <a class="ref" href="#seek-bar">15</a> takes you to any moment.</li>
+<li>Previous file <a class="ref" href="#previous-file">17</a> and Next file <a class="ref" href="#next-file">21</a> walk through the folder in the order of the file browser; a swipe left or right on the picture does the same. Random <a class="ref" href="#random">3</a> jumps to any file.</li>
+<li>Playback order <a class="ref" href="#playback-order">16</a> chooses what happens when a file ends: repeat one, loop the list, play through or shuffle.</li>
+<li>Playback settings <a class="ref" href="#playback-settings">22</a> holds speed, volume, soundtrack, subtitles and colors.</li>
+<li>Rename <a class="ref" href="#rename">9</a>, Edit <a class="ref" href="#edit">10</a>, Delete <a class="ref" href="#delete">11</a> and Share <a class="ref" href="#share">7</a> act on the file you are on, Undo <a class="ref" href="#undo">12</a> takes back a delete or a move, and Favorite <a class="ref" href="#favorite">6</a> adds the file to your favorites.</li>
+<li>More actions <a class="ref" href="#more-actions">14</a> opens the menu with everything else for this kind of file, such as save a frame, rotate, cast or translate. Picture in picture <a class="ref" href="#picture-in-picture">23</a> shrinks a video into a small window, and Help in the menu or F1 opens this page.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Command panel</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Back</span><span class="one">Closes the player and returns to the file list.</span></span></summary>
+<div class="full">
+<p>The Back button of the device does the same. A tap in the top left corner of the picture does it too.</p>
+</div>
+</details>
+<details class="el" id="previous">
+<summary><span class="mk">2</span><span><span class="name">Previous</span><span class="one">Goes to the previous file of the folder.</span></span></summary>
+<div class="full">
+<p>It follows the order of the file browser. A file you deleted or moved is already gone from the list, so Previous never lands on it.</p>
+</div>
+</details>
+<details class="el" id="random">
+<summary><span class="mk">3</span><span><span class="name">Random Jump</span><span class="one">Jumps to a random file of the folder.</span></span></summary>
+<div class="full">
+<p>Handy for a mixed listen or a quick look at something you forgot you had.</p>
+</div>
+</details>
+<details class="el" id="next">
+<summary><span class="mk">4</span><span><span class="name">Next</span><span class="one">Goes to the next file of the folder.</span></span></summary>
+<div class="full">
+<p>It follows the order of the file browser. A swipe left on a photo or video does the same.</p>
+</div>
+</details>
+<details class="el" id="slideshow">
+<summary><span class="mk">5</span><span><span class="name">Slideshow</span><span class="one">Starts and stops the slideshow.</span></span></summary>
+<div class="full">
+<p>In a slideshow the player moves to the next file by itself. The pace and the look are set in Settings, on the Media tab.</p>
+</div>
+</details>
+<details class="el" id="favorite">
+<summary><span class="mk">6</span><span><span class="name">Favorite</span><span class="one">Adds the file to your favorites, or takes it out.</span></span></summary>
+<div class="full">
+<p>Everything you mark is gathered in Favorites on the main screen.</p>
+</div>
+</details>
+<details class="el" id="share">
+<summary><span class="mk">7</span><span><span class="name">Share</span><span class="one">Sends the file to another app or person.</span></span></summary>
+<div class="full">
+<p>A file from a network or cloud folder is fetched as a temporary copy first.</p>
+</div>
+</details>
+<details class="el" id="info">
+<summary><span class="mk">8</span><span><span class="name">File Information</span><span class="one">Shows what the app knows about the file.</span></span></summary>
+<div class="full">
+<p>Size, full path and, where they apply, resolution or camera settings.</p>
+</div>
+</details>
+<details class="el" id="rename">
+<summary><span class="mk">9</span><span><span class="name">Rename</span><span class="one">Renames the file you are on.</span></span></summary>
+<div class="full">
+<p>A dialog asks for the new name.</p>
+</div>
+</details>
+<details class="el" id="edit">
+<summary><span class="mk">10</span><span><span class="name">Edit</span><span class="one">Opens the editing tools for the file you are on.</span></span></summary>
+<div class="full">
+<p>What opens depends on the kind of file: the playback settings for a video or music, the editing window for a photo, a GIF or a PDF.</p>
+</div>
+</details>
+<details class="el" id="delete">
+<summary><span class="mk">11</span><span><span class="name">Delete</span><span class="one">Deletes the file you are on, after you confirm.</span></span></summary>
+<div class="full">
+<p>A deleted file leaves the list at once.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Undo brings the file back for as long as the app still remembers the operation.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="undo">
+<summary><span class="mk">12</span><span><span class="name">Undo</span><span class="one">Takes back the last delete or move.</span></span></summary>
+<div class="full">
+<p>The button appears right after such an operation.</p>
+</div>
+</details>
+<details class="el" id="fullscreen">
+<summary><span class="mk">13</span><span><span class="name">Fullscreen mode</span><span class="one">Hides the command panel so only the picture is left.</span></span></summary>
+<div class="full">
+<p>To get the panel back, tap the picture or the Exit fullscreen button that stays in the corner. Turning the phone sideways goes full screen by itself, and turning it back upright brings the panel back. A video keeps playing through both.</p>
+</div>
+</details>
+<details class="el" id="more-actions">
+<summary><span class="mk">14</span><span><span class="name">More actions</span><span class="one">Opens the menu with the rest of the actions.</span></span></summary>
+<div class="full">
+<p>Buttons that did not fit move here, so nothing disappears. The menu depends on the kind of file: save a frame of a video, rotate or crop a photo, search, translate and extract text in a document or a book, lyrics and sleep timer for music, cast, print and Send to. The F1 key opens this page; so does Help in this menu.</p>
+</div>
+</details>
+<h3>Playback</h3>
+<details class="el" id="seek-bar">
+<summary><span class="mk">15</span><span><span class="name">Seek bar</span><span class="one">Shows how far the file has played and lets you jump to any moment.</span></span></summary>
+<div class="full">
+<p>Drag the knob or tap on the bar. The time played and the length of the file stand on both sides of it.</p>
+</div>
+</details>
+<details class="el" id="playback-order">
+<summary><span class="mk">16</span><span><span class="name">Playback order</span><span class="one">Chooses what happens when a file ends.</span></span></summary>
+<div class="full">
+<p>Repeat one plays the same file over and over. Loop list goes back to the first file after the last. Play through stops after the last file. Shuffle plays in a random order.</p>
+</div>
+</details>
+<details class="el" id="previous-file">
+<summary><span class="mk">17</span><span><span class="name">Previous file</span><span class="one">Goes to the previous file of the folder.</span></span></summary>
+<div class="full">
+<p>The same as Previous on the command panel, close to the thumb.</p>
+</div>
+</details>
+<details class="el" id="rewind">
+<summary><span class="mk">18</span><span><span class="name">Rewind 10 seconds</span><span class="one">Jumps 10 seconds back.</span></span></summary>
+<div class="full">
+<p>Press it several times to go back further.</p>
+</div>
+</details>
+<details class="el" id="play-pause">
+<summary><span class="mk">19</span><span><span class="name">Play/Pause</span><span class="one">Starts and pauses playback.</span></span></summary>
+<div class="full">
+<p>For an animated picture such as a GIF it plays and stops the animation. The player remembers how far you watched, so the same file continues from there next time.</p>
+</div>
+</details>
+<details class="el" id="forward">
+<summary><span class="mk">20</span><span><span class="name">Fast forward 10 seconds</span><span class="one">Jumps 10 seconds ahead.</span></span></summary>
+<div class="full">
+<p>Press it several times to skip a long intro.</p>
+</div>
+</details>
+<details class="el" id="next-file">
+<summary><span class="mk">21</span><span><span class="name">Next file</span><span class="one">Goes to the next file of the folder.</span></span></summary>
+<div class="full">
+<p>The same as Next on the command panel, close to the thumb.</p>
+</div>
+</details>
+<details class="el" id="playback-settings">
+<summary><span class="mk">22</span><span><span class="name">Playback settings</span><span class="one">Opens the window with the playback settings.</span></span></summary>
+<div class="full">
+<p>Speed, including very slow 0.1x and 0.3x, volume, brightness, soundtrack, subtitles and colors. In portrait the sliders stand upright, so a thumb moves them from bottom to top.</p>
+</div>
+</details>
+<details class="el" id="picture-in-picture">
+<summary><span class="mk">23</span><span><span class="name">Picture in Picture</span><span class="one">Shrinks the video into a small window above other apps.</span></span></summary>
+<div class="full">
+<p>The button is shown for a video when the device supports it.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="browse.html"><b>File browser</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-playback.html"><b>Settings: Player</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-media.html"><b>Settings: Media</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/video-playback-controls.html"><b>Watching Videos - Controls, Gestures and Saving Frames</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/subtitles-and-audio-tracks.html"><b>Subtitles, Audio Tracks, Sound Balance and 3D</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/pip-and-background-play.html"><b>Picture-in-Picture and Background Play</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

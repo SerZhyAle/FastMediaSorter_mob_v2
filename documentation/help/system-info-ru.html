@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Справка - Сведения о системе</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Оглавление справки">
+<a href="index-ru.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Сведения о системе</span>
+</nav>
+<header class="hero">
+<h1>Сведения о системе</h1>
+</header>
+<h2>Для чего этот экран</h2>
+<p class="lead">Понятный отчёт о вашем телефоне и об этом приложении: устройство, версия Android, батарея, память, хранилище, сеть, экран и многое другое. Его можно искать, копировать отдельное значение или весь отчёт, сохранить в файл или отправить - именно это обычно просит тот, кто помогает вам с проблемой.</p>
+<figure class="shot">
+<img class="on-light" src="img/system-info-ru-light.webp" alt="Сведения о системе">
+<img class="on-dark" src="img/system-info-ru-dark.webp" alt="Сведения о системе">
+</figure>
+<h2>Порядок действий</h2>
+<ol class="order">
+<li>Откройте экран и немного подождите, пока соберётся отчёт. Группы появляются свёрнутыми, по одной строке, с числом значений внутри.</li>
+<li>Нажмите группу <a class="ref" href="#groups">7</a>, чтобы раскрыть её. «Развернуть все» <a class="ref" href="#expand-collapse">4</a> раскрывает все группы сразу, а та же кнопка потом их сворачивает. Приложение запоминает, какие группы вы оставили открытыми.</li>
+<li>Чтобы найти одно значение, введите запрос в поле поиска <a class="ref" href="#search">6</a>. Все группы с совпадениями раскроются, а на экране останутся только подходящие строки.</li>
+<li>Нажмите строку <a class="ref" href="#groups">7</a>, чтобы скопировать это значение, или кнопку копирования в строке группы, чтобы скопировать всю группу.</li>
+<li>Чтобы передать всё, пользуйтесь «Копировать» <a class="ref" href="#copy-report">2</a>, «Сохранить» <a class="ref" href="#save-report">3</a> или «Поделиться» <a class="ref" href="#share-report">5</a>. Сначала просмотрите отчёт: в нём есть технические идентификаторы вашего устройства и сети.</li>
+</ol>
+<h2>Элементы</h2>
+<div class="elements">
+<h3>Заголовок</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Стрелка назад</span><span class="one">Закрывает экран и возвращает туда, откуда вы пришли.</span></span></summary>
+<div class="full">
+<p>В заголовке написано название экрана, «Сведения о системе», а стрелка перед ним возвращает назад, например в меню программ или в настройки. Ничего не теряется: при следующем открытии экрана отчёт собирается заново.</p>
+</div>
+</details>
+<h3>Действия с отчётом</h3>
+<details class="el" id="copy-report">
+<summary><span class="mk">2</span><span><span class="name">Копировать</span><span class="one">Копирует весь отчёт в буфер обмена простым текстом.</span></span></summary>
+<div class="full">
+<p>Пригодится, чтобы вставить отчёт в чат или письмо. Текст перечисляет группы в том порядке, в каком они на экране, в том числе свёрнутые и скрытые поиском. В нём все значения, которые может показать экран, поэтому прочитайте его, прежде чем вставлять в публичное место.</p>
+</div>
+</details>
+<details class="el" id="save-report">
+<summary><span class="mk">3</span><span><span class="name">Сохранить</span><span class="one">Записывает весь отчёт в текстовый файл в папке «Загрузки».</span></span></summary>
+<div class="full">
+<p>Файл называется fms_system_info плюс дата и время, а сообщение подскажет, куда он попал. Если записать файл не удалось, сообщение скажет об этом, и ничего не сохранится. Используйте, когда отчёт нужно приложить к сообщению, а не вставить в текст.</p>
+</div>
+</details>
+<details class="el" id="expand-collapse">
+<summary><span class="mk">4</span><span><span class="name">Развернуть все / Свернуть все</span><span class="one">Раскрывает все группы сразу или сворачивает их все.</span></span></summary>
+<div class="full">
+<p>Значок и название зависят от состояния: когда всё раскрыто, кнопка сворачивает группы, иначе - раскрывает все. Выбор запоминается до следующего посещения. На узком экране кнопка может оказаться в меню «Ещё».</p>
+</div>
+</details>
+<details class="el" id="share-report">
+<summary><span class="mk">5</span><span><span class="name">Поделиться</span><span class="one">Отправляет весь отчёт в другое приложение.</span></span></summary>
+<div class="full">
+<p>Открывается системное меню отправки с отчётом в виде текста, так что его можно передать в чат, письмо или приложение для заметок. Если ни одно приложение не может его принять, отчёт копируется в буфер обмена, а сообщение говорит, что подходящего приложения не нашлось.</p>
+</div>
+</details>
+<h3>Поиск и список</h3>
+<details class="el" id="search">
+<summary><span class="mk">6</span><span><span class="name">Поиск параметров..</span><span class="one">Оставляет в отчёте только параметры, подходящие под ваш запрос.</span></span></summary>
+<div class="full">
+<p>Поиск идёт по названиям групп, названиям значений и самим значениям без учёта регистра. Группы с совпадениями раскрываются на время поиска и не меняют то, что вы оставили открытым. Если ничего не найдено, список так и скажет. Очистите поле, чтобы вернуть свои группы.</p>
+</div>
+</details>
+<details class="el" id="groups">
+<summary><span class="mk">7</span><span><span class="name">Группы и параметры</span><span class="one">Сам отчёт - группы, которые можно раскрывать и сворачивать.</span></span></summary>
+<div class="full">
+<p>У каждой группы есть значок, название и число значений. Нажмите строку, чтобы раскрыть или свернуть группу; маленькая кнопка копирования справа копирует только эту группу, а сообщение называет её. В раскрытой группе значения идут строками из названия и значения; нажмите строку, чтобы скопировать её как название: значение. В альбомной ориентации свёрнутые группы стоят в четыре столбца вместо двух.</p>
+<p>Группы такие: «Устройство», «Пользователь», «ОС», «Приложение» (версия, сборка и редакция), «Оборудование» (процессор и чип, ядро, версия графики, предел памяти приложения), «Камеры» (что заявляет телефон и что из этого сделало приложение), «Батарея», «Память», «Хранилище», «Сеть» (тип подключения, тарифицируемость, VPN, режим полёта и локальный адрес), «Экран», «Локаль», «Время», «Система» (список языков, патч безопасности, отпечаток сборки, установщик, даты установки) и «Бенчмарки». Группа, которой нечего показать, не выводится.</p>
+<p>«Бенчмарки» - короткие тесты скорости памяти и хранилища, которые запускаются при каждом открытии экрана, поэтому цифры приблизительные и от раза к разу отличаются. В редакции noLegal ниже идут ещё семь групп: «ОС и безопасность», «Специальные разрешения», «Установщик и подпись», «Встроенные среды», «Монтирования и хранилище», «Сетевая диагностика» и «Ресурсы процесса».</p>
+</div>
+</details>
+</div>
+<h2>Связанное</h2>
+<ul class="related">
+<li><a href="settings-operations-ru.html"><b>Настройки: Управление</b><span class="pill">Экран</span></a></li>
+<li><a href="main-ru.html"><b>Главный экран</b><span class="pill">Экран</span></a></li>
+<li><a href="network-monitor-ru.html"><b>Сетевой монитор</b><span class="pill">Экран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/device-diagnostics-and-logs-ru.html"><b>System Information and the Debug Log - Helping the Author Find a Problem</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/built-in-mini-apps-ru.html"><b>Built-in Programs - Switching Them On, the Lights, the Mirror and the SOS Signal</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="index-ru.html"><b>Оглавление справки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index-ru.html">Оглавление справки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
+</footer>
+</main>
+</body>
+</html>

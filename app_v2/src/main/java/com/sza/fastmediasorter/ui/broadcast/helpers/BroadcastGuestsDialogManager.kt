@@ -7,6 +7,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -35,6 +36,7 @@ class BroadcastGuestsDialogManager(private val guests: ManageBroadcastGuestsUseC
             .setOnDismissListener { watch?.cancel() }
             .showBoundTo(activity) ?: return
         watch = activity.collectOnLifecycle(guests.grants) { list -> renderGrants(activity, view, list) }
+        view.etBroadcastGuestLogin.doAfterTextChanged { view.tilBroadcastGuestLogin.error = null }
         view.btnBroadcastGuestCancel.setOnClickListener { dialog.dismiss() }
         view.btnBroadcastGuestGive.setOnClickListener { give(activity, view) }
     }

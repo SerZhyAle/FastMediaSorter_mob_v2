@@ -68,6 +68,7 @@
 {"file":"scripts/quality/listener-symmetry-baseline.txt","shape":"count","owner":"scripts/quality/assert-listener-symmetry.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/locale-untranslated-baseline.txt","shape":"set","owner":"scripts/quality/assert-new-lexemes-translated.ps1","write":"hand-only","verdict":"safe"}
 {"file":"scripts/quality/log-redaction-baseline.txt","shape":"count","owner":"scripts/quality/assert-log-redaction.ps1","write":"down-only","verdict":"safe"}
+{"file":"scripts/quality/loopback-endpoint-close-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/media3-raw-controller-release-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/memory-budget-baseline.txt","shape":"count","owner":"scripts/quality/assert-memory-budget.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/migration-schema-conformance-baseline.txt","shape":"set","owner":"scripts/quality/assert-migration-schema-conformance.ps1","write":"raise-with-reason","verdict":"safe"}
@@ -139,3 +140,4 @@
 {"file":"scripts/quality/launch-in-oncleared-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/vm-event-sharedflow-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/unclassified-db-reset-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
+{"file":"scripts/quality/help-map-baseline.txt","shape":"set","owner":"scripts/quality/assert-help-map.ps1","write":"hand-only","verdict":"safe"}

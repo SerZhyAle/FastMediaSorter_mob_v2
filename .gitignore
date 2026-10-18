@@ -265,7 +265,10 @@ app_v2/build.backup/
 
 # Large binary artifacts (>50MB, removed from history 2026-02-18)
 bundletool.jar
-maestro/lib/
+# Narrowed from maestro/lib/: git cannot re-include files under a fully ignored directory,
+# and the invoked helper flow-selection.ps1 must stay tracked (assert-invoked-tracked).
+maestro/lib/*
+!maestro/lib/*.ps1
 
 # Integration test credentials (NEVER COMMIT)
 test_credentials.json

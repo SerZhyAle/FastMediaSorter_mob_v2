@@ -68,7 +68,9 @@ $written = 0
 # Derived from the site root so a test site carries its own registry and the real one is never touched.
 $registryPath = Join-Path $SiteRoot 'docs/DOCUMENT_REGISTRY.jsonl'
 $registryText = if (Test-Path -LiteralPath $registryPath) { [IO.File]::ReadAllText($registryPath) } else { $null }
-$registrySynced = if ($null -ne $registryText) { Get-RegistryWithForwarderExclusions -RegistryText $registryText -Records $records } else { $null }
+$registrySynced = if ($null -ne $registryText) {
+    Get-RegistryWithDerivedExclusions -RegistryText $registryText -Records $records -HelpPagePaths (Get-HelpPagePaths -SiteRoot $SiteRoot)
+} else { $null }
 foreach ($record in $records) {
     $expected = Get-ForwarderHtml -Record $record
     $target = Join-Path $SiteRoot $record.from_path
@@ -93,12 +95,12 @@ foreach ($record in $records) {
 }
 
 if ($Check -and $null -ne $registryText -and $registrySynced -cne $registryText) {
-    Write-Host '  [OUTDATED] docs/DOCUMENT_REGISTRY.jsonl: forwarder sitemap_exclude rows differ from the manifest' -ForegroundColor Yellow
+    Write-Host '  [OUTDATED] docs/DOCUMENT_REGISTRY.jsonl: derived sitemap_exclude rows differ from the manifest or the help pages' -ForegroundColor Yellow
     $stale++
 }
 if (-not $Check -and $null -ne $registryText -and $registrySynced -cne $registryText) {
     [IO.File]::WriteAllText($registryPath, $registrySynced, [Text.UTF8Encoding]::new($false))
-    Write-Host '  [SYNCED]   docs/DOCUMENT_REGISTRY.jsonl forwarder sitemap_exclude rows'
+    Write-Host '  [SYNCED]   docs/DOCUMENT_REGISTRY.jsonl derived sitemap_exclude rows'
 }
 
 if ($Check) {

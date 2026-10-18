@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.SlideshowController
 import com.sza.fastmediasorter.ui.player.SlideshowSettingsDialogFragment
 import com.sza.fastmediasorter.utils.UserActionLogger
+import com.sza.fastmediasorter.utils.applyTopSystemBarInsetMargin
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -485,6 +486,9 @@ class PlayerControlsSetupManager(
      * VIDEO; tapping it restores the command panel (exits fullscreen).
      */
     fun setupDocumentFullscreenExitButton() {
+        // S4305: the button floats over the edge-to-edge media area, which starts at window y=0 once the
+        // command panel (the only status-bar padding carrier) is hidden.
+        safeViews.btnDocumentFullscreenExit.applyTopSystemBarInsetMargin()
         safeViews.btnDocumentFullscreenExit.setOnClickListener {
             UserActionLogger.logButtonClick("DocumentFullscreenExit", "PlayerActivity")
             if (!viewModel.state.value.showCommandPanel) {

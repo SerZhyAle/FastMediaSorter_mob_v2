@@ -17,6 +17,7 @@
 # NOT a place to park a ticket that genuinely should carry a probe. If the ticket changed Kotlin,
 # add the probe instead.
 #
+S4299  Manifest-only singleTask launch mode for BroadcastControlActivity; no Kotlin touched. Android task reuse happens before onCreate, so dumpsys activity identity and reopening the picker after Quick Settings re-entry prove the fix.
 S4081  Manifest-only provider SUPPORTED_TYPES repair; no Kotlin touched. Platform discovery precedes provider code, so a Timber probe cannot observe rejected metadata. Wear Services checker logs, fresh face photo-slot binding and the favourites icon picker are the evidence.
 
 S3076  R8 keep rule only (app_v2/proguard-rules.pro), no .kt touched; debug builds are not minified, so a probe could not observe the rule - a release build restoring the focused tourist tile is the evidence.
@@ -116,3 +117,8 @@ S4166  Dynamic-audit stand scripts and plan data only; no .kt touched - no Kotli
 S4249  Pre-release sweep orchestration - scripts, Maestro flow headers and command documents only; no .kt touched, so no source probe can exist. The evidence is one real sweep through the new device half whose stages_<TS>.json shows the flow stage shorter than the 81 minutes of release 45.
 S4213  Joint-run checklist (PLAN attachment) only; no .kt touched - the evidence is the owner-attended joint run of the checklist on the phone, watch and FMS_W server in two networks plus the watch battery measurement, which no source probe can instrument.
 S3548  Watch face resource XML, store-listing text sources and in-app entries already shipped by S4009; no .kt touched - the owner's eye check of readability, contrast, particle tilt and AOD on the Galaxy Watch 7 off the charger is the evidence, which no source probe can instrument.
+S4302  Host-side devtest script only (scripts/devtest/adb.ps1); no .kt touched, so no source probe can instrument it - the evidence is the tap-label refusal seen on a device with the soft keyboard open under a labelled node.
+
+S4331  Resources-only Network Monitor tile autosize floor; no Kotlin path changed. Verify summary inflation in both orientations on a sw320dp-band emulator.
+
+S4344  Layout and dimens XML only - equal halves on the four broadcast live control buttons and the light row, portrait and landscape; no Kotlin flow changed, so no entry point can carry a probe. Same class as S3168 and S3236. The device check is opening a live camera+mic broadcast at font_scale 1.6 and reading the four buttons as an aligned grid whose labels break only at word boundaries.

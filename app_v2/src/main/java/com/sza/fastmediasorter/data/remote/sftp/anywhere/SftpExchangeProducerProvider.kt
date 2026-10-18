@@ -15,7 +15,9 @@ import com.sza.fastmediasorter.data.repository.settings.SftpRendezvousIdentitySt
 import com.sza.fastmediasorter.data.security.e2e.E2eBroadcastSeals
 import com.sza.fastmediasorter.data.security.e2e.E2eBytes
 import com.sza.fastmediasorter.data.security.e2e.E2eRecipient
+import com.sza.fastmediasorter.data.security.e2e.E2eRecipients
 import com.sza.fastmediasorter.data.security.e2e.E2eSealedBox
+import com.sza.fastmediasorter.data.security.e2e.E2eSelf
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.DeviceExchangeWelcome
 import com.sza.fastmediasorter.domain.model.SftpPairingPayload
@@ -37,7 +39,25 @@ class ExchangeGrantSealing(
     val entry: DeviceExchangeAccountEntry,
     val serverSeals: Boolean,
     val audience: Map<String, List<E2eRecipient>>?,
-)
+) {
+    /**
+     * The box [grantId]'s `grant` carries now, or null when none may go. A grant the server does not list yet gets
+     * the registering box, because the guest's devices arrive only once the server holds the grant; a listed grant
+     * never does, since that box would replace the one the guest opens. A guest with no capable device gets none.
+     */
+    fun box(grantId: String, self: E2eSelf, payload: JsonObject): JsonObject? {
+        val context = E2eSealedBox.grantContext(grantId)
+        val to = audience?.get(grantId)
+        return when {
+            audience == null -> null
+            to == null -> {
+                Timber.d("S4272: phone sends a first grant with the registering box")
+                E2eSealedBox.registration(context, self)
+            }
+            else -> to.takeIf { it.isNotEmpty() }?.let { E2eSealedBox.seal(payload, context, self, it) }
+        }
+    }
+}
 
 /** A share record as it goes through one server; [recipientsKey] names who its box was sealed to, if anyone. */
 data class SealedShareRecord(val record: SftpRendezvousResource, val recipientsKey: String)
@@ -79,7 +99,7 @@ interface SftpExchangeProducerSource {
 
     /**
      * The `grant` envelopes of the live broadcast's guest grants (items BD, DJ, DK), each sealed to its guest's
-     * devices; a grant whose guest devices are not known yet is left out until the audience arrives.
+     * devices; a grant the server does not list yet goes with the registering box ([ExchangeGrantSealing.box]).
      */
     suspend fun broadcastGrantEnvelopes(sealing: ExchangeGrantSealing): List<DeviceExchangeEnvelope> = emptyList()
 
@@ -153,9 +173,7 @@ class SftpExchangeProducerProvider @Inject constructor(
                 }
             }
             ExchangeGrantEnvelopes.broadcastGrant(grant.grantId, grant.guest, grant.broadcastId, payload) { box ->
-                val to = sealing.audience?.get(grant.grantId).orEmpty()
-                to.takeIf { it.isNotEmpty() }
-                    ?.let { E2eSealedBox.seal(box, E2eSealedBox.grantContext(grant.grantId), self, it) }
+                sealing.box(grant.grantId, self, box)
             }
         }
     }
@@ -175,7 +193,7 @@ class SftpExchangeProducerProvider @Inject constructor(
         val sealing = e2e.sealing(entry, devices)
         val self = sealing.self
         // A device that left takes the own group key with it: the next box and the next epoch use a new one (DL).
-        seals.relayKeys.membersChanged(record.broadcastId, sealing.recipients.map { it.deviceId }.toSet())
+        seals.relayKeys.membersChanged(record.broadcastId, sealing.recipients.map(E2eRecipients::keyOf).toSet())
         val relayKey = seals.relayKeys.ownKey(record.broadcastId)
         val tunnelPin = seals.tunnelIdentities.current(record.broadcastId)?.pin
         val own = seals.credentials.ownPair
@@ -193,7 +211,7 @@ class SftpExchangeProducerProvider @Inject constructor(
                 )
             }
         }
-        val key = sealing.recipients.map { it.deviceId }.sorted().joinToString(",") +
+        val key = E2eRecipients.keyOf(self, sealing.recipients) +
             "/" + relayKey?.let { E2eBytes.hex(E2eBytes.sha256(it)) } + "/" + tunnelPin +
             "/" + own?.let { E2eBytes.hex(E2eBytes.sha256(it.password.toByteArray(Charsets.UTF_8))) }
         val sealed = if (self == null || sealing.recipients.isEmpty() || relayKey == null) {
@@ -215,8 +233,7 @@ class SftpExchangeProducerProvider @Inject constructor(
         val sealing = devices?.takeIf { serverSeals }?.let { e2e.sealing(entry, it) }
         val self = sealing?.self
         val recipients = sealing?.recipients.orEmpty()
-        val key = recipients.sortedBy { it.deviceId }
-            .joinToString(",") { it.deviceId + ":" + E2eBytes.hex(it.publicKey) }
+        val key = E2eRecipients.keyOf(self, recipients)
         val descriptor = record.descriptor
         return if (self == null || recipients.isEmpty() || descriptor == null) {
             SealedShareRecord(withheld, key)
@@ -254,9 +271,7 @@ class SftpExchangeProducerProvider @Inject constructor(
         return all.mapNotNull { grant ->
             grants.password(grant.login)?.let { password ->
                 ExchangeGrantEnvelopes.grant(grant, password, share) { payload ->
-                    val to = sealing.audience?.get(grant.grantId).orEmpty()
-                    self?.takeIf { to.isNotEmpty() }
-                        ?.let { E2eSealedBox.seal(payload, E2eSealedBox.grantContext(grant.grantId), it, to) }
+                    self?.let { sealing.box(grant.grantId, it, payload) }
                 }
             }
         }

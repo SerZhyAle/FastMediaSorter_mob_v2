@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Справка - Счётчик</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Оглавление справки">
+<a href="index.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Счётчик</span>
+</nav>
+<header class="hero">
+<h1>Счётчик</h1>
+</header>
+<h2>Для чего этот экран</h2>
+<p class="lead">Счётчик для всего, что вы считаете вручную: людей на входе, круги, предметы на полке. Каждое нажатие прибавляет или убавляет единицу, итог сохраняется при выходе, а каждый законченный подсчёт попадает в историю с датами.</p>
+<h2>Порядок действий</h2>
+<ol class="order">
+<li>Если счёт должен начинаться не с 0, сначала нажмите «Начальное число» <a class="ref" href="#start-value">7</a> и введите его. Это число станет и текущим счётом.</li>
+<li>Нажимайте большую кнопку +1 <a class="ref" href="#plus-one">4</a> каждый раз, когда считаете единицу. Итог <a class="ref" href="#count">1</a> сразу растёт. Кнопка -1 <a class="ref" href="#minus-one">3</a> убирает единицу, но не ниже 0.</li>
+<li>Для больших прыжков включите переключатель <a class="ref" href="#extra-steps-switch">5</a>: появится ряд кнопок от +3 до +1000 <a class="ref" href="#extra-steps">6</a>.</li>
+<li>Строка под итогом <a class="ref" href="#start-line">2</a> показывает начальное число и время начала этого подсчёта.</li>
+<li>Когда подсчёт закончен, нажмите «Сбросить» <a class="ref" href="#reset">8</a>. Итог вернётся к начальному числу, а законченный подсчёт сохранится в истории <a class="ref" href="#history">9</a>.</li>
+<li>«Очистить» <a class="ref" href="#clear-history">10</a> опустошает историю, когда она больше не нужна.</li>
+</ol>
+<h2>Элементы</h2>
+<div class="elements">
+<h3>Счёт</h3>
+<details class="el" id="count">
+<summary><span class="mk">1</span><span><span class="name">Счёт</span><span class="one">Текущий итог крупными цифрами.</span></span></summary>
+<div class="full">
+<p>Итог сохраняется после каждого нажатия, поэтому он на месте, когда вы выходите с экрана, переключаетесь в другое приложение или перезагружаете телефон. Он может быть от 0 до 999 999 999. Программа чтения с экрана объявляет каждое изменение.</p>
+</div>
+</details>
+<details class="el" id="start-line">
+<summary><span class="mk">2</span><span><span class="name">Начальное число и время начала</span><span class="one">Напоминает, к чему вернёт сброс и с какого момента вы считаете.</span></span></summary>
+<div class="full">
+<p>Первая строка - «Начальное число» и его значение. Вторая, «Счёт идёт с» и дата со временем, появляется после первого нажатия, следующего за сбросом; до этого ничего не посчитано, поэтому времени начала нет.</p>
+</div>
+</details>
+<details class="el" id="minus-one">
+<summary><span class="mk">3</span><span><span class="name">Отнять один</span><span class="one">Убирает единицу из итога.</span></span></summary>
+<div class="full">
+<p>Пригодится, если вы насчитали лишнюю единицу. На нуле кнопка неактивна, потому что итог не бывает отрицательным.</p>
+</div>
+</details>
+<details class="el" id="plus-one">
+<summary><span class="mk">4</span><span><span class="name">Прибавить один</span><span class="one">Прибавляет единицу к итогу одной крупной кнопкой.</span></span></summary>
+<div class="full">
+<p>Кнопка сделана крупной намеренно, чтобы нажимать её не глядя. Фокус при открытии экрана стоит на ней, поэтому на клавиатуре или пульте можно сразу нажимать Enter или центральную кнопку. Первое нажатие после сброса записывает и момент начала подсчёта.</p>
+</div>
+</details>
+<h3>Большие шаги</h3>
+<details class="el" id="extra-steps-switch">
+<summary><span class="mk">5</span><span><span class="name">Больше кнопок: от +3 до +1000</span><span class="one">Показывает или скрывает ряд кнопок для больших прыжков.</span></span></summary>
+<div class="full">
+<p>Когда вы считаете десятками или сотнями, по одному - долго. Переключатель убирает эти кнопки с глаз, пока они не нужны, а приложение запоминает ваш выбор.</p>
+</div>
+</details>
+<details class="el" id="extra-steps">
+<summary><span class="mk">6</span><span><span class="name">Кнопки больших шагов</span><span class="one">Прибавляют к итогу 3, 5, 10, 50, 100 или 1000 одним нажатием.</span></span></summary>
+<div class="full">
+<p>Шесть кнопок: +3, +5, +10, +50, +100 и +1000, каждая прибавляет своё число. Они видны, только пока включён переключатель выше. Итог останавливается на 999 999 999.</p>
+</div>
+</details>
+<h3>Начальное число, сброс и история</h3>
+<details class="el" id="start-value">
+<summary><span class="mk">7</span><span><span class="name">Начальное число</span><span class="one">Задаёт число, с которого счётчик начинает и к которому возвращается после сброса.</span></span></summary>
+<div class="full">
+<p>Окно просит целое число от 0. Новое начальное число сразу становится и текущим счётом. Если вы были посреди подсчёта, он не попадёт в историю, поэтому сначала нажмите «Сбросить», если хотите его сохранить.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Идущий подсчёт заменяется начальным числом и не архивируется. Отменить это нельзя.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="reset">
+<summary><span class="mk">8</span><span><span class="name">Сбросить</span><span class="one">Завершает текущий подсчёт и начинает заново с начального числа.</span></span></summary>
+<div class="full">
+<p>Сначала появляется окно и сообщает, к какому числу вернётся счётчик. Законченный подсчёт попадает в начало истории со временем начала и окончания. Если после прошлого сброса ничего не считали, ничего и не архивируется.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Итог возвращается к начальному числу. Законченный подсчёт остаётся в истории, где его можно прочитать, но вернуть на счётчик нельзя.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="history">
+<summary><span class="mk">9</span><span><span class="name">История</span><span class="one">Законченные подсчёты, новые сверху.</span></span></summary>
+<div class="full">
+<p>В каждой строке итог и период, за который он набран, - от первого нажатия до сброса. В списке последние 100 подсчётов, более старые уходят. Пока список пуст, он сообщает, что завершённых отсчётов пока нет.</p>
+</div>
+</details>
+<details class="el" id="clear-history">
+<summary><span class="mk">10</span><span><span class="name">Очистить</span><span class="one">Удаляет все законченные подсчёты из истории.</span></span></summary>
+<div class="full">
+<p>Сначала появляется окно с вопросом. Пока история пуста, кнопка неактивна. Счёт на экране не затрагивается.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>История удаляется насовсем, восстановить её нельзя.</dd>
+</dl>
+</div>
+</details>
+<h3>Окна, где нужно решение</h3>
+<details class="el" id="start-field">
+<summary><span class="mk">11</span><span><span class="name">Поле начального числа</span><span class="one">Здесь вводится начальное число.</span></span></summary>
+<div class="full">
+<p>Поле открывается с выделенным текущим начальным числом, так что можно сразу печатать поверх. Подтвердите кнопкой «ОК» или клавишей «Готово» на клавиатуре. Пустой ввод, число меньше 0 или больше 999 999 999 оставляет окно открытым и показывает сообщение с просьбой ввести целое число от 0.</p>
+</div>
+</details>
+<details class="el" id="start-ok">
+<summary><span class="mk">12</span><span><span class="name">ОК</span><span class="one">Принимает начальное число.</span></span></summary>
+<div class="full">
+<p>Счётчик переходит на новое число, а время начала сбрасывается до следующего нажатия.</p>
+</div>
+</details>
+<details class="el" id="confirm-reset">
+<summary><span class="mk">13</span><span><span class="name">Сбросить счётчик?</span><span class="one">Просит подтвердить, прежде чем завершить подсчёт.</span></span></summary>
+<div class="full">
+<p>В окне сказано, что счётчик вернётся к начальному числу, а текущий счёт сохранится в истории. Нажмите «Сбросить», чтобы продолжить, или «Отмена», чтобы считать дальше.</p>
+</div>
+</details>
+<details class="el" id="confirm-clear">
+<summary><span class="mk">14</span><span><span class="name">Очистить историю счётчика?</span><span class="one">Просит подтвердить, прежде чем удалить историю.</span></span></summary>
+<div class="full">
+<p>Нажмите «Очистить», чтобы удалить все законченные подсчёты, или «Отмена», чтобы оставить их.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Очищенные подсчёты восстановить нельзя.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="dialog-cancel">
+<summary><span class="mk">15</span><span><span class="name">Отмена</span><span class="one">Закрывает окно, ничего не меняя.</span></span></summary>
+<div class="full">
+<p>Кнопка есть в каждом окне этого экрана: начальное число остаётся прежним, счётчик сохраняет итог, а история - свои строки.</p>
+</div>
+</details>
+</div>
+<h2>Связанное</h2>
+<ul class="related">
+<li><a href="tourist-info.html"><b>Турист</b><span class="pill">Экран</span></a></li>
+<li><a href="main.html"><b>Главный экран</b><span class="pill">Экран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/built-in-mini-apps-ru.html"><b>Built-in Programs - Switching Them On, the Lights, the Mirror and the SOS Signal</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="index.html"><b>Оглавление справки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Оглавление справки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
+</footer>
+</main>
+</body>
+</html>

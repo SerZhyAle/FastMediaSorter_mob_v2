@@ -100,9 +100,12 @@ private class RadioHttpDataSource(
      */
     private fun reopenWithBroadcastPair(spec: DataSpec, refusal: HttpDataSource.InvalidResponseCodeException): Long {
         val url = spec.uri.toString()
+        // A server may send one challenge per field, in any letter case; the answer reads the fields together.
         val challenge = refusal.headerFields.entries
-            .firstOrNull { it.key.equals(HEADER_CHALLENGE, ignoreCase = true) }
-            ?.value?.joinToString(", ")
+            .filter { it.key.equals(HEADER_CHALLENGE, ignoreCase = true) }
+            .flatMap { it.value }
+            .takeIf { it.isNotEmpty() }
+            ?.joinToString(", ")
         val pathAndQuery = spec.uri.encodedPath.orEmpty().ifEmpty { "/" } +
             spec.uri.encodedQuery?.let { "?$it" }.orEmpty()
         val answer = BroadcastPlaybackPairs.answerFor(url, challenge, METHOD_GET, pathAndQuery)

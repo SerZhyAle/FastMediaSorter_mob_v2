@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
-    S4097 - test suite for the forwarder generator, the retire command and the site-address gate.
+    S4097 - test suite for the forwarder generator, the retire command and the site-address gate; S4333 adds the
+    derived sitemap_exclude rows of the in-app help pages.
 
 .DESCRIPTION
     Subject: scripts/docs/generate-site-redirects.ps1, scripts/docs/retire-docs-page.ps1,
@@ -161,6 +162,24 @@ try {
     Write-Text $removed 'docs/coverage-manifest.jsonl' ('{"feature_id":"demo.a","status":"removed","page_id":"demo.old-feature"}' + "`n")
     $r = Invoke-Gate $removed 'retirement'
     Assert-That ($r.Exit -eq 1 -and $r.Output -match 'documents only removed capabilities') 'gate refuses a published page whose coverage rows are all removed'
+
+    Write-Host 'case: help pages'
+    $help = New-Site; $sites.Add($help)
+    Write-Text $help 'documentation/help/demo.html' "<html><body>help</body></html>`n"
+    Write-Text $help 'documentation/help/demo-ru.html' "<html><body>help</body></html>`n"
+    $r = Invoke-Gate $help 'redirects'
+    Assert-That ($r.Exit -eq 1 -and $r.Output -match 'derived sitemap_exclude rows') 'gate refuses help pages that have no derived registry row'
+    Assert-That ((Invoke-Generator $help -Check).Exit -eq 1) '-Check exits 1 while the help rows are missing'
+    [void](Invoke-Generator $help)
+    $registryText = Get-Content -LiteralPath (Join-Path $help 'docs/DOCUMENT_REGISTRY.jsonl') -Raw
+    Assert-That ($registryText -match '"path":"documentation/help/demo\.html"' -and $registryText -match '"path":"documentation/help/demo-ru\.html"') 'generator derives one registry row per help page'
+    Assert-That ((Invoke-Gate $help).Exit -eq 0) 'gate passes once the help rows are derived'
+    Assert-That ((Invoke-Generator $help -Check).Exit -eq 0) '-Check passes on current help rows'
+    Remove-Item -LiteralPath (Join-Path $help 'documentation/help/demo-ru.html')
+    Assert-That ((Invoke-Gate $help 'redirects').Exit -eq 1) 'gate refuses a help row whose page was deleted'
+    [void](Invoke-Generator $help)
+    $registryText = Get-Content -LiteralPath (Join-Path $help 'docs/DOCUMENT_REGISTRY.jsonl') -Raw
+    Assert-That ($registryText -notmatch 'demo-ru\.html' -and $registryText -match 'documentation/help/demo\.html') 'generator drops the row of a deleted help page and keeps the other'
 
     Write-Host 'case: retire command'
     $ret = New-Site; $sites.Add($ret)

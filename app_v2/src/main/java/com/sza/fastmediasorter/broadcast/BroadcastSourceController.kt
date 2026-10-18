@@ -50,6 +50,10 @@ sealed interface BroadcastState {
          * serving the screen; null for a camera or microphone session.
          */
         val source: String? = null,
+        /** S4281: whether the lens on air has a flash the torch button can light. */
+        val torchAvailable: Boolean = false,
+        /** S4281: whether that flash is lit right now, as the camera library reports it. */
+        val torchEnabled: Boolean = false,
     ) : BroadcastState
     data class Failed(val failure: BroadcastFailure, val detail: String) : BroadcastState
 }
@@ -101,6 +105,9 @@ interface BroadcastSourceController {
     // S3038: toggle camera and microphone during a live broadcast.
     fun toggleCamera()
     fun toggleMicrophone()
+
+    /** S4281: lights or puts out the flash of the lens on air. No-op without a live video session or a flash. */
+    fun toggleTorch() = Unit
 
     /** Switches a live video broadcast to any lens the phone offers, sub-lenses included. */
     fun selectLens(lensId: String)

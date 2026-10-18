@@ -139,6 +139,14 @@ class ExchangeConnectionStringCodecTest {
     }
 
     @Test
+    fun `an embedded IPv4 address must occupy the final IPv6 groups`() {
+        assertNull(ExchangeEndpoint.parse("[192.0.2.1::]:1"))
+        assertNull(ExchangeEndpoint.parse("[1:192.0.2.1::2]:1"))
+        assertEquals("::ffff:192.0.2.1", ExchangeEndpoint.parse("[::ffff:192.0.2.1]:1")?.host)
+        assertEquals("1:2:3:4:5:6:c000:201", ExchangeEndpoint.parse("[1:2:3:4:5:6:192.0.2.1]:1")?.host)
+    }
+
+    @Test
     fun `the fingerprint is SHA256 and 43 standard base64 digits worth 32 bytes`() {
         val value = read("$MINIMAL&fp=SHA256%3A%2B%2B%2B%2B%2F%2F%2F%2FNA%2BxR01JbXXB5CJm2pgMG7SRVTB8msjcGFw")
         val bytes = checkNotNull(value.fingerprintBytes())
@@ -164,6 +172,17 @@ class ExchangeConnectionStringCodecTest {
         assertEquals(BAD_N, refusal("$MINIMAL&n=" + "n".repeat(MAX_NAME + 1)))
         assertEquals(BAD_N, refusal("$MINIMAL&n=a%0Ab"))
         assertEquals(BAD_N, refusal("$MINIMAL&n="))
+    }
+
+    @Test
+    fun `unpaired surrogates cannot become a connection string name`() {
+        listOf("\uD800", "\uDC00", "a\uD800b", "a\uDC00b", "\uDC00\uD800").forEach { name ->
+            assertFalse(ExchangeConnectionStringCodec.isName(name))
+            val construction = runCatching { ExchangeConnectionString(ENDPOINT, name = name) }
+            assertTrue(construction.exceptionOrNull() is IllegalArgumentException)
+        }
+        val value = ExchangeConnectionString(ENDPOINT, name = "a\uD83D\uDE00b")
+        assertEquals(value, read(value.encode()))
     }
 
     @Test

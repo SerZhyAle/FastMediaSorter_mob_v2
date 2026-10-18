@@ -16,11 +16,12 @@ import android.provider.Settings
 import android.webkit.WebView
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsField
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsSection
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoAccessClassifier
+import com.sza.fastmediasorter.core.systeminfo.SystemInfoGroup
 import com.sza.fastmediasorter.core.xr.XrEnvironmentDetector
+import com.sza.fastmediasorter.util.getPackageInfoCompat
 import timber.log.Timber
 import java.io.File
 import java.net.NetworkInterface
@@ -42,6 +43,7 @@ internal class NoLegalDiagnosticsCollectors(
 ) {
 
     fun osSecurity(): ExtendedDiagnosticsSection = section(
+        SystemInfoGroup.OS_SECURITY,
         R.string.nolegal_diag_section_os_security,
         f("Root markers") { rootMarkers() },
         f("SELinux") { selinuxStatus() },
@@ -56,6 +58,7 @@ internal class NoLegalDiagnosticsCollectors(
     )
 
     fun permissions(): ExtendedDiagnosticsSection = section(
+        SystemInfoGroup.PERMISSIONS,
         R.string.nolegal_diag_section_permissions,
         f("MANAGE_EXTERNAL_STORAGE") { manageExternalStorage() },
         f("QUERY_ALL_PACKAGES") { permissionState("android.permission.QUERY_ALL_PACKAGES") },
@@ -67,6 +70,7 @@ internal class NoLegalDiagnosticsCollectors(
     )
 
     fun installerSignature(): ExtendedDiagnosticsSection = section(
+        SystemInfoGroup.INSTALLER_SIGNATURE,
         R.string.nolegal_diag_section_installer,
         f("Installer package") { installerPackage() },
         f("Signature SHA-256", sensitive = true) { signatureSha256() },
@@ -78,6 +82,7 @@ internal class NoLegalDiagnosticsCollectors(
     )
 
     fun runtimes(): ExtendedDiagnosticsSection = section(
+        SystemInfoGroup.RUNTIMES,
         R.string.nolegal_diag_section_runtimes,
         f("Python (Chaquopy)") { pythonStatus() },
         f("yt-dlp") { ytDlpStatus() },
@@ -89,6 +94,7 @@ internal class NoLegalDiagnosticsCollectors(
     )
 
     fun mounts(): ExtendedDiagnosticsSection = section(
+        SystemInfoGroup.MOUNTS,
         R.string.nolegal_diag_section_mounts,
         f("Mount entries") { mountCount() },
         f("Mount points", sensitive = true) { mountPoints() },
@@ -99,6 +105,7 @@ internal class NoLegalDiagnosticsCollectors(
     )
 
     fun network(): ExtendedDiagnosticsSection = section(
+        SystemInfoGroup.NETWORK_DIAGNOSTICS,
         R.string.nolegal_diag_section_network,
         f("DNS servers", sensitive = true) { dnsServers() },
         f("VPN interfaces", sensitive = true) { vpnInterfaces() },
@@ -109,6 +116,7 @@ internal class NoLegalDiagnosticsCollectors(
     )
 
     fun processResources(): ExtendedDiagnosticsSection = section(
+        SystemInfoGroup.PROCESS_RESOURCES,
         R.string.nolegal_diag_section_process,
         f("Native heap") { formatBytes(Debug.getNativeHeapAllocatedSize()) },
         f("Java heap (used/max)") { javaHeap() },
@@ -416,8 +424,12 @@ internal class NoLegalDiagnosticsCollectors(
     private fun onOff(value: Boolean): String = if (value) "on" else "off"
     private fun granted(value: Boolean): String = if (value) "granted" else "denied"
 
-    private fun section(@StringRes titleRes: Int, vararg fields: ExtendedDiagnosticsField): ExtendedDiagnosticsSection =
-        ExtendedDiagnosticsSection(context.getString(titleRes), fields.toList())
+    private fun section(
+        group: SystemInfoGroup,
+        @StringRes titleRes: Int,
+        vararg fields: ExtendedDiagnosticsField,
+    ): ExtendedDiagnosticsSection =
+        ExtendedDiagnosticsSection(context.getString(titleRes), fields.toList(), group)
 
     private fun f(label: String, sensitive: Boolean = false, block: () -> String): ExtendedDiagnosticsField =
         ExtendedDiagnosticsField(label, safe(block), sensitive)

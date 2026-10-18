@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /**
  * Every dialog of the "My devices" screen: sign-in with the certificate check of amendment D, the device list
@@ -48,6 +49,7 @@ class MyDevicesDialogManager(
     private var lastSignInState: ExchangeSignInState? = null
     private var devicesDialog: AlertDialog? = null
     private var devicesBinding: DialogExchangeServerDevicesBinding? = null
+    private var devicesAdapter: ExchangeDeviceAdapter? = null
     private var devicesPanel: ExchangeFailurePanel? = null
 
     fun resolve(message: MyDevicesMessage): String = resolve(activity, message)
@@ -196,6 +198,9 @@ class MyDevicesDialogManager(
     fun showDevices(entry: DeviceExchangeAccountEntry) {
         val binding = DialogExchangeServerDevicesBinding.inflate(LayoutInflater.from(activity))
         binding.rvExchangeDevices.layoutManager = LinearLayoutManager(activity)
+        binding.rvExchangeDevices.adapter = ExchangeDeviceAdapter(entry.deviceId) { device ->
+            confirmRevoke(device.deviceName) { viewModel.revokeDevice(entry, device) }
+        }.also { devicesAdapter = it }
         binding.btnExchangeDevicesPairing.setOnClickListener { viewModel.issuePairingCode(entry) }
         devicesDialog = MaterialAlertDialogBuilder(activity)
             .setTitle(ExchangeServerCardAdapter.address(entry))
@@ -204,6 +209,7 @@ class MyDevicesDialogManager(
             .setOnDismissListener {
                 devicesDialog = null
                 devicesBinding = null
+                devicesAdapter = null
                 devicesPanel = null
                 viewModel.closeDevices()
             }
@@ -213,11 +219,13 @@ class MyDevicesDialogManager(
             it.showProgress(activity.getString(R.string.exchange_devices_list_loading))
         }
         viewModel.openDevices(entry)
+        Timber.d("S4348: devices dialog shown")
     }
 
     fun renderDevices(state: ExchangeDevicesState) {
         val binding = devicesBinding ?: return
         val panel = devicesPanel ?: return
+        Timber.d("S4348: devices dialog render")
         when (state) {
             ExchangeDevicesState.Closed, ExchangeDevicesState.Loading ->
                 panel.showProgress(activity.getString(R.string.exchange_devices_list_loading))
@@ -229,13 +237,7 @@ class MyDevicesDialogManager(
             }
         }
         if (state is ExchangeDevicesState.Loaded) {
-            binding.rvExchangeDevices.adapter = ExchangeDeviceAdapter(
-                state.entry.deviceId,
-                state.devices,
-                state.notices,
-            ) { device ->
-                confirmRevoke(device.deviceName) { viewModel.revokeDevice(state.entry, device) }
-            }
+            devicesAdapter?.submit(state.devices, state.notices)
         }
     }
 

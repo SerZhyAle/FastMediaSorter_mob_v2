@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - My devices</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>My devices</span>
+</nav>
+<header class="hero">
+<h1>My devices</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">My devices holds the exchange servers that link all your own devices - phone, computer, watch, TV box. Once this phone is signed in to one, it can see the folders and broadcasts your other devices share, and they can see yours; the server only passes them along.</p>
+<h2>In this order</h2>
+<ol class="order">
+<li>Open My devices from Settings, on the General tab (the row is there in editions with network sources). With no server yet, a short message <a class="ref" href="#empty-text">2</a> says so; press Add server <a class="ref" href="#add-server">5</a> to begin.</li>
+<li>In the sign-in window, bring in the server's connection string by pasting, scanning or choosing a file <a class="ref" href="#signin-string">21</a>, then check the address <a class="ref" href="#signin-address">22</a> and type your login <a class="ref" href="#signin-login">23</a> and password <a class="ref" href="#signin-password">24</a>. If the other device gave you a pairing code, tick <a class="ref" href="#signin-code">25</a> and enter the code instead of the password, then press Sign in <a class="ref" href="#signin-submit">26</a>.</li>
+<li>Read What the server can see <a class="ref" href="#honest-note">4</a> once, so you know what the server learns and what stays encrypted on your devices.</li>
+<li>Each server you add becomes a card in the list <a class="ref" href="#server-list">3</a>: its address, your login and the state of the link, such as Connected with the number of devices.</li>
+<li>Tap a card to see the devices of that account <a class="ref" href="#devices-list">18</a>. To bring a new device in without typing the password there, issue a pairing code <a class="ref" href="#devices-pairing">20</a>; to remove a device you no longer use, press Revoke <a class="ref" href="#devices-revoke">19</a>.</li>
+<li>The three dots on a card (9 to 17) hold the rest: change the address, make this server the outgoing one, connect a watch, pass the server on, sign out, and more.</li>
+<li>The three buttons at the bottom (6, 7, 8) open pages of the project website about adding a server, the server itself and connecting a watch.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>The list of servers</h3>
+<details class="el" id="toolbar">
+<summary><span class="mk">1</span><span><span class="name">My devices</span><span class="one">The title bar of the screen, with the way back.</span></span></summary>
+<div class="full">
+<p>The arrow returns to the previous screen. Here a device is any phone, computer, watch or TV box that is signed in to the same account on an exchange server, and one account can sit on one server only. This screen lists those servers; the devices themselves are shown when you tap a card.</p>
+</div>
+</details>
+<details class="el" id="empty-text">
+<summary><span class="mk">2</span><span><span class="name">Empty list message</span><span class="one">Tells you that there is no exchange server yet.</span></span></summary>
+<div class="full">
+<p>It shows only while the list has no cards. It says that adding a server lets you see the resources and broadcasts of all your devices; Add server below is the way to do it.</p>
+</div>
+</details>
+<details class="el" id="server-list">
+<summary><span class="mk">3</span><span><span class="name">Server cards</span><span class="one">One card per exchange server you are signed in to.</span></span></summary>
+<div class="full">
+<p>A card shows the server's address, your login on it and a status line: Checking the connection.., Connected with the number of devices, or a short note about what is wrong - for example that the server does not answer or that this phone was signed out. Cards marked Outgoing are the server through which this phone publishes its folders and broadcasts. Tap a card to open the list of devices in that account; the three dots on the card open its menu.</p>
+</div>
+</details>
+<details class="el" id="honest-note">
+<summary><span class="mk">4</span><span><span class="name">What the server can see</span><span class="one">A plain statement of what the exchange server learns and what it cannot read.</span></span></summary>
+<div class="full">
+<p>The server sees the names of your account, devices, folders and broadcasts, which devices are online, and how much is sent and when. It cannot open what goes through it: folders and their files, broadcasts and the clipboard are encrypted on your device and opened only on your other devices or by people you gave access to. To look inside, whoever runs the server would have to add a device of their own to your account, and it would appear in your list of devices.</p>
+</div>
+</details>
+<details class="el" id="add-server">
+<summary><span class="mk">5</span><span><span class="name">Add server</span><span class="one">Signs this phone in to an exchange server.</span></span></summary>
+<div class="full">
+<p>It opens the Sign in to an exchange server window. You need the server's connection string, or its address, and a login with a password or a pairing code. Nothing is saved until you press Sign in and the server accepts you. Afterwards the server appears as a card in the list.</p>
+</div>
+</details>
+<h3>Pages of the project website</h3>
+<details class="el" id="portal-add-server">
+<summary><span class="mk">6</span><span><span class="name">About adding a server</span><span class="one">Opens a page of the project website about adding a server.</span></span></summary>
+<div class="full">
+<p>The page walks through the pairing code and the connection string. It opens in your browser.</p>
+</div>
+</details>
+<details class="el" id="portal-server">
+<summary><span class="mk">7</span><span><span class="name">About the exchange server</span><span class="one">Opens a page of the project website about the exchange server.</span></span></summary>
+<div class="full">
+<p>It explains who runs a server, how it connects your devices without opening a router, and what it sees and keeps. It opens in your browser.</p>
+</div>
+</details>
+<details class="el" id="portal-watch">
+<summary><span class="mk">8</span><span><span class="name">About connecting a watch</span><span class="one">Opens a page of the project website about connecting a watch.</span></span></summary>
+<div class="full">
+<p>The button shows only in editions that have the Wear companion, the same editions in which a card menu offers Connect watch. The page opens in your browser.</p>
+</div>
+</details>
+<h3>Server card menu (three dots)</h3>
+<details class="el" id="menu-edit-address">
+<summary><span class="mk">9</span><span><span class="name">Change address</span><span class="one">Changes the address of a server without signing in again.</span></span></summary>
+<div class="full">
+<p>A small window shows the address as host and port. If the server has announced a different address, the window mentions it and offers Use the announced address. Save moves your sign-in to the new address. If an entry with that address and login already exists, or the sign-in could not be moved, nothing is changed and a message says so.</p>
+</div>
+</details>
+<details class="el" id="menu-make-outgoing">
+<summary><span class="mk">10</span><span><span class="name">Make outgoing</span><span class="one">Makes this server the one through which this phone shares.</span></span></summary>
+<div class="full">
+<p>This phone publishes its folders and broadcasts through one server at a time. Choosing this server moves publishing here and marks the card Outgoing. If the previous server could not be reached, publishing stops on this phone anyway and a message says that the share may stay listed there for a while. The item is hidden on the card that is already outgoing.</p>
+</div>
+</details>
+<details class="el" id="menu-connect-watch">
+<summary><span class="mk">11</span><span><span class="name">Connect watch</span><span class="one">Signs your watch in to this server.</span></span></summary>
+<div class="full">
+<p>The phone hands the watch a one-time code, so you type no password on the watch. Keep the watch near, unlocked and connected. The item appears only in editions with the Wear companion, and a message says if the companion is off, no watch is connected, or the watch did not answer.</p>
+</div>
+</details>
+<details class="el" id="menu-share">
+<summary><span class="mk">12</span><span><span class="name">Pass the server on</span><span class="one">Shows a code that tells another device where this server is.</span></span></summary>
+<div class="full">
+<p>A window shows a QR code and a text. Send passes the text to another app and Copy puts it on the clipboard. The text carries the address and the certificate of the server, never your login or password, so the other device still needs its own sign-in.</p>
+</div>
+</details>
+<details class="el" id="menu-auto-attach">
+<summary><span class="mk">13</span><span><span class="name">Attach everything automatically</span><span class="one">Adds every new folder of this account to this phone without asking.</span></span></summary>
+<div class="full">
+<p>With the check mark on, a folder that one of your devices starts sharing appears in your resources by itself. It is off until you turn it on. Tap the item again to turn it off.</p>
+</div>
+</details>
+<details class="el" id="menu-sign-in-again">
+<summary><span class="mk">14</span><span><span class="name">Sign in again</span><span class="one">Opens the sign-in window with this server already filled in.</span></span></summary>
+<div class="full">
+<p>Use it when the card says that you were signed out or the sign-in was revoked, or on a new phone after a backup restore. The address, the server's certificate and your login are filled in; you type the password once. The same entry is renewed, so nothing is duplicated.</p>
+</div>
+</details>
+<details class="el" id="menu-change-password">
+<summary><span class="mk">15</span><span><span class="name">Change password</span><span class="one">Changes the password of your account on this server.</span></span></summary>
+<div class="full">
+<p>You enter the current password and the new one twice. After the change every other device of this account signs out and asks for the new password; this phone stays signed in. A forgotten password cannot be recovered, so keep it somewhere safe.</p>
+</div>
+</details>
+<details class="el" id="menu-sign-out">
+<summary><span class="mk">16</span><span><span class="name">Sign out on this device</span><span class="one">Takes this phone out of the account.</span></span></summary>
+<div class="full">
+<p>It asks first. This phone leaves the account and forgets the sign-in. Resources attached from this server stay in the list and show as unavailable until you add the server again. If the server cannot be reached, a message says that the phone stays in the account's device list until another device revokes it.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The sign-in on this phone is forgotten. To come back, sign in again with the password or a pairing code; the account and its other devices are not touched.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="menu-delete-account">
+<summary><span class="mk">17</span><span><span class="name">Delete my account</span><span class="one">Deletes your account from the server for good.</span></span></summary>
+<div class="full">
+<p>You enter the account password to confirm, and the window opens on the safe button. The server erases the account at once: all its devices, published folders and broadcasts, sign-ins and the clipboard. Folders you added stay in your list but show as no longer published. A button in the window opens a page of the project website on how it works.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>This cannot be undone. The account, its device list and everything published through it are gone from the server; only signing up again with a new invitation brings back an account, and it starts empty.</dd>
+</dl>
+</div>
+</details>
+<h3>Devices of an account (tap a card)</h3>
+<details class="el" id="devices-list">
+<summary><span class="mk">18</span><span><span class="name">Device list</span><span class="one">The devices that belong to this account, and whether each is online.</span></span></summary>
+<div class="full">
+<p>A window titled with the server's address lists every device in the account: its name, the program it runs, and Online or Offline in words. This phone is shown as This phone. A device that has paused sharing is marked so. Close shuts the window.</p>
+</div>
+</details>
+<details class="el" id="devices-revoke">
+<summary><span class="mk">19</span><span><span class="name">Revoke</span><span class="one">Cuts a device off from the account.</span></span></summary>
+<div class="full">
+<p>Every device except this phone has a Revoke button. It asks first and names the device. The device loses access and can come back only by signing in again. This phone has no such button; it leaves with Sign out on this device.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The device is removed from the account at once. To bring it back, sign in again on that device with the password or a pairing code.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="devices-pairing">
+<summary><span class="mk">20</span><span><span class="name">Issue a pairing code</span><span class="one">Makes a one-time code for signing in another device.</span></span></summary>
+<div class="full">
+<p>The code appears below the button together with the time it is valid until. Enter it on the other device instead of the password; it works once, so ask for a new one if it was not used. It is handy on a TV box or any device where typing a strong password is hard.</p>
+</div>
+</details>
+<h3>Sign in to an exchange server window</h3>
+<details class="el" id="signin-string">
+<summary><span class="mk">21</span><span><span class="name">Paste a server string</span><span class="one">Fills in the server from a connection string.</span></span></summary>
+<div class="full">
+<p>Paste the text you were given, press Paste to take it from the clipboard, Scan QR to read a code with the camera, or Choose file to open a file of the kind the server makes. The string holds the server's address and the fingerprint of its certificate, never a login or a password, and it fills in what it can. If it is an invitation, the window turns into creating a new account: the password is asked twice and the button reads Create account.</p>
+</div>
+</details>
+<details class="el" id="signin-address">
+<summary><span class="mk">22</span><span><span class="name">Address (host:port)</span><span class="one">Where the server is, as host and port.</span></span></summary>
+<div class="full">
+<p>Filled in by the connection string, or typed by hand as host:port. A wrong form is pointed out before anything is sent. Changing the address after reading a string drops the certificate that came with it.</p>
+</div>
+</details>
+<details class="el" id="signin-login">
+<summary><span class="mk">23</span><span><span class="name">Login</span><span class="one">Your login on that server.</span></span></summary>
+<div class="full">
+<p>A login is 3 to 64 Latin letters, digits, dots, hyphens or underscores. It is only an account name; the server's owner gives it to you or you choose it when you accept an invitation.</p>
+</div>
+</details>
+<details class="el" id="signin-password">
+<summary><span class="mk">24</span><span><span class="name">Password</span><span class="one">Your password on that server.</span></span></summary>
+<div class="full">
+<p>It is sent to the server once and not kept by the phone: the phone keeps a device sign-in instead. If you ticked the pairing code box, this field becomes the Pairing code field.</p>
+</div>
+</details>
+<details class="el" id="signin-code">
+<summary><span class="mk">25</span><span><span class="name">I have a pairing code instead of the password</span><span class="one">Lets you use a pairing code in place of the password.</span></span></summary>
+<div class="full">
+<p>Tick it when another of your devices issued a one-time code. The Password field becomes Pairing code. The code works once and for a short time only.</p>
+</div>
+</details>
+<details class="el" id="signin-submit">
+<summary><span class="mk">26</span><span><span class="name">Sign in</span><span class="one">Tries the sign-in.</span></span></summary>
+<div class="full">
+<p>While the server answers, the window shows progress. If the server presents a certificate this phone does not know, a window asks you to check its fingerprint against the one the server shows and then Trust it or Cancel; do not trust a fingerprint that does not match. On success the window closes and the server appears as a card.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="settings-general.html"><b>Settings: General</b><span class="pill">Screen</span></a></li>
+<li><a href="streams.html"><b>Streams</b><span class="pill">Screen</span></a></li>
+<li><a href="broadcast.html"><b>Broadcast control</b><span class="pill">Screen</span></a></li>
+<li><a href="wear-companion.html"><b>Wear Companion</b><span class="pill">Screen</span></a></li>
+<li><a href="add-resource.html"><b>Add Resource</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/backup-and-device-sync.html"><b>Backing Up Your Settings and Keeping Devices in Sync</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server.html"><b>Turning the Phone into an SFTP Server</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html"><b>Keeping the Phone and the Watch in Step - Network Folders and Watch Settings</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

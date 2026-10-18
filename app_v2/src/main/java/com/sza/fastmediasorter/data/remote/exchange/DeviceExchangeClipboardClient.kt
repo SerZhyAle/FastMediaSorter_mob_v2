@@ -17,6 +17,8 @@ import com.sza.fastmediasorter.domain.model.ExchangeClipboardValue
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -248,7 +250,7 @@ class DeviceExchangeClipboardClient @Inject constructor(
             ?.let { source.keysFor(DeviceExchangeDirectory.from(it).devices) }
     }
 
-    private fun sealInto(
+    private suspend fun sealInto(
         session: DeviceExchangeSession,
         source: InputStream,
         size: Long,
@@ -256,12 +258,15 @@ class DeviceExchangeClipboardClient @Inject constructor(
         onProgress: (Long) -> Unit,
     ) {
         val clear = E2eDigestInputStream(source, size, MessageDigest.getInstance(SHA_256), onProgress)
-        val sealed = E2eSegmentStream.seal(clear, session.connection.output, valueKey)
+        val context = currentCoroutineContext()
+        val sealed = E2eSegmentStream.seal(clear, session.connection.output, valueKey) {
+            context.ensureActive()
+        }
         if (sealed != size) throw IOException("the clipboard source ended before its declared size")
         session.connection.output.flush()
     }
 
-    private fun receive(
+    private suspend fun receive(
         session: DeviceExchangeSession,
         read: ValueRead.Opened,
         target: File,
@@ -273,9 +278,12 @@ class DeviceExchangeClipboardClient @Inject constructor(
         val clearDigest = MessageDigest.getInstance(SHA_256)
         val input = E2eDigestInputStream(session.connection.input, read.sealedSize, sealedDigest, onProgress)
         var kept = false
+        val context = currentCoroutineContext()
         try {
             val clearCount = target.outputStream().use { out ->
-                E2eSegmentStream.open(input, DigestOutputStream(out, clearDigest), E2eSegmentStream.valueKey(read.key))
+                E2eSegmentStream.open(input, DigestOutputStream(out, clearDigest), E2eSegmentStream.valueKey(read.key)) {
+                    context.ensureActive()
+                }
             }
             kept = input.count == read.sealedSize &&
                 E2eBytes.hex(sealedDigest.digest()).equals(read.sealedSha256, ignoreCase = true) &&

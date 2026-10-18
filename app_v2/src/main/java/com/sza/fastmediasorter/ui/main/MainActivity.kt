@@ -52,10 +52,9 @@ import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorAprilFoolsPrankManager
 import com.sza.fastmediasorter.ui.common.AppUpdateNoticeManager
-import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.input.InputHelpFirstRunHint
 import com.sza.fastmediasorter.ui.common.input.UiSurface
-import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.MainBroadcastManager
@@ -67,6 +66,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainCommandBarTooltipManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCommandOverflowMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainDropdownMenuPopupManager
 import com.sza.fastmediasorter.ui.main.helpers.MainExitButtonManager
+import com.sza.fastmediasorter.ui.main.helpers.MainHelpEntryManager
 import com.sza.fastmediasorter.ui.main.helpers.MainHelperFactory
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadManager
@@ -598,7 +598,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             // owned by the on-screen exit button per scope Q6).
             onExit = { performFullExit() },
             onShowHelp = {
-                InputHelpDialogFragment.show(supportFragmentManager, UiSurface.MAIN)
+                HelpOpenManager.open(this, MainHelpEntryManager.SURFACE_ID, UiSurface.MAIN)
             },
             onEditResourceClick = openResourceEditor,
         )
@@ -899,7 +899,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     /** S0755: shared click routing for both the dropdown popup and the programs panel buttons. */
     private fun handleMainWindowMenuItem(itemId: Int): Boolean =
         if (itemId == R.id.action_help) {
-            DocsPageOpenManager.open(this, UiSurface.MAIN)
+            HelpOpenManager.open(this, MainHelpEntryManager.SURFACE_ID, UiSurface.MAIN)
             true
         } else {
             commandOverflowMenuManager.handleMenuItem(itemId) || programsMenuCoordinator.handleMenuItem(itemId)
@@ -1079,6 +1079,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         streamsPanelManager.setup()
         // S0810: long-press a command-bar icon reveals its name via a tooltip (reuses contentDescription).
         MainCommandBarTooltipManager.apply(binding)
+        MainHelpEntryManager.bind(this, binding.btnHelp)
         setupMainWindowDropdownMenu()
         layoutChrome.restitchControlBarFocusChain()
 

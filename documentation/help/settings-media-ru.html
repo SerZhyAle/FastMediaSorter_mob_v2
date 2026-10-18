@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Справка - Настройки: Медиа</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Оглавление справки">
+<a href="index-ru.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Настройки: Медиа</span>
+</nav>
+<header class="hero">
+<h1>Настройки: Медиа</h1>
+</header>
+<h2>Для чего этот экран</h2>
+<p class="lead">На вкладке «Медиа» вы решаете, какие виды файлов обрабатывает приложение и как ведёт себя каждый вид: изображения, видео, аудио, документы, перевод, трансляции и живое вещание.</p>
+<figure class="shot">
+<img class="on-light" src="img/settings-media-ru-light.webp" alt="Настройки: Медиа">
+<img class="on-dark" src="img/settings-media-ru-dark.webp" alt="Настройки: Медиа">
+</figure>
+<h2>Порядок действий</h2>
+<p class="order-note">Единого порядка здесь нет - каждый параметр работает сам по себе. Вкладка сворачивается в группы, по одной на каждый вид медиа, и в каждой группе перечислены её параметры. Некоторые группы, например «Трансляции» и «Вещание», есть только в тех версиях приложения, где они предусмотрены.</p>
+<h2>Элементы</h2>
+<div class="elements">
+<h3>Изображения, GIF и слайд-шоу</h3>
+<details class="el" id="support-images">
+<summary><span class="mk">1</span><span><span class="name">Поддержка статичных изображений</span><span class="one">Позволяет приложению показывать статичные изображения.</span></span></summary>
+<div class="full">
+<p>Становятся доступны JPG, PNG, WEBP, HEIC и другие форматы. Выключите, если приложение не нужно вам для картинок.</p>
+</div>
+</details>
+<details class="el" id="support-gifs">
+<summary><span class="mk">2</span><span><span class="name">Поддержка GIF анимации</span><span class="one">Воспроизводит анимированные GIF в браузере файлов и плеере.</span></span></summary>
+<div class="full">
+<p>Включите, чтобы GIF двигались. На этой же странице задаются ограничения размера для изображений и анимаций.</p>
+</div>
+</details>
+<details class="el" id="full-size-images">
+<summary><span class="mk">3</span><span><span class="name">Загружать изображения полностью</span><span class="one">Загружает изображения в исходном разрешении, чтобы их можно было увеличивать.</span></span></summary>
+<div class="full">
+<p>Включает жесты масштабирования щипком и поворота в режиме панели команд, но расходует больше трафика и памяти. По умолчанию изображения загружаются с разрешением 1920 px; по сети для увеличения скачивается оригинал, и это медленнее.</p>
+</div>
+</details>
+<details class="el" id="crop-fullscreen">
+<summary><span class="mk">4</span><span><span class="name">Обрезать изображения на весь экран</span><span class="one">Заполняет весь экран, если ориентация изображения и устройства совпадает.</span></span></summary>
+<div class="full">
+<p>В полноэкранном режиме и слайд-шоу горизонтальное изображение на горизонтальном экране (или вертикальное на вертикальном) обрезается по размеру экрана. Когда параметр выключен, любое изображение целиком помещается в экран без обрезки.</p>
+</div>
+</details>
+<details class="el" id="dynamic-background">
+<summary><span class="mk">5</span><span><span class="name">Динамический фон</span><span class="one">Заполняет пустые поля вокруг изображения цветами его краёв.</span></span></summary>
+<div class="full">
+<p>Смягчает полосы по бокам или сверху и снизу, когда изображение не совпадает по форме с экраном. Простой фон закрашивается однородно, а сложный продолжается лучами, как продолжение картинки.</p>
+</div>
+</details>
+<details class="el" id="slideshow-music">
+<summary><span class="mk">6</span><span><span class="name">Музыка во время слайд-шоу</span><span class="one">Включает музыку во время слайд-шоу.</span></span></summary>
+<div class="full">
+<p>Во время показа изображений и GIF играют треки из выбранного ресурса в случайном порядке. Выберите ресурс с вашей музыкой; выбор появляется, когда параметр включён.</p>
+</div>
+</details>
+<details class="el" id="default-image-viewer">
+<summary><span class="mk">7</span><span><span class="name">Назначить просмотрщиком изображений по умолчанию</span><span class="one">Назначает FastMediaSorter приложением для открытия изображений.</span></span></summary>
+<div class="full">
+<p>Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
+</div>
+</details>
+<h3>Видео, настройки плеера</h3>
+<details class="el" id="support-video">
+<summary><span class="mk">8</span><span><span class="name">Поддержка видео</span><span class="one">Позволяет приложению воспроизводить видео.</span></span></summary>
+<div class="full">
+<p>MP4, MKV, MOV, WEBM и другие форматы воспроизводятся во встроенном плеере.</p>
+</div>
+</details>
+<details class="el" id="video-thumbnails">
+<summary><span class="mk">9</span><span><span class="name">Показывать миниатюры видеофайлов</span><span class="one">Показывает кадр-превью для каждого видео в браузере файлов.</span></span></summary>
+<div class="full">
+<p>Первый кадр ролика становится его миниатюрой. Для сетевых файлов это может занять две секунды и больше: сначала файл нужно скачать и обработать.</p>
+</div>
+</details>
+<details class="el" id="video-fullscreen">
+<summary><span class="mk">10</span><span><span class="name">Открывать видеофайлы в полноэкранном режиме</span><span class="one">Запускает видео из браузера файлов сразу на весь экран.</span></span></summary>
+<div class="full">
+<p>Видео, открытое из браузера файлов, сразу воспроизводится в полноэкранном режиме.</p>
+</div>
+</details>
+<details class="el" id="video-frame-clipboard">
+<summary><span class="mk">11</span><span><span class="name">Сохранять кадры видео в буфер обмена</span><span class="one">Заодно копирует каждый извлечённый кадр в буфер обмена.</span></span></summary>
+<div class="full">
+<p>Когда вы извлекаете кадр из видео, он ещё и попадает в буфер обмена - его можно сразу вставить.</p>
+</div>
+</details>
+<details class="el" id="default-video-player">
+<summary><span class="mk">12</span><span><span class="name">Назначить видеоплеером по умолчанию</span><span class="one">Назначает FastMediaSorter приложением для воспроизведения видео.</span></span></summary>
+<div class="full">
+<p>Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
+</div>
+</details>
+<h3>Аудио, обложки и фоновые визуализации</h3>
+<details class="el" id="support-audio">
+<summary><span class="mk">13</span><span><span class="name">Поддержка аудио</span><span class="one">Позволяет приложению воспроизводить аудио.</span></span></summary>
+<div class="full">
+<p>MP3, FLAC, AAC, OGG и другие аудиоформаты становятся доступны для воспроизведения.</p>
+</div>
+</details>
+<details class="el" id="audio-covers">
+<summary><span class="mk">14</span><span><span class="name">Искать обложки аудио онлайн</span><span class="one">Ищет в интернете обложки для треков, в которых они не встроены.</span></span></summary>
+<div class="full">
+<p>Обложки скачиваются из интернета. Рядом появляется параметр «Искать только по Wi-Fi», чтобы мобильный трафик не тратился.</p>
+</div>
+</details>
+<details class="el" id="audio-photos">
+<summary><span class="mk">15</span><span><span class="name">Показывать случайные фото при воспроизведении аудио</span><span class="one">Показывает случайные фото, пока играет аудио.</span></span></summary>
+<div class="full">
+<p>Фото берутся из выбранного ресурса, по одному случайному на каждую песню. Используются только неподвижные изображения, видео пропускаются.</p>
+</div>
+</details>
+<details class="el" id="audio-empty-state">
+<summary><span class="mk">16</span><span><span class="name">Визуализатор при отсутствии обложки</span><span class="one">Выбирает, что плеер показывает для трека без обложки.</span></span></summary>
+<div class="full">
+<p>Можно оставить чёрный фон или выбрать ноту с пульсирующими кольцами, дышащие столбики, волны и частицы либо видеовизуализацию.</p>
+</div>
+</details>
+<details class="el" id="default-audio-player">
+<summary><span class="mk">17</span><span><span class="name">Назначить аудиоплеером по умолчанию</span><span class="one">Назначает FastMediaSorter приложением для воспроизведения музыки.</span></span></summary>
+<div class="full">
+<p>Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
+</div>
+</details>
+<h3>Просмотр текста, PDF, EPUB и Office</h3>
+<details class="el" id="support-text">
+<summary><span class="mk">18</span><span><span class="name">Поддержка текстовых файлов (.txt, .md, .log, .json, .xml)</span><span class="one">Позволяет приложению открывать текстовые файлы.</span></span></summary>
+<div class="full">
+<p>Это файлы .txt, .md, .log, .json и .xml.</p>
+</div>
+</details>
+<details class="el" id="support-pdf">
+<summary><span class="mk">19</span><span><span class="name">Поддержка PDF-документов</span><span class="one">Открывает PDF во встроенном просмотрщике.</span></span></summary>
+<div class="full">
+<p>Для PDF есть и отдельный параметр с крупными миниатюрами, он работает медленнее.</p>
+</div>
+</details>
+<details class="el" id="support-epub">
+<summary><span class="mk">20</span><span><span class="name">Поддержка EPUB электронных книг</span><span class="one">Читает электронные книги EPUB.</span></span></summary>
+<div class="full">
+<p>В читалке есть закладки и оглавление.</p>
+</div>
+</details>
+<details class="el" id="support-office">
+<summary><span class="mk">21</span><span><span class="name">Поддержка Office-документов</span><span class="one">Открывает офисные документы в другом приложении.</span></span></summary>
+<div class="full">
+<p>DOC, DOCX, RTF и ODT открываются во внешнем приложении, а не в самом FastMediaSorter.</p>
+</div>
+</details>
+<details class="el" id="default-docs-viewer">
+<summary><span class="mk">22</span><span><span class="name">Назначить приложением для документов по умолчанию</span><span class="one">Назначает FastMediaSorter приложением для открытия документов.</span></span></summary>
+<div class="full">
+<p>Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
+</div>
+</details>
+<h3>Перевод, оцифровка (OCR)</h3>
+<details class="el" id="enable-ocr">
+<summary><span class="mk">23</span><span><span class="name">Разрешить распознавание текста</span><span class="one">Включает распознавание текста на изображениях и в PDF.</span></span></summary>
+<div class="full">
+<p>Текст извлекается, и его можно скопировать. Размер и шрифт распознанного текста задаются чуть ниже.</p>
+</div>
+</details>
+<details class="el" id="enable-translation">
+<summary><span class="mk">24</span><span><span class="name">Включить перевод</span><span class="one">Включает перевод текста, распознанного на изображениях.</span></span></summary>
+<div class="full">
+<p>Видимый текст переводится с исходного языка на выбранный ниже. Пакеты перевода можно установить в строке загрузок.</p>
+</div>
+</details>
+<details class="el" id="translation-source">
+<summary><span class="mk">25</span><span><span class="name">Исходный язык</span><span class="one">Выбирает язык текста, который нужно перевести.</span></span></summary>
+<div class="full">
+<p>Кнопка обмена между двумя полями языков меняет их местами одним нажатием.</p>
+</div>
+</details>
+<details class="el" id="translation-target">
+<summary><span class="mk">26</span><span><span class="name">Перевести на</span><span class="one">Выбирает язык, на который переводить.</span></span></summary>
+<div class="full">
+<p>Переводы появляются на этом языке. Когда нужно перевести в обратную сторону, поменяйте языки местами кнопкой между ними.</p>
+</div>
+</details>
+<details class="el" id="ocr-translation-downloads">
+<summary><span class="mk">27</span><span><span class="name">Загрузки OCR и перевода</span><span class="one">Открывает загрузки для распознавания текста и перевода.</span></span></summary>
+<div class="full">
+<p>Установите нужные пакеты OCR и перевода, а потом удалите их, чтобы освободить место.</p>
+</div>
+</details>
+<h3>Трансляции</h3>
+<details class="el" id="enable-streams">
+<summary><span class="mk">28</span><span><span class="name">Включить трансляции</span><span class="one">Включает интернет-трансляции: аудио, видео и RTSP.</span></span></summary>
+<div class="full">
+<p>Трансляции дают каталог каналов и воспроизведение онлайн-радио и телевидения. Параметры ниже настраивают их работу.</p>
+</div>
+</details>
+<details class="el" id="streams-sort">
+<summary><span class="mk">29</span><span><span class="name">Порядок по умолчанию</span><span class="one">Выбирает порядок списка каналов по умолчанию.</span></span></summary>
+<div class="full">
+<p>Можно упорядочить по названию, рубрике, языку, стране или по времени добавления.</p>
+</div>
+</details>
+<details class="el" id="streams-filter">
+<summary><span class="mk">30</span><span><span class="name">Что показывать сначала</span><span class="one">Выбирает, какие каналы показывать по умолчанию.</span></span></summary>
+<div class="full">
+<p>Все каналы, только аудио или только видео.</p>
+</div>
+</details>
+<details class="el" id="catalog-refresh">
+<summary><span class="mk">31</span><span><span class="name">Обновление списка каналов</span><span class="one">Определяет, когда обновляется список каналов.</span></span></summary>
+<div class="full">
+<p>Можно обновлять только по вашей просьбе, предлагать обновление при открытии трансляций или обновлять автоматически по Wi-Fi.</p>
+</div>
+</details>
+<details class="el" id="streams-audio-language">
+<summary><span class="mk">32</span><span><span class="name">Язык аудио для трансляций</span><span class="one">Выбирает язык звука, с которого начинаются трансляции.</span></span></summary>
+<div class="full">
+<p>Доступны варианты: по умолчанию, английский, русский и украинский.</p>
+</div>
+</details>
+<details class="el" id="streams-subtitle-language">
+<summary><span class="mk">33</span><span><span class="name">Язык субтитров для трансляций</span><span class="one">Выбирает язык субтитров, с которого начинаются трансляции.</span></span></summary>
+<div class="full">
+<p>Доступны варианты: по умолчанию, английский, русский и украинский.</p>
+</div>
+</details>
+<details class="el" id="smart-buffering">
+<summary><span class="mk">34</span><span><span class="name">Сверхинтеллектуальная буферизация трансляций</span><span class="one">Даёт трансляциям больший запас буфера на старте.</span></span></summary>
+<div class="full">
+<p>Трансляции стартуют с большим буфером и тихо переподключаются, когда соединение нестабильно.</p>
+</div>
+</details>
+<details class="el" id="cast-play-at-once">
+<summary><span class="mk">35</span><span><span class="name">Воспроизводить сразу</span><span class="one">Запускает трансляцию с другого устройства без вопроса.</span></span></summary>
+<div class="full">
+<p>Обычно трансляция, которую другое ваше устройство передаёт сюда, ждёт вашего «Принять». Когда параметр включён, она начинается сразу.</p>
+</div>
+</details>
+<details class="el" id="streams-pip">
+<summary><span class="mk">36</span><span><span class="name">Включить картинку в картинке</span><span class="one">Добавляет в плеер кнопку «картинка в картинке».</span></span></summary>
+<div class="full">
+<p>Плеер также сам переходит в режим «картинка в картинке», когда вы нажимаете «Домой» (Android 12 и новее).</p>
+</div>
+</details>
+<details class="el" id="clear-play-marks">
+<summary><span class="mk">37</span><span><span class="name">Очистить отметки воспроизведения</span><span class="one">Стирает зелёные и красные отметки воспроизведения на всех каналах.</span></span></summary>
+<div class="full">
+<p>Сами каналы остаются. Перед очисткой приложение просит подтвердить действие.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Удаляются только отметки; сами каналы остаются на месте.</dd>
+</dl>
+</div>
+</details>
+<h3>Вещание</h3>
+<details class="el" id="enable-broadcast">
+<summary><span class="mk">38</span><span><span class="name">Включить вещание</span><span class="one">Разрешает вести живое аудиовещание с этого устройства.</span></span></summary>
+<div class="full">
+<p>Когда параметр включён, в приложении появляются ярлыки вещания. Параметры ниже задают название, порт, качество звука и работу микрофона.</p>
+</div>
+</details>
+<details class="el" id="broadcast-title">
+<summary><span class="mk">39</span><span><span class="name">Название вещания</span><span class="one">Даёт вещанию название.</span></span></summary>
+<div class="full">
+<p>Под этим названием идёт ваше вещание. По умолчанию - «Вещание с телефона».</p>
+</div>
+</details>
+<details class="el" id="broadcast-port">
+<summary><span class="mk">40</span><span><span class="name">Порт</span><span class="one">Задаёт сетевой порт для вещания.</span></span></summary>
+<div class="full">
+<p>Приложение принимает порты от 1 до 65535. Меняйте его, только если есть причина, например другое приложение уже использует текущий порт.</p>
+</div>
+</details>
+<details class="el" id="bit-rate">
+<summary><span class="mk">41</span><span><span class="name">Битрейт</span><span class="one">Задаёт качество звука вещания.</span></span></summary>
+<div class="full">
+<p>Доступны 128, 192, 256 и 320 кбит/с. Чем выше значение, тем лучше звук и тем больше трафика.</p>
+</div>
+</details>
+<details class="el" id="audio-format">
+<summary><span class="mk">42</span><span><span class="name">Формат аудио</span><span class="one">Задаёт частоту дискретизации и число каналов.</span></span></summary>
+<div class="full">
+<p>Доступны 44,1 и 48 кГц, моно или стерео.</p>
+</div>
+</details>
+<details class="el" id="mic-gain">
+<summary><span class="mk">43</span><span><span class="name">Усиление микрофона</span><span class="one">Задаёт громкость вашего микрофона в вещании.</span></span></summary>
+<div class="full">
+<p>Можно выбрать от 50% до 400%. При 100% уровень не меняется.</p>
+</div>
+</details>
+<details class="el" id="feedback-guard">
+<summary><span class="mk">44</span><span><span class="name">Защита от петли</span><span class="one">Не даёт возникнуть свисту, когда слушатель рядом включает вещание вслух.</span></span></summary>
+<div class="full">
+<p>Если вещание звучит вслух рядом с микрофоном, усиление микрофона уменьшается, и звук не может нарастать.</p>
+</div>
+</details>
+<details class="el" id="auto-share">
+<summary><span class="mk">45</span><span><span class="name">Автооткрытие экрана отправки</span><span class="one">Открывает экран отправки, когда вещание начинается.</span></span></summary>
+<div class="full">
+<p>Открывать его самому не нужно.</p>
+</div>
+</details>
+<h3>Сброс</h3>
+<details class="el" id="reset-media">
+<summary><span class="mk">46</span><span><span class="name">Сбросить раздел Медиа</span><span class="one">Возвращает к значениям по умолчанию только эту вкладку.</span></span></summary>
+<div class="full">
+<p>Настройки на других вкладках сохраняются. Перед сбросом приложение просит подтвердить действие.</p>
+</div>
+</details>
+</div>
+<h2>Связанное</h2>
+<ul class="related">
+<li><a href="main-ru.html"><b>Главный экран</b><span class="pill">Экран</span></a></li>
+<li><a href="broadcast-ru.html"><b>Управление вещанием</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-general-ru.html"><b>Настройки: Общие</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-playback-ru.html"><b>Настройки: Плеер</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-operations-ru.html"><b>Настройки: Управление</b><span class="pill">Экран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/settings-overview-and-search-ru.html"><b>Settings - Finding Your Way Around and Searching It</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/viewer-and-gestures-ru.html"><b>Viewing Photos, GIFs and Zoom Gestures</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/documents/pdf-epub-viewing-ru.html"><b>Reading PDF Documents - Pages, Search, Night Mode and Export</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/live-stream-playback-ru.html"><b>Playing Live Streams and Radio</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/ocr-text-recognition-ru.html"><b>Extracting Text with Offline OCR</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="index-ru.html"><b>Оглавление справки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index-ru.html">Оглавление справки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
+</footer>
+</main>
+</body>
+</html>

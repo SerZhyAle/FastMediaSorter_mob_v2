@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Settings: Management</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Settings: Management</span>
+</nav>
+<header class="hero">
+<h1>Settings: Management</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">Management is where you set how files are copied, moved and deleted, which resources are Quick Sort destinations, what the app records and runs in the background, and which extra programs and gestures are on.</p>
+<figure class="shot">
+<img class="on-light" src="img/settings-operations-en-light.webp" alt="Settings: Management">
+<img class="on-dark" src="img/settings-operations-en-dark.webp" alt="Settings: Management">
+</figure>
+<h2>In this order</h2>
+<p class="order-note">There is no fixed order here - every option works on its own. They are grouped below by the same section headers you see on the tab. Some groups, such as Wear Companion or Scheduled operations, show up only where the device or edition supports them.</p>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Copy, move and overwrite behavior</h3>
+<details class="el" id="enable-copying">
+<summary><span class="mk">1</span><span><span class="name">Allow copying</span><span class="one">Allows copying files into your destination folders.</span></span></summary>
+<div class="full">
+<p>Pair it with the Quick Sort destinations below to copy the current file in one tap.</p>
+</div>
+</details>
+<details class="el" id="overwrite-copy">
+<summary><span class="mk">2</span><span><span class="name">Overwrite existing file when copying</span><span class="one">Replaces a file with the same name when copying.</span></span></summary>
+<div class="full">
+<p>It applies when the destination already holds a file with the same name.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>An overwritten file is replaced by the new one, so leave this off unless you are sure.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="next-after-copy">
+<summary><span class="mk">3</span><span><span class="name">Go to next file after copying</span><span class="one">Moves on to the next file after a successful copy.</span></span></summary>
+<div class="full">
+<p>It speeds up sorting a batch of files, because you do not have to navigate by hand.</p>
+</div>
+</details>
+<details class="el" id="enable-moving">
+<summary><span class="mk">4</span><span><span class="name">Allow moving</span><span class="one">Allows moving files into your destination folders.</span></span></summary>
+<div class="full">
+<p>Pair it with the Quick Sort destinations below to move the current file in one tap.</p>
+</div>
+</details>
+<details class="el" id="overwrite-move">
+<summary><span class="mk">5</span><span><span class="name">Overwrite existing file when moving</span><span class="one">Replaces a file with the same name when moving.</span></span></summary>
+<div class="full">
+<p>It applies when the destination already holds a file with the same name.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>An overwritten file is replaced by the new one, so leave this off unless you are sure.</dd>
+</dl>
+</div>
+</details>
+<h3>File deletion and trash</h3>
+<details class="el" id="safe-mode">
+<summary><span class="mk">6</span><span><span class="name">Enable Safe Mode</span><span class="one">Asks for confirmation before delete and move.</span></span></summary>
+<div class="full">
+<p>When it is on, the app asks before deleting or moving files, to prevent accidental data loss. The two options below switch the questions separately.</p>
+</div>
+</details>
+<details class="el" id="confirm-delete">
+<summary><span class="mk">7</span><span><span class="name">Confirm before delete</span><span class="one">Asks before files are deleted.</span></span></summary>
+<div class="full">
+<p>The Player tab has its own switch for deleting inside the player.</p>
+</div>
+</details>
+<details class="el" id="confirm-move">
+<summary><span class="mk">8</span><span><span class="name">Confirm before move</span><span class="one">Asks before files are moved.</span></span></summary>
+<div class="full">
+<p>Moving changes where a file lives, so the question gives you a chance to stop.</p>
+</div>
+</details>
+<details class="el" id="use-trash">
+<summary><span class="mk">9</span><span><span class="name">Use trash folder (.trash)</span><span class="one">Moves deleted files to a hidden .trash folder instead of deleting them for good.</span></span></summary>
+<div class="full">
+<p>On local resources you can bring a file back with Undo before the resource is closed. Network and cloud files are always deleted permanently. On Android 12 and newer, some shared folders need the Media management permission; without it, deletion may be permanent. With the option off, files are deleted at once and the space is freed immediately.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The trash is a safety net, not an archive: emptying it with the Delete all in trash button removes those files for good.</dd>
+</dl>
+</div>
+</details>
+<h3>Quick Sort destinations</h3>
+<details class="el" id="max-destinations">
+<summary><span class="mk">10</span><span><span class="name">Max destinations (1-30)</span><span class="one">Limits how many Quick Sort destinations you can have.</span></span></summary>
+<div class="full">
+<p>From 1 to 30. Each destination gets a number and a color for easy identification.</p>
+</div>
+</details>
+<details class="el" id="add-destination">
+<summary><span class="mk">11</span><span><span class="name">+ Add</span><span class="one">Marks another resource as a Quick Sort destination.</span></span></summary>
+<div class="full">
+<p>The button shows up once you have resources that are not destinations yet. Add resources on the main screen first, then mark them here.</p>
+</div>
+</details>
+<details class="el" id="destinations-list">
+<summary><span class="mk">12</span><span><span class="name">Quick Sort destinations</span><span class="one">Your Quick Sort destinations, in the order of their numbers.</span></span></summary>
+<div class="full">
+<p>Each row shows the destination's number and color, its name and its path. Use the arrows to reorder and the delete button to remove it from the list.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Removing a destination only unmarks the resource. The resource and its files stay where they are.</dd>
+</dl>
+</div>
+</details>
+<h3>Scheduled operations by schedule</h3>
+<details class="el" id="scheduled-ops">
+<summary><span class="mk">13</span><span><span class="name">Use scheduled operations</span><span class="one">Turns scheduled runs on or off.</span></span></summary>
+<div class="full">
+<p>When it is off, nothing runs on schedule, but your operations stay saved. Switch it on and they carry on.</p>
+</div>
+</details>
+<details class="el" id="manage-scheduled">
+<summary><span class="mk">14</span><span><span class="name">Manage scheduled operations</span><span class="one">Opens the window where you create and manage scheduled operations.</span></span></summary>
+<div class="full">
+<p>A scheduled operation copies, moves or deletes files in the background on a schedule you set.</p>
+</div>
+</details>
+<h3>App behavior and operating rules</h3>
+<details class="el" id="detailed-errors">
+<summary><span class="mk">15</span><span><span class="name">Show detailed errors</span><span class="one">Shows the full error details instead of simplified messages.</span></span></summary>
+<div class="full">
+<p>Useful when you are chasing a problem or reporting one.</p>
+</div>
+</details>
+<details class="el" id="resume-playback">
+<summary><span class="mk">16</span><span><span class="name">Resume playback on next launch</span><span class="one">Reopens the last played file when the app starts.</span></span></summary>
+<div class="full">
+<p>It continues from where you left off.</p>
+</div>
+</details>
+<details class="el" id="remember-file-list">
+<summary><span class="mk">17</span><span><span class="name">Remember file lists (default for new resources)</span><span class="one">Saves the file list of new resources so they open faster.</span></span></summary>
+<div class="full">
+<p>After a scan the list is stored in the app database, and next time it loads at once. Use Refresh to pick up changes made outside the app. This is only the default for new resources.</p>
+</div>
+</details>
+<h3>Photography</h3>
+<details class="el" id="camera-photo">
+<summary><span class="mk">18</span><span><span class="name">Enable photo capture</span><span class="one">Shows the camera command in the file browser.</span></span></summary>
+<div class="full">
+<p>New photos are saved to the resource you are browsing. Nearby options let you ask for a file name, open the photo for editing, copy it to the clipboard, tag it with the location and choose another destination.</p>
+</div>
+</details>
+<h3>Video recording</h3>
+<details class="el" id="video-recording">
+<summary><span class="mk">19</span><span><span class="name">Enable video recording</span><span class="one">Shows a command to record video straight into the current resource.</span></span></summary>
+<div class="full">
+<p>A second option opens the finished video in the player, and you can choose another destination folder.</p>
+</div>
+</details>
+<h3>Voice recorder</h3>
+<details class="el" id="mic-recording">
+<summary><span class="mk">20</span><span><span class="name">Enable microphone recording</span><span class="one">Shows a microphone button in the file browser.</span></span></summary>
+<div class="full">
+<p>Audio is recorded to a resource you pick or to the Downloads folder. You can also have the app ask for a file name each time.</p>
+</div>
+</details>
+<h3>Screen recording</h3>
+<details class="el" id="screen-recording">
+<summary><span class="mk">21</span><span><span class="name">Screen video recording</span><span class="one">Records the whole screen to a video file, with sound from the microphone.</span></span></summary>
+<div class="full">
+<p>A stop control and a timer appear while recording. You can choose where the video is saved.</p>
+</div>
+</details>
+<h3>Wear Companion</h3>
+<details class="el" id="wear-companion">
+<summary><span class="mk">22</span><span><span class="name">Wear Companion</span><span class="one">Shows the watch companion in the programs panel and menu.</span></span></summary>
+<div class="full">
+<p>Turn it on if you have a Wear OS watch. The companion opens from there and decides what this phone shares with the watch.</p>
+</div>
+</details>
+<h3>Additional programs and scenarios</h3>
+<details class="el" id="camera-ocr">
+<summary><span class="mk">23</span><span><span class="name">Camera OCR translation</span><span class="one">Turns on the quick photo, text recognition and translation flow.</span></span></summary>
+<div class="full">
+<p>Take a photo and the app recognizes and translates its text. A second option skips the translation and shows the recognized text as it is.</p>
+</div>
+</details>
+<details class="el" id="calculator">
+<summary><span class="mk">24</span><span><span class="name">Calculator</span><span class="one">Adds the Calculator program.</span></span></summary>
+<div class="full">
+<p>It shows up in the programs menu, the quick-access panel and on the launcher desktop.</p>
+</div>
+</details>
+<details class="el" id="stopwatch">
+<summary><span class="mk">25</span><span><span class="name">Stopwatch</span><span class="one">Adds the Stopwatch program.</span></span></summary>
+<div class="full">
+<p>It shows up in the programs menu, the quick-access panel and on the launcher desktop. Its own settings are one row below.</p>
+</div>
+</details>
+<details class="el" id="network-monitor">
+<summary><span class="mk">26</span><span><span class="name">Network Monitor</span><span class="one">Adds a diagnostic program for the network.</span></span></summary>
+<div class="full">
+<p>It shows the connection, the signal and the network details.</p>
+</div>
+</details>
+<details class="el" id="system-info-program">
+<summary><span class="mk">27</span><span><span class="name">System information</span><span class="one">Shows system information in the programs panel and menu.</span></span></summary>
+<div class="full">
+<p>Turn it on to reach it without opening Settings.</p>
+</div>
+</details>
+<h3>Operating system interaction</h3>
+<details class="el" id="prevent-sleep">
+<summary><span class="mk">28</span><span><span class="name">Prevent sleep</span><span class="one">Keeps the screen on while you use the app.</span></span></summary>
+<div class="full">
+<p>While you view media files, the device does not sleep or dim during playback or viewing.</p>
+</div>
+</details>
+<details class="el" id="link-autodownload">
+<summary><span class="mk">29</span><span><span class="name">Auto-download incoming links</span><span class="one">Downloads a file from a link shared to the app.</span></span></summary>
+<div class="full">
+<p>When you share an http(s) link to FastMediaSorter, the linked file is fetched into the resource you choose. Another option opens it in the built-in player right after a successful download; otherwise you get a short message.</p>
+</div>
+</details>
+<details class="el" id="home-widget">
+<summary><span class="mk">30</span><span><span class="name">Add widget to the Android home screen..</span><span class="one">Lets you place an app widget on the Android home screen.</span></span></summary>
+<div class="full">
+<p>Choose a widget and put it on your home screen.</p>
+</div>
+</details>
+<details class="el" id="default-apps">
+<summary><span class="mk">31</span><span><span class="name">Set as default</span><span class="one">Opens the dialog for making FastMediaSorter a default app.</span></span></summary>
+<div class="full">
+<p>It has a button for each file type - images, audio, video and documents - plus two switches: show the app in Open with and handle media buttons, and accept files shared from other apps. Everything applies at once.</p>
+</div>
+</details>
+<h3>Edge screen gestures</h3>
+<details class="el" id="gesture-overlay">
+<summary><span class="mk">32</span><span><span class="name">Gesture overlay</span><span class="one">Shows thin gesture strips at the screen edges, over other apps.</span></span></summary>
+<div class="full">
+<p>Up to four strips, two on each side. A swipe from a strip runs the action assigned to it, such as a screenshot, the camera, the flashlight, volume or brightness, or opening an app. It needs the Display over other apps permission.</p>
+</div>
+</details>
+<details class="el" id="edge-gesture-config">
+<summary><span class="mk">33</span><span><span class="name">Configure gestures</span><span class="one">Opens the setup for edge gestures.</span></span></summary>
+<div class="full">
+<p>Choose which zones are on, whether their guides are visible, and the action for each swipe direction: up, down or inward.</p>
+</div>
+</details>
+<h3>Controls &amp; Keybindings</h3>
+<details class="el" id="keybindings">
+<summary><span class="mk">34</span><span><span class="name">Controls &amp; Keybindings</span><span class="one">Opens key and button remapping for media controls.</span></span></summary>
+<div class="full">
+<p>Any command can be reassigned to a D-pad button, a gamepad button, a keyboard key or a mouse button.</p>
+</div>
+</details>
+<h3>Reset</h3>
+<details class="el" id="reset-operations">
+<summary><span class="mk">35</span><span><span class="name">Reset Management settings</span><span class="one">Returns only this tab to its defaults.</span></span></summary>
+<div class="full">
+<p>Settings on the other tabs keep their values. The app asks you to confirm first.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-general.html"><b>Settings: General</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-media.html"><b>Settings: Media</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-playback.html"><b>Settings: Player</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/controls-and-key-remapping.html"><b>Controls and Key Remapping - Keyboard, TV Remote and Gamepad, Your Way</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-copy-move-delete.html"><b>Copying, Moving and Deleting Files and Folders</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/destination-targets-setup.html"><b>Sorting Files into Destinations with Quick Sort</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/scheduled-operations.html"><b>Running File Jobs on a Schedule</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/edge-gestures-and-quick-access-panel.html"><b>Screen-Edge Gestures and the Quick-Access Panel</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/built-in-mini-apps.html"><b>Built-in Programs - Switching Them On, the Lights, the Mirror and the SOS Signal</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

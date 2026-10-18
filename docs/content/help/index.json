@@ -1,0 +1,17 @@
+{
+  "help": "index",
+  "locales": {
+    "en": {
+      "title": "Help",
+      "purpose": "Pick the screen you need help with. Each page says what the screen is for, the usual order of use and what every significant control does."
+    },
+    "ru": {
+      "title": "Справка",
+      "purpose": "Выберите экран, по которому нужна помощь. На каждой странице сказано, для чего этот экран, в каком порядке им обычно пользуются и что делает каждый важный элемент."
+    },
+    "uk": {
+      "title": "Довідка",
+      "purpose": "Виберіть екран, про який потрібна допомога. На кожній сторінці сказано, для чого цей екран, у якому порядку ним зазвичай користуються і що робить кожен важливий елемент."
+    }
+  }
+}

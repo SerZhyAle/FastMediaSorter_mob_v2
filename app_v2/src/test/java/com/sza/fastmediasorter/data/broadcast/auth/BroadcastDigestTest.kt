@@ -50,10 +50,22 @@ class BroadcastDigestTest {
     @Test
     fun `the client answer to the HTTP challenge prefers SHA-256 and verifies`() {
         val nonce = BroadcastDigest.newNonce()
-        val answer = BroadcastDigest.answer(BroadcastDigest.httpChallenge(nonce), "GET", "/live-audio.aac", mufasa)
+        val challenges = BroadcastDigest.httpChallenges(nonce)
+        val answer = BroadcastDigest.answer(challenges.joinToString(", "), "GET", "/live-audio.aac", mufasa)
         assertNotNull(answer)
         assertTrue(answer!!.contains("algorithm=SHA-256"))
         assertEquals(mufasa, BroadcastDigest.verify(answer, "GET", listOf(mufasa)) { it == nonce })
+    }
+
+    @Test
+    fun `the HTTP challenge is one SHA-256 value then one MD5 value, each a field of its own`() {
+        val challenges = BroadcastDigest.httpChallenges(BroadcastDigest.newNonce())
+        assertEquals(2, challenges.size)
+        assertTrue(challenges[0].contains("algorithm=SHA-256"))
+        assertTrue(challenges[1].contains("algorithm=MD5"))
+        // A client that sees a single field answers that one challenge alone.
+        val md5Only = BroadcastDigest.answer(challenges[1], "GET", "/live-audio.aac", mufasa)
+        assertTrue(md5Only!!.contains("algorithm=MD5"))
     }
 
     @Test

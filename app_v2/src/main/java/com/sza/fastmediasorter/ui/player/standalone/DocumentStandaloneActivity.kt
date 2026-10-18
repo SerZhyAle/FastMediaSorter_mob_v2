@@ -386,12 +386,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             onEpubNextPage = { epubViewerManager.showNextChapter() },
             onEpubPreviousPage = { epubViewerManager.showPreviousChapter() },
             onEpubHome = { epubViewerManager.showFirstChapter() },
-            onShowHelp = {
-                com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.show(
-                    supportFragmentManager,
-                    com.sza.fastmediasorter.ui.common.input.UiSurface.PLAYER
-                )
-            },
+            onShowHelp = { com.sza.fastmediasorter.ui.player.helpers.PlayerHelpEntryManager.open(this) },
         ).handler
     }
 

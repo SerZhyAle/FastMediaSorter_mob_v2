@@ -37,6 +37,7 @@
       - assert-notification-small-icon (S1399 a small-icon setter handed a drawable literal)
       - assert-backup-rules-consistent (S1552 API 31+ extraction rules vs the pre-31 backup rules)
       - assert-launcher-reset-coverage (S1540 launcher settings vs the launcher reset's field list)
+      - assert-help-map              (S4288 every phone surface vs its in-app help row and pages)
       - assert-maestro-oracle        (S1612 Maestro flows that are green without proving anything)
       - assert-hook-inventory        (S1604 registered Claude Code hooks vs docs/AGENT_HOOKS.md)
       - assert-rule-digest-sync      (S1548 CLAUDE.md numbered rules vs the two full digests)
@@ -523,6 +524,10 @@ $gates = [ordered]@{
     # returns half the launcher to defaults and leaves the rest as it was - an inconsistent store, not
     # a cosmetic miss. Compares two source files as text, no gradle daemon.
     'assert-launcher-reset-coverage.ps1'        = @('-Quiet')
+    # S4288: a new screen or dialog with no in-app help row, or a help page missing a locale, an
+    # unresolved link or a script (CONTEXT-HELP rule 19). Reads the manifest, the dialog classes, the map
+    # and the pages as text, no gradle daemon.
+    'assert-help-map.ps1'                       = @('-Quiet')
     # S1598: the closure facade prints a recovery hint under every failed gate, keyed by the
     # gate label. A label the hint registry never heard of fails mute, and the gap is invisible
     # until that gate next fails - which is precisely the moment the hint was needed. Reads two

@@ -323,6 +323,10 @@
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-launcher-reset-coverage.ps1 -Gate'
         Fix   = 'A launcher preference is not covered by the reset path - add it there so a reset leaves no stale state behind.'
     }
+    'help-map-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-help-map.ps1'
+        Fix   = 'A phone screen or dialog has no help-map row, or a help page is missing a locale or carries a broken link - add the row in app_v2/src/main/assets/help/help-map.json (page, inherit or none with a reason) or regenerate the pages with scripts/docs/help/generate-help-pages.ps1. A finding that starts with wear is a watch route with no row (or a stale row) in wear/help-map.json - add a form none row with a reason.'
+    }
 
     'wear-settings-parity-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-settings-parity.ps1 -Gate'

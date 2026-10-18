@@ -101,3 +101,38 @@
 {"page_id":"launcher.start-menu-and-all-apps","canonical_path":"documentation/launcher/start-menu-and-all-apps.html","title":"The Start Menu and the Full App List","ticket":"S2960","category":"launcher-taskbar","is_published":true}
 {"page_id":"launcher.status-area-and-notifications","canonical_path":"documentation/launcher/status-area-and-notifications.html","title":"The Status Area and Notifications","ticket":"S2960","category":"launcher-taskbar","is_published":true}
 {"page_id":"general.glossary","canonical_path":"documentation/general/glossary.html","title":"Glossary of Terms","ticket":"S2968","category":"general","is_published":true}
+{"page_id":"help.index","canonical_path":"documentation/help/index.html","title":"Help","ticket":"S4288","category":"help","is_published":true}
+{"page_id":"help.main","canonical_path":"documentation/help/main.html","title":"Main screen","ticket":"S4288","category":"help","is_published":true}
+{"page_id":"help.settings-general","canonical_path":"documentation/help/settings-general.html","title":"Settings: General","ticket":"S4288","category":"help","is_published":true}
+{"page_id":"help.settings-media","canonical_path":"documentation/help/settings-media.html","title":"Settings: Media","ticket":"S4288","category":"help","is_published":true}
+{"page_id":"help.settings-playback","canonical_path":"documentation/help/settings-playback.html","title":"Settings: Player","ticket":"S4288","category":"help","is_published":true}
+{"page_id":"help.settings-operations","canonical_path":"documentation/help/settings-operations.html","title":"Settings: Management","ticket":"S4288","category":"help","is_published":true}
+{"page_id":"help.welcome","canonical_path":"documentation/help/welcome.html","title":"Welcome","ticket":"S4288","category":"help","is_published":true}
+{"page_id":"help.browse","canonical_path":"documentation/help/browse.html","title":"File browser","ticket":"S4292","category":"help","is_published":true}
+{"page_id":"help.player","canonical_path":"documentation/help/player.html","title":"Player","ticket":"S4292","category":"help","is_published":true}
+{"page_id":"help.add-resource","canonical_path":"documentation/help/add-resource.html","title":"Add Resource","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.auth-sessions","canonical_path":"documentation/help/auth-sessions.html","title":"Saved authorizations","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.calculator","canonical_path":"documentation/help/calculator.html","title":"Calculator","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.camera-capture","canonical_path":"documentation/help/camera-capture.html","title":"Camera","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.camera-ocr-translate","canonical_path":"documentation/help/camera-ocr-translate.html","title":"Camera OCR translation","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.duplicates","canonical_path":"documentation/help/duplicates.html","title":"Duplicates","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.front-flashlight","canonical_path":"documentation/help/front-flashlight.html","title":"Front flashlight","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.game","canonical_path":"documentation/help/game.html","title":"Kryvavitsa and the Monster","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.keybinding-remap","canonical_path":"documentation/help/keybinding-remap.html","title":"Controls & Keybindings","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.launch-panel-edit","canonical_path":"documentation/help/launch-panel-edit.html","title":"Edit panel","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.launch-panel","canonical_path":"documentation/help/launch-panel.html","title":"Quick launch","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.mirror","canonical_path":"documentation/help/mirror.html","title":"Mirror","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.my-devices","canonical_path":"documentation/help/my-devices.html","title":"My devices","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.network-monitor","canonical_path":"documentation/help/network-monitor.html","title":"Network Monitor","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.resource-editor","canonical_path":"documentation/help/resource-editor.html","title":"Edit Resource","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.scheduled-operations","canonical_path":"documentation/help/scheduled-operations.html","title":"Scheduled file operations","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.sos","canonical_path":"documentation/help/sos.html","title":"SOS emergency signal","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.statistics","canonical_path":"documentation/help/statistics.html","title":"Statistics","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.stopwatch","canonical_path":"documentation/help/stopwatch.html","title":"Stopwatch","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.streams","canonical_path":"documentation/help/streams.html","title":"Streams","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.system-info","canonical_path":"documentation/help/system-info.html","title":"System information","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.tourist-counter","canonical_path":"documentation/help/tourist-counter.html","title":"Counter","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.tourist-info","canonical_path":"documentation/help/tourist-info.html","title":"Tourist","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.water-flashlight","canonical_path":"documentation/help/water-flashlight.html","title":"Water flashlight","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.wear-companion","canonical_path":"documentation/help/wear-companion.html","title":"Wear Companion","ticket":"S4293","category":"help","is_published":true}
+{"page_id":"help.broadcast","canonical_path":"documentation/help/broadcast.html","title":"Broadcast control","ticket":"S4294","category":"help","is_published":true}

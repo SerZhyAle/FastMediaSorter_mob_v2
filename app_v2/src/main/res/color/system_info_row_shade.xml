@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4283: the faint band on every second System information row. A theme attribute at low alpha, so it
+     follows light, dark and the saved colour theme without a hex value. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:alpha="0.06" android:color="?attr/colorOnSurface" />
+</selector>

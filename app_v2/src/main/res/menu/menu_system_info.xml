@@ -25,4 +25,11 @@
         android:icon="@drawable/ic_share"
         android:title="@string/share"
         app:showAsAction="always" />
+
+    <!-- S4328: the "?" of the screen, handled by SystemInfoWindowManager.onAction. -->
+    <item
+        android:id="@+id/action_help"
+        android:icon="@drawable/ic_help_outline"
+        android:title="@string/help"
+        app:showAsAction="always" />
 </menu>

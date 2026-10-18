@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Справка - Управление вещанием</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Оглавление справки">
+<a href="index-ru.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Управление вещанием</span>
+</nav>
+<header class="hero">
+<h1>Управление вещанием</h1>
+</header>
+<h2>Для чего этот экран</h2>
+<p class="lead">Здесь вы выходите в эфир со своего телефона: передаёте микрофон, камеру, готовый аудио- или видеофайл или весь экран другим людям, а затем даёте им ссылку, QR-код или файл, чтобы они могли смотреть и слушать. Этот же экран показывает, сколько устройств подключено, и завершает вещание.</p>
+<figure class="shot">
+<img class="on-light" src="img/broadcast-ru-light.webp" alt="Управление вещанием">
+<img class="on-dark" src="img/broadcast-ru-dark.webp" alt="Управление вещанием">
+</figure>
+<h2>Порядок действий</h2>
+<ol class="order">
+<li>Откройте «Вещание» из меню программ, с панели программ, плиткой быстрых настроек или виджетом на домашнем экране. Если его там нет, сначала включите его в «Настройках», на вкладке «Медиа», в группе «Вещание». Экран <a class="ref" href="#title">1</a> откроется с режимом «Только звук» и не гаснет, пока открыт.</li>
+<li>Выберите, что передавать: только звук <a class="ref" href="#mode-audio">3</a>, камеру со звуком <a class="ref" href="#mode-video-audio">4</a> или одну камеру <a class="ref" href="#mode-video-only">5</a>. В режиме с камерой появятся картинка камеры <a class="ref" href="#preview">2</a> и, если на телефоне несколько камер, список камер <a class="ref" href="#lens">6</a> на выбор.</li>
+<li>При необходимости поправьте название, порт и качество звука в карточке настроек <a class="ref" href="#settings-card">7</a> и нажмите «Начать вещание» <a class="ref" href="#start">8</a>. При первом запуске приложение попросит микрофон, камеру и уведомления - разрешите то, что назовёт сообщение.</li>
+<li>Чтобы передавать не камеру и микрофон, нажмите «Вещать готовый файл» <a class="ref" href="#file">9</a> и выберите аудио- или видеофайл либо «Вещать экран» <a class="ref" href="#screen">10</a> и подтвердите системный вопрос о показе экрана.</li>
+<li>Пока вы в эфире, вверху видно число слушателей <a class="ref" href="#listeners">12</a>. Выключайте и включайте камеру <a class="ref" href="#camera-toggle">14</a> и микрофон <a class="ref" href="#mic-toggle">15</a>, меняйте камеру <a class="ref" href="#switch-camera">16</a>, давайте экрану погаснуть <a class="ref" href="#screen-off">17</a> или подсвечивайте сцену (18, 19). Закончив, нажмите «Остановить вещание» <a class="ref" href="#stop">22</a>.</li>
+<li>Передайте вещание зрителям: покажите QR-код <a class="ref" href="#qr">23</a>, скопируйте ссылку <a class="ref" href="#copy">27</a>, отправьте её <a class="ref" href="#send-link">29</a> или сохраните в файл <a class="ref" href="#export">28</a>. У защищённого вещания есть ещё пароль <a class="ref" href="#password">25</a> - сообщите его отдельно.</li>
+<li>«Cast на мои устройства» <a class="ref" href="#cast">21</a> и «Передать на часы» <a class="ref" href="#send-to-watch">20</a> отдают живое вещание вашим же устройствам, а «Гости» <a class="ref" href="#guests">30</a> - другому аккаунту. Кнопки-справки (11, 31, 32) открывают страницы на сайте.</li>
+</ol>
+<h2>Элементы</h2>
+<div class="elements">
+<h3>До начала вещания</h3>
+<details class="el" id="title">
+<summary><span class="mk">1</span><span><span class="name">Управление вещанием</span><span class="one">Название экрана, у которого два состояния: до начала вещания и эфир.</span></span></summary>
+<div class="full">
+<p>До начала вещания на экране видно, что передавать, и настройки. В эфире - живые кнопки и способы поделиться. Блок, который сейчас не нужен, скрыт, а не затемнён. Пока экран открыт, он не гаснет сам, пока вы не дадите ему погаснуть (17).</p>
+</div>
+</details>
+<details class="el" id="preview">
+<summary><span class="mk">2</span><span><span class="name">Картинка камеры</span><span class="one">Что видит камера и, в эфире, что именно передаётся.</span></span></summary>
+<div class="full">
+<p>До начала по ней выбирают камеру. Она появляется, когда выбран режим с камерой и камера разрешена; если камеру запретить, область останется пустой, а экран спросит разрешение только один раз за визит. В эфире здесь та картинка, что уходит зрителям. Для режима «Только звук» и для вещания файла или экрана область скрыта: камера в них не работает.</p>
+</div>
+</details>
+<details class="el" id="mode-audio">
+<summary><span class="mk">3</span><span><span class="name">Только звук</span><span class="one">Передаёт только звук микрофона.</span></span></summary>
+<div class="full">
+<p>Режим по умолчанию. Нужен только микрофон. Выбрать другой режим можно и в эфире: вещание тогда откроется заново в нём, а зрители заново открывают поток по обновлённой ссылке или QR-коду.</p>
+</div>
+</details>
+<details class="el" id="mode-video-audio">
+<summary><span class="mk">4</span><span><span class="name">Камера + звук</span><span class="one">Передаёт картинку камеры вместе со звуком.</span></span></summary>
+<div class="full">
+<p>Нужны камера и микрофон. В эфире камеру и микрофон можно выключать по отдельности (14, 15).</p>
+</div>
+</details>
+<details class="el" id="mode-video-only">
+<summary><span class="mk">5</span><span><span class="name">Только камера</span><span class="one">Передаёт картинку камеры без звука.</span></span></summary>
+<div class="full">
+<p>Нужна камера. В некоторых редакциях Android просит ещё и микрофон, хотя звук не передаётся.</p>
+</div>
+</details>
+<details class="el" id="lens">
+<summary><span class="mk">6</span><span><span class="name">Камера</span><span class="one">Выбирает, какая камера телефона передаёт картинку.</span></span></summary>
+<div class="full">
+<p>Одна кнопка на каждую камеру телефона: основную, фронтальную или внешнюю. Кнопки появляются в режиме с камерой, когда телефон перечислил свои камеры. В эфире касание меняет камеру сразу. Выбор запоминается до следующего раза.</p>
+</div>
+</details>
+<details class="el" id="settings-card">
+<summary><span class="mk">7</span><span><span class="name">Настройки вещания</span><span class="one">Параметры вещания рядом с кнопкой запуска.</span></span></summary>
+<div class="full">
+<p>В карточке те же параметры, что в группе «Вещание» настроек «Медиа»: включено ли вещание, название, битрейт, порт, формат аудио, усиление микрофона, защита от петли и открывается ли этот экран сам при старте. Изменения сохраняются сразу, а набранные название и порт используются при ближайшем запуске. В эфире карточка скрыта: настройки идущего вещания менять нельзя.</p>
+</div>
+</details>
+<details class="el" id="start">
+<summary><span class="mk">8</span><span><span class="name">Начать вещание</span><span class="one">Выходит в эфир в выбранном режиме.</span></span></summary>
+<div class="full">
+<p>Если для вещания не хватает разрешения - микрофона, камеры или уведомлений - система сначала спросит его, а при отказе сообщение назовёт, чего не хватает. Если вещание не удалось запустить, например телефон не смог открыть порт, сообщение скажет почему, а экран останется как был. В эфире вместо кнопки появляются живые кнопки и блок «поделиться».</p>
+</div>
+</details>
+<details class="el" id="file">
+<summary><span class="mk">9</span><span><span class="name">Вещать готовый файл</span><span class="one">Передаёт готовый аудио- или видеофайл вместо микрофона и камеры.</span></span></summary>
+<div class="full">
+<p>Открывает системный выбор файла для аудио и видео. Выбранный файл воспроизводится как живое вещание, без микрофона и камеры, поэтому кнопок для них нет. Файл, который не открылся или не содержит ничего для воспроизведения, отклоняется с сообщением. Кнопка видна только до запуска и только в редакциях, где вещание есть.</p>
+</div>
+</details>
+<details class="el" id="screen">
+<summary><span class="mk">10</span><span><span class="name">Вещать экран</span><span class="one">Передаёт то, что показано на экране телефона.</span></span></summary>
+<div class="full">
+<p>Система спрашивает подтверждение каждый раз. Разрешение действует на одно вещание и не сохраняется. Если отказаться, ничего не начнётся. Во время вещания экрана кнопок камеры, микрофона и экрана нет: затемнив приложение, вы затемнили бы то, что видят зрители.</p>
+</div>
+</details>
+<details class="el" id="go-on-air">
+<summary><span class="mk">11</span><span><span class="name">Как выйти в эфир</span><span class="one">Открывает на сайте руководство о том, как выйти в эфир.</span></span></summary>
+<div class="full">
+<p>Видна до начала вещания. Страница открывается в браузере, поэтому нужен интернет; в приложении ничего не меняется.</p>
+</div>
+</details>
+<h3>Пока вы в эфире</h3>
+<details class="el" id="listeners">
+<summary><span class="mk">12</span><span><span class="name">Число слушателей</span><span class="one">Сколько устройств сейчас подключено к вашему вещанию.</span></span></summary>
+<div class="full">
+<p>Число появляется только в эфире и следует за тем, как люди подключаются и уходят.</p>
+</div>
+</details>
+<details class="el" id="feedback">
+<summary><span class="mk">13</span><span><span class="name">Предупреждение о петле звука</span><span class="one">Объясняет, почему звук стал тише: динамик слушателя попадает в ваш микрофон.</span></span></summary>
+<div class="full">
+<p>Красная строка появляется, только когда «Защита от петли» убавила микрофон. Так бывает, если кто-то включил ваше вещание вслух рядом с микрофоном и звук начал бы нарастать до писка. Отодвиньте это устройство или убавьте на нём громкость - предупреждение исчезнет. Защита - параметр настроек вещания.</p>
+</div>
+</details>
+<details class="el" id="camera-toggle">
+<summary><span class="mk">14</span><span><span class="name">Камера вкл и выкл</span><span class="one">Выключает и включает картинку, не прерывая вещания.</span></span></summary>
+<div class="full">
+<p>Видна в вещании с камерой. Надпись на кнопке говорит, включена ли камера сейчас. При выключенной камере зрители видят чёрную картинку, а звук продолжается.</p>
+</div>
+</details>
+<details class="el" id="mic-toggle">
+<summary><span class="mk">15</span><span><span class="name">Микрофон вкл и выкл</span><span class="one">Отключает и возвращает звук.</span></span></summary>
+<div class="full">
+<p>Видна только в режиме «Камера + звук». Надпись на кнопке говорит, включён ли микрофон сейчас. При выключенном микрофоне зрители видят картинку без звука.</p>
+</div>
+</details>
+<details class="el" id="switch-camera">
+<summary><span class="mk">16</span><span><span class="name">Сменить камеру</span><span class="one">Меняет камеру, которая передаёт картинку.</span></span></summary>
+<div class="full">
+<p>Открывает список всех камер телефона, а не только фронтальной и основной; коснитесь камеры, и переключение произойдёт сразу. Выбор запоминается до следующего вещания.</p>
+</div>
+</details>
+<details class="el" id="screen-off">
+<summary><span class="mk">17</span><span><span class="name">Погасить экран</span><span class="one">Позволяет экрану погаснуть, пока вещание идёт.</span></span></summary>
+<div class="full">
+<p>Там, где камера может работать в фоне, и в режиме «Только звук» кнопка перестаёт удерживать экран включённым, и дисплей засыпает через обычное время. В редакциях, где камера работает, только пока приложение на виду, кнопка называется «Затемнить экран»: она закрывает приложение чёрным экраном с тусклыми часами, а дисплей остаётся включённым. Чтобы вернуться, коснитесь чёрного экрана или нажмите «Назад». Для вещания файла и экрана кнопки нет.</p>
+</div>
+</details>
+<details class="el" id="torch">
+<summary><span class="mk">18</span><span><span class="name">Фонарик</span><span class="one">Подсвечивает сцену вспышкой камеры.</span></span></summary>
+<div class="full">
+<p>Видна, только когда у камеры в эфире есть вспышка и камера включена; у фронтальной камеры вспышки обычно нет. Надпись на кнопке говорит, включён ли фонарик.</p>
+</div>
+</details>
+<details class="el" id="light-frame">
+<summary><span class="mk">19</span><span><span class="name">Яркая рамка</span><span class="one">Подсвечивает лицо яркой белой рамкой по краям экрана.</span></span></summary>
+<div class="full">
+<p>Белая рамка по краям экрана с повышенной яркостью этого окна - удобно, когда вы снимаете себя в темноте. Картинка, кнопки и QR-код под ней остаются доступными. Повышается только яркость этого окна, но не настройка яркости телефона. Рамка гаснет, когда вещание заканчивается или камера останавливается. Видна в вещании с камерой телефона.</p>
+</div>
+</details>
+<details class="el" id="send-to-watch">
+<summary><span class="mk">20</span><span><span class="name">Передать на часы</span><span class="one">Включает это живое вещание на подключённых часах.</span></span></summary>
+<div class="full">
+<p>Видна в эфире, когда включено приложение-компаньон для часов и телефон его поддерживает. Отправляет вещание на часы и открывает его там. Если часы недоступны или не отвечают, сообщение скажет об этом.</p>
+</div>
+</details>
+<details class="el" id="cast">
+<summary><span class="mk">21</span><span><span class="name">Cast на мои устройства</span><span class="one">Просит другие ваши устройства воспроизвести это вещание.</span></span></summary>
+<div class="full">
+<p>Видна в эфире, пока вещание идёт через ваш сервер обмена (см. «Мои устройства»). Кнопка открывает список «Воспроизвести на» с вашими устройствами, которые умеют это играть, у каждого отмечено «В сети» или «Не в сети»; отметьте одно или несколько и нажмите «Cast на мои устройства». Каждое устройство получает запрос, который может принять или отклонить, а сообщение скажет, какое играет или почему отказалось.</p>
+</div>
+</details>
+<details class="el" id="stop">
+<summary><span class="mk">22</span><span><span class="name">Остановить вещание</span><span class="one">Завершает вещание.</span></span></summary>
+<div class="full">
+<p>Слушатели отключаются, камера и микрофон освобождаются, экран возвращается к состоянию до запуска, и карточка настроек снова на месте. В уведомлении вещания есть собственная кнопка остановки.</p>
+</div>
+</details>
+<h3>Как поделиться вещанием</h3>
+<details class="el" id="qr">
+<summary><span class="mk">23</span><span><span class="name">QR-код описания вещания</span><span class="one">QR-код, который передаёт вещание устройству рядом.</span></span></summary>
+<div class="full">
+<p>Другое устройство сканирует его, чтобы добавить вещание: в «Трансляциях» откройте меню и выберите «Импорт трансляции (QR / файл)». Коснитесь кода, чтобы показать его на весь экран и отсканировать с другого конца комнаты; чтобы вернуться, коснитесь ещё раз или нажмите «Назад». Если режим меняется в эфире, код заменяется, в том числе открытый. Пароль в код никогда не входит.</p>
+</div>
+</details>
+<details class="el" id="link">
+<summary><span class="mk">24</span><span><span class="name">Ссылка на вещание</span><span class="one">Адрес, по которому отдаётся ваше вещание.</span></span></summary>
+<div class="full">
+<p>Текст можно выделить. Адрес работает для устройств, которые достают до вашего телефона по сети. «Копировать ссылку» (27) копирует его, а «Отправить» (29) передаёт ссылку, которая открывает вещание в приложении, собранную из тех же данных, что и QR-код.</p>
+</div>
+</details>
+<details class="el" id="password">
+<summary><span class="mk">25</span><span><span class="name">Пароль для ссылки</span><span class="one">Пароль защищённого вещания, который сообщают отдельно от ссылки.</span></span></summary>
+<div class="full">
+<p>Виден только у защищённого вещания. Ни ссылка, ни файл, ни QR-код его не содержат, поэтому человеку его сообщают отдельно - голосом или другим сообщением.</p>
+</div>
+</details>
+<details class="el" id="new-password">
+<summary><span class="mk">26</span><span><span class="name">Новый пароль</span><span class="one">Создаёт новый пароль; старый перестаёт работать.</span></span></summary>
+<div class="full">
+<p>Пригодится, если пароль попал к тому, кому его знать не нужно. Сообщение напомнит сообщить новый пароль отдельно от ссылки.</p>
+</div>
+</details>
+<details class="el" id="copy">
+<summary><span class="mk">27</span><span><span class="name">Копировать ссылку</span><span class="one">Копирует ссылку на вещание.</span></span></summary>
+<div class="full">
+<p>Сообщение подтверждает копирование. Защищённое вещание копируется полной ссылкой, а не голым адресом, чтобы другое устройство знало, что нужен пароль, и спросило его.</p>
+</div>
+</details>
+<details class="el" id="export">
+<summary><span class="mk">28</span><span><span class="name">Экспорт в файл</span><span class="one">Сохраняет вещание в небольшой файл, который можно передать.</span></span></summary>
+<div class="full">
+<p>Система спросит, куда сохранить. Тот, кто получил файл, добавляет вещание через «Импорт трансляции (QR / файл)» в «Трансляциях». Сообщение скажет, сохранён ли файл.</p>
+</div>
+</details>
+<details class="el" id="send-link">
+<summary><span class="mk">29</span><span><span class="name">Отправить</span><span class="one">Отправляет ссылку через любое выбранное приложение.</span></span></summary>
+<div class="full">
+<p>Открывает системный список приложений и контактов. Ссылка открывает вещание в FastMediaSorter на другом устройстве; если приложения там нет, откроется страница на сайте.</p>
+</div>
+</details>
+<details class="el" id="guests">
+<summary><span class="mk">30</span><span><span class="name">Гости</span><span class="one">Выдаёт живое вещание другому аккаунту вашего сервера обмена.</span></span></summary>
+<div class="full">
+<p>Видна только у защищённого вещания, объявленного через сервер обмена учётной записью-участником. В диалоге «Выдать трансляцию гостю» вводят логин гостя (от 3 до 64 букв, цифр, точек, дефисов или подчёркиваний) и нажимают «Выдать»; ниже перечислены все, у кого вещание есть, с ответом сервера - ожидание, выдано или отказ. «Отозвать» забирает вещание только у одного гостя.</p>
+</div>
+</details>
+<details class="el" id="viewer-guide">
+<summary><span class="mk">31</span><span><span class="name">Как это смотреть</span><span class="one">Открывает страницу, которую можно переслать тому, кто получает вещание.</span></span></summary>
+<div class="full">
+<p>На странице объяснено, как смотреть по ссылке, QR-коду или файлу. Она открывается в браузере, нужен интернет.</p>
+</div>
+</details>
+<details class="el" id="portal">
+<summary><span class="mk">32</span><span><span class="name">Как работает трансляция между устройствами</span><span class="one">Открывает страницу о том, как работает вещание между устройствами.</span></span></summary>
+<div class="full">
+<p>Страница на сайте, открывается в браузере. Нужен интернет; в приложении ничего не меняется.</p>
+</div>
+</details>
+</div>
+<h2>Связанное</h2>
+<ul class="related">
+<li><a href="main-ru.html"><b>Главный экран</b><span class="pill">Экран</span></a></li>
+<li><a href="streams-ru.html"><b>Трансляции</b><span class="pill">Экран</span></a></li>
+<li><a href="my-devices-ru.html"><b>Мои устройства</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-media-ru.html"><b>Настройки: Медиа</b><span class="pill">Экран</span></a></li>
+<li><a href="player-ru.html"><b>Плеер</b><span class="pill">Экран</span></a></li>
+<li><a href="wear-companion-ru.html"><b>Wear-компаньон</b><span class="pill">Экран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/casting-and-broadcast-ru.html"><b>Chromecast Casting and Live Broadcast</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/tv-watch-vr-and-broadcast-ru.html"><b>Streams on a TV, a Watch or a VR Headset, and Tuning In to a Live Broadcast</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/watch-listening-and-broadcast-ru.html"><b>Listening Through the Watch and Broadcasting from It</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="index-ru.html"><b>Оглавление справки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index-ru.html">Оглавление справки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
+</footer>
+</main>
+</body>
+</html>

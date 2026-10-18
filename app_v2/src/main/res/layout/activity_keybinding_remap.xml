@@ -37,6 +37,16 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
+        <!-- S4328: the "?" at the row's end; CONTEXT-HELP rule 2. -->
+        <ImageButton
+            android:id="@+id/btnHelpHeader"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/help"
+            android:focusable="true"
+            android:src="@drawable/ic_help_outline" />
+
     </LinearLayout>
 
     <androidx.appcompat.widget.SearchView

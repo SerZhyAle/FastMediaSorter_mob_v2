@@ -15,6 +15,8 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
+import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.io.InputStream
 import java.net.URL
 import java.net.URLEncoder
@@ -106,10 +108,17 @@ class GoogleDriveAppDataApi @Inject constructor(
     }
 
     /** Read one appdata file whole; payloads here are packets, not streamed media. */
-    suspend fun downloadFile(fileId: String): CloudResult<ByteArray> = withContext(Dispatchers.IO) {
+    suspend fun downloadFile(fileId: String): CloudResult<ByteArray> = downloadFile(fileId, maxBytes = -1L)
+
+    /**
+     * Read one appdata file, bounded by [maxBytes] when non-negative.
+     * When the content exceeds [maxBytes], the stream is closed immediately on the first excess byte
+     * and a [CloudResult.Error] is returned before whole-body allocation.
+     */
+    suspend fun downloadFile(fileId: String, maxBytes: Long): CloudResult<ByteArray> = withContext(Dispatchers.IO) {
         when (val token = auth.fetchAppDataAccessToken()) {
             null -> CloudResult.Error(reauthRequiredMessage(), DriveAppDataFailure.AuthRequired())
-            else -> readBytes(fileId, token)
+            else -> readBytes(fileId, token, maxBytes)
         }
     }
 
@@ -323,11 +332,18 @@ class GoogleDriveAppDataApi @Inject constructor(
         return CloudResult.Success(uploaded)
     }
 
-    private suspend fun readBytes(fileId: String, token: String): CloudResult<ByteArray> =
+    private suspend fun readBytes(fileId: String, token: String, maxBytes: Long = -1L): CloudResult<ByteArray> =
         when (val stream = httpClient.getFileInputStream(fileId, DRIVE_API_BASE, token, 0L, -1L)) {
             is GoogleDriveHttpClient.StreamResult.Error -> CloudResult.Error(stream.message)
             is GoogleDriveHttpClient.StreamResult.Success -> runCatching {
-                CloudResult.Success(stream.stream.use { it.readBytes() })
+                val data = stream.stream.use { input ->
+                    if (maxBytes < 0L) {
+                        input.readBytes()
+                    } else {
+                        readBounded(input, maxBytes)
+                    }
+                }
+                CloudResult.Success(data)
             }.getOrElse { error ->
                 error.rethrowIfCancellation()
                 Timber.e(error, "Failed to read appdata file $fileId")
@@ -340,6 +356,28 @@ class GoogleDriveAppDataApi @Inject constructor(
                 )
             }
         }
+
+    private fun readBounded(input: InputStream, maxBytes: Long): ByteArray {
+        val out = ByteArrayOutputStream()
+        val buffer = ByteArray(
+            DEFAULT_BUFFER_SIZE.coerceAtMost((maxBytes + 1).coerceAtLeast(MIN_BOUNDED_BUFFER_BYTES).toInt())
+        )
+        var totalRead = 0L
+        while (true) {
+            val toRead = ((maxBytes + 1) - totalRead).coerceAtMost(buffer.size.toLong()).toInt()
+            if (toRead <= 0) {
+                throw IOException("Appdata payload exceeds max bounded size of $maxBytes bytes")
+            }
+            val read = input.read(buffer, 0, toRead)
+            if (read == -1) break
+            totalRead += read
+            if (totalRead > maxBytes) {
+                throw IOException("Appdata payload exceeds max bounded size of $maxBytes bytes")
+            }
+            out.write(buffer, 0, read)
+        }
+        return out.toByteArray()
+    }
 
     private suspend fun deleteById(fileId: String, token: String): CloudResult<Boolean> =
         runCatching {
@@ -362,6 +400,7 @@ class GoogleDriveAppDataApi @Inject constructor(
     companion object {
         /** Drive's alias for the app's private space, valid both as a parent id and as a `spaces` value. */
         const val APP_DATA_FOLDER_ALIAS = "appDataFolder"
+        private const val MIN_BOUNDED_BUFFER_BYTES = 1024L
         private const val DRIVE_API_BASE = "https://www.googleapis.com/drive/v3"
         private const val DRIVE_UPLOAD_BASE = "https://www.googleapis.com/upload/drive/v3"
         private const val MIME_TYPE_FOLDER = "application/vnd.google-apps.folder"

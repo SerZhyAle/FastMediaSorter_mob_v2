@@ -12,6 +12,8 @@ import com.sza.fastmediasorter.data.security.e2e.E2eBytes
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardMeta
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -67,11 +69,12 @@ class ExchangeClipboardRepository @Inject constructor(
         sealing.self?.let { self -> ExchangeClipboardKeys(self, sealing.recipients, sealing::trusts) }
     }
 
-    private fun sha256Of(source: InputStream, size: Long): String {
+    private suspend fun sha256Of(source: InputStream, size: Long): String {
         val digest = MessageDigest.getInstance("SHA-256")
         val buffer = ByteArray(HASH_BUFFER_BYTES)
         var left = size
         while (left > 0) {
+            currentCoroutineContext().ensureActive()
             val read = source.read(buffer, 0, minOf(buffer.size.toLong(), left).toInt())
             if (read < 0) throw IOException("the clipboard source ended before its declared size")
             digest.update(buffer, 0, read)

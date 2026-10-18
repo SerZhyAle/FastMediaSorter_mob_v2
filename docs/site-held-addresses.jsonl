@@ -23,6 +23,7 @@
 {"kind":"address","address":"docs/wear/index-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/SupportIntentFactory.kt"]}
 {"kind":"address","address":"docs/wear/index-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/SupportIntentFactory.kt"]}
 {"kind":"address","address":"documentation/","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/SupportIntentFactory.kt","docs/README*.md","fastlane/metadata/android/*/full_description.txt","play/listing/*/full_description.txt","README.md"]}
+{"kind":"address","address":"documentation/help/index.html","holders":["README.md"]}
 {"kind":"address","address":"documentation/index-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/SupportIntentFactory.kt"]}
 {"kind":"address","address":"documentation/index-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/SupportIntentFactory.kt"]}
 {"kind":"address","address":"index.html","holders":["store_assets/post.md"]}

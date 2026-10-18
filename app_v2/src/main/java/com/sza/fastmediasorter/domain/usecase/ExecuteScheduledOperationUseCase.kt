@@ -506,7 +506,6 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     ): ScheduledExecutionResult {
         logOp(ts, opName, srcLabel, dstLabel, "${ScheduledRunStatus.SKIPPED_PREFIX}: $reason")
         Timber.i("ScheduledOp[$operationId] skipped - $reason")
-        Timber.d("S4211: skipped op=$operationId reason=$reason")
         return ScheduledExecutionResult(operationId, 0, emptyList(), skippedReason = reason)
     }
 

@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.domain.model.ScheduledRunRecord
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S4211: shows one schedule's run journal - when each run happened, how many files it handled and why
@@ -28,7 +27,6 @@ class ScheduledRunHistoryDialogManager(private val host: ComponentActivity) {
                 .fromApplication(host.applicationContext, ScheduledOperationsEntryPoint::class.java)
                 .getRunJournalUseCase()
             val records = journal(operationId)
-            Timber.d("S4211: run history opened op=$operationId records=${records.size}")
             MaterialAlertDialogBuilder(host)
                 .setTitle(R.string.scheduled_ops_history_title)
                 .setMessage(buildMessage(scheduleLabel, records))

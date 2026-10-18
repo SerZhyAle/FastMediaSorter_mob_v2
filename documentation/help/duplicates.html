@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Duplicates</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Duplicates</span>
+</nav>
+<header class="hero">
+<h1>Duplicates</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">Duplicates finds files with identical content in the resources you pick, so you can free the space the extra copies take. Open it from the file browser, in the More actions: resource menu, with Find Duplicates, or with Find and Delete Duplicates to have the extra copies removed straight after the scan.</p>
+<h2>In this order</h2>
+<ol class="order">
+<li>Open the screen from the file browser: More actions: resource, then Find Duplicates. The resource you came from is already ticked in the list <a class="ref" href="#resources">2</a> and stands first.</li>
+<li>Tick the other resources to search too, or untick the ones you do not need. Start Scan <a class="ref" href="#start-scan">3</a> stays off while none is ticked.</li>
+<li>Press Start Scan <a class="ref" href="#start-scan">3</a>. If a network or cloud resource is ticked, a window warns that the scan can take long and use a lot of traffic; confirm to go on.</li>
+<li>Watch the progress <a class="ref" href="#scan-progress">4</a>. Cancel <a class="ref" href="#cancel-scan">5</a> stops the search and nothing is deleted.</li>
+<li>Read the summary <a class="ref" href="#summary">6</a>: how many groups of identical files were found and how much space they waste. Open a group <a class="ref" href="#group-header">8</a> to see its copies.</li>
+<li>The app has already ticked every copy except the oldest one in each group <a class="ref" href="#file-row">9</a>. Untick any you want to keep, or tick more.</li>
+<li>Press Delete Selected <a class="ref" href="#delete-selected">10</a> and confirm. The files are deleted and the screen closes.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Choosing what to scan</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Back</span><span class="one">Closes the screen; nothing is deleted by leaving.</span></span></summary>
+<div class="full">
+<p>The arrow in the toolbar, the Back button of the device and the Esc key all close the screen at once. The results of a finished scan are not kept, so a new visit starts from the beginning.</p>
+<dl class="facts">
+<dt>Shortcut</dt><dd><kbd>Esc</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="resources">
+<summary><span class="mk">2</span><span><span class="name">Select resources to scan for duplicates</span><span class="one">The resources that will be searched, as chips you can tick.</span></span></summary>
+<div class="full">
+<p>Each chip carries the name of a resource and its type. A tick means the resource takes part in the scan; tap a chip to switch it. Several resources can be scanned together, so a copy of a photo in two different resources is found as well. If you opened the screen from a resource's menu, that resource is ticked and listed first.</p>
+</div>
+</details>
+<details class="el" id="start-scan">
+<summary><span class="mk">3</span><span><span class="name">Start Scan</span><span class="one">Starts the search for files with identical content.</span></span></summary>
+<div class="full">
+<p>The button is off until at least one resource is ticked. Files are compared by their content, not by name: first by size, then by a short piece from the start, and only the files that still match are compared completely. Empty files are ignored. For network or cloud resources a window first warns that the scan may take a long time and a lot of traffic; press OK to continue. When you came through Find and Delete Duplicates, the pre-ticked copies are deleted as soon as the scan ends, without a further question - use Find Duplicates when you want to look first.</p>
+</div>
+</details>
+<h3>While the scan runs</h3>
+<details class="el" id="scan-progress">
+<summary><span class="mk">4</span><span><span class="name">Scan progress</span><span class="one">Shows what the scan is doing and how far it has come.</span></span></summary>
+<div class="full">
+<p>The stage appears in capital letters: LISTING while the files are collected, QUICK_HASH while the starts of equal-sized files are compared, and FULL_HASH while the remaining candidates are compared completely. Below it a counter shows the number of files processed out of the total.</p>
+</div>
+</details>
+<details class="el" id="cancel-scan">
+<summary><span class="mk">5</span><span><span class="name">Cancel</span><span class="one">Stops the scan and brings you back to the list of resources.</span></span></summary>
+<div class="full">
+<p>Nothing is deleted by cancelling. You can change the ticked resources and start again.</p>
+</div>
+</details>
+<h3>Results and deletion</h3>
+<details class="el" id="summary">
+<summary><span class="mk">6</span><span><span class="name">Result summary</span><span class="one">How many groups of identical files were found and how much space is wasted.</span></span></summary>
+<div class="full">
+<p>The line reads, for example, Found 12 groups, then Wasted space and a size. Wasted space counts every copy except one per group, so it is the amount you can free.</p>
+</div>
+</details>
+<details class="el" id="groups">
+<summary><span class="mk">7</span><span><span class="name">Duplicate groups</span><span class="one">One row per set of identical files.</span></span></summary>
+<div class="full">
+<p>Each group is a set of files with the same content. A group always holds at least two files. Scroll the list to go through all groups.</p>
+</div>
+</details>
+<details class="el" id="group-header">
+<summary><span class="mk">8</span><span><span class="name">Group header</span><span class="one">Names the group and opens or closes its copies.</span></span></summary>
+<div class="full">
+<p>The title is the name of one file of the group, and the line under it gives the size of one file and the number of files. Tap the header to expand the group and see where each copy lies; all groups start collapsed.</p>
+</div>
+</details>
+<details class="el" id="file-row">
+<summary><span class="mk">9</span><span><span class="name">File row with checkbox</span><span class="one">One copy: its name, its full path and a checkbox that marks it for deletion.</span></span></summary>
+<div class="full">
+<p>Tap the row or its checkbox to tick or untick the copy. A ticked copy is deleted when you press Delete Selected. Dragging a finger down along the checkboxes of one group ticks a whole range at once and never unticks. The app does not stop you from ticking every copy of a group, so keep at least one copy unticked. The row cannot open the file; use the path to find it in the file browser.</p>
+</div>
+</details>
+<details class="el" id="delete-selected">
+<summary><span class="mk">10</span><span><span class="name">Delete Selected</span><span class="one">Deletes all ticked copies after you confirm.</span></span></summary>
+<div class="full">
+<p>The button appears as soon as at least one copy is ticked and shows how many files will go and how much space they take. A confirmation window with Delete and Cancel repeats the number and says the deletion cannot be undone. After deleting, a short message tells you the files are gone and the screen closes.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The selected files are lost. They stay in a hidden .trash folder of their resource only when Use trash folder (.trash) is switched on in Settings and the files are local ones that can be moved there; network and cloud files, and everything with the trash off, are deleted for good. Restoring from a backup is then the only way back.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="none-found">
+<summary><span class="mk">11</span><span><span class="name">No duplicates found.</span><span class="one">Tells you that no identical files were found.</span></span></summary>
+<div class="full">
+<p>It appears when the scan has finished and there are no groups: nothing to delete in the chosen resources. Go back and pick other resources to search more.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="browse.html"><b>File browser</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-operations.html"><b>Settings: Management</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/cleaning-up-space.html"><b>Freeing Space - Duplicates, Big Files and ZIP Archives</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

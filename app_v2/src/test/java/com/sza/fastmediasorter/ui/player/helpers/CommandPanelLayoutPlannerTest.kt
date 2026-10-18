@@ -285,8 +285,9 @@ class CommandPanelLayoutPlannerTest {
         )
 
         // Sorted by priority: SEND_TO(25), FULLSCREEN(50), EDIT(210), CAST(230), SAVE_FRAME(235),
-        // ROTATION_TOGGLE(490), INFO(495). CAST present because testMediaCapabilities().supportsCast
-        // is true and Wi-Fi is connected; ROTATION_TOGGLE present because showRotationToggle is on.
+        // ROTATION_TOGGLE(490), INFO(495), STREAM_INFO(496), HELP(680). CAST present because
+        // testMediaCapabilities().supportsCast is true and Wi-Fi is connected; ROTATION_TOGGLE
+        // present because showRotationToggle is on.
         val expected = listOf(
             CommandPanelLayoutPlanner.PlayerCommand.SEND_TO,
             CommandPanelLayoutPlanner.PlayerCommand.FULLSCREEN,
@@ -296,8 +297,10 @@ class CommandPanelLayoutPlannerTest {
             CommandPanelLayoutPlanner.PlayerCommand.ROTATION_TOGGLE,
             CommandPanelLayoutPlanner.PlayerCommand.INFO,
             CommandPanelLayoutPlanner.PlayerCommand.STREAM_INFO,
+            CommandPanelLayoutPlanner.PlayerCommand.HELP,
         )
         assertEquals("Stream profile must expose exactly the owner-approved set in priority order", expected, result)
+        assertEquals("HELP must be last for a stream", CommandPanelLayoutPlanner.PlayerCommand.HELP, result.last())
         // Inapplicable file/navigation commands must never appear for a live video stream.
         assertFalse("DELETE must be hidden for a stream", result.contains(CommandPanelLayoutPlanner.PlayerCommand.DELETE))
         assertFalse("FAVORITE must be hidden for a stream", result.contains(CommandPanelLayoutPlanner.PlayerCommand.FAVORITE))
@@ -323,6 +326,7 @@ class CommandPanelLayoutPlannerTest {
             CommandPanelLayoutPlanner.PlayerCommand.SAVE_FRAME,
             CommandPanelLayoutPlanner.PlayerCommand.INFO,
             CommandPanelLayoutPlanner.PlayerCommand.STREAM_INFO,
+            CommandPanelLayoutPlanner.PlayerCommand.HELP,
         )
         assertEquals("CAST drops without Wi-Fi, ROTATION_TOGGLE drops when the toggle is off", expected, result)
     }
@@ -343,6 +347,7 @@ class CommandPanelLayoutPlannerTest {
         assertTrue("Ordinary video keeps FAVORITE", result.contains(CommandPanelLayoutPlanner.PlayerCommand.FAVORITE))
         assertTrue("Ordinary video keeps SLEEP_TIMER", result.contains(CommandPanelLayoutPlanner.PlayerCommand.SLEEP_TIMER))
         assertTrue("Ordinary video keeps SEND_TO", result.contains(CommandPanelLayoutPlanner.PlayerCommand.SEND_TO))
+        assertEquals("Ordinary video keeps HELP last", CommandPanelLayoutPlanner.PlayerCommand.HELP, result.last())
         // S1474: the stream allowlist is hand-maintained with no compiler check, so the one thing that
         // can regress silently - the channel window offered over a local file - is pinned here.
         assertFalse(

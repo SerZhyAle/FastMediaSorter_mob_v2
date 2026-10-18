@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="uk" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Довідка - Керування та клавіші</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Зміст довідки">
+<a href="index.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Керування та клавіші</span>
+</nav>
+<header class="hero">
+<h1>Керування та клавіші</h1>
+</header>
+<h2>Для чого цей екран</h2>
+<p class="lead">Виберіть, яка клавіша, кнопка геймпада чи кнопка миші запускає кожну команду - відтворення, навігацію, сортування й перегляд. У кожної команди є стандартна клавіша, тож ви змінюєте лише те, що хочете, і будь-коли можете повернути все як було.</p>
+<figure class="shot">
+<img class="on-light" src="../img/keybinding-remap-uk-light.webp" alt="Керування та клавіші">
+<img class="on-dark" src="../img/keybinding-remap-uk-dark.webp" alt="Керування та клавіші">
+</figure>
+<h2>Порядок дій</h2>
+<ol class="order">
+<li>Відкрийте «Керування та клавіші» в налаштуваннях, на вкладці «Управління». Команди згруповано за призначенням, і групи спочатку згорнуті.</li>
+<li>Знайдіть команду: введіть частину її назви в полі пошуку <a class="ref" href="#search">2</a> або натисніть заголовок групи <a class="ref" href="#groups">3</a>, щоб розгорнути її.</li>
+<li>Натисніть «Редагувати призначення» <a class="ref" href="#edit-binding">6</a> у рядку команди <a class="ref" href="#command-row">5</a> і виберіть пристрій, для якого хочете змінити клавішу, - клавіатуру, геймпад тощо.</li>
+<li>Відкриється вікно <a class="ref" href="#capture-prompt">9</a> і чекатиме. Натисніть нову клавішу чи кнопку, поки йде відлік <a class="ref" href="#capture-countdown">10</a>, і перевірте, що захоплено <a class="ref" href="#capture-captured">11</a>.</li>
+<li>Якщо червоне повідомлення каже, що клавішу зайнято <a class="ref" href="#capture-conflict">12</a>, натисніть іншу або «Скасувати» <a class="ref" href="#capture-cancel">13</a>. Інакше натисніть «Призначити» <a class="ref" href="#capture-commit">14</a>, щоб зберегти.</li>
+<li>Щоб повернути стандартну клавішу, скористайтеся скиданням у рядку <a class="ref" href="#row-reset">7</a> для однієї команди, скиданням групи <a class="ref" href="#group-reset">4</a> для цілої групи або «Скинути все» <a class="ref" href="#reset-all">8</a> для всіх одразу. Два останні спершу запитують.</li>
+<li>Зміни зберігаються одразу. Кнопка «Назад» <a class="ref" href="#back">1</a> закриває екран.</li>
+</ol>
+<h2>Елементи</h2>
+<div class="elements">
+<h3>Верхня панель і пошук</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Назад</span><span class="one">Закриває екран і повертає до налаштувань.</span></span></summary>
+<div class="full">
+<p>Підтверджувати нічого: кожна зміна зберігається одразу, щойно ви її робите.</p>
+</div>
+</details>
+<details class="el" id="search">
+<summary><span class="mk">2</span><span><span class="name">Пошук команд..</span><span class="one">Залишає в списку лише відповідні команди.</span></span></summary>
+<div class="full">
+<p>Введіть частину назви команди, наприклад «Наступний файл», або частину назви клавіші, і список звужується просто під час введення. Група без збігів зникає. Згорнута група зі збігом показує лише заголовок, тому натисніть на неї, щоб побачити відповідні рядки. Очистьте поле, щоб повернути все.</p>
+</div>
+</details>
+<h3>Групи й команди</h3>
+<details class="el" id="groups">
+<summary><span class="mk">3</span><span><span class="name">Групи команд</span><span class="one">Згортає й розгортає команди однієї групи.</span></span></summary>
+<div class="full">
+<p>Команди згруповано за призначенням: «Відтворення», «Навігація», «Вигляд і масштаб», «Аудіо і субтитри», «Системний інтерфейс», «Сортування», «Швидкі операції», «Дії браузера» і - лише у збірках з підтримкою VR - «Лише VR». Групи спочатку згорнуті; натисніть заголовок, щоб відкрити групу. Застосунок пам’ятає, які групи ви залишили відкритими. У широкому вікні рядки йдуть у два стовпці.</p>
+</div>
+</details>
+<details class="el" id="group-reset">
+<summary><span class="mk">4</span><span><span class="name">Скидання групи</span><span class="one">Повертає одній групі стандартні клавіші.</span></span></summary>
+<div class="full">
+<p>Це маленька піктограма з круглою стрілкою в кінці заголовка групи. Застосунок питає, чи скинути всі призначення в цій групі до заводських, і нічого не змінює, доки ви не натиснете «Скинути». Зачіпаються лише клавіші, які ви змінили в цій групі.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Ваші клавіші в цій групі зникають, а стандартні повертаються. Щоб повернути свою клавішу, призначте її знову через «Редагувати призначення».</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="command-row">
+<summary><span class="mk">5</span><span><span class="name">Рядок команди</span><span class="one">Команда й клавіші, які її запускають.</span></span></summary>
+<div class="full">
+<p>Згори - назва команди. Під нею - її поточні клавіші, кожна з позначкою пристрою: клавіатура, геймпад, миша чи VR; прочерк означає, що клавішу не задано. В однієї команди можуть бути клавіші одразу на кількох пристроях, тож кнопка геймпада й клавіша клавіатури можуть робити те саме.</p>
+</div>
+</details>
+<details class="el" id="edit-binding">
+<summary><span class="mk">6</span><span><span class="name">Редагувати призначення</span><span class="one">Призначає команді нову клавішу чи кнопку.</span></span></summary>
+<div class="full">
+<p>Невелике меню питає, для якого пристрою змінювати. «Клавіатура» та «Геймпад» є завжди, кожен із поточною клавішею або «(не задано)»; «Миша» й VR з’являються, лише коли в команди вже є для них клавіша. Після вибору відкривається вікно захоплення клавіші. Нова клавіша замінює попередню для цього пристрою.</p>
+</div>
+</details>
+<details class="el" id="row-reset">
+<summary><span class="mk">7</span><span><span class="name">Скинути до стандартних</span><span class="one">Повертає одній команді стандартну клавішу.</span></span></summary>
+<div class="full">
+<p>Працює лише для команди, яку ви змінювали; у недоторканої команди кнопка приглушена. Скидання виконується одразу, без запитання.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Ваша клавіша для цієї команди зникає, повертається стандартна. Якщо хочете повернути свою, призначте її знову через «Редагувати призначення».</dd>
+</dl>
+</div>
+</details>
+<h3>Скинути все</h3>
+<details class="el" id="reset-all">
+<summary><span class="mk">8</span><span><span class="name">Скинути все</span><span class="one">Повертає всім командам стандартні клавіші.</span></span></summary>
+<div class="full">
+<p>Застосунок питає «Скинути всі призначення до заводських? Це не можна скасувати.» і нічого не змінює, доки ви не натиснете «Скинути». Після цього кожна команда використовує свої початкові кнопки клавіатури, геймпада й миші.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Усі ваші клавіші зникають разом, і повернути їх не можна. Призначайте їх знову по одній.</dd>
+</dl>
+</div>
+</details>
+<h3>Вікно захоплення клавіші</h3>
+<details class="el" id="capture-prompt">
+<summary><span class="mk">9</span><span><span class="name">Натисніть клавішу або кнопку..</span><span class="one">Повідомляє, що застосунок чекає на вашу клавішу.</span></span></summary>
+<div class="full">
+<p>Вікно закриває екран і чекає на клавішу клавіатури (разом із Ctrl, Shift чи Alt, якщо ви їх тримаєте), кнопку геймпада, відхилення стика, тригера чи хрестовини або кнопку миші. Системна клавіша «Назад» новою клавішею не вважається.</p>
+</div>
+</details>
+<details class="el" id="capture-countdown">
+<summary><span class="mk">10</span><span><span class="name">Відлік часу</span><span class="one">Показує, скільки секунд залишилося на натискання.</span></span></summary>
+<div class="full">
+<p>У вас є 30 секунд. Коли час мине, вікно закриється саме, і нічого не зміниться.</p>
+</div>
+</details>
+<details class="el" id="capture-captured">
+<summary><span class="mk">11</span><span><span class="name">Захоплена клавіша</span><span class="one">Показує клавішу чи кнопку, яку впіймав застосунок.</span></span></summary>
+<div class="full">
+<p>Тут написано «Захоплено:» і назву того, що ви натиснули, наприклад Ctrl+Shift+K для клавіші клавіатури з модифікаторами. Поки ви нічого не натиснули, видно прочерк. Якщо перше натискання було не те, натисніть іншу клавішу - враховується остання.</p>
+</div>
+</details>
+<details class="el" id="capture-conflict">
+<summary><span class="mk">12</span><span><span class="name">Повідомлення про конфлікт</span><span class="one">Попереджає, що цю клавішу вже використовує інша команда.</span></span></summary>
+<div class="full">
+<p>Червоний рядок «Вже призначено:» і назви цих команд. Поки він видимий, кнопка «Призначити» не працює, тому дві команди не можуть ділити одну клавішу. Натисніть іншу клавішу або скасуйте й спершу звільніть іншу команду.</p>
+</div>
+</details>
+<details class="el" id="capture-cancel">
+<summary><span class="mk">13</span><span><span class="name">Скасувати</span><span class="one">Закриває вікно, нічого не змінюючи.</span></span></summary>
+<div class="full">
+<p>Команда зберігає попередню клавішу. Підходить, якщо ви відкрили вікно помилково або потрібну клавішу вже зайнято.</p>
+</div>
+</details>
+<details class="el" id="capture-commit">
+<summary><span class="mk">14</span><span><span class="name">Призначити</span><span class="one">Зберігає впійману клавішу для цієї команди.</span></span></summary>
+<div class="full">
+<p>Кнопка працює лише після того, як клавішу впіймано і нею не користується інша команда. Вона одразу зберігає клавішу, закриває вікно й оновлює рядок.</p>
+</div>
+</details>
+</div>
+<h2>Пов'язане</h2>
+<ul class="related">
+<li><a href="settings-operations.html"><b>Налаштування: Управління</b><span class="pill">Екран</span></a></li>
+<li><a href="settings-general.html"><b>Налаштування: Загальні</b><span class="pill">Екран</span></a></li>
+<li><a href="player.html"><b>Плеєр</b><span class="pill">Екран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/controls-and-key-remapping-uk.html"><b>Controls and Key Remapping - Keyboard, TV Remote and Gamepad, Your Way</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/general/keyboard-dpad-tv-navigation-uk.html"><b>Keyboard, D-Pad and Android TV Control - Using the App Without Touching the Screen</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="index.html"><b>Зміст довідки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Зміст довідки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
+</footer>
+</main>
+</body>
+</html>

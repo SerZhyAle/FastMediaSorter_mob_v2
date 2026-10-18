@@ -7,12 +7,14 @@ import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import com.sza.fastmediasorter.R
+import timber.log.Timber
 import java.text.BreakIterator
 
 /**
@@ -140,6 +142,58 @@ fun View.applySystemBarInsetPadding(
         insets
     }
     ViewCompat.getRootWindowInsets(this)?.let(::apply) ?: ViewCompat.requestApplyInsets(this)
+}
+
+/**
+ * Keeps a top-anchored overlay clear of the status bar and the display cutout by growing its top margin.
+ *
+ * For a button that floats over an edge-to-edge media surface: the margin written in the layout counts
+ * from window y=0, so while the status bar is visible the button sits inside the bar's band, where a tap
+ * never reaches it. The inset is read from the typed insets only - never through [getStatusBarHeightSafe],
+ * whose resource-height fallback would reserve a band for a bar that is hidden (S1087). The listener
+ * re-runs on every dispatch, which is how the margin follows the bar in and out of immersive mode.
+ *
+ * The margins written in the layout are remembered on the view at the first call and every later call
+ * measures from them, so calling this twice cannot stack the inset. [ConstraintLayout.LayoutParams.goneTopMargin]
+ * moves with the plain margin because a button anchored under a GONE sibling is positioned by it instead.
+ */
+fun View.applyTopSystemBarInsetMargin() {
+    val base = topInsetBaseMargin() ?: return
+
+    fun apply(insets: WindowInsetsCompat) {
+        val inset = maxOf(
+            insets.getInsets(WindowInsetsCompat.Type.systemBars()).top,
+            insets.getInsets(WindowInsetsCompat.Type.displayCutout()).top,
+        )
+        Timber.d("S4305: top inset margin inset=$inset baseTop=${base.top}")
+        val params = layoutParams as? ViewGroup.MarginLayoutParams ?: return
+        val constraintParams = params as? ConstraintLayout.LayoutParams
+        val goneTop = base.goneTop + inset
+        val unchanged = params.topMargin == base.top + inset &&
+            (constraintParams == null || constraintParams.goneTopMargin == goneTop)
+        if (unchanged) return
+        params.topMargin = base.top + inset
+        constraintParams?.goneTopMargin = goneTop
+        layoutParams = params
+    }
+
+    ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
+        apply(insets)
+        insets
+    }
+    ViewCompat.getRootWindowInsets(this)?.let(::apply) ?: ViewCompat.requestApplyInsets(this)
+}
+
+private data class TopInsetBaseMargin(val top: Int, val goneTop: Int)
+
+/** The view's top margins as the layout declared them, or null when it has no margin parameters. */
+private fun View.topInsetBaseMargin(): TopInsetBaseMargin? {
+    val remembered = getTag(R.id.topInsetBaseMargin) as? TopInsetBaseMargin
+    val params = layoutParams as? ViewGroup.MarginLayoutParams
+    return remembered ?: params?.let {
+        val goneTop = (it as? ConstraintLayout.LayoutParams)?.goneTopMargin ?: 0
+        TopInsetBaseMargin(it.topMargin, goneTop).also { base -> setTag(R.id.topInsetBaseMargin, base) }
+    }
 }
 
 /**

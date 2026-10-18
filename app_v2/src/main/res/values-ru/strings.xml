@@ -36,7 +36,7 @@
     <string name="cancel">Отмена</string>
     <string name="sign_in">Войти</string>
     <string name="ok">ОК</string>
-    <string name="help">Помощь</string>
+    <string name="help">Справка</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
     <string name="select_all">Выбрать всё</string>
@@ -3624,7 +3624,6 @@
     <string name="exif_orientation_rotate_270">Повёрнуто на 270° по часовой стрелке</string>
     <string name="exif_orientation_unknown">Неизвестно (%1$d)</string>
     <string name="storage_reach_limited_browse">В этой папке доступны только фото, видео и звук. Чтобы увидеть документы, добавьте папку заново и выберите её в системном окне.</string>
-    <string name="file_count_reach_limited">%1$s - только фото, видео и звук</string>
     <string name="reach_limited_nothing_readable">Документы не читаются</string>
     <string name="storage_reach_limited_virtual">Документы и другие файлы на этом устройстве приложению не видны. Чтобы открыть их, добавьте нужную папку через системное окно выбора.</string>
     <string name="storage_reach_limited_browse_reconnect">В этой папке доступны только фото, видео и звук. Чтобы увидеть документы, откройте меню с тремя точками в строке папки на главном экране и выберите «Переподключить ресурс».</string>
@@ -4480,4 +4479,20 @@
     <string name="broadcast_guests_withdraw_cd">Отозвать у %1$s</string>
     <string name="broadcast_guests_login_invalid">Введите логин гостя: от 3 до 64 латинских букв, цифр, точек, дефисов или подчёркиваний</string>
     <string name="broadcast_guests_give_failed">У этого гостя трансляция уже есть, или она больше не объявлена через сервер</string>
+    <string name="broadcast_control_torch_on">Фонарик ВКЛ</string>
+    <string name="broadcast_control_torch_off">Фонарик ВЫКЛ</string>
+    <string name="broadcast_control_torch_cd">Включить или выключить вспышку камеры, чтобы подсветить кадр</string>
+    <string name="broadcast_control_light_frame_on">Яркая рамка ВКЛ</string>
+    <string name="broadcast_control_light_frame_off">Яркая рамка ВЫКЛ</string>
+    <string name="broadcast_control_light_frame_cd">Включить или выключить яркую белую рамку по краям экрана, чтобы подсветить лицо</string>
+    <string name="wear_screenshot_last_at">Последний снимок: %1$s</string>
+    <string name="wear_screenshot_open_browse">Открыть в Просмотре</string>
+    <string name="help_page_title">Справка</string>
+    <string name="help_open_on_site">Открыть в новом окне на сайте</string>
+    <string name="help_keyboard_shortcuts">Все комбинации клавиш</string>
+    <string name="help_external_link_title">Открыть в браузере?</string>
+    <string name="help_external_link_message">Эта ссылка ведёт за пределы приложения и откроется в браузере.</string>
+    <string name="help_with_key">Справка (F1)</string>
+    <string name="broadcast_control_group_commands">Управление эфиром</string>
+    <string name="broadcast_control_group_share">Ссылка и обмен</string>
 </resources>

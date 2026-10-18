@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Справка - Мастер приветствия</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Оглавление справки">
+<a href="index-ru.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Мастер приветствия</span>
+</nav>
+<header class="hero">
+<h1>Мастер приветствия</h1>
+</header>
+<h2>Для чего этот экран</h2>
+<p class="lead">Мастер приветствия запускается при первом старте и проводит вас через язык, тему, профиль устройства, сетевые источники, возможности, разрешения и плеер по умолчанию. Позже его можно открыть снова из настроек.</p>
+<figure class="shot">
+<img class="on-light" src="img/welcome-ru-light.webp" alt="Мастер приветствия">
+<img class="on-dark" src="img/welcome-ru-dark.webp" alt="Мастер приветствия">
+</figure>
+<h2>Порядок действий</h2>
+<ol class="order">
+<li>На первой странице выберите язык <a class="ref" href="#language">6</a> и тему <a class="ref" href="#theme">7</a>. Всё, что вы выбираете в мастере, потом можно изменить в настройках, так что ошибиться здесь нельзя.</li>
+<li>Нажмите «Далее» <a class="ref" href="#next">3</a>, чтобы перейти к профилю устройства, и коснитесь плитки <a class="ref" href="#profiles">8</a>, которая подходит вашему устройству. Профиль настроит значения по умолчанию; повторное нажатие на выбранную плитку ведёт дальше.</li>
+<li>Включите сетевые источники, которыми собираетесь пользоваться (10, 11, 12). Если в версии приложения их нет, эта страница пропускается.</li>
+<li>На странице возможностей включите нужное (с 15 по 23): аудио, видео, документы, распознавание текста, перевод, трансляции, жесты. Необязательные части загружаются прямо там.</li>
+<li>На странице разрешений нажмите «Выдать все» <a class="ref" href="#grant-all">25</a>, чтобы пройти запросы по очереди. Пропущенное разрешение остаётся выключенным, и к нему можно вернуться позже.</li>
+<li>Если версия приложения это предлагает, сделайте FastMediaSorter приложением по умолчанию для аудио, видео, изображений и документов (с 28 по 31).</li>
+<li>«Готово» <a class="ref" href="#finish">4</a> закрывает мастер. «Назад» <a class="ref" href="#previous">1</a> возвращает на страницу, «Включить всё» <a class="ref" href="#enable-all">2</a> на первой странице выполняет всю настройку за один раз, а «Справка» <a class="ref" href="#help">5</a> открывает эту страницу.</li>
+</ol>
+<h2>Элементы</h2>
+<div class="elements">
+<h3>Навигация</h3>
+<details class="el" id="previous">
+<summary><span class="mk">1</span><span><span class="name">Назад</span><span class="one">Возвращает на одну страницу назад.</span></span></summary>
+<div class="full">
+<p>На первой странице кнопка скрыта: возвращаться некуда.</p>
+</div>
+</details>
+<details class="el" id="enable-all">
+<summary><span class="mk">2</span><span><span class="name">Включить всё</span><span class="one">Выполняет всю настройку за один раз.</span></span></summary>
+<div class="full">
+<p>Кнопка есть только на первой странице. Сначала приложение объясняет, что произойдёт, затем просит подтвердить профиль устройства и лишь после этого включает всё, запрашивает разрешения и выбор приложения по умолчанию, а в конце завершает настройку. Страницы между ними пропускаются.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Пока вы не подтвердите профиль устройства, ничего не применяется; «Назад» или нажатие снаружи ничего не меняют. Всё, что было включено, потом можно изменить в настройках.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="next">
+<summary><span class="mk">3</span><span><span class="name">Далее</span><span class="one">Переходит на следующую страницу.</span></span></summary>
+<div class="full">
+<p>На последней странице вместо неё появляется «Готово».</p>
+</div>
+</details>
+<details class="el" id="finish">
+<summary><span class="mk">4</span><span><span class="name">Готово</span><span class="one">Сохраняет профиль устройства и закрывает мастер.</span></span></summary>
+<div class="full">
+<p>Разрешения выдаются на отдельной странице, поэтому «Готово» больше ничего не спрашивает. Кнопка появляется на последней странице вместо «Далее».</p>
+</div>
+</details>
+<details class="el" id="help">
+<summary><span class="mk">5</span><span><span class="name">Справка</span><span class="one">Открывает справку по этому экрану.</span></span></summary>
+<div class="full">
+<p>Вы узнаете, в каком порядке обычно проходят мастер и что делает каждый элемент.</p>
+</div>
+</details>
+<h3>Приветствие</h3>
+<details class="el" id="language">
+<summary><span class="mk">6</span><span><span class="name">Выберите язык приложения</span><span class="one">Открывает список языков приложения.</span></span></summary>
+<div class="full">
+<p>Мастер перезагрузится на выбранном языке. Язык можно сменить позже в настройках.</p>
+</div>
+</details>
+<details class="el" id="theme">
+<summary><span class="mk">7</span><span><span class="name">Выберите тему приложения</span><span class="one">Выбирает «Авто», светлую или тёмную тему для всего приложения.</span></span></summary>
+<div class="full">
+<p>«Авто» следует за устройством. Тема применяется сразу, так что результат виден тут же.</p>
+</div>
+</details>
+<h3>Как вы будете использовать устройство?</h3>
+<details class="el" id="profiles">
+<summary><span class="mk">8</span><span><span class="name">Профиль устройства</span><span class="one">Выбирает, какое устройство вы настраиваете.</span></span></summary>
+<div class="full">
+<p>Плитки есть для личного смартфона, планшета, ТВ-приставки, автомагнитолы, фоторамки, электронной книги и не только; подходящая лучше всего отмечена как рекомендуемая. Профиль настраивает сразу много значений по умолчанию. «Другой / Без изменений» оставляет настройки как есть.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Профиль можно сменить позже в настройках.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="primary-window">
+<summary><span class="mk">9</span><span><span class="name">Основное окно</span><span class="one">Выбирает, чем будет приложение при запуске: домашним экраном устройства, рабочим столом внутри приложения или главным экраном.</span></span></summary>
+<div class="full">
+<p>Этот выбор есть только в версиях, где есть домашний экран. Рекомендуемый вариант отмечен.</p>
+</div>
+</details>
+<h3>Сетевые ресурсы</h3>
+<details class="el" id="smb">
+<summary><span class="mk">10</span><span><span class="name">Локальная сеть (Ethernet) SMB</span><span class="one">Включает общие папки в локальной сети.</span></span></summary>
+<div class="full">
+<p>Например: общая папка на компьютере с Windows, NAS вроде Synology или QNAP, USB-диск, подключённый к роутеру.</p>
+</div>
+</details>
+<details class="el" id="ftp">
+<summary><span class="mk">11</span><span><span class="name">Компьютер в интернете (S)FTP</span><span class="one">Включает серверы по FTP и SFTP.</span></span></summary>
+<div class="full">
+<p>Например: хостинг по FTP, собственный домашний сервер по SFTP, камера, которая выгружает снимки в папку FTP.</p>
+</div>
+</details>
+<details class="el" id="cloud">
+<summary><span class="mk">12</span><span><span class="name">В облачных ресурсах</span><span class="one">Включает облачные хранилища: Google Drive, OneDrive и Dropbox.</span></span></summary>
+<div class="full">
+<p>Например: войдите в Google Drive один раз и открывайте резервную копию фотографий как обычную папку. В версиях без поддержки облака эта строка скрыта.</p>
+</div>
+</details>
+<details class="el" id="companion-site">
+<summary><span class="mk">13</span><span><span class="name">Скачать для Windows</span><span class="one">Открывает страницу приложения-компаньона для Windows.</span></span></summary>
+<div class="full">
+<p>Если ваши медиа лежат на ПК с Windows, компаньон в пару кликов делится этими папками с устройством, без настройки сервера.</p>
+</div>
+</details>
+<details class="el" id="exchange-portal">
+<summary><span class="mk">14</span><span><span class="name">Обмен медиа между устройствами</span><span class="one">Открывает руководство по обмену медиа между устройствами.</span></span></summary>
+<div class="full">
+<p>Загляните, когда нужно переносить файлы между своими устройствами.</p>
+</div>
+</details>
+<h3>Что приложение будет делать?</h3>
+<details class="el" id="file-manager">
+<summary><span class="mk">15</span><span><span class="name">Разрешить режим «Все файлы»</span><span class="one">Разрешает режим «Все файлы».</span></span></summary>
+<div class="full">
+<p>Переключатель лишь разрешает режим, а включать его нужно отдельно для каждого ресурса.</p>
+</div>
+</details>
+<details class="el" id="audio">
+<summary><span class="mk">16</span><span><span class="name">Аудио</span><span class="one">Включает музыку и аудио.</span></span></summary>
+<div class="full">
+<p>Воспроизведение музыки и аудио, сортировка треков по папкам.</p>
+</div>
+</details>
+<details class="el" id="video">
+<summary><span class="mk">17</span><span><span class="name">Видео</span><span class="one">Включает видео.</span></span></summary>
+<div class="full">
+<p>Воспроизведение видео и сортировка роликов встроенным плеером.</p>
+</div>
+</details>
+<details class="el" id="documents">
+<summary><span class="mk">18</span><span><span class="name">Документы</span><span class="one">Включает документы.</span></span></summary>
+<div class="full">
+<p>Открытие PDF, текста, электронных книг и офисных файлов.</p>
+</div>
+</details>
+<details class="el" id="ocr">
+<summary><span class="mk">19</span><span><span class="name">Распознавание текста (OCR)</span><span class="one">Включает распознавание текста на изображениях и сканах.</span></span></summary>
+<div class="full">
+<p>Текст распознаётся и копируется. Пакет распознавания загружается прямо на этой странице, ход загрузки виден под строкой, а функция включается после успешной загрузки.</p>
+</div>
+</details>
+<details class="el" id="translation">
+<summary><span class="mk">20</span><span><span class="name">Перевод</span><span class="one">Включает перевод распознанного и выделенного текста.</span></span></summary>
+<div class="full">
+<p>Работает офлайн. Пакет перевода загружается прямо на этой странице, а функция включается после успешной загрузки.</p>
+</div>
+</details>
+<details class="el" id="streams">
+<summary><span class="mk">21</span><span><span class="name">Трансляции</span><span class="one">Включает интернет-трансляции.</span></span></summary>
+<div class="full">
+<p>Воспроизведение интернет-трансляций и импорт встроенного каталога. Каталог импортируется прямо на этой странице, ход импорта виден под строкой.</p>
+</div>
+</details>
+<details class="el" id="statistics">
+<summary><span class="mk">22</span><span><span class="name">Сбор статистики</span><span class="one">Включает статистику использования.</span></span></summary>
+<div class="full">
+<p>Она собирается на вашем устройстве, автоматически ничего не отправляется.</p>
+</div>
+</details>
+<details class="el" id="gestures">
+<summary><span class="mk">23</span><span><span class="name">Включить жесты</span><span class="one">Включает свайпы от левого края экрана.</span></span></summary>
+<div class="full">
+<p>Свайпы открывают меню и делают скриншот - обычный или тихий. Сначала Android может запросить разрешение «Поверх других приложений».</p>
+</div>
+</details>
+<details class="el" id="optional-elements">
+<summary><span class="mk">24</span><span><span class="name">Все загружаемые (опциональные) элементы</span><span class="one">Открывает список загружаемых необязательных частей приложения.</span></span></summary>
+<div class="full">
+<p>Установите нужные сейчас или оставьте на потом: тот же список есть и в настройках.</p>
+</div>
+</details>
+<h3>Разрешения</h3>
+<details class="el" id="grant-all">
+<summary><span class="mk">25</span><span><span class="name">Выдать все</span><span class="one">Проводит вас по всем запросам разрешений.</span></span></summary>
+<div class="full">
+<p>Сначала появляется один диалог Android для обычных разрешений, затем особые разрешения открываются отдельными системными экранами, по одному. Включите там переключатель и нажмите «Назад», чтобы продолжить.</p>
+</div>
+</details>
+<details class="el" id="open-settings">
+<summary><span class="mk">26</span><span><span class="name">Открыть настройки системы</span><span class="one">Открывает страницу настроек этого приложения в Android.</span></span></summary>
+<div class="full">
+<p>Пригодится, когда хочется самому посмотреть или изменить разрешение либо когда Android больше не показывает собственный запрос.</p>
+</div>
+</details>
+<details class="el" id="permission-list">
+<summary><span class="mk">27</span><span><span class="name">&quot;Несколько&quot; разрешений</span><span class="one">Перечисляет все разрешения, которые может запросить эта версия.</span></span></summary>
+<div class="full">
+<p>У каждой строки есть пояснение, зачем нужно разрешение, и своя кнопка: выдать его или открыть нужные настройки. Отказ - это просто невыданное разрешение; ничего не скрыто.</p>
+</div>
+</details>
+<h3>Плеер по умолчанию</h3>
+<details class="el" id="default-audio">
+<summary><span class="mk">28</span><span><span class="name">Аудио</span><span class="one">Назначает FastMediaSorter приложением для воспроизведения аудио.</span></span></summary>
+<div class="full">
+<p>Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
+</div>
+</details>
+<details class="el" id="default-video">
+<summary><span class="mk">29</span><span><span class="name">Видео</span><span class="one">Назначает FastMediaSorter приложением для воспроизведения видео.</span></span></summary>
+<div class="full">
+<p>Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
+</div>
+</details>
+<details class="el" id="default-images">
+<summary><span class="mk">30</span><span><span class="name">Изображения</span><span class="one">Назначает FastMediaSorter приложением для открытия изображений.</span></span></summary>
+<div class="full">
+<p>Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
+</div>
+</details>
+<details class="el" id="default-docs">
+<summary><span class="mk">31</span><span><span class="name">Документы</span><span class="one">Назначает FastMediaSorter приложением для открытия документов.</span></span></summary>
+<div class="full">
+<p>Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
+</div>
+</details>
+</div>
+<h2>Связанное</h2>
+<ul class="related">
+<li><a href="main-ru.html"><b>Главный экран</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-general-ru.html"><b>Настройки: Общие</b><span class="pill">Экран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/welcome-and-setup-ru.html"><b>First Launch and Setup Wizard</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/permissions-guide-ru.html"><b>Understanding App Permissions</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/main-screen-overview-ru.html"><b>Navigating the Main Screen</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="index-ru.html"><b>Оглавление справки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index-ru.html">Оглавление справки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
+</footer>
+</main>
+</body>
+</html>

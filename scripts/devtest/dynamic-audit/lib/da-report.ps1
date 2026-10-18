@@ -86,7 +86,9 @@ function Get-DaStandContext {
     .PARAMETER Avd
         AVD name of the run's device.
     #>
-    param([Parameter(Mandatory)][string]$Atomic, [string]$Avd)
+    param([Parameter(Mandatory)][AllowEmptyString()][string]$Atomic, [string]$Avd)
+    # A scene-wide finding (the message readability of a whole run) names no atomic, so it has no cell context.
+    if (-not $Atomic) { return $null }
     $inp = if ($Atomic -eq 'C12.held-key') { 'keyboard' } else { 'touch' }
     $state = 'default'
     if ($Atomic -match '^C1[26]\.watch-') {
@@ -189,7 +191,7 @@ function Get-DaRunMeasurements {
         }
         $react = @($scene.actions | Where-Object { [string]$_.atomic -eq $a -and $_.result -and $_.result.PSObject.Properties['hostReactionMs'] })
         if ($react.Count) {
-            $vals = [double[]]@($react | Where-Object { $_.result.outcome -eq 'reacted' -and $null -ne $_.result.hostReactionMs } | ForEach-Object { [double]$_.result.hostReactionMs })
+            $vals = [double[]]@($react | Where-Object { $_.result.outcome -eq 'ok' -and $null -ne $_.result.hostReactionMs } | ForEach-Object { [double]$_.result.hostReactionMs })
             $lost = $react.Count - $vals.Length
             $dist = Get-DaPercentiles -Values $vals -Timeouts $lost -MinValidForP99 1000
             $verdict = 'inconclusive'
@@ -281,8 +283,11 @@ function New-DaFindingCard {
         The finding rests only on a budget that is still a hypothesis.
     .PARAMETER Decision
         Reference to an accepted decision in audit/decisions.json, when one applies.
+    .PARAMETER Index
+        1-based position of the finding in its run; names the card when the finding carries no id, which is the
+        shape Add-DaFinding writes.
     #>
-    param([Parameter(Mandatory)]$Finding, [Parameter(Mandatory)]$Record, [switch]$BudgetOnly, [string]$Decision)
+    param([Parameter(Mandatory)]$Finding, [Parameter(Mandatory)]$Record, [switch]$BudgetOnly, [string]$Decision, [int]$Index = 1)
     $s = $Record.Scene
     $sev = [string]$Finding.severityGuess; if ($sev -notmatch '^P[0-3]$') { $sev = 'P2' }
     $rung = [string]$Finding.rung; if ($rung -notmatch '^[RVTL]$') { $rung = 'V' }
@@ -290,15 +295,17 @@ function New-DaFindingCard {
     if ($BudgetOnly -and $sev -in @('P0', 'P1')) { $sev = 'P2'; $notes.Add('capped at P2: the exceeded budget is a hypothesis, not an approved threshold') }
     $standing = 'confirmed'
     if ($sev -in @('P0', 'P1') -and $rung -notin @('T', 'L')) { $standing = 'candidate hypothesis'; $notes.Add("rung $rung is below T; a $sev needs T or L to be confirmed") }
+    $fid = if ([string]$Finding.id) { [string]$Finding.id } else { 'f{0:D2}' -f $Index }
+    $steps = @($Finding.steps | Where-Object { $_ })
     $card = [ordered]@{
-        id = "FC-$($Record.RunId)-$([string]$Finding.id)"; scene = [string]$s.scene; atomic = [string]$Finding.atomic
+        id = "FC-$($Record.RunId)-$fid"; scene = [string]$s.scene; atomic = [string]$Finding.atomic; title = $Finding.title
         cell = "$($s.scene)|$($Finding.atomic)|$($s.variant)|$(Get-DaStandContext -Atomic ([string]$Finding.atomic) -Avd ([string]$s.device.avd))"
         binary = [ordered]@{ variant = $s.variant; versionName = $s.build.versionName; apkSha256 = $s.build.apkSha256 }
         stand = [ordered]@{ device = $s.device.kind; avd = $s.device.avd; calibration = if ($s.calibration) { $s.calibration.runId } else { $null }; debugBuild = $true }
         preconditions = 'verified backup restored; synthetic fixture published by the run'
-        actions = @($s.actions | Where-Object { [string]$_.atomic -eq [string]$Finding.atomic } | ForEach-Object { $_.name })
+        actions = if ($steps.Count) { $steps } else { @($s.actions | Where-Object { [string]$_.atomic -eq [string]$Finding.atomic } | ForEach-Object { $_.name }) }
         fixture = if ($s.fixture) { $s.fixture.set } else { $null }; fault = $s.fault
-        expected = $Finding.expected; actual = $Finding.detail
+        expected = $Finding.expected; actual = if ($null -ne $Finding.detail) { $Finding.detail } else { $Finding.actual }
         frequency = $Finding.frequency; sample = $Finding.sample
         control = 'calibration and control run of the stand; see run identity'; magnitude = $Finding.magnitude
         severity = $sev; rung = $rung; standing = $standing; decision = if ($Decision) { $Decision } else { $null }
@@ -333,7 +340,8 @@ function Update-DaMatrix {
     $applied = @{}
     foreach ($r in $sel.Used) {
         $ms = @(Get-DaRunMeasurements -Record $r)
-        $runCards = @(foreach ($f in @($r.Scene.findings)) { New-DaFindingCard -Finding $f -Record $r })
+        $fi = 0
+        $runCards = @(foreach ($f in @($r.Scene.findings)) { $fi++; New-DaFindingCard -Finding $f -Record $r -Index $fi })
         foreach ($cd in $runCards) { $cards.Add($cd) }
         $runs.Add((Get-DaRunSummary -Record $r))
         $evId = "ev-$($r.RunId)"
@@ -459,7 +467,7 @@ function Format-DaReport {
         $L.Add("- ``$kind``: $($c.total) cells; measured $($c.byStatus.measured), n/a $($c.byStatus['n/a']), open $($c.byStatus.open); verdicts pass $($c.verdicts.pass), fail $($c.verdicts.fail), inconclusive $($c.verdicts.inconclusive)")
         foreach ($p in $c.byProperty.Keys) { $v = $c.byProperty[$p]; $L.Add("  - $p - measured $($v.measured), n/a $($v['n/a']), open $($v.open)") }
     }
-    $L.Add(''); $L.Add('Capability-bound cells stay open in this pass: a scene run drives atomic actions, not each sampled capability on its own.')
+    $L.Add(''); $L.Add('Capability-bound cells stay open in the first pass, because a scene run drives atomic actions, not each sampled capability on its own.')
     $L.Add(''); $L.Add('## Measured cells'); $L.Add('')
     $meas = @($Update.Matrix['sceneCells'] | Where-Object { $_['status'] -eq 'measured' } | Sort-Object { $_['key'] })
     foreach ($c in $meas) { $L.Add("- ``$($c['key'])`` - $($c['verdict']); $($c['metric']) ($($c['unit'])), n $($c['n']), budget $($c['budget']) $($c['budgetVersion']), run ``$($c['run'])``; $($c['detail'])") }
@@ -467,7 +475,8 @@ function Format-DaReport {
     $L.Add(''); $L.Add('## Finding cards'); $L.Add('')
     foreach ($cd in $Update.Cards) {
         $L.Add("### $($cd.id) - $($cd.severity) $($cd.rung), $($cd.standing)"); $L.Add('')
-        $L.Add("- Cell: ``$($cd.cell)``"); $L.Add("- Binary: $($cd.binary.variant) $($cd.binary.versionName), stand $($cd.stand.avd)")
+        if ($cd.title) { $L.Add("- Title: $($cd.title)") }
+        $L.Add("- Cell: ``$($cd.cell)``");$L.Add("- Binary: $($cd.binary.variant) $($cd.binary.versionName), stand $($cd.stand.avd)")
         $L.Add("- Actions: $(@($cd.actions) -join ', ')"); $L.Add("- Expected: $($cd.expected)"); $L.Add("- Actual: $($cd.actual)")
         foreach ($n in @($cd.notes)) { $L.Add("- Note: $n") }
         $L.Add("- Next step: $($cd.nextStep)"); $L.Add('')
@@ -482,7 +491,7 @@ function Format-DaReport {
         $groups = @($Update.Matrix[$kind] | Where-Object { $_['status'] -eq 'open' } | Group-Object { "$($_['reason'])|$($_['owner'])|$($_['nextStep'])" } | Sort-Object Count -Descending)
         foreach ($g in $groups) {
             $p = $g.Name.Split('|')
-            $L.Add("- ``$kind``, $($g.Count) cell(s): $($p[0]) - owner $($p[1]); next step: $($p[2])")
+            $L.Add("- ``$kind``, $($g.Count) cell(s): $($p[0]) - held by $($p[1]); next step: $($p[2])")
         }
     }
     if ($Update.Unmatched.Count) {

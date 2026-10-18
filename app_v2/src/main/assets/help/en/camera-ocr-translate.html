@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Camera OCR translation</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Camera OCR translation</span>
+</nav>
+<header class="hero">
+<h1>Camera OCR translation</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">Take a photo of a printed text - a sign, a menu, a page - and the app reads it and translates it into the language you choose. You get the translation and the original text on one screen, and can save both as a text file.</p>
+<h2>In this order</h2>
+<ol class="order">
+<li>Open Camera OCR translation from the programs menu, the quick-access panel or the launcher desktop; it is switched on in Settings, on the Management tab, in the group Additional programs and scenarios. The screen opens the in-app camera at once, so photograph the text. The first time, the text recognition engines may need to be downloaded. A screenshot sent here skips the camera. If you leave the camera without a photo, the screen closes.</li>
+<li>Crop state: the photo appears <a class="ref" href="#crop-preview">1</a> under a frame <a class="ref" href="#crop-frame">2</a>. Drag an edge or a corner of the frame to cover only the text you need, or leave the frame alone to use the whole photo. Retry <a class="ref" href="#crop-retry">3</a> throws the photo away and opens the camera again.</li>
+<li>Check the languages under the photo: the button on the left <a class="ref" href="#crop-source-lang">4</a> is the language of the text, and AUTO lets the app detect it; the button on the right <a class="ref" href="#crop-target-lang">6</a> is the language to translate into, and the arrow <a class="ref" href="#crop-arrow">5</a> shows the direction. Each opens a searchable list. When translation is off, only the first button is left.</li>
+<li>Press Apply <a class="ref" href="#crop-confirm">7</a>. The cropped photo is saved to the phone's Camera folder, and the loading state <a class="ref" href="#loading">8</a> shows the progress while the text is read and translated.</li>
+<li>Result state: the translation <a class="ref" href="#translation-card">9</a> is on top and the original text <a class="ref" href="#original-card">10</a> below it. Press and hold a word to select text and search it in Google or send a number to the calculator.</li>
+<li>Settings <a class="ref" href="#settings">11</a> changes the languages or switches the translation off and runs the recognition again on the same photo. Save as .txt <a class="ref" href="#save-txt">12</a> writes the text to a file, Next photo <a class="ref" href="#next-photo">13</a> takes another picture, and Close <a class="ref" href="#close">14</a> leaves.</li>
+<li>Empty state: if no text was found, the message <a class="ref" href="#empty-message">15</a> asks for a clearer photo. Next photo <a class="ref" href="#empty-retry">16</a> tries again, and Close <a class="ref" href="#empty-close">17</a> leaves.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Crop state</h3>
+<details class="el" id="crop-preview">
+<summary><span class="mk">1</span><span><span class="name">Photo to read</span><span class="one">The photo you just took, ready to be cropped.</span></span></summary>
+<div class="full">
+<p>It fills the space above the buttons, fitted to the screen. Only the part inside the frame is read.</p>
+</div>
+</details>
+<details class="el" id="crop-frame">
+<summary><span class="mk">2</span><span><span class="name">Crop selection frame</span><span class="one">The frame that marks the part of the photo to read.</span></span></summary>
+<div class="full">
+<p>Grab an edge or a corner to resize the frame, and drag inside it to move it; the rest of the photo is dimmed. If you do not touch the frame at all, the whole photo is used. With a keyboard or a D-pad, Enter switches resize mode on and off and the arrow keys nudge the frame.</p>
+<dl class="facts">
+<dt>Shortcut</dt><dd><kbd>Enter</kbd> / <kbd>D-pad center</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="crop-retry">
+<summary><span class="mk">3</span><span><span class="name">Retry</span><span class="one">Throws the photo away and opens the camera again.</span></span></summary>
+<div class="full">
+<p>Use it when the text is blurred or cut off. The current photo is not kept.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The discarded photo is lost and cannot be brought back; take a new one.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="crop-source-lang">
+<summary><span class="mk">4</span><span><span class="name">OCR language</span><span class="one">Sets the language of the text in the photo.</span></span></summary>
+<div class="full">
+<p>The label shows a flag and a code, for example AUTO, which means that the app works the language out by itself. A tap opens a list with a search field; type a part of the name and tap the language. Pick a language yourself when AUTO guesses wrong. The choice is saved for the next time.</p>
+</div>
+</details>
+<details class="el" id="crop-arrow">
+<summary><span class="mk">5</span><span><span class="name">Direction arrow</span><span class="one">Shows that the text is translated from the left language into the right one.</span></span></summary>
+<div class="full">
+<p>It is only a sign and cannot be pressed. It is shown, together with the right-hand button, only when translation is available: translation is on in Settings and Only OCR is off.</p>
+</div>
+</details>
+<details class="el" id="crop-target-lang">
+<summary><span class="mk">6</span><span><span class="name">Translation language</span><span class="one">Sets the language the text is translated into.</span></span></summary>
+<div class="full">
+<p>It appears only when translation is available. A tap opens the same kind of searchable list. The first translation into a language may ask to download a model of about 30 MB; the app asks before it downloads. The choice is saved for the next time.</p>
+</div>
+</details>
+<details class="el" id="crop-confirm">
+<summary><span class="mk">7</span><span><span class="name">Apply</span><span class="one">Starts reading and translating the framed part of the photo.</span></span></summary>
+<div class="full">
+<p>The part inside the frame, or the whole photo when you did not touch the frame, is cut out and saved as a picture in the Camera folder of the phone (in Downloads when that folder refuses the write). Then the recognition begins and the loading state takes over.</p>
+</div>
+</details>
+<h3>Loading state</h3>
+<details class="el" id="loading">
+<summary><span class="mk">8</span><span><span class="name">Progress screen</span><span class="one">Shows that the photo is being processed.</span></span></summary>
+<div class="full">
+<p>A spinner and a line of text say what is happening: first Processing photo.., then Extracting text and translating.. with a request to wait when a translation is made. The screen ignores touches meanwhile. If a translation model is missing, the app first asks whether to download it.</p>
+</div>
+</details>
+<h3>Result state</h3>
+<details class="el" id="translation-card">
+<summary><span class="mk">9</span><span><span class="name">Translation</span><span class="one">The translated text, large and on top.</span></span></summary>
+<div class="full">
+<p>It is shown only when a translation was made; with Only OCR on, the card is not there. Scroll inside the card if the text is long. Press and hold to select text: the selection menu offers Search in Google and, when the calculator is switched on, Calculator.</p>
+</div>
+</details>
+<details class="el" id="original-card">
+<summary><span class="mk">10</span><span><span class="name">Original text</span><span class="one">The text exactly as it was read from the photo.</span></span></summary>
+<div class="full">
+<p>Use it to check what the recognition read, or as the result itself when translation is off. It scrolls and can be selected in the same way as the translation. Recognition is not perfect on blurred or decorative letters, so compare it with the photo when a word looks strange.</p>
+</div>
+</details>
+<details class="el" id="settings">
+<summary><span class="mk">11</span><span><span class="name">Settings</span><span class="one">Opens the dialog with the languages and the Only OCR switch.</span></span></summary>
+<div class="full">
+<p>Change the languages without taking a new photo. A different language of the text reads the same photo again, and a different target language only translates the text that is already there. The dialog is described in the last group.</p>
+</div>
+</details>
+<details class="el" id="save-txt">
+<summary><span class="mk">12</span><span><span class="name">Save as .txt</span><span class="one">Saves the result as a text file.</span></span></summary>
+<div class="full">
+<p>The file goes to the Documents folder of the phone, or to Downloads when Documents refuses it, and a message tells the folder and the file name. With a translation, the file holds two parts marked TRANSLATION and ORIGINAL; without one, only the recognized text. Every save makes a new file with its own name.</p>
+</div>
+</details>
+<details class="el" id="next-photo">
+<summary><span class="mk">13</span><span><span class="name">Next photo</span><span class="one">Opens the camera for another photo.</span></span></summary>
+<div class="full">
+<p>The results on the screen stay until the new photo is taken and processed. If you leave the camera without a photo, you come back to the current result.</p>
+</div>
+</details>
+<details class="el" id="close">
+<summary><span class="mk">14</span><span><span class="name">Close</span><span class="one">Leaves the screen.</span></span></summary>
+<div class="full">
+<p>The result is not stored by itself. Save the text first if you need it; the cropped photo is already in the Camera folder of the phone.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The recognized text and the translation are lost on close; take a new photo to get them again.</dd>
+</dl>
+</div>
+</details>
+<h3>Empty state</h3>
+<details class="el" id="empty-message">
+<summary><span class="mk">15</span><span><span class="name">No text found in image</span><span class="one">Tells that no text was found in the photo.</span></span></summary>
+<div class="full">
+<p>The screen shows the message No text found in image and advises to make sure that the photo contains clear text. Common causes are a blurred shot, too little light or a frame that missed the text.</p>
+</div>
+</details>
+<details class="el" id="empty-retry">
+<summary><span class="mk">16</span><span><span class="name">Next photo</span><span class="one">Opens the camera to try again.</span></span></summary>
+<div class="full">
+<p>It takes a new photo and leads through the crop step again. The languages you chose are kept.</p>
+</div>
+</details>
+<details class="el" id="empty-close">
+<summary><span class="mk">17</span><span><span class="name">Close</span><span class="one">Leaves the screen without a result.</span></span></summary>
+<div class="full">
+<p>Nothing is saved except the cropped photo, which was already put into the Camera folder at the crop step.</p>
+</div>
+</details>
+<h3>Settings dialog</h3>
+<details class="el" id="d-source">
+<summary><span class="mk">18</span><span><span class="name">Original Language</span><span class="one">The language of the text, used to read the photo again.</span></span></summary>
+<div class="full">
+<p>A tap opens the searchable list. Changing it reads the same photo again with the new language and translates the result. The row is grayed out and cannot be used when the photo is no longer kept, for example after the screen was restarted by the system.</p>
+</div>
+</details>
+<details class="el" id="d-target">
+<summary><span class="mk">19</span><span><span class="name">Translate To</span><span class="one">The language the text is translated into.</span></span></summary>
+<div class="full">
+<p>A tap opens the searchable list. Changing only this row translates the text that is already read, without reading the photo again. The row is grayed out when translation is off in Settings or Only OCR is on.</p>
+</div>
+</details>
+<details class="el" id="d-ocr-only">
+<summary><span class="mk">20</span><span><span class="name">Only OCR (no translation)</span><span class="one">Skips the translation and shows only the recognized text.</span></span></summary>
+<div class="full">
+<p>With it on, the translation card and the target language disappear and the original text is the whole result. Switch it off to get the translation again. The choice is saved for the next time.</p>
+</div>
+</details>
+<details class="el" id="d-cancel">
+<summary><span class="mk">21</span><span><span class="name">Cancel</span><span class="one">Closes the dialog and changes nothing.</span></span></summary>
+<div class="full">
+<p>The languages and the Only OCR switch keep the values they had before.</p>
+</div>
+</details>
+<details class="el" id="d-apply">
+<summary><span class="mk">22</span><span><span class="name">Apply</span><span class="one">Saves the choices and updates the result.</span></span></summary>
+<div class="full">
+<p>The choices become the settings of the app. The text is read again or translated again, as needed, and the screen shows the new result.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="camera-capture.html"><b>Camera</b><span class="pill">Screen</span></a></li>
+<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-operations.html"><b>Settings: Management</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/ocr-text-recognition.html"><b>Extracting Text with Offline OCR</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/inline-translation.html"><b>Translating Extracted Text</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

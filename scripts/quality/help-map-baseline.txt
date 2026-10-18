@@ -1,0 +1,1 @@
+# S4288: phone surfaces with no help-map row yet (CONTEXT-HELP rule 19). Shrink-only: delete a line when its surface gets a row.

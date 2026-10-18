@@ -1,0 +1,340 @@
+{
+  "help": "scheduled-operations",
+  "surface": "ScheduledOperationsActivity",
+  "elements": [
+    { "id": "help", "viewId": "action_help", "labelKey": "help" },
+    { "id": "enabled", "viewId": "rowScheduledOpsEnabled", "labelKey": "scheduled_ops_toggle" },
+    { "id": "notification-permission", "viewId": "btnScheduledNotificationPermission", "labelKey": "perm_addendum_post_notifications_scheduled_ops" },
+    { "id": "add", "viewId": "btnAddScheduledOp", "labelKey": "scheduled_ops_btn_add" },
+    { "id": "run-all", "viewId": "btnRunAllScheduled", "labelKey": "scheduled_ops_action_run_all" },
+    { "id": "pause", "viewId": "btnTogglePauseScheduled", "labelKey": "scheduled_ops_action_pause_all" },
+    { "id": "history", "viewId": "btnScheduledLog", "labelKey": "scheduled_ops_btn_log" },
+    { "id": "clear-all", "viewId": "btnClearAllScheduled", "labelKey": "scheduled_ops_btn_clear_all" },
+    { "id": "history-panel", "viewId": "containerScheduledHistoryRows", "labelKey": "scheduled_ops_history_title" },
+    { "id": "history-clear", "viewId": "btnScheduledHistoryClear", "labelKey": "scheduled_ops_log_clear" },
+    { "id": "list", "viewId": "rvScheduledOps" },
+    { "id": "op-switch", "viewId": "switchEnabled", "labelKey": "scheduled_op_enabled_toggle" },
+    { "id": "op-warning", "viewId": "tvErrorBadge" },
+    { "id": "op-history", "viewId": "btnHistory", "labelKey": "scheduled_op_history" },
+    { "id": "op-run-now", "viewId": "btnRunNow", "labelKey": "scheduled_op_run_now" },
+    { "id": "op-edit", "viewId": "btnEdit", "labelKey": "edit" },
+    { "id": "op-delete", "viewId": "btnDelete", "labelKey": "delete" },
+    { "id": "portal", "labelKey": "exchange_portal_link_schedule" }
+  ],
+  "related": [
+    { "help": "settings-operations" },
+    { "help": "main" },
+    { "help": "browse" },
+    { "help": "add-resource" },
+    { "pageId": "storage.scheduled-operations" },
+    { "pageId": "storage.cleaning-up-space" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Scheduled file operations",
+      "purpose": "Scheduled file operations copy, move, archive or delete files in the background at the times you set - for example, moving new camera photos to a network folder every night. This screen switches the feature on, lists your operations and shows how every run went.",
+      "steps": [
+        "Turn on Use scheduled operations (2). On Android 13 and later, press the notifications button (3) if it shows up, so you can see when a run starts or fails.",
+        "Press Add (4) and describe the job once: the source, the operation, the destination, which files to take, when to start and how often. Try a new job as Copy before you trust it with Move or Delete.",
+        "Find the new card in the list (11). Its own switch (12) holds just that job without deleting it.",
+        "Not sure it works? Press Run now (15) on the card, then open its History (14) to see what was done.",
+        "A warning mark (13) means the last run failed or was skipped. History (7) shows the log of all runs, the card's History (14) the runs of one job.",
+        "To hold everything for a while use Pause all (6). Run all now (5) starts every enabled job once, outside the schedule.",
+        "Edit (16) changes a job, Delete (17) removes one, and Clear all (8) removes them all. Clear log (10) empties the run history and leaves the jobs alone."
+      ],
+      "groups": [
+        { "title": "Switch and help", "elements": ["help", "enabled", "notification-permission"] },
+        { "title": "Action bar", "elements": ["add", "run-all", "pause", "history", "clear-all"] },
+        { "title": "Run history", "elements": ["history-panel", "history-clear"] },
+        { "title": "Operation list", "elements": ["list", "op-switch", "op-warning", "op-history", "op-run-now", "op-edit", "op-delete"] },
+        { "title": "Top bar menu", "elements": ["portal"] }
+      ],
+      "elements": {
+        "help": {
+          "summary": "Opens help for this screen.",
+          "details": "You get what each button does and the usual order of use, with numbers matching the markers on the screenshot."
+        },
+        "enabled": {
+          "summary": "Turns scheduled runs on or off for the whole program.",
+          "details": "While it is on, your operations run at their times, even when the app is closed. While it is off, nothing runs on schedule and the buttons and the list are hidden, but every operation stays saved. The switch also follows the list: it turns itself off when you delete the last operation and on again when you add one.",
+          "undo": "Nothing is lost. The operations stay saved, and switching it on queues their runs again."
+        },
+        "notification-permission": {
+          "summary": "Lets scheduled runs show their notifications.",
+          "details": "The button appears on Android 13 and later while the notification permission is missing, and goes away once you allow it. A run shows a notification while it works and when it fails, so without the permission you would notice neither. Tap it and answer the system question. The warning mark on an operation card shows a failed run either way."
+        },
+        "add": {
+          "summary": "Creates a new scheduled operation.",
+          "details": "A form opens where you describe the job once. Source is one of your resources or any folder on the device. Operation is Copy, Move, Archive or Delete, and everything except Delete also asks for a Destination. Then pick the file types, optionally a time filter such as only files that are new since the last run, extra limits by name, age or size, the start time and how often to repeat (at least every 15 minutes). A read-only source allows Copy only. Save operation puts the new card in the list.\n\nWhen you arrive from the file browser, the form opens with the folder you were in already set as the source. Move and Delete remove the original files in the background, which on some devices needs access to all files; the app tells you in a notification when it is missing."
+        },
+        "run-all": {
+          "summary": "Starts every enabled operation once, right now.",
+          "details": "The jobs run one after another and the regular schedule goes on as before. Operations whose own switch is off are skipped, and nothing happens while Pause all is active. There is no extra question, so make sure a Move or Delete job is really ready before you press it.",
+          "undo": "Files that a run copied, moved or deleted stay that way. A scheduled Delete does not use the trash - what it removes is gone for good."
+        },
+        "pause": {
+          "summary": "Holds all schedules, or lets them go on.",
+          "details": "While the schedules are paused the button reads Resume all. Pausing keeps every operation and its settings, makes Run all now do nothing, and keeps the app from queuing the schedules again after a restart. Resume all lifts the pause. To hold a single job, use the switch on its card."
+        },
+        "history": {
+          "summary": "Shows or hides the log of all runs.",
+          "details": "The Run history panel opens under the buttons with the newest runs first: when each run happened, which operation it was, from where to where, and what came of it. Failures are shown in the error color. Press the button again to hide the panel."
+        },
+        "clear-all": {
+          "summary": "Removes every scheduled operation at once.",
+          "details": "The app asks Clear all scheduled operations? first. After you confirm, all operations are deleted and their schedules cancelled. Your files are not touched, and the log in the Run history panel stays. With the list empty, the main switch turns itself off.",
+          "undo": "The operations and their settings are lost and cannot be restored - create them again with Add. Files that earlier runs already copied, moved or deleted stay as they are."
+        },
+        "history-panel": {
+          "summary": "The log of recent runs, newest first.",
+          "details": "Each entry shows the time, the operation, the source and the destination, and a short message. The panel keeps the last 200 entries in view. Until a run is recorded it says No runs recorded yet. It is one list for all operations; for one operation use the History button on its card."
+        },
+        "history-clear": {
+          "summary": "Empties the log of all runs.",
+          "details": "The app asks Clear the run history? first. After you confirm, the list is empty and fills up again with the next runs. Operations and schedules are not affected, and the runs shown by the card History buttons are kept.",
+          "undo": "The deleted log entries cannot be brought back. Only the entries are lost; nothing else changes."
+        },
+        "list": {
+          "name": "Operation list",
+          "summary": "One card for each scheduled operation.",
+          "details": "A card shows the source and, except for Delete, the destination, with an icon for the operation. Below are the schedule (for example At 23:00 · Every 24h), which files it takes, and when it last succeeded or that no run has succeeded yet. A source or destination that was removed from the app is shown as (deleted). While the list is empty it says No scheduled operations yet. Tap + to create the first one."
+        },
+        "op-switch": {
+          "summary": "Holds or resumes this one operation.",
+          "details": "Off, the operation keeps its card and settings but its waiting run is cancelled. On, it is queued for its next time again. The other operations are not affected."
+        },
+        "op-warning": {
+          "name": "Warning mark",
+          "summary": "Tells you the last run of this operation did not finish.",
+          "details": "It appears after a run that failed or was skipped, for example because the source or the destination could not be reached. A skipped run is tried again at the next time. The mark stays until a run succeeds; open the card History to see why."
+        },
+        "op-history": {
+          "summary": "Shows the recent runs of this operation only.",
+          "details": "A window lists the runs of this one job, newest first: when each ran, how many files it handled and why it stopped, if it did. Close it with Close. The runs go away together with the operation."
+        },
+        "op-run-now": {
+          "summary": "Starts this operation once, right now.",
+          "details": "Use it to try a new job or to catch up without waiting for the next time. The regular schedule is not changed. When it is done, the result appears in History.",
+          "undo": "The same as for any run: copied, moved or deleted files stay that way, and Delete is permanent."
+        },
+        "op-edit": {
+          "summary": "Changes the source, destination, files or times of this operation.",
+          "details": "The same form as Add opens with the current settings. Save operation keeps your changes; closing the form without saving leaves the operation as it was."
+        },
+        "op-delete": {
+          "summary": "Removes this operation.",
+          "details": "The app asks Delete this scheduled operation? first. After you confirm, the operation and its schedule are removed, together with its own run list and a folder that was chosen only for this job. Your files are not touched.",
+          "undo": "The operation cannot be restored - create it again with Add. Files that earlier runs already copied, moved or deleted stay as they are."
+        },
+        "portal": {
+          "summary": "Opens a web page about schedules that work with folders of other devices.",
+          "details": "The item is in the three-dots menu of the top bar. It opens a page of the product website in your browser, so it needs an internet connection; the app tells you if the phone is offline or has no browser. The page explains how a schedule can take files from, or put them into, a folder on another device."
+        }
+      }
+    },
+    "ru": {
+      "title": "Операции над файлами по расписанию",
+      "purpose": "Операции по расписанию копируют, перемещают, архивируют или удаляют файлы в фоне в заданное время - например, каждую ночь переносят новые снимки с камеры в сетевую папку. На этом экране включается функция, виден список операций и видно, как прошёл каждый запуск.",
+      "steps": [
+        "Включите «Использовать операции по расписанию» (2). На Android 13 и новее нажмите кнопку уведомлений (3), если она появилась, - так вы увидите, когда запуск начался или не удался.",
+        "Нажмите «Добавить» (4) и один раз опишите задание: источник, операцию, назначение, какие файлы брать, когда начинать и как часто повторять. Новое задание сначала проверьте как копирование, а потом доверяйте ему перемещение или удаление.",
+        "Новая карточка появится в списке (11). Её переключатель (12) приостанавливает только это задание, не удаляя его.",
+        "Не уверены, что всё работает? Нажмите «Запустить» (15) на карточке и откройте её «Историю» (14), чтобы увидеть, что сделано.",
+        "Значок предупреждения (13) значит, что последний запуск не удался или был пропущен. «История» (7) показывает журнал всех запусков, «История» на карточке (14) - запуски одного задания.",
+        "Чтобы приостановить всё на время, нажмите «Пауза всех» (6). «Запустить все сейчас» (5) разом запускает все включённые задания вне расписания.",
+        "«Редактировать» (16) меняет задание, «Удалить» (17) убирает одно, «Очистить всё» (8) - все. «Очистить журнал» (10) опустошает историю запусков, не трогая задания."
+      ],
+      "groups": [
+        { "title": "Переключатель и помощь", "elements": ["help", "enabled", "notification-permission"] },
+        { "title": "Панель действий", "elements": ["add", "run-all", "pause", "history", "clear-all"] },
+        { "title": "История запусков", "elements": ["history-panel", "history-clear"] },
+        { "title": "Список операций", "elements": ["list", "op-switch", "op-warning", "op-history", "op-run-now", "op-edit", "op-delete"] },
+        { "title": "Меню верхней панели", "elements": ["portal"] }
+      ],
+      "elements": {
+        "help": {
+          "summary": "Открывает справку по этому экрану.",
+          "details": "Вы узнаете, что делает каждая кнопка и в каком порядке обычно ими пользуются; номера совпадают с метками на снимке экрана."
+        },
+        "enabled": {
+          "summary": "Включает или выключает запуски по расписанию для всей программы.",
+          "details": "Пока переключатель включён, операции выполняются в свой срок, даже когда приложение закрыто. Пока выключен, по расписанию ничего не запускается, а кнопки и список скрыты, но все операции остаются сохранёнными. Переключатель следует за списком: он сам выключается, когда вы удаляете последнюю операцию, и снова включается, когда вы добавляете новую.",
+          "undo": "Ничего не теряется. Операции остаются сохранёнными, а при включении их запуски снова ставятся в очередь."
+        },
+        "notification-permission": {
+          "summary": "Позволяет запускам по расписанию показывать уведомления.",
+          "details": "Кнопка появляется на Android 13 и новее, пока нет разрешения на уведомления, и пропадает, когда вы его даёте. Запуск показывает уведомление, пока работает, и когда завершился ошибкой, так что без разрешения вы не заметите ни того, ни другого. Нажмите кнопку и ответьте на системный вопрос. Значок предупреждения на карточке операции показывает неудачный запуск в любом случае."
+        },
+        "add": {
+          "summary": "Создаёт новую операцию по расписанию.",
+          "details": "Открывается форма, в которой вы один раз описываете задание. Источник - один из ваших ресурсов или любая папка на устройстве. Операция - копирование, перемещение, архивирование или удаление; для всего, кроме удаления, нужно ещё назначение. Затем выберите типы файлов, при желании - фильтр по времени (например, только новые с прошлой операции), дополнительные ограничения по имени, возрасту или размеру, время начала и как часто повторять (не чаще чем раз в 15 минут). Если источник только для чтения, доступно лишь копирование. Кнопка «Сохранить в список операций» добавляет новую карточку в список.\n\nЕсли вы пришли из браузера файлов, форма открывается с уже выбранным источником - папкой, в которой вы были. Перемещение и удаление убирают исходные файлы в фоне, а на некоторых устройствах для этого нужен доступ ко всем файлам; если его нет, приложение сообщит об этом в уведомлении."
+        },
+        "run-all": {
+          "summary": "Сразу запускает все включённые операции по одному разу.",
+          "details": "Задания выполняются одно за другим, а обычное расписание остаётся прежним. Операции с выключенным переключателем пропускаются, а пока действует «Пауза всех», ничего не происходит. Дополнительного вопроса нет, поэтому перед нажатием убедитесь, что задание на перемещение или удаление действительно готово.",
+          "undo": "Файлы, которые запуск скопировал, переместил или удалил, такими и остаются. Удаление по расписанию не использует корзину - удалённое пропадает безвозвратно."
+        },
+        "pause": {
+          "summary": "Приостанавливает все расписания или возвращает их в работу.",
+          "details": "Пока расписания на паузе, кнопка называется «Возобновить все». Пауза сохраняет все операции и их настройки, делает так, что «Запустить все сейчас» ничего не делает, и не даёт приложению ставить расписания в очередь заново после перезапуска. «Возобновить все» снимает паузу. Чтобы приостановить одно задание, используйте переключатель на его карточке."
+        },
+        "history": {
+          "summary": "Показывает или скрывает журнал всех запусков.",
+          "details": "Панель «История запусков» открывается под кнопками, самые новые запуски - сверху: когда прошёл запуск, какая это была операция, откуда и куда и чем всё закончилось. Ошибки выделены цветом ошибки. Нажмите кнопку ещё раз, чтобы скрыть панель."
+        },
+        "clear-all": {
+          "summary": "Сразу убирает все операции по расписанию.",
+          "details": "Сначала приложение спрашивает «Очистить все задания по расписанию?». После подтверждения все операции удаляются, а их расписания отменяются. Ваши файлы не затрагиваются, журнал на панели «История запусков» остаётся. Когда список пуст, главный переключатель сам выключается.",
+          "undo": "Операции и их настройки пропадают и не восстанавливаются - создайте их заново кнопкой «Добавить». Файлы, которые прежние запуски уже скопировали, переместили или удалили, остаются как есть."
+        },
+        "history-panel": {
+          "summary": "Журнал последних запусков, новые - сверху.",
+          "details": "Каждая запись показывает время, операцию, источник и назначение и короткое сообщение. На панели видны последние 200 записей. Пока ни один запуск не записан, там написано «Запусков пока не было». Это один список для всех операций; для одной операции используйте кнопку «История» на её карточке."
+        },
+        "history-clear": {
+          "summary": "Опустошает журнал всех запусков.",
+          "details": "Сначала приложение спрашивает «Очистить историю запусков?». После подтверждения список пуст и заполняется заново следующими запусками. Операции и расписания не меняются, а запуски, которые показывают кнопки «История» на карточках, сохраняются.",
+          "undo": "Удалённые записи журнала не вернуть. Пропадают только записи, больше ничего не меняется."
+        },
+        "list": {
+          "name": "Список операций",
+          "summary": "Одна карточка на каждую операцию по расписанию.",
+          "details": "На карточке видны источник и - кроме удаления - назначение, а также значок операции. Ниже - расписание (например, «В 23:00 · Каждые 24ч»), какие файлы она берёт и когда была последняя удачная попытка или что удачных запусков ещё не было. Источник или назначение, которых больше нет в приложении, показаны как «(удалён)». Пока список пуст, там написано «Запланированных операций пока нет. Нажмите +, чтобы создать первую»."
+        },
+        "op-switch": {
+          "summary": "Приостанавливает или возобновляет только эту операцию.",
+          "details": "Когда выключено, у операции остаются карточка и настройки, но её ожидающий запуск отменяется. Когда включено, она снова ставится в очередь на ближайший срок. Остальные операции не затрагиваются."
+        },
+        "op-warning": {
+          "name": "Значок предупреждения",
+          "summary": "Сообщает, что последний запуск этой операции не завершился.",
+          "details": "Значок появляется после запуска, который не удался или был пропущен, например из-за недоступного источника или назначения. Пропущенный запуск повторяется в следующий срок. Значок остаётся, пока запуск не пройдёт успешно; причину смотрите в «Истории» на карточке."
+        },
+        "op-history": {
+          "summary": "Показывает последние запуски только этой операции.",
+          "details": "В окне перечислены запуски этого задания, новые сверху: когда прошёл каждый, сколько файлов обработал и почему остановился, если останавливался. Окно закрывается кнопкой «Закрыть». Список запусков исчезает вместе с операцией."
+        },
+        "op-run-now": {
+          "summary": "Один раз запускает эту операцию прямо сейчас.",
+          "details": "Подходит, чтобы проверить новое задание или не ждать ближайшего срока. Обычное расписание не меняется. Когда запуск закончится, результат появится в «Истории».",
+          "undo": "Как и для любого запуска: скопированные, перемещённые или удалённые файлы такими и остаются, а удаление необратимо."
+        },
+        "op-edit": {
+          "summary": "Меняет источник, назначение, файлы или время этой операции.",
+          "details": "Открывается та же форма, что и при добавлении, с текущими настройками. Кнопка «Сохранить в список операций» сохраняет изменения; если закрыть форму без сохранения, операция останется прежней."
+        },
+        "op-delete": {
+          "summary": "Убирает эту операцию.",
+          "details": "Сначала приложение спрашивает «Удалить это задание?». После подтверждения операция и её расписание удаляются вместе с её собственным списком запусков и папкой, выбранной только для этого задания. Ваши файлы не затрагиваются.",
+          "undo": "Операцию не восстановить - создайте её заново кнопкой «Добавить». Файлы, которые прежние запуски уже скопировали, переместили или удалили, остаются как есть."
+        },
+        "portal": {
+          "summary": "Открывает веб-страницу о расписаниях, которые работают с папками других устройств.",
+          "details": "Пункт находится в меню с тремя точками на верхней панели. Он открывает страницу сайта продукта в браузере, поэтому нужен интернет; если телефон не в сети или на нём нет браузера, приложение скажет об этом. На странице объясняется, как расписание может брать файлы из папки на другом устройстве или класть их туда."
+        }
+      }
+    },
+    "uk": {
+      "title": "Операції над файлами за розкладом",
+      "purpose": "Операції за розкладом копіюють, переміщують, архівують або видаляють файли у фоні в заданий час - наприклад, щоночі переносять нові знімки з камери в мережеву папку. На цьому екрані вмикається функція, видно список операцій і видно, як минув кожен запуск.",
+      "steps": [
+        "Увімкніть «Використовувати операції за розкладом» (2). На Android 13 і новіших натисніть кнопку сповіщень (3), якщо вона з’явилася, - так ви побачите, коли запуск розпочався або не вдався.",
+        "Натисніть «Додати» (4) і один раз опишіть завдання: джерело, операцію, призначення, які файли брати, коли починати і як часто повторювати. Нове завдання спершу перевірте як копіювання, а потім довіряйте йому переміщення чи видалення.",
+        "Нова картка з’явиться в списку (11). Її перемикач (12) призупиняє лише це завдання, не видаляючи його.",
+        "Не впевнені, що все працює? Натисніть «Запустити» (15) на картці та відкрийте її «Історію» (14), щоб побачити, що зроблено.",
+        "Значок попередження (13) означає, що останній запуск не вдався або був пропущений. «Історія» (7) показує журнал усіх запусків, «Історія» на картці (14) - запуски одного завдання.",
+        "Щоб призупинити все на якийсь час, натисніть «Пауза всіх» (6). «Запустити всі зараз» (5) одразу запускає всі ввімкнені завдання поза розкладом.",
+        "«Редагувати» (16) змінює завдання, «Видалити» (17) прибирає одне, «Очистити все» (8) - усі. «Очистити журнал» (10) спорожняє історію запусків, не чіпаючи завдань."
+      ],
+      "groups": [
+        { "title": "Перемикач і допомога", "elements": ["help", "enabled", "notification-permission"] },
+        { "title": "Панель дій", "elements": ["add", "run-all", "pause", "history", "clear-all"] },
+        { "title": "Історія запусків", "elements": ["history-panel", "history-clear"] },
+        { "title": "Список операцій", "elements": ["list", "op-switch", "op-warning", "op-history", "op-run-now", "op-edit", "op-delete"] },
+        { "title": "Меню верхньої панелі", "elements": ["portal"] }
+      ],
+      "elements": {
+        "help": {
+          "summary": "Відкриває довідку про цей екран.",
+          "details": "Ви дізнаєтеся, що робить кожна кнопка і в якому порядку зазвичай ними користуються; номери збігаються з позначками на знімку екрана."
+        },
+        "enabled": {
+          "summary": "Вмикає або вимикає запуски за розкладом для всієї програми.",
+          "details": "Поки перемикач увімкнено, операції виконуються у свій час, навіть коли застосунок закрито. Поки вимкнено, за розкладом нічого не запускається, а кнопки й список приховано, але всі операції залишаються збереженими. Перемикач слідує за списком: він сам вимикається, коли ви видаляєте останню операцію, і знову вмикається, коли додаєте нову.",
+          "undo": "Нічого не втрачається. Операції залишаються збереженими, а після ввімкнення їхні запуски знову стають у чергу."
+        },
+        "notification-permission": {
+          "summary": "Дає запускам за розкладом змогу показувати сповіщення.",
+          "details": "Кнопка з’являється на Android 13 і новіших, поки немає дозволу на сповіщення, і зникає, коли ви його даєте. Запуск показує сповіщення, поки працює, і коли завершився помилкою, тож без дозволу ви не помітите ні того, ні того. Натисніть кнопку й дайте відповідь на системне запитання. Значок попередження на картці операції показує невдалий запуск у будь-якому разі."
+        },
+        "add": {
+          "summary": "Створює нову операцію за розкладом.",
+          "details": "Відкривається форма, у якій ви один раз описуєте завдання. Джерело - один із ваших ресурсів або будь-яка папка на пристрої. Операція - копіювання, переміщення, архівування або видалення; для всього, крім видалення, потрібне ще й призначення. Далі виберіть типи файлів, за бажанням - фільтр за часом (наприклад, лише нові з попередньої операції), додаткові обмеження за іменем, віком чи розміром, час початку й те, як часто повторювати (не частіше ніж раз на 15 хвилин). Якщо джерело лише для читання, доступне тільки копіювання. Кнопка «Зберегти в список операцій» додає нову картку до списку.\n\nЯкщо ви прийшли з браузера файлів, форма відкривається з уже вибраним джерелом - папкою, у якій ви були. Переміщення й видалення прибирають вихідні файли у фоні, а на деяких пристроях для цього потрібен доступ до всіх файлів; якщо його немає, застосунок повідомить про це у сповіщенні."
+        },
+        "run-all": {
+          "summary": "Одразу запускає всі ввімкнені операції по одному разу.",
+          "details": "Завдання виконуються одне за одним, а звичайний розклад лишається як був. Операції з вимкненим перемикачем пропускаються, а поки діє «Пауза всіх», нічого не відбувається. Додаткового запитання немає, тому перед натисканням переконайтеся, що завдання на переміщення чи видалення справді готове.",
+          "undo": "Файли, які запуск скопіював, перемістив чи видалив, такими й залишаються. Видалення за розкладом не використовує кошик - видалене зникає безповоротно."
+        },
+        "pause": {
+          "summary": "Призупиняє всі розклади або повертає їх у роботу.",
+          "details": "Поки розклади на паузі, кнопка називається «Відновити всі». Пауза зберігає всі операції та їхні налаштування, робить так, що «Запустити всі зараз» нічого не робить, і не дає застосунку знову ставити розклади в чергу після перезапуску. «Відновити всі» знімає паузу. Щоб призупинити одне завдання, скористайтеся перемикачем на його картці."
+        },
+        "history": {
+          "summary": "Показує або приховує журнал усіх запусків.",
+          "details": "Панель «Історія запусків» відкривається під кнопками, найновіші запуски - згори: коли минув запуск, яка це була операція, звідки й куди та чим усе закінчилося. Помилки виділено кольором помилки. Натисніть кнопку ще раз, щоб приховати панель."
+        },
+        "clear-all": {
+          "summary": "Одразу прибирає всі операції за розкладом.",
+          "details": "Спершу застосунок питає «Очистити всі завдання за розкладом?». Після підтвердження всі операції видаляються, а їхні розклади скасовуються. Ваші файли не зачіпаються, журнал на панелі «Історія запусків» залишається. Коли список порожній, головний перемикач сам вимикається.",
+          "undo": "Операції та їхні налаштування зникають і не відновлюються - створіть їх знову кнопкою «Додати». Файли, які попередні запуски вже скопіювали, перемістили чи видалили, залишаються як є."
+        },
+        "history-panel": {
+          "summary": "Журнал останніх запусків, нові - згори.",
+          "details": "Кожен запис показує час, операцію, джерело та призначення й коротке повідомлення. На панелі видно останні 200 записів. Поки жоден запуск не записано, там написано «Запусків ще не було». Це один список для всіх операцій; для однієї операції користуйтеся кнопкою «Історія» на її картці."
+        },
+        "history-clear": {
+          "summary": "Спорожняє журнал усіх запусків.",
+          "details": "Спершу застосунок питає «Очистити історію запусків?». Після підтвердження список порожній і заповнюється знову наступними запусками. Операції та розклади не змінюються, а запуски, які показують кнопки «Історія» на картках, зберігаються.",
+          "undo": "Видалені записи журналу не повернути. Зникають лише записи, більше нічого не змінюється."
+        },
+        "list": {
+          "name": "Список операцій",
+          "summary": "Одна картка на кожну операцію за розкладом.",
+          "details": "На картці видно джерело й - крім видалення - призначення, а також значок операції. Нижче - розклад (наприклад, «О 23:00 · Кожні 24г»), які файли вона бере і коли була остання вдала спроба або що вдалих запусків ще не було. Джерело чи призначення, яких більше немає в застосунку, показано як «(видалено)». Поки список порожній, там написано «Запланованих операцій ще немає. Натисніть +, щоб створити першу»."
+        },
+        "op-switch": {
+          "summary": "Призупиняє або відновлює лише цю операцію.",
+          "details": "Коли вимкнено, в операції лишаються картка й налаштування, але її запуск, що очікує, скасовується. Коли ввімкнено, вона знову стає в чергу на найближчий час. Решту операцій це не зачіпає."
+        },
+        "op-warning": {
+          "name": "Значок попередження",
+          "summary": "Повідомляє, що останній запуск цієї операції не завершився.",
+          "details": "Значок з’являється після запуску, який не вдався або був пропущений, наприклад через недоступне джерело чи призначення. Пропущений запуск повторюється в наступний термін. Значок лишається, поки запуск не пройде успішно; причину дивіться в «Історії» на картці."
+        },
+        "op-history": {
+          "summary": "Показує останні запуски лише цієї операції.",
+          "details": "У вікні перелічено запуски цього завдання, нові згори: коли минув кожен, скільки файлів обробив і чому зупинився, якщо зупинявся. Вікно закривається кнопкою «Закрити». Список запусків зникає разом з операцією."
+        },
+        "op-run-now": {
+          "summary": "Один раз запускає цю операцію просто зараз.",
+          "details": "Підходить, щоб перевірити нове завдання або не чекати найближчого часу. Звичайний розклад не змінюється. Коли запуск закінчиться, результат з’явиться в «Історії».",
+          "undo": "Як і для будь-якого запуску: скопійовані, переміщені чи видалені файли такими й залишаються, а видалення незворотне."
+        },
+        "op-edit": {
+          "summary": "Змінює джерело, призначення, файли чи час цієї операції.",
+          "details": "Відкривається та сама форма, що й під час додавання, із поточними налаштуваннями. Кнопка «Зберегти в список операцій» зберігає зміни; якщо закрити форму без збереження, операція залишиться як була."
+        },
+        "op-delete": {
+          "summary": "Прибирає цю операцію.",
+          "details": "Спершу застосунок питає «Видалити це завдання?». Після підтвердження операція та її розклад видаляються разом з її власним списком запусків і папкою, вибраною лише для цього завдання. Ваші файли не зачіпаються.",
+          "undo": "Операцію не відновити - створіть її знову кнопкою «Додати». Файли, які попередні запуски вже скопіювали, перемістили чи видалили, залишаються як є."
+        },
+        "portal": {
+          "summary": "Відкриває вебсторінку про розклади, що працюють з папками інших пристроїв.",
+          "details": "Пункт розташований у меню з трьома крапками на верхній панелі. Він відкриває сторінку сайту продукту в браузері, тож потрібен інтернет; якщо телефон не в мережі або в ньому немає браузера, застосунок скаже про це. На сторінці пояснено, як розклад може брати файли з папки на іншому пристрої або класти їх туди."
+        }
+      }
+    }
+  }
+}

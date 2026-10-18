@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Welcome wizard</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Welcome wizard</span>
+</nav>
+<header class="hero">
+<h1>Welcome wizard</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">The welcome wizard runs on first launch and walks you through language, theme, device profile, network sources, capabilities, permissions and the default player. You can open it again from Settings.</p>
+<figure class="shot">
+<img class="on-light" src="../img/welcome-en-light.webp" alt="Welcome wizard">
+<img class="on-dark" src="../img/welcome-en-dark.webp" alt="Welcome wizard">
+</figure>
+<h2>In this order</h2>
+<ol class="order">
+<li>On the first page, choose your language <a class="ref" href="#language">6</a> and theme <a class="ref" href="#theme">7</a>. Everything you pick in the wizard can be changed later in Settings, so there is no wrong choice here.</li>
+<li>Press Next <a class="ref" href="#next">3</a> to reach the device profile page and tap the tile <a class="ref" href="#profiles">8</a> that matches your device. It tunes the defaults for you; tapping the selected tile again moves you on.</li>
+<li>Switch on the network sources you plan to use (10, 11, 12). The page is left out when the edition has none of them.</li>
+<li>On the capabilities page, turn on what you need (15 to 23) - audio, video, documents, text recognition, translation, streams, gestures. Optional parts download right there.</li>
+<li>On the permissions page, press Grant All <a class="ref" href="#grant-all">25</a> to go through the requests one by one. A permission you skip stays off, and you can come back to it later.</li>
+<li>If your edition offers it, make FastMediaSorter the default app for audio, video, images and documents (28 to 31).</li>
+<li>Press Finish <a class="ref" href="#finish">4</a> to close the wizard. Previous <a class="ref" href="#previous">1</a> steps back, Enable all <a class="ref" href="#enable-all">2</a> on the first page does the whole setup in one go, and Help <a class="ref" href="#help">5</a> opens this page.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Navigation</h3>
+<details class="el" id="previous">
+<summary><span class="mk">1</span><span><span class="name">Previous</span><span class="one">Goes back one page.</span></span></summary>
+<div class="full">
+<p>It is hidden on the first page, where there is nothing to go back to.</p>
+</div>
+</details>
+<details class="el" id="enable-all">
+<summary><span class="mk">2</span><span><span class="name">Enable all</span><span class="one">Does the whole setup in one go.</span></span></summary>
+<div class="full">
+<p>It is on the first page only. First it explains what will happen, then lets you confirm your device profile, and only after that turns everything on, asks for the permissions and the default-app choice, and finishes. The pages in between are skipped.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Nothing is applied until you confirm the device profile; Back or a tap outside applies nothing. Anything it turned on can be changed later in Settings.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="next">
+<summary><span class="mk">3</span><span><span class="name">Next</span><span class="one">Moves to the next page.</span></span></summary>
+<div class="full">
+<p>On the last page it is replaced by Finish.</p>
+</div>
+</details>
+<details class="el" id="finish">
+<summary><span class="mk">4</span><span><span class="name">Finish</span><span class="one">Saves your device profile and closes the wizard.</span></span></summary>
+<div class="full">
+<p>Permissions are granted on their own page, so Finish asks for nothing more. It appears on the last page in place of Next.</p>
+</div>
+</details>
+<details class="el" id="help">
+<summary><span class="mk">5</span><span><span class="name">Help</span><span class="one">Opens help for this screen.</span></span></summary>
+<div class="full">
+<p>You get the usual order of the wizard and what each control does.</p>
+</div>
+</details>
+<h3>Welcome</h3>
+<details class="el" id="language">
+<summary><span class="mk">6</span><span><span class="name">Select app language</span><span class="one">Opens the list of app languages.</span></span></summary>
+<div class="full">
+<p>The wizard reloads in the language you pick. You can change the language later in Settings.</p>
+</div>
+</details>
+<details class="el" id="theme">
+<summary><span class="mk">7</span><span><span class="name">Select app theme</span><span class="one">Picks Auto, Light or Dark for the whole app.</span></span></summary>
+<div class="full">
+<p>Auto follows your device. The theme is applied immediately, so you see the result at once.</p>
+</div>
+</details>
+<h3>How will you use this device?</h3>
+<details class="el" id="profiles">
+<summary><span class="mk">8</span><span><span class="name">Device profile</span><span class="one">Picks the kind of device you are setting up.</span></span></summary>
+<div class="full">
+<p>Tiles cover a personal smartphone, tablet, TV box, car head unit, photo frame, e-book reader and more, and the one that fits best is marked as recommended. A profile tunes many defaults at once. Other keeps the settings as they are.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>You can change the profile later in Settings.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="primary-window">
+<summary><span class="mk">9</span><span><span class="name">Primary window</span><span class="one">Chooses what the app opens as: device home screen, in-app desktop or main screen.</span></span></summary>
+<div class="full">
+<p>This choice appears only in editions that include the home surface. The recommended option is marked.</p>
+</div>
+</details>
+<h3>Network resources</h3>
+<details class="el" id="smb">
+<summary><span class="mk">10</span><span><span class="name">Local network (Ethernet) SMB</span><span class="one">Turns on shared folders on your local network.</span></span></summary>
+<div class="full">
+<p>For example a shared folder on a Windows PC, a NAS such as Synology or QNAP, or a USB disk plugged into your router.</p>
+</div>
+</details>
+<details class="el" id="ftp">
+<summary><span class="mk">11</span><span><span class="name">Computer on the internet (S)FTP</span><span class="one">Turns on servers reached over FTP and SFTP.</span></span></summary>
+<div class="full">
+<p>For example a hosting account over FTP, your own home server over SFTP, or a camera that uploads photos to an FTP folder.</p>
+</div>
+</details>
+<details class="el" id="cloud">
+<summary><span class="mk">12</span><span><span class="name">In cloud resources</span><span class="one">Turns on cloud storage: Google Drive, OneDrive and Dropbox.</span></span></summary>
+<div class="full">
+<p>For example, sign in to Google Drive once and browse your photo backup like any other folder. The row is hidden in editions without cloud support.</p>
+</div>
+</details>
+<details class="el" id="companion-site">
+<summary><span class="mk">13</span><span><span class="name">Get the Windows app</span><span class="one">Opens the page for the Windows companion app.</span></span></summary>
+<div class="full">
+<p>If your media sits on a Windows PC, the companion shares those folders to this device in a couple of clicks, with no server setup.</p>
+</div>
+</details>
+<details class="el" id="exchange-portal">
+<summary><span class="mk">14</span><span><span class="name">Media exchange between devices</span><span class="one">Opens the guide to exchanging media between devices.</span></span></summary>
+<div class="full">
+<p>Read it when you want to move files between your own devices.</p>
+</div>
+</details>
+<h3>What should the app do?</h3>
+<details class="el" id="file-manager">
+<summary><span class="mk">15</span><span><span class="name">Allow All Files mode</span><span class="one">Allows the All Files mode.</span></span></summary>
+<div class="full">
+<p>This switch only permits the mode, so you still turn it on for each resource.</p>
+</div>
+</details>
+<details class="el" id="audio">
+<summary><span class="mk">16</span><span><span class="name">Audio</span><span class="one">Turns on music and audio.</span></span></summary>
+<div class="full">
+<p>Play music and audio, and sort tracks into folders.</p>
+</div>
+</details>
+<details class="el" id="video">
+<summary><span class="mk">17</span><span><span class="name">Video</span><span class="one">Turns on video.</span></span></summary>
+<div class="full">
+<p>Play videos and sort clips with the built-in player.</p>
+</div>
+</details>
+<details class="el" id="documents">
+<summary><span class="mk">18</span><span><span class="name">Documents</span><span class="one">Turns on documents.</span></span></summary>
+<div class="full">
+<p>Open PDF, text, e-books and office files.</p>
+</div>
+</details>
+<details class="el" id="ocr">
+<summary><span class="mk">19</span><span><span class="name">Text recognition (OCR)</span><span class="one">Turns on text recognition for images and scans.</span></span></summary>
+<div class="full">
+<p>Recognize text and copy it. The recognition pack downloads right on this page, with progress shown under the row, and the feature turns on once the download has succeeded.</p>
+</div>
+</details>
+<details class="el" id="translation">
+<summary><span class="mk">20</span><span><span class="name">Translation</span><span class="one">Turns on translation of recognized and selected text.</span></span></summary>
+<div class="full">
+<p>Works offline. The translation pack downloads right on this page, and the feature turns on once the download has succeeded.</p>
+</div>
+</details>
+<details class="el" id="streams">
+<summary><span class="mk">21</span><span><span class="name">Streams</span><span class="one">Turns on internet streams.</span></span></summary>
+<div class="full">
+<p>Play internet streams and import the built-in catalog. The catalog is imported right on this page, with progress shown under the row.</p>
+</div>
+</details>
+<details class="el" id="statistics">
+<summary><span class="mk">22</span><span><span class="name">Statistics collection</span><span class="one">Turns on usage statistics.</span></span></summary>
+<div class="full">
+<p>They are collected on your device and nothing is sent automatically.</p>
+</div>
+</details>
+<details class="el" id="gestures">
+<summary><span class="mk">23</span><span><span class="name">Enable gestures</span><span class="one">Turns on swipes from the left edge of the screen.</span></span></summary>
+<div class="full">
+<p>The swipes open the menu and take a screenshot, normal or silent. Android may ask for the Display over other apps permission first.</p>
+</div>
+</details>
+<details class="el" id="optional-elements">
+<summary><span class="mk">24</span><span><span class="name">All downloadable (optional) elements</span><span class="one">Opens the list of downloadable, optional parts of the app.</span></span></summary>
+<div class="full">
+<p>Install the ones you want now, or leave them for later: you can also reach the same list from Settings.</p>
+</div>
+</details>
+<h3>Permissions</h3>
+<details class="el" id="grant-all">
+<summary><span class="mk">25</span><span><span class="name">Grant All</span><span class="one">Walks you through all the permission requests.</span></span></summary>
+<div class="full">
+<p>First comes one Android dialog for the regular permissions, then the special ones open as separate system screens, one at a time. Turn the switch on there and press Back to continue.</p>
+</div>
+</details>
+<details class="el" id="open-settings">
+<summary><span class="mk">26</span><span><span class="name">Open App Settings</span><span class="one">Opens the Android settings page of this app.</span></span></summary>
+<div class="full">
+<p>Use it when you want to review or change a permission yourself, or when Android no longer shows its own request.</p>
+</div>
+</details>
+<details class="el" id="permission-list">
+<summary><span class="mk">27</span><span><span class="name">&quot;A few&quot; permissions</span><span class="one">Lists every permission this edition can ask for.</span></span></summary>
+<div class="full">
+<p>Each row says what the permission is for and has its own button to grant it or open the matching settings. Opting out means leaving a permission off; nothing is hidden from you.</p>
+</div>
+</details>
+<h3>Default Player</h3>
+<details class="el" id="default-audio">
+<summary><span class="mk">28</span><span><span class="name">Audio</span><span class="one">Makes FastMediaSorter the app that plays your audio files.</span></span></summary>
+<div class="full">
+<p>Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
+</div>
+</details>
+<details class="el" id="default-video">
+<summary><span class="mk">29</span><span><span class="name">Video</span><span class="one">Makes FastMediaSorter the app that plays your videos.</span></span></summary>
+<div class="full">
+<p>Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
+</div>
+</details>
+<details class="el" id="default-images">
+<summary><span class="mk">30</span><span><span class="name">Images</span><span class="one">Makes FastMediaSorter the app that opens your images.</span></span></summary>
+<div class="full">
+<p>Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
+</div>
+</details>
+<details class="el" id="default-docs">
+<summary><span class="mk">31</span><span><span class="name">Documents</span><span class="one">Makes FastMediaSorter the app that opens your documents.</span></span></summary>
+<div class="full">
+<p>Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-general.html"><b>Settings: General</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/welcome-and-setup.html"><b>First Launch and Setup Wizard</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/permissions-guide.html"><b>Understanding App Permissions</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/main-screen-overview.html"><b>Navigating the Main Screen</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

@@ -63,6 +63,36 @@ class DeviceExchangeAccountStore @Inject constructor(
         if (index < 0) kept + entry else kept
     }
 
+    /**
+     * Moves the entry of [oldIdentity] to [host] and [port] inside the same edit, so concurrent changes of other
+     * fields (pins, features, accountKind) survive; an absent identity changes nothing.
+     */
+    suspend fun changeAddress(oldIdentity: String, host: String, port: Int): DeviceExchangeAccountEntry? {
+        var moved: DeviceExchangeAccountEntry? = null
+        mutate { current ->
+            val index = current.indexOfFirst { it.identity == oldIdentity }
+            if (index < 0) return@mutate current
+            val target = current[index].copy(host = host, port = port)
+            moved = target
+            current.mapIndexedNotNull { i, held ->
+                when {
+                    i == index -> target
+                    held.identity == target.identity -> null
+                    target.outgoing -> held.copy(outgoing = false)
+                    else -> held
+                }
+            }
+        }
+        return moved
+    }
+
+    /**
+     * Rewrites the entry of [identity] from the value held inside the same edit, so a concurrent change of another
+     * field - a pin renewal through [recordPin] - survives; an absent identity changes nothing.
+     */
+    suspend fun update(identity: String, change: (DeviceExchangeAccountEntry) -> DeviceExchangeAccountEntry) =
+        mutate { current -> current.map { held -> if (held.identity == identity) change(held) else held } }
+
     suspend fun remove(identity: String) = mutate { current -> current.filterNot { it.identity == identity } }
 
     /** The entry the device publishes and broadcasts through (item AC), or null while none is chosen. */

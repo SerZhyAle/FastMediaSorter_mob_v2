@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.data.exchange
 import com.google.gson.JsonObject
 import com.sza.fastmediasorter.data.security.e2e.E2eBroadcastSeals
 import com.sza.fastmediasorter.data.security.e2e.E2eBytes
+import com.sza.fastmediasorter.data.security.e2e.E2eRecipients
 import com.sza.fastmediasorter.data.security.e2e.E2eSealedBox
 import com.sza.fastmediasorter.wear.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionState
@@ -136,11 +137,10 @@ class WearExchangeBroadcastAnnouncer @Inject constructor(
     private suspend fun reseal(announced: Announced, devices: Collection<WearDirectoryDevice>) {
         val sealing = e2e.sealing(announced.entry, devices)
         val recipients = sealing.recipients
-        keys.membersChanged(announced.broadcastId, recipients.map { it.deviceId }.toSet())
+        keys.membersChanged(announced.broadcastId, recipients.map(E2eRecipients::keyOf).toSet())
         val relayKey = keys.ownKey(announced.broadcastId)
         val self = sealing.self
-        val key = recipients.map { it.deviceId }.sorted().joinToString(",") +
-            "/" + relayKey?.let { E2eBytes.hex(E2eBytes.sha256(it)) }
+        val key = boxKeyOf(sealing, relayKey)
         if (key == announced.boxKey) return
         Timber.d("S4240: watch seals its broadcast box to ${recipients.size} devices")
         announced.boxKey = key
@@ -189,9 +189,13 @@ class WearExchangeBroadcastAnnouncer @Inject constructor(
         var sentBoxKey: String? = null
     }
 
-    private companion object {
+    internal companion object {
         const val KEY_BROADCAST = "broadcast"
         const val KEY_BROADCAST_ID = "broadcastId"
         const val KEY_MAX_LISTENERS = "maxListeners"
+
+        internal fun boxKeyOf(sealing: WearSealing, relayKey: ByteArray?): String =
+            E2eRecipients.keyOf(sealing.self, sealing.recipients) +
+                "/" + relayKey?.let { E2eBytes.hex(E2eBytes.sha256(it)) }
     }
 }

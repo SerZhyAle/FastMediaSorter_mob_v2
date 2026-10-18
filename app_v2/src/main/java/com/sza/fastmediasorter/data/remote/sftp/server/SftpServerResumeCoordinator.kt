@@ -57,8 +57,8 @@ class SftpServerResumeCoordinator @Inject constructor(
     }
 
     private suspend fun onForeground() {
-        val state = controller.state.value
         Timber.d("S4225: foreground, share state on resume check")
+        val state = controller.state.value
         if (state is SftpServerState.Running) {
             controller.refreshAddresses()
             return

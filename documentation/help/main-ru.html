@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Справка - Главный экран</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Оглавление справки">
+<a href="index-ru.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Главный экран</span>
+</nav>
+<header class="hero">
+<h1>Главный экран</h1>
+</header>
+<h2>Для чего этот экран</h2>
+<p class="lead">На главном экране собраны ваши ресурсы - папки на устройстве, сетевые папки и облачные хранилища, которые вы добавили. Добавьте ресурс, откройте его и просматривайте файлы или сразу запустите воспроизведение.</p>
+<figure class="shot">
+<img class="on-light" src="img/main-ru-light.webp" alt="Главный экран">
+<img class="on-dark" src="img/main-ru-dark.webp" alt="Главный экран">
+</figure>
+<h2>Порядок действий</h2>
+<ol class="order">
+<li>Нажмите «Добавить» <a class="ref" href="#add">2</a> и подключите первый ресурс: папку на устройстве, сетевую папку или облако. Пока ресурсов нет, список пуст.</li>
+<li>Если вы используете сетевые или облачные ресурсы, выберите нужный тип на вкладках <a class="ref" href="#type-tabs">12</a>. Вкладки появляются, когда включён хотя бы один удалённый источник.</li>
+<li>Нажмите строку в списке <a class="ref" href="#resource-list">13</a>, чтобы открыть файлы ресурса в браузере файлов. Значок строки сразу запускает показ.</li>
+<li>«Фильтр» <a class="ref" href="#filter">3</a> помогает отсортировать список или оставить только нужное. «Обновить» <a class="ref" href="#refresh">4</a> пригодится, когда файлы изменились вне приложения.</li>
+<li>Кнопка <a class="ref" href="#toggle-view">7</a> переключает вид - список, сетка или таблица, - чтобы на экране помещалось больше или меньше ресурсов.</li>
+<li>«Запустить плеер» <a class="ref" href="#start-player">9</a> пропускает просмотр и запускает выбранный или последний ресурс, а «Избранное» <a class="ref" href="#favorites">8</a> открывает всё, что вы отметили.</li>
+<li>В «Настройках» <a class="ref" href="#settings">6</a> меняется поведение приложения, «Справка» <a class="ref" href="#help">11</a> открывает эту страницу, а «Выйти» <a class="ref" href="#exit">1</a> закрывает приложение.</li>
+</ol>
+<h2>Элементы</h2>
+<div class="elements">
+<h3>Панель команд</h3>
+<details class="el" id="exit">
+<summary><span class="mk">1</span><span><span class="name">Выйти</span><span class="one">Закрывает приложение или сворачивает его, пока что-то работает в фоне.</span></span></summary>
+<div class="full">
+<p>Если играет музыка, идёт запись, выполняются операции по расписанию или включены краевые жесты, одно нажатие только сворачивает приложение, чтобы всё это продолжалось, а значок меняется. Когда в фоне ничего нет, одно нажатие закрывает приложение. Долгое нажатие всегда закрывает всё, включая фоновые функции.</p>
+</div>
+</details>
+<details class="el" id="add">
+<summary><span class="mk">2</span><span><span class="name">Добавить</span><span class="one">Открывает экран добавления нового ресурса.</span></span></summary>
+<div class="full">
+<p>Ресурс - это место, где лежат ваши файлы: папка на устройстве, сетевая папка или облако. После сохранения он появится в списке, и его можно открыть. Нажатие на пустой список делает то же самое.</p>
+</div>
+</details>
+<details class="el" id="filter">
+<summary><span class="mk">3</span><span><span class="name">Фильтр</span><span class="one">Сортирует список ресурсов и сужает его.</span></span></summary>
+<div class="full">
+<p>Выберите порядок (вручную, по имени, по дате или по числу файлов), затем ограничьте список по типу ресурса, типу медиа или части имени. Галочка применяет выбор, кнопка сброса фильтров отменяет его. Пока фильтр включён, внизу списка видно, какой именно.</p>
+</div>
+</details>
+<details class="el" id="refresh">
+<summary><span class="mk">4</span><span><span class="name">Обновить</span><span class="one">Заново проверяет все ресурсы на новые и изменённые файлы.</span></span></summary>
+<div class="full">
+<p>Нажмите после того, как скопировали файлы из другого приложения или с компьютера, или если сетевая папка была недоступна. Заодно сбрасываются сетевые подключения, а видео, у которых раньше не получилось создать превью, получают ещё одну попытку.</p>
+</div>
+</details>
+<details class="el" id="more-actions">
+<summary><span class="mk">5</span><span><span class="name">Ещё</span><span class="one">Открывает меню с действиями, которых нет на панели.</span></span></summary>
+<div class="full">
+<p>Кнопка появляется, только когда в меню что-то есть: программы (если панель программ выключена), кнопки, не поместившиеся на узком экране, и «Справка». На маленьком экране ничего не пропадает - кнопки переезжают сюда.</p>
+</div>
+</details>
+<details class="el" id="settings">
+<summary><span class="mk">6</span><span><span class="name">Настройки</span><span class="one">Открывает настройки приложения - четыре вкладки.</span></span></summary>
+<div class="full">
+<p>Вкладки: «Общие», «Медиа», «Плеер» и «Управление». Начните с «Общих»: там язык, тема и профиль устройства. Если не знаете, где искать параметр, в настройках есть поиск.</p>
+</div>
+</details>
+<details class="el" id="toggle-view">
+<summary><span class="mk">7</span><span><span class="name">Сетка / список</span><span class="one">Переключает вид ресурсов: список, сетка или таблица.</span></span></summary>
+<div class="full">
+<p>Значок показывает вид, который включится следующим, а выбор запоминается. Таблице нужно широкое окно - планшет, режим рабочего стола или большой развёрнутый экран: в ней есть столбцы с именем, источником, файлами, содержимым и путём и панель сведений. В узком окне вид переключается между списком и сеткой.</p>
+</div>
+</details>
+<details class="el" id="favorites">
+<summary><span class="mk">8</span><span><span class="name">Избранное</span><span class="one">Открывает всё, что вы отметили избранным, в одном месте.</span></span></summary>
+<div class="full">
+<p>Открывается «Избранное» в браузере файлов. Кнопка видна, когда «Избранное» включено в настройках; файлы вы отмечаете при просмотре.</p>
+</div>
+</details>
+<details class="el" id="start-player">
+<summary><span class="mk">9</span><span><span class="name">Запустить плеер</span><span class="one">Запускает воспроизведение ресурса, не открывая браузер файлов.</span></span></summary>
+<div class="full">
+<p>Играет выбранный ресурс. Если ничего не выбрано, берётся тот, что вы открывали последним, а если и такого нет - первый в списке. Пока список пуст, кнопка неактивна.</p>
+</div>
+</details>
+<details class="el" id="search">
+<summary><span class="mk">10</span><span><span class="name">Поиск ресурсов</span><span class="one">Ищет ресурс по имени или пути в таблице.</span></span></summary>
+<div class="full">
+<p>Поле видно только при включённой таблице. Введите несколько букв, и строки сужаются прямо при вводе. Очистите поле, чтобы вернуть весь список.</p>
+</div>
+</details>
+<details class="el" id="help">
+<summary><span class="mk">11</span><span><span class="name">Справка</span><span class="one">Открывает справку по этому экрану.</span></span></summary>
+<div class="full">
+<p>Вы узнаете, что делает каждая кнопка и в каком порядке обычно ими пользуются; номера совпадают с метками на снимке экрана.</p>
+</div>
+</details>
+<h3>Ресурсы</h3>
+<details class="el" id="type-tabs">
+<summary><span class="mk">12</span><span><span class="name">Фильтр типов ресурсов</span><span class="one">Показывают только ресурсы одного типа.</span></span></summary>
+<div class="full">
+<p>«ВСЕ» показывает всё, а «Локальные», SMB, S/FTP и «Облако» оставляют только свой тип. Вкладка есть лишь для включённого источника, а вся полоса скрыта, пока не включён хотя бы один сетевой или облачный источник: иначе «Локальные» не отличались бы от «ВСЕ». Долгое нажатие на вкладку сворачивает полосу в небольшую плашку, а нажатие на плашку возвращает её.</p>
+</div>
+</details>
+<details class="el" id="resource-list">
+<summary><span class="mk">13</span><span><span class="name">Ресурсы</span><span class="one">Ваши ресурсы: одна строка или плитка на каждый.</span></span></summary>
+<div class="full">
+<p>Нажмите строку, чтобы открыть файлы в браузере файлов. Значок строки запускает показ, а долгое нажатие открывает редактирование ресурса. У каждой строки есть кнопки: изменить, скопировать настройки, переместить вверх или вниз, удалить и «Ещё».</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Перед удалением ресурса приложение спросит подтверждение, затем уберёт ресурс из списка и отменит операции по расписанию, которые его используют. Файлы останутся на месте, а ресурс можно добавить снова.</dd>
+</dl>
+</div>
+</details>
+</div>
+<h2>Связанное</h2>
+<ul class="related">
+<li><a href="browse-ru.html"><b>Браузер файлов</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-general-ru.html"><b>Настройки: Общие</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-media-ru.html"><b>Настройки: Медиа</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-playback-ru.html"><b>Настройки: Плеер</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-operations-ru.html"><b>Настройки: Управление</b><span class="pill">Экран</span></a></li>
+<li><a href="add-resource-ru.html"><b>Добавить ресурс</b><span class="pill">Экран</span></a></li>
+<li><a href="streams-ru.html"><b>Трансляции</b><span class="pill">Экран</span></a></li>
+<li><a href="broadcast-ru.html"><b>Управление вещанием</b><span class="pill">Экран</span></a></li>
+<li><a href="scheduled-operations-ru.html"><b>Операции над файлами по расписанию</b><span class="pill">Экран</span></a></li>
+<li><a href="statistics-ru.html"><b>Статистика</b><span class="pill">Экран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/main-screen-overview-ru.html"><b>Navigating the Main Screen</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/grid-and-list-views-ru.html"><b>Browsing Media Collections</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/sorting-and-filtering-ru.html"><b>Sorting, Filtering and Quick Search</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="index-ru.html"><b>Оглавление справки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index-ru.html">Оглавление справки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
+</footer>
+</main>
+</body>
+</html>

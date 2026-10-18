@@ -3196,7 +3196,6 @@
     <string name="exif_orientation_rotate_270">270° گھڑی کی سمت میں گھمایا گیا</string>
     <string name="exif_orientation_unknown">نامعلوم (%1$d)</string>
     <string name="storage_reach_limited_browse">اس فولڈر میں صرف تصاویر، ویڈیو اور آڈیو دستیاب ہیں۔ دستاویزات دیکھنے کے لیے فولڈر دوبارہ شامل کریں اور اسے سسٹم کی فولڈر ونڈو میں منتخب کریں۔</string>
-    <string name="file_count_reach_limited">%1$s - صرف تصاویر، ویڈیو اور آڈیو</string>
     <string name="reach_limited_nothing_readable">دستاویزات پڑھی نہیں جا سکتیں</string>
     <string name="storage_reach_limited_virtual">اس ڈیوائس پر موجود دستاویزات اور دیگر فائلیں ایپ کو نظر نہیں آتیں۔ انہیں کھولنے کے لیے، مطلوبہ فولڈر سسٹم فولڈر ونڈو کے ذریعے شامل کریں۔</string>
     <string name="storage_reach_limited_browse_reconnect">اس فولڈر میں صرف تصاویر، ویڈیو اور آڈیو دستیاب ہیں۔ دستاویزات دیکھنے کے لیے مرکزی اسکرین پر فولڈر کی سطر پر تین نقطوں والا مینو کھولیں اور وسیلہ دوبارہ منسلک کریں منتخب کریں۔</string>

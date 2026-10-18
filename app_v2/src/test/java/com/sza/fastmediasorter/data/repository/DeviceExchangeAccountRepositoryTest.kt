@@ -228,15 +228,26 @@ class DeviceExchangeAccountRepositoryTest {
     fun `an address change carries the PIN of every bound resource to the new identity`() = runTest {
         val entry = held(SERVER_A)
         tokens.save(entry, TOKEN)
-        coEvery { resourceDao.getAllResourcesSync() } returns listOf(
-            bound(entry.identity, "r1"),
-            bound(entry.identity, "r2"),
-            bound("elsewhere:1/someone", "r3"),
-        )
+        coEvery { resourceDao.getExchangeResourceIds(entry.identity) } returns listOf("r1", "r2")
 
         val moved = (repository().changeAddress(entry, SERVER_B) as DeviceExchangeAddressChange.Changed).entry
 
         coVerify { pins.move(entry.identity, moved.identity, listOf("r1", "r2")) }
+    }
+
+    @Test
+    fun `an address change preserves a newly recorded PIN on the held entry`() = runTest {
+        val entry = held(SERVER_A).copy(pinnedCertificate = OTHER_PIN).also { store.put(it) }
+        tokens.save(entry, TOKEN)
+        store.recordPin(entry.identity, PIN, KEY)
+
+        val moved = (repository().changeAddress(entry, SERVER_B) as DeviceExchangeAddressChange.Changed).entry
+
+        assertEquals(PIN, moved.pinnedCertificate)
+        assertEquals(KEY, moved.pinnedKey)
+        val heldEntry = store.snapshot().single()
+        assertEquals(PIN, heldEntry.pinnedCertificate)
+        assertEquals(KEY, heldEntry.pinnedKey)
     }
 
     @Test
@@ -293,10 +304,7 @@ class DeviceExchangeAccountRepositoryTest {
         val entry = held(SERVER_A)
         tokens.save(entry, TOKEN)
         coEvery { client.deleteAccount(entry, password) } returns Unit
-        coEvery { resourceDao.getAllResourcesSync() } returns listOf(
-            bound(entry.identity, "r1"),
-            bound("elsewhere:1/someone", "r3"),
-        )
+        coEvery { resourceDao.getExchangeResourceIds(entry.identity) } returns listOf("r1")
 
         repository().deleteAccount(entry, password)
 

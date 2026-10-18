@@ -21,7 +21,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -81,19 +81,19 @@ class WorkManagerScheduler @Inject constructor(
                 .setInitialDelay(1, TimeUnit.MINUTES) // Delay first run to reduce startup load
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .build()
-            
+
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 TrashCleanupWorker.WORK_NAME,
                 ExistingPeriodicWorkPolicy.KEEP, // Keep existing if already scheduled
                 workRequest
             )
-            
+
             Timber.i("WorkManagerScheduler: Scheduled periodic trash cleanup (every 15 minutes, first run in 1 minute)")
         } catch (e: Exception) {
             Timber.e(e, "WorkManagerScheduler: Failed to schedule trash cleanup")
         }
     }
-    
+
     /**
      * Cancel trash cleanup worker
      */
@@ -215,7 +215,6 @@ class WorkManagerScheduler @Inject constructor(
                 now,
             ).also { persistInitialSlot(operation.id, it) }
             val delayMs = (slot - now).coerceAtLeast(0L)
-            Timber.d("S4211: schedule op=${operation.id} storedSlot=${operation.nextRunAt} slot=$slot delayMs=$delayMs")
             val inputData = Data.Builder()
                 .putLong(ScheduledOperationsWorker.KEY_OPERATION_ID, operation.id)
                 .build()
@@ -367,23 +366,37 @@ class WorkManagerScheduler @Inject constructor(
     }
 
     /**
-     * Makes the program off-switch take effect whoever writes it - the settings card, the program
-     * screen, the program registry, a preset, "enable all" or a restore. The side effect used to live
-     * in one ViewModel, so every other writer left the enqueued workers running. The first value is
-     * skipped: the startup path already reschedules for the stored state. Idempotent.
+     * [scheduleOperation] unless the scheduler is paused. A pause keeps every enabled row stored but
+     * leaves nothing queued, and Resume all queues the rows again, so every path that enqueues on its
+     * own (an edit, a card toggle, the chain continuing after a finished run) goes through here.
+     */
+    suspend fun scheduleOperationUnlessPaused(operation: ScheduledOperation) {
+        if (settingsRepository.getSettings().first().scheduledOperationsPaused) {
+            Timber.i("WorkManagerScheduler: paused - op=${operation.id} not queued")
+            return
+        }
+        scheduleOperation(operation)
+    }
+
+    /**
+     * Makes the program off-switch and the Pause state take effect whoever writes them - the settings
+     * card, the program screen, its Pause button, the program registry, a preset, "enable all" or a
+     * restore. The side effect used to live in one ViewModel (and the widget), so every other writer
+     * left the enqueued workers running. The first value is skipped: the startup path already
+     * reschedules for the stored state. Idempotent, and the explicit [pauseAll] / [resumeAll] it
+     * overlaps with converge on the same end state.
      */
     fun startFollowingScheduledOperationsSwitch() {
         if (!followingSwitch.compareAndSet(false, true)) return
         scope.launch {
             settingsRepository.getSettings()
                 .map { it.enableScheduledOperations to it.scheduledOperationsPaused }
-                .distinctUntilChangedBy { it.first }
+                .distinctUntilChanged()
                 .drop(1)
                 .collect { (enabled, paused) ->
                     when {
-                        !enabled -> cancelAllScheduledOperations()
-                        !paused -> rescheduleAll()
-                        else -> Timber.i("WorkManagerScheduler: switch on while paused - nothing rescheduled")
+                        !enabled || paused -> cancelAllScheduledOperations()
+                        else -> rescheduleAll()
                     }
                     com.sza.fastmediasorter.widget.ScheduledTasksWidgetRefresher.refresh(context)
                 }
@@ -518,7 +531,7 @@ class WorkManagerScheduler @Inject constructor(
                 if (workInfo?.state == WorkInfo.State.SUCCEEDED) {
                     val updated = scheduledOperationRepository.getById(operationId)
                     if (updated != null && updated.isEnabled) {
-                        scheduleOperation(updated)
+                        scheduleOperationUnlessPaused(updated)
                     }
                 } else {
                     Timber.w("WorkManagerScheduler: op=$operationId finished with state=${workInfo?.state} - skipping reschedule")

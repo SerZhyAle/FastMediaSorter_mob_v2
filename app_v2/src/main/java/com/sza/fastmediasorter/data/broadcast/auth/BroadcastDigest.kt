@@ -7,7 +7,8 @@ import java.util.Locale
 
 /**
  * HTTP and RTSP Digest for a protected broadcast (contract LIVE-BROADCAST item M): the producer's check and challenge,
- * and the listener's answer. HTTP offers `SHA-256` first and `MD5` beside it (RFC 7616); RTSP offers `MD5` alone,
+ * and the listener's answer. HTTP offers `SHA-256` first and `MD5` beside it (RFC 7616), each in its own header field;
+ * [answer] reads either that list joined or one field alone. RTSP offers `MD5` alone,
  * because the only RTSP client this app plays with (Media3) answers nothing else. Both the RFC 7616 form with
  * `qop=auth` and the RFC 2069 form without it are accepted, since RTSP clients send the older one.
  */
@@ -34,8 +35,11 @@ object BroadcastDigest {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
     }
 
-    /** The HTTP challenge value: two challenges in one header, `SHA-256` first (RFC 7235 section 4.1 allows a list). */
-    fun httpChallenge(nonce: String): String = listOf(ALGORITHM_SHA256, ALGORITHM_MD5).joinToString(", ") {
+    /**
+     * The HTTP challenge values, one per header field and `SHA-256` first (RFC 7616 section 3.7). One challenge per
+     * field is the form curl, browsers and ffmpeg read; a single field holding both is a list they fail to parse.
+     */
+    fun httpChallenges(nonce: String): List<String> = listOf(ALGORITHM_SHA256, ALGORITHM_MD5).map {
         """$SCHEME_DIGEST realm="$REALM", qop="$QOP_AUTH", algorithm=$it, nonce="$nonce""""
     }
 
@@ -153,7 +157,8 @@ object BroadcastDigest {
         .mapNotNull(::digestParams)
 
     private fun params(text: String): Map<String, String> = PARAM.findAll(text).associate { match ->
-        val quoted = match.groups[2]?.value?.replace("\\\"", "\"")
-        match.groupValues[1].lowercase(Locale.ROOT) to (quoted ?: match.groupValues[3])
+        val (name, quotedValue, bareValue) = match.destructured
+        val value = if (match.groups[2] != null) quotedValue.replace("\\\"", "\"") else bareValue
+        name.lowercase(Locale.ROOT) to value
     }
 }

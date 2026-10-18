@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.ui.broadcast.helpers
 
+import com.sza.fastmediasorter.broadcast.BroadcastLensChoice
 import com.sza.fastmediasorter.broadcast.BroadcastLensOption
+import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.broadcast.BroadcastState
 
 /**
@@ -26,6 +28,18 @@ object BroadcastEntryUi {
     )
 
     /**
+     * S4286: while this screen's own session holds the camera, CameraX's camera list can read empty for a
+     * few seconds, and the one read made when the activity is recreated would then hide the lens choice for
+     * the rest of the session. A phone's lens set does not change, so the last non-empty answer stands in.
+     * Outside a session an empty answer is believed: nothing of ours explains it.
+     */
+    fun lensChoiceFor(
+        fresh: BroadcastLensChoice,
+        remembered: BroadcastLensChoice,
+        holdsCamera: Boolean,
+    ): BroadcastLensChoice = if (fresh.options.isEmpty() && holdsCamera) remembered else fresh
+
+    /**
      * Idle and Failed both render the confirm layout: a failed session already reported itself
      * through the snackbars and returns to idle on the next start attempt.
      */
@@ -47,4 +61,20 @@ object BroadcastEntryUi {
      * of vertical space and tells the user nothing.
      */
     fun showsListenerCount(state: BroadcastState): Boolean = state is BroadcastState.Live
+
+    /**
+     * S4281: the low-light row (bright frame, and the flashlight where the lens has a flash) belongs to a
+     * session with a camera of its own. A file or screen session serves a picture the phone's camera does
+     * not make, and audio only has no picture to light.
+     */
+    fun showsLightControls(state: BroadcastState): Boolean = state is BroadcastState.Live &&
+        state.source == null &&
+        state.descriptor.mode != BroadcastMode.AUDIO_ONLY.name
+
+    /**
+     * S4281: a front lens usually has no flash, and a muted camera sends black frames the lamp cannot
+     * improve - a flashlight button in either case would be one that lights nothing.
+     */
+    fun showsTorchButton(state: BroadcastState): Boolean =
+        state is BroadcastState.Live && showsLightControls(state) && state.torchAvailable && state.cameraEnabled
 }

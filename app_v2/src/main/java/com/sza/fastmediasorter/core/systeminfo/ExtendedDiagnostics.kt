@@ -15,6 +15,7 @@ data class ExtendedDiagnosticsField(
 data class ExtendedDiagnosticsSection(
     val title: String,
     val fields: List<ExtendedDiagnosticsField>,
+    val group: SystemInfoGroup? = null,
 )
 
 /**
@@ -43,5 +44,6 @@ fun List<ExtendedDiagnosticsSection>.toSystemInfoSections(reveal: Boolean): List
             fields = section.fields.map { field ->
                 field.label to if (field.sensitive && !reveal) REDACTED else field.value
             },
+            group = section.group,
         )
     }

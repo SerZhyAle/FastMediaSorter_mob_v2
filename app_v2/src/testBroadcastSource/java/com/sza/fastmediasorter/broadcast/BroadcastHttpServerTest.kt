@@ -296,13 +296,19 @@ class BroadcastHttpServerTest {
             connectTimeout = 2000
             readTimeout = 2000
         }
-        val challenge = try {
+        val fields = try {
             assertEquals(401, first.responseCode)
-            requireNotNull(first.getHeaderField(BroadcastDigest.HEADER_CHALLENGE))
+            first.headerFields.entries
+                .filter { it.key.equals(BroadcastDigest.HEADER_CHALLENGE, ignoreCase = true) }
+                .flatMap { it.value }
         } finally {
             first.disconnect()
         }
-        assertTrue(challenge.indexOf("SHA-256") in 0 until challenge.indexOf("MD5"))
+        // RFC 7616 section 3.7: one challenge per header field, SHA-256 first - the shape curl and browsers read.
+        assertEquals(2, fields.size)
+        assertTrue(fields[0], fields[0].contains("algorithm=SHA-256"))
+        assertTrue(fields[1], fields[1].contains("algorithm=MD5"))
+        val challenge = fields.joinToString(", ")
 
         val second = (url.openConnection() as HttpURLConnection).apply {
             connectTimeout = 2000

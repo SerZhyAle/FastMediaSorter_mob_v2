@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Stopwatch</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Stopwatch</span>
+</nav>
+<header class="hero">
+<h1>Stopwatch</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">A stopwatch for timing up to four people at once, with laps, music while it runs, and a result you can save or send. The volume buttons of the phone can start and stop it, so you can time a run without looking at the screen.</p>
+<h2>In this order</h2>
+<ol class="order">
+<li>Open the stopwatch: it starts counting at once in every participant area <a class="ref" href="#participant-area">1</a>. The big reading <a class="ref" href="#reading">2</a> shows minutes, seconds and hundredths.</li>
+<li>To time one person, two or four, press the gear <a class="ref" href="#settings">10</a> and pick Participants. Each person gets an area of their own, and one person gets the whole screen.</li>
+<li>While a participant runs, press Lap <a class="ref" href="#start-lap">4</a> to record a split. The newest lap goes to the top of the list <a class="ref" href="#laps">3</a>. When that participant finishes, press Stop <a class="ref" href="#stop-reset">5</a>.</li>
+<li>With two or four participants, Stop all <a class="ref" href="#start-all">7</a> halts everyone at once, and the same key becomes Start all. Reset all <a class="ref" href="#reset-all">8</a> clears every time and every lap.</li>
+<li>For music, choose a track in the settings <a class="ref" href="#settings">10</a>. It plays while anything is running, and the slider <a class="ref" href="#volume">6</a> sets how loud.</li>
+<li>When you are done, press Result <a class="ref" href="#result">9</a>, add a description and a note, and save the times to a file or send them on.</li>
+<li>If the screen says that the stopwatch is off, press <a class="ref" href="#off-open-settings">12</a> to open Settings and switch it on.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Participant areas</h3>
+<details class="el" id="participant-area">
+<summary><span class="mk">1</span><span><span class="name">Participant area</span><span class="one">One person's stopwatch: the screen is split into one area for each participant.</span></span></summary>
+<div class="full">
+<p>With one participant the area fills the screen. With two the screen is split in half, and with four it becomes a grid of four, each area named Participant 1 to Participant 4. Every area counts on its own, so stopping or resetting one never touches the others.</p>
+<p>Tapping anywhere on an area does the same as its Start or Lap button, which is handy when you cannot aim at a small key. On a keyboard or a remote, press 1 to 4 to jump to an area.</p>
+<p>The stopwatch starts counting as soon as the screen opens. The times are kept while the screen is open, so turning the phone or switching to another app does not stop them. Closing the screen throws them away, so press Result first if you need them.</p>
+<dl class="facts">
+<dt>Shortcut</dt><dd><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> / <kbd>4</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="reading">
+<summary><span class="mk">2</span><span><span class="name">Time reading</span><span class="one">The elapsed time of this participant, in large digits.</span></span></summary>
+<div class="full">
+<p>It reads minutes, seconds and hundredths of a second, for example 2:07.45, and adds hours when a run passes an hour. The digits shrink on a crowded screen so that four participants still fit.</p>
+</div>
+</details>
+<details class="el" id="laps">
+<summary><span class="mk">3</span><span><span class="name">Laps list</span><span class="one">The splits recorded for this participant, newest at the top.</span></span></summary>
+<div class="full">
+<p>Every press of Lap adds a line with the lap number and the time since the start, so the one you have just recorded is readable without scrolling. Before the first lap the list asks you to press Lap while it runs. Long lists scroll.</p>
+</div>
+</details>
+<details class="el" id="start-lap">
+<summary><span class="mk">4</span><span><span class="name">Start / Lap</span><span class="one">Starts this participant, and once it runs records a lap.</span></span></summary>
+<div class="full">
+<p>The key says Start while the participant is stopped and Lap while it runs. A lap does not interrupt the count; it only writes down the time so far. Pressing Start after a Stop continues from where the participant stopped.</p>
+<dl class="facts">
+<dt>Shortcut</dt><dd><kbd>Space</kbd> / <kbd>Enter</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="stop-reset">
+<summary><span class="mk">5</span><span><span class="name">Stop / Reset</span><span class="one">Stops a running participant, and clears a stopped one.</span></span></summary>
+<div class="full">
+<p>While the participant runs the key says Stop and freezes the time. When it is stopped the key says Reset and returns the participant to 0:00.00 with no laps. Reset stays grayed out until there is something to clear.</p>
+<p>On a keyboard, S stops and R resets the area that has focus.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Reset removes that participant's time and laps for good and cannot be undone. If you may need them, open Result and save or send them first.</dd>
+<dt>Shortcut</dt><dd><kbd>S</kbd> / <kbd>R</kbd></dd>
+</dl>
+</div>
+</details>
+<h3>Volume and the bottom bar</h3>
+<details class="el" id="volume">
+<summary><span class="mk">6</span><span><span class="name">Music volume</span><span class="one">Sets how loud the music is, since the volume buttons of the phone drive the stopwatch.</span></span></summary>
+<div class="full">
+<p>While the stopwatch is open and Volume keys start and stop is on, the phone's volume buttons start, lap and stop instead of changing the volume, so the slider gives the volume back on screen. It moves the media volume of the phone, the same one music apps use.</p>
+<p>The row is hidden where there is no sound to adjust, for example in the Photos edition.</p>
+</div>
+</details>
+<details class="el" id="start-all">
+<summary><span class="mk">7</span><span><span class="name">Start all / Stop all</span><span class="one">Starts or stops every participant with one press.</span></span></summary>
+<div class="full">
+<p>While nobody runs, the key says Start all and starts all visible participants together. As soon as anyone runs it says Stop all and halts everyone; laps and times stay. A participant that is already running keeps its time when you press Start all.</p>
+<p>The key is shown only with two or four participants. With one participant the Start and Stop keys of its area do the job.</p>
+</div>
+</details>
+<details class="el" id="reset-all">
+<summary><span class="mk">8</span><span><span class="name">Reset all</span><span class="one">Clears the times and laps of every participant.</span></span></summary>
+<div class="full">
+<p>Use it between two runs to start from zero for everyone. Running participants stop too, because their times go back to 0:00.00.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>All times and laps are lost and there is no undo. Save or send the result first if you need it.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="result">
+<summary><span class="mk">9</span><span><span class="name">Result</span><span class="one">Opens a window to save or send the measured times.</span></span></summary>
+<div class="full">
+<p>It collects the time and laps of every visible participant into a text you can describe, save and send. If nothing has been measured yet, a short message says so and the window does not open.</p>
+</div>
+</details>
+<details class="el" id="settings">
+<summary><span class="mk">10</span><span><span class="name">Stopwatch settings</span><span class="one">Opens the stopwatch settings: participants, music and the volume buttons.</span></span></summary>
+<div class="full">
+<p>The settings window is also reachable from Settings, on the Management tab. A change you apply reaches an open stopwatch at once.</p>
+</div>
+</details>
+<h3>When the stopwatch is off</h3>
+<details class="el" id="off-notice">
+<summary><span class="mk">11</span><span><span class="name">Stopwatch is off</span><span class="one">Tells you that the stopwatch is switched off in Settings.</span></span></summary>
+<div class="full">
+<p>When the program is off, this short message replaces the participant areas. You can meet it, for example, by opening the stopwatch from a home-screen widget that was placed before the program was switched off. Nothing is measured until you switch it on.</p>
+</div>
+</details>
+<details class="el" id="off-open-settings">
+<summary><span class="mk">12</span><span><span class="name">Open Settings</span><span class="one">Opens Settings on the tab where the stopwatch is switched on.</span></span></summary>
+<div class="full">
+<p>It takes you to the Management tab of Settings; the Stopwatch switch is under Additional programs and scenarios. Turn it on, come back here, and the areas are there.</p>
+</div>
+</details>
+<h3>Stopwatch result window</h3>
+<details class="el" id="res-description">
+<summary><span class="mk">13</span><span><span class="name">Description</span><span class="one">A short title for the measurement, such as the name of the race.</span></span></summary>
+<div class="full">
+<p>It goes on the first line of the result. Leave it empty and that line is simply left out of the preview, the file and the sent text.</p>
+</div>
+</details>
+<details class="el" id="res-note">
+<summary><span class="mk">14</span><span><span class="name">Note</span><span class="one">Anything else worth keeping with the times, for example the weather or the track.</span></span></summary>
+<div class="full">
+<p>It can run to a few lines and goes right after the description. An empty note is left out.</p>
+</div>
+</details>
+<details class="el" id="res-preview">
+<summary><span class="mk">15</span><span><span class="name">Preview</span><span class="one">Shows the exact text that will be saved or sent.</span></span></summary>
+<div class="full">
+<p>It lists the description, the note, the moment of the measurement (Measured at) and one line for each participant with the total time and the laps. What you read here is what leaves the screen. The times are frozen at the moment you pressed Result, even if the stopwatch keeps running behind the window, so the preview, the file and the sent text agree.</p>
+</div>
+</details>
+<details class="el" id="res-cancel">
+<summary><span class="mk">16</span><span><span class="name">Cancel</span><span class="one">Closes the window without saving or sending anything.</span></span></summary>
+<div class="full">
+<p>The stopwatch behind it is untouched.</p>
+</div>
+</details>
+<details class="el" id="res-save">
+<summary><span class="mk">17</span><span><span class="name">Save to file</span><span class="one">Writes the result to a text file in your Downloads folder.</span></span></summary>
+<div class="full">
+<p>The file is named FastMediaSorter_stopwatch plus the date and time, and a message tells you its name. If the file cannot be written, a message says so and nothing is saved. Press it once; a second press while it writes is ignored.</p>
+</div>
+</details>
+<details class="el" id="res-send">
+<summary><span class="mk">18</span><span><span class="name">Share</span><span class="one">Passes the result to another app, such as a chat or email.</span></span></summary>
+<div class="full">
+<p>It opens the system share sheet with the text of the preview. Which apps you see depends on what is installed on the phone.</p>
+</div>
+</details>
+<h3>Stopwatch settings window</h3>
+<details class="el" id="set-participants">
+<summary><span class="mk">19</span><span><span class="name">Participants</span><span class="one">Chooses how many people you time: 1, 2 or 4.</span></span></summary>
+<div class="full">
+<p>The screen is split into that many areas. Changing the number does not stop a run in progress; areas that are no longer shown are simply hidden.</p>
+</div>
+</details>
+<details class="el" id="set-music">
+<summary><span class="mk">20</span><span><span class="name">Play music while it runs</span><span class="one">Plays the chosen track while any participant is running.</span></span></summary>
+<div class="full">
+<p>The track loops for as long as a measurement is running, so a long run never falls silent halfway. It stops when everyone is stopped, and also when you leave the screen, although the times keep counting. The switch and the track row are hidden where the edition has no audio. Choosing a track turns the switch on.</p>
+</div>
+</details>
+<details class="el" id="set-track">
+<summary><span class="mk">21</span><span><span class="name">Track</span><span class="one">Opens the list of music on your phone to pick the track.</span></span></summary>
+<div class="full">
+<p>The row shows the chosen track, or Not chosen. Tapping it opens the music chooser, where you tap one track; the choice comes back to this window and takes effect when you press Apply.</p>
+</div>
+</details>
+<details class="el" id="set-volume-keys">
+<summary><span class="mk">22</span><span><span class="name">Volume keys start and stop</span><span class="one">Lets the volume buttons of the phone start, lap and stop the stopwatch.</span></span></summary>
+<div class="full">
+<p>On: while the stopwatch is open, volume up starts or records a lap and volume down stops, so you can use it with gloves or without looking. The buttons act on the area that has focus, or on Participant 1 when nothing has. The phone volume does not change while you use them; use the slider on the screen instead. Off: the buttons go back to the system.</p>
+</div>
+</details>
+<details class="el" id="set-cancel">
+<summary><span class="mk">23</span><span><span class="name">Cancel</span><span class="one">Closes the window and drops your changes.</span></span></summary>
+<div class="full">
+<p>The settings stay as they were when you opened the window.</p>
+</div>
+</details>
+<details class="el" id="set-apply">
+<summary><span class="mk">24</span><span><span class="name">Apply</span><span class="one">Saves the four choices and closes the window.</span></span></summary>
+<div class="full">
+<p>Only the stopwatch's own options are written, and an open stopwatch follows them at once.</p>
+</div>
+</details>
+<h3>Music chooser</h3>
+<details class="el" id="music-picker">
+<summary><span class="mk">25</span><span><span class="name">Choose music</span><span class="one">Lists the music on your phone so you can pick one track.</span></span></summary>
+<div class="full">
+<p>Each row shows the title and, when known, the artist and the length. Tap a row to choose it; the window closes and the track appears in the settings. Only audio files that the phone has indexed are listed. When there are none, the window says no music was found on this device and suggests copying audio files to it.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="calculator.html"><b>Calculator</b><span class="pill">Screen</span></a></li>
+<li><a href="tourist-info.html"><b>Tourist</b><span class="pill">Screen</span></a></li>
+<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-operations.html"><b>Settings: Management</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/calculator-and-stopwatch.html"><b>The Calculator and the Stopwatch</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/built-in-mini-apps.html"><b>Built-in Programs - Switching Them On, the Lights, the Mirror and the SOS Signal</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

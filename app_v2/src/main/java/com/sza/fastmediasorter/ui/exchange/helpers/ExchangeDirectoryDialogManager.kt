@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.ui.exchange.ExchangeDirectoryViewModel
 import com.sza.fastmediasorter.ui.exchange.MyDevicesActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import timber.log.Timber
 
 /**
  * The "From my devices" dialog of the add-resource wizard (S4116 strategic 6.3). It stays open across attaches so
@@ -28,6 +29,7 @@ class ExchangeDirectoryDialogManager(
 
     private var dialog: AlertDialog? = null
     private var binding: DialogExchangeDirectoryBinding? = null
+    private var directoryAdapter: ExchangeDirectoryAdapter? = null
     private val pinPrompt = ExchangePinPromptManager(activity, viewModel::submitPin, viewModel::skipPin)
 
     init {
@@ -42,6 +44,11 @@ class ExchangeDirectoryDialogManager(
         if (dialog != null) return
         val view = DialogExchangeDirectoryBinding.inflate(LayoutInflater.from(activity))
         view.rvExchangeDirectory.layoutManager = LinearLayoutManager(activity)
+        view.rvExchangeDirectory.adapter = ExchangeDirectoryAdapter(
+            onToggle = viewModel::toggle,
+            onPinNeeded = viewModel::askPin,
+            driveChannelOn = viewModel.driveChannelOn.value,
+        ).also { directoryAdapter = it }
         view.btnExchangeDirectoryMyDevices.setOnClickListener { MyDevicesActivity.start(activity) }
         view.btnExchangePortalDirectory.setOnClickListener {
             MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.FOLDERS_EXCHANGE_SERVER)
@@ -56,6 +63,7 @@ class ExchangeDirectoryDialogManager(
             .setOnDismissListener {
                 dialog = null
                 binding = null
+                directoryAdapter = null
                 viewModel.close()
             }
             .showBoundTo(activity)
@@ -63,10 +71,12 @@ class ExchangeDirectoryDialogManager(
         dialog?.getButton(DialogInterface.BUTTON_POSITIVE)?.setOnClickListener { viewModel.attachSelected() }
         dialog?.getButton(DialogInterface.BUTTON_NEUTRAL)?.setOnClickListener { viewModel.attachAll() }
         viewModel.open()
+        Timber.d("S4348: directory dialog shown")
     }
 
     private fun render(state: ExchangeDirectoryState) {
         val view = binding ?: return
+        Timber.d("S4348: directory dialog render")
         val loaded = state as? ExchangeDirectoryState.Loaded
         val status = when {
             loaded == null -> R.string.exchange_devices_list_loading
@@ -77,12 +87,7 @@ class ExchangeDirectoryDialogManager(
         }
         view.textExchangeDirectoryStatus.isVisible = status != null
         status?.let(view.textExchangeDirectoryStatus::setText)
-        view.rvExchangeDirectory.adapter = ExchangeDirectoryAdapter(
-            rows = loaded?.rows.orEmpty(),
-            onToggle = viewModel::toggle,
-            onPinNeeded = viewModel::askPin,
-            driveChannelOn = viewModel.driveChannelOn.value
-        )
+        directoryAdapter?.submitList(loaded?.rows.orEmpty())
         val canAttach = loaded?.anyAttachable == true
         dialog?.getButton(DialogInterface.BUTTON_POSITIVE)?.isEnabled = canAttach
         dialog?.getButton(DialogInterface.BUTTON_NEUTRAL)?.isEnabled = canAttach

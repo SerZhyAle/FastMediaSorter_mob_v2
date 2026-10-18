@@ -11,7 +11,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogBroadcastPasswordBinding
 import com.sza.fastmediasorter.util.showBoundTo
-import timber.log.Timber
 
 /**
  * The password question of a protected broadcast (contract LIVE-BROADCAST item M): asked once when a descriptor
@@ -25,7 +24,6 @@ class StreamBroadcastPasswordPromptManager(private val activity: AppCompatActivi
 
     /** [refused] adds the "protected by a password" notice: playback was refused, not an import asked. */
     fun show(refused: Boolean, onSubmit: (String) -> Unit) {
-        Timber.d("S4258: broadcast password prompt, refused=%b", refused)
         dismiss()
         val view = DialogBroadcastPasswordBinding.inflate(LayoutInflater.from(activity))
         view.textBroadcastPasswordNotice.isVisible = refused

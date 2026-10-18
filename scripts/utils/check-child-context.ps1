@@ -62,7 +62,7 @@ $raw = & pwsh @checkArgs 2>&1
 $checkExit = $LASTEXITCODE
 
 if ($checkExit -notin 0, 3) {
-    Write-Output "check-child-context: cannot verify ($(($raw | Out-String).Trim())) - continue"
+    Write-Output "check-child-context: COULD NOT VERIFY ($(($raw | Out-String).Trim())) - continue"
     exit 2
 }
 

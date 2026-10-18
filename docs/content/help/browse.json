@@ -1,0 +1,454 @@
+{
+  "help": "browse",
+  "surface": "BrowseActivity",
+  "elements": [
+    { "id": "back", "viewId": "btnBack", "labelKey": "back" },
+    { "id": "path", "viewId": "btnPath", "labelKey": "current_path" },
+    { "id": "sort", "viewId": "btnSort", "labelKey": "sort" },
+    { "id": "filter", "viewId": "btnFilter", "labelKey": "filter" },
+    { "id": "search", "viewId": "btnSearch", "labelKey": "search" },
+    { "id": "refresh", "viewId": "btnRefresh", "labelKey": "refresh" },
+    { "id": "toggle-view", "viewId": "btnToggleView", "labelKey": "cd_toggle_grid_list_view" },
+    { "id": "select-all", "viewId": "btnSelectAll", "labelKey": "select_all" },
+    { "id": "deselect-all", "viewId": "btnDeselectAll", "labelKey": "deselect_all" },
+    { "id": "create-folder", "viewId": "btnCreateFolder", "labelKey": "action_create_folder" },
+    { "id": "create-text-note", "viewId": "btnCreateTextFile", "labelKey": "action_create_text_file" },
+    { "id": "create-drawing", "viewId": "btnCreateDrawing", "labelKey": "action_create_drawing" },
+    { "id": "mic-record", "viewId": "btnMicRecord", "labelKey": "mic_recording_button_content_desc" },
+    { "id": "play-random", "viewId": "btnPlayRandom", "labelKey": "play_random" },
+    { "id": "play", "viewId": "btnPlay", "labelKey": "play" },
+    { "id": "more-actions", "viewId": "btnResourceOps", "labelKey": "cd_resource_ops_menu" },
+    { "id": "file-list", "viewId": "rvMediaFiles" },
+    { "id": "copy", "viewId": "actionBrowseCopy", "labelKey": "copy" },
+    { "id": "move", "viewId": "actionBrowseMove", "labelKey": "move" },
+    { "id": "rename", "viewId": "actionBrowseRename", "labelKey": "rename" },
+    { "id": "delete", "viewId": "actionBrowseDelete", "labelKey": "delete" },
+    { "id": "undo", "viewId": "actionBrowseUndo", "labelKey": "undo" },
+    { "id": "share", "viewId": "actionBrowseShare", "labelKey": "share" },
+    { "id": "archive", "viewId": "actionBrowseArchive", "labelKey": "archive_files" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "player" },
+    { "help": "settings-media" },
+    { "help": "duplicates" },
+    { "help": "scheduled-operations" },
+    { "help": "resource-editor" },
+    { "pageId": "browsing.grid-and-list-views" },
+    { "pageId": "browsing.sorting-and-filtering" },
+    { "pageId": "browsing.batch-selection" }
+  ],
+  "locales": {
+    "en": {
+      "title": "File browser",
+      "purpose": "The file browser shows what is inside one resource: its folders and files, as tiles or as a list. Here you find a file, sort and filter the folder, select files and run an action on them, or start playback.",
+      "steps": [
+        "Tap a file in the list (17) to open it in the player. Tap a folder to step into it; the folder name (2) then shows where you are, and Back (1) climbs one level up.",
+        "Order the folder with Sort (3), narrow it down with Filter (4), or type a few letters of a name into Search (5). Refresh (6) rescans the folder after files changed outside the app.",
+        "Switch between tiles and a list with (7) when you want more thumbnails or more detail on the screen.",
+        "Press and hold a file to start a selection, or use Select all (8). A bar of actions then appears at the bottom: Copy (18), Move (19), Rename (20), Delete (21), Share (23) and Archive (24).",
+        "Undo (22) takes back the last delete or move for as long as the app still remembers it.",
+        "Play (15) starts the slideshow in the player, and Play random (14) plays the files in a shuffled order.",
+        "Create folder (10), Create text note (11), Create drawing (12) and the microphone (13) add new files right here; anything that did not fit on a narrow screen waits in the menu (16), together with Help."
+      ],
+      "groups": [
+        {
+          "title": "Navigation and search",
+          "elements": ["back", "path", "sort", "filter", "search", "refresh", "toggle-view"]
+        },
+        {
+          "title": "Selection and new files",
+          "elements": ["select-all", "deselect-all", "create-folder", "create-text-note", "create-drawing", "mic-record"]
+        },
+        {
+          "title": "Playback and menu",
+          "elements": ["play-random", "play", "more-actions"]
+        },
+        {
+          "title": "Files",
+          "elements": ["file-list"]
+        },
+        {
+          "title": "Actions on the selection",
+          "elements": ["copy", "move", "rename", "delete", "undo", "share", "archive"]
+        }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Goes one step back: out of the current folder, and from the top folder to the main screen.",
+          "details": "The Back button of the device does the same, so you leave a deep folder one level at a time instead of dropping out of the resource in one tap."
+        },
+        "path": {
+          "summary": "Shows the folder you are in and lets you jump to any folder above it.",
+          "details": "It appears once you step into a subfolder. Tap it to open the list of folders from the resource down to where you are, and tap one of them to go straight there."
+        },
+        "sort": {
+          "name": "Sort order",
+          "summary": "Shows how the files are ordered and opens the menu to change it.",
+          "details": "Pick name, date, size or type; a folder of one kind of file also offers artist, title, duration or the date a photo was taken. Random shuffles the list, and choosing it again shuffles once more. Manual order lets you drag files into your own sequence. The order is remembered for each resource."
+        },
+        "filter": {
+          "summary": "Narrows the list by date, size and media type.",
+          "details": "Set a date range, a size range in megabytes or tick the media types you want, then apply. A small number on the button tells how many filters are on, and a line under the bar says which. The filter belongs to this one resource, and Clear filter drops all of it."
+        },
+        "search": {
+          "summary": "Finds a file by a few letters of its name.",
+          "details": "A search box drops into the bar and the list narrows as you type, with no rescan. Close the box to see everything again."
+        },
+        "refresh": {
+          "summary": "Rescans the folder for new and changed files.",
+          "details": "Use it after copying files in from another app or a computer, or when a network share was offline. Pulling the list down does the same."
+        },
+        "toggle-view": {
+          "summary": "Switches the folder between a grid of thumbnails and a list.",
+          "details": "The grid shows a picture tile for every file; the list gives one line per file with more room for text. Your choice is remembered. A resource with music only stays in the list, since there is no picture to show."
+        },
+        "select-all": {
+          "summary": "Selects every file in the folder.",
+          "details": "Handy before Copy, Move or Delete when the whole folder is meant. You can also press and hold a file to begin a selection and tick files one by one."
+        },
+        "deselect-all": {
+          "summary": "Clears the selection.",
+          "details": "The action bar at the bottom goes away with it. Tapping a ticked box removes just that one file."
+        },
+        "create-folder": {
+          "summary": "Adds a subfolder to the folder you are in.",
+          "details": "It works on device folders, network shares and cloud resources alike. The button is hidden on a resource that is read-only."
+        },
+        "create-text-note": {
+          "summary": "Starts a new text note in the current folder.",
+          "details": "The note is saved only when you save it, and the name is asked for at that moment. The button is hidden on a read-only resource."
+        },
+        "create-drawing": {
+          "summary": "Opens a blank page of the drawing editor.",
+          "details": "The picture is saved straight into the current folder. The button is hidden on a read-only resource."
+        },
+        "mic-record": {
+          "summary": "Records a voice note into the current folder.",
+          "details": "Press and hold to record and let go to stop; a short tap only reminds you to hold. You are asked for a file name when the recording ends."
+        },
+        "play-random": {
+          "summary": "Plays the files in a random order.",
+          "details": "The button shows up when the folder holds one kind of media only, such as photos only or music only."
+        },
+        "play": {
+          "summary": "Starts the slideshow in the player.",
+          "details": "It begins at the file you viewed last in this resource, else at the first selected file, else at the top of the list. The player opens in slideshow mode and moves on to the next file by itself."
+        },
+        "more-actions": {
+          "summary": "Opens the menu with everything that is not on the bar.",
+          "details": "Commands that did not fit on a narrow screen move here, so nothing disappears. The menu also holds the resource actions such as finding duplicates, App settings, and Help, which opens this page; the F1 key opens it too."
+        },
+        "file-list": {
+          "name": "Files",
+          "summary": "The files and folders of the resource.",
+          "details": "Tap a folder to open it and a file to view or play it. Each row has a star that adds the file to Favorites and four buttons to copy, move, rename or delete just that file; an option in Settings folds the four into a three-dots menu on the row. A swipe left or right runs a quick action that you can choose in Settings. Under each name a second line shows the detail that matters most, such as resolution and date for a photo.",
+          "undo": "Deleting asks first, and Undo in the action bar brings the files back for as long as the app still remembers the operation."
+        },
+        "copy": {
+          "summary": "Copies the selected files to a place you choose.",
+          "details": "The destination is picked in a dialog from your destination resources. A long copy can run in the background while you keep browsing."
+        },
+        "move": {
+          "summary": "Moves the selected files to a place you choose.",
+          "details": "Same dialog as Copy. The files leave this folder once the move is done."
+        },
+        "rename": {
+          "summary": "Renames the selected file.",
+          "details": "It works on one file at a time and opens a dialog only when exactly one file is selected."
+        },
+        "delete": {
+          "summary": "Deletes the selected files after you confirm.",
+          "details": "It asks you to confirm first. Right after, Undo can bring the files back.",
+          "undo": "Undo appears in the same bar right after a delete or a move."
+        },
+        "undo": {
+          "summary": "Takes back the last delete or move.",
+          "details": "It stays in the bar for as long as the app still remembers the operation."
+        },
+        "share": {
+          "summary": "Sends the selected files to another app or device.",
+          "details": "It opens the Send to list with the apps that can receive the files."
+        },
+        "archive": {
+          "summary": "Packs the selected files into one archive.",
+          "details": "The button is shown for a resource on this device's own storage."
+        }
+      }
+    },
+    "ru": {
+      "title": "Браузер файлов",
+      "purpose": "Браузер файлов показывает содержимое одного ресурса: папки и файлы плитками или списком. Здесь вы находите нужный файл, сортируете и фильтруете папку, выделяете файлы и выполняете над ними действия или запускаете воспроизведение.",
+      "steps": [
+        "Нажмите файл в списке (17), чтобы открыть его в плеере. Нажмите папку, чтобы зайти в неё: имя папки (2) покажет, где вы находитесь, а «Назад» (1) поднимает на уровень выше.",
+        "Порядок задаётся кнопкой «Сортировка» (3), список сужает «Фильтр» (4), а в «Поиск» (5) можно набрать несколько букв имени. «Обновить» (6) заново проверяет папку, если файлы изменились вне приложения.",
+        "Кнопка (7) переключает плитки и список - когда нужно больше миниатюр или больше подробностей на экране.",
+        "Нажмите и удерживайте файл, чтобы начать выделение, или воспользуйтесь «Выбрать всё» (8). Внизу появится панель действий: «Копировать» (18), «Переместить» (19), «Переименовать» (20), «Удалить» (21), «Поделиться» (23) и «Архив» (24).",
+        "«Отменить» (22) возвращает последнее удаление или перемещение, пока приложение ещё помнит операцию.",
+        "«Воспроизвести» (15) запускает показ в плеере, а «Случайный» (14) воспроизводит файлы в случайном порядке.",
+        "«Создать папку» (10), «Создать заметку» (11), «Создать рисунок» (12) и микрофон (13) добавляют новые файлы прямо здесь; всё, что не поместилось на узком экране, ждёт в меню (16) вместе с «Справкой»."
+      ],
+      "groups": [
+        {
+          "title": "Навигация и поиск",
+          "elements": ["back", "path", "sort", "filter", "search", "refresh", "toggle-view"]
+        },
+        {
+          "title": "Выделение и новые файлы",
+          "elements": ["select-all", "deselect-all", "create-folder", "create-text-note", "create-drawing", "mic-record"]
+        },
+        {
+          "title": "Воспроизведение и меню",
+          "elements": ["play-random", "play", "more-actions"]
+        },
+        {
+          "title": "Файлы",
+          "elements": ["file-list"]
+        },
+        {
+          "title": "Действия над выделенным",
+          "elements": ["copy", "move", "rename", "delete", "undo", "share", "archive"]
+        }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Возвращает на шаг назад: из текущей папки, а из верхней папки - на главный экран.",
+          "details": "Кнопка «Назад» устройства делает то же самое, поэтому из глубокой папки вы выходите по одному уровню, а не вылетаете из ресурса одним нажатием."
+        },
+        "path": {
+          "summary": "Показывает папку, в которой вы находитесь, и позволяет перейти в любую папку выше.",
+          "details": "Кнопка появляется, когда вы зашли в подпапку. Нажмите её, чтобы открыть список папок от ресурса до текущей, и выберите любую - вы сразу окажетесь там."
+        },
+        "sort": {
+          "name": "Порядок сортировки",
+          "summary": "Показывает, как упорядочены файлы, и открывает меню для смены порядка.",
+          "details": "Выберите имя, дату, размер или тип; для папки с файлами одного вида есть ещё исполнитель, название, длительность или дата съёмки фото. «Случайно» перемешивает список, и повторный выбор перемешивает ещё раз. «Ручной порядок» позволяет перетаскивать файлы в нужном порядке. Порядок запоминается для каждого ресурса."
+        },
+        "filter": {
+          "summary": "Сужает список по дате, размеру и типу медиа.",
+          "details": "Задайте диапазон дат, диапазон размера в мегабайтах или отметьте нужные типы медиа и примените. Небольшое число на кнопке показывает, сколько фильтров включено, а строка под панелью - какие именно. Фильтр относится к этому ресурсу, а кнопка сброса отменяет его целиком."
+        },
+        "search": {
+          "summary": "Находит файл по нескольким буквам имени.",
+          "details": "На панели появляется поле поиска, и список сужается по мере ввода, без повторной проверки папки. Закройте поле, чтобы снова увидеть всё."
+        },
+        "refresh": {
+          "summary": "Заново проверяет папку на новые и изменённые файлы.",
+          "details": "Нажмите после копирования файлов из другого приложения или с компьютера, а также если сетевая папка была недоступна. Потянув список вниз, можно сделать то же самое."
+        },
+        "toggle-view": {
+          "summary": "Переключает папку между сеткой миниатюр и списком.",
+          "details": "Сетка показывает плитку-картинку для каждого файла, список - по строке на файл и больше места для текста. Выбор запоминается. Ресурс только с музыкой остаётся списком: показывать нечего."
+        },
+        "select-all": {
+          "summary": "Выделяет все файлы в папке.",
+          "details": "Удобно перед копированием, перемещением или удалением, когда нужна вся папка. Начать выделение можно и долгим нажатием на файл, отмечая файлы по одному."
+        },
+        "deselect-all": {
+          "summary": "Снимает выделение.",
+          "details": "Панель действий внизу при этом пропадает. Нажатие на отмеченную галочку снимает выделение только с этого файла."
+        },
+        "create-folder": {
+          "summary": "Добавляет подпапку в текущую папку.",
+          "details": "Работает на папках устройства, сетевых папках и облачных ресурсах. На ресурсе только для чтения кнопка скрыта."
+        },
+        "create-text-note": {
+          "summary": "Начинает новую текстовую заметку в текущей папке.",
+          "details": "Заметка сохраняется, только когда вы её сохраните, и имя спрашивается именно в этот момент. На ресурсе только для чтения кнопка скрыта."
+        },
+        "create-drawing": {
+          "summary": "Открывает чистый лист редактора рисунков.",
+          "details": "Рисунок сохраняется прямо в текущую папку. На ресурсе только для чтения кнопка скрыта."
+        },
+        "mic-record": {
+          "summary": "Записывает голосовую заметку в текущую папку.",
+          "details": "Нажмите и держите - идёт запись, отпустите - она остановится; короткое нажатие лишь напомнит, что кнопку нужно удерживать. Когда запись закончится, приложение спросит имя файла."
+        },
+        "play-random": {
+          "summary": "Воспроизводит файлы в случайном порядке.",
+          "details": "Кнопка есть, когда в папке только один вид медиа, например только фото или только музыка."
+        },
+        "play": {
+          "summary": "Запускает показ в плеере.",
+          "details": "Он начинается с файла, который вы смотрели последним в этом ресурсе, а если такого нет - с первого выделенного файла или с начала списка. Плеер открывается в режиме показа и сам переходит к следующему файлу."
+        },
+        "more-actions": {
+          "summary": "Открывает меню со всем, чего нет на панели.",
+          "details": "Команды, не поместившиеся на узком экране, переезжают сюда, так что ничего не пропадает. В меню есть и действия с ресурсом, например поиск дубликатов, «Настройки программы» и «Справка», которая открывает эту страницу; клавиша F1 открывает её тоже."
+        },
+        "file-list": {
+          "name": "Файлы",
+          "summary": "Файлы и папки ресурса.",
+          "details": "Нажмите папку, чтобы открыть её, и файл, чтобы просмотреть или воспроизвести. В каждой строке есть звёздочка, которая добавляет файл в избранное, и четыре кнопки, чтобы скопировать, переместить, переименовать или удалить именно этот файл; в настройках их можно свернуть в меню «три точки» на строке. Свайп влево или вправо запускает быстрое действие, которое выбирается в настройках. Под именем стоит вторая строка с самым важным: у фото это разрешение и дата.",
+          "undo": "Удаление сначала спрашивает подтверждение, а «Отменить» на панели действий возвращает файлы, пока приложение ещё помнит операцию."
+        },
+        "copy": {
+          "summary": "Копирует выделенные файлы в выбранное вами место.",
+          "details": "Назначение выбирается в диалоге из ваших ресурсов-назначений. Долгое копирование может идти в фоне, пока вы продолжаете просмотр."
+        },
+        "move": {
+          "summary": "Перемещает выделенные файлы в выбранное вами место.",
+          "details": "Тот же диалог, что у копирования. Когда перемещение закончится, файлов в этой папке не останется."
+        },
+        "rename": {
+          "summary": "Переименовывает выделенный файл.",
+          "details": "Работает с одним файлом за раз и открывает диалог, только когда выделен ровно один файл."
+        },
+        "delete": {
+          "summary": "Удаляет выделенные файлы после подтверждения.",
+          "details": "Сначала приложение просит подтвердить удаление. Сразу после этого «Отменить» может вернуть файлы.",
+          "undo": "«Отменить» появляется на этой же панели сразу после удаления или перемещения."
+        },
+        "undo": {
+          "summary": "Возвращает последнее удаление или перемещение.",
+          "details": "Кнопка остаётся на панели, пока приложение ещё помнит операцию."
+        },
+        "share": {
+          "summary": "Отправляет выделенные файлы в другое приложение или на другое устройство.",
+          "details": "Открывается список «Отправить в..» с приложениями, которые могут принять файлы."
+        },
+        "archive": {
+          "summary": "Упаковывает выделенные файлы в один архив.",
+          "details": "Кнопка есть у ресурса в собственной памяти этого устройства."
+        }
+      }
+    },
+    "uk": {
+      "title": "Браузер файлів",
+      "purpose": "Браузер файлів показує вміст одного ресурсу: папки й файли плитками або списком. Тут ви знаходите потрібний файл, сортуєте та фільтруєте папку, виділяєте файли й виконуєте над ними дії або запускаєте відтворення.",
+      "steps": [
+        "Натисніть файл у списку (17), щоб відкрити його в плеєрі. Натисніть папку, щоб зайти в неї: назва папки (2) покаже, де ви перебуваєте, а «Назад» (1) піднімає на рівень вище.",
+        "Порядок задає кнопка «Сортування» (3), список звужує «Фільтр» (4), а в «Пошук» (5) можна ввести кілька літер назви. «Оновити» (6) заново перевіряє папку, якщо файли змінилися поза застосунком.",
+        "Кнопка (7) перемикає плитки й список - коли потрібно більше мініатюр або більше подробиць на екрані.",
+        "Натисніть і втримуйте файл, щоб почати виділення, або скористайтеся «Вибрати все» (8). Унизу з’явиться панель дій: «Копіювати» (18), «Перемістити» (19), «Перейменувати» (20), «Видалити» (21), «Поділитися» (23) та «Архів» (24).",
+        "«Скасувати» (22) повертає останнє видалення або переміщення, поки застосунок ще пам’ятає операцію.",
+        "«Відтворити» (15) запускає показ у плеєрі, а «Випадковий» (14) відтворює файли у випадковому порядку.",
+        "«Створити папку» (10), «Створити нотатку» (11), «Створити рисунок» (12) і мікрофон (13) додають нові файли просто тут; усе, що не вмістилося на вузькому екрані, чекає в меню (16) разом із «Довідкою»."
+      ],
+      "groups": [
+        {
+          "title": "Навігація та пошук",
+          "elements": ["back", "path", "sort", "filter", "search", "refresh", "toggle-view"]
+        },
+        {
+          "title": "Виділення та нові файли",
+          "elements": ["select-all", "deselect-all", "create-folder", "create-text-note", "create-drawing", "mic-record"]
+        },
+        {
+          "title": "Відтворення та меню",
+          "elements": ["play-random", "play", "more-actions"]
+        },
+        {
+          "title": "Файли",
+          "elements": ["file-list"]
+        },
+        {
+          "title": "Дії над виділеним",
+          "elements": ["copy", "move", "rename", "delete", "undo", "share", "archive"]
+        }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Повертає на крок назад: із поточної папки, а з верхньої папки - на головний екран.",
+          "details": "Кнопка «Назад» пристрою робить те саме, тож із глибокої папки ви виходите по одному рівню, а не вилітаєте з ресурсу одним натисканням."
+        },
+        "path": {
+          "summary": "Показує папку, у якій ви перебуваєте, і дає змогу перейти в будь-яку папку вище.",
+          "details": "Кнопка з’являється, коли ви зайшли в підпапку. Натисніть її, щоб відкрити список папок від ресурсу до поточної, і виберіть будь-яку - ви одразу опинитеся там."
+        },
+        "sort": {
+          "name": "Порядок сортування",
+          "summary": "Показує, як упорядковано файли, і відкриває меню для зміни порядку.",
+          "details": "Оберіть назву, дату, розмір або тип; для папки з файлами одного виду є ще виконавець, назва, тривалість або дата зйомки фото. «Випадково» перемішує список, а повторний вибір перемішує ще раз. «Ручний порядок» дає змогу перетягувати файли в потрібному порядку. Порядок запам’ятовується для кожного ресурсу."
+        },
+        "filter": {
+          "summary": "Звужує список за датою, розміром і типом медіа.",
+          "details": "Задайте діапазон дат, діапазон розміру в мегабайтах або позначте потрібні типи медіа й застосуйте. Невелике число на кнопці показує, скільки фільтрів увімкнено, а рядок під панеллю - які саме. Фільтр стосується цього ресурсу, а кнопка скидання скасовує його повністю."
+        },
+        "search": {
+          "summary": "Знаходить файл за кількома літерами назви.",
+          "details": "На панелі з’являється поле пошуку, і список звужується в міру введення, без повторної перевірки папки. Закрийте поле, щоб знову побачити все."
+        },
+        "refresh": {
+          "summary": "Заново перевіряє папку на нові та змінені файли.",
+          "details": "Натисніть після копіювання файлів з іншого застосунку чи з комп’ютера, а також якщо мережева папка була недоступна. Потягнувши список донизу, можна зробити те саме."
+        },
+        "toggle-view": {
+          "summary": "Перемикає папку між сіткою мініатюр і списком.",
+          "details": "Сітка показує плитку-картинку для кожного файлу, список - по рядку на файл і більше місця для тексту. Вибір запам’ятовується. Ресурс лише з музикою залишається списком: показувати нічого."
+        },
+        "select-all": {
+          "summary": "Виділяє всі файли в папці.",
+          "details": "Зручно перед копіюванням, переміщенням чи видаленням, коли потрібна вся папка. Почати виділення можна й довгим натисканням на файл, позначаючи файли по одному."
+        },
+        "deselect-all": {
+          "summary": "Знімає виділення.",
+          "details": "Панель дій унизу при цьому зникає. Натискання на позначену галочку знімає виділення лише з цього файлу."
+        },
+        "create-folder": {
+          "summary": "Додає підпапку в поточну папку.",
+          "details": "Працює на папках пристрою, мережевих папках і хмарних ресурсах. На ресурсі лише для читання кнопку приховано."
+        },
+        "create-text-note": {
+          "summary": "Починає нову текстову нотатку в поточній папці.",
+          "details": "Нотатка зберігається, лише коли ви її збережете, і назву запитують саме в цей момент. На ресурсі лише для читання кнопку приховано."
+        },
+        "create-drawing": {
+          "summary": "Відкриває чистий аркуш редактора малюнків.",
+          "details": "Малюнок зберігається просто в поточну папку. На ресурсі лише для читання кнопку приховано."
+        },
+        "mic-record": {
+          "summary": "Записує голосову нотатку в поточну папку.",
+          "details": "Натисніть і тримайте - триває запис, відпустіть - він зупиниться; коротке натискання лише нагадає, що кнопку треба утримувати. Коли запис завершиться, застосунок запитає назву файлу."
+        },
+        "play-random": {
+          "summary": "Відтворює файли у випадковому порядку.",
+          "details": "Кнопка є, коли в папці лише один вид медіа, наприклад лише фото або лише музика."
+        },
+        "play": {
+          "summary": "Запускає показ у плеєрі.",
+          "details": "Він починається з файлу, який ви переглядали останнім у цьому ресурсі, а якщо такого немає - з першого виділеного файлу або з початку списку. Плеєр відкривається в режимі показу й сам переходить до наступного файлу."
+        },
+        "more-actions": {
+          "summary": "Відкриває меню з усім, чого немає на панелі.",
+          "details": "Команди, що не вмістилися на вузькому екрані, переїжджають сюди, тож нічого не зникає. У меню є й дії з ресурсом, наприклад пошук дублікатів, «Налаштування програми» та «Довідка», яка відкриває цю сторінку; клавіша F1 відкриває її теж."
+        },
+        "file-list": {
+          "name": "Файли",
+          "summary": "Файли та папки ресурсу.",
+          "details": "Натисніть папку, щоб відкрити її, і файл, щоб переглянути або відтворити. У кожному рядку є зірочка, яка додає файл до обраного, і чотири кнопки, щоб скопіювати, перемістити, перейменувати або видалити саме цей файл; у налаштуваннях їх можна згорнути в меню «три крапки» на рядку. Свайп ліворуч чи праворуч запускає швидку дію, яку обирають у налаштуваннях. Під назвою стоїть другий рядок із найважливішим: у фото це роздільна здатність і дата.",
+          "undo": "Видалення спершу запитує підтвердження, а «Скасувати» на панелі дій повертає файли, поки застосунок ще пам’ятає операцію."
+        },
+        "copy": {
+          "summary": "Копіює виділені файли в обране вами місце.",
+          "details": "Призначення обирається в діалозі з ваших ресурсів-призначень. Довге копіювання може йти у фоні, поки ви продовжуєте перегляд."
+        },
+        "move": {
+          "summary": "Переміщує виділені файли в обране вами місце.",
+          "details": "Той самий діалог, що й у копіювання. Коли переміщення завершиться, файлів у цій папці не лишиться."
+        },
+        "rename": {
+          "summary": "Перейменовує виділений файл.",
+          "details": "Працює з одним файлом за раз і відкриває діалог, лише коли виділено рівно один файл."
+        },
+        "delete": {
+          "summary": "Видаляє виділені файли після підтвердження.",
+          "details": "Спочатку застосунок просить підтвердити видалення. Одразу після цього «Скасувати» може повернути файли.",
+          "undo": "«Скасувати» з’являється на цій самій панелі одразу після видалення чи переміщення."
+        },
+        "undo": {
+          "summary": "Повертає останнє видалення або переміщення.",
+          "details": "Кнопка лишається на панелі, поки застосунок ще пам’ятає операцію."
+        },
+        "share": {
+          "summary": "Надсилає виділені файли в інший застосунок або на інший пристрій.",
+          "details": "Відкривається список «Надіслати до..» із застосунками, які можуть прийняти файли."
+        },
+        "archive": {
+          "summary": "Пакує виділені файли в один архів.",
+          "details": "Кнопка є в ресурсу у власній пам’яті цього пристрою."
+        }
+      }
+    }
+  }
+}

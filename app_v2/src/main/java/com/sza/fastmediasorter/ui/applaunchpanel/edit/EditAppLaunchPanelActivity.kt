@@ -35,6 +35,13 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
     override fun setupViews() {
         binding.backButton.setOnClickListener { finish() }
         binding.resetButton.setOnClickListener { showResetConfirm() }
+        binding.btnHelpHeader.setOnClickListener {
+            com.sza.fastmediasorter.ui.common.help.HelpOpenManager.openIfPresent(
+                this,
+                "EditAppLaunchPanelActivity",
+                null,
+            )
+        }
 
         tileAdapter = EditAppLaunchPanelTileAdapter(
             onTileClick = ::onTileClicked,

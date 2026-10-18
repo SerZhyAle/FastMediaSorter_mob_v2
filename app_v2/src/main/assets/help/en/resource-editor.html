@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Edit Resource</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Edit Resource</span>
+</nav>
+<header class="hero">
+<h1>Edit Resource</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">Edit Resource changes a resource you already added: its name and icon, the address or path it points to, which files it shows and how it behaves. Open it from the main screen by holding a resource or with the edit button in its row. The same screen sets up a new internet stream and saves a copy of a resource.</p>
+<h2>In this order</h2>
+<ol class="order">
+<li>Start with the name <a class="ref" href="#name">6</a>. Names must be unique: if yours is taken, the app says so and offers Use suggested name <a class="ref" href="#use-suggested-name">7</a>.</li>
+<li>Open Connection Settings <a class="ref" href="#connection">8</a> to correct the path, the address and port, the sign-in or the stream address. For a network or cloud resource, check the new values with Test Connection <a class="ref" href="#test-connection">9</a>; Retry <a class="ref" href="#retry">10</a> repeats the last action after a failure.</li>
+<li>Decide what the resource shows: Content Scanning Conditions <a class="ref" href="#scanning">11</a> and the file types in Media Types <a class="ref" href="#media-types">12</a>. Resource Profile <a class="ref" href="#profile">13</a> fills in a ready set in one tap.</li>
+<li>Use Destination Settings <a class="ref" href="#destination">14</a> to use the resource for Quick Sort or to make it read-only, and Advanced Settings <a class="ref" href="#advanced">15</a> for a comment, a PIN and the slideshow interval.</li>
+<li>Pick an icon <a class="ref" href="#pick-icon">3</a> if you want the resource to stand out in the list.</li>
+<li>Press Save Changes <a class="ref" href="#save">5</a>; it stays off until something valid has changed. Save as Copy <a class="ref" href="#save-as-copy">4</a> keeps the original and stores your edits as a new resource, and Reset Changes <a class="ref" href="#reset-changes">2</a> brings back the saved values.</li>
+<li>Statistics <a class="ref" href="#statistics">16</a> tell you when the resource was created and opened, and Add to Home Screen <a class="ref" href="#add-to-home">17</a> puts a shortcut to it on your home screen.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Toolbar and actions</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Back</span><span class="one">Closes the editor without saving your changes.</span></span></summary>
+<div class="full">
+<p>The arrow in the toolbar, the Back button of the device and the Esc key all leave the screen at once. Nothing is saved on the way out, so press Save Changes first if you want to keep your edits.</p>
+<dl class="facts">
+<dt>Shortcut</dt><dd><kbd>Esc</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="reset-changes">
+<summary><span class="mk">2</span><span><span class="name">Reset Changes</span><span class="one">Puts every field back to the values saved with the resource.</span></span></summary>
+<div class="full">
+<p>The button shows up only after you change something. It restores all fields, the icon and the profile to how they were when the editor opened, and clears the last connection test result.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Your edits since opening the editor are lost and cannot be brought back. Saved values are not touched.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="pick-icon">
+<summary><span class="mk">3</span><span><span class="name">Pick resource icon</span><span class="one">Chooses the picture that stands for this resource in lists.</span></span></summary>
+<div class="full">
+<p>Opens the Choose an icon sheet; the button itself shows the icon the resource has now. The new icon is stored when you press Save Changes. If you change the profile and have not chosen an icon by hand in this session, the icon follows the profile on its own.</p>
+</div>
+</details>
+<details class="el" id="save-as-copy">
+<summary><span class="mk">4</span><span><span class="name">Save as Copy</span><span class="one">Stores your edits as a new resource and leaves the original as it is.</span></span></summary>
+<div class="full">
+<p>Available when you edit an existing resource. The copy gets a free name based on the original one, and the editor stays on the original afterwards. It is greyed out while the form has errors or a test or save is running.</p>
+</div>
+</details>
+<details class="el" id="save">
+<summary><span class="mk">5</span><span><span class="name">Save Changes</span><span class="one">Saves your changes to the resource.</span></span></summary>
+<div class="full">
+<p>The button is off until the form is valid and something has actually changed. After saving you see Resource saved successfully and the screen closes. Ctrl+S does the same as the button; if there is nothing to save, a short note says so.</p>
+<dl class="facts">
+<dt>Shortcut</dt><dd><kbd>Ctrl</kbd> + <kbd>S</kbd></dd>
+</dl>
+</div>
+</details>
+<h3>Name and connection</h3>
+<details class="el" id="name">
+<summary><span class="mk">6</span><span><span class="name">Resource Name</span><span class="one">The name the resource has in your lists.</span></span></summary>
+<div class="full">
+<p>Names are compared without regard to upper and lower case, so Photos and photos count as the same. When the name is already in use, a red note says so and the suggestions appear below; the name of the resource you are editing is never treated as a duplicate of itself.</p>
+</div>
+</details>
+<details class="el" id="use-suggested-name">
+<summary><span class="mk">7</span><span><span class="name">Use suggested name</span><span class="one">Replaces a taken name with the first suggestion.</span></span></summary>
+<div class="full">
+<p>The button appears only when the name you typed is already used by another resource. Its text carries the suggested name, and one tap puts it into the field.</p>
+</div>
+</details>
+<details class="el" id="connection">
+<summary><span class="mk">8</span><span><span class="name">Connection Settings</span><span class="one">Where the resource points to: a folder, a server, a cloud folder or a stream.</span></span></summary>
+<div class="full">
+<p>A collapsible section whose fields depend on the type. A local resource shows Folder Path. A network resource shows Host / IP Address, Port, Username, Password and Server Path (optional). A cloud resource shows Cloud Folder ID, and a stream shows its URL (http, https, rtsp). Collections such as Recent Media have no path, so the section is not shown for them. After you change the path, the address or the port, a warning says that a rescan or re-check is needed.</p>
+<p>While a password field is on screen, the screen can be hidden from screenshots and the recent apps view, depending on the Secure sensitive screens setting.</p>
+</div>
+</details>
+<details class="el" id="test-connection">
+<summary><span class="mk">9</span><span><span class="name">Test Connection</span><span class="one">Checks the connection settings before you save them.</span></span></summary>
+<div class="full">
+<p>Shown for network and cloud resources. The app first checks that the form is filled in correctly, then connects and shows the result in a coloured line: green for success, with a count of what it found, a warning colour for a partial result and red for a failure. Nothing is saved by the test.</p>
+</div>
+</details>
+<details class="el" id="retry">
+<summary><span class="mk">10</span><span><span class="name">Retry</span><span class="one">Repeats the last action after a failure.</span></span></summary>
+<div class="full">
+<p>The button appears under a failed connection test. It runs again whatever you did last: the test, Save Changes or Save as Copy.</p>
+</div>
+</details>
+<h3>What the resource shows and how it behaves</h3>
+<details class="el" id="scanning">
+<summary><span class="mk">11</span><span><span class="name">Content Scanning Conditions</span><span class="one">Decides which files of the resource the app looks at.</span></span></summary>
+<div class="full">
+<p>A collapsible section. Scan subdirectories looks for media in nested folders, and Show subfolders as items needs it. All Files mode lets you browse and manage every file, not only media; Show hidden files needs it. Disable thumbnails shows extension icons instead of previews, and Remember file list keeps a copy of the list for faster opening. Only the choices that fit the resource type are shown.</p>
+</div>
+</details>
+<details class="el" id="media-types">
+<summary><span class="mk">12</span><span><span class="name">Media Types</span><span class="one">Chooses which kinds of files the resource shows.</span></span></summary>
+<div class="full">
+<p>Tick Videos, Audio, Images, GIFs, Text, PDF, EPUB and Office documents. The boxes are locked while All Files mode is on. The section does not appear for resources that have no file types, such as a stream.</p>
+</div>
+</details>
+<details class="el" id="profile">
+<summary><span class="mk">13</span><span><span class="name">Resource Profile</span><span class="one">Applies a ready set of media settings in one tap.</span></span></summary>
+<div class="full">
+<p>The button shows the current profile and opens Resource Profile: Custom, Audio Library, Video Library, Photo Storage, Documents and File Manager Mode. A profile sets the media types, All Files mode and, for Audio Library, Remember file list at once. Custom changes nothing, so use the checkboxes to tune by hand afterwards.</p>
+</div>
+</details>
+<details class="el" id="destination">
+<summary><span class="mk">14</span><span><span class="name">Destination Settings</span><span class="one">Marks the resource for Quick Sort and can make it read-only.</span></span></summary>
+<div class="full">
+<p>Use as destination folder puts the resource on your Quick Sort list so you can send files to it. Read-only mode blocks copy, move and delete in it. Both together is a bad mix, because a read-only place cannot receive files, so a warning appears.</p>
+</div>
+</details>
+<details class="el" id="advanced">
+<summary><span class="mk">15</span><span><span class="name">Advanced Settings</span><span class="one">Optional extras: a comment, a PIN and the slideshow interval.</span></span></summary>
+<div class="full">
+<p>Comment is a note for yourself. PIN Code (4-6 digits) protects the resource: the app asks for it before it opens the editor again, among other things. Slideshow Interval sets the seconds between pictures when this resource is played as a slideshow. Only the fields that fit the resource type are shown.</p>
+</div>
+</details>
+<h3>Information</h3>
+<details class="el" id="statistics">
+<summary><span class="mk">16</span><span><span class="name">Statistics</span><span class="one">Facts about the resource: size, dates and speed.</span></span></summary>
+<div class="full">
+<p>Shown only while you edit an existing resource. It lists the number of files and subfolders, when the resource was created and last opened, for network resources the last sync, and the read and write speed once they have been measured. A successful connection test refreshes the numbers.</p>
+</div>
+</details>
+<details class="el" id="add-to-home">
+<summary><span class="mk">17</span><span><span class="name">Add to Home Screen</span><span class="one">Puts a shortcut to this resource on your home screen.</span></span></summary>
+<div class="full">
+<p>The shortcut uses the same icon as the editor shows. Android asks you to confirm it. If your launcher cannot place shortcuts, a message says so. The button sits inside the Statistics section.</p>
+</div>
+</details>
+<details class="el" id="context-warning">
+<summary><span class="mk">18</span><span><span class="name">Warning note</span><span class="one">A short reminder that appears when your edits need attention.</span></span></summary>
+<div class="full">
+<p>It can say that a read-only place cannot be a destination, that a changed path or address needs a rescan, or that another resource already has the same path. Each warning also opens in a window once, and the note stays until the cause is gone.</p>
+</div>
+</details>
+<h3>Choose an icon (icon picker)</h3>
+<details class="el" id="icon-sheet-tabs">
+<summary><span class="mk">19</span><span><span class="name">Icon set tabs</span><span class="one">Switches between the icon sets: Music, Video, Image, Documents and Other.</span></span></summary>
+<div class="full">
+<p>The sheet opens on the set that suits your resource, based on its profile and type. Swipe the tab strip sideways if it does not fit the screen.</p>
+</div>
+</details>
+<details class="el" id="icon-sheet-grid">
+<summary><span class="mk">20</span><span><span class="name">Icons</span><span class="one">Tapping an icon chooses it at once.</span></span></summary>
+<div class="full">
+<p>The icon in use is marked with a ring. One tap on another icon closes the sheet and puts it on the button in the editor; it is stored when you press Save Changes. To leave without a change, swipe the sheet down.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="browse.html"><b>File browser</b><span class="pill">Screen</span></a></li>
+<li><a href="add-resource.html"><b>Add Resource</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/destination-targets-setup.html"><b>Sorting Files into Destinations with Quick Sort</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security.html"><b>Protecting Files with a PIN and Encryption</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

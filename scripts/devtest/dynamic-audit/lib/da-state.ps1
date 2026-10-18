@@ -615,6 +615,22 @@ function New-DaRestoreCheckpoint {
     return [pscustomobject]@{ Code = (Get-DaExitCode).Ok; Reason = "restore checkpoint written for run $RunId"; ManifestPath = $gate.ManifestPath }
 }
 
+function ConvertFrom-DaProcStartLines {
+    <#
+    .SYNOPSIS
+        The last process starts of one package from `logcat -b events` am_proc_start lines, as "type component" strings.
+    .PARAMETER Lines
+        Event-log lines.
+    .PARAMETER Package
+        Application id.
+    .PARAMETER Last
+        How many of the latest starts to keep.
+    #>
+    param([string[]]$Lines, [Parameter(Mandatory)][string]$Package, [int]$Last = 3)
+    $rx = "am_proc_start:\s*\[\d+,(\d+),\d+,$([regex]::Escape($Package))(?::[\w.]+)?,([^,]*),(.*)\]\s*$"
+    return @(@($Lines | ForEach-Object { if ("$_" -match $rx) { "pid $($Matches[1]) $($Matches[2]) $($Matches[3])" } }) | Select-Object -Last $Last)
+}
+
 function Compare-DaDeviceWithManifest {
     <#
     .SYNOPSIS
@@ -779,7 +795,14 @@ function Restore-DaBackup {
     $diffs = [System.Collections.Generic.List[string]]::new()
     & $step 'compare' {
         foreach ($d in @(Compare-DaDeviceWithManifest -Serial $Serial -Manifest $manifest)) { $diffs.Add($d) }
-        if ($diffs.Count) { throw "device differs from manifest: $($diffs -join '; ')" }
+        if ($diffs.Count) {
+            # Files the app writes on its own start differed after a force-stop (runs 261013-174312, 261013-184512);
+            # the event log names what started the process again, which the diff alone cannot.
+            $ev = Invoke-DaAdb -Serial $Serial -Arguments @('logcat', '-d', '-b', 'events', '-s', 'am_proc_start') -TimeoutMs 30000
+            $starts = @(ConvertFrom-DaProcStartLines -Lines $ev.Lines -Package $pkg)
+            $who = if ($starts.Count) { "; latest process starts of ${pkg}: $($starts -join ' | ')" } else { '' }
+            throw "device differs from manifest: $($diffs -join '; ')$who"
+        }
         'device state equals the manifest'
     }
     $ok = -not ($steps | Where-Object { -not $_.ok })

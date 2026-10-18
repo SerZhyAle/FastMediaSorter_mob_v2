@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.data.transfer.local.LocalSink
+import com.sza.fastmediasorter.data.wear.WatchFileLandingRegistry
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
@@ -19,6 +20,9 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -39,6 +43,7 @@ class ReceiveWatchFileUseCaseTest {
     private val writer = mockk<LocalDestinationWriter>(relaxed = true)
     private val stagingDirectoryProvider = mockk<StagingDirectoryProvider>(relaxed = true)
     private val workManager = mockk<WorkManager>(relaxed = true)
+    private val landingRegistry = WatchFileLandingRegistry()
 
     private val useCase = ReceiveWatchFileUseCase(
         context,
@@ -46,7 +51,8 @@ class ReceiveWatchFileUseCaseTest {
         classifier,
         writer,
         stagingDirectoryProvider,
-        workManager
+        workManager,
+        landingRegistry
     )
 
     private fun sink(): LocalSink = mockk<LocalSink>(relaxed = true).also {
@@ -211,5 +217,52 @@ class ReceiveWatchFileUseCaseTest {
 
         assertEquals(WearFileReceiveOutcome.SAVED, result.outcome)
         coVerify { classifier.classify("/sdcard/Real/data.bin") }
+    }
+
+    @Test
+    fun `a saved file leaves the id of its local resource for the screenshot answer`() = runTest {
+        val target = sink()
+        coEvery { writer.open(any(), any()) } returns Result.success(target)
+        coEvery { resourceRepository.getAllResourcesSync() } returns
+            listOf(createResource(id = 10L, path = "/sdcard/Pictures"))
+
+        useCase("watch-screen-20261016-101500.png", 64L, ByteArrayInputStream(ByteArray(64)))
+
+        val landing = landingRegistry.take("watch-screen-20261016-101500.png")
+        assertEquals(10L, landing?.resourceId)
+        assertTrue((landing?.landedAtEpochMillis ?: 0L) > 0L)
+    }
+
+    @Test
+    fun `a file queued for a remote resource leaves that resource id`() = runTest {
+        val tempDir = Files.createTempDirectory("staging_landing").toFile()
+        tempDir.deleteOnExit()
+        every { stagingDirectoryProvider.directoryFor(StagedKind.WATCH_RECEIVED) } returns tempDir
+        val smbRes = createResource(id = 42L, name = "SMB", path = "smb://192.168.1.1/share", type = ResourceType.SMB)
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(smbRes)
+
+        useCase("watch-screen-remote.png", 64L, ByteArrayInputStream(ByteArray(64)))
+
+        assertEquals(42L, landingRegistry.take("watch-screen-remote.png")?.resourceId)
+    }
+
+    @Test
+    fun `the downloads fallback leaves a landing with no resource`() = runTest {
+        val target = sink()
+        coEvery { writer.open(any(), any()) } returns Result.success(target)
+        coEvery { resourceRepository.getAllResourcesSync() } returns emptyList()
+
+        useCase("watch-screen-fallback.png", 64L, ByteArrayInputStream(ByteArray(64)))
+
+        val landing = landingRegistry.take("watch-screen-fallback.png")
+        assertNotNull(landing)
+        assertNull(landing?.resourceId)
+    }
+
+    @Test
+    fun `a refused file leaves no landing`() = runTest {
+        useCase("huge.png", WEAR_FILE_TRANSFER_MAX_BYTES + 1, ByteArrayInputStream(ByteArray(4)))
+
+        assertNull(landingRegistry.take("huge.png"))
     }
 }

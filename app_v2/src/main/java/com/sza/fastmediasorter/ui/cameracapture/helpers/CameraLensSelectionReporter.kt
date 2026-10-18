@@ -34,7 +34,7 @@ class CameraLensSelectionReporter {
         val multiplier = entry.equivalentMultiplier
         // The zoom ceiling comes from the logical camera the entry binds through - a physical
         // sub-lens publishes no zoom state of its own (same fallback the enumeration uses).
-        val maxZoom = runCatching { entry.cameraInfo.zoomState.value?.maxZoomRatio }.getOrNull()
+        val maxZoom = runCatching { entry.cameraInfo?.zoomState?.value?.maxZoomRatio }.getOrNull()
             ?: CameraRuntimeCapabilities.DEFAULT_ZOOM
         val presets = CameraRuntimeCapabilities.buildZoomPresets(
             entry.minZoomRatio,

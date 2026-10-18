@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.databinding.ActivityTouristCounterBinding
 import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.tourist.TouristCounterState
 import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
+import com.sza.fastmediasorter.ui.common.help.HelpToolbarEntryManager
 import com.sza.fastmediasorter.ui.tourist.counter.helpers.TouristCounterDialogsManager
 import com.sza.fastmediasorter.ui.tourist.counter.helpers.TouristCounterHistoryAdapter
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
@@ -42,6 +43,7 @@ class TouristCounterActivity : BaseActivity<ActivityTouristCounterBinding>() {
     override fun setupViews() {
         binding.counterRoot.applySystemBarInsetPadding()
         binding.toolbar.setUpNavigation(this)
+        HelpToolbarEntryManager.install(binding.toolbar, this, getHelpSurfaceId(), null)
         dialogs = TouristCounterDialogsManager(this)
         historyAdapter = TouristCounterHistoryAdapter(::formatMoment)
         binding.history.rvHistory.layoutManager = LinearLayoutManager(this)

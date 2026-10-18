@@ -3200,7 +3200,6 @@
     <string name="exif_orientation_rotate_270">Girado 270° no sentido horário</string>
     <string name="exif_orientation_unknown">Desconhecido (%1$d)</string>
     <string name="storage_reach_limited_browse">Nesta pasta só estão disponíveis fotografias, vídeo e áudio. Para ver documentos, adicione a pasta novamente e selecione-a na janela de pastas do sistema.</string>
-    <string name="file_count_reach_limited">%1$s - apenas fotos, vídeos e áudios</string>
     <string name="reach_limited_nothing_readable">Não é possível ler documentos</string>
     <string name="storage_reach_limited_virtual">Documentos e outros arquivos deste dispositivo não são visíveis para o aplicativo. Para abri-los, adicione a pasta necessária pela janela de pastas do sistema.</string>
     <string name="storage_reach_limited_browse_reconnect">Nesta pasta só estão disponíveis fotografias, vídeo e áudio. Para ver documentos, abra o menu de três pontos na linha da pasta no ecrã principal e escolha Reconectar recurso.</string>

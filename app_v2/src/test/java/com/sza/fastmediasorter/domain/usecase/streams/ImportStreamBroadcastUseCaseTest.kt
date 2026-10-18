@@ -322,6 +322,98 @@ class ImportStreamBroadcastUseCaseTest {
         assertEquals(1, dao.observeAll().first().size)
     }
 
+    // S4289: the descriptor's mode decides the row's kind on import and on every refresh.
+
+    @Test
+    fun importVideoBroadcast_storesAVideoKindEvenWhenTheUrlHasNoExtension() = runTest {
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "VIDEO_AUDIO")))
+
+        assertEquals("VIDEO", dao.getByUrl(LIVE_URL)?.mediaKind)
+    }
+
+    @Test
+    fun importVideoOnlyBroadcastOverRtsp_keepsTheRtspKind() = runTest {
+        importUseCase(serializer.serialize(watchDto(RTSP_URL, mode = "VIDEO_ONLY")))
+
+        assertEquals("RTSP", dao.getByUrl(RTSP_URL)?.mediaKind)
+    }
+
+    @Test
+    fun importOfABroadcastThatSwitchedFromAudioToVideo_refreshesTheKindAndKeepsTheRest() = runTest {
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, title = "Kitchen watch", mode = "AUDIO_ONLY")))
+        val before = requireNotNull(dao.getByUrl(LIVE_URL))
+        repo.pinToTop(before.id)
+
+        val video = watchDto(LIVE_URL, title = "Kitchen watch", mode = "VIDEO_AUDIO")
+        val result = importUseCase(serializer.serialize(video))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        assertEquals(1, dao.observeAll().first().size)
+        val after = requireNotNull(dao.getByUrl(LIVE_URL))
+        assertEquals(before.id, after.id)
+        assertEquals("VIDEO", after.mediaKind)
+        assertEquals("Kitchen watch", after.title)
+        assertEquals("the pin must survive the kind refresh", true, after.pinned)
+    }
+
+    @Test
+    fun importOfABroadcastThatSwitchedFromVideoToAudio_refreshesTheKindBack() = runTest {
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "VIDEO_AUDIO")))
+
+        val result = importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "AUDIO_ONLY")))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        assertEquals("AUDIO", dao.getByUrl(LIVE_URL)?.mediaKind)
+    }
+
+    @Test
+    fun importOfABroadcastWhoseKindDidNotChange_isADuplicate() = runTest {
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "VIDEO_AUDIO")))
+
+        val result = importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "VIDEO_AUDIO")))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Duplicate, result)
+    }
+
+    @Test
+    fun importOverwritesATypeTheUserChoseInTheEditDialog() = runTest {
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "AUDIO_ONLY")))
+        val typed = requireNotNull(dao.getByUrl(LIVE_URL))
+        repo.updateUserFields(typed.id, typed.url, typed.title, "VIDEO")
+
+        val result = importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "AUDIO_ONLY")))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        assertEquals("AUDIO", dao.getByUrl(LIVE_URL)?.mediaKind)
+    }
+
+    @Test
+    fun importOfAKnownDeviceOnANewAddressAndANewMode_movesTheRowAndRefreshesTheKind() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL, mode = "AUDIO_ONLY")))
+        val before = requireNotNull(dao.getByUrl(FIRST_URL))
+        repo.pinToTop(before.id)
+
+        val result = importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "VIDEO_AUDIO")))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        val after = requireNotNull(dao.getByUrl(LIVE_URL))
+        assertEquals(before.id, after.id)
+        assertEquals("VIDEO", after.mediaKind)
+        assertEquals("the pin must survive the move", true, after.pinned)
+    }
+
+    @Test
+    fun importWithAModeThisAppDoesNotKnow_keepsTheStoredKindAndClassifiesANewRowByUrl() = runTest {
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "FUTURE_MODE")))
+        assertEquals("AUDIO", dao.getByUrl(LIVE_URL)?.mediaKind)
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "VIDEO_AUDIO")))
+
+        val result = importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "FUTURE_MODE")))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Duplicate, result)
+        assertEquals("VIDEO", dao.getByUrl(LIVE_URL)?.mediaKind)
+    }
+
     private fun exchangeEndpoints(broadcastId: String) = listOf(
         BroadcastEndpointDto(url = FIRST_URL, transport = "HTTP"),
         BroadcastEndpointDto(
@@ -343,11 +435,12 @@ class ImportStreamBroadcastUseCaseTest {
         sourceId: String? = WATCH_ID,
         title: String = "Galaxy Watch",
         endpoints: List<BroadcastEndpointDto>? = null,
+        mode: String = "AUDIO_ONLY",
     ) = BroadcastDescriptorDto(
         schemaVersion = 1,
         url = url,
         title = title,
-        mode = "AUDIO_ONLY",
+        mode = mode,
         sourceId = sourceId,
         endpoints = endpoints,
     )
@@ -356,6 +449,8 @@ class ImportStreamBroadcastUseCaseTest {
         const val WATCH_ID = "6f1a8f0e-0f4e-4a2b-9d1c-2b7f1a8f0e00"
         const val FIRST_URL = "http://192.168.1.77:41000/live-audio.aac"
         const val SECOND_URL = "http://192.168.1.77:52311/live-audio.aac"
+        const val LIVE_URL = "http://192.168.1.77:41000/live"
+        const val RTSP_URL = "rtsp://192.168.1.77:8554/live"
         const val FINGERPRINT = "SHA256:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU"
     }
 }

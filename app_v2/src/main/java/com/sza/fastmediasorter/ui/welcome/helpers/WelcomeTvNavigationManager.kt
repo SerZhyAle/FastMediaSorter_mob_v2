@@ -74,6 +74,10 @@ class WelcomeTvNavigationManager(
                     next.requestFocus()
                 } else if (direction == View.FOCUS_DOWN) {
                     focusBar()
+                } else if (direction == View.FOCUS_UP) {
+                    // S4288: the help action sits above the page, outside both scopes; its own
+                    // DOWN falls through to enterPageFromContainer below.
+                    binding.btnWelcomeHelp.requestFocus()
                 }
             }
             inBar -> if (direction == View.FOCUS_UP) {
@@ -197,9 +201,10 @@ class WelcomeTvNavigationManager(
         target.requestFocus()
     }
 
-    /** Visible, focusable controls of the slider in TAB order: current page content, then bottom bar. */
+    /** Visible, focusable controls of the slider in TAB order: help action, page content, bottom bar. */
     private fun sliderFocusables(): List<View> {
         val list = ArrayList<View>()
+        list.add(binding.btnWelcomeHelp)
         currentPageGroup()?.addFocusables(list, View.FOCUS_FORWARD)
         binding.layoutBottomNav.addFocusables(list, View.FOCUS_FORWARD)
         return list.filter { it.isShown && it.isFocusable }

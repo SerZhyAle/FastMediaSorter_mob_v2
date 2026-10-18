@@ -3213,7 +3213,6 @@
     <string name="exif_orientation_rotate_270">تدوير 270° باتجاه عقارب الساعة</string>
     <string name="exif_orientation_unknown">غير معروف (%1$d)</string>
     <string name="storage_reach_limited_browse">تتوفر في هذا المجلد الصور والفيديو والصوت فقط. لعرض المستندات، أضف المجلد مرة أخرى واختره في نافذة مجلدات النظام.</string>
-    <string name="file_count_reach_limited">%1$s - الصور والفيديو والصوت فقط</string>
     <string name="reach_limited_nothing_readable">لا يمكن قراءة المستندات</string>
     <string name="storage_reach_limited_virtual">المستندات والملفات الأخرى على هذا الجهاز غير مرئية للتطبيق. لفتحها، أضف المجلد الذي تحتاجه عبر نافذة المجلدات الخاصة بالنظام.</string>
     <string name="storage_reach_limited_browse_reconnect">تتوفر في هذا المجلد الصور والفيديو والصوت فقط. لعرض المستندات، افتح قائمة النقاط الثلاث في صف المجلد على الشاشة الرئيسية واختر إعادة توصيل المورد.</string>

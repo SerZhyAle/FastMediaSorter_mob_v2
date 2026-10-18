@@ -70,7 +70,7 @@ function Assert-BuildTypes {
         throw "BuildTypes [$Name]: expected '$($Expected -join ',')', got '$($actual -join ',')'."
     }
 }
-Assert-BuildTypes -Name 'app_v2' -Expected @('Debug', 'Release')
+Assert-BuildTypes -Name 'app_v2' -Expected @('Debug', 'Release', 'Benchmark')
 Assert-BuildTypes -Name 'wear' -Expected @('Debug', 'Release')
 Assert-BuildTypes -Name 'watchface' -Expected @('Debug', 'Release')
 # No debug variant exists here at all - androidx.baselineprofile declares these two and nothing else.

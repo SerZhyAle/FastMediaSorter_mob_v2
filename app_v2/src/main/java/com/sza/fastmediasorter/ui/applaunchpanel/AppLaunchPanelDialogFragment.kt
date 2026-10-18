@@ -16,6 +16,8 @@ import com.sza.fastmediasorter.databinding.DialogAppLaunchPanelBinding
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileUi
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.EditAppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.applaunchpanel.helpers.AppLaunchDensityHelper
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -61,6 +63,7 @@ class AppLaunchPanelDialogFragment : DialogFragment() {
         binding.rvPanelTiles.layoutManager = GridLayoutManager(requireContext(), spanCount)
         binding.rvPanelTiles.adapter = tileAdapter
         binding.btnEditPanel.setOnClickListener { openEditPanel() }
+        binding.btnHelpHeader.setOnClickListener { openPanelHelp() }
         binding.btnClosePanel.setOnClickListener {
             dismiss()
         }
@@ -78,7 +81,13 @@ class AppLaunchPanelDialogFragment : DialogFragment() {
             setGravity(Gravity.CENTER)
         }
         dialog?.let { DialogAccessibilityHelper.applyInitialFocus(it) }
-        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onHelp = ::openPanelHelp, onConfirm = {})
+    }
+
+    // The transparent host never sees a key while this dialog holds focus, so F1 is answered here.
+    private fun openPanelHelp(): Boolean {
+        val host = activity ?: return false
+        return HelpOpenManager.openIfPresent(host, HELP_SURFACE_ID, UiSurface.DIALOG)
     }
 
     override fun onDestroyView() {
@@ -117,6 +126,7 @@ class AppLaunchPanelDialogFragment : DialogFragment() {
 
     companion object {
         const val TAG = "AppLaunchPanelDialog"
+        private const val HELP_SURFACE_ID = "AppLaunchPanelActivity"
         private const val SPAN_PORTRAIT = 3
         private const val SPAN_LANDSCAPE = 5
     }

@@ -135,7 +135,16 @@ object ExchangeConnectionStringCodec {
 
     /** 1 to [MAX_NAME] Unicode scalar values with no control character (category Cc, all in the BMP). */
     fun isName(name: String): Boolean =
-        name.isNotEmpty() && name.codePointCount(0, name.length) <= MAX_NAME && name.none(Char::isISOControl)
+        name.isNotEmpty() && name.codePointCount(0, name.length) <= MAX_NAME &&
+            name.none(Char::isISOControl) && hasPairedSurrogates(name)
+
+    private fun hasPairedSurrogates(text: String): Boolean = text.indices.all { index ->
+        when {
+            text[index].isHighSurrogate() -> text.getOrNull(index + 1)?.isLowSurrogate() == true
+            text[index].isLowSurrogate() -> index > 0 && text[index - 1].isHighSurrogate()
+            else -> true
+        }
+    }
 
     /** A one-time invitation of 19 items AP and AR: 22 base64url characters, no padding, decoding to 16 bytes. */
     fun isInvitation(text: String): Boolean =

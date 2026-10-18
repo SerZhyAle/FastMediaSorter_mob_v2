@@ -150,25 +150,28 @@ class DeviceExchangeAccountRepository @Inject constructor(
         entry: DeviceExchangeAccountEntry,
         endpoint: ExchangeEndpoint,
     ): DeviceExchangeAddressChange {
-        val moved = entry.copy(host = endpoint.host, port = endpoint.port)
-        val identityTaken = moved.identity != entry.identity && store.entry(moved.identity) != null
-        val token = tokens.token(entry)
+        val current = store.entry(entry.identity) ?: entry
+        val moved = current.copy(host = endpoint.host, port = endpoint.port)
+        val identityTaken = moved.identity != current.identity && store.entry(moved.identity) != null
+        val token = tokens.token(current)
         val outcome = when {
             identityTaken -> DeviceExchangeAddressChange.IdentityTaken
             token != null && !tokens.save(moved, token) -> DeviceExchangeAddressChange.TokenNotMoved
             else -> DeviceExchangeAddressChange.Changed(moved)
         }
-        if (outcome is DeviceExchangeAddressChange.Changed && moved.identity != entry.identity) {
-            tokens.forget(entry)
+        if (outcome is DeviceExchangeAddressChange.Changed && moved.identity != current.identity) {
+            tokens.forget(current)
             // The PINs follow the binding in the same branch, or every protected resource would ask again.
-            val bound = resourceDao.getAllResourcesSync()
-                .filter { it.exchangeAccount == entry.identity }
-                .mapNotNull { it.exchangeResourceId }
-            pins.move(entry.identity, moved.identity, bound)
-            resourceDao.rebindExchangeAccount(entry.identity, moved.identity)
+            val bound = resourceDao.getExchangeResourceIds(current.identity)
+            pins.move(current.identity, moved.identity, bound)
+            resourceDao.rebindExchangeAccount(current.identity, moved.identity)
         }
-        if (outcome is DeviceExchangeAddressChange.Changed) store.replace(entry.identity, moved)
-        return outcome
+        return if (outcome is DeviceExchangeAddressChange.Changed) {
+            val updated = store.changeAddress(current.identity, endpoint.host, endpoint.port) ?: moved
+            DeviceExchangeAddressChange.Changed(updated)
+        } else {
+            outcome
+        }
     }
 
     /**
@@ -210,9 +213,7 @@ class DeviceExchangeAccountRepository @Inject constructor(
      */
     suspend fun deleteAccount(entry: DeviceExchangeAccountEntry, password: DeviceExchangeCredential.Password) {
         withContext(ioDispatcher) { client.deleteAccount(entry, password) }
-        resourceDao.getAllResourcesSync()
-            .filter { it.exchangeAccount == entry.identity }
-            .mapNotNull { it.exchangeResourceId }
+        resourceDao.getExchangeResourceIds(entry.identity)
             .forEach { resourceId -> pins.forget(ExchangeBinding(entry.identity, resourceId)) }
         tokens.forget(entry)
         e2eKeys.forget(entry.deviceId)
@@ -248,7 +249,7 @@ class DeviceExchangeAccountRepository @Inject constructor(
     }
 
     suspend fun setAutoAttach(entry: DeviceExchangeAccountEntry, enabled: Boolean) {
-        store.entry(entry.identity)?.let { store.put(it.copy(autoAttach = enabled)) }
+        store.update(entry.identity) { it.copy(autoAttach = enabled) }
     }
 
     /**
@@ -257,21 +258,14 @@ class DeviceExchangeAccountRepository @Inject constructor(
      * all three are unchanged.
      */
     suspend fun rememberWelcome(entry: DeviceExchangeAccountEntry, welcome: DeviceExchangeWelcome) {
-        store.entry(entry.identity)
-            ?.takeIf {
-                it.publicEndpoint != welcome.publicEndpoint ||
-                    it.features != welcome.features ||
-                    it.accountKind != welcome.accountKind
-            }
-            ?.let {
-                store.put(
-                    it.copy(
-                        publicEndpoint = welcome.publicEndpoint,
-                        features = welcome.features,
-                        accountKind = welcome.accountKind,
-                    )
-                )
-            }
+        // An equal list leaves the preferences equal, and DataStore skips the write of unchanged data.
+        store.update(entry.identity) {
+            it.copy(
+                publicEndpoint = welcome.publicEndpoint,
+                features = welcome.features,
+                accountKind = welcome.accountKind,
+            )
+        }
     }
 
     /** The announced address when it differs from the one [entry] connects to; the user decides (item AA). */

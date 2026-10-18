@@ -18,6 +18,8 @@
     - SITE-EXPERIENCE rules 2, 3, 4, 12 and 15 on the portal layer (S4099): a copied kit colour, the
       kit linked after the layer, a style attribute or element, a missing component or a doubled
       edition badge, an empty search result without the query, a page without its skip link.
+    - An in-app help page under documentation/help/ without the site chrome passes, and still fails on a
+      missing viewport tag; the same page outside documentation/help/ fails.
 
 .NOTES
     Exit codes:
@@ -272,6 +274,44 @@ html[data-theme="light"] {
     Test-PortalRule 'A docs/ page on another layout fails (S4117)' 'docs/PRIVACY_POLICY.md' '# Privacy Policy' "---`nlayout: default`n---`n# Privacy Policy" "layout 'default' is not the portal shell 'doc'"
     Test-PortalRule 'A docs/ page including a missing file fails (S4117)' 'docs/PRIVACY_POLICY.md' '# Privacy Policy' "# Privacy Policy`n{% include lang-switcher.html doc=`"x`" %}" "includes 'lang-switcher.html', which is not in _includes/"
     Test-PortalRule 'A skip link after the chrome fails (rule 15)' 'documentation/index.html' '(<a class="doc-skip-link"[^>]*>[^<]*</a>)(\s*)(<header class="doc-header">.*?</header>)' '$3$2$1' 'skip link to #main-content'
+
+    # An in-app help page (CONTEXT-HELP rule 10) is not a site page: it carries no theme script, toggle,
+    # search client or skip link, and every other check still judges it.
+    function New-HelpPageCase([string]$name) {
+        $caseDir = Join-Path $scratchRoot $name
+        Initialize-SyntheticDocTree $caseDir
+        $helpDir = Join-Path $caseDir 'documentation/help'
+        New-Item -ItemType Directory -Path $helpDir -Force | Out-Null
+        $page = @'
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Help</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body>
+<main><h1>Help</h1></main>
+</body>
+</html>
+'@
+        Set-Content -LiteralPath (Join-Path $helpDir 'main.html') -Value $page -Encoding utf8
+        Set-Content -LiteralPath (Join-Path $helpDir 'help.css') -Value 'body { margin: 0; }' -Encoding utf8
+        return $caseDir
+    }
+    $caseHelp = New-HelpPageCase 'help-page-no-chrome'
+    $outHelp = & $pwshExe -NoProfile -File $gateScript -RepoRoot $caseHelp 2>&1
+    Assert-That 'A help page without the site chrome passes' ($LASTEXITCODE -eq 0) ($outHelp -join '; ')
+    $caseHelpBad = New-HelpPageCase 'help-page-no-viewport'
+    $helpPagePath = Join-Path $caseHelpBad 'documentation/help/main.html'
+    (Get-Content -LiteralPath $helpPagePath -Raw) -replace '<meta name="viewport"[^>]+>', '' | Set-Content -LiteralPath $helpPagePath -Encoding utf8
+    $outHelpBad = & $pwshExe -NoProfile -File $gateScript -RepoRoot $caseHelpBad 2>&1
+    Assert-That 'A help page without a viewport tag still fails' ($LASTEXITCODE -ne 0 -and (($outHelpBad -join "`n") -match 'documentation/help/main\.html - missing responsive viewport')) ($outHelpBad -join '; ')
+    $caseSiteBad = New-HelpPageCase 'site-page-no-chrome'
+    Copy-Item -LiteralPath (Join-Path $caseSiteBad 'documentation/help/main.html') -Destination (Join-Path $caseSiteBad 'documentation/guide.html')
+    $outSiteBad = & $pwshExe -NoProfile -File $gateScript -RepoRoot $caseSiteBad 2>&1
+    Assert-That 'The same page outside documentation/help still fails' ($LASTEXITCODE -ne 0 -and (($outSiteBad -join "`n") -match 'documentation/guide\.html - missing theme toggle button')) ($outSiteBad -join '; ')
 } finally {
     if (Test-Path -LiteralPath $scratchRoot) {
         Remove-Item -LiteralPath $scratchRoot -Recurse -Force -ErrorAction SilentlyContinue

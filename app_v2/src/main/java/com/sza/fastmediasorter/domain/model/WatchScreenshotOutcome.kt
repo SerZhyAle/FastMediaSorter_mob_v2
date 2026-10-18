@@ -9,8 +9,17 @@ package com.sza.fastmediasorter.domain.model
  */
 sealed interface WatchScreenshotOutcome {
 
-    /** The watch photographed its screen and sent the file; it arrives on the phone's file route. */
-    data class Captured(val fileName: String) : WatchScreenshotOutcome
+    /**
+     * The watch photographed its screen and sent the file; it arrives on the phone's file route.
+     *
+     * S4282: [capturedAtEpochMillis] is when the picture reached this phone, and [browseResourceId] the
+     * resource whose root now holds it - null when no resource does, so there is nothing to open.
+     */
+    data class Captured(
+        val fileName: String,
+        val capturedAtEpochMillis: Long,
+        val browseResourceId: Long?
+    ) : WatchScreenshotOutcome
 
     /** No node is connected - the watch is absent, asleep or out of range. */
     data object NoConnectedWatch : WatchScreenshotOutcome

@@ -41,6 +41,8 @@ class WearSealedRelayProxy(
     private val server =
         ServerSocket(0, ACCEPT_BACKLOG, InetAddress.getByName(WearExchangeRelayEndpoint.LOOPBACK_HOST))
     private val closed = AtomicBoolean(false)
+    private val lock = Any()
+    private val activeConnections = LinkedHashSet<Closeable>()
     private val workers: ExecutorService = Executors.newCachedThreadPool { runnable ->
         Thread(runnable, "fms-wear-sealed-relay").apply { isDaemon = true }
     }
@@ -48,7 +50,7 @@ class WearSealedRelayProxy(
     override val port: Int get() = server.localPort
 
     init {
-        workers.execute(::acceptLoop)
+        submit(::acceptLoop)
     }
 
     private fun acceptLoop() {
@@ -59,34 +61,42 @@ class WearSealedRelayProxy(
                 if (!closed.get()) Timber.w(e, "WearSealedRelayProxy %s: accept failed, proxy stops", label)
                 return
             }
-            workers.execute { serve(client) }
+            if (!track(client)) return
+            if (!submit { serve(client) }) release(client)
         }
     }
 
     // The player's request is read and dropped: the proxy serves one stream, whatever the player asked.
     private fun serve(client: Socket) {
         try {
-            client.use {
-                E2eRelayHttp.skipRequest(client.getInputStream())
-                Timber.d("S4240: watch plays a sealed relay through the opening proxy")
-                val player = client.getOutputStream()
-                val listener = E2eRelayListener(broadcastId, groupKey)
-                var end = listen(listener, player)
-                // Item DL: a record of an unknown epoch makes the listener reconnect once for the current ring.
-                if (end == E2eRelayEnd.UNKNOWN_EPOCH) end = listen(listener, player)
-                if (end != E2eRelayEnd.ENDED) Timber.w("WearSealedRelayProxy %s: stopped, code=sealed-failed", label)
+            E2eRelayHttp.skipRequest(client.getInputStream())
+            Timber.d("S4240: watch plays a sealed relay through the opening proxy")
+            val player = client.getOutputStream()
+            val listener = E2eRelayListener(broadcastId, groupKey)
+            var end = listen(listener, player)
+            // Item DL: a record of an unknown epoch makes the listener reconnect once for the current ring.
+            if (end == E2eRelayEnd.UNKNOWN_EPOCH && !closed.get()) end = listen(listener, player)
+            if (end != E2eRelayEnd.ENDED && !closed.get()) {
+                Timber.w("WearSealedRelayProxy %s: stopped, code=sealed-failed", label)
             }
         } catch (e: IOException) {
             Timber.d("WearSealedRelayProxy %s: stream ended - %s", label, e.javaClass.simpleName)
+        } finally {
+            release(client)
         }
     }
 
-    private fun listen(listener: E2eRelayListener, player: OutputStream): E2eRelayEnd =
-        opener().use { upstream ->
+    private fun listen(listener: E2eRelayListener, player: OutputStream): E2eRelayEnd {
+        val upstream = opener()
+        if (!track(upstream)) throw IOException("proxy closed")
+        return try {
             E2eRelayHttp.get(path, host, upstream.output, requestHeader)
             val body = E2eRelayHttp.body(upstream.input)
             listener.pump(body, player) { mediaType -> answerHead(player, mediaType) }
+        } finally {
+            release(upstream)
         }
+    }
 
     private fun answerHead(player: OutputStream, mediaType: String) {
         val head = "HTTP/1.1 200 OK\r\nContent-Type: $mediaType\r\nCache-Control: no-cache\r\n" +
@@ -97,12 +107,53 @@ class WearSealedRelayProxy(
 
     override fun close() {
         if (!closed.compareAndSet(false, true)) return
+        closeQuietly(server)
+        closeActiveConnections()
+        workers.shutdownNow()
+    }
+
+    private fun track(closeable: Closeable): Boolean {
+        val admitted = synchronized(lock) {
+            if (closed.get()) {
+                false
+            } else {
+                activeConnections.add(closeable)
+                true
+            }
+        }
+        if (!admitted) closeQuietly(closeable)
+        return admitted
+    }
+
+    private fun release(closeable: Closeable) {
+        synchronized(lock) {
+            activeConnections.remove(closeable)
+        }
+        closeQuietly(closeable)
+    }
+
+    private fun closeActiveConnections() {
+        val snapshot = synchronized(lock) {
+            closed.set(true)
+            activeConnections.toList().also { activeConnections.clear() }
+        }
+        snapshot.forEach(::closeQuietly)
+    }
+
+    private fun submit(task: () -> Unit): Boolean = try {
+        workers.execute(task)
+        true
+    } catch (e: java.util.concurrent.RejectedExecutionException) {
+        Timber.v("WearSealedRelayProxy %s: task rejected after close - %s", label, e.javaClass.simpleName)
+        false
+    }
+
+    private fun closeQuietly(closeable: Closeable) {
         try {
-            server.close()
+            closeable.close()
         } catch (e: IOException) {
             Timber.v("WearSealedRelayProxy %s: close failed - %s", label, e.javaClass.simpleName)
         }
-        workers.shutdownNow()
     }
 
     private companion object {

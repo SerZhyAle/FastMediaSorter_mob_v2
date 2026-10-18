@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Add Resource</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Add Resource</span>
+</nav>
+<header class="hero">
+<h1>Add Resource</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">Add Resource is where you connect a new place with your files to the app: a folder on the device, a network share, an SFTP or FTP server, a cloud folder, an internet stream or your watch. Pick a type, fill in a short form, and the new resource appears in the list on the main screen.</p>
+<figure class="shot">
+<img class="on-light" src="../img/add-resource-en-light.webp" alt="Add Resource">
+<img class="on-dark" src="../img/add-resource-en-dark.webp" alt="Add Resource">
+</figure>
+<h2>In this order</h2>
+<ol class="order">
+<li>Choose what to add: Local Folder <a class="ref" href="#type-local">2</a> for this device, Network Folder <a class="ref" href="#type-network">3</a> for an SMB share, SFTP / FTP <a class="ref" href="#type-sftp">4</a>, Cloud Storage <a class="ref" href="#type-cloud">5</a>, Stream <a class="ref" href="#type-stream">6</a>, Paired watch <a class="ref" href="#type-watch">7</a> or From my devices <a class="ref" href="#type-my-devices">8</a>. Types that are switched off in Settings or missing from your edition are not listed, and if you press Add on the main screen while a type tab is open, that type's form opens at once.</li>
+<li>Device folder: press SCAN <a class="ref" href="#local-scan">12</a> to get suggestions or Add Manually <a class="ref" href="#local-add-manually">13</a> to pick a folder yourself, tick what you want in the list <a class="ref" href="#local-list">14</a>, then press Add to Resources <a class="ref" href="#add-to-resources">11</a>.</li>
+<li>Network share: enter the server address <a class="ref" href="#smb-server">17</a>, or find it with Scan Network <a class="ref" href="#smb-scan-network">16</a>. Add the username <a class="ref" href="#smb-username">18</a> and password <a class="ref" href="#smb-password">19</a>, check them with Test connection <a class="ref" href="#smb-test">20</a>, choose the share with Scan host <a class="ref" href="#smb-scan-shares">21</a> or type its name <a class="ref" href="#smb-share-name">22</a>, then press Add This Resource <a class="ref" href="#smb-add">27</a>.</li>
+<li>SFTP or FTP: choose the protocol <a class="ref" href="#sftp-protocol">29</a>, enter the host <a class="ref" href="#sftp-host">30</a> and the sign-in <a class="ref" href="#sftp-auth">31</a>, try Test Connection <a class="ref" href="#sftp-test">32</a>, set the remote path <a class="ref" href="#sftp-remote-path">34</a> and press Add Resource <a class="ref" href="#sftp-add">36</a>.</li>
+<li>Cloud storage: tap a provider <a class="ref" href="#cloud-providers">15</a>, sign in, then open folders with Enter <a class="ref" href="#picker-enter">45</a> and press Select <a class="ref" href="#picker-select">46</a> on the one you want to add.</li>
+<li>Have a ready configuration from the Windows companion? Import from file <a class="ref" href="#import-file">9</a> or Import by barcode <a class="ref" href="#import-barcode">10</a> saves you typing all of this.</li>
+<li>Back <a class="ref" href="#back">1</a> leaves the screen without adding anything that is not saved yet.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Choosing what to add</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Back</span><span class="one">Leaves this screen without adding what you have not saved yet.</span></span></summary>
+<div class="full">
+<p>From the type list or from any form, the button takes you back to the screen you came from, usually the main screen. It does not step back from a form to the type list - to choose another type, open Add again. What you typed in a form and did not add is dropped.</p>
+<dl class="facts">
+<dt>Shortcut</dt><dd><kbd>Esc</kbd> / <kbd>F10</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="type-local">
+<summary><span class="mk">2</span><span><span class="name">Local Folder</span><span class="one">Adds a folder, or a collection of media, from this device.</span></span></summary>
+<div class="full">
+<p>Opens the Local Folder form: let the app scan for folders that hold media, or pick any folder yourself, a memory card or USB drive included. This card is always here. When every remote source is switched off or missing from your edition, it is the only choice, so the screen skips the type list and opens this form straight away.</p>
+</div>
+</details>
+<details class="el" id="type-network">
+<summary><span class="mk">3</span><span><span class="name">Network Folder</span><span class="one">Adds a shared folder from a PC or NAS over SMB.</span></span></summary>
+<div class="full">
+<p>Opens the SMB form, which takes the server address, the sign-in and the share name. The card shows up only when SMB is available in your edition and switched on in Settings, General tab, Remote resources (SMB/(S)FTP/Cloud).</p>
+</div>
+</details>
+<details class="el" id="type-sftp">
+<summary><span class="mk">4</span><span><span class="name">SFTP / FTP</span><span class="one">Adds a folder on an SFTP or FTP server.</span></span></summary>
+<div class="full">
+<p>Opens the SFTP / FTP form, where you choose the protocol and sign in with a password or an SSH key. The card shows up when SFTP or FTP is available in your edition and switched on in Settings, General tab, Remote resources. The two import buttons are repeated at the top of that form.</p>
+</div>
+</details>
+<details class="el" id="type-cloud">
+<summary><span class="mk">5</span><span><span class="name">Cloud Storage</span><span class="one">Adds a folder from Google Drive, OneDrive or Dropbox.</span></span></summary>
+<div class="full">
+<p>Opens the list of cloud providers. Cloud storage is not part of every edition, and the card shows up only while at least one cloud provider is switched on in Settings, General tab, Remote resources.</p>
+</div>
+</details>
+<details class="el" id="type-stream">
+<summary><span class="mk">6</span><span><span class="name">Stream</span><span class="one">Adds an internet stream by its web address.</span></span></summary>
+<div class="full">
+<p>Instead of a form on this screen, it opens the resource editor for a new stream. There you give the stream a name and its address (http, https or rtsp), and add a comment or a PIN if you want. It then joins your resources like any other.</p>
+</div>
+</details>
+<details class="el" id="type-watch">
+<summary><span class="mk">7</span><span><span class="name">Paired watch</span><span class="one">Adds your paired watch as a resource.</span></span></summary>
+<div class="full">
+<p>A watch has no address or password, so the app asks for one thing only: a name (the suggestion is Watch). There is just one paired watch; if it is already in your resources you get a note instead of a duplicate. The card shows up only in editions that can work with a watch.</p>
+</div>
+</details>
+<details class="el" id="type-my-devices">
+<summary><span class="mk">8</span><span><span class="name">From my devices</span><span class="one">Attaches resources that your other devices publish.</span></span></summary>
+<div class="full">
+<p>Opens a list of the resources your other devices share through your exchange server or Google Drive. Tick the ones you need and press Attach, or press Attach all listed to take everything on the list. The card is shown together with the SFTP / FTP card, because attached resources connect as SFTP resources.</p>
+</div>
+</details>
+<details class="el" id="import-file">
+<summary><span class="mk">9</span><span><span class="name">Import from file</span><span class="one">Creates resources from a configuration file prepared on a PC.</span></span></summary>
+<div class="full">
+<p>Pick the configuration file that the Windows companion saved. The app reads it, adds new resources, updates the ones that already exist, tells you how many changed and closes this screen. If the file carries no password, a window shows the server and asks for it first. A damaged file, or one made by a newer version, is refused with a message.</p>
+</div>
+</details>
+<details class="el" id="import-barcode">
+<summary><span class="mk">10</span><span><span class="name">Import by barcode</span><span class="one">Creates resources from a QR code shown by the PC companion.</span></span></summary>
+<div class="full">
+<p>Opens the camera to scan the code, then imports exactly as a file would. A pairing code from another phone's built-in SFTP server works here too - it fills in the SFTP / FTP form for you to check and save. The button is hidden on devices without a camera, VR headsets included; use the Import from file button there.</p>
+</div>
+</details>
+<details class="el" id="add-to-resources">
+<summary><span class="mk">11</span><span><span class="name">Add to Resources</span><span class="one">Saves the folders you ticked in the local list.</span></span></summary>
+<div class="full">
+<p>The button appears only once the Local Folder form has something in its list. It adds every ticked row as a resource, tells you how many were added and closes the screen. With nothing ticked you get a reminder to select at least one. If your Quick Sort list is full, the resources are still added, but the surplus ones are left out of Quick Sort and the message says how many.</p>
+</div>
+</details>
+<h3>Local folder and cloud storage</h3>
+<details class="el" id="local-scan">
+<summary><span class="mk">12</span><span><span class="name">SCAN</span><span class="one">Looks for folders with media on this device.</span></span></summary>
+<div class="full">
+<p>Builds a list of suggestions: the standard folders, folders that contain media, and collections such as Recent Media or All Music. Folders and collections you have already added are left out. Nothing is saved yet - tick what you want in the list below and press Add to Resources.</p>
+</div>
+</details>
+<details class="el" id="local-add-manually">
+<summary><span class="mk">13</span><span><span class="name">Add Manually</span><span class="one">Picks a folder or a collection yourself.</span></span></summary>
+<div class="full">
+<p>Opens the Select Folder window. Its Virtual resources buttons (Recent Media, All Music, All Videos, Camera Photos, All Images, All Documents) add that collection at once and close this screen. Quick Select Common Folders offers the device root, DCIM, Pictures, Download, Documents and the WhatsApp, Telegram and Instagram folders; Removable media lists connected cards and drives; a path field (only where the app may read paths) and the system picker cover the rest. A folder you pick lands in the list below already ticked.</p>
+<p>When Android first needs All files access, a window explains it and lets you grant it or continue with limited access.</p>
+</div>
+</details>
+<details class="el" id="local-list">
+<summary><span class="mk">14</span><span><span class="name">Resources to add:</span><span class="one">The folders found or picked, ready to be ticked and added.</span></span></summary>
+<div class="full">
+<p>Each row has a checkbox, a name you can edit, the path, the file count and one letter per media type - tap a letter to switch that type on or off. Under them sit Mark for Quick Sort, Read-only mode, Scan subdirectories and All Files. A folder that cannot be written to cannot be marked for Quick Sort. The list stays hidden until the first folder arrives.</p>
+</div>
+</details>
+<details class="el" id="cloud-providers">
+<summary><span class="mk">15</span><span><span class="name">Select Cloud Provider</span><span class="one">Signs in to Google Drive, OneDrive or Dropbox, then lets you pick a folder.</span></span></summary>
+<div class="full">
+<p>Every card shows Not connected, or Connected as and the account. Tap a provider: if you have signed in before, you choose an account or Add New Account, otherwise sign-in starts at once. When it succeeds, the folder picker opens (see the last group of this page).</p>
+</div>
+</details>
+<h3>Network share (SMB) form</h3>
+<details class="el" id="smb-scan-network">
+<summary><span class="mk">16</span><span><span class="name">Scan Network</span><span class="one">Finds computers with shared folders on your local network.</span></span></summary>
+<div class="full">
+<p>Opens the Network Discovery window and scans your local network. Pick a computer from its list: its address goes into Server IP and the app lists its shares for you. On some Android versions the app first asks for permission to reach devices on the local network.</p>
+</div>
+</details>
+<details class="el" id="smb-server">
+<summary><span class="mk">17</span><span><span class="name">Server IP</span><span class="one">The address of the computer or NAS that shares the folder.</span></span></summary>
+<div class="full">
+<p>Type an IP address. The field starts with the first three numbers of your phone's own address, so usually you only add the last one. An empty or invalid address stops Test connection and Scan host with a message.</p>
+</div>
+</details>
+<details class="el" id="smb-username">
+<summary><span class="mk">18</span><span><span class="name">Username</span><span class="one">The account that is allowed to open the share.</span></span></summary>
+<div class="full">
+<p>Type the name of the account on the server. A Windows domain, if you use one, goes under Additional Options.</p>
+</div>
+</details>
+<details class="el" id="smb-password">
+<summary><span class="mk">19</span><span><span class="name">Password</span><span class="one">The password of that account.</span></span></summary>
+<div class="full">
+<p>It is saved with the resource, so the app can connect on its own later. While this form is open, the screen can be hidden from screenshots and the recent apps view, depending on the Secure sensitive screens setting.</p>
+</div>
+</details>
+<details class="el" id="smb-test">
+<summary><span class="mk">20</span><span><span class="name">Test connection</span><span class="one">Checks the address and the sign-in before you save.</span></span></summary>
+<div class="full">
+<p>Connects with what you typed and shows Connection Test - Success or Connection Test - Failed in a window. Nothing is saved.</p>
+</div>
+</details>
+<details class="el" id="smb-scan-shares">
+<summary><span class="mk">21</span><span><span class="name">Scan host</span><span class="one">Lists the shared folders a server offers.</span></span></summary>
+<div class="full">
+<p>Asks the server which shares it has and shows them in a list. Pick one and its name goes into the ShareName/subfolder field. The list also holds names you typed by hand earlier, marked with a tick, and a line to type a name yourself. If the server shows nothing, a message says so and you type the name instead. Fill in Server IP first, or you get a reminder.</p>
+</div>
+</details>
+<details class="el" id="smb-share-name">
+<summary><span class="mk">22</span><span><span class="name">ShareName/subfolder</span><span class="one">The shared folder to open, and optionally a subfolder inside it.</span></span></summary>
+<div class="full">
+<p>For example Common or Photos. Take it from the Scan host list or type it yourself; backslashes are turned into slashes.</p>
+</div>
+</details>
+<details class="el" id="smb-resource-name">
+<summary><span class="mk">23</span><span><span class="name">Resource Name</span><span class="one">How the resource is called in your list.</span></span></summary>
+<div class="full">
+<p>If you leave it empty, the app uses the share name. You can rename the resource later in its editor.</p>
+</div>
+</details>
+<details class="el" id="smb-scanning">
+<summary><span class="mk">24</span><span><span class="name">Content Scanning Conditions</span><span class="one">Decides which files of the share the app looks at.</span></span></summary>
+<div class="full">
+<p>A collapsible section with five choices. Scan subdirectories looks for media in all nested folders. All Files shows every file type, not only media. Show subfolders separately lists subfolders as items you tap to enter. Disable thumbnails shows extension icons instead of previews. Remember file list for this resource keeps a copy of the list on the device for faster loading.</p>
+</div>
+</details>
+<details class="el" id="smb-media-types">
+<summary><span class="mk">25</span><span><span class="name">Media Types</span><span class="one">Chooses which kinds of files the resource shows.</span></span></summary>
+<div class="full">
+<p>Tick Images, Videos, Audio, GIFs, Text, PDF, EPUB and DOC - only the types that are turned on in Settings and available in your edition are listed. The button at the top, Custom at first, opens Resource Profile with ready sets: Audio Library, Video Library, Photo Storage, Documents and File Manager Mode. All Files in the section above ticks every type and locks the boxes.</p>
+</div>
+</details>
+<details class="el" id="smb-additional">
+<summary><span class="mk">26</span><span><span class="name">Additional Options</span><span class="one">Optional extras: Quick Sort, read-only, a comment, a PIN, the domain and the port.</span></span></summary>
+<div class="full">
+<p>Mark for Quick Sort registers the share as a destination for sorting. Read-only mode blocks copy, move and delete on it, and switches Quick Sort off. Comment is a note for yourself, and PIN Code (Optional) protects the resource with 4-6 digits. Domain is for Windows domain accounts, and Port is 445 unless your server listens elsewhere.</p>
+</div>
+</details>
+<details class="el" id="smb-add">
+<summary><span class="mk">27</span><span><span class="name">Add This Resource</span><span class="one">Saves the share as a resource.</span></span></summary>
+<div class="full">
+<p>Saves the sign-in details, adds the resource, shows a message and closes this screen. If the share cannot be reached right away, you are told so, but the resource is still added - check the share name and access, then fix them in the editor.</p>
+</div>
+</details>
+<h3>SFTP / FTP form</h3>
+<details class="el" id="sftp-pc-guide">
+<summary><span class="mk">28</span><span><span class="name">How to publish PC folders to Android</span><span class="one">Opens the guide for publishing PC folders to the app.</span></span></summary>
+<div class="full">
+<p>The link sits at the top of the form next to the two import buttons and opens the companion's setup guide in your browser. Use it when you have not published any PC folders yet and have nothing to import.</p>
+</div>
+</details>
+<details class="el" id="sftp-protocol">
+<summary><span class="mk">29</span><span><span class="name">Select Protocol:</span><span class="one">Chooses SFTP (secure, over SSH) or plain FTP.</span></span></summary>
+<div class="full">
+<p>SFTP uses port 22 and FTP uses port 21; the port field follows your choice unless you typed another number. FTP is not encrypted, so prefer SFTP when the server offers it. The Server verification block below applies to SFTP only and is hidden for FTP.</p>
+</div>
+</details>
+<details class="el" id="sftp-host">
+<summary><span class="mk">30</span><span><span class="name">Host</span><span class="one">The name or IP address of the server, and its port.</span></span></summary>
+<div class="full">
+<p>Type the host name or the address. The port is filled in for you (22 for SFTP, 21 for FTP); change it only if your server listens elsewhere. An empty or invalid host is refused with a message.</p>
+</div>
+</details>
+<details class="el" id="sftp-auth">
+<summary><span class="mk">31</span><span><span class="name">Sign-in method</span><span class="one">Signs in with a password or with an SSH key.</span></span></summary>
+<div class="full">
+<p>Password asks for the username and the password. SSH Key asks for the username and the private key - paste the key text or press Load File to read it from a file - plus a passphrase if the key has one. SSH keys work with SFTP only; FTP always uses a password.</p>
+</div>
+</details>
+<details class="el" id="sftp-test">
+<summary><span class="mk">32</span><span><span class="name">Test Connection</span><span class="one">Checks the address and the sign-in before you save.</span></span></summary>
+<div class="full">
+<p>Connects with what you typed and reports success or failure in a window. When the server shows its host key and the verification field is still empty, the window offers Pin Host Key, which copies the key into Server verification for you.</p>
+</div>
+</details>
+<details class="el" id="sftp-verification">
+<summary><span class="mk">33</span><span><span class="name">Server verification (optional)</span><span class="one">Locks the connection to one genuine server.</span></span></summary>
+<div class="full">
+<p>Paste the server's host key fingerprint in SHA256 format and the app refuses any other machine that answers at this address. That protects you from someone pretending to be your server. It is optional and applies to SFTP only; the easiest way to fill it is Test Connection and then Pin Host Key.</p>
+</div>
+</details>
+<details class="el" id="sftp-remote-path">
+<summary><span class="mk">34</span><span><span class="name">Remote Path</span><span class="one">The folder on the server that becomes the resource.</span></span></summary>
+<div class="full">
+<p>For example /home/user/media, or / for everything the account can see. Right below it, Resource Name is the label in your list; if you leave it empty, the app makes one up.</p>
+</div>
+</details>
+<details class="el" id="sftp-sections">
+<summary><span class="mk">35</span><span><span class="name">Scanning, media types and additional options</span><span class="one">Three collapsible sections that work exactly as in the network share form.</span></span></summary>
+<div class="full">
+<p>Content Scanning Conditions, Media Types and Additional Options hold the same choices as for an SMB share: subdirectories, All Files, thumbnails, media types with the profile button, Quick Sort, Read-only mode, a comment and a PIN. Open them only if the defaults do not suit you.</p>
+</div>
+</details>
+<details class="el" id="sftp-add">
+<summary><span class="mk">36</span><span><span class="name">Add Resource</span><span class="one">Saves the server folder as a resource.</span></span></summary>
+<div class="full">
+<p>Needs a host and at least one media type; otherwise a message tells you what is missing. After saving, the screen closes. If the server cannot be reached right away, the resource is still added and a message says it is unavailable for now, so you can correct the details later in the editor.</p>
+</div>
+</details>
+<h3>Network Discovery dialog</h3>
+<details class="el" id="discovery-status">
+<summary><span class="mk">37</span><span><span class="name">Scan status</span><span class="one">Shows how far the search has come.</span></span></summary>
+<div class="full">
+<p>While it works, the line shows the part of the network being checked and a counter. When the search ends it says Scan complete.</p>
+</div>
+</details>
+<details class="el" id="discovery-hosts">
+<summary><span class="mk">38</span><span><span class="name">Found devices</span><span class="one">Lists devices on your network that offer file sharing.</span></span></summary>
+<div class="full">
+<p>Each row shows the device name, its address and the services it offers - SMB, FTP or SFTP. Tap a row to use that device: its address goes into the Server IP field, the window closes and the app lists its shares. If nothing turns up, a note says No devices found yet; make sure you are on the same Wi-Fi and press Scan Again.</p>
+</div>
+</details>
+<details class="el" id="discovery-stop">
+<summary><span class="mk">39</span><span><span class="name">Stop</span><span class="one">Stops the search, or starts it again.</span></span></summary>
+<div class="full">
+<p>While the scan runs, the button reads Stop and ends the search without closing the window. Once the scan has finished or been stopped, it reads Scan Again and searches once more.</p>
+</div>
+</details>
+<details class="el" id="discovery-cancel">
+<summary><span class="mk">40</span><span><span class="name">Cancel</span><span class="one">Closes the window without choosing a device.</span></span></summary>
+<div class="full">
+<p>A scan that is still running is stopped as well.</p>
+</div>
+</details>
+<h3>Cloud folder pickers (Google Drive, OneDrive, Dropbox)</h3>
+<details class="el" id="picker-refresh">
+<summary><span class="mk">41</span><span><span class="name">Pull down to refresh</span><span class="one">Reloads the folders of the level you are on.</span></span></summary>
+<div class="full">
+<p>Drag the list down to load it again, for example after you created a folder in the cloud. The keyboard does the same.</p>
+<dl class="facts">
+<dt>Shortcut</dt><dd><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd> / <kbd>Ctrl</kbd> + <kbd>F5</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="picker-add-as-destination">
+<summary><span class="mk">42</span><span><span class="name">Add as destination</span><span class="one">Also marks the chosen folder for Quick Sort.</span></span></summary>
+<div class="full">
+<p>When ticked, the folder you select becomes a Quick Sort destination as well as a resource. Tick it before you press Select; it starts unticked.</p>
+</div>
+</details>
+<details class="el" id="picker-scan-subdirectories">
+<summary><span class="mk">43</span><span><span class="name">Scan subdirectories</span><span class="one">Includes everything inside the chosen folder.</span></span></summary>
+<div class="full">
+<p>When ticked, which it is at the start, media is searched in all folders nested under the one you select. Untick it to look at the top level only.</p>
+</div>
+</details>
+<details class="el" id="picker-folder-list">
+<summary><span class="mk">44</span><span><span class="name">Folder list</span><span class="one">The folders of your cloud storage, one level at a time.</span></span></summary>
+<div class="full">
+<p>The toolbar shows the path you are in. Tap a row to go into that folder; each row also has its own Enter and Select buttons, and Back below the top level. If a level has no folders, a note says so.</p>
+<dl class="facts">
+<dt>Shortcut</dt><dd><kbd>Enter</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="picker-enter">
+<summary><span class="mk">45</span><span><span class="name">Enter</span><span class="one">Opens the folder to show the folders inside it.</span></span></summary>
+<div class="full">
+<p>Does the same as tapping the row. Use it to go down to the folder you really want before you press Select.</p>
+</div>
+</details>
+<details class="el" id="picker-select">
+<summary><span class="mk">46</span><span><span class="name">Select</span><span class="one">Adds this folder to your resources.</span></span></summary>
+<div class="full">
+<p>Creates a cloud resource from the folder, using your Add as destination and Scan subdirectories choices and the media types enabled in Settings. You see Resource added and land on the main screen. A folder you added before is refused with a note.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Nothing in the cloud changes. To undo it, delete the resource on the main screen; the folder stays where it is.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="picker-back">
+<summary><span class="mk">47</span><span><span class="name">Back</span><span class="one">Goes up one level.</span></span></summary>
+<div class="full">
+<p>The button appears on rows below the top level. The toolbar arrow and the Back button of the device do the same, and from the top level they close the picker. Esc closes it too.</p>
+<dl class="facts">
+<dt>Shortcut</dt><dd><kbd>Backspace</kbd></dd>
+</dl>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-general.html"><b>Settings: General</b><span class="pill">Screen</span></a></li>
+<li><a href="resource-editor.html"><b>Edit Resource</b><span class="pill">Screen</span></a></li>
+<li><a href="auth-sessions.html"><b>Saved authorizations</b><span class="pill">Screen</span></a></li>
+<li><a href="my-devices.html"><b>My devices</b><span class="pill">Screen</span></a></li>
+<li><a href="streams.html"><b>Streams</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/storage-sources-setup.html"><b>Adding Folders from Your Phone, Memory Card and USB Drive</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/network-and-cloud-sources.html"><b>Adding Network Folders and Cloud Storage as Sources</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/windows-companion.html"><b>Sharing PC Folders with Fast Media Sorter &amp; Sharing for Windows</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

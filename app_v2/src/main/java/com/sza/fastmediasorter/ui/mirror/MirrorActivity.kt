@@ -146,6 +146,9 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
         binding.btnMirrorFlip.setOnClickListener {
             viewModel.setHorizontallyFlipped(!viewModel.horizontallyFlipped.value)
         }
+        binding.btnHelpHeader.setOnClickListener {
+            com.sza.fastmediasorter.ui.common.help.HelpOpenManager.openIfPresent(this, "MirrorActivity", null)
+        }
         binding.btnMirrorPhoto.setOnClickListener { capturePhoto() }
         binding.btnMirrorVideo.setOnClickListener { toggleRecording() }
         ensurePermissionAndBind()
@@ -270,7 +273,11 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
             val saved = save.await()
             releaseShutter()
             if (saved) {
-                Toast.makeText(this@MirrorActivity, R.string.camera_capture_saved, Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@MirrorActivity,
+                    getString(R.string.camera_capture_saved, tempFile.name),
+                    Toast.LENGTH_SHORT,
+                ).show()
             } else {
                 showCaptureFailed(R.string.mirror_capture_error_save)
             }
@@ -332,7 +339,7 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
                 if (isFinishing || isDestroyed) return@startRecording
                 binding.btnMirrorVideo.isEnabled = true
                 renderRecordingState(recording = false)
-                lifecycleScope.launch { reportRecording(save) }
+                lifecycleScope.launch { reportRecording(save, tempFile.name) }
             }
         }
     }
@@ -345,11 +352,15 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
     }
 
     /** [save] is null when the recording itself failed and nothing was handed to the saver. */
-    private suspend fun reportRecording(save: Deferred<Boolean>?) {
+    private suspend fun reportRecording(save: Deferred<Boolean>?, fileName: String) {
         when {
             save == null -> showCaptureFailed(R.string.mirror_capture_error_camera)
             !save.await() -> showCaptureFailed(R.string.mirror_capture_error_save)
-            else -> Toast.makeText(this, R.string.camera_capture_saved, Toast.LENGTH_SHORT).show()
+            else -> Toast.makeText(
+                this,
+                getString(R.string.camera_capture_saved, fileName),
+                Toast.LENGTH_SHORT,
+            ).show()
         }
     }
 

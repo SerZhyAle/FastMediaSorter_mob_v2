@@ -3,6 +3,9 @@ package com.sza.fastmediasorter.ui.wear
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -10,6 +13,8 @@ import androidx.fragment.app.commit
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityWearCompanionBinding
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.settings.fragments.WearSyncSettingsFragment
 import com.sza.fastmediasorter.ui.wear.helpers.WearCompanionHeaderHost
 import dagger.hilt.android.AndroidEntryPoint
@@ -62,9 +67,34 @@ class WearCompanionActivity : AppCompatActivity(), WearCompanionHeaderHost {
         }
     }
 
+    // S4328: the "?" help action. This window extends AppCompatActivity directly, so it carries its
+    // own route instead of the BaseActivity one - same help map, same surface id.
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_help_action, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.action_help) {
+            HelpOpenManager.open(this, this::class.java.simpleName, UiSurface.WEAR_COMPANION)
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
+    }
+
+    // Not a BaseActivity, so F1 reaches the help page here instead of through the shared key handling.
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_F1 &&
+            HelpOpenManager.openIfPresent(this, WearCompanionActivity::class.java.simpleName, null)
+        ) {
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     companion object {

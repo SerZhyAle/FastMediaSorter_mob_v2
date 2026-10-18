@@ -468,6 +468,64 @@ try {
     Assert-That 'the model behind that identifier is judged, and its missing annotations reported' `
     ($result.text -match 'annotated-none\s+com\.fixture\.s2840\.FixtureAck') "expected an annotated-none line for FixtureAck: $($result.text)"
 
+    # S4297: a property with its own getter and no initializer has no backing field, so Gson never
+    # serializes it. Three broadcast DTOs carried such getters and the gate read them as unpinned fields.
+    $computedGetters = @'
+package com.fixture.s4297
+
+import android.content.Context
+import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
+
+data class ComputedFlags(
+    @SerializedName("scheme") val scheme: String
+) {
+    val isKnown: Boolean get() = scheme == "known"
+    val isLong: Boolean
+        get() = scheme.length > 4
+}
+
+class ComputedFlagsStore(private val gson: Gson, private val context: Context) {
+    fun store(flags: ComputedFlags) {
+        val prefs = context.getSharedPreferences("fixture", Context.MODE_PRIVATE)
+        prefs.edit().putString("flags", gson.toJson(flags)).apply()
+    }
+}
+'@
+    $result = Invoke-Gate -Root (New-Fixture -Suffix 'computed-getters' -Source $computedGetters)
+    Assert-That 'a getter-only property, one-line or two-line, is not reported as unannotated' `
+    ($result.code -eq 0) "expected exit 0, got $($result.code): $($result.text)"
+
+    # S4297, the other side: an initialised property is still a serialized field and still needs its pin,
+    # even with a getter-only property declared beside it.
+    $backedBesideGetter = @'
+package com.fixture.s4297
+
+import android.content.Context
+import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
+
+data class BackedFlags(
+    @SerializedName("scheme") val scheme: String
+) {
+    val tally: Int = 0
+    val label: String
+        get() = scheme
+}
+
+class BackedFlagsStore(private val gson: Gson, private val context: Context) {
+    fun store(flags: BackedFlags) {
+        val prefs = context.getSharedPreferences("fixture", Context.MODE_PRIVATE)
+        prefs.edit().putString("flags", gson.toJson(flags)).apply()
+    }
+}
+'@
+    $result = Invoke-Gate -Root (New-Fixture -Suffix 'backed-beside-getter' -Source $backedBesideGetter)
+    Assert-That 'an initialised property beside a getter-only one is still reported as unannotated' `
+    ($result.code -eq 1 -and $result.text -match 'unannotated:\s*tally') "expected exit 1 naming tally, got $($result.code): $($result.text)"
+    Assert-That 'the getter-only property is not named among the unannotated fields' `
+    ($result.text -notmatch 'unannotated:[^\r\n]*\blabel\b') "getter-only label was reported: $($result.text)"
+
     Write-Host ''
     Write-Host "  $script:pass passed, $script:fail failed."
 }

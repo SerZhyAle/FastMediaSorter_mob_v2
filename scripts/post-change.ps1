@@ -1187,6 +1187,7 @@ if ($runsWearWireVocabularyParityGate) { Start-PooledGate @argvWearWireVocabular
 if ($runsIconStyleGate) { Start-PooledGate @argvIconStyle }
 if ($runsIconContractGate) { Start-PooledGate @argvIconContract }
 Start-PooledGate @argvLauncherReset
+Start-PooledGate @argvHelpMap
 
 try {
 
@@ -1552,6 +1553,11 @@ else {
 # between the two files it reads, and since S2824 it declines to charge one when neither of them is in
 # the changed set - it has no trigger, so it runs on every closure in the repo.
 Invoke-FixedInputGate "launcher-reset-coverage-gate" $argvLauncherReset 'assert-launcher-reset-coverage.ps1'
+
+# S4288: CONTEXT-HELP rule 19 - every phone surface has a help-map row and every page row its three
+# locales. Fixed-input like its neighbour above: no trigger, and a finding is charged only when the set
+# carries the map, the baseline, the enumerator, the manifest, a help source or a page.
+Invoke-FixedInputGate "help-map-gate" $argvHelpMap 'assert-help-map.ps1'
 
 # S2380: the declared-catalog gate family - five gates that judge a hand-maintained declaration
 # against the module it describes. Dot-sourced rather than inline only because the facade crossed

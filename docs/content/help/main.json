@@ -1,0 +1,252 @@
+{
+  "help": "main",
+  "surface": "MainActivity",
+  "elements": [
+    { "id": "exit", "viewId": "btnExit", "labelKey": "exit" },
+    { "id": "add", "viewId": "btnAddResource", "labelKey": "add" },
+    { "id": "filter", "viewId": "btnFilter", "labelKey": "filter" },
+    { "id": "refresh", "viewId": "btnRefresh", "labelKey": "refresh" },
+    { "id": "more-actions", "viewId": "btnMainDropdownMenu", "labelKey": "more_actions" },
+    { "id": "settings", "viewId": "btnSettings", "labelKey": "settings" },
+    { "id": "toggle-view", "viewId": "btnToggleView", "labelKey": "cd_toggle_grid_list_view" },
+    { "id": "favorites", "viewId": "btnFavorites", "labelKey": "tab_favorites" },
+    { "id": "start-player", "viewId": "btnStartPlayer", "labelKey": "start_player" },
+    { "id": "search", "viewId": "etResourceTableSearch", "labelKey": "resource_table_search_hint" },
+    { "id": "help", "viewId": "btnHelp", "labelKey": "help" },
+    { "id": "type-tabs", "viewId": "tabResourceTypes", "labelKey": "main_resource_type_filter_strip" },
+    { "id": "resource-list", "viewId": "rvResources", "labelKey": "data_transfer_kind_resources" }
+  ],
+  "related": [
+    { "help": "browse" },
+    { "help": "settings-general" },
+    { "help": "settings-media" },
+    { "help": "settings-playback" },
+    { "help": "settings-operations" },
+    { "help": "add-resource" },
+    { "help": "streams" },
+    { "help": "broadcast" },
+    { "help": "scheduled-operations" },
+    { "help": "statistics" },
+    { "pageId": "getting-started.main-screen-overview" },
+    { "pageId": "browsing.grid-and-list-views" },
+    { "pageId": "browsing.sorting-and-filtering" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Main screen",
+      "purpose": "The main screen lists your resources - the device folders, network shares and cloud folders you added. Add a resource, open it to browse its files, or start playback straight from here.",
+      "steps": [
+        "Press Add (2) to connect your first resource: a device folder, a network share or a cloud folder. Until you do, the list stays empty.",
+        "If you use network or cloud resources, pick a kind with the tabs (12) to see only those. The tabs show up once a remote source is turned on.",
+        "Tap a row in the list (13) to open its files in the file browser. Tap the row's icon to start a slideshow right away.",
+        "Use Filter (3) to sort the list or narrow it down by kind or name. Refresh (4) comes in handy after files change outside the app.",
+        "Switch the view with (7) when you want more or fewer resources on screen: list, grid or table.",
+        "Run player (9) skips the browsing and starts the selected or most recent resource. Favorites (8) opens everything you starred.",
+        "Settings (6) is where you tune the app, Help (11) opens this page, and Exit (1) leaves the app."
+      ],
+      "groups": [
+        { "title": "Command bar", "elements": ["exit", "add", "filter", "refresh", "more-actions", "settings", "toggle-view", "favorites", "start-player", "search", "help"] },
+        { "title": "Resources", "elements": ["type-tabs", "resource-list"] }
+      ],
+      "elements": {
+        "exit": {
+          "summary": "Leaves the app, or sends it to the background while something still runs.",
+          "details": "When music is playing, a recording is running, scheduled operations are working or edge gestures are on, one press only minimizes the app so those keep going, and the icon changes to show it. With nothing running in the background, one press closes the app. A long press always closes everything, background functions included."
+        },
+        "add": {
+          "summary": "Opens the screen where you add a new resource.",
+          "details": "A resource is a place with your files, such as a device folder, a network share or a cloud folder. Once you save it, it appears in the list and you can open it. Tapping the empty list does the same thing."
+        },
+        "filter": {
+          "summary": "Sorts the resource list and narrows it down.",
+          "details": "Pick a sort order (manual, name, date or number of files), then limit the list by resource type, media type or part of the name. The check mark applies your choice, and the clear-filters button resets it. While a filter is on, a note at the bottom of the list says which one."
+        },
+        "refresh": {
+          "summary": "Rescans every resource for new and changed files.",
+          "details": "Use it after copying files in from another app or a computer, or when a network share was offline. It also resets network connections and gives video thumbnails that failed earlier another try."
+        },
+        "more-actions": {
+          "summary": "Opens the menu with the actions that are not on the bar.",
+          "details": "The button shows up only when there is something in the menu: programs (when the programs panel is off), buttons that did not fit on a narrow screen, and Help. Nothing disappears on a small screen - it moves here."
+        },
+        "settings": {
+          "summary": "Opens the app settings, split into four tabs.",
+          "details": "The tabs are General, Media, Player and Management. Start with General for language, theme and device profile. If you are not sure where an option lives, Settings has a search."
+        },
+        "toggle-view": {
+          "summary": "Switches how resources are shown: list, grid or table.",
+          "details": "The icon shows the view you get next, and your choice is remembered. The table needs a wide window - a tablet, desktop mode or a large unfolded screen - and adds columns for name, source, files, content and path, plus a details panel. Narrower windows switch between list and grid."
+        },
+        "favorites": {
+          "summary": "Opens everything you marked as a favorite, in one place.",
+          "details": "It opens Favorites in the file browser. The button is shown when Favorites is turned on in Settings; you mark files while you browse."
+        },
+        "start-player": {
+          "summary": "Starts playback of a resource without opening the file browser.",
+          "details": "It plays the resource you selected. With no selection it takes the one you used last, or the first in the list. The button is grayed out while the list is empty."
+        },
+        "search": {
+          "summary": "Finds a resource by name or path in the table.",
+          "details": "The field appears only while the table view is on. Type a few letters and the rows narrow down as you go. Clear it to bring the whole list back."
+        },
+        "help": {
+          "summary": "Opens help for this screen.",
+          "details": "You get what each button does and the usual order of use, with numbers matching the markers on the screenshot."
+        },
+        "type-tabs": {
+          "summary": "Shows only the resources of one kind.",
+          "details": "ALL shows everything; Local, SMB, S/FTP and Cloud keep just that kind. A tab is built only for a source you turned on, and the whole strip stays hidden until at least one network or cloud source is on, because Local would show the same as ALL. Long-press a tab to fold the strip into a small chip, and tap the chip to bring it back."
+        },
+        "resource-list": {
+          "summary": "Your resources, one row or tile each.",
+          "details": "Tap a row to open its files in the file browser. Tap its icon to start a slideshow, or press and hold the row to edit the resource. Each row also has buttons to edit, copy its settings, move it up or down, delete it or open more actions.",
+          "undo": "Deleting a resource asks first, removes it from the app and cancels scheduled operations that use it. Your files stay where they are, and you can add the resource again."
+        }
+      }
+    },
+    "ru": {
+      "title": "Главный экран",
+      "purpose": "На главном экране собраны ваши ресурсы - папки на устройстве, сетевые папки и облачные хранилища, которые вы добавили. Добавьте ресурс, откройте его и просматривайте файлы или сразу запустите воспроизведение.",
+      "steps": [
+        "Нажмите «Добавить» (2) и подключите первый ресурс: папку на устройстве, сетевую папку или облако. Пока ресурсов нет, список пуст.",
+        "Если вы используете сетевые или облачные ресурсы, выберите нужный тип на вкладках (12). Вкладки появляются, когда включён хотя бы один удалённый источник.",
+        "Нажмите строку в списке (13), чтобы открыть файлы ресурса в браузере файлов. Значок строки сразу запускает показ.",
+        "«Фильтр» (3) помогает отсортировать список или оставить только нужное. «Обновить» (4) пригодится, когда файлы изменились вне приложения.",
+        "Кнопка (7) переключает вид - список, сетка или таблица, - чтобы на экране помещалось больше или меньше ресурсов.",
+        "«Запустить плеер» (9) пропускает просмотр и запускает выбранный или последний ресурс, а «Избранное» (8) открывает всё, что вы отметили.",
+        "В «Настройках» (6) меняется поведение приложения, «Справка» (11) открывает эту страницу, а «Выйти» (1) закрывает приложение."
+      ],
+      "groups": [
+        { "title": "Панель команд", "elements": ["exit", "add", "filter", "refresh", "more-actions", "settings", "toggle-view", "favorites", "start-player", "search", "help"] },
+        { "title": "Ресурсы", "elements": ["type-tabs", "resource-list"] }
+      ],
+      "elements": {
+        "exit": {
+          "summary": "Закрывает приложение или сворачивает его, пока что-то работает в фоне.",
+          "details": "Если играет музыка, идёт запись, выполняются операции по расписанию или включены краевые жесты, одно нажатие только сворачивает приложение, чтобы всё это продолжалось, а значок меняется. Когда в фоне ничего нет, одно нажатие закрывает приложение. Долгое нажатие всегда закрывает всё, включая фоновые функции."
+        },
+        "add": {
+          "summary": "Открывает экран добавления нового ресурса.",
+          "details": "Ресурс - это место, где лежат ваши файлы: папка на устройстве, сетевая папка или облако. После сохранения он появится в списке, и его можно открыть. Нажатие на пустой список делает то же самое."
+        },
+        "filter": {
+          "summary": "Сортирует список ресурсов и сужает его.",
+          "details": "Выберите порядок (вручную, по имени, по дате или по числу файлов), затем ограничьте список по типу ресурса, типу медиа или части имени. Галочка применяет выбор, кнопка сброса фильтров отменяет его. Пока фильтр включён, внизу списка видно, какой именно."
+        },
+        "refresh": {
+          "summary": "Заново проверяет все ресурсы на новые и изменённые файлы.",
+          "details": "Нажмите после того, как скопировали файлы из другого приложения или с компьютера, или если сетевая папка была недоступна. Заодно сбрасываются сетевые подключения, а видео, у которых раньше не получилось создать превью, получают ещё одну попытку."
+        },
+        "more-actions": {
+          "summary": "Открывает меню с действиями, которых нет на панели.",
+          "details": "Кнопка появляется, только когда в меню что-то есть: программы (если панель программ выключена), кнопки, не поместившиеся на узком экране, и «Справка». На маленьком экране ничего не пропадает - кнопки переезжают сюда."
+        },
+        "settings": {
+          "summary": "Открывает настройки приложения - четыре вкладки.",
+          "details": "Вкладки: «Общие», «Медиа», «Плеер» и «Управление». Начните с «Общих»: там язык, тема и профиль устройства. Если не знаете, где искать параметр, в настройках есть поиск."
+        },
+        "toggle-view": {
+          "summary": "Переключает вид ресурсов: список, сетка или таблица.",
+          "details": "Значок показывает вид, который включится следующим, а выбор запоминается. Таблице нужно широкое окно - планшет, режим рабочего стола или большой развёрнутый экран: в ней есть столбцы с именем, источником, файлами, содержимым и путём и панель сведений. В узком окне вид переключается между списком и сеткой."
+        },
+        "favorites": {
+          "summary": "Открывает всё, что вы отметили избранным, в одном месте.",
+          "details": "Открывается «Избранное» в браузере файлов. Кнопка видна, когда «Избранное» включено в настройках; файлы вы отмечаете при просмотре."
+        },
+        "start-player": {
+          "summary": "Запускает воспроизведение ресурса, не открывая браузер файлов.",
+          "details": "Играет выбранный ресурс. Если ничего не выбрано, берётся тот, что вы открывали последним, а если и такого нет - первый в списке. Пока список пуст, кнопка неактивна."
+        },
+        "search": {
+          "summary": "Ищет ресурс по имени или пути в таблице.",
+          "details": "Поле видно только при включённой таблице. Введите несколько букв, и строки сужаются прямо при вводе. Очистите поле, чтобы вернуть весь список."
+        },
+        "help": {
+          "summary": "Открывает справку по этому экрану.",
+          "details": "Вы узнаете, что делает каждая кнопка и в каком порядке обычно ими пользуются; номера совпадают с метками на снимке экрана."
+        },
+        "type-tabs": {
+          "summary": "Показывают только ресурсы одного типа.",
+          "details": "«ВСЕ» показывает всё, а «Локальные», SMB, S/FTP и «Облако» оставляют только свой тип. Вкладка есть лишь для включённого источника, а вся полоса скрыта, пока не включён хотя бы один сетевой или облачный источник: иначе «Локальные» не отличались бы от «ВСЕ». Долгое нажатие на вкладку сворачивает полосу в небольшую плашку, а нажатие на плашку возвращает её."
+        },
+        "resource-list": {
+          "summary": "Ваши ресурсы: одна строка или плитка на каждый.",
+          "details": "Нажмите строку, чтобы открыть файлы в браузере файлов. Значок строки запускает показ, а долгое нажатие открывает редактирование ресурса. У каждой строки есть кнопки: изменить, скопировать настройки, переместить вверх или вниз, удалить и «Ещё».",
+          "undo": "Перед удалением ресурса приложение спросит подтверждение, затем уберёт ресурс из списка и отменит операции по расписанию, которые его используют. Файлы останутся на месте, а ресурс можно добавить снова."
+        }
+      }
+    },
+    "uk": {
+      "title": "Головний екран",
+      "purpose": "На головному екрані зібрано ваші ресурси - папки на пристрої, мережеві папки та хмарні сховища, які ви додали. Додайте ресурс, відкрийте його й переглядайте файли або одразу запустіть відтворення.",
+      "steps": [
+        "Натисніть «Додати» (2) і підключіть перший ресурс: папку на пристрої, мережеву папку або хмару. Поки ресурсів немає, список порожній.",
+        "Якщо ви користуєтеся мережевими чи хмарними ресурсами, оберіть потрібний тип на вкладках (12). Вкладки з’являються, щойно ввімкнено хоча б одне віддалене джерело.",
+        "Натисніть рядок у списку (13), щоб відкрити файли ресурсу в браузері файлів. Значок рядка одразу запускає показ.",
+        "«Фільтр» (3) допоможе відсортувати список або залишити лише потрібне. «Оновити» (4) стане в пригоді, коли файли змінилися поза застосунком.",
+        "Кнопка (7) перемикає вигляд - список, сітка чи таблиця, - щоб на екрані вміщалося більше або менше ресурсів.",
+        "«Запустити плеєр» (9) пропускає перегляд і запускає вибраний або останній ресурс, а «Обране» (8) відкриває все, що ви позначили.",
+        "У «Налаштуваннях» (6) змінюється поведінка застосунку, «Довідка» (11) відкриває цю сторінку, а «Вийти» (1) закриває застосунок."
+      ],
+      "groups": [
+        { "title": "Панель команд", "elements": ["exit", "add", "filter", "refresh", "more-actions", "settings", "toggle-view", "favorites", "start-player", "search", "help"] },
+        { "title": "Ресурси", "elements": ["type-tabs", "resource-list"] }
+      ],
+      "elements": {
+        "exit": {
+          "summary": "Закриває застосунок або згортає його, поки щось працює у фоні.",
+          "details": "Якщо грає музика, триває запис, виконуються операції за розкладом або ввімкнено крайові жести, одне натискання лише згортає застосунок, щоб усе це тривало, а значок змінюється. Коли у фоні нічого немає, одне натискання закриває застосунок. Довге натискання завжди закриває все, зокрема фонові функції."
+        },
+        "add": {
+          "summary": "Відкриває екран додавання нового ресурсу.",
+          "details": "Ресурс - це місце, де лежать ваші файли: папка на пристрої, мережева папка або хмара. Після збереження він з’явиться в списку, і його можна відкрити. Натискання на порожній список робить те саме."
+        },
+        "filter": {
+          "summary": "Сортує список ресурсів і звужує його.",
+          "details": "Оберіть порядок (вручну, за іменем, за датою або за кількістю файлів), а тоді обмежте список за типом ресурсу, типом медіа чи частиною імені. Галочка застосовує вибір, кнопка скидання фільтрів скасовує його. Поки фільтр увімкнено, унизу списку видно, який саме."
+        },
+        "refresh": {
+          "summary": "Заново перевіряє всі ресурси на нові та змінені файли.",
+          "details": "Натисніть, коли скопіювали файли з іншого застосунку чи з комп’ютера, або якщо мережева папка була недоступна. Заодно скидаються мережеві підключення, а відео, для яких раніше не вдалося створити прев’ю, отримують ще одну спробу."
+        },
+        "more-actions": {
+          "summary": "Відкриває меню з діями, яких немає на панелі.",
+          "details": "Кнопка з’являється, лише коли в меню щось є: програми (якщо панель програм вимкнено), кнопки, що не вмістилися на вузькому екрані, та «Довідка». На малому екрані нічого не зникає - кнопки переїжджають сюди."
+        },
+        "settings": {
+          "summary": "Відкриває налаштування застосунку - чотири вкладки.",
+          "details": "Вкладки: «Загальні», «Медіа», «Плеєр» і «Управління». Почніть із «Загальних»: там мова, тема й профіль пристрою. Якщо не знаєте, де шукати параметр, у налаштуваннях є пошук."
+        },
+        "toggle-view": {
+          "summary": "Перемикає вигляд ресурсів: список, сітка або таблиця.",
+          "details": "Значок показує вигляд, який ввімкнеться наступним, а вибір запам’ятовується. Таблиці потрібне широке вікно - планшет, режим робочого стола чи великий розкладений екран: у ній є стовпці з іменем, джерелом, файлами, вмістом і шляхом та панель відомостей. У вузькому вікні вигляд перемикається між списком і сіткою."
+        },
+        "favorites": {
+          "summary": "Відкриває все, що ви позначили обраним, в одному місці.",
+          "details": "Відкривається «Обране» в браузері файлів. Кнопка видима, коли «Обране» ввімкнено в налаштуваннях; файли ви позначаєте під час перегляду."
+        },
+        "start-player": {
+          "summary": "Запускає відтворення ресурсу, не відкриваючи браузер файлів.",
+          "details": "Грає вибраний ресурс. Якщо нічого не вибрано, береться той, що ви відкривали востаннє, а якщо й такого немає - перший у списку. Поки список порожній, кнопка неактивна."
+        },
+        "search": {
+          "summary": "Шукає ресурс за іменем або шляхом у таблиці.",
+          "details": "Поле видно лише за ввімкненої таблиці. Введіть кілька літер, і рядки звужуються просто під час введення. Очистьте поле, щоб повернути весь список."
+        },
+        "help": {
+          "summary": "Відкриває довідку про цей екран.",
+          "details": "Ви дізнаєтеся, що робить кожна кнопка і в якому порядку нею зазвичай користуються; номери збігаються з позначками на знімку екрана."
+        },
+        "type-tabs": {
+          "summary": "Показують лише ресурси одного типу.",
+          "details": "«УСІ» показує все, а «Локальні», SMB, S/FTP і «Хмара» залишають лише свій тип. Вкладка є тільки для ввімкненого джерела, а вся смуга прихована, доки не ввімкнено хоча б одне мережеве чи хмарне джерело: інакше «Локальні» не відрізнялися б від «УСІ». Довге натискання на вкладку згортає смугу в невелику плашку, а натискання на плашку повертає її."
+        },
+        "resource-list": {
+          "summary": "Ваші ресурси: один рядок або плитка на кожен.",
+          "details": "Натисніть рядок, щоб відкрити файли в браузері файлів. Значок рядка запускає показ, а довге натискання відкриває редагування ресурсу. У кожного рядка є кнопки: змінити, скопіювати налаштування, перемістити вгору чи вниз, видалити та «Ще».",
+          "undo": "Перед видаленням ресурсу застосунок запитає підтвердження, потім прибере ресурс зі списку й скасує операції за розкладом, які його використовують. Файли залишаться на місці, а ресурс можна додати знову."
+        }
+      }
+    }
+  }
+}

@@ -169,8 +169,9 @@ function Test-Redirects {
     $registryPath = Join-Path $RepoRoot 'docs/DOCUMENT_REGISTRY.jsonl'
     if (Test-Path -LiteralPath $registryPath) {
         $registryText = [IO.File]::ReadAllText($registryPath)
-        if ((Get-RegistryWithForwarderExclusions -RegistryText $registryText -Records $records) -cne $registryText) {
-            $findings.Add('redirects: docs/DOCUMENT_REGISTRY.jsonl forwarder sitemap_exclude rows differ from the manifest; run scripts/docs/generate-site-redirects.ps1.')
+        $derived = Get-RegistryWithDerivedExclusions -RegistryText $registryText -Records $records -HelpPagePaths (Get-HelpPagePaths -SiteRoot $RepoRoot)
+        if ($derived -cne $registryText) {
+            $findings.Add('redirects: docs/DOCUMENT_REGISTRY.jsonl derived sitemap_exclude rows differ from the manifest or the help pages; run scripts/docs/generate-site-redirects.ps1.')
         }
     }
 }

@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.domain.model.ExchangeBroadcastGrant
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -36,7 +35,6 @@ class ManageBroadcastGuestsUseCase @Inject constructor(
      * relay has no room for another key.
      */
     suspend fun give(guest: String): Boolean {
-        Timber.d("S4272: phone gives the live broadcast to a guest")
         val login = guest.trim()
         val broadcastId = announcer.announcedBroadcastId
         val sourceKey = announcer.announcedSourceKey

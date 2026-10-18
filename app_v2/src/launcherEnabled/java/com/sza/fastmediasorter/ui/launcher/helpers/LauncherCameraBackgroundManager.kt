@@ -126,7 +126,7 @@ class LauncherCameraBackgroundManager(
     }
 
     private fun selectorFor(entry: CameraLensEntry): CameraSelector =
-        runCatching { entry.cameraInfo.cameraSelector }.getOrElse {
+        runCatching { entry.cameraInfo?.cameraSelector }.getOrNull() ?: run {
             CameraSelector.Builder().requireLensFacing(entry.lensFacing).build()
         }
 }

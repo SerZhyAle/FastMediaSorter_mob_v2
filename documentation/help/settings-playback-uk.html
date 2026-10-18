@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="uk" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Довідка - Налаштування: Плеєр</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Зміст довідки">
+<a href="index-uk.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Налаштування: Плеєр</span>
+</nav>
+<header class="hero">
+<h1>Налаштування: Плеєр</h1>
+</header>
+<h2>Для чого цей екран</h2>
+<p class="lead">На вкладці «Плеєр» зібрано налаштування перегляду й відтворення файлів: порядок за замовчуванням, час слайдшоу, що можна робити з файлом під час перегляду, керування плеєром, сенсорні зони та фонове аудіо.</p>
+<figure class="shot">
+<img class="on-light" src="img/settings-playback-uk-light.webp" alt="Налаштування: Плеєр">
+<img class="on-dark" src="img/settings-playback-uk-dark.webp" alt="Налаштування: Плеєр">
+</figure>
+<h2>Порядок дій</h2>
+<p class="order-note">Єдиного порядку тут немає - кожен параметр працює сам по собі. Нижче їх згруповано за тими самими заголовками розділів, що й на вкладці.</p>
+<h2>Елементи</h2>
+<div class="elements">
+<h3>Сортування, слайд-шоу й порядок запуску</h3>
+<details class="el" id="default-sort">
+<summary><span class="mk">1</span><span><span class="name">Режим сортування за замовчуванням</span><span class="one">Задає порядок файлів за замовчуванням.</span></span></summary>
+<div class="full">
+<p>Можна вибрати ручний порядок або сортування за іменем, датою, розміром і типом - за зростанням чи за спаданням.</p>
+</div>
+</details>
+<details class="el" id="slideshow-interval">
+<summary><span class="mk">2</span><span><span class="name">Слайдшоу (с)</span><span class="one">Задає, скільки секунд кожне зображення лишається на екрані в слайдшоу.</span></span></summary>
+<div class="full">
+<p>Від 1 до 3600 секунд, за замовчуванням 10. Відео грає до кінця або підкоряється цьому таймеру - це залежить від наступного параметра.</p>
+</div>
+</details>
+<details class="el" id="play-to-end">
+<summary><span class="mk">3</span><span><span class="name">Відтворювати відео/аудіо в слайдшоу до кінця</span><span class="one">Дає відео й аудіо в слайдшоу дограти до кінця.</span></span></summary>
+<div class="full">
+<p>Без цього параметра до наступного файлу переходять за інтервалом слайдшоу.</p>
+</div>
+</details>
+<h3>Видалення й перейменування у плеєрі</h3>
+<details class="el" id="allow-rename">
+<summary><span class="mk">4</span><span><span class="name">Дозволити перейменування</span><span class="one">Дозволяє перейменовувати файл просто в плеєрі.</span></span></summary>
+<div class="full">
+<p>Зручно під час розбирання файлів: перейменуйте поточний файл, не повертаючись у браузер файлів.</p>
+</div>
+</details>
+<details class="el" id="allow-delete">
+<summary><span class="mk">5</span><span><span class="name">Дозволити видалення</span><span class="one">Дозволяє видаляти файл просто в плеєрі.</span></span></summary>
+<div class="full">
+<p>Зручно під час розбирання файлів: видаліть поточний файл, не повертаючись у браузер файлів.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>На локальних ресурсах видалений файл чекає в прихованій папці .trash, і його можна повернути кнопкою «Скасувати», поки ресурс не закрито. На деяких мережевих і хмарних ресурсах видалення незворотне.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="confirm-delete">
+<summary><span class="mk">6</span><span><span class="name">Підтверджувати видалення</span><span class="one">Питає підтвердження перед видаленням файлу в плеєрі.</span></span></summary>
+<div class="full">
+<p>Вимкніть, якщо віддаєте перевагу видаленню одним дотиком.</p>
+</div>
+</details>
+<h3>Інтерфейс і команди плеєра</h3>
+<details class="el" id="hide-system-ui">
+<summary><span class="mk">7</span><span><span class="name">Приховувати елементи ОС у повноекранному режимі</span><span class="one">Ховає рядок стану й навігацію в повноекранному режимі.</span></span></summary>
+<div class="full">
+<p>Зображенню дістається весь екран.</p>
+</div>
+</details>
+<details class="el" id="follow-rotation">
+<summary><span class="mk">8</span><span><span class="name">Повертати екран плеєра разом із ОС</span><span class="one">Повертає екран плеєра услід за автоповоротом системи.</span></span></summary>
+<div class="full">
+<p>Працює незалежно від загального налаштування застосунку, тож решта застосунку лишається як була.</p>
+</div>
+</details>
+<details class="el" id="show-command-panel">
+<summary><span class="mk">9</span><span><span class="name">Показувати панель команд за замовчуванням</span><span class="one">Автоматично відкриває панель команд під час входу в плеєр.</span></span></summary>
+<div class="full">
+<p>Панель дає швидкий доступ до копіювання, переміщення, видалення й інших дій із файлом.</p>
+</div>
+</details>
+<details class="el" id="panel-auto-hide">
+<summary><span class="mk">10</span><span><span class="name">Автоприховування панелі плеєра (сек)</span><span class="one">Задає, через скільки секунд панель плеєра ховається.</span></span></summary>
+<div class="full">
+<p>Менше значення швидше звільняє екран, більше - довше залишає кнопки під рукою.</p>
+</div>
+</details>
+<details class="el" id="black-screen">
+<summary><span class="mk">11</span><span><span class="name">Показувати кнопку «Чорний екран»</span><span class="one">Додає кнопку, що гасить екран, поки відтворення триває.</span></span></summary>
+<div class="full">
+<p>Кнопка міститься на панелі плеєра: екран темніє, а аудіо чи відео грає далі.</p>
+</div>
+</details>
+<details class="el" id="pip">
+<summary><span class="mk">12</span><span><span class="name">Увімкнути картинку в картинці</span><span class="one">Додає до плеєра кнопку «картинка в картинці».</span></span></summary>
+<div class="full">
+<p>Плеєр також сам переходить у режим «картинка в картинці», коли ви натискаєте «Додому» (Android 12 і новіші).</p>
+</div>
+</details>
+<details class="el" id="big-buttons">
+<summary><span class="mk">13</span><span><span class="name">Режим великі кнопки</span><span class="one">Збільшує кнопки плеєра й розтягує їх на всю ширину.</span></span></summary>
+<div class="full">
+<p>Режим пасує автомагнітолам. Угорі вміщується від 5 до 9 кнопок, залежно від ширини, решта йде в меню з трьома крапками. В альбомній орієнтації висока нижня панель може зменшити область відтворення.</p>
+</div>
+</details>
+<details class="el" id="small-controls">
+<summary><span class="mk">14</span><span><span class="name">Компактні кнопки плеєра</span><span class="one">Зменшує нижні кнопки керування в плеєрі.</span></span></summary>
+<div class="full">
+<p>Корисно на невеликих екранах або коли хочеться менш помітного інтерфейсу.</p>
+</div>
+</details>
+<h3>Сенсорні зони й екранні підказки</h3>
+<details class="el" id="disable-nine-zone">
+<summary><span class="mk">15</span><span><span class="name">Вимкнути відстеження 9 зон</span><span class="one">Перемикає плеєр із 9 сенсорних зон на 3.</span></span></summary>
+<div class="full">
+<p>Коли сітку з 9 зон вимкнено, у плеєрі три зони: попередній, масштаб і наступний. Натисніть лівий край, щоб відкрити панель команд із діями над файлом.</p>
+</div>
+</details>
+<details class="el" id="show-hint">
+<summary><span class="mk">16</span><span><span class="name">Показувати підказку сенсорних зон при першому запуску</span><span class="one">Показує підказку про сенсорні зони під час першого відкривання плеєра.</span></span></summary>
+<div class="full">
+<p>Схема пояснює дев’ять зон: назад, копіювати, перейменувати, попередній, перемістити, наступний, панель команд, видалити та слайдшоу.</p>
+</div>
+</details>
+<details class="el" id="always-show-zones">
+<summary><span class="mk">17</span><span><span class="name">Завжди показувати сітку сенсорних зон</span><span class="one">Тримає поверх медіа напівпрозору сітку сенсорних зон.</span></span></summary>
+<div class="full">
+<p>Вона видна в повноекранному режимі й допомагає запам’ятати, яка зона що робить.</p>
+</div>
+</details>
+<details class="el" id="show-hint-now">
+<summary><span class="mk">18</span><span><span class="name">Показати підказку наступного разу</span><span class="one">Покаже підказку про сенсорні зони під час наступного відкривання плеєра.</span></span></summary>
+<div class="full">
+<p>Натисніть, щоб побачити схему ще раз.</p>
+</div>
+</details>
+<h3>Фонове відтворення аудіо</h3>
+<details class="el" id="background-audio">
+<summary><span class="mk">19</span><span><span class="name">Фонове відтворення</span><span class="one">Не перериває звук, коли застосунок згорнуто.</span></span></summary>
+<div class="full">
+<p>Музика продовжує грати у фоні. Якщо сповіщення заблоковано, тут з’являється кнопка для керування цим дозволом.</p>
+</div>
+</details>
+<details class="el" id="exit-behavior">
+<summary><span class="mk">20</span><span><span class="name">При виході з плеєра та трансляцій</span><span class="one">Обирає, що станеться з фоновим звуком, коли ви виходите з плеєра чи трансляцій.</span></span></summary>
+<div class="full">
+<p>За замовчуванням застосунок питає щоразу. Можна також завжди зупиняти звук або завжди продовжувати відтворення. Вибір з’являється, коли ввімкнено фонове відтворення.</p>
+</div>
+</details>
+<details class="el" id="now-playing-panel">
+<summary><span class="mk">21</span><span><span class="name">Показувати панель плеєра</span><span class="one">Показує міні-плеєр, поки ви переглядаєте зображення й інші файли.</span></span></summary>
+<div class="full">
+<p>Панель дає змогу керувати треком, що грає, і повертає до повного аудіоплеєра.</p>
+</div>
+</details>
+<h3>Скидання</h3>
+<details class="el" id="reset-playback">
+<summary><span class="mk">22</span><span><span class="name">Скинути налаштування Плеєра</span><span class="one">Повертає до значень за замовчуванням лише цю вкладку.</span></span></summary>
+<div class="full">
+<p>Налаштування на інших вкладках зберігаються. Перед скиданням застосунок просить підтвердити дію.</p>
+</div>
+</details>
+</div>
+<h2>Пов'язане</h2>
+<ul class="related">
+<li><a href="main-uk.html"><b>Головний екран</b><span class="pill">Екран</span></a></li>
+<li><a href="settings-general-uk.html"><b>Налаштування: Загальні</b><span class="pill">Екран</span></a></li>
+<li><a href="settings-media-uk.html"><b>Налаштування: Медіа</b><span class="pill">Екран</span></a></li>
+<li><a href="settings-operations-uk.html"><b>Налаштування: Управління</b><span class="pill">Екран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/playback-and-sorting-preferences-uk.html"><b>Playback, Power and Everyday Behavior - Screen, Rotation, Default Apps and the Launcher</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/settings-overview-and-search-uk.html"><b>Settings - Finding Your Way Around and Searching It</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/video-playback-controls-uk.html"><b>Watching Videos - Controls, Gestures and Saving Frames</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/pip-and-background-play-uk.html"><b>Picture-in-Picture and Background Play</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="index-uk.html"><b>Зміст довідки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index-uk.html">Зміст довідки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
+</footer>
+</main>
+</body>
+</html>

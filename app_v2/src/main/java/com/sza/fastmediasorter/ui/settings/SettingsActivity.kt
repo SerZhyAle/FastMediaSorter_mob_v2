@@ -33,10 +33,10 @@ import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.databinding.ActivitySettingsBinding
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
+import com.sza.fastmediasorter.ui.common.help.HelpTooltipManager
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
-import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
-import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import com.sza.fastmediasorter.ui.settings.fragments.BaseSettingsFragment
 import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
@@ -97,7 +97,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
                 return true
             }
             override fun navigateBack() { onBackPressedDispatcher.onBackPressed() }
-            override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, UiSurface.SETTINGS) }
+            override fun showHelp() { openTabHelp() }
             override fun activateFocused(): Boolean = activateFocusedViewOrAncestor()
             override fun moveFocus(direction: FocusDirection) {
                 val focusDir = when (direction) {
@@ -542,13 +542,25 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     /** S0289 Phase 09: route mouse wheel onto the settings pager so each tab fragment scrolls naturally. */
     override fun getMouseScrollTargetView(): View? = binding.viewPager
 
+    /** The button and F1 both land here, so each tab gives one answer (CONTEXT-HELP rule 3). */
+    private fun openTabHelp() {
+        val surfaceId = when (binding.viewPager.currentItem) {
+            TAB_GENERAL -> "settings.general"
+            TAB_MEDIA -> "settings.media"
+            TAB_PLAYBACK -> "settings.playback"
+            TAB_OPERATIONS -> "settings.operations"
+            // A flavor extension tab has no page of its own yet; the screen-level entry answers for it.
+            else -> "SettingsActivity"
+        }
+        HelpOpenManager.open(this, surfaceId, UiSurface.SETTINGS)
+    }
+
     private fun setupGlobalSearch() {
         binding.searchResultsRecycler.layoutManager = LinearLayoutManager(this)
         binding.searchResultsRecycler.adapter = searchAdapter
 
-        binding.btnSettingsHelp.setOnClickListener {
-            DocsPageOpenManager.open(this, UiSurface.SETTINGS)
-        }
+        HelpTooltipManager.apply(binding.btnSettingsHelp)
+        binding.btnSettingsHelp.setOnClickListener { openTabHelp() }
 
         binding.searchButton.setOnClickListener {
             openSearchOverlay()

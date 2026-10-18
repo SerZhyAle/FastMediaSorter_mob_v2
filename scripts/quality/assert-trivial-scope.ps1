@@ -39,6 +39,11 @@
     tell an edit from a creation there. The rule exists to catch new types, layouts and navigation
     graphs; applying it to an ignored tree escalated every edit under it instead.
 
+    S4298: an edited declaration line of an existing class, interface or object is not judged as an
+    added type. A modified line reads as added in git diff -U0, so if its type name also appears on a
+    removed declaration line of the same file, it is an edit (e.g. constructor parameter added)
+    rather than a new type.
+
 .PARAMETER Id
     Ticket id, echoed in the verdict; also names the snapshot under temp/<Id>/.
 
@@ -237,13 +242,33 @@ foreach ($path in $judgedChanged) {
         continue
     }
     if ([System.IO.Path]::GetExtension($path) -notin $extensions) { continue }
-    # -U0 leaves only the changed lines; the '+++' file header is not an added line.
-    $added = @(& git -C $RepoRoot diff -U0 $base -- $path |
-            Where-Object { $_ -match '^\+(?!\+\+)' } |
-            ForEach-Object { $_.Substring(1) })
+    # -U0 leaves only the changed lines; the '+++' / '---' file headers are not added/removed lines.
+    $diffLines = @(& git -C $RepoRoot diff -U0 $base -- $path)
+    $added = @($diffLines | Where-Object { $_ -match '^\+(?!\+\+)' } | ForEach-Object { $_.Substring(1) })
+    $removedLines = @($diffLines | Where-Object { $_ -match '^\-(?!\-\-)' } | ForEach-Object { $_.Substring(1) })
+
+    $removedTypeNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    $typeDeclRegex = '^\s*(?:(?:public|private|internal|protected|abstract|open|sealed|data|enum|inner|value|annotation|fun)\s+)*(?:class|interface|object)\s+(\w+)'
+    foreach ($rLine in $removedLines) {
+        if ($rLine -match $typeDeclRegex) {
+            [void]$removedTypeNames.Add($Matches[1])
+        }
+    }
+
     foreach ($line in $added) {
         foreach ($pattern in $patterns) {
-            if ($line -match $pattern) { Stop-Escalate "$path adds '$($line.Trim())' (pattern $pattern)" }
+            if ($line -match $pattern) {
+                # S4298: an edited declaration line of an existing type (e.g. constructor parameter
+                # added) reads as an added line in git diff -U0. If its type name also appears on a
+                # removed declaration line of the same file, it is a modification, not a new type.
+                if ($pattern.Contains('class|interface|object') -and $line -match $typeDeclRegex) {
+                    $typeName = $Matches[1]
+                    if ($removedTypeNames.Contains($typeName)) {
+                        continue
+                    }
+                }
+                Stop-Escalate "$path adds '$($line.Trim())' (pattern $pattern)"
+            }
         }
     }
 }

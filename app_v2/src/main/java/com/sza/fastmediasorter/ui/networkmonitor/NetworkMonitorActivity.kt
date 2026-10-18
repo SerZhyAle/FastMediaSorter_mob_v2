@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.networkmonitor
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
 import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
@@ -49,6 +50,12 @@ class NetworkMonitorActivity : BaseActivity<ActivityNetworkMonitorBinding>(), Ne
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         pendingInitialSection = if (savedInstanceState == null) intent.readNetworkMonitorSection() else null
+    }
+
+    // S4328: the "?" help action rides the support action bar; BaseActivity routes its click.
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_help_action, menu)
+        return true
     }
 
     override fun setupViews() {

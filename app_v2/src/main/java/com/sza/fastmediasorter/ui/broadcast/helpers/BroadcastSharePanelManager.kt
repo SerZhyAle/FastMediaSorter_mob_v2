@@ -159,7 +159,6 @@ class BroadcastSharePanelManager @Inject constructor(
         if (password == null) return
         binding.tvSharePassword.text = activity.getString(R.string.broadcast_share_password, password)
         binding.btnShareNewPassword.setOnClickListener {
-            Timber.d("S4258: renew broadcast link password")
             if (shareManager.renewLinkPassword() == null) return@setOnClickListener
             render(activity, binding)
             Snackbar.make(binding.root, R.string.broadcast_share_password_hint, Snackbar.LENGTH_LONG).show()

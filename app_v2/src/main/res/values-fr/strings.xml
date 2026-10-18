@@ -3201,7 +3201,6 @@
     <string name="exif_orientation_rotate_270">Pivotée à 270° dans le sens horaire</string>
     <string name="exif_orientation_unknown">Inconnue (%1$d)</string>
     <string name="storage_reach_limited_browse">Seuls les photos, la vidéo et l\'audio sont disponibles dans ce dossier. Pour voir des documents, ajoutez le dossier à nouveau et sélectionnez-le dans la fenêtre système des dossiers.</string>
-    <string name="file_count_reach_limited">%1$s - photos, vidéos et audio uniquement</string>
     <string name="reach_limited_nothing_readable">Les documents ne peuvent pas être lus</string>
     <string name="storage_reach_limited_virtual">Les documents et autres fichiers de cet appareil ne sont pas visibles pour l\'app. Pour les ouvrir, ajoutez le dossier voulu via la fenêtre de dossiers du système.</string>
     <string name="storage_reach_limited_browse_reconnect">Seuls les photos, la vidéo et l\'audio sont disponibles dans ce dossier. Pour voir des documents, ouvrez le menu à trois points sur la ligne du dossier de l\'écran principal et choisissez Reconnecter la ressource.</string>

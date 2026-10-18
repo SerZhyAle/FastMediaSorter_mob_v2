@@ -16,12 +16,16 @@ class AddStreamSourceUseCase @Inject constructor(
      * S2813: [sourceDeviceId] names the device that broadcasts this address, when one named itself.
      * Defaulted so every existing caller - manual entry, playlist and catalog import - keeps inserting
      * rows that belong to no device, which is what they are.
+     *
+     * S4289: [mediaKind] is the kind a caller knows better than the url does (a broadcast states its mode);
+     * null or an unrecognised value keeps the url classification.
      */
     suspend operator fun invoke(
         url: String,
         title: String?,
         sourceDeviceId: String? = null,
         broadcastEndpoints: String? = null,
+        mediaKind: String? = null,
     ): AddResult {
         val trimmedUrl = url.trim()
         val rejection = rejectionFor(trimmedUrl)
@@ -32,7 +36,7 @@ class AddStreamSourceUseCase @Inject constructor(
             id = UUID.randomUUID().toString(),
             url = trimmedUrl,
             title = resolvedTitle,
-            mediaKind = classifier.classify(trimmedUrl),
+            mediaKind = classifier.resolve(mediaKind.orEmpty(), trimmedUrl),
             sourceOrigin = "MANUAL",
             // New manual items take the default order; pin-to-top handles promotion afterwards.
             sortIndex = 0,

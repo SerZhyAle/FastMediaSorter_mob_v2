@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.wear.service.helpers
 
 import android.content.Context
-import androidx.core.content.ContextCompat
 import com.google.gson.JsonObject
 import com.sza.fastmediasorter.data.security.e2e.E2eBytes
 import com.sza.fastmediasorter.wear.R
@@ -21,7 +20,6 @@ import com.sza.fastmediasorter.wear.domain.exchange.WearExchangeCastMachine
 import com.sza.fastmediasorter.wear.domain.exchange.WearExchangeCastOffer
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSession
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSessionState
-import com.sza.fastmediasorter.wear.domain.usecase.ClassifyWearStreamMediaKindUseCase
 import com.sza.fastmediasorter.wear.service.WearPlaybackService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -55,6 +53,7 @@ class WearExchangeCastCoordinator @Inject constructor(
     private val entries: WearExchangeEntryStore,
     private val e2e: WearExchangeE2e,
     private val notifier: WearExchangeCastNotifier,
+    private val serviceStarter: WearCastServiceStarter,
     private val playbackSession: WearBackgroundSessionState,
     @ApplicationScope private val scope: CoroutineScope,
 ) {
@@ -69,6 +68,9 @@ class WearExchangeCastCoordinator @Inject constructor(
 
     /** True while a cast this watch accepted is playing; the control streams stay up for its `cast-stop`. */
     val playing: StateFlow<Boolean> = mutablePlaying.asStateFlow()
+
+    /** S4339 test seam: the endpoints retained right now, the count the ownership tests bring back to zero. */
+    internal val retainedEndpointCount: Int get() = endpoints.size
 
     suspend fun follow() = coroutineScope {
         launch { streams.events.collect { event -> mutex.withLock { onControlEvent(event) } } }
@@ -131,7 +133,7 @@ class WearExchangeCastCoordinator @Inject constructor(
                 is WearExchangeCastAction.Answer -> answer(action)
                 is WearExchangeCastAction.Ask -> ask(action.offer)
                 is WearExchangeCastAction.Play -> play(action.offer)
-                is WearExchangeCastAction.Dismiss -> dismiss(action.broadcastId)
+                is WearExchangeCastAction.Dismiss -> dismiss(action)
                 is WearExchangeCastAction.StopPlaying -> stopPlaying(action.broadcastId)
             }
         }
@@ -155,10 +157,7 @@ class WearExchangeCastCoordinator @Inject constructor(
             expiries.remove(id)?.cancel()
             expiries[id] = scope.launch {
                 delay(WearExchangeCastNotifier.ANSWER_WINDOW_MS)
-                mutex.withLock {
-                    perform(machine.onExpired(id))
-                    if (current?.broadcastId != id) endpoints.remove(id)
-                }
+                mutex.withLock { perform(machine.onExpired(id)) }
             }
         } else {
             Timber.i("WearExchangeCastCoordinator: notifications are off, the offer is declined")
@@ -166,10 +165,12 @@ class WearExchangeCastCoordinator @Inject constructor(
         }
     }
 
-    // The endpoint stays: an accepted answer dismisses the question before it plays.
-    private fun dismiss(broadcastId: String) {
-        expiries.remove(broadcastId)?.cancel()
+    // S4339: the question's dismissal releases the offer's endpoint unless the machine says the accepted answer's
+    // Play is still to come - that ordering is the one dismiss the endpoint must survive.
+    private fun dismiss(action: WearExchangeCastAction.Dismiss) {
+        expiries.remove(action.broadcastId)?.cancel()
         notifier.cancel()
+        if (!action.keepsEndpoint) endpoints.remove(action.broadcastId)
     }
 
     private fun play(offer: WearExchangeCastOffer) {
@@ -179,24 +180,15 @@ class WearExchangeCastCoordinator @Inject constructor(
             loopbackFor(endpoint)
         } catch (e: IOException) {
             Timber.w(e, "WearExchangeCastCoordinator: the loopback proxy did not open")
+            // S4339: nothing started, so nothing is kept - the offer leaves the machine and its endpoint too.
+            perform(machine.onStopped(offer.broadcastId))
+            endpoints.remove(offer.broadcastId)
             return
         }
         val url = endpoint.loopbackUrl(bridge.port)
         current = Playing(offer.broadcastId, url, bridge)
         mutablePlaying.value = true
-        val intent = WearPlaybackService.startIntent(
-            context = context,
-            fileId = WearPlaybackService.NO_FILE_ID,
-            mediaUri = url,
-            positionMs = 0L,
-            streamMediaKind = ClassifyWearStreamMediaKindUseCase.AUDIO,
-            title = offer.title ?: context.getString(R.string.wear_exchange_cast_title),
-        )
-        try {
-            ContextCompat.startForegroundService(context, intent)
-        } catch (e: IllegalStateException) {
-            // Outside the notification's start allowance the platform refuses; nothing plays, so nothing is kept.
-            Timber.w(e, "WearExchangeCastCoordinator: the playback service was refused")
+        if (!serviceStarter.start(url, offer.title ?: context.getString(R.string.wear_exchange_cast_title))) {
             perform(machine.onStopped(offer.broadcastId))
         }
     }

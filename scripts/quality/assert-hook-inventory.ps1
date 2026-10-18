@@ -51,6 +51,25 @@ Fourth comparison - MCP servers (S2918):
   names, so the two comparisons cannot disagree about one file (S1621). An absent
   .mcp.json means no servers; an unparsable one is exit 2.
 
+Fifth comparison - the plugin's own registrations (S4295):
+  The canon plugin (-PluginName, default 'sza') ships guards that the hand-wired global
+  registrations used to carry, and registers them in the hooks/hooks.json of its INSTALLED cache
+  - a third registration source beside the two settings files. The cache is found through
+  ~/.claude/plugins/installed_plugins.json, never by a version-pinned path, because the plugin's
+  version moves with every canon release. An inventory row declares it is served by the plugin in
+  its Home cell: `plugin` when the plugin ships a script of the row's own name, or
+  `plugin, in <script>.ps1` (backticked) when the plugin folded the check into another script - the
+  canon's guard-bash.ps1 absorbed three of them - so the row names the contract text of one check
+  while the registration it needs is the absorbing script's. A plugin row is judged against the
+  plugin's registrations and never against the settings files.
+  Like the global half, this one is judged only where it is readable: no installed_plugins.json, a
+  plugin that is not installed for this repository, one the global settings disable, or an
+  unreadable hooks file each print one advisory and judge nothing, because a red that a fresh
+  checkout cannot reproduce teaches people to bypass the gate. The opposite direction is an
+  advisory too: a hook the plugin registers that the inventory does not name is reported but does
+  not fail, since the plugin inventories its own hooks in its hooks/README.md and a plugin update
+  must not turn this repository red before anyone can read what changed.
+
 Usage:
     pwsh -NoProfile -File scripts/quality/assert-hook-inventory.ps1
     pwsh -NoProfile -File scripts/quality/assert-hook-inventory.ps1 -Gate
@@ -80,7 +99,14 @@ param(
 
     # S2918. Overridable for the same reason as -RuleSheetPath: fixtures exercise the
     # "server with no row" and "unguarded one-way tool" branches without a live .mcp.json.
-    [string]$McpConfigPath = (Join-Path $RepoRoot '.mcp.json')
+    [string]$McpConfigPath = (Join-Path $RepoRoot '.mcp.json'),
+
+    # S4295. Overridable for the same reason as -GlobalSettingsPath: fixtures exercise the "plugin
+    # absent / disabled / not installed here" branches without the real per-machine plugin cache.
+    [string]$InstalledPluginsPath = (Join-Path $HOME '.claude/plugins/installed_plugins.json'),
+
+    # S4295. The plugin whose installed hooks/hooks.json counts as a registration source.
+    [string]$PluginName = 'sza'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -190,11 +216,13 @@ function Get-McpRowsFromInventory([string]$Path) {
     return [pscustomobject]@{ SectionSeen = $sectionSeen; Rows = $rows }
 }
 
-function Get-HookNamesFromInventory([string]$Path) {
-    # Reads ONLY the "## Inventory" table's first column, so hook names mentioned
-    # in the surrounding prose (this gate, a.ps1, query.ps1) are never mistaken
-    # for inventory entries.
-    $names = New-Object System.Collections.Generic.HashSet[string]
+function Get-InventoryRows([string]$Path) {
+    # Reads ONLY the "## Inventory" table, so hook names mentioned in the surrounding prose (this
+    # gate, a.ps1, query.ps1) are never mistaken for inventory entries. The name is the first
+    # column; the Home column (fourth) is read only to learn whether the plugin serves the row
+    # (S4295), and the name list is derived from these rows - a second parser could disagree with
+    # the first about the same table (S1621).
+    $rows = New-Object System.Collections.Generic.List[object]
     $inTable = $false
     foreach ($line in (Get-Content -LiteralPath $Path)) {
         if ($line -match '^##\s') {
@@ -203,12 +231,92 @@ function Get-HookNamesFromInventory([string]$Path) {
         }
         if (-not $inTable) { continue }
         if ($line -notmatch '^\|') { continue }
-        $first = ($line -split '\|')[1]
-        if ($null -eq $first) { continue }
-        $m = [regex]::Match($first.Trim(), '^`([A-Za-z0-9._-]+)\.ps1`$')
-        if ($m.Success) { [void]$names.Add($m.Groups[1].Value) }
+        $cols = $line -split '\|'
+        if ($cols.Count -lt 2) { continue }
+        $m = [regex]::Match($cols[1].Trim(), '^`([A-Za-z0-9._-]+)\.ps1`$')
+        if (-not $m.Success) { continue }
+        $name = $m.Groups[1].Value
+        $servedBy = $null
+        $homeCell = if ($cols.Count -gt 4) { $cols[4].Trim() } else { '' }
+        if ($homeCell -match '^plugin\b') {
+            $absorbing = [regex]::Match($homeCell, '`([A-Za-z0-9._-]+)\.ps1`')
+            $servedBy = if ($absorbing.Success) { $absorbing.Groups[1].Value } else { $name }
+        }
+        $rows.Add([pscustomobject]@{ Name = $name; ServedBy = $servedBy })
     }
-    return $names
+    return , $rows
+}
+
+function Get-PluginHookRegistration([string]$InstalledPath, [string]$Plugin, [string]$GlobalPath, [string]$Repo) {
+    # S4295. The hooks the installed plugin registers for THIS repository, or the reason none can be
+    # judged. Judged = false is never a failure: the cache is per-machine, like ~/.claude/settings.json.
+    $names = New-Object System.Collections.Generic.HashSet[string]
+    $notJudged = {
+        param([string]$Why)
+        [pscustomobject]@{ Judged = $false; Names = $names; Note = "$Why - the plugin half was not judged" }
+    }
+
+    if (-not (Test-Path -LiteralPath $InstalledPath)) {
+        return (& $notJudged "$InstalledPath is absent on this machine")
+    }
+    try {
+        $installed = Get-Content -LiteralPath $InstalledPath -Raw | ConvertFrom-Json
+    } catch {
+        return (& $notJudged "$InstalledPath is present but unparsable")
+    }
+
+    $enabled = $null
+    if (Test-Path -LiteralPath $GlobalPath) {
+        try {
+            $globalJson = Get-Content -LiteralPath $GlobalPath -Raw | ConvertFrom-Json
+            if ($globalJson.PSObject.Properties['enabledPlugins']) { $enabled = $globalJson.enabledPlugins }
+        } catch {
+            # An unreadable settings file says nothing about enablement; the plugin is taken as enabled.
+            $enabled = $null
+        }
+    }
+
+    $entries = New-Object System.Collections.Generic.List[object]
+    $disabled = $false
+    $repoPath = [System.IO.Path]::GetFullPath($Repo).TrimEnd('\', '/')
+    if ($installed.PSObject.Properties['plugins'] -and $null -ne $installed.plugins) {
+        foreach ($p in $installed.plugins.PSObject.Properties) {
+            if ($p.Name -notlike "$Plugin@*") { continue }
+            if ($null -ne $enabled -and $enabled.PSObject.Properties[$p.Name] -and $enabled.PSObject.Properties[$p.Name].Value -eq $false) {
+                $disabled = $true
+                continue
+            }
+            foreach ($e in @($p.Value)) {
+                # A project-scoped install belongs to one repository; another repository's hooks do not run here.
+                if ($e.PSObject.Properties['projectPath'] -and $e.projectPath) {
+                    $scoped = [System.IO.Path]::GetFullPath([string]$e.projectPath).TrimEnd('\', '/')
+                    if ($scoped -ne $repoPath) { continue }
+                }
+                $entries.Add($e)
+            }
+        }
+    }
+    if ($entries.Count -eq 0) {
+        if ($disabled) { return (& $notJudged "plugin '$Plugin' is installed but disabled in ~/.claude/settings.json") }
+        return (& $notJudged "plugin '$Plugin' is not installed for this repository")
+    }
+
+    $judged = $false
+    foreach ($e in $entries) {
+        if (-not $e.installPath -or -not (Test-Path -LiteralPath $e.installPath)) { continue }
+        $judged = $true
+        $hooksFile = Join-Path $e.installPath 'hooks/hooks.json'
+        if (-not (Test-Path -LiteralPath $hooksFile)) { continue }
+        try {
+            foreach ($n in (Get-HookNamesFromSettings $hooksFile)) { [void]$names.Add($n) }
+        } catch {
+            return (& $notJudged "$hooksFile is present but unparsable")
+        }
+    }
+    if (-not $judged) {
+        return (& $notJudged "the installed cache of plugin '$Plugin' is missing on disk")
+    }
+    return [pscustomobject]@{ Judged = $true; Names = $names; Note = '' }
 }
 
 function Get-HookNamesFromRuleSheet([string]$Path) {
@@ -238,13 +346,15 @@ function Get-HookNamesFromRuleSheet([string]$Path) {
     return , $names
 }
 
-function Compare-Half([string]$Label, $Registered, $Inventory) {
+function Compare-Half([string]$Label, $Registered, $Inventory, $PluginServed) {
     foreach ($n in ($Registered | Sort-Object)) {
         if (-not $Inventory.Contains($n)) {
             $failures.Add("$Label hook '$n.ps1' is registered but absent from docs/AGENT_HOOKS.md")
         }
     }
     foreach ($n in ($Inventory | Sort-Object)) {
+        # A plugin-served row is judged against the plugin's registrations, never the settings files.
+        if ($PluginServed.Contains($n)) { continue }
         if (-not $Registered.Contains($n)) {
             $failures.Add("inventory names '$n.ps1' but it is registered in no settings file")
         }
@@ -270,10 +380,17 @@ if (-not (Test-Path -LiteralPath $InventoryPath)) {
 }
 
 try {
-    $inventory = Get-HookNamesFromInventory $InventoryPath
+    $inventoryRows = Get-InventoryRows $InventoryPath
 } catch {
     Write-Error "hook-inventory: could not parse docs/AGENT_HOOKS.md - $($_.Exception.Message)" -ErrorAction Continue
     exit 2
+}
+
+$inventory = New-Object System.Collections.Generic.HashSet[string]
+$pluginServed = New-Object System.Collections.Generic.HashSet[string]
+foreach ($row in $inventoryRows) {
+    [void]$inventory.Add($row.Name)
+    if ($row.ServedBy) { [void]$pluginServed.Add($row.Name) }
 }
 
 if ($inventory.Count -eq 0) {
@@ -319,7 +436,7 @@ foreach ($n in $projectRegistered) { [void]$registered.Add($n) }
 foreach ($n in $globalRegistered) { [void]$registered.Add($n) }
 
 if ($globalJudged) {
-    Compare-Half 'registered' $registered $inventory
+    Compare-Half 'registered' $registered $inventory $pluginServed
 } else {
     # Only the project half can be judged in both directions. An inventory entry
     # that is not registered in the project settings may legitimately be a global
@@ -327,6 +444,31 @@ if ($globalJudged) {
     foreach ($n in ($projectRegistered | Sort-Object)) {
         if (-not $inventory.Contains($n)) {
             $failures.Add("project hook '$n.ps1' is registered but absent from docs/AGENT_HOOKS.md")
+        }
+    }
+}
+
+# --- plugin half: the installed plugin's own registrations (S4295) --------------
+# Judged only where the installed cache is readable, for the same reason as the global half.
+
+$plugin = Get-PluginHookRegistration $InstalledPluginsPath $PluginName $GlobalSettings $RepoRoot
+if (-not $plugin.Judged) {
+    $advisories.Add($plugin.Note)
+} else {
+    foreach ($row in $inventoryRows) {
+        if (-not $row.ServedBy) { continue }
+        if (-not $plugin.Names.Contains($row.ServedBy)) {
+            $failures.Add("inventory names '$($row.Name).ps1' as served by the '$PluginName' plugin through '$($row.ServedBy).ps1', but the installed plugin registers no such hook")
+        }
+    }
+    $pluginDocumented = New-Object System.Collections.Generic.HashSet[string]
+    foreach ($row in $inventoryRows) {
+        [void]$pluginDocumented.Add($row.Name)
+        if ($row.ServedBy) { [void]$pluginDocumented.Add($row.ServedBy) }
+    }
+    foreach ($n in ($plugin.Names | Sort-Object)) {
+        if (-not $pluginDocumented.Contains($n)) {
+            $advisories.Add("plugin hook '$n.ps1' is registered by the '$PluginName' plugin but named in no row of docs/AGENT_HOOKS.md - the plugin inventories it in its own hooks/README.md")
         }
     }
 }
@@ -423,6 +565,11 @@ if ($failures.Count -gt 0) {
   on a fresh checkout, so it is judged only where it is readable - failing on a file that cannot
   exist here would make the gate unpassable for everyone but this workstation.
 
+  A row whose Home cell says `plugin` is judged against the installed canon plugin's own
+  hooks/hooks.json (S4295), found through ~/.claude/plugins/installed_plugins.json. When the plugin
+  folded the check into another script, write `plugin, in `<script>.ps1`` so the row names the
+  script that is actually registered; a plugin release that renames or drops it shows up here.
+
   The same change also edits docs/NON_CLAUDE_RUNTIME_RULES.md (S2872). For a runtime with no hooks
   that sheet is the whole enforcement, so a hook it does not mention is a rule nobody outside
   Claude Code will ever be told. Either the hook guards a decision the model can make, and the
@@ -441,6 +588,12 @@ if ($failures.Count -gt 0) {
     exit 0
 }
 
-$scope = if ($globalJudged) { 'project + global' } else { 'project only' }
-Write-Host "hook-inventory: PASS ($($registered.Count) registered hook(s), $scope; rule sheet covers all $($inventory.Count) inventory hook(s); $($mcpServers.Count) .mcp.json server(s) listed and guarded)"
+$halves = @('project')
+if ($globalJudged) { $halves += 'global' }
+if ($plugin.Judged) { $halves += 'plugin' }
+$scope = if ($halves.Count -eq 1) { 'project only' } else { $halves -join ' + ' }
+$liveCount = New-Object System.Collections.Generic.HashSet[string]
+foreach ($n in $registered) { [void]$liveCount.Add($n) }
+foreach ($n in $plugin.Names) { [void]$liveCount.Add($n) }
+Write-Host "hook-inventory: PASS ($($liveCount.Count) registered hook(s), $scope; rule sheet covers all $($inventory.Count) inventory hook(s); $($mcpServers.Count) .mcp.json server(s) listed and guarded)"
 exit 0

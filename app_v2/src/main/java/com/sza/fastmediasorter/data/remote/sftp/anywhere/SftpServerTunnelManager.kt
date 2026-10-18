@@ -144,8 +144,10 @@ class SftpServerTunnelManager @Inject constructor(
 
     // The server keeps a grant's `access` in memory only while this device is online, as it keeps `access` (7.9).
     // Item BD: a broadcast's guest grants live with the broadcast, so they go only while it is the announced one.
-    private suspend fun sendGrants(control: LiveControl, folders: Boolean = true) {
-        val entry = control.entry ?: return
+    // Item DJ: a pass that read the audience before a grant was listed sends its registering box; serialising the
+    // passes keeps that box from landing after the real one a later pass sent, which would replace it at the server.
+    private suspend fun sendGrants(control: LiveControl, folders: Boolean = true) = control.grantLock.withLock {
+        val entry = control.entry ?: return@withLock
         val sealing = ExchangeGrantSealing(entry, control.serverSeals, control.grantAudience)
         val target = share?.takeIf { folders }
         target?.let { source.grantEnvelopes(it.localPort, it.hosts, sealing) }.orEmpty()
@@ -398,8 +400,8 @@ class SftpServerTunnelManager @Inject constructor(
     private fun refusedOn(control: LiveControl, envelope: DeviceExchangeEnvelope): SessionOutcome? {
         val reason = envelope.string(DeviceExchangeEnvelope.KEY_REASON)
         val grant = control.takeIf { reason in GRANT_REFUSALS }?.oldestUnanswered() ?: return refusal(reason)
-        Timber.d("S4272: grant refusal kept the control stream")
         if (grant.broadcast) broadcastGrants.markRefusedPending()
+        Timber.d("S4272: grant refusal kept the control stream")
         Timber.w("SftpServerTunnelManager: grant refused (%s)", reason)
         return null
     }
@@ -415,15 +417,17 @@ class SftpServerTunnelManager @Inject constructor(
     ) {
         val held = control.directory
         val heldAudience = control.grantAudience
-        ExchangeGrantAudiences.of(envelope.members)?.let { control.grantAudience = it }
-        control.directory = when {
-            envelope.type == DeviceExchangeEnvelope.TYPE_DIRECTORY ->
-                DeviceExchangeDirectoryState.of(DeviceExchangeDirectory.from(envelope))
-            held == null -> null
-            else -> when (val outcome = held.apply(DeviceExchangeChanged.from(envelope))) {
-                is DeviceExchangeDirectoryState.Outcome.Applied -> outcome.state
-                DeviceExchangeDirectoryState.Outcome.Gap -> held.also { sendQuietly(control.session, LIST) }
-                DeviceExchangeDirectoryState.Outcome.Stale -> held
+        if (envelope.type == DeviceExchangeEnvelope.TYPE_DIRECTORY) {
+            control.directory = DeviceExchangeDirectoryState.of(DeviceExchangeDirectory.from(envelope))
+            control.grantAudience = ExchangeGrantAudiences.whole(envelope.members)
+        } else if (held != null) {
+            when (val outcome = held.apply(DeviceExchangeChanged.from(envelope))) {
+                is DeviceExchangeDirectoryState.Outcome.Applied -> {
+                    control.directory = outcome.state
+                    control.grantAudience = ExchangeGrantAudiences.changed(heldAudience, envelope.members)
+                }
+                DeviceExchangeDirectoryState.Outcome.Gap -> sendQuietly(control.session, LIST)
+                DeviceExchangeDirectoryState.Outcome.Stale -> Unit
             }
         }
         if (control.directory !== held || control.grantAudience !== heldAudience) {
@@ -660,6 +664,8 @@ class SftpServerTunnelManager @Inject constructor(
         var serverSeals: Boolean = false
 
         val directoryLock = Mutex()
+
+        val grantLock = Mutex()
 
         @Volatile
         var directory: DeviceExchangeDirectoryState? = null
