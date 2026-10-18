@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.apps.clipboard
 
 import androidx.annotation.StringRes
+import com.sza.fastmediasorter.wear.ui.common.OpenInUiState
 
 /**
  * What the clipboard screen draws.
@@ -14,6 +15,9 @@ import androidx.annotation.StringRes
  *
  * S4227: [server] is the second action of the screen - the clipboard on the exchange server - kept apart so
  * the two outcomes never overwrite each other.
+ *
+ * S4381: [openIn] is the "Open in.." dialog (null while closed); [openInFailure] names the application that could
+ * not take the object and stays under the chip that started it until the next try.
  */
 data class ClipboardUiState(
     val preview: String = "",
@@ -22,7 +26,15 @@ data class ClipboardUiState(
     @StringRes val outcomeRes: Int? = null,
     val outcomeArg: String? = null,
     val server: ServerClipboardUiState = ServerClipboardUiState(),
+    val openIn: OpenInUiState? = null,
+    val openInFailure: OpenInFailure? = null,
 )
+
+/** S4381: the two objects "Open in.." can hand over, one per chip. */
+enum class OpenInSource { CLIPBOARD, SERVER }
+
+/** S4381: the application the wearer picked and the chip it was picked from. */
+data class OpenInFailure(val source: OpenInSource, val appLabel: String)
 
 /**
  * S4227: "get clipboard from server". [stateWhen] and [stateFrom] describe the value on the server (contract
@@ -39,4 +51,6 @@ data class ServerClipboardUiState(
     val outcomeArg: String? = null,
     val showDetailsLine: Boolean = false,
     val skipped: String? = null,
+    /** S4381: a value was received on this visit and can be handed to another application. */
+    val canOpenIn: Boolean = false,
 )

@@ -143,15 +143,22 @@
          exit 2 or any code outside 0/1/3/4) or QUEUED (child exit 4, behind a build lock); with
          -ChangedFiles, only rows in the changed-set block count. The verdict reads COULD NOT VERIFY.
 
-    Skipped gates (S3075):
-      A child exit code of 3 means "this run judged nothing", not "this run found nothing wrong" -
-      lib/absent-input.ps1 uses it when a gitignored root (PLAN/, .claude/) is not in the checkout,
-      lib/fixed-input-scope.ps1 when a fixed-input gate was handed a set that charges it nothing.
-      Such a gate is reported as SKIP in its own NOT RUN block and is left out of both scope blocks.
-      Folding it into FAIL is what made the GitHub "Static Gates" job state one published fact -
-      that PLAN/ and .claude/ are not published - as nine separate findings, in a summary that was
-      red on every run and therefore read on none. -FailOnSkipped restores the strict count for a
-      caller that requires full coverage.
+    Skipped gates (S3075, S4380):
+      A child exit code of 3 means "ran, found something, could not attribute it to this run" -
+      lib/fixed-input-scope.ps1 uses it when a fixed-input gate was handed a set that charges it
+      nothing. Such a gate is reported as SKIP in its own NOT RUN block and is left out of both scope
+      blocks. -FailOnSkipped restores the strict count for a caller that requires full coverage.
+
+    Absent inputs (S3075, S4380):
+      A gitignored root (PLAN/, .claude/) or the shared contracts catalog that is not in the
+      checkout is not an advisory: the gate judged nothing, so CHECK-VERDICT 0.12 item A.2 makes it
+      COULD NOT VERIFY (exit 2). This batch is the one caller that expects such a checkout - the
+      GitHub "Static Gates" job runs it bare on a clone - so it passes -AllowAbsentInput to the twelve
+      gates that read those roots and -AllowNoCatalog to the three that read the catalog. A gate told
+      so ends `NOT APPLICABLE` with exit 0, shown in the NOT APPLICABLE block and counted with the
+      skipped, never with the passed; -FailOnSkipped does not charge it. Without the flags that job
+      would state one published fact - that PLAN/ and .claude/ are not published - as a dozen
+      UNVERIFIED rows, in a summary that was red on every run and therefore read on none.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-fast-gates.ps1
@@ -212,11 +219,17 @@ else {
 }
 
 # name -> extra args (beyond -Gate). Order matters: cheapest/most-deterministic first.
+#
+# S4380: -AllowAbsentInput (the twelve gates whose subject lives in the gitignored PLAN/ or .claude/) and
+# -AllowNoCatalog (the three that read the shared contracts catalog) are this batch's declaration that it
+# runs on clones which carry neither: the GitHub Static Gates job. A gate told so ends `NOT APPLICABLE`
+# (exit 0, counted with the skipped); run plainly the same absence is `COULD NOT VERIFY` (exit 2), because
+# CHECK-VERDICT 0.12 item A.2 reserves exit 3 for a check that ran and found something it cannot attribute.
 $gates = [ordered]@{
-    'assert-no-ticket-logs.ps1'                 = @('-Quiet')
-    'assert-ticket-acceptance-probes.ps1'       = @('-Quiet')
-    'assert-acceptance-preconditions.ps1'       = @('-Quiet')
-    'assert-spec-catalog-valid.ps1'             = @('-Quiet')
+    'assert-no-ticket-logs.ps1'                 = @('-Quiet', '-AllowAbsentInput')
+    'assert-ticket-acceptance-probes.ps1'       = @('-Quiet', '-AllowAbsentInput')
+    'assert-acceptance-preconditions.ps1'       = @('-Quiet', '-AllowAbsentInput')
+    'assert-spec-catalog-valid.ps1'             = @('-Quiet', '-AllowAbsentInput')
     # S3084: the CI cost map in docs/BUILD_VS_RELEASE.md against the `on:` blocks and `jobs:` keys of
     # .github/workflows/*.yml. Three files and one table, read as text - no gradle daemon.
     'assert-ci-cost-map.ps1'                    = @('-Quiet')
@@ -397,7 +410,7 @@ $gates = [ordered]@{
     # repository, which is an answer that is true once. Judges live wiring only: a mention in an
     # archived spec or a changelog row remembers a script, it does not call one. Ratcheted against
     # script-reference-baseline.txt; no gradle daemon.
-    'assert-script-references.ps1'              = @('-Quiet')
+    'assert-script-references.ps1'              = @('-Quiet', '-AllowAbsentInput')
     # S1872: the inventory is generated from script headers, so a script with no synopsis lands in
     # it as a name and a parameter list and explains nothing. Two ratcheted counts, kept apart so
     # neither hides behind the other: no synopsis, and exits without a documented contract.
@@ -434,16 +447,19 @@ $gates = [ordered]@{
     # stream-catalog/CONSUMERS.md and the revision defaults from the publisher; two file reads.
     # -AllowNoCatalog: the GitHub Static Gates job runs this batch on a clone with no catalog. Without
     # the flag the gate answers COULD NOT VERIFY (exit 2) there, an UNVERIFIED row on every run; with
-    # it the clone ends `NOT APPLICABLE`, counted with the skipped and never with the passed.
+    # it the clone ends `NOT APPLICABLE`, counted with the skipped and never with the passed. The two
+    # catalog gates below carry the same flag for the same reason.
     'assert-stream-asset-revisions.ps1'         = @('-Quiet', '-AllowNoCatalog')
     # S3420: the vendored FDSEC-FORMAT conformance vectors against the catalog copy they came from.
     # The vectors decide conformance, so a catalog regeneration would otherwise leave FdSecVectorsTest
-    # green against stale bytes. Hashes a few small files; exit 3 (SKIP) without FMS_CONTRACTS_ROOT.
-    'assert-fdsec-vectors-provenance.ps1'       = @('-Quiet')
+    # green against stale bytes. Hashes a few small files; exit 2 without FMS_CONTRACTS_ROOT, NOT
+    # APPLICABLE with -AllowNoCatalog.
+    'assert-fdsec-vectors-provenance.ps1'       = @('-Quiet', '-AllowNoCatalog')
     # S3457: docs/contracts/<ID>.md, its README index, the summary table and the catalog registry
     # must name one set of ids and versions; the LIVE-BROADCAST pointer had drifted two versions.
-    # Reads 25 small files; exit 3 (SKIP) without FMS_CONTRACTS_ROOT once the in-repo half passed.
-    'assert-contract-pointers.ps1'              = @('-Quiet')
+    # Reads 25 small files; exit 2 without FMS_CONTRACTS_ROOT once the in-repo half passed, PASS naming
+    # the uncompared registry half with -AllowNoCatalog.
+    'assert-contract-pointers.ps1'              = @('-Quiet', '-AllowNoCatalog')
     # S1470: primary constructors approaching the 255 argument-slot ceiling. AppSettings crossed it
     # at one field per ticket; kotlinc and D8 both accepted the class and only the runtime verifier
     # refused it, so the build stayed green while the app could not start at all. Source parse of
@@ -457,18 +473,18 @@ $gates = [ordered]@{
     # the whole corpus. It was manually compacted twice and both compactions were undone within
     # a week at ~1.1 KB/day of regrowth - a budget that is not mechanical is not a budget. Ratchet
     # on one file's length plus two advisory scans over ~220 small .md files, no gradle daemon.
-    'assert-memory-budget.ps1'                  = @()
+    'assert-memory-budget.ps1'                  = @('-AllowAbsentInput')
     # S2517: every text file injected into EVERY request - CLAUDE.md, AGENTS.md, the active agent
     # definition - against a ceiling that only goes down. Measured 2026-09-04: the fixed preamble is
     # 37.8% of all billed cache_read and CLAUDE.md grew 2.35x in 35 days, having already been cleaned
     # once by S1340 and having doubled again since. Three byte counts, no gradle daemon.
-    'assert-always-loaded-budget.ps1'           = @('-Quiet')
+    'assert-always-loaded-budget.ps1'           = @('-Quiet', '-AllowAbsentInput')
     # S1343: the mandatory `**Why:**` field on every tactical step, adopted on the pilot
     # verdict in dev/spec-form-pilot.jsonl. Count ratchet against a checked-in baseline
     # rather than a HEAD diff - PLAN/ is gitignored, so no phase file has a HEAD blob and
     # the diff-scoping every sibling gate uses returns nothing here. Parses ~300 small .md
     # files, no gradle daemon.
-    'assert-tactical-step-form.ps1'             = @('-Quiet')
+    'assert-tactical-step-form.ps1'             = @('-Quiet', '-AllowAbsentInput')
     # S2037: the `Line budget` column of a Files Touched table - a self-cost estimate CLAUDE.md
     # section 1 bans by name. It survived because the ban had nothing mechanical behind it: the
     # column is in no template and no script, so /spec-tech reproduced it from habit and nothing
@@ -478,7 +494,7 @@ $gates = [ordered]@{
     # baseline would read 0 forever and only offer -UpdateBaseline as a way to bury a regression.
     # Judged per table CELL, so the prose that names the column - CLAUDE.md's own rule, S2037's
     # captured material - is not its first offender. Reads ~300 small .md files, no gradle daemon.
-    'assert-no-line-budget.ps1'                 = @('-Quiet')
+    'assert-no-line-budget.ps1'                 = @('-Quiet', '-AllowAbsentInput')
     # S1392: documentation flavor tables vs the generated capability snapshot. Nothing compared a
     # markdown matrix to build.gradle.kts before - the pin checker covers pins, the release
     # snapshot covers `standard` only - so docs/HOW_TO.md sat inverted against the lite gates on
@@ -494,7 +510,7 @@ $gates = [ordered]@{
     'assert-code-domain-writers.ps1'            = @('-Quiet')
     # S2870: the gate-placement registry against where the gates are actually wired. Reads the
     # registry, the five runners and the gate tree - text only, no gradle daemon.
-    'assert-gate-placement.ps1'                 = @('-Quiet')
+    'assert-gate-placement.ps1'                 = @('-Quiet', '-AllowAbsentInput')
     # S1489: a dependency the project retired, still named in prose. The pin gate above watches jsch
     # but compares the VERSION in one gated row, which was correct the whole time - a version
     # comparator cannot express "this name must not appear at all". So SSHJ survived the S0207/S0046
@@ -540,11 +556,11 @@ $gates = [ordered]@{
     # of those alter the tool call itself - one refuses a Grep/Glob, one rewrites Read input. An
     # agent refused by an undocumented guard cannot find out what refused it. Compares the two
     # settings files against docs/AGENT_HOOKS.md as text, no gradle daemon.
-    'assert-hook-inventory.ps1'                 = @()
+    'assert-hook-inventory.ps1'                 = @('-AllowAbsentInput')
     # S1548: the two full digests of CLAUDE.md's numbered rules are written by hand and nothing
     # compared them, so copilot-instructions.md silently lacked five rules - including four whose
     # violation a hook refuses outright. Reads four markdown files as text, no gradle daemon.
-    'assert-rule-digest-sync.ps1'               = @()
+    'assert-rule-digest-sync.ps1'               = @('-AllowAbsentInput')
     # S1639: a model whose Gson JSON outlives the process, with neither @SerializedName on its fields
     # nor a keep rule holding their names. R8 renames them per build, so the writer and the reader are
     # two different mappings and the record read after an update is wrong or half-null. The class
@@ -628,9 +644,9 @@ $runOne = {
     $captured = & $pwshExe -NoProfile -File $item.Path -Gate @($item.GateArgs) 2>&1 | Out-String
     $code = [int]$LASTEXITCODE
     $sw.Stop()
-    # S3075: 3 is "this run judged nothing" - lib/absent-input.ps1 when a gitignored root is not in
-    # the checkout, lib/fixed-input-scope.ps1 when the changed set charges the gate nothing. Folding
-    # it into FAIL stated one published fact (PLAN/ and .claude/ are not published) as nine findings.
+    # S3075, S4380: 3 is "not attributable to this run" - lib/fixed-input-scope.ps1 when the changed set
+    # charges a fixed-input gate nothing. An absent PLAN/, .claude/ or catalog is no longer a 3: the gate
+    # answers 2, or NOT APPLICABLE when the table passes it -AllowAbsentInput / -AllowNoCatalog.
     [pscustomobject]@{
         Index    = $item.Index
         Gate     = $item.Gate
@@ -797,10 +813,10 @@ $defectCount = @($judgedFailures | Where-Object { $_.Status -eq 'FAIL' }).Count
 
 if ($skippedRows.Count -gt 0) {
     Write-Line -Text '' -Console $showSummary
-    [void](Write-GateBlock -Title 'assert-fast-gates summary - NOT RUN (input absent):' -Rows $skippedRows)
-    Write-Line -Text '  Each line above printed the path it is missing. A gitignored root - PLAN/, .claude/ -' -Console $showSummary -Color Yellow
-    Write-Line -Text '  is absent by design on a fresh clone, a release worktree and a CI runner; -FailOnSkipped' -Console $showSummary -Color Yellow
-    Write-Line -Text '  makes these fatal for a caller that requires full coverage.' -Console $showSummary -Color Yellow
+    [void](Write-GateBlock -Title 'assert-fast-gates summary - NOT RUN (exit 3, not attributable to this run):' -Rows $skippedRows)
+    Write-Line -Text '  Each line above is a fixed-input gate that found something none of its inputs in your set' -Console $showSummary -Color Yellow
+    Write-Line -Text '  accounts for; the finding is printed by the gate. -FailOnSkipped makes these fatal for a' -Console $showSummary -Color Yellow
+    Write-Line -Text '  caller that requires full coverage.' -Console $showSummary -Color Yellow
 }
 
 if ($notApplicableRows.Count -gt 0) {

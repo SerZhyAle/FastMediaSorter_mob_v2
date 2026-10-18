@@ -19,19 +19,33 @@
 
     The catalog lives OUTSIDE this repository and its location is named in exactly one tracked file,
     CLAUDE.md, so this gate never spells it: it takes -CatalogRoot, falls back to
-    $env:FMS_CONTRACTS_ROOT, and returns 3 only when the in-repo half passed and the catalog could not
-    be read - the same shape as assert-stream-asset-revisions.ps1.
+    $env:FMS_CONTRACTS_ROOT, and answers COULD NOT VERIFY (exit 2) when the in-repo half passed and the
+    catalog could not be read - the same shape as assert-stream-asset-revisions.ps1 (CHECK-VERDICT 0.12
+    item A.2: a requested comparison that did not run is never an advisory and never a pass).
+
+.PARAMETER AllowNoCatalog
+    The caller declaring a checkout without the shared contracts catalog acceptable for this run.
+    `assert-fast-gates.ps1` passes it, because the GitHub Static Gates job runs on a clone that does
+    not carry the catalog. With it, an unreachable catalog ends
+    `assert-contract-pointers: PASS (.. agree in the repository; catalog registry not compared;
+    -AllowNoCatalog)` with exit 0: the in-repo half is real work that passed, so the word is PASS and
+    the parenthesis names the half the caller declared optional. Without it the same situation is exit 2.
 
 .NOTES
     Exit codes:
-      0  pointers, index, summary and registry agree on every id and version.
+      0  pointers, index, summary and registry agree on every id and version; or, with -AllowNoCatalog
+         and an unreachable catalog, the in-repo half agrees and the registry half was not compared.
       1  a pointer, the index, the summary or the registry disagrees - each finding is printed.
-      2  the gate itself cannot run: docs/contracts/, its README.md or the summary file is missing,
-         or no pointer file or summary row parsed at all.
-      3  could not verify: the in-repo half passed but the shared contracts catalog is not reachable.
+      2  could not verify: docs/contracts/, its README.md or the summary file is missing, no pointer
+         file or summary row parsed at all, or the in-repo half passed but the shared contracts catalog
+         is not reachable from this machine (unless -AllowNoCatalog).
+
+    The last stdout line is the verdict: `PASS (..)`, `FAIL (..)` or `COULD NOT VERIFY (..)`.
 #>
 param(
+    # Accepted for the fast-gate batch's uniform call shape; the gate prints one verdict line either way.
     [switch] $Quiet,
+    [switch] $AllowNoCatalog,
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
     # Never defaulted to a literal path - CLAUDE.md is the one tracked file allowed to name it.
     [string] $CatalogRoot = $env:FMS_CONTRACTS_ROOT
@@ -49,6 +63,8 @@ Write-CheckSubject -Axes ([ordered]@{ module = 'docs'; scope = 'contract-pointer
 
 function Deny([string] $message) {
     Write-Error "assert-contract-pointers: COULD NOT VERIFY - $message" -ErrorAction Continue
+    # CHECK-VERDICT rules 2.5 and 2.11: the verdict line is last on stdout, on the failure path too.
+    Write-Host 'assert-contract-pointers: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -171,8 +187,14 @@ if ($findings.Count -gt 0) {
 }
 
 if ($null -ne $catalogNote) {
-    if (-not $Quiet) { Write-Host "${name}: SKIP - $($pointers.Count) id(s) agree in the repository; $catalogNote" }
-    exit 3
+    if ($AllowNoCatalog) {
+        # The in-repo half ran and passed, so this is not NOT APPLICABLE (nothing inspected): the word is
+        # PASS and the parenthesis names the half the caller declared optional.
+        Write-Host ("${name}: PASS ($($pointers.Count) contract id(s) agree in the repository; " +
+            'catalog registry not compared; -AllowNoCatalog)') -ForegroundColor Green
+        exit 0
+    }
+    Deny "$($pointers.Count) id(s) agree in the repository, but $catalogNote"
 }
 
 Write-Host "assert-contract-pointers: PASS - $($pointers.Count) contract id(s) in $($pointerFiles.Count) pointer file(s) agree with the index, the summary and the catalog registry." -ForegroundColor Green

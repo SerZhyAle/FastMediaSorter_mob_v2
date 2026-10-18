@@ -44,10 +44,17 @@
     Exit codes:
       0 - clean, or violations reported in audit mode.
       1 - `-Gate` found a criterion outside the baseline that names no precondition.
-      2 - the spec corpus or the baseline cannot be read, or -UpdateBaseline would add an entry
-          without -Reason (nothing is written).
+      2 - PLAN/ is absent from this checkout (unless -AllowAbsentInput); the spec corpus or the baseline
+          cannot be read; or -UpdateBaseline would add an entry without -Reason (nothing is written).
       4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
           held - wait for the turn in the background and rerun (S2635).
+
+.PARAMETER AllowAbsentInput
+    The caller declaring a checkout without the gitignored root acceptable for this run.
+    assert-fast-gates.ps1 passes it, because the GitHub Static Gates job runs on a clone that does
+    not carry PLAN/ or .claude/. With it the absence ends `<gate>: NOT APPLICABLE (..)` with exit 0,
+    which every aggregator counts as skipped, never as passed (CHECK-VERDICT 0.12 item A.1); without
+    it the same absence is exit 2 (S4380, lib/absent-input.ps1).
 #>
 [CmdletBinding()]
 param(
@@ -55,7 +62,8 @@ param(
     [switch] $Quiet,
     [string] $Path,
     [switch] $UpdateBaseline,
-    [string] $Reason
+    [string] $Reason,
+    [switch]$AllowAbsentInput
 )
 
 Set-StrictMode -Version Latest
@@ -74,7 +82,7 @@ $baselinePath = Join-Path $PSScriptRoot 'acceptance-precondition-baseline.txt'
 # fresh clone, a release worktree and a CI runner carry no subject at all.
 if (-not (Test-Path -LiteralPath $planRoot)) {
     Exit-InputAbsent -Gate 'assert-acceptance-preconditions' -Path 'PLAN/' `
-        -Reason 'gitignored - present only on a workstation checkout'
+        -Reason 'gitignored - present only on a workstation checkout' -Allow:$AllowAbsentInput
 }
 
 # S1914 section 6.2. A criterion only interests this gate when it claims survival.

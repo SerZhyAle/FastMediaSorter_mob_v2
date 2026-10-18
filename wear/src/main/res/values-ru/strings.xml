@@ -1150,4 +1150,11 @@
     <string name="wear_exchange_server_honest_text">Сервер обмена соединяет ваши устройства, поэтому знает имена вашего аккаунта, устройств, папок и трансляций, видит, какие устройства в сети, и сколько и когда передаётся. Открыть то, что идёт через него, он не может: папки и их файлы, трансляции и буфер шифруются на вашем устройстве и открываются только на других ваших устройствах или у тех, кому вы дали доступ. Чтобы заглянуть внутрь, тому, кто управляет сервером, пришлось бы добавить в ваш аккаунт своё устройство, и оно появилось бы в списке ваших устройств.</string>
     <string name="wear_stream_broadcast_unplayable">Эта трансляция на часах не воспроизводится</string>
     <string name="wear_exchange_reason_format_unsupported">Этот формат новее, чем поддерживает программа. Ничего не импортировано. Используйте совместимую программу.</string>
+    <string name="wear_clipboard_open_in_action">Открыть в..</string>
+    <string name="wear_open_in_title">Открыть в..</string>
+    <string name="wear_open_in_none">На часах нет приложения, которое может это открыть.</string>
+    <string name="wear_open_in_failed">Не удалось открыть в «%1$s».</string>
+    <string name="wear_open_in_role_last_used">Последнее</string>
+    <string name="wear_open_in_role_browser">Браузер</string>
+    <string name="wear_open_in_role_maps">Карты</string>
 </resources>

@@ -26,7 +26,8 @@
       0 - clean (count <= baseline), or audit mode (no -Gate), or baseline updated.
       1 - substantive failure: more Why-less steps than the baseline allows; or -UpdateBaseline
           would raise the baseline and no -Reason was given.
-      2 - the gate itself cannot run (PLAN/ or the baseline file is missing/unreadable).
+      2 - the gate itself cannot run (PLAN/ is absent from this checkout, unless -AllowAbsentInput, or the
+          baseline file is missing/unreadable).
           Distinct from 1 on purpose.
       4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
           held - wait for the turn in the background and rerun (S2635).
@@ -48,13 +49,21 @@
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-tactical-step-form.ps1
     pwsh -NoProfile -File scripts/quality/assert-tactical-step-form.ps1 -Gate
+
+.PARAMETER AllowAbsentInput
+    The caller declaring a checkout without the gitignored root acceptable for this run.
+    assert-fast-gates.ps1 passes it, because the GitHub Static Gates job runs on a clone that does
+    not carry PLAN/ or .claude/. With it the absence ends `<gate>: NOT APPLICABLE (..)` with exit 0,
+    which every aggregator counts as skipped, never as passed (CHECK-VERDICT 0.12 item A.1); without
+    it the same absence is exit 2 (S4380, lib/absent-input.ps1).
 #>
 [CmdletBinding()]
 param(
     [switch]$Gate,
     [switch]$UpdateBaseline,
     [string]$Reason,
-    [switch]$Quiet
+    [switch]$Quiet,
+    [switch]$AllowAbsentInput
 )
 
 Set-StrictMode -Version Latest
@@ -71,7 +80,7 @@ $baselineFile = Join-Path $PSScriptRoot 'tactical-step-form-baseline.txt'
 if (-not (Test-Path -LiteralPath $planRoot)) {
     # S3075: PLAN/ is gitignored, so its absence is a property of the checkout, not a finding.
     Exit-InputAbsent -Gate 'assert-tactical-step-form' -Path 'PLAN/' `
-        -Reason 'gitignored - present only on a workstation checkout'
+        -Reason 'gitignored - present only on a workstation checkout' -Allow:$AllowAbsentInput
 }
 
 # A step's Why is satisfied by one sentence of prose, or by the literal

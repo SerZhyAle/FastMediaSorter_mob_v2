@@ -8,12 +8,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WatchFileOpenEvents
+import com.sza.fastmediasorter.wear.domain.model.WearOpenInTarget
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardReceiveReport
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardValue
 import com.sza.fastmediasorter.wear.domain.repository.WearClipboardTextOutcome
 import com.sza.fastmediasorter.wear.domain.repository.WearServerClipboardRepository
+import com.sza.fastmediasorter.wear.domain.usecase.BuildWearServerClipboardOpenInObjectUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.GetWearServerClipboardUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.LaunchWearOpenInUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.ListWearOpenInTargetsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.SendWearClipboardTextUseCase
+import com.sza.fastmediasorter.wear.ui.apps.clipboard.helpers.ClipboardOpenInManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -37,11 +42,22 @@ class ClipboardViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val sendWearClipboardText: SendWearClipboardTextUseCase,
     private val getServerClipboard: GetWearServerClipboardUseCase,
-    private val serverClipboard: WearServerClipboardRepository
+    private val serverClipboard: WearServerClipboardRepository,
+    listOpenInTargets: ListWearOpenInTargetsUseCase,
+    launchOpenIn: LaunchWearOpenInUseCase,
+    buildServerOpenInObject: BuildWearServerClipboardOpenInObjectUseCase,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(ClipboardUiState())
     val uiState: StateFlow<ClipboardUiState> = state.asStateFlow()
+
+    private val openIn = ClipboardOpenInManager(
+        scope = viewModelScope,
+        listTargets = listOpenInTargets,
+        launchOpenIn = launchOpenIn,
+        buildServerObject = buildServerOpenInObject,
+        update = { change -> state.update(change) },
+    )
 
     private var clipboardText: String = ""
 
@@ -66,6 +82,7 @@ class ClipboardViewModel @Inject constructor(
         if (state.value.server.receiving) {
             return
         }
+        openIn.forgetReceived()
         updateServer { it.copy(receiving = true, progressPercent = 0, outcomeRes = null, skipped = null) }
         getJob = viewModelScope.launch {
             try {
@@ -75,12 +92,42 @@ class ClipboardViewModel @Inject constructor(
                     ServerClipboardResultMapper.map(result, shown) { Formatter.formatShortFileSize(context, it) }
                 }
                 result.openRequest?.let { WatchFileOpenEvents.requestFlow.emit(it) }
-                (result.report as? WearServerClipboardReceiveReport.Received)?.let { showStored(it.value) }
+                (result.report as? WearServerClipboardReceiveReport.Received)?.let {
+                    showStored(it.value)
+                    openIn.rememberReceived(it.value, it.saved)
+                }
             } finally {
                 updateServer { it.copy(receiving = false) }
             }
         }
     }
+
+    /**
+     * S4381: opens the system clipboard text in an application the wearer picks. The text is read again first, as
+     * [sendToPhone] does, so the list is built for what the clipboard holds now.
+     */
+    fun openInClipboard() {
+        Timber.d("S4381: open in tapped for the watch clipboard text")
+        if (state.value.openIn != null) {
+            return
+        }
+        refresh()
+        if (clipboardText.isBlank()) {
+            state.update { shown -> shown.copy(outcomeRes = R.string.wear_clipboard_empty, outcomeArg = null) }
+        } else {
+            openIn.openText(clipboardText)
+        }
+    }
+
+    /** S4381: opens the value received from the server on this visit in an application the wearer picks. */
+    fun openInServerValue() {
+        Timber.d("S4381: open in tapped for the received server value")
+        openIn.openReceived()
+    }
+
+    fun pickOpenIn(target: WearOpenInTarget) = openIn.pick(target)
+
+    fun dismissOpenIn() = openIn.dismiss()
 
     fun cancelGet() {
         getJob?.cancel()

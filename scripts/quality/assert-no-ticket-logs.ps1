@@ -16,8 +16,9 @@
     Exit codes (S1070):
       0 - clean (or audit mode).
       1 - substantive failure: a forbidden permanent-log ticket id remains.
-      2 - the gate itself cannot run (spec-catalog.jsonl missing - without it no
-          probe's status can be resolved). Distinct from 1 on purpose.
+      2 - the gate itself cannot run (spec-catalog.jsonl missing, or PLAN/ absent from this checkout unless
+          -AllowAbsentInput - without the journal no probe's status can be resolved). Distinct from 1 on
+          purpose.
       3 - only the catalog-state half failed: some ticket is BlockNeedUserTest with no
           probe, and -ChangedFiles was supplied, so the caller asked to be judged on
           its own files. Distinct from 1 because the caller cannot fix it - the probe
@@ -43,6 +44,13 @@
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1
     pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1 -Gate
+
+.PARAMETER AllowAbsentInput
+    The caller declaring a checkout without the gitignored root acceptable for this run.
+    assert-fast-gates.ps1 passes it, because the GitHub Static Gates job runs on a clone that does
+    not carry PLAN/ or .claude/. With it the absence ends `<gate>: NOT APPLICABLE (..)` with exit 0,
+    which every aggregator counts as skipped, never as passed (CHECK-VERDICT 0.12 item A.1); without
+    it the same absence is exit 2 (S4380, lib/absent-input.ps1).
 #>
 [CmdletBinding()]
 param(
@@ -50,7 +58,8 @@ param(
     [switch]$Quiet,
     # S1184/S1340: `pwsh -File` binds only the first element of a [string[]] and rejects the rest as
     # positional args, so callers comma-join and this splits it back.
-    [string[]]$ChangedFiles
+    [string[]]$ChangedFiles,
+    [switch]$AllowAbsentInput
 )
 
 Set-StrictMode -Version Latest
@@ -66,7 +75,7 @@ if (-not (Test-Path $catalog)) {
     # S3075: PLAN/ is gitignored, so a fresh clone, a release worktree and a CI runner all lack the
     # journal legitimately. That is "cannot verify", never "violation" - see lib/absent-input.ps1.
     Exit-InputAbsent -Gate 'assert-no-ticket-logs' -Path 'PLAN/spec-catalog.jsonl' `
-        -Reason 'PLAN/ is gitignored - present only on a workstation checkout'
+        -Reason 'PLAN/ is gitignored - present only on a workstation checkout' -Allow:$AllowAbsentInput
 }
 
 # Build the set of tickets currently in BlockNeedUserTest (allowed-probe owners).

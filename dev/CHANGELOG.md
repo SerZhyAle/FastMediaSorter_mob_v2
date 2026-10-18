@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.18 22:50</sub>
+<sub class="doc-stamp">26.10.18 23:40</sub>
 
 # Development Changelog
 
@@ -36836,3 +36836,41 @@ Format: | datetime | file | target | description |
 | 2026-10-18 22:28:17 | `PLAN/S4380_check-verdict-a2-absent-input-skips.md` | `S4380` | Capture Draft S4380 check-verdict-a2-absent-input-skips [branch: DEBUG-v046] |
 | 2026-10-18 22:49:25 | `PLAN/S4381_wear-clipboard-open-in.md` | `S4381` | Capture Draft S4381 wear-clipboard-open-in [branch: DEBUG-v046] |
 | 2026-10-18 22:50:13 | `scripts/quality/assert-focus-highlight.ps1` | `S4376` | Focus-highlight gate recognizes SafeSelectionTextInputEditText and valueAsText dropdown rows; broadcast SettingsInputRow wrappers lose dead focus stops; tourist tile uses FocusMaterialCardView [set of 4: app_v2/src/main/res/layout/fragment_settings_broadcast.xml, app_v2/src/main/res/layout-land/fragment_settings_broadcast.xml, app_v2/src/main/res/layout/item_tourist_tile.xml] [branch: DEBUG-v046] |
+| 2026-10-18 22:50:55 | `PLAN/S4382_wear-clipboard-exchange-fetch.md` | `S4382` | Capture Draft S4382 wear-clipboard-exchange-fetch [branch: DEBUG-v046] |
+| 2026-10-18 23:09:42 | `scripts/quality/lib/absent-input.ps1` | `S4380` | S4380: CHECK-VERDICT A.2 absent-input skips settled - Exit-InputAbsent answers COULD NOT VERIFY (exit 2) instead of exit 3 and takes -Allow; twelve gitignored-root gates declare -AllowAbsentInput, assert-fdsec-vectors-provenance and assert-contract-pointers take -AllowNoCatalog, assert-fast-gates passes all fourteen flags so the CI clone ends NOT APPLICABLE; contract suite cases and rule text moved [set of 21: scripts/quality/assert-acceptance-preconditions.ps1, scripts/quality/assert-always-loaded-budget.ps1, scripts/quality/assert-gate-placement.ps1, scripts/quality/assert-hook-inventory.ps1, scripts/quality/assert-memory-budget.ps1, scripts/quality/assert-no-ticket-logs.ps1, +14 more] [branch: DEBUG-v046] |
+| 2026-10-18 23:11:03 | `PLAN/S4380_check-verdict-a2-absent-input-skips.md` | `spec-all` | All phases done; status -> Verified [branch: DEBUG-v046] |
+| 2026-10-18 23:16:07 | `PLAN/archive/S4382_wear-clipboard-exchange-fetch.md` | `S4382` | Archive S4382 (wear-clipboard-exchange-fetch): get-and-show of the exchange clipboard on the watch is already delivered by S4227; the Open in.. coupling for a fetched value moved into S4381 [branch: DEBUG-v046] |
+| 2026-10-18 23:36:23 | `PLAN/S4381_wear-clipboard-open-in.md` | `spec-all` | Spec, research, phases and pre-handoff audit; status -> BlockNeedUserTest [branch: DEBUG-v046] |
+| 2026-10-18 23:36:24 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearOpenIn.kt` | `spec-all` | phase-01.1: open-in object, row, role, action and launch result models [branch: DEBUG-v046] |
+| 2026-10-18 23:36:25 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/openin/WearOpenInTextClassifier.kt` | `spec-all` | phase-01.2: pure classifier of clipboard text shapes [branch: DEBUG-v046] |
+| 2026-10-18 23:36:25 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/openin/WearOpenInOrdering.kt` | `spec-all` | phase-01.3: list order last used, browser, maps, rest by name [branch: DEBUG-v046] |
+| 2026-10-18 23:36:27 | `wear/src/main/java/com/sza/fastmediasorter/wear/util/PackageManagerCompat.kt` | `spec-all` | phase-01.4: resolveActivityCompat for the default-role probe [branch: DEBUG-v046] |
+| 2026-10-18 23:36:28 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/preferences/WearOpenInLastUsedStore.kt` | `spec-all` | phase-01.5: last used package per object kind [branch: DEBUG-v046] |
+| 2026-10-18 23:36:28 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/repository/WearOpenInRepository.kt` | `spec-all` | phase-01.6: repository contract [branch: DEBUG-v046] |
+| 2026-10-18 23:36:29 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/openin/AndroidWearOpenInRepository.kt` | `spec-all` | phase-01.6: enumeration, defaults and launch through the system [branch: DEBUG-v046] |
+| 2026-10-18 23:36:30 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/openin/WearOpenInIntents.kt` | `spec-all` | phase-01.6: one definition of each intent [branch: DEBUG-v046] |
+| 2026-10-18 23:36:31 | `wear/src/main/java/com/sza/fastmediasorter/wear/di/WearClipboardModule.kt` | `spec-all` | phase-01.6: binding of the open-in repository [branch: DEBUG-v046] |
+| 2026-10-18 23:36:32 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/ListWearOpenInTargetsUseCase.kt` | `spec-all` | phase-01.7: ordered list use case [branch: DEBUG-v046] |
+| 2026-10-18 23:36:33 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/LaunchWearOpenInUseCase.kt` | `spec-all` | phase-01.7: launch and remember use case [branch: DEBUG-v046] |
+| 2026-10-18 23:36:34 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/BuildWearServerClipboardOpenInObjectUseCase.kt` | `spec-all` | phase-02.3: received server value to hand-over object [branch: DEBUG-v046] |
+| 2026-10-18 23:36:34 | `wear/src/main/AndroidManifest.xml` | `spec-all` | phase-01.8: queries for the open-in enumeration [branch: DEBUG-v046] |
+| 2026-10-18 23:36:35 | `wear/src/test/java/com/sza/fastmediasorter/wear/domain/openin/WearOpenInTextClassifierTest.kt` | `spec-all` | phase-01.8: classifier tests [branch: DEBUG-v046] |
+| 2026-10-18 23:36:36 | `wear/src/test/java/com/sza/fastmediasorter/wear/domain/openin/WearOpenInOrderingTest.kt` | `spec-all` | phase-01.8: ordering tests [branch: DEBUG-v046] |
+| 2026-10-18 23:36:36 | `wear/src/test/java/com/sza/fastmediasorter/wear/domain/usecase/LaunchWearOpenInUseCaseTest.kt` | `spec-all` | phase-01.8: launch and list use case tests [branch: DEBUG-v046] |
+| 2026-10-18 23:36:37 | `wear/src/test/java/com/sza/fastmediasorter/wear/domain/usecase/BuildWearServerClipboardOpenInObjectUseCaseTest.kt` | `spec-all` | phase-02.3: hand-over object tests [branch: DEBUG-v046] |
+| 2026-10-18 23:36:37 | `wear/src/main/res/values/strings.xml` | `spec-all` | phase-02.1: open-in strings en [branch: DEBUG-v046] |
+| 2026-10-18 23:36:38 | `wear/src/main/res/values-ru/strings.xml` | `spec-all` | phase-02.1: open-in strings ru [branch: DEBUG-v046] |
+| 2026-10-18 23:36:38 | `wear/src/main/res/values-uk/strings.xml` | `spec-all` | phase-02.1: open-in strings uk [branch: DEBUG-v046] |
+| 2026-10-18 23:36:39 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/OpenInDialog.kt` | `spec-all` | phase-02.2: app list dialog [branch: DEBUG-v046] |
+| 2026-10-18 23:36:39 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/OpenInUiState.kt` | `spec-all` | phase-02.2: dialog state [branch: DEBUG-v046] |
+| 2026-10-18 23:36:40 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/clipboard/ClipboardUiState.kt` | `spec-all` | phase-02.3: open-in state fields [branch: DEBUG-v046] |
+| 2026-10-18 23:36:40 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/clipboard/ClipboardViewModel.kt` | `spec-all` | phase-02.3: open-in actions and S4381 probes [branch: DEBUG-v046] |
+| 2026-10-18 23:36:41 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/clipboard/helpers/ClipboardOpenInManager.kt` | `spec-all` | phase-02.3: open-in manager [branch: DEBUG-v046] |
+| 2026-10-18 23:36:41 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/clipboard/OpenInChip.kt` | `spec-all` | phase-02.4: open-in chip [branch: DEBUG-v046] |
+| 2026-10-18 23:36:42 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/clipboard/ClipboardScreen.kt` | `spec-all` | phase-02.4: chip and dialog wiring [branch: DEBUG-v046] |
+| 2026-10-18 23:36:42 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/clipboard/ServerClipboardGetChip.kt` | `spec-all` | phase-02.4: open-in chip under the server result [branch: DEBUG-v046] |
+| 2026-10-18 23:36:43 | `docs/wear/index.md` | `spec-all` | phase-03.1: Open in.. bullet [branch: DEBUG-v046] |
+| 2026-10-18 23:36:43 | `docs/wear/index-ru.md` | `spec-all` | phase-03.1: Open in.. bullet ru [branch: DEBUG-v046] |
+| 2026-10-18 23:36:44 | `docs/wear/index-uk.md` | `spec-all` | phase-03.1: Open in.. bullet uk [branch: DEBUG-v046] |
+| 2026-10-18 23:39:31 | `PLAN/S4383_prerelease-sweep-46-handoff.md` | `S4383` | Capture Draft S4383 prerelease-sweep-46-handoff [branch: DEBUG-v046] |
+| 2026-10-18 23:40:26 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearOpenIn.kt` | `S4381` | S4381: Open in.. on the watch Clipboard screen: text or received server value goes to any installed app; last used, default browser and default maps first [set of 31: wear/src/main/java/com/sza/fastmediasorter/wear/domain/openin/WearOpenInTextClassifier.kt, wear/src/main/java/com/sza/fastmediasorter/wear/domain/openin/WearOpenInOrdering.kt, wear/src/main/java/com/sza/fastmediasorter/wear/util/PackageManagerCompat.kt, wear/src/main/java/com/sza/fastmediasorter/wear/data/preferences/WearOpenInLastUsedStore.kt, wear/src/main/java/com/sza/fastmediasorter/wear/domain/repository/WearOpenInRepository.kt, wear/src/main/java/com/sza/fastmediasorter/wear/data/openin/AndroidWearOpenInRepository.kt, +24 more] [branch: DEBUG-v046] |

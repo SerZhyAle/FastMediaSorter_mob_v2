@@ -1148,4 +1148,11 @@
     <string name="wear_exchange_server_honest_text">The exchange server connects your devices, so it knows the names of your account, devices, folders and broadcasts, sees which devices are online, and how much is sent and when. It cannot open what goes through it: folders and their files, broadcasts and the clipboard are encrypted on your device and opened only on your other devices or by the people you gave access to. To look inside, whoever runs the server would have to add a device of their own to your account, and it would appear in your list of devices.</string>
     <string name="wear_stream_broadcast_unplayable">This broadcast doesn\'t play on the watch</string>
     <string name="wear_exchange_reason_format_unsupported">This format is newer than this program supports. Nothing was imported. Use a compatible program.</string>
+    <string name="wear_clipboard_open_in_action">Open in..</string>
+    <string name="wear_open_in_title">Open in..</string>
+    <string name="wear_open_in_none">No app on the watch can open this.</string>
+    <string name="wear_open_in_failed">Could not open in %1$s.</string>
+    <string name="wear_open_in_role_last_used">Last used</string>
+    <string name="wear_open_in_role_browser">Browser</string>
+    <string name="wear_open_in_role_maps">Maps</string>
 </resources>

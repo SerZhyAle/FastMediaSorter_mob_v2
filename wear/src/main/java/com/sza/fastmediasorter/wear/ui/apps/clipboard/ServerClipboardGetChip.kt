@@ -39,6 +39,7 @@ internal fun ServerClipboardGetChip(
     server: ServerClipboardUiState,
     onGet: () -> Unit,
     onCancel: () -> Unit,
+    openIn: ServerOpenIn,
 ) {
     KeepScreenOnWhile(server.receiving)
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -71,9 +72,22 @@ internal fun ServerClipboardGetChip(
             )
         } else {
             OutcomeLines(server)
+            if (server.canOpenIn) {
+                OpenInChip(enabled = openIn.enabled, failedAppLabel = openIn.failedAppLabel, onClick = openIn.onClick)
+            }
         }
     }
 }
+
+/**
+ * S4381: what the "Open in.." chip under the result line needs - kept together so the get chip takes one extra
+ * parameter rather than three.
+ */
+internal class ServerOpenIn(
+    val enabled: Boolean,
+    val failedAppLabel: String?,
+    val onClick: () -> Unit,
+)
 
 @Composable
 private fun OutcomeLines(server: ServerClipboardUiState) {

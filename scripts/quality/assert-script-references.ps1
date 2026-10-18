@@ -120,8 +120,16 @@
       0 - every finding is in the baseline, or -Report was given
       1 - an unreferenced script that is not in the baseline appeared, a memory path resolves to
           nothing, or a document names a script that does not exist and is not in the docs baseline
-      2 - cannot verify: a script root, the agent memory, the document corpus or a baseline file
+      2 - cannot verify: .claude/ is absent from this checkout (unless -AllowAbsentInput), a script root, the
+          agent memory, the document corpus or a baseline file
           is missing
+
+.PARAMETER AllowAbsentInput
+    The caller declaring a checkout without the gitignored root acceptable for this run.
+    assert-fast-gates.ps1 passes it, because the GitHub Static Gates job runs on a clone that does
+    not carry PLAN/ or .claude/. With it the absence ends `<gate>: NOT APPLICABLE (..)` with exit 0,
+    which every aggregator counts as skipped, never as passed (CHECK-VERDICT 0.12 item A.1); without
+    it the same absence is exit 2 (S4380, lib/absent-input.ps1).
 #>
 [CmdletBinding()]
 param(
@@ -134,7 +142,8 @@ param(
     [switch] $Docs,
     [string[]] $ChangedFiles = @(),
     [switch] $Quiet,
-    [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
+    [switch]$AllowAbsentInput
 )
 
 $ErrorActionPreference = 'Stop'
@@ -149,7 +158,7 @@ $ErrorActionPreference = 'Stop'
 # them. There is no partial answer available here, so the gate declines rather than guesses.
 if (-not (Test-Path -LiteralPath (Join-Path $RepoRoot '.claude'))) {
     Exit-InputAbsent -Gate 'assert-script-references' -Path '.claude/' `
-        -Reason 'gitignored, and a LIVE reference root - without it a wired script reads as dead'
+        -Reason 'gitignored, and a LIVE reference root - without it a wired script reads as dead' -Allow:$AllowAbsentInput
 }
 $nestedWorktrees = Get-NestedWorktreeRelativePath -RepoRoot $RepoRoot
 

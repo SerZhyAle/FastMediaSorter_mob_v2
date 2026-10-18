@@ -94,9 +94,17 @@
     Exit codes (CLAUDE.md Rule 7):
       0  registry and wiring agree (or findings exist but -Gate was not passed).
       1  at least one finding, under -Gate with a declared input in the changed set.
-      2  cannot verify - the registry is missing or a line is not valid JSON, or the spec-catalog
+      2  cannot verify - .claude/ is absent from a checkout whose root was not named (unless
+         -AllowAbsentInput), the registry is missing or a line is not valid JSON, or the spec-catalog
          journal is missing or unreadable.
       3  advisory: findings exist but no declared input was in the changed set (S2824).
+
+.PARAMETER AllowAbsentInput
+    The caller declaring a checkout without the gitignored root acceptable for this run.
+    assert-fast-gates.ps1 passes it, because the GitHub Static Gates job runs on a clone that does
+    not carry PLAN/ or .claude/. With it the absence ends `<gate>: NOT APPLICABLE (..)` with exit 0,
+    which every aggregator counts as skipped, never as passed (CHECK-VERDICT 0.12 item A.1); without
+    it the same absence is exit 2 (S4380, lib/absent-input.ps1).
 #>
 [CmdletBinding()]
 param(
@@ -107,7 +115,8 @@ param(
     [string]$Registry,
     [string]$SourceMap,
     [string]$Journal,
-    [switch]$Help
+    [switch]$Help,
+    [switch]$AllowAbsentInput
 )
 
 $ErrorActionPreference = 'Stop'
@@ -137,7 +146,7 @@ if (Test-Path -LiteralPath $fixedInputLib) { . $fixedInputLib }
 if (-not $PSBoundParameters.ContainsKey('RepoRoot') -and
     -not (Test-Path -LiteralPath (Join-Path $RepoRoot '.claude'))) {
     Exit-InputAbsent -Gate 'assert-gate-placement' -Path '.claude/' `
-        -Reason 'gitignored, and it carries two of the runners whose wiring this gate reads'
+        -Reason 'gitignored, and it carries two of the runners whose wiring this gate reads' -Allow:$AllowAbsentInput
 }
 
 $registryPath = if ($Registry) { $Registry } else { Get-GatePlacementRegistryPath -RepoRoot $RepoRoot }

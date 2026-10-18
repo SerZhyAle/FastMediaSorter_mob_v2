@@ -1,17 +1,20 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    S4367, S4379: tests for the exit-0 paths CHECK-VERDICT 0.12 item A.2 made exit 2 - the artifact and
-    tool checks assert-16kb-alignment, assert-meta-packaging-limits, assert-wear-64bit-abi and
-    assert-codex-transcript-hygiene, then assert-wear-phone-identity-parity and
-    assert-stream-asset-revisions - for the opt-in flags the batch runners pass, and for the empty
-    determined set of assert-icon-style.
+    S4367, S4379, S4380: tests for the exit-0 and exit-3 paths CHECK-VERDICT 0.12 item A.2 made exit 2 -
+    the artifact and tool checks assert-16kb-alignment, assert-meta-packaging-limits,
+    assert-wear-64bit-abi and assert-codex-transcript-hygiene, then assert-wear-phone-identity-parity
+    and assert-stream-asset-revisions, then the shared absent-input helper with the twelve gates that
+    call it, assert-fdsec-vectors-provenance and assert-contract-pointers - for the opt-in flags the
+    batch runners pass, and for the empty determined set of assert-icon-style.
 
 .DESCRIPTION
     A check whose requested work did not run (no built artifact, no tool, no rollout, no keystore
-    properties, no catalog) must end `<subject>: COULD NOT VERIFY (..)` with exit 2, and a caller
-    that declared the input optional (-AllowMissingArtifact, -AllowOffline, -AllowNoCatalog) gets
-    `NOT APPLICABLE` with exit 0 - never a pass. A comparison that ran and mismatched stays FAIL.
+    properties, no catalog, no gitignored PLAN/ or .claude/) must end `<subject>: COULD NOT VERIFY (..)`
+    with exit 2, and a caller that declared the input optional (-AllowMissingArtifact, -AllowOffline,
+    -AllowNoCatalog, -AllowAbsentInput) gets `NOT APPLICABLE` with exit 0 - never a pass; the one
+    exception is assert-contract-pointers, whose in-repo half is real work and ends `PASS` naming the
+    half it did not compare. A comparison that ran and mismatched stays FAIL.
     The last stdout line is the verdict in every case (rule 2.11).
 
     Hermetic: each artifact check is copied into a sandbox tree whose repo root holds no build
@@ -283,11 +286,126 @@ try {
         Assert-LastLine $r.Lines '^assert-icon-style: PASS \(0 file\(s\) inspected\)$' 'verdict'
     }
 
-    # --- the fast-gates batch opts the stream gate in -------------------------------------------
-    Test-Case 'fast-gates: assert-stream-asset-revisions.ps1 is passed -AllowNoCatalog' {
-        $fastText = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts/quality/assert-fast-gates.ps1') -Raw
-        if ($fastText -notmatch "'assert-stream-asset-revisions\.ps1'\s*=\s*@\([^)]*'-AllowNoCatalog'") {
-            throw 'the gate table has no -AllowNoCatalog entry for assert-stream-asset-revisions.ps1'
+    # --- S4380: the shared absent-input helper --------------------------------------------------
+    $helperGate = Join-Path $sandbox 'helper-gate.ps1'
+    $absentLib = (Join-Path $repoRoot 'scripts/quality/lib/absent-input.ps1').Replace("'", "''")
+    Set-Content -LiteralPath $helperGate -Encoding ASCII -Value @(
+        'param([switch]$AllowAbsentInput)',
+        "`$ErrorActionPreference = 'Stop'",
+        ". '$absentLib'",
+        "Exit-InputAbsent -Gate 'fake-gate' -Path 'PLAN/' -Reason 'gitignored' -Allow:`$AllowAbsentInput")
+    Test-Case 'absent-input: the helper alone is COULD NOT VERIFY, exit 2' {
+        $r = Invoke-Check $helperGate
+        Assert-Equal 2 $r.Exit 'exit code'
+        Assert-LastLine $r.Lines '^fake-gate: COULD NOT VERIFY \(PLAN/ absent\)$' 'verdict'
+    }
+    Test-Case 'absent-input: the helper with -Allow is NOT APPLICABLE, exit 0' {
+        $r = Invoke-Check $helperGate @('-AllowAbsentInput')
+        Assert-Equal 0 $r.Exit 'exit code'
+        Assert-LastLine $r.Lines '^fake-gate: NOT APPLICABLE \(PLAN/ absent: gitignored; -AllowAbsentInput\)$' 'verdict'
+    }
+
+    # --- S4380: two gates that take -RepoRoot, pointed at a root with no .claude/ ----------------
+    $emptyRepo = Join-Path $sandbox 'empty-repo'
+    New-Item -ItemType Directory -Path $emptyRepo -Force | Out-Null
+    foreach ($case in @(
+            @('assert-hook-inventory', @('-Gate', '-RepoRoot', $emptyRepo)),
+            @('assert-script-references', @('-Gate', '-Quiet', '-RepoRoot', $emptyRepo)))) {
+        $script = Join-Path $repoRoot "scripts/quality/$($case[0]).ps1"
+        Test-Case "absent-input: $($case[0]) over a root with no .claude/ is COULD NOT VERIFY, exit 2" {
+            $r = Invoke-Check $script $case[1]
+            Assert-Equal 2 $r.Exit 'exit code'
+            Assert-LastLine $r.Lines "^$($case[0]): COULD NOT VERIFY \(\.claude/ absent\)`$" 'verdict'
+        }
+        Test-Case "absent-input: $($case[0]) with -AllowAbsentInput is NOT APPLICABLE, exit 0" {
+            $r = Invoke-Check $script ($case[1] + '-AllowAbsentInput')
+            Assert-Equal 0 $r.Exit 'exit code'
+            Assert-LastLine $r.Lines "^$($case[0]): NOT APPLICABLE \(\.claude/ absent: " 'verdict'
+        }
+    }
+
+    # --- S4380: assert-fdsec-vectors-provenance -------------------------------------------------
+    $fdsecGate = Join-Path $repoRoot 'scripts/quality/assert-fdsec-vectors-provenance.ps1'
+    $fdsecRepo = Join-Path $sandbox 'fdsec-repo'
+    $fdsecDir = Join-Path $fdsecRepo 'app_v2/src/test/resources/fdsec'
+    New-Item -ItemType Directory -Path $fdsecDir -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $fdsecDir 'PROVENANCE.txt') -Encoding ASCII -Value @(
+        'contract: FDSEC-FORMAT', ('sha256 vec.bin ' + ('0' * 64)))
+    Test-Case 'fdsec: an unreachable catalog is COULD NOT VERIFY, exit 2' {
+        $r = Invoke-Check $fdsecGate @('-Quiet', '-RepoRoot', $fdsecRepo, '-CatalogRoot', $noCatalog)
+        Assert-Equal 2 $r.Exit 'exit code'
+        Assert-LastLine $r.Lines '^assert-fdsec-vectors-provenance: COULD NOT VERIFY \(' 'verdict'
+    }
+    Test-Case 'fdsec: an unreachable catalog with -AllowNoCatalog is NOT APPLICABLE, exit 0' {
+        $r = Invoke-Check $fdsecGate @('-Quiet', '-RepoRoot', $fdsecRepo, '-CatalogRoot', $noCatalog, '-AllowNoCatalog')
+        Assert-Equal 0 $r.Exit 'exit code'
+        Assert-LastLine $r.Lines '^assert-fdsec-vectors-provenance: NOT APPLICABLE \(' 'verdict'
+    }
+
+    # --- S4380: assert-contract-pointers --------------------------------------------------------
+    $pointersGate = Join-Path $repoRoot 'scripts/quality/assert-contract-pointers.ps1'
+    $pointersRepo = Join-Path $sandbox 'pointers-repo'
+    New-Item -ItemType Directory -Path (Join-Path $pointersRepo 'docs/contracts') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $pointersRepo 'docs/contracts/README.md') -Encoding ASCII -Value @(
+        '# Index', '', '- [TEST-ONE](TEST-ONE.md)')
+    Set-Content -LiteralPath (Join-Path $pointersRepo 'docs/contracts/TEST-ONE.md') -Encoding ASCII -Value @(
+        '| | |', '| --- | --- |', '| **Id** | `TEST-ONE` |', '| **Version** | 1.0 |')
+    function Write-PointersSummary([string]$Version) {
+        Set-Content -LiteralPath (Join-Path $pointersRepo 'docs/CROSS_PROJECT_CONTRACTS.md') -Encoding ASCII -Value @(
+            '| Id | Version | Obligation |', '| --- | --- | --- |', ('| `TEST-ONE` | ' + $Version + ' | nothing |'))
+    }
+    Test-Case 'pointers: an unreachable catalog after a clean in-repo half is COULD NOT VERIFY, exit 2' {
+        Write-PointersSummary '1.0'
+        $r = Invoke-Check $pointersGate @('-Quiet', '-RepoRoot', $pointersRepo, '-CatalogRoot', $noCatalog)
+        Assert-Equal 2 $r.Exit 'exit code'
+        Assert-LastLine $r.Lines '^assert-contract-pointers: COULD NOT VERIFY \(' 'verdict'
+    }
+    Test-Case 'pointers: an unreachable catalog with -AllowNoCatalog is PASS naming the uncompared half, exit 0' {
+        Write-PointersSummary '1.0'
+        $r = Invoke-Check $pointersGate @('-Quiet', '-RepoRoot', $pointersRepo, '-CatalogRoot', $noCatalog, '-AllowNoCatalog')
+        Assert-Equal 0 $r.Exit 'exit code'
+        Assert-LastLine $r.Lines '^assert-contract-pointers: PASS \(1 contract id\(s\) agree in the repository; catalog registry not compared; -AllowNoCatalog\)$' 'verdict'
+    }
+    Test-Case 'pointers: an in-repo disagreement is FAIL, exit 1, whichever flag is passed' {
+        Write-PointersSummary '2.0'
+        foreach ($extra in @(@(), @('-AllowNoCatalog'))) {
+            $r = Invoke-Check $pointersGate (@('-Quiet', '-RepoRoot', $pointersRepo, '-CatalogRoot', $noCatalog) + $extra)
+            Assert-Equal 1 $r.Exit 'exit code'
+            Assert-LastLine $r.Lines '^assert-contract-pointers: FAIL' 'verdict'
+        }
+    }
+
+    # --- the fast-gates batch opts the absent-input and catalog gates in ------------------------
+    $fastText = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts/quality/assert-fast-gates.ps1') -Raw
+    foreach ($pair in @(
+            @('assert-stream-asset-revisions', '-AllowNoCatalog'),
+            @('assert-fdsec-vectors-provenance', '-AllowNoCatalog'),
+            @('assert-contract-pointers', '-AllowNoCatalog'),
+            @('assert-acceptance-preconditions', '-AllowAbsentInput'),
+            @('assert-always-loaded-budget', '-AllowAbsentInput'),
+            @('assert-gate-placement', '-AllowAbsentInput'),
+            @('assert-hook-inventory', '-AllowAbsentInput'),
+            @('assert-memory-budget', '-AllowAbsentInput'),
+            @('assert-no-line-budget', '-AllowAbsentInput'),
+            @('assert-no-ticket-logs', '-AllowAbsentInput'),
+            @('assert-rule-digest-sync', '-AllowAbsentInput'),
+            @('assert-script-references', '-AllowAbsentInput'),
+            @('assert-spec-catalog-valid', '-AllowAbsentInput'),
+            @('assert-tactical-step-form', '-AllowAbsentInput'),
+            @('assert-ticket-acceptance-probes', '-AllowAbsentInput'))) {
+        Test-Case "fast-gates: $($pair[0]).ps1 is passed $($pair[1])" {
+            $pattern = "'" + [regex]::Escape("$($pair[0]).ps1") + "'\s*=\s*@\([^)]*'" + [regex]::Escape($pair[1]) + "'"
+            if ($fastText -notmatch $pattern) { throw "the gate table has no $($pair[1]) entry for $($pair[0]).ps1" }
+        }
+    }
+
+    # --- every gate that calls the helper declares the switch and hands it over -----------------
+    foreach ($gateName in (Get-ChildItem -LiteralPath (Join-Path $repoRoot 'scripts/quality') -Filter 'assert-*.ps1' -File)) {
+        $gateText = Get-Content -LiteralPath $gateName.FullName -Raw
+        if ($gateText -notmatch 'Exit-InputAbsent\s+-Gate') { continue }
+        Test-Case "absent-input: $($gateName.BaseName) declares -AllowAbsentInput and passes it to the helper" {
+            if ($gateText -notmatch '\[switch\]\s*\$AllowAbsentInput') { throw 'no [switch] $AllowAbsentInput parameter' }
+            if ($gateText -notmatch '-Allow:\$AllowAbsentInput') { throw 'the call does not pass -Allow:$AllowAbsentInput' }
         }
     }
 

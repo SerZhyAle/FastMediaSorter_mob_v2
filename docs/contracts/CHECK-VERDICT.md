@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.18 22:13</sub>
+<sub class="doc-stamp">26.10.18 22:59</sub>
 
 # Pointer - `CHECK-VERDICT`
 
@@ -36,8 +36,9 @@
   quoted children all answered it answers it, and counts such a child with the skipped. The release-scope
   runner declares an unbuilt VR or wear APK and an unreachable delivery release optional by passing the
   gate's `-AllowMissingArtifact` / `-AllowOffline`, and the fast-gates batch declares a clone with no
-  contracts catalog acceptable by passing `-AllowNoCatalog` to the stream asset gate; run plainly, the
-  same gate is `2`.
+  contracts catalog or no `PLAN/` and `.claude/` acceptable by passing `-AllowNoCatalog` to the three
+  catalog gates and `-AllowAbsentInput` to the twelve gates that read the gitignored roots; run plainly,
+  the same gate is `2`.
 - Only a change set the caller declared narrows a finding to the advisory class; a set a check derives
   for itself does not (0.12, section 10 item B).
 

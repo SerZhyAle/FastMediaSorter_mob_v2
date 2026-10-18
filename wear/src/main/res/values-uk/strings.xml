@@ -1150,4 +1150,11 @@
     <string name="wear_exchange_server_honest_text">Сервер обміну з\'єднує ваші пристрої, тому знає імена вашого акаунта, пристроїв, папок і трансляцій, бачить, які пристрої в мережі, і скільки й коли передається. Відкрити те, що йде через нього, він не може: папки та їхні файли, трансляції й буфер шифруються на вашому пристрої та відкриваються лише на інших ваших пристроях або в тих, кому ви дали доступ. Щоб зазирнути всередину, тому, хто керує сервером, довелося б додати до вашого акаунта свій пристрій, і він з\'явився б у списку ваших пристроїв.</string>
     <string name="wear_stream_broadcast_unplayable">Ця трансляція на годиннику не відтворюється</string>
     <string name="wear_exchange_reason_format_unsupported">Цей формат новіший, ніж підтримує програма. Нічого не імпортовано. Скористайтеся сумісною програмою.</string>
+    <string name="wear_clipboard_open_in_action">Відкрити в..</string>
+    <string name="wear_open_in_title">Відкрити в..</string>
+    <string name="wear_open_in_none">На годиннику немає застосунку, який може це відкрити.</string>
+    <string name="wear_open_in_failed">Не вдалося відкрити в «%1$s».</string>
+    <string name="wear_open_in_role_last_used">Останнє</string>
+    <string name="wear_open_in_role_browser">Браузер</string>
+    <string name="wear_open_in_role_maps">Карти</string>
 </resources>

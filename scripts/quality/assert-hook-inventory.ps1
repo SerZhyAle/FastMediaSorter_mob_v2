@@ -70,6 +70,11 @@ Fifth comparison - the plugin's own registrations (S4295):
   not fail, since the plugin inventories its own hooks in its hooks/README.md and a plugin update
   must not turn this repository red before anyone can read what changed.
 
+-AllowAbsentInput (S4380): the caller declaring a checkout without .claude/ acceptable for this run.
+assert-fast-gates.ps1 passes it for the GitHub Static Gates clone. With it the absence ends
+`assert-hook-inventory: NOT APPLICABLE (..)` with exit 0, counted with the skipped and never with the
+passed (CHECK-VERDICT 0.12 item A.1); without it the same absence is exit 2 (lib/absent-input.ps1).
+
 Usage:
     pwsh -NoProfile -File scripts/quality/assert-hook-inventory.ps1
     pwsh -NoProfile -File scripts/quality/assert-hook-inventory.ps1 -Gate
@@ -77,7 +82,7 @@ Usage:
 Exit codes (CLAUDE.md Rule 7):
   0  in sync, or a divergence was reported without -Gate (advisories may print in both)
   1  a real divergence between the registered set, the inventory, the rule sheet and the MCP server table, with -Gate
-  2  could not verify - the inventory, .claude/settings.json or the rule sheet is missing or unparsable, or .mcp.json is unparsable
+  2  could not verify - .claude/ is absent from this checkout (unless -AllowAbsentInput), the inventory, .claude/settings.json or the rule sheet is missing or unparsable, or .mcp.json is unparsable
 #>
 
 [CmdletBinding()]
@@ -106,7 +111,8 @@ param(
     [string]$InstalledPluginsPath = (Join-Path $HOME '.claude/plugins/installed_plugins.json'),
 
     # S4295. The plugin whose installed hooks/hooks.json counts as a registration source.
-    [string]$PluginName = 'sza'
+    [string]$PluginName = 'sza',
+    [switch]$AllowAbsentInput
 )
 
 $ErrorActionPreference = 'Stop'
@@ -371,7 +377,7 @@ function Compare-Half([string]$Label, $Registered, $Inventory, $PluginServed) {
 # verify either way, and the exit-2 branch below would say "broken" about a published absence.
 if (-not (Test-Path -LiteralPath (Join-Path $RepoRoot '.claude'))) {
     Exit-InputAbsent -Gate 'assert-hook-inventory' -Path '.claude/' `
-        -Reason 'gitignored - present only on a workstation checkout'
+        -Reason 'gitignored - present only on a workstation checkout' -Allow:$AllowAbsentInput
 }
 
 if (-not (Test-Path -LiteralPath $InventoryPath)) {

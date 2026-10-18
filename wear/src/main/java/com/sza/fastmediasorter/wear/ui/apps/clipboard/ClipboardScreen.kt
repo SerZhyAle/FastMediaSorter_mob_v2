@@ -26,6 +26,7 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.OpenInDialog
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
@@ -91,12 +92,33 @@ fun ClipboardScreen(
                 )
             }
             item {
+                OpenInChip(
+                    enabled = uiState.hasText && uiState.openIn == null,
+                    failedAppLabel = uiState.openInFailure?.takeIf { it.source == OpenInSource.CLIPBOARD }?.appLabel,
+                    onClick = viewModel::openInClipboard
+                )
+            }
+            item {
                 ServerClipboardGetChip(
                     server = uiState.server,
                     onGet = viewModel::getFromServer,
-                    onCancel = viewModel::cancelGet
+                    onCancel = viewModel::cancelGet,
+                    openIn = ServerOpenIn(
+                        enabled = uiState.openIn == null,
+                        failedAppLabel = uiState.openInFailure
+                            ?.takeIf { it.source == OpenInSource.SERVER }
+                            ?.appLabel,
+                        onClick = viewModel::openInServerValue
+                    )
                 )
             }
+        }
+        uiState.openIn?.let { openIn ->
+            OpenInDialog(
+                state = openIn,
+                onPick = viewModel::pickOpenIn,
+                onDismiss = viewModel::dismissOpenIn
+            )
         }
     }
 }

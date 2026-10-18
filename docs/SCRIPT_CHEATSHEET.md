@@ -3469,12 +3469,13 @@ Refuse an acceptance criterion that rests on accumulated state without naming it
 scripts/quality/assert-acceptance-preconditions.ps1
   Refuse an acceptance criterion that rests on accumulated state without naming it (S1914).
   Params:
-    -Gate                   [SwitchParameter]
-    -Quiet                  [SwitchParameter]
-    -Path                   [String]
-    -UpdateBaseline         [SwitchParameter]
-    -Reason                 [String]
-  Exit: 0 - clean, or violations reported in audit mode.; 1 - `-Gate` found a criterion outside the baseline that names no precondition.; 2 - the spec corpus or the baseline cannot be read, or -UpdateBaseline would add an entry
+    -Gate                     [SwitchParameter]
+    -Quiet                    [SwitchParameter]
+    -Path                     [String]
+    -UpdateBaseline           [SwitchParameter]
+    -Reason                   [String]
+    -AllowAbsentInput         [SwitchParameter]
+  Exit: 0 - clean, or violations reported in audit mode.; 1 - `-Gate` found a criterion outside the baseline that names no precondition.; 2 - PLAN/ is absent from this checkout (unless -AllowAbsentInput); the spec corpus or the baseline
 ```
 
 ### assert-activity-locale-wrapper.ps1
@@ -3525,13 +3526,14 @@ Ratchet gate: every text file that is injected into EVERY request must stay unde
 scripts/quality/assert-always-loaded-budget.ps1
   Ratchet gate: every text file that is injected into EVERY request must stay under a ceiling that only ever goes down (S2517).
   Params:
-    -Path                   [String]
-    -BaselineFile           [String]
-    -Gate                   [SwitchParameter]
-    -UpdateBaseline         [SwitchParameter]
-    -SlackBytes             [Int32] = 1024
-    -Quiet                  [SwitchParameter]
-    -RepoRoot               [String]
+    -Path                     [String]
+    -BaselineFile             [String]
+    -Gate                     [SwitchParameter]
+    -UpdateBaseline           [SwitchParameter]
+    -SlackBytes               [Int32] = 1024
+    -Quiet                    [SwitchParameter]
+    -RepoRoot                 [String]
+    -AllowAbsentInput         [SwitchParameter]
   Exit: 0 every judged file is at or below its ceiling, or a report-only run, or a successful
 ```
 
@@ -3689,10 +3691,11 @@ Contract gate: the contract pointer files, their index, the summary table and th
 scripts/quality/assert-contract-pointers.ps1
   Contract gate: the contract pointer files, their index, the summary table and the catalog registry must name one set of ids and versions.
   Params:
-    -Quiet               [SwitchParameter]
-    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
-  Exit: 0 pointers, index, summary and registry agree on every id and version.; 1 a pointer, the index, the summary or the registry disagrees - each finding is printed.; 2 the gate itself cannot run: docs/contracts/, its README.md or the summary file is missing,
+    -Quiet                  [SwitchParameter]
+    -AllowNoCatalog         [SwitchParameter]
+    -RepoRoot               [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -CatalogRoot            [String] = $env:FMS_CONTRACTS_ROOT
+  Exit: 0 pointers, index, summary and registry agree on every id and version; or, with -AllowNoCatalog
 ```
 
 ### assert-credential-encryption.ps1
@@ -4122,10 +4125,11 @@ Contract gate: the vendored FDSEC-FORMAT conformance vectors must still be the c
 scripts/quality/assert-fdsec-vectors-provenance.ps1
   Contract gate: the vendored FDSEC-FORMAT conformance vectors must still be the catalog's vectors.
   Params:
-    -Quiet               [SwitchParameter]
-    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
-  Exit: 0 every vendored file and every catalog vector matches its PROVENANCE.txt row.; 1 a vendored file or a catalog vector differs from its row, or the catalog publishes a
+    -Quiet                  [SwitchParameter]
+    -AllowNoCatalog         [SwitchParameter]
+    -RepoRoot               [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -CatalogRoot            [String] = $env:FMS_CONTRACTS_ROOT
+  Exit: 0 every vendored file and every catalog vector matches its PROVENANCE.txt row; or NOT
 ```
 
 ### assert-fgs-notifications.ps1
@@ -4256,15 +4260,16 @@ S2870: the gate-placement registry must agree with where the gates are actually 
 scripts/quality/assert-gate-placement.ps1
   S2870: the gate-placement registry must agree with where the gates are actually wired.
   Params:
-    -Gate                 [SwitchParameter]
-    -Quiet                [SwitchParameter]
-    -ChangedFiles         [String[]]
-    -RepoRoot             [String]
-    -Registry             [String]
-    -SourceMap            [String]
-    -Journal              [String]
-    -Help                 [SwitchParameter]
-  Exit: 0 registry and wiring agree (or findings exist but -Gate was not passed).; 1 at least one finding, under -Gate with a declared input in the changed set.; 2 cannot verify - the registry is missing or a line is not valid JSON, or the spec-catalog
+    -Gate                     [SwitchParameter]
+    -Quiet                    [SwitchParameter]
+    -ChangedFiles             [String[]]
+    -RepoRoot                 [String]
+    -Registry                 [String]
+    -SourceMap                [String]
+    -Journal                  [String]
+    -Help                     [SwitchParameter]
+    -AllowAbsentInput         [SwitchParameter]
+  Exit: 0 registry and wiring agree (or findings exist but -Gate was not passed).; 1 at least one finding, under -Gate with a declared input in the changed set.; 2 cannot verify - .claude/ is absent from a checkout whose root was not named (unless
 ```
 
 ### assert-gate-timing-claims.ps1
@@ -4368,7 +4373,8 @@ scripts/quality/assert-hook-inventory.ps1
     -McpConfigPath                [String] = (Join-Path $RepoRoot '.mcp.json')
     -InstalledPluginsPath         [String] = (Join-Path $HOME '.claude/plugins/installed_plugins.json')
     -PluginName                   [String] = 'sza'
-  Exit: 0 in sync, or a divergence was reported without -Gate (advisories may print in both); 1 a real divergence between the registered set, the inventory, the rule sheet and the MCP server table, with -Gate; 2 could not verify - the inventory, .claude/settings.json or the rule sheet is missing or unparsable, or .mcp.json is unparsable
+    -AllowAbsentInput             [SwitchParameter]
+  Exit: 0 in sync, or a divergence was reported without -Gate (advisories may print in both); 1 a real divergence between the registered set, the inventory, the rule sheet and the MCP server table, with -Gate; 2 could not verify - .claude/ is absent from this checkout (unless -AllowAbsentInput), the inventory, .claude/settings.json or the rule sheet is missing or unparsable, or .mcp.json is unparsable
 ```
 
 ### assert-howto-settings-paths.ps1
@@ -4608,13 +4614,14 @@ Ratchet gate: the always-loaded agent-memory index must stay small, and its file
 scripts/quality/assert-memory-budget.ps1
   Ratchet gate: the always-loaded agent-memory index must stay small, and its files must not outlive what they describe (S1338).
   Params:
-    -Path                   [String]
-    -MaxBytes               [Int32] = 0
-    -StretchBytes           [Int32] = 6000
-    -TargetBytes            [Int32] = 9000
-    -Gate                   [SwitchParameter]
-    -UpdateBaseline         [SwitchParameter]
-    -SlackBytes             [Int32] = 1024
+    -Path                     [String]
+    -MaxBytes                 [Int32] = 0
+    -StretchBytes             [Int32] = 6000
+    -TargetBytes              [Int32] = 9000
+    -Gate                     [SwitchParameter]
+    -UpdateBaseline           [SwitchParameter]
+    -SlackBytes               [Int32] = 1024
+    -AllowAbsentInput         [SwitchParameter]
   Exit: 1024 B are in `assert-always-loaded-budget.ps1` -SlackBytes - MEMORY.md is an always-loaded
 ```
 
@@ -4725,9 +4732,10 @@ S2037: no self-cost estimate column (`Line budget`) in planning output.
 scripts/quality/assert-no-line-budget.ps1
   S2037: no self-cost estimate column (`Line budget`) in planning output.
   Params:
-    -Gate          [SwitchParameter]
-    -Quiet         [SwitchParameter]
-  Exit: 0 - clean, or audit mode (findings printed, no -Gate).; 1 - substantive failure: at least one forbidden column, and -Gate was passed.; 2 - the gate itself cannot run (PLAN/ missing or unreadable). Distinct from 1
+    -Gate                     [SwitchParameter]
+    -Quiet                    [SwitchParameter]
+    -AllowAbsentInput         [SwitchParameter]
+  Exit: 0 - clean, or audit mode (findings printed, no -Gate).; 1 - substantive failure: at least one forbidden column, and -Gate was passed.; 2 - the gate itself cannot run (PLAN/ missing or unreadable, unless -AllowAbsentInput). Distinct from 1
 ```
 
 ### assert-no-orphan-merged-resources.ps1
@@ -4792,10 +4800,11 @@ Audit permanent Timber logs for embedded Sxxxx ticket ids.
 scripts/quality/assert-no-ticket-logs.ps1
   Audit permanent Timber logs for embedded Sxxxx ticket ids.
   Params:
-    -Gate                 [SwitchParameter]
-    -Quiet                [SwitchParameter]
-    -ChangedFiles         [String[]]
-  Exit: 0 - clean (or audit mode).; 1 - substantive failure: a forbidden permanent-log ticket id remains.; 2 - the gate itself cannot run (spec-catalog.jsonl missing - without it no; 3 - only the catalog-state half failed: some ticket is BlockNeedUserTest with no
+    -Gate                     [SwitchParameter]
+    -Quiet                    [SwitchParameter]
+    -ChangedFiles             [String[]]
+    -AllowAbsentInput         [SwitchParameter]
+  Exit: 0 - clean (or audit mode).; 1 - substantive failure: a forbidden permanent-log ticket id remains.; 2 - the gate itself cannot run (spec-catalog.jsonl missing, or PLAN/ absent from this checkout unless
 ```
 
 ### assert-non-null-assertion.ps1
@@ -5132,9 +5141,10 @@ Keep the agent-rule digests in step with the numbered rules in CLAUDE.md (S1548)
 scripts/quality/assert-rule-digest-sync.ps1
   Keep the agent-rule digests in step with the numbered rules in CLAUDE.md (S1548).
   Params:
-    -Gate                 [SwitchParameter]
-    -RepoRoot             [String]
-    -ChangedFiles         [String[]]
+    -Gate                     [SwitchParameter]
+    -RepoRoot                 [String]
+    -ChangedFiles             [String[]]
+    -AllowAbsentInput         [SwitchParameter]
   Exit: 0 - every full digest cites every rule and every labelled closing gate, and every
 ```
 
@@ -5200,13 +5210,14 @@ Gate: a repository script that nothing references is either deleted or declares 
 scripts/quality/assert-script-references.ps1
   Gate: a repository script that nothing references is either deleted or declares itself a hand-run tool (S1872).
   Params:
-    -Gate                 [SwitchParameter]
-    -Report               [SwitchParameter]
-    -Memory               [SwitchParameter]
-    -Docs                 [SwitchParameter]
-    -ChangedFiles         [String[]] = @()
-    -Quiet                [SwitchParameter]
-    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Gate                     [SwitchParameter]
+    -Report                   [SwitchParameter]
+    -Memory                   [SwitchParameter]
+    -Docs                     [SwitchParameter]
+    -ChangedFiles             [String[]] = @()
+    -Quiet                    [SwitchParameter]
+    -RepoRoot                 [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -AllowAbsentInput         [SwitchParameter]
   Exit: 0 - every finding is in the baseline, or -Report was given; 1 - an unreferenced script that is not in the baseline appeared, a memory path resolves to
 ```
 
@@ -5379,9 +5390,10 @@ Guards spec catalog integrity and file mapping (S2549).
 scripts/quality/assert-spec-catalog-valid.ps1
   Guards spec catalog integrity and file mapping (S2549).
   Params:
-    -Gate          [SwitchParameter]
-    -Quiet         [SwitchParameter]
-  Exit: 0 - clean.; 1 - validation failure.; 2 - validate.ps1 missing.
+    -Gate                     [SwitchParameter]
+    -Quiet                    [SwitchParameter]
+    -AllowAbsentInput         [SwitchParameter]
+  Exit: 0 - clean.; 1 - validation failure.; 2 - validate.ps1 missing, or PLAN/spec-catalog.jsonl absent from this checkout (unless -AllowAbsentInput).
 ```
 
 ### assert-splash-brand-sync.ps1
@@ -5476,10 +5488,11 @@ S1343: every tactical step carries a non-empty `**Why:**` field (count ratchet).
 scripts/quality/assert-tactical-step-form.ps1
   S1343: every tactical step carries a non-empty `**Why:**` field (count ratchet).
   Params:
-    -Gate                   [SwitchParameter]
-    -UpdateBaseline         [SwitchParameter]
-    -Reason                 [String]
-    -Quiet                  [SwitchParameter]
+    -Gate                     [SwitchParameter]
+    -UpdateBaseline           [SwitchParameter]
+    -Reason                   [String]
+    -Quiet                    [SwitchParameter]
+    -AllowAbsentInput         [SwitchParameter]
   Exit: 0 - clean (count <= baseline), or audit mode (no -Gate), or baseline updated.; 1 - substantive failure: more Why-less steps than the baseline allows; or -UpdateBaseline
 ```
 
@@ -5515,9 +5528,10 @@ Audit explicit BlockNeedUserTest acceptance-probe contracts.
 scripts/quality/assert-ticket-acceptance-probes.ps1
   Audit explicit BlockNeedUserTest acceptance-probe contracts.
   Params:
-    -Gate          [SwitchParameter]
-    -Quiet         [SwitchParameter]
-  Exit: 0 - clean, or mismatches reported in audit mode.; 1 - `-Gate` found a missing source template or invalid alternative evidence.; 2 - required catalog, helper, or source roots cannot be read.
+    -Gate                     [SwitchParameter]
+    -Quiet                    [SwitchParameter]
+    -AllowAbsentInput         [SwitchParameter]
+  Exit: 0 - clean, or mismatches reported in audit mode.; 1 - `-Gate` found a missing source template or invalid alternative evidence.; 2 - required catalog, helper, or source roots cannot be read (PLAN/spec-catalog.jsonl absent from this
 ```
 
 ### assert-trivial-scope.ps1
@@ -6169,11 +6183,11 @@ scripts/quality.tests/android-string-liveness.Tests.ps1
 ```
 
 ### ArtifactCheckVerdicts.Tests.ps1
-S4367, S4379: tests for the exit-0 paths CHECK-VERDICT 0.12 item A.2 made exit 2 - the artifact and tool checks assert-16kb-alignment, assert-meta-packaging-limits, assert-wear-64bit-abi and assert-codex-transcript-hygiene, then assert-wear-phone-identity-parity and assert-stream-asset-revisions - for the opt-in flags the batch runners pass, and for the empty determined set of assert-icon-style.
+S4367, S4379, S4380: tests for the exit-0 and exit-3 paths CHECK-VERDICT 0.12 item A.2 made exit 2 - the artifact and tool checks assert-16kb-alignment, assert-meta-packaging-limits, assert-wear-64bit-abi and assert-codex-transcript-hygiene, then assert-wear-phone-identity-parity and assert-stream-asset-revisions, then the shared absent-input helper with the twelve gates that call it, assert-fdsec-vectors-provenance and assert-contract-pointers - for the opt-in flags the batch runners pass, and for the empty determined set of assert-icon-style.
 
 ```
 scripts/quality.tests/ArtifactCheckVerdicts.Tests.ps1
-  S4367, S4379: tests for the exit-0 paths CHECK-VERDICT 0.12 item A.2 made exit 2 - the artifact and tool checks assert-16kb-alignment, assert-meta-packaging-limits, assert-wear-64bit-abi and assert-codex-transcript-hygiene, then assert-wear-phone-identity-parity and assert-stream-asset-revisions - for the opt-in flags the batch runners pass, and for the empty determined set of assert-icon-style.
+  S4367, S4379, S4380: tests for the exit-0 and exit-3 paths CHECK-VERDICT 0.12 item A.2 made exit 2 - the artifact and tool checks assert-16kb-alignment, assert-meta-packaging-limits, assert-wear-64bit-abi and assert-codex-transcript-hygiene, then assert-wear-phone-identity-parity and assert-stream-asset-revisions, then the shared absent-input helper with the twelve gates that call it, assert-fdsec-vectors-provenance and assert-contract-pointers - for the opt-in flags the batch runners pass, and for the empty determined set of assert-icon-style.
   (no param block)
   Exit: 0 every test passed.; 1 at least one test failed.
 ```
@@ -7148,11 +7162,11 @@ scripts/quality/explain-last-failure.tests/Run-Tests.ps1
 ## scripts\quality\lib
 
 ### absent-input.ps1
-S3075: one way for a gate to say "cannot verify - my input is not in this checkout".
+S3075, S4380: one way for a gate to say "my input is not in this checkout" - COULD NOT VERIFY by default, NOT APPLICABLE when the caller declared such a checkout acceptable.
 
 ```
 scripts/quality/lib/absent-input.ps1
-  S3075: one way for a gate to say "cannot verify - my input is not in this checkout".
+  S3075, S4380: one way for a gate to say "my input is not in this checkout" - COULD NOT VERIFY by default, NOT APPLICABLE when the caller declared such a checkout acceptable.
   (no param block)
 ```
 

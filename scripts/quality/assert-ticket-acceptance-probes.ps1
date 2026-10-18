@@ -11,12 +11,21 @@
 .EXIT CODES
     0 - clean, or mismatches reported in audit mode.
     1 - `-Gate` found a missing source template or invalid alternative evidence.
-    2 - required catalog, helper, or source roots cannot be read.
+    2 - required catalog, helper, or source roots cannot be read (PLAN/spec-catalog.jsonl absent from this
+        checkout counts, unless -AllowAbsentInput).
+
+.PARAMETER AllowAbsentInput
+    The caller declaring a checkout without the gitignored root acceptable for this run.
+    assert-fast-gates.ps1 passes it, because the GitHub Static Gates job runs on a clone that does
+    not carry PLAN/ or .claude/. With it the absence ends `<gate>: NOT APPLICABLE (..)` with exit 0,
+    which every aggregator counts as skipped, never as passed (CHECK-VERDICT 0.12 item A.1); without
+    it the same absence is exit 2 (S4380, lib/absent-input.ps1).
 #>
 [CmdletBinding()]
 param(
     [switch] $Gate,
-    [switch] $Quiet
+    [switch] $Quiet,
+    [switch]$AllowAbsentInput
 )
 
 Set-StrictMode -Version Latest
@@ -37,7 +46,7 @@ $helperPath = Join-Path $PSScriptRoot 'lib/ticket-acceptance-probes.ps1'
 # roots are tracked, so their absence stays exit 2: that is a broken checkout, not a runner.
 if (-not (Test-Path -LiteralPath $catalogPath)) {
     Exit-InputAbsent -Gate 'assert-ticket-acceptance-probes' -Path 'PLAN/spec-catalog.jsonl' `
-        -Reason 'PLAN/ is gitignored - present only on a workstation checkout'
+        -Reason 'PLAN/ is gitignored - present only on a workstation checkout' -Allow:$AllowAbsentInput
 }
 
 try {

@@ -80,7 +80,8 @@
          `-UpdateBaseline`.
       1  `-Gate` and at least one file is above its ceiling; or `-UpdateBaseline` asked to RAISE
          a ceiling.
-      2  cannot verify - the baseline is missing or unparseable, or a file it names is gone.
+      2  cannot verify - .claude/ is absent from this checkout (unless -AllowAbsentInput), the baseline is
+         missing or unparseable, or a file it names is gone.
       4  Code.Scripts is held by another session, so no baseline was written. The queue place is
          held - wait for the turn in the background and rerun (S2635).
 
@@ -101,6 +102,13 @@
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-always-loaded-budget.ps1 -Gate
     pwsh -NoProfile -File scripts/quality/assert-always-loaded-budget.ps1 -UpdateBaseline
+
+.PARAMETER AllowAbsentInput
+    The caller declaring a checkout without the gitignored root acceptable for this run.
+    assert-fast-gates.ps1 passes it, because the GitHub Static Gates job runs on a clone that does
+    not carry PLAN/ or .claude/. With it the absence ends `<gate>: NOT APPLICABLE (..)` with exit 0,
+    which every aggregator counts as skipped, never as passed (CHECK-VERDICT 0.12 item A.1); without
+    it the same absence is exit 2 (S4380, lib/absent-input.ps1).
 #>
 [CmdletBinding()]
 param(
@@ -110,7 +118,8 @@ param(
     [switch]$UpdateBaseline,
     [int]$SlackBytes = 1024,
     [switch]$Quiet,
-    [string]$RepoRoot
+    [string]$RepoRoot,
+    [switch]$AllowAbsentInput
 )
 
 Set-StrictMode -Version Latest
@@ -126,7 +135,7 @@ $repoRoot = if ($RepoRoot) { (Resolve-Path -LiteralPath $RepoRoot).Path } else {
 # and a budget measured over part of its subject passes for the wrong reason.
 if (-not (Test-Path -LiteralPath (Join-Path $repoRoot '.claude'))) {
     Exit-InputAbsent -Gate 'assert-always-loaded-budget' -Path '.claude/' `
-        -Reason 'gitignored - the agent definition and rule files it weighs are not published'
+        -Reason 'gitignored - the agent definition and rule files it weighs are not published' -Allow:$AllowAbsentInput
 }
 
 if (-not $BaselineFile) { $BaselineFile = Join-Path $PSScriptRoot 'always-loaded-budget-baseline.txt' }

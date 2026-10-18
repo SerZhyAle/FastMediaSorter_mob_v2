@@ -14,7 +14,7 @@
     Exit codes:
       0 - clean.
       1 - validation failure.
-      2 - validate.ps1 missing.
+      2 - validate.ps1 missing, or PLAN/spec-catalog.jsonl absent from this checkout (unless -AllowAbsentInput).
 
 .PARAMETER Gate
     Fail-closed: exit 1 on validation failure.
@@ -25,11 +25,19 @@
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-spec-catalog-valid.ps1
     pwsh -NoProfile -File scripts/quality/assert-spec-catalog-valid.ps1 -Gate
+
+.PARAMETER AllowAbsentInput
+    The caller declaring a checkout without the gitignored root acceptable for this run.
+    assert-fast-gates.ps1 passes it, because the GitHub Static Gates job runs on a clone that does
+    not carry PLAN/ or .claude/. With it the absence ends `<gate>: NOT APPLICABLE (..)` with exit 0,
+    which every aggregator counts as skipped, never as passed (CHECK-VERDICT 0.12 item A.1); without
+    it the same absence is exit 2 (S4380, lib/absent-input.ps1).
 #>
 [CmdletBinding()]
 param(
     [switch]$Gate,
-    [switch]$Quiet
+    [switch]$Quiet,
+    [switch]$AllowAbsentInput
 )
 
 Set-StrictMode -Version Latest
@@ -51,7 +59,7 @@ if (-not (Test-Path $validate)) {
 # not published - and by then the verdict is already 1 and indistinguishable from a real finding.
 if (-not (Test-Path -LiteralPath (Join-Path $repoRoot 'PLAN/spec-catalog.jsonl'))) {
     Exit-InputAbsent -Gate 'assert-spec-catalog-valid' -Path 'PLAN/spec-catalog.jsonl' `
-        -Reason 'PLAN/ is gitignored - present only on a workstation checkout'
+        -Reason 'PLAN/ is gitignored - present only on a workstation checkout' -Allow:$AllowAbsentInput
 }
 
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:ProgramFiles\PowerShell\7\pwsh.exe" } else { 'pwsh' }
