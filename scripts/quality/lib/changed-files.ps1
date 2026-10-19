@@ -50,6 +50,26 @@ function Write-EmptySetPass {
     Write-Host ("{0}: PASS (0 file(s) inspected)" -f $GateName) -ForegroundColor Green
 }
 
+function Invoke-SourceGatesEngine {
+    <# S4378: runs assert-source-gates.ps1 for a forwarder, replays its host output unchanged and reports
+       the engine's exit code plus whether its verdict line carried the empty-set form. Only the
+       information stream (Write-Host) is captured; errors keep going straight to the caller's stderr. #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string]$Runner,
+        [Parameter(Mandatory = $true)][hashtable]$Forward
+    )
+    $captured = @(& $Runner @Forward 6>&1)
+    $code = [int]$LASTEXITCODE
+    $emptySet = $false
+    foreach ($item in $captured) {
+        $text = if ($item -is [System.Management.Automation.InformationRecord]) { [string]$item.MessageData } else { [string]$item }
+        if ($text -match 'PASS \(0 file\(s\) inspected\)') { $emptySet = $true }
+        Write-Host $text
+    }
+    return [pscustomobject]@{ Code = $code; EmptySet = $emptySet }
+}
+
 function Select-ChangedFileFindings {
     <# Return the subset of $FindingFiles (already lowercased, forward-slash paths from the detekt
        Checkstyle report) that match any of $ChangedFiles. A finding matches when its path contains

@@ -246,9 +246,12 @@ if ($Explain) {
 # the git read - not the walk - dominates. Same predicate as the full scan by construction.
 if ($ChangedFiles -and @(Expand-ChangedFiles -ChangedFiles $ChangedFiles).Count -gt 0) {
     . (Join-Path $PSScriptRoot 'lib/changed-files-delta.ps1')
+    Assert-GitHeadResolvable -GateName 'assert-source-gates' -RepoRoot $repoRoot
     $expanded = @(Expand-ChangedFiles -ChangedFiles $ChangedFiles)
+    $inspectedByAnyRule = 0
     foreach ($rule in $rules) {
         $scoped = @($expanded | Where-Object { ($_ -replace '\\', '/') -match $rule.PathFilter })
+        $inspectedByAnyRule += $scoped.Count
         $d = Measure-ChangedFileGrowth -ChangedFiles $scoped -RepoRoot $repoRoot `
             -Extensions $rule.Extensions -CountInText $rule.CountInText -ExcludeNames $rule.ExcludeNames
         Write-Host ("{0} [delta over changed files]: new occurrences {1}" -f $rule.Name, $d.Growth)
@@ -263,6 +266,11 @@ if ($ChangedFiles -and @(Expand-ChangedFiles -ChangedFiles $ChangedFiles).Count 
     if ($Gate -and $failed.Count -gt 0) {
         Write-Host ("assert-source-gates: FAIL ({0} rule(s) above baseline in the changed files)." -f $failed.Count) -ForegroundColor Red
         exit 1
+    }
+    if ($inspectedByAnyRule -eq 0) {
+        # No rule matched a file of the declared set: the empty determined set (CHECK-VERDICT 2.12).
+        Write-EmptySetPass -GateName 'assert-source-gates'
+        exit 0
     }
     Write-Host 'assert-source-gates: PASS (no new occurrences in the changed files).' -ForegroundColor Green
     exit 0

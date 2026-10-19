@@ -82,6 +82,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
 
 function Stop-BadInvocation([string]$Reason) {
     Write-Host "trivial-scope: cannot judge - $Reason"
@@ -100,6 +101,9 @@ if (-not (Test-Path -LiteralPath $RepoRoot)) { Stop-BadInvocation "repo root '$R
 
 & git -C $RepoRoot rev-parse --is-inside-work-tree *> $null
 if ($LASTEXITCODE -ne 0) { Stop-BadInvocation "'$RepoRoot' is not a git work tree" }
+
+. (Join-Path $PSScriptRoot 'lib/changed-files-delta.ps1')
+Assert-GitHeadResolvable -GateName 'assert-trivial-scope' -RepoRoot $RepoRoot
 
 $label = if ($Id) { "$Id " } else { '' }
 function Stop-Escalate([string]$Reason) {
@@ -228,6 +232,11 @@ foreach ($path in @($changed | Where-Object { $_ -notmatch '^(PLAN|temp)/' })) {
 }
 $judgedRemoved = @($removed | Where-Object { $_ -notmatch '^(PLAN|temp)/' -and -not (Test-GeneratedPath $_) })
 $total = $judgedChanged.Count + $judgedRemoved.Count
+if ($total -eq 0) {
+    # Every path is under PLAN/, temp/ or generated: nothing to judge, and said in the one form (CHECK-VERDICT 2.12).
+    Write-EmptySetPass -GateName 'assert-trivial-scope'
+    exit 0
+}
 if ($total -gt [int]$trivial.maxFiles) {
     Stop-Escalate "$total files changed, the Trivial limit is $($trivial.maxFiles)"
 }

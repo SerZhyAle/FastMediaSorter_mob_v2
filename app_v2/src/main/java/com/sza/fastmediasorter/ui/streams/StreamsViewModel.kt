@@ -132,6 +132,8 @@ class StreamsViewModel @Inject constructor(
     // only door to them (S2103): it also serves the on-demand membership read below, so no UI file
     // needs the repository or the Room entity behind it.
     private val observeStreamCollections: ObserveStreamCollectionsUseCase,
+    // S4392: own exchange account live broadcasts for the "Own" category filter.
+    private val liveBroadcastsManager: com.sza.fastmediasorter.ui.streams.helpers.StreamsLiveBroadcastsManager,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -260,8 +262,20 @@ class StreamsViewModel @Inject constructor(
         // S2669: the collection list is a THIRD input, deliberately kept out of cachedFacetsOf below -
         // that cache keys on the reference identity of the catalog snapshot alone, and feeding it an
         // unrelated input would disable it on every collection emission over ~20k rows.
-        combine(observeStreamSources(), _filter, observeStreamCollections()) { sources, filter, collections ->
-            val filtered = applyFilter(sources, filter, topicLabelProvider::label)
+        // S4392: live broadcasts from the user's exchange account are combined as a fourth input, merged
+        // into the catalog stream so the pure filter logic handles them without altering Room DB.
+        combine(
+            observeStreamSources(),
+            liveBroadcastsManager.observeLiveSources(),
+            _filter,
+            observeStreamCollections()
+        ) { sources, liveSources, filter, collections ->
+            val allSources = if (filter.mediaKind == MediaKindFilter.OWN && liveSources.isNotEmpty()) {
+                liveSources + sources
+            } else {
+                sources
+            }
+            val filtered = applyFilter(allSources, filter, topicLabelProvider::label)
             StreamsUiState(
                 collections = collections,
                 // The only join of the two halves: consumers that need the flat list read this, and the

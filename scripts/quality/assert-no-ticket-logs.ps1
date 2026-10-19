@@ -1,4 +1,4 @@
-﻿#requires -Version 7.0
+#requires -Version 7.0
 <#
 .SYNOPSIS
     Audit permanent Timber logs for embedded Sxxxx ticket ids.
@@ -70,6 +70,7 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $catalog = Join-Path $repoRoot 'PLAN/spec-catalog.jsonl'
 
 . (Join-Path $PSScriptRoot 'lib/absent-input.ps1')
+. (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
 
 if (-not (Test-Path $catalog)) {
     # S3075: PLAN/ is gitignored, so a fresh clone, a release worktree and a CI runner all lack the
@@ -333,6 +334,11 @@ if ($Gate -and $missingProbe.Count -gt 0) {
     }
     Write-Host "assert-no-ticket-logs: FAIL ($($missingProbe.Count) BlockNeedUserTest ticket(s) missing a probe in source)"
     exit 1
+}
+if ($scoped -and $missingProbe.Count -eq 0 -and -not ($scopeSet | Where-Object { $_ -match '^(app_v2|wear)/.*\.kt$' })) {
+    # The declared set holds no Kotlin file this gate walks: the empty determined set (CHECK-VERDICT 2.12).
+    Write-EmptySetPass -GateName 'assert-no-ticket-logs'
+    exit 0
 }
 Write-Host ("assert-no-ticket-logs: PASS ({0} forbidden log id(s), {1} missing probe(s){2})" -f $actual, $missingProbe.Count, $(if (-not $Gate -and ($actual -gt 0 -or $missingProbe.Count -gt 0)) { '; audit mode, -Gate not set' } else { '' }))
 exit 0

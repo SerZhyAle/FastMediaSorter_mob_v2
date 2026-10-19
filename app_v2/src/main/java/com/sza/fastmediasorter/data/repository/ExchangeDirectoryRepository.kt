@@ -45,20 +45,35 @@ class ExchangeDirectoryRepository @Inject constructor(
     fun observe(playableModes: Set<String>): Flow<ExchangeDirectoryListing> =
         accounts.entries.flatMapLatest { entries ->
             val sources: List<Flow<ExchangeDirectorySource?>> = entries.map(::serverSource) + driveSource()
-            combine(sources) { answered -> listing(entries, answered.toList(), playableModes) }
+            combine(sources) { answered ->
+                val own = entries.mapTo(HashSet()) { it.deviceId } + driveIds.deviceId()
+                listing(answered.toList(), own, playableModes)
+            }
         }
 
-    private suspend fun listing(
-        entries: List<DeviceExchangeAccountEntry>,
+    /**
+     * S4392: watches the directory for all devices of the account, keeping this device's own broadcasts
+     * in the listing so they can be surfaced in the streams "Own" group.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun observeAllBroadcasts(playableModes: Set<String>): Flow<ExchangeDirectoryListing> =
+        accounts.entries.flatMapLatest { entries ->
+            val sources: List<Flow<ExchangeDirectorySource?>> = entries.map(::serverSource) + driveSource()
+            combine(sources) { answered ->
+                listing(answered.toList(), emptySet(), playableModes)
+            }
+        }
+
+    private fun listing(
         answered: List<ExchangeDirectorySource?>,
+        ownDeviceIds: Set<String>,
         playableModes: Set<String>,
     ): ExchangeDirectoryListing {
         val ready = answered.filterNotNull()
-        val own = entries.mapTo(HashSet()) { it.deviceId } + driveIds.deviceId()
         return ExchangeDirectoryRules.listing(
             servers = ready.filter { it.key != ExchangeDirectorySource.DRIVE_SOURCE },
             drive = ready.firstOrNull { it.key == ExchangeDirectorySource.DRIVE_SOURCE },
-            ownDeviceIds = own,
+            ownDeviceIds = ownDeviceIds,
             playableModes = playableModes,
         ).copy(pending = ready.size < answered.size)
     }

@@ -99,7 +99,7 @@
                 android:focusable="true"
                 android:foreground="@drawable/focus_button_background"
                 android:padding="6dp"
-                android:src="@drawable/ic_copy"
+                android:src="@drawable/ic_paste"
                 app:tint="?attr/colorControlNormal"
                 tools:ignore="MissingPrefix" />
 

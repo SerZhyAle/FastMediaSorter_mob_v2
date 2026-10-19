@@ -577,13 +577,16 @@ android {
         // bundled file withdrawn there is nothing left to guard, and the string itself no longer ends up
         // in the built BuildConfig.
 
-        // Git Hash
-        // === STARTUP DEBUG INFO ===
-        // Git Hash (Simplified for stability)
-        buildConfigField("String", "GIT_HASH", "\"Unknown\"")
-
-        // Build Time (Current)
-        buildConfigField("String", "BUILD_TIME", "\"Unknown\"")
+        // Gradle tracks the command output for configuration-cache invalidation when HEAD changes.
+        // Git resolves worktree metadata itself; source archives and hosts without Git still build.
+        val gitHash = runCatching {
+            providers.exec {
+                workingDir(rootDir)
+                commandLine("git", "rev-parse", "--short=12", "HEAD")
+                isIgnoreExitValue = true
+            }.standardOutput.asText.get().trim()
+        }.getOrDefault("").takeIf { it.matches(Regex("[0-9a-fA-F]{7,40}")) } ?: "Unknown"
+        buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
         buildConfigField("boolean", "IS_NO_LEGAL_FLAVOR", "false")
         buildConfigField("boolean", "SUPPORT_LAUNCHER", "false")
         // S1436: manifest-composition axis the permission registry filters on. Stripped from the

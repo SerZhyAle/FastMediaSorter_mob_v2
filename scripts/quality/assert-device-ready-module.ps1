@@ -65,6 +65,7 @@ $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+. (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
 $probeRelative = 'scripts/devtest/device-ready.ps1'
 if (-not (Test-Path -LiteralPath (Join-Path $repoRoot $probeRelative))) {
     Write-Error "device-ready-module: COULD NOT VERIFY - $probeRelative does not exist in this checkout." -ErrorAction Continue
@@ -194,6 +195,11 @@ if (-not $Quiet) {
 if ($findings.Count -eq 0) {
     if (-not $Quiet) {
         Write-Host 'device-ready-module: OK - every device-ready.ps1 call site names a -Module.' -ForegroundColor Green
+    }
+    if ($inspected -eq 0 -and (Test-ChangeSetDeclared -ChangedFiles $ChangedFiles)) {
+        # A declared set with no call site of the probe is the empty determined set (CHECK-VERDICT 2.12).
+        Write-EmptySetPass -GateName 'assert-device-ready-module'
+        exit 0
     }
     Write-Host "assert-device-ready-module: PASS ($inspected call site(s) inspected)"
     exit 0

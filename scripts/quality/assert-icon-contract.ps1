@@ -51,7 +51,9 @@
     ("Previous page") is declared or not judged, which keeps the rule free of guesses.
 
     Baseline scripts/quality/icon-contract-baseline.txt, one key per line (CHECK-BASELINE: may fall,
-    never rise). A declared 'exceptions' entry {key, why} excuses a key for good.
+    never rise). A declared 'exceptions' entry {key, why} excuses a key while it still occurs.
+    A missing key produces stale-exception|<excused key>, charged to the declaration and never
+    eligible for baselining or for another exception.
 
     Scoping (fixed-input shape, S2824): with -ChangedFiles, a new or stale key is charged to this
     closure only when the set carries a file that key depends on - the site's own file, a file
@@ -552,7 +554,13 @@ if (Test-Path -LiteralPath $termbasePath) {
 }
 
 # ---- verdict ------------------------------------------------------------------------------
-$current = @($findings.Keys | Where-Object { -not $excused.ContainsKey($_) } | Sort-Object -Unique)
+$staleExceptions = @($excused.Keys | Where-Object { -not $findings.Contains($_) } | Sort-Object)
+foreach ($key in $staleExceptions) {
+    Add-Finding "stale-exception|$key" @($mapRel) "exception no longer matches a finding: $key ($($excused[$key]))"
+}
+$current = @($findings.Keys | Where-Object {
+    $_ -like 'stale-exception|*' -or -not $excused.ContainsKey($_)
+} | Sort-Object -Unique)
 
 if ($List) {
     foreach ($k in $current) { Write-Host "$k`n    $($sites[$k])" }
@@ -565,10 +573,13 @@ if (Test-Path -LiteralPath $BaselineFile) {
 }
 $baseSet = [System.Collections.Generic.HashSet[string]]::new([string[]]$baseline)
 $curSet = [System.Collections.Generic.HashSet[string]]::new([string[]]$current)
-$new = @($current | Where-Object { -not $baseSet.Contains($_) })
+$new = @($current | Where-Object { $_ -like 'stale-exception|*' -or -not $baseSet.Contains($_) })
 $stale = @($baseline | Where-Object { -not $curSet.Contains($_) })
 
 if ($UpdateBaseline) {
+    if ($staleExceptions.Count -gt 0) {
+        Stop-Verdict 1 'assert-icon-contract: FAIL - remove stale exceptions before updating the baseline' $staleExceptions
+    }
     if ((Test-Path -LiteralPath $BaselineFile) -and $new.Count -gt 0) {
         $refused = $new
         $carriedDims = @($baseline | ForEach-Object { ($_ -split '\|')[0] } | Sort-Object -Unique)

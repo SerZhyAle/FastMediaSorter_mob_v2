@@ -3252,7 +3252,7 @@
     <string name="launcher_now_playing_artwork">Обложка альбома</string>
     <string name="launcher_gadget_translator">Переводчик</string>
     <string name="launcher_translator_hint">Текст для перевода</string>
-    <string name="launcher_translator_paste">Перевести из буфера обмена</string>
+    <string name="launcher_translator_paste">Вставить и перевести</string>
     <string name="launcher_translator_swap">Поменять местами языки</string>
     <string name="launcher_translator_model_missing">Языковой пакет ещё скачивается. Перевод начнётся, как только он будет готов.</string>
     <string name="launcher_translator_empty">Введите или вставьте текст для перевода.</string>
@@ -4495,4 +4495,5 @@
     <string name="broadcast_control_group_commands">Управление эфиром</string>
     <string name="broadcast_control_group_share">Ссылка и обмен</string>
     <string name="msg_transfer_same_folder_refused">Это и есть папка файла. Выберите другое назначение.</string>
+    <string name="settings_collapse_all">Свернуть всё</string>
 </resources>

@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` |
-| **Version** | 0.34, draft. Owner: this product |
+| **Version** | 0.36, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 2 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 

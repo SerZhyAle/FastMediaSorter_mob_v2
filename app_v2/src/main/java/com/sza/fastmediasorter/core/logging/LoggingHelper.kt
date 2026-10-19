@@ -36,6 +36,14 @@ object LoggingHelper {
     /** Returns all log files managed by the file logging tree. */
     fun getLogFiles(): List<File> = fileLoggingTree?.getLogFiles() ?: emptyList()
 
+    fun recordAudioServicePlayback(playing: Boolean) {
+        ProcessExitDiagnosticsManager.audioServicePlaying = playing
+    }
+
+    fun recordTrimLevel(level: Int) {
+        ProcessExitDiagnosticsManager.lastTrimLevel = level
+    }
+
     /**
      * Directory the app writes its log files into.
      *
@@ -53,7 +61,8 @@ object LoggingHelper {
      * How many files of one kind the log directory keeps. Shared by both retention rules.
      *
      * Ten is the session count of the DIAGNOSTIC-REPORT contract, rule 4: the current session's log
-     * plus the nine most recent closed ones.
+     * plus the nine most recent closed ones. S4385: the crash-report pool reuses the figure as its
+     * own count - the contract bounds session logs only and names no crash count.
      */
     const val MAX_LOG_FILES = 10
 
@@ -80,6 +89,15 @@ object LoggingHelper {
     const val LOG_FILE_SUFFIX = ".log"
 
     /**
+     * Shape of the phone's own crash reports ([FileLoggingTree.writeCrashSynchronously]).
+     *
+     * A crash report satisfies [LOG_FILE_PREFIX] too, and the two kinds share one directory and
+     * are told apart by name alone - so every query that means "sessions only" must exclude this
+     * prefix, and the crash pool answers to its own retention count (S4385).
+     */
+    const val CRASH_FILE_PREFIX = "fastmediasorter_crash_"
+
+    /**
      * Everything in the log directory worth handing to the user: the phone's own logs and the
      * reports the watch sent, newest first.
      *
@@ -88,8 +106,11 @@ object LoggingHelper {
      * announcing it, and unreachable afterwards. Performs disk I/O - call off the main thread.
      */
     fun getExportableLogFiles(context: Context): List<File> {
+        val logFiles = getLogFiles()
+        val crashCount = logFiles.count { it.name.startsWith(CRASH_FILE_PREFIX) }
+        Timber.d("S4385: export files: ${logFiles.size - crashCount} session(s), $crashCount crash report(s)")
         val watchReports = listLogFiles(getLogsDirectory(context), WATCH_LOG_PREFIX, WATCH_LOG_SUFFIX)
-        return (getLogFiles() + watchReports).sortedByDescending { it.lastModified() }
+        return (logFiles + watchReports).sortedByDescending { it.lastModified() }
     }
 
     /**
@@ -133,9 +154,16 @@ object LoggingHelper {
     /**
      * Session rotation: runs before the next session file is opened, so one slot is left free for it
      * and the directory still settles at [MAX_LOG_FILES] once that file exists.
+     *
+     * S4385: counts session files only. Crash reports satisfy [LOG_FILE_PREFIX] too but answer to
+     * their own pool, pruned by [FileLoggingTree.writeCrashSynchronously] - so a crash loop cannot
+     * evict sessions, and session rotation cannot evict the reports that diagnose it.
      */
     internal fun pruneSessionLogs(directory: File) {
-        pruneLogFiles(directory, LOG_FILE_PREFIX, LOG_FILE_SUFFIX, MAX_LOG_FILES - 1)
+        listLogFiles(directory, LOG_FILE_PREFIX, LOG_FILE_SUFFIX)
+            .filterNot { it.name.startsWith(CRASH_FILE_PREFIX) }
+            .drop(MAX_LOG_FILES - 1)
+            .forEach { file -> file.delete() }
     }
 
     /**
@@ -204,10 +232,12 @@ object LoggingHelper {
 
     /** Newest uncaught-crash log file, or null if none. [getLogFiles] is already sorted newest-first. */
     fun getLatestCrashFile(): File? =
-        getLogFiles().firstOrNull { it.name.startsWith("fastmediasorter_crash_") && it.name.endsWith(".log") }
+        getLogFiles().firstOrNull {
+            it.name.startsWith(CRASH_FILE_PREFIX) && it.name.endsWith(LOG_FILE_SUFFIX)
+        }
 
     private const val TAG_PREFETCH = "PrefetchQueue"
-    
+
     /**
      * Log prefetch queue operation.
      * @param operation Operation type (e.g., "offer", "poll", "drop")
@@ -222,7 +252,7 @@ object LoggingHelper {
         }
         Timber.tag(TAG_PREFETCH).d(msg)
     }
-    
+
     /**
      * Initialize Timber logging.
      * DEBUG build: All logs to Logcat + file (for debugging without ADB)
@@ -249,21 +279,21 @@ object LoggingHelper {
                     }
                     super.log(priority, tag, message, t)
                 }
-                
+
                 private fun shouldFilterLog(tag: String?, message: String?): Boolean {
                     if (tag == null || message == null) return false
-                    
+
                     // Filter SurfaceView updateSurface debug logs
                     if (tag.contains("SurfaceView") && message.contains("updateSurface")) {
                         return true
                     }
-                    
+
                     // Filter other noisy system logs
-                    if ((tag.contains("ExoPlayer") || tag.contains("MediaCodec")) && 
+                    if ((tag.contains("ExoPlayer") || tag.contains("MediaCodec")) &&
                         (message.contains("updateSurface") || message.contains("has no frame"))) {
                         return true
                     }
-                    
+
                     return false
                 }
             })
@@ -288,12 +318,13 @@ object LoggingHelper {
             fileLoggingTree = fileTree
             Timber.plant(fileTree)
         }
+        fileLoggingTree?.startProcessDiagnostics(context.applicationContext)
     }
-    
+
     /**
      * Custom Timber Tree that writes logs to a file.
      * File location: /storage/emulated/0/Android/data/com.sza.fastmediasorter.debug/files/logs/
-     * 
+     *
      * Logs are rotated: keeps the last [MAX_LOG_FILES] log files, max 5MB each.
      * File naming: fastmediasorter_YYYYMMDD_HHmmss.log
      */
@@ -302,7 +333,7 @@ object LoggingHelper {
         /** Minimum log priority to persist. VERBOSE by default (log everything). */
         private val minPriority: Int = android.util.Log.VERBOSE
     ) : Timber.Tree() {
-        
+
         // getExternalFilesDir() can return null if external storage is unmounted (e.g. on first
         // boot, encrypted storage not yet ready, or no SD card). getLogsDirectory applies that
         // fallback and is the one place that decides where logs live.
@@ -337,10 +368,10 @@ object LoggingHelper {
         // queue that replaced that backpressure and keep the loss visible instead of silent.
         private val pendingWrites = AtomicInteger(0)
         private val droppedWrites = AtomicInteger(0)
-        
+
         @Volatile
         private var currentLogFile: File? = null
-        
+
         @Volatile
         private var printWriter: PrintWriter? = null
 
@@ -352,7 +383,7 @@ object LoggingHelper {
 
         @Volatile
         private var debugMirrorSourceOffsetBytes: Long = 0L
-        
+
         init {
             // Wrap file I/O operations in StrictModeHelper
             StrictModeHelper.allowDiskIO {
@@ -360,8 +391,8 @@ object LoggingHelper {
                     if (!logDir.exists()) {
                         logDir.mkdirs()
                     }
-                    rotateLogFilesIfNeeded()
-                    openNewLogFile()
+                    // S4385: no eager session file here - writeEntry opens it at the first accepted
+                    // line, so a background start that never logs leaves no header-only file behind.
                     if (BuildConfig.DEBUG) {
                         startDebugMirrorScheduler()
                     }
@@ -403,6 +434,20 @@ object LoggingHelper {
                 } catch (_: Exception) {
                     // Mirror failures must never break the active session logger.
                 }
+            }
+        }
+
+        fun startProcessDiagnostics(context: Context) {
+            logIoExecutor.execute {
+                val diagnostics = ProcessExitDiagnosticsManager(context) { message -> Timber.i(message) }
+                Timber.d("S4384: collecting previous process exit diagnostics")
+                diagnostics.start()
+                logIoExecutor.scheduleWithFixedDelay(
+                    { diagnostics.heartbeat() },
+                    ProcessExitDiagnosticsManager.HEARTBEAT_SECONDS,
+                    ProcessExitDiagnosticsManager.HEARTBEAT_SECONDS,
+                    TimeUnit.SECONDS
+                )
             }
         }
 
@@ -475,16 +520,9 @@ object LoggingHelper {
                         android.util.Log.ASSERT -> 'A'
                         else -> '?'
                     }
-                    
+
                     synchronized(this) {
-                        // Check if file needs rotation
-                        currentLogFile?.let { file ->
-                            if (file.exists() && file.length() > maxFileSize) {
-                                closeCurrentFile()
-                                rotateLogFilesIfNeeded()
-                                openNewLogFile()
-                            }
-                        }
+                        ensureOpenSessionFile()
                         reportDroppedWrites(timestamp)
 
                         if (effectivePriority == android.util.Log.WARN) {
@@ -524,6 +562,26 @@ object LoggingHelper {
         }
 
         /**
+         * S4385: lazy open - the first accepted line creates the session file, so a process that
+         * never logs consumes no retention slot. An already open file is rotated at the size cap.
+         * Runs on the log I/O thread; the caller holds the file monitor.
+         */
+        private fun ensureOpenSessionFile() {
+            if (printWriter == null) {
+                rotateLogFilesIfNeeded()
+                openNewLogFile()
+                return
+            }
+            currentLogFile?.let { file ->
+                if (file.exists() && file.length() > maxFileSize) {
+                    closeCurrentFile()
+                    rotateLogFilesIfNeeded()
+                    openNewLogFile()
+                }
+            }
+        }
+
+        /**
          * S1203: blocks until everything queued before this call has reached the file. The executor is
          * single-threaded and FIFO, so an empty task finishing means every earlier one already did.
          */
@@ -546,28 +604,28 @@ object LoggingHelper {
             if (t == null) return false
             val className = t.javaClass.name
             val message = t.message ?: ""
-            
-            return className.contains("com.bumptech.glide") || 
+
+            return className.contains("com.bumptech.glide") ||
                    message.contains("setDataSource failed") ||
                    message.contains("File unsuitable for memory mapping") ||
                    (t is RuntimeException && message.contains("setDataSource"))
         }
-        
+
         /**
          * Compact stacktrace for known verbose errors (Glide, MediaMetadataRetriever)
          */
         private fun getCompactStackTrace(t: Throwable): String {
             val className = t.javaClass.name
             val message = t.message ?: ""
-            
+
             // Glide video decoder errors - compress to single line
-            if (className.contains("com.bumptech.glide") || 
+            if (className.contains("com.bumptech.glide") ||
                 message.contains("setDataSource failed") ||
                 message.contains("File unsuitable for memory mapping") ||
                 t is RuntimeException && message.contains("setDataSource")) {
                 return "[$className: $message]"
             }
-            
+
             // Full stacktrace for everything else
             return android.util.Log.getStackTraceString(t)
         }
@@ -642,7 +700,7 @@ object LoggingHelper {
                 }
             }
         }
-        
+
         private fun openNewLogFile() {
             val fileName = "fastmediasorter_${formatFileName(Date())}.log"
             currentLogFile = File(logDir, fileName)
@@ -653,7 +711,7 @@ object LoggingHelper {
             printWriter?.println("=== App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) ===")
             printWriter?.flush()
         }
-        
+
         private fun closeCurrentFile() {
             try {
                 printWriter?.println("=== Log closed: ${formatTs(Date())} ===")
@@ -663,7 +721,7 @@ object LoggingHelper {
             }
             printWriter = null
         }
-        
+
         private fun rotateLogFilesIfNeeded() {
             pruneSessionLogs(logDir)
         }
@@ -680,7 +738,7 @@ object LoggingHelper {
                 flushPendingWrites()
                 val now = Date()
                 val timestamp = formatTs(now)
-                val crashFile = File(logDir, "fastmediasorter_crash_${formatFileName(now)}.log")
+                val crashFile = File(logDir, "$CRASH_FILE_PREFIX${formatFileName(now)}$LOG_FILE_SUFFIX")
 
                 PrintWriter(OutputStreamWriter(FileOutputStream(crashFile, false), Charsets.UTF_8), true).use { pw ->
                     pw.println("=== CRASH REPORT: $timestamp ===")
@@ -693,6 +751,11 @@ object LoggingHelper {
                     pw.println(android.util.Log.getStackTraceString(throwable))
                     pw.println("=== END CRASH REPORT ===")
                 }
+
+                // S4385: crash reports answer to their own pool, pruned here - the only writer of
+                // these files - so a crash loop evicts the oldest reports and session rotation
+                // never evicts a report.
+                pruneLogFiles(logDir, CRASH_FILE_PREFIX, LOG_FILE_SUFFIX, MAX_LOG_FILES - 1)
 
                 // Also mark the current session log for correlation
                 synchronized(this) {
@@ -710,7 +773,7 @@ object LoggingHelper {
         /** Returns true if crash files from any previous session exist on disk. */
         fun hasCrashFiles(): Boolean =
             logDir.listFiles { f ->
-                f.isFile && f.name.startsWith("fastmediasorter_crash_")
+                f.isFile && f.name.startsWith(CRASH_FILE_PREFIX)
             }?.isNotEmpty() ?: false
 
         fun getLogDir(): File = logDir
@@ -757,7 +820,14 @@ private val ALWAYS_PERSISTED_DIAGNOSTIC_PREFIXES = listOf(
     "Stream session:",
     "Stream quality:",
     "Stream state=",
-    "Audio diag:"
+    "Audio diag:",
+    "Process exit:",
+    "Startup info:",
+    "Settings dump:",
+    "PlayerMediaLoaderManager.playVideo: START",
+    "PlayerMediaLoaderManager: playing file=",
+    "App diag:",
+    "Player diag:"
 )
 
 /**

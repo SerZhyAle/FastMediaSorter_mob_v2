@@ -39,6 +39,7 @@ import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.playback.NowPlayingMetadata
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
@@ -448,6 +449,7 @@ class AudioPlaybackService : MediaSessionService() {
             }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
+                LoggingHelper.recordAudioServicePlayback(isPlaying)
                 if (!isPlaying) {
                     // S0172: persist position on pause so it survives a kill
                     saveCurrentPosition()
@@ -648,6 +650,7 @@ class AudioPlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        LoggingHelper.recordAudioServicePlayback(false)
         Timber.d("AudioPlaybackService: onDestroy")
         isRunning = false
         stopListenClock()

@@ -452,6 +452,47 @@ exit 0
     $swapped = Get-TestCountResidue -Writers $replacement -Baseline @($legacyWriters[0].Key)
     Assert-That 'G11 fixing one writer cannot pay for another' ($swapped.New.Count -eq 1 -and $swapped.Stale.Count -eq 1) 'expected new and stale'
 
+    # --- I: Rule I empty-set form (S4378) ---
+    $iNoForm = New-Fixture 'assert-sample-no-form.ps1' @'
+param([string[]]$ChangedFiles)
+exit 0
+'@
+    Assert-That 'I1 check with ChangedFiles and no form is refused' ((Invoke-Gate $iNoForm) -eq 1) 'expected 1'
+
+    $iWithHelper = New-Fixture 'assert-sample-helper.ps1' @'
+param([string[]]$ChangedFiles)
+Write-Host "assert-sample-helper: PASS"
+Write-Host "assert-sample-helper: FAIL"
+Write-EmptySetPass -GateName 'assert-sample-helper'
+exit 0
+'@
+    Assert-That 'I2 check with Write-EmptySetPass passes' ((Invoke-Gate $iWithHelper) -eq 0) 'expected 0'
+
+    $iWithLiteral = New-Fixture 'assert-sample-literal.ps1' @'
+param([string[]]$ChangedFiles)
+Write-Host "assert-sample-literal: PASS"
+Write-Host "assert-sample-literal: FAIL"
+Write-Host "assert-sample-literal: PASS (0 file(s) inspected)"
+exit 0
+'@
+    Assert-That 'I3 check with literal 0 file(s) inspected passes' ((Invoke-Gate $iWithLiteral) -eq 0) 'expected 0'
+
+    $iCommentOnly = New-Fixture 'assert-sample-comment.ps1' @'
+param([string[]]$ChangedFiles)
+# Write-EmptySetPass -GateName 'assert-sample-comment'
+# 0 file(s) inspected
+exit 0
+'@
+    Assert-That 'I4 form only in comments is refused' ((Invoke-Gate $iCommentOnly) -eq 1) 'expected 1'
+
+    $iNoParam = New-Fixture 'assert-sample-noparam.ps1' @'
+param([switch]$Gate)
+Write-Host "assert-sample-noparam: PASS"
+Write-Host "assert-sample-noparam: FAIL"
+exit 0
+'@
+    Assert-That 'I5 check without change-set parameter passes' ((Invoke-Gate $iNoParam) -eq 0) 'expected 0'
+
     Write-Host 'H: the repository scripts/ tree has no unreachable exit site' -ForegroundColor Yellow
     $liveVerdict = & $pwshExe -NoProfile -File $gate -Gate -Quiet 2>&1
     Assert-That 'H1 repo scan exits 0' ($LASTEXITCODE -eq 0) "expected 0, got $LASTEXITCODE; $($liveVerdict -join ' | ')"

@@ -111,6 +111,19 @@ if (-not (Test-Path $gradlew)) {
 . (Join-Path $repoRoot "scripts/quality/lib/detekt-report.ps1")
 . (Join-Path $repoRoot "scripts/quality/lib/changed-files.ps1")
 
+# CHECK-VERDICT 2.12 (S4378): a declared set with no Kotlin source and no detekt input (rules, baselines,
+# build scripts, this gate) has nothing for detekt to judge; a set that names nothing at all still falls
+# through to the full run, because a caller that narrowed nothing is charged everything (rule 2.8).
+if (Test-ChangeSetDeclared -ChangedFiles $ChangedFiles) {
+    $detektWatched = @(Expand-ChangedFiles -ChangedFiles $ChangedFiles | Where-Object {
+            ($_ -replace '\\', '/') -match '\.kts?$|(^|/)config/detekt/|(^|/)gradle\.properties$|(^|/)assert-detekt\.ps1$'
+        })
+    if ($detektWatched.Count -eq 0) {
+        Write-EmptySetPass -GateName 'assert-detekt'
+        exit 0
+    }
+}
+
 $reportModules = if ($PSBoundParameters.ContainsKey('Module')) { @($Module) } else { @('app_v2', 'wear') }
 $lockReason = if ($PSBoundParameters.ContainsKey('Module')) { "assert-detekt.ps1 -Module $Module" } else { "assert-detekt.ps1 (app_v2 + wear)" }
 $cacheLabel = if ($PSBoundParameters.ContainsKey('Module')) { $Module } else { 'app_v2 + wear' }

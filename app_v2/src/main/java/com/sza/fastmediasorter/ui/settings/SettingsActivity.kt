@@ -281,6 +281,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 saveLastTabPosition(position)
+                // S4394: posted - the newly selected page's view may not exist yet, and the
+                // refresh resolves that page's fragment by tag.
+                binding.viewPager.post { refreshCollapseAllButton() }
             }
         })
 
@@ -288,6 +291,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         saveLastTabPosition(initialPosition)
 
         setupGlobalSearch()
+        setupCollapseAllButton()
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] setupGlobalSearch done")
         // Warm the lazy search index off the main thread so the first overlay open is instant;
         // the index is no longer built synchronously on the Settings open path.
@@ -693,6 +697,39 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
                 view.alpha = animator.animatedValue as Float
             }
             start()
+        }
+    }
+
+    /** S4394: a page's view exists - sync the toolbar collapse-all affordance to its state. */
+    fun onSettingsPageViewReady() {
+        refreshCollapseAllButton()
+    }
+
+    private fun setupCollapseAllButton() {
+        binding.btnCollapseAllGroups.setOnClickListener {
+            Timber.d("S4394: collapse-all clicked")
+            (getSettingsFragment(binding.viewPager.currentItem) as? BaseSettingsFragment)?.collapseAllSections()
+        }
+        binding.viewPager.post { refreshCollapseAllButton() }
+    }
+
+    /**
+     * S4394: shows the toolbar collapse-all button while the current page has an expanded group.
+     * The observer stays attached for the page's view lifetime; the position guard keeps a
+     * background page's toggle from showing the button for a page the user is not on.
+     */
+    private fun refreshCollapseAllButton() {
+        val position = binding.viewPager.currentItem
+        val fragment = getSettingsFragment(position) as? BaseSettingsFragment
+        if (fragment == null) {
+            binding.btnCollapseAllGroups.isVisible = false
+            return
+        }
+        fragment.observeCollapseState { anyExpanded ->
+            if (binding.viewPager.currentItem == position) {
+                binding.btnCollapseAllGroups.isVisible = anyExpanded
+                Timber.d("S4394: collapse-all visible=$anyExpanded")
+            }
         }
     }
 

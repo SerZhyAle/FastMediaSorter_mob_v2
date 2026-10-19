@@ -3237,7 +3237,7 @@
     <string name="launcher_now_playing_artwork">Обкладинка альбому</string>
     <string name="launcher_gadget_translator">Перекладач</string>
     <string name="launcher_translator_hint">Текст для перекладу</string>
-    <string name="launcher_translator_paste">Перекласти з буфера обміну</string>
+    <string name="launcher_translator_paste">Вставити й перекласти</string>
     <string name="launcher_translator_swap">Поміняти місцями мови</string>
     <string name="launcher_translator_model_missing">Мовний пакет ще завантажується. Переклад почнеться, щойно він буде готовий.</string>
     <string name="launcher_translator_empty">Введіть або вставте текст для перекладу.</string>
@@ -4480,4 +4480,5 @@
     <string name="broadcast_control_group_commands">Керування ефіром</string>
     <string name="broadcast_control_group_share">Посилання й обмін</string>
     <string name="msg_transfer_same_folder_refused">Це та сама папка, де лежить файл. Виберіть інше призначення.</string>
+    <string name="settings_collapse_all">Згорнути всі</string>
 </resources>

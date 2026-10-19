@@ -151,6 +151,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib/script-reference-resolution.ps1')
 . (Join-Path $PSScriptRoot 'lib/nested-worktrees.ps1')
 . (Join-Path $PSScriptRoot 'lib/absent-input.ps1')
+. (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
 
 # S3075: .claude/ is one of this gate's LIVE roots, and it is gitignored whole. Without it a script
 # wired from a command file reads as wired from nothing, so the gate does not merely lose coverage -
@@ -434,6 +435,11 @@ if ($Docs) {
         exit 1
     }
 
+    if ($scoped -and -not ($docFiles | Where-Object { $normChanged -contains ($_ -replace '\\', '/').Replace(($RepoRoot -replace '\\', '/').TrimEnd('/') + '/', '') })) {
+        # The declared set names no document of the corpus: the empty determined set (CHECK-VERDICT 2.12).
+        Write-EmptySetPass -GateName 'assert-script-references'
+        exit 0
+    }
     $scopeNote = if ($scoped) { " in the changed set" } else { "" }
     Write-Host ("assert-script-references (docs): PASS - no new phantom reference{0} ({1} baselined, {2} documents)." -f `
             $scopeNote, $docsBaseline.Count, $docFiles.Count) -ForegroundColor Green

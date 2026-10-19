@@ -3502,7 +3502,7 @@ scripts/quality/assert-activity-logic-not-growing.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
-  Exit: 0 { Write-Host 'assert-activity-logic-not-growing: PASS' }; 1 { Write-Host 'assert-activity-logic-not-growing: FAIL' }
+  Exit: 0 { if ($engine.EmptySet) { Write-EmptySetPass -GateName 'assert-activity-logic-not-growing' } else { Write-Host 'assert-activity-logic-not-growing: PASS' } }; 1 { Write-Host 'assert-activity-logic-not-growing: FAIL' }
 ```
 
 ### assert-allfeatures-sync.ps1
@@ -3768,7 +3768,7 @@ scripts/quality/assert-deprecated-pm-flags.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
-  Exit: 0 { Write-Host 'assert-deprecated-pm-flags: PASS' }; 1 { Write-Host 'assert-deprecated-pm-flags: FAIL' }
+  Exit: 0 { if ($engine.EmptySet) { Write-EmptySetPass -GateName 'assert-deprecated-pm-flags' } else { Write-Host 'assert-deprecated-pm-flags: PASS' } }; 1 { Write-Host 'assert-deprecated-pm-flags: FAIL' }
 ```
 
 ### assert-detekt-baseline-absorption.ps1
@@ -4302,7 +4302,7 @@ scripts/quality/assert-globalscope.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
-  Exit: 0 { Write-Host 'assert-globalscope: PASS' }; 1 { Write-Host 'assert-globalscope: FAIL' }
+  Exit: 0 { if ($engine.EmptySet) { Write-EmptySetPass -GateName 'assert-globalscope' } else { Write-Host 'assert-globalscope: PASS' } }; 1 { Write-Host 'assert-globalscope: FAIL' }
 ```
 
 ### assert-gson-persistence-contract.ps1
@@ -4818,7 +4818,7 @@ scripts/quality/assert-non-null-assertion.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
-  Exit: 0 { Write-Host 'assert-non-null-assertion: PASS' }; 1 { Write-Host 'assert-non-null-assertion: FAIL' }
+  Exit: 0 { if ($engine.EmptySet) { Write-EmptySetPass -GateName 'assert-non-null-assertion' } else { Write-Host 'assert-non-null-assertion: PASS' } }; 1 { Write-Host 'assert-non-null-assertion: FAIL' }
 ```
 
 ### assert-notification-small-icon.ps1
@@ -5594,7 +5594,7 @@ scripts/quality/assert-unsafe-collect.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
-  Exit: 0 { Write-Host 'assert-unsafe-collect: PASS' }; 1 { Write-Host 'assert-unsafe-collect: FAIL' }
+  Exit: 0 { if ($engine.EmptySet) { Write-EmptySetPass -GateName 'assert-unsafe-collect' } else { Write-Host 'assert-unsafe-collect: PASS' } }; 1 { Write-Host 'assert-unsafe-collect: FAIL' }
 ```
 
 ### assert-untracked-dialogs.ps1
@@ -5608,7 +5608,7 @@ scripts/quality/assert-untracked-dialogs.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
-  Exit: 0 { Write-Host 'assert-untracked-dialogs: PASS' }; 1 { Write-Host 'assert-untracked-dialogs: FAIL' }
+  Exit: 0 { if ($engine.EmptySet) { Write-EmptySetPass -GateName 'assert-untracked-dialogs' } else { Write-Host 'assert-untracked-dialogs: PASS' } }; 1 { Write-Host 'assert-untracked-dialogs: FAIL' }
 ```
 
 ### assert-watchface-listing-live.ps1

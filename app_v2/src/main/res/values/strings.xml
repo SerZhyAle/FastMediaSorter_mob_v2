@@ -3310,7 +3310,7 @@
     <string name="launcher_now_playing_artwork">Album art</string>
     <string name="launcher_gadget_translator">Translator</string>
     <string name="launcher_translator_hint">Text to translate</string>
-    <string name="launcher_translator_paste">Translate from clipboard</string>
+    <string name="launcher_translator_paste">Paste and translate</string>
     <string name="launcher_translator_swap">Swap languages</string>
     <string name="launcher_translator_model_missing">The language pack is still downloading. Translation starts as soon as it is ready.</string>
     <string name="launcher_translator_empty">Type or paste something to translate.</string>
@@ -4558,4 +4558,5 @@
     <string name="broadcast_control_group_commands">Live controls</string>
     <string name="broadcast_control_group_share">Link and sharing</string>
     <string name="msg_transfer_same_folder_refused">This is already the file\'s folder. Pick a different destination.</string>
+    <string name="settings_collapse_all">Collapse all</string>
 </resources>

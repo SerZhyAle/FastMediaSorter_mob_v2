@@ -157,15 +157,9 @@ class OrphanCleanupWorker @AssistedInject constructor(
     private suspend fun auditOrphanedCredentials(correlationId: String) {
         val report = credentialAuditor.audit()
         windOrphanClock(correlationId, report)
-        val orphaned = report.entries.filter { it.status == CredentialStatus.ORPHANED }
-        if (orphaned.isEmpty()) {
-            Timber.d("[orphan-cleanup/$correlationId] no orphaned network credentials found")
-            return
-        }
-        Timber.w(
-            "[orphan-cleanup/$correlationId] found ${orphaned.size} orphaned credential(s) " +
-                "(not referenced by any resource), ${report.eligibleForCleanupCount} past the grace " +
-                "period. Credential IDs: ${orphaned.joinToString { it.credentialId }}"
+        Timber.i(
+            "[orphan-cleanup/$correlationId] credentials: ${report.totalCount} total, " +
+                "${report.orphanedCount} orphaned, ${report.eligibleForCleanupCount} eligible for cleanup"
         )
     }
 

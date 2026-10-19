@@ -664,11 +664,20 @@
         <item name="toolbarNavigationButtonStyle">@style/Widget.FastMediaSorter.Toolbar.ActionButton</item>
     </style>
 
+    <!-- Popups use surface foregrounds even when their host toolbar overrides text for a primary bar. -->
+    <style name="ThemeOverlay.FastMediaSorter.Toolbar.Popup" parent="">
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
+        <item name="android:textColorSecondary">?attr/colorOnSurfaceVariant</item>
+        <item name="actionMenuTextColor">?attr/colorOnSurface</item>
+        <item name="colorControlNormal">?attr/colorOnSurface</item>
+    </style>
+
     <!-- S3248: the two toolbar variants of docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 2.3. Seven
          inline attribute fingerprints across 27 layouts collapse onto these, so a theme change is one
          edit here instead of 27 restatements where an omission is invisible. Primary paints the bar
          with the brand colour, Flat leaves the host surface showing through. -->
     <style name="Widget.FastMediaSorter.Toolbar" parent="Widget.Material3.Toolbar">
+        <item name="popupTheme">@style/ThemeOverlay.FastMediaSorter.Toolbar.Popup</item>
         <item name="android:elevation">@dimen/dimension_zero</item>
         <item name="titleTextAppearance">@style/TextAppearance.FastMediaSorter.Bar.Title</item>
     </style>

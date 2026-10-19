@@ -71,6 +71,8 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             private set
 
         private const val ENABLE_DEBUG_STRICT_MODE = true
+        private const val SETTINGS_HASH_INITIAL = 17
+        private const val SETTINGS_HASH_MULTIPLIER = 31
 
         // Field-name fragments that mark a value as a credential / token.
         // Matched case-insensitively against lowercase AppSettings field names.
@@ -729,6 +731,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     @Suppress("DEPRECATION")
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
+        LoggingHelper.recordTrimLevel(level)
         
         val levelName = when(level) {
             ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> "RUNNING_CRITICAL"
@@ -802,7 +805,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
 
     private fun logAppStartupInfo() {
         val sb = StringBuilder()
-        sb.append("\n==========================================\n")
+        sb.append("Startup info:\n==========================================\n")
         sb.append("   FAST MEDIA SORTER V2 - STARTUP INFO\n")
         sb.append("==========================================\n")
 
@@ -813,7 +816,6 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         sb.append(String.format(Locale.US, "%-20s: %s\n", "Build Type", BuildConfig.BUILD_TYPE))
         sb.append(String.format(Locale.US, "%-20s: %s\n", "Flavor", BuildConfig.FLAVOR))
         sb.append(String.format(Locale.US, "%-20s: %s\n", "Git Hash", BuildConfig.GIT_HASH))
-        sb.append(String.format(Locale.US, "%-20s: %s\n", "Build Time", BuildConfig.BUILD_TIME))
 
         // Android & Device Info
         sb.append("------------------------------------------\n")
@@ -883,21 +885,33 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
 
         sb.append("==========================================")
 
-        Timber.w(sb.toString())
+        Timber.i(sb.toString())
     }
 
-    private fun logSettingsInfo(settings: com.sza.fastmediasorter.domain.model.AppSettings) {
+    private fun logSettingsInfo(
+        settings: com.sza.fastmediasorter.domain.model.AppSettings,
+        forceFullDump: Boolean = false
+    ) {
         val sb = StringBuilder()
+        sb.append("Settings dump:\n==========================================\n")
+        sb.append("   FAST MEDIA SORTER V2 - SETTINGS DUMP")
+        if (!forceFullDump) {
+            sb.append(" (NON-DEFAULT)")
+        }
         sb.append("\n==========================================\n")
-        sb.append("   FAST MEDIA SORTER V2 - SETTINGS DUMP\n")
-        sb.append("==========================================\n")
         sb.append(String.format(Locale.US, "%-36s: %s\n", "Flavor", BuildConfig.FLAVOR))
         sb.append(String.format(Locale.US, "%-36s: %s\n", "Build type", BuildConfig.BUILD_TYPE))
         sb.append("------------------------------------------\n")
 
-        // Reflection-based dump of every AppSettings field. Adding a new field to
+        // S4387: print only settings differing from AppSettings defaults on startup.
+        // Reflection-based dump of AppSettings fields. Adding a new field to
         // the data class auto-extends the dump on next launch - no edits here.
         // Java reflection avoids the kotlin-reflect runtime (not on classpath).
+        val defaultSettings = com.sza.fastmediasorter.domain.model.AppSettings()
+        var totalCount = 0
+        var diffCount = 0
+        var hash = SETTINGS_HASH_INITIAL
+
         try {
             // getDeclaredFields() preserves source order on HotSpot/ART for data classes.
             val fields = settings.javaClass.declaredFields
@@ -906,18 +920,55 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
                 val mods = field.modifiers
                 if (java.lang.reflect.Modifier.isStatic(mods)) continue
                 field.isAccessible = true
+                totalCount++
+
                 val raw: Any? = field.get(settings)
-                val name = field.name
-                val display = formatSettingValue(field, raw)
-                sb.append(String.format(Locale.US, "%-36s: %s\n", name, display))
+                val defaultRaw: Any? = field.get(defaultSettings)
+
+                hash = SETTINGS_HASH_MULTIPLIER * hash + (raw?.hashCode() ?: 0)
+
+                val isDiff = raw != defaultRaw
+                if (isDiff || forceFullDump) {
+                    diffCount++
+                    val name = field.name
+                    val display = formatSettingValue(field, raw)
+                    sb.append(String.format(Locale.US, "%-36s: %s\n", name, display))
+                }
             }
         } catch (t: Throwable) {
             sb.append("[reflection failed: ").append(t.javaClass.simpleName)
                 .append(": ").append(t.message).append("]\n")
         }
 
+        val hexHash = String.format(Locale.US, "%08x", hash)
+        if (!forceFullDump) {
+            val omitted = totalCount - diffCount
+            if (diffCount == 0) {
+                sb.append(
+                    String.format(
+                        Locale.US,
+                        "All %d settings match defaults (hash: %s)\n",
+                        totalCount,
+                        hexHash
+                    )
+                )
+            } else {
+                sb.append("------------------------------------------\n")
+                sb.append(
+                    String.format(
+                        Locale.US,
+                        "%d of %d settings differ from defaults (%d default settings omitted, hash: %s)\n",
+                        diffCount,
+                        totalCount,
+                        omitted,
+                        hexHash
+                    )
+                )
+            }
+        }
+
         sb.append("==========================================")
-        Timber.w(sb.toString())
+        Timber.i(sb.toString())
     }
 
     /**
@@ -936,7 +987,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         if (isSecret) {
             return when (value) {
                 null -> "<null>"
-                is CharSequence -> if (value.isEmpty()) "<empty>" else "<set, len=${value.length}>"
+                is CharSequence -> if (value.isEmpty()) "<empty>" else "<set>"
                 else -> "<set>"
             }
         }

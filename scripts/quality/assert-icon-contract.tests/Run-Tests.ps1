@@ -103,6 +103,20 @@ try {
     $f = New-Fixture
     Assert-Case 'clean tree passes; sharedWith and private artwork are not findings' (Invoke-GateRun $f) 0 'PASS (0 baselined'
 
+    $exceptionKey = 'unmapped|app_v2|ic_orphan'
+    $exceptionDecl = '{"private":[],"glyphs":{},"labels":{},"terms":{},"exceptions":[{"key":"' + $exceptionKey + '","why":"fixture"}]}'
+    $f = New-Fixture -Declaration $exceptionDecl -LayoutElements @('<ImageView android:src="@drawable/ic_orphan" />')
+    Assert-Case 'an exception still matching a finding passes' (Invoke-GateRun $f) 0 'PASS (0 baselined, 1 excused)'
+
+    $f = New-Fixture -Declaration $exceptionDecl -LayoutElements @()
+    Assert-Case 'an exception whose violation is gone fails' (Invoke-GateRun $f) 1 "stale-exception|$exceptionKey"
+    Assert-Case 'stale exceptions outside the changed set are advisory' (Invoke-GateRun $f @('-Gate', '-ChangedFiles', 'docs/unrelated.md')) 3 'PASS WITH ADVISORIES'
+    Assert-Case 'editing the declaration charges stale exceptions' (Invoke-GateRun $f @('-Gate', '-ChangedFiles', 'docs/icons/icon-contract-map.json')) 1 "stale-exception|$exceptionKey"
+    Assert-Case 'stale exceptions cannot seed a baseline' (Invoke-GateRun $f @('-UpdateBaseline', '-SeedDimension', 'stale-exception')) 1 'remove stale exceptions'
+
+    $f = New-Fixture -Declaration $exceptionDecl -LayoutElements @() -Baseline @("stale-exception|$exceptionKey")
+    Assert-Case 'a pre-existing baseline cannot hide stale exceptions' (Invoke-GateRun $f) 1 "stale-exception|$exceptionKey"
+
     $f = New-Fixture -LayoutElements @('<ImageView android:src="@drawable/ic_orphan" />')
     Assert-Case 'an unmapped drawable fails' (Invoke-GateRun $f) 1 'unmapped|app_v2|ic_orphan'
 

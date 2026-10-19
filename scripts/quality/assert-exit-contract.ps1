@@ -115,14 +115,20 @@
     its stdout is a JSON document by contract and a text line would corrupt it. Measured 2026-10-18:
     96 sites in 49 of 169 checks. No baseline: S4367 gave every one its line.
 
+    RULE I - empty determined change set prints PASS (0 file(s) inspected) (S4378, CHECK-VERDICT
+    rule 2.12). Every `assert-*.ps1` whose param block declares ChangedFiles, Files, Manifests or
+    ChangedPaths must carry Write-EmptySetPass or the literal '0 file(s) inspected' in a code line,
+    or be listed in scripts/quality/empty-set-form-exempt.txt. A listed check that carries the form,
+    no longer declares the parameter, or no longer exists fails the gate. A -Path probe gates with an empty list.
+
     Exit codes:
       0 - no unreachable exit site, no silent script, Rule C at or below baseline,
-          no unlisted or stale Rule D entry, no Rule H site (or report mode).
+          no unlisted or stale Rule D entry, no Rule H site, no Rule I violation (or report mode).
       1 - substantive failure: an unreachable exit site, a silent script, Rule C
           above its baseline, a Rule D check with no verdict line / a stale listing,
           a Rule E line spelling exit 2 other than COULD NOT VERIFY, or a Rule F line
-          spelling NOT APPLICABLE in lowercase, new/stale Rule G test counters, or a Rule H
-          exit site with no verdict line of its own.
+          spelling NOT APPLICABLE in lowercase, new/stale Rule G test counters, a Rule H
+          exit site with no verdict line of its own, or a Rule I empty-set form violation / stale exempt row.
       2 - the gate itself cannot run (scan root missing). Distinct from 1 on purpose -
           this gate must not commit the very sin it audits.
 
@@ -206,6 +212,24 @@ if (-not $Path -and (Test-Path -LiteralPath $verdictBaselineFile)) {
     foreach ($l in (Get-Content -LiteralPath $verdictBaselineFile)) {
         $t = $l.Trim()
         if ($t -and -not $t.StartsWith('#')) { [void]$verdictResidue.Add($t) }
+    }
+}
+
+# Rule I (S4378, CHECK-VERDICT rule 2.12): exempt checks outside the empty-set PASS line requirement.
+# A -Path fixture probe gates with an empty list.
+$emptySetExemptFile = Join-Path $PSScriptRoot 'empty-set-form-exempt.txt'
+$emptySetExempt = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+$emptySetExemptMalformed = [System.Collections.Generic.List[string]]::new()
+if (-not $Path -and (Test-Path -LiteralPath $emptySetExemptFile)) {
+    foreach ($l in (Get-Content -LiteralPath $emptySetExemptFile)) {
+        $t = $l.Trim()
+        if (-not $t -or $t.StartsWith('#')) { continue }
+        $parts = $t -split '\s*\|\s*'
+        if ($parts.Count -lt 3 -or [string]::IsNullOrWhiteSpace($parts[0])) {
+            $emptySetExemptMalformed.Add($t)
+        } else {
+            [void]$emptySetExempt.Add($parts[0].Trim())
+        }
     }
 }
 
@@ -379,6 +403,10 @@ $noVerdict = @()
 $verdictScanned = @()
 # Rule H: exit 1|2|3 sites of a check with no verdict line of its own above them.
 $exitNoVerdict = @()
+# Rule I: checks with change-set parameter missing form or stale exempt list entries.
+$ruleIFailures = [System.Collections.Generic.List[object]]::new()
+$seenChangeSetParamChecks = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+$staleExemptChecks = [System.Collections.Generic.List[object]]::new()
 $oldSpelling = @()
 # Rule E reads the suites too: the main scan skips them for rule A's sake, but a suite asserting the
 # old word is exactly what would pin a subject to it.
@@ -469,6 +497,38 @@ foreach ($f in $files) {
             $jsonAbove = @(for ($k = [Math]::Max(1, $exitLine - 12); $k -lt $exitLine; $k++) { $lines[$k - 1] }) -join "`n"
             if ($jsonAbove -match '\|\s*ConvertTo-Json') { continue }
             $exitNoVerdict += [pscustomobject]@{ File = $rel; Line = $exitLine; Code = $exitExpr.Value }
+        }
+
+        # Rule I (S4378, CHECK-VERDICT rule 2.12): every assert-*.ps1 declaring a change-set parameter
+        # must carry Write-EmptySetPass or '0 file(s) inspected' in a code line, or be listed in the exempt file.
+        $hasChangeSetParam = $false
+        if ($hAst.ParamBlock -and $hAst.ParamBlock.Parameters) {
+            foreach ($p in $hAst.ParamBlock.Parameters) {
+                $pName = $p.Name.VariablePath.UserPath
+                if ($pName -in @('ChangedFiles', 'Files', 'Manifests', 'ChangedPaths')) {
+                    $hasChangeSetParam = $true
+                    break
+                }
+            }
+        }
+        $hasEmptySetForm = ($code -match '\bWrite-EmptySetPass\b') -or ($code -match '0 file\(s\) inspected')
+        $isExempt = $emptySetExempt.Contains($f.BaseName)
+
+        if ($hasChangeSetParam) {
+            [void]$seenChangeSetParamChecks.Add($f.BaseName)
+            if ($isExempt) {
+                if ($hasEmptySetForm) {
+                    $staleExemptChecks.Add([pscustomobject]@{ Name = $f.BaseName; Reason = 'carries the empty-set form but is listed in exempt file' })
+                }
+            } else {
+                if (-not $hasEmptySetForm) {
+                    $ruleIFailures.Add([pscustomobject]@{ File = $rel; Name = $f.BaseName; Reason = 'declares change-set parameter but lacks Write-EmptySetPass / 0 file(s) inspected' })
+                }
+            }
+        } else {
+            if ($isExempt) {
+                $staleExemptChecks.Add([pscustomobject]@{ Name = $f.BaseName; Reason = 'listed in exempt file but does not declare a change-set parameter' })
+            }
         }
     }
 
@@ -686,11 +746,42 @@ if (-not $Quiet) {
 }
 Write-Host ("assert-exit-contract rule H: expected: 0 | actual: {0} exit site(s) of a check with no verdict line of its own" -f $exitNoVerdict.Count)
 
-if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0 -or $reasonless.Count -gt $reasonBaseline -or $newNoVerdict.Count -gt 0 -or $staleVerdict.Count -gt 0 -or $oldSpelling.Count -gt 0 -or $naSpelling.Count -gt 0 -or $testCountResidue.New.Count -gt 0 -or $testCountResidue.Stale.Count -gt 0 -or $exitNoVerdict.Count -gt 0)) {
-    Write-Host 'assert-exit-contract: FAIL - unreachable or silent exit, missing verdict, invalid verdict spelling, new/stale legacy test counters, or an exit site with no verdict line of its own.' -ForegroundColor Red
+# Rule I: checks in emptySetExempt that no longer exist
+if (-not $Path) {
+    foreach ($exName in $emptySetExempt) {
+        if (-not $seenChangeSetParamChecks.Contains($exName)) {
+            # Check if file exists at all
+            $exPath = Join-Path (Join-Path $repoRoot 'scripts/quality') "$exName.ps1"
+            if (-not (Test-Path -LiteralPath $exPath)) {
+                $staleExemptChecks.Add([pscustomobject]@{ Name = $exName; Reason = 'listed in exempt file but script does not exist' })
+            }
+        }
+    }
+}
+
+if (-not $Quiet) {
+    foreach ($f in $ruleIFailures) {
+        Write-Host ("  {0}  declares change-set parameter but lacks Write-EmptySetPass / 0 file(s) inspected" -f $f.File) -ForegroundColor Red
+    }
+    foreach ($s in $staleExemptChecks) {
+        Write-Host ("  {0}  is stale in empty-set-form-exempt.txt: {1}" -f $s.Name, $s.Reason) -ForegroundColor Red
+    }
+    foreach ($m in $emptySetExemptMalformed) {
+        Write-Host ("  empty-set-form-exempt.txt  malformed row: {0}" -f $m) -ForegroundColor Red
+    }
+    if ($ruleIFailures.Count -gt 0 -or $staleExemptChecks.Count -gt 0 -or $emptySetExemptMalformed.Count -gt 0) {
+        Write-Host ''
+        Write-Host '  Fix: implement Write-EmptySetPass for empty determined set, or update/prune scripts/quality/empty-set-form-exempt.txt (CHECK-VERDICT rule 2.12).' -ForegroundColor Yellow
+    }
+}
+$ruleITotal = $ruleIFailures.Count + $staleExemptChecks.Count + $emptySetExemptMalformed.Count
+Write-Host ("assert-exit-contract rule I: expected: 0 | actual: {0} non-conforming check(s), {1} stale exempt row(s), {2} malformed row(s)" -f $ruleIFailures.Count, $staleExemptChecks.Count, $emptySetExemptMalformed.Count)
+
+if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0 -or $reasonless.Count -gt $reasonBaseline -or $newNoVerdict.Count -gt 0 -or $staleVerdict.Count -gt 0 -or $oldSpelling.Count -gt 0 -or $naSpelling.Count -gt 0 -or $testCountResidue.New.Count -gt 0 -or $testCountResidue.Stale.Count -gt 0 -or $exitNoVerdict.Count -gt 0 -or $ruleITotal -gt 0)) {
+    Write-Host 'assert-exit-contract: FAIL - unreachable or silent exit, missing verdict, invalid verdict spelling, new/stale legacy test counters, exit site with no verdict line, or rule I empty-set form violation.' -ForegroundColor Red
     exit 1
 }
-if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0 -and $newNoVerdict.Count -eq 0 -and $staleVerdict.Count -eq 0 -and $oldSpelling.Count -eq 0 -and $naSpelling.Count -eq 0 -and $testCountResidue.New.Count -eq 0 -and $testCountResidue.Stale.Count -eq 0 -and $exitNoVerdict.Count -eq 0) {
-    Write-Host 'assert-exit-contract: PASS - every exit code is reachable, every scanned script sets one, and every check names its verdict.' -ForegroundColor Green
+if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0 -and $newNoVerdict.Count -eq 0 -and $staleVerdict.Count -eq 0 -and $oldSpelling.Count -eq 0 -and $naSpelling.Count -eq 0 -and $testCountResidue.New.Count -eq 0 -and $testCountResidue.Stale.Count -eq 0 -and $exitNoVerdict.Count -eq 0 -and $ruleITotal -eq 0) {
+    Write-Host 'assert-exit-contract: PASS - every exit code is reachable, every scanned script sets one, every check names its verdict, and empty-set forms conform.' -ForegroundColor Green
 }
 exit 0

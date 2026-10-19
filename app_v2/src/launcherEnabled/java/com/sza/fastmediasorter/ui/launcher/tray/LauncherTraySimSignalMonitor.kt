@@ -13,10 +13,12 @@ import android.telephony.TelephonyDisplayInfo
 import android.telephony.TelephonyManager
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import timber.log.Timber
 import java.util.concurrent.Executor
 
@@ -43,7 +45,9 @@ class LauncherTraySimSignalMonitor(context: Context) {
         Manifest.permission.READ_PHONE_STATE,
     ) == PackageManager.PERMISSION_GRANTED
 
+    // Both legacy listener constructors require a Looper, even when collection starts on a worker.
     fun states(): Flow<Map<Int, LauncherTraySimState>> = callbackFlow {
+        Timber.d("S4386: SIM monitor started sdk=%d", Build.VERSION.SDK_INT)
         val manager = subscriptionManager
         if (manager == null || !hasPermission()) {
             send(emptyMap())
@@ -89,15 +93,15 @@ class LauncherTraySimSignalMonitor(context: Context) {
                 resubscribe()
             }
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            runCatching { manager.addOnSubscriptionsChangedListener(executor, subscriptionsListener) }
-                .onFailure {
-                    Timber.w(it, "Launcher tray: SIM subscriptions unavailable, indicators hidden")
-                    trySend(emptyMap())
-                }
-        } else {
-            // The executor overload is API 30. Below it the indicators stay hidden, which is what the
-            // unguarded call already produced there by failing with NoSuchMethodError.
+        runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                manager.addOnSubscriptionsChangedListener(executor, subscriptionsListener)
+            } else {
+                @Suppress("DEPRECATION")
+                manager.addOnSubscriptionsChangedListener(subscriptionsListener)
+            }
+        }.onFailure {
+            Timber.w(it, "Launcher tray: SIM subscriptions unavailable, indicators hidden")
             trySend(emptyMap())
         }
 
@@ -109,7 +113,7 @@ class LauncherTraySimSignalMonitor(context: Context) {
             }
             runCatching { manager.removeOnSubscriptionsChangedListener(subscriptionsListener) }
         }
-    }.distinctUntilChanged()
+    }.flowOn(Dispatchers.Main.immediate).distinctUntilChanged()
 
     // S3155: same runCatching guard as registerModernCallback below - a revoked READ_PHONE_STATE
     // yields an empty slot list and hidden indicators.

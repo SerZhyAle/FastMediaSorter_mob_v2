@@ -24,6 +24,19 @@ class CollapsibleSectionsManager(
     /** S1967: container view id -> its header, so a row's ancestors can name the section to expand. */
     private val headersByContainerId = mutableMapOf<Int, CollapsibleSectionHeader>()
 
+    /**
+     * S4394: every header handed to [register], in registration order - the collapse-all affordance
+     * and its visibility need the page's full section set, which the id map alone cannot answer
+     * (a section whose container carries no id is still collapsible).
+     */
+    private val registeredHeaders = linkedSetOf<CollapsibleSectionHeader>()
+
+    /**
+     * S4394: invoked with the page's aggregate expansion state after each register-restore and after
+     * every header toggle - the host's toolbar affordance tracks this instead of polling.
+     */
+    var onAnyExpandedChanged: ((Boolean) -> Unit)? = null
+
     constructor(context: Context) : this(SharedPreferencesCollapsibleSectionStore(context)) {
         // Fold the legacy per-screen namespaces into the consolidated store once, before any
         // register() reads state. Guarded + idempotent, so later screens pay only one boolean read.
@@ -54,11 +67,15 @@ class CollapsibleSectionsManager(
         if (container.id != View.NO_ID) {
             headersByContainerId[container.id] = header
         }
+        registeredHeaders.add(header)
         val expanded = if (persistState) store.isExpanded(key, defaultExpanded) else defaultExpanded
         onExpandedChanged?.invoke(expanded)
         // Restore must not animate (avoids flicker on screen entry); only user toggles animate.
         header.setExpanded(expanded, notify = false)
         container.isVisible = expanded
+        // S4394: a restore-only register still moves the aggregate state, so the host hears it
+        // without waiting for the first user toggle.
+        onAnyExpandedChanged?.invoke(hasExpandedSection())
         header.setOnExpandedChangeListener { isExpanded ->
             onExpandedChanged?.invoke(isExpanded)
             (container.parent as? ViewGroup)?.let { parent ->
@@ -70,8 +87,23 @@ class CollapsibleSectionsManager(
             if (persistState) {
                 store.setExpanded(key, isExpanded)
             }
+            onAnyExpandedChanged?.invoke(hasExpandedSection())
         }
     }
+
+    /**
+     * S4394: collapses every registered section. Each header collapses through its own
+     * [CollapsibleSectionHeader.setExpanded], so the per-header listener path animates and
+     * persists exactly as a user tap would - this must not bypass it.
+     */
+    fun collapseAll() {
+        for (header in registeredHeaders) {
+            header.setExpanded(false)
+        }
+    }
+
+    /** S4394: whether at least one registered section is expanded right now. */
+    fun hasExpandedSection(): Boolean = registeredHeaders.any { it.isExpanded() }
 
     /**
      * S1967: expands whichever registered section encloses a row, named by that row's ancestor view
@@ -99,6 +131,7 @@ class CollapsibleSectionsManager(
      */
     fun clear() {
         headersByContainerId.clear()
+        registeredHeaders.clear()
     }
 
     private fun buildBodyTransition(): AutoTransition =

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.18 22:59</sub>
+<sub class="doc-stamp">26.10.19 01:13</sub>
 
 # Pointer - `CHECK-VERDICT`
 
@@ -22,7 +22,7 @@
 - One machine-readable verdict line, the last line on stdout, owed on every path that sets a code,
   the failure path included; advisories are named, not counted (rules 5, 11).
 - An empty determined change set is `0` with `PASS (0 file(s) inspected)`; an undetermined set, or a
-  run that executed no tests, is `2` (rule 12).
+  run that executed no tests, is `2` (rule 12). Rule I of `assert-exit-contract.ps1` holds checks with a change-set parameter to it.
 - A wrapper over a runner that reports skips as passes counts the skips, prints the count, and makes
   a skip over a declared input `2` (rule 13).
 - Test count writers use `run=N skipped=M`; executed tests include failures and exclude skips

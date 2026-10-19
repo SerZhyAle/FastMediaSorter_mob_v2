@@ -97,6 +97,7 @@ $workTree = if ($GitRoot) { $GitRoot } else { $repoRoot }
 # different selection. Only the comparison between git's repository-relative output and a path off
 # the disk lives there - the discovery above it, and the exit codes below it, stay this gate's own.
 . "$PSScriptRoot\lib\git-index-membership.ps1"
+. "$PSScriptRoot\lib\changed-files.ps1"
 
 $script:listPath = $null
 
@@ -169,6 +170,11 @@ foreach ($record in $records) {
 
 if ($relByAbsolute.Count -eq 0) {
     Write-Host 'assert-suite-tracked: expected: 0 | actual: 0 untracked runner(s) of 0 discovered'
+    if ($normalizedChanged.Count -gt 0) {
+        # The declared set selects no contract suite: the empty determined set (CHECK-VERDICT 2.12).
+        Write-EmptySetPass -GateName 'assert-suite-tracked'
+        exit 0
+    }
     Write-Host 'assert-suite-tracked: PASS - no contract suite in the selection.' -ForegroundColor Green
     exit 0
 }
