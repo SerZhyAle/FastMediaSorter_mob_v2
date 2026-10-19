@@ -26,6 +26,7 @@ permalink: /docs/wear/ICON_LEGEND-uk.html
 
 | Значок | Значення |
 |---|---|
+| <img src="../icons/svg/wear/ic_tourist_counter.svg" alt="" width="24" height="24"> | Додати |
 | <img src="../icons/svg/wear/ic_copy.svg" alt="" width="24" height="24"> | Копіювати |
 | <img src="../icons/svg/wear/ic_delete.svg" alt="" width="24" height="24"> | Видалити |
 | <img src="../icons/svg/wear/ic_edit.svg" alt="" width="24" height="24"> | Редагувати |

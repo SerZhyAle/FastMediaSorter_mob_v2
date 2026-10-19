@@ -9,6 +9,8 @@ permalink: /docs/media-exchange-portal/exchange-server.html
 
 # Exchange server: your devices from any network
 
+<img src="exchange-mark/full-256.png" alt="Media Exchange Server" width="128">
+
 The exchange server is for the case the [home network](home-network.html) cannot cover: a provider that gives you no public address, a hotel Wi-Fi, a mobile network. Every device dials out to the server, so nothing has to be opened in a router on the devices' side - only the server itself needs an address the devices can reach.
 
 ![An exchange server on the internet in the middle. Home and office Windows PCs share folders, a laptop sends and receives media, one phone opens any folder and another shares its own, and a watch and a TV receive media - all through the server.](diagrams/exchange-simple-en.svg)

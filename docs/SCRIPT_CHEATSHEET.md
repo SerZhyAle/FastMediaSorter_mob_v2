@@ -2997,6 +2997,7 @@ scripts/docs/help/generate-help-pages.ps1
     -RepoRoot           [String] = (Join-Path $PSScriptRoot '../../..')
     -Date               [String] = (Get-Date -Format 'yyyy-MM-dd')
     -Locales            [String[]] = @('en', 'ru', 'uk')
+    -HelpIds            [String[]] = @()
     -SourceRoot         [String] = ''
     -MapPath            [String] = ''
     -ImageRoot          [String] = ''

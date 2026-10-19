@@ -16,7 +16,7 @@
 #
 # NOT a place to park a ticket that genuinely should carry a probe. If the ticket changed Kotlin,
 # add the probe instead.
-#
+#S4371  Registry exception device passes for code already in the tree (S3414, S3434, S4124, S4129); no Kotlin touched by this ticket, so no Timber probe can exist. Verification is on-device observation on 120 Hz phone, Galaxy Watch, live RTSP listener, and Google Drive account.
 S4352  Resources and documentation only (dimens.xml, themes.xml, settings-scope-exclusions.json); no Kotlin flow touched, so no Timber probe can exist. Verification is visual check of button corner radii, touch targets, and group headers in emulator/device.
 S4299  Manifest-only singleTask launch mode for BroadcastControlActivity; no Kotlin touched. Android task reuse happens before onCreate, so dumpsys activity identity and reopening the picker after Quick Settings re-entry prove the fix.
 S4081  Manifest-only provider SUPPORTED_TYPES repair; no Kotlin touched. Platform discovery precedes provider code, so a Timber probe cannot observe rejected metadata. Wear Services checker logs, fresh face photo-slot binding and the favourites icon picker are the evidence.

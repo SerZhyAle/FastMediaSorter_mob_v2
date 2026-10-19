@@ -21,7 +21,9 @@
   platform meaning (rule 3).
 - The deviations currently open are recorded as exceptions in the catalog's registry. The 0.4 `VIEWER-KEYBOARD.md`
   player defaults ship in `default_bindings.json` and `PlayerKeyboardHandler` (S4363); the rows still open
-  (`G`, `N`, `F4`, frame step, A-B loop, the standalone hosts) are the exception carried by S4373.
+  (`G`, `N`, `F4`, frame step, A-B loop, the standalone hosts) are implemented by S4373 and await device
+  acceptance. The registry exception stays open until the collection surfaces, numbered-frame stepping,
+  A-B repeat and host routes are observed on device; a compile or mocked timestamp test is not that verdict.
 
 `INPUT-CHORD`, the chord notation beside it in the same folder, is not adopted: our bindings are stored as an
 internal key-code record that never leaves the app, and in-window shortcuts are outside its scope.

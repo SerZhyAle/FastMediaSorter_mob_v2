@@ -21,8 +21,9 @@
             android:layout_width="@dimen/icon_size_small"
             android:layout_height="@dimen/icon_size_small"
             android:layout_marginEnd="@dimen/margin_medium"
-            android:importantForAccessibility="no"
-            android:src="@drawable/ic_exchange_server" />
+            android:contentDescription="@string/settings_sftp_exchange_enable_title"
+            android:importantForAccessibility="yes"
+            android:src="@drawable/ic_exchange_mark_small" />
 
         <LinearLayout
             android:layout_width="0dp"

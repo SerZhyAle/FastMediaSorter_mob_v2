@@ -296,9 +296,32 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         }
     }
 
+    private val viewerCommands by lazy {
+        com.sza.fastmediasorter.ui.player.standalone.helpers.StandaloneViewerCommandManager(
+            host = this,
+            viewModel = viewModel,
+            getPlayer = { viewManager.getPlayer(viewModel.state.value.mediaType) },
+            applyRotation = { viewManager.setContentRotationDegrees(it) },
+            allowCollection = false,
+        )
+    }
+
     private fun setupKeyboardHandler() {
         keyboardHandler = PlayerKeyboardHandler(
             callback = object : PlayerKeyboardHandler.PlayerKeyboardCallback {
+                override fun onStepFiles(offset: Int): Boolean = viewerCommands.stepFiles(offset)
+                override fun onEdgeFile(last: Boolean): Boolean = viewerCommands.edgeFile(last)
+                override fun onRandomFile(): Boolean = viewerCommands.randomFile()
+                override fun onRotateContent(clockwise: Boolean): Boolean = viewerCommands.rotate(clockwise)
+                override fun onChangeSpeed(faster: Boolean): Boolean = viewerCommands.changeSpeed(faster)
+                override fun onCycleAudioTrack(): Boolean = viewerCommands.cycleAudioTrack()
+                override fun onStartSlideshow(random: Boolean): Boolean = viewerCommands.startSlideshow(random)
+                override fun onShowFileGrid(): Boolean = viewerCommands.showFiles(grid = true)
+                override fun onShowFileList(): Boolean = viewerCommands.showFiles(grid = false)
+                override fun onShowFileNumber(): Boolean = viewerCommands.showNumber()
+                override fun hasModalInput(): Boolean = viewerCommands.hasModalInput
+                override fun onFrameStep(forward: Boolean): Boolean = viewerCommands.frameStep(forward)
+                override fun onToggleAbLoop(): Boolean = viewerCommands.toggleLoop()
                 override fun onDeleteFile() = fileOperations.deleteCurrentFile()
                 override fun onExitPlayer() = finish()
                 override fun onToggleSlideshow() { /* standalone has no playlist slideshow */ }
@@ -827,8 +850,15 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                 val mi = popup.menu.getItem(i)
                 mi.isVisible = mi.itemId == R.id.menu_open_in_fms || mi.itemId == R.id.menu_help
             }
+            viewerCommands.populateMenu(popup.menu)
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
+                    R.id.menu_file_grid,
+                    R.id.menu_file_list,
+                    R.id.menu_file_number,
+                    R.id.menu_frame_forward,
+                    R.id.menu_frame_back,
+                    R.id.menu_ab_loop -> viewerCommands.handleMenu(item.itemId)
                     R.id.menu_open_in_fms -> {
                         openInFms()
                         true

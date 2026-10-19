@@ -164,6 +164,7 @@ steps:
 outcome: |
   Your PDFs open in the same app as your photos and videos, right on the page where you stopped. You can read them in comfortable colors, find and copy the words you need, listen to them, understand a document in another language, and turn its pages into pictures or paper when you need to.
 tips:
+  - "**Choose another file:** G shows file thumbnails, F4 the file list, and N a file number starting at 1. Use the same entries in the three-dots menu. These choose a file in the current collection, not a page of the document. Viewer shortcuts stay inactive while an editor or number field owns input."
   - "**Links and text inside a PDF.** In the PDF viewer opened from another app, tap a link in the document to open it, and long-press to select text on the page; in the older viewer, swipe up and down to turn the pages."
   - "**Paging through many documents from another app?** The separate reader window lets you move from one PDF, book or Office file to the next as long as you like - it cleans up after each document, so it stays quick."
   - "**Previews for very large PDFs.** Switch on **Large PDF Thumbnails (slow)** in **Settings**, the **Media** tab, **Documents** to get page pictures for big PDF files in the file browser too. They take a little longer to appear."
@@ -187,6 +188,6 @@ next_recipes:
     description: Choose languages and the look of offline translation.
 ---
 
-<sub class="doc-stamp">26.10.10 14:38</sub>
+<sub class="doc-stamp">26.10.19 16:16</sub>
 
 Open a PDF with one tap, turn pages by swiping, find a page by its picture, read at night in dark colors, copy, search, listen to and translate the text, and save the pages as pictures or print them - all in the built-in [reader](term:reader).

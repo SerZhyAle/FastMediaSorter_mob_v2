@@ -9,6 +9,8 @@ permalink: /docs/media-exchange-portal/exchange-server-install-ru.html
 
 # Установка и проверка сервера обмена
 
+<img src="exchange-mark/full-256.png" alt="Media Exchange Server" width="128">
+
 Эта страница - для того, кто держит сервер: ПК с Windows, который остаётся включённым, адрес, до которого дотянутся ваши устройства, и что делать, когда Windows предупреждает о неподписанном установщике. Если вы лишь подключаетесь к чужому серверу, всё это не нужно - переходите к странице [Аккаунты, приглашения и пароли](exchange-accounts-ru.html).
 
 ## Что понадобится {#what-you-need}

@@ -14,6 +14,12 @@ private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, Medi
 // bare literal) so the newest entry passes the detekt MagicNumber gate; the pre-existing entries'
 // literal priorities are already covered by the detekt baseline.
 private const val ROTATE_CONTENT_PRIORITY = 660
+private const val FILE_GRID_PRIORITY = 670
+private const val FILE_LIST_PRIORITY = 680
+private const val FILE_NUMBER_PRIORITY = 690
+private const val FRAME_FORWARD_PRIORITY = 700
+private const val FRAME_BACK_PRIORITY = 710
+private const val AB_LOOP_PRIORITY = 720
 
 // S1364: the counter-clockwise twin sits immediately after its forward partner so the two always
 // render adjacently in the sorted overflow list.
@@ -89,6 +95,36 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         FULLSCREEN(50, R.id.menu_fullscreen, true, R.string.fullscreen_mode, R.drawable.ic_fullscreen),
         SLIDESHOW(60, R.id.menu_slideshow, true, R.string.slideshow, R.drawable.ic_slideshow),
         RANDOM(70, R.id.menu_random, true, R.string.random_file_description, R.drawable.ic_random_nav),
+        FILE_GRID(FILE_GRID_PRIORITY, R.id.menu_file_grid, false, R.string.player_file_grid, R.drawable.ic_view_grid),
+        FILE_LIST(FILE_LIST_PRIORITY, R.id.menu_file_list, false, R.string.player_file_list, R.drawable.ic_view_list),
+        FILE_NUMBER(
+            FILE_NUMBER_PRIORITY,
+            R.id.menu_file_number,
+            false,
+            R.string.player_file_jump,
+            0
+        ),
+        FRAME_FORWARD(
+            FRAME_FORWARD_PRIORITY,
+            R.id.menu_frame_forward,
+            false,
+            R.string.player_frame_forward,
+            R.drawable.ic_skip_next
+        ),
+        FRAME_BACK(
+            FRAME_BACK_PRIORITY,
+            R.id.menu_frame_back,
+            false,
+            R.string.player_frame_back_unavailable,
+            R.drawable.ic_skip_previous
+        ),
+        AB_LOOP(
+            AB_LOOP_PRIORITY,
+            R.id.menu_ab_loop,
+            false,
+            R.string.player_loop_title,
+            R.drawable.ic_repeat_one
+        ),
 
         // ── Group 2 : current command-bar commands (priorities 200-499) ──────────────
 
@@ -379,6 +415,13 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
      * @param showFavorite    Whether the Favorite button should be included (async setting).
      * @param showRandom      Whether the Random navigation button should be included.
      */
+    private fun videoKeyboardCommands(type: MediaType): List<PlayerCommand> =
+        if (type == MediaType.VIDEO) {
+            listOf(PlayerCommand.FRAME_FORWARD, PlayerCommand.FRAME_BACK, PlayerCommand.AB_LOOP)
+        } else {
+            emptyList()
+        }
+
     fun buildActiveCommands(
         state: PlayerViewModel.PlayerState,
         canWrite: Boolean,
@@ -421,6 +464,10 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             add(PlayerCommand.SEND_TO)
             if (!isAudio && (isImage || isVideo || isPdf || isText || isEpub || isOffice)) add(PlayerCommand.FULLSCREEN)
             if (showRandom) add(PlayerCommand.RANDOM)
+            add(PlayerCommand.FILE_GRID)
+            add(PlayerCommand.FILE_LIST)
+            add(PlayerCommand.FILE_NUMBER)
+            addAll(videoKeyboardCommands(file.type))
 
             // ── Group 2 ──────────────────────────────────────────────────────────────
             if ((isAudio || isVideo) && state.showBlackScreenButton) add(PlayerCommand.BLACK_SCREEN)

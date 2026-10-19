@@ -99,4 +99,22 @@
     <string name="playback_control_no_balance">Mono audio - no channels to balance</string>
     <string name="playback_control_balance_value">Balance: %1$s</string>
     <string name="playback_control_balance_description">Balance %1$d percent left, %2$d percent right</string>
+    <string name="player_file_grid">Thumbnail grid view</string>
+    <string name="player_file_list">File list view</string>
+    <string name="player_file_jump">Go to file</string>
+    <string name="player_file_number_hint">File number (1..%1$d)</string>
+    <string name="player_file_number_error">Enter a whole number from 1 to %1$d.</string>
+    <string name="player_file_single">Only this file is available.</string>
+    <string name="player_file_row">%1$d. %2$s</string>
+    <string name="player_frame_unavailable">Frame stepping is unavailable for this video.</string>
+    <string name="player_frame_back_unavailable">Previous frame unavailable: this decoder cannot step backwards.</string>
+    <string name="player_loop_title">A-B loop</string>
+    <string name="player_loop_unavailable">A-B repeat needs a video you can seek.</string>
+    <string name="player_loop_start">Loop start: %1$s. Choose the end point.</string>
+    <string name="player_loop_active">A-B repeat: %1$s to %2$s</string>
+    <string name="player_loop_invalid_end">Choose an end point after the start.</string>
+    <string name="player_frame_forward">Next frame</string>
+    <string name="player_action_unavailable">This action is unavailable for this file.</string>
+    <string name="player_audio_track_single">No other audio track is available.</string>
+    <string name="player_frame_backward">Previous frame</string>
 </resources>

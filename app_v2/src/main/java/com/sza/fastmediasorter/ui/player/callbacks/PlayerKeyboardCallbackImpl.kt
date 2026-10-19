@@ -1,15 +1,19 @@
 package com.sza.fastmediasorter.ui.player.callbacks
 
+import android.widget.Toast
 import androidx.media3.common.Player
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import com.sza.fastmediasorter.ui.player.helpers.PlayerFileSelectionManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerHelpEntryManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
 import com.sza.fastmediasorter.ui.player.helpers.StillImageZoomManager
 import com.sza.fastmediasorter.ui.player.helpers.ViewerKeyStepMath
 import com.sza.fastmediasorter.ui.player.helpers.ZoomAction
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
 /**
@@ -20,6 +24,45 @@ class PlayerKeyboardCallbackImpl(
     private val activity: PlayerActivity,
     private val viewModel: PlayerViewModel
 ) : PlayerKeyboardHandler.PlayerKeyboardCallback {
+
+    private val fileSelection by lazy {
+        PlayerFileSelectionManager(
+            host = activity,
+            files = { viewModel.state.value.files },
+            currentPath = { viewModel.state.value.currentFile?.path },
+            selectPath = { path ->
+                val index = viewModel.state.value.files.indexOfFirst { it.path == path }
+                if (index >= 0) activity.navigationManager.navigateToIndexFromControl(index)
+            },
+        )
+    }
+
+    override fun onShowFileGrid(): Boolean = fileSelection.showFiles(grid = true)
+    override fun onShowFileList(): Boolean = fileSelection.showFiles(grid = false)
+    override fun onShowFileNumber(): Boolean = fileSelection.showNumber()
+    override fun hasModalInput(): Boolean = fileSelection.isShowing
+
+    private val playbackRange by lazy {
+        com.sza.fastmediasorter.ui.player.helpers.PlayerPlaybackRangeManager(
+            activity,
+            getPlayer = { getActivePlayer() },
+            getSource = { viewModel.state.value.currentFile?.path },
+            sourceChanges = viewModel.state.map { it.currentFile?.path },
+        )
+    }
+
+    override fun onToggleAbLoop(): Boolean = playbackRange.toggle()
+
+    override fun onFrameStep(forward: Boolean): Boolean {
+        val player = activity._videoPlayerManager?.getPlayer()
+        val stepped = forward && player != null &&
+            com.sza.fastmediasorter.ui.player.helpers.PlayerFrameStepManager.stepForward(player)
+        if (!stepped) {
+            val reason = if (forward) R.string.player_frame_unavailable else R.string.player_frame_back_unavailable
+            Toast.makeText(activity, reason, Toast.LENGTH_SHORT).show()
+        }
+        return true
+    }
 
     override fun onDeleteFile() {
         activity.fileOperationsHandler.deleteCurrentFile()

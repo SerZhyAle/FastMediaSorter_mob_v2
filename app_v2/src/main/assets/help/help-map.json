@@ -16,7 +16,12 @@
       ] },
     { "id": "WelcomeActivity", "name": "Welcome", "form": "page", "help": "welcome" },
     { "id": "BrowseActivity", "name": "File browser", "form": "page", "help": "browse" },
-    { "id": "PlayerActivity", "name": "Player", "form": "page", "help": "player" },
+    { "id": "PlayerActivity", "name": "Player", "form": "page", "help": "player",
+      "pages": [
+        { "id": "player.file-grid", "name": "File thumbnails", "help": "player" },
+        { "id": "player.file-list", "name": "File list", "help": "player" },
+        { "id": "player.file-number", "name": "Go to file number", "help": "player" }
+      ] },
     { "id": "FilterResourceDialog", "name": "Filter resources", "form": "inherit", "parent": "MainActivity",
       "reason": "Opened only from the main screen's filter button; the main page explains the filter entry." },
     { "id": "BeamAnimationDialog", "name": "Beam animation", "form": "inherit", "parent": "SettingsActivity",

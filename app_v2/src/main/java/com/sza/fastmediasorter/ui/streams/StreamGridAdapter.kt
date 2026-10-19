@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.ItemStreamGridCellBinding
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
+import com.sza.fastmediasorter.ui.streams.helpers.StreamsLiveBroadcastsManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -183,14 +184,25 @@ class StreamGridAdapter(
             val activeTrack = nowPlayingLine?.takeIf { source.id == playingId && it.isNotBlank() }
             binding.tvTitle.text = if (activeTrack != null) "$stationTitle - $activeTrack" else stationTitle
             bindPlayStatus(playOutcomes[source.id])
-            // S1062: red top-left indicator for a pinned tile (menu-driven only, not tappable).
-            binding.tvPinBadge.isVisible = source.pinned
+            val isLive = source.sourceOrigin == StreamsLiveBroadcastsManager.SOURCE_ORIGIN_LIVE_BROADCAST
+            if (isLive) {
+                binding.tvPinBadge.text = context.getString(R.string.stream_source_live_badge)
+                binding.tvPinBadge.isVisible = true
+            } else {
+                binding.tvPinBadge.text = context.getString(R.string.streams_pinned_badge)
+                // S1062: red top-left indicator for a pinned tile (menu-driven only, not tappable).
+                binding.tvPinBadge.isVisible = source.pinned
+            }
             binding.root.setOnClickListener { onPlay(source) }
             // S0695: long-press toggles pin/unpin on a tile too (mirrors the list row).
             binding.root.setOnLongClickListener {
-                it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                onPin(source)
-                true
+                if (isLive) {
+                    false
+                } else {
+                    it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                    onPin(source)
+                    true
+                }
             }
             bindSecondaryClickOverflow()
             bindOverflowMenu(source)

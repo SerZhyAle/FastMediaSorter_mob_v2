@@ -13,7 +13,8 @@
     { "pattern": "ic_launcher_nolegal_*", "why": "application icon layers of the noLegal edition - product identity artwork" },
     { "pattern": "ic_skull_badge*", "why": "edition badge on the application icon - product identity artwork" },
     { "pattern": "ic_logo", "why": "the product's own logo drawing" },
-    { "pattern": "ic_prank_system_alert", "why": "imitation of a system dialog inside the April-fools prank; stands for no control" }
+    { "pattern": "ic_prank_system_alert", "why": "imitation of a system dialog inside the April-fools prank; stands for no control" },
+    { "pattern": "ic_exchange_mark*", "why": "identity artwork per EXCHANGE-MARK 0.3 (S4395)" }
   ],
   "glyphs": {
     "ic_page_previous": "media.previous",
@@ -82,7 +83,7 @@
     "wear:Icons.Filled.Download": "action.receive-clipboard",
     "app_v2:ic_clipboard_send_server": "action.send-clipboard",
     "app_v2:ic_clipboard_get_server": "action.receive-clipboard",
-    "app_v2:ic_exchange_server": "source.exchange-server",
+    "ic_exchange_mono": "source.exchange-server",
     "app_v2:ic_exchange_invitation": "content.invitation",
     "app_v2:ic_exchange_guest": "content.guest",
     "Icons.Filled.Email": "action.email",
@@ -198,6 +199,9 @@
     { "key": "accessible-name|app_v2|app_v2/src/main/res/layout/dialog_scheduled_operation.xml|ic_schedule|scheduled_ops_starting_from", "why": "a field title beside a clock, not an action - S3484" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/layout/fragment_resource_editor.xml|ic_restore_defaults|btn_reset_changes", "why": "discards unsaved edits, not settings; the vocabulary has no \"revert changes\" meaning - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/layout/fragment_settings_general.xml|ic_help_outline|export_import_file_info", "why": "the help button explains the export file it names - S3484" },
+    { "key": "accessible-name|app_v2|app_v2/src/main/res/layout/activity_settings.xml|ic_arrow_drop_down|settings_collapse_all", "why": "the triangle is drawn rotated 180 degrees to preview the collapsed state it switches to; the vocabulary has no collapse meaning - S4394" },
+    { "key": "accessible-name|app_v2|app_v2/src/main/res/layout-land/activity_settings.xml|ic_arrow_drop_down|settings_collapse_all", "why": "the triangle is drawn rotated 180 degrees to preview the collapsed state it switches to; the vocabulary has no collapse meaning - S4394" },
+    { "key": "accessible-name|app_v2|app_v2/src/main/res/layout-w600dp/activity_settings.xml|ic_arrow_drop_down|settings_collapse_all", "why": "the triangle is drawn rotated 180 degrees to preview the collapsed state it switches to; the vocabulary has no collapse meaning - S4394" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/layout/player_draw_overlay_toolbar_content.xml|ic_send_note_brush|draw_tool_selector_cd", "why": "the selector shows the current tool glyph and names the selection - S3484" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/layout/toolbar_icon_action.xml|ic_folder|cd_pick_resource_icon", "why": "the glyph previews the chosen resource icon - S3484" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/layout/widget_google_maps_live_frame.xml|ic_map|launcher_gadget_google_maps_live", "why": "a third-party product name carries its own word for map - S3484" },

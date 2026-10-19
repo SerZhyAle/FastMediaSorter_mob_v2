@@ -3,6 +3,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <!-- Core actions -->
+    <item android:id="@+id/menu_frame_forward" android:title="@string/player_frame_forward"
+        app:showAsAction="never" />
+    <item android:id="@+id/menu_frame_back" android:title="@string/player_frame_back_unavailable"
+        android:enabled="false" app:showAsAction="never" />
+    <item android:id="@+id/menu_ab_loop" android:title="@string/player_loop_title"
+        app:showAsAction="never" />
+    <item android:id="@+id/menu_file_grid" android:title="@string/player_file_grid"
+        android:icon="@drawable/ic_view_grid" app:showAsAction="never" />
+    <item android:id="@+id/menu_file_list" android:title="@string/player_file_list"
+        android:icon="@drawable/ic_view_list" app:showAsAction="never" />
+    <item android:id="@+id/menu_file_number" android:title="@string/player_file_jump" app:showAsAction="never" />
     <item
         android:id="@+id/menu_delete"
         android:icon="@drawable/ic_delete"

@@ -3,6 +3,54 @@
   "generated_at": "2026-04-25",
   "bindings": [
     {
+      "command_id": "playback.ab_loop",
+      "group": "PLAYBACK_CORE",
+      "label_key": "player_loop_title",
+      "flavor_gate": "audio_required",
+      "triggers": {
+        "keyboard": ["key:40:1"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "navigation.file_grid",
+      "group": "NAVIGATION",
+      "label_key": "player_file_grid",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": ["key:35:0"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "navigation.file_list",
+      "group": "NAVIGATION",
+      "label_key": "player_file_list",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": ["key:134:0"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
+      "command_id": "navigation.file_number",
+      "group": "NAVIGATION",
+      "label_key": "player_file_jump",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": ["key:42:0"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
       "command_id": "playback.pause_play",
       "group": "PLAYBACK_CORE",
       "label_key": "cmd_playback_pause_play",
@@ -101,7 +149,7 @@
     {
       "command_id": "playback.frame_step_forward",
       "group": "PLAYBACK_CORE",
-      "label_key": "cmd_playback_frame_step_forward",
+      "label_key": "player_frame_forward",
       "flavor_gate": "audio_required",
       "triggers": {
         "keyboard": ["key:56:0"],
@@ -113,7 +161,7 @@
     {
       "command_id": "playback.frame_step_backward",
       "group": "PLAYBACK_CORE",
-      "label_key": "cmd_playback_frame_step_backward",
+      "label_key": "player_frame_backward",
       "flavor_gate": "audio_required",
       "triggers": {
         "keyboard": ["key:55:0"],
@@ -1360,3 +1408,4 @@
     }
   ]
 }
+

@@ -66,3 +66,4 @@ catalog registry to one set of ids and versions.
 | [`BOOLEAN-OPTION.md`](BOOLEAN-OPTION.md) | `BOOLEAN-OPTION` | consumer - phone, launcher and watch settings (migration S4352) |
 | [`COLLAPSIBLE-GROUP.md`](COLLAPSIBLE-GROUP.md) | `COLLAPSIBLE-GROUP` | consumer - phone and launcher (migration S4352) |
 | [`SETTINGS-NAVIGATION.md`](SETTINGS-NAVIGATION.md) | `SETTINGS-NAVIGATION` | consumer - main settings, settings dialogs and watch settings (migration S4352) |
+| [`EXCHANGE-MARK.md`](EXCHANGE-MARK.md) | `EXCHANGE-MARK` | consumer - mark of the exchange server on phone, watch, portal and docs |

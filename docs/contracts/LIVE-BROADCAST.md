@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `LIVE-BROADCAST` |
-| **Version** | 1.1, active - 2026-10-17 (the consolidation amendment: a descriptor of a higher `schemaVersion` answers the canonical `format-unsupported` refusal); 1.0 - declared 2026-10-15 (S4245, the owner's decision 22 of milestone S4203: every section and amendment binds, and the contract only grows from here); amendment 16 adds item Q, the `seal` member of a `RELAY` and a `TUNNEL` endpoint; amendment 15, items N to P: the sources of a broadcast, sound and video on the watch and the phone's hand-off to the watch; amendment 14, item M: a broadcast link with a password; amendment 13: PC producer, HTTP MPEG-TS video, `RELAY`/`TUNNEL` endpoints through `DEVICE-EXCHANGE`, receivers and cast. Owner: this product |
+| **Version** | 1.2, active - 2026-10-18; 1.1 - 2026-10-17 (the consolidation amendment: a descriptor of a higher `schemaVersion` answers the canonical `format-unsupported` refusal); 1.0 - declared 2026-10-15 (S4245, the owner's decision 22 of milestone S4203: every section and amendment binds, and the contract only grows from here); amendment 16 adds item Q, the `seal` member of a `RELAY` and a `TUNNEL` endpoint; amendment 15, items N to P: the sources of a broadcast, sound and video on the watch and the phone's hand-off to the watch; amendment 14, item M: a broadcast link with a password; amendment 13: PC producer, HTTP MPEG-TS video, `RELAY`/`TUNNEL` endpoints through `DEVICE-EXCHANGE`, receivers and cast. Owner: this product |
 | **Home** | `live-broadcast/README.md` in the shared contracts catalog |
 | **Role here** | producer - the phone and watch audio broadcast; also reads its own descriptor on import |
 

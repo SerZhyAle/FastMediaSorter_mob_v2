@@ -57,6 +57,10 @@
 .PARAMETER SourceRoot
     Folder holding <help-id>.json for every mapped help id and index.json. Default: <RepoRoot>/docs/content/help.
 
+.PARAMETER HelpIds
+    Optional comma-separated page ids to write. All source pages are still validated. Name index explicitly
+    when its contents changed; common CSS remains synchronized.
+
 .PARAMETER MapPath
     The help map. Default: <RepoRoot>/app_v2/src/main/assets/help/help-map.json.
 
@@ -89,6 +93,7 @@ param(
     [ValidatePattern('^\d{4}-\d{2}-\d{2}$')]
     [string]$Date = (Get-Date -Format 'yyyy-MM-dd'),
     [string[]]$Locales = @('en', 'ru', 'uk'),
+    [string[]]$HelpIds = @(),
     [string]$SourceRoot = '',
     [string]$MapPath = '',
     [string]$ImageRoot = '',
@@ -754,6 +759,14 @@ function Invoke-Main {
     $map = Read-JsonFile $script:Cfg.MapPath
     if ($null -eq $map) { $script:Problems | ForEach-Object { Write-Problem $_ }; return 1 }
     $script:PageIds = Get-HelpMapPages $map
+    $selectedIds = @($HelpIds | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } |
+        Where-Object { $_ } | Select-Object -Unique)
+    $writeAll = $selectedIds.Count -eq 0
+    $unknownIds = @($selectedIds | Where-Object { $_ -ne 'index' -and $_ -notin $script:PageIds })
+    if ($unknownIds.Count -gt 0) {
+        Write-Problem "unknown help ids: $($unknownIds -join ', ')"
+        return 1
+    }
     Import-PageManifest
 
     $sources = [ordered]@{}
@@ -777,13 +790,17 @@ function Invoke-Main {
                 $path = Get-OutputPath $id $locale $target
                 $html = New-PageHtml -Locale $locale -Target $target -DocTitle $docTitle -Main $body
                 Test-PageRules -Path $path -Html $html
-                $outputs.Add([pscustomobject]@{ Path = $path; Text = $html })
+                if ($writeAll -or $id -in $selectedIds) {
+                    $outputs.Add([pscustomobject]@{ Path = $path; Text = $html })
+                }
             }
             $body = New-IndexPageBody -Source $indexSource -Locale $locale -Target $target -ProductName $productName -Version $version
             $path = Get-OutputPath 'index' $locale $target
             $html = New-PageHtml -Locale $locale -Target $target -DocTitle (Get-PageTitle 'index' $locale) -Main $body
             Test-PageRules -Path $path -Html $html
-            $outputs.Add([pscustomobject]@{ Path = $path; Text = $html })
+            if ($writeAll -or 'index' -in $selectedIds) {
+                $outputs.Add([pscustomobject]@{ Path = $path; Text = $html })
+            }
         }
     }
     if ($script:Problems.Count -gt 0) {
@@ -797,12 +814,20 @@ function Invoke-Main {
 
     $written = 0
     foreach ($output in $outputs) { if (Write-TextFile -Path $output.Path -Text $output.Text) { $written++ } }
+    $selectedImageCount = 0
+    $imageLocales = ($script:Cfg.Locales | ForEach-Object { [regex]::Escape($_) }) -join '|'
     foreach ($destination in $script:ImageCopies.Keys) {
+        $imageName = [System.IO.Path]::GetFileName($destination)
+        $selectedImage = @($selectedIds | Where-Object {
+            $imageName -match ('^' + [regex]::Escape($_) + '-(?:' + $imageLocales + ')-')
+        }).Count -gt 0
+        if (-not $writeAll -and -not $selectedImage) { continue }
+        $selectedImageCount++
         if (Copy-FileIfChanged -Source $script:ImageCopies[$destination] -Destination $destination) { $written++ }
     }
     $excluded = Sync-RegistryHelpExclusions
     foreach ($note in $script:Notes) { Write-Host "note: $note" }
-    $total = $outputs.Count + $script:ImageCopies.Count
+    $total = $outputs.Count + $selectedImageCount
     $registryNote = if ($excluded -ge 0) { " registry-exclusions=$excluded" } else { '' }
     Write-Host "generate-help-pages: PASS (files=$total written=$written pages=$($script:PageIds.Count) locales=$($script:Cfg.Locales -join ',') date=$Date$registryNote)"
     return 0

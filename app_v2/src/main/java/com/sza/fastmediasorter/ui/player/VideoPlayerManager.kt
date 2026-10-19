@@ -237,6 +237,11 @@ class VideoPlayerManager(
     // ═══════════════════════════════════════════════════════════════════════
 
     internal var exoPlayer: ExoPlayer? = null
+        set(value) {
+            field?.let(com.sza.fastmediasorter.ui.player.helpers.PlayerFrameStepManager::detach)
+            field = value
+            value?.let(com.sza.fastmediasorter.ui.player.helpers.PlayerFrameStepManager::attach)
+        }
     internal var mediaPlayer: MediaPlayer? = null
     internal var currentPlayerView: PlayerView? = null
     internal var isUsingMediaPlayer = false

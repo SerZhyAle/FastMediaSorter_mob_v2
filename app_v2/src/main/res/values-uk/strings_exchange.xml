@@ -362,4 +362,5 @@
         <item quantity="other">З облікового запису вийшло %1$d пристрою.</item>
     </plurals>
     <string name="exchange_format_unsupported">Цей формат новіший, ніж підтримує програма. Нічого не імпортовано. Скористайтеся сумісною програмою.</string>
+    <string name="stream_source_live_badge">Наживо</string>
 </resources>

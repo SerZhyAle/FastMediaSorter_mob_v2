@@ -68,6 +68,7 @@ class MyDevicesDialogManager(
         }.also { it.bind() }
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.exchange_devices_signin_title)
+            .setIcon(R.drawable.ic_exchange_mark_small)
             .setView(binding.root)
             .setPositiveButton(R.string.exchange_devices_signin_submit, null)
             .setNegativeButton(R.string.cancel, null)

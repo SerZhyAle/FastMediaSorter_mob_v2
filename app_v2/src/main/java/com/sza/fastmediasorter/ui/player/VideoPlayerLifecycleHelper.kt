@@ -58,8 +58,8 @@ internal class VideoPlayerLifecycleHelper(
             // surface while EGL is still valid, then release.
             player.setVideoEffects(emptyList())
             manager.currentPlayerView?.player = null
-            player.release()
             manager.exoPlayer = null
+            player.release()
             Timber.d("VideoPlayerManager: ExoPlayer released")
         }
 

@@ -99,4 +99,22 @@
     <string name="playback_control_no_balance">Моно-звук - каналів для балансу немає</string>
     <string name="playback_control_balance_value">Баланс: %1$s</string>
     <string name="playback_control_balance_description">Баланс %1$d відсотків лівий, %2$d відсотків правий</string>
+    <string name="player_file_grid">Сітка мініатюр</string>
+    <string name="player_file_list">Список файлів</string>
+    <string name="player_file_jump">Перейти до файлу</string>
+    <string name="player_file_number_hint">Номер файлу (1..%1$d)</string>
+    <string name="player_file_number_error">Введіть ціле число від 1 до %1$d.</string>
+    <string name="player_file_single">Доступний лише цей файл.</string>
+    <string name="player_file_row">%1$d. %2$s</string>
+    <string name="player_frame_unavailable">Для цього відео покадровий перегляд недоступний.</string>
+    <string name="player_frame_back_unavailable">Попередній кадр недоступний: декодер не підтримує крок назад.</string>
+    <string name="player_loop_title">Повтор A-B</string>
+    <string name="player_loop_unavailable">Для повтору A-B потрібне відео з перемотуванням.</string>
+    <string name="player_loop_start">Початок повтору: %1$s. Виберіть кінцеву точку.</string>
+    <string name="player_loop_active">Повтор A-B: %1$s - %2$s</string>
+    <string name="player_loop_invalid_end">Виберіть кінцеву точку після початкової.</string>
+    <string name="player_frame_forward">Наступний кадр</string>
+    <string name="player_action_unavailable">Ця дія недоступна для цього файлу.</string>
+    <string name="player_audio_track_single">Інших звукових доріжок немає.</string>
+    <string name="player_frame_backward">Попередній кадр</string>
 </resources>

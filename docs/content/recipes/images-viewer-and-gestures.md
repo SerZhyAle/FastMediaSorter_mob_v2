@@ -111,6 +111,7 @@ steps:
 outcome: |
   You can walk through a whole folder of photos with a swipe, zoom into any detail, straighten a sideways shot for a moment and freeze an animation on the frame you like - without changing a single file.
 tips:
+  - "**Choose a file:** G opens **Thumbnails**, F4 opens **File list**, and N opens **Go to file**. File numbers start at 1. The same actions are in the three-dots menu. A window without a collection explains why file navigation is unavailable."
   - "**Zoom looks blurry?** Turn on **Load images at full resolution** in Settings, Media, Images, GIFs and slideshow. The viewer then loads the original picture instead of a lighter copy."
   - "**A HEIC or AVIF photo shows a notice instead of a picture?** Your Android version cannot draw that format. The notice names the Android version the picture needs. You can still copy, move and share the file."
   - "**Sort while you look.** The same full-screen player can copy, move or delete the photo you are looking at. See [Copy, move and delete files](page:storage.file-copy-move-delete)."
@@ -133,6 +134,6 @@ next_recipes:
     description: Find the photo you want faster with thumbnails, sorting and filters.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.19 16:16</sub>
 
 The [image viewer](term:image-viewer) shows one picture at a time on the whole screen. Swipe to move between photos, pinch to zoom, turn a sideways photo for a moment and pause animated pictures - all without changing your files.

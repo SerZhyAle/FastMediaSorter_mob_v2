@@ -25,6 +25,9 @@ import com.sza.fastmediasorter.ui.common.widget.measurePopupContentWidth
  * re-applying (see [CommandPanelController.updateOrientation]).
  */
 class PlayerBigButtonsModeManager(private val context: Context) {
+    private companion object {
+        const val DISABLED_REASON_MAX_LINES = 3
+    }
 
     private data class SavedButtonState(
         val originalIndex: Int,
@@ -301,6 +304,11 @@ class PlayerBigButtonsModeManager(private val context: Context) {
         val adapter = object : ArrayAdapter<CommandPanelLayoutPlanner.PlayerCommand>(
             context, 0, commands
         ) {
+            override fun areAllItemsEnabled(): Boolean = false
+
+            override fun isEnabled(position: Int): Boolean =
+                commands[position] != CommandPanelLayoutPlanner.PlayerCommand.FRAME_BACK
+
             override fun getView(
                 position: Int,
                 convertView: View?,
@@ -310,6 +318,7 @@ class PlayerBigButtonsModeManager(private val context: Context) {
                     ?: return convertView ?: View(context)
 
                 val row = LinearLayout(context).apply {
+                    isEnabled = cmd != CommandPanelLayoutPlanner.PlayerCommand.FRAME_BACK
                     orientation = LinearLayout.HORIZONTAL
                     gravity = Gravity.CENTER_VERTICAL
                     layoutParams = ViewGroup.LayoutParams(
@@ -335,7 +344,11 @@ class PlayerBigButtonsModeManager(private val context: Context) {
                     )
                     text = context.getString(cmd.titleResId)
                     textSize = 18f
-                    maxLines = 1
+                    maxLines = if (cmd == CommandPanelLayoutPlanner.PlayerCommand.FRAME_BACK) {
+                        DISABLED_REASON_MAX_LINES
+                    } else {
+                        1
+                    }
                 })
 
                 return row

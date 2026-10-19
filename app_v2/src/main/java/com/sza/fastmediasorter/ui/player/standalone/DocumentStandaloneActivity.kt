@@ -366,6 +366,14 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     }
 
     // S0393 U4/U5: keyboard / D-pad layer (pdf/epub page-keys + paging), ported from legacy host.
+    private val viewerCommands by lazy {
+        com.sza.fastmediasorter.ui.player.standalone.helpers.StandaloneViewerCommandManager(
+            host = this,
+            viewModel = viewModel,
+
+        )
+    }
+
     private fun setupKeyboardHandler() {
         keyboardHandler = com.sza.fastmediasorter.ui.player.helpers.StandaloneKeyboardManager(
             keyBindingManager = keyBindingManager,
@@ -388,7 +396,9 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             onEpubPreviousPage = { epubViewerManager.showPreviousChapter() },
             onEpubHome = { epubViewerManager.showFirstChapter() },
             onShowHelp = { com.sza.fastmediasorter.ui.player.helpers.PlayerHelpEntryManager.open(this) },
-        ).handler.also { it.textInputFocused = { currentFocus?.onCheckIsTextEditor() == true } }
+        ).also {
+            it.viewerCommands = viewerCommands
+        }.handler.also { it.textInputFocused = { currentFocus?.onCheckIsTextEditor() == true } }
     }
 
     override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
@@ -572,8 +582,15 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                 R.id.menu_sleep_timer, R.id.menu_lyrics, R.id.menu_playback_speed
             )
                 .forEach { popup.menu.findItem(it)?.isVisible = false }
+            viewerCommands.populateMenu(popup.menu)
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
+                    R.id.menu_file_grid,
+                    R.id.menu_file_list,
+                    R.id.menu_file_number,
+                    R.id.menu_frame_forward,
+                    R.id.menu_frame_back,
+                    R.id.menu_ab_loop -> viewerCommands.handleMenu(item.itemId)
                     R.id.menu_open_in_fms -> {
                         fileOperations.openInFms()
                         true

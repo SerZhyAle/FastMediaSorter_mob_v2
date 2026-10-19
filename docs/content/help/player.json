@@ -113,7 +113,7 @@
         },
         "more-actions": {
           "summary": "Opens the menu with the rest of the actions.",
-          "details": "Buttons that did not fit move here, so nothing disappears. The menu depends on the kind of file: save a frame of a video, rotate or crop a photo, search, translate and extract text in a document or a book, lyrics and sleep timer for music, cast, print and Send to. The F1 key opens this page; so does Help in this menu."
+          "details": "Buttons that did not fit move here, so nothing disappears. The menu depends on the kind of file: save a frame of a video, rotate or crop a photo, search, translate and extract text in a document or a book, lyrics and sleep timer for music, cast, print and Send to. The F1 key opens this page; so does Help in this menu.\n\nChoose a file: G opens Thumbnails, F4 opens File list, and N opens Go to file. File numbers start at 1. The same actions are in the three-dots menu. A window without a collection explains why file navigation is unavailable.\n\nVideo keys: Use . for Next frame. Previous frame stays disabled with a reason when the decoder cannot step backwards. Shift+L sets A, then B, then clears the repeat; B must be after A. The range is shown until canceled, the file changes or the window stops. These video actions are also in the menu.\n\nSlideshow keys: S starts a slideshow. Press S again to halve the running interval, down to 1 second; I starts or switches to random order. This also works in a separate player when its folder contains several files. A single-file window explains the limitation."
         },
         "seek-bar": {
           "name": "Seek bar",
@@ -232,7 +232,7 @@
         },
         "more-actions": {
           "summary": "Открывает меню с остальными действиями.",
-          "details": "Кнопки, которые не поместились, переезжают сюда, так что ничего не пропадает. Меню зависит от вида файла: сохранить кадр видео, повернуть или обрезать фото, поиск, перевод и извлечение текста в документе или книге, текст песни и таймер сна для музыки, вывод на экран, печать и «Отправить в..». Клавиша F1 открывает эту страницу; пункт «Справка» в этом меню - тоже."
+          "details": "Кнопки, которые не поместились, переезжают сюда, так что ничего не пропадает. Меню зависит от вида файла: сохранить кадр видео, повернуть или обрезать фото, поиск, перевод и извлечение текста в документе или книге, текст песни и таймер сна для музыки, вывод на экран, печать и «Отправить в..». Клавиша F1 открывает эту страницу; пункт «Справка» в этом меню - тоже.\n\nВыбор файла: G открывает Миниатюры, F4 - Список файлов, N - Перейти к файлу. Нумерация начинается с 1. Эти же действия есть в меню с тремя точками. Если коллекции нет, окно объясняет недоступность переходов.\n\nКлавиши видео: точка вызывает Следующий кадр. Предыдущий кадр недоступен с объяснением, если декодер не поддерживает шаг назад. Shift+L задаёт A, затем B, затем отключает повтор; B должна быть после A. Границы показаны до отмены, смены файла или остановки окна. Эти действия доступны и в меню.\n\nКлавиши слайд-шоу: S запускает показ. Повторное S сокращает текущий интервал вдвое, но не ниже 1 секунды; I запускает случайный порядок или переключает на него. Это работает и в отдельном плеере, если в папке несколько файлов. Одиночное окно объясняет ограничение."
         },
         "seek-bar": {
           "name": "Шкала времени",
@@ -351,7 +351,7 @@
         },
         "more-actions": {
           "summary": "Відкриває меню з рештою дій.",
-          "details": "Кнопки, що не вмістилися, переїжджають сюди, тож нічого не зникає. Меню залежить від виду файлу: зберегти кадр відео, повернути чи обрізати фото, пошук, переклад і витягання тексту в документі чи книзі, текст пісні й таймер сну для музики, виведення на екран, друк і «Надіслати до..». Клавіша F1 відкриває цю сторінку; пункт «Довідка» в цьому меню - теж."
+          "details": "Кнопки, що не вмістилися, переїжджають сюди, тож нічого не зникає. Меню залежить від виду файлу: зберегти кадр відео, повернути чи обрізати фото, пошук, переклад і витягання тексту в документі чи книзі, текст пісні й таймер сну для музики, виведення на екран, друк і «Надіслати до..». Клавіша F1 відкриває цю сторінку; пункт «Довідка» в цьому меню - теж.\n\nВибір файлу: G відкриває Мініатюри, F4 - Список файлів, N - Перейти до файлу. Нумерація починається з 1. Ці самі дії є в меню з трьома крапками. Якщо колекції немає, вікно пояснює недоступність переходів.\n\nКлавіші відео: крапка викликає Наступний кадр. Попередній кадр недоступний із поясненням, якщо декодер не підтримує крок назад. Shift+L задає A, потім B, потім вимикає повтор; B має бути після A. Межі показано до скасування, зміни файлу або зупинки вікна. Ці дії доступні й у меню.\n\nКлавіші слайд-шоу: S запускає показ. Повторне S скорочує поточний інтервал удвічі, але не нижче 1 секунди; I запускає випадковий порядок або перемикає на нього. Це працює й в окремому плеєрі, якщо в папці кілька файлів. Одиночне вікно пояснює обмеження."
         },
         "seek-bar": {
           "name": "Шкала часу",

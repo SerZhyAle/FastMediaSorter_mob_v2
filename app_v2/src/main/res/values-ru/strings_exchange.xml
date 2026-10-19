@@ -362,4 +362,5 @@
         <item quantity="other">Из учётной записи вышло %1$d устройства.</item>
     </plurals>
     <string name="exchange_format_unsupported">Этот формат новее, чем поддерживает программа. Ничего не импортировано. Используйте совместимую программу.</string>
+    <string name="stream_source_live_badge">Живая</string>
 </resources>

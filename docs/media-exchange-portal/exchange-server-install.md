@@ -9,6 +9,8 @@ permalink: /docs/media-exchange-portal/exchange-server-install.html
 
 # Installing and checking your exchange server
 
+<img src="exchange-mark/full-256.png" alt="Media Exchange Server" width="128">
+
 This page is for the person who runs a server: a Windows PC that stays on, an address your devices can reach, and what to do when Windows warns about an installer that is not signed. If you only join a server somebody else runs, you need none of it - go to [Accounts, invitations and passwords](exchange-accounts.html).
 
 ## What you need {#what-you-need}

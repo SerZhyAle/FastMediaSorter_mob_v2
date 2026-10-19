@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.domain.usecase.ResolveLocalPathFromUriUseCase
 import com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
 import com.sza.fastmediasorter.domain.usecase.UriMaterialization
 import com.sza.fastmediasorter.ui.player.helpers.PlayerStereoModeCoordinator
+import com.sza.fastmediasorter.ui.player.helpers.ViewerKeyStepMath
 import com.sza.fastmediasorter.ui.player.standalone.StandaloneFolderPagingManager
 import com.sza.fastmediasorter.utils.queryDisplayName
 import dagger.Lazy
@@ -36,6 +37,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 // S0995: one quarter turn per tap; a full turn wraps the cumulative angle back to 0.
@@ -84,6 +86,8 @@ class StandalonePlayerViewModel @Inject constructor(
      */
     private var pagingManager: StandaloneFolderPagingManager? = null
     private var slideshowJob: Job? = null
+    private var slideshowIntervalMillis = ViewerKeyStepMath.SLIDESHOW_FLOOR_MS
+    private var slideshowRandom = false
 
     /** Media types the active host accepts; set by the activity before [loadFromUri]. */
     private var hostSupportedTypes: Set<MediaType> = emptySet()
@@ -300,6 +304,33 @@ class StandalonePlayerViewModel @Inject constructor(
 
     fun pageRandom() = applyPaging { it.random() }
 
+    fun filesForSelection(): List<MediaFile> = pagingManager?.snapshot()?.takeIf { it.isNotEmpty() }
+        ?: listOfNotNull(state.value.mediaFile)
+
+    /** The externally opened URI can differ from the scanner path of the same selected neighbour. */
+    fun selectedFilePath(): String? = pagingManager?.currentFile?.path ?: state.value.mediaFile?.path
+
+    fun pageToIndex(index: Int) = applyPaging { it.at(index) }
+
+    fun pageByOffset(delta: Int) = applyPaging { it.offset(delta) }
+
+    fun pageToEdge(last: Boolean) = applyPaging { it.at(if (last) it.total - 1 else 0) }
+
+    fun startOrAccelerateSlideshow(random: Boolean): Boolean {
+        if (pagingManager?.isPagingAvailable != true) return false
+        if (state.value.isSlideshowActive) {
+            if (random) {
+                slideshowRandom = true
+            } else {
+                slideshowIntervalMillis = ViewerKeyStepMath.fasterSlideshowIntervalMs(slideshowIntervalMillis)
+                startSlideshow(slideshowRandom, readConfiguredInterval = false)
+            }
+        } else {
+            startSlideshow(random)
+        }
+        return true
+    }
+
     private inline fun applyPaging(move: (StandaloneFolderPagingManager) -> MediaFile?) {
         val manager = pagingManager ?: return
         val file = move(manager) ?: return
@@ -330,22 +361,26 @@ class StandalonePlayerViewModel @Inject constructor(
         }
     }
 
-    private fun startSlideshow() {
+    private fun startSlideshow(random: Boolean = false, readConfiguredInterval: Boolean = true) {
         val manager = pagingManager ?: return
         if (!manager.isPagingAvailable) return
-        updateState { it.copy(isSlideshowActive = true) }
         slideshowJob?.cancel()
+        slideshowRandom = random
         slideshowJob = viewModelScope.launch {
-            val intervalMillis = settingsRepository.getSettings().first().slideshowInterval.coerceAtLeast(1) * 1000L
+            if (readConfiguredInterval) {
+                val seconds = settingsRepository.getSettings().first().slideshowInterval.coerceAtLeast(1)
+                slideshowIntervalMillis = TimeUnit.SECONDS.toMillis(seconds.toLong())
+            }
+            updateState { it.copy(isSlideshowActive = true) }
             while (isActive) {
-                delay(intervalMillis)
-                val next = manager.next() ?: break
+                delay(slideshowIntervalMillis)
+                val next = (if (slideshowRandom) manager.random() else manager.next()) ?: break
                 publishCurrentFile(next)
             }
         }
     }
 
-    private fun stopSlideshow() {
+    fun stopSlideshow() {
         slideshowJob?.cancel()
         slideshowJob = null
         updateState { it.copy(isSlideshowActive = false) }

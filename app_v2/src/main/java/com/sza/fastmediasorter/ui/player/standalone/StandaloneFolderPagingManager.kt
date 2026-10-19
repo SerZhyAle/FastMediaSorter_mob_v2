@@ -46,6 +46,12 @@ class StandaloneFolderPagingManager(
     val currentFile: MediaFile?
         get() = files.getOrNull(currentIndex)
 
+    fun snapshot(): List<MediaFile> = files.toList()
+
+    fun at(index: Int): MediaFile? = move { index.coerceIn(files.indices) }
+
+    fun offset(delta: Int): MediaFile? = move { (currentIndex + delta).coerceIn(files.indices) }
+
     /**
      * Enumerate [parentFolderPath] and position the cursor on the opened file ([currentAbsolutePath]).
      * Returns the resolved current file when paging is available, or null when the folder is not

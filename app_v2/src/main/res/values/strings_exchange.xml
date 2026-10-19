@@ -360,4 +360,5 @@
         <item quantity="other">%1$d devices were signed out.</item>
     </plurals>
     <string name="exchange_format_unsupported">This format is newer than this program supports. Nothing was imported. Use a compatible program.</string>
+    <string name="stream_source_live_badge">Live</string>
 </resources>

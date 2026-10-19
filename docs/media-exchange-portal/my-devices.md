@@ -9,6 +9,8 @@ permalink: /docs/media-exchange-portal/my-devices.html
 
 # My devices: adding your exchange server
 
+<img src="exchange-mark/full-256.png" alt="Media Exchange Server" width="128">
+
 **My devices** is the screen where a phone, a tablet, a TV or a VR headset keeps its exchange servers: one card per server and account, with the devices of that account under it. Every other way of exchange on these pages starts here.
 
 ![Six steps: open My devices, add the server by pasting a string, scanning a QR code or choosing a file, trust its certificate, sign in with a password or a pairing code, pass the server on to your other devices, then choose the outgoing server.](diagrams/steps-my-devices-en.svg)

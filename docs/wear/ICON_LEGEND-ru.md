@@ -26,6 +26,7 @@ permalink: /docs/wear/ICON_LEGEND-ru.html
 
 | Значок | Значение |
 |---|---|
+| <img src="../icons/svg/wear/ic_tourist_counter.svg" alt="" width="24" height="24"> | Добавить |
 | <img src="../icons/svg/wear/ic_copy.svg" alt="" width="24" height="24"> | Копировать |
 | <img src="../icons/svg/wear/ic_delete.svg" alt="" width="24" height="24"> | Удалить |
 | <img src="../icons/svg/wear/ic_edit.svg" alt="" width="24" height="24"> | Редактировать |

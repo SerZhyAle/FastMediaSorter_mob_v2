@@ -774,8 +774,15 @@ class PhotoVideoStandaloneActivity :
             popup.menu.findItem(R.id.menu_youtube_music).isVisible = false // audio host only
             popup.menu.findItem(R.id.menu_lyrics).isVisible = false // audio host only
             popup.menu.findItem(R.id.menu_playback_speed).isVisible = false // audio host (video uses the control dialog)
+            viewerCommands.populateMenu(popup.menu)
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
+                    R.id.menu_file_grid,
+                    R.id.menu_file_list,
+                    R.id.menu_file_number,
+                    R.id.menu_frame_forward,
+                    R.id.menu_frame_back,
+                    R.id.menu_ab_loop -> viewerCommands.handleMenu(item.itemId)
                     R.id.menu_open_in_fms -> {
                         fileOperations.openInFms()
                         true
@@ -862,6 +869,16 @@ class PhotoVideoStandaloneActivity :
     }
 
     // S0393: unified onto the shared StandaloneKeyboardManager (was PhotoVideoStandaloneKeyboardManager).
+    private val viewerCommands by lazy {
+        com.sza.fastmediasorter.ui.player.standalone.helpers.StandaloneViewerCommandManager(
+            host = this,
+            viewModel = viewModel,
+            getPlayer = { viewManager.getPlayer(viewModel.state.value.mediaType) },
+            applyRotation = { viewManager.setContentRotationDegrees(it) },
+
+        )
+    }
+
     private fun setupKeyboardHandler() {
         keyboardHandler = StandaloneKeyboardManager(
             keyBindingManager = keyBindingManager,
@@ -886,7 +903,9 @@ class PhotoVideoStandaloneActivity :
             },
             onToggleRotationSensor = { viewModel.toggleRotationSensor() },
             onShowHelp = { com.sza.fastmediasorter.ui.player.helpers.PlayerHelpEntryManager.open(this) },
-        ).handler.also { it.textInputFocused = { currentFocus?.onCheckIsTextEditor() == true } }
+        ).also {
+            it.viewerCommands = viewerCommands
+        }.handler.also { it.textInputFocused = { currentFocus?.onCheckIsTextEditor() == true } }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {

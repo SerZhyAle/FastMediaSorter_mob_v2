@@ -105,6 +105,7 @@ steps:
 outcome: |
   Your photos change by themselves at the pace you chose, with a short countdown before each change, music in the background if you want it, and videos and songs that play to the end. The screen stays on for as long as the show runs.
 tips:
+  - "**Slideshow keys:** S starts a slideshow. Press S again to halve the running interval, down to 1 second; I starts or switches to random order. This also works in a separate player when its folder contains several files. A single-file window explains the limitation."
   - **The slideshow stopped with "Connection to .. was lost"?** The network folder became unreachable, for example the computer went to sleep or Wi-Fi dropped. Start the slideshow again when the connection is back.
   - **The slideshow stopped with "No access to .."?** Three files in a row could not be opened. Check that the folder is still there and that the app may still read it.
   - "**Videos interrupt your photo show?** Turn off **Play videos/audio to end**, or limit the resource to pictures in its settings."
@@ -128,6 +129,6 @@ next_recipes:
     description: Keep the screen on, choose colors and tune how the app looks.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.19 16:16</sub>
 
 A [slideshow](term:slideshow) moves from one photo to the next by itself. Choose how long each photo stays, add background music, and let the app keep the screen on - a phone or tablet becomes a photo frame in a minute.

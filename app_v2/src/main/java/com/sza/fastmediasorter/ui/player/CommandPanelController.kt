@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.cast.CastController
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.domain.input.CommandId
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -64,6 +65,7 @@ class CommandPanelController(
     }
 
     interface CommandPanelCallback {
+        fun onViewerCommand(commandId: String) {}
         fun onBackClicked()
         fun onPreviousClicked()
         fun onRandomClicked()
@@ -649,6 +651,13 @@ class CommandPanelController(
             val targetMenu: android.view.Menu =
                 editSubMenu?.takeIf { cmd in EDIT_SUBMENU_COMMANDS } ?: popup.menu
             val item = targetMenu.add(android.view.Menu.NONE, cmd.menuItemId, cmd.priority, title)
+            if (cmd == CommandPanelLayoutPlanner.PlayerCommand.FRAME_BACK) {
+                item.isEnabled = false
+                androidx.core.view.MenuItemCompat.setTooltipText(
+                    item,
+                    context.getString(R.string.player_frame_backward)
+                )
+            }
             // Dynamic favorite icon reflects current file state
             val iconRes = if (cmd == CommandPanelLayoutPlanner.PlayerCommand.FAVORITE && currentFile.isFavorite) {
                 R.drawable.ic_star_filled
@@ -732,6 +741,12 @@ class CommandPanelController(
     /** S0158: Dispatch overflow menu command from both PopupMenu and big-buttons ListPopupWindow paths. */
     private fun handleOverflowCommand(cmd: CommandPanelLayoutPlanner.PlayerCommand) {
         when (cmd.menuItemId) {
+            R.id.menu_file_grid -> callback.onViewerCommand(CommandId.FILE_GRID)
+            R.id.menu_file_list -> callback.onViewerCommand(CommandId.FILE_LIST)
+            R.id.menu_file_number -> callback.onViewerCommand(CommandId.FILE_NUMBER)
+            R.id.menu_frame_forward -> callback.onViewerCommand(CommandId.FRAME_STEP_FORWARD)
+            R.id.menu_frame_back -> callback.onViewerCommand(CommandId.FRAME_STEP_BACKWARD)
+            R.id.menu_ab_loop -> callback.onViewerCommand(CommandId.AB_LOOP)
             R.id.menu_delete -> callback.onDeleteClicked()
             R.id.menu_favorite -> callback.onFavoriteClicked()
             R.id.menu_send_to -> callback.onSendToClicked()

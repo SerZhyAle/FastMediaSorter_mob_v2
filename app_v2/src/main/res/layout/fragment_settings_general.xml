@@ -662,7 +662,7 @@
                         android:clickable="true"
                         android:nextFocusUp="@id/rowSftpDriveAccess"
                         android:nextFocusDown="@id/btnSftpExchangeChangeOutgoing"
-                        app:str_icon="@drawable/ic_cloud"
+                        app:str_icon="@drawable/ic_exchange_mono"
                         app:str_title="@string/settings_sftp_exchange_enable_title"
                         app:str_subtitle="@string/settings_sftp_exchange_enable_subtitle" />
 

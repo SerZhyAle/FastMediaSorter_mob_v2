@@ -21,6 +21,30 @@ class PlayerKeyboardHandlerViewerKeysTest {
     }
 
     @Test
+    fun `file collection commands reach their distinct surfaces`() {
+        every { callback.onShowFileGrid() } returns true
+        every { callback.onShowFileList() } returns true
+        every { callback.onShowFileNumber() } returns true
+        assertTrue(handler.handleCommand(CommandId.FILE_GRID))
+        assertTrue(handler.handleCommand(CommandId.FILE_LIST))
+        assertTrue(handler.handleCommand(CommandId.FILE_NUMBER))
+        verify(exactly = 1) { callback.onShowFileGrid() }
+        verify(exactly = 1) { callback.onShowFileList() }
+        verify(exactly = 1) { callback.onShowFileNumber() }
+    }
+
+    @Test
+    fun `modal ownership blocks direct commands including destructive actions`() {
+        every { callback.hasModalInput() } returns true
+        assertFalse(handler.handleCommand(CommandId.DELETE))
+        assertFalse(handler.handleCommand(CommandId.NEXT_FILE))
+        assertFalse(handler.handleCommand(CommandId.FILE_NUMBER))
+        verify(exactly = 0) { callback.onDeleteFile() }
+        verify(exactly = 0) { callback.onNextFile() }
+        verify(exactly = 0) { callback.onShowFileNumber() }
+    }
+
+    @Test
     fun `arrows seek ten seconds on a video`() {
         on(MediaType.VIDEO)
         assertTrue(handler.handleCommand(CommandId.NEXT_OR_SEEK_FORWARD))

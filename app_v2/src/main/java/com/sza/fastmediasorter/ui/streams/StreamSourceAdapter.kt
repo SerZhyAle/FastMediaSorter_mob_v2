@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.ui.browse.InlinePlaybackAnimator
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastEndpointManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamTopicRubricCatalog
+import com.sza.fastmediasorter.ui.streams.helpers.StreamsLiveBroadcastsManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -167,8 +168,15 @@ class StreamSourceAdapter(
             bindPlayStatus(playOutcomes[source.id])
             binding.tvNowPlaying.visibility = if (isPlaying) View.VISIBLE else View.GONE
             if (isPlaying) playbackAnimator.startNote() else playbackAnimator.stopNote()
-            // S1117: region-restriction badge leads the chip row when the catalog flagged this row "geo".
-            bindGeoChip(binding.tvGeo, source.access)
+            val isLive = source.sourceOrigin == StreamsLiveBroadcastsManager.SOURCE_ORIGIN_LIVE_BROADCAST
+            if (isLive) {
+                binding.tvGeo.text = binding.root.context.getString(R.string.stream_source_live_badge)
+                binding.tvGeo.contentDescription = binding.root.context.getString(R.string.stream_source_live_badge)
+                binding.tvGeo.visibility = View.VISIBLE
+            } else {
+                // S1117: region-restriction badge leads the chip row when the catalog flagged this row "geo".
+                bindGeoChip(binding.tvGeo, source.access)
+            }
             // S1477: the row shows the localized rubric; the catalog id behind it stays English.
             bindChip(binding.tvTopic, StreamTopicRubricCatalog.label(binding.root.context, source.topic))
             // Country is shown before language as flag+code (e.g. "🇺🇦 UA"); manual rows leave it null.
@@ -182,13 +190,18 @@ class StreamSourceAdapter(
             ).any { it.isVisible }
             binding.chipRow.visibility = if (anyChipVisible) View.VISIBLE else View.GONE
             bindPinState(source.pinned)
+            binding.btnPin.isVisible = !isLive
             binding.root.setOnClickListener { onPlay(source) }
             // S0695: long-press toggles pin/unpin (the destructive remove now lives only in the overflow
             // menu). The pin icon flips on rebind, so the gesture is self-evident without a confirmation.
             binding.root.setOnLongClickListener {
-                it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                onPin(source)
-                true
+                if (isLive) {
+                    false
+                } else {
+                    it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                    onPin(source)
+                    true
+                }
             }
             // Mouse right-click opens the row action menu (the visible overflow affordance), matching
             // the file-browser/resource-list right-click pattern. A per-row handler is required: the
@@ -203,7 +216,9 @@ class StreamSourceAdapter(
                     false
                 }
             }
-            binding.btnPin.setOnClickListener { onPin(source) }
+            binding.btnPin.setOnClickListener {
+                if (!isLive) onPin(source)
+            }
             binding.btnOverflow.setOnClickListener { anchor -> showOverflowMenu(source, anchor) }
         }
 

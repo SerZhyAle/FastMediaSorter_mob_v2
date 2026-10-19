@@ -793,12 +793,18 @@ class StreamsViewModel @Inject constructor(
         settingsRepository.updateSettings { it.copy(backgroundAudioExitBehavior = behavior) }
     }
 
+    /** S4392: re-polls live broadcasts of the exchange account on screen start or pull-to-refresh. */
+    fun refreshLiveBroadcasts() {
+        liveBroadcastsManager.refresh()
+    }
+
     companion object {
         // S0659: catalog-refresh throttles. ON_OPEN re-suggests at most every 6h; PERIODIC_WIFI
         // opportunistically auto-refreshes at most once a day (no WorkManager periodic job).
         private const val ON_OPEN_THROTTLE_MS = 6 * 60 * 60 * 1000L
         private const val PERIODIC_THROTTLE_MS = 24 * 60 * 60 * 1000L
         private const val SOURCE_ORIGIN_MANUAL = "MANUAL"
+        private const val SOURCE_ORIGIN_LIVE_BROADCAST = "LIVE_BROADCAST"
 
         /**
          * Filters by case-insensitive query (title/topic/language substring) and the active facets, then
@@ -875,12 +881,13 @@ class StreamsViewModel @Inject constructor(
             category: MediaKindFilter,
         ): Boolean {
             val isManual = source.sourceOrigin == SOURCE_ORIGIN_MANUAL
+            val isLive = source.sourceOrigin == SOURCE_ORIGIN_LIVE_BROADCAST
             return when (category) {
-                MediaKindFilter.ALL -> true
-                MediaKindFilter.AUDIO -> !isManual && source.mediaKind == "AUDIO"
+                MediaKindFilter.ALL -> !isLive
+                MediaKindFilter.AUDIO -> !isManual && !isLive && source.mediaKind == "AUDIO"
                 MediaKindFilter.VIDEO ->
-                    !isManual && (source.mediaKind == "VIDEO" || source.mediaKind == "RTSP")
-                MediaKindFilter.OWN -> isManual
+                    !isManual && !isLive && (source.mediaKind == "VIDEO" || source.mediaKind == "RTSP")
+                MediaKindFilter.OWN -> isManual || isLive
             }
         }
 

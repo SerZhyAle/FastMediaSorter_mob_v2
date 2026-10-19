@@ -132,6 +132,12 @@ class PlayerKeyboardHandler(
         fun onChangeSpeed(faster: Boolean): Boolean = false
         fun onCycleAudioTrack(): Boolean = false
         fun onStartSlideshow(random: Boolean): Boolean = false
+        fun onShowFileGrid(): Boolean = false
+        fun onShowFileList(): Boolean = false
+        fun onShowFileNumber(): Boolean = false
+        fun hasModalInput(): Boolean = false
+        fun onFrameStep(forward: Boolean): Boolean = false
+        fun onToggleAbLoop(): Boolean = false
     }
 
     // ── pointer / wheel input ────────────────────────────────────────────────
@@ -205,7 +211,7 @@ class PlayerKeyboardHandler(
         }
 
         if (event == null) return false
-        if (textInputFocused()) return false
+        if (textInputFocused() || callback.hasModalInput()) return false
 
         Timber.d("S4363: player keyboard key=%s type=%s", effectiveKeyCode, currentType)
 
@@ -295,10 +301,14 @@ class PlayerKeyboardHandler(
         CommandId.STEP_FORWARD_HUNDRED -> !isDocument(type) && callback.onStepFiles(STEP_HUNDRED)
         CommandId.STEP_BACK_HUNDRED -> !isDocument(type) && callback.onStepFiles(-STEP_HUNDRED)
         CommandId.RANDOM_FILE -> !isDocument(type) && callback.onRandomFile()
+
         else -> handleViewerViewCommand(commandId, type)
     }
 
     private fun handleViewerViewCommand(commandId: String, type: MediaType?): Boolean? = when (commandId) {
+        CommandId.FILE_GRID -> callback.onShowFileGrid()
+        CommandId.FILE_LIST -> callback.onShowFileList()
+        CommandId.FILE_NUMBER -> callback.onShowFileNumber()
         CommandId.ROTATE -> callback.onRotateContent(clockwise = true)
         CommandId.ROTATE_COUNTER -> callback.onRotateContent(clockwise = false)
         CommandId.SPEED_UP -> isPlayable(type) && callback.onChangeSpeed(faster = true)
@@ -306,6 +316,13 @@ class PlayerKeyboardHandler(
         CommandId.CYCLE_TRACK -> type == MediaType.VIDEO && callback.onCycleAudioTrack()
         CommandId.SLIDESHOW_START -> callback.onStartSlideshow(random = false)
         CommandId.SLIDESHOW_RANDOM -> callback.onStartSlideshow(random = true)
+        else -> handleVideoCommand(commandId, type)
+    }
+
+    private fun handleVideoCommand(commandId: String, type: MediaType?): Boolean? = when (commandId) {
+        CommandId.FRAME_STEP_FORWARD -> type == MediaType.VIDEO && callback.onFrameStep(forward = true)
+        CommandId.FRAME_STEP_BACKWARD -> type == MediaType.VIDEO && callback.onFrameStep(forward = false)
+        CommandId.AB_LOOP -> type == MediaType.VIDEO && callback.onToggleAbLoop()
         else -> null
     }
 
@@ -315,10 +332,10 @@ class PlayerKeyboardHandler(
     }
 
     internal fun handleCommand(commandId: String): Boolean {
+        if (callback.hasModalInput()) return false
         Timber.d("S4362: handleCommand id=$commandId")
         val currentType = callback.getCurrentMediaType()
-        handleViewerKeyCommand(commandId, currentType)?.let { return it }
-        return when (commandId) {
+        return handleViewerKeyCommand(commandId, currentType) ?: when (commandId) {
             CommandId.PAUSE_PLAY, CommandId.PLAY, CommandId.PAUSE -> { handlePlayPause(); true }
             CommandId.STOP -> {
                 val t = callback.getCurrentMediaType()
@@ -331,7 +348,6 @@ class PlayerKeyboardHandler(
             CommandId.SEEK_BACKWARD_5S -> { callback.onSeekBackward(SEEK_INCREMENT_SECONDS); true }
             CommandId.SEEK_FORWARD_30S -> { callback.onSeekForward(60); true }
             CommandId.SEEK_BACKWARD_30S -> { callback.onSeekBackward(60); true }
-            CommandId.FRAME_STEP_FORWARD, CommandId.FRAME_STEP_BACKWARD -> false
             CommandId.NEXT_FILE -> when (currentType) {
                 MediaType.PDF -> { callback.onPdfNextPage(); true }
                 MediaType.TEXT, MediaType.EPUB -> false

@@ -26,6 +26,7 @@ These are the icons FastMedia draws on the Wear OS watch, each beside the one na
 
 | Icon | Meaning |
 |---|---|
+| <img src="../icons/svg/wear/ic_tourist_counter.svg" alt="" width="24" height="24"> | Add |
 | <img src="../icons/svg/wear/ic_copy.svg" alt="" width="24" height="24"> | Copy |
 | <img src="../icons/svg/wear/ic_delete.svg" alt="" width="24" height="24"> | Delete |
 | <img src="../icons/svg/wear/ic_edit.svg" alt="" width="24" height="24"> | Edit |

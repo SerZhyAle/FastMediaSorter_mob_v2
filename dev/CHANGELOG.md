@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.19 11:33</sub>
+<sub class="doc-stamp">26.10.19 15:46</sub>
 
 # Development Changelog
 
@@ -36905,3 +36905,30 @@ Format: | datetime | file | target | description |
 | 2026-10-19 10:50:41 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/OrphanCleanupWorker.kt` | `S4391` | Emit one informational credential count summary without identifiers [branch: DEBUG-v046] |
 | 2026-10-19 10:50:43 | `PLAN/S4391_orphan-credential-log-and-hint.md` | `spec-all` | Trivial build-level audit passed; status Verified [branch: DEBUG-v046] |
 | 2026-10-19 11:33:38 | `PLAN/S4367_check-verdict-rule-g-suite-migration.md` | `S4367` | Resume and verify CHECK-VERDICT counter migration; complete phase evidence and final audit [branch: DEBUG-v046] |
+| 2026-10-19 12:13:59 | `PLAN/S4394_settings-collapse-all-groups.md` | `spec-dev` | Compact spec written; Approved; one phase implemented; pre-handoff audit block; status -> BlockNeedUserTest [branch: DEBUG-v046] |
+| 2026-10-19 12:14:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/widget/CollapsibleSectionsManager.kt` | `spec-dev` | S4394 step 01.1: registered-header tracking, collapseAll, hasExpandedSection, onAnyExpandedChanged aggregate callback on register-restore and toggle; clear drops both registries [branch: DEBUG-v046] |
+| 2026-10-19 12:14:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/BaseSettingsFragment.kt` | `spec-dev` | S4394 step 01.4: collapseAllSections and observeCollapseState page bridge; onViewCreated notifies SettingsActivity.onSettingsPageViewReady [branch: DEBUG-v046] |
+| 2026-10-19 12:14:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsActivity.kt` | `spec-dev` | S4394 steps 01.5-01.6: collapse-all toolbar button wired to current page; visibility refreshed on page change, initial post and position-guarded observer; two S4394 probes [branch: DEBUG-v046] |
+| 2026-10-19 12:14:04 | `app_v2/src/main/res/layout/activity_settings.xml` | `spec-dev` | S4394 step 01.3: btnCollapseAllGroups ImageButton (ic_arrow_drop_down rotated 180, gone) before btnSettingsHelp [branch: DEBUG-v046] |
+| 2026-10-19 12:14:05 | `app_v2/src/main/res/layout-land/activity_settings.xml` | `spec-dev` | S4394 step 01.3: same collapse-all button in the landscape title row [branch: DEBUG-v046] |
+| 2026-10-19 12:14:06 | `app_v2/src/main/res/layout-w600dp/activity_settings.xml` | `spec-dev` | S4394 step 01.3: same collapse-all button in the wide title row; missing variant made the binding field nullable [branch: DEBUG-v046] |
+| 2026-10-19 12:14:07 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S4394 step 01.2: settings_collapse_all = Collapse all [branch: DEBUG-v046] |
+| 2026-10-19 12:14:08 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S4394 step 01.2: settings_collapse_all = Свернуть всё [branch: DEBUG-v046] |
+| 2026-10-19 12:14:08 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S4394 step 01.2: settings_collapse_all = Згорнути всі [branch: DEBUG-v046] |
+| 2026-10-19 12:27:52 | `PLAN/S4395_exchange-server-mark.md` | `S4395` | Capture Draft S4395 exchange-server-mark [branch: DEBUG-v046] |
+| 2026-10-19 12:56:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/helpers/StreamsLiveBroadcastsManager.kt` | `S4392` | Add StreamsLiveBroadcastsManager to synthesize live broadcasts into transient stream entities with re-query triggers and verification probe [branch: DEBUG-v046] |
+| 2026-10-19 12:56:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/StreamsActivity.kt` | `S4392` | Trigger live broadcast re-query on onStart and pull-to-refresh, route playback via playBroadcast [branch: DEBUG-v046] |
+| 2026-10-19 12:57:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/StreamSourceAdapter.kt` | `S4392` | Render live broadcast badge and restrict pin actions for transient live rows [branch: DEBUG-v046] |
+| 2026-10-19 12:57:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/StreamMenuBinder.kt` | `S4392` | Restrict overflow menu actions for transient LIVE_BROADCAST channels [branch: DEBUG-v046] |
+| 2026-10-19 12:57:24 | `docs/FEATURES.md` | `S4392` | Add live broadcasts in Own category showcase entry with af anchor across EN/RU/UK [branch: DEBUG-v046] |
+| 2026-10-19 14:43:55 | `PLAN/S4370_ocr-psm11-gap-ratio-dump.md` | `S4370` | Record PSM 11 word-gap ratio distribution in shared OCR-ACCURACY contract [branch: DEBUG-v046] |
+| 2026-10-19 14:44:45 | `PLAN/S4370_ocr-psm11-gap-ratio-dump.md` | `S4370` | Close S4370 as Verified on PSM 11 word-gap dump recorded in shared OCR-ACCURACY contract [branch: DEBUG-v046] |
+| 2026-10-19 14:58:47 | `scripts/quality/blockneedusertest-probe-baseline.txt` | `S4371` | S4371 probe baseline entry for registry exception device passes [branch: DEBUG-v046] |
+| 2026-10-19 15:19:04 | `scripts/quality/assert-icon-contract.ps1` | `S4369` | Ship action.paste on the launcher translator paste button and report stale icon-contract exceptions [set of 8: scripts/quality/assert-icon-contract.tests/Run-Tests.ps1, docs/icons/icon-contract-map.json, app_v2/src/main/res/drawable/ic_paste.xml, app_v2/src/launcherEnabled/res/layout/gadget_launcher_translator.xml, app_v2/src/main/res/values/strings.xml, app_v2/src/main/res/values-ru/strings.xml, +1 more] [branch: DEBUG-v046] |
+| 2026-10-19 15:19:28 | `PLAN/S4373_player-viewer-keyboard-remaining-rows.md` | `S4373` | Record pending player navigation UI decisions [branch: DEBUG-v046] |
+| 2026-10-19 15:23:19 | `PLAN/S4369_launcher-paste-icon-stale-exception-gate.md` | `spec-check` | Strategic audit: 12 PASS / 0 WARN / 0 FAIL / 0 MANUAL; emulator evidence recorded; status -> Verified [branch: DEBUG-v046] |
+| 2026-10-19 15:46:11 | `app_v2/src/main/java/com/sza/fastmediasorter/util/ExifTimeWriter.kt` | `S4372` | Verify CAPTURE-OUTPUT rule 16 metadata read-back across all capture kinds [set of 5: app_v2/src/main/java/com/sza/fastmediasorter/util/Mp4ContainerTimeReader.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrStorageManager.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SaveVideoFrameManager.kt, app_v2/src/test/java/com/sza/fastmediasorter/util/CaptureOutputRule16MetadataTest.kt] [branch: DEBUG-v046] |
+| 2026-10-19 16:51:40 | `PLAN/S4395_exchange-server-mark.md` | `S4395` | Adopt EXCHANGE-MARK 0.3 across phone UI, watch UI, portal, in-app help, icon legends and contracts catalog [branch: DEBUG-v046] |
+| 2026-10-19 17:04:27 | `PLAN/S4396_bugfix-early-logging-context.md` | `S4396` | Capture Draft S4396 bugfix-early-logging-context [branch: DEBUG-v046] |
+| 2026-10-19 17:04:33 | `PLAN/S4397_bugfix-spec-next-claim-options.md` | `S4397` | Capture Draft S4397 bugfix-spec-next-claim-options [branch: DEBUG-v046] |
+| 2026-10-19 17:08:31 | `PLAN/S4398_bugfix-inventory-flavor-reach-drift.md` | `S4398` | Capture Draft S4398 bugfix-inventory-flavor-reach-drift [branch: DEBUG-v046] |

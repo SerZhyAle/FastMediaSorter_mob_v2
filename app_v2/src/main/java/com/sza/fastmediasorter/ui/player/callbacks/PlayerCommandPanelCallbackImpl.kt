@@ -24,6 +24,10 @@ class PlayerCommandPanelCallbackImpl(
     private val viewModel: PlayerViewModel
 ) : CommandPanelController.CommandPanelCallback {
 
+    override fun onViewerCommand(commandId: String) {
+        activity.keyboardHandler.handleCommand(commandId)
+    }
+
     // S0238: user-initiated stereo detection on VR-toolbar tap (image / gif only).
     // Mirrors the construction pattern used by PlayerMediaLoaderManager.
     private val stereoDetector = StereoDetector()

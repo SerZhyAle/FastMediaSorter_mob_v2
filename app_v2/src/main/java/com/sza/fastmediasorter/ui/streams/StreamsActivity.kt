@@ -64,6 +64,7 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamsCollectionStripManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsCommandLabelManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamsLiveBroadcastsManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsMediaKindTriggerManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsSectionsManager
 import com.sza.fastmediasorter.util.showBoundToHost
@@ -1102,6 +1103,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * interaction (see [cancelHealthProbe]); the amber "unknown" stays the not-yet-probed default.
      */
     private fun startHealthProbe() {
+        viewModel.refreshLiveBroadcasts()
         val visible = visibleSources()
         if (visible.isEmpty()) return
         Toast.makeText(this, R.string.streams_refresh_probing, Toast.LENGTH_SHORT).show()
@@ -1214,7 +1216,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             // both of which funnel through onPlay.
             !viewModel.hasNetworkForStream ->
                 Toast.makeText(this, R.string.streams_error_no_network, Toast.LENGTH_SHORT).show()
-            broadcastEndpoints.needsResolution(source.broadcastEndpoints) ->
+            StreamsLiveBroadcastsManager.isLiveBroadcast(source) ||
+                broadcastEndpoints.needsResolution(source.broadcastEndpoints) ->
                 playBroadcast(source)
             else -> startPlayback(source)
         }
@@ -1609,6 +1612,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     override fun onStart() {
         super.onStart()
         deviceBroadcastsViewModel.onScreenStarted()
+        viewModel.refreshLiveBroadcasts()
         // S1154: the atlas may have been installed from the Extensions Manager while this screen sat in
         // the background - pick it up on return instead of waiting for the next catalog import.
         // S1445: either container counts as installed - a fresh install carries the pack and no sheet.

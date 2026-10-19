@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `UI-SIZING` |
-| **Version** | 1.0, active. Owner: shared |
+| **Version** | 1.1, active. Owner: shared |
 | **Home** | `ui-sizing/README.md` in the shared contracts catalog |
 | **Role here** | consumer - phone, launcher and watch |
 
