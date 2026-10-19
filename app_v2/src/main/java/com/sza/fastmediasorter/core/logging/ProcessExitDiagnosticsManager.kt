@@ -16,7 +16,10 @@ internal class ProcessExitDiagnosticsManager(
     context: Context,
     private val report: (String) -> Unit
 ) {
-    private val appContext = context.applicationContext
+    // The logger starts from attachBaseContext, where applicationContext is not yet assigned, and
+    // this constructor can run on the IO thread before that changes; the context passed in already
+    // provides the noBackupFilesDir this manager reads.
+    private val appContext = context.applicationContext ?: context
     private val marker = AtomicFile(File(appContext.noBackupFilesDir, "process-exit.properties"))
     private var exitWatermark = 0L
 

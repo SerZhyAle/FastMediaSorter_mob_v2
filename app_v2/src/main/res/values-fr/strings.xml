@@ -3403,9 +3403,6 @@
     <string name="launcher_tray_battery_charging_ac">Batterie %1$d%%, en charge sur secteur</string>
     <string name="launcher_tray_battery_charging_usb">Batterie %1$d%%, en charge par USB</string>
     <string name="launcher_tray_battery_charging_wireless">Batterie %1$d%%, en charge sans fil</string>
-    <string name="streams_collection_all">Tout</string>
-    <string name="streams_collection_strip_description">Collections</string>
-    <string name="streams_collection_selected_count">%1$d chaînes dans la collection</string>
     <string name="camera_session_consent_channel_name">Demandes de caméra de la montre</string>
     <string name="camera_session_consent_notification_title">Votre montre veut voir cette caméra</string>
     <string name="camera_session_consent_notification_text">Autorisez la montre à voir la caméra et le micro de ce téléphone.</string>

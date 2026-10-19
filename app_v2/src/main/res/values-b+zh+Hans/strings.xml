@@ -3393,9 +3393,6 @@
     <string name="launcher_tray_battery_charging_ac">电量 %1$d%%, 正在使用市电充电</string>
     <string name="launcher_tray_battery_charging_usb">电量 %1$d%%, 正在通过 USB 充电</string>
     <string name="launcher_tray_battery_charging_wireless">电量 %1$d%%, 正在无线充电</string>
-    <string name="streams_collection_all">全部</string>
-    <string name="streams_collection_strip_description">收藏集</string>
-    <string name="streams_collection_selected_count">收藏集中有 %1$d 个频道</string>
     <string name="camera_session_consent_channel_name">手表摄像头请求</string>
     <string name="camera_session_consent_notification_title">你的手表想查看此摄像头</string>
     <string name="camera_session_consent_notification_text">允许手表查看此手机的摄像头和麦克风.</string>

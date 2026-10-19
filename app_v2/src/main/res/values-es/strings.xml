@@ -3402,9 +3402,6 @@
     <string name="launcher_tray_battery_charging_ac">Batería %1$d%%, cargando desde la red eléctrica</string>
     <string name="launcher_tray_battery_charging_usb">Batería %1$d%%, cargando por USB</string>
     <string name="launcher_tray_battery_charging_wireless">Batería %1$d%%, cargando de forma inalámbrica</string>
-    <string name="streams_collection_all">Todos</string>
-    <string name="streams_collection_strip_description">Colecciones</string>
-    <string name="streams_collection_selected_count">%1$d canales en la colección</string>
     <string name="camera_session_consent_channel_name">Solicitudes de cámara del reloj</string>
     <string name="camera_session_consent_notification_title">Tu reloj quiere ver esta cámara</string>
     <string name="camera_session_consent_notification_text">Permite que el reloj vea la cámara y el micrófono de este teléfono.</string>

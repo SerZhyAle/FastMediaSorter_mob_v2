@@ -60,7 +60,6 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioViews
 import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
-import com.sza.fastmediasorter.ui.streams.helpers.StreamsCollectionStripManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsCommandLabelManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
@@ -427,7 +426,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private lateinit var sectionsManager: StreamsSectionsManager
 
     private lateinit var controlsPlacement: StreamsControlsPlacementManager
-    private lateinit var collectionStrip: StreamsCollectionStripManager
 
     private lateinit var commandLabels: StreamsCommandLabelManager
 
@@ -708,18 +706,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             },
         )
         mediaKindTrigger.bind()
-
-        // S2669: the curated-collection strip. The manager owns every decision about the strip; the
-        // Activity only forwards the tap to the ViewModel.
-        collectionStrip = StreamsCollectionStripManager(
-            strip = binding.streamCollectionsStrip,
-            chipGroup = binding.streamCollectionsChips,
-            announcementTarget = binding.streamsMainHeader,
-            onCollectionSelected = { collectionId ->
-                cancelHealthProbe()
-                viewModel.onCollectionSelected(collectionId)
-            },
-        )
     }
 
     private fun setupOrientationPlacement() {
@@ -945,8 +931,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             }
             binding.emptyStateView.isVisible = state.isEmpty
             latestState = state
-            // S2669: the strip decides its own visibility and selection from the delivered set.
-            collectionStrip.render(state.collections, state.filter.collectionId, state.sources.size)
             updateFilterIndicator(state.filter)
             // S1473: renders from the shared filter state, so a change made in the filter dialog
             // repaints the inline icons on the same emission.
@@ -1500,21 +1484,38 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * selections to the ViewModel.
      */
     private fun showFilterDialog() {
-        filterDialogManager.show(latestState) { category, topic, language, country, mediaKind, pinnedOnly ->
-            viewModel.onFilter(
-                category = category,
-                topic = topic,
-                language = language,
-                country = country,
-                mediaKind = mediaKind,
-                pinnedOnly = pinnedOnly,
-            )
+        filterDialogManager.show(latestState, ::onFilterDialogApplied)
+    }
+
+    private fun onFilterDialogApplied(
+        collectionId: String?,
+        category: String?,
+        topic: String?,
+        language: String?,
+        country: String?,
+        mediaKind: StreamsViewModel.MediaKindFilter,
+        pinnedOnly: Boolean,
+    ) {
+        // The collection is a separate ViewModel input: it loads its membership asynchronously, so it
+        // is forwarded only when it actually changed, not on every facet pick.
+        if (collectionId != latestState.filter.collectionId) {
+            cancelHealthProbe()
+            viewModel.onCollectionSelected(collectionId)
         }
+        viewModel.onFilter(
+            category = category,
+            topic = topic,
+            language = language,
+            country = country,
+            mediaKind = mediaKind,
+            pinnedOnly = pinnedOnly,
+        )
     }
 
     /** Marks an active filter on the filter button by a dot glyph (shape, not color alone). */
     private fun updateFilterIndicator(filter: StreamsViewModel.StreamsFilter) {
-        val active = filter.category != null ||
+        val active = filter.collectionId != null ||
+            filter.category != null ||
             filter.topic != null ||
             filter.language != null ||
             filter.country != null ||

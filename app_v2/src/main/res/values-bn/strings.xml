@@ -3396,9 +3396,6 @@
     <string name="launcher_tray_battery_charging_ac">ব্যাটারি %1$d%%, মেইন থেকে চার্জ হচ্ছে</string>
     <string name="launcher_tray_battery_charging_usb">ব্যাটারি %1$d%%, USB দিয়ে চার্জ হচ্ছে</string>
     <string name="launcher_tray_battery_charging_wireless">ব্যাটারি %1$d%%, ওয়্যারলেস চার্জ হচ্ছে</string>
-    <string name="streams_collection_all">সব</string>
-    <string name="streams_collection_strip_description">সংগ্রহ</string>
-    <string name="streams_collection_selected_count">সংগ্রহে %1$d চ্যানেল</string>
     <string name="camera_session_consent_channel_name">ঘড়ির ক্যামেরা অনুরোধ</string>
     <string name="camera_session_consent_notification_title">আপনার ঘড়ি এই ক্যামেরাটি দেখতে চায়</string>
     <string name="camera_session_consent_notification_text">ঘড়িকে এই ফোনের ক্যামেরা ও মাইক্রোফোন দেখতে দিন.</string>

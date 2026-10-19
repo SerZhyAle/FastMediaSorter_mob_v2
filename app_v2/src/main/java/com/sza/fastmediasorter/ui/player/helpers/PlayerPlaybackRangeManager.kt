@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.R
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.util.Locale
 
 /** A range belongs to one source and one active player, and never outlives its visible host. */
@@ -49,7 +48,6 @@ class PlayerPlaybackRangeManager(
     }
 
     fun toggle(): Boolean {
-        Timber.d("S4373: A-B range requested")
         val active = getPlayer() as? ExoPlayer
         val key = getSource()
         if (active == null || key == null || !active.isCurrentMediaItemSeekable) {

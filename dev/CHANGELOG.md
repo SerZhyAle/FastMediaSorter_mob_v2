@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.19 15:46</sub>
+<sub class="doc-stamp">26.10.19 21:31</sub>
 
 # Development Changelog
 
@@ -36932,3 +36932,22 @@ Format: | datetime | file | target | description |
 | 2026-10-19 17:04:27 | `PLAN/S4396_bugfix-early-logging-context.md` | `S4396` | Capture Draft S4396 bugfix-early-logging-context [branch: DEBUG-v046] |
 | 2026-10-19 17:04:33 | `PLAN/S4397_bugfix-spec-next-claim-options.md` | `S4397` | Capture Draft S4397 bugfix-spec-next-claim-options [branch: DEBUG-v046] |
 | 2026-10-19 17:08:31 | `PLAN/S4398_bugfix-inventory-flavor-reach-drift.md` | `S4398` | Capture Draft S4398 bugfix-inventory-flavor-reach-drift [branch: DEBUG-v046] |
+| 2026-10-19 19:42:37 | `PLAN/S4396_bugfix-early-logging-context.md` | `spec-quiz` | S4396: BlockQuestions -> Approved via quiz (1 question) [branch: DEBUG-v046] |
+| 2026-10-19 19:46:47 | `PLAN/S4398_bugfix-inventory-flavor-reach-drift.md` | `spec-quiz` | S4398: BlockQuestions -> Draft via quiz (1 questions) [branch: DEBUG-v046] |
+| 2026-10-19 19:50:28 | `PLAN/S4397_bugfix-spec-next-claim-options.md` | `spec-quiz` | S4397: BlockQuestions -> BlockExternal via quiz (2 questions) [branch: DEBUG-v046] |
+| 2026-10-19 20:31:20 | `app_v2/src/main/res/layout/dialog_streams_filter.xml` | `streams: curated collections move from chip strip into the filter dialog` | Remove the collection chip strip from the Streams screen; collection becomes a picker row in the filter dialog (S2669 follow-up, user request 2026-10-19) [set of 22: app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/helpers/StreamsFilterDialogManager.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/StreamsActivity.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/helpers/StreamsControlsPlacementManager.kt, app_v2/src/main/res/layout/activity_streams.xml, app_v2/src/main/res/values/dimens.xml, app_v2/src/main/assets/help/en/streams.html, +15 more] [branch: DEBUG-v046] |
+| 2026-10-19 20:31:38 | `app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LoggingHelper.kt` | `S4396` | Early logging init: fall back to base context while applicationContext is null in attachBaseContext, so startProcessDiagnostics and the retained appContext stop throwing NPE and installCrashHandler runs [set of 2: app_v2/src/main/java/com/sza/fastmediasorter/core/logging/ProcessExitDiagnosticsManager.kt] [branch: DEBUG-v046] |
+| 2026-10-19 20:36:17 | `PLAN/S4396_bugfix-early-logging-context.md` | `spec-dev` | Trivial fix done (startupContext fallback in LoggingHelper + ProcessExitDiagnosticsManager); parked BlockNeedUserTest - emulator verify pending, no Maestro MCP this session [branch: DEBUG-v046] |
+| 2026-10-19 20:46:45 | `PLAN/S4396_bugfix-early-logging-context.md` | `spec-test-device` | Device run on emulator-5554 -> PASS 4/0/0/0 (S4396 probe + process-exit diagnostics lines present, Early logging init failed absent) [branch: DEBUG-v046] |
+| 2026-10-19 20:52:09 | `PLAN/S4396_bugfix-early-logging-context.md` | `spec-check` | Spec-check Verified: all criteria proven on emulator-5554 (probe + process-exit diagnostics present, Early logging init failed absent) [branch: DEBUG-v046] |
+| 2026-10-19 20:52:09 | `app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LoggingHelper.kt` | `spec-check` | Probe removed on exit from BlockNeedUserTest [branch: DEBUG-v046] |
+| 2026-10-19 21:11:56 | `docs/ALL_FEATURES.jsonl` | `S4398` | Correct own exchange broadcasts inventory reach to SUPPORT_STREAMS, including xr; restore flavor ratchet baseline. [branch: DEBUG-v046] |
+| 2026-10-19 21:13:51 | `PLAN/S4399_bugfix-wear-open-kind-persistence.md` | `S4399` | Capture Draft S4399 bugfix-wear-open-kind-persistence [branch: DEBUG-v046] |
+| 2026-10-19 21:13:57 | `PLAN/S4400_bugfix-forbidden-ticket-probes.md` | `S4400` | Capture Draft S4400 bugfix-forbidden-ticket-probes [branch: DEBUG-v046] |
+| 2026-10-19 21:25:19 | `PLAN/S4399_bugfix-wear-open-kind-persistence.md` | `spec-quiz` | S4399: BlockQuestions -> Draft via quiz (1 question) [branch: DEBUG-v046] |
+| 2026-10-19 21:31:31 | `wear/proguard-rules.pro` | `S4399` | S4399: pin WearOpenInKind enum members with -keepclassmembernames so durable SharedPreferences keys survive R8 [branch: DEBUG-v046] |
+| 2026-10-19 21:38:07 | `PLAN/S4400_bugfix-forbidden-ticket-probes.md` | `spec-quiz` | S4400: BlockQuestions -> Draft via quiz (1 question) [branch: DEBUG-v046] |
+| 2026-10-19 21:40:16 | `PLAN/S4399_bugfix-wear-open-kind-persistence.md` | `spec-all` | Trivial path done: WearOpenInKind keepclassmembernames rule proven on fresh R8 mapping; status -> Verified [branch: DEBUG-v046] |
+| 2026-10-19 21:48:29 | `PLAN/S4400_bugfix-forbidden-ticket-probes.md` | `spec-all` | S4400: In Progress -> Verified [branch: DEBUG-v046] |
+| 2026-10-19 21:48:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerFileSelectionManager.kt` | `S4400` | Remove stale S4373 probes and unused Timber import [branch: DEBUG-v046] |
+| 2026-10-19 21:48:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerFrameStepManager.kt` | `S4400` | Remove stale S4373 probe and unused Timber import [branch: DEBUG-v046] |

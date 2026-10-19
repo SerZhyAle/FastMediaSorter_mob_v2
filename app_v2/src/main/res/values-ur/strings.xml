@@ -3398,9 +3398,6 @@
     <string name="launcher_tray_battery_charging_ac">بیٹری %1$d%%، مینز سے چارج ہو رہی ہے</string>
     <string name="launcher_tray_battery_charging_usb">بیٹری %1$d%%، USB سے چارج ہو رہی ہے</string>
     <string name="launcher_tray_battery_charging_wireless">بیٹری %1$d%%، وائرلیس چارج ہو رہی ہے</string>
-    <string name="streams_collection_all">تمام</string>
-    <string name="streams_collection_strip_description">مجموعے</string>
-    <string name="streams_collection_selected_count">مجموعے میں %1$d چینلز</string>
     <string name="camera_session_consent_channel_name">گھڑی کیمرہ کی درخواستیں</string>
     <string name="camera_session_consent_notification_title">آپ کی گھڑی یہ کیمرہ دیکھنا چاہتی ہے</string>
     <string name="camera_session_consent_notification_text">گھڑی کو اس فون کا کیمرہ اور مائیکروفون دیکھنے دیں.</string>

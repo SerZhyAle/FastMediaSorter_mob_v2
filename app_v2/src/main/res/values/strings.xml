@@ -2748,6 +2748,7 @@
     <string name="streams_atlas_prompt_message">Download channel previews so video channels show a picture before you play them?</string>
     <string name="streams_atlas_prompt_action">Download</string>
     <string name="streams_filter_topic">Topic</string>
+    <string name="streams_filter_collection">Collection</string>
     <string name="launcher_gadget_weather">Weather</string>
     <string name="launcher_gadget_weather_actions">Weather. Tap to open the weather app, long press to change the place</string>
     <string name="launcher_gadget_weather_no_location">Long press to choose a place</string>
@@ -3890,9 +3891,6 @@
     <string name="launcher_tray_battery_charging_ac">Battery %1$d%%, charging from mains</string>
     <string name="launcher_tray_battery_charging_usb">Battery %1$d%%, charging over USB</string>
     <string name="launcher_tray_battery_charging_wireless">Battery %1$d%%, charging wirelessly</string>
-    <string name="streams_collection_all">All</string>
-    <string name="streams_collection_strip_description">Collections</string>
-    <string name="streams_collection_selected_count">%1$d channels in the collection</string>
     <string name="camera_session_consent_channel_name">Watch camera requests</string>
     <string name="camera_session_consent_notification_title">Your watch wants to see this camera</string>
     <string name="camera_session_consent_notification_text">Allow the watch to view this phone\'s camera and microphone.</string>

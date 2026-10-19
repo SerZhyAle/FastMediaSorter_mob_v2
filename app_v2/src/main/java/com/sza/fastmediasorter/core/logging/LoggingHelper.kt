@@ -259,7 +259,11 @@ object LoggingHelper {
      * RELEASE build: Only warnings and errors (w/e) - no debug spam
      */
     fun initialize(context: Context) {
-        appContext = context.applicationContext
+        // applicationContext is still null while the Application object itself is being
+        // constructed: attachBaseContext runs before LoadedApk assigns mApplication. The base
+        // context already serves every file and preference path used below, so fall back to it.
+        val startupContext = context.applicationContext ?: context
+        appContext = startupContext
         // S1253: Robolectric boots the real Application, which used to plant the FILE tree in
         // every unit-test class - the "fms-log-io" executor then churned file IO and memory for
         // thousands of tests and was the thread the JVM's OOM storm named right before the
@@ -318,7 +322,7 @@ object LoggingHelper {
             fileLoggingTree = fileTree
             Timber.plant(fileTree)
         }
-        fileLoggingTree?.startProcessDiagnostics(context.applicationContext)
+        fileLoggingTree?.startProcessDiagnostics(startupContext)
     }
 
     /**

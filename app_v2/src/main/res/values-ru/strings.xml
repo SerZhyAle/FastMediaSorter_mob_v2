@@ -2689,6 +2689,7 @@
     <string name="streams_atlas_prompt_message">Скачать превью каналов, чтобы видеоканалы показывали картинку до запуска?</string>
     <string name="streams_atlas_prompt_action">Скачать</string>
     <string name="streams_filter_topic">Рубрика</string>
+    <string name="streams_filter_collection">Подборка</string>
     <string name="launcher_gadget_weather">Погода</string>
     <string name="launcher_gadget_weather_actions">Погода. Нажмите, чтобы открыть погодное приложение, удерживайте, чтобы сменить место</string>
     <string name="launcher_gadget_weather_no_location">Удерживайте, чтобы выбрать место</string>
@@ -3833,9 +3834,6 @@
     <string name="launcher_tray_battery_charging_ac">Батарея %1$d%%, заряжается от сети</string>
     <string name="launcher_tray_battery_charging_usb">Батарея %1$d%%, заряжается по USB</string>
     <string name="launcher_tray_battery_charging_wireless">Батарея %1$d%%, беспроводная зарядка</string>
-    <string name="streams_collection_all">Все</string>
-    <string name="streams_collection_strip_description">Подборки</string>
-    <string name="streams_collection_selected_count">Каналов в подборке: %1$d</string>
     <string name="camera_session_consent_channel_name">Запросы камеры с часов</string>
     <string name="camera_session_consent_notification_title">Часы просят показать камеру</string>
     <string name="camera_session_consent_notification_text">Разрешить часам смотреть с камеры и микрофона этого телефона.</string>

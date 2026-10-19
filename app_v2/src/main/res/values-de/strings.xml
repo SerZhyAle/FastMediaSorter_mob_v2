@@ -3397,9 +3397,6 @@
     <string name="launcher_tray_battery_charging_ac">Akku %1$d%%, lädt am Netzteil</string>
     <string name="launcher_tray_battery_charging_usb">Akku %1$d%%, lädt über USB</string>
     <string name="launcher_tray_battery_charging_wireless">Akku %1$d%%, lädt kabellos</string>
-    <string name="streams_collection_all">Alle</string>
-    <string name="streams_collection_strip_description">Sammlungen</string>
-    <string name="streams_collection_selected_count">%1$d Kanäle in der Sammlung</string>
     <string name="camera_session_consent_channel_name">Kameraanfragen der Uhr</string>
     <string name="camera_session_consent_notification_title">Deine Uhr möchte diese Kamera sehen</string>
     <string name="camera_session_consent_notification_text">Erlaube der Uhr, Kamera und Mikrofon dieses Telefons zu sehen.</string>

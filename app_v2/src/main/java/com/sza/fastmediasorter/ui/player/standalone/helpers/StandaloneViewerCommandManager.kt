@@ -18,7 +18,6 @@ import com.sza.fastmediasorter.ui.player.helpers.PlayerFrameStepManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerPlaybackRangeManager
 import com.sza.fastmediasorter.ui.player.helpers.ViewerKeyStepMath
 import kotlinx.coroutines.flow.map
-import timber.log.Timber
 
 /** The five standalone hosts share command semantics while keeping their existing viewer and collection owners. */
 class StandaloneViewerCommandManager(
@@ -74,7 +73,6 @@ class StandaloneViewerCommandManager(
     fun startSlideshow(random: Boolean): Boolean = withCollection { viewModel.startOrAccelerateSlideshow(random) }
 
     private fun withCollection(action: () -> Unit): Boolean {
-        Timber.d("S4373: standalone collection action")
         if (allowCollection && viewModel.state.value.supportsFolderPaging) {
             action()
         } else {
