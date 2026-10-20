@@ -8,7 +8,59 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.61.0141.503** (October 2026)
+**Current release: 2.61.0202.318** (October 2026)
+
+> Changes since version 2.61.0141.503
+
+---
+
+## What's New
+
+- **Exchange server accounts** - register, change the password or delete the account from the phone. <!-- af: network-cloud.exchange-account-registration-password-change-and-deletion -->
+- **End-to-end sealing** - what goes through the exchange server is sealed between your devices. <!-- af: network-cloud.end-to-end-sealing-through-the-exchange-server -->
+- **Clipboard on the exchange server** - send and get text on the phone and the watch. <!-- af: network-cloud.clipboard-on-the-exchange-server, wear-os.clipboard-on-the-exchange-server-from-the-watch, wear-os.open-in-on-the-watch-clipboard-screen -->
+- **One resource, any path** - LAN, port forward or exchange tunnel, the fastest first. <!-- af: network-cloud.one-resource-record-across-channels-and-outward-folder -->
+- **Files via Google Drive** - between your own phones on one account. <!-- af: network-cloud.files-via-google-drive-between-own-devices -->
+- **Scheduled operations across devices** - over exchange resources and Google Drive. <!-- af: file-operations.scheduled-operations-over-exchange-and-drive -->
+- **Exchange in the settings backup** - resources, schedules and accounts restore with it. <!-- af: settings-navigation.exchange-resources-schedules-and-accounts-in-the-settings -->
+- **Exchange connection help** - check steps on failure, portal links and scenario guides. <!-- af: network-cloud.exchange-connection-failure-check-steps, network-cloud.portal-links-glyphs-and-shared-words-on-the, network-cloud.portal-scenario-page-links, network-cloud.media-exchange-portal-scenario-guides, exchange.exchange-server-mark -->
+- **Phone sharing resumes on start** - and says why it paused. <!-- af: network-cloud.sftp-server-lifetime-and-pause-reason -->
+- **New broadcast sources** - the phone screen, a ready file, the camera with the screen off. <!-- af: broadcast.phone-screen-broadcast, broadcast.ready-file-broadcast, broadcast.camera-broadcast-with-the-screen-off -->
+- **Protected broadcasts** - a password through the exchange server and guest grants. <!-- af: broadcast.password-protected-broadcast-through-the-exchange-server, broadcast.guest-grant -->
+- **Broadcasting in the dark** - flashlight and a bright frame during video. <!-- af: broadcast.flashlight-during-video-broadcast, broadcast.bright-frame-for-dark-broadcasts, broadcast.broadcast-torch-and-bright-frame -->
+- **Broadcast control screen** - collapsible groups, quick return, even buttons at large fonts. <!-- af: broadcast.broadcast-screen-collapsible-groups-and-list-selectors, broadcast.broadcast-control-re-entry, broadcast.live-control-buttons-even-grid-at-large-font -->
+- **Camera broadcast orientation** - the right aspect, and the lens survives a rotation. <!-- af: broadcast.camera-broadcast-orientation-and-aspect, broadcast.lens-choice-survives-a-rotation-during-a-live -->
+- **Your broadcasts in Streams** - listed under Own; add one by scanning its QR. <!-- af: streams.own-broadcasts-exchange-server, streams.scan-a-broadcast-qr-from-the-add-stream, streams.broadcast-row-follows-the-broadcaster-s-current-mode -->
+- **In-app help** - F1 and the ? button open help pages, offline too. <!-- af: settings-navigation.in-app-help-pages-f1-and-help-button, settings-navigation.in-app-help-pages-for-resources-programs-tools, settings-navigation.header-help-actions-for-screen-pages, settings-navigation.in-app-help-broadcast-control-page, general.offline-browser-player-help -->
+- **Player keyboard** - the viewer's keys and file selection work in the player. <!-- af: video-player.viewer-keyboard-defaults, video-player.player-file-selection-and-keyboard-parity -->
+- **Compact resource rows** - more resources on screen, in several columns. <!-- af: media-browsing.compact-multi-column-resource-row -->
+- **Collapse all** - one button folds every Settings group; System information remembers its groups. <!-- af: settings-navigation.collapse-all-groups-toolbar-button, diagnostics.system-information-groups-remember-their-state -->
+- **Readable toolbar menus** - in custom light and dark themes. <!-- af: general.toolbar-popup-contrast -->
+- **Launcher** - SIM indicators on Android 9, a paste button in the translator. <!-- af: launcher.legacy-sim-tray-indicators, launcher.translator-paste-glyph -->
+- **Watch and the exchange server** - folders, the broadcast list, protected broadcasts, Send to.. <!-- af: wear-os.exchange-server-folders-on-the-watch-over-its, wear-os.watch-plays-the-account-s-broadcast-list-through, wear-os.protected-broadcast-handed-to-the-watch-with-a-pass, wear-os.send-to-network-resources-from-the-watch -->
+- **Stop listening to the watch** - even before the watch confirms the request. <!-- af: wear-os.stop-a-pending-watch-listening-request -->
+- **Support page** - where to ask for help, on the website. <!-- af: general.support-page -->
+
+## What's Fixed
+
+- Starting phone sharing no longer crashes on Android 14 and later.
+- Scheduled operations no longer change read-only resources.
+- Switching a live broadcast from audio to video no longer crashes.
+- Switching camera during a live broadcast shows its lenses.
+- A file without a sound track can be broadcast.
+- The full-screen exit button responds again.
+- Network Monitor opens again instead of crashing.
+- Mirror capture notifications show the file name.
+- Resource import buttons no longer wrap their labels.
+- Exchange import closes its dialogs when finished.
+- Diagnostic dumps no longer reveal password length.
+- Watch alerts fit the round glass.
+- Watch Exchange servers screen opens on its state.
+- Watch broadcast list no longer loads forever when empty.
+
+---
+
+## Previous Release: 2.61.0141.503 (October 2026)
 
 > Changes since version 2.61.0041.544
 

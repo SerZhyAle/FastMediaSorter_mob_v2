@@ -82,13 +82,13 @@ FastMediaSorter is a complete shell for an Android device - home screen, media p
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.61.0141.503 (October 2026)
+## What's New in v2.61.0202.318 (October 2026)
 
 **New:**
-More Tourist tiles, tally counter and stopwatch tile, searchable system information cards, Googlebook support, cleaner stream filters, mirrored page buttons for right-to-left languages, folder paging for files opened from other apps, SFTP address through Google Drive (opt-in), watch Tourist readings, dark screen clock and rotation switch.
+Exchange server accounts with end-to-end sealing and a shared clipboard, one resource across LAN, port forward and exchange tunnel, files via Google Drive between own phones, scheduled operations across devices, broadcasts of the phone screen and ready files, protected broadcasts, flashlight and bright frame, your broadcasts in Streams, in-app help on F1 and the ? button, player keyboard, collapse all in Settings, the watch on the exchange server.
 
 **Fixed:**
-Delete confirmation on shared storage, cloud-to-cloud copy names, SFTP transfers in the background, Tourist compass without a fused sensor, saved network logins in Android backup, watch crashes on Wear OS API 28-29, watch lists on the round glass.
+Phone sharing start on Android 14 and later, read-only resources in scheduled operations, live broadcast audio-to-video switch, camera lenses after a switch, broadcasting files without sound, the full-screen exit button, Network Monitor crash, password length in diagnostic dumps, watch alerts and lists on the round glass.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

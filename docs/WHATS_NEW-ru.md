@@ -8,7 +8,59 @@ permalink: /docs/WHATS_NEW-ru.html
 
 # Что нового в FastMediaSorter v2
 
-**Текущий релиз: 2.61.0141.503** (октябрь 2026)
+**Текущий релиз: 2.61.0202.318** (октябрь 2026)
+
+> Изменения с версии 2.61.0141.503
+
+---
+
+## Что нового
+
+- **Аккаунты сервера обмена** - регистрация, смена пароля и удаление аккаунта с телефона. <!-- af: network-cloud.exchange-account-registration-password-change-and-deletion -->
+- **Сквозное запечатывание** - всё, что идёт через сервер обмена, запечатано между вашими устройствами. <!-- af: network-cloud.end-to-end-sealing-through-the-exchange-server -->
+- **Буфер обмена на сервере обмена** - отправка и получение текста на телефоне и часах. <!-- af: network-cloud.clipboard-on-the-exchange-server, wear-os.clipboard-on-the-exchange-server-from-the-watch, wear-os.open-in-on-the-watch-clipboard-screen -->
+- **Один ресурс, любой путь** - локальная сеть, проброс порта или туннель обмена, самый быстрый первым. <!-- af: network-cloud.one-resource-record-across-channels-and-outward-folder -->
+- **Файлы через Google Drive** - между своими телефонами на одном аккаунте. <!-- af: network-cloud.files-via-google-drive-between-own-devices -->
+- **Операции по расписанию между устройствами** - над ресурсами обмена и Google Drive. <!-- af: file-operations.scheduled-operations-over-exchange-and-drive -->
+- **Обмен в резервной копии настроек** - ресурсы, расписания и аккаунты восстанавливаются вместе с ней. <!-- af: settings-navigation.exchange-resources-schedules-and-accounts-in-the-settings -->
+- **Помощь при подключении к обмену** - шаги проверки при сбое, ссылки на портал и сценарии. <!-- af: network-cloud.exchange-connection-failure-check-steps, network-cloud.portal-links-glyphs-and-shared-words-on-the, network-cloud.portal-scenario-page-links, network-cloud.media-exchange-portal-scenario-guides, exchange.exchange-server-mark -->
+- **Раздача с телефона возобновляется при запуске** - и объясняет, почему стояла на паузе. <!-- af: network-cloud.sftp-server-lifetime-and-pause-reason -->
+- **Новые источники трансляции** - экран телефона, готовый файл, камера при выключенном экране. <!-- af: broadcast.phone-screen-broadcast, broadcast.ready-file-broadcast, broadcast.camera-broadcast-with-the-screen-off -->
+- **Защищённые трансляции** - пароль через сервер обмена и гостевой доступ. <!-- af: broadcast.password-protected-broadcast-through-the-exchange-server, broadcast.guest-grant -->
+- **Трансляция в темноте** - фонарик и яркая рамка во время видео. <!-- af: broadcast.flashlight-during-video-broadcast, broadcast.bright-frame-for-dark-broadcasts, broadcast.broadcast-torch-and-bright-frame -->
+- **Экран управления трансляцией** - сворачиваемые группы, быстрый возврат, ровные кнопки при крупном шрифте. <!-- af: broadcast.broadcast-screen-collapsible-groups-and-list-selectors, broadcast.broadcast-control-re-entry, broadcast.live-control-buttons-even-grid-at-large-font -->
+- **Ориентация трансляции с камеры** - верные пропорции, а выбор объектива переживает поворот. <!-- af: broadcast.camera-broadcast-orientation-and-aspect, broadcast.lens-choice-survives-a-rotation-during-a-live -->
+- **Ваши трансляции в Стримах** - в категории «Свои»; добавить можно по QR-коду. <!-- af: streams.own-broadcasts-exchange-server, streams.scan-a-broadcast-qr-from-the-add-stream, streams.broadcast-row-follows-the-broadcaster-s-current-mode -->
+- **Встроенная справка** - F1 и кнопка ? открывают страницы справки, и без сети тоже. <!-- af: settings-navigation.in-app-help-pages-f1-and-help-button, settings-navigation.in-app-help-pages-for-resources-programs-tools, settings-navigation.header-help-actions-for-screen-pages, settings-navigation.in-app-help-broadcast-control-page, general.offline-browser-player-help -->
+- **Клавиатура в плеере** - клавиши просмотрщика и выбор файлов работают в плеере. <!-- af: video-player.viewer-keyboard-defaults, video-player.player-file-selection-and-keyboard-parity -->
+- **Компактные строки ресурсов** - больше ресурсов на экране, в несколько колонок. <!-- af: media-browsing.compact-multi-column-resource-row -->
+- **Свернуть всё** - одна кнопка сворачивает все группы настроек; «Сведения о системе» помнят свои группы. <!-- af: settings-navigation.collapse-all-groups-toolbar-button, diagnostics.system-information-groups-remember-their-state -->
+- **Читаемые меню панели инструментов** - в своих светлых и тёмных темах. <!-- af: general.toolbar-popup-contrast -->
+- **Лаунчер** - индикаторы SIM на Android 9, кнопка вставки в переводчике. <!-- af: launcher.legacy-sim-tray-indicators, launcher.translator-paste-glyph -->
+- **Часы и сервер обмена** - папки, список трансляций, защищённые трансляции, «Отправить в..». <!-- af: wear-os.exchange-server-folders-on-the-watch-over-its, wear-os.watch-plays-the-account-s-broadcast-list-through, wear-os.protected-broadcast-handed-to-the-watch-with-a-pass, wear-os.send-to-network-resources-from-the-watch -->
+- **Остановить прослушивание часов** - даже до того, как часы подтвердят запрос. <!-- af: wear-os.stop-a-pending-watch-listening-request -->
+- **Страница поддержки** - куда обращаться за помощью, на сайте. <!-- af: general.support-page -->
+
+## Что исправлено
+
+- Запуск раздачи с телефона больше не падает на Android 14 и новее.
+- Операции по расписанию больше не меняют ресурсы только для чтения.
+- Переключение живой трансляции со звука на видео больше не падает.
+- При смене камеры во время трансляции появляются её объективы.
+- Файл без звуковой дорожки можно транслировать.
+- Кнопка выхода из полноэкранного режима снова нажимается.
+- Network Monitor снова открывается, а не падает.
+- Уведомления о снимках зеркала показывают имя файла.
+- Кнопки импорта ресурсов больше не переносят подписи.
+- Импорт из обмена закрывает свои диалоги по завершении.
+- Диагностические дампы больше не выдают длину пароля.
+- Предупреждения на часах помещаются в круглый экран.
+- Экран серверов обмена на часах открывается на своём состоянии.
+- Пустой список трансляций на часах больше не грузится бесконечно.
+
+---
+
+## Предыдущий релиз: 2.61.0141.503 (октябрь 2026)
 
 > Изменения с версии 2.61.0041.544
 

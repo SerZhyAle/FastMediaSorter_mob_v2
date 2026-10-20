@@ -7,7 +7,7 @@ permalink: /docs/FEATURES-ru.html
 
 # FastMediaSorter v2 - Полный список возможностей
 
-*Последнее обновление: 2026-10-14*
+*Последнее обновление: 2026-10-20*
 
 Этот документ - кураторская витрина ключевых пользовательских возможностей. Полный технический инвентарь всех реализованных возможностей находится в `docs/ALL_FEATURES.jsonl`.
 
@@ -42,6 +42,7 @@ FastMediaSorter - полноценная оболочка Android-устройс
 - **Тринадцать языков интерфейса** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Интерфейс говорит на тринадцати языках, и язык выбирается для приложения, а не для всего устройства. <!-- af: ui.interface-languages, general.interface-language-thirteen -->
 - **Единая система единиц во всём приложении** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: метрическая или имперская задаёт каждое расстояние, скорость и температуру и переживает резервную копию. <!-- af: settings.unit-system-drives-every-format, settings.unit-system-survives-a-settings-backup-and-restore -->
 - **Полностью открытая сборка** `[FOSS]`: вариант без проприетарных компонентов, для каталога F-Droid. <!-- af: distribution.fdroid-foss-variant -->
+- **Справка на каждом экране** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: F1 или кнопка ? в заголовке открывают справку по текущему экрану, и без сети тоже. <!-- af: settings-navigation.in-app-help-pages-f1-and-help-button, settings-navigation.header-help-actions-for-screen-pages, general.offline-browser-player-help -->
 
 ## 2. Медиаплеер
 - **Просмотр изображений с реальными действиями над файлом** `[Standard / VR]`: Обрезка, поворот, отражение, цветокоррекция, ускорение/замедление GIF и экспорт кадров GIF без перехода в отдельный редактор. <!-- af: image-gif-viewer.crop-to-new-file, image-gif-viewer.in-place-image-rotation, image-gif-viewer.animated-image-frame-extraction -->
@@ -78,6 +79,8 @@ FastMediaSorter - полноценная оболочка Android-устройс
 - **Идущие трансляции в группе «Свои»** `[Standard / Legacy / VR / noLegal]`: Идущие трансляции вашего аккаунта обмена автоматически появляются в группе «Свои» раздела трансляций при открытии и обновлении страницы. <!-- af: streams.own-broadcasts-exchange-server -->
 - **Живое вещание по Wi-Fi** `[Standard / Legacy / noLegal]`: Единый экран живого вещания с встроенным превью камеры, выбором режима (Только звук / Камера + звук / Только камера), выбором физических объективов камеры, тумблерами микрофона/камеры, режимом погашенного экрана, счётчиком слушателей и встроенной панелью QR-кода и обмена ссылкой. <!-- af: broadcast.unified-broadcast-screen, broadcast.live-mode-and-lens-switch-full-screen-broadcast, broadcast.preview-before-start -->
 - **Трансляция сама гасит акустическую обратную связь** `[Standard / Legacy / noLegal]`: Если эфир слушают вслух в той же комнате, где идёт трансляция, приложение теперь само отслеживает свой звук, снижает чувствительность микрофона, пока петля не исчезнет, и возвращает её, когда в комнате снова тихо - экран трансляции показывает, что защита сработала, а не что звук просто просел. <!-- af: broadcast.acoustic-feedback-guard -->
+- **Трансляция не только с камеры** `[Standard / Legacy / noLegal]`: транслируйте экран телефона или готовый файл, а в тёмной комнате включите фонарик или яркую рамку. <!-- af: broadcast.phone-screen-broadcast, broadcast.ready-file-broadcast, broadcast.broadcast-torch-and-bright-frame -->
+- **Защищённые трансляции** `[Standard / Legacy / noLegal]`: поставьте на трансляцию пароль через сервер обмена или выдайте к ней гостевой доступ. <!-- af: broadcast.password-protected-broadcast-through-the-exchange-server, broadcast.guest-grant -->
 
 ## 4. Запуск программ
 - **Все установленные приложения на одном экране** `[Standard / noLegal]`: Полноэкранный список всего установленного, доступный прямо с рабочего стола. <!-- af: launcher.all-apps-screen -->
@@ -122,6 +125,7 @@ FastMediaSorter - полноценная оболочка Android-устройс
 - **Мини-программы на часах** `[Wear OS]`: У калькулятора, сетевого монитора и мини-игры появились собственные экраны на часах, так что запястье - не только пульт. <!-- af: wear-os.mini-programs-suite -->
 - **Давление, высота и трип на часах** `[Wear OS]`: Раздел «Турист» на часах теперь показывает давление с трендом, высоту по барометру рядом с высотой по GPS, набор высоты и спуск, время в пути, время в движении, среднюю скорость и темп, каденс, точность GPS с оценкой словом, курс, магнитное склонение, уровень, освещённость и магнитное поле с предупреждением о помехах. Трип учитывает только надёжные точки GPS, не склеивает разрывы сигнала и переживает перезапуск приложения. <!-- af: wear-os.barometer-trip-navigation-and-environment-readings-in-the -->
 - **Циферблат FastMediaSorter** `[Wear OS]`: Отдельное приложение-циферблат с крупным временем, датой, живыми волнами, полосой заряда и кнопками для выбранных данных; телефон и приложение на часах открывают его страницу в Google Play. <!-- af: wear.watch-face-store-links, wear.face-slots-from-phone -->
+- **Часы на вашем сервере обмена** `[Wear OS]`: открывайте папки сервера по собственной сети часов, смотрите трансляции аккаунта, в том числе защищённые, пользуйтесь общим буфером обмена и отправляйте файлы на сетевые ресурсы. <!-- af: wear-os.exchange-server-folders-on-the-watch-over-its, wear-os.watch-plays-the-account-s-broadcast-list-through, wear-os.protected-broadcast-handed-to-the-watch-with-a-pass, wear-os.clipboard-on-the-exchange-server-from-the-watch, wear-os.send-to-network-resources-from-the-watch -->
 
 ## 7. Мониторинг устройства
 - **Видно, куда подключается приложение** `[Standard / noLegal]`: Монитор сети перечисляет собственные соединения приложения, поэтому зависшая передача или поток отслеживаются, а не угадываются. <!-- af: networking.network-monitor -->
@@ -158,3 +162,6 @@ FastMediaSorter - полноценная оболочка Android-устройс
 - **У расписания операций теперь свой экран** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Повторяющиеся задачи копирования, переноса и очистки теперь живут на полноценном отдельном экране с историей запусков, а не на карточке внутри настроек - экран открывается из меню программ, панели быстрого доступа, виджета, рабочего стола лаунчера и ярлыков приложения. <!-- af: file-operations.scheduled-operations-standalone-screen-history -->
 - **Расписание работает над ресурсами обмена** `[Standard / Photos / Legacy / VR / noLegal]`: Расписание операций с файлами работает без человека над ресурсом другого устройства через сервер обмена, а с появлением пути - через Google Drive. <!-- af: file-operations.scheduled-operations-over-exchange-and-drive -->
 - **Резервная копия хранит на 124 настройки больше** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: восстановление возвращает жесты скриншота и показания лаунчера, которые копия раньше теряла. <!-- af: general.backup-carries-the-rest-of-the-settings -->
+- **Свой сервер обмена** `[Standard / Photos / Legacy / VR / noLegal]`: зарегистрируйте аккаунт на сервере обмена, смените пароль или удалите его прямо с телефона; всё, что идёт через сервер, запечатано сквозным шифрованием между вашими устройствами, а вместе с ним работает общий буфер обмена. <!-- af: network-cloud.exchange-account-registration-password-change-and-deletion, network-cloud.end-to-end-sealing-through-the-exchange-server, network-cloud.clipboard-on-the-exchange-server -->
+- **Одна папка, каким бы путём до неё ни добрались** `[Standard / Photos / Legacy / VR / noLegal]`: папка другого устройства - это один ресурс, через локальную сеть, проброс порта или туннель обмена, и побеждает самый быстрый путь. <!-- af: network-cloud.one-resource-record-across-channels-and-outward-folder -->
+- **Файлы через Google Drive между вашими телефонами** `[Standard / Photos / Legacy / VR / noLegal]`: телефоны на одном аккаунте Google отправляют друг другу файлы и открывают папки друг друга, когда прямой путь не работает. <!-- af: network-cloud.files-via-google-drive-between-own-devices -->
