@@ -1,0 +1,6 @@
+• Exchange server accounts - register, change the password or delete the account from the phone.
+• End-to-end sealing - what goes through the exchange server is sealed between your devices.
+• Clipboard on the exchange server - send and get text on the phone and the watch.
+• One resource, any path - LAN, port forward or exchange tunnel, the fastest first.
+• Files via Google Drive - between your own phones on one account.
+..
