@@ -86,4 +86,21 @@
     <string name="playback_control_no_balance">Audio mono - nessun canale da bilanciare</string>
     <string name="playback_control_balance_value">Bilanciamento: %1$s</string>
     <string name="playback_control_balance_description">Bilanciamento %1$d percento a sinistra, %2$d percento a destra</string>
+    <string name="player_file_grid">Vista a griglia di miniature</string>
+    <string name="player_file_list">Vista elenco file</string>
+    <string name="player_file_jump">Vai al file</string>
+    <string name="player_file_number_hint">Numero del file (1..%1$d)</string>
+    <string name="player_file_number_error">Inserisci un numero intero da 1 a %1$d.</string>
+    <string name="player_file_single">È disponibile solo questo file.</string>
+    <string name="player_frame_unavailable">Lo scorrimento fotogramma per fotogramma non è disponibile per questo video.</string>
+    <string name="player_frame_back_unavailable">Fotogramma precedente non disponibile: questo decoder non può tornare indietro.</string>
+    <string name="player_loop_title">Loop A-B</string>
+    <string name="player_loop_unavailable">La ripetizione A-B richiede un video in cui sia possibile spostarsi.</string>
+    <string name="player_loop_start">Inizio del loop: %1$s. Scegli il punto finale.</string>
+    <string name="player_loop_active">Ripetizione A-B: da %1$s a %2$s</string>
+    <string name="player_loop_invalid_end">Scegli un punto finale dopo l\'inizio.</string>
+    <string name="player_frame_forward">Fotogramma successivo</string>
+    <string name="player_action_unavailable">Questa azione non è disponibile per questo file.</string>
+    <string name="player_audio_track_single">Non è disponibile nessun\'altra traccia audio.</string>
+    <string name="player_frame_backward">Fotogramma precedente</string>
 </resources>

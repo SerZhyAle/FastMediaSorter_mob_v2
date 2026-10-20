@@ -359,4 +359,5 @@
         <item quantity="other">%1$d डिवाइस साइन आउट किए गए।</item>
     </plurals>
     <string name="exchange_format_unsupported">यह प्रारूप इस प्रोग्राम के समर्थन से नया है। कुछ भी आयात नहीं किया गया। किसी संगत प्रोग्राम का उपयोग करें।</string>
+    <string name="stream_source_live_badge">लाइव</string>
 </resources>

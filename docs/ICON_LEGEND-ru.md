@@ -138,7 +138,7 @@ permalink: /docs/ICON_LEGEND-ru.html
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Статистика |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Видеозапись экрана |
 | <img src="icons/svg/ic_cloud.svg" alt="ic_cloud" width="24" height="24"> | Доступ через Google Drive |
-| <img src="icons/svg/ic_cloud.svg" alt="ic_cloud" width="24" height="24"> | Сервер обмена |
+| <img src="icons/svg/ic_exchange_mono.svg" alt="ic_exchange_mono" width="24" height="24"> | Сервер обмена |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | SFTP-сервер |
 | <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Показывать кнопку «Чёрный экран» |
 | <img src="icons/svg/ic_resource_cloud.svg" alt="ic_resource_cloud" width="24" height="24"> | В облачных ресурсах |
@@ -157,6 +157,7 @@ permalink: /docs/ICON_LEGEND-ru.html
 
 | Значок | Значение |
 |---|---|
+| <img src="icons/svg/ic_repeat_one.svg" alt="ic_repeat_one" width="24" height="24"> | Повтор A-B |
 | <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Чёрный экран |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Вывести на экран.. |
 | <img src="icons/svg/ic_compress.svg" alt="ic_compress" width="24" height="24"> | Сжатая копия |
@@ -171,9 +172,14 @@ permalink: /docs/ICON_LEGEND-ru.html
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Поиск по всем главам |
 | <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Настройки текста |
 | <img src="icons/svg/ic_star_outline.svg" alt="ic_star_outline" width="24" height="24"> | Избранное |
+| <img src="icons/svg/ic_view_grid.svg" alt="ic_view_grid" width="24" height="24"> | Сетка миниатюр |
+| <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Список файлов |
+| <img src="icons/svg/ic_skip_previous.svg" alt="ic_skip_previous" width="24" height="24"> | Предыдущий кадр недоступен: декодер не поддерживает шаг назад. |
+| <img src="icons/svg/ic_skip_next.svg" alt="ic_skip_next" width="24" height="24"> | Следующий кадр |
 | <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | Во весь экран |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Поиск в Google Lens |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Поиск в Google Lens |
+| <img src="icons/svg/ic_help_outline.svg" alt="ic_help_outline" width="24" height="24"> | Справка |
 | <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Настройки текста |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Информация о файле |
 | <img src="icons/svg/ic_lyrics.svg" alt="ic_lyrics" width="24" height="24"> | Текст песни |

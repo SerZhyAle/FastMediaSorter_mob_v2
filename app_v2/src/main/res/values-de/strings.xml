@@ -2292,6 +2292,7 @@
     <string name="streams_atlas_prompt_message">Kanalvorschauen herunterladen, damit Videokanäle vor dem Abspielen ein Bild zeigen?</string>
     <string name="streams_atlas_prompt_action">Herunterladen</string>
     <string name="streams_filter_topic">Thema</string>
+    <string name="streams_filter_collection">Sammlung</string>
     <string name="launcher_gadget_weather">Wetter</string>
     <string name="launcher_gadget_weather_actions">Wetter. Tippen, um die Wetter-App zu öffnen, gedrückt halten, um den Ort zu ändern</string>
     <string name="launcher_gadget_weather_no_location">Gedrückt halten, um einen Ort auszuwählen</string>
@@ -2842,7 +2843,7 @@
     <string name="launcher_now_playing_artwork">Album-Cover</string>
     <string name="launcher_gadget_translator">Übersetzer</string>
     <string name="launcher_translator_hint">Zu übersetzender Text</string>
-    <string name="launcher_translator_paste">Aus Zwischenablage übersetzen</string>
+    <string name="launcher_translator_paste">Einfügen und übersetzen</string>
     <string name="launcher_translator_swap">Sprachen tauschen</string>
     <string name="launcher_translator_model_missing">Das Sprachpaket wird noch heruntergeladen. Die Übersetzung startet, sobald es bereit ist.</string>
     <string name="launcher_translator_empty">Gib etwas ein oder füge es ein, um es zu übersetzen.</string>
@@ -4010,4 +4011,5 @@
     <string name="broadcast_control_group_commands">Live-Steuerung</string>
     <string name="broadcast_control_group_share">Link und Freigabe</string>
     <string name="msg_transfer_same_folder_refused">Das ist bereits der Ordner der Datei. Wähle ein anderes Ziel.</string>
+    <string name="settings_collapse_all">Alle zuklappen</string>
 </resources>

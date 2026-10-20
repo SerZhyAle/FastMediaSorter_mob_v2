@@ -1088,4 +1088,10 @@
     <string name="wear_exchange_server_honest_text">Il server di scambio collega i tuoi dispositivi, quindi conosce i nomi del tuo account, dei dispositivi, delle cartelle e delle trasmissioni, vede quali dispositivi sono online e quanto viene inviato e quando. Non può aprire ciò che vi passa: le cartelle e i loro file, le trasmissioni e gli appunti sono cifrati sul tuo dispositivo e vengono aperti solo sui tuoi altri dispositivi o dalle persone a cui hai dato accesso. Per guardare dentro, chi gestisce il server dovrebbe aggiungere al tuo account un dispositivo proprio, che comparirebbe nel tuo elenco dei dispositivi.</string>
     <string name="wear_stream_broadcast_unplayable">Questa trasmissione non si riproduce sull\'orologio</string>
     <string name="wear_exchange_reason_format_unsupported">Questo formato è più recente di quelli supportati da questa app. Non è stato importato nulla. Usa un\'app compatibile.</string>
+    <string name="wear_clipboard_open_in_action">Apri con..</string>
+    <string name="wear_open_in_title">Apri con..</string>
+    <string name="wear_open_in_none">Nessuna app sull\'orologio può aprirlo.</string>
+    <string name="wear_open_in_failed">Impossibile aprire in %1$s.</string>
+    <string name="wear_open_in_role_last_used">Ultimo utilizzato</string>
+    <string name="wear_open_in_role_maps">Mappe</string>
 </resources>

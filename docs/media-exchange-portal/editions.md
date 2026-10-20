@@ -5,7 +5,7 @@ description: "Which edition of FastMediaSorter for Android has network folders, 
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/editions.html
 ---
-<sub class="doc-stamp">26.10.15 15:04</sub>
+<sub class="doc-stamp">26.10.20 12:24</sub>
 
 # Editions: which app has which way of exchange
 
@@ -40,7 +40,7 @@ Going live covers the microphone, the camera, the screen of the phone and a read
 - **No closed-source parts** - FOSS keeps network folders, the phone's SFTP server and My devices, without clouds and without files via Google Drive.
 - **Lite** works with the media on the device itself only.
 
-The Windows programs are separate products and do not follow this table: Fast Media Sorter & Sharing for Windows comes as the full package and as the Server edition that keeps a PC's folders available around the clock, see [Windows servers](windows-servers.html), and [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/) is a program of its own.
+The Windows programs are separate products and do not follow this table: Fast Media Sorter & Sharing for Windows has three optional parts - a viewer and sorter, folder sharing and the exchange server - and two ways to start, viewer first with the full package and server first with the Server edition that keeps a PC's folders available around the clock, see [Windows servers](windows-servers.html#editions), and [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/) is a program of its own.
 
 ## Step-by-step guides
 

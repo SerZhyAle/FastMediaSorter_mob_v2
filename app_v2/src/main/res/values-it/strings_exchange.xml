@@ -350,4 +350,5 @@
         <item quantity="other">%1$d dispositivi sono stati disconnessi.</item>
     </plurals>
     <string name="exchange_format_unsupported">Questo formato è più recente di quelli supportati da questa app. Non è stato importato nulla. Usa un\'app compatibile.</string>
+    <string name="stream_source_live_badge">In diretta</string>
 </resources>

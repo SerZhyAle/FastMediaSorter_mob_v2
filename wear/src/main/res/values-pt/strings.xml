@@ -1089,4 +1089,11 @@
     <string name="wear_exchange_server_honest_text">O servidor de intercâmbio conecta os seus dispositivos, por isso conhece os nomes da sua conta, dos dispositivos, das pastas e das difusões, vê quais dispositivos estão conectados e quanto é enviado e quando. Ele não pode abrir o que passa por ele: as pastas e seus arquivos, as difusões e a área de transferência são criptografadas no seu dispositivo e abertas somente nos seus outros dispositivos ou pelas pessoas a quem você deu acesso. Para olhar dentro, quem administra o servidor teria de adicionar um dispositivo próprio à sua conta, e ele apareceria na sua lista de dispositivos.</string>
     <string name="wear_stream_broadcast_unplayable">Esta difusão não é reproduzida no relógio</string>
     <string name="wear_exchange_reason_format_unsupported">Este formato é mais novo do que este programa suporta. Nada foi importado. Use um programa compatível.</string>
+    <string name="wear_clipboard_open_in_action">Abrir com..</string>
+    <string name="wear_open_in_title">Abrir com..</string>
+    <string name="wear_open_in_none">Nenhum app no relógio pode abrir isto.</string>
+    <string name="wear_open_in_failed">Não foi possível abrir em %1$s.</string>
+    <string name="wear_open_in_role_last_used">Último usado</string>
+    <string name="wear_open_in_role_browser">Navegador</string>
+    <string name="wear_open_in_role_maps">Mapas</string>
 </resources>

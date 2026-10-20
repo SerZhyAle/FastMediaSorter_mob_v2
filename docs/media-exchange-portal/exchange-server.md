@@ -5,13 +5,15 @@ description: "One account for all your devices and access from any network witho
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server.html
 ---
-<sub class="doc-stamp">26.10.15 14:25</sub>
+<sub class="doc-stamp">26.10.20 12:24</sub>
 
 # Exchange server: your devices from any network
 
 <img src="exchange-mark/full-256.png" alt="Media Exchange Server" width="128">
 
 The exchange server is for the case the [home network](home-network.html) cannot cover: a provider that gives you no public address, a hotel Wi-Fi, a mobile network. Every device dials out to the server, so nothing has to be opened in a router on the devices' side - only the server itself needs an address the devices can reach.
+
+Short versions: [what the server is for and everything you can do with it](exchange-server-purpose.html) and [deploying your own server in steps](exchange-server-quick-start.html).
 
 ![An exchange server on the internet in the middle. Home and office Windows PCs share folders, a laptop sends and receives media, one phone opens any folder and another shares its own, and a watch and a TV receive media - all through the server.](diagrams/exchange-simple-en.svg)
 
@@ -36,7 +38,11 @@ On one Wi-Fi network the devices still connect to each other directly. A folder 
 
 ## Where the server comes from {#where-the-server-comes-from}
 
-The exchange server is a part of [Fast Media Sorter & Sharing for Windows](windows-servers.html). That program comes in two models: the **viewer**, where the servers are optional components that stay off until you switch them on, and the **server**, built for a PC whose job is to stay available, where the viewer is the optional part. The Microsoft Store carries only the viewer, because a Store app cannot run as a Windows service.
+<div class="doc-callout doc-callout-warn" markdown="1">
+**Not released yet.** The server program for Windows is in the development version of [Fast Media Sorter & Sharing for Windows](windows-servers.html), and no released package contains it. Nothing is offered for download, and no exchange server is running anywhere.
+</div>
+
+The exchange server is the third optional part of that program, next to the viewer and sorter and to folder sharing. It is not folder sharing: sharing hands a PC's folders to a device that can reach the PC, while the exchange server is a meeting point for devices that cannot. When a release carries it, it will be an optional part, unticked by default, whichever way you start - [viewer first](windows-servers.html#viewer-first) or [server first](windows-servers.html#server-first). The Microsoft Store version will not carry it, because it runs in user mode only and a Store app cannot run as a Windows service. What each part is and where it is released: [Windows servers](windows-servers.html#availability).
 
 The server is administered in Share Manager: accounts and invitations, the public address, the certificate and running it as a Windows service. How to install it, what Windows says about the installer and how to check that it works from another network: [Installing and checking your exchange server](exchange-server-install.html).
 
@@ -94,13 +100,15 @@ An account is a login and a password on one server. You create it from an invita
 ## Ways that need no server {#what-works-today}
 
 - **The home network**: a forwarded port and a public address or a dynamic DNS name make your folders reachable from anywhere - see [Home network](home-network.html).
-- **The Server edition of the Windows program** keeps a PC's folders available around the clock, with no exchange server: it runs the same SFTP sharing as a Windows service that starts at boot, and paired phones keep working - see [Windows servers](windows-servers.html).
+- **Folder sharing on a Windows PC** needs no exchange server: the Server edition runs the same SFTP sharing as a Windows service that starts at boot, keeps a PC's folders available around the clock, and paired phones keep working - see [Windows servers](windows-servers.html#editions).
 - **A VPN to your home network** works with every network folder, because the app then sees your home addresses as local ones.
 - **Google Drive keeps the phone's address up to date.** Switch on **Share access through Google Drive** in the phone's SFTP server card (it is off by default): while the server runs, the phone then writes its current address and sign-in details into the app's private space of your Google Drive. Another device signed in to the same Google account then opens the paired folder at its new address after a network change, without scanning the code again. The device still has to be able to reach the phone - on the same network, over a VPN or through a forwarded port; Drive only tells it where to look. Via Google Drive, files and the clipboard are kept in your own Google account, like your other files on Google Drive; no exchange server takes part.
 - **Clouds** - Google Drive, Dropbox and OneDrive are a shared box every signed-in device opens - see [Clouds](clouds.html).
 
 ## Step-by-step guides
 
+- [What the exchange server is for](exchange-server-purpose.html)
+- [Deploy your own exchange server](exchange-server-quick-start.html)
 - [Installing and checking your exchange server](exchange-server-install.html)
 - [Accounts, invitations and passwords](exchange-accounts.html)
 - [Clipboard on the server](exchange-clipboard.html)

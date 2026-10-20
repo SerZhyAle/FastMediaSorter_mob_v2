@@ -1089,4 +1089,11 @@
     <string name="wear_exchange_server_honest_text">Le serveur d\'échange relie vos appareils : il connaît donc les noms de votre compte, de vos appareils, de vos dossiers et de vos diffusions, voit quels appareils sont en ligne, ainsi que la quantité envoyée et le moment. Il ne peut pas ouvrir ce qui transite par lui : les dossiers et leurs fichiers, les diffusions et le presse-papiers sont chiffrés sur votre appareil et ne s\'ouvrent que sur vos autres appareils ou chez les personnes à qui vous avez donné accès. Pour regarder à l\'intérieur, la personne qui gère le serveur devrait ajouter un appareil à elle à votre compte, et il apparaîtrait dans votre liste d\'appareils.</string>
     <string name="wear_stream_broadcast_unplayable">Cette diffusion ne se lit pas sur la montre</string>
     <string name="wear_exchange_reason_format_unsupported">Ce format est plus récent que ce que ce programme prend en charge. Rien n\'a été importé. Utilisez un programme compatible.</string>
+    <string name="wear_clipboard_open_in_action">Ouvrir avec..</string>
+    <string name="wear_open_in_title">Ouvrir avec..</string>
+    <string name="wear_open_in_none">Aucune application de la montre ne peut l\'ouvrir.</string>
+    <string name="wear_open_in_failed">Impossible d\'ouvrir dans %1$s.</string>
+    <string name="wear_open_in_role_last_used">Dernier utilisé</string>
+    <string name="wear_open_in_role_browser">Navigateur</string>
+    <string name="wear_open_in_role_maps">Cartes</string>
 </resources>

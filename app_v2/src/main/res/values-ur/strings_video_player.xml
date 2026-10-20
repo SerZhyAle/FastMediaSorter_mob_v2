@@ -86,4 +86,21 @@
     <string name="playback_control_no_balance">مونو آڈیو - توازن کے لیے کوئی چینل نہیں</string>
     <string name="playback_control_balance_value">توازن: %1$s</string>
     <string name="playback_control_balance_description">توازن %1$d فیصد بائیں، %2$d فیصد دائیں</string>
+    <string name="player_file_grid">تھمب نیل گرڈ منظر</string>
+    <string name="player_file_list">فائل فہرست منظر</string>
+    <string name="player_file_jump">فائل پر جائیں</string>
+    <string name="player_file_number_hint">فائل نمبر (1..%1$d)</string>
+    <string name="player_file_number_error">1 سے %1$d تک کوئی مکمل عدد درج کریں۔</string>
+    <string name="player_file_single">صرف یہی فائل دستیاب ہے۔</string>
+    <string name="player_frame_unavailable">اس ویڈیو کے لیے فریم بہ فریم اسٹیپنگ دستیاب نہیں ہے۔</string>
+    <string name="player_frame_back_unavailable">پچھلا فریم دستیاب نہیں: یہ ڈی کوڈر پیچھے نہیں جا سکتا۔</string>
+    <string name="player_loop_title">A-B لوپ</string>
+    <string name="player_loop_unavailable">A-B دہرانے کے لیے ایسی ویڈیو درکار ہے جس میں سیک کیا جا سکے۔</string>
+    <string name="player_loop_start">لوپ کا آغاز: %1$s۔ اختتامی نقطہ منتخب کریں۔</string>
+    <string name="player_loop_active">A-B دہرانا: %1$s سے %2$s</string>
+    <string name="player_loop_invalid_end">آغاز کے بعد کا کوئی اختتامی نقطہ منتخب کریں۔</string>
+    <string name="player_frame_forward">اگلا فریم</string>
+    <string name="player_action_unavailable">یہ عمل اس فائل کے لیے دستیاب نہیں ہے۔</string>
+    <string name="player_audio_track_single">کوئی اور آڈیو ٹریک دستیاب نہیں ہے۔</string>
+    <string name="player_frame_backward">پچھلا فریم</string>
 </resources>

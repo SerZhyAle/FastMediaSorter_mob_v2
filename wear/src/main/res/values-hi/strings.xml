@@ -1093,4 +1093,11 @@
     <string name="wear_exchange_server_honest_text">एक्सचेंज सर्वर आपके डिवाइस को आपस में जोड़ता है, इसलिए वह आपके खाते, डिवाइस, फ़ोल्डर और ब्रॉडकास्ट के नाम जानता है, देखता है कि कौन-से डिवाइस ऑनलाइन हैं, और कितना और कब भेजा गया। वह इसके ज़रिए गुज़रने वाली सामग्री को खोल नहीं सकता: फ़ोल्डर और उनकी फ़ाइलें, ब्रॉडकास्ट और क्लिपबोर्ड आपके डिवाइस पर एन्क्रिप्ट होते हैं और केवल आपके अन्य डिवाइस पर या उन लोगों द्वारा खोले जाते हैं जिन्हें आपने पहुँच दी है। अंदर झाँकने के लिए सर्वर चलाने वाले को आपके खाते में अपना कोई डिवाइस जोड़ना होगा, और वह आपके डिवाइस की सूची में दिखाई देगा।</string>
     <string name="wear_stream_broadcast_unplayable">यह ब्रॉडकास्ट घड़ी पर नहीं चलता</string>
     <string name="wear_exchange_reason_format_unsupported">यह प्रारूप इस प्रोग्राम के समर्थन से नया है। कुछ भी आयात नहीं किया गया। किसी संगत प्रोग्राम का उपयोग करें।</string>
+    <string name="wear_clipboard_open_in_action">इसमें खोलें..</string>
+    <string name="wear_open_in_title">इसमें खोलें..</string>
+    <string name="wear_open_in_none">घड़ी का कोई ऐप इसे नहीं खोल सकता।</string>
+    <string name="wear_open_in_failed">%1$s में नहीं खोला जा सका।</string>
+    <string name="wear_open_in_role_last_used">हाल ही में उपयोग किया गया</string>
+    <string name="wear_open_in_role_browser">ब्राउज़र</string>
+    <string name="wear_open_in_role_maps">मानचित्र</string>
 </resources>

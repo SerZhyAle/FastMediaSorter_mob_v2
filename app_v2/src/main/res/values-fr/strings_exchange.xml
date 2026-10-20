@@ -356,4 +356,5 @@
         <item quantity="other">%1$d appareils ont été déconnectés.</item>
     </plurals>
     <string name="exchange_format_unsupported">Ce format est plus récent que ce que ce programme prend en charge. Rien n\'a été importé. Utilisez un programme compatible.</string>
+    <string name="stream_source_live_badge">En direct</string>
 </resources>

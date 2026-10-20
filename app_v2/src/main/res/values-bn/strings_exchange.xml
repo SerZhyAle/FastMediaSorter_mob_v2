@@ -359,4 +359,5 @@
         <item quantity="other">%1$dটি ডিভাইস সাইন আউট করা হয়েছে।</item>
     </plurals>
     <string name="exchange_format_unsupported">এই ফরম্যাট এই প্রোগ্রামের সমর্থিত ফরম্যাটের চেয়ে নতুন। কিছুই ইম্পোর্ট করা হয়নি। একটি সামঞ্জস্যপূর্ণ প্রোগ্রাম ব্যবহার করুন।</string>
+    <string name="stream_source_live_badge">লাইভ</string>
 </resources>

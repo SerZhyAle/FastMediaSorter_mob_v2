@@ -86,3 +86,9 @@ Revoking a device changes no password and no folder PIN by itself, which is why 
 A request that would cross a limit is refused and changes nothing; a limit lowered below what an account already has refuses only the next request and never removes what exists.
 
 Back to [the exchange server](exchange-server.html) or to the [portal start page](index.html).
+
+## Windows settings windows {#windows-settings-windows}
+
+For Windows builds with separate settings windows. Earlier builds keep these pages together under Manager settings. This navigation change does not make an unreleased component available. The availability statements above still apply.
+
+On Windows, sign in, publish resources and manage this PC through Manager settings, Exchange account. Local exchange-server administration has a separate window and is not a prerequisite for joining somebody else’s server. Existing remote-administration actions keep the selected remote target.

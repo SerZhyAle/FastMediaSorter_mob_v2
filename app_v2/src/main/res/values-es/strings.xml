@@ -2297,6 +2297,7 @@
     <string name="streams_atlas_prompt_message">¿Descargar las vistas previas para que los canales de vídeo muestren una imagen antes de reproducirlos?</string>
     <string name="streams_atlas_prompt_action">Descargar</string>
     <string name="streams_filter_topic">Tema</string>
+    <string name="streams_filter_collection">Colección</string>
     <string name="launcher_gadget_weather">Clima</string>
     <string name="launcher_gadget_weather_actions">Clima. Toca para abrir la app del clima, mantén pulsado para cambiar el lugar</string>
     <string name="launcher_gadget_weather_no_location">Mantén pulsado para elegir un lugar</string>
@@ -2847,7 +2848,7 @@
     <string name="launcher_now_playing_artwork">Carátula del álbum</string>
     <string name="launcher_gadget_translator">Traductor</string>
     <string name="launcher_translator_hint">Texto para traducir</string>
-    <string name="launcher_translator_paste">Traducir desde el portapapeles</string>
+    <string name="launcher_translator_paste">Pegar y traducir</string>
     <string name="launcher_translator_swap">Intercambiar idiomas</string>
     <string name="launcher_translator_model_missing">El paquete de idioma aún se está descargando. La traducción comenzará en cuanto esté listo.</string>
     <string name="launcher_translator_empty">Escribe o pega algo para traducir.</string>
@@ -4027,4 +4028,5 @@
     <string name="broadcast_control_group_commands">Controles en directo</string>
     <string name="broadcast_control_group_share">Enlace y uso compartido</string>
     <string name="msg_transfer_same_folder_refused">Esta ya es la carpeta del archivo. Elige un destino diferente.</string>
+    <string name="settings_collapse_all">Contraer todo</string>
 </resources>

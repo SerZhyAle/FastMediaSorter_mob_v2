@@ -13,6 +13,8 @@
     { "page": "editions", "owner": "fms-android", "common": false },
     { "page": "exchange-server", "owner": "fms-android", "common": true },
     { "page": "exchange-server-install", "owner": "fms-android", "common": true },
+    { "page": "exchange-server-purpose", "owner": "fms-android", "common": true },
+    { "page": "exchange-server-quick-start", "owner": "fms-android", "common": true },
     { "page": "exchange-accounts", "owner": "fms-android", "common": true },
     { "page": "exchange-clipboard", "owner": "fms-android", "common": true },
     { "page": "account-deletion", "owner": "fms-android", "common": true },

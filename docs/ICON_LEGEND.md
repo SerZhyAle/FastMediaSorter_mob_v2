@@ -138,7 +138,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Statistics |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen video recording |
 | <img src="icons/svg/ic_cloud.svg" alt="ic_cloud" width="24" height="24"> | Share access through Google Drive |
-| <img src="icons/svg/ic_cloud.svg" alt="ic_cloud" width="24" height="24"> | Exchange server |
+| <img src="icons/svg/ic_exchange_mono.svg" alt="ic_exchange_mono" width="24" height="24"> | Exchange server |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | SFTP server |
 | <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Show "Black Screen" button |
 | <img src="icons/svg/ic_resource_cloud.svg" alt="ic_resource_cloud" width="24" height="24"> | In cloud resources |
@@ -157,6 +157,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 
 | Icon | Meaning |
 |---|---|
+| <img src="icons/svg/ic_repeat_one.svg" alt="ic_repeat_one" width="24" height="24"> | A-B loop |
 | <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Black screen |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Cast to.. |
 | <img src="icons/svg/ic_compress.svg" alt="ic_compress" width="24" height="24"> | Compressed copy |
@@ -171,9 +172,14 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Search All Chapters |
 | <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Text Settings |
 | <img src="icons/svg/ic_star_outline.svg" alt="ic_star_outline" width="24" height="24"> | Favorite |
+| <img src="icons/svg/ic_view_grid.svg" alt="ic_view_grid" width="24" height="24"> | Thumbnail grid view |
+| <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | File list view |
+| <img src="icons/svg/ic_skip_previous.svg" alt="ic_skip_previous" width="24" height="24"> | Previous frame unavailable: this decoder cannot step backwards. |
+| <img src="icons/svg/ic_skip_next.svg" alt="ic_skip_next" width="24" height="24"> | Next frame |
 | <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | Fullscreen mode |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Search with Google Lens |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Search with Google Lens |
+| <img src="icons/svg/ic_help_outline.svg" alt="ic_help_outline" width="24" height="24"> | Help |
 | <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Text Settings |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | File Information |
 | <img src="icons/svg/ic_lyrics.svg" alt="ic_lyrics" width="24" height="24"> | Lyrics |

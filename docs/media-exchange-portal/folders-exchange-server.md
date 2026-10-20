@@ -71,3 +71,9 @@ The app shows **The connection did not work** with what failed and, under **Anot
 - [A schedule over folders of other devices](schedule-remote-folders.html)
 
 Back to the [portal start page](index.html).
+
+## Windows settings windows {#windows-settings-windows}
+
+For Windows builds with separate settings windows. Earlier builds keep these pages together under Manager settings. This navigation change does not make an unreleased component available. The availability statements above still apply.
+
+On Windows, sign in, publish resources and manage this PC through Manager settings, Exchange account. Local exchange-server administration has a separate window and is not a prerequisite for joining somebody else’s server. Existing remote-administration actions keep the selected remote target.

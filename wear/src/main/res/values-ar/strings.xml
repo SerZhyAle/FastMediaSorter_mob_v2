@@ -1097,4 +1097,11 @@
     <string name="wear_exchange_server_honest_text">يربط خادم التبادل أجهزتك، لذا فهو يعرف أسماء حسابك وأجهزتك ومجلداتك وإذاعاتك، ويرى أي الأجهزة متصلة، وكم يُرسَل ومتى. لكنه لا يستطيع فتح ما يمر عبره: فالمجلدات وملفاتها والإذاعات والحافظة تُشفَّر على جهازك ولا تُفتح إلا على أجهزتك الأخرى أو لدى من منحتهم الوصول. وللاطلاع على المحتوى، سيتعيّن على من يشغّل الخادم أن يضيف جهازًا خاصًا به إلى حسابك، وسيظهر في قائمة أجهزتك.</string>
     <string name="wear_stream_broadcast_unplayable">لا تُشغَّل هذه الإذاعة على الساعة</string>
     <string name="wear_exchange_reason_format_unsupported">هذه الصيغة أحدث مما يدعمه هذا البرنامج. لم يُستورد شيء. استخدم برنامجًا متوافقًا.</string>
+    <string name="wear_clipboard_open_in_action">فتح باستخدام..</string>
+    <string name="wear_open_in_title">فتح باستخدام..</string>
+    <string name="wear_open_in_none">لا يوجد تطبيق على الساعة يمكنه فتح هذا.</string>
+    <string name="wear_open_in_failed">تعذّر الفتح في %1$s.</string>
+    <string name="wear_open_in_role_last_used">آخر استخدام</string>
+    <string name="wear_open_in_role_browser">المتصفح</string>
+    <string name="wear_open_in_role_maps">الخرائط</string>
 </resources>

@@ -431,6 +431,22 @@
         <item name="android:minHeight">@dimen/token_touch_target_min</item>
     </style>
 
+    <!-- Content-sized ordinary commands share BUTTONS geometry without changing unmigrated surfaces. -->
+    <style name="Widget.FastMediaSorter.Button.Command" parent="Widget.FastMediaSorter.Button.Outlined">
+        <item name="cornerRadius">@dimen/token_spacing_4</item>
+        <item name="android:minWidth">@dimen/token_touch_target_min</item>
+        <item name="android:minHeight">@dimen/token_touch_target_min</item>
+        <item name="android:paddingStart">@dimen/token_spacing_16</item>
+        <item name="android:paddingEnd">@dimen/token_spacing_16</item>
+        <item name="android:singleLine">false</item>
+        <item name="android:ellipsize">none</item>
+        <item name="iconSize">@dimen/icon_size_button</item>
+        <item name="iconPadding">@dimen/token_spacing_8</item>
+        <item name="iconGravity">textStart</item>
+        <item name="android:insetTop">@dimen/dimension_zero</item>
+        <item name="android:insetBottom">@dimen/dimension_zero</item>
+    </style>
+
     <style name="Widget.FastMediaSorter.Button.Text" parent="Widget.Material3.Button.TextButton">
         <item name="android:letterSpacing">0</item>
         <item name="textAllCaps">false</item>

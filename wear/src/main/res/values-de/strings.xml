@@ -1087,4 +1087,10 @@
     <string name="wear_exchange_server_honest_text">Der Austauschserver verbindet deine Geräte, daher kennt er die Namen deines Kontos, deiner Geräte, Ordner und Übertragungen, sieht, welche Geräte online sind, und wie viel gesendet wird und wann. Was über ihn läuft, kann er nicht öffnen: Ordner und ihre Dateien, Übertragungen und die Zwischenablage werden auf deinem Gerät verschlüsselt und nur auf deinen anderen Geräten oder von den Personen geöffnet, denen du Zugriff gegeben hast. Um hineinzuschauen, müsste der Betreiber des Servers ein eigenes Gerät zu deinem Konto hinzufügen, und es würde in deiner Geräteliste erscheinen.</string>
     <string name="wear_stream_broadcast_unplayable">Diese Übertragung lässt sich auf der Uhr nicht abspielen</string>
     <string name="wear_exchange_reason_format_unsupported">Dieses Format ist neuer, als dieses Programm unterstützt. Es wurde nichts importiert. Verwende ein kompatibles Programm.</string>
+    <string name="wear_clipboard_open_in_action">Öffnen mit..</string>
+    <string name="wear_open_in_title">Öffnen mit..</string>
+    <string name="wear_open_in_none">Keine App auf der Uhr kann dies öffnen.</string>
+    <string name="wear_open_in_failed">Öffnen in %1$s nicht möglich.</string>
+    <string name="wear_open_in_role_last_used">Zuletzt verwendet</string>
+    <string name="wear_open_in_role_maps">Karten</string>
 </resources>

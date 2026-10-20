@@ -2311,6 +2311,7 @@
     <string name="streams_atlas_prompt_message">هل تريد تنزيل معاينات القنوات لتظهر صورة لقنوات الفيديو قبل تشغيلها؟</string>
     <string name="streams_atlas_prompt_action">تنزيل</string>
     <string name="streams_filter_topic">الموضوع</string>
+    <string name="streams_filter_collection">المجموعة</string>
     <string name="launcher_gadget_weather">الطقس</string>
     <string name="launcher_gadget_weather_actions">الطقس. اضغط لفتح تطبيق الطقس، واضغط مطولًا لتغيير المكان</string>
     <string name="launcher_gadget_weather_no_location">اضغط مطولًا لاختيار مكان</string>
@@ -2860,7 +2861,7 @@
     <string name="launcher_now_playing_artwork">غلاف الألبوم</string>
     <string name="launcher_gadget_translator">المترجم</string>
     <string name="launcher_translator_hint">النص المراد ترجمته</string>
-    <string name="launcher_translator_paste">ترجمة من الحافظة</string>
+    <string name="launcher_translator_paste">لصق وترجمة</string>
     <string name="launcher_translator_swap">تبديل اللغتين</string>
     <string name="launcher_translator_model_missing">لا تزال حزمة اللغة قيد التنزيل. ستبدأ الترجمة بمجرد أن تصبح جاهزة.</string>
     <string name="launcher_translator_empty">اكتب شيئًا أو الصقه لترجمته.</string>
@@ -4044,4 +4045,5 @@
     <string name="broadcast_control_group_commands">عناصر التحكم المباشرة</string>
     <string name="broadcast_control_group_share">الرابط والمشاركة</string>
     <string name="msg_transfer_same_folder_refused">هذا هو مجلد الملف بالفعل. اختر وجهة مختلفة.</string>
+    <string name="settings_collapse_all">طيّ الكل</string>
 </resources>

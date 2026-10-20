@@ -2848,7 +2848,7 @@
     <string name="launcher_now_playing_artwork">Pochette d\'album</string>
     <string name="launcher_gadget_translator">Traducteur</string>
     <string name="launcher_translator_hint">Texte à traduire</string>
-    <string name="launcher_translator_paste">Traduire depuis le presse-papiers</string>
+    <string name="launcher_translator_paste">Coller et traduire</string>
     <string name="launcher_translator_swap">Inverser les langues</string>
     <string name="launcher_translator_model_missing">Le pack de langue est en cours de téléchargement. La traduction démarrera dès qu\'il sera prêt.</string>
     <string name="launcher_translator_empty">Saisissez ou collez du texte à traduire.</string>
@@ -4024,4 +4024,5 @@
     <string name="broadcast_control_group_commands">Commandes en direct</string>
     <string name="broadcast_control_group_share">Lien et partage</string>
     <string name="msg_transfer_same_folder_refused">C\'est déjà le dossier du fichier. Choisissez une autre destination.</string>
+    <string name="settings_collapse_all">Tout réduire</string>
 </resources>

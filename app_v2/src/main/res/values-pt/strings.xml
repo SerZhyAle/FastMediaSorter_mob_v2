@@ -2297,6 +2297,7 @@
     <string name="streams_atlas_prompt_message">Transferir pré-visualizações dos canais para que os canais de vídeo mostrem uma imagem antes de os reproduzir?</string>
     <string name="streams_atlas_prompt_action">Transferir</string>
     <string name="streams_filter_topic">Tema</string>
+    <string name="streams_filter_collection">Coleção</string>
     <string name="launcher_gadget_weather">Clima</string>
     <string name="launcher_gadget_weather_actions">Clima. Toque para abrir o aplicativo de clima, toque e segure para mudar o local</string>
     <string name="launcher_gadget_weather_no_location">Toque e segure para escolher um local</string>
@@ -2847,7 +2848,7 @@
     <string name="launcher_now_playing_artwork">Capa do álbum</string>
     <string name="launcher_gadget_translator">Tradutor</string>
     <string name="launcher_translator_hint">Texto a traduzir</string>
-    <string name="launcher_translator_paste">Traduzir da área de transferência</string>
+    <string name="launcher_translator_paste">Colar e traduzir</string>
     <string name="launcher_translator_swap">Trocar idiomas</string>
     <string name="launcher_translator_model_missing">O pacote de idioma ainda está a ser transferido. A tradução começa assim que estiver pronto.</string>
     <string name="launcher_translator_empty">Escreva ou cole algo para traduzir.</string>
@@ -4026,4 +4027,5 @@
     <string name="broadcast_control_group_commands">Controles ao vivo</string>
     <string name="broadcast_control_group_share">Link e compartilhamento</string>
     <string name="msg_transfer_same_folder_refused">Esta já é a pasta do arquivo. Escolha um destino diferente.</string>
+    <string name="settings_collapse_all">Recolher tudo</string>
 </resources>

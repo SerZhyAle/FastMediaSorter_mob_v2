@@ -21,12 +21,12 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.menu.StreamMenuAction
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.ItemStreamSourceBinding
+import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.ui.browse.InlinePlaybackAnimator
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastEndpointManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamTopicRubricCatalog
-import com.sza.fastmediasorter.ui.streams.helpers.StreamsLiveBroadcastsManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -168,7 +168,7 @@ class StreamSourceAdapter(
             bindPlayStatus(playOutcomes[source.id])
             binding.tvNowPlaying.visibility = if (isPlaying) View.VISIBLE else View.GONE
             if (isPlaying) playbackAnimator.startNote() else playbackAnimator.stopNote()
-            val isLive = source.sourceOrigin == StreamsLiveBroadcastsManager.SOURCE_ORIGIN_LIVE_BROADCAST
+            val isLive = source.sourceOrigin == ObserveLiveBroadcastSourcesUseCase.SOURCE_ORIGIN_LIVE_BROADCAST
             if (isLive) {
                 binding.tvGeo.text = binding.root.context.getString(R.string.stream_source_live_badge)
                 binding.tvGeo.contentDescription = binding.root.context.getString(R.string.stream_source_live_badge)

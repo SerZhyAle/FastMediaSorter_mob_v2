@@ -1093,4 +1093,11 @@
     <string name="wear_exchange_server_honest_text">এক্সচেঞ্জ সার্ভার আপনার ডিভাইসগুলোকে যুক্ত করে, তাই এটি আপনার অ্যাকাউন্ট, ডিভাইস, ফোল্ডার ও ব্রডকাস্টের নাম জানে, কোন ডিভাইস অনলাইনে আছে তা দেখে এবং কতটা আর কখন পাঠানো হয়েছে তাও দেখে। এর ভেতর দিয়ে যা যায় তা এটি খুলতে পারে না: ফোল্ডার ও তাদের ফাইল, ব্রডকাস্ট এবং ক্লিপবোর্ড আপনার ডিভাইসেই এনক্রিপ্ট করা হয় এবং শুধু আপনার অন্য ডিভাইসে বা আপনি যাদের অ্যাক্সেস দিয়েছেন তাদের কাছে খোলা হয়। ভেতরে দেখতে হলে যিনি সার্ভার চালান তাঁকে আপনার অ্যাকাউন্টে নিজের একটি ডিভাইস যোগ করতে হবে, আর সেটি আপনার ডিভাইসের তালিকায় দেখা যাবে।</string>
     <string name="wear_stream_broadcast_unplayable">এই ব্রডকাস্ট ঘড়িতে চলে না</string>
     <string name="wear_exchange_reason_format_unsupported">এই ফরম্যাট এই প্রোগ্রামের সমর্থিত ফরম্যাটের চেয়ে নতুন। কিছুই ইম্পোর্ট করা হয়নি। একটি সামঞ্জস্যপূর্ণ প্রোগ্রাম ব্যবহার করুন।</string>
+    <string name="wear_clipboard_open_in_action">এতে খুলুন..</string>
+    <string name="wear_open_in_title">এতে খুলুন..</string>
+    <string name="wear_open_in_none">ঘড়ির কোনো অ্যাপ এটি খুলতে পারে না।</string>
+    <string name="wear_open_in_failed">%1$s-এ খোলা যায়নি।</string>
+    <string name="wear_open_in_role_last_used">সর্বশেষ ব্যবহৃত</string>
+    <string name="wear_open_in_role_browser">ব্রাউজার</string>
+    <string name="wear_open_in_role_maps">মানচিত্র</string>
 </resources>

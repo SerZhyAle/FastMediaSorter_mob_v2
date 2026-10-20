@@ -2298,6 +2298,7 @@
     <string name="streams_atlas_prompt_message">Scaricare le anteprime dei canali, così i canali video mostrano un\'immagine prima della riproduzione?</string>
     <string name="streams_atlas_prompt_action">Scarica</string>
     <string name="streams_filter_topic">Argomento</string>
+    <string name="streams_filter_collection">Raccolta</string>
     <string name="launcher_gadget_weather">Meteo</string>
     <string name="launcher_gadget_weather_actions">Meteo. Tocca per aprire l\'app meteo, tieni premuto per cambiare località</string>
     <string name="launcher_gadget_weather_no_location">Tieni premuto per scegliere una località</string>
@@ -2848,7 +2849,7 @@
     <string name="launcher_now_playing_artwork">Copertina dell\'album</string>
     <string name="launcher_gadget_translator">Traduttore</string>
     <string name="launcher_translator_hint">Testo da tradurre</string>
-    <string name="launcher_translator_paste">Traduci dagli appunti</string>
+    <string name="launcher_translator_paste">Incolla e traduci</string>
     <string name="launcher_translator_swap">Scambia le lingue</string>
     <string name="launcher_translator_model_missing">Il pacchetto lingua è ancora in download. La traduzione inizierà appena sarà pronto.</string>
     <string name="launcher_translator_empty">Digita o incolla qualcosa da tradurre.</string>
@@ -4023,4 +4024,5 @@
     <string name="broadcast_control_group_commands">Comandi dal vivo</string>
     <string name="broadcast_control_group_share">Link e condivisione</string>
     <string name="msg_transfer_same_folder_refused">Questa è già la cartella del file. Scegli una destinazione diversa.</string>
+    <string name="settings_collapse_all">Comprimi tutto</string>
 </resources>

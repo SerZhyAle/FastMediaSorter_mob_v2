@@ -355,4 +355,5 @@
         <item quantity="other">%1$d dispositivos saíram da sessão.</item>
     </plurals>
     <string name="exchange_format_unsupported">Este formato é mais novo do que este programa suporta. Nada foi importado. Use um programa compatível.</string>
+    <string name="stream_source_live_badge">Ao vivo</string>
 </resources>

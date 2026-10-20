@@ -2291,6 +2291,7 @@
     <string name="streams_atlas_prompt_message">要下载频道预览图，让视频频道在播放前显示画面吗？</string>
     <string name="streams_atlas_prompt_action">下载</string>
     <string name="streams_filter_topic">主题</string>
+    <string name="streams_filter_collection">合集</string>
     <string name="launcher_gadget_weather">天气</string>
     <string name="launcher_gadget_weather_actions">天气。点击打开天气应用，长按更改地点</string>
     <string name="launcher_gadget_weather_no_location">长按选择地点</string>
@@ -2838,7 +2839,7 @@
     <string name="launcher_now_playing_artwork">专辑封面</string>
     <string name="launcher_gadget_translator">翻译器</string>
     <string name="launcher_translator_hint">待翻译文本</string>
-    <string name="launcher_translator_paste">从剪贴板翻译</string>
+    <string name="launcher_translator_paste">粘贴并翻译</string>
     <string name="launcher_translator_swap">交换语言</string>
     <string name="launcher_translator_model_missing">语言包仍在下载中。准备就绪后即会开始翻译。</string>
     <string name="launcher_translator_empty">输入或粘贴要翻译的内容。</string>
@@ -4023,4 +4024,5 @@
     <string name="broadcast_control_group_commands">实时控制</string>
     <string name="broadcast_control_group_share">链接与共享</string>
     <string name="msg_transfer_same_folder_refused">此处已是该文件的所在文件夹。请选择其他目的地。</string>
+    <string name="settings_collapse_all">全部收起</string>
 </resources>

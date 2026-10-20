@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.18 15:46</sub>
+<sub class="doc-stamp">26.10.20 13:45</sub>
 
 # Play publishing state
 
@@ -250,7 +250,7 @@ the only writer of this block and the only script that reads that API.
 
 <!-- s2272:measured:vitals:begin -->
 
-**Verdict:** `insufficient-data` - measured 2026-10-18 (UTC), window 2026-09-18..2026-10-15 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
+**Verdict:** `insufficient-data` - measured 2026-10-20 (UTC), window 2026-09-18..2026-10-15 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
 
 | Finding | Scope | Value | Band | Colour | Distinct users |
 |---------|-------|-------|------|--------|----------------|

@@ -1093,4 +1093,11 @@
     <string name="wear_exchange_server_honest_text">تبادلہ سرور آپ کے آلات کو جوڑتا ہے، اس لیے وہ آپ کے اکاؤنٹ، آلات، فولڈرز اور نشریات کے نام جانتا ہے، دیکھتا ہے کہ کون سے آلات آن لائن ہیں، اور یہ بھی کہ کتنا کچھ اور کب بھیجا گیا۔ وہ اس میں سے جو کچھ گزرتا ہے اسے کھول نہیں سکتا: فولڈرز اور ان کی فائلیں، نشریات اور کلپ بورڈ آپ کے آلے پر انکرپٹ ہوتے ہیں اور صرف آپ کے دوسرے آلات پر یا ان لوگوں کے ہاں کھلتے ہیں جنہیں آپ نے رسائی دی ہے۔ اندر جھانکنے کے لیے سرور چلانے والے کو آپ کے اکاؤنٹ میں اپنا کوئی آلہ شامل کرنا پڑے گا، اور وہ آپ کے آلات کی فہرست میں نظر آئے گا۔</string>
     <string name="wear_stream_broadcast_unplayable">یہ نشریہ گھڑی پر نہیں چلتا</string>
     <string name="wear_exchange_reason_format_unsupported">یہ فارمیٹ اس پروگرام کی سپورٹ سے نیا ہے۔ کچھ درآمد نہیں ہوا۔ ہم آہنگ پروگرام استعمال کریں۔</string>
+    <string name="wear_clipboard_open_in_action">اس میں کھولیں..</string>
+    <string name="wear_open_in_title">اس میں کھولیں..</string>
+    <string name="wear_open_in_none">گھڑی کی کوئی ایپ اسے نہیں کھول سکتی۔</string>
+    <string name="wear_open_in_failed">%1$s میں کھولا نہ جا سکا۔</string>
+    <string name="wear_open_in_role_last_used">آخری بار استعمال شدہ</string>
+    <string name="wear_open_in_role_browser">براؤزر</string>
+    <string name="wear_open_in_role_maps">نقشے</string>
 </resources>

@@ -359,4 +359,5 @@
         <item quantity="other">تم تسجيل خروج %1$d من الأجهزة.</item>
     </plurals>
     <string name="exchange_format_unsupported">هذه الصيغة أحدث مما يدعمه هذا البرنامج. لم يُستورد شيء. استخدم برنامجًا متوافقًا.</string>
+    <string name="stream_source_live_badge">مباشر</string>
 </resources>

@@ -359,4 +359,5 @@
         <item quantity="other">%1$d 台设备已退出登录。</item>
     </plurals>
     <string name="exchange_format_unsupported">此格式比本应用支持的版本更新。未导入任何内容。请使用兼容的应用。</string>
+    <string name="stream_source_live_badge">直播</string>
 </resources>

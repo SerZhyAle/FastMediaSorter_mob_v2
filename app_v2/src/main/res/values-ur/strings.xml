@@ -2293,6 +2293,7 @@
     <string name="streams_atlas_prompt_message">چینل کے پیش منظر ڈاؤن لوڈ کریں تاکہ ویڈیو چینلز چلانے سے پہلے تصویر دکھائیں؟</string>
     <string name="streams_atlas_prompt_action">ڈاؤن لوڈ</string>
     <string name="streams_filter_topic">موضوع</string>
+    <string name="streams_filter_collection">مجموعہ</string>
     <string name="launcher_gadget_weather">موسم</string>
     <string name="launcher_gadget_weather_actions">موسم۔ موسم کی ایپ کھولنے کے لیے تھپتھپائیں، جگہ تبدیل کرنے کے لیے دبا کر رکھیں</string>
     <string name="launcher_gadget_weather_no_location">جگہ منتخب کرنے کے لیے دبا کر رکھیں</string>
@@ -2843,7 +2844,7 @@
     <string name="launcher_now_playing_artwork">البم آرٹ</string>
     <string name="launcher_gadget_translator">مترجم</string>
     <string name="launcher_translator_hint">ترجمہ کرنے کے لیے متن</string>
-    <string name="launcher_translator_paste">کلپ بورڈ سے ترجمہ کریں</string>
+    <string name="launcher_translator_paste">پیسٹ کریں اور ترجمہ کریں</string>
     <string name="launcher_translator_swap">زبانیں تبدیل کریں</string>
     <string name="launcher_translator_model_missing">لینگویج پیک ابھی بھی ڈاؤن لوڈ ہو رہا ہے۔ تیار ہوتے ہی ترجمہ شروع ہو جائے گا۔</string>
     <string name="launcher_translator_empty">ترجمہ کرنے کے لیے کچھ ٹائپ کریں یا پیسٹ کریں۔</string>
@@ -4027,4 +4028,5 @@
     <string name="broadcast_control_group_commands">لائیو کنٹرولز</string>
     <string name="broadcast_control_group_share">لنک اور شیئرنگ</string>
     <string name="msg_transfer_same_folder_refused">یہ پہلے ہی فائل کا فولڈر ہے۔ کوئی دوسری منزل چنیں۔</string>
+    <string name="settings_collapse_all">سب سمیٹیں</string>
 </resources>

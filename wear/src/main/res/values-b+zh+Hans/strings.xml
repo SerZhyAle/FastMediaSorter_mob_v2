@@ -1093,4 +1093,11 @@
     <string name="wear_exchange_server_honest_text">交换服务器负责连接您的各台设备，因此它知道您的账户、设备、文件夹和广播的名称，能看到哪些设备在线，以及发送了多少内容、何时发送。但它无法打开经过它的内容：文件夹及其文件、广播和剪贴板都在您的设备上加密，只能在您的其他设备上，或由您授予访问权限的人打开。要查看其中的内容，服务器的管理者必须在您的账户中添加一台自己的设备，而该设备会出现在您的设备列表中。</string>
     <string name="wear_stream_broadcast_unplayable">此广播无法在手表上播放</string>
     <string name="wear_exchange_reason_format_unsupported">此格式比本应用支持的版本更新。未导入任何内容。请使用兼容的应用。</string>
+    <string name="wear_clipboard_open_in_action">打开方式..</string>
+    <string name="wear_open_in_title">打开方式..</string>
+    <string name="wear_open_in_none">手表上没有可以打开此内容的应用。</string>
+    <string name="wear_open_in_failed">无法在 %1$s 中打开。</string>
+    <string name="wear_open_in_role_last_used">上次使用</string>
+    <string name="wear_open_in_role_browser">浏览器</string>
+    <string name="wear_open_in_role_maps">地图</string>
 </resources>

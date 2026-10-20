@@ -5,7 +5,7 @@ description: "Share folders from a media PC or a phone over your own router: dir
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/home-network.html
 ---
-<sub class="doc-stamp">26.10.15 15:03</sub>
+<sub class="doc-stamp">26.10.20 12:17</sub>
 
 # Home network: your storage, reachable from outside
 
@@ -15,7 +15,7 @@ The home network way needs no server of anyone else: your own router, and one de
 
 ## Who shares, who opens
 
-- **A Windows PC shares** the folders you pick with **Share Manager**, the tray program of [Fast Media Sorter & Sharing for Windows](windows-servers.html). A PC that has to stay available with nobody signed in uses the [Server edition](windows-servers.html), which runs the same sharing as a Windows service. The SFTP service ships switched off and starts only once you enable it.
+- **A Windows PC shares** the folders you pick with **Share Manager**, the tray program that is the folder-sharing part of [Fast Media Sorter & Sharing for Windows](windows-servers.html#three-parts). Start [viewer first](windows-servers.html#viewer-first) for a PC you also work on, or [server first](windows-servers.html#server-first) with the Server edition for a PC that has to stay available with nobody signed in, which runs the same sharing as a Windows service. The SFTP service ships switched off and starts only once you enable it. The exchange server is a different part and is not needed for the home network.
 - **A phone shares** its own folders: FastMediaSorter turns it into an SFTP server from **Settings**, the **General** tab, the **Share over SFTP** card.
 - **A NAS or a PC with Windows sharing** offers its SMB shares as they are, with nothing to install.
 - **Every other device opens them**: a phone, a tablet, an Android TV and a VR headset add the folder as a network resource in FastMediaSorter; the watch opens network folders too.
@@ -59,3 +59,9 @@ Inside the home network the devices connect to each other directly, at full loca
 - [Publishing PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html), on the Windows product's site
 
 Back to the [portal start page](index.html).
+
+## Windows settings windows {#windows-settings-windows}
+
+For Windows builds with separate settings windows. Earlier builds keep these pages together under Manager settings. This navigation change does not make an unreleased component available. The availability statements above still apply.
+
+First identify the connection: direct SFTP sharing or a connection through an exchange account. For direct SFTP, inspect Network and Hosting in SFTP sharing settings. For a remote account, inspect Exchange account in Manager settings. For the server installed on this PC, use Exchange server settings. Installed, enabled, running and reachable are different states; opening settings does not enable or start anything.

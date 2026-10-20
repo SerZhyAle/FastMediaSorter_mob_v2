@@ -5,11 +5,11 @@ import com.sza.fastmediasorter.data.repository.settings.StreamsSessionStore
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
+import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamCollectionsUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamPlayOutcomesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.testing.MainDispatcherRule
-import com.sza.fastmediasorter.ui.streams.helpers.StreamsLiveBroadcastsManager
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -71,9 +71,8 @@ class StreamsStaleFacetSelectionTest {
         every { observeStreamPlayOutcomes() } returns flowOf(emptyMap())
         val observeStreamCollections = mockk<ObserveStreamCollectionsUseCase>()
         every { observeStreamCollections() } returns flowOf(emptyList())
-        val liveBroadcastsManager = mockk<StreamsLiveBroadcastsManager>()
-        every { liveBroadcastsManager.observeLiveSources() } returns flowOf(emptyList())
-        every { liveBroadcastsManager.refresh() } returns Unit
+        val observeLiveBroadcastSources = mockk<ObserveLiveBroadcastSourcesUseCase>()
+        every { observeLiveBroadcastSources(any()) } returns flowOf(emptyList())
         return StreamsViewModel(
             observeStreamSources = observeStreamSources,
             addStreamSource = mockk(relaxed = true),
@@ -103,7 +102,7 @@ class StreamsStaleFacetSelectionTest {
             sendStreamToWatchUseCase = mockk(relaxed = true),
             buildWatchBroadcastHandoff = mockk(relaxed = true),
             observeStreamCollections = observeStreamCollections,
-            liveBroadcastsManager = liveBroadcastsManager,
+            observeLiveBroadcastSources = observeLiveBroadcastSources,
         )
     }
 

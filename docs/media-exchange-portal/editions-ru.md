@@ -5,7 +5,7 @@ description: "В какой редакции FastMediaSorter для Android ес
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/editions-ru.html
 ---
-<sub class="doc-stamp">26.10.15 15:04</sub>
+<sub class="doc-stamp">26.10.20 12:24</sub>
 
 # Редакции: в каком приложении какой способ обмена
 
@@ -40,7 +40,7 @@ FastMediaSorter для Android выходит в нескольких редак
 - **Без закрытых компонентов** - FOSS сохраняет сетевые папки, SFTP-сервер телефона и «Мои устройства», без облаков и без файлов через Google Drive.
 - **Lite** работает только с медиа на самом устройстве.
 
-Программы для Windows - отдельные продукты, и эта таблица к ним не относится: Fast Media Sorter & Sharing for Windows выходит как полный пакет и как серверная редакция, которая держит папки ПК доступными круглые сутки, см. [Серверы Windows](windows-servers-ru.html), а [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/) - отдельная программа.
+Программы для Windows - отдельные продукты, и эта таблица к ним не относится: у Fast Media Sorter & Sharing for Windows три необязательные части - просмотрщик и сортировщик, раздача папок и сервер обмена - и два способа начать: сначала просмотрщик с полным пакетом и сначала сервер с серверной редакцией, которая держит папки ПК доступными круглые сутки, см. [Серверы Windows](windows-servers-ru.html#editions), а [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/) - отдельная программа.
 
 ## Пошаговые инструкции
 

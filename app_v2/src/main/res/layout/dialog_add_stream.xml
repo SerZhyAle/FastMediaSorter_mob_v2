@@ -25,6 +25,20 @@
             android:imeOptions="actionNext|flagNoExtractUi" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- S4406: shown for a manual add on a device with a camera only; the host decides. The code is the
+         one a live broadcast shows, so another own device can be joined without typing its address. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnScanBroadcastQr"
+        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/token_spacing_8"
+        android:clickable="true"
+        android:focusable="true"
+        android:text="@string/broadcast_import_option_qr"
+        android:visibility="gone"
+        app:icon="@drawable/ic_qr_scan" />
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilTitle"
         android:layout_width="match_parent"

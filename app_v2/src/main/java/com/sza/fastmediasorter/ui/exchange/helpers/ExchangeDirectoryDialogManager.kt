@@ -19,8 +19,8 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import timber.log.Timber
 
 /**
- * The "From my devices" dialog of the add-resource wizard (S4116 strategic 6.3). It stays open across attaches so
- * the user sees each resource turn "Attached"; the directory is watched only while it is shown.
+ * The "From my devices" dialog of the add-resource wizard. A completed batch returns to the resource list;
+ * failed or skipped attachments keep the directory open so the user can retry.
  */
 class ExchangeDirectoryDialogManager(
     private val activity: AppCompatActivity,
@@ -35,6 +35,11 @@ class ExchangeDirectoryDialogManager(
     init {
         activity.collectOnLifecycle(viewModel.state, block = ::render)
         activity.collectOnLifecycle(viewModel.pinPrompt, block = pinPrompt::render)
+        activity.collectOnLifecycle(viewModel.attachmentsCompleted) {
+            Timber.d("S4402: exchange import completed; closing resource type selection")
+            dialog?.dismiss()
+            activity.finish()
+        }
         activity.collectOnLifecycle(viewModel.messages) { message ->
             Toast.makeText(activity, MyDevicesDialogManager.resolve(activity, message), Toast.LENGTH_LONG).show()
         }

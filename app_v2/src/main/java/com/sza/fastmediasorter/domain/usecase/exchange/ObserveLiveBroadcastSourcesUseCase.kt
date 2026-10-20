@@ -1,42 +1,31 @@
-package com.sza.fastmediasorter.ui.streams.helpers
+package com.sza.fastmediasorter.domain.usecase.exchange
 
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorParser
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.model.ExchangeDeviceBroadcast
-import com.sza.fastmediasorter.domain.usecase.exchange.ObserveAccountBroadcastsUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
-import timber.log.Timber
 
 /**
  * S4392: Prepares live broadcasts of the exchange account as synthetic [StreamSourceEntity] instances
- * for the "Own" category filter in the streams catalog.
+ * for the "Own" category filter in the streams catalog. The mapping lives here, not in the UI layer,
+ * because it reads the data-layer descriptor parser and builds a Room entity.
  */
-class StreamsLiveBroadcastsManager @Inject constructor(
+class ObserveLiveBroadcastSourcesUseCase @Inject constructor(
     private val observeAccountBroadcasts: ObserveAccountBroadcastsUseCase,
     private val descriptorParser: BroadcastDescriptorParser,
 ) {
 
-    private val refreshTrigger = MutableStateFlow(0L)
-
     /**
-     * S4392: Triggers an immediate re-query of the account's live broadcasts.
-     */
-    fun refresh() {
-        Timber.d("S4392: live broadcasts refreshed from exchange directory")
-        refreshTrigger.value = System.currentTimeMillis()
-    }
-
-    /**
-     * Emits the current list of live broadcast sources for this account.
+     * Emits the current list of live broadcast sources for this account, re-querying the directory
+     * every time [refreshTrigger] emits.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun observeLiveSources(): Flow<List<StreamSourceEntity>> =
+    operator fun invoke(refreshTrigger: Flow<Long>): Flow<List<StreamSourceEntity>> =
         refreshTrigger.flatMapLatest {
             observeAccountBroadcasts().map { broadcastGroup ->
                 broadcastGroup.items.mapNotNull(::toSyntheticSource)

@@ -20,7 +20,16 @@
             <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
 
             <!-- S4394: collapse-all for the current page; triangle up = drop-down glyph rotated, gone until a group is expanded -->
-            <ImageButton android:id="@+id/btnCollapseAllGroups" android:layout_width="32dp" android:layout_height="32dp" android:background="?attr/colorPrimary" android:contentDescription="@string/settings_collapse_all" android:rotation="180" android:src="@drawable/ic_arrow_drop_down" android:visibility="gone" app:tint="?attr/colorOnPrimary" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCollapseAllGroups"
+                style="@style/Widget.FastMediaSorter.Button.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/settings_collapse_all"
+                android:rotation="180"
+                android:visibility="gone"
+                app:icon="@drawable/ic_arrow_drop_down"
+                app:iconTint="?attr/colorOnPrimary" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSettingsHelp"

@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
+import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.BuildWatchBroadcastHandoffUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ClearDownloadedStreamsUseCase
@@ -133,7 +134,7 @@ class StreamsViewModel @Inject constructor(
     // needs the repository or the Room entity behind it.
     private val observeStreamCollections: ObserveStreamCollectionsUseCase,
     // S4392: own exchange account live broadcasts for the "Own" category filter.
-    private val liveBroadcastsManager: com.sza.fastmediasorter.ui.streams.helpers.StreamsLiveBroadcastsManager,
+    private val observeLiveBroadcastSources: ObserveLiveBroadcastSourcesUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -220,6 +221,9 @@ class StreamsViewModel @Inject constructor(
 
     private val _filter = MutableStateFlow(StreamsFilter())
 
+    // S4392: each new value makes the live-broadcast source re-query the exchange directory.
+    private val liveRefresh = MutableStateFlow(0L)
+
     // S0659: guards the one-shot session/defaults seed in init against clobbering an early user change.
     @Volatile
     private var initialFilterApplied = false
@@ -266,7 +270,7 @@ class StreamsViewModel @Inject constructor(
         // into the catalog stream so the pure filter logic handles them without altering Room DB.
         combine(
             observeStreamSources(),
-            liveBroadcastsManager.observeLiveSources(),
+            observeLiveBroadcastSources(liveRefresh),
             _filter,
             observeStreamCollections()
         ) { sources, liveSources, filter, collections ->
@@ -795,7 +799,8 @@ class StreamsViewModel @Inject constructor(
 
     /** S4392: re-polls live broadcasts of the exchange account on screen start or pull-to-refresh. */
     fun refreshLiveBroadcasts() {
-        liveBroadcastsManager.refresh()
+        Timber.d("S4392: live broadcasts refreshed from exchange directory")
+        liveRefresh.value = System.currentTimeMillis()
     }
 
     companion object {

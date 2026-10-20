@@ -1,10 +1,10 @@
-<sub class="doc-stamp">26.10.15 15:05</sub>
+<sub class="doc-stamp">26.10.20 12:06</sub>
 
 # Media exchange and broadcasting portal - illustration set
 
 Status: **picture set selected; the portal pages are written** (tickets S4140, S4243 and S4242). The pages are
-`index`, `home-network`, `exchange-server`, `exchange-server-install`, `exchange-accounts`,
-`exchange-clipboard`, `account-deletion`, `live-broadcast`, `clouds`, `editions` and `windows-servers`, and
+`index`, `home-network`, `exchange-server`, `exchange-server-purpose`, `exchange-server-quick-start`,
+`exchange-server-install`, `exchange-accounts`, `exchange-clipboard`, `account-deletion`, `live-broadcast`, `clouds`, `editions` and `windows-servers`, and
 the eight scenario pages `folders-exchange-server`, `folders-google-drive`, `broadcast-start`,
 `broadcast-receive`, `watch-exchange`, `schedule-remote-folders`, `phone-sharing` and `my-devices`,
 each in English, Russian (`-ru`) and Ukrainian (`-uk`); they embed the pictures listed below, and each

@@ -222,7 +222,6 @@ private fun SectionHeader(label: String) {
 private fun FailureLines(failure: WearExchangeMessage) {
     LaunchedEffect(failure) {
         Timber.i("Exchange failure shown on the account list: code=%s", failure.code)
-        Timber.d("S4236: account list failure shown, code=%s", failure.code)
     }
     StatusLine(failure.messageRes())
     StatusLine(EXCHANGE_DETAILS_ON_PHONE_RES)

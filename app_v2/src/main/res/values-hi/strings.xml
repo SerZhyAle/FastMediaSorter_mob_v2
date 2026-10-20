@@ -2290,6 +2290,7 @@
     <string name="streams_atlas_prompt_message">चैनल पूर्वावलोकन डाउनलोड करें ताकि वीडियो चैनल चलाने से पहले तस्वीर दिखाएं?</string>
     <string name="streams_atlas_prompt_action">डाउनलोड करें</string>
     <string name="streams_filter_topic">विषय</string>
+    <string name="streams_filter_collection">संग्रह</string>
     <string name="launcher_gadget_weather">मौसम</string>
     <string name="launcher_gadget_weather_actions">मौसम. मौसम ऐप खोलने के लिए टैप करें, स्थान बदलने के लिए देर तक दबाएं</string>
     <string name="launcher_gadget_weather_no_location">स्थान चुनने के लिए देर तक दबाएं</string>
@@ -2839,7 +2840,7 @@
     <string name="launcher_now_playing_artwork">एल्बम आर्ट</string>
     <string name="launcher_gadget_translator">अनुवादक</string>
     <string name="launcher_translator_hint">अनुवाद के लिए टेक्स्ट</string>
-    <string name="launcher_translator_paste">क्लिपबोर्ड से अनुवाद करें</string>
+    <string name="launcher_translator_paste">पेस्ट करें और अनुवाद करें</string>
     <string name="launcher_translator_swap">भाषाएं बदलें</string>
     <string name="launcher_translator_model_missing">भाषा पैक अभी डाउनलोड हो रहा है. तैयार होते ही अनुवाद शुरू हो जाएगा.</string>
     <string name="launcher_translator_empty">अनुवाद के लिए कुछ टाइप करें या पेस्ट करें.</string>
@@ -4022,4 +4023,5 @@
     <string name="broadcast_control_group_commands">लाइव नियंत्रण</string>
     <string name="broadcast_control_group_share">लिंक और साझा करना</string>
     <string name="msg_transfer_same_folder_refused">यह पहले से फ़ाइल का फ़ोल्डर है। कोई दूसरा गंतव्य चुनें।</string>
+    <string name="settings_collapse_all">सभी संक्षिप्त करें</string>
 </resources>

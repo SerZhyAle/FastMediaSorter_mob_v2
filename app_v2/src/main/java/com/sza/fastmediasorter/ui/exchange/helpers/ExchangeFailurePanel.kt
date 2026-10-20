@@ -44,7 +44,6 @@ class ExchangeFailurePanel(
         diagnosis = failure
         stepIndex = 0
         Timber.i("Exchange failure shown: code=%s steps=%d", failure.code, failure.steps.size)
-        Timber.d("S4236: failure panel shown, code=%s", failure.code)
         binding.root.isVisible = true
         binding.textExchangeFailureWhat.setText(ExchangeMessageText.what(failure.message))
         binding.textExchangeFailureCode.text = activity.getString(R.string.exchange_failure_details_code, failure.code)
@@ -67,7 +66,6 @@ class ExchangeFailurePanel(
     }
 
     private fun showNextStep() {
-        Timber.d("S4236: next step requested")
         stepIndex++
         renderStep()
     }
@@ -77,7 +75,6 @@ class ExchangeFailurePanel(
     }
 
     private fun sendLog() {
-        Timber.d("S4236: log export requested from the failure panel")
         activity.lifecycleScope.launch {
             when (val result = LogExportHelper.exportLogs(activity)) {
                 is LogExportHelper.ExportResult.NoLogs -> toast(activity.getString(R.string.exchange_failure_log_none))

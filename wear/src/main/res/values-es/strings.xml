@@ -1091,4 +1091,11 @@
     <string name="wear_exchange_server_honest_text">El servidor de intercambio conecta tus dispositivos, así que conoce los nombres de tu cuenta, tus dispositivos, carpetas y difusiones, ve qué dispositivos están en línea, y cuánto se envía y cuándo. No puede abrir lo que pasa por él: las carpetas y sus archivos, las difusiones y el portapapeles se cifran en tu dispositivo y solo se abren en tus otros dispositivos o por las personas a las que diste acceso. Para mirar dentro, quien administra el servidor tendría que añadir un dispositivo propio a tu cuenta, y aparecería en tu lista de dispositivos.</string>
     <string name="wear_stream_broadcast_unplayable">Esta difusión no se reproduce en el reloj</string>
     <string name="wear_exchange_reason_format_unsupported">Este formato es más nuevo de lo que admite esta aplicación. No se importó nada. Usa una aplicación compatible.</string>
+    <string name="wear_clipboard_open_in_action">Abrir con..</string>
+    <string name="wear_open_in_title">Abrir con..</string>
+    <string name="wear_open_in_none">Ninguna aplicación del reloj puede abrir esto.</string>
+    <string name="wear_open_in_failed">No se pudo abrir en %1$s.</string>
+    <string name="wear_open_in_role_last_used">Último usado</string>
+    <string name="wear_open_in_role_browser">Navegador</string>
+    <string name="wear_open_in_role_maps">Mapas</string>
 </resources>

@@ -34,11 +34,15 @@ import com.sza.fastmediasorter.wear.data.exchange.WearExchangeRemoval
 import com.sza.fastmediasorter.wear.domain.model.WearExchangeMessage
 import com.sza.fastmediasorter.wear.ui.common.EXCHANGE_DETAILS_ON_PHONE_RES
 import com.sza.fastmediasorter.wear.ui.common.StandardWearAlertDialog
+import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.settings.SettingsRoutes
 import timber.log.Timber
+
+/** The empty-state line: item 1, under the title item. */
+private const val EMPTY_STATE_ITEM = 1
 
 /**
  * S4158: the exchange servers this watch joined from the phone. One chip per server - its address, its login and
@@ -50,9 +54,15 @@ fun WearExchangeServersScreen(
     onOpenBroadcasts: () -> Unit = {},
     onOpenFolders: (WearExchangeEntry) -> Unit = {},
     viewModel: WearExchangeServersViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.EXCHANGE_SERVERS),
 ) {
     val entries by viewModel.entries.collectAsStateWithLifecycle()
+    // S4411: the shared opening anchor centres item 2, which on an empty list is the long paragraph after
+    // the empty-state line - the screen opened on a wall of text with its own state off the glass. An empty
+    // list opens on that line instead; a list with servers keeps the shared rule.
+    val listState = rememberWearListState(
+        initialCenterItemIndex = if (entries?.isEmpty() == true) EMPTY_STATE_ITEM else WEAR_LIST_ANCHOR,
+        positionKey = SettingsRoutes.EXCHANGE_SERVERS,
+    )
     val overlay by viewModel.overlay.collectAsStateWithLifecycle()
 
     when (val shown = overlay) {

@@ -1,9 +1,7 @@
 package com.sza.fastmediasorter.broadcast
 
 import android.content.Context
-import android.content.res.Configuration
 import android.os.Handler
-import android.os.Looper
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.ViewGroup
@@ -30,10 +28,10 @@ import javax.inject.Singleton
  */
 @Singleton
 class BroadcastPreviewProvider @Inject constructor(
-    @param:ApplicationContext private val appContext: Context,
+    @ApplicationContext appContext: Context,
 ) : BroadcastPreviewBinder {
 
-    private val mainHandler = Handler(Looper.getMainLooper())
+    private val mainHandler = Handler(appContext.mainLooper)
 
     @Volatile
     private var camera: RtspServerCamera2? = null
@@ -107,7 +105,9 @@ class BroadcastPreviewProvider @Inject constructor(
         val renderer = offscreenRenderer() ?: return
         val view = previewView?.get()?.takeIf { it.holder.surface.isValid } ?: return
         val frame = view.holder.surfaceFrame
-        val portrait = appContext.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+        // A copy scales the encoded image; rotating the control screen does not rotate a running stream.
+        val size = renderer.encoderSize
+        val portrait = size.x < size.y
         try {
             Timber.d("S4347: addMultiPreviewSurface portrait=$portrait")
             renderer.addMultiPreviewSurface(

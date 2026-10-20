@@ -61,3 +61,9 @@ Via Google Drive, files and the clipboard are kept in your own Google account, l
 - [Background transfers](../../documentation/storage/background-transfers.html)
 
 Back to the [portal start page](index.html).
+
+## Windows settings windows {#windows-settings-windows}
+
+For Windows builds with separate settings windows. Earlier builds keep these pages together under Manager settings. This navigation change does not make an unreleased component available. The availability statements above still apply.
+
+On Windows, open Manager settings, Scheduled file operations, or use the schedule entry in the tray or folder menu. Schedules belong to the signed-in manager and do not require SFTP to be enabled or the local exchange server to be installed. Closing a settings window does not stop scheduled work.

@@ -5,7 +5,7 @@ import com.sza.fastmediasorter.core.menu.MenuActionSurface
 import com.sza.fastmediasorter.core.menu.StreamActionCatalog
 import com.sza.fastmediasorter.core.menu.StreamMenuAction
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
-import com.sza.fastmediasorter.ui.streams.helpers.StreamsLiveBroadcastsManager
+import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 
 /**
  * S1424: fills a channel's overflow menu from [StreamActionCatalog], for the streams-screen list row
@@ -67,7 +67,7 @@ object StreamMenuBinder {
         facts: StreamActionCatalog.Facts,
         canRun: (StreamMenuAction) -> Boolean,
     ) {
-        val isLive = source.sourceOrigin == StreamsLiveBroadcastsManager.SOURCE_ORIGIN_LIVE_BROADCAST
+        val isLive = source.sourceOrigin == ObserveLiveBroadcastSourcesUseCase.SOURCE_ORIGIN_LIVE_BROADCAST
         val pinnedIndex = pinnedRows.indexOfFirst { it.id == source.id }
         StreamActionCatalog.actionsFor(MenuActionSurface.MAIN_WINDOW, facts) { action ->
             if (isLive && action in LIVE_EXCLUDED_ACTIONS) false else canRun(action)

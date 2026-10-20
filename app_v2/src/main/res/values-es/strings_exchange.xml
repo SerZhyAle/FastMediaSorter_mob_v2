@@ -359,4 +359,5 @@
         <item quantity="other">Se cerró la sesión de %1$d dispositivos.</item>
     </plurals>
     <string name="exchange_format_unsupported">Este formato es más nuevo de lo que admite esta aplicación. No se importó nada. Usa una aplicación compatible.</string>
+    <string name="stream_source_live_badge">En vivo</string>
 </resources>

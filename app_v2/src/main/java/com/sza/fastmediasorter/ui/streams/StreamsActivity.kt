@@ -36,6 +36,7 @@ import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
+import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.input.UiSurface
@@ -63,7 +64,6 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsCommandLabelManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
-import com.sza.fastmediasorter.ui.streams.helpers.StreamsLiveBroadcastsManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsMediaKindTriggerManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsSectionsManager
 import com.sza.fastmediasorter.util.showBoundToHost
@@ -251,12 +251,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private val broadcastImportManager: StreamBroadcastImportManager by lazy {
         StreamBroadcastImportManager(
             activity = this,
-            onScanQrRequested = {
-                broadcastQrScanLauncher.launch(
-                    com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrScanActivity
-                        .createIntent(this)
-                )
-            },
+            onScanQrRequested = ::scanBroadcastQr,
             onPickFileRequested = { broadcastDescriptorPickerLauncher.launch(arrayOf("*/*")) },
         )
     }
@@ -1200,7 +1195,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             // both of which funnel through onPlay.
             !viewModel.hasNetworkForStream ->
                 Toast.makeText(this, R.string.streams_error_no_network, Toast.LENGTH_SHORT).show()
-            StreamsLiveBroadcastsManager.isLiveBroadcast(source) ||
+            ObserveLiveBroadcastSourcesUseCase.isLiveBroadcast(source) ||
                 broadcastEndpoints.needsResolution(source.broadcastEndpoints) ->
                 playBroadcast(source)
             else -> startPlayback(source)
@@ -1423,12 +1418,31 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             }
             .setNegativeButton(R.string.cancel, null)
             .create()
+        // S4406: the code a live broadcast shows is a descriptor, not a URL, so a scan bypasses the typed fields
+        // and imports through the same path as the overflow entry; camera-less devices keep the typed address.
+        dialogBinding.btnScanBroadcastQr.isVisible = !isImport && isBarcodeScanAvailable()
+        dialogBinding.btnScanBroadcastQr.setOnClickListener {
+            Timber.d("S4406: add-stream dialog scan QR tapped")
+            dialog.dismiss()
+            cancelHealthProbe()
+            scanBroadcastQr()
+        }
         DialogKeyboardDelegate.applyTo(dialog) {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
         }
         dialog.showBoundToHost(this@StreamsActivity)
         dialogBinding.etUrl.requestFocus()
     }
+
+    private fun scanBroadcastQr() {
+        broadcastQrScanLauncher.launch(
+            com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrScanActivity.createIntent(this)
+        )
+    }
+
+    /** Barcode import needs a camera; camera-less devices (TV boxes, headsets) type the address or pick a file. */
+    private fun isBarcodeScanAvailable(): Boolean =
+        packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_CAMERA_ANY)
 
     private fun showEditDialog(source: StreamSourceEntity) = StreamEditDialog.show(
         activity = this,

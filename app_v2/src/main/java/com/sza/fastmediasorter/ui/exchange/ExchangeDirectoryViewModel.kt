@@ -117,6 +117,9 @@ class ExchangeDirectoryViewModel @Inject constructor(
     private val _messages = Channel<MyDevicesMessage>(Channel.BUFFERED)
     val messages: Flow<MyDevicesMessage> = _messages.receiveAsFlow()
 
+    private val _attachmentsCompleted = Channel<Unit>(Channel.BUFFERED)
+    val attachmentsCompleted: Flow<Unit> = _attachmentsCompleted.receiveAsFlow()
+
     private var view: ExchangeDirectoryView = ExchangeDirectoryView.EMPTY
     private val selection = MutableStateFlow<Set<ExchangeBinding>>(emptySet())
     private var watch: Job? = null
@@ -128,6 +131,9 @@ class ExchangeDirectoryViewModel @Inject constructor(
     private var promptFor: ExchangeBinding? = null
     private var renewing = false
     private var tickets = 0
+    private var attaching: Job? = null
+    private var batchSucceeded = false
+    private var batchAdded = false
 
     fun open() {
         watch?.cancel()
@@ -143,6 +149,10 @@ class ExchangeDirectoryViewModel @Inject constructor(
     }
 
     fun close() {
+        attaching?.cancel()
+        batchSucceeded = false
+        batchAdded = false
+        while (_attachmentsCompleted.tryReceive().isSuccess) { /* Discard completion from the closed dialog. */ }
         watch?.cancel()
         watch = null
         watching = false
@@ -195,6 +205,7 @@ class ExchangeDirectoryViewModel @Inject constructor(
     /** Drops the open prompt; the resource stays unattached, or keeps asking from the list. */
     fun skipPin() {
         proving?.cancel()
+        batchSucceeded = false
         nextPrompt()
     }
 
@@ -208,8 +219,11 @@ class ExchangeDirectoryViewModel @Inject constructor(
     }
 
     private fun attach(items: List<ExchangeListedResource>) {
-        viewModelScope.launch {
+        if (attaching?.isActive == true || _pinPrompt.value != ExchangePinPrompt.None) return
+        attaching = viewModelScope.launch {
             val result = directory.attach(items)
+            batchSucceeded = result.failed == 0
+            batchAdded = result.attached > 0
             report(result)
             selection.value = emptySet()
             view = directory.sync(view.listing)
@@ -224,6 +238,7 @@ class ExchangeDirectoryViewModel @Inject constructor(
         when (outcome) {
             ExchangePinAttempt.ACCEPTED -> {
                 if (!renewing) {
+                    batchAdded = true
                     _messages.trySend(MyDevicesMessage(R.string.exchange_directory_attached_result, listOf(1)))
                 }
                 selection.update { it - binding }
@@ -241,6 +256,7 @@ class ExchangeDirectoryViewModel @Inject constructor(
     private fun nextPrompt() {
         var next = waiting.removeFirstOrNull()
         while (next != null && view.listing.resource(next.sourceKey, next.resourceId) == null) {
+            batchSucceeded = false
             next = waiting.removeFirstOrNull()
         }
         promptFor = next
@@ -248,6 +264,10 @@ class ExchangeDirectoryViewModel @Inject constructor(
         val name = next?.let { view.listing.resource(it.sourceKey, it.resourceId)?.record?.name }
         _pinPrompt.value = name?.let { ExchangePinPrompt.Asking(it, renewing = false, ticket = ++tickets) }
             ?: ExchangePinPrompt.None
+        if (next == null && batchSucceeded && batchAdded) {
+            batchSucceeded = false
+            _attachmentsCompleted.trySend(Unit)
+        }
     }
 
     private fun setPhase(phase: ExchangePinPhase) {

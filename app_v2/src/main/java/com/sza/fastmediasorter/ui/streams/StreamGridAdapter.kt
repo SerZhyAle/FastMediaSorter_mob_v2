@@ -18,9 +18,9 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.menu.StreamMenuAction
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.ItemStreamGridCellBinding
+import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
-import com.sza.fastmediasorter.ui.streams.helpers.StreamsLiveBroadcastsManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -184,7 +184,7 @@ class StreamGridAdapter(
             val activeTrack = nowPlayingLine?.takeIf { source.id == playingId && it.isNotBlank() }
             binding.tvTitle.text = if (activeTrack != null) "$stationTitle - $activeTrack" else stationTitle
             bindPlayStatus(playOutcomes[source.id])
-            val isLive = source.sourceOrigin == StreamsLiveBroadcastsManager.SOURCE_ORIGIN_LIVE_BROADCAST
+            val isLive = source.sourceOrigin == ObserveLiveBroadcastSourcesUseCase.SOURCE_ORIGIN_LIVE_BROADCAST
             if (isLive) {
                 binding.tvPinBadge.text = context.getString(R.string.stream_source_live_badge)
                 binding.tvPinBadge.isVisible = true

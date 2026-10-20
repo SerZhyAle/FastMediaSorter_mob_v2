@@ -2291,6 +2291,7 @@
     <string name="streams_atlas_prompt_message">চ্যানেল প্রিভিউ ডাউনলোড করবেন, যাতে চালানোর আগে ভিডিও চ্যানেলে ছবি দেখা যায়?</string>
     <string name="streams_atlas_prompt_action">ডাউনলোড</string>
     <string name="streams_filter_topic">বিষয়</string>
+    <string name="streams_filter_collection">সংগ্রহ</string>
     <string name="launcher_gadget_weather">আবহাওয়া</string>
     <string name="launcher_gadget_weather_actions">আবহাওয়া। আবহাওয়া অ্যাপ খুলতে ট্যাপ করুন, স্থান পরিবর্তন করতে দীর্ঘক্ষণ চাপুন</string>
     <string name="launcher_gadget_weather_no_location">স্থান বেছে নিতে দীর্ঘক্ষণ চাপুন</string>
@@ -2841,7 +2842,7 @@
     <string name="launcher_now_playing_artwork">অ্যালবাম আর্ট</string>
     <string name="launcher_gadget_translator">অনুবাদক</string>
     <string name="launcher_translator_hint">অনুবাদের জন্য টেক্সট</string>
-    <string name="launcher_translator_paste">ক্লিপবোর্ড থেকে অনুবাদ করুন</string>
+    <string name="launcher_translator_paste">পেস্ট করুন ও অনুবাদ করুন</string>
     <string name="launcher_translator_swap">ভাষা অদলবদল করুন</string>
     <string name="launcher_translator_model_missing">ভাষা প্যাকটি এখনো ডাউনলোড হচ্ছে। এটি প্রস্তুত হওয়ার সাথে সাথেই অনুবাদ শুরু হবে।</string>
     <string name="launcher_translator_empty">অনুবাদ করতে কিছু টাইপ করুন বা পেস্ট করুন।</string>
@@ -4025,4 +4026,5 @@
     <string name="broadcast_control_group_commands">লাইভ নিয়ন্ত্রণ</string>
     <string name="broadcast_control_group_share">লিংক ও শেয়ারিং</string>
     <string name="msg_transfer_same_folder_refused">এটি ইতিমধ্যে ফাইলটির ফোল্ডার। অন্য একটি গন্তব্য বেছে নিন।</string>
+    <string name="settings_collapse_all">সব সংকুচিত করুন</string>
 </resources>

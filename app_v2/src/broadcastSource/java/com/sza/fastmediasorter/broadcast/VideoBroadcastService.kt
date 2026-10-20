@@ -18,6 +18,7 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.pedro.common.ConnectChecker
 import com.pedro.encoder.input.audio.CustomAudioEffect
+import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.CameraOpenException
 import com.pedro.rtspserver.RtspServerCamera2
 import com.pedro.rtspserver.server.ClientListener
@@ -280,13 +281,15 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     /** False after it has already failed the session: the caller only has to return. */
     private fun prepareEncoders(camera: RtspServerCamera2, config: BroadcastSessionConfig): Boolean {
-        val defaultRotation = 0
+        // RootEncoder rotates both the pixels and encoder dimensions for the session's display orientation.
+        val rotation = CameraHelper.getCameraOrientation(this)
+        Timber.d("S4403: prepare camera rotation=$rotation size=${config.videoWidth}x${config.videoHeight}")
         val videoPrepared = camera.prepareVideo(
             config.videoWidth,
             config.videoHeight,
             config.videoFps,
             config.videoBitrateBps,
-            defaultRotation
+            rotation
         )
         val audioPrepared: Boolean = if (currentMode != BroadcastMode.VIDEO_ONLY) {
             camera.prepareAudio(config.bitRateBps, config.sampleRateHz, config.channelCount >= 2)
