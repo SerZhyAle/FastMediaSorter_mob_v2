@@ -202,7 +202,6 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             if (operation.operationType == ScheduledOpType.COPY ||
                 operation.operationType == ScheduledOpType.MOVE
             ) {
-                Timber.d("S4232: run-start orphaned temp cleanup on the target")
                 cleanupOrphanedTempFilesUseCase(requireNotNull(targetResource).path)
             }
 
@@ -346,7 +345,6 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             // screen, not an unreachable device, so it stays ERROR with its own line - never SKIPPED -
             // and the existing failure notification fires. The stored PIN itself never reaches a log.
             val msg = PIN_REFUSED_MESSAGE
-            Timber.d("S4232: scheduled run met a refused protected-folder PIN")
             Timber.w(e, "ScheduledOp[$operationId] protected folder PIN refused")
             logOp(ts, opName, srcLabel, dstLabel, "ERROR: $msg")
             ScheduledExecutionResult(operationId, 0, listOf(msg))
@@ -375,7 +373,6 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         val eligible = operation.operationType == ScheduledOpType.COPY && target != null &&
             conditions.minAgeHours == null && conditions.maxAgeHours == null
         val producer = if (eligible) fetchScheduledChangesViaDrive.producerFor(source) else null
-        Timber.d("S4232: source unreachable on live paths, Google Drive leg considered")
         if (producer == null || target == null) return skipped(operation.id, unreachable, labels)
         return targetRefusal(operation.id, target, labels) ?: run {
             cleanupOrphanedTempFilesUseCase(target.path)
@@ -422,7 +419,6 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         val errors = mutableListOf<String>()
         var successCount = 0
         var permissionStop = false
-        Timber.d("S4232: moving files fetched via Google Drive into the target")
         try {
             val received = placed.map(::File).filter { it.isFile }.map(::receivedMediaFile)
             applyFilters(received, operation).forEach { file ->

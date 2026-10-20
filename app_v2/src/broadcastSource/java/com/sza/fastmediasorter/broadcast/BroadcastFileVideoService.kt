@@ -139,7 +139,6 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
 
     @Suppress("ReturnCount", "TooGenericExceptionCaught")
     private suspend fun openSession(uri: Uri) {
-        Timber.d("S4234: video file session opening uri=$uri")
         val config = readSessionConfig()
         if (!isStreaming.get()) return
         val tracks = probeTracks(uri)
@@ -259,7 +258,6 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
 
     /** The video source reports the track played out on its pump thread; the ending mirrors a natural stop. */
     private fun onFileDecoded() {
-        Timber.d("S4234: video file decoded to its end, broadcast over")
         serviceScope.launch {
             if (isStreaming.getAndSet(false)) {
                 stopBroadcast()

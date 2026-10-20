@@ -89,7 +89,6 @@ class BroadcastFileVideoSource(
         } else {
             surface = output
             running = true
-            Timber.d("S4300: paced file video pump starting at the track own presentation times")
             pump = Thread({ runPump(decoder) }, "BroadcastFileVideoPump").also { it.start() }
         }
     }

@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemExchangeDeviceBinding
 import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
-import timber.log.Timber
 
 /**
  * The devices of one account (5.2) with presence as words, never colour alone. The own device carries no
@@ -52,9 +51,6 @@ class ExchangeDeviceAdapter(
             )
             // Item DA of DEVICE-EXCHANGE: a message of the shared table is shown whole, never joined with other text.
             val notice = notices[device.deviceId]
-            if (device.isSharePaused) {
-                Timber.d("S4225: device row shows share-paused")
-            }
             binding.textExchangeDeviceDetails.text = when {
                 notice != null -> ExchangeMessageText.twoParts(context, notice)
                 device.isSharePaused -> context.getString(R.string.exchange_share_paused)

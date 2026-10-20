@@ -616,7 +616,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             onToggle = deviceBroadcastsViewModel::toggle,
             onChosen = deviceBroadcastsViewModel::onBroadcastChosen,
             onPortalLink = {
-                Timber.d("S4273: broadcasts of my devices link opens the receive page")
                 MediaExchangePortalLinks.open(this, MediaExchangePortalLinks.Page.BROADCAST_RECEIVE)
             },
         )
@@ -1422,7 +1421,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // and imports through the same path as the overflow entry; camera-less devices keep the typed address.
         dialogBinding.btnScanBroadcastQr.isVisible = !isImport && isBarcodeScanAvailable()
         dialogBinding.btnScanBroadcastQr.setOnClickListener {
-            Timber.d("S4406: add-stream dialog scan QR tapped")
             dialog.dismiss()
             cancelHealthProbe()
             scanBroadcastQr()

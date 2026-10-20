@@ -25,7 +25,6 @@ object HelpOpenManager {
     private var resolver: HelpTargetResolver? = null
 
     fun open(activity: FragmentActivity, surfaceId: String, uiSurface: UiSurface?, elementAnchor: String? = null) {
-        Timber.d("S4328: help open surface=%s", surfaceId)
         val language = LocaleHelper.getLanguage(activity)
         val target = resolverOrNull(activity)?.resolve(surfaceId, language, elementAnchor)
         if (target != null) {

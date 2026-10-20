@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -85,7 +84,6 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
      */
     private suspend fun prepareBroadcast(channel: WearStreamChannel): WearStreamPlaybackTarget {
         val stored = passStore.get(channel.url)
-        Timber.d("S4261: stored broadcast channel opened, pass stored=%s", stored != null)
         val playback = stored?.let {
             resolver.resolve(
                 WearDirectoryBroadcast(

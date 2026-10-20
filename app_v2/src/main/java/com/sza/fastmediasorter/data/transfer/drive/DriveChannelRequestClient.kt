@@ -30,7 +30,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -73,7 +72,6 @@ class DriveChannelRequestClient @Inject constructor(
     internal var waitMs: Long = DEFAULT_WAIT_MS
 
     fun request(producerDeviceId: String, request: DriveChannelRequest): Flow<DriveRequestProgress> = flow {
-        Timber.d("S4231: request a published folder via Google Drive")
         if (!settings.enabled.first()) {
             emit(DriveRequestProgress.ChannelOff)
         } else {

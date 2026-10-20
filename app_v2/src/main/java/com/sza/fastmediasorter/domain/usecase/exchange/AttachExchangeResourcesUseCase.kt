@@ -203,9 +203,6 @@ class AttachExchangeResourcesUseCase @Inject constructor(
             resources.getAllResourcesSync().firstOrNull { ResourceIdentity.of(it) == wanted }
         }
         existing?.let { ExchangeAttachPlanner.joined(it, item, access) }?.let { resources.updateResource(it) }
-        if (existing != null) {
-            Timber.d("S4224: directory item joined the record of the same host key and root")
-        }
         return existing != null
     }
 

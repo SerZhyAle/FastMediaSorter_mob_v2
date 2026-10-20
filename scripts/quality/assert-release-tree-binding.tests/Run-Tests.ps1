@@ -71,6 +71,25 @@ Invoke-Git $root @('tag', '-f', 'release/v1')
 Assert-Case 'a tag carrying an untested change is refused' 1 (Invoke-Gate $root @('-Tag', 'release/v1', '-TestedRef', 'tested')) 'tested:'
 
 $root = New-Fixture
+$changelogs = Join-Path $root 'fastlane/metadata/android/en-US/changelogs'
+New-Item -ItemType Directory -Path $changelogs -Force | Out-Null
+Set-Content -LiteralPath (Join-Path $changelogs '261014150.txt') -Value 'notes' -Encoding utf8
+Invoke-Git $root @('add', '.')
+Invoke-Git $root @('commit', '-q', '-m', 'previous release changelogs on main')
+Invoke-Git $root @('tag', '-f', 'release/v1')
+Assert-Case 'a tag differing only in store changelogs is bound' 0 (Invoke-Gate $root @('-Tag', 'release/v1', '-TestedRef', 'tested')) 'store changelog'
+
+$root = New-Fixture
+$changelogs = Join-Path $root 'fastlane/metadata/android/en-US/changelogs'
+New-Item -ItemType Directory -Path $changelogs -Force | Out-Null
+Set-Content -LiteralPath (Join-Path $changelogs '261014150.txt') -Value 'notes' -Encoding utf8
+Set-Content -LiteralPath (Join-Path $root 'a.txt') -Value 'two' -Encoding utf8
+Invoke-Git $root @('add', '.')
+Invoke-Git $root @('commit', '-q', '-m', 'changelogs plus an untested change')
+Invoke-Git $root @('tag', '-f', 'release/v1')
+Assert-Case 'store changelogs beside an untested change are refused' 1 (Invoke-Gate $root @('-Tag', 'release/v1', '-TestedRef', 'tested')) 'a.txt'
+
+$root = New-Fixture
 Set-Content -LiteralPath (Join-Path $root 'a.txt') -Value 'two' -Encoding utf8
 Invoke-Git $root @('commit', '-q', '-am', 'main moved after the tag')
 Assert-Case 'a worktree HEAD past the tag is refused' 1 (Invoke-Gate $root @('-Tag', 'release/v1', '-TestedRef', 'tested')) 'built:'

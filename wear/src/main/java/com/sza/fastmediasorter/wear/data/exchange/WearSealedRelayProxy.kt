@@ -70,7 +70,6 @@ class WearSealedRelayProxy(
     private fun serve(client: Socket) {
         try {
             E2eRelayHttp.skipRequest(client.getInputStream())
-            Timber.d("S4240: watch plays a sealed relay through the opening proxy")
             val player = client.getOutputStream()
             val listener = E2eRelayListener(broadcastId, groupKey)
             var end = listen(listener, player)

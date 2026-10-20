@@ -4,7 +4,6 @@ import android.net.Network
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearResourceStoreResult
-import timber.log.Timber
 import java.io.InputStream
 import javax.inject.Inject
 
@@ -26,7 +25,6 @@ class WearNetworkResourceWriter @Inject constructor(
         input: InputStream,
         network: Network?
     ): WearResourceStoreResult {
-        Timber.d("S4230: resource store requested, exchangeBound=${source.exchangeResourceId != null}")
         val stored = when (source.type) {
             NetworkSourceType.SMB ->
                 dataSources.smb.storeFile(source, source.basePath, intendedName, input, network)

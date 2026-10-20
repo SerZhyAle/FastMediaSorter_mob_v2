@@ -93,7 +93,6 @@ class WearExchangeRelayUploader @Inject constructor(
             val accepted = ring != null && accepted(session, broadcastId)
             if (ring != null && accepted) {
                 mutableAccepted.value = broadcastId
-                Timber.d("S4240: watch uploads a sealed relay epoch")
                 val sealer = WearExchangeRelaySealer(broadcastId, CONTENT_TYPE_AAC, ring) {
                     keys.isCurrent(broadcastId, ring)
                 }

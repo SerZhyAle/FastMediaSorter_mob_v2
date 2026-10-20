@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.core.util
 
 import android.content.Context
-import timber.log.Timber
 
 /**
  * Inert Play Services probe for flavors built without the library (strategic S0403).
@@ -25,7 +24,6 @@ internal object GmsAvailabilityProbe {
     // this build answers without consulting either, and dropping them would break that twin.
     @Suppress("UnusedParameter")
     fun evaluate(context: Context, minApkVersion: Int): GmsAvailabilityChecker.Status {
-        Timber.d("S0403: inert GMS probe answered UNAVAILABLE - no Play Services on this build")
         return GmsAvailabilityChecker.Status.UNAVAILABLE
     }
 }

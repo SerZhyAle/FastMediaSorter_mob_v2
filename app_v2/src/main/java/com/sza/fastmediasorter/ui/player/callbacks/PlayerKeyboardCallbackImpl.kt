@@ -14,7 +14,6 @@ import com.sza.fastmediasorter.ui.player.helpers.StillImageZoomManager
 import com.sza.fastmediasorter.ui.player.helpers.ViewerKeyStepMath
 import com.sza.fastmediasorter.ui.player.helpers.ZoomAction
 import kotlinx.coroutines.flow.map
-import timber.log.Timber
 
 /**
  * Implementation of PlayerKeyboardHandler.PlayerKeyboardCallback extracted from PlayerActivity.
@@ -137,7 +136,6 @@ class PlayerKeyboardCallbackImpl(
     }
 
     override fun onZoom(action: ZoomAction): Boolean {
-        Timber.d("S4362: onZoom action=$action")
         return when (viewModel.state.value.currentFile?.type) {
             MediaType.VIDEO -> videoZoomAction(action)
             MediaType.IMAGE, MediaType.GIF -> stillZoomAction(action)

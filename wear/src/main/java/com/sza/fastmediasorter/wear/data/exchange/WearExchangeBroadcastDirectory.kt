@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -110,7 +109,6 @@ class WearExchangeBroadcastDirectory @Inject constructor(
                     }
                 }
             }
-            Timber.d("S4229: list and subscribe sent on the entry's control stream")
             streams.send(entry.identity, LIST)
             streams.send(entry.identity, SUBSCRIBE)
             reading.join()

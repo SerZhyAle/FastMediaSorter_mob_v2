@@ -54,7 +54,7 @@ class DestinationButtonsManager(
     private var cachedMaxRecipients: Int? = null
     private var cachedPanelContentWidthPx: Int? = null
     private var isPopulateDeferredUntilLayout = false
-    
+
     interface DestinationButtonsCallback {
         fun onCopyClicked(destination: MediaResource)
         fun onMoveClicked(destination: MediaResource)
@@ -68,7 +68,7 @@ class DestinationButtonsManager(
         /** Check whether destination panels may be shown right now (used to prevent overlay/fullscreen races). */
         fun shouldShowDestinationPanels(): Boolean
     }
-    
+
     /**
      * Populate destination buttons for Copy/Move panels
      * Excludes current resource, reads collapsed state from settings
@@ -76,7 +76,7 @@ class DestinationButtonsManager(
     fun populateDestinationButtons() {
         val resourceId = callback.getCurrentResourceId()
         Timber.d("DestinationButtonsManager: populateDestinationButtons() CALLED - resourceId=$resourceId")
-        
+
         lifecycleScope.launch {
             Timber.d("DestinationButtonsManager: coroutine STARTED for resourceId=$resourceId")
             try {
@@ -85,7 +85,7 @@ class DestinationButtonsManager(
                 Timber.d("DestinationButtonsManager: getDestinationsUseCase returned ${allDestinations.size} resources: ${allDestinations.map { "${it.id}:${it.name}" }}")
                 val destinations = allDestinations.filter { it.id != resourceId } // Exclude current resource
                 Timber.d("DestinationButtonsManager: After filtering (exclude resourceId=$resourceId): ${destinations.size} destinations")
-                
+
                 // Read collapsed state and max recipients from settings (cached)
                 if (cachedCopyCollapsed == null || cachedMoveCollapsed == null || cachedMaxRecipients == null) {
                     val settings = settingsRepository.getSettings().first()
@@ -97,10 +97,10 @@ class DestinationButtonsManager(
                 val copyCollapsed = cachedCopyCollapsed!!
                 val moveCollapsed = cachedMoveCollapsed!!
                 val maxRecipients = cachedMaxRecipients!!
-                
+
                 safeViews.copyToButtonsGrid.removeAllViews()
                 safeViews.moveToButtonsGrid.removeAllViews()
-                
+
                 val destinationsList = destinations.take(maxRecipients)
                 val count = destinationsList.size
 
@@ -161,7 +161,7 @@ class DestinationButtonsManager(
                         }
                     }
                 }
-                
+
                 // Compute font size from actual button width in the first (widest) row (S0227).
                 // Distribution may have 1 or 2 rows; the densest row yields the smallest button width.
                 // All rows use the same fontSizeSp for visual consistency.
@@ -210,7 +210,7 @@ class DestinationButtonsManager(
                         }
                     }
                 }
-                
+
                 // Append «..» to the last row of Copy grid; create a new row only when grid is empty
                 if (safeViews.copyToButtonsGrid.childCount > 0) {
                     val lastRow = safeViews.copyToButtonsGrid.getChildAt(safeViews.copyToButtonsGrid.childCount - 1) as LinearLayout
@@ -244,16 +244,16 @@ class DestinationButtonsManager(
                     Timber.d("DestinationButtonsManager: SHOWING panels - destinationsCount=${destinationsList.size}")
                     safeViews.copyToPanel.isVisible = true
                     safeViews.moveToPanel.isVisible = true
-                    
+
                     // Force layout recalculation to prevent panels from being pushed off-screen
                     root.requestLayout()
-                    
+
                     // Restore collapsed state AFTER showing panels
                     Timber.d("DestinationButtonsManager: RESTORING panel states - copy=$copyCollapsed, move=$moveCollapsed")
                     updateCopyPanelVisibility(copyCollapsed)
                     updateMovePanelVisibility(moveCollapsed)
                 }
-                
+
                 // Update command availability to refresh panel visibility
                 // This may hide moveToPanel if canWrite=false (read-only resource)
                 Timber.d("DestinationButtonsManager: Calling onUpdateCommandAvailability callback - copyGrid.childCount=${safeViews.copyToButtonsGrid.childCount}, moveGrid.childCount=${safeViews.moveToButtonsGrid.childCount}")
@@ -265,7 +265,7 @@ class DestinationButtonsManager(
             }
         }
     }
-    
+
     /**
      * Create horizontal LinearLayout for button row
      */
@@ -279,7 +279,7 @@ class DestinationButtonsManager(
             gravity = Gravity.CENTER_VERTICAL // Baseline alignment for buttons in row
         }
     }
-    
+
     private fun createCustomPathButton(isCopy: Boolean): MaterialButton {
         val context = root.context
         val density = context.resources.displayMetrics.density
@@ -357,7 +357,7 @@ class DestinationButtonsManager(
         }
         safeViews.bottomPanelsContainer.requestLayout()
     }
-    
+
     /**
      * Create destination button with short name, color, click handler.
      *
@@ -394,7 +394,7 @@ class DestinationButtonsManager(
                 )
             }
             textSize = SP_MIN
-            
+
             // Calculate brightness to determine text color
             val color = destination.destinationColor
             val r = Color.red(color)
@@ -406,10 +406,10 @@ class DestinationButtonsManager(
                 0.114 * b * b
             )
             setTextColor(if (brightness > 130) Color.BLACK else Color.WHITE)
-            
+
             // Set button color from destination
             setBackgroundColor(destination.destinationColor)
-            
+
             // Rounded rectangle buttons with equal weight distribution
             val density = resources.displayMetrics.density
             val screenWidthDp = resources.displayMetrics.widthPixels / density
@@ -418,18 +418,18 @@ class DestinationButtonsManager(
             val buttonHeight = (buttonHeightDp * density).toInt()
             val cornerRadius = (12 * density).toInt() // Rounded corners
             val marginPx = (2 * density).toInt() // Scale margins with density
-            
+
             shapeAppearanceModel = shapeAppearanceModel.toBuilder()
                 .setAllCornerSizes(cornerRadius.toFloat())
                 .build()
-            
+
             minWidth = 0 // Allow shrinking
             minHeight = 0 // Allow vertical shrinking
-            
+
             // Reduce padding to maximize text area (MaterialButton has 16dp default padding)
             val paddingPx = (4 * density).toInt()
             setPadding(paddingPx, paddingPx, paddingPx, paddingPx)
-            
+
             layoutParams = LinearLayout.LayoutParams(
                 0,
                 buttonHeight,
@@ -438,12 +438,12 @@ class DestinationButtonsManager(
                 setMargins(marginPx, marginPx, marginPx, marginPx)
                 gravity = Gravity.CENTER_VERTICAL // Align buttons vertically
             }
-            
+
             // Center text and allow wrapping
             gravity = Gravity.CENTER
             maxLines = 2
             isSingleLine = false
-            
+
             setOnClickListener {
                 Timber.d("DestinationButtonsManager: Destination button clicked - ${destination.name}, isCopy=$isCopy")
                 if (isCopy) {
@@ -454,7 +454,7 @@ class DestinationButtonsManager(
             }
         }
     }
-    
+
     /**
      * Toggle Copy to panel collapsed/expanded state
      */
@@ -484,7 +484,7 @@ class DestinationButtonsManager(
             updateCopyPanelVisibility(newCollapsedState)
         }
     }
-    
+
     /**
      * Toggle Move to panel collapsed/expanded state
      */
@@ -537,7 +537,7 @@ class DestinationButtonsManager(
         updateContainerOrientation()
         refreshSlotBadges()
     }
-    
+
     /**
      * Update Move to panel buttons visibility and keep the header prefix in sync.
      */
@@ -589,7 +589,6 @@ class DestinationButtonsManager(
     fun copyToSlot(slot: Int): Boolean = transferToSlot(slot, isCopy = true)
 
     private fun transferToSlot(slot: Int, isCopy: Boolean): Boolean {
-        Timber.d("S4362: transferToSlot slot=$slot copy=$isCopy")
         val destination = DestinationSlotResolver.destinationFor(slot, cachedOrderedDestinations) ?: return false
         val path = callback.getCurrentFilePath()
         val hitsOwnResource = path != null && destination.id == callback.getCurrentResourceId()

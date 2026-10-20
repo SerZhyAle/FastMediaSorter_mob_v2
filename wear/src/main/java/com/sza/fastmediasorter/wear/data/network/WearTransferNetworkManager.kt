@@ -49,7 +49,6 @@ class WearTransferNetworkManager internal constructor(
         val pending = requester.request()
         try {
             val network = pending.await(timeoutMs)
-            Timber.d("S4227: transfer network granted=%s", network != null)
             if (network == null) {
                 Timber.i("Clipboard transfer: no Wi-Fi or mobile network on the watch")
             }

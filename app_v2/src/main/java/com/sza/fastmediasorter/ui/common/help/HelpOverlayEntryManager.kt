@@ -15,7 +15,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.common.input.UiSurface
-import timber.log.Timber
 import kotlin.math.roundToInt
 
 /** Owns the help entry of a headerless surface without intercepting its surrounding gestures. */
@@ -48,7 +47,6 @@ class HelpOverlayEntryManager(
 
     init {
         if (HelpOpenManager.hasHelp(activity, surfaceId)) {
-            Timber.d("S4328: overlay attached surface=%s", surfaceId)
             button.apply {
                 id = View.generateViewId()
                 setImageResource(R.drawable.ic_help_outline)

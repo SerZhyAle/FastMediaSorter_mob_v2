@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.net.URI
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -92,7 +91,6 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
         return if (descriptor == null || broadcastId == null) {
             live
         } else {
-            Timber.d("S4240: phone writes the outward descriptor keys")
             val relayKey = relayKeys.linkKey(broadcastId, OUTWARD_LINK_ID)?.let(E2eBytes::b64url)
             val tunnelPin = tunnelIdentities.current(broadcastId)?.pin
             ExchangeBroadcastDescriptors.withOutwardKeys(descriptor, relayKey, tunnelPin)

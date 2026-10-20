@@ -33,7 +33,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -188,7 +187,6 @@ class PerformWearFileOperationUseCase @Inject constructor(
      * did not take it (22 item CA).
      */
     private suspend fun sendToServerClipboard(file: WearMediaFile): WearFileOperationResult {
-        Timber.d("S4227: send to clipboard on the server")
         val report = sendServerClipboard(file)
         val firstFailure = report.localFailure
             ?: WearServerClipboardFailure.NO_NETWORK.takeIf { report.noNetwork }

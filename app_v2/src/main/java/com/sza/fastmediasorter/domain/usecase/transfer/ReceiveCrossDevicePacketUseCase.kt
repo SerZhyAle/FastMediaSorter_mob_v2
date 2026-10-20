@@ -42,7 +42,6 @@ class ReceiveCrossDevicePacketUseCase @Inject constructor(
         self: LocalDeviceIdentity,
         option: CrossDeviceTransferOption
     ): Result<CrossDeviceReceiveOutcome> = runCatching {
-        Timber.d("S4231: receive a Drive queue packet")
         val outcome = when (entry.manifest.payloadKind) {
             CrossDevicePayloadKind.SETTINGS -> applySettings(entry)
             CrossDevicePayloadKind.MEDIA_FILES, CrossDevicePayloadKind.FILES -> writeFiles(entry)

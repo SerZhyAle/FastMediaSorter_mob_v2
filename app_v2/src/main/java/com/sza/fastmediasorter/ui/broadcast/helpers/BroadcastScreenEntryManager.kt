@@ -37,7 +37,6 @@ class BroadcastScreenEntryManager {
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
             val data = result.data
-            Timber.d("S4233: screen consent result code=${result.resultCode} hasData=${data != null}")
             if (result.resultCode == Activity.RESULT_OK && data != null) {
                 controller.startScreen(result.resultCode, data)
             } else {

@@ -4,11 +4,11 @@ title: "What's New in FastMediaSorter v2"
 permalink: /docs/WHATS_NEW.html
 ---
 
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.10.20 23:59</sub>
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.61.0202.318** (October 2026)
+**Current release: 2.61.0202.359** (October 2026)
 
 > Changes since version 2.61.0141.503
 
@@ -25,7 +25,7 @@ permalink: /docs/WHATS_NEW.html
 - **Exchange in the settings backup** - resources, schedules and accounts restore with it. <!-- af: settings-navigation.exchange-resources-schedules-and-accounts-in-the-settings -->
 - **Exchange connection help** - check steps on failure, portal links and scenario guides. <!-- af: network-cloud.exchange-connection-failure-check-steps, network-cloud.portal-links-glyphs-and-shared-words-on-the, network-cloud.portal-scenario-page-links, network-cloud.media-exchange-portal-scenario-guides, exchange.exchange-server-mark -->
 - **Phone sharing resumes on start** - and says why it paused. <!-- af: network-cloud.sftp-server-lifetime-and-pause-reason -->
-- **New broadcast sources** - the phone screen, a ready file, the camera with the screen off. <!-- af: broadcast.phone-screen-broadcast, broadcast.ready-file-broadcast, broadcast.camera-broadcast-with-the-screen-off -->
+- **New broadcast sources** - the phone screen and a ready file. <!-- af: broadcast.phone-screen-broadcast, broadcast.ready-file-broadcast -->
 - **Protected broadcasts** - a password through the exchange server and guest grants. <!-- af: broadcast.password-protected-broadcast-through-the-exchange-server, broadcast.guest-grant -->
 - **Broadcasting in the dark** - flashlight and a bright frame during video. <!-- af: broadcast.flashlight-during-video-broadcast, broadcast.bright-frame-for-dark-broadcasts, broadcast.broadcast-torch-and-bright-frame -->
 - **Broadcast control screen** - collapsible groups, quick return, even buttons at large fonts. <!-- af: broadcast.broadcast-screen-collapsible-groups-and-list-selectors, broadcast.broadcast-control-re-entry, broadcast.live-control-buttons-even-grid-at-large-font -->

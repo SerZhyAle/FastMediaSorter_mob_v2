@@ -108,7 +108,6 @@ object LoggingHelper {
     fun getExportableLogFiles(context: Context): List<File> {
         val logFiles = getLogFiles()
         val crashCount = logFiles.count { it.name.startsWith(CRASH_FILE_PREFIX) }
-        Timber.d("S4385: export files: ${logFiles.size - crashCount} session(s), $crashCount crash report(s)")
         val watchReports = listLogFiles(getLogsDirectory(context), WATCH_LOG_PREFIX, WATCH_LOG_SUFFIX)
         return (logFiles + watchReports).sortedByDescending { it.lastModified() }
     }
@@ -444,7 +443,6 @@ object LoggingHelper {
         fun startProcessDiagnostics(context: Context) {
             logIoExecutor.execute {
                 val diagnostics = ProcessExitDiagnosticsManager(context) { message -> Timber.i(message) }
-                Timber.d("S4384: collecting previous process exit diagnostics")
                 diagnostics.start()
                 logIoExecutor.scheduleWithFixedDelay(
                     { diagnostics.heartbeat() },

@@ -47,7 +47,6 @@ class LauncherTraySimSignalMonitor(context: Context) {
 
     // Both legacy listener constructors require a Looper, even when collection starts on a worker.
     fun states(): Flow<Map<Int, LauncherTraySimState>> = callbackFlow {
-        Timber.d("S4386: SIM monitor started sdk=%d", Build.VERSION.SDK_INT)
         val manager = subscriptionManager
         if (manager == null || !hasPermission()) {
             send(emptyMap())

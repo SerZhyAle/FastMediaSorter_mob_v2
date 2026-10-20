@@ -59,7 +59,6 @@ class ClipboardOpenInManager(
     }
 
     fun pick(target: WearOpenInTarget) {
-        Timber.d("S4381: open in picked, launching")
         val obj = chosenObject ?: return
         val source = chosenSource
         update { it.copy(openIn = null) }

@@ -145,7 +145,6 @@ class AppStartupInitializer @Inject constructor(
     // VIEWER-KEYBOARD defaults (S4363). The seed is dropped only while all of it is untouched.
     private suspend fun retireChromeOsSeed() {
         try {
-            Timber.d("S4363: checking the retired Chrome OS keybinding seed")
             val seed = defaultsMapLoader.get().retiredChromeOsSeed()
             if (inputBindingRepository.get().removeUntouchedSeed(seed)) {
                 Timber.i("AppStartupInitializer: retired the Chrome OS keybinding seed")

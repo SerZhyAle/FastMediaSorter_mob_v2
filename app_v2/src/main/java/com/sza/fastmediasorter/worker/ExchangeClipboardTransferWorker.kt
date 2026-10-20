@@ -80,7 +80,6 @@ class ExchangeClipboardTransferWorker @AssistedInject constructor(
     override suspend fun getForegroundInfo(): ForegroundInfo = foregroundInfo(done = null, total = null)
 
     override suspend fun doWork(): Result {
-        Timber.d("S4226: clipboard transfer worker started, sending=%s", sending)
         promoteToForeground()
         val owned = mutableListOf<File>()
         inputData.getString(KEY_STAGED_PATH)?.let { owned += File(it) }

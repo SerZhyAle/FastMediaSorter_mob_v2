@@ -582,7 +582,6 @@ class WatchWearListenerService : WearableListenerService() {
                 Timber.e("Failed to deserialize a broadcast hand-off - %s", e.javaClass.simpleName)
                 null
             } ?: return@launch
-            Timber.d("S4261: broadcast hand-off received, pass=%s", payload.pass != null)
             val result = storeTransferredStreamUseCase.storeBroadcast(payload)
             val outcome = result.ack.outcome
             if (outcome != WearStreamTransferAck.OUTCOME_ERROR && outcome != WearStreamTransferAck.OUTCOME_UNPLAYABLE) {

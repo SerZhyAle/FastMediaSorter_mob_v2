@@ -12,7 +12,7 @@ import kotlin.random.Random
 /**
  * Manages file list manipulation operations for BrowseViewModel.
  * Handles adding, removing, updating files with proper sorting and deduplication.
- * 
+ *
  * Performance optimizations:
  * - Lazy sorting: Only sorts when needed
  * - Deduplication: O(n) using HashSet
@@ -26,28 +26,28 @@ class BrowseFileListManager(
 
     /** Remove files from list by paths.
      * Updates cache automatically.
-     * 
+     *
      * @param currentList Current file list
      * @param pathsToRemove Paths to remove
      * @return Updated list without removed files
      */
     fun removeFiles(currentList: List<MediaFile>, pathsToRemove: List<String>): List<MediaFile> {
         if (pathsToRemove.isEmpty()) return currentList
-        
+
         val pathSet = pathsToRemove.toSet() // O(1) lookup
         val updatedFiles = currentList.filterNot { it.path in pathSet }
-        
+
         Timber.d("removeFiles: Removed ${pathsToRemove.size} files, ${updatedFiles.size} remaining")
-        
+
         MediaFilesCacheManager.setCachedList(resourceId, updatedFiles)
-        
+
         return updatedFiles
     }
-    
+
     /**
      * Add new files to list with deduplication and sorting.
      * Updates cache automatically.
-     * 
+     *
      * @param currentList Current file list
      * @param newFiles Files to add
      * @param sortMode Current sort mode
@@ -55,7 +55,7 @@ class BrowseFileListManager(
      */
     fun addFiles(currentList: List<MediaFile>, newFiles: List<MediaFile>, sortMode: SortMode): List<MediaFile> {
         if (newFiles.isEmpty()) return currentList
-        
+
         // Combine and deduplicate by path (O(n) with HashSet)
         val allPaths = mutableSetOf<String>()
         val updatedFiles = (currentList + newFiles).filter { file ->
@@ -66,22 +66,22 @@ class BrowseFileListManager(
                 true
             }
         }
-        
+
         // Sort according to current mode
         val sortedFiles = sortFiles(updatedFiles, sortMode, forceSort = true)
-        
+
         Timber.d("addFiles: Added ${newFiles.size} files, ${sortedFiles.size} total after dedup and sort")
-        
+
         MediaFilesCacheManager.setCachedList(resourceId, sortedFiles)
-        
+
         return sortedFiles
     }
-    
+
     /**
      * Update single file in list (e.g., after rename).
      * Re-sorts list after update.
      * Updates cache automatically.
-     * 
+     *
      * @param currentList Current file list
      * @param oldPath Original file path
      * @param newFile Updated MediaFile object
@@ -92,22 +92,22 @@ class BrowseFileListManager(
         val updatedFiles = currentList.map { file ->
             if (file.path == oldPath) newFile else file
         }
-        
+
         Timber.d("updateFile: Updated file $oldPath -> ${newFile.path}")
-        
+
         MediaFilesCacheManager.setCachedList(resourceId, updatedFiles)
-        
+
         // Re-sort if needed
         val sortedFiles = sortFiles(updatedFiles, sortMode, forceSort = true)
-        
+
         return sortedFiles
     }
-    
+
     /**
      * Sort files according to sort mode.
      * When showSubfoldersAsItems is enabled, directories are always sorted alphabetically at the top.
      * Regular files are sorted according to the specified sortMode.
-     * 
+     *
      * @param files Files to sort
      * @param sortMode Sort mode to apply
      * @param forceSort Force sorting even if list might be already sorted
@@ -119,7 +119,6 @@ class BrowseFileListManager(
         forceSort: Boolean = false,
         randomSeed: Long? = null
     ): List<MediaFile> {
-        Timber.d("S4362: sortFiles mode=$sortMode count=${files.size}")
         if (!forceSort && files.size < 2) return files // Optimization: single-item list is always sorted
 
         // S0120: track sort changes on large folders for memory endurance analysis
@@ -130,10 +129,10 @@ class BrowseFileListManager(
         // Separate directories and regular files
         val directories = files.filter { it.isDirectory }
         val regularFiles = files.filter { !it.isDirectory }
-        
+
         // Directories are always sorted alphabetically (ascending)
         val sortedDirectories = directories.sortedBy { it.name.lowercase() }
-        
+
         // Regular files are sorted according to sortMode
         val sortedFiles = when (sortMode) {
             SortMode.NAME_ASC -> regularFiles.sortedWith(compareBy(nameCollator) { it.name })
@@ -157,11 +156,11 @@ class BrowseFileListManager(
                 if (randomSeed == null) regularFiles.shuffled() else regularFiles.shuffled(Random(randomSeed))
             }
         }
-        
+
         // Directories always on top
         return sortedDirectories + sortedFiles
     }
-    
+
     // S0242 Phase 03 - the structural-equality cache-comparison helper was removed (dead;
     // no callers). Cache→visible reconciliation is owned by `BrowseReconcilerManager`,
     // which folds journal-recorded mutations into the cache and visible list on every

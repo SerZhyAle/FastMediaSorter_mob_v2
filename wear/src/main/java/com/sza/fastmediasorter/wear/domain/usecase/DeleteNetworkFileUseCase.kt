@@ -38,7 +38,6 @@ class DeleteNetworkFileUseCase @Inject constructor(
         withContext(Dispatchers.IO) {
             resolveSource(sourceId)
                 .mapCatching { source ->
-                    Timber.d("S4228: network delete requested, readOnly=${source.readOnly}")
                     deleteFrom(source, streamUri).getOrThrow()
                 }
                 .onFailure { Timber.w(it, "Failed to delete network file: $streamUri") }

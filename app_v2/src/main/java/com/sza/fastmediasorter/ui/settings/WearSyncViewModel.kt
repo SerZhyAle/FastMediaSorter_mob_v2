@@ -853,7 +853,6 @@ class WearSyncViewModel @Inject constructor(
             _screenshotRequestInFlight.value = false
             _screenshotRequestOutcome.value = screenshotWording(outcome)
             if (outcome is WatchScreenshotOutcome.Captured) {
-                Timber.d("S4282: watch screenshot captured, browse resource ${outcome.browseResourceId}")
                 _lastWatchScreenshot.value =
                     LastWatchScreenshot(outcome.capturedAtEpochMillis, outcome.browseResourceId)
             }
@@ -869,7 +868,6 @@ class WearSyncViewModel @Inject constructor(
      */
     fun openLastWatchScreenshots() {
         val resourceId = _lastWatchScreenshot.value?.browseResourceId ?: return
-        Timber.d("S4282: open watch screenshots in Browse, resource $resourceId")
         viewModelScope.launch {
             _watchResourceEvents.send(WearWatchResourceEvent.Open(resourceId))
         }

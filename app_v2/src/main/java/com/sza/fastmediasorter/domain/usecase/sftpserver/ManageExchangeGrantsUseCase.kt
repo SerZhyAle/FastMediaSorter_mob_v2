@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -67,7 +66,6 @@ class ManageExchangeGrantsUseCase @Inject constructor(
     /** Withdraws the grant everywhere: the login stops at once, its sessions end and the server drops it. */
     suspend fun revoke(grantId: String) {
         val grant = store.snapshot().firstOrNull { it.grantId == grantId } ?: return
-        Timber.d("S4224: grant withdrawn kind=${grant.kind}")
         store.remove(grantId)
         server.refreshGrantLogins()
         server.closeSessionsOf(grant.login)
@@ -77,7 +75,6 @@ class ManageExchangeGrantsUseCase @Inject constructor(
     private suspend fun keep(grant: ExchangeGrant, password: String): Boolean {
         val kept = store.add(grant, password)
         if (kept) {
-            Timber.d("S4224: grant kept kind=${grant.kind}")
             server.refreshGrantLogins()
             tunnel.resendGrants()
         }

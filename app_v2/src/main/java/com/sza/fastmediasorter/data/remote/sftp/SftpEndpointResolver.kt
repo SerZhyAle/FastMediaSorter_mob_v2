@@ -228,7 +228,6 @@ class SftpEndpointResolver @Inject constructor(
             raceScope.launch {
                 delay(attempt.startDelayMs)
                 if (isReachable(attempt.endpoint, pin, attempt.windowMs)) {
-                    Timber.d("S4224: race attempt answered kind=${attempt.kind} delay=${attempt.startDelayMs}")
                     winner.complete(attempt.endpoint)
                 }
             }

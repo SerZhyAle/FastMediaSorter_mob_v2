@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardSaved
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardSink
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardValue
 import com.sza.fastmediasorter.wear.domain.repository.WearServerClipboardRepository
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -35,7 +34,6 @@ class GetWearServerClipboardUseCase @Inject constructor(
     suspend operator fun invoke(
         onProgress: (received: Long, total: Long) -> Unit = { _, _ -> },
     ): WearServerClipboardGetResult {
-        Timber.d("S4227: get use case started")
         var refusedForSpace = false
         val report = repository.receive(
             destination = { value ->

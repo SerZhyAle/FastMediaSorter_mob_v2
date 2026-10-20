@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /** What the clipboard window shows; it never holds the transfer itself (strategic S4226 §6 item 4). */
@@ -67,7 +66,6 @@ class ExchangeClipboardViewModel @Inject constructor(
 
     fun startGet() {
         if (!markStarted()) return
-        Timber.d("S4226: get clipboard from server started")
         viewModelScope.launch {
             if (getClipboard.hasEntry()) {
                 follow(ExchangeClipboardWork.enqueueGet(context))
@@ -79,7 +77,6 @@ class ExchangeClipboardViewModel @Inject constructor(
 
     fun startSend(source: ExchangeClipboardSource) {
         if (!markStarted()) return
-        Timber.d("S4226: send clipboard read on focus: %s", source)
         viewModelScope.launch {
             val refusal = refusalOf(source)
             when {

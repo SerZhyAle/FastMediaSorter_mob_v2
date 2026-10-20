@@ -80,7 +80,6 @@ class ListBroadcastCameraLensesUseCase @Inject constructor(
     ): List<CameraLensEntry> {
         if (cameraX.isNotEmpty()) return cameraX
         val fallback = camera2()
-        Timber.d("S4287: Camera2 fallback lenses %s", fallback.map { it.id })
         Timber.i("Broadcast lens list: CameraX listed no camera, Camera2 listed %d lens(es)", fallback.size)
         return fallback
     }

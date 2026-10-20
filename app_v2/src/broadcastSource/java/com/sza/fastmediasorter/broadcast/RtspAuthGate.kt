@@ -119,7 +119,6 @@ class RtspAuthGate(
     // Every stream is taken before a worker thread starts and the whole body is guarded: a client that connects and
     // closes at once must end its own connection, never throw out of a daemon thread and take the process down.
     private fun serve(client: Socket) {
-        Timber.d("S4258: rtsp gate serves a connection")
         var inner: Socket? = null
         try {
             client.soTimeout = firstRequestTimeoutMs
@@ -233,7 +232,6 @@ class RtspAuthGate(
         }
         return when {
             session.revoked(allowed) -> {
-                Timber.d("S4258: rtsp gate answers a request of a revoked pair")
                 Timber.d("RtspAuthGate: the pair of an open connection was revoked - closing it")
                 Verdict(challenge.reply, closes = true)
             }
@@ -267,7 +265,6 @@ class RtspAuthGate(
             var read = from.read(buffer)
             while (read >= 0) {
                 if (session.revokedThrottled(pairs)) {
-                    Timber.d("S4258: rtsp gate closes a streaming connection after revocation")
                     Timber.d("RtspAuthGate: the pair of a streaming connection was revoked - closing it")
                     break
                 }

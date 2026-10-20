@@ -58,7 +58,6 @@ class ImportStreamBroadcastUseCase @Inject constructor(
         val known = deviceId?.let { repository.getBySourceDeviceId(it) }
             ?: endpoints?.let { repository.getByUrl(dto.url.trim()) }
         val kind = kindOf(dto.mode, dto.url)
-        Timber.d("S4289: import mode=${dto.mode} kind=$kind known=${known != null}")
         val result = if (known == null) {
             addNew(dto.url, offered ?: FALLBACK_TITLE, sourceDeviceId = deviceId, endpoints = endpoints, kind = kind)
         } else {
@@ -125,7 +124,6 @@ class ImportStreamBroadcastUseCase @Inject constructor(
         if (renamed) repository.renameSource(id = known.id, title = requireNotNull(offer.title))
         if (rerouted) repository.refreshBroadcastEndpoints(id = known.id, endpoints = offer.endpoints)
         if (rekind != null) {
-            Timber.d("S4289: row kind ${known.mediaKind} -> $rekind")
             repository.updateUserFields(
                 id = known.id,
                 url = trimmed,

@@ -103,7 +103,6 @@ class FileOperationsHandler(
      */
     fun performCopy(destination: MediaResource) {
         val currentFile = callback.getCurrentFile() ?: return
-        Timber.d("S4362: performCopy entered")
         if (sameFolderRefused(currentFile, destination.path)) return
 
         appScope.launch {
@@ -160,7 +159,6 @@ class FileOperationsHandler(
      */
     fun performMove(destination: MediaResource) {
         val currentFile = callback.getCurrentFile() ?: return
-        Timber.d("S4362: performMove entered")
         if (sameFolderRefused(currentFile, destination.path)) return
         callback.onBeforeMove(currentFile.path)
 
@@ -212,7 +210,6 @@ class FileOperationsHandler(
 
     fun performCopyToPath(destinationPath: String) {
         val currentFile = callback.getCurrentFile() ?: return
-        Timber.d("S4362: performCopyToPath entered")
         if (sameFolderRefused(currentFile, destinationPath)) return
         appScope.launch {
             val settings = settingsRepository.getSettings().first()
@@ -256,7 +253,6 @@ class FileOperationsHandler(
 
     fun performMoveToPath(destinationPath: String) {
         val currentFile = callback.getCurrentFile() ?: return
-        Timber.d("S4362: performMoveToPath entered")
         if (sameFolderRefused(currentFile, destinationPath)) return
         callback.onBeforeMove(currentFile.path)
 

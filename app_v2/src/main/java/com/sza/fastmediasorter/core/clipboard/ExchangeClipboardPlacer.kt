@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardKind
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardValue
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -26,7 +25,6 @@ class ExchangeClipboardPlacer @Inject constructor(
      * an image or a file goes in as a FileProvider URI of [file] carrying the value's type.
      */
     fun place(value: ExchangeClipboardValue, file: File) {
-        Timber.d("S4226: placing received value: %s", value)
         val label = context.getString(R.string.exchange_clipboard_clip_label)
         val clip = if (value.kind == ExchangeClipboardKind.TEXT && file.length() <= TEXT_CLIP_MAX_BYTES) {
             ClipData.newPlainText(label, file.readText(Charsets.UTF_8))

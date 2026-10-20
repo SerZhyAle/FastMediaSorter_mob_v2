@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.wear.data.exchange
 
 import android.net.Network
-import timber.log.Timber
 import java.io.Closeable
 import java.io.IOException
 import javax.inject.Inject
@@ -120,7 +119,6 @@ class WearExchangeSessionOpener @Inject constructor(
         val stored = store.all().firstOrNull { it.identity == identity } ?: return
         val updated = stored.copy(features = welcome.features, accountKind = welcome.accountKind)
             .withLearnedPin(connection)
-        Timber.d("S4257: watch keeps the learned pin of a pinned entry")
         if (updated != stored) store.put(updated)
     }
 

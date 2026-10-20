@@ -76,7 +76,6 @@ class SftpServerService : Service() {
      * after the limit is refused, so this path skips the promise [stopServer] pays.
      */
     override fun onTimeout(startId: Int, fgsType: Int) {
-        Timber.d("S4225: data-sync daily limit reached")
         endWatching()
         controller.stop(SftpServerPauseReason.TIME_LIMIT)
         removeForeground()

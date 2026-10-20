@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -99,7 +98,6 @@ class DriveChannelPollCoordinator @Inject constructor(
     }
 
     private suspend fun poll(intervalMs: Long) {
-        Timber.d("S4231: Drive channel poll loop")
         val backoff = JitteredBackoff()
         var running = true
         while (running) {

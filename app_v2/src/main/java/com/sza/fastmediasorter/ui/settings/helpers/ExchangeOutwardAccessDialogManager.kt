@@ -23,7 +23,6 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * "Access from outside" for one shared folder (contract DEVICE-EXCHANGE items BD and BE, owner decision В12): the
@@ -66,7 +65,6 @@ class ExchangeOutwardAccessDialogManager(
             MediaExchangePortalLinks.open(fragment.requireActivity(), MediaExchangePortalLinks.Page.EXCHANGE_SERVER)
         }
         dialog.setCanceledOnTouchOutside(false)
-        Timber.d("S4348: outward access dialog shown")
     }
 
     private fun renderGrants(
@@ -74,7 +72,6 @@ class ExchangeOutwardAccessDialogManager(
         list: List<ExchangeGrant>,
         confirmed: Set<String>,
     ) {
-        Timber.d("S4348: outward grants render")
         val container = view.containerOutwardGrants
         container.removeAllViews()
         view.textOutwardEmpty.isVisible = list.isEmpty()

@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTrust
 import com.sza.fastmediasorter.data.security.e2e.E2eBytes
 import com.sza.fastmediasorter.data.security.e2e.E2eRelayRecords
 import com.sza.fastmediasorter.domain.player.BroadcastPlaybackPairs
-import timber.log.Timber
 import java.io.IOException
 import java.net.URI
 import javax.inject.Inject
@@ -50,7 +49,6 @@ class BroadcastLoopbackBridges @Inject constructor(
                 scheme = tunnel.scheme,
                 trust = ExchangeTrust.Verified(tunnel.certFingerprint),
             )
-            Timber.d("S4240: phone opens a broadcast tunnel, pinned=${tunnel.tunnelPin != null}")
             tunnel.tunnelPin?.let { pin ->
                 val tls = BroadcastTunnelTls.connect(pin, stream.input, stream.output, stream)
                 ExchangeConnection(tls, pin)

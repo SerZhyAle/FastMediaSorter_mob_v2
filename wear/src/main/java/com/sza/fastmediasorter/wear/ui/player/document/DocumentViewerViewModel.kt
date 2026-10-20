@@ -139,7 +139,6 @@ class DocumentViewerViewModel @Inject constructor(
 
     /** S4227: a PDF is drawn page by page; one that cannot be opened reads as the readers own failure. */
     private suspend fun openPdf(file: WearMediaFile) {
-        Timber.d("S4227: PDF opened in the reader")
         val opened = pdfRenderer.open(file.uri)
         pdf = opened
         _uiState.update { state ->

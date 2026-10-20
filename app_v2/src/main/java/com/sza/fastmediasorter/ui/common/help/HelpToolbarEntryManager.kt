@@ -6,7 +6,6 @@ import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.common.widget.StandardToolbar
-import timber.log.Timber
 
 /**
  * S4328: the "?" header action of a StandardToolbar screen whose host has no options menu of its
@@ -25,7 +24,6 @@ object HelpToolbarEntryManager {
         uiSurface: UiSurface?,
     ) {
         if (surfaceId == null) return
-        Timber.d("S4328: toolbar help attached surface=%s", surfaceId)
         toolbar.inflateMenu(R.menu.menu_help_action)
         var lastOpenAt = 0L
         toolbar.setOnMenuItemClickListener { item: MenuItem ->
