@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.20 23:43</sub>
+<sub class="doc-stamp">26.10.21 00:01</sub>
 
 # Development Changelog
 
@@ -36983,3 +36983,4 @@ Format: | datetime | file | target | description |
 | 2026-10-20 23:16:18 | `PLAN/S4412_bugfix-exchange-table-missing-format-unsupported-row.md` | `S4412` | Capture Draft S4412 bugfix-exchange-table-missing-format-unsupported-row [branch: DEBUG-v046] |
 | 2026-10-20 23:20:51 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and showcase update for v2.61.0202.318 - plateau merge from DEBUG-v046 [branch: DEBUG-v046] |
 | 2026-10-20 23:43:31 | `scripts/quality/assert-release-tree-binding.ps1` | `assert-release-tree-binding` | Release binding gate accepts a tested-vs-tag difference made only of store changelogs, which step 12a commits to main after the next DEBUG branch exists; any other path still refuses (release 46 false refusal) [set of 2: scripts/quality/assert-release-tree-binding.tests/Run-Tests.ps1] [branch: DEBUG-v047] |
+| 2026-10-21 00:01:06 | `app_v2/build.gradle.kts` | `release 46 store build` | Camera background foreground-service type back to noLegal only (S3154 rule, widened by S4235): standard and legacy mount broadcastVideoForeground; screen-off camera capability moved to the noLegal inventory; release 46 notes relabelled to 2.61.0202.359 without it; README release heading gets a stable id and keeps its released anchors [set of 8: docs/ALL_FEATURES.jsonl, docs/WHATS_NEW.md, docs/WHATS_NEW-ru.md, docs/WHATS_NEW-uk.md, README.md, docs/README-ru.md, +1 more] [branch: DEBUG-v047] |

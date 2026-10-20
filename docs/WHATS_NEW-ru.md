@@ -4,11 +4,11 @@ title: "Что нового в FastMediaSorter v2"
 permalink: /docs/WHATS_NEW-ru.html
 ---
 
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.10.20 23:59</sub>
 
 # Что нового в FastMediaSorter v2
 
-**Текущий релиз: 2.61.0202.318** (октябрь 2026)
+**Текущий релиз: 2.61.0202.359** (октябрь 2026)
 
 > Изменения с версии 2.61.0141.503
 
@@ -25,7 +25,7 @@ permalink: /docs/WHATS_NEW-ru.html
 - **Обмен в резервной копии настроек** - ресурсы, расписания и аккаунты восстанавливаются вместе с ней. <!-- af: settings-navigation.exchange-resources-schedules-and-accounts-in-the-settings -->
 - **Помощь при подключении к обмену** - шаги проверки при сбое, ссылки на портал и сценарии. <!-- af: network-cloud.exchange-connection-failure-check-steps, network-cloud.portal-links-glyphs-and-shared-words-on-the, network-cloud.portal-scenario-page-links, network-cloud.media-exchange-portal-scenario-guides, exchange.exchange-server-mark -->
 - **Раздача с телефона возобновляется при запуске** - и объясняет, почему стояла на паузе. <!-- af: network-cloud.sftp-server-lifetime-and-pause-reason -->
-- **Новые источники трансляции** - экран телефона, готовый файл, камера при выключенном экране. <!-- af: broadcast.phone-screen-broadcast, broadcast.ready-file-broadcast, broadcast.camera-broadcast-with-the-screen-off -->
+- **Новые источники трансляции** - экран телефона и готовый файл. <!-- af: broadcast.phone-screen-broadcast, broadcast.ready-file-broadcast -->
 - **Защищённые трансляции** - пароль через сервер обмена и гостевой доступ. <!-- af: broadcast.password-protected-broadcast-through-the-exchange-server, broadcast.guest-grant -->
 - **Трансляция в темноте** - фонарик и яркая рамка во время видео. <!-- af: broadcast.flashlight-during-video-broadcast, broadcast.bright-frame-for-dark-broadcasts, broadcast.broadcast-torch-and-bright-frame -->
 - **Экран управления трансляцией** - сворачиваемые группы, быстрый возврат, ровные кнопки при крупном шрифте. <!-- af: broadcast.broadcast-screen-collapsible-groups-and-list-selectors, broadcast.broadcast-control-re-entry, broadcast.live-control-buttons-even-grid-at-large-font -->

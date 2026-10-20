@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.16 22:21</sub>
+<sub class="doc-stamp">26.10.20 23:59</sub>
 
 # FastMediaSorter v2 🚀
 
@@ -82,7 +82,7 @@ FastMediaSorter is a complete shell for an Android device - home screen, media p
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.61.0202.318 (October 2026)
+## What's New in v2.61.0202.359 (October 2026)
 
 **New:**
 Exchange server accounts with end-to-end sealing and a shared clipboard, one resource across LAN, port forward and exchange tunnel, files via Google Drive between own phones, scheduled operations across devices, broadcasts of the phone screen and ready files, protected broadcasts, flashlight and bright frame, your broadcasts in Streams, in-app help on F1 and the ? button, player keyboard, collapse all in Settings, the watch on the exchange server.

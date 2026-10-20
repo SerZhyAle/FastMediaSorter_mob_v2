@@ -2066,10 +2066,12 @@ androidComponents {
         val broadcastFlavors = setOf("standard", "noLegal", "legacy")
         if (flavorName in broadcastFlavors) {
             variant.sources.manifests.addStaticManifestFile("src/broadcastSource/AndroidManifest.xml")
-            // S3154: FOREGROUND_SERVICE_CAMERA blocked Play commit until background-camera use case was declared.
-            // S4235: standard store builds now declare camera background FGS for release 46 device exchange (B24);
-            // legacy retains the foreground-only declaration.
-            val videoServiceDir = if (flavorName in setOf("standard", "noLegal")) "broadcastVideoBackground" else "broadcastVideoForeground"
+            // S3154: FOREGROUND_SERVICE_CAMERA blocks the Play commit until a background-camera use case with a
+            // demo video is declared, so the camera type stays in noLegal only. S4235 widened it to standard and
+            // release 46 was refused at commit (2026-10-20); owner ruling: flavor-specific FGS stays in noLegal.
+            // Store builds keep the foreground-only declaration; VideoBroadcastService reads the declared types at
+            // run time, so the screen-off camera mode is simply not offered there.
+            val videoServiceDir = if (flavorName == "noLegal") "broadcastVideoBackground" else "broadcastVideoForeground"
             variant.sources.manifests.addStaticManifestFile("src/$videoServiceDir/AndroidManifest.xml")
         }
 
