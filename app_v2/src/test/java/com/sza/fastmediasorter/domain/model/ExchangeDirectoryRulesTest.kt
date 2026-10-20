@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.model
 
+import com.sza.fastmediasorter.domain.usecase.exchange.ObserveDeviceBroadcastsUseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -61,6 +62,25 @@ class ExchangeDirectoryRulesTest {
 
         val playable = listing.devices.single().broadcasts.associate { it.record.broadcastId to it.playable }
         assertEquals(mapOf("b1" to false, "b2" to true), playable)
+    }
+
+    @Test
+    fun `a granted broadcast with no listed device is playable, and one whose box changed key is not`() {
+        val granted = broadcast("b1", "AUDIO_ONLY").copy(deviceId = "owner", title = "Live", grantId = "g1")
+        val forged = broadcast("b2", "AUDIO_ONLY").copy(
+            deviceId = "other",
+            grantId = "g2",
+            sealIssue = ExchangeSealIssue.KEY_CHANGED,
+        )
+        val server = source(SERVER, broadcasts = listOf(granted, forged))
+
+        val listing = ExchangeDirectoryRules.listing(listOf(server), null, emptySet(), setOf("AUDIO_ONLY"))
+        val rows = ObserveDeviceBroadcastsUseCase.toBroadcasts(listing).items
+
+        assertTrue(listing.devices.single { it.deviceId == "owner" }.online)
+        assertEquals(listOf("b1"), rows.map { it.broadcastId })
+        assertEquals("Live", rows.single().title)
+        assertTrue(rows.single().playable)
     }
 
     @Test

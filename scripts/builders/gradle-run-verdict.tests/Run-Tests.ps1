@@ -475,6 +475,6 @@ param($Wrapper)
     }
 }
 
-Write-Host "passed=$script:pass failed=$script:fail" -ForegroundColor $(if ($script:fail) { 'Red' } else { 'Green' })
+Write-Host "gradle-run-verdict.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

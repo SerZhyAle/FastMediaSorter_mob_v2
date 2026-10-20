@@ -1,10 +1,10 @@
 ---
-layout: default
+layout: doc
 title: "Why Android warns about this APK"
 permalink: /docs/INSTALL_TRUST.html
 ---
 
-<sub class="doc-stamp">26.10.06 21:33</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # Why Android warns about this APK - and what to tap
 

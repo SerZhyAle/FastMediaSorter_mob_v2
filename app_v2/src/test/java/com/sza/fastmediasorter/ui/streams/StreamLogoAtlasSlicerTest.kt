@@ -71,6 +71,14 @@ class StreamLogoAtlasSlicerTest {
     }
 
     @Test
+    fun `isInBounds rejects indices whose pixel rect would overflow Int`() {
+        val w = StreamLogoAtlasSlicer.COLS * StreamLogoAtlasSlicer.TILE_W
+        val h = PACKER_ROW_BUDGET * StreamLogoAtlasSlicer.TILE_H
+        assertFalse(slicer.isInBounds(Int.MAX_VALUE, w, h))
+        assertFalse(slicer.isInBounds(Int.MAX_VALUE - 15, w, h))
+    }
+
+    @Test
     fun `app grid constants match the offline packer script`() {
         // Two halves of one contract: the publisher's Artwork module writes the sheet this slicer
         // cuts. Unit tests run with the module as the working directory. S1855: the constants moved

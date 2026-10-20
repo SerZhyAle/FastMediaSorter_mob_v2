@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  S3154: sideload declaration of the camera broadcast service. Only noLegal keeps the camera on air
-  after the app leaves the screen, so only it carries the camera foreground-service type and its
+  S3154/S4235: background declaration of the camera broadcast service. Both standard and noLegal keep
+  the camera on air after the app leaves the screen, carrying the camera foreground-service type and its
   permission.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">

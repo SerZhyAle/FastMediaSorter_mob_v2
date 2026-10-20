@@ -221,6 +221,6 @@ Assert-That "queue-head refusal names the session that holds the turn" `
 # ---- verdict --------------------------------------------------------------------------------
 
 Write-Host ""
-Write-Host "build-queue-refusal: $script:pass passed, $script:fail failed" -ForegroundColor $(if ($script:fail) { 'Red' } else { 'Green' })
+Write-Host "build-queue-refusal: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

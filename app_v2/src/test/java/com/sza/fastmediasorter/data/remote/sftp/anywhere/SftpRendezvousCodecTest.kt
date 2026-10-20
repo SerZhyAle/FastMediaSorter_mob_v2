@@ -102,6 +102,23 @@ class SftpRendezvousCodecTest {
     }
 
     @Test
+    fun `the identity members ride a record with and without access`() {
+        val fingerprint = "SHA256:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU"
+        val identified = resource.copy(hostKeyFingerprint = fingerprint, identityRoot = "/")
+
+        val back = SftpRendezvousCodec.decode(SftpRendezvousCodec.encode(identified)) as SftpRendezvousResource
+        assertEquals(fingerprint, back.hostKeyFingerprint)
+        assertEquals("/", back.identityRoot)
+
+        val bare = """{"resourceId":"r","deviceId":"d","kind":"sftp-share","name":"n",""" +
+            """"hostKeyFingerprint":"$fingerprint","root":"/Photos"}"""
+        val listed = SftpRendezvousCodec.decode(wrap("resource", bare)) as SftpRendezvousResource
+        assertNull(listed.descriptor)
+        assertEquals(fingerprint, listed.hostKeyFingerprint)
+        assertEquals("/Photos", listed.identityRoot)
+    }
+
+    @Test
     fun `missing required members, a bad timestamp and garbage are refused`() {
         assertNull(SftpRendezvousCodec.decode(wrap("device", """{"deviceName":"n","product":"fms-android"}""")))
         val noDevice = """{"resourceId":"r","kind":"sftp-share","name":"n","access":{"descriptor":"x"}}"""
@@ -117,6 +134,35 @@ class SftpRendezvousCodecTest {
         val decoded = SftpRendezvousCodec.decode(wrap("device", body)) as SftpRendezvousDevice
         assertEquals("fms-windows", decoded.product)
         assertFalse(decoded.isOnline)
+    }
+
+    @Test
+    fun `an offline device record carries offlineReason and reads it back, an online one never writes it`() {
+        val paused = device.copy(
+            presence = SftpRendezvousDevice.PRESENCE_OFFLINE,
+            offlineReason = SftpRendezvousDevice.OFFLINE_REASON_TIME_LIMIT,
+        )
+        val raw = SftpRendezvousCodec.encode(paused)
+        assertTrue(raw.contains("\"presence\":\"offline\",\"offlineReason\":\"time-limit\""))
+        val decoded = SftpRendezvousCodec.decode(raw) as SftpRendezvousDevice
+        assertEquals(paused, decoded)
+        assertTrue(decoded.isSharePaused)
+
+        val online = device.copy(offlineReason = SftpRendezvousDevice.OFFLINE_REASON_TIME_LIMIT)
+        assertFalse(SftpRendezvousCodec.encode(online).contains("offlineReason"))
+        assertFalse(SftpRendezvousCodec.encode(device.copy(presence = "offline")).contains("offlineReason"))
+    }
+
+    @Test
+    fun `an unknown offlineReason or one beside online reads as none`() {
+        val unknown = """{"deviceId":"w1","deviceName":"PC","product":"fms-windows","presence":"offline",""" +
+            """"offlineReason":"asleep"}"""
+        assertNull((SftpRendezvousCodec.decode(wrap("device", unknown)) as SftpRendezvousDevice).offlineReason)
+        val online = """{"deviceId":"w1","deviceName":"PC","product":"fms-windows","presence":"online",""" +
+            """"offlineReason":"time-limit"}"""
+        val decoded = SftpRendezvousCodec.decode(wrap("device", online)) as SftpRendezvousDevice
+        assertNull(decoded.offlineReason)
+        assertFalse(decoded.isSharePaused)
     }
 
     @Test

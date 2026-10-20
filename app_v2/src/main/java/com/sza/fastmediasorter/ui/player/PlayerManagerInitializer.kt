@@ -287,6 +287,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 viewModel = activity.viewModel
             ),
             keyBindingManager = activity.keyBindingManager,
+            textInputFocused = { activity.currentFocus?.onCheckIsTextEditor() == true },
         )
 
         activity.systemBarsManager = SystemBarsManager(activity = activity)

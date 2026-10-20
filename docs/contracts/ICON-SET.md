@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.11 03:19</sub>
+<sub class="doc-stamp">26.10.18 17:46</sub>
 
 # Pointer - `ICON-SET`
 
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` |
-| **Version** | 0.30, draft. Owner: this product |
+| **Version** | 0.36, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 2 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
@@ -21,6 +21,14 @@
   (rule 3, 0.28); the import was made by S4131 and the diverging translations it refused were reconciled by S4132.
 - `tool.brush` (a brush) and `feature.drawing` (the drawing editor) are two meanings: the brush tool draws
   the brush and the drawing editor draws the free-hand loop (S4125).
+- The exchange screens draw the glyphs of section 17 (0.32, S4221): `source.exchange-server`,
+  `feature.server-relay`, `action.connect-device`, `action.send-clipboard`, `action.receive-clipboard`,
+  `content.invitation` and `content.guest`, each under the canonical name of `DEVICE-EXCHANGE` 25 item CW. The
+  path "via Google Drive" shows `brand.google-drive`, and a one-tone surface shows the words, never a drawn
+  stand-in. The drawables are drawn into the product by S4237.
+- A retry control draws `action.retry` (0.33, S4255, section 18) and reads "Повторить попытку" /
+  "Повторити спробу" in ru/uk; the bare "Повторить" / "Повторити" stays the name of `action.redo`.
+- The help action draws `app.help` and reads its normative name in every shipped locale (0.34).
 - The documentation and the site show the meaning's glyph beside its name - never an emoji, never a
   picture chosen to decorate the page.
 - The glyphs, looks, `palette.json`, `CATALOG.md` and `gallery.html` are regenerated from this

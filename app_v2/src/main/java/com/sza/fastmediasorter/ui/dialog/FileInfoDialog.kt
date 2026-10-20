@@ -355,6 +355,7 @@ class FileInfoDialog(
                 "HEIC", "HEIF" -> "HEIF"
                 "BMP" -> "BMP"
                 "AVIF" -> "AVIF"
+                "JXL" -> "JPEG XL"
                 "GIF" -> "GIF"
                 else -> extension
             }

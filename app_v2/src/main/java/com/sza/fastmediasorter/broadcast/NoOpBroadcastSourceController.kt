@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.broadcast
 
+import android.content.Intent
+import android.net.Uri
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,6 +25,14 @@ class NoOpBroadcastSourceController @Inject constructor() : BroadcastSourceContr
     override val feedbackSuppressed: StateFlow<Boolean> = _feedbackSuppressed.asStateFlow()
 
     override fun start(mode: BroadcastMode, lensId: String?) {
+        // No-op
+    }
+
+    override fun startFile(uri: Uri) {
+        // No-op
+    }
+
+    override fun startScreen(resultCode: Int, data: Intent) {
         // No-op
     }
 

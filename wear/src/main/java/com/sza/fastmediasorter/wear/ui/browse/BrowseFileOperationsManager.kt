@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.wear.ui.browse
 import android.content.ContentResolver
 import android.content.Context
 import android.content.IntentSender
-import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiverCatalogRepository
 import com.sza.fastmediasorter.wear.domain.files.WearFdSecUseCase
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.files.WearSendToReceiverFilter
@@ -47,7 +47,7 @@ private const val RECEIVER_SUBSCRIPTION_MS = 5_000L
 class BrowseFileOperationsManager @Inject constructor(
     private val capabilityPolicy: WearFileCapabilityPolicy,
     private val performFileOperation: PerformWearFileOperationUseCase,
-    private val sendToReceiversRepository: WearSendToReceiversRepository,
+    private val sendToReceiversRepository: WearSendToReceiverCatalogRepository,
     private val preferences: WearPreferencesRepository,
     // S3383: asked only what a container is, so this menu and the credential screen cannot end up
     // disagreeing about which files are one.

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.23 03:45</sub>
+<sub class="doc-stamp">26.10.18 17:06</sub>
 
 # Wear UI Component Patterns and Unification Catalogue
 
@@ -260,9 +260,12 @@ fun StandardWearAlertDialog(
 )
 ```
 
+- The body is a `WearDialogListColumn`, not the library `Alert` (S4361): rows take the inscribed square's width and the viewport stops at `wearBoundedViewportInset()`, the same geometry as the list dialogs (S2762, S4136). The library `Alert` pads 10 dp at the sides only, and its two-button overload lines text chips up in a row sized for 52 dp round buttons; Google Play rejected the resulting frame on 2026-10-18 under `Watch shapes`.
+- Rows, top to bottom: title, message, `content`, the confirming chip, the cancel chip. The actions always stack at full row width, confirmation first - the order of the library's own chip-alert sample. There is no side-by-side pair in either geometry mode.
+- The list opens on its title (`rememberWearDialogListState()`), draws its own `PositionIndicator` and turns with the crown. A full-screen backdrop with its own pointer node keeps taps in the bands above and below the viewport from reaching the screen behind.
 - `isDestructive = true` colours the confirming chip `MaterialTheme.colors.error` on `onError`; every deletion in the module asks this way.
-- `cancelLabel = null` is the acknowledgement form: one full-width action chip and no negative button. It is drawn by the chip overload of `Alert`, because the two-button overload cannot omit its negative slot and would push the remaining button off centre.
-- `content` is the slot for progress indicators, result rows and extra action chips. With a cancel label the message is rendered as the first content row, since the two-button overload of `Alert` carries no `message` parameter.
+- `cancelLabel = null` is the acknowledgement form: the confirming chip alone.
+- `content` is the slot for progress indicators, result rows and extra action chips; it stands between the message and the actions.
 - `icon` and a separate `onCancel` are deliberately not part of the contract: no call site needs either, and with them the parameter list crosses detekt's `LongParameterList` threshold.
 
 ### 2.4 Player Transport and Command Controls

@@ -37,7 +37,7 @@ class ImportNetworkSourcesUseCaseTest {
     @Before
     fun setup() {
         fakeRepository = FakeNetworkSourceRepository()
-        useCase = ImportNetworkSourcesUseCase(fakeRepository, mockk(relaxed = true))
+        useCase = ImportNetworkSourcesUseCase(fakeRepository, mockk(relaxed = true), mockk(relaxed = true))
     }
 
     @Test

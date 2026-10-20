@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Musikplayer fürs Auto (Android-Autoradio) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-de.html
 ---
-<sub class="doc-stamp">26.09.25 02:14</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
 # 🚗 Musikplayer fürs Auto (Android-Autoradio)
 
 > **Niveau:** Anfänger &bull; **Zeit:** ~10 Minuten &bull; **Edition:** Standard, Legacy, VR, noLegal (Lite spielt lokale Audiodateien ab, hat aber keine Hintergrundwiedergabe und keine Streams; Photos hat kein Audio)
-
-{% include lang-switcher.html doc="scenario-car-music" dir="/docs/howto/" current="de" %}
 
 FastMediaSorter eignet sich hervorragend als Musikplayer fürs Auto auf Android-Autoradios - sofortiger Zugriff auf Ihre gesamte Musiksammlung auf SD-Karte oder USB-Stick, mit integrierter Unterstützung für Lenkradtasten.
 

@@ -3,16 +3,17 @@ package com.sza.fastmediasorter.ui.systeminfo
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivitySystemInfoBinding
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.systeminfo.helpers.SystemInfoWindowManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -36,8 +37,6 @@ class SystemInfoActivity : AppCompatActivity() {
         // S4151: the saved colour theme must reach the window background before the layout inflates,
         // as in BaseActivity, or the report would not match the other full-screen screens.
         ColorThemePrefs.applyThemeOverlay(this)
-        Timber.d("S4151: SystemInfoActivity opened on an opaque window")
-        Timber.d("S4165: SystemInfoActivity opened with interactive card UI")
         binding = ActivitySystemInfoBinding.inflate(layoutInflater)
         setContentView(binding.root)
         systemInfoWindowManager.bind(this, binding)
@@ -49,6 +48,16 @@ class SystemInfoActivity : AppCompatActivity() {
             systemInfoWindowManager.render(binding, report)
             binding.systemInfoSearchView.requestFocus()
         }
+    }
+
+    // Not a BaseActivity, so F1 reaches the help page here instead of through the shared key handling.
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_F1 &&
+            HelpOpenManager.openIfPresent(this, SystemInfoActivity::class.java.simpleName, null)
+        ) {
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     companion object {

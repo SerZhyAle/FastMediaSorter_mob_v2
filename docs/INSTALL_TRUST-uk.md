@@ -1,10 +1,10 @@
 ---
-layout: default
+layout: doc
 title: "Чому Android попереджає про цей APK"
 permalink: /docs/INSTALL_TRUST-uk.html
 ---
 
-<sub class="doc-stamp">26.10.06 21:33</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # Чому Android попереджає про цей APK - і що натискати
 

@@ -456,7 +456,7 @@
                         android:layout_marginTop="@dimen/resource_field_margin_top"
                         android:focusable="true"
                         android:clickable="true"
-                        android:nextFocusDown="@id/btnSftpServerAddRoot"
+                        android:nextFocusDown="@+id/btnSftpServerPortal"
                         app:str_icon="@drawable/ic_resource_sftp"
                         app:str_title="@string/settings_sftp_server_enable_title"
                         app:str_subtitle="@string/settings_sftp_server_enable_subtitle" />
@@ -479,6 +479,19 @@
                         android:textIsSelectable="true"
                         android:visibility="gone" />
 
+                    <!-- S4273: SITE-STRUCTURE 0.2 item E - the page of the phone as a server: lifetime, launcher mode, mobile data. -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSftpServerPortal"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:nextFocusUp="@id/rowSftpServerEnabled"
+                        android:nextFocusDown="@id/btnSftpServerAddRoot"
+                        android:text="@string/exchange_portal_link_phone_sharing" />
+
                     <TextView
                         android:id="@+id/labelSftpServerRoots"
                         android:layout_width="match_parent"
@@ -499,7 +512,7 @@
                         android:layout_height="wrap_content"
                         android:focusable="true"
                         android:clickable="true"
-                        android:nextFocusUp="@id/rowSftpServerEnabled"
+                        android:nextFocusUp="@id/btnSftpServerPortal"
                         android:nextFocusDown="@id/etSftpServerPort"
                         android:text="@string/settings_sftp_server_add_root"
                         app:icon="@drawable/ic_add" />
@@ -649,7 +662,7 @@
                         android:clickable="true"
                         android:nextFocusUp="@id/rowSftpDriveAccess"
                         android:nextFocusDown="@id/btnSftpExchangeChangeOutgoing"
-                        app:str_icon="@drawable/ic_cloud"
+                        app:str_icon="@drawable/ic_exchange_mono"
                         app:str_title="@string/settings_sftp_exchange_enable_title"
                         app:str_subtitle="@string/settings_sftp_exchange_enable_subtitle" />
 
@@ -719,6 +732,28 @@
                             android:text="@string/settings_sftp_exchange_new_link"
                             app:icon="@drawable/ic_refresh" />
                     </LinearLayout>
+
+                    <!-- S4273: SITE-STRUCTURE 0.2 item E - the page of the folders this section publishes through the server. -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSftpExchangeFoldersPortal"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:nextFocusUp="@id/btnSftpExchangeMyDevices"
+                        android:nextFocusDown="@id/btnSftpExchangePortal"
+                        android:text="@string/exchange_portal_link_folders_exchange_server" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSftpExchangePortal"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:nextFocusUp="@id/btnSftpExchangeFoldersPortal"
+                        android:text="@string/exchange_portal_link_home_network" />
 
                 </LinearLayout>
             </LinearLayout>

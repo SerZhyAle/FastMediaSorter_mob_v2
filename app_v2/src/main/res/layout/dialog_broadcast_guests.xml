@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/dialog_padding_large"
+        android:paddingTop="@dimen/margin_small">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilBroadcastGuestLogin"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/broadcast_guests_login_hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etBroadcastGuestLogin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionDone|flagNoExtractUi"
+                android:inputType="text"
+                android:nextFocusDown="@+id/btnBroadcastGuestGive"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBroadcastGuestCancel"
+                style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_small"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:nextFocusRight="@+id/btnBroadcastGuestGive"
+                android:nextFocusUp="@id/etBroadcastGuestLogin"
+                android:text="@string/cancel" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBroadcastGuestGive"
+                style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:nextFocusLeft="@id/btnBroadcastGuestCancel"
+                android:nextFocusUp="@id/etBroadcastGuestLogin"
+                android:text="@string/broadcast_guests_give"
+                app:icon="@drawable/ic_exchange_guest" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/containerBroadcastGuests"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:orientation="vertical" />
+
+        <TextView
+            android:id="@+id/textBroadcastGuestsEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:text="@string/broadcast_guests_empty"
+            android:textAppearance="?attr/textAppearanceBodySmall" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

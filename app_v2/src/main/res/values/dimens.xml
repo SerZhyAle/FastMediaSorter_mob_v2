@@ -2,6 +2,28 @@
 <resources>
     <!-- ===== COMMON DIMENSIONS ===== -->
 
+    <!-- Canonical UI-SIZING 1.0 tokens (S4352) -->
+    <dimen name="token_spacing_4">4dp</dimen>
+    <dimen name="token_spacing_8">8dp</dimen>
+    <dimen name="token_spacing_12">12dp</dimen>
+    <dimen name="token_spacing_16">16dp</dimen>
+    <dimen name="token_spacing_24">24dp</dimen>
+    <dimen name="token_spacing_32">32dp</dimen>
+
+    <dimen name="token_radius_8">8dp</dimen>
+    <dimen name="token_radius_12">12dp</dimen>
+    <dimen name="token_radius_16">16dp</dimen>
+
+    <dimen name="token_icon_16">16dp</dimen>
+    <dimen name="token_icon_20">20dp</dimen>
+    <dimen name="token_icon_24">24dp</dimen>
+    <dimen name="token_icon_32">32dp</dimen>
+    <dimen name="token_icon_40">40dp</dimen>
+    <dimen name="token_icon_48">48dp</dimen>
+
+    <dimen name="token_pointer_target_min">32dp</dimen>
+    <dimen name="token_touch_target_min">48dp</dimen>
+
     <!-- Text sizes -->
     <dimen name="text_size_huge">24sp</dimen>
     <dimen name="text_size_large">18sp</dimen>
@@ -69,8 +91,6 @@
     <dimen name="streams_media_filter_button_size">40dp</dimen>
     <!-- S2669: curated-collection chip strip paddings - aligns the strip's chips with the control row
          text above it, with a smaller bottom gap so the list header follows closely. -->
-    <dimen name="streams_collections_strip_side_padding">12dp</dimen>
-    <dimen name="streams_collections_strip_bottom_padding">4dp</dimen>
     <!-- S1173: default contour width for OutlinedTextView/OutlinedImageView. Sized for large overlay
          labels; small captions must override it or the contour swallows the glyph. -->
     <dimen name="outline_text_stroke_width">2dp</dimen>
@@ -521,6 +541,13 @@
     <dimen name="settings_padding_horizontal_start">8dp</dimen>
     <dimen name="settings_padding_vertical_top_small">8dp</dimen>
     <dimen name="settings_padding_vertical">12dp</dimen>
+    <!-- S4283: a System information group tile is about 190dp wide on a 384dp phone, so every dp the
+         chevron, icon, padding and copy button take comes out of the title column. -->
+    <dimen name="system_info_group_padding_vertical">4dp</dimen>
+    <dimen name="system_info_group_padding_horizontal">6dp</dimen>
+    <dimen name="system_info_group_leading_spacing">4dp</dimen>
+    <dimen name="system_info_group_title_text_size">14sp</dimen>
+    <dimen name="system_info_group_copy_button_width">40dp</dimen>
     <dimen name="settings_divider_height">1dp</dimen>
     <dimen name="padding_none">0dp</dimen>
 
@@ -533,6 +560,8 @@
     <!-- Monospace console output of the tools tab. Smaller than body text on purpose: a ping or
          traceroute line must not wrap, and both orientations must pick the same size. -->
     <dimen name="network_monitor_console_text_size">12sp</dimen>
+    <!-- Follow the shared tiny size in every band without a tile-specific override. -->
+    <dimen name="network_monitor_tile_title_text_size_min">@dimen/text_size_tiny</dimen>
 
     <!-- ============================================================ -->
     <!-- LAYOUT-SPECIFIC BASE DIMENSIONS (from layout extraction) -->
@@ -957,10 +986,21 @@
          stretches the same pane by weight, so this value exists in exactly one place. -->
     <dimen name="broadcast_control_preview_height">220dp</dimen>
 
+    <!-- S4281: the bright frame is the Mirror's glow field width (mirror_glow_field_width) drawn as a border
+         over the screen. The drawable strokes a rectangle, and a stroke is centred on the edge so half of it
+         falls outside the bounds: the stroke is therefore twice the visible width. -->
+    <dimen name="broadcast_light_frame_width">24dp</dimen>
+    <dimen name="broadcast_light_frame_stroke">48dp</dimen>
+
     <!-- S3236: the three share buttons take a fixed third of the row, so a long single-word label
          ("Копировать") is shrunk to fit rather than hyphenated mid-word. -->
     <dimen name="broadcast_share_button_text_size_min">10sp</dimen>
     <dimen name="broadcast_share_button_text_size_max">14sp</dimen>
+
+    <!-- S4344: the live control buttons take a fixed half of their row each, so a long label is
+         shrunk to fit rather than hyphenated mid-word - same range as the share pair above. -->
+    <dimen name="broadcast_control_live_button_text_size_min">10sp</dimen>
+    <dimen name="broadcast_control_live_button_text_size_max">14sp</dimen>
 
     <!-- S2730: the wallpaper screen's preview of the chosen image. Shorter in landscape, where the
          screen splits into two columns and the whole block has half the height to spend. -->

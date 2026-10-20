@@ -11,15 +11,18 @@ import com.sza.fastmediasorter.domain.model.ExchangeDirectoryView
 import com.sza.fastmediasorter.domain.model.ExchangeListedResource
 import com.sza.fastmediasorter.domain.model.ExchangePinAttempt
 import com.sza.fastmediasorter.domain.model.ExchangeResourceAccess
+import com.sza.fastmediasorter.domain.transfer.DriveChannelSettings
 import com.sza.fastmediasorter.domain.usecase.exchange.AttachExchangeResourcesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,7 +30,13 @@ import javax.inject.Inject
 /** One line of the "From my devices" list. */
 sealed interface ExchangeDirectoryRow {
 
-    data class Device(val title: String, val product: String?, val online: Boolean) : ExchangeDirectoryRow
+    data class Device(
+        val title: String,
+        val product: String?,
+        val online: Boolean,
+        /** Android paused the device's sharing (26 item DC): the row says so instead of plain offline. */
+        val paused: Boolean = false,
+    ) : ExchangeDirectoryRow
 
     data class Resource(
         val item: ExchangeListedResource,
@@ -92,7 +101,12 @@ sealed interface ExchangePinPrompt {
 @HiltViewModel
 class ExchangeDirectoryViewModel @Inject constructor(
     private val directory: AttachExchangeResourcesUseCase,
+    driveChannelSettings: DriveChannelSettings,
 ) : ViewModel() {
+
+    /** S4231: with the Drive channel on, a resource listed only by its Drive record is marked so. */
+    val driveChannelOn: StateFlow<Boolean> = driveChannelSettings.enabled
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val _state = MutableStateFlow<ExchangeDirectoryState>(ExchangeDirectoryState.Closed)
     val state: StateFlow<ExchangeDirectoryState> = _state.asStateFlow()
@@ -102,6 +116,9 @@ class ExchangeDirectoryViewModel @Inject constructor(
 
     private val _messages = Channel<MyDevicesMessage>(Channel.BUFFERED)
     val messages: Flow<MyDevicesMessage> = _messages.receiveAsFlow()
+
+    private val _attachmentsCompleted = Channel<Unit>(Channel.BUFFERED)
+    val attachmentsCompleted: Flow<Unit> = _attachmentsCompleted.receiveAsFlow()
 
     private var view: ExchangeDirectoryView = ExchangeDirectoryView.EMPTY
     private val selection = MutableStateFlow<Set<ExchangeBinding>>(emptySet())
@@ -114,6 +131,9 @@ class ExchangeDirectoryViewModel @Inject constructor(
     private var promptFor: ExchangeBinding? = null
     private var renewing = false
     private var tickets = 0
+    private var attaching: Job? = null
+    private var batchSucceeded = false
+    private var batchAdded = false
 
     fun open() {
         watch?.cancel()
@@ -129,6 +149,10 @@ class ExchangeDirectoryViewModel @Inject constructor(
     }
 
     fun close() {
+        attaching?.cancel()
+        batchSucceeded = false
+        batchAdded = false
+        while (_attachmentsCompleted.tryReceive().isSuccess) { /* Discard completion from the closed dialog. */ }
         watch?.cancel()
         watch = null
         watching = false
@@ -181,6 +205,7 @@ class ExchangeDirectoryViewModel @Inject constructor(
     /** Drops the open prompt; the resource stays unattached, or keeps asking from the list. */
     fun skipPin() {
         proving?.cancel()
+        batchSucceeded = false
         nextPrompt()
     }
 
@@ -194,8 +219,11 @@ class ExchangeDirectoryViewModel @Inject constructor(
     }
 
     private fun attach(items: List<ExchangeListedResource>) {
-        viewModelScope.launch {
+        if (attaching?.isActive == true || _pinPrompt.value != ExchangePinPrompt.None) return
+        attaching = viewModelScope.launch {
             val result = directory.attach(items)
+            batchSucceeded = result.failed == 0
+            batchAdded = result.attached > 0
             report(result)
             selection.value = emptySet()
             view = directory.sync(view.listing)
@@ -210,6 +238,7 @@ class ExchangeDirectoryViewModel @Inject constructor(
         when (outcome) {
             ExchangePinAttempt.ACCEPTED -> {
                 if (!renewing) {
+                    batchAdded = true
                     _messages.trySend(MyDevicesMessage(R.string.exchange_directory_attached_result, listOf(1)))
                 }
                 selection.update { it - binding }
@@ -227,6 +256,7 @@ class ExchangeDirectoryViewModel @Inject constructor(
     private fun nextPrompt() {
         var next = waiting.removeFirstOrNull()
         while (next != null && view.listing.resource(next.sourceKey, next.resourceId) == null) {
+            batchSucceeded = false
             next = waiting.removeFirstOrNull()
         }
         promptFor = next
@@ -234,6 +264,10 @@ class ExchangeDirectoryViewModel @Inject constructor(
         val name = next?.let { view.listing.resource(it.sourceKey, it.resourceId)?.record?.name }
         _pinPrompt.value = name?.let { ExchangePinPrompt.Asking(it, renewing = false, ticket = ++tickets) }
             ?: ExchangePinPrompt.None
+        if (next == null && batchSucceeded && batchAdded) {
+            batchSucceeded = false
+            _attachmentsCompleted.trySend(Unit)
+        }
     }
 
     private fun setPhase(phase: ExchangePinPhase) {
@@ -267,6 +301,7 @@ class ExchangeDirectoryViewModel @Inject constructor(
                     title = device.device?.deviceName ?: device.deviceId,
                     product = device.device?.product,
                     online = device.online,
+                    paused = device.paused,
                 )
             ) + device.resources.map { item -> resourceRow(item, chosen) }
         }

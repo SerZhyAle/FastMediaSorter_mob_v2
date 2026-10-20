@@ -59,10 +59,9 @@ import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
 import com.sza.fastmediasorter.ui.browse.helpers.BrowseFileMenuActions
 import com.sza.fastmediasorter.ui.browse.helpers.BrowseFileRowTouchCallback
+import com.sza.fastmediasorter.ui.browse.helpers.BrowseHelpEntryManager
 import com.sza.fastmediasorter.ui.browse.helpers.BrowseSwipeActionResolver
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
-import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.common.widget.DimHeadingProvider
 import com.sza.fastmediasorter.ui.common.widget.dimclock.di.DimClockEntryPoint
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
@@ -342,7 +341,7 @@ class BrowseManagerInitializer(
                 override fun showCreateFolderDialog() = resourceOpsMenuManager.showCreateFolderDialog(viewModel)
                 override fun showCreateTextNoteDialog() = resourceOpsMenuManager.showCreateTextNoteDialog(viewModel)
                 override fun showCreateDrawingDialog() = resourceOpsMenuManager.showCreateDrawingDialog(viewModel)
-                override fun showHelp() = InputHelpDialogFragment.show(activity.supportFragmentManager, UiSurface.BROWSE)
+                override fun showHelp() = BrowseHelpEntryManager.open(activity)
                 override fun showContextMenu() {
                     val anchor = binding.rvMediaFiles.findViewHolderForAdapterPosition(stateManager.getCurrentFocusPosition())
                         ?.itemView ?: binding.rvMediaFiles

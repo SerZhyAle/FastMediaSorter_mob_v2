@@ -122,6 +122,7 @@ $roots = @('app_v2/src', 'wear/src') | ForEach-Object { Join-Path $repoRoot $_ }
     Where-Object { Test-Path -LiteralPath $_ }
 if ($roots.Count -eq 0) {
     Write-Error "assert-ctor-arg-slots: no Kotlin source root found under $repoRoot" -ErrorAction Continue
+    Write-Host 'assert-ctor-arg-slots: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -143,9 +144,8 @@ else {
 }
 
 if ($scoped -and $filesToMeasure.Count -eq 0) {
-    if (-not $Quiet) {
-        Write-Host "assert-ctor-arg-slots: PASS (scoped to the changed set - no Kotlin file in it)." -ForegroundColor Green
-    }
+    . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+    Write-EmptySetPass -GateName 'assert-ctor-arg-slots'
     exit 0
 }
 

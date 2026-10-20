@@ -35,14 +35,15 @@
     Fixed-input shape (S2824): with -ChangedFiles, only the product glyphs in the set are judged; the
     exceptions file or one of the shared libraries that define the rules (scripts/docs/lib/icon-*.ps1,
     measure_glyph_style.py, scripts/quality/lib/icon-tint-rule.ps1) in the set widens the run to every glyph; a dimens.xml or a layout file in the
-    set runs the size check; a set with none of them is advisory.
+    set runs the size check; a set with none of them is a determined empty set, which is a pass over
+    zero files (CHECK-VERDICT rule 2.12), not an advisory.
 
     Exit codes:
-      0 - every judged glyph holds the style or is excused; no stale exception (full run).
+      0 - every judged glyph holds the style or is excused; no stale exception (full run). A
+          -ChangedFiles set carrying no product glyph, dimens, layout, exceptions file or rule
+          library judges nothing and ends `PASS (0 file(s) inspected)`.
       1 - a glyph breaks a rule nobody excused, or an exception is stale.
       2 - could not verify: no repo venv, the measure failed, or a drawable could not be converted.
-      3 - advisory: -ChangedFiles carries no product glyph, dimens, layout, exceptions file or rule
-          library; nothing judged.
 #>
 param(
     [string] $ChangedFiles = '',
@@ -90,7 +91,7 @@ if (-not $full) {
         $sizeRun = [bool]($set | Where-Object { $_ -match 'app_v2/src/main/res/(values[^/]*/dimens|layout[^/]*/[^/]+)\.xml$' })
         if (-not $targets.Count -and -not $sizeRun) {
             if (-not $Quiet) { Write-Host '  no product glyph, exceptions file or rule library in the set - nothing judged' }
-            Get-Verdict 3 'ADVISORY'
+            Get-Verdict 0 'PASS (0 file(s) inspected)'
         }
     }
 }
@@ -220,6 +221,8 @@ if ($failures.Count) {
     foreach ($f in $failures) { Write-Host "  - $f" }
     Write-Host '  fix: bring the glyph inside ICON-RENDER 0.10 section 10 item A or the size onto a tier (@dimen/icon_tier_NN),'
     Write-Host '       or add "name | rule | reason" to scripts/quality/icon-style-exceptions.txt; delete a stale line'
-    Get-Verdict 1 'FAIL'
+    Write-Host "assert-icon-style: FAIL ($($failures.Count) finding(s))"
+    exit 1
 }
-Get-Verdict 0 'PASS'
+Write-Host 'assert-icon-style: PASS'
+exit 0

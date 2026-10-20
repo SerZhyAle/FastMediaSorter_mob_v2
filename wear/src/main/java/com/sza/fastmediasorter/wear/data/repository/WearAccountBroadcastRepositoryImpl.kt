@@ -1,0 +1,117 @@
+package com.sza.fastmediasorter.wear.data.repository
+
+import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastEndpoints
+import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastPlaybackResolver
+import com.sza.fastmediasorter.wear.data.exchange.WearDirectoryBroadcast
+import com.sza.fastmediasorter.wear.data.exchange.WearEntryDirectory
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeBroadcastDirectory
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeDirectoryState
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeE2e
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeEntry
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeEntryStore
+import com.sza.fastmediasorter.wear.domain.model.WearAccountBroadcast
+import com.sza.fastmediasorter.wear.domain.model.WearAccountBroadcastSection
+import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPlayback
+import com.sza.fastmediasorter.wear.domain.model.WearBroadcasterGroup
+import com.sza.fastmediasorter.wear.domain.repository.WearAccountBroadcastRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
+
+/**
+ * S4229: the list is the directory of each entry grouped by the device that makes the broadcast, the device's own
+ * broadcasts left out (contract DEVICE-EXCHANGE 9.1). Online devices come first, then by name, so a person looking
+ * for a broadcast that is on sees it without scrolling past the offline ones.
+ */
+@Singleton
+class WearAccountBroadcastRepositoryImpl @Inject constructor(
+    private val directory: WearExchangeBroadcastDirectory,
+    private val resolver: WearBroadcastPlaybackResolver,
+    private val store: WearExchangeEntryStore,
+    private val e2e: WearExchangeE2e,
+) : WearAccountBroadcastRepository {
+
+    override fun observe(): Flow<List<WearAccountBroadcastSection>> = directory.observe().map { entries ->
+        entries.map(::section)
+    }
+
+    override suspend fun resolve(entryIdentity: String, broadcastId: String): WearBroadcastPlayback {
+        val record = directory.broadcast(entryIdentity, broadcastId)
+        return if (record == null) {
+            WearBroadcastPlayback.Unavailable(WearBroadcastPlayback.Reason.UNREACHABLE)
+        } else {
+            resolver.resolve(opened(entryIdentity, record))
+        }
+    }
+
+    // S4240, 27 item DK: the box is opened only for the broadcast being played, against the devices the list holds -
+    // never an empty list, which would read as every trusted device having left the account.
+    private suspend fun opened(entryIdentity: String, record: WearDirectoryBroadcast): WearDirectoryBroadcast {
+        val entry = store.entries.first().firstOrNull { it.identity == entryIdentity }
+        val devices = directory.devicesHeld(entryIdentity)
+        val sealing = when {
+            record.sealed == null || entry == null -> null
+            devices == null -> e2e.trustedSealing(entry)
+            else -> e2e.sealing(entry, devices)
+        }
+        return sealing?.let {
+            record.copy(descriptor = it.openBroadcast(record.broadcastId, record.sealed, record.descriptor))
+        } ?: record
+    }
+
+    private fun section(held: WearEntryDirectory): WearAccountBroadcastSection {
+        val state = held.state
+        return WearAccountBroadcastSection(
+            entryIdentity = held.entry.identity,
+            entryLabel = labelOf(held.entry),
+            groups = state?.let { groups(held.entry, it) }.orEmpty(),
+            isReachable = held.isReachable,
+            isLoaded = state != null,
+            failure = held.failure,
+        )
+    }
+
+    private fun groups(entry: WearExchangeEntry, state: WearExchangeDirectoryState): List<WearBroadcasterGroup> =
+        state.broadcasts.values
+            .filter { it.deviceId != entry.deviceId }
+            .groupBy { it.deviceId }
+            .map { (deviceId, records) ->
+                val device = state.devices[deviceId]
+                WearBroadcasterGroup(
+                    deviceName = device?.name,
+                    isOnline = device?.isOnline ?: true,
+                    broadcasts = records.map { toRow(entry.identity, it) }.sortedBy { it.title.orEmpty().lowercase() },
+                )
+            }
+            .sortedWith(compareByDescending<WearBroadcasterGroup> { it.isOnline }.thenBy { it.deviceName.orEmpty() })
+
+    private fun toRow(entryIdentity: String, record: WearDirectoryBroadcast): WearAccountBroadcast {
+        val schema = WearBroadcastEndpoints.schemaVersion(record.descriptor)
+        val formatUnsupported = schema > WearBroadcastEndpoints.SUPPORTED_SCHEMA_VERSION
+        val isProtected = WearBroadcastEndpoints.isProtected(record.descriptor)
+        val endpoints = WearBroadcastEndpoints.parse(
+            record.broadcastId,
+            record.descriptor,
+            record.mode,
+            boxPending = record.sealed != null,
+        )
+        val modeOk = endpoints.any { WearBroadcastEndpoints.isPlayableMode(it.mode ?: record.mode) }
+        return WearAccountBroadcast(
+            entryIdentity = entryIdentity,
+            broadcastId = record.broadcastId,
+            title = record.title,
+            mode = record.mode,
+            isProtected = isProtected,
+            isPlayable = !formatUnsupported && modeOk && (!isProtected || record.credentials != null),
+            isFormatUnsupported = formatUnsupported,
+        )
+    }
+
+    // An IPv6 literal is bracketed, as the phone writes the address of an entry.
+    private fun labelOf(entry: WearExchangeEntry): String {
+        val host = if (':' in entry.host) "[${entry.host}]" else entry.host
+        return "$host:${entry.port}"
+    }
+}

@@ -1,10 +1,10 @@
 ---
-layout: default
+layout: doc
 title: "Що замінює FastMediaSorter"
 permalink: /docs/REPLACES-uk.html
 ---
 
-<sub class="doc-stamp">26.10.09 14:52</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # Що замінює FastMediaSorter
 

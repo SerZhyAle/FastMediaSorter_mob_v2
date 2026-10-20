@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "इंटरनेट रेडियो और स्ट्रीम - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-hi.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
 # 📻 इंटरनेट रेडियो और स्ट्रीम
 
 > **लेवल:** शुरुआती - **समय:** ~10 मिनट - **एडिशन:** Standard, Legacy, VR, noLegal (Streams Lite और Photos में नहीं है)
-
-{% include lang-switcher.html doc="scenario-internet-radio" dir="/docs/howto/" current="hi" %}
 
 FastMediaSorter में इंटरनेट ऑडियो और वीडियो सोर्स के लिए एक समर्पित Streams स्क्रीन है. कोई भी इंटरनेट रेडियो URL जोड़ें, एक .m3u प्लेलिस्ट इम्पोर्ट करें, या एक क्यूरेटेड स्टेशन कैटलॉग ब्राउज़ करें - किसी अलग रेडियो ऐप की ज़रूरत नहीं. Android कार हेड यूनिट, ऑडियो प्लेयर, फोन और टैबलेट पर बेहतरीन काम करता है.
 

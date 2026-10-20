@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "❓ Frequently Asked Questions (FAQ)"
 permalink: /docs/FAQ-de.html
 lang: de
 ---
 
-<sub class="doc-stamp">26.10.09 14:52</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="de" markdown="1">
 
 <div lang="de" dir="ltr" markdown="1">
-
-{% include lang-switcher.html doc="FAQ" dir="/docs/" current="de" %}
 
 # ❓ Häufig gestellte Fragen (FAQ)
 

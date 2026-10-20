@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "السينما المنزلية والبث بتقنية الواقع الافتراضي - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema-ar.html
 ---
-<sub class="doc-stamp">26.09.25 02:20</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
 # 🍿 السينما المنزلية والبث بتقنية الواقع الافتراضي
 
 > **المستوى:** مبتدئ &bull; **الوقت:** ~15 دقيقة &bull; **الإصدار:** Standard وLegacy وVR وnoLegal (لا تحتوي Lite على مصادر شبكة، ولا يحتوي Photos على فيديو)
-
-{% include lang-switcher.html doc="scenario-home-cinema" dir="/docs/howto/" current="ar" %}
 
 شاهد مجموعة مسلسلاتك مباشرة من جهاز الكمبيوتر المنزلي - على هاتفك، أو جهازك اللوحي، أو نظارة الواقع الافتراضي العاملة بنظام Android (Meta Quest، Pico). دون نسخ ملفات. دون كابلات USB. فقط اضغط تشغيل.
 

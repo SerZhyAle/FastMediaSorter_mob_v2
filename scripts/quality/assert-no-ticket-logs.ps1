@@ -1,4 +1,4 @@
-﻿#requires -Version 7.0
+#requires -Version 7.0
 <#
 .SYNOPSIS
     Audit permanent Timber logs for embedded Sxxxx ticket ids.
@@ -16,8 +16,9 @@
     Exit codes (S1070):
       0 - clean (or audit mode).
       1 - substantive failure: a forbidden permanent-log ticket id remains.
-      2 - the gate itself cannot run (spec-catalog.jsonl missing - without it no
-          probe's status can be resolved). Distinct from 1 on purpose.
+      2 - the gate itself cannot run (spec-catalog.jsonl missing, or PLAN/ absent from this checkout unless
+          -AllowAbsentInput - without the journal no probe's status can be resolved). Distinct from 1 on
+          purpose.
       3 - only the catalog-state half failed: some ticket is BlockNeedUserTest with no
           probe, and -ChangedFiles was supplied, so the caller asked to be judged on
           its own files. Distinct from 1 because the caller cannot fix it - the probe
@@ -43,6 +44,13 @@
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1
     pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1 -Gate
+
+.PARAMETER AllowAbsentInput
+    The caller declaring a checkout without the gitignored root acceptable for this run.
+    assert-fast-gates.ps1 passes it, because the GitHub Static Gates job runs on a clone that does
+    not carry PLAN/ or .claude/. With it the absence ends `<gate>: NOT APPLICABLE (..)` with exit 0,
+    which every aggregator counts as skipped, never as passed (CHECK-VERDICT 0.12 item A.1); without
+    it the same absence is exit 2 (S4380, lib/absent-input.ps1).
 #>
 [CmdletBinding()]
 param(
@@ -50,7 +58,8 @@ param(
     [switch]$Quiet,
     # S1184/S1340: `pwsh -File` binds only the first element of a [string[]] and rejects the rest as
     # positional args, so callers comma-join and this splits it back.
-    [string[]]$ChangedFiles
+    [string[]]$ChangedFiles,
+    [switch]$AllowAbsentInput
 )
 
 Set-StrictMode -Version Latest
@@ -61,12 +70,13 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $catalog = Join-Path $repoRoot 'PLAN/spec-catalog.jsonl'
 
 . (Join-Path $PSScriptRoot 'lib/absent-input.ps1')
+. (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
 
 if (-not (Test-Path $catalog)) {
     # S3075: PLAN/ is gitignored, so a fresh clone, a release worktree and a CI runner all lack the
     # journal legitimately. That is "cannot verify", never "violation" - see lib/absent-input.ps1.
     Exit-InputAbsent -Gate 'assert-no-ticket-logs' -Path 'PLAN/spec-catalog.jsonl' `
-        -Reason 'PLAN/ is gitignored - present only on a workstation checkout'
+        -Reason 'PLAN/ is gitignored - present only on a workstation checkout' -Allow:$AllowAbsentInput
 }
 
 # Build the set of tickets currently in BlockNeedUserTest (allowed-probe owners).
@@ -310,7 +320,7 @@ if (-not $Gate -and -not $Quiet -and ($actual -gt 0 -or $missingProbe.Count -gt 
     Write-Host '  Re-run with -Gate for the fail-closed verdict - that is how a.ps1 fg invokes it.'
 }
 
-if ($Gate -and $actual -gt 0) { exit 1 }
+if ($Gate -and $actual -gt 0) { Write-Host "assert-no-ticket-logs: FAIL ($actual forbidden log id(s))"; exit 1 }
 # S1912: a missing probe is fatal on a project-wide run - the release path and assert-fast-gates.ps1
 # both take that branch - but exits 3 for a caller that named its changed set, so post-change.ps1 can
 # report it without charging one session for another session's half-finished ticket.
@@ -318,6 +328,17 @@ if ($Gate -and $missingProbe.Count -gt 0) {
     # S2075: the listing above is gated on -not $Quiet, so a -Quiet -Gate caller used to hit this exit
     # with nothing printed at all. This line always fires, independent of -Quiet.
     Write-Error ("assert-no-ticket-logs: {0} BlockNeedUserTest ticket(s) missing a probe in source - {1}" -f $missingProbe.Count, ($missingProbe -join ', ')) -ErrorAction Continue
-    if ($scoped) { exit 3 } else { exit 1 }
+    if ($scoped) {
+        Write-Host "assert-no-ticket-logs: PASS WITH ADVISORIES ($($missingProbe.Count) BlockNeedUserTest ticket(s) missing a probe in source)"
+        exit 3
+    }
+    Write-Host "assert-no-ticket-logs: FAIL ($($missingProbe.Count) BlockNeedUserTest ticket(s) missing a probe in source)"
+    exit 1
 }
+if ($scoped -and $missingProbe.Count -eq 0 -and -not ($scopeSet | Where-Object { $_ -match '^(app_v2|wear)/.*\.kt$' })) {
+    # The declared set holds no Kotlin file this gate walks: the empty determined set (CHECK-VERDICT 2.12).
+    Write-EmptySetPass -GateName 'assert-no-ticket-logs'
+    exit 0
+}
+Write-Host ("assert-no-ticket-logs: PASS ({0} forbidden log id(s), {1} missing probe(s){2})" -f $actual, $missingProbe.Count, $(if (-not $Gate -and ($actual -gt 0 -or $missingProbe.Count -gt 0)) { '; audit mode, -Gate not set' } else { '' }))
 exit 0

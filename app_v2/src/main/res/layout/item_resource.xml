@@ -247,6 +247,18 @@
             app:barrierDirection="start"
             app:constraint_referenced_ids="tvFileCount,tvResourceType,tvMediaTypes,tvDestinationBadge,tvDestinationMark,tvWritableIndicator,tvAvailabilityIndicator,layoutInlineActions,ivDragHandle,btnMoreActions" />
 
+        <!-- S4354: the comment and last-sync lines start below the lowest of the icon, the address and the
+             right-hand cluster, so they can use the whole row width instead of the strip left of barrierRight.
+             ivDragHandle and layoutInlineActions are left out on purpose: both are pinned top and bottom to the
+             parent, so referencing them would make the row height depend on a barrier that depends on it. -->
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrierTextBottom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierAllowsGoneWidgets="false"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="ivResourceTypeIcon,tvResourcePath,tvFileCount,tvResourceType,tvMediaTypes,tvDestinationBadge,tvDestinationMark,tvWritableIndicator,tvAvailabilityIndicator,btnMoreActions" />
+
         <!-- S4040: the full address wraps; it is never cut to one ellipsized line. -->
         <TextView
             android:id="@+id/tvResourcePath"
@@ -267,8 +279,6 @@
             android:id="@+id/tvResourceComment"
             android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/margin_normal"
-            android:layout_marginEnd="@dimen/margin_normal"
             android:layout_marginTop="@dimen/margin_tiny"
             android:ellipsize="end"
             android:includeFontPadding="true"
@@ -277,9 +287,9 @@
             android:textSize="@dimen/text_size_tiny"
             android:textStyle="italic"
             android:visibility="gone"
-            app:layout_constraintEnd_toStartOf="@+id/barrierRight"
-            app:layout_constraintStart_toEndOf="@+id/ivResourceTypeIcon"
-            app:layout_constraintTop_toBottomOf="@+id/tvResourcePath"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/barrierTextBottom"
             tools:text="My backup folder"
             tools:visibility="visible" />
 
@@ -287,16 +297,14 @@
             android:id="@+id/tvLastSync"
             android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/margin_normal"
-            android:layout_marginEnd="@dimen/margin_normal"
             android:layout_marginTop="@dimen/margin_tiny"
             android:includeFontPadding="true"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="@dimen/item_detail_text_size_small"
             android:textStyle="italic"
             android:visibility="gone"
-            app:layout_constraintEnd_toStartOf="@+id/barrierRight"
-            app:layout_constraintStart_toEndOf="@+id/ivResourceTypeIcon"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvResourceComment"
             tools:text="Last sync: 2 hours ago"
             tools:visibility="visible" />

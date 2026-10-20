@@ -116,6 +116,8 @@ data class WearBackgroundPreview(val path: String, val stamp: Long)
  * just created is announced and left alone, while an existing one is opened. Collapsing them into
  * "open it either way" would drop the reader into an empty browser, since a freshly created watch
  * resource has never been scanned.
+ *
+ * S4282: [Open] also carries the screenshot row's button to the resource holding the watch's picture.
  */
 sealed class WearWatchResourceEvent {
     data class Created(val name: String) : WearWatchResourceEvent()
@@ -145,6 +147,14 @@ sealed class SettingsPushEvent {
  * label on the screen; [arg] carries the watch's refusal reason for the one wording that names it.
  */
 data class ClipboardSendOutcomeText(@StringRes val res: Int, val arg: String? = null)
+
+/**
+ * S4282: the newest picture the watch sent, as the screenshot row shows it.
+ *
+ * [browseResourceId] is null when the picture lies outside every registered resource, in which case
+ * the row states the time and offers no button.
+ */
+data class LastWatchScreenshot(val capturedAtEpochMillis: Long, val browseResourceId: Long?)
 
 // Every parameter is a distinct collaborator this screen needs (sync legs, watch resource ops,
 // listening, settings mirror) - S2731 added settingsRepository for the one read-only unitSystem value.
@@ -230,6 +240,11 @@ class WearSyncViewModel @Inject constructor(
     private val _screenshotRequestOutcome = MutableStateFlow<ClipboardSendOutcomeText?>(null)
     val screenshotRequestOutcome: StateFlow<ClipboardSendOutcomeText?> =
         _screenshotRequestOutcome.asStateFlow()
+
+    // S4282: separate from the outcome line, which a later failed ask replaces - the previous
+    // picture is still on the phone, so its time and its way into Browse stay until the window closes.
+    private val _lastWatchScreenshot = MutableStateFlow<LastWatchScreenshot?>(null)
+    val lastWatchScreenshot: StateFlow<LastWatchScreenshot?> = _lastWatchScreenshot.asStateFlow()
 
     // S2000: the chosen background is a field of the mirrored payload like every other watch
     // setting, but it is also read on its own by the group that offers the two options, so it is
@@ -837,6 +852,26 @@ class WearSyncViewModel @Inject constructor(
             Timber.i("Watch screenshot: %s", outcome::class.java.simpleName)
             _screenshotRequestInFlight.value = false
             _screenshotRequestOutcome.value = screenshotWording(outcome)
+            if (outcome is WatchScreenshotOutcome.Captured) {
+                Timber.d("S4282: watch screenshot captured, browse resource ${outcome.browseResourceId}")
+                _lastWatchScreenshot.value =
+                    LastWatchScreenshot(outcome.capturedAtEpochMillis, outcome.browseResourceId)
+            }
+        }
+    }
+
+    /**
+     * S4282: opens Browse on the resource that holds the newest watch screenshot.
+     *
+     * Rides the event the watch-resource button already uses, because the host fragment turns an
+     * `Open` into a Browse launch and nothing about this one differs from it. Does nothing when the
+     * picture lies outside every resource: the row does not offer the button then either.
+     */
+    fun openLastWatchScreenshots() {
+        val resourceId = _lastWatchScreenshot.value?.browseResourceId ?: return
+        Timber.d("S4282: open watch screenshots in Browse, resource $resourceId")
+        viewModelScope.launch {
+            _watchResourceEvents.send(WearWatchResourceEvent.Open(resourceId))
         }
     }
 

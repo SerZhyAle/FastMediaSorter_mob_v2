@@ -1,14 +1,66 @@
 ---
-layout: default
+layout: doc
 title: "Що нового у FastMediaSorter v2"
 permalink: /docs/WHATS_NEW-uk.html
 ---
 
-<sub class="doc-stamp">26.10.06 23:40</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # Що нового у FastMediaSorter v2
 
-**Поточний реліз: 2.61.0141.503** (жовтень 2026)
+**Поточний реліз: 2.61.0202.318** (жовтень 2026)
+
+> Зміни з версії 2.61.0141.503
+
+---
+
+## Що нового
+
+- **Облікові записи сервера обміну** - реєстрація, зміна пароля і видалення облікового запису з телефона. <!-- af: network-cloud.exchange-account-registration-password-change-and-deletion -->
+- **Наскрізне запечатування** - усе, що йде через сервер обміну, запечатане між вашими пристроями. <!-- af: network-cloud.end-to-end-sealing-through-the-exchange-server -->
+- **Буфер обміну на сервері обміну** - надсилання й отримання тексту на телефоні та годиннику. <!-- af: network-cloud.clipboard-on-the-exchange-server, wear-os.clipboard-on-the-exchange-server-from-the-watch, wear-os.open-in-on-the-watch-clipboard-screen -->
+- **Один ресурс, будь-який шлях** - локальна мережа, проброс порту або тунель обміну, найшвидший першим. <!-- af: network-cloud.one-resource-record-across-channels-and-outward-folder -->
+- **Файли через Google Drive** - між власними телефонами на одному обліковому записі. <!-- af: network-cloud.files-via-google-drive-between-own-devices -->
+- **Операції за розкладом між пристроями** - над ресурсами обміну та Google Drive. <!-- af: file-operations.scheduled-operations-over-exchange-and-drive -->
+- **Обмін у резервній копії налаштувань** - ресурси, розклади й облікові записи відновлюються разом із нею. <!-- af: settings-navigation.exchange-resources-schedules-and-accounts-in-the-settings -->
+- **Допомога з підключенням до обміну** - кроки перевірки при збої, посилання на портал і сценарії. <!-- af: network-cloud.exchange-connection-failure-check-steps, network-cloud.portal-links-glyphs-and-shared-words-on-the, network-cloud.portal-scenario-page-links, network-cloud.media-exchange-portal-scenario-guides, exchange.exchange-server-mark -->
+- **Роздача з телефона відновлюється під час запуску** - і пояснює, чому стояла на паузі. <!-- af: network-cloud.sftp-server-lifetime-and-pause-reason -->
+- **Нові джерела трансляції** - екран телефона, готовий файл, камера з вимкненим екраном. <!-- af: broadcast.phone-screen-broadcast, broadcast.ready-file-broadcast, broadcast.camera-broadcast-with-the-screen-off -->
+- **Захищені трансляції** - пароль через сервер обміну та гостьовий доступ. <!-- af: broadcast.password-protected-broadcast-through-the-exchange-server, broadcast.guest-grant -->
+- **Трансляція в темряві** - ліхтарик і яскрава рамка під час відео. <!-- af: broadcast.flashlight-during-video-broadcast, broadcast.bright-frame-for-dark-broadcasts, broadcast.broadcast-torch-and-bright-frame -->
+- **Екран керування трансляцією** - згортані групи, швидке повернення, рівні кнопки при великому шрифті. <!-- af: broadcast.broadcast-screen-collapsible-groups-and-list-selectors, broadcast.broadcast-control-re-entry, broadcast.live-control-buttons-even-grid-at-large-font -->
+- **Орієнтація трансляції з камери** - правильні пропорції, а вибір об'єктива переживає поворот. <!-- af: broadcast.camera-broadcast-orientation-and-aspect, broadcast.lens-choice-survives-a-rotation-during-a-live -->
+- **Ваші трансляції у Стрімах** - у категорії «Власні»; додати можна за QR-кодом. <!-- af: streams.own-broadcasts-exchange-server, streams.scan-a-broadcast-qr-from-the-add-stream, streams.broadcast-row-follows-the-broadcaster-s-current-mode -->
+- **Вбудована довідка** - F1 і кнопка ? відкривають сторінки довідки, і без мережі теж. <!-- af: settings-navigation.in-app-help-pages-f1-and-help-button, settings-navigation.in-app-help-pages-for-resources-programs-tools, settings-navigation.header-help-actions-for-screen-pages, settings-navigation.in-app-help-broadcast-control-page, general.offline-browser-player-help -->
+- **Клавіатура в плеєрі** - клавіші переглядача та вибір файлів працюють у плеєрі. <!-- af: video-player.viewer-keyboard-defaults, video-player.player-file-selection-and-keyboard-parity -->
+- **Компактні рядки ресурсів** - більше ресурсів на екрані, у кілька колонок. <!-- af: media-browsing.compact-multi-column-resource-row -->
+- **Згорнути все** - одна кнопка згортає всі групи налаштувань; «Відомості про систему» пам'ятають свої групи. <!-- af: settings-navigation.collapse-all-groups-toolbar-button, diagnostics.system-information-groups-remember-their-state -->
+- **Читабельні меню панелі інструментів** - у власних світлих і темних темах. <!-- af: general.toolbar-popup-contrast -->
+- **Лаунчер** - індикатори SIM на Android 9, кнопка вставлення в перекладачі. <!-- af: launcher.legacy-sim-tray-indicators, launcher.translator-paste-glyph -->
+- **Годинник і сервер обміну** - папки, список трансляцій, захищені трансляції, «Надіслати до..». <!-- af: wear-os.exchange-server-folders-on-the-watch-over-its, wear-os.watch-plays-the-account-s-broadcast-list-through, wear-os.protected-broadcast-handed-to-the-watch-with-a-pass, wear-os.send-to-network-resources-from-the-watch -->
+- **Зупинити прослуховування годинника** - навіть до того, як годинник підтвердить запит. <!-- af: wear-os.stop-a-pending-watch-listening-request -->
+- **Сторінка підтримки** - куди звертатися по допомогу, на сайті. <!-- af: general.support-page -->
+
+## Що виправлено
+
+- Запуск роздачі з телефона більше не падає на Android 14 і новіших.
+- Операції за розкладом більше не змінюють ресурси лише для читання.
+- Перемикання живої трансляції зі звуку на відео більше не падає.
+- Під час зміни камери в трансляції з'являються її об'єктиви.
+- Файл без звукової доріжки можна транслювати.
+- Кнопка виходу з повноекранного режиму знову натискається.
+- Network Monitor знову відкривається, а не падає.
+- Сповіщення про знімки дзеркала показують ім'я файлу.
+- Кнопки імпорту ресурсів більше не переносять підписи.
+- Імпорт з обміну закриває свої діалоги після завершення.
+- Діагностичні дампи більше не розкривають довжину пароля.
+- Попередження на годиннику вміщуються в круглий екран.
+- Екран серверів обміну на годиннику відкривається на своєму стані.
+- Порожній список трансляцій на годиннику більше не завантажується безкінечно.
+
+---
+
+## Попередній реліз: 2.61.0141.503 (жовтень 2026)
 
 > Зміни з версії 2.61.0041.544
 

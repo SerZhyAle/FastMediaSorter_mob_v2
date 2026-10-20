@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "🔧 Troubleshooting Guide"
 permalink: /docs/TROUBLESHOOTING.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 🔧 Troubleshooting Guide
 
 Current troubleshooting guide for FastMediaSorter v2. Use the canonical flavor matrix in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) when the issue depends on the selected build path (Standard, Lite, Photos, Legacy, or XR / noLegal).
-
-{% include lang-switcher.html doc="TROUBLESHOOTING" dir="/docs/" current="en" %}
 
 ---
 

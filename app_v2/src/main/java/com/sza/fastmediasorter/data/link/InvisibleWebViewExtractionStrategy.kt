@@ -712,7 +712,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         const val MAX_BATCH_ITEMS = 12
         const val MIN_BATCH_BYTES = 1_048_576L
 
-        val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "avif")
+        val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "avif", "jxl")
         val SEGMENT_EXTENSIONS = setOf("m4s", "ts", "cmf", "cmfa", "cmfv", "mp4a", "part")
 
         // Hosts where the dynamic WebView extractor must not run. These hosts have dedicated

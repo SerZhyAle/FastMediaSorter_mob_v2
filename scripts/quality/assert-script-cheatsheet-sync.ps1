@@ -36,6 +36,7 @@ $ErrorActionPreference = 'Stop'
 $help = Join-Path $RepoRoot 'scripts/utils/help.ps1'
 if (-not (Test-Path $help)) {
     Write-Error 'script-cheatsheet-sync: cannot run - scripts/utils/help.ps1 missing.' -ErrorAction Continue
+    Write-Host 'assert-script-cheatsheet-sync: COULD NOT VERIFY (scripts/utils/help.ps1 is missing)'
     exit 2
 }
 
@@ -48,9 +49,7 @@ $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
 $checkOutput = @(& $pwshExe -NoProfile -File $help -Check -Root $RepoRoot 2>&1)
 $checkExit = $LASTEXITCODE
 if ($checkExit -eq 0) {
-    if (-not $Quiet) {
-        Write-Host 'script-cheatsheet-sync: OK - docs/SCRIPT_CHEATSHEET.md matches every script param block.' -ForegroundColor Green
-    }
+    Write-Host 'assert-script-cheatsheet-sync: PASS (docs/SCRIPT_CHEATSHEET.md matches every script param block)' -ForegroundColor Green
     exit 0
 }
 
@@ -58,6 +57,7 @@ if ($Repair) {
     $generateOutput = @(& $pwshExe -NoProfile -File $help -Generate -Root $RepoRoot 2>&1)
     if ($LASTEXITCODE -eq 0) {
         Write-Host 'script-cheatsheet-sync: REPAIRED - docs/SCRIPT_CHEATSHEET.md was stale and has been regenerated.' -ForegroundColor Green
+        Write-Host 'assert-script-cheatsheet-sync: PASS (the stale cheatsheet was regenerated)' -ForegroundColor Green
         exit 0
     }
     $generateOutput | ForEach-Object { Write-Host "  $_" }
@@ -67,4 +67,5 @@ else {
 }
 
 Write-Error 'script-cheatsheet-sync: FAIL - docs/SCRIPT_CHEATSHEET.md is stale. Run: pwsh -NoProfile -File scripts/utils/help.ps1 -Generate' -ErrorAction Continue
+Write-Host 'assert-script-cheatsheet-sync: FAIL (docs/SCRIPT_CHEATSHEET.md is stale)'
 exit 1

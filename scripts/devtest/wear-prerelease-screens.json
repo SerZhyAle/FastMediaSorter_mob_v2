@@ -27,6 +27,15 @@
     "backAfter, because the row it would reach for is not drawn in that build at all. S3358: before this",
     "field the only way to say 'this row exists in noLegal alone' was to stop walking it in both, so the",
     "twelve rows S3178 put behind a capability spent a whole standard sweep reporting `unreachable`.",
+    "requiresPairedPhone: optional boolean, S4210. true on an entry whose Home row HomeSectionCatalog draws",
+    "only while a connected phone answers with FastMediaSorter (S4011: RESOURCES, PHONE, PHONE_CAMERA), and",
+    "on the child reached through such a row. The walk reads Home once per run: when it shows the companion",
+    "hint (its resource-id, or the wear_companion_hint_* value of any locale) no phone is paired, and the",
+    "entry is recorded `phoneBound` exactly the way `outOfFlavor` is - no tap, no hunt, no position moved,",
+    "no backAfter spent, scored by nothing. A paired run walks it normally. Owner decision 2026-10-14: the",
+    "release verdict rests on the two reviewed emulators, and an emulator cannot be paired, so without the",
+    "marker these rows cost a scroll hunt each and lost the walk its position for the entries after them.",
+    "The contract gate refuses the marker on a homeSection the catalog draws without asking for the phone.",
     "homeSection / wearApp: the catalog row this entry depends on - the HomeSectionId or WearAppId it taps,",
     "or the one its marker IS when it taps nothing (`home` recognises Home by the Apps chip). A child entry",
     "names the same row as the parent it is reached through: `apps-voice-notes` opens from the voice",
@@ -68,6 +77,7 @@
       "screen": "NetworkSourcesScreen",
       "expectRes": "wear_sync_from_phone",
       "homeSection": "RESOURCES",
+      "requiresPairedPhone": true,
       "backAfter": 0,
       "note": "The screen title repeats the Home chip label, so the sync action is the marker instead."
     },
@@ -79,6 +89,7 @@
       "screen": "SyncTransferScreen",
       "expectRes": "wear_sync_receiving",
       "homeSection": "RESOURCES",
+      "requiresPairedPhone": true,
       "stateDependent": true,
       "backAfter": 2,
       "note": "The marker is the receiving state, so a run with no phone answering legitimately misses it. S2547: this chain was derived from the module without a device and is unconfirmed until the next /spec-prerelease-wear run."
@@ -91,6 +102,7 @@
       "screen": "PhoneHomeScreen",
       "expectRes": "wear_phone_recents",
       "homeSection": "PHONE",
+      "requiresPairedPhone": true,
       "backAfter": 1
     },
     {
@@ -148,6 +160,7 @@
       "screen": "PhoneCameraScreen",
       "expectRes": "wear_phone_camera_idle_caption",
       "homeSection": "PHONE_CAMERA",
+      "requiresPairedPhone": true,
       "backAfter": 1,
       "note": "S2551: the marker is the idle caption rather than the Start chip, whose label is one word this screen shares with several others. Opening it asks the phone for nothing - the command is sent by a tap, not by arrival - so the walk costs no camera on the paired phone."
     },
@@ -379,6 +392,16 @@
     }
   ],
   "excluded": [
+    {
+      "screen": "WearAccountFoldersScreen",
+      "reason": "needs-seeded-content",
+      "note": "S4228: reached from the Account folders action of an exchange entry in WearExchangeServersScreen, so it needs an entry the clean sweep watch never holds, and its rows need a folder shared on the same account. It is judged by the ticket's device test."
+    },
+    {
+      "screen": "WearAccountBroadcastsScreen",
+      "reason": "needs-seeded-content",
+      "note": "S4229: reached from the Broadcasts chip that WearExchangeServersScreen draws only when the watch holds an exchange entry, and its rows need a broadcasting device on the same account. The sweep's clean watch holds neither, so the page has no route and no static marker; it is judged by the ticket's device test."
+    },
     {
       "screen": "PermissionsSettingsScreen",
       "reason": "no-static-marker",

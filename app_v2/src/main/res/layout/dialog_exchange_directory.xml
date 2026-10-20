@@ -30,5 +30,17 @@
         android:clickable="true"
         android:focusable="true"
         android:nextFocusUp="@id/rvExchangeDirectory"
+        android:nextFocusDown="@+id/btnExchangePortalDirectory"
         android:text="@string/exchange_devices_title" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnExchangePortalDirectory"
+        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:clickable="true"
+        android:focusable="true"
+        android:nextFocusUp="@id/btnExchangeDirectoryMyDevices"
+        android:text="@string/exchange_portal_link_folders_exchange_server" />
 </LinearLayout>

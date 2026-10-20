@@ -237,8 +237,8 @@ finally {
 
 Write-Host ''
 if ($failures -gt 0) {
-    Write-Host ("watch-agent-progress.tests: {0} of {1} case(s) FAILED" -f $failures, $caseCount) -ForegroundColor Red
+    Write-Host "watch-agent-progress.tests: $(if ($failures -gt 0) { 'FAIL' } else { 'PASS' }) (run=$caseCount skipped=0)"
     exit 1
 }
-Write-Host ("watch-agent-progress.tests: {0} case(s) passed" -f $caseCount) -ForegroundColor Green
+Write-Host "watch-agent-progress.tests: $(if ($failures -gt 0) { 'FAIL' } else { 'PASS' }) (run=$caseCount skipped=0)"
 exit 0

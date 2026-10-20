@@ -39,5 +39,13 @@ if ($UpdateBaseline) { $forward.UpdateBaseline = $true }
 if ($List) { $forward.List = $true }
 if ($ChangedFiles) { $forward.ChangedFiles = $ChangedFiles }
 
-& (Join-Path $PSScriptRoot 'assert-source-gates.ps1') @forward
-exit $LASTEXITCODE
+. (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+$engine = Invoke-SourceGatesEngine -Runner (Join-Path $PSScriptRoot 'assert-source-gates.ps1') -Forward $forward
+$code = $engine.Code
+# CHECK-VERDICT rule 5: the verdict line names this wrapper, not the aggregator it forwards to.
+switch ($code) {
+    0 { if ($engine.EmptySet) { Write-EmptySetPass -GateName 'assert-deprecated-pm-flags' } else { Write-Host 'assert-deprecated-pm-flags: PASS' } }
+    1 { Write-Host 'assert-deprecated-pm-flags: FAIL' }
+    default { Write-Host "assert-deprecated-pm-flags: COULD NOT VERIFY (assert-source-gates exited $code)" }
+}
+exit $code

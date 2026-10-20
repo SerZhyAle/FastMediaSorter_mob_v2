@@ -73,6 +73,9 @@ rise: a fix lowers it with `-UpdateBaseline`, and a new dimension is seeded once
 `-UpdateBaseline -SeedDimension <name>`. The gate finds the catalog through
 `FMS_CONTRACTS_ROOT` (process or user scope) or `-CatalogRoot`, and without one it exits 2.
 
+Declared exceptions must still match a finding. The gate reports a stale-exception key when the
+violation is gone; delete the obsolete declaration. Baseline updates refuse stale exceptions.
+
 ## Convention: icons, not emoji
 
 - User documentation uses the actual app icons under `docs/icons/svg/`, not decorative

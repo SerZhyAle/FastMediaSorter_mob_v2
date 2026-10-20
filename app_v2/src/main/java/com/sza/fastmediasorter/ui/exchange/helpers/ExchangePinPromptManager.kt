@@ -10,10 +10,10 @@ import androidx.core.widget.doAfterTextChanged
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogExchangePinBinding
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.ui.exchange.ExchangePinPhase
 import com.sza.fastmediasorter.ui.exchange.ExchangePinPrompt
 import com.sza.fastmediasorter.util.showBoundTo
-import timber.log.Timber
 
 /**
  * The PIN request of a protected resource (DEVICE-EXCHANGE 17 item AJ), opened over "From my devices". The view
@@ -41,7 +41,6 @@ class ExchangePinPromptManager(
     }
 
     private fun show(prompt: ExchangePinPrompt.Asking) {
-        Timber.d("S4201: PIN prompt shown")
         dismiss()
         val view = DialogExchangePinBinding.inflate(LayoutInflater.from(activity))
         view.etExchangePin.doAfterTextChanged { view.tilExchangePin.error = null }
@@ -73,13 +72,14 @@ class ExchangePinPromptManager(
         view.tilExchangePin.error =
             if (phase == ExchangePinPhase.REFUSED) activity.getString(R.string.exchange_pin_refused) else null
         val status = when (phase) {
-            ExchangePinPhase.CHECKING -> R.string.exchange_pin_checking
-            ExchangePinPhase.UNREACHABLE -> R.string.exchange_pin_unreachable
-            ExchangePinPhase.FAILED -> R.string.exchange_pin_failed
+            ExchangePinPhase.CHECKING -> activity.getString(R.string.exchange_pin_checking)
+            ExchangePinPhase.UNREACHABLE ->
+                ExchangeMessageText.twoParts(activity, ExchangeMessage.UNREACHABLE_DEVICE)
+            ExchangePinPhase.FAILED -> activity.getString(R.string.exchange_pin_failed)
             else -> null
         }
         view.textExchangePinStatus.isVisible = status != null
-        status?.let(view.textExchangePinStatus::setText)
+        view.textExchangePinStatus.text = status
         if (phase == ExchangePinPhase.REFUSED || phase == ExchangePinPhase.UNREACHABLE) {
             view.etExchangePin.requestFocus()
             view.etExchangePin.selectAll()

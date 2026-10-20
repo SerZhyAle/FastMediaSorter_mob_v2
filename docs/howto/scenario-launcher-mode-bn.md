@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "অ্যাপটিকে আপনার হোম স্ক্রিন হিসেবে ব্যবহার করুন - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-bn.html
 ---
-<sub class="doc-stamp">26.09.25 02:19</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
 # 🖥️ অ্যাপটিকে আপনার হোম স্ক্রিন হিসেবে ব্যবহার করুন
 
 > **স্তর:** শিক্ষানবিস &bull; **ফ্লেভার:** Standard / noLegal
-
-{% include lang-switcher.html doc="scenario-launcher-mode" dir="/docs/howto/" current="bn" %}
 
 FastMediaSorter আপনার ডিভাইসের হোম স্ক্রিনকে নিজস্ব একটা ডেস্কটপ দিয়ে প্রতিস্থাপন করতে পারে - আপনার ফোল্ডার, একটা ঘড়ি, আবহাওয়া, আপনার অ্যাপ, এবং এক প্রান্ত ধরে একটা টাস্কবার। আপনি যদি কখনো একটা Windows ডেস্কটপ ব্যবহার করে থাকেন তাহলে এটা পরিচিত মনে হবে: জিনিসগুলো যেখানে রাখেন সেখানেই থাকে, এবং একটা Start বাটন মেনু খোলে। একে বলা হয় **লঞ্চার মোড**।
 

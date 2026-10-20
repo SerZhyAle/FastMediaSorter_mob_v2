@@ -1,0 +1,149 @@
+{
+  "help": "water-flashlight",
+  "surface": "WaterFlashlightActivity",
+  "elements": [
+    { "id": "lit-screen", "viewId": "waterFlashlightRoot" },
+    { "id": "clock", "viewId": "tvClock" },
+    { "id": "locked-hint", "viewId": "tvLockedHint", "labelKey": "water_flashlight_locked_hint" },
+    { "id": "volume-buttons" },
+    { "id": "other-exits" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "settings-operations" },
+    { "help": "front-flashlight" },
+    { "pageId": "programs.built-in-mini-apps" },
+    { "pageId": "launcher.home-screen-widgets" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Water flashlight",
+      "purpose": "The water flashlight lights the camera flash and the whole screen at full brightness together, then locks the screen against touch. It is made for wet hands - rain, a shower - where a touch screen presses itself. You leave it with a volume button, never by touching the glass.",
+      "steps": [
+        "Open Water flashlight from the programs menu, the programs panel or a home-screen widget. If it is not offered, switch it on first in Settings, on the Management tab, in the group Additional programs and scenarios. The camera flash and the screen (1) light up together at once.",
+        "From this moment the screen is locked. Only the time (2) and the reminder (3) are shown, and touching the glass does nothing: wet fingers or drops cannot close, dim or press anything. The hint Locked. Use the buttons (3) means the volume buttons (4).",
+        "To switch the light off, press a volume button (4): volume up, volume down or mute. The screen closes when you let go of the key, and the volume does not change.",
+        "The screen stays awake for as long as the light is on, so you do not need to touch the phone to keep it lit.",
+        "If you leave another way (5) - the power button or a system gesture - the flash goes out as well, so it never keeps burning in a pocket. Do not rely on a gesture in water: drops can trigger it and the light disappears."
+      ],
+      "groups": [
+        { "title": "The lit screen", "elements": ["lit-screen"] },
+        { "title": "Time and reminder", "elements": ["clock", "locked-hint"] },
+        { "title": "How to leave", "elements": ["volume-buttons", "other-exits"] }
+      ],
+      "elements": {
+        "lit-screen": {
+          "name": "Lit screen",
+          "summary": "A white screen at full brightness with the camera flash on, deaf to every touch.",
+          "details": "The window is white at the highest brightness and the camera flash burns together with it. A phone without a camera flash still works: the lit screen is then the only light. Only the brightness of this window is raised, never the brightness setting of the phone, so after you leave it the phone is as bright as before.\n\nEvery touch on the screen is swallowed on purpose, so water on the glass cannot close or change anything. The status bar and the navigation buttons are hidden for the same reason. A deliberate swipe from the screen edge can still bring the system bars back for a moment."
+        },
+        "clock": {
+          "name": "Clock",
+          "summary": "The time in large black digits, readable at arm's length.",
+          "details": "It moves on at the start of every minute. Whether it reads in 12 or 24 hours follows the unit system of the app (Metric shows 24 hours, US shows 12), not the clock format of the device. It is only a display and cannot be touched."
+        },
+        "locked-hint": {
+          "summary": "Reminds you that touch is off and that a button is the way out.",
+          "details": "The line is always on the screen, so you do not have to remember how to leave in the dark or in the rain. The buttons it speaks of are the hardware buttons of the phone, first of all the volume buttons. Tapping the text does nothing."
+        },
+        "volume-buttons": {
+          "name": "Volume buttons",
+          "summary": "The way out: press a volume button and the light goes out.",
+          "details": "Volume up, volume down and mute close the screen and put out the flash. The screen closes when you release the key, and that press is swallowed, so the volume of your music or calls does not change. The camera key, the button on a headset and the play/pause media key do the same on devices that have them.\n\nThe Back button is deliberately not one of the exit keys: with gesture navigation Back arrives from a swipe across the glass, and wet glass makes such swipes by itself. A device with no volume buttons has to use the other ways out below.",
+          "shortcut": "Volume up / Volume down / Mute"
+        },
+        "other-exits": {
+          "name": "Power button and system gestures",
+          "summary": "Other ways out. They also put the light out, but water can trigger them.",
+          "details": "The screen does not pin itself and does not block system gestures. The power button turns the display off, and a Home or app-switch gesture takes you to another screen; in both cases the flash goes out at once, so it cannot be left burning in a pocket or a bag.\n\nIn water do not count on these: a drop on the glass can cause a gesture, and then the light disappears when you need it. Use a volume button when you want to switch it off yourself."
+        }
+      }
+    },
+    "ru": {
+      "title": "Водный фонарь",
+      "purpose": "Водный фонарь зажигает вспышку камеры и весь экран на полную яркость, а затем запирает экран от касаний. Он сделан для мокрых рук - в дождь или под душем, - когда сенсор нажимает сам себя. Выходят из него кнопкой громкости, а не касанием стекла.",
+      "steps": [
+        "Откройте «Водный фонарь» из меню программ, с панели программ или виджетом на домашнем экране. Если его там нет, сначала включите его в «Настройках», на вкладке «Управление», в группе «Дополнительные программы и сценарии». Вспышка камеры и экран (1) загорятся одновременно.",
+        "С этого момента экран заперт. На нём видны только время (2) и напоминание (3), а касания стекла ничего не делают: мокрые пальцы и капли не могут ни закрыть, ни притушить, ни нажать что-либо. Подсказка «Заблокировано. Используйте кнопки» (3) означает кнопки громкости (4).",
+        "Чтобы выключить свет, нажмите кнопку громкости (4): громкость вверх, громкость вниз или «без звука». Экран закроется, когда вы отпустите клавишу, а громкость не изменится.",
+        "Экран не гаснет, пока свет включён, так что трогать телефон, чтобы он продолжал светить, не нужно.",
+        "Если вы выйдете другим способом (5) - кнопкой питания или системным жестом, - вспышка тоже погаснет, и в кармане она гореть не останется. В воде на жест не рассчитывайте: капли могут его вызвать, и свет пропадёт."
+      ],
+      "groups": [
+        { "title": "Светящийся экран", "elements": ["lit-screen"] },
+        { "title": "Время и напоминание", "elements": ["clock", "locked-hint"] },
+        { "title": "Как выйти", "elements": ["volume-buttons", "other-exits"] }
+      ],
+      "elements": {
+        "lit-screen": {
+          "name": "Светящийся экран",
+          "summary": "Белый экран на полной яркости с горящей вспышкой камеры, не реагирующий ни на какие касания.",
+          "details": "Окно белое, на самой высокой яркости, и вместе с ним горит вспышка камеры. На телефоне без вспышки программа тоже работает: тогда единственный свет - это экран. Повышается только яркость этого окна, а не настройка яркости телефона, поэтому после выхода телефон такой же яркий, как был.\n\nВсе касания экрана намеренно поглощаются, поэтому вода на стекле ничего не закроет и не изменит. По той же причине спрятаны строка состояния и кнопки навигации. Осознанный свайп от края экрана всё же может ненадолго вернуть системные панели."
+        },
+        "clock": {
+          "name": "Часы",
+          "summary": "Время крупными чёрными цифрами, читаемое с вытянутой руки.",
+          "details": "Часы обновляются в начале каждой минуты. В каком формате они показаны, 12 или 24 часа, зависит от системы единиц приложения (метрическая показывает 24 часа, американская - 12), а не от формата часов устройства. Это только индикатор, касаться его нельзя."
+        },
+        "locked-hint": {
+          "summary": "Напоминает, что касания отключены и выходить нужно кнопкой.",
+          "details": "Строка всегда на экране, поэтому не придётся вспоминать в темноте или под дождём, как выйти. Кнопки, о которых она говорит, - это аппаратные кнопки телефона, в первую очередь кнопки громкости. Касание текста ничего не делает."
+        },
+        "volume-buttons": {
+          "name": "Кнопки громкости",
+          "summary": "Выход: нажмите кнопку громкости - и свет погаснет.",
+          "details": "«Громкость вверх», «громкость вниз» и «без звука» закрывают экран и гасят вспышку. Экран закрывается, когда вы отпускаете клавишу, а само нажатие поглощается, так что громкость музыки или звонка не меняется. Клавиша камеры, кнопка на гарнитуре и медиаклавиша «пуск/пауза» делают то же самое на устройствах, где они есть.\n\nКнопка «Назад» намеренно не входит в число клавиш выхода: при навигации жестами «назад» приходит от свайпа по стеклу, а мокрое стекло само даёт такие свайпы. Если на устройстве нет кнопок громкости, придётся воспользоваться другими способами выхода, описанными ниже.",
+          "shortcut": "Volume up / Volume down / Mute"
+        },
+        "other-exits": {
+          "name": "Кнопка питания и системные жесты",
+          "summary": "Другие способы выйти. Они тоже гасят свет, но вода может их вызвать.",
+          "details": "Экран не закрепляет себя и не блокирует системные жесты. Кнопка питания гасит дисплей, а жест «домой» или переключения приложений уводит на другой экран; в обоих случаях вспышка гаснет сразу, так что забыть её горящей в кармане или сумке нельзя.\n\nВ воде на эти способы не рассчитывайте: капля на стекле может вызвать жест, и свет пропадёт, когда он нужен. Когда хотите выключить свет сами, нажимайте кнопку громкости."
+        }
+      }
+    },
+    "uk": {
+      "title": "Водний ліхтар",
+      "purpose": "Водний ліхтар запалює спалах камери та весь екран на повну яскравість, а потім замикає екран від дотиків. Він зроблений для мокрих рук - під дощем чи в душі, - коли сенсор натискає сам себе. Виходять із нього кнопкою гучності, а не дотиком до скла.",
+      "steps": [
+        "Відкрийте «Водний ліхтар» з меню програм, із панелі програм або віджетом на домашньому екрані. Якщо його там немає, спершу ввімкніть його в «Налаштуваннях», на вкладці «Управління», у групі «Додаткові програми та сценарії». Спалах камери й екран (1) засвітяться одночасно.",
+        "Відтоді екран замкнений. На ньому видно лише час (2) і нагадування (3), а дотики до скла нічого не роблять: мокрі пальці й краплі не можуть ні закрити, ні притьмарити, ні натиснути щось. Підказка «Заблоковано. Використовуйте кнопки» (3) означає кнопки гучності (4).",
+        "Щоб вимкнути світло, натисніть кнопку гучності (4): гучність угору, гучність униз або «без звуку». Екран закриється, коли ви відпустите клавішу, а гучність не зміниться.",
+        "Екран не гасне, поки світло ввімкнено, тож торкатися телефона, щоб він і далі світив, не потрібно.",
+        "Якщо ви вийдете іншим способом (5) - кнопкою живлення чи системним жестом, - спалах теж згасне, і в кишені він горіти не залишиться. У воді на жест не розраховуйте: краплі можуть його викликати, і світло зникне."
+      ],
+      "groups": [
+        { "title": "Світний екран", "elements": ["lit-screen"] },
+        { "title": "Час і нагадування", "elements": ["clock", "locked-hint"] },
+        { "title": "Як вийти", "elements": ["volume-buttons", "other-exits"] }
+      ],
+      "elements": {
+        "lit-screen": {
+          "name": "Світний екран",
+          "summary": "Білий екран на повній яскравості з увімкненим спалахом камери, глухий до будь-яких дотиків.",
+          "details": "Вікно біле, на найвищій яскравості, і разом із ним світить спалах камери. На телефоні без спалаху програма теж працює: тоді єдине світло - це екран. Підвищується лише яскравість цього вікна, а не налаштування яскравості телефона, тому після виходу телефон такий самий яскравий, як був.\n\nУсі дотики до екрана навмисно поглинаються, тож вода на склі нічого не закриє й не змінить. З тієї ж причини сховано рядок стану та кнопки навігації. Свідомий свайп від краю екрана все ж може ненадовго повернути системні панелі."
+        },
+        "clock": {
+          "name": "Годинник",
+          "summary": "Час великими чорними цифрами, який видно з витягнутої руки.",
+          "details": "Годинник оновлюється на початку кожної хвилини. У якому форматі його показано, 12 чи 24 години, залежить від системи одиниць застосунку (метрична показує 24 години, американська - 12), а не від формату годинника пристрою. Це лише індикатор, торкатися його не можна."
+        },
+        "locked-hint": {
+          "summary": "Нагадує, що дотики вимкнено і виходити треба кнопкою.",
+          "details": "Рядок завжди на екрані, тому не доведеться згадувати в темряві чи під дощем, як вийти. Кнопки, про які в ньому йдеться, - це апаратні кнопки телефона, насамперед кнопки гучності. Дотик до тексту нічого не робить."
+        },
+        "volume-buttons": {
+          "name": "Кнопки гучності",
+          "summary": "Вихід: натисніть кнопку гучності - і світло згасне.",
+          "details": "«Гучність угору», «гучність униз» і «без звуку» закривають екран і гасять спалах. Екран закривається, коли ви відпускаєте клавішу, а саме натискання поглинається, тож гучність музики чи дзвінка не змінюється. Клавіша камери, кнопка на гарнітурі та медіаклавіша «пуск/пауза» роблять те саме на пристроях, де вони є.\n\nКнопка «Назад» навмисно не входить до клавіш виходу: за навігації жестами «назад» надходить від свайпу по склу, а мокре скло саме дає такі свайпи. Якщо на пристрої немає кнопок гучності, доведеться скористатися іншими способами виходу, описаними нижче.",
+          "shortcut": "Volume up / Volume down / Mute"
+        },
+        "other-exits": {
+          "name": "Кнопка живлення та системні жести",
+          "summary": "Інші способи вийти. Вони теж гасять світло, але вода може їх викликати.",
+          "details": "Екран не закріплює себе й не блокує системні жести. Кнопка живлення гасить дисплей, а жест «додому» чи перемикання застосунків виводить на інший екран; в обох випадках спалах згасає одразу, тож залишити його палаючим у кишені чи сумці не можна.\n\nУ воді на ці способи не розраховуйте: крапля на склі може викликати жест, і світло зникне, коли воно потрібне. Коли хочете вимкнути світло самі, натискайте кнопку гучності."
+        }
+      }
+    }
+  }
+}

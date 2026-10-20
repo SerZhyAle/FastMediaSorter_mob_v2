@@ -1,0 +1,428 @@
+{
+  "help": "wear-companion",
+  "surface": "WearCompanionActivity",
+  "elements": [
+    { "id": "toolbar", "viewId": "toolbar", "labelKey": "wear_companion" },
+    { "id": "push-settings", "viewId": "wearPushSettings", "labelKey": "wear_settings_sync_button" },
+    { "id": "sync-status", "viewId": "wearSyncSettingsStatus" },
+    { "id": "companion-content", "viewId": "wearCompanionContainer" },
+    { "id": "push-to-watch", "labelKey": "wear_push_to_watch" },
+    { "id": "select-resources", "labelKey": "wear_resource_selection_title" },
+    { "id": "watch-resource", "labelKey": "wear_companion_add_open_resource" },
+    { "id": "send-clipboard", "labelKey": "wear_clipboard_send_to_watch" },
+    { "id": "request-screenshot", "labelKey": "wear_screenshot_request" },
+    { "id": "listen-watch", "labelKey": "wear_listen_title" },
+    { "id": "face-buttons", "labelKey": "wear_face_slot_group_title" },
+    { "id": "stream-pins", "labelKey": "wear_stream_pins_group_title" },
+    { "id": "watch-settings" },
+    { "id": "doc-links" },
+    { "id": "sel-hint" },
+    { "id": "sel-select-all", "labelKey": "wear_resource_selection_select_all" },
+    { "id": "sel-empty" },
+    { "id": "sel-list" },
+    { "id": "pick-media-kind" },
+    { "id": "pick-topic", "labelKey": "streams_filter_topic" },
+    { "id": "pick-language", "labelKey": "streams_filter_language" },
+    { "id": "pick-sort", "labelKey": "streams_sort" },
+    { "id": "pick-search", "labelKey": "streams_picker_search_hint" },
+    { "id": "pick-list" }
+  ],
+  "related": [
+    { "help": "settings-operations" },
+    { "help": "streams" },
+    { "help": "my-devices" },
+    { "help": "settings-general" },
+    { "pageId": "wear.installation-and-pairing" },
+    { "pageId": "wear.companion-data-sync" },
+    { "pageId": "wear.phone-and-network-folders-on-watch" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Wear Companion",
+      "purpose": "The Wear companion is this phone's control panel for your Wear OS watch. Choose which network resources the watch gets, set how the watch looks and behaves, pin channels for it, and use the watch from the phone: listen through its microphone, send the clipboard, ask for a screenshot.",
+      "steps": [
+        "Open the companion from the Wear Companion group on the Management tab of Settings, or from the programs. It works with a Wear OS watch paired to this phone and exists only in the editions that have it (Standard and noLegal).",
+        "To send folders to the watch, press Resources for the watch (6), tick the network resources in the list (18), then press Push to Watch (5).",
+        "Choose how the watch behaves in the settings groups (13) and what its face buttons do (11). Settings you change wait on the phone until you press Sync settings (2); face buttons and pinned channels reach the watch by themselves.",
+        "The line under Sync settings (3) shows when the last sync was confirmed, or Never synced.",
+        "To pin channels for the watch, open Watch stream pins (12) and press Add channels; the list that opens (19 to 24) has filters and a search. The group is there only while Streams is on.",
+        "The cards and buttons in Watch operations act on the watch right now: Listen to the watch (10), Send clipboard (8), Request a watch screenshot (9) and Add or open the watch (7).",
+        "The links at the bottom (14) open pages of the website about the watch and send the watch face to your watch."
+      ],
+      "groups": [
+        { "title": "The window header and its content", "elements": ["toolbar", "push-settings", "sync-status", "companion-content"] },
+        { "title": "Inside the window", "elements": ["push-to-watch", "select-resources", "watch-resource", "send-clipboard", "request-screenshot", "listen-watch", "face-buttons", "stream-pins", "watch-settings", "doc-links"] },
+        { "title": "Resources for the watch screen", "elements": ["sel-hint", "sel-select-all", "sel-empty", "sel-list"] },
+        { "title": "Pin a channel for the watch window", "elements": ["pick-media-kind", "pick-topic", "pick-language", "pick-sort", "pick-search", "pick-list"] }
+      ],
+      "elements": {
+        "toolbar": {
+          "summary": "The header of the window, with the way back, the sync button and the time of the last sync.",
+          "details": "The arrow closes the window. Sync settings and the line under it stay in the header even when a group below is folded, so the one button that sends your edits is always within reach."
+        },
+        "push-settings": {
+          "summary": "Sends the watch settings you edited on this phone to the watch.",
+          "details": "Settings you change in the groups below stay on the phone until you press this button. Pressing it sends them in one go and then waits for the watch to confirm that it applied them; the button is off while it works. If the watch does not answer in time, a short message says it may be off or out of range, and you can press again. The buttons of the watch face and the pinned channels do not wait for it - they reach the watch by themselves."
+        },
+        "sync-status": {
+          "name": "Sync status",
+          "summary": "Says when the settings were last synced.",
+          "details": "It shows Last synced with the date and time of the last confirmed exchange, or Never synced before the first one. A press that did not reach the watch leaves the previous time in place, so the line never claims a sync that did not happen."
+        },
+        "companion-content": {
+          "name": "Companion content",
+          "summary": "The scrolling area with every group of controls.",
+          "details": "The area is divided into folding groups: Watch operations (open from the start), Watch face buttons, Watch stream pins (only while Streams is on) and the watch settings groups Media types, Slideshow, Screen and Other, which all start folded. Tap a group's title to open or fold it; a folded settings group shows a one-line summary of its state. On a wide screen the rows sit in two columns. The controls inside are described under Inside the window."
+        },
+        "push-to-watch": {
+          "summary": "Sends the ticked network resources to the watch.",
+          "details": "A small window shows the progress and then the result: how many resources were sent, how many were removed from the watch because you unticked them, or a note that nothing is ticked yet. If the watch does not confirm, you can press Retry or Cancel. It sends the choice made in Resources for the watch; only SMB, FTP and SFTP resources can go to the watch.",
+          "undo": "Pushing again after changing the ticks replaces what the watch has. A resource you unticked is removed from the watch; ticking it and pushing again sends it back."
+        },
+        "select-resources": {
+          "summary": "Opens the list where you choose which network resources the watch gets.",
+          "details": "The button is shown only in editions that have the Wear companion. Your ticks are saved as you make them; nothing is sent until you press Push to Watch."
+        },
+        "watch-resource": {
+          "summary": "Adds the watch as a resource of this phone, and opens it later.",
+          "details": "The first tap adds a resource named after your watch and a message confirms it; every later tap opens the watch's own files in the file browser. If something goes wrong, a general error message appears."
+        },
+        "send-clipboard": {
+          "summary": "Sends the text on this phone's clipboard to the watch.",
+          "details": "A line under the button tells what came of it: the watch took the text, the clipboard was empty, no watch is within reach, or the watch declined. There is no button here to fetch the watch's clipboard: the watch sends its own from its Clipboard program, and the text lands on this phone's clipboard with a notification."
+        },
+        "request-screenshot": {
+          "summary": "Asks the watch to take a picture of its own screen.",
+          "details": "What arrives is the screen of the watch app, not the watch face or other apps. The picture does not appear here: it travels the ordinary watch-file route and a notification announces it. Under the button you see when the last screenshot arrived, with Open in Browse when the picture lies in a folder the app knows."
+        },
+        "listen-watch": {
+          "summary": "Lets you hear what the watch's microphone hears.",
+          "details": "Start listening sends a request, and the watch asks its wearer to confirm. While it waits, a spinner and Stop listening let you withdraw the request; once confirmed, you hear the sound until you stop. Sound travels over Wi-Fi, not Bluetooth, so the watch must be on Wi-Fi. If the request is declined, expires or the watch is busy, a red line in the card says why."
+        },
+        "face-buttons": {
+          "summary": "Chooses what the four buttons of the watch face do.",
+          "details": "Tap one of the four buttons - Left outer button, Left inner button, Right inner button or Right outer button - to open a list of choices, split into Watch sections (such as Resources, Streams or Programs), Watch programs (such as Calculator, Stopwatch, SOS or Voice recorder), App data (such as Now playing or Last opened resource), System (such as Battery, Date or Alarms) and No button, where you pick Empty. A pick reaches the watch by itself, with no need for Sync settings. The group starts folded."
+        },
+        "stream-pins": {
+          "summary": "The channels the watch lists first - the same ones you pinned in Streams.",
+          "details": "The group appears only while Streams is on. It edits the pinned channels of the Streams screen, in the same order: what you pin or move here changes the Pinned section there, and the other way round. Folded, it shows how many channels are pinned. Open it to see them in order, each with Move up, Move down and Unpin, an Add channels button that opens the channel picker (the last group of this page) and Send to the watch now. Changes reach the watch on their own; Send to the watch now pushes the list again and a line says whether the watch has it.",
+          "undo": "Unpin removes the pin everywhere, in the Streams screen too. The channel itself stays in the catalog, and you can pin it again."
+        },
+        "watch-settings": {
+          "name": "Watch settings groups",
+          "summary": "What the watch itself shows, plays and how it looks.",
+          "details": "Four folded groups. Media types holds switches for Audio, Video, Images, Documents and Show streams. Slideshow has the switch and the interval. Screen sets the view of the home and files screens, the watch background and color scheme, and keeping the watch screen on. Other covers album art, animations, watch power saving and background playback. Changes stay on the phone until you press Sync settings."
+        },
+        "doc-links": {
+          "name": "Links at the bottom",
+          "summary": "Pages to read more about the watch, and the way to get the watch face.",
+          "details": "All about the watch and How to install on a watch open pages of the project website in your browser. Get the watch face asks your watch to open the watch face page in Google Play, where you tap Install on the watch; with no watch connected, or a watch without Google Play, the page opens on this phone instead."
+        },
+        "sel-hint": {
+          "name": "Hint",
+          "summary": "Says what can be sent to the watch.",
+          "details": "Only network resources - SMB, FTP and SFTP - can go to the watch, so only those are listed. Tick the ones you want it to have."
+        },
+        "sel-select-all": {
+          "summary": "Ticks every resource in the list.",
+          "details": "The choice is saved at once. The button is hidden while the list is empty. To clear a tick, tap its box again; there is no button that clears all of them."
+        },
+        "sel-empty": {
+          "name": "Empty list message",
+          "summary": "Tells you that there is nothing to send yet.",
+          "details": "It appears when you have no SMB, FTP or SFTP resources. Add one on the main screen, then come back to pick what the watch gets."
+        },
+        "sel-list": {
+          "name": "Resource list",
+          "summary": "The network resources, each with a box to tick.",
+          "details": "Resources sit under a header with a count; tap the header to fold or unfold the group. The categories are Virtual resources, Internal resources and External resources, and since only network resources can go to the watch, you normally see External resources. Tap a row or its box to tick it. Every tick is saved at once, so you can leave the screen any way you like. Nothing is sent from here: press Push to Watch in the companion window.",
+          "undo": "Unticking changes only the choice. The resource stays on the phone; with the next push the watch drops it, and ticking it and pushing again sends it back."
+        },
+        "pick-media-kind": {
+          "name": "Media type",
+          "summary": "Shows all channels, only audio or only video.",
+          "details": "Three buttons: All, Audio and Video. The choice combines with the topic, language and search below."
+        },
+        "pick-topic": {
+          "summary": "Narrows the list to one topic.",
+          "details": "A drop-down that starts at All; pick a topic such as News or Jazz & Blues. Choosing a topic, a language or typing two letters is what lets a very large catalog show its channels at all."
+        },
+        "pick-language": {
+          "summary": "Narrows the list to one language.",
+          "details": "A drop-down that starts at All. It works together with the topic and the search."
+        },
+        "pick-sort": {
+          "summary": "Orders the channels in the picker.",
+          "details": "The same choices as on the Streams screen: By name, By topic, By language, By country or Recently added. It orders exactly the channels the filters and the search kept."
+        },
+        "pick-search": {
+          "summary": "Finds a channel by typing.",
+          "details": "Type part of a name; the list narrows as you type and the cross at the end clears the field. With a very large catalog the picker first asks you to type two characters or pick a topic or language."
+        },
+        "pick-list": {
+          "name": "Channel list",
+          "summary": "The channels you can pin - tap one to pin it.",
+          "details": "Tap a channel and the window closes at once: the channel is pinned at the top of the pinned list, which is also the Pinned section of Streams. At most two hundred channels are shown; if more match, a line says how many and asks you to refine the search. A tap outside the window closes it without pinning anything."
+        }
+      }
+    },
+    "ru": {
+      "title": "Wear-компаньон",
+      "purpose": "Wear-компаньон - пульт этого телефона для ваших часов Wear OS. Выберите, какие сетевые ресурсы получают часы, настройте их вид и поведение, закрепите для них каналы и пользуйтесь часами с телефона: слушайте их микрофон, отправляйте буфер обмена, запрашивайте снимок экрана.",
+      "steps": [
+        "Откройте компаньон из группы «Wear-компаньон» на вкладке «Управление» в настройках или из программ. Он работает с часами Wear OS, подключёнными к этому телефону, и есть только в версиях, где он предусмотрен (Standard и noLegal).",
+        "Чтобы отправить папки на часы, нажмите «Ресурсы для часов» (6), отметьте сетевые ресурсы в списке (18), затем нажмите «Отправить на часы» (5).",
+        "Выберите поведение часов в группах настроек (13) и действия кнопок циферблата (11). Изменённые настройки ждут на телефоне, пока вы не нажмёте «Синхронизировать настройки» (2); кнопки циферблата и закреплённые каналы доходят до часов сами.",
+        "Строка под «Синхронизировать настройки» (3) показывает, когда последняя синхронизация была подтверждена, или «Ещё не синхронизировано».",
+        "Чтобы закрепить каналы для часов, откройте «Закреплённые трансляции часов» (12) и нажмите «Добавить каналы»; в открывшемся списке (19-24) есть фильтры и поиск. Группа видна, только пока включены трансляции.",
+        "Карточки и кнопки из группы «Операции с часами» действуют на часы сразу: «Послушать часы» (10), «Отправить буфер на часы» (8), «Запросить снимок экрана часов» (9) и «Добавить или открыть часы» (7).",
+        "Ссылки внизу (14) открывают страницы сайта о часах и отправляют циферблат на ваши часы."
+      ],
+      "groups": [
+        { "title": "Шапка окна и его содержимое", "elements": ["toolbar", "push-settings", "sync-status", "companion-content"] },
+        { "title": "Внутри окна", "elements": ["push-to-watch", "select-resources", "watch-resource", "send-clipboard", "request-screenshot", "listen-watch", "face-buttons", "stream-pins", "watch-settings", "doc-links"] },
+        { "title": "Экран «Ресурсы для часов»", "elements": ["sel-hint", "sel-select-all", "sel-empty", "sel-list"] },
+        { "title": "Окно «Закрепить канал для часов»", "elements": ["pick-media-kind", "pick-topic", "pick-language", "pick-sort", "pick-search", "pick-list"] }
+      ],
+      "elements": {
+        "toolbar": {
+          "summary": "Шапка окна: кнопка возврата, кнопка синхронизации и время последней синхронизации.",
+          "details": "Стрелка закрывает окно. «Синхронизировать настройки» и строка под ней остаются в шапке, даже когда группа ниже свёрнута, поэтому единственная кнопка, которая отправляет ваши правки, всегда под рукой."
+        },
+        "push-settings": {
+          "summary": "Отправляет на часы настройки часов, изменённые на этом телефоне.",
+          "details": "Настройки, которые вы меняете в группах ниже, остаются на телефоне, пока вы не нажмёте эту кнопку. Нажатие отправляет их разом и ждёт, пока часы подтвердят, что применили их; пока идёт отправка, кнопка отключена. Если часы не ответили вовремя, короткое сообщение скажет, что они могут быть выключены или вне зоны, и можно нажать снова. Кнопки циферблата и закреплённые каналы её не ждут - они доходят до часов сами."
+        },
+        "sync-status": {
+          "name": "Состояние синхронизации",
+          "summary": "Показывает, когда настройки синхронизировались в последний раз.",
+          "details": "Здесь «Синхронизировано» с датой и временем последнего подтверждённого обмена или «Ещё не синхронизировано» до первого. Нажатие, которое не дошло до часов, оставляет прежнее время, поэтому строка никогда не сообщает о синхронизации, которой не было."
+        },
+        "companion-content": {
+          "name": "Содержимое компаньона",
+          "summary": "Прокручиваемая область со всеми группами элементов.",
+          "details": "Область разделена на сворачиваемые группы: «Операции с часами» (раскрыта сразу), «Кнопки циферблата», «Закреплённые трансляции часов» (только пока включены трансляции) и группы настроек часов «Типы медиа», «Слайд-шоу», «Экран» и «Другие» - все они сначала свёрнуты. Нажмите заголовок группы, чтобы открыть или свернуть её; у свёрнутой группы настроек видна строка с её состоянием. На широком экране строки идут в два столбца. Сами элементы описаны в группе «Внутри окна»."
+        },
+        "push-to-watch": {
+          "summary": "Отправляет на часы отмеченные сетевые ресурсы.",
+          "details": "Небольшое окно показывает ход, а затем результат: сколько ресурсов отправлено, сколько убрано с часов, потому что вы сняли отметку, или заметку, что пока ничего не отмечено. Если часы не подтвердили приём, можно нажать «Повторить попытку» или «Отмена». Отправляется выбор, сделанный на экране «Ресурсы для часов»; на часы можно отправить только SMB, FTP и SFTP.",
+          "undo": "Повторная отправка после изменения отметок заменяет то, что есть на часах. Ресурс, с которого вы сняли отметку, убирается с часов; отметьте его и отправьте снова, чтобы вернуть."
+        },
+        "select-resources": {
+          "summary": "Открывает список, где выбирается, какие сетевые ресурсы получат часы.",
+          "details": "Кнопка есть только в версиях с Wear-компаньоном. Отметки сохраняются сразу; пока вы не нажмёте «Отправить на часы», ничего не отправляется."
+        },
+        "watch-resource": {
+          "summary": "Добавляет часы как ресурс этого телефона, а позже открывает их.",
+          "details": "Первое нажатие добавляет ресурс с именем ваших часов, и сообщение это подтверждает; каждое следующее открывает собственные файлы часов в браузере файлов. Если что-то пошло не так, появится общее сообщение об ошибке."
+        },
+        "send-clipboard": {
+          "summary": "Отправляет на часы текст из буфера обмена этого телефона.",
+          "details": "Строка под кнопкой сообщает итог: часы приняли текст, буфер обмена пуст, часов нет в зоне досягаемости или часы отклонили. Кнопки, которая забирала бы буфер часов, здесь нет: часы отправляют свой буфер сами из программы «Буфер обмена», и текст попадает в буфер обмена телефона с уведомлением."
+        },
+        "request-screenshot": {
+          "summary": "Просит часы сделать снимок их собственного экрана.",
+          "details": "Приходит экран программы на часах, а не циферблат или другие приложения. Снимок здесь не показывается: он идёт обычным путём файлов с часов, а о нём сообщает уведомление. Под кнопкой видно, когда пришёл последний снимок, и «Открыть в Просмотре», если снимок лежит в известной приложению папке."
+        },
+        "listen-watch": {
+          "summary": "Позволяет услышать то, что слышит микрофон часов.",
+          "details": "«Начать слушать» отправляет запрос, и часы просят владельца подтвердить. Пока идёт ожидание, значок загрузки и «Прекратить прослушивание» позволяют отозвать запрос; после подтверждения вы слышите звук, пока не остановите. Звук идёт по Wi-Fi, а не по Bluetooth, поэтому часы должны быть в сети Wi-Fi. Если запрос отклонён, истёк или часы заняты, красная строка в карточке объяснит причину."
+        },
+        "face-buttons": {
+          "summary": "Выбирает, что делают четыре кнопки циферблата.",
+          "details": "Нажмите одну из четырёх кнопок - «Левая внешняя кнопка», «Левая внутренняя кнопка», «Правая внутренняя кнопка» или «Правая внешняя кнопка», - чтобы открыть список вариантов, разделённый на «Разделы часов» (например, «Ресурсы», «Трансляции» или «Программы»), «Программы часов» (например, «Калькулятор», «Секундомер», «SOS» или «Диктофон»), «Данные приложения» (например, «Сейчас играет» или «Последний открытый ресурс»), «Система» (например, «Заряд батареи», «Дата» или «Будильники») и «Без кнопки», где выбирается «Пусто». Выбор доходит до часов сам, «Синхронизировать настройки» не нужна. Группа сначала свёрнута."
+        },
+        "stream-pins": {
+          "summary": "Каналы, которые часы показывают первыми, - те же, что вы закрепили на экране «Трансляции».",
+          "details": "Группа появляется, только пока включены трансляции. Она редактирует закреплённые каналы экрана «Трансляции» в том же порядке: что вы закрепили или переставили здесь, меняется и в разделе «Закреплённые» экрана «Трансляции», и наоборот. В свёрнутом виде показано, сколько каналов закреплено. Раскройте её, чтобы увидеть их по порядку, у каждого - «Выше», «Ниже» и «Открепить», а также кнопку «Добавить каналы», которая открывает выбор канала (последняя группа этой страницы), и «Отправить на часы сейчас». Изменения доходят до часов сами; «Отправить на часы сейчас» отправляет список ещё раз, и строка скажет, получили ли его часы.",
+          "undo": "«Открепить» снимает закрепление везде, в том числе на экране «Трансляции». Сам канал остаётся в каталоге, и его можно закрепить снова."
+        },
+        "watch-settings": {
+          "name": "Группы настроек часов",
+          "summary": "Что часы показывают, воспроизводят и как выглядят.",
+          "details": "Четыре свёрнутые группы. «Типы медиа» - переключатели «Аудио», «Видео», «Изображения», «Документы» и «Показывать трансляции». «Слайд-шоу» - переключатель и интервал. «Экран» задаёт вид главного экрана и экрана файлов, фон и цветовую схему часов, а также «Не гасить экран часов». «Другие» - обложки альбомов, анимации, энергосбережение часов и продолжение в фоне. Изменения остаются на телефоне, пока вы не нажмёте «Синхронизировать настройки»."
+        },
+        "doc-links": {
+          "name": "Ссылки внизу",
+          "summary": "Страницы, где можно прочитать о часах подробнее, и способ поставить циферблат.",
+          "details": "«Всё о часах» и «Как поставить на часы» открывают страницы сайта проекта в браузере. «Поставить циферблат» просит часы открыть страницу циферблата в Google Play, где нужно нажать «Установить» на часах; если часы не подключены или в них нет Google Play, страница откроется на этом телефоне."
+        },
+        "sel-hint": {
+          "name": "Подсказка",
+          "summary": "Говорит, что можно отправить на часы.",
+          "details": "На часы можно отправить только сетевые ресурсы - SMB, FTP и SFTP, поэтому в списке только они. Отметьте те, что должны быть на часах."
+        },
+        "sel-select-all": {
+          "summary": "Отмечает все ресурсы в списке.",
+          "details": "Выбор сохраняется сразу. Пока список пуст, кнопки нет. Чтобы снять отметку, нажмите её окошко ещё раз; кнопки, которая снимает все отметки, нет."
+        },
+        "sel-empty": {
+          "name": "Сообщение о пустом списке",
+          "summary": "Сообщает, что отправлять пока нечего.",
+          "details": "Появляется, когда у вас нет ресурсов SMB, FTP или SFTP. Добавьте такой ресурс на главном экране и вернитесь сюда, чтобы выбрать, что получат часы."
+        },
+        "sel-list": {
+          "name": "Список ресурсов",
+          "summary": "Сетевые ресурсы, у каждого окошко для отметки.",
+          "details": "Ресурсы лежат под заголовком с числом; нажмите заголовок, чтобы свернуть или развернуть группу. Категории - «Виртуальные ресурсы», «Внутренние ресурсы» и «Внешние ресурсы»; так как на часы можно отправить только сетевые ресурсы, обычно вы видите «Внешние ресурсы». Нажмите строку или её окошко, чтобы отметить. Каждая отметка сохраняется сразу, поэтому с экрана можно уходить любым способом. Отсюда ничего не отправляется: нажмите «Отправить на часы» в окне компаньона.",
+          "undo": "Снятие отметки меняет только выбор. Ресурс остаётся на телефоне; при следующей отправке часы его убирают, а чтобы вернуть, отметьте его и отправьте снова."
+        },
+        "pick-media-kind": {
+          "name": "Тип медиа",
+          "summary": "Показывает все каналы, только аудио или только видео.",
+          "details": "Три кнопки: «Все», «Аудио» и «Видео». Выбор сочетается с рубрикой, языком и поиском ниже."
+        },
+        "pick-topic": {
+          "summary": "Сужает список до одной рубрики.",
+          "details": "Выпадающий список, который начинается с «Все»; выберите рубрику, например News или Jazz & Blues. Выбор рубрики или языка либо ввод двух букв нужен, чтобы очень большой каталог вообще показал каналы."
+        },
+        "pick-language": {
+          "summary": "Сужает список до одного языка.",
+          "details": "Выпадающий список, который начинается с «Все». Работает вместе с рубрикой и поиском."
+        },
+        "pick-sort": {
+          "summary": "Задаёт порядок каналов в окне выбора.",
+          "details": "Те же варианты, что на экране «Трансляции»: «По названию», «По рубрике», «По языку», «По стране» и «Недавно добавленные». Упорядочиваются именно те каналы, которые оставили фильтры и поиск."
+        },
+        "pick-search": {
+          "summary": "Находит канал по набранному тексту.",
+          "details": "Введите часть названия; список сужается по мере набора, а крестик в конце очищает поле. При очень большом каталоге окно сначала просит ввести два символа или выбрать рубрику либо язык."
+        },
+        "pick-list": {
+          "name": "Список каналов",
+          "summary": "Каналы, которые можно закрепить, - нажмите канал, чтобы закрепить.",
+          "details": "Нажмите канал - окно сразу закроется: канал закрепится вверху списка закреплённых, это же раздел «Закреплённые» экрана «Трансляции». Показывается не больше двухсот каналов; если подходит больше, строка скажет сколько, и попросит уточнить поиск. Касание вне окна закрывает его, ничего не закрепляя."
+        }
+      }
+    },
+    "uk": {
+      "title": "Wear-супутник",
+      "purpose": "Wear-супутник - пульт цього телефона для вашого годинника Wear OS. Виберіть, які мережеві ресурси отримує годинник, налаштуйте його вигляд і поведінку, закріпіть для нього канали та користуйтеся годинником із телефона: слухайте його мікрофон, надсилайте буфер обміну, запитуйте знімок екрана.",
+      "steps": [
+        "Відкрийте супутник із групи «Wear-супутник» на вкладці «Управління» в налаштуваннях або з програм. Він працює з годинником Wear OS, підключеним до цього телефона, і є лише у версіях, де він передбачений (Standard і noLegal).",
+        "Щоб надіслати теки на годинник, натисніть «Ресурси для годинника» (6), позначте мережеві ресурси у списку (18), потім натисніть «Надіслати на годинник» (5).",
+        "Виберіть поведінку годинника в групах налаштувань (13) і дії кнопок циферблата (11). Змінені налаштування чекають на телефоні, доки ви не натиснете «Синхронізувати налаштування» (2); кнопки циферблата й закріплені канали доходять до годинника самі.",
+        "Рядок під «Синхронізувати налаштування» (3) показує, коли останню синхронізацію було підтверджено, або «Ще не синхронізовано».",
+        "Щоб закріпити канали для годинника, відкрийте «Закріплені трансляції годинника» (12) і натисніть «Додати канали»; у списку, що відкриється (19-24), є фільтри й пошук. Група видна, лише поки ввімкнено трансляції.",
+        "Картки й кнопки групи «Операції з годинником» діють на годинник одразу: «Послухати годинник» (10), «Надіслати буфер на годинник» (8), «Запросити знімок екрана годинника» (9) і «Додати або відкрити годинник» (7).",
+        "Посилання внизу (14) відкривають сторінки сайту про годинник і надсилають циферблат на ваш годинник."
+      ],
+      "groups": [
+        { "title": "Шапка вікна та його вміст", "elements": ["toolbar", "push-settings", "sync-status", "companion-content"] },
+        { "title": "Усередині вікна", "elements": ["push-to-watch", "select-resources", "watch-resource", "send-clipboard", "request-screenshot", "listen-watch", "face-buttons", "stream-pins", "watch-settings", "doc-links"] },
+        { "title": "Екран «Ресурси для годинника»", "elements": ["sel-hint", "sel-select-all", "sel-empty", "sel-list"] },
+        { "title": "Вікно «Закріпити канал для годинника»", "elements": ["pick-media-kind", "pick-topic", "pick-language", "pick-sort", "pick-search", "pick-list"] }
+      ],
+      "elements": {
+        "toolbar": {
+          "summary": "Шапка вікна: кнопка возврата, кнопка синхронізації та час останньої синхронізації.",
+          "details": "Стрілка закриває вікно. «Синхронізувати налаштування» і рядок під нею лишаються в шапці, навіть коли група нижче згорнута, тому єдина кнопка, що надсилає ваші зміни, завжди під рукою."
+        },
+        "push-settings": {
+          "summary": "Надсилає на годинник налаштування годинника, змінені на цьому телефоні.",
+          "details": "Налаштування, які ви змінюєте в групах нижче, лишаються на телефоні, доки ви не натиснете цю кнопку. Натискання надсилає їх разом і чекає, поки годинник підтвердить, що застосував їх; поки триває надсилання, кнопку вимкнено. Якщо годинник не відповів вчасно, коротке повідомлення скаже, що він може бути вимкнений або поза зоною, і можна натиснути знову. Кнопки циферблата й закріплені канали її не чекають - вони доходять до годинника самі."
+        },
+        "sync-status": {
+          "name": "Стан синхронізації",
+          "summary": "Показує, коли налаштування синхронізувалися востаннє.",
+          "details": "Тут «Синхронізовано» з датою й часом останнього підтвердженого обміну або «Ще не синхронізовано» до першого. Натискання, що не дійшло до годинника, лишає попередній час, тому рядок ніколи не повідомляє про синхронізацію, якої не було."
+        },
+        "companion-content": {
+          "name": "Вміст супутника",
+          "summary": "Область із прокручуванням, де зібрано всі групи елементів.",
+          "details": "Область поділено на групи, що згортаються: «Операції з годинником» (розгорнута одразу), «Кнопки циферблата», «Закріплені трансляції годинника» (лише поки ввімкнено трансляції) і групи налаштувань годинника «Типи медіа», «Слайд-шоу», «Екран» та «Інші» - усі вони спершу згорнуті. Натисніть заголовок групи, щоб відкрити чи згорнути її; у згорнутої групи налаштувань видно рядок із її станом. На широкому екрані рядки йдуть у два стовпці. Самі елементи описано в групі «Усередині вікна»."
+        },
+        "push-to-watch": {
+          "summary": "Надсилає на годинник позначені мережеві ресурси.",
+          "details": "Невелике вікно показує перебіг, а потім результат: скільки ресурсів надіслано, скільки прибрано з годинника, бо ви зняли позначку, або примітку, що поки нічого не позначено. Якщо годинник не підтвердив отримання, можна натиснути «Повторити спробу» або «Скасувати». Надсилається вибір, зроблений на екрані «Ресурси для годинника»; на годинник можна надіслати лише SMB, FTP і SFTP.",
+          "undo": "Повторне надсилання після зміни позначок замінює те, що є на годиннику. Ресурс, з якого ви зняли позначку, прибирається з годинника; позначте його й надішліть знову, щоб повернути."
+        },
+        "select-resources": {
+          "summary": "Відкриває список, де вибирається, які мережеві ресурси отримає годинник.",
+          "details": "Кнопка є лише у версіях із Wear-супутником. Позначки зберігаються одразу; доки ви не натиснете «Надіслати на годинник», нічого не надсилається."
+        },
+        "watch-resource": {
+          "summary": "Додає годинник як ресурс цього телефона, а згодом відкриває його.",
+          "details": "Перше натискання додає ресурс з іменем вашого годинника, і повідомлення це підтверджує; кожне наступне відкриває власні файли годинника у браузері файлів. Якщо щось пішло не так, з’явиться загальне повідомлення про помилку."
+        },
+        "send-clipboard": {
+          "summary": "Надсилає на годинник текст із буфера обміну цього телефона.",
+          "details": "Рядок під кнопкою повідомляє підсумок: годинник прийняв текст, буфер обміну порожній, годинника немає в зоні досяжності або годинник відхилив. Кнопки, що забирала б буфер годинника, тут немає: годинник надсилає свій буфер сам із програми «Буфер обміну», і текст потрапляє до буфера обміну телефона зі сповіщенням."
+        },
+        "request-screenshot": {
+          "summary": "Просить годинник зробити знімок його власного екрана.",
+          "details": "Приходить екран програми на годиннику, а не циферблат чи інші застосунки. Знімок тут не показується: він іде звичайним шляхом файлів із годинника, а про нього повідомляє сповіщення. Під кнопкою видно, коли прийшов останній знімок, і «Відкрити в Перегляді», якщо знімок лежить у відомій застосунку теці."
+        },
+        "listen-watch": {
+          "summary": "Дає змогу почути те, що чує мікрофон годинника.",
+          "details": "«Почати слухати» надсилає запит, і годинник просить власника підтвердити. Поки триває очікування, значок завантаження та «Припинити прослуховування» дають змогу відкликати запит; після підтвердження ви чуєте звук, доки не зупините. Звук іде через Wi-Fi, а не через Bluetooth, тому годинник має бути в мережі Wi-Fi. Якщо запит відхилено, він сплив або годинник зайнятий, червоний рядок у картці пояснить причину."
+        },
+        "face-buttons": {
+          "summary": "Вибирає, що роблять чотири кнопки циферблата.",
+          "details": "Натисніть одну з чотирьох кнопок - «Ліва зовнішня кнопка», «Ліва внутрішня кнопка», «Права внутрішня кнопка» або «Права зовнішня кнопка», - щоб відкрити список варіантів, поділений на «Розділи годинника» (наприклад, «Ресурси», «Трансляції» чи «Програми»), «Програми годинника» (наприклад, «Калькулятор», «Секундомір», «SOS» або «Диктофон»), «Дані застосунку» (наприклад, «Зараз грає» чи «Останній відкритий ресурс»), «Система» (наприклад, «Заряд батареї», «Дата» або «Будильники») і «Без кнопки», де вибирається «Порожньо». Вибір доходить до годинника сам, «Синхронізувати налаштування» не потрібна. Група спершу згорнута."
+        },
+        "stream-pins": {
+          "summary": "Канали, які годинник показує першими, - ті самі, що ви закріпили на екрані «Трансляції».",
+          "details": "Група з’являється, лише поки ввімкнено трансляції. Вона редагує закріплені канали екрана «Трансляції» в тому ж порядку: що ви закріпили чи пересунули тут, змінюється і в розділі «Закріплені» екрана «Трансляції», і навпаки. У згорнутому вигляді показано, скільки каналів закріплено. Розгорніть її, щоб побачити їх по порядку, у кожного - «Вище», «Нижче» і «Відкріпити», а також кнопку «Додати канали», що відкриває вибір каналу (остання група цієї сторінки), і «Надіслати на годинник зараз». Зміни доходять до годинника самі; «Надіслати на годинник зараз» надсилає список ще раз, і рядок скаже, чи отримав його годинник.",
+          "undo": "«Відкріпити» знімає закріплення скрізь, зокрема й на екрані «Трансляції». Сам канал лишається в каталозі, і його можна закріпити знову."
+        },
+        "watch-settings": {
+          "name": "Групи налаштувань годинника",
+          "summary": "Що годинник показує, відтворює і як виглядає.",
+          "details": "Чотири згорнуті групи. «Типи медіа» - перемикачі «Аудіо», «Відео», «Зображення», «Документи» та «Показувати трансляції». «Слайд-шоу» - перемикач та інтервал. «Екран» задає вигляд головного екрана й екрана файлів, тло та колірну схему годинника, а також «Не гасити екран годинника». «Інші» - обкладинки альбомів, анімації, енергозбереження годинника й продовження у фоні. Зміни лишаються на телефоні, доки ви не натиснете «Синхронізувати налаштування»."
+        },
+        "doc-links": {
+          "name": "Посилання внизу",
+          "summary": "Сторінки, де можна прочитати про годинник докладніше, і спосіб встановити циферблат.",
+          "details": "«Все про годинник» і «Як встановити на годинник» відкривають сторінки сайту проєкту в браузері. «Встановити циферблат» просить годинник відкрити сторінку циферблата в Google Play, де потрібно натиснути «Встановити» на годиннику; якщо годинник не підключений або в ньому немає Google Play, сторінка відкриється на цьому телефоні."
+        },
+        "sel-hint": {
+          "name": "Підказка",
+          "summary": "Каже, що можна надіслати на годинник.",
+          "details": "На годинник можна надіслати лише мережеві ресурси - SMB, FTP і SFTP, тому в списку лише вони. Позначте ті, що мають бути на годиннику."
+        },
+        "sel-select-all": {
+          "summary": "Позначає всі ресурси у списку.",
+          "details": "Вибір зберігається одразу. Поки список порожній, кнопки немає. Щоб зняти позначку, натисніть її віконце ще раз; кнопки, що знімає всі позначки, немає."
+        },
+        "sel-empty": {
+          "name": "Повідомлення про порожній список",
+          "summary": "Повідомляє, що надсилати поки нічого.",
+          "details": "З’являється, коли у вас немає ресурсів SMB, FTP чи SFTP. Додайте такий ресурс на головному екрані й поверніться сюди, щоб вибрати, що отримає годинник."
+        },
+        "sel-list": {
+          "name": "Список ресурсів",
+          "summary": "Мережеві ресурси, у кожного віконце для позначки.",
+          "details": "Ресурси лежать під заголовком із кількістю; натисніть заголовок, щоб згорнути чи розгорнути групу. Категорії - «Віртуальні ресурси», «Внутрішні ресурси» та «Зовнішні ресурси»; оскільки на годинник можна надіслати лише мережеві ресурси, зазвичай ви бачите «Зовнішні ресурси». Натисніть рядок або його віконце, щоб позначити. Кожна позначка зберігається одразу, тож з екрана можна йти будь-яким способом. Звідси нічого не надсилається: натисніть «Надіслати на годинник» у вікні супутника.",
+          "undo": "Зняття позначки змінює лише вибір. Ресурс лишається на телефоні; під час наступного надсилання годинник його прибирає, а щоб повернути, позначте його й надішліть знову."
+        },
+        "pick-media-kind": {
+          "name": "Тип медіа",
+          "summary": "Показує всі канали, лише аудіо або лише відео.",
+          "details": "Три кнопки: «Усі», «Аудіо» і «Відео». Вибір поєднується з рубрикою, мовою та пошуком нижче."
+        },
+        "pick-topic": {
+          "summary": "Звужує список до однієї рубрики.",
+          "details": "Випадний список, що починається з «Усі»; виберіть рубрику, наприклад News чи Jazz & Blues. Вибір рубрики чи мови або введення двох літер потрібні, щоб дуже великий каталог узагалі показав канали."
+        },
+        "pick-language": {
+          "summary": "Звужує список до однієї мови.",
+          "details": "Випадний список, що починається з «Усі». Працює разом із рубрикою та пошуком."
+        },
+        "pick-sort": {
+          "summary": "Задає порядок каналів у вікні вибору.",
+          "details": "Ті самі варіанти, що на екрані «Трансляції»: «За назвою», «За рубрикою», «За мовою», «За країною» та «Нещодавно додані». Упорядковуються саме ті канали, які залишили фільтри й пошук."
+        },
+        "pick-search": {
+          "summary": "Знаходить канал за введеним текстом.",
+          "details": "Введіть частину назви; список звужується під час набору, а хрестик у кінці очищає поле. За дуже великого каталогу вікно спершу просить ввести два символи або вибрати рубрику чи мову."
+        },
+        "pick-list": {
+          "name": "Список каналів",
+          "summary": "Канали, які можна закріпити, - натисніть канал, щоб закріпити.",
+          "details": "Натисніть канал - вікно одразу закриється: канал закріпиться вгорі списку закріплених, це той самий розділ «Закріплені» екрана «Трансляції». Показується не більше двохсот каналів; якщо підходить більше, рядок скаже скільки, і попросить уточнити пошук. Дотик поза вікном закриває його, нічого не закріплюючи."
+        }
+      }
+    }
+  }
+}

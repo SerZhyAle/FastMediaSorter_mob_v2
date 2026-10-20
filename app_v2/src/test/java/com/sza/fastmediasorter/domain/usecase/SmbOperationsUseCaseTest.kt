@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
+import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -36,8 +37,10 @@ class SmbOperationsUseCaseTest {
     private val sftpClient = mockk<SftpClient>(relaxed = true)
     private val ftpClient = mockk<FtpClient>(relaxed = true)
     private val credentialsRepository = mockk<NetworkCredentialsRepository>(relaxed = true)
-    // S1006: relaxed - these tests exercise SMB/saveSftpCredentials, not the resolve() path.
-    private val endpointResolver = mockk<SftpEndpointResolver>(relaxed = true)
+
+    // S1006: strict - the resolve() tests at the bottom assert the probe tests the resolver's winner;
+    // no other test in this class reaches an SFTP call, so a stray resolve fails loudly here.
+    private val endpointResolver = mockk<SftpEndpointResolver>()
     private lateinit var useCase: SmbOperationsUseCase
 
     @Before
@@ -272,5 +275,48 @@ class SmbOperationsUseCaseTest {
         assertTrue(result.isSuccess)
         assertEquals("enc-pw", captured.first().encryptedPassword)
         assertEquals(null, captured.first().sshPrivateKey)
+    }
+
+    // S4232: the scheduled run's reachability probe rides this use case, and the resolve() call is
+    // what makes a multi-path record (LAN primary, exchange tunnel alternate) test the live path
+    // instead of the dead stored one. Since S1006 the call exists in production; these tests are
+    // what keeps it there.
+
+    @Test
+    fun `testSftpConnection resolves the path group and tests the winner password path`() = runTest {
+        coEvery { endpointResolver.resolve("lan-host", 2222) } returns HostPort("tunnel-host", 2222)
+        coEvery { sftpClient.testConnection("tunnel-host", 2222, "u", "p", null) } returns Result.success("fp")
+
+        val result = useCase.testSftpConnection("lan-host", 2222, "u", "p").getOrThrow()
+
+        assertEquals("fp", result.presentedFingerprint)
+        assertTrue(result.message.contains("tunnel-host"))
+        coVerify(exactly = 1) { sftpClient.testConnection("tunnel-host", 2222, "u", "p", null) }
+        coVerify(exactly = 0) { sftpClient.testConnection("lan-host", any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `testSftpConnection resolves the path group and tests the winner key path`() = runTest {
+        coEvery { endpointResolver.resolve("lan-host", 2222) } returns HostPort("tunnel-host", 2222)
+        coEvery {
+            sftpClient.testConnectionWithPrivateKey("tunnel-host", 2222, "u", "key", null, null)
+        } returns Result.success("fp")
+
+        useCase.testSftpConnection("lan-host", 2222, "u", password = "p", privateKey = "key").getOrThrow()
+
+        coVerify(exactly = 1) {
+            sftpClient.testConnectionWithPrivateKey("tunnel-host", 2222, "u", "key", null, null)
+        }
+    }
+
+    @Test
+    fun `testSftpConnection maps a failed resolved test to failure`() = runTest {
+        coEvery { endpointResolver.resolve("lan-host", 2222) } returns HostPort("tunnel-host", 2222)
+        coEvery { sftpClient.testConnection("tunnel-host", 2222, "u", "p", null) } returns
+            Result.failure(IllegalStateException("refused"))
+
+        val result = useCase.testSftpConnection("lan-host", 2222, "u", "p")
+
+        assertTrue(result.isFailure)
     }
 }

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,6 +19,7 @@ import com.sza.fastmediasorter.databinding.ActivityCameraOcrTranslateBinding
 import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrFlowManager
 import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrFlowManagerFactory
 import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrStorageManager
+import com.sza.fastmediasorter.ui.common.help.HelpOverlayEntryManager
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
@@ -49,6 +51,7 @@ class CameraOcrTranslateActivity :
 
     private lateinit var flowManager: CameraOcrFlowManager
     private var calculatorEnabled = false
+    private var helpEntry: HelpOverlayEntryManager? = null
 
     // Crop-step language cluster state (S0354). Interface language drives the localized labels;
     // source/target codes are mirrored from settings via renderCropLanguages for the picker.
@@ -122,6 +125,10 @@ class CameraOcrTranslateActivity :
 
     override fun setupViews() {
         applySystemBarInsets()
+        helpEntry = HelpOverlayEntryManager(
+            this, binding.root.parent as ViewGroup, javaClass.simpleName, null,
+            reserveSpaceFor = binding.root,
+        )
         binding.btnSaveTxt.setOnClickListener { flowManager.exportTxt() }
         binding.btnNextPhoto.setOnClickListener { flowManager.startCapture() }
         binding.btnEmptyRetry.setOnClickListener { flowManager.startCapture() }
@@ -296,7 +303,9 @@ class CameraOcrTranslateActivity :
             // target re-translates the existing recognized text without a new OCR.
             val sourceView = view.findViewById<TextView>(R.id.spinnerSourceLanguage)
             val targetView = view.findViewById<TextView>(R.id.spinnerTargetLanguage)
-            val cbOcrOnly = view.findViewById<com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow>(R.id.cbOcrOnly)
+            val cbOcrOnly = view.findViewById<com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow>(
+                R.id.cbOcrOnly
+            )
 
             val interfaceLang = settings.language
             var selectedSourceLang = settings.translationSourceLanguage
@@ -438,6 +447,8 @@ class CameraOcrTranslateActivity :
     }
 
     override fun onDestroy() {
+        helpEntry?.release()
+        helpEntry = null
         if (isFinishing) {
             flowManager.cleanup()
         }

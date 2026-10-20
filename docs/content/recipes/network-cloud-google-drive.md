@@ -56,6 +56,8 @@ steps:
       Still in the **Backups, restore and settings export** card, **Pending device transfers** opens a private queue that runs entirely through your own Google Drive - nothing is shared with anyone else. From another one of your devices, sending a file (its action sheet's **Send to my device (Drive)** button) or settings (the queue's own **Send to my device (Drive)** button) uploads it there; open the same screen on this device and it is waiting for you.
 
       Each item can be picked up two ways: **Receive and keep in cloud** leaves the uploaded copy in Drive for a while longer, **Receive and delete from cloud** removes it once taken. A packet nobody picked up is dropped automatically after seven days, or right away with **Remove expired packets**.
+
+      Turn on **Files via Google Drive** at the top of that screen to use the path via Google Drive. Sending a file then asks which of your devices gets it - one of them, or any of them - and tells you it is waiting until that device receives it. When a folder attached **From my devices** cannot be reached directly or through the exchange server, the error offers **Open via Google Drive**: the other phone answers from its shared folders the next time it checks Google Drive, so the list arrives after a short wait, and the files you pick are saved to the app incoming folder. A folder protected with a PIN stays locked on this path. **Check via Google Drive in the background** lets this phone answer every 15 minutes while the app is closed. One transfer carries up to 5 GiB and uses the space of your Google account; a watch gets such files through its phone.
     image_bookmark:
       shot_id: network.cloud-google-drive-pending-transfers
       device_profile: phone
@@ -90,6 +92,6 @@ next_recipes:
     description: The overview of every kind of place you can add as a resource.
 ---
 
-<sub class="doc-stamp">26.10.10 14:45</sub>
+<sub class="doc-stamp">26.10.15 05:22</sub>
 
 Sign in to Google Drive once and it opens folders as resources, backs up your settings, and moves files and settings between your own devices through a private Drive queue - all from the same [Google Account](term:google-drive) connection, which keeps working across app updates.

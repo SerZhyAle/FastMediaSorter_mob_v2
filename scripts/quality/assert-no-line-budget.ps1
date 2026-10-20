@@ -39,7 +39,7 @@
     Exit codes (S1070):
       0 - clean, or audit mode (findings printed, no -Gate).
       1 - substantive failure: at least one forbidden column, and -Gate was passed.
-      2 - the gate itself cannot run (PLAN/ missing or unreadable). Distinct from 1
+      2 - the gate itself cannot run (PLAN/ missing or unreadable, unless -AllowAbsentInput). Distinct from 1
           on purpose: "did not look" and "found a defect" call for opposite reactions.
 
 .PARAMETER Gate
@@ -51,11 +51,19 @@
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-no-line-budget.ps1
     pwsh -NoProfile -File scripts/quality/assert-no-line-budget.ps1 -Gate
+
+.PARAMETER AllowAbsentInput
+    The caller declaring a checkout without the gitignored root acceptable for this run.
+    assert-fast-gates.ps1 passes it, because the GitHub Static Gates job runs on a clone that does
+    not carry PLAN/ or .claude/. With it the absence ends `<gate>: NOT APPLICABLE (..)` with exit 0,
+    which every aggregator counts as skipped, never as passed (CHECK-VERDICT 0.12 item A.1); without
+    it the same absence is exit 2 (S4380, lib/absent-input.ps1).
 #>
 [CmdletBinding()]
 param(
     [switch]$Gate,
-    [switch]$Quiet
+    [switch]$Quiet,
+    [switch]$AllowAbsentInput
 )
 
 Set-StrictMode -Version Latest
@@ -70,7 +78,7 @@ $templateRoot = Join-Path $repoRoot '.claude/templates'
 if (-not (Test-Path -LiteralPath $planRoot)) {
     # S3075: PLAN/ is gitignored, so its absence is a property of the checkout, not a finding.
     Exit-InputAbsent -Gate 'assert-no-line-budget' -Path 'PLAN/' `
-        -Reason 'gitignored - present only on a workstation checkout'
+        -Reason 'gitignored - present only on a workstation checkout' -Allow:$AllowAbsentInput
 }
 
 # Every spelling of "how many lines will this cost" seen or plausible in a Files Touched

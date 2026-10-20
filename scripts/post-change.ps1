@@ -805,10 +805,16 @@ if ($runsTicketLogAudit) {
     # log id to an advisory - weakening the gate instead of scoping it.
     $ticketLogOutput = & $pwsh @ticketLogArgs 2>&1 | Out-String
     $ticketLogExit = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
-    if (-not [string]::IsNullOrWhiteSpace($ticketLogOutput)) { Write-Host $ticketLogOutput.TrimEnd() }
+    # S4269: the report is emitted from INSIDE the gate's action, not printed ahead of it. Invoke-Gate
+    # and Invoke-AdvisoryStep capture only what the action emits, so a Write-Host here left the
+    # protocol file with "[ticket-log-audit] FAIL" and no finding lines - the reason a stale probe
+    # was red could not be read back, and the own/other split had to be rebuilt from chat transcripts.
+    # A passing run prints nothing, like every other gate; a failing or advisory one prints it through
+    # Write-CapturedOutput, after the same lines went to the protocol.
+    $ticketLogReport = $ticketLogOutput.TrimEnd()
 
     if ($ScopeToFile -and $ticketLogExit -eq 3) {
-        Invoke-AdvisoryStep "ticket-log-audit" { $global:LASTEXITCODE = 3 } `
+        Invoke-AdvisoryStep "ticket-log-audit" { if ($ticketLogReport) { $ticketLogReport }; $global:LASTEXITCODE = 3 } `
             -AdvisoryDetails ("a ticket other than this change's sits in BlockNeedUserTest without its probe. " +
                 "Its author owns that probe - it belongs at the entry of their changed flow - so this closure is " +
                 "not charged for it. Run assert-no-ticket-logs.ps1 with no -ChangedFiles for the project-wide verdict.")
@@ -816,7 +822,7 @@ if ($runsTicketLogAudit) {
     else {
         # Code 1 (a forbidden log id in the changed set) and code 2 (the gate could not run) both
         # stay fatal, scoped or not.
-        Invoke-Gate "ticket-log-audit" { $global:LASTEXITCODE = $ticketLogExit }
+        Invoke-Gate "ticket-log-audit" { if ($ticketLogReport) { $ticketLogReport }; $global:LASTEXITCODE = $ticketLogExit }
     }
 }
 else {
@@ -1181,6 +1187,7 @@ if ($runsWearWireVocabularyParityGate) { Start-PooledGate @argvWearWireVocabular
 if ($runsIconStyleGate) { Start-PooledGate @argvIconStyle }
 if ($runsIconContractGate) { Start-PooledGate @argvIconContract }
 Start-PooledGate @argvLauncherReset
+Start-PooledGate @argvHelpMap
 
 try {
 
@@ -1519,15 +1526,16 @@ else {
 # even on a full non-ScopeToFile run - this is the gate's first landing, and research/05 records
 # why it starts advisory rather than blocking a closure on an unproven mechanism. It judges a
 # Codex session's OWN rollout transcript, which is not a repo file at all, so there is no
-# -ChangedFiles form to scope it by; the gate itself is a no-op (exit 0, "not applicable") for
-# any runtime that is not Codex and for a ticket with no matching rollout, so this call cannot
-# turn an ordinary Claude Code, Gemini or ZCode closure into a failure.
+# -ChangedFiles form to scope it by; the gate itself answers NOT APPLICABLE (exit 0) for a Claude
+# Code process and for a named non-Codex runtime with no matching rollout, and COULD NOT VERIFY
+# (exit 2, an advisory here) for a ticket with no matching rollout on a process nothing identifies,
+# so this call cannot turn an ordinary Claude Code, Gemini or ZCode closure into a failure.
 # S3177: -Target too - Codex closed S3103 with the id in -Target only, and the gate was skipped.
 $codexHygieneTicketId = if ("$Target $Description" -match '(S\d{4})') { $Matches[1] } else { $null }
 if ($codexHygieneTicketId) {
     Invoke-AdvisoryStep "codex-transcript-hygiene-gate" {
         & pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-codex-transcript-hygiene.ps1") -Id $codexHygieneTicketId
-    } -AdvisoryDetails ("$codexHygieneTicketId`'s Codex session transcript carries a bounded-read finding - " +
+    } -AdvisoryDetails ("$codexHygieneTicketId`'s Codex session transcript carries a bounded-read finding, or no rollout names the ticket (could not verify) - " +
         "pwsh -NoProfile -File scripts/quality/assert-codex-transcript-hygiene.ps1 -Id $codexHygieneTicketId for detail.")
 }
 else {
@@ -1546,6 +1554,11 @@ else {
 # between the two files it reads, and since S2824 it declines to charge one when neither of them is in
 # the changed set - it has no trigger, so it runs on every closure in the repo.
 Invoke-FixedInputGate "launcher-reset-coverage-gate" $argvLauncherReset 'assert-launcher-reset-coverage.ps1'
+
+# S4288: CONTEXT-HELP rule 19 - every phone surface has a help-map row and every page row its three
+# locales. Fixed-input like its neighbour above: no trigger, and a finding is charged only when the set
+# carries the map, the baseline, the enumerator, the manifest, a help source or a page.
+Invoke-FixedInputGate "help-map-gate" $argvHelpMap 'assert-help-map.ps1'
 
 # S2380: the declared-catalog gate family - five gates that judge a hand-maintained declaration
 # against the module it describes. Dot-sourced rather than inline only because the facade crossed

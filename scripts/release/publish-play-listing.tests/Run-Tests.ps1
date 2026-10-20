@@ -282,6 +282,6 @@ Assert-That 'a folder with no Play language exits 1 before any API call' `
     ((Get-RootObservation 'unknownexit') -eq '1' -and (Get-RootObservation 'unknowncalls') -eq '0') `
     "expected: exit 1, 0 calls | actual: exit $(Get-RootObservation 'unknownexit'), $(Get-RootObservation 'unknowncalls') calls"
 
-Write-Host ("`npublish-play-listing.tests: {0} passed, {1} failed" -f $script:pass, $script:fail)
+Write-Host "publish-play-listing.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

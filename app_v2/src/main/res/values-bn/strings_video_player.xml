@@ -86,4 +86,21 @@
     <string name="playback_control_no_balance">মোনো অডিও - ব্যালেন্স করার জন্য কোনো চ্যানেল নেই</string>
     <string name="playback_control_balance_value">ব্যালেন্স: %1$s</string>
     <string name="playback_control_balance_description">ব্যালেন্স %1$d শতাংশ বাম, %2$d শতাংশ ডান</string>
+    <string name="player_file_grid">থাম্বনেইল গ্রিড ভিউ</string>
+    <string name="player_file_list">ফাইল তালিকা ভিউ</string>
+    <string name="player_file_jump">ফাইলে যান</string>
+    <string name="player_file_number_hint">ফাইল নম্বর (1..%1$d)</string>
+    <string name="player_file_number_error">1 থেকে %1$d পর্যন্ত একটি পূর্ণসংখ্যা লিখুন।</string>
+    <string name="player_file_single">শুধু এই ফাইলটি উপলব্ধ।</string>
+    <string name="player_frame_unavailable">এই ভিডিওর জন্য ফ্রেম-বাই-ফ্রেম স্টেপিং উপলব্ধ নয়।</string>
+    <string name="player_frame_back_unavailable">আগের ফ্রেম উপলব্ধ নয়: এই ডিকোডার পিছনে যেতে পারে না।</string>
+    <string name="player_loop_title">A-B লুপ</string>
+    <string name="player_loop_unavailable">A-B পুনরাবৃত্তির জন্য এমন একটি ভিডিও দরকার যাতে সিক করা যায়।</string>
+    <string name="player_loop_start">লুপের শুরু: %1$s। শেষ বিন্দু বেছে নিন।</string>
+    <string name="player_loop_active">A-B পুনরাবৃত্তি: %1$s থেকে %2$s</string>
+    <string name="player_loop_invalid_end">শুরুর পরে একটি শেষ বিন্দু বেছে নিন।</string>
+    <string name="player_frame_forward">পরের ফ্রেম</string>
+    <string name="player_action_unavailable">এই ফাইলের জন্য এই কাজটি উপলব্ধ নয়।</string>
+    <string name="player_audio_track_single">অন্য কোনো অডিও ট্র্যাক উপলব্ধ নেই।</string>
+    <string name="player_frame_backward">আগের ফ্রেম</string>
 </resources>

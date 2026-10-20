@@ -29,19 +29,55 @@ data class DeviceExchangeAccountEntry(
      * the access of a protected resource, so only a new enrollment - a sign-in again - can change it.
      */
     val pinCapable: Boolean = false,
+    /** The last `welcome.features` or `enrolled.features`; null until this build has seen one (22 item BV). */
+    val features: List<String>? = null,
+    /** The last `accountKind` (19 item AO); null until this build has seen a `welcome` or `enrolled`. */
+    val accountKind: String? = null,
+    /**
+     * The public-key fingerprint of [pinnedCertificate] (19 item AY), so a renewed leaf with the same key passes
+     * with no prompt. Null without a pin, and on a pin saved before this build until a matching connect fills it.
+     */
+    val pinnedKey: String? = null,
 ) {
 
     /** Host lower-cased, port and login compared case-insensitively (5.1); the device token is kept under it. */
     val identity: String
         get() = host.lowercase(Locale.ROOT) + ":" + port + "/" + login.lowercase(Locale.ROOT)
 
+    /**
+     * Whether producer actions - publish, broadcast with its relay upload, cast - may go through this entry (19 item
+     * AO): never a `guest` account, which the server refuses them. Receiving stays open to a guest.
+     */
+    val mayProduce: Boolean
+        get() = accountKind != ACCOUNT_KIND_GUEST
+
+    /**
+     * Whether the clipboard actions may use this entry (22 items BV and CA): never a `guest` account, and only a
+     * server that lists `clipboard`. Unknown values count as taking part - the action's own `welcome` decides.
+     */
+    val takesPartInClipboard: Boolean
+        get() = accountKind != ACCOUNT_KIND_GUEST && (features == null || FEATURE_CLIPBOARD in features)
+
+    /**
+     * The server keeps and delivers sealed content (27 item DP). Content goes through a server only when this holds;
+     * unknown counts as not, since sending in clear to a server that cannot carry a box is the one thing forbidden.
+     */
+    val serverSeals: Boolean
+        get() = features?.contains(FEATURE_SEALED) == true
+
     // DIAGNOSTIC-REPORT section 10: host, login and pin are private; the generated form would print all three.
     override fun toString(): String =
         "DeviceExchangeAccountEntry(host=$REDACTED, port=$port, login=$REDACTED, deviceId=$deviceId, " +
             "pinnedCertificate=${pinnedCertificate?.let { REDACTED }}, autoAttach=$autoAttach, " +
-            "publicEndpoint=${publicEndpoint?.let { REDACTED }}, outgoing=$outgoing, pinCapable=$pinCapable)"
+            "publicEndpoint=${publicEndpoint?.let { REDACTED }}, outgoing=$outgoing, pinCapable=$pinCapable, " +
+            "features=$features, accountKind=$accountKind, pinnedKey=${pinnedKey?.let { REDACTED }})"
 
     companion object {
+        const val FEATURE_CLIPBOARD = "clipboard"
+        const val FEATURE_SEALED = "sealed"
+        const val ACCOUNT_KIND_MEMBER = "member"
+        const val ACCOUNT_KIND_GUEST = "guest"
+
         private val LOGIN = Regex("[A-Za-z0-9._-]{3,64}")
 
         /** The login form of 5.1: 3 to 64 characters of `[a-z0-9._-]`, compared case-insensitively. */
@@ -69,6 +105,29 @@ sealed interface DeviceExchangeCredential {
     }
 }
 
+/**
+ * What lets `register` create an account (19 items AP and AQ): exactly one of a one-time invitation from an
+ * invitation string or the deployment's shared invitation password. Neither is ever stored or logged.
+ */
+sealed interface DeviceExchangeInvitation {
+
+    class OneTime(val value: String) : DeviceExchangeInvitation {
+        init {
+            PrivateDiagnosticValues.register(value)
+        }
+
+        override fun toString(): String = "OneTime(***)"
+    }
+
+    class SharedPassword(val value: String) : DeviceExchangeInvitation {
+        init {
+            PrivateDiagnosticValues.register(value)
+        }
+
+        override fun toString(): String = "SharedPassword(***)"
+    }
+}
+
 /** How this device describes itself in `enroll` (7.2); `receiver` is the 6.1 object, present with that role. */
 data class DeviceExchangeEnrollment(
     val deviceName: String,
@@ -87,16 +146,25 @@ data class DeviceExchangeEnrollment(
         const val ROLE_BROADCASTER = "broadcaster"
         const val ROLE_RECEIVER = "receiver"
 
+        /** Sends and receives clipboard values (22 item BV); tells the account's other devices who takes part. */
+        const val ROLE_CLIPBOARD = "clipboard"
+
         /**
          * Every role this product may take on an entry, declared at `enroll` ahead of use (item AC), so making the
          * entry the outgoing one later needs no second enrollment and no password.
          */
-        fun declaredRoles(producer: Boolean, broadcaster: Boolean, receiver: Boolean = false): List<String> =
+        fun declaredRoles(
+            producer: Boolean,
+            broadcaster: Boolean,
+            receiver: Boolean = false,
+            clipboard: Boolean = false,
+        ): List<String> =
             listOfNotNull(
                 ROLE_RESOURCE_CONSUMER,
                 ROLE_RESOURCE_PRODUCER.takeIf { producer },
                 ROLE_BROADCASTER.takeIf { broadcaster },
                 ROLE_RECEIVER.takeIf { receiver },
+                ROLE_CLIPBOARD.takeIf { clipboard },
             )
     }
 }
@@ -108,6 +176,8 @@ data class DeviceExchangeWelcome(
     val keepaliveSeconds: Int?,
     val features: List<String>,
     val serverVersion: String?,
+    /** `member` or `guest` (19 item AO); a server that sends none is a 0.20 server, read as `member`. */
+    val accountKind: String? = null,
 ) {
 
     // The account is the login and the endpoint an address the sink must know (DIAGNOSTIC-REPORT section 10).
@@ -118,13 +188,25 @@ data class DeviceExchangeWelcome(
     override fun toString(): String =
         "DeviceExchangeWelcome(account=${account?.let { REDACTED }}, " +
             "publicEndpoint=${publicEndpoint?.let { REDACTED }}, keepaliveSeconds=$keepaliveSeconds, " +
-            "features=$features, serverVersion=$serverVersion)"
+            "features=$features, serverVersion=$serverVersion, accountKind=$accountKind)"
 }
 
 /** How an enrollment ended; only [Enrolled] stored a token. */
 sealed interface DeviceExchangeEnrollResult {
 
-    data class Enrolled(val welcome: DeviceExchangeWelcome) : DeviceExchangeEnrollResult
+    /**
+     * [leafFingerprint] and [keyFingerprint] name the certificate the enrolling stream accepted, which a pinned
+     * entry keeps as its pin (19 item AY); null where no TLS connector stood behind the answer.
+     */
+    data class Enrolled(
+        val welcome: DeviceExchangeWelcome,
+        val leafFingerprint: String? = null,
+        val keyFingerprint: String? = null,
+    ) : DeviceExchangeEnrollResult {
+        override fun toString(): String =
+            "Enrolled(welcome=$welcome, leafFingerprint=${leafFingerprint?.let { REDACTED }}, " +
+                "keyFingerprint=${keyFingerprint?.let { REDACTED }})"
+    }
 
     /** [reason] is a 7.10 reason, or [REASON_TOKEN_NOT_STORED] when the secret store refused the token. */
     data class Refused(val reason: String) : DeviceExchangeEnrollResult

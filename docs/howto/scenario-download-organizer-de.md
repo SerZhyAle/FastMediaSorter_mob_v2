@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Download-Organizer (Quick Sort) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-de.html
 ---
-<sub class="doc-stamp">26.09.25 02:16</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
 # 🧹 Download-Organizer - Dateien mit einem Fingertipp sortieren
 
 > **Niveau:** Anfänger &bull; **Edition:** Beliebig (Standard, Lite, Photos, Legacy, VR, noLegal)
-
-{% include lang-switcher.html doc="scenario-download-organizer" dir="/docs/howto/" current="de" %}
 
 **Quick Sort** ist die Vorzeigefunktion von FastMediaSorter: Richten Sie Ihre Ordner einmal ein und sortieren Sie danach Hunderte von Dateien, indem Sie einfach eine Zahl antippen. Kein Drag-and-Drop. Keine Menüs. Einfach **1**, **2** oder **3** antippen - und die Datei ist am richtigen Ort.
 

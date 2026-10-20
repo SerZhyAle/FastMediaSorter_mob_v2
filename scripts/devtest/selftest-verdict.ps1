@@ -138,6 +138,7 @@ else {
     foreach ($f in $verdict.failures) { Write-Host "  FAIL [$($f.pass)] $($f.test) - $($f.message)" }
     foreach ($s in $verdict.skips) { Write-Host "  SKIP [$($s.pass)] $($s.test) - $($s.reason)" }
     foreach ($m in $verdict.problems) { Write-Host "  PROBLEM $m" }
-    Write-Host ("selftest-verdict: {0} - {1} tests, {2} passed, {3} failed, {4} skipped" -f $verdict.verdict, $verdict.tests, $verdict.passed, $verdict.failed, $verdict.skipped)
+    # CHECK-VERDICT 0.13 count grammar: run = executed tests, skipped = not passed; failed stays beside them.
+    Write-Host ("selftest-verdict: {0} - run={1} skipped={2} failed={3}" -f $verdict.verdict, ($verdict.tests - $verdict.skipped), $verdict.skipped, $verdict.failed)
 }
 exit $code

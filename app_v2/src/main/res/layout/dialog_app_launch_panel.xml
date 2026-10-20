@@ -60,6 +60,17 @@
                 android:text="@string/app_launch_panel_edit_action"
                 app:icon="@drawable/ic_edit" />
 
+            <!-- S4328: the "?" of the panel and its host surface - one page, one control. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHelpHeader"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/help"
+                android:focusable="true"
+                app:icon="@drawable/ic_help_outline"
+                app:iconTint="?attr/colorOnSurface" />
+
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView

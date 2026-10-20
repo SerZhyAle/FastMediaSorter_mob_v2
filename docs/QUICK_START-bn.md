@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "🚀 কুইক স্টার্ট গাইড - FastMediaSorter v2"
 permalink: /docs/QUICK_START-bn.html
 ---
-<sub class="doc-stamp">26.10.09 14:52</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
 # 🚀 কুইক স্টার্ট গাইড - FastMediaSorter v2
 
 *৫ মিনিটে শুরু করুন! নতুনদের জন্য সহজ গাইড।*
-
-{% include lang-switcher.html doc="QUICK_START" dir="/docs/" current="bn" %}
 
 ---
 

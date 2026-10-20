@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "فتح مجلدات جهاز الكمبيوتر بمسح رمز واحد - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-ar.html
 ---
-<sub class="doc-stamp">26.09.25 02:18</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> فتح مجلدات جهاز الكمبيوتر بمسح رمز واحد
 
 > **المستوى:** مبتدئ &bull; **الإصدار:** Standard وPhotos وLegacy وVR وnoLegal (لا تتوفر مصادر الشبكة في Lite؛ يتطلب المسح كاميرا، وتعمل طريقة الملف في كل مكان)
-
-{% include lang-switcher.html doc="scenario-companion-share" dir="/docs/howto/" current="ar" %}
 
 تشغّل برنامجًا مساعدًا صغيرًا على جهاز الكمبيوتر الذي يعمل بنظام Windows، وتختار المجلدات التي تحتوي على مقاطع الفيديو أو الموسيقى أو المستندات أو الصور، فيعرض رمزًا على الشاشة. على الهاتف تضغط **إضافة**، وتوجّه الكاميرا نحو ذلك الرمز، فتتصل مجلدات الكمبيوتر فورًا - دون كتابة عنوان، ودون منفذ، ودون كلمة مرور، ودون كابلات.
 

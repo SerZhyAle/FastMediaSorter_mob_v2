@@ -208,6 +208,6 @@ Assert-That 'the device builder documents the timeout exit code' `
 ($deviceBuilder -match '124') 'the EXIT CODES header does not list 124'
 
 Write-Host ""
-Write-Host "passed: $script:pass   failed: $script:fail"
+Write-Host "gradle-progress-watch.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

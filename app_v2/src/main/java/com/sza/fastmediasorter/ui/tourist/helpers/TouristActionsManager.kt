@@ -78,13 +78,11 @@ class TouristActionsManager(
      * S4182: opens the stopwatch from the Tourist dashboard tile.
      */
     fun launchStopwatch() {
-        timber.log.Timber.d("S4182: stopwatch tile launched from tourist")
         tryStartActivity(AppLaunchPanelRouteIntents.stopwatch(context))
     }
 
     /** S4184: opens the tally counter from its hero card. */
     fun launchCounter() {
-        timber.log.Timber.d("S4184: counter screen launched from tourist hero card")
         tryStartActivity(TouristCounterActivity.createIntent(context))
     }
 

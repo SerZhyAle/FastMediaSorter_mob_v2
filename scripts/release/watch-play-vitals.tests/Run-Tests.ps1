@@ -60,6 +60,7 @@ foreach ($required in @($pyScript, $readerPs1, $venvPython, $rawGreen, $rawDisab
 
 $script:pass = 0
 $script:fail = 0
+$script:skipped = 0
 $pwshExe = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
 
 function Assert-That([string]$name, [bool]$ok, [string]$detail) {
@@ -534,6 +535,7 @@ try {
         Write-Host "  SKIP  F7 one red run files exactly one Draft - $skipReason" -ForegroundColor Yellow
         Write-Host "  SKIP  F8 the next day's run files nothing and appends one evidence line - $skipReason" -ForegroundColor Yellow
         Write-Host "  SKIP  F9 a second run on the same day appends nothing - $skipReason" -ForegroundColor Yellow
+        $script:skipped += 3
     } else {
         $sbCatalog = Join-Path $sb 'PLAN/spec-catalog.jsonl'
         $redBands = @{ Red = @{ UserPerceivedCrashRate = 0.0015 } }
@@ -675,6 +677,6 @@ $null = & $pwshExe -NoProfile -File $registrar -Action Status -TaskName $probeNa
 Assert-That 'S2 Status of an absent task exits 1' ($LASTEXITCODE -eq 1) "exit=$LASTEXITCODE"
 
 Write-Host ''
-Write-Host ("watch-play-vitals.tests: {0} passed, {1} failed" -f $script:pass, $script:fail)
+Write-Host "watch-play-vitals.tests: $(if ($script:fail) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=$script:skipped)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

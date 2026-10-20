@@ -92,6 +92,43 @@ class WearExchangeWireTest {
     }
 
     @Test
+    fun `a renewed leaf passes only on the pinned key`() {
+        assertEquals(
+            WearExchangeTrustDecision.Verdict.RENEWED,
+            WearExchangeTrustDecision.decide("SHA256:a", false, "SHA256:b", pinnedKey = "K", presentedKey = "K"),
+        )
+        assertEquals(
+            WearExchangeTrustDecision.Verdict.CHANGED,
+            WearExchangeTrustDecision.decide("SHA256:a", true, "SHA256:b", pinnedKey = "K", presentedKey = "L"),
+        )
+        assertEquals(
+            WearExchangeTrustDecision.Verdict.CHANGED,
+            WearExchangeTrustDecision.decide("SHA256:a", false, "SHA256:b", pinnedKey = null, presentedKey = "K"),
+        )
+        assertEquals(
+            WearExchangeTrustDecision.Verdict.ACCEPT,
+            WearExchangeTrustDecision.decide("SHA256:a", false, "SHA256:a", pinnedKey = "K", presentedKey = "K"),
+        )
+    }
+
+    @Test
+    fun `only TLS 1_3 and 1_2 are enabled, most preferred first`() {
+        val supported = arrayOf("TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3")
+
+        assertEquals(listOf("TLSv1.3", "TLSv1.2"), TlsWearExchangeConnector.allowedProtocols(supported).toList())
+        assertEquals(0, TlsWearExchangeConnector.allowedProtocols(arrayOf("TLSv1", "TLSv1.1")).size)
+    }
+
+    @Test
+    fun `only a guest entry may not broadcast`() {
+        val entry = WearExchangeEntry("h", 1, "login", "id", null)
+
+        assertEquals(true, entry.mayProduce)
+        assertEquals(true, entry.copy(accountKind = "member").mayProduce)
+        assertEquals(false, entry.copy(accountKind = WearExchangeEntry.ACCOUNT_KIND_GUEST).mayProduce)
+    }
+
+    @Test
     fun `a fresh device id is sixteen bytes of base64url`() {
         val id = WearExchangeEntry.newDeviceId()
 

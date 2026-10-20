@@ -17,6 +17,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
 import androidx.core.view.ViewCompat
+import androidx.core.view.updateLayoutParams
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.AnimationPolicy
 
@@ -212,6 +213,41 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
     }
 
     /**
+     * Sets the padding around the header row, in pixels, for hosts that build the header in code and
+     * need a tighter row than the default. A trailing control keeps its own size, so the row never
+     * becomes lower than that control plus this padding.
+     */
+    fun setHeaderPadding(horizontalPx: Int, verticalPx: Int) {
+        headerRow.setPadding(horizontalPx, verticalPx, horizontalPx, verticalPx)
+    }
+
+    /**
+     * Sets the gap after the chevron and after the leading icon, in pixels, for hosts whose tiles are
+     * too narrow for the default gap to leave the title a readable column.
+     */
+    fun setLeadingSpacing(px: Int) {
+        chevronView.updateLayoutParams<ViewGroup.MarginLayoutParams> { marginEnd = px }
+        iconView.updateLayoutParams<ViewGroup.MarginLayoutParams> { marginEnd = px }
+    }
+
+    /**
+     * Sets how the title wraps (a [android.text.Layout] BREAK_STRATEGY_* constant). The default balances lines,
+     * which in a narrow tile splits a long word and its count over three short lines; a simple strategy
+     * fills the first line and leaves the remainder below.
+     */
+    fun setTitleBreakStrategy(strategy: Int) {
+        titleView.breakStrategy = strategy
+    }
+
+    /**
+     * Overrides the title size, in pixels, for hosts that tile headers in narrow columns.
+     */
+    fun setTitleTextSizePx(px: Float) {
+        titleView.setTextSize(TypedValue.COMPLEX_UNIT_PX, px)
+        prefixView.setTextSize(TypedValue.COMPLEX_UNIT_PX, px)
+    }
+
+    /**
      * Injects or removes an optional trailing control hosted by this header.
      */
     fun setTrailingControl(view: View?) {
@@ -274,7 +310,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
                     R.styleable.CollapsibleSectionHeader_csh_headerPaddingVertical,
                     headerRow.paddingTop,
                 )
-                headerRow.setPadding(horizontal, vertical, horizontal, vertical)
+                setHeaderPadding(horizontal, vertical)
             }
             if (typedArray.hasValue(R.styleable.CollapsibleSectionHeader_csh_prefixPaddingEnd)) {
                 prefixView.setPaddingRelative(

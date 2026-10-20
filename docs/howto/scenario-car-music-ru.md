@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Музыка в автомобиле (Android-магнитола) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-ru.html
 ---
-<sub class="doc-stamp">26.09.24 20:50</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 🚗 Музыка в автомобиле (Android-магнитола)
 
 > **Уровень:** Начинающий &bull; **Время:** ~10 минут &bull; **Версия:** Standard, Legacy, VR, noLegal (Lite играет локальное аудио, но без фонового воспроизведения и без Трансляций; в Photos аудио нет)
-
-{% include lang-switcher.html doc="scenario-car-music" dir="/docs/howto/" current="ru" %}
 
 FastMediaSorter отлично работает как автомобильный музыкальный плеер на Android-магнитолах - мгновенный доступ ко всей коллекции с SD-карты или USB, с поддержкой кнопок руля «из коробки».
 

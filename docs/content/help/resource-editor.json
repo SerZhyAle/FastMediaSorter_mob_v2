@@ -1,0 +1,359 @@
+{
+  "help": "resource-editor",
+  "surface": "ResourceEditorActivity",
+  "elements": [
+    { "id": "back", "viewId": "toolbar", "labelKey": "back" },
+    { "id": "reset-changes", "viewId": "btnResetChanges", "labelKey": "btn_reset_changes" },
+    { "id": "pick-icon", "viewId": "btnPickIcon", "labelKey": "cd_pick_resource_icon" },
+    { "id": "save-as-copy", "viewId": "btnSaveAsCopy", "labelKey": "btn_save_as_copy" },
+    { "id": "save", "viewId": "btnSave", "labelKey": "btn_save_changes" },
+    { "id": "name", "viewId": "etName", "labelKey": "hint_resource_name" },
+    { "id": "use-suggested-name", "viewId": "btnUseFirstSuggestion", "labelKey": "btn_use_suggested_name" },
+    { "id": "connection", "viewId": "headerConnectionSettings", "labelKey": "label_connection_settings" },
+    { "id": "test-connection", "viewId": "btnTestConnection", "labelKey": "btn_test_connection" },
+    { "id": "retry", "viewId": "btnRetry", "labelKey": "btn_retry" },
+    { "id": "scanning", "viewId": "headerScanning", "labelKey": "label_scanning_settings" },
+    { "id": "media-types", "viewId": "headerMediaTypes", "labelKey": "label_media_types" },
+    { "id": "profile", "viewId": "btnProfileSelector", "labelKey": "title_select_profile" },
+    { "id": "destination", "viewId": "headerDestination", "labelKey": "label_destination_settings" },
+    { "id": "advanced", "viewId": "headerAdvanced", "labelKey": "label_advanced_settings" },
+    { "id": "statistics", "viewId": "headerStatistics", "labelKey": "label_statistics" },
+    { "id": "add-to-home", "viewId": "btnAddToHomeScreen", "labelKey": "widget_add_to_home_screen" },
+    { "id": "context-warning", "viewId": "tvContextWarning" },
+    { "id": "icon-sheet-tabs" },
+    { "id": "icon-sheet-grid" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "browse" },
+    { "help": "add-resource" },
+    { "pageId": "storage.destination-targets-setup" },
+    { "pageId": "storage.file-encryption-and-security" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Edit Resource",
+      "purpose": "Edit Resource changes a resource you already added: its name and icon, the address or path it points to, which files it shows and how it behaves. Open it from the main screen by holding a resource or with the edit button in its row. The same screen sets up a new internet stream and saves a copy of a resource.",
+      "steps": [
+        "Start with the name (6). Names must be unique: if yours is taken, the app says so and offers Use suggested name (7).",
+        "Open Connection Settings (8) to correct the path, the address and port, the sign-in or the stream address. For a network or cloud resource, check the new values with Test Connection (9); Retry (10) repeats the last action after a failure.",
+        "Decide what the resource shows: Content Scanning Conditions (11) and the file types in Media Types (12). Resource Profile (13) fills in a ready set in one tap.",
+        "Use Destination Settings (14) to use the resource for Quick Sort or to make it read-only, and Advanced Settings (15) for a comment, a PIN and the slideshow interval.",
+        "Pick an icon (3) if you want the resource to stand out in the list.",
+        "Press Save Changes (5); it stays off until something valid has changed. Save as Copy (4) keeps the original and stores your edits as a new resource, and Reset Changes (2) brings back the saved values.",
+        "Statistics (16) tell you when the resource was created and opened, and Add to Home Screen (17) puts a shortcut to it on your home screen."
+      ],
+      "groups": [
+        { "title": "Toolbar and actions", "elements": ["back", "reset-changes", "pick-icon", "save-as-copy", "save"] },
+        { "title": "Name and connection", "elements": ["name", "use-suggested-name", "connection", "test-connection", "retry"] },
+        { "title": "What the resource shows and how it behaves", "elements": ["scanning", "media-types", "profile", "destination", "advanced"] },
+        { "title": "Information", "elements": ["statistics", "add-to-home", "context-warning"] },
+        { "title": "Choose an icon (icon picker)", "elements": ["icon-sheet-tabs", "icon-sheet-grid"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Closes the editor without saving your changes.",
+          "details": "The arrow in the toolbar, the Back button of the device and the Esc key all leave the screen at once. Nothing is saved on the way out, so press Save Changes first if you want to keep your edits.",
+          "shortcut": "Esc"
+        },
+        "reset-changes": {
+          "summary": "Puts every field back to the values saved with the resource.",
+          "details": "The button shows up only after you change something. It restores all fields, the icon and the profile to how they were when the editor opened, and clears the last connection test result.",
+          "undo": "Your edits since opening the editor are lost and cannot be brought back. Saved values are not touched."
+        },
+        "pick-icon": {
+          "summary": "Chooses the picture that stands for this resource in lists.",
+          "details": "Opens the Choose an icon sheet; the button itself shows the icon the resource has now. The new icon is stored when you press Save Changes. If you change the profile and have not chosen an icon by hand in this session, the icon follows the profile on its own."
+        },
+        "save-as-copy": {
+          "summary": "Stores your edits as a new resource and leaves the original as it is.",
+          "details": "Available when you edit an existing resource. The copy gets a free name based on the original one, and the editor stays on the original afterwards. It is greyed out while the form has errors or a test or save is running."
+        },
+        "save": {
+          "summary": "Saves your changes to the resource.",
+          "details": "The button is off until the form is valid and something has actually changed. After saving you see Resource saved successfully and the screen closes. Ctrl+S does the same as the button; if there is nothing to save, a short note says so.",
+          "shortcut": "Ctrl+S"
+        },
+        "name": {
+          "summary": "The name the resource has in your lists.",
+          "details": "Names are compared without regard to upper and lower case, so Photos and photos count as the same. When the name is already in use, a red note says so and the suggestions appear below; the name of the resource you are editing is never treated as a duplicate of itself."
+        },
+        "use-suggested-name": {
+          "summary": "Replaces a taken name with the first suggestion.",
+          "details": "The button appears only when the name you typed is already used by another resource. Its text carries the suggested name, and one tap puts it into the field."
+        },
+        "connection": {
+          "summary": "Where the resource points to: a folder, a server, a cloud folder or a stream.",
+          "details": "A collapsible section whose fields depend on the type. A local resource shows Folder Path. A network resource shows Host / IP Address, Port, Username, Password and Server Path (optional). A cloud resource shows Cloud Folder ID, and a stream shows its URL (http, https, rtsp). Collections such as Recent Media have no path, so the section is not shown for them. After you change the path, the address or the port, a warning says that a rescan or re-check is needed.\n\nWhile a password field is on screen, the screen can be hidden from screenshots and the recent apps view, depending on the Secure sensitive screens setting."
+        },
+        "test-connection": {
+          "summary": "Checks the connection settings before you save them.",
+          "details": "Shown for network and cloud resources. The app first checks that the form is filled in correctly, then connects and shows the result in a coloured line: green for success, with a count of what it found, a warning colour for a partial result and red for a failure. Nothing is saved by the test."
+        },
+        "retry": {
+          "summary": "Repeats the last action after a failure.",
+          "details": "The button appears under a failed connection test. It runs again whatever you did last: the test, Save Changes or Save as Copy."
+        },
+        "scanning": {
+          "summary": "Decides which files of the resource the app looks at.",
+          "details": "A collapsible section. Scan subdirectories looks for media in nested folders, and Show subfolders as items needs it. All Files mode lets you browse and manage every file, not only media; Show hidden files needs it. Disable thumbnails shows extension icons instead of previews, and Remember file list keeps a copy of the list for faster opening. Only the choices that fit the resource type are shown."
+        },
+        "media-types": {
+          "summary": "Chooses which kinds of files the resource shows.",
+          "details": "Tick Videos, Audio, Images, GIFs, Text, PDF, EPUB and Office documents. The boxes are locked while All Files mode is on. The section does not appear for resources that have no file types, such as a stream."
+        },
+        "profile": {
+          "summary": "Applies a ready set of media settings in one tap.",
+          "details": "The button shows the current profile and opens Resource Profile: Custom, Audio Library, Video Library, Photo Storage, Documents and File Manager Mode. A profile sets the media types, All Files mode and, for Audio Library, Remember file list at once. Custom changes nothing, so use the checkboxes to tune by hand afterwards."
+        },
+        "destination": {
+          "summary": "Marks the resource for Quick Sort and can make it read-only.",
+          "details": "Use as destination folder puts the resource on your Quick Sort list so you can send files to it. Read-only mode blocks copy, move and delete in it. Both together is a bad mix, because a read-only place cannot receive files, so a warning appears."
+        },
+        "advanced": {
+          "summary": "Optional extras: a comment, a PIN and the slideshow interval.",
+          "details": "Comment is a note for yourself. PIN Code (4-6 digits) protects the resource: the app asks for it before it opens the editor again, among other things. Slideshow Interval sets the seconds between pictures when this resource is played as a slideshow. Only the fields that fit the resource type are shown."
+        },
+        "statistics": {
+          "summary": "Facts about the resource: size, dates and speed.",
+          "details": "Shown only while you edit an existing resource. It lists the number of files and subfolders, when the resource was created and last opened, for network resources the last sync, and the read and write speed once they have been measured. A successful connection test refreshes the numbers."
+        },
+        "add-to-home": {
+          "summary": "Puts a shortcut to this resource on your home screen.",
+          "details": "The shortcut uses the same icon as the editor shows. Android asks you to confirm it. If your launcher cannot place shortcuts, a message says so. The button sits inside the Statistics section."
+        },
+        "context-warning": {
+          "name": "Warning note",
+          "summary": "A short reminder that appears when your edits need attention.",
+          "details": "It can say that a read-only place cannot be a destination, that a changed path or address needs a rescan, or that another resource already has the same path. Each warning also opens in a window once, and the note stays until the cause is gone."
+        },
+        "icon-sheet-tabs": {
+          "name": "Icon set tabs",
+          "summary": "Switches between the icon sets: Music, Video, Image, Documents and Other.",
+          "details": "The sheet opens on the set that suits your resource, based on its profile and type. Swipe the tab strip sideways if it does not fit the screen."
+        },
+        "icon-sheet-grid": {
+          "name": "Icons",
+          "summary": "Tapping an icon chooses it at once.",
+          "details": "The icon in use is marked with a ring. One tap on another icon closes the sheet and puts it on the button in the editor; it is stored when you press Save Changes. To leave without a change, swipe the sheet down."
+        }
+      }
+    },
+    "ru": {
+      "title": "Редактировать ресурс",
+      "purpose": "«Редактировать ресурс» меняет уже добавленный ресурс: его название и значок, адрес или путь, какие файлы он показывает и как себя ведёт. Откройте его с главного экрана - удержанием ресурса или кнопкой редактирования в его строке. Этот же экран настраивает новую интернет-трансляцию и сохраняет копию ресурса.",
+      "steps": [
+        "Начните с названия (6). Названия должны быть уникальными: если ваше занято, приложение скажет об этом и предложит «Использовать предложенное имя» (7).",
+        "Откройте «Параметры подключения» (8), чтобы поправить путь, адрес и порт, данные для входа или адрес трансляции. Для сетевого или облачного ресурса проверьте новые значения кнопкой «Проверить подключение» (9); «Повторить попытку» (10) повторяет последнее действие после неудачи.",
+        "Решите, что ресурс показывает: «Условия сканирования содержимого» (11) и типы файлов в «Типах медиа» (12). «Профиль ресурса» (13) одним нажатием подставляет готовый набор.",
+        "В «Настройках назначения» (14) ресурс можно использовать для быстрой сортировки или сделать только для чтения, а в «Расширенных настройках» (15) - задать комментарий, ПИН-код и интервал слайд-шоу.",
+        "Выберите значок (3), если хотите выделить ресурс в списке.",
+        "Нажмите «Сохранить изменения» (5); кнопка не работает, пока нет допустимых изменений. «Сохранить как копию» (4) оставляет оригинал и сохраняет правки как новый ресурс, а «Сбросить изменения» (2) возвращает сохранённые значения.",
+        "«Статистика» (16) показывает, когда ресурс создан и открывался, а «Добавить на домашний экран» (17) ставит на него ярлык."
+      ],
+      "groups": [
+        { "title": "Панель и действия", "elements": ["back", "reset-changes", "pick-icon", "save-as-copy", "save"] },
+        { "title": "Название и подключение", "elements": ["name", "use-suggested-name", "connection", "test-connection", "retry"] },
+        { "title": "Что ресурс показывает и как себя ведёт", "elements": ["scanning", "media-types", "profile", "destination", "advanced"] },
+        { "title": "Сведения", "elements": ["statistics", "add-to-home", "context-warning"] },
+        { "title": "Выбор иконки (окно выбора)", "elements": ["icon-sheet-tabs", "icon-sheet-grid"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Закрывает редактор, не сохраняя изменения.",
+          "details": "Стрелка на панели, кнопка «Назад» на устройстве и клавиша Esc сразу закрывают экран. При выходе ничего не сохраняется, так что сначала нажмите «Сохранить изменения», если правки нужны.",
+          "shortcut": "Esc"
+        },
+        "reset-changes": {
+          "summary": "Возвращает все поля к значениям, сохранённым в ресурсе.",
+          "details": "Кнопка появляется, только когда вы что-то изменили. Она восстанавливает поля, значок и профиль такими, какими они были при открытии редактора, и убирает результат последней проверки подключения.",
+          "undo": "Правки, сделанные с момента открытия редактора, пропадут, и вернуть их нельзя. Сохранённые значения не затрагиваются."
+        },
+        "pick-icon": {
+          "summary": "Выбирает картинку, которая обозначает ресурс в списках.",
+          "details": "Открывает окно «Выбор иконки»; на самой кнопке показан текущий значок ресурса. Новый значок сохранится, когда вы нажмёте «Сохранить изменения». Если вы меняете профиль и не выбирали значок вручную в этом сеансе, значок подстраивается под профиль сам."
+        },
+        "save-as-copy": {
+          "summary": "Сохраняет правки как новый ресурс, а оригинал оставляет как есть.",
+          "details": "Доступно при редактировании существующего ресурса. Копия получает свободное название на основе исходного, а после этого редактор остаётся на оригинале. Кнопка неактивна, пока в форме есть ошибки или идёт проверка либо сохранение."
+        },
+        "save": {
+          "summary": "Сохраняет изменения ресурса.",
+          "details": "Кнопка неактивна, пока форма не заполнена правильно и ничего не изменено. После сохранения вы увидите «Ресурс успешно сохранён», и экран закроется. Ctrl+S делает то же, что кнопка; если сохранять нечего, короткое сообщение об этом скажет.",
+          "shortcut": "Ctrl+S"
+        },
+        "name": {
+          "summary": "Название ресурса в ваших списках.",
+          "details": "Названия сравниваются без учёта регистра, так что Photos и photos - одно и то же. Если название занято, красная надпись сообщает об этом, а ниже появляются варианты; название самого редактируемого ресурса дубликатом себя не считается."
+        },
+        "use-suggested-name": {
+          "summary": "Заменяет занятое название первым из предложенных.",
+          "details": "Кнопка появляется, только когда введённое название уже использует другой ресурс. В её тексте указано предложенное название, и одним нажатием оно попадает в поле."
+        },
+        "connection": {
+          "summary": "Куда указывает ресурс: папка, сервер, облачная папка или трансляция.",
+          "details": "Сворачиваемый раздел, поля которого зависят от типа. У локального ресурса - «Путь к папке». У сетевого - «Хост / IP-адрес», «Порт», «Имя пользователя», «Пароль» и «Путь на сервере (необязательно)». У облачного - «ID облачной папки», у трансляции - её URL (http, https, rtsp). У подборок вроде «Недавние медиа» пути нет, поэтому для них раздел не показывается. Если изменить путь, адрес или порт, появится предупреждение, что нужно повторное сканирование или проверка.\n\nПока на экране поле пароля, экран может скрываться от снимков экрана и списка недавних приложений - это зависит от настройки «Защищать секретные экраны»."
+        },
+        "test-connection": {
+          "summary": "Проверяет параметры подключения до сохранения.",
+          "details": "Показывается для сетевых и облачных ресурсов. Сначала приложение проверяет, правильно ли заполнена форма, затем подключается и показывает результат цветной строкой: зелёной при успехе, с числом найденного, предупреждающего цвета при частичном результате и красной при ошибке. Проверка ничего не сохраняет."
+        },
+        "retry": {
+          "summary": "Повторяет последнее действие после неудачи.",
+          "details": "Кнопка появляется под неудачной проверкой подключения. Она заново выполняет то, что вы делали последним: проверку, «Сохранить изменения» или «Сохранить как копию»."
+        },
+        "scanning": {
+          "summary": "Определяет, какие файлы ресурса учитывает приложение.",
+          "details": "Сворачиваемый раздел. «Сканировать подпапки» ищет медиа во вложенных папках, а «Показывать подпапки как элементы» без этого не работает. Режим «Все файлы» позволяет просматривать и обрабатывать любые файлы, а не только медиа; «Показывать скрытые файлы» без него недоступно. «Отключить миниатюры» показывает значки расширений вместо превью, а «Запоминать список файлов для этого ресурса» хранит копию списка для быстрого открытия. Показаны только параметры, подходящие типу ресурса."
+        },
+        "media-types": {
+          "summary": "Выбирает, какие виды файлов показывает ресурс.",
+          "details": "Отметьте «Видео», «Аудио», «Изображения», «GIF анимация», «Текст», PDF, EPUB и «Офисные документы». Пока включён режим «Все файлы», флажки заблокированы. Для ресурсов без типов файлов, например трансляции, раздел не показывается."
+        },
+        "profile": {
+          "summary": "Одним нажатием применяет готовый набор настроек медиа.",
+          "details": "Кнопка показывает текущий профиль и открывает «Профиль ресурса»: «Пользовательский», «Аудиотека», «Видеотека», «Фотохранилище», «Документы» и «Файловый менеджер». Профиль сразу задаёт типы медиа, режим «Все файлы» и, для «Аудиотеки», запоминание списка файлов. «Пользовательский» ничего не меняет, поэтому после него настраивайте флажки вручную."
+        },
+        "destination": {
+          "summary": "Отмечает ресурс для быстрой сортировки и может сделать его только для чтения.",
+          "details": "«Использовать как папку назначения» добавляет ресурс в список быстрой сортировки, чтобы можно было отправлять в него файлы. «Режим только чтение» запрещает в нём копирование, перемещение и удаление. Вместе они плохо сочетаются: место только для чтения не примет файлы, поэтому появляется предупреждение."
+        },
+        "advanced": {
+          "summary": "Необязательное: комментарий, ПИН-код и интервал слайд-шоу.",
+          "details": "«Комментарий» - заметка для себя. «ПИН-код (4-6 цифр)» защищает ресурс: приложение, например, спросит его перед тем, как снова открыть редактор. «Интервал слайд-шоу» задаёт секунды между картинками, когда ресурс играет как слайд-шоу. Показаны только поля, подходящие типу ресурса."
+        },
+        "statistics": {
+          "summary": "Сведения о ресурсе: размер, даты и скорость.",
+          "details": "Показывается только при редактировании существующего ресурса. В нём число файлов и подпапок, когда ресурс создан и открывался в последний раз, для сетевых - последняя синхронизация, а также скорость чтения и записи, когда их удалось измерить. Успешная проверка подключения обновляет цифры."
+        },
+        "add-to-home": {
+          "summary": "Ставит ярлык этого ресурса на домашний экран.",
+          "details": "Ярлык использует тот же значок, что показан в редакторе. Android попросит подтвердить действие. Если ваш лаунчер не умеет размещать ярлыки, об этом скажет сообщение. Кнопка находится внутри раздела «Статистика»."
+        },
+        "context-warning": {
+          "name": "Предупреждающая заметка",
+          "summary": "Короткое напоминание, которое появляется, когда правкам нужно внимание.",
+          "details": "Она может сообщить, что место только для чтения не годится как папка назначения, что изменённый путь или адрес требует повторного сканирования или что у другого ресурса уже такой же путь. Каждое предупреждение также один раз открывается в окне, а заметка остаётся, пока причина не исчезнет."
+        },
+        "icon-sheet-tabs": {
+          "name": "Вкладки наборов значков",
+          "summary": "Переключает наборы значков: «Музыка», «Видео», «Изображения», «Документы» и «Другое».",
+          "details": "Окно открывается на наборе, который подходит вашему ресурсу по профилю и типу. Если вкладки не помещаются на экране, прокрутите их в сторону."
+        },
+        "icon-sheet-grid": {
+          "name": "Значки",
+          "summary": "Нажатие на значок сразу выбирает его.",
+          "details": "Используемый значок отмечен кольцом. Одно нажатие на другой значок закрывает окно и ставит его на кнопку в редакторе; сохраняется он при нажатии «Сохранить изменения». Чтобы выйти без изменений, смахните окно вниз."
+        }
+      }
+    },
+    "uk": {
+      "title": "Редагувати ресурс",
+      "purpose": "«Редагувати ресурс» змінює вже доданий ресурс: його назву й значок, адресу чи шлях, які файли він показує та як поводиться. Відкрийте його з головного екрана - утриманням ресурсу або кнопкою редагування в його рядку. Цей самий екран налаштовує нову інтернет-трансляцію і зберігає копію ресурсу.",
+      "steps": [
+        "Почніть із назви (6). Назви мають бути унікальними: якщо ваша зайнята, застосунок скаже про це й запропонує «Використати запропоновану назву» (7).",
+        "Відкрийте «Параметри підключення» (8), щоб виправити шлях, адресу й порт, дані для входу або адресу трансляції. Для мережевого чи хмарного ресурсу перевірте нові значення кнопкою «Перевірити підключення» (9); «Повторити спробу» (10) повторює останню дію після невдачі.",
+        "Вирішіть, що ресурс показує: «Умови сканування вмісту» (11) і типи файлів у «Типах медіа» (12). «Профіль ресурсу» (13) одним натисканням підставляє готовий набір.",
+        "У «Налаштуваннях призначення» (14) ресурс можна використати для швидкого сортування або зробити лише для читання, а в «Розширених налаштуваннях» (15) - задати коментар, ПІН-код та інтервал слайдшоу.",
+        "Оберіть значок (3), якщо хочете виокремити ресурс у списку.",
+        "Натисніть «Зберегти зміни» (5); кнопка не працює, доки немає припустимих змін. «Зберегти як копію» (4) залишає оригінал і зберігає правки як новий ресурс, а «Скинути зміни» (2) повертає збережені значення.",
+        "«Статистика» (16) показує, коли ресурс створено й відкривано, а «Додати на домашній екран» (17) ставить на нього ярлик."
+      ],
+      "groups": [
+        { "title": "Панель і дії", "elements": ["back", "reset-changes", "pick-icon", "save-as-copy", "save"] },
+        { "title": "Назва й підключення", "elements": ["name", "use-suggested-name", "connection", "test-connection", "retry"] },
+        { "title": "Що ресурс показує і як поводиться", "elements": ["scanning", "media-types", "profile", "destination", "advanced"] },
+        { "title": "Відомості", "elements": ["statistics", "add-to-home", "context-warning"] },
+        { "title": "Вибір іконки (вікно вибору)", "elements": ["icon-sheet-tabs", "icon-sheet-grid"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Закриває редактор, не зберігаючи зміни.",
+          "details": "Стрілка на панелі, кнопка «Назад» на пристрої та клавіша Esc одразу закривають екран. Під час виходу нічого не зберігається, тож спершу натисніть «Зберегти зміни», якщо правки потрібні.",
+          "shortcut": "Esc"
+        },
+        "reset-changes": {
+          "summary": "Повертає всі поля до значень, збережених у ресурсі.",
+          "details": "Кнопка з’являється, лише коли ви щось змінили. Вона відновлює поля, значок і профіль такими, якими вони були під час відкриття редактора, і прибирає результат останньої перевірки підключення.",
+          "undo": "Правки, зроблені з моменту відкриття редактора, пропадуть, і повернути їх не можна. Збережені значення не зачіпаються."
+        },
+        "pick-icon": {
+          "summary": "Обирає картинку, що позначає ресурс у списках.",
+          "details": "Відкриває вікно «Вибір іконки»; на самій кнопці показано поточний значок ресурсу. Новий значок збережеться, коли ви натиснете «Зберегти зміни». Якщо ви змінюєте профіль і не вибирали значок уручну в цьому сеансі, значок підлаштовується під профіль сам."
+        },
+        "save-as-copy": {
+          "summary": "Зберігає правки як новий ресурс, а оригінал залишає як є.",
+          "details": "Доступно під час редагування наявного ресурсу. Копія отримує вільну назву на основі вихідної, а після цього редактор лишається на оригіналі. Кнопка неактивна, доки у формі є помилки або триває перевірка чи збереження."
+        },
+        "save": {
+          "summary": "Зберігає зміни ресурсу.",
+          "details": "Кнопка неактивна, доки форму не заповнено правильно і нічого не змінено. Після збереження ви побачите «Ресурс успішно збережено», і екран закриється. Ctrl+S робить те саме, що кнопка; якщо зберігати нічого, коротке повідомлення про це скаже.",
+          "shortcut": "Ctrl+S"
+        },
+        "name": {
+          "summary": "Назва ресурсу у ваших списках.",
+          "details": "Назви порівнюються без урахування регістру, тож Photos і photos - одне й те саме. Якщо назву зайнято, червоний напис повідомляє про це, а нижче з’являються варіанти; назва самого ресурсу, що редагується, дублікатом себе не вважається."
+        },
+        "use-suggested-name": {
+          "summary": "Замінює зайняту назву першою із запропонованих.",
+          "details": "Кнопка з’являється, лише коли введену назву вже використовує інший ресурс. У її тексті вказано запропоновану назву, і одним натисканням вона потрапляє в поле."
+        },
+        "connection": {
+          "summary": "Куди вказує ресурс: папка, сервер, хмарна папка чи трансляція.",
+          "details": "Розділ, що згортається, поля якого залежать від типу. У локального ресурсу - «Шлях до папки». У мережевого - «Хост / IP-адреса», «Порт», «Ім’я користувача», «Пароль» і «Шлях на сервері (необов’язково)». У хмарного - «ID хмарної папки», у трансляції - її URL (http, https, rtsp). У добірок на кшталт «Нещодавні медіа» шляху немає, тому для них розділ не показується. Якщо змінити шлях, адресу чи порт, з’явиться попередження, що потрібне повторне сканування або перевірка.\n\nПоки на екрані поле пароля, екран може ховатися від знімків екрана й списку нещодавніх застосунків - це залежить від налаштування «Захищати секретні екрани»."
+        },
+        "test-connection": {
+          "summary": "Перевіряє параметри підключення до збереження.",
+          "details": "Показується для мережевих і хмарних ресурсів. Спершу застосунок перевіряє, чи правильно заповнено форму, потім підключається й показує результат кольоровим рядком: зеленим за успіху, з кількістю знайденого, попереджувального кольору за часткового результату й червоним за помилки. Перевірка нічого не зберігає."
+        },
+        "retry": {
+          "summary": "Повторює останню дію після невдачі.",
+          "details": "Кнопка з’являється під невдалою перевіркою підключення. Вона знову виконує те, що ви робили останнім: перевірку, «Зберегти зміни» або «Зберегти як копію»."
+        },
+        "scanning": {
+          "summary": "Визначає, які файли ресурсу враховує застосунок.",
+          "details": "Розділ, що згортається. «Сканувати підпапки» шукає медіа у вкладених папках, а «Показувати підпапки як елементи» без цього не працює. Режим «Усі файли» дає змогу переглядати й обробляти будь-які файли, а не лише медіа; «Показувати приховані файли» без нього недоступне. «Вимкнути мініатюри» показує значки розширень замість превʼю, а «Запамʼятовувати список файлів для цього ресурсу» зберігає копію списку для швидкого відкриття. Показано лише параметри, що підходять типу ресурсу."
+        },
+        "media-types": {
+          "summary": "Обирає, які види файлів показує ресурс.",
+          "details": "Позначте «Відео», «Аудіо», «Зображення», «GIF анімація», «Текст», PDF, EPUB і «Офісні документи». Поки ввімкнено режим «Усі файли», прапорці заблоковано. Для ресурсів без типів файлів, наприклад трансляції, розділ не показується."
+        },
+        "profile": {
+          "summary": "Одним натисканням застосовує готовий набір налаштувань медіа.",
+          "details": "Кнопка показує поточний профіль і відкриває «Профіль ресурсу»: «Довільний», «Аудіотека», «Відеотека», «Фотосховище», «Документи» та «Файловий менеджер». Профіль одразу задає типи медіа, режим «Усі файли» і, для «Аудіотеки», запамʼятовування списку файлів. «Довільний» нічого не змінює, тож після нього налаштовуйте прапорці вручну."
+        },
+        "destination": {
+          "summary": "Позначає ресурс для швидкого сортування і може зробити його лише для читання.",
+          "details": "«Використовувати як папку призначення» додає ресурс до списку швидкого сортування, щоб можна було надсилати до нього файли. «Режим лише читання» забороняє в ньому копіювання, переміщення й видалення. Разом вони погано поєднуються: місце лише для читання не прийме файли, тому з’являється попередження."
+        },
+        "advanced": {
+          "summary": "Необов’язкове: коментар, ПІН-код та інтервал слайдшоу.",
+          "details": "«Коментар (необов’язково)» - нотатка для себе. «ПІН-код (4-6 цифр)» захищає ресурс: застосунок, наприклад, спитає його, перш ніж знову відкрити редактор. «Інтервал слайдшоу (секунди)» задає секунди між картинками, коли ресурс відтворюється як слайдшоу. Показано лише поля, що підходять типу ресурсу."
+        },
+        "statistics": {
+          "summary": "Відомості про ресурс: розмір, дати та швидкість.",
+          "details": "Показується лише під час редагування наявного ресурсу. У ньому кількість файлів і підпапок, коли ресурс створено й востаннє відкривано, для мережевих - остання синхронізація, а також швидкість читання й запису, коли їх вдалося виміряти. Успішна перевірка підключення оновлює цифри."
+        },
+        "add-to-home": {
+          "summary": "Ставить ярлик цього ресурсу на домашній екран.",
+          "details": "Ярлик використовує той самий значок, що показано в редакторі. Android попросить підтвердити дію. Якщо ваш лаунчер не вміє розміщувати ярлики, про це скаже повідомлення. Кнопка міститься всередині розділу «Статистика»."
+        },
+        "context-warning": {
+          "name": "Попереджувальна нотатка",
+          "summary": "Коротке нагадування, що з’являється, коли правкам потрібна увага.",
+          "details": "Вона може повідомити, що місце лише для читання не годиться як папка призначення, що змінений шлях чи адреса потребує повторного сканування або що в іншого ресурсу вже такий самий шлях. Кожне попередження також один раз відкривається у вікні, а нотатка лишається, доки причина не зникне."
+        },
+        "icon-sheet-tabs": {
+          "name": "Вкладки наборів значків",
+          "summary": "Перемикає набори значків: «Музика», «Відео», «Зображення», «Документи» та «Інше».",
+          "details": "Вікно відкривається на наборі, що підходить вашому ресурсу за профілем і типом. Якщо вкладки не вміщаються на екрані, прокрутіть їх убік."
+        },
+        "icon-sheet-grid": {
+          "name": "Значки",
+          "summary": "Натискання на значок одразу обирає його.",
+          "details": "Використовуваний значок позначено кільцем. Одне натискання на інший значок закриває вікно й ставить його на кнопку в редакторі; зберігається він під час натискання «Зберегти зміни». Щоб вийти без змін, змахніть вікно вниз."
+        }
+      }
+    }
+  }
+}

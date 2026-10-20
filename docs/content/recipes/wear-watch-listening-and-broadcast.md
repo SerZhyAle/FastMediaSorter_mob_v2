@@ -14,7 +14,7 @@ canonical_url: documentation/wear/watch-listening-and-broadcast.html
 why: |
   Your watch is already on your wrist wherever you are - in the kitchen, in the kid's room, out on a walk. That makes its microphone useful for more than telling the time: your phone can listen through it from across the house, and the watch itself can [broadcast](term:live-broadcast) what it hears to anyone on the same Wi-Fi, including a Windows PC.
 
-  Nothing here needs the internet. Every session runs over your own local network, between devices that are already paired.
+  The sessions of this recipe stay on your own local network, between devices that are already paired. A watch that has its own entry on an exchange server also reaches your account's folders and broadcasts over its own Wi-Fi or LTE - see [the watch on your account](../../docs/media-exchange-portal/watch-exchange.html).
 ingredients:
   - "The [watch app](term:watch-app) installed and paired - see [installing and pairing the watch](page:wear.installation-and-pairing)."
   - "The full version of the watch app. *Sideload version only* - see the [noLegal edition](term:nolegal-edition)."
@@ -106,7 +106,7 @@ tips:
   - "**Nothing plays on the PC?** Check that StreamsPlayer and the watch are on the same Wi-Fi network - the broadcast never reaches beyond it."
   - "**Watch screen off during a broadcast?** Double tap it, press and hold, or use the watch's own button - the broadcast itself keeps running the whole time."
   - "**A long call is draining the watch?** Broadcasting with the screen on costs about a third of the battery an hour - dim the screen or keep it on the charger."
-  - "**Want a phone or a watch to go on air for your other devices?** The [media exchange portal](../../docs/media-exchange-portal/live-broadcast.html) explains the routes between devices and marks what is not available yet."
+  - "**Want a phone or a watch to go on air for your other devices?** The [media exchange portal](../../docs/media-exchange-portal/live-broadcast.html) describes the routes between devices, step by step."
 next_recipes:
   - title: Syncing the phone and the watch
     url: page:wear.companion-data-sync
@@ -125,6 +125,6 @@ next_recipes:
     description: Everything else waiting in the watch's Programs grid.
 ---
 
-<sub class="doc-stamp">26.10.10 14:45</sub>
+<sub class="doc-stamp">26.10.15 15:05</sub>
 
 Listen to your paired [watch](term:watch)'s microphone from the phone, [broadcast](term:live-broadcast) the watch's own microphone to listeners on the same Wi-Fi or into a Windows PC, and send a live broadcast from the phone straight to the watch.

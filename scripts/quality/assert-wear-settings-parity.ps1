@@ -847,6 +847,7 @@ if ($findings.Count -eq 0) {
 # changed set" is decidable without attributing each finding to a file.
 if (-not (Test-FixedInputsChargeable -ChangedFiles $ChangedFiles -InputPaths @($paths.Values))) {
     Write-NotChargedVerdict -GateName 'assert-wear-settings-parity' -Findings $findings
+    Write-Host 'assert-wear-settings-parity: PASS WITH ADVISORIES (see the findings above)'
     exit 3
 }
 

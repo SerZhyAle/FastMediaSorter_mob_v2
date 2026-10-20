@@ -95,6 +95,7 @@ if ($ChangedFiles) {
     $presented = $ChangedFiles -split ',' | ForEach-Object { (Split-Path $_.Trim() -Leaf) }
     if (-not ($presented | Where-Object { $inputs -contains $_ })) {
         Write-Host 'assert-ui-sweep-catalog: ADVISORY - the changed set names none of this gate inputs (screen catalog, activity catalog, settings manifest).'
+        Write-Host 'assert-ui-sweep-catalog: PASS WITH ADVISORIES (the changed set names none of this gate inputs)'
         exit 3
     }
 }
@@ -258,5 +259,6 @@ if ($problems.Count -eq 0) {
 Write-Host "assert-ui-sweep-catalog: $($problems.Count) divergence(s) over $counts."
 foreach ($p in $problems) { Write-Host "  $p" }
 
-if ($Gate) { exit 1 }
+if ($Gate) { Write-Host "assert-ui-sweep-catalog: FAIL ($($problems.Count) divergence(s))"; exit 1 }
+Write-Host "assert-ui-sweep-catalog: PASS (report mode, -Gate not set; $($problems.Count) divergence(s) listed above)"
 exit 0

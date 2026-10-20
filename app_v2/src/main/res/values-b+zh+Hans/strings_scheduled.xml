@@ -97,4 +97,11 @@
     <string name="scheduled_op_last_success_never">尚无成功的运行</string>
     <string name="scheduled_op_filter_conditions">+ 条件</string>
     <string name="scheduled_ops_op_archive">归档</string>
+    <string name="scheduled_op_history">历史记录</string>
+    <string name="scheduled_op_history_line_ok">%1$s · 成功 · %2$d 个文件</string>
+    <string name="scheduled_op_history_line_skipped">%1$s · 已跳过 · %2$s</string>
+    <string name="scheduled_op_history_line_error">%1$s · 失败 · %2$d 个文件 · %3$s</string>
+    <string name="scheduled_op_badge_error">上次运行失败。请打开“历史记录”查看详情。</string>
+    <string name="scheduled_op_badge_skipped">上次运行已跳过：有一方无法连接。将在下一个时段重试。</string>
+    <string name="scheduled_ops_notif_failed_title">计划操作失败</string>
 </resources>

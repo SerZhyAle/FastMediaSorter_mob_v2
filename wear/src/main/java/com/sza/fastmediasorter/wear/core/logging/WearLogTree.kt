@@ -69,8 +69,9 @@ class WearLogTree(private val minPriority: Int) : Timber.Tree() {
  * The phone has its own masker in `core/security`, but the two modules share no code, so the rules are
  * restated here rather than reached for: DIAGNOSTIC-REPORT rule 3 as section 7 (0.11), section 8 C (0.12) and
  * the key and shape half of section 10 (0.13) spell it, matched by the shape of the text rather than by a bare
- * key name. The phone's live-value registry has no counterpart here: the watch's exchange entries (S4158) never
- * hand a host, login, code or token to a log line, and log only the class of a connect failure.
+ * key name, and a whole PEM private-key block (0.14) goes first. The phone's live-value registry has no
+ * counterpart here: the watch's exchange entries (S4158) never hand a host, login, code or token to a log line,
+ * and log only the class of a connect failure.
  * A change here belongs in the phone's `SecretMasker` too.
  */
 internal object WearSecretMasker {
@@ -117,8 +118,16 @@ internal object WearSecretMasker {
     // The exchange pin form: `SHA256:` and the unpadded base64 of a 32-byte digest, found under any key or none.
     private val CERT_FINGERPRINT = Regex("""(?<![A-Za-z0-9+/])(SHA256:)[A-Za-z0-9+/]{43}(?![A-Za-z0-9+/=])""")
 
+    // DIAGNOSTIC-REPORT 0.14: a private key goes whole, armour included. Without its own END line the block runs to
+    // the end of the message, so no surviving text can begin inside it.
+    private val PRIVATE_KEY_BLOCK = Regex(
+        """-----BEGIN ([A-Z0-9 ]*)PRIVATE KEY-----.*?(?:-----END \1PRIVATE KEY-----|\z)""",
+        RegexOption.DOT_MATCHES_ALL
+    )
+
     fun sanitize(text: String): String {
-        val withoutUserinfo = URI_USERINFO.replace(text) { match -> "${match.groupValues[1]}$REDACTED@" }
+        val withoutKeys = PRIVATE_KEY_BLOCK.replace(text, REDACTED)
+        val withoutUserinfo = URI_USERINFO.replace(withoutKeys) { match -> "${match.groupValues[1]}$REDACTED@" }
         val withoutValues = SECRET_VALUE.replace(withoutUserinfo) { match ->
             val head = match.groupValues[1] + match.groupValues[2]
             if (match.groups[GROUP_QUOTED_VALUE] != null) {

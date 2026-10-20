@@ -23,10 +23,18 @@
     1 - adb not found / bad arguments (from the readiness pre-flight)
     2 - no online device
     3 - multiple online devices and -DeviceId not supplied
-   10 - a preparation stage failed (install / seed / launch)
+   10 - a preparation stage failed (install / seed / launch), or -SkipBuild found no
+        standard-debug APK on disk
 
 .PARAMETER DeviceId
   Specific adb device id. Required when multiple devices are online.
+
+.PARAMETER SkipBuild
+  S4249. Install the standard-debug APK already under app_v2/build/outputs/apk/standard/debug
+  instead of building one: no Build.Phone lock, no Gradle call. Used by
+  scripts/devtest/prerelease-device-half.ps1 for every emulator after the first, which builds once,
+  so N emulators do not queue N builds on one lock. No APK on disk is stage 'install' FAIL, exit 10,
+  checked before the uninstall so the device keeps its previous build.
 
 .PARAMETER Json
   Emit a single JSON object instead of human-readable lines.
@@ -37,6 +45,7 @@
 [CmdletBinding()]
 param(
     [string]$DeviceId,
+    [switch]$SkipBuild,
     [switch]$Json
 )
 
@@ -125,6 +134,15 @@ if ([string]::IsNullOrWhiteSpace($TargetDevice)) {
 # adb.ps1's own -DeviceId), so a stray second device cannot capture the install.
 $env:ANDROID_SERIAL = $TargetDevice
 
+if ($SkipBuild) {
+    $apkDir = Join-Path $RepoRoot 'app_v2/build/outputs/apk/standard/debug'
+    $apk = @(Get-ChildItem -Path $apkDir -Filter '*.apk' -File -ErrorAction SilentlyContinue)
+    if ($apk.Count -eq 0) {
+        Add-Stage 'install' 'FAIL' "-SkipBuild: no standard-debug APK under $apkDir - build it first (prerelease-prepare.ps1 without -SkipBuild)"
+        Complete-Run 10
+    }
+}
+
 # Uninstall the prior build if present; a missing package (adb.ps1 exit 4) is not an error.
 $unArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'uninstall', '-DeviceId', $TargetDevice, '-Yes')
 & pwsh @unArgs *> $null
@@ -136,19 +154,21 @@ Add-Stage 'uninstall' 'OK' "removed $DebugPackage if present"
 # `adb logcat` whose inherited output handle deadlocks this parent process under `*> $null`
 # redirection. Build leanly via gradle with an explicit artifact timestamp, then install through
 # adb.ps1 (no side effects).
-$gradlew = Join-Path $RepoRoot 'gradlew.bat'
-. (Join-Path $RepoRoot 'scripts/utils/build-version-stamp.ps1')
-Enter-BuildLockOrExit -Reason 'prerelease-prepare.ps1 (assembleStandardDebug)' -Domain Build.Phone
-try {
-    $stamp = Get-BuildVersionStamp
-    & $gradlew :app_v2:assembleStandardDebug '-Pchaquopy.enabled=false' "-Pfms.versionCode=$($stamp.AppVersionCode)" "-Pfms.versionName=$($stamp.VersionName)" --console=plain *> $null
-    if ($LASTEXITCODE -ne 0) {
-        Add-Stage 'install' 'FAIL' "assembleStandardDebug exit $LASTEXITCODE"
-        Complete-Run 10
+if (-not $SkipBuild) {
+    $gradlew = Join-Path $RepoRoot 'gradlew.bat'
+    . (Join-Path $RepoRoot 'scripts/utils/build-version-stamp.ps1')
+    Enter-BuildLockOrExit -Reason 'prerelease-prepare.ps1 (assembleStandardDebug)' -Domain Build.Phone
+    try {
+        $stamp = Get-BuildVersionStamp
+        & $gradlew :app_v2:assembleStandardDebug '-Pchaquopy.enabled=false' "-Pfms.versionCode=$($stamp.AppVersionCode)" "-Pfms.versionName=$($stamp.VersionName)" --console=plain *> $null
+        if ($LASTEXITCODE -ne 0) {
+            Add-Stage 'install' 'FAIL' "assembleStandardDebug exit $LASTEXITCODE"
+            Complete-Run 10
+        }
     }
-}
-finally {
-    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
+    finally {
+        Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
+    }
 }
 $instArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'install', '-Flavor', 'standard', '-DeviceId', $TargetDevice)
 & pwsh @instArgs *> $null

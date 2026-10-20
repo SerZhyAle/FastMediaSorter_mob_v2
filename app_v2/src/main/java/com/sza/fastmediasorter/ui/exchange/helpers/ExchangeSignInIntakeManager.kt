@@ -11,29 +11,55 @@ import com.sza.fastmediasorter.databinding.DialogExchangeSignInBinding
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionString
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringResult
 import com.sza.fastmediasorter.domain.model.ExchangeEndpoint
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.exchange.ExchangeIntakeOutcome
 import com.sza.fastmediasorter.ui.exchange.MyDevicesViewModel
-import timber.log.Timber
 
 /**
  * S4155: the intake half of the quick sign-in dialog - the paste field, the three actions and the summary of the
  * server a string named. It fills address and login, never the password, and applies nothing by itself: the
  * user still presses "Sign in". The string's fingerprint travels only as the pin of the address it came with,
  * so editing the address drops it.
+ *
+ * S4223: it also owns the form's mode. An invitation string, or the "invitation password" row, turns sign-in into
+ * registration (19 items AQ and AR): the pairing-code row hides, the password is asked twice, and
+ * [onRegisterModeChanged] lets the dialog relabel its button. The invitation lives only in [filled].
  */
 class ExchangeSignInIntakeManager(
     private val activity: AppCompatActivity,
     private val binding: DialogExchangeSignInBinding,
     private val viewModel: MyDevicesViewModel,
     private val launchers: ExchangeIntakeLaunchers,
+    private val status: ExchangeFailurePanel,
+    private val onRegisterModeChanged: (Boolean) -> Unit = {},
 ) {
 
     private var filled: ExchangeConnectionString? = null
 
+    /** The one-time invitation of the filled invitation string, null for any other string. */
+    val invitation: String? get() = filled?.invitation
+
+    /** True when the user asked to register with the server's shared invitation password. */
+    val usesInvitationPassword: Boolean
+        get() = invitation == null && binding.checkExchangeSignInUseInvitationPassword.isChecked
+
+    val registers: Boolean get() = invitation != null || usesInvitationPassword
+
     fun bind() {
+        binding.checkExchangeSignInUseCode.setOnCheckedChangeListener { code ->
+            if (code) binding.checkExchangeSignInUseInvitationPassword.setCheckedSilently(false)
+            renderMode()
+        }
+        binding.checkExchangeSignInUseInvitationPassword.setOnCheckedChangeListener { shared ->
+            if (shared) binding.checkExchangeSignInUseCode.setCheckedSilently(false)
+            renderMode()
+        }
         binding.btnExchangeSignInPaste.setOnClickListener { applyText(clipboardText()) }
         binding.btnExchangeSignInScan.setOnClickListener { launchers.scanQr() }
         binding.btnExchangeSignInFile.setOnClickListener { launchers.chooseFile() }
+        binding.btnExchangePortalSignIn.setOnClickListener {
+            MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.MY_DEVICES)
+        }
         binding.etExchangeSignInIntake.setOnEditorActionListener { view, actionId, _ ->
             if (actionId != EditorInfo.IME_ACTION_GO) return@setOnEditorActionListener false
             applyText(view.text?.toString().orEmpty())
@@ -56,7 +82,6 @@ class ExchangeSignInIntakeManager(
     }
 
     private fun fill(value: ExchangeConnectionString) {
-        Timber.d("S4155: intake filled sign-in form for endpoint=${value.endpoint}")
         filled = value
         binding.etExchangeSignInAddress.setText(value.endpoint.toString())
         value.loginHint?.let { binding.etExchangeSignInLogin.setText(it) }
@@ -69,16 +94,37 @@ class ExchangeSignInIntakeManager(
         } ?: activity.getString(R.string.exchange_signin_fingerprint_absent)
         binding.textExchangeSignInServer.isVisible = true
         binding.textExchangeSignInPin.isVisible = true
-        binding.textExchangeSignInStatus.isVisible = false
-        binding.etExchangeSignInSecret.requestFocus()
+        status.hide()
+        renderMode()
+        // An invitation names no account yet: the login is the person's choice, filled from `u` when present.
+        val focus = if (value.isInvitation && value.loginHint == null) {
+            binding.etExchangeSignInLogin
+        } else {
+            binding.etExchangeSignInSecret
+        }
+        focus.requestFocus()
     }
 
     private fun refuse(@StringRes text: Int) {
         filled = null
         binding.textExchangeSignInServer.isVisible = false
         binding.textExchangeSignInPin.isVisible = false
-        binding.textExchangeSignInStatus.text = activity.getString(text)
-        binding.textExchangeSignInStatus.isVisible = true
+        status.showProgress(activity.getString(text))
+        renderMode()
+    }
+
+    private fun renderMode() {
+        val fromString = invitation != null
+        val code = !fromString && binding.checkExchangeSignInUseCode.isChecked
+        binding.textExchangeSignInInvitation.isVisible = fromString
+        binding.checkExchangeSignInUseCode.isVisible = !fromString
+        binding.checkExchangeSignInUseInvitationPassword.isVisible = !fromString
+        binding.tilExchangeSignInInvitationPassword.isVisible = usesInvitationPassword
+        binding.tilExchangeSignInPasswordRepeat.isVisible = registers
+        binding.tilExchangeSignInSecret.hint = activity.getString(
+            if (code) R.string.exchange_devices_signin_pairing_code else R.string.exchange_devices_signin_password
+        )
+        onRegisterModeChanged(registers)
     }
 
     private fun clipboardText(): String {

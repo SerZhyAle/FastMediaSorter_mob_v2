@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "Compiler Warnings Analysis - Report"
 permalink: /docs/WARNINGS_ANALYSIS.html
 ---
-<sub class="doc-stamp">26.03.18 00:24</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # Compiler Warnings Analysis - Report
 

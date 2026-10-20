@@ -173,6 +173,9 @@
 -keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearDestinationId {
     <fields>;
 }
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearOpenInKind {
+    <fields>;
+}
 -keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand {
     <fields>;
 }

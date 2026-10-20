@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.wear.di
 
+import com.sza.fastmediasorter.wear.data.documents.AndroidWearPdfPageRenderer
 import com.sza.fastmediasorter.wear.data.documents.WearDocumentRepositoryImpl
 import com.sza.fastmediasorter.wear.domain.repository.WearDocumentRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearPdfPageRenderer
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -21,4 +23,8 @@ interface WearDocumentModule {
     @Binds
     @Singleton
     fun bindWearDocumentRepository(impl: WearDocumentRepositoryImpl): WearDocumentRepository
+
+    // S4227: PDF pages in the same reader.
+    @Binds
+    fun bindWearPdfPageRenderer(impl: AndroidWearPdfPageRenderer): WearPdfPageRenderer
 }

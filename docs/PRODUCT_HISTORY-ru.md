@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "История продукта - FastMediaSorter v2"
 permalink: /docs/PRODUCT_HISTORY-ru.html
 ---
-<sub class="doc-stamp">26.10.06 21:33</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # История продукта - FastMediaSorter v2
 

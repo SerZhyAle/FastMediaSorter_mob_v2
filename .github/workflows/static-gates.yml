@@ -6,7 +6,8 @@ name: Static Gates
 # docs, documentation, watchface, store_assets, fastlane and more - so any filter here is a push
 # whose gates never ran (CHECK-PLACEMENT 0.11 rule 2). assert-gate-placement.ps1 refuses a path
 # filter on this workflow through the fast-batch row of scripts/quality/gate-placement-classes.jsonl.
-# PLAN/ and .claude/ are gitignored and never reach this runner; their gates answer NOT RUN.
+# PLAN/ and .claude/ are gitignored and never reach this runner, nor does the contracts catalog; the batch
+# passes -AllowAbsentInput / -AllowNoCatalog to the gates that read them, so each answers NOT APPLICABLE.
 
 on:
   push:

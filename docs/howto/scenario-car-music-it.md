@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Lettore musicale per auto (autoradio Android) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-it.html
 ---
-<sub class="doc-stamp">26.09.25 02:13</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="it" dir="ltr" markdown="1">
 
 # 🚗 Lettore musicale per auto (autoradio Android)
 
 > **Livello:** Principiante &bull; **Durata:** ~10 minuti &bull; **Edizione:** Standard, Legacy, VR, noLegal (Lite riproduce audio locale ma non ha riproduzione in background né Stream; Photos non ha audio)
-
-{% include lang-switcher.html doc="scenario-car-music" dir="/docs/howto/" current="it" %}
 
 FastMediaSorter funziona benissimo come lettore musicale per auto su autoradio Android - accesso immediato all'intera raccolta musicale su scheda SD o chiavetta USB, con supporto integrato ai pulsanti del volante.
 

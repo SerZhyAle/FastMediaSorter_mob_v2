@@ -86,4 +86,21 @@
     <string name="playback_control_no_balance">Audio mono - aucun canal à équilibrer</string>
     <string name="playback_control_balance_value">Balance : %1$s</string>
     <string name="playback_control_balance_description">Balance %1$d pour cent gauche, %2$d pour cent droite</string>
+    <string name="player_file_grid">Vue en grille de miniatures</string>
+    <string name="player_file_list">Vue en liste de fichiers</string>
+    <string name="player_file_jump">Aller au fichier</string>
+    <string name="player_file_number_hint">Numéro du fichier (1..%1$d)</string>
+    <string name="player_file_number_error">Saisissez un nombre entier de 1 à %1$d.</string>
+    <string name="player_file_single">Seul ce fichier est disponible.</string>
+    <string name="player_frame_unavailable">L\'avance image par image n\'est pas disponible pour cette vidéo.</string>
+    <string name="player_frame_back_unavailable">Image précédente indisponible : ce décodeur ne peut pas revenir en arrière.</string>
+    <string name="player_loop_title">Boucle A-B</string>
+    <string name="player_loop_unavailable">La répétition A-B nécessite une vidéo dans laquelle vous pouvez vous déplacer.</string>
+    <string name="player_loop_start">Début de la boucle : %1$s. Choisissez le point de fin.</string>
+    <string name="player_loop_active">Répétition A-B : de %1$s à %2$s</string>
+    <string name="player_loop_invalid_end">Choisissez un point de fin après le début.</string>
+    <string name="player_frame_forward">Image suivante</string>
+    <string name="player_action_unavailable">Cette action n\'est pas disponible pour ce fichier.</string>
+    <string name="player_audio_track_single">Aucune autre piste audio n\'est disponible.</string>
+    <string name="player_frame_backward">Image précédente</string>
 </resources>

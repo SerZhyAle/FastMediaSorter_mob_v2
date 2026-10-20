@@ -29,6 +29,8 @@ import com.sza.fastmediasorter.domain.model.ResourceFormData
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
 import com.sza.fastmediasorter.ui.common.ResourceProfileDialog
+import com.sza.fastmediasorter.ui.common.help.HelpToolbarEntryManager
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.common.installTextInputTapFocusBridge
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
@@ -148,6 +150,13 @@ class ResourceEditorFragment : Fragment() {
         }
         binding.toolbar.subtitle = null
         binding.toolbar.setUpNavigation(requireActivity())
+        // S4328: the map row names the host activity, so the id is the activity's simple name.
+        HelpToolbarEntryManager.install(
+            binding.toolbar,
+            requireActivity(),
+            requireActivity()::class.java.simpleName,
+            UiSurface.RESOURCE_EDITOR,
+        )
         updateToolbarTypeSubtitle(resourceType ?: ResourceType.LOCAL)
     }
 

@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.ui.exchange.ExchangeClipboardActivity
 import com.sza.fastmediasorter.ui.wear.WatchListenLaunchActivity
 
 /**
@@ -74,6 +75,10 @@ object InternalRouteCatalog {
     // the record variant cannot share an entry and still appear as two items on the non-widget surfaces.
     const val KEY_WATCH_LISTEN = "watch_listen"
     const val KEY_WATCH_LISTEN_RECORD = "watch_listen_record"
+
+    // S4226: the clipboard on the exchange server - two routes, one per direction, for the S2881 reason.
+    const val KEY_CLIPBOARD_SEND = "exchange_clipboard_send"
+    const val KEY_CLIPBOARD_GET = "exchange_clipboard_get"
 
     // S0978: the camera/video gesture actions that already have a Context-generic trampoline, offered
     // as panel routes too (labels reused from the left-edge gesture picker so wording never drifts).
@@ -170,6 +175,20 @@ object InternalRouteCatalog {
             labelRes = R.string.watch_listen_record_label,
             iconRes = R.drawable.ic_watch_listen_record,
             intent = { WatchListenLaunchActivity.createIntent(it, record = true) },
+        ),
+        // S4226: both open the translucent clipboard window, which reads the clip on focus; it names the
+        // activity directly for the reason the watch-listen rows above give.
+        Route(
+            key = KEY_CLIPBOARD_SEND,
+            labelRes = R.string.exchange_clipboard_send_label,
+            iconRes = R.drawable.ic_clipboard_send_server,
+            intent = { ExchangeClipboardActivity.createIntent(it, send = true) },
+        ),
+        Route(
+            key = KEY_CLIPBOARD_GET,
+            labelRes = R.string.exchange_clipboard_get_label,
+            iconRes = R.drawable.ic_clipboard_get_server,
+            intent = { ExchangeClipboardActivity.createIntent(it, send = false) },
         ),
         // S1736 §6.7, owner ruling 2026-09-05: this is the one pair where the menu's wording wins over
         // the route's - the route said "Photo OCR translate", which is jargon and worse Russian than the

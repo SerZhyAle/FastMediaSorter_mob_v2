@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Підключення до NAS / Windows (SMB) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-smb-setup-uk.html
 ---
-<sub class="doc-stamp">26.09.24 06:25</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 🖥️ Підключення до домашнього NAS / Windows (SMB)
 
 > **Рівень:** Початківець &bull; **Версія:** Standard, Photos, Legacy, VR, noLegal (у Lite немає мережевих джерел)
-
-{% include lang-switcher.html doc="scenario-smb-setup" dir="/docs/howto/" current="uk" %}
 
 SMB (також Windows File Sharing або CIFS) дозволяє переглядати файли на домашньому ПК, ноутбуці або NAS прямо з телефону - без кабелів і USB, лише по Wi-Fi.
 

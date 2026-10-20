@@ -5,7 +5,7 @@ import android.net.Uri
 import com.sza.fastmediasorter.wear.data.files.WearMediaFileStager
 import com.sza.fastmediasorter.wear.data.files.WearMediaStoreFileWriter
 import com.sza.fastmediasorter.wear.data.files.WearWatchFilePublisher
-import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiverCatalogRepository
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.domain.files.WEAR_PHONE_FILE_CACHE_DIR
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
@@ -20,6 +20,9 @@ import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearOpenOnPhoneOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearOpenOnPhoneRequest
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceDeleteOutcome
+import com.sza.fastmediasorter.wear.domain.model.WearResourceSendFailure
+import com.sza.fastmediasorter.wear.domain.model.WearResourceSendReport
+import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiverEntry
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearOpenOnPhoneRepository
 import io.mockk.coEvery
@@ -52,10 +55,13 @@ class PerformWearFileOperationUseCaseTest {
 
     private val sender = FakeSenderRepository()
     private val opener = FakeOpenOnPhoneRepository()
+
+    /** S4230: unstubbed except in the resource cases, so no other operation can reach a resource unnoticed. */
+    private val resourceSend = mockk<SendWearFileToResourceUseCase>()
     private lateinit var useCase: PerformWearFileOperationUseCase
     private lateinit var cacheDir: File
     private lateinit var context: Context
-    private lateinit var receivers: WearSendToReceiversRepository
+    private lateinit var receivers: WearSendToReceiverCatalogRepository
 
     @Before
     fun setUp() {
@@ -73,7 +79,7 @@ class PerformWearFileOperationUseCaseTest {
         // S2142: the published receiver list, answered explicitly rather than relaxed - the policy
         // reads it to decide whether «Send to..» is offered at all, and a relaxed answer would make
         // that decision by accident.
-        receivers = mockk<WearSendToReceiversRepository>()
+        receivers = mockk<WearSendToReceiverCatalogRepository>()
         every { receivers.observe() } returns MutableStateFlow(emptyList())
         // S3359: the policy asks this one whether the watch can be written to at all; `publish` and
         // `freeBytes` stay unstubbed, so an operation of this instance reaching the watch's own
@@ -99,7 +105,9 @@ class PerformWearFileOperationUseCaseTest {
             sendToReceivers = receivers,
             // The operations under test are the local ones, which never reach either of these.
             reachability = mockk(relaxed = true),
-            sendToLauncher = mockk(relaxed = true)
+            sendToLauncher = mockk(relaxed = true),
+            sendServerClipboard = mockk(),
+            sendFileToResource = resourceSend
         )
     }
 
@@ -460,6 +468,98 @@ class PerformWearFileOperationUseCaseTest {
         coVerify(exactly = 0) { delete(any(), any()) }
     }
 
+    /**
+     * S4230: a resource receiver is served by the watch itself - it goes to the resource use case with the source id
+     * the receiver id carries, and never to the phone sender nor to a staging copy.
+     */
+    @Test
+    fun `a resource receiver sends on the watch and never reaches the phone`() = runTest {
+        val source = temporaryFolder.newFile("note.txt").apply { writeText("payload") }
+        val receiverId = WearSendToReceiverCatalogRepository.RESOURCE_RECEIVER_PREFIX + SOURCE_ID
+        every { receivers.observe() } returns MutableStateFlow(listOf(resourceEntry(receiverId)))
+        coEvery { resourceSend(SOURCE_ID, any()) } returns WearResourceSendReport("NAS", "note-42.txt", null)
+
+        val results = useCase(
+            listOf(mediaFile(source)),
+            WearFileOperation.SendToReceiver(receiverId),
+            isNetworkSource = false
+        ).toList()
+
+        val result = results.single()
+        assertEquals(WearFileOperationOutcome.SENT_TO_RESOURCE, result.outcome)
+        assertEquals("NAS", result.destination)
+        assertEquals("note-42.txt", result.finalName)
+        assertEquals(0, sender.calls)
+        assertTrue("a send to a resource never removes the file", source.exists())
+    }
+
+    @Test
+    fun `a file stored under its own name reports no final name`() = runTest {
+        val source = temporaryFolder.newFile("note.txt").apply { writeText("payload") }
+        val receiverId = WearSendToReceiverCatalogRepository.RESOURCE_RECEIVER_PREFIX + SOURCE_ID
+        every { receivers.observe() } returns MutableStateFlow(listOf(resourceEntry(receiverId)))
+        coEvery { resourceSend(SOURCE_ID, any()) } returns WearResourceSendReport("NAS", "note.txt", null)
+
+        val results = useCase(
+            listOf(mediaFile(source)),
+            WearFileOperation.SendToReceiver(receiverId),
+            isNetworkSource = false
+        ).toList()
+
+        assertNull(results.single().finalName)
+    }
+
+    @Test
+    fun `a refused resource send carries its failure and keeps the file`() = runTest {
+        val source = temporaryFolder.newFile("note.txt").apply { writeText("payload") }
+        val receiverId = WearSendToReceiverCatalogRepository.RESOURCE_RECEIVER_PREFIX + SOURCE_ID
+        every { receivers.observe() } returns MutableStateFlow(listOf(resourceEntry(receiverId)))
+        coEvery { resourceSend(SOURCE_ID, any()) } returns
+            WearResourceSendReport("NAS", null, WearResourceSendFailure.NO_NETWORK)
+
+        val results = useCase(
+            listOf(mediaFile(source)),
+            WearFileOperation.SendToReceiver(receiverId),
+            isNetworkSource = false
+        ).toList()
+
+        val result = results.single()
+        assertEquals(WearFileOperationOutcome.NOT_SENT_TO_RESOURCE, result.outcome)
+        assertEquals(WearResourceSendFailure.NO_NETWORK, result.resourceSendFailure)
+        assertTrue("a send that did not arrive keeps the file", source.exists())
+    }
+
+    @Test
+    fun `a batch reports every file of the resource send on its own`() = runTest {
+        val first = temporaryFolder.newFile("a.txt").apply { writeText("a") }
+        val second = temporaryFolder.newFile("b.txt").apply { writeText("b") }
+        val receiverId = WearSendToReceiverCatalogRepository.RESOURCE_RECEIVER_PREFIX + SOURCE_ID
+        every { receivers.observe() } returns MutableStateFlow(listOf(resourceEntry(receiverId)))
+        coEvery { resourceSend(SOURCE_ID, match { it.name == "a.txt" }) } returns
+            WearResourceSendReport("NAS", "a.txt", null)
+        coEvery { resourceSend(SOURCE_ID, match { it.name == "b.txt" }) } returns
+            WearResourceSendReport("NAS", null, WearResourceSendFailure.REFUSED)
+
+        val results = useCase(
+            listOf(mediaFile(first), mediaFile(second)),
+            WearFileOperation.SendToReceiver(receiverId),
+            isNetworkSource = false
+        ).toList()
+
+        assertEquals(
+            listOf(WearFileOperationOutcome.SENT_TO_RESOURCE, WearFileOperationOutcome.NOT_SENT_TO_RESOURCE),
+            results.map { it.outcome }
+        )
+    }
+
+    private fun resourceEntry(id: String) = WearSendToReceiverEntry(
+        id = id,
+        title = "NAS",
+        servedOnWatch = true,
+        batchCapable = true,
+        requiresLocalFile = true
+    )
+
     private fun deleteThatAnswers(answer: Result<Unit>): DeleteNetworkFileUseCase {
         val delete = mockk<DeleteNetworkFileUseCase>()
         coEvery { delete(any(), any()) } returns answer
@@ -545,7 +645,9 @@ class PerformWearFileOperationUseCaseTest {
             deleteNetworkFile = delete,
             sendToReceivers = receivers,
             reachability = mockk(relaxed = true),
-            sendToLauncher = mockk(relaxed = true)
+            sendToLauncher = mockk(relaxed = true),
+            sendServerClipboard = mockk(),
+            sendFileToResource = resourceSend
         )
     }
 

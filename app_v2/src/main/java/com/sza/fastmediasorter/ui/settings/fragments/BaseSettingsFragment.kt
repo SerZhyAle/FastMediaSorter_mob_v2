@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
 import com.sza.fastmediasorter.ui.common.widget.SettingsGroupsGridLayout
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.helpers.SettingsGroupColumnsManager
 import com.sza.fastmediasorter.ui.settings.helpers.SettingsRowStackManager
 
@@ -29,6 +30,9 @@ abstract class BaseSettingsFragment : Fragment() {
         // original tree, so it runs before the group cards are moved into the grid.
         (view as? ViewGroup)?.let(SettingsRowStackManager::stackNarrowPortraitRows)
         groupsGrid = (view as? ViewGroup)?.let(SettingsGroupColumnsManager::install)
+        // S4394: the subclass body below this call has not run yet, so registrations report their
+        // restored state through the manager's aggregate callback rather than this first read.
+        (activity as? SettingsActivity)?.onSettingsPageViewReady()
     }
 
     /**
@@ -63,6 +67,23 @@ abstract class BaseSettingsFragment : Fragment() {
      */
     open fun expandSectionForSearchTarget(ancestorIds: List<Int>) {
         collapsibleSections()?.expandSectionContaining(ancestorIds)
+    }
+
+    /** S4394: collapses every section of this page, one [CollapsibleSectionsManager] call. */
+    fun collapseAllSections() {
+        collapsibleSections()?.collapseAll()
+    }
+
+    /**
+     * S4394: hands this page's aggregate expansion state to the activity's toolbar affordance.
+     * Reports the state read at attach, then on every register-restore and toggle through the
+     * manager's [CollapsibleSectionsManager.onAnyExpandedChanged]; a page without sections
+     * reports `false` so the affordance stays hidden.
+     */
+    fun observeCollapseState(observer: (Boolean) -> Unit) {
+        val manager = collapsibleSections()
+        manager?.onAnyExpandedChanged = observer
+        observer(manager?.hasExpandedSection() == true)
     }
 
     protected inline fun withSettingsUpdate(block: () -> Unit) {

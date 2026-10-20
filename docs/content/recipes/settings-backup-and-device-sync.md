@@ -39,6 +39,8 @@ steps:
       *Standard, noLegal, Photos, Legacy and VR editions, with a Google account connected.* In the same card, tap **Backup settings to Google Drive** and the app saves every setting, together with your [resources](term:resource) and their network passwords and saved web sign-ins, your Favorites and your launcher [desktop](term:desktop), straight to your [Google Drive](term:google-drive) - reporting back with something like "Backed up 12 resources, 40 favorites and all settings to you@gmail.com." The card remembers the date of the last backup and the account.
 
       Tap **Restore settings from Google Drive** to bring it back: settings are replaced, while resources and Favorites are added to what you already have, with exact duplicates skipped.
+
+      Folders that came to you through a media exchange server, and the schedules over them, come back with all their connection routes. The sign-in of this device and folder PINs are never put into a backup: on the new phone open **My devices**, tap **Sign in again** on each account and enter its password once.
     image_bookmark:
       shot_id: settings.google-drive-backup-restore
       device_profile: phone
@@ -124,6 +126,6 @@ next_recipes:
     description: Every backup and export option of the app on one page.
 ---
 
-<sub class="doc-stamp">26.10.10 14:45</sub>
+<sub class="doc-stamp">26.10.15 07:52</sub>
 
 Pack every setting into a file or a Google Drive backup, export and import just your Favorites, move exactly one kind of data with the unified menu, and keep a paired [watch](term:watch)'s settings and resources in step with the phone - synced both ways, with only the resources you chose along for the ride.

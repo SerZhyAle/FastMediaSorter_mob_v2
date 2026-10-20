@@ -8,7 +8,14 @@ package com.sza.fastmediasorter.wear.domain.model
  */
 data class WearFileOpenRequest(
     val path: String,
-    val mimeType: String
+    val mimeType: String,
+    /**
+     * S4227: a media row the file lives in instead of a path. When set, [path] carries the display name - the
+     * host hands [path] to the player route as the file name, which reads only its extension.
+     */
+    val contentUri: String? = null,
+    /** S4227: the size of the row [contentUri] names, which the host cannot stat. */
+    val sizeBytes: Long? = null,
 )
 
 /** S1884: what the host needs to route an arrived file to a player, mirroring [WearStreamPlaybackTarget]. */

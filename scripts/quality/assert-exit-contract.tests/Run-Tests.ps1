@@ -1,4 +1,5 @@
 # Run-Tests.ps1 (S1070) - regression suite for scripts/quality/assert-exit-contract.ps1.
+# Subject: scripts/quality/lib/test-count-contract.ps1
 #
 # The gate finds sites where a bare Write-Error under $ErrorActionPreference = 'Stop' raises a
 # terminating error, so the `exit N` written after it never runs and the process reports 1 instead.
@@ -372,10 +373,129 @@ exit 0
     $naProse = New-Fixture 'helper-na-prose.ps1' ("Write-Host 'skipped (2, $naLower to this change)'`nWrite-Host 'helper-na-prose: PASS'`nexit 0`n")
     Assert-That 'M4 gate exits 0 for prose with no subject colon' ((Invoke-Gate $naProse) -eq 0) 'expected 0'
 
+    # --- R: rule H (S4367) - a failing or undecided path of a check names its verdict. ---
+    Write-Host 'R: an exit 1|2|3 of an assert-*.ps1 needs its own verdict line within eight code lines above' -ForegroundColor Yellow
+    $fill = ('$filler = 1' + "`n") * 12
+    $ruleHBad = New-Fixture 'assert-probe-r1.ps1' ("Write-Host 'assert-probe-r1: PASS'`nWrite-Host 'assert-probe-r1: FAIL'`n" + $fill + "exit 1`n")
+    Assert-That 'R1 a bare exit 1 far below the verdict words is refused' ((Invoke-Gate $ruleHBad) -eq 1) 'expected 1'
+    $ruleHGood = New-Fixture 'assert-probe-r2.ps1' ("Write-Host 'assert-probe-r2: PASS'`n" + $fill + "Write-Host 'assert-probe-r2: FAIL (x)'`nexit 1`n")
+    Assert-That 'R2 an exit 1 right under its own FAIL line is accepted' ((Invoke-Gate $ruleHGood) -eq 0) 'expected 0'
+    $ruleHOther = New-Fixture 'assert-probe-r3.ps1' ("Write-Host 'assert-probe-r3: PASS'`nWrite-Host 'assert-probe-r3: FAIL'`n" + $fill + "Write-Host 'assert-other: FAIL (x)'`nexit 1`n")
+    Assert-That 'R3 another script name on the line above is refused' ((Invoke-Gate $ruleHOther) -eq 1) 'expected 1'
+    $ruleHZero = New-Fixture 'assert-probe-r4.ps1' ("Write-Host 'assert-probe-r4: PASS'`nWrite-Host 'assert-probe-r4: FAIL (x)'`n" + $fill + "exit 0`n")
+    Assert-That 'R4 an exit 0 is outside the rule' ((Invoke-Gate $ruleHZero) -eq 0) 'expected 0'
+    $ruleHVar = New-Fixture 'assert-probe-r5.ps1' ("Write-Host 'assert-probe-r5: PASS'`nWrite-Host 'assert-probe-r5: FAIL (x)'`n" + $fill + "`$code = 1`nexit `$code`n")
+    Assert-That 'R5 an exit with a computed code is not judged' ((Invoke-Gate $ruleHVar) -eq 0) 'expected 0'
+    $ruleHString = New-Fixture 'assert-probe-r6.ps1' ("Write-Host 'assert-probe-r6: PASS'`nWrite-Host 'assert-probe-r6: FAIL (x)'`n" + $fill + "Write-Host 'a line that says exit 2 in prose'`n")
+    Assert-That 'R6 the word exit inside a string is not a site' ((Invoke-Gate $ruleHString) -eq 0) 'expected 0'
+    $ruleHComment = New-Fixture 'assert-probe-r7.ps1' ("Write-Host 'assert-probe-r7: PASS'`nWrite-Host 'assert-probe-r7: FAIL (x)'`n" + $fill + "# assert-probe-r7: FAIL (only in a comment)`nexit 1`n")
+    Assert-That 'R7 a verdict that sits only in a comment is refused' ((Invoke-Gate $ruleHComment) -eq 1) 'expected 1'
+    $ruleHJson = New-Fixture 'assert-probe-r8.ps1' ("Write-Host 'assert-probe-r8: PASS'`nWrite-Host 'assert-probe-r8: FAIL (x)'`n" + $fill + "`$report | ConvertTo-Json -Compress`nexit 1`n")
+    Assert-That 'R8 an exit right after a rendered JSON document is exempt' ((Invoke-Gate $ruleHJson) -eq 0) 'expected 0'
+    $ruleHThree = New-Fixture 'assert-probe-r9.ps1' ("Write-Host 'assert-probe-r9: PASS'`nWrite-Host 'assert-probe-r9: FAIL (x)'`n" + $fill + "exit 3`n")
+    Assert-That 'R9 an exit 3 and an exit 2 are judged like an exit 1' (((Invoke-Gate $ruleHThree) -eq 1) -and ((Invoke-Gate (New-Fixture 'assert-probe-r10.ps1' ("Write-Host 'assert-probe-r10: PASS'`nWrite-Host 'assert-probe-r10: FAIL (x)'`n" + $fill + "exit 2`n")))) -eq 1) 'expected 1 for both'
+    $ruleHNotCheck = New-Fixture 'helper-r11.ps1' ($fill + "exit 1`n")
+    Assert-That 'R10 a script whose name is not assert-* is outside the rule' ((Invoke-Gate $ruleHNotCheck) -eq 0) 'expected 0'
+
     # --- H: live regression - the real tree stays clean (all 18 S1070 sites cured). ---
+    $commentExit = New-Fixture 'comment-exit.ps1' '$coverage = $false # exit 2 means missing coverage'
+    & $pwshExe -NoProfile -File $gate -Gate -Path $commentExit -ReasonBaseline 0 *> $null
+    Assert-That 'C trailing comment is not an executable exit' ($LASTEXITCODE -eq 0) 'expected 0'
+    . (Join-Path $repoRoot 'scripts/quality/lib/test-count-contract.ps1')
+    $legacySummary = 'Write-Host ("sample.tests: {0} passed, {1} failed" -f $pass, $fail)'
+    $legacyCounter = New-Fixture 'sample.tests.ps1' $legacySummary
+    $legacyWriters = @(Get-LegacyTestCountWriter -Files @($legacyCounter) -RepoRoot $sandbox)
+    Assert-That 'G1 format-string test counters are detected' ($legacyWriters.Count -eq 1) 'expected one writer'
+    Assert-That 'G2 new legacy writer is refused' ((Invoke-Gate $legacyCounter) -eq 1) 'expected 1'
+    $canonical = New-Fixture 'canonical.tests.ps1' 'Write-Host "sample: PASS (run=$($pass + $fail) skipped=$skip)"'
+    Assert-That 'G3 canonical counts are accepted' ((Invoke-Gate $canonical) -eq 0) 'expected 0'
+    $interpolated = New-Fixture 'interpolated.tests.ps1' 'Write-Host "sample: $pass passed, $fail failed"'
+    Assert-That 'G4 interpolated legacy counts are refused' ((Invoke-Gate $interpolated) -eq 1) 'expected 1'
+    $fixtureOnly = New-Fixture 'fixture.tests.ps1' ('$body = @' + "'`n" + $legacySummary + "`n'@`n")
+    Assert-That 'G5 fixture body is not a writer' ((Invoke-Gate $fixtureOnly) -eq 0) 'expected 0'
+    $commentOnly = New-Fixture 'comment.tests.ps1' ('# ' + $legacySummary)
+    Assert-That 'G6 comments are not writers' ((Invoke-Gate $commentOnly) -eq 0) 'expected 0'
+    $readerOnly = New-Fixture 'reader.tests.ps1' ('$result -match ''sample.tests: {0} passed, {1} failed''')
+    Assert-That 'G7 reader assertion is not a writer' ((Invoke-Gate $readerOnly) -eq 0) 'expected 0'
+    $aggregator = New-Fixture 'aggregate.ps1' 'Write-Host "aggregate: PASS ($pass passed, $skip skipped)"'
+    Assert-That 'G8 check aggregator keeps check counts' ((Invoke-Gate $aggregator) -eq 0) 'expected 0'
+    $resultPair = New-Fixture 'resultpair.tests.ps1' 'Write-Host ("RESULT | pass: {0} | fail: {1}" -f $pass, $fail)'
+    Assert-That 'G12 the RESULT | pass: N | fail: M pair is refused' ((Invoke-Gate $resultPair) -eq 1) 'expected 1'
+    $upperPair = New-Fixture 'upperpair.tests.ps1' 'Write-Host "PASS: $script:pass | FAIL: $script:fail"'
+    Assert-That 'G13 the PASS: N | FAIL: M pair is refused' ((Invoke-Gate $upperPair) -eq 1) 'expected 1'
+    $caseFailLine = New-Fixture 'casefail.tests.ps1' 'Write-Host "FAIL: $Name $Detail"'
+    Assert-That 'G14 a per-case FAIL line is not a count' ((Invoke-Gate $caseFailLine) -eq 0) 'expected 0'
+    $probeDiagnostic = New-Fixture 'probe.tests.ps1' 'Write-Host "sample.tests: probe failed:`n$probeOut"'
+    Assert-That 'G8 diagnostic child output is not a count' ((Invoke-Gate $probeDiagnostic) -eq 0) 'expected 0'
+    $assignedSummary = New-Fixture 'assigned.tests.ps1' ('$summary = "sample: $pass passed, $fail failed"' + "`n" + 'Write-Host $summary')
+    Assert-That 'G8 assigned legacy summary is refused' ((Invoke-Gate $assignedSummary) -eq 1) 'expected 1'
+    $assignedInvalid = New-Fixture 'assigned-invalid.tests.ps1' ('$summary = "sample: PASS (run=abc skipped=abc)"' + "`n" + 'Write-Host $summary')
+    Assert-That 'G8 assigned malformed counters are refused' ((Invoke-Gate $assignedInvalid) -eq 1) 'expected 1'
+    $otherScope = New-Fixture 'scope.tests.ps1' ('$summary = "safe"; function Other { $summary = "other: 3 passed" }; Write-Host $summary')
+    Assert-That 'G8 another function assignment does not change the writer' ((Invoke-Gate $otherScope) -eq 0) 'expected 0'
+    $tableRow = New-Fixture 'wrapper.ps1' 'Write-Host ("pass {0} tests {1} failed {2} skipped {3}" -f 1, 2, 0, 0)'
+    Assert-That 'G8 an intermediate table row is not a verdict' ((Invoke-Gate $tableRow) -eq 0) 'expected 0'
+    $dispatcher = New-Fixture 'dispatcher.tests.ps1' 'Write-Host "dispatcher: 3 file(s) | failed: 0"'
+    Assert-That 'G8 child-file counts are aggregator counts' ((Invoke-Gate $dispatcher) -eq 0) 'expected 0'
+    foreach ($badCounts in @('run=abc skipped=abc', 'run=-1 skipped=0', 'run=1 skipped=0.5', 'skipped=0 run=1',
+            'run={0:N0} skipped=0', 'run={0,4} skipped=0', 'run=$counts.Total skipped=0')) {
+        $invalid = New-Fixture 'invalid.tests.ps1' ('Write-Host "sample: PASS (' + $badCounts + ')"')
+        Assert-That "G8 malformed counters $badCounts are refused" ((Invoke-Gate $invalid) -eq 1) 'expected 1'
+    }
+    $decimalFormat = New-Fixture 'decimal.tests.ps1' 'Write-Host ("sample: PASS (run={0:D4} skipped={1})" -f 3, 0)'
+    Assert-That 'G8 decimal-only numeric formatting is accepted' ((Invoke-Gate $decimalFormat) -eq 0) 'expected 0'
+    $residue = Get-TestCountResidue -Writers $legacyWriters -Baseline @($legacyWriters[0].Key)
+    Assert-That 'G9 exact residue is accepted' ($residue.New.Count -eq 0 -and $residue.Stale.Count -eq 0) 'expected clean residue'
+    $stale = Get-TestCountResidue -Writers @() -Baseline @($legacyWriters[0].Key)
+    Assert-That 'G10 cured writer makes residue stale' ($stale.Stale.Count -eq 1) 'expected stale entry'
+    $replacement = @(Get-LegacyTestCountWriter -Files @($interpolated) -RepoRoot $sandbox)
+    $swapped = Get-TestCountResidue -Writers $replacement -Baseline @($legacyWriters[0].Key)
+    Assert-That 'G11 fixing one writer cannot pay for another' ($swapped.New.Count -eq 1 -and $swapped.Stale.Count -eq 1) 'expected new and stale'
+
+    # --- I: Rule I empty-set form (S4378) ---
+    $iNoForm = New-Fixture 'assert-sample-no-form.ps1' @'
+param([string[]]$ChangedFiles)
+exit 0
+'@
+    Assert-That 'I1 check with ChangedFiles and no form is refused' ((Invoke-Gate $iNoForm) -eq 1) 'expected 1'
+
+    $iWithHelper = New-Fixture 'assert-sample-helper.ps1' @'
+param([string[]]$ChangedFiles)
+Write-Host "assert-sample-helper: PASS"
+Write-Host "assert-sample-helper: FAIL"
+Write-EmptySetPass -GateName 'assert-sample-helper'
+exit 0
+'@
+    Assert-That 'I2 check with Write-EmptySetPass passes' ((Invoke-Gate $iWithHelper) -eq 0) 'expected 0'
+
+    $iWithLiteral = New-Fixture 'assert-sample-literal.ps1' @'
+param([string[]]$ChangedFiles)
+Write-Host "assert-sample-literal: PASS"
+Write-Host "assert-sample-literal: FAIL"
+Write-Host "assert-sample-literal: PASS (0 file(s) inspected)"
+exit 0
+'@
+    Assert-That 'I3 check with literal 0 file(s) inspected passes' ((Invoke-Gate $iWithLiteral) -eq 0) 'expected 0'
+
+    $iCommentOnly = New-Fixture 'assert-sample-comment.ps1' @'
+param([string[]]$ChangedFiles)
+# Write-EmptySetPass -GateName 'assert-sample-comment'
+# 0 file(s) inspected
+exit 0
+'@
+    Assert-That 'I4 form only in comments is refused' ((Invoke-Gate $iCommentOnly) -eq 1) 'expected 1'
+
+    $iNoParam = New-Fixture 'assert-sample-noparam.ps1' @'
+param([switch]$Gate)
+Write-Host "assert-sample-noparam: PASS"
+Write-Host "assert-sample-noparam: FAIL"
+exit 0
+'@
+    Assert-That 'I5 check without change-set parameter passes' ((Invoke-Gate $iNoParam) -eq 0) 'expected 0'
+
     Write-Host 'H: the repository scripts/ tree has no unreachable exit site' -ForegroundColor Yellow
-    & $pwshExe -NoProfile -File $gate -Gate -Quiet *> $null
-    Assert-That 'H1 repo scan exits 0' ($LASTEXITCODE -eq 0) "expected 0, got $LASTEXITCODE"
+    $liveVerdict = & $pwshExe -NoProfile -File $gate -Gate -Quiet 2>&1
+    Assert-That 'H1 repo scan exits 0' ($LASTEXITCODE -eq 0) "expected 0, got $LASTEXITCODE; $($liveVerdict -join ' | ')"
 }
 finally {
     Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue
@@ -384,8 +504,8 @@ finally {
 
 Write-Host ''
 if ($script:fail -eq 0) {
-    Write-Host "assert-exit-contract tests: $script:pass passed" -ForegroundColor Green
+    Write-Host "assert-exit-contract tests: PASS (run=$($script:pass + $script:fail) skipped=0)" -ForegroundColor Green
     exit 0
 }
-Write-Host "assert-exit-contract tests: $script:pass passed, $script:fail FAILED" -ForegroundColor Red
+Write-Host "assert-exit-contract tests: FAIL (run=$($script:pass + $script:fail) skipped=0)" -ForegroundColor Red
 exit 1

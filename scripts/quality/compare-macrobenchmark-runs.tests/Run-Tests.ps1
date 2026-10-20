@@ -112,6 +112,6 @@ finally {
 }
 
 Write-Host ""
-Write-Host "compare-macrobenchmark-runs.tests: $script:pass passed, $script:fail failed"
+Write-Host "compare-macrobenchmark-runs.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

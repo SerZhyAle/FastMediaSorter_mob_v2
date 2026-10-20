@@ -60,14 +60,14 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $RepoRoot "scripts/quality/lib/settings-doc-inputs.ps1")
 
 function Fail([string] $stage, [string] $detail) {
-    Write-Host "settings-doc-sync: FAIL at stage '$stage'" -ForegroundColor Red
     if ($detail) { Write-Host "  $detail" }
+    Write-Host "assert-settings-doc-sync: FAIL (stage '$stage')" -ForegroundColor Red
     exit 1
 }
 
 function CannotVerify([string] $stage, [string] $detail) {
-    Write-Host "settings-doc-sync: CANNOT-VERIFY at stage '$stage'" -ForegroundColor Yellow
     if ($detail) { Write-Host "  $detail" }
+    Write-Host "assert-settings-doc-sync: COULD NOT VERIFY (stage '$stage')" -ForegroundColor Yellow
     exit 2
 }
 
@@ -250,10 +250,10 @@ if ($foreignStageFindings.Count -gt 0) {
     foreach ($finding in $foreignStageFindings) { Write-Host "  $finding" }
     Write-Host "  Each belongs to whichever ticket last moved that stage's inputs; resolving it here would commit that ticket's work under this change." -ForegroundColor Yellow
     Write-Host "  Project-wide verdict: re-run this script with no -ChangedFiles." -ForegroundColor Yellow
-    Write-Host "settings-doc-sync: OK WITH ADVISORY - $manifestVerdict, $howToVerdict, and the finding(s) above NOT attributed to this change." -ForegroundColor Yellow
+    Write-Host "assert-settings-doc-sync: PASS WITH ADVISORIES ($manifestVerdict, $howToVerdict, and the finding(s) above NOT attributed to this change)" -ForegroundColor Yellow
     exit 3
 }
 
 $referenceVerdict = if ($referenceAffected) { 'reference up to date' } else { 'reference up to date (stage ran advisory)' }
-Write-Host "settings-doc-sync: OK - catalog complete, $manifestVerdict, annotations covered, $referenceVerdict, $howToVerdict." -ForegroundColor Green
+Write-Host "assert-settings-doc-sync: PASS (catalog complete, $manifestVerdict, annotations covered, $referenceVerdict, $howToVerdict)" -ForegroundColor Green
 exit 0

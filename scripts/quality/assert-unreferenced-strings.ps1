@@ -125,6 +125,7 @@ if ($UpdateBaseline) {
     $lines.Add("# Regenerate the measurement with: pwsh -NoProfile -File scripts/utils/audit-unreferenced-strings.ps1 -Module $Module -File $File")
     $lines.Add('# A new name here needs a written reason - an unexplained entry is how the previous 397 accumulated.')
     if (-not (Test-BaselineWrite -Gate 'assert-unreferenced-strings' -Previous @($baseline.Keys) -Current $current -Reason $Reason)) {
+        Write-Host 'assert-unreferenced-strings: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     foreach ($name in $current) {

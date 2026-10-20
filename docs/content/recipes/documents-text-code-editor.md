@@ -122,6 +122,7 @@ steps:
 outcome: |
   Any text file opens with one tap and reads comfortably - in large letters, dark colors, with formatting or with line numbers. You can fix it on the spot, find and replace words, start new notes in any folder, and send the text on to Keep, the calculator, a voice or a translator.
 tips:
+  - "**Choose another file:** G shows file thumbnails, F4 the file list, and N a file number starting at 1. Use the same entries in the three-dots menu. These choose a file in the current collection, not a page of the document. Viewer shortcuts stay inactive while an editor or number field owns input."
   - "**Keep a copy of important files.** Saving replaces the old text. To keep the original, copy the file first - see [copying, moving and deleting files](page:storage.file-copy-move-delete)."
   - "**Working with notes on your computer?** Create and edit them in a [network folder](term:network-folder) on your home computer - see [Windows network shares](page:network.smb-samba-shares)."
   - "**Need a PDF instead?** See [reading PDF documents](page:documents.pdf-epub-viewing)."
@@ -144,6 +145,6 @@ next_recipes:
     description: The calculator and the other small tools that come with the app.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.19 16:16</sub>
 
 Read text, Markdown and log files comfortably, fix them on the spot, find and replace words, create new text notes in any folder, and pass the text on to Google Keep, the calculator, a speech voice or a translator - without a separate editor app.

@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.ui.broadcast
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
+import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -11,6 +13,8 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
 import com.sza.fastmediasorter.ui.broadcast.helpers.BroadcastCastManager
 import com.sza.fastmediasorter.ui.broadcast.helpers.BroadcastControlManager
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
+import com.sza.fastmediasorter.ui.common.help.HelpOverlayEntryManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -28,6 +32,7 @@ class BroadcastControlActivity : AppCompatActivity() {
     lateinit var castManager: BroadcastCastManager
 
     private lateinit var binding: ActivityBroadcastControlBinding
+    private var helpEntry: HelpOverlayEntryManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +49,10 @@ class BroadcastControlActivity : AppCompatActivity() {
 
         controlManager.setup(this, binding)
         castManager.setup(this, binding.btnCastToDevices)
+        helpEntry = HelpOverlayEntryManager(
+            this, binding.root.parent as ViewGroup, javaClass.simpleName, null,
+            reserveSpaceFor = binding.tvControlTitle,
+        )
     }
 
     override fun onResume() {
@@ -52,7 +61,19 @@ class BroadcastControlActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
+    // Not a BaseActivity, so F1 reaches the help page here instead of through the shared key handling.
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_F1 &&
+            HelpOpenManager.openIfPresent(this, BroadcastControlActivity::class.java.simpleName, null)
+        ) {
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
     override fun onDestroy() {
+        helpEntry?.release()
+        helpEntry = null
         controlManager.onDetach()
         super.onDestroy()
     }

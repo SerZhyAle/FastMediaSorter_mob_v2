@@ -181,6 +181,6 @@ finally {
     Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-Write-Host "`n$script:pass passed, $script:fail failed." -ForegroundColor $(if ($script:fail) { 'Red' } else { 'Green' })
+Write-Host "filtered-test-report.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail) { exit 1 }
 exit 0

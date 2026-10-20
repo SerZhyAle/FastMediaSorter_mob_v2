@@ -255,7 +255,7 @@ Assert-That 'J1 live tree -Scope Authored exits 0' ($codeJ -eq 0) "expected exit
 
 Write-Host ''
 if ($script:fail -gt 0) {
-    Write-Host "assert-wear-mirrored-strings.tests: FAIL - $($script:fail) case(s) failed, $($script:pass) passed." -ForegroundColor Red
+    Write-Host "assert-wear-mirrored-strings.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
     exit 1
 }
 Write-Host "assert-wear-mirrored-strings.tests: PASS - $($script:pass) case(s)." -ForegroundColor Green

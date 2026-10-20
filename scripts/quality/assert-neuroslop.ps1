@@ -58,15 +58,21 @@ $failures = 0
 if (-not (Test-Path $runner)) {
     Write-Host 'neuroslop: MISSING assert-source-gates.ps1 - cannot judge anything.' -ForegroundColor Red
     Write-Error 'assert-neuroslop: the combined source-gate runner is absent; nothing was scanned.' -ErrorAction Continue
+    Write-Host 'assert-neuroslop: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
+. (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+
+$emptySet = $false
 try {
     $global:LASTEXITCODE = 0
     if ($Gate) {
-        if ($ChangedFiles) { & $runner -Gate -ChangedFiles $ChangedFiles }
-        else { & $runner -Gate }
-        if ($LASTEXITCODE -ne 0) { $failures++ }
+        $forward = @{ Gate = $true }
+        if ($ChangedFiles) { $forward.ChangedFiles = $ChangedFiles }
+        $engine = Invoke-SourceGatesEngine -Runner $runner -Forward $forward
+        $emptySet = $engine.EmptySet
+        if ($engine.Code -ne 0) { $failures++ }
     }
     else {
         & $runner
@@ -81,6 +87,10 @@ if ($Gate) {
     if ($failures -gt 0) {
         Write-Host "assert-neuroslop: FAIL ($failures dimension(s) above baseline)." -ForegroundColor Red
         exit 1
+    }
+    if ($emptySet) {
+        Write-EmptySetPass -GateName 'assert-neuroslop'
+        exit 0
     }
     Write-Host "assert-neuroslop: PASS (all dimensions at or below baseline)." -ForegroundColor Green
 }

@@ -25,8 +25,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
-import com.sza.fastmediasorter.ui.common.input.UiSurface
-import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
+import com.sza.fastmediasorter.ui.browse.helpers.BrowseHelpEntryManager
 import com.sza.fastmediasorter.ui.duplicates.DuplicatesActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.DrawingTargetPolicy
@@ -198,9 +197,7 @@ class ResourceOpsMenuManager @Inject constructor(
                     true
                 }
                 R.id.action_help -> {
-                    (context as? androidx.fragment.app.FragmentActivity)?.let { activity ->
-                        DocsPageOpenManager.open(activity, UiSurface.BROWSE)
-                    }
+                    (context as? androidx.fragment.app.FragmentActivity)?.let(BrowseHelpEntryManager::open)
                     true
                 }
                 // S0374: overflowed top-bar commands route to the same actions as their buttons.

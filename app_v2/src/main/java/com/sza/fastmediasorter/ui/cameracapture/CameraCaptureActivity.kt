@@ -44,6 +44,7 @@ import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraScenario
 import com.sza.fastmediasorter.ui.cameracapture.model.PhotoProfile
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
 import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
@@ -182,6 +183,7 @@ class CameraCaptureActivity :
         binding.cameraActionBar.applySystemBarInsetPadding(applyTop = false)
 
         binding.btnCloseCamera.setOnClickListener { flowManager.onClose() }
+        binding.btnHelpHeader.setOnClickListener { HelpOpenManager.openIfPresent(this, "CameraCaptureActivity", null) }
         binding.btnCameraSettings.setOnClickListener { settingsCallbackHandler.show(supportFragmentManager) }
         binding.btnCameraSendTo.setOnClickListener { resultManager.openSendToMenu() }
         binding.btnCapturePhoto.isEnabled = false

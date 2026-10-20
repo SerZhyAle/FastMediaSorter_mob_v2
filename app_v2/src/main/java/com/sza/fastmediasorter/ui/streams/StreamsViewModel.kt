@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStor
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.StreamDefaultSort
 import com.sza.fastmediasorter.domain.model.StreamMediaTypeFilter
 import com.sza.fastmediasorter.domain.model.StreamResumeState
@@ -22,7 +23,9 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
+import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.BuildWatchBroadcastHandoffUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ClearDownloadedStreamsUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamBroadcastUseCase
@@ -40,6 +43,7 @@ import com.sza.fastmediasorter.domain.usecase.streams.ReorderPinnedStreamUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import com.sza.fastmediasorter.ui.streams.helpers.StreamTopicLabelProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -124,10 +128,13 @@ class StreamsViewModel @Inject constructor(
     private val mediaCapabilities: MediaCapabilities,
     // S1799: Lazy - the send path is cold until the user actually invokes the command (Rule 18).
     private val sendStreamToWatchUseCase: dagger.Lazy<SendStreamToWatchUseCase>,
+    private val buildWatchBroadcastHandoff: dagger.Lazy<BuildWatchBroadcastHandoffUseCase>,
     // S2669: the curated collections delivered with the catalog, as one more pipeline input. The UI's
     // only door to them (S2103): it also serves the on-demand membership read below, so no UI file
     // needs the repository or the Room entity behind it.
     private val observeStreamCollections: ObserveStreamCollectionsUseCase,
+    // S4392: own exchange account live broadcasts for the "Own" category filter.
+    private val observeLiveBroadcastSources: ObserveLiveBroadcastSourcesUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -172,11 +179,19 @@ class StreamsViewModel @Inject constructor(
      */
     fun sendStreamToWatch(source: StreamSourceEntity, openNow: Boolean = false) {
         viewModelScope.launch {
+            // S4261: a broadcast with a server endpoint or `auth` travels with its descriptor and pass, never bare.
+            val form = buildWatchBroadcastHandoff.get().forStoredChannel(source)
+            Timber.d("S4261: stored channel to watch, form=%s", form.javaClass.simpleName)
+            if (form is BuildWatchBroadcastHandoffUseCase.Result.PasswordMissing) {
+                _events.send(StreamsEvent.Message(R.string.stream_send_to_watch_password_first))
+                return@launch
+            }
             val outcome = sendStreamToWatchUseCase.get()(
                 source.title,
                 source.url,
                 source.mediaKind,
                 openNow,
+                form as? BuildWatchBroadcastHandoffUseCase.Result.Handoff,
             )
             _events.send(StreamsEvent.Message(outcome.toMessageRes()))
         }
@@ -194,6 +209,8 @@ class StreamsViewModel @Inject constructor(
         is SendStreamToWatchUseCase.Outcome.Error -> R.string.stream_send_to_watch_failed
         SendStreamToWatchUseCase.Outcome.Opened -> R.string.stream_open_on_watch_opened
         SendStreamToWatchUseCase.Outcome.WatchAppNotOpen -> R.string.stream_open_on_watch_app_closed
+        SendStreamToWatchUseCase.Outcome.Unplayable -> R.string.stream_send_to_watch_unplayable
+        SendStreamToWatchUseCase.Outcome.NoReplyToBroadcast -> R.string.stream_send_to_watch_no_reply_update
     }
 
     // S1502: play outcome per channel id. Deliberately NOT part of StreamsUiState - folding it into
@@ -203,6 +220,9 @@ class StreamsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
     private val _filter = MutableStateFlow(StreamsFilter())
+
+    // S4392: each new value makes the live-broadcast source re-query the exchange directory.
+    private val liveRefresh = MutableStateFlow(0L)
 
     // S0659: guards the one-shot session/defaults seed in init against clobbering an early user change.
     @Volatile
@@ -246,8 +266,20 @@ class StreamsViewModel @Inject constructor(
         // S2669: the collection list is a THIRD input, deliberately kept out of cachedFacetsOf below -
         // that cache keys on the reference identity of the catalog snapshot alone, and feeding it an
         // unrelated input would disable it on every collection emission over ~20k rows.
-        combine(observeStreamSources(), _filter, observeStreamCollections()) { sources, filter, collections ->
-            val filtered = applyFilter(sources, filter, topicLabelProvider::label)
+        // S4392: live broadcasts from the user's exchange account are combined as a fourth input, merged
+        // into the catalog stream so the pure filter logic handles them without altering Room DB.
+        combine(
+            observeStreamSources(),
+            observeLiveBroadcastSources(liveRefresh),
+            _filter,
+            observeStreamCollections()
+        ) { sources, liveSources, filter, collections ->
+            val allSources = if (filter.mediaKind == MediaKindFilter.OWN && liveSources.isNotEmpty()) {
+                liveSources + sources
+            } else {
+                sources
+            }
+            val filtered = applyFilter(allSources, filter, topicLabelProvider::label)
             StreamsUiState(
                 collections = collections,
                 // The only join of the two halves: consumers that need the flat list read this, and the
@@ -464,18 +496,36 @@ class StreamsViewModel @Inject constructor(
      * S2508 criterion 4: a descriptor arriving by QR or file becomes an ordinary channel, so the
      * payload goes straight to the shared import use case and only its verdict reaches the screen.
      */
-    fun onImportBroadcastDescriptor(payload: String) = viewModelScope.launch {
-        val messageRes = when (importStreamBroadcast(payload)) {
+    fun onImportBroadcastDescriptor(payload: String, password: String? = null) = viewModelScope.launch {
+        // LIVE-BROADCAST item M: a protected descriptor with no pair on this device asks for the password first;
+        // cancelling that question imports nothing.
+        if (password == null && importStreamBroadcast.needsPassword(payload)) {
+            _events.send(StreamsEvent.BroadcastPasswordRequired(payload))
+            return@launch
+        }
+        val messageRes = when (importStreamBroadcast(payload, password)) {
             ImportStreamBroadcastUseCase.ImportResult.Success -> R.string.broadcast_import_success
             ImportStreamBroadcastUseCase.ImportResult.Updated -> R.string.broadcast_import_refreshed
             ImportStreamBroadcastUseCase.ImportResult.Duplicate -> R.string.streams_error_duplicate_url
             ImportStreamBroadcastUseCase.ImportResult.InvalidUrl -> R.string.streams_error_invalid_url
             ImportStreamBroadcastUseCase.ImportResult.InvalidDescriptor ->
                 R.string.broadcast_import_malformed
-            ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion ->
-                R.string.broadcast_import_unsupported_version
+            ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion -> {
+                Timber.i("LIVE-BROADCAST: descriptor schema above supported refused as format-unsupported")
+                Timber.d("S4353: broadcast import refused as format-unsupported")
+                ExchangeMessageText.what(ExchangeMessage.FORMAT_UNSUPPORTED)
+            }
         }
         _events.send(StreamsEvent.Message(messageRes))
+    }
+
+    /** A protected broadcast refused [source]'s pair: keep the typed [password] and play the row again. */
+    fun onBroadcastPasswordEntered(source: StreamSourceEntity, password: String) = viewModelScope.launch {
+        if (importStreamBroadcast.replacePassword(source.id, password)) {
+            _events.send(StreamsEvent.PlayRequested(source))
+        } else {
+            _events.send(StreamsEvent.Message(R.string.broadcast_password_protected))
+        }
     }
 
     // S3881: no persistSession() here - the query is never written (S1054), so a keystroke would only
@@ -608,7 +658,6 @@ class StreamsViewModel @Inject constructor(
         val dropCountry = country != null && state.facets.countries.isNotEmpty() &&
             country !in state.facets.countries
         if (!dropLanguage && !dropCountry) return
-        Timber.d("S4133: dropped vanished facet selection language=$dropLanguage country=$dropCountry")
         _filter.update { current ->
             current.copy(
                 language = if (dropLanguage) null else current.language,
@@ -748,12 +797,19 @@ class StreamsViewModel @Inject constructor(
         settingsRepository.updateSettings { it.copy(backgroundAudioExitBehavior = behavior) }
     }
 
+    /** S4392: re-polls live broadcasts of the exchange account on screen start or pull-to-refresh. */
+    fun refreshLiveBroadcasts() {
+        Timber.d("S4392: live broadcasts refreshed from exchange directory")
+        liveRefresh.value = System.currentTimeMillis()
+    }
+
     companion object {
         // S0659: catalog-refresh throttles. ON_OPEN re-suggests at most every 6h; PERIODIC_WIFI
         // opportunistically auto-refreshes at most once a day (no WorkManager periodic job).
         private const val ON_OPEN_THROTTLE_MS = 6 * 60 * 60 * 1000L
         private const val PERIODIC_THROTTLE_MS = 24 * 60 * 60 * 1000L
         private const val SOURCE_ORIGIN_MANUAL = "MANUAL"
+        private const val SOURCE_ORIGIN_LIVE_BROADCAST = "LIVE_BROADCAST"
 
         /**
          * Filters by case-insensitive query (title/topic/language substring) and the active facets, then
@@ -830,12 +886,13 @@ class StreamsViewModel @Inject constructor(
             category: MediaKindFilter,
         ): Boolean {
             val isManual = source.sourceOrigin == SOURCE_ORIGIN_MANUAL
+            val isLive = source.sourceOrigin == SOURCE_ORIGIN_LIVE_BROADCAST
             return when (category) {
-                MediaKindFilter.ALL -> true
-                MediaKindFilter.AUDIO -> !isManual && source.mediaKind == "AUDIO"
+                MediaKindFilter.ALL -> !isLive
+                MediaKindFilter.AUDIO -> !isManual && !isLive && source.mediaKind == "AUDIO"
                 MediaKindFilter.VIDEO ->
-                    !isManual && (source.mediaKind == "VIDEO" || source.mediaKind == "RTSP")
-                MediaKindFilter.OWN -> isManual
+                    !isManual && !isLive && (source.mediaKind == "VIDEO" || source.mediaKind == "RTSP")
+                MediaKindFilter.OWN -> isManual || isLive
             }
         }
 
@@ -965,6 +1022,9 @@ class StreamsViewModel @Inject constructor(
 
         /** S0659: ON_OPEN policy asks the Activity to surface a dismissible catalog-refresh suggestion. */
         data object SuggestCatalogRefresh : StreamsEvent
+
+        /** LIVE-BROADCAST item M: the descriptor is protected and this device has no password for it yet. */
+        data class BroadcastPasswordRequired(val payload: String) : StreamsEvent
     }
 }
 

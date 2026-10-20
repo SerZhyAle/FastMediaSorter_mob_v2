@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.11 02:18</sub>
+<sub class="doc-stamp">26.10.18 17:45</sub>
 
 # Pointer - `SITE-FAMILY-MAP`
 
 | | |
 | --- | --- |
 | **Id** | `SITE-FAMILY-MAP` |
-| **Version** | 1.4, active. Owner: the sza.od.ua hub |
+| **Version** | 1.5, active. Owner: the sza.od.ua hub |
 | **Home** | `product-web-pages/SITE-FAMILY-MAP.md` in the shared contracts catalog |
 | **Role here** | consumer - the footer of the product site |
 

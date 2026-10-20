@@ -115,6 +115,18 @@ $script:TopicRubricExact = @{
     'traffic cams' = 'Traffic cams'; 'traffic' = 'Traffic cams'
 }
 
+# The closed rubric set the app's topic filter matches on. Each id is pinned as an identity entry, so a
+# rewrite of an already folded bank changes nothing (STREAM-BANK 2.4): without it 'Test' matched no rule
+# and every rewrite moved the Test rubric to General. Mirrors StreamTopicFolding.rubricIds in app_v2; the
+# shared vector file app_v2/src/test/resources/stream-bank/topic-fold-v1.tsv holds both sides to it.
+$script:TopicRubricIds = @(
+    'General', 'News', 'Pop', 'Religious', 'Kids', 'Oldies', 'Movies & Series', 'Country & Folk',
+    'Rock', 'Sports', 'World', 'Jazz & Blues', 'Chillout', 'Electronic', 'Hip-hop', 'Talk',
+    'Local radio', 'Comedy', 'Classical', 'Latin', 'Documentary', 'Education', 'Test', 'R&B & Soul',
+    'Metal', 'Webcam', 'Traffic cams', 'Reggae', 'Shopping', 'Business', 'Lifestyle', 'Adult'
+)
+foreach ($rubricId in $script:TopicRubricIds) { $script:TopicRubricExact[$rubricId.ToLowerInvariant()] = $rubricId }
+
 # Ordered specificity ranking; first match wins. Patterns are matched against the lowercased topic.
 $script:TopicRubricRules = @(
     @{ P = 'test pattern|^m3u8$|^https?:|^#$|^\d+kbps$'; R = 'Test' }
@@ -174,10 +186,12 @@ function Save-ArtworkFromUrl {
 }
 
 # Fold one source-supplied topic into the closed rubric set. Everything unrecognised becomes 'General'
-# rather than surviving as its own rubric - a rubric used by one station is noise in the picker.
+# rather than surviving as its own rubric - a rubric used by one station is noise in the picker. A blank
+# cell stays blank: STREAM-BANK 2.4 forbids the fallback from inventing a filter id for a row that stated
+# no topic.
 function Get-CanonicalTopic {
     param([string]$topic)
-    if ([string]::IsNullOrWhiteSpace($topic)) { return 'General' }
+    if ([string]::IsNullOrWhiteSpace($topic)) { return '' }
     # Typographic apostrophes are folded to the straight one FIRST, so every pattern below can assume a
     # single spelling. They must be written as escapes: PowerShell treats U+2018/U+2019 as string
     # delimiters, so a literal one inside a quoted pattern silently ends the string.

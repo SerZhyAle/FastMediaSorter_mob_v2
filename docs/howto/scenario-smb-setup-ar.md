@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "الاتصال بـ NAS / مشاركة Windows (SMB) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-smb-setup-ar.html
 ---
-<sub class="doc-stamp">26.09.25 02:24</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
 # 🖥️ الاتصال بجهاز NAS المنزلي / مشاركة Windows (SMB)
 
 > **المستوى:** مبتدئ &bull; **الإصدار:** Standard وPhotos وLegacy وVR وnoLegal (لا تتوفر مصادر الشبكة في Lite)
-
-{% include lang-switcher.html doc="scenario-smb-setup" dir="/docs/howto/" current="ar" %}
 
 يتيح لك SMB (يُسمى أيضًا مشاركة ملفات Windows أو CIFS) تصفح الملفات على جهاز الكمبيوتر المنزلي، أو الكمبيوتر المحمول، أو جهاز NAS تمامًا كما لو كانت على هاتفك - دون كابلات، دون USB، فقط Wi-Fi.
 

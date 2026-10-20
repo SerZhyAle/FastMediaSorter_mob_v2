@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.remote.exchange
 
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastVerifier
 import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
 
 /**
@@ -11,6 +12,8 @@ data class ExchangeBroadcastPublication(
     val record: SftpRendezvousBroadcast,
     val maxListeners: Int,
     val localPorts: Map<String, Int>,
+    /** S4258, DEVICE-EXCHANGE item BF: one per pair that may listen through the relay; empty when unprotected. */
+    val verifiers: List<BroadcastVerifier> = emptyList(),
 ) {
 
     companion object {

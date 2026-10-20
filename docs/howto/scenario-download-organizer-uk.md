@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Порядок у завантаженнях (Quick Sort) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-uk.html
 ---
-<sub class="doc-stamp">26.09.24 18:41</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 🧹 Порядок у завантаженнях - сортування одним дотиком
 
 > **Рівень:** Початківець &bull; **Версія:** Будь-яка (Standard, Lite, Photos, Legacy, VR, noLegal)
-
-{% include lang-switcher.html doc="scenario-download-organizer" dir="/docs/howto/" current="uk" %}
 
 **Quick Sort** - головна «фішка» FastMediaSorter: налаштуйте папки призначення раз, а потім сортуйте сотні файлів, просто натискаючи цифру. Без перетягування. Без меню. Просто натиснули **1**, **2** або **3** - файл пішов у потрібне місце.
 

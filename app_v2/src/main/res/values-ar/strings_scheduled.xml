@@ -97,4 +97,11 @@
     <string name="scheduled_op_last_success_never">لا توجد عملية ناجحة بعد</string>
     <string name="scheduled_op_filter_conditions">+ شروط</string>
     <string name="scheduled_ops_op_archive">أرشفة</string>
+    <string name="scheduled_op_history">السجل</string>
+    <string name="scheduled_op_history_line_ok">%1$s · ناجح · %2$d ملف</string>
+    <string name="scheduled_op_history_line_skipped">%1$s · تم التخطي · %2$s</string>
+    <string name="scheduled_op_history_line_error">%1$s · فشل · %2$d ملف · %3$s</string>
+    <string name="scheduled_op_badge_error">فشل آخر تشغيل. افتح «السجل» للتفاصيل.</string>
+    <string name="scheduled_op_badge_skipped">تم تخطي آخر تشغيل: تعذّر الوصول إلى أحد الطرفين. ستُعاد المحاولة في الموعد التالي.</string>
+    <string name="scheduled_ops_notif_failed_title">فشلت العملية المجدولة</string>
 </resources>

@@ -64,8 +64,10 @@ $pwshExe = (Get-Process -Id $PID).Path
 $caseIndex = 0
 $failures = 0
 
+$script:executed = 0
 function Assert-That {
     param([string]$Name, [bool]$Condition, [string]$Detail = '')
+    $script:executed++
     if ($Condition) {
         Write-Host "  PASS  $Name" -ForegroundColor Green
     }
@@ -250,8 +252,8 @@ finally {
 
 Write-Host ''
 if ($failures -eq 0) {
-    Write-Host 'invoke-isolated-stdout: ALL PASS' -ForegroundColor Green
+    Write-Host "invoke-isolated-stdout: $(if ($failures -gt 0) { 'FAIL' } else { 'PASS' }) (run=$script:executed skipped=0)"
     exit 0
 }
-Write-Host "invoke-isolated-stdout: $failures FAILED" -ForegroundColor Red
+Write-Host "invoke-isolated-stdout: $(if ($failures -gt 0) { 'FAIL' } else { 'PASS' }) (run=$script:executed skipped=0)"
 exit 1

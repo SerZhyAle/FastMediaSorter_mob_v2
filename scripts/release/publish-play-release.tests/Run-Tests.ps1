@@ -321,6 +321,6 @@ Assert-That 'the package literal is declared once in the uploader' `
     ([regex]::Matches((Get-Content -LiteralPath $pyScript -Raw), [regex]::Escape("'com.sza.fastmediasorter'")).Count -eq 1) `
     'a second copy of the literal is a second place the package can drift from the argument'
 
-Write-Host ("`npublish-play-release.tests: {0} passed, {1} failed" -f $script:pass, $script:fail)
+Write-Host "publish-play-release.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

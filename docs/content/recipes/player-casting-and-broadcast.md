@@ -111,7 +111,7 @@ tips:
   - "**Nobody can connect to the broadcast?** Check that everyone is on the same Wi-Fi. Some routers block devices from talking to each other - look for an option called client or AP isolation."
   - "**Music on a Chromecast** works the same way from the audio player - see [playing and organizing music files](page:audio.playing-and-organizing-music)."
   - "**Want to record the screen instead?** See [recording the screen with audio](page:capture.screen-recording-and-audio)."
-  - "**Want a phone or a watch to go on air for your other devices?** The [media exchange portal](../../docs/media-exchange-portal/live-broadcast.html) explains the routes between devices and marks what is not available yet."
+  - "**Want a phone or a watch to go on air for your other devices?** The [media exchange portal](../../docs/media-exchange-portal/live-broadcast.html) describes the routes between devices, step by step."
 next_recipes:
   - title: Watching videos - controls and gestures
     url: page:player.video-playback-controls
@@ -130,6 +130,6 @@ next_recipes:
     description: Keep watching in a small window.
 ---
 
-<sub class="doc-stamp">26.10.10 14:45</sub>
+<sub class="doc-stamp">26.10.15 21:43</sub>
 
 Send the video you are watching to a TV with Chromecast, or turn your phone into a small live sound or camera station that others open with a QR code.

@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.SlideshowController
 import com.sza.fastmediasorter.ui.player.SlideshowSettingsDialogFragment
 import com.sza.fastmediasorter.utils.UserActionLogger
+import com.sza.fastmediasorter.utils.applyTopSystemBarInsetMargin
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -252,22 +253,12 @@ class PlayerControlsSetupManager(
 
         binding.btnPdfZoomIn.setOnClickListener {
             UserActionLogger.logButtonClick("PdfZoomIn", "PlayerActivity")
-            val currentScale = binding.photoView.scale
-            val maxScale = binding.photoView.maximumScale
-            val newScale = (currentScale + 0.5f).coerceAtMost(maxScale)
-            if (newScale > currentScale) {
-                binding.photoView.setScale(newScale, true)
-            }
+            zoomPhotoViewByButton(zoomIn = true)
         }
 
         binding.btnPdfZoomOut.setOnClickListener {
             UserActionLogger.logButtonClick("PdfZoomOut", "PlayerActivity")
-            val currentScale = binding.photoView.scale
-            val minScale = binding.photoView.minimumScale
-            val newScale = (currentScale - 0.5f).coerceAtLeast(minScale)
-            if (newScale < currentScale) {
-                binding.photoView.setScale(newScale, true)
-            }
+            zoomPhotoViewByButton(zoomIn = false)
         }
 
         // PDF Translation Button (in command panel)
@@ -280,6 +271,24 @@ class PlayerControlsSetupManager(
             Timber.d("PlayerActivity: btnTranslatePdfCmd long-clicked")
             translationButtonManager.showTranslationSettingsDialog()
             true
+        }
+    }
+
+    /**
+     * The photoView zoom buttons serve PDF pages and still images: PDF keeps its additive 0.5 step,
+     * a still image steps multiplicatively by 1.25 (MEDIA-VIEWER rule 3.1).
+     */
+    private fun zoomPhotoViewByButton(zoomIn: Boolean) {
+        val photoView = binding.photoView
+        val isPdfPage = viewModel.state.value.currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.PDF
+        val newScale = when {
+            isPdfPage && zoomIn -> (photoView.scale + 0.5f).coerceAtMost(photoView.maximumScale)
+            isPdfPage -> (photoView.scale - 0.5f).coerceAtLeast(photoView.minimumScale)
+            zoomIn -> ViewerZoomMath.stepIn(photoView.scale, photoView.maximumScale)
+            else -> ViewerZoomMath.stepOut(photoView.scale, photoView.minimumScale)
+        }
+        if (newScale != photoView.scale) {
+            photoView.setScale(newScale, true)
         }
     }
 
@@ -485,6 +494,9 @@ class PlayerControlsSetupManager(
      * VIDEO; tapping it restores the command panel (exits fullscreen).
      */
     fun setupDocumentFullscreenExitButton() {
+        // S4305: the button floats over the edge-to-edge media area, which starts at window y=0 once the
+        // command panel (the only status-bar padding carrier) is hidden.
+        safeViews.btnDocumentFullscreenExit.applyTopSystemBarInsetMargin()
         safeViews.btnDocumentFullscreenExit.setOnClickListener {
             UserActionLogger.logButtonClick("DocumentFullscreenExit", "PlayerActivity")
             if (!viewModel.state.value.showCommandPanel) {

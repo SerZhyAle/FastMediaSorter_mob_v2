@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.07 05:04</sub>
+<sub class="doc-stamp">26.10.18 18:09</sub>
 
 # Pointer - `CAPTURE-OUTPUT`
 
 | | |
 | --- | --- |
 | **Id** | `CAPTURE-OUTPUT` |
-| **Version** | 0.5, draft. Owner: this product |
+| **Version** | 0.6, draft. Owner: this product |
 | **Home** | `capture-output/README.md` in the shared contracts catalog |
 | **Role here** | owner and producer (every screenshot, recording, photo, frame, text and translation file the app writes) |
 
@@ -16,7 +16,8 @@
 - Default each kind to its rule 9 folder; let the user choose a destination per kind; tell the user about every fallback.
 - Write the rule 1 format per kind; text as UTF-8 without BOM, LF; the translation layout of rule 15.
 - Write the capture time inside the file equal to the one in its name; a PNG carries it in a `tIME` chunk
-  holding the local wall-clock second (rule 16, 0.5).
+  holding the local wall-clock second (rule 16, 0.5). A plain-text kind (`text`, `ocr_text`, `translation`)
+  has no embedded time carrier: the local time in its name is the authority and no metadata is invented (0.6).
 - Add a new kind to the contract before the code writes it.
 
 ## Where it lives here

@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.wear.data.exchange
 
+import android.net.Network
+import com.sza.fastmediasorter.data.security.e2e.E2eDeviceKey
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -24,7 +26,9 @@ class WearExchangeAccountClientTest {
             host: String,
             port: Int,
             pinned: String?,
+            pinnedKey: String?,
             readTimeoutMs: Int,
+            network: Network?,
         ): WearExchangeConnection {
             pins += pinned
             return WearExchangeConnection(Socket(host, port))
@@ -54,10 +58,28 @@ class WearExchangeAccountClientTest {
         assertEquals("Owner.Home", enroll.string("login"))
         assertEquals(DEVICE_ID, enroll.string("deviceId"))
         assertEquals("fms-wear", enroll.string("product"))
-        assertEquals("[\"broadcaster\",\"receiver\"]", enroll.members.get("roles").toString())
+        assertEquals(
+            "[\"broadcaster\",\"receiver\",\"clipboard\",\"resource-consumer\"]",
+            enroll.members.get("roles").toString()
+        )
         assertEquals("[\"AUDIO_ONLY\"]", enroll.members.getAsJsonObject("receiver").get("modes").toString())
         assertEquals(TOKEN, (result as WearExchangeEnrollResult.Enrolled).token)
         assertEquals(listOf<String?>(PIN), pins)
+    }
+
+    @Test
+    fun `enroll with a key declares e2eKey and the capability e2e-v1`() {
+        val asked = serve(
+            WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_ENROLLED) { addProperty("deviceToken", TOKEN) },
+        )
+        val key = E2eDeviceKey.generate()
+
+        client.enroll(entry, CODE, profile, key)
+
+        val enroll = checkNotNull(asked.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+        assertEquals("[\"e2e-v1\"]", enroll.members.get("capabilities").toString())
+        assertEquals(key.kem, enroll.members.getAsJsonObject("e2eKey").get("kem").asString)
+        assertEquals(1, enroll.members.getAsJsonObject("e2eKey").get("v").asInt)
     }
 
     @Test
@@ -70,7 +92,14 @@ class WearExchangeAccountClientTest {
     @Test
     fun `a refused certificate is told apart from an unreachable server`() {
         val refusing = object : WearExchangeConnector {
-            override fun connect(host: String, port: Int, pinned: String?, readTimeoutMs: Int): WearExchangeConnection =
+            override fun connect(
+                host: String,
+                port: Int,
+                pinned: String?,
+                pinnedKey: String?,
+                readTimeoutMs: Int,
+                network: Network?,
+            ): WearExchangeConnection =
                 throw WearExchangeCertificateChangedException()
         }
 

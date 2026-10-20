@@ -6,9 +6,13 @@
 
 .DESCRIPTION
     Calls scripts/quality/measure-codex-transcript.ps1 -Id <Sxxxx> -Json and judges the result:
-      - not Codex runtime, or no matching rollout found - "not applicable", exit 0. Never fails
-        a Claude Code, Gemini or ZCode closure, and never fails a Codex ticket whose session
-        simply is not on disk yet (a normal state for most tickets).
+      - a Claude Code process - NOT APPLICABLE, exit 0. A Gemini or ZCode process (named by
+        FMS_AGENT_RUNTIME) with no matching rollout is NOT APPLICABLE too.
+      - no matching rollout and no runtime marker that names a non-Codex runtime - COULD NOT
+        VERIFY, exit 2 (CHECK-VERDICT 0.12 item A.2): a Codex ticket whose rollout is gone looks
+        the same as a ticket Codex never saw, and Codex sets no marker of its own. The closure
+        facade runs this gate as an advisory step, so exit 2 surfaces there as an advisory and
+        never fails a closure.
       - a rollout was found - any call flagged `oversized` (its output exceeded
         codexContext.maxInlineChars inline, per Phase 01), `truncated` (a truncation marker
         followed by output the model then used), `chainedRead` (two or more reads chained
@@ -26,10 +30,16 @@
     PreToolUse-style hook to refuse a call before it happens.
 
     Exit codes (S1070):
-      0 - NOT APPLICABLE on a Claude Code process (S4130), nothing inspected when no rollout
-          names the ticket, or applicable with zero findings.
-      2 - measure-codex-transcript.ps1 itself could not verify (its own exit 2).
+      0 - NOT APPLICABLE on a Claude Code process (S4130) or on a named non-Codex runtime with
+          no rollout for the ticket, or applicable with zero findings.
+      2 - could not verify: measure-codex-transcript.ps1 itself exited 2, or no rollout names the
+          ticket on a runtime that is not identified as a non-Codex one.
       3 - applicable, and one or more findings (advisory).
+
+    The last stdout line is the verdict: `assert-codex-transcript-hygiene: PASS (..)`,
+    `: PASS WITH ADVISORIES (..)`, `: COULD NOT VERIFY (..)` or `: NOT APPLICABLE (..)`. The gate
+    has no FAIL path by design (advisory-first landing), which is why its row stays in
+    scripts/quality/verdict-line-baseline.txt.
 
 .PARAMETER Id
     Ticket id (Sxxxx) being closed.
@@ -64,17 +74,23 @@ $rawJson = & pwsh -NoProfile -File $measureScript -Id $Id -Json
 $measureExit = $LASTEXITCODE
 
 if ($measureExit -eq 2) {
-    Write-Host "assert-codex-transcript-hygiene: COULD NOT VERIFY - measure-codex-transcript.ps1 exited 2." -ForegroundColor Red
     Write-Host $rawJson
+    Write-Host "assert-codex-transcript-hygiene: COULD NOT VERIFY (measure-codex-transcript.ps1 exited 2)" -ForegroundColor Red
     exit 2
 }
 
 $parsed = $rawJson | ConvertFrom-Json -Depth 6
 if (-not $parsed.found) {
-    # S4130: not NOT APPLICABLE - a Codex ticket whose rollout is not on disk looks the same, and item
-    # A.2 would make that 2. Kept at 0 as a recorded deviation (registry, CHECK-VERDICT rules 11-15).
-    Write-Host "assert-codex-transcript-hygiene: nothing inspected - no rollout on disk names $Id."
-    exit 0
+    # A named non-Codex runtime selects no Codex transcript, so nothing was requested of this gate. Any
+    # other process may be Codex - which sets no marker - and then a rollout that is gone is requested
+    # work that did not run (CHECK-VERDICT 0.12 item A.2). The marker is read only on this path: a stale
+    # inherited value must never switch off the judging of a rollout that exists.
+    if ($env:FMS_AGENT_RUNTIME -match '(?i)zcode|gemini|antigravity') {
+        Write-Host "assert-codex-transcript-hygiene: NOT APPLICABLE (runtime '$($env:FMS_AGENT_RUNTIME)' is not Codex; no rollout on disk names $Id)"
+        exit 0
+    }
+    Write-Host "assert-codex-transcript-hygiene: COULD NOT VERIFY (no rollout on disk names $Id, and this process is not identified as a non-Codex runtime)" -ForegroundColor Yellow
+    exit 2
 }
 
 $calls = @($parsed.calls)
@@ -98,5 +114,5 @@ foreach ($f in $findings) {
     if ($f.sleepPoll -and $f.sleepStreak -ge 2) { $tags.Add("sleep-poll: Start-Sleep or timed Wait-* call, streak $($f.sleepStreak)") }
     Write-Host "  call $($f.n): $($tags -join ', ')"
 }
-Write-Host "assert-codex-transcript-hygiene: advisory - see research/05__enforcement-without-hooks.md for what each flag means."
+Write-Host "assert-codex-transcript-hygiene: PASS WITH ADVISORIES ($($findings.Count) finding(s); research/05__enforcement-without-hooks.md says what each flag means)"
 exit 3

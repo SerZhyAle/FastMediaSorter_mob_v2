@@ -29,3 +29,11 @@ fun PackageManager.queryIntentActivitiesCompat(intent: Intent, flags: Int = 0): 
     } else {
         queryIntentActivities(intent, flags)
     }
+
+/** S4381: which activity the system would start for [intent]; the default-role probe of "Open in..". */
+fun PackageManager.resolveActivityCompat(intent: Intent, flags: Int = 0): ResolveInfo? =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        resolveActivity(intent, PackageManager.ResolveInfoFlags.of(flags.toLong()))
+    } else {
+        resolveActivity(intent, flags)
+    }

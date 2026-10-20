@@ -8,5 +8,6 @@ sealed interface ExchangeServerCall<out T> {
     /** [reason] is a contract 7.10 reason, or `not-enrolled` when the entry holds no token. */
     data class Refused(val reason: String) : ExchangeServerCall<Nothing>
 
-    data object Unreachable : ExchangeServerCall<Nothing>
+    /** The server was not reached or answered nothing; [failure] says which of the local classes it was. */
+    data class Unreachable(val failure: ExchangeLocalFailure) : ExchangeServerCall<Nothing>
 }

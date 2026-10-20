@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "将智能手表连接到 NAS 和电脑共享 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-network-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.25 02:21</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-network-zh-hans.html
 > **难度：** 进阶 &bull; **用时：** 约 10 分钟 &bull; **设备：** Wear OS 智能手表
 
 > **仅限完整版** - 本指南不适用于通过 Google Play 分发的版本，而是适用于从[下载页面](../DOWNLOADS.md)直接下载 APK 的完整版本。
-
-{% include lang-switcher.html doc="scenario-watch-network" dir="/docs/howto/" current="zh-Hans" %}
 
 Wear OS 上的 FastMediaSorter 可以通过 Wi-Fi 直接连接到您的家庭网络存储（NAS、电脑共享文件夹、FTP 或 SFTP 服务器）。您可以浏览远程文件、向蓝牙耳机串流音乐，并同步您喜欢的文件夹，而无需借助手机。
 

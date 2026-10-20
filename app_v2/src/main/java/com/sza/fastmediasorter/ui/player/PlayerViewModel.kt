@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.constants.AppConstants
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
@@ -135,11 +136,11 @@ class PlayerViewModel @Inject constructor(
         val files: List<MediaFile> = emptyList(),
         val currentIndex: Int = 0,
         val isSlideShowActive: Boolean = false,
-        val slideShowInterval: Long = 3000,
+        val slideShowInterval: Long = AppConstants.DEFAULT_SLIDESHOW_INTERVAL_MS,
         val slideshowMusicUri: String? = null,
         val slideshowMusicResourceId: Long? = null,
         val enableSlideshowBackgroundMusic: Boolean = false,
-        val playToEndInSlideshow: Boolean = false,
+        val playToEndInSlideshow: Boolean = true,
         val enablePhotosDuringAudio: Boolean = false,
         val audioBackgroundPhotosResourceId: String? = null,
         val enablePersistentAudioPlayback: Boolean = false,

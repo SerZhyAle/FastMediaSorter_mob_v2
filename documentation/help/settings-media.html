@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Settings: Media</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Settings: Media</span>
+</nav>
+<header class="hero">
+<h1>Settings: Media</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">Media is where you decide which kinds of files the app handles and how each kind behaves: images, video, audio, documents, translation, streams and live broadcasting.</p>
+<figure class="shot">
+<img class="on-light" src="img/settings-media-en-light.webp" alt="Settings: Media">
+<img class="on-dark" src="img/settings-media-en-dark.webp" alt="Settings: Media">
+</figure>
+<h2>In this order</h2>
+<p class="order-note">There is no fixed order here - every option works on its own. The tab folds into groups, one per kind of media, and each group lists its options below. Some groups, such as Streams and Broadcast, show up only in editions that include them.</p>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Images, GIFs and slideshow</h3>
+<details class="el" id="support-images">
+<summary><span class="mk">1</span><span><span class="name">Support static images</span><span class="one">Lets the app view static images.</span></span></summary>
+<div class="full">
+<p>JPG, PNG, WEBP, HEIC and other image formats become viewable. Turn it off if you never use the app for pictures.</p>
+</div>
+</details>
+<details class="el" id="support-gifs">
+<summary><span class="mk">2</span><span><span class="name">Support GIF animation</span><span class="one">Plays animated GIFs in the file browser and player.</span></span></summary>
+<div class="full">
+<p>Turn it on to see GIFs move. The same page also sets size limits for images and animations.</p>
+</div>
+</details>
+<details class="el" id="full-size-images">
+<summary><span class="mk">3</span><span><span class="name">Load images at full resolution</span><span class="one">Loads original-resolution images so you can zoom in.</span></span></summary>
+<div class="full">
+<p>It enables pinch-to-zoom and rotation gestures in command panel mode, but uses more data and memory. By default the app loads images at 1920 px; over the network, the original is downloaded for zooming, which is slower.</p>
+</div>
+</details>
+<details class="el" id="crop-fullscreen">
+<summary><span class="mk">4</span><span><span class="name">Crop images to fill screen</span><span class="one">Fills the whole screen when image and device orientation match.</span></span></summary>
+<div class="full">
+<p>In fullscreen and slideshow, a landscape image on a landscape screen (or portrait on portrait) is cropped to fill it. With the option off, every image fits inside the screen without cropping.</p>
+</div>
+</details>
+<details class="el" id="dynamic-background">
+<summary><span class="mk">5</span><span><span class="name">Dynamic Background Extension</span><span class="one">Fills the empty bars around an image with its own edge colors.</span></span></summary>
+<div class="full">
+<p>It softens letterboxing and pillarboxing when an image does not match the screen shape. Plain backgrounds get a uniform fill; busier ones get streaks that continue the picture.</p>
+</div>
+</details>
+<details class="el" id="slideshow-music">
+<summary><span class="mk">6</span><span><span class="name">Play music during slideshow</span><span class="one">Plays music while a slideshow runs.</span></span></summary>
+<div class="full">
+<p>Tracks from the resource you choose play in random order during image and GIF slideshows. Pick a resource that holds your music; the picker appears when the option is on.</p>
+</div>
+</details>
+<details class="el" id="default-image-viewer">
+<summary><span class="mk">7</span><span><span class="name">Set as default image viewer</span><span class="one">Makes FastMediaSorter the app that opens your images.</span></span></summary>
+<div class="full">
+<p>Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
+</div>
+</details>
+<h3>Video and player settings</h3>
+<details class="el" id="support-video">
+<summary><span class="mk">8</span><span><span class="name">Support video</span><span class="one">Lets the app play video.</span></span></summary>
+<div class="full">
+<p>MP4, MKV, MOV, WEBM and other video formats become playable in the built-in player.</p>
+</div>
+</details>
+<details class="el" id="video-thumbnails">
+<summary><span class="mk">9</span><span><span class="name">Show video thumbnails</span><span class="one">Shows a preview frame for each video in the file browser.</span></span></summary>
+<div class="full">
+<p>The first frame of the video becomes its thumbnail. For network files it can take two seconds or more, because the file has to be downloaded and processed first.</p>
+</div>
+</details>
+<details class="el" id="video-fullscreen">
+<summary><span class="mk">10</span><span><span class="name">Open video files in fullscreen mode</span><span class="one">Starts videos from the file browser in fullscreen.</span></span></summary>
+<div class="full">
+<p>A video you open from the file browser goes straight into fullscreen playback.</p>
+</div>
+</details>
+<details class="el" id="video-frame-clipboard">
+<summary><span class="mk">11</span><span><span class="name">Save video frames to clipboard</span><span class="one">Also copies each extracted video frame to the clipboard.</span></span></summary>
+<div class="full">
+<p>When you extract a frame from a video, it also goes to the clipboard, ready to paste.</p>
+</div>
+</details>
+<details class="el" id="default-video-player">
+<summary><span class="mk">12</span><span><span class="name">Set as default video player</span><span class="one">Makes FastMediaSorter the app that plays your videos.</span></span></summary>
+<div class="full">
+<p>Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
+</div>
+</details>
+<h3>Audio playback, covers and visuals</h3>
+<details class="el" id="support-audio">
+<summary><span class="mk">13</span><span><span class="name">Support audio</span><span class="one">Lets the app play audio.</span></span></summary>
+<div class="full">
+<p>MP3, FLAC, AAC, OGG and other audio formats become playable.</p>
+</div>
+</details>
+<details class="el" id="audio-covers">
+<summary><span class="mk">14</span><span><span class="name">Search audio covers online</span><span class="one">Looks online for covers of tracks that have none embedded.</span></span></summary>
+<div class="full">
+<p>Covers are downloaded from the internet. A Search only on Wi-Fi option appears next to it, so mobile data stays untouched.</p>
+</div>
+</details>
+<details class="el" id="audio-photos">
+<summary><span class="mk">15</span><span><span class="name">Show random photos during audio playback</span><span class="one">Shows random photos while audio plays.</span></span></summary>
+<div class="full">
+<p>Photos come from the resource you pick, one random photo per song. Only still images are used; videos are ignored.</p>
+</div>
+</details>
+<details class="el" id="audio-empty-state">
+<summary><span class="mk">16</span><span><span class="name">Visualizer when no cover art</span><span class="one">Chooses what the player shows for a track without cover art.</span></span></summary>
+<div class="full">
+<p>Pick a plain black background, a music note with pulse rings, breathing bars, waves and particles, or a visualization video.</p>
+</div>
+</details>
+<details class="el" id="default-audio-player">
+<summary><span class="mk">17</span><span><span class="name">Set as default audio player</span><span class="one">Makes FastMediaSorter the app that plays your music.</span></span></summary>
+<div class="full">
+<p>Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
+</div>
+</details>
+<h3>Text, PDF, EPUB and Office viewing</h3>
+<details class="el" id="support-text">
+<summary><span class="mk">18</span><span><span class="name">Support text files (.txt, .md, .log, .json, .xml)</span><span class="one">Lets the app open plain text files.</span></span></summary>
+<div class="full">
+<p>That covers .txt, .md, .log, .json and .xml files.</p>
+</div>
+</details>
+<details class="el" id="support-pdf">
+<summary><span class="mk">19</span><span><span class="name">Support PDF documents</span><span class="one">Opens PDF files in the built-in viewer.</span></span></summary>
+<div class="full">
+<p>There is also a separate option for large PDF thumbnails; it is slower.</p>
+</div>
+</details>
+<details class="el" id="support-epub">
+<summary><span class="mk">20</span><span><span class="name">Support EPUB e-books</span><span class="one">Reads EPUB e-books.</span></span></summary>
+<div class="full">
+<p>The reader has bookmarks and a table of contents.</p>
+</div>
+</details>
+<details class="el" id="support-office">
+<summary><span class="mk">21</span><span><span class="name">Support Office documents</span><span class="one">Opens Office documents with another app.</span></span></summary>
+<div class="full">
+<p>DOC, DOCX, RTF and ODT open in an external app, not in FastMediaSorter itself.</p>
+</div>
+</details>
+<details class="el" id="default-docs-viewer">
+<summary><span class="mk">22</span><span><span class="name">Set as default document viewer</span><span class="one">Makes FastMediaSorter the app that opens your documents.</span></span></summary>
+<div class="full">
+<p>Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
+</div>
+</details>
+<h3>Translation, digitization (OCR)</h3>
+<details class="el" id="enable-ocr">
+<summary><span class="mk">23</span><span><span class="name">Enable text recognition</span><span class="one">Turns on text recognition for images and PDFs.</span></span></summary>
+<div class="full">
+<p>Text is extracted so you can copy it. The font size and font family for the recognized text are set just below.</p>
+</div>
+</details>
+<details class="el" id="enable-translation">
+<summary><span class="mk">24</span><span><span class="name">Enable Translation</span><span class="one">Turns on translation of text recognized in images.</span></span></summary>
+<div class="full">
+<p>The visible text is translated from the original language into the one you choose below. Translation packs can be installed from the downloads row.</p>
+</div>
+</details>
+<details class="el" id="translation-source">
+<summary><span class="mk">25</span><span><span class="name">Original Language</span><span class="one">Chooses the language of the text you want to translate.</span></span></summary>
+<div class="full">
+<p>The swap button between the two language fields flips them in one tap.</p>
+</div>
+</details>
+<details class="el" id="translation-target">
+<summary><span class="mk">26</span><span><span class="name">Translate To</span><span class="one">Chooses the language to translate into.</span></span></summary>
+<div class="full">
+<p>Translations appear in this language. When you need the other direction, swap the two languages with the button between them.</p>
+</div>
+</details>
+<details class="el" id="ocr-translation-downloads">
+<summary><span class="mk">27</span><span><span class="name">OCR &amp; translation downloads</span><span class="one">Opens the downloads for text recognition and translation.</span></span></summary>
+<div class="full">
+<p>Install the OCR and translation packs you need, and remove them again to free space.</p>
+</div>
+</details>
+<h3>Streams</h3>
+<details class="el" id="enable-streams">
+<summary><span class="mk">28</span><span><span class="name">Enable Streams</span><span class="one">Turns on internet audio, video and RTSP streams.</span></span></summary>
+<div class="full">
+<p>Streams add a channel catalog and playback for online radio and television. The options below tune how they behave.</p>
+</div>
+</details>
+<details class="el" id="streams-sort">
+<summary><span class="mk">29</span><span><span class="name">Default order</span><span class="one">Chooses the default order of the channel list.</span></span></summary>
+<div class="full">
+<p>Order by name, topic, language, country or recently added.</p>
+</div>
+</details>
+<details class="el" id="streams-filter">
+<summary><span class="mk">30</span><span><span class="name">Show by default</span><span class="one">Chooses which channels show by default.</span></span></summary>
+<div class="full">
+<p>All channels, only audio, or only video.</p>
+</div>
+</details>
+<details class="el" id="catalog-refresh">
+<summary><span class="mk">31</span><span><span class="name">Updating the channel list</span><span class="one">Decides when the channel list gets updated.</span></span></summary>
+<div class="full">
+<p>Choose between updating only when you ask, a suggestion when you open Streams, or automatic updates on Wi-Fi.</p>
+</div>
+</details>
+<details class="el" id="streams-audio-language">
+<summary><span class="mk">32</span><span><span class="name">Audio language for streams</span><span class="one">Picks the audio language streams start with.</span></span></summary>
+<div class="full">
+<p>Choose Default, English, Russian or Ukrainian.</p>
+</div>
+</details>
+<details class="el" id="streams-subtitle-language">
+<summary><span class="mk">33</span><span><span class="name">Subtitle language for streams</span><span class="one">Picks the subtitle language streams start with.</span></span></summary>
+<div class="full">
+<p>Choose Default, English, Russian or Ukrainian.</p>
+</div>
+</details>
+<details class="el" id="smart-buffering">
+<summary><span class="mk">34</span><span><span class="name">Ultra-smart stream buffering</span><span class="one">Gives streams a bigger start-up cushion.</span></span></summary>
+<div class="full">
+<p>Streams start with a bigger buffer and reconnect quietly when the connection is shaky.</p>
+</div>
+</details>
+<details class="el" id="cast-play-at-once">
+<summary><span class="mk">35</span><span><span class="name">Play casts at once</span><span class="one">Starts a cast from another device without asking.</span></span></summary>
+<div class="full">
+<p>Normally a cast your other device sends here waits for you to accept it. With this on, it starts playing right away.</p>
+</div>
+</details>
+<details class="el" id="streams-pip">
+<summary><span class="mk">36</span><span><span class="name">Enable Picture-in-Picture</span><span class="one">Adds a Picture-in-Picture button to the player.</span></span></summary>
+<div class="full">
+<p>The player also enters Picture-in-Picture on its own when you press Home (Android 12 and newer).</p>
+</div>
+</details>
+<details class="el" id="clear-play-marks">
+<summary><span class="mk">37</span><span><span class="name">Clear play marks</span><span class="one">Clears the green and red play marks on all channels.</span></span></summary>
+<div class="full">
+<p>The channels themselves stay. The app asks you to confirm first.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Only the marks are removed; the channels stay where they are.</dd>
+</dl>
+</div>
+</details>
+<h3>Broadcast</h3>
+<details class="el" id="enable-broadcast">
+<summary><span class="mk">38</span><span><span class="name">Enable live broadcasting</span><span class="one">Allows live audio broadcasting from this device.</span></span></summary>
+<div class="full">
+<p>With it on, broadcast shortcuts appear in the app. The options below set the title, port, sound quality and microphone behavior.</p>
+</div>
+</details>
+<details class="el" id="broadcast-title">
+<summary><span class="mk">39</span><span><span class="name">Broadcast title</span><span class="one">Names your broadcast.</span></span></summary>
+<div class="full">
+<p>This is the name your broadcast goes by. The default is Phone Broadcast.</p>
+</div>
+</details>
+<details class="el" id="broadcast-port">
+<summary><span class="mk">40</span><span><span class="name">Port</span><span class="one">Sets the network port for the broadcast.</span></span></summary>
+<div class="full">
+<p>The app accepts ports from 1 to 65535. Change it only if you have a reason, for example another app that already uses the current port.</p>
+</div>
+</details>
+<details class="el" id="bit-rate">
+<summary><span class="mk">41</span><span><span class="name">Bit rate</span><span class="one">Sets the sound quality of the broadcast.</span></span></summary>
+<div class="full">
+<p>Choose 128, 192, 256 or 320 kbps. Higher means better sound and more data.</p>
+</div>
+</details>
+<details class="el" id="audio-format">
+<summary><span class="mk">42</span><span><span class="name">Audio format</span><span class="one">Sets the sample rate and the number of channels.</span></span></summary>
+<div class="full">
+<p>Choose 44.1 or 48 kHz, in mono or stereo.</p>
+</div>
+</details>
+<details class="el" id="mic-gain">
+<summary><span class="mk">43</span><span><span class="name">Microphone gain</span><span class="one">Sets how loud your microphone is in the broadcast.</span></span></summary>
+<div class="full">
+<p>Choose from 50% to 400%. 100% leaves the level unchanged.</p>
+</div>
+</details>
+<details class="el" id="feedback-guard">
+<summary><span class="mk">44</span><span><span class="name">Feedback guard</span><span class="one">Prevents the squeal when a listener nearby plays the broadcast aloud.</span></span></summary>
+<div class="full">
+<p>It turns the microphone gain down when the broadcast is played aloud close to the microphone, so the sound cannot build up.</p>
+</div>
+</details>
+<details class="el" id="auto-share">
+<summary><span class="mk">45</span><span><span class="name">Auto-open share screen</span><span class="one">Opens the share screen when a broadcast starts.</span></span></summary>
+<div class="full">
+<p>You do not have to open it yourself.</p>
+</div>
+</details>
+<h3>Reset</h3>
+<details class="el" id="reset-media">
+<summary><span class="mk">46</span><span><span class="name">Reset Media section</span><span class="one">Returns only this tab to its defaults.</span></span></summary>
+<div class="full">
+<p>Settings on the other tabs keep their values. The app asks you to confirm first.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="broadcast.html"><b>Broadcast control</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-general.html"><b>Settings: General</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-playback.html"><b>Settings: Player</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-operations.html"><b>Settings: Management</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/settings-overview-and-search.html"><b>Settings - Finding Your Way Around and Searching It</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/viewer-and-gestures.html"><b>Viewing Photos, GIFs and Zoom Gestures</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/documents/pdf-epub-viewing.html"><b>Reading PDF Documents - Pages, Search, Night Mode and Export</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/live-stream-playback.html"><b>Playing Live Streams and Radio</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/ocr-text-recognition.html"><b>Extracting Text with Offline OCR</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

@@ -59,12 +59,21 @@ $pattern = 'android:(layout_marginLeft|layout_marginRight|layout_alignParentLeft
 $scoped = @($ChangedFiles | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } |
     Where-Object { $_ } | Where-Object { $_ -match '\.xml$' -and $_ -match '[\\/]res[\\/]layout' })
 
+. (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+# A declared set with no layout in it is the empty determined set (CHECK-VERDICT rule 2.12), not the
+# unscoped run: falling through charged the whole layout baseline to a change that touched no layout.
+if ((Test-ChangeSetDeclared -ChangedFiles $ChangedFiles) -and $scoped.Count -eq 0) {
+    Write-EmptySetPass -GateName 'assert-rtl-layout-attrs'
+    exit 0
+}
+
 if ($scoped.Count -gt 0) {
     $targets = @()
     foreach ($rel in $scoped) {
         $full = if ([System.IO.Path]::IsPathRooted($rel)) { $rel } else { Join-Path $root $rel }
         if (-not (Test-Path -LiteralPath $full)) {
             Write-Error "assert-rtl-layout-attrs: changed file not found - $rel" -ErrorAction Continue
+            Write-Host 'assert-rtl-layout-attrs: COULD NOT VERIFY (see the error above)'
             exit 2
         }
         $targets += Get-Item -LiteralPath $full
@@ -74,6 +83,7 @@ else {
     $scanRoot = Join-Path $root 'app_v2/src'
     if (-not (Test-Path -LiteralPath $scanRoot)) {
         Write-Error "assert-rtl-layout-attrs: scan root not found - $scanRoot" -ErrorAction Continue
+        Write-Host 'assert-rtl-layout-attrs: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     $targets = @(Get-ChildItem -Path $scanRoot -Recurse -Filter '*.xml' -File |

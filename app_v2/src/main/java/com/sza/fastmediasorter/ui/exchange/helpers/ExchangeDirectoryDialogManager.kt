@@ -10,15 +10,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogExchangeDirectoryBinding
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.exchange.ExchangeDirectoryState
 import com.sza.fastmediasorter.ui.exchange.ExchangeDirectoryViewModel
 import com.sza.fastmediasorter.ui.exchange.MyDevicesActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import timber.log.Timber
 
 /**
- * The "From my devices" dialog of the add-resource wizard (S4116 strategic 6.3). It stays open across attaches so
- * the user sees each resource turn "Attached"; the directory is watched only while it is shown.
+ * The "From my devices" dialog of the add-resource wizard. A completed batch returns to the resource list;
+ * failed or skipped attachments keep the directory open so the user can retry.
  */
 class ExchangeDirectoryDialogManager(
     private val activity: AppCompatActivity,
@@ -27,11 +29,17 @@ class ExchangeDirectoryDialogManager(
 
     private var dialog: AlertDialog? = null
     private var binding: DialogExchangeDirectoryBinding? = null
+    private var directoryAdapter: ExchangeDirectoryAdapter? = null
     private val pinPrompt = ExchangePinPromptManager(activity, viewModel::submitPin, viewModel::skipPin)
 
     init {
         activity.collectOnLifecycle(viewModel.state, block = ::render)
         activity.collectOnLifecycle(viewModel.pinPrompt, block = pinPrompt::render)
+        activity.collectOnLifecycle(viewModel.attachmentsCompleted) {
+            Timber.d("S4402: exchange import completed; closing resource type selection")
+            dialog?.dismiss()
+            activity.finish()
+        }
         activity.collectOnLifecycle(viewModel.messages) { message ->
             Toast.makeText(activity, MyDevicesDialogManager.resolve(activity, message), Toast.LENGTH_LONG).show()
         }
@@ -41,7 +49,15 @@ class ExchangeDirectoryDialogManager(
         if (dialog != null) return
         val view = DialogExchangeDirectoryBinding.inflate(LayoutInflater.from(activity))
         view.rvExchangeDirectory.layoutManager = LinearLayoutManager(activity)
+        view.rvExchangeDirectory.adapter = ExchangeDirectoryAdapter(
+            onToggle = viewModel::toggle,
+            onPinNeeded = viewModel::askPin,
+            driveChannelOn = viewModel.driveChannelOn.value,
+        ).also { directoryAdapter = it }
         view.btnExchangeDirectoryMyDevices.setOnClickListener { MyDevicesActivity.start(activity) }
+        view.btnExchangePortalDirectory.setOnClickListener {
+            MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.FOLDERS_EXCHANGE_SERVER)
+        }
         binding = view
         dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.add_resource_my_devices)
@@ -52,6 +68,7 @@ class ExchangeDirectoryDialogManager(
             .setOnDismissListener {
                 dialog = null
                 binding = null
+                directoryAdapter = null
                 viewModel.close()
             }
             .showBoundTo(activity)
@@ -59,10 +76,12 @@ class ExchangeDirectoryDialogManager(
         dialog?.getButton(DialogInterface.BUTTON_POSITIVE)?.setOnClickListener { viewModel.attachSelected() }
         dialog?.getButton(DialogInterface.BUTTON_NEUTRAL)?.setOnClickListener { viewModel.attachAll() }
         viewModel.open()
+        Timber.d("S4348: directory dialog shown")
     }
 
     private fun render(state: ExchangeDirectoryState) {
         val view = binding ?: return
+        Timber.d("S4348: directory dialog render")
         val loaded = state as? ExchangeDirectoryState.Loaded
         val status = when {
             loaded == null -> R.string.exchange_devices_list_loading
@@ -73,8 +92,7 @@ class ExchangeDirectoryDialogManager(
         }
         view.textExchangeDirectoryStatus.isVisible = status != null
         status?.let(view.textExchangeDirectoryStatus::setText)
-        view.rvExchangeDirectory.adapter =
-            ExchangeDirectoryAdapter(loaded?.rows.orEmpty(), viewModel::toggle, viewModel::askPin)
+        directoryAdapter?.submitList(loaded?.rows.orEmpty())
         val canAttach = loaded?.anyAttachable == true
         dialog?.getButton(DialogInterface.BUTTON_POSITIVE)?.isEnabled = canAttach
         dialog?.getButton(DialogInterface.BUTTON_NEUTRAL)?.isEnabled = canAttach

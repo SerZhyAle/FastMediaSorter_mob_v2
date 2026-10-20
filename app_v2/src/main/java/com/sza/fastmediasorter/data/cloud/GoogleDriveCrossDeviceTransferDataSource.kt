@@ -1,8 +1,12 @@
 package com.sza.fastmediasorter.data.cloud
 
+import com.sza.fastmediasorter.data.cloud.helpers.DriveAppDataEntry
+import com.sza.fastmediasorter.data.cloud.helpers.DriveAppDataFailure
+import com.sza.fastmediasorter.data.cloud.helpers.DriveAppDataListing
+import com.sza.fastmediasorter.data.cloud.helpers.DriveStorageQuota
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveAppDataApi
 import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketManifest
-import com.sza.fastmediasorter.domain.model.transfer.DriveTransferFailure
+import java.io.InputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -12,6 +16,9 @@ import javax.inject.Singleton
  * One packet is one folder named after its `packetId`, holding its payload files beside a
  * `manifest.json`. A folder per packet is what makes "accept and delete" a single delete call
  * instead of a per-file sweep that can half-succeed.
+ *
+ * S4231: every call answers `Result` with a [DriveAppDataFailure] on failure, so the layers above can
+ * tell a rate limit from the daily limit from a lost sign-in.
  */
 @Singleton
 class GoogleDriveCrossDeviceTransferDataSource @Inject constructor(
@@ -26,81 +33,73 @@ class GoogleDriveCrossDeviceTransferDataSource @Inject constructor(
     suspend fun ensurePacketFolder(queueFolderId: String, packetId: String): Result<String> =
         idOf(appData.ensureFolder(packetId, queueFolderId))
 
-    /** Every packet folder currently in the queue, newest ordering left to the caller. */
-    suspend fun listPacketFolders(queueFolderId: String): Result<List<CloudFile>> =
-        when (val listed = appData.listChildren(queueFolderId)) {
-            is CloudResult.Error -> Result.failure(DriveTransferFailure(listed.message))
-            is CloudResult.Success -> Result.success(listed.data.filter { it.isFolder })
-        }
+    /** Every entry of the queue folder with Drive's timestamps, and Drive's clock. */
+    suspend fun listQueue(queueFolderId: String): Result<DriveAppDataListing> =
+        appData.listChildrenDetailed(queueFolderId)
 
-    /** Write one payload file into [packetFolderId]. */
-    suspend fun uploadPayloadFile(
+    /** The payload files and manifest inside one packet folder. */
+    suspend fun listPacketFiles(packetFolderId: String): Result<List<DriveAppDataEntry>> =
+        appData.listChildrenDetailed(packetFolderId).map { it.entries }
+
+    /** Stream one payload file into [packetFolderId]. */
+    suspend fun uploadPayload(
         packetFolderId: String,
         fileName: String,
-        content: ByteArray
-    ): Result<Unit> =
-        unitOf(appData.uploadFile(fileName, packetFolderId, PAYLOAD_MIME_TYPE, content))
+        mimeType: String,
+        size: Long,
+        source: InputStream
+    ): Result<Unit> = appData.uploadStream(fileName, packetFolderId, mimeType, size, source).map { }
 
     /** Write the manifest that makes the packet visible to the other devices. */
-    suspend fun writeManifest(packetFolderId: String, manifest: CrossDevicePacketManifest): Result<Unit> =
-        unitOf(
-            appData.uploadFile(
-                fileName = CrossDevicePacketManifest.MANIFEST_FILE_NAME,
-                parentFolderId = packetFolderId,
-                mimeType = MANIFEST_MIME_TYPE,
-                content = CrossDevicePacketManifest.toJson(manifest).toByteArray()
-            )
-        )
+    suspend fun writeManifest(packetFolderId: String, manifest: CrossDevicePacketManifest): Result<Unit> {
+        val bytes = CrossDevicePacketManifest.toJson(manifest).toByteArray()
+        return appData.uploadStream(
+            fileName = CrossDevicePacketManifest.MANIFEST_FILE_NAME,
+            parentFolderId = packetFolderId,
+            mimeType = MANIFEST_MIME_TYPE,
+            size = bytes.size.toLong(),
+            source = bytes.inputStream()
+        ).map { }
+    }
 
     /**
-     * Read the manifest of [packetFolderId].
+     * Read the manifest among [files] of one packet folder.
      *
      * `null` covers both a packet whose manifest was not uploaded yet and one written by a build
      * this one cannot read - neither is an error the user can act on, and both are skipped by the
      * queue rather than surfaced.
      */
-    suspend fun readManifest(packetFolderId: String): Result<CrossDevicePacketManifest?> =
-        downloadPayloadFile(packetFolderId, CrossDevicePacketManifest.MANIFEST_FILE_NAME)
-            .map { CrossDevicePacketManifest.fromJson(it.decodeToString()) }
-
-    /** Read one payload file of [packetFolderId] by its manifest-declared name. */
-    suspend fun downloadPayloadFile(packetFolderId: String, fileName: String): Result<ByteArray> =
-        when (val found = appData.findEntry(fileName, packetFolderId)) {
-            is CloudResult.Error -> Result.failure(DriveTransferFailure(found.message))
-            is CloudResult.Success ->
-                found.data
-                    ?.let { bytesOf(appData.downloadFile(it.id)) }
-                    ?: Result.failure(DriveTransferFailure("$fileName is not in packet $packetFolderId"))
+    suspend fun readManifest(files: List<DriveAppDataEntry>): Result<CrossDevicePacketManifest?> {
+        val manifest = files.firstOrNull { it.name == CrossDevicePacketManifest.MANIFEST_FILE_NAME }
+            ?: return Result.success(null)
+        return openFile(manifest.id).mapCatching { stream ->
+            CrossDevicePacketManifest.fromJson(stream.use { it.readBytes().decodeToString() })
         }
+    }
+
+    /** Open one Drive file of a packet as a stream; the caller closes it. */
+    suspend fun openFile(fileId: String): Result<InputStream> = appData.openDownload(fileId)
 
     /** Delete a whole packet folder, payload and manifest together. */
     suspend fun deletePacketFolder(packetFolderId: String): Result<Unit> =
         when (val deleted = appData.deleteEntry(packetFolderId)) {
-            is CloudResult.Error -> Result.failure(DriveTransferFailure(deleted.message))
+            is CloudResult.Error -> Result.failure(failureOf(deleted))
             is CloudResult.Success -> Result.success(Unit)
         }
+
+    suspend fun readStorageQuota(): Result<DriveStorageQuota> = appData.readStorageQuota()
 
     private fun idOf(result: CloudResult<CloudFile>): Result<String> =
         when (result) {
-            is CloudResult.Error -> Result.failure(DriveTransferFailure(result.message))
+            is CloudResult.Error -> Result.failure(failureOf(result))
             is CloudResult.Success -> Result.success(result.data.id)
         }
 
-    private fun unitOf(result: CloudResult<CloudFile>): Result<Unit> =
-        when (result) {
-            is CloudResult.Error -> Result.failure(DriveTransferFailure(result.message))
-            is CloudResult.Success -> Result.success(Unit)
-        }
-
-    private fun bytesOf(result: CloudResult<ByteArray>): Result<ByteArray> =
-        when (result) {
-            is CloudResult.Error -> Result.failure(DriveTransferFailure(result.message))
-            is CloudResult.Success -> Result.success(result.data)
-        }
+    private fun failureOf(error: CloudResult.Error): DriveAppDataFailure =
+        error.cause as? DriveAppDataFailure ?: DriveAppDataFailure.Network(error.cause)
 
     companion object {
         const val QUEUE_FOLDER_NAME = "cross_device_transfer"
-        private const val PAYLOAD_MIME_TYPE = "application/octet-stream"
         private const val MANIFEST_MIME_TYPE = "application/json"
     }
 }

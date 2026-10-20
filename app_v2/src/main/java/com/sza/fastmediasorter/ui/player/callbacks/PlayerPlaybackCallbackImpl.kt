@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.domain.player.BroadcastPlaybackPairs
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.ImageLoadingManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -75,6 +76,10 @@ class PlayerPlaybackCallbackImpl(
     }
 
     override fun onPlaybackError(error: Throwable, userMessage: String?) {
+        if (BroadcastPlaybackPairs.isPasswordRefusal(error)) {
+            activity.finishForBroadcastPassword()
+            return
+        }
         if (activity.slideshowResourceAvailabilityManager.handlePlaybackError(error, userMessage)) {
             return
         }

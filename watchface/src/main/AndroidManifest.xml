@@ -7,10 +7,14 @@
 
     <!-- No <service> element: Watch Face Format is rendered by the system, so unlike the legacy
          Jetpack watch face API this package declares no component of its own. -->
+    <!-- The icon is a capture of this face, not a drawing of it: Play rejected a drawn icon on
+         2026-10-18 for not accurately representing the face (WO-G4). Re-capture it, the picker
+         preview and the store icon together whenever the face's look changes - the recipe is in
+         play/watchface/README.md. -->
     <application
         android:allowBackup="false"
         android:hasCode="false"
-        android:icon="@drawable/ic_watch_face_launcher"
+        android:icon="@mipmap/ic_watch_face_launcher"
         android:label="@string/watch_face_name">
 
         <meta-data

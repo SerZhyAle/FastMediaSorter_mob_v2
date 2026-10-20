@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "FastMedia Wear OS - Detailed Development Steps"
 permalink: /docs/WEAR_OS_IMPLEMENTATION_STEPS.html
 ---
-<sub class="doc-stamp">26.09.11 13:40</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # FastMedia Wear OS - Detailed Development Steps
 

@@ -1,15 +1,47 @@
 appId: com.sza.fastmediasorter.debug
 ---
-# Common system dialogs
-- tapOn:
-    text: "Allow"
+# Dismiss a system permission / confirmation dialog when one is up. A fragment that is a no-op on a
+# prepared device, where every runtime grant was given beforehand.
+#
+# S4252: this used to be four `tapOn ... optional: true` taps in a row. An optional tap on an element
+# that is not there is a failed lookup, and Maestro 2.6.1 spends its full optional timeout (about 7 s,
+# then 1-3 s for each following miss) before it gives up - 11-15 s per flow on a quiet device, paid on
+# every launch to catch a dialog that almost never exists.
+#
+# The cost model that decides this shape (measured 2026-10-15, Maestro 2.6.1, one phone):
+# - a lookup that SUCCEEDS answers in 0.2-1 s: `visible` on a present element, `notVisible` on an
+#   absent one;
+# - a lookup that FAILS waits out the ~7 s timeout once per unbroken run of failures, and a success
+#   in between starts the clock again.
+# So the check below asks the question whose common answer is a success - "is no dialog up?" - and
+# the four taps run only in the rare run where it is a failure. `extendedWaitUntil` carries its own
+# timeout and does not use the 7 s clock; the second it waits is what a dialog raised a beat after
+# launch gets to appear before the question is asked.
+- extendedWaitUntil:
+    visible:
+      text: "Allow|ALLOW|Allow only while using the app|OK"
+    timeout: 1000
     optional: true
-- tapOn:
-    text: "ALLOW"
-    optional: true
-- tapOn:
-    text: "Allow only while using the app"
-    optional: true
-- tapOn:
-    text: "OK"
-    optional: true
+- evalScript: ${output.systemDialogUp = true}
+- runFlow:
+    when:
+      notVisible:
+        text: "Allow|ALLOW|Allow only while using the app|OK"
+    commands:
+      - evalScript: ${output.systemDialogUp = false}
+- runFlow:
+    when:
+      true: ${output.systemDialogUp}
+    commands:
+      - tapOn:
+          text: "Allow"
+          optional: true
+      - tapOn:
+          text: "ALLOW"
+          optional: true
+      - tapOn:
+          text: "Allow only while using the app"
+          optional: true
+      - tapOn:
+          text: "OK"
+          optional: true

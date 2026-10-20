@@ -321,6 +321,6 @@ finally {
     if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue }
 }
 
-Write-Host ("agent-chat tests: {0} passed, {1} failed" -f $script:pass, $script:fail)
+Write-Host "agent-chat tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

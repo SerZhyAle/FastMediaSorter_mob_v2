@@ -11,4 +11,7 @@
     <string name="browse_network_error_timeout">لم يتم الرد في الوقت المحدد. تحقق من الشبكة وحاول مجددًا.</string>
     <string name="browse_network_error_auth">اسم المستخدم أو كلمة المرور غير صحيحة. حدّث المورد على هاتفك.</string>
     <string name="browse_network_error_unknown_host">لم يتم العثور على الكمبيوتر في هذه الشبكة. تحقق من الاتصال باللاسلكي.</string>
+    <string name="exchange_folder_needs_own_network">يُفتح هذا المجلد عبر Wi-Fi أو LTE الخاص بالساعة فقط. فعّل Wi-Fi أو LTE على الساعة.</string>
+    <string name="exchange_folder_pin_on_phone">هذا المجلد محمي، ويُدخل رمز PIN الخاص به على الهاتف. افتح المجلد على الهاتف وأدخل رمز PIN.</string>
+    <string name="exchange_folder_connect_watch_on_phone">خارج المنزل يتطلب هذا المجلد اتصال الساعة بالخادم. وصّل الساعة من الهاتف.</string>
 </resources>

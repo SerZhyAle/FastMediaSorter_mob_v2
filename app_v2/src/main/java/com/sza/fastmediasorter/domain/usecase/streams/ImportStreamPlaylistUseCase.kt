@@ -3,7 +3,9 @@ package com.sza.fastmediasorter.domain.usecase.streams
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.M3uPlaylistParser
+import com.sza.fastmediasorter.data.repository.M3uPlaylistParser.ParsedStreamEntry
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
+import com.sza.fastmediasorter.data.util.StreamUrlNormalizer
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import kotlinx.coroutines.Dispatchers
@@ -45,7 +47,7 @@ class ImportStreamPlaylistUseCase @Inject constructor(
         }
 
         val entries = try {
-            parser.parse(body)
+            acceptedEntries(parser.parse(body))
         } catch (e: Exception) {
             Timber.w(e, "Stream playlist import failed: parse error for %s", listUrl)
             return@withContext ImportResult.Failure(e.message ?: "parse error")
@@ -69,6 +71,33 @@ class ImportStreamPlaylistUseCase @Inject constructor(
         // Counts the sources this import actually added (duplicates ignored), accumulated all-time.
         statsSink.record(StatsEvent.PlaylistImported(count = inserted.toLong()))
         ImportResult.Success(inserted)
+    }
+
+    /**
+     * STREAM-BANK 2.4 SB-A8 / SB-A11: the parser takes any non-comment line for a URL, so a line with an
+     * unlaunchable scheme or no host is dropped here, and two spellings of one stream collapse to the
+     * first. The first spelling is kept verbatim because a stream path is often case-sensitive; stored
+     * rows are never touched, the repository's insert-ignore keeps them.
+     */
+    private fun acceptedEntries(parsed: List<ParsedStreamEntry>): List<ParsedStreamEntry> {
+        val valid = parsed.filter { classifier.isSupportedScheme(it.url) && hasHost(it.url) }
+        val unique = valid.distinctBy { StreamUrlNormalizer.normalize(it.url) }
+        val dropped = parsed.size - unique.size
+        if (dropped > 0) {
+            Timber.i(
+                "Stream playlist import: dropped %d of %d entries (%d invalid, %d duplicate)",
+                dropped,
+                parsed.size,
+                parsed.size - valid.size,
+                valid.size - unique.size
+            )
+        }
+        return unique
+    }
+
+    private fun hasHost(url: String): Boolean {
+        val authority = url.trim().substringAfter("://", "").takeWhile { it !in AUTHORITY_END }
+        return authority.substringAfterLast('@').substringBefore(':').isNotBlank()
     }
 
     /**
@@ -149,9 +178,11 @@ class ImportStreamPlaylistUseCase @Inject constructor(
         private val PLAYLIST_TYPE_MARKERS = listOf("mpegurl", "scpls", "x-ms-asf", "x-ms-wax", "x-ms-wvx")
         private const val BYTE_ORDER_MARK = '\uFEFF'
 
-        // Large IPTV lists run to a few MiB; 16 MiB leaves headroom while keeping a media file
-        // pasted by mistake from filling the heap.
-        const val MAX_PLAYLIST_BYTES = 16 * BYTES_PER_MIB
+        // STREAM-BANK 2.4 SB-A10 / USER-PLAYLIST 0.12 section 8 item 1: the reference reader's ceiling.
+        // 16 MiB refused real 20 MiB IPTV lists; the cap still keeps a pasted media file off the heap.
+        const val MAX_PLAYLIST_BYTES = 32 * BYTES_PER_MIB
+
+        private val AUTHORITY_END = charArrayOf('/', '?', '#')
 
         // Finite on purpose: a host that trickles bytes resets the read timeout on every chunk.
         private const val PLAYLIST_CALL_TIMEOUT_SECONDS = 120L

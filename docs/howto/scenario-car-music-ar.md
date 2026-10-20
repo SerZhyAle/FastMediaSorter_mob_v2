@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "مشغل الموسيقى في السيارة (وحدة رأس Android) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-ar.html
 ---
-<sub class="doc-stamp">26.09.25 02:16</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
 # 🚗 مشغل الموسيقى في السيارة (وحدة رأس Android)
 
 > **المستوى:** مبتدئ &bull; **الوقت:** ~10 دقائق &bull; **الإصدار:** Standard وLegacy وVR وnoLegal (يشغّل Lite الصوت المحلي لكن بلا تشغيل في الخلفية وبلا بث؛ لا يحتوي Photos على صوت)
-
-{% include lang-switcher.html doc="scenario-car-music" dir="/docs/howto/" current="ar" %}
 
 يعمل FastMediaSorter بشكل رائع كمشغل موسيقى للسيارة على وحدات رأس Android - وصول فوري إلى مكتبة موسيقاك الكاملة على بطاقة SD أو محرك USB، مع دعم مدمج لأزرار عجلة القيادة.
 

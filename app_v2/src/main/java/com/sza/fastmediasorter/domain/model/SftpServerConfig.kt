@@ -49,6 +49,14 @@ sealed interface SftpServerState {
     data class Running(val port: Int, val addresses: List<String>) : SftpServerState
 
     data class Failed(val reason: SftpServerFailure) : SftpServerState
+
+    /** Android ended the sharing service, not the person; the next foreground resumes it (S4225). */
+    data class Paused(val reason: SftpServerPauseReason) : SftpServerState
+}
+
+enum class SftpServerPauseReason {
+    /** The data-sync daily limit of Android 15 and later; it resets when the app is shown. */
+    TIME_LIMIT,
 }
 
 enum class SftpServerFailure {

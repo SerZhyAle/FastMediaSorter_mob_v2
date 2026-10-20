@@ -7,6 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
@@ -15,6 +18,7 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.pedro.common.ConnectChecker
 import com.pedro.encoder.input.audio.CustomAudioEffect
+import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.CameraOpenException
 import com.pedro.rtspserver.RtspServerCamera2
 import com.pedro.rtspserver.server.ClientListener
@@ -26,6 +30,7 @@ import com.sza.fastmediasorter.core.network.LanAddressResolver
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialRegistry
 import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeVideoRelayFeed
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -49,6 +54,12 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
+
+    @Inject
+    lateinit var credentialRegistry: BroadcastCredentialRegistry
+
+    @Volatile
+    private var rtspGate: RtspGatedPort? = null
 
     @Inject
     lateinit var previewProvider: BroadcastPreviewProvider
@@ -99,6 +110,10 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             }
             ACTION_TOGGLE_CAMERA -> {
                 toggleCameraInternal()
+                return START_STICKY
+            }
+            ACTION_TOGGLE_TORCH -> {
+                toggleTorchInternal()
                 return START_STICKY
             }
             ACTION_SWITCH_MODE -> {
@@ -202,10 +217,15 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         try {
             // Always headless: the control screen attaches its preview later through BroadcastPreviewProvider,
             // once its surface exists.
-            val camera = RtspServerCamera2(this, this, port)
+            val gated = RtspGatedPort(port, credentialRegistry)
+            rtspGate?.close()
+            rtspGate = gated
+            val camera = RtspServerCamera2(this, this, gated.innerPort)
             if (!prepareEncoders(camera, config)) return
 
             val streamClient = configureStreamClient(camera)
+            gated.closeLibrary(streamClient)
+            gated.open()
             val lensId = startStreamOnLens(camera)
             // Published before the recheck: a stop landing after startStreamOnLens() finds the camera in
             // the field, and one landing before it is caught here, so the camera cannot outlive the session.
@@ -238,12 +258,14 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             )
 
             currentMicEnabled = currentMode != BroadcastMode.VIDEO_ONLY
+            val liveLensId = lensId ?: camera.currentCameraId
             _state.value = BroadcastState.Live(
                 descriptor = dto,
                 startedAtElapsedRealtimeMs = SystemClock.elapsedRealtime(),
                 cameraEnabled = true,
                 microphoneEnabled = currentMicEnabled,
-                activeLensId = lensId ?: camera.currentCameraId,
+                activeLensId = liveLensId,
+                torchAvailable = lensHasFlash(liveLensId),
             )
             Timber.d("VideoBroadcastService: RTSP streaming started at %s", endpoint)
         } catch (e: Exception) {
@@ -259,13 +281,15 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     /** False after it has already failed the session: the caller only has to return. */
     private fun prepareEncoders(camera: RtspServerCamera2, config: BroadcastSessionConfig): Boolean {
-        val defaultRotation = 0
+        // RootEncoder rotates both the pixels and encoder dimensions for the session's display orientation.
+        val rotation = CameraHelper.getCameraOrientation(this)
+        Timber.d("S4403: prepare camera rotation=$rotation size=${config.videoWidth}x${config.videoHeight}")
         val videoPrepared = camera.prepareVideo(
             config.videoWidth,
             config.videoHeight,
             config.videoFps,
             config.videoBitrateBps,
-            defaultRotation
+            rotation
         )
         val audioPrepared: Boolean = if (currentMode != BroadcastMode.VIDEO_ONLY) {
             camera.prepareAudio(config.bitRateBps, config.sampleRateHz, config.channelCount >= 2)
@@ -308,7 +332,7 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
     }
 
     private fun publishableEndpoint(libraryEndpoint: String, lanHost: String): String =
-        checkNotNull(RtspEndpointAddress.onLanHost(libraryEndpoint, lanHost)) {
+        checkNotNull(RtspEndpointAddress.onLanHost(libraryEndpoint, lanHost, rtspGate?.publicPort)) {
             "RTSP endpoint $libraryEndpoint cannot be published on $lanHost"
         }
 
@@ -409,7 +433,14 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
                 camera.switchCamera(logicalId)
             }
             BroadcastLensOption.physicalIdOf(lensId)?.let { openPhysicalLens(camera, it) }
-            _state.value = liveState.copy(activeLensId = lensId)
+            // S4281: a re-open ends with the lamp out and the state saying so, whatever flag the library kept.
+            douseTorch(camera)
+            val hasFlash = lensHasFlash(lensId)
+            _state.value = liveState.copy(
+                activeLensId = lensId,
+                torchAvailable = hasFlash,
+                torchEnabled = false,
+            )
         } catch (e: CameraOpenException) {
             Timber.w(
                 e,
@@ -441,7 +472,55 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         val liveState = _state.value as? BroadcastState.Live ?: return
         val cameraOn = !liveState.cameraEnabled
         previewProvider.setVideoMuted(!cameraOn)
-        _state.value = liveState.copy(cameraEnabled = cameraOn)
+        // S4281: a lamp lit behind black frames lights nothing for the viewers and only drains the battery.
+        if (!cameraOn) cameraServer?.let(::douseTorch)
+        _state.value = liveState.copy(
+            cameraEnabled = cameraOn,
+            torchEnabled = liveState.torchEnabled && cameraOn,
+        )
+    }
+
+    /**
+     * S4281: the flash of the lens on air. Availability comes from the camera characteristics of the logical
+     * camera, not from the library: the library knows its lens only once the camera has opened, and the control
+     * screen needs the answer the moment the session goes live.
+     */
+    private fun lensHasFlash(lensId: String?): Boolean {
+        if (lensId == null) return false
+        return try {
+            val manager = getSystemService(CameraManager::class.java)
+            manager.getCameraCharacteristics(BroadcastLensOption.logicalIdOf(lensId))
+                .get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+        } catch (e: CameraAccessException) {
+            Timber.w(e, "VideoBroadcastService: flash of lens %s is unknown", lensId)
+            false
+        } catch (e: IllegalArgumentException) {
+            Timber.w(e, "VideoBroadcastService: lens %s is unknown to Camera2", lensId)
+            false
+        }
+    }
+
+    /** Lights or puts out the flash; the published state is read back from the library, not assumed. */
+    @Suppress("TooGenericExceptionCaught")
+    private fun toggleTorchInternal() {
+        val camera = cameraServer
+        val liveState = (_state.value as? BroadcastState.Live)?.takeIf { it.cameraEnabled && it.torchAvailable }
+        if (camera == null || liveState == null) return
+        try {
+            if (camera.isLanternEnabled) camera.disableLantern() else camera.enableLantern()
+        } catch (e: Exception) {
+            Timber.w(e, "VideoBroadcastService: torch toggle failed, the lamp stays as it was")
+        }
+        _state.value = liveState.copy(torchEnabled = camera.isLanternEnabled)
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    private fun douseTorch(camera: RtspServerCamera2) {
+        try {
+            if (camera.isLanternEnabled) camera.disableLantern()
+        } catch (e: Exception) {
+            Timber.w(e, "VideoBroadcastService: torch did not go out")
+        }
     }
 
     /**
@@ -456,6 +535,10 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             _state.value is BroadcastState.Live && cameraServer != null
         if (!switchable) return
         releaseCamera()
+        // S4281: the previous Live stays published through the re-open, so its torch flags are cleared here.
+        (_state.value as? BroadcastState.Live)?.let {
+            _state.value = it.copy(torchAvailable = false, torchEnabled = false)
+        }
         _listenerCount.value = 0
         currentMode = checkNotNull(mode)
         pendingLensId = intent.getStringExtra(EXTRA_LENS_ID)
@@ -476,6 +559,7 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         previewProvider.detachCamera()
         val camera = cameraServer
         if (camera != null) {
+            douseTorch(camera)
             if (camera.isStreaming) {
                 camera.stopStream()
             }
@@ -496,6 +580,8 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     private fun stopBroadcast() {
         releaseCamera()
+        rtspGate?.close()
+        rtspGate = null
         _state.value = BroadcastState.Idle
         _listenerCount.value = 0
     }
@@ -529,7 +615,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
     // listener sees nothing until the encoder's next scheduled keyframe (LIVE-BROADCAST consumer rule 1).
     override fun onClientConnected(client: ServerClient) {
         cameraServer?.requestKeyFrame()
-        Timber.d("S4124: keyframe requested on PLAY from %s", client.getAddress())
         publishListenerCount()
     }
 
@@ -601,6 +686,7 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         const val ACTION_TOGGLE_MIC = "com.sza.fastmediasorter.broadcast.action.TOGGLE_MIC"
         const val ACTION_SELECT_LENS = "com.sza.fastmediasorter.broadcast.action.SELECT_LENS"
         const val ACTION_TOGGLE_CAMERA = "com.sza.fastmediasorter.broadcast.action.TOGGLE_CAMERA"
+        const val ACTION_TOGGLE_TORCH = "com.sza.fastmediasorter.broadcast.action.TOGGLE_TORCH"
         const val ACTION_SWITCH_MODE = "com.sza.fastmediasorter.broadcast.action.SWITCH_MODE"
 
         private const val EXTRA_MODE = "mode"
@@ -679,6 +765,13 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         fun toggleCamera(context: Context) {
             val intent = Intent(context, VideoBroadcastService::class.java).apply {
                 action = ACTION_TOGGLE_CAMERA
+            }
+            context.startService(intent)
+        }
+
+        fun toggleTorch(context: Context) {
+            val intent = Intent(context, VideoBroadcastService::class.java).apply {
+                action = ACTION_TOGGLE_TORCH
             }
             context.startService(intent)
         }

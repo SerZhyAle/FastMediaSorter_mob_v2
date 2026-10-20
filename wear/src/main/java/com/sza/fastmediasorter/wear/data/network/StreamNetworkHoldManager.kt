@@ -27,11 +27,11 @@ private const val BROADCAST_NETWORK_TIMEOUT_MS = 8_000L
  * handed back. Neither is worth failing a teardown over, and both are reachable when a stop races a
  * start that timed out.
  */
-private fun unregisterQuietly(manager: ConnectivityManager, callback: ConnectivityManager.NetworkCallback) {
+internal fun unregisterQuietly(manager: ConnectivityManager, callback: ConnectivityManager.NetworkCallback) {
     try {
         manager.unregisterNetworkCallback(callback)
     } catch (e: IllegalArgumentException) {
-        Timber.i(e, "The broadcast network callback was already unregistered")
+        Timber.i(e, "A network callback was already unregistered")
     }
 }
 

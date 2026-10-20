@@ -1,0 +1,27 @@
+# scripts/quality/empty-set-form-exempt.txt
+# S4378: class E checks exempt from carrying Write-EmptySetPass / '0 file(s) inspected'.
+# Format: <name> | <class> | <reason>
+# Enforced by Rule I of scripts/quality/assert-exit-contract.ps1.
+
+assert-baseline-inventory | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
+assert-check-subject | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
+assert-ci-cost-map | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
+assert-doc-pin-drift | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
+assert-flavor-matrix-docs | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
+assert-gate-placement | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
+assert-help-map | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
+assert-launcher-reset-coverage | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
+assert-oss-notices | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
+assert-rule-digest-sync | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
+assert-wear-canonical-key-parity | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
+assert-wear-settings-parity | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
+assert-wear-wire-nullability | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
+assert-wear-wire-vocabulary-parity | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
+assert-android-xr-manifest | single-input | One declared input with its own advisory
+assert-ui-sweep-catalog | single-input | One declared input with its own advisory
+assert-bridge-scenario-coverage | whole-tree | Whole-tree analysis whose standing findings are charged by file
+assert-gson-persistence-contract | whole-tree | Whole-tree analysis whose standing findings are charged by file
+assert-icon-contract | whole-tree | Whole-tree analysis whose standing findings are charged by file
+assert-wear-walk-contract | whole-tree | Whole-tree analysis whose standing findings are charged by file
+assert-fast-gates | aggregator | Aggregators of other checks, judged by rule 14
+assert-settings-doc-sync | aggregator | Aggregators of other checks, judged by rule 14

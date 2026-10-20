@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -84,30 +83,7 @@ class CredentialAuditor @Inject constructor(
             )
             entry.copy(eligibleForCleanup = unusedCredentialPolicy.isEligibleForCleanup(entry, now))
         }
-        val report = CredentialAuditReport(entries)
-        logReport(report)
-        return report
-    }
-
-    private fun logReport(report: CredentialAuditReport) {
-        if (report.orphanedCount > 0) {
-            val ids = report.entries
-                .filter { it.status == CredentialStatus.ORPHANED }
-                .joinToString { it.credentialId }
-            Timber.d(
-                "CredentialAuditor: ${report.orphanedCount}/${report.totalCount} " +
-                    "credentials are ORPHANED (no associated resources). IDs: $ids"
-            )
-        } else {
-            Timber.d("CredentialAuditor: ${report.totalCount} credentials audited - all ACTIVE")
-        }
-        if (report.eligibleForCleanupCount > 0) {
-            Timber.w(
-                "CredentialAuditor: ${report.eligibleForCleanupCount} credential(s) exceeded " +
-                    "grace period and are ELIGIBLE FOR CLEANUP " +
-                    "(grace: ${unusedCredentialPolicy.gracePeriodMs / 86_400_000}d)"
-            )
-        }
+        return CredentialAuditReport(entries)
     }
 }
 

@@ -54,6 +54,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiverEntry
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.ReceiverListDialog
+import com.sza.fastmediasorter.wear.ui.common.SERVER_CLIPBOARD_DETAILS_RES
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.common.StandardWearAlertDialog
 import com.sza.fastmediasorter.wear.ui.common.WEAR_SEARCH_INPUT_KEY
@@ -71,6 +72,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScrolls
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.launchWearSearchInput
+import com.sza.fastmediasorter.wear.ui.common.messageRes
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
 import com.sza.fastmediasorter.wear.ui.common.rememberOverlayVisibleOnIdle
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
@@ -81,6 +83,7 @@ import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorSideBar
 import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorViewModel
 import com.sza.fastmediasorter.wear.ui.player.common.VolumeReadout
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import kotlinx.coroutines.flow.StateFlow
 import timber.log.Timber
 
 private val PROGRESS_INDICATOR_SIZE = 24.dp
@@ -113,7 +116,7 @@ fun BrowseScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val fileListViewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
     val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
-    val operations = rememberBrowseOperationsUi(viewModel.fileOperations)
+    val operations = rememberBrowseOperationsUi(viewModel.fileOperations, viewModel.browsedSourceReadOnly)
     // S2140: its own holder, not a field on BrowseViewModel - the reading belongs to the indicator, so
     // another screen adopting the bar needs this one line and no edit to its state holder.
     val volumeViewModel: VolumeIndicatorViewModel = hiltViewModel()
@@ -486,6 +489,15 @@ private fun OperationResultRow(result: WearFileOperationResult) {
                 stringResource(R.string.wear_file_op_outcome_saved_to, result.destination)
             result.destination != null && result.outcome == WearFileOperationOutcome.QUEUED_ON_PHONE ->
                 stringResource(R.string.wear_file_op_outcome_queued_on_phone, result.destination)
+            result.destination != null && result.outcome == WearFileOperationOutcome.SENT_TO_SERVER_CLIPBOARD_PARTLY ->
+                stringResource(R.string.wear_server_clipboard_sent_partly, result.destination)
+            // S4230: the resource's name when it took the file, the one reason when it did not.
+            result.destination != null && result.outcome == WearFileOperationOutcome.SENT_TO_RESOURCE ->
+                stringResource(R.string.wear_resource_send_sent_to, result.destination)
+            result.resourceSendFailure != null -> stringResource(result.resourceSendFailure.messageRes())
+            // S4227, contract 25 item DA: what happened, then the one fixed line pointing at the phone.
+            result.serverClipboardFailure != null -> stringResource(result.serverClipboardFailure.messageRes()) +
+                "\n" + stringResource(SERVER_CLIPBOARD_DETAILS_RES)
             else -> stringResource(result.outcome.messageRes())
         }
         Text(
@@ -526,6 +538,21 @@ private fun WearFileOperationOutcome.messageRes(): Int = when (this) {
     WearFileOperationOutcome.AWAITING_PHONE_ACTION -> R.string.wear_send_to_awaiting_phone
     WearFileOperationOutcome.FAILED -> R.string.wear_file_op_outcome_failed
     WearFileOperationOutcome.CANCELLED -> R.string.wear_file_op_outcome_cancelled
+    WearFileOperationOutcome.SENT_TO_SERVER_CLIPBOARD,
+    WearFileOperationOutcome.SENT_TO_SERVER_CLIPBOARD_PARTLY,
+    WearFileOperationOutcome.NOT_SENT_TO_SERVER_CLIPBOARD,
+    WearFileOperationOutcome.SENT_TO_RESOURCE,
+    WearFileOperationOutcome.NOT_SENT_TO_RESOURCE -> watchServedMessageRes()
+}
+
+// The sends the watch serves itself, kept apart so the table above stays under the complexity ceiling (S4227,
+// S4230): each is its own receiver, with its own sentence for sent and for not sent.
+private fun WearFileOperationOutcome.watchServedMessageRes(): Int = when (this) {
+    WearFileOperationOutcome.SENT_TO_SERVER_CLIPBOARD,
+    WearFileOperationOutcome.SENT_TO_SERVER_CLIPBOARD_PARTLY -> R.string.wear_server_clipboard_sent
+    WearFileOperationOutcome.SENT_TO_RESOURCE -> R.string.wear_resource_send_sent
+    WearFileOperationOutcome.NOT_SENT_TO_RESOURCE -> R.string.wear_resource_send_not_sent
+    else -> R.string.wear_server_clipboard_not_sent
 }
 
 /**
@@ -675,12 +702,18 @@ private data class BrowseOperationsUi(
 )
 
 @Composable
-private fun rememberBrowseOperationsUi(operations: BrowseFileOperationsManager): BrowseOperationsUi {
+private fun rememberBrowseOperationsUi(
+    operations: BrowseFileOperationsManager,
+    sourceReadOnly: StateFlow<Boolean>
+): BrowseOperationsUi {
     val selectedIds by operations.selectedFileIds.collectAsStateWithLifecycle()
     val allowedOperations by operations.allowedOperations.collectAsStateWithLifecycle()
+    val readOnly by sourceReadOnly.collectAsStateWithLifecycle()
     val receivers by operations.sendToReceivers.collectAsStateWithLifecycle()
     val run by operations.operationRun.collectAsStateWithLifecycle()
-    return BrowseOperationsUi(selectedIds, allowedOperations, receivers, run)
+    // S4228: a read-only folder offers no deletion; the use case refuses it as well, this only hides the action.
+    val offered = if (readOnly) allowedOperations - WearFileOperationKind.DELETE else allowedOperations
+    return BrowseOperationsUi(selectedIds, offered, receivers, run)
 }
 
 /** What the browse dialogs draw. */

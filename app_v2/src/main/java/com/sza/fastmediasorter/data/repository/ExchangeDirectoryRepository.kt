@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.repository
 import com.sza.fastmediasorter.data.cloud.GoogleDriveSftpRendezvousDataSource
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectory
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectoryWatcher
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeSealedContentOpener
 import com.sza.fastmediasorter.data.repository.settings.SftpRendezvousIdentityStore
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.ExchangeDirectoryListing
@@ -34,6 +35,7 @@ class ExchangeDirectoryRepository @Inject constructor(
     private val watcher: DeviceExchangeDirectoryWatcher,
     private val drive: GoogleDriveSftpRendezvousDataSource,
     private val driveIds: SftpRendezvousIdentityStore,
+    private val sealed: ExchangeSealedContentOpener,
 ) {
 
     internal var nowMs: () -> Long = System::currentTimeMillis
@@ -43,20 +45,35 @@ class ExchangeDirectoryRepository @Inject constructor(
     fun observe(playableModes: Set<String>): Flow<ExchangeDirectoryListing> =
         accounts.entries.flatMapLatest { entries ->
             val sources: List<Flow<ExchangeDirectorySource?>> = entries.map(::serverSource) + driveSource()
-            combine(sources) { answered -> listing(entries, answered.toList(), playableModes) }
+            combine(sources) { answered ->
+                val own = entries.mapTo(HashSet()) { it.deviceId } + driveIds.deviceId()
+                listing(answered.toList(), own, playableModes)
+            }
         }
 
-    private suspend fun listing(
-        entries: List<DeviceExchangeAccountEntry>,
+    /**
+     * S4392: watches the directory for all devices of the account, keeping this device's own broadcasts
+     * in the listing so they can be surfaced in the streams "Own" group.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun observeAllBroadcasts(playableModes: Set<String>): Flow<ExchangeDirectoryListing> =
+        accounts.entries.flatMapLatest { entries ->
+            val sources: List<Flow<ExchangeDirectorySource?>> = entries.map(::serverSource) + driveSource()
+            combine(sources) { answered ->
+                listing(answered.toList(), emptySet(), playableModes)
+            }
+        }
+
+    private fun listing(
         answered: List<ExchangeDirectorySource?>,
+        ownDeviceIds: Set<String>,
         playableModes: Set<String>,
     ): ExchangeDirectoryListing {
         val ready = answered.filterNotNull()
-        val own = entries.mapTo(HashSet()) { it.deviceId } + driveIds.deviceId()
         return ExchangeDirectoryRules.listing(
             servers = ready.filter { it.key != ExchangeDirectorySource.DRIVE_SOURCE },
             drive = ready.firstOrNull { it.key == ExchangeDirectorySource.DRIVE_SOURCE },
-            ownDeviceIds = own,
+            ownDeviceIds = ownDeviceIds,
             playableModes = playableModes,
         ).copy(pending = ready.size < answered.size)
     }
@@ -64,7 +81,8 @@ class ExchangeDirectoryRepository @Inject constructor(
     // A stream that ends - the producer took the control stream back - leaves its last directory in place.
     private fun serverSource(entry: DeviceExchangeAccountEntry): Flow<ExchangeDirectorySource?> =
         watcher.watch(entry)
-            .map<DeviceExchangeDirectory, ExchangeDirectorySource?> { directory ->
+            .map<DeviceExchangeDirectory, ExchangeDirectorySource?> { delivered ->
+                val directory = sealed.open(entry, delivered)
                 ExchangeDirectorySource(entry.identity, directory.devices, directory.resources, directory.broadcasts)
             }
             .onStart { emit(null) }

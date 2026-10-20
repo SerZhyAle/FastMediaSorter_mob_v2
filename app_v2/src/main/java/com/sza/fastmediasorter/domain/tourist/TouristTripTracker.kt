@@ -93,7 +93,6 @@ class TouristTripTracker @Inject constructor(
     }
 
     suspend fun reset() {
-        Timber.d("S4145: trip reset")
         state.update { accumulator.reset(it) }
         slopeWindow.value = emptyList()
         persist()

@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Scheduled Camera Backup to PC - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup.html
 ---
-<sub class="doc-stamp">26.09.30 02:31</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 📷 Scheduled Camera Backup to PC
 
 > **Level:** Beginner &bull; **Time:** ~15 minutes setup &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (needs network sources - Lite has none)
-
-{% include lang-switcher.html doc="scenario-camera-backup" dir="/docs/howto/" current="en" %}
 
 Automatically copy new photos from your phone's camera to your home computer **every night, over Wi-Fi**. Set it up once - it runs forever without any manual action.
 

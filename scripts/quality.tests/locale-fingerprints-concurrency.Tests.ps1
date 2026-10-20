@@ -122,6 +122,6 @@ Assert-Equal 'the name carries no path separator' $true ($nameA.Substring(6) -no
 Remove-Item -LiteralPath $scratchDir -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host ''
-Write-Host ("TOTAL | pass: {0} | fail: {1}" -f $script:pass, $script:fail)
+Write-Host "locale-fingerprints-concurrency.Tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

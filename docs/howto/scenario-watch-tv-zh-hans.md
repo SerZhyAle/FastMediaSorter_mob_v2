@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "在智能手表上观看电视频道 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.25 02:22</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-tv-zh-hans.html
 > **难度：** 入门 &bull; **用时：** 约 10 分钟 &bull; **设备：** Wear OS 智能手表
 
 > **仅限完整版** - 本指南不适用于通过 Google Play 分发的版本，而是适用于从[下载页面](../DOWNLOADS.md)直接下载 APK 的完整版本。
-
-{% include lang-switcher.html doc="scenario-watch-tv" dir="/docs/howto/" current="zh-Hans" %}
 
 FastMedia Wear 可以直接在手腕上播放电视和电台的直播频道。手表通过自己的 Wi-Fi 打开串流，因此只要频道进入了列表，即使手机放在另一个房间、包里，或者完全关机，您也能观看。
 

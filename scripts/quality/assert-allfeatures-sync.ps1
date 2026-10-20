@@ -152,10 +152,10 @@ function Get-RecordGateMap {
     return $map
 }
 
-if (-not (Test-Path $dataFile)) { Write-Error "ALL_FEATURES.jsonl not found at $dataFile" -ErrorAction Continue; exit 2 }
-if (-not (Test-Path $validate)) { Write-Error "validate.ps1 not found at $validate" -ErrorAction Continue; exit 2 }
-if (-not (Test-Path $schemaFile)) { Write-Error "ALL_FEATURES.schema.json not found at $schemaFile" -ErrorAction Continue; exit 2 }
-if (-not (Test-Path $subjectMapFile)) { Write-Error "allfeatures-subject-reach.json not found at $subjectMapFile" -ErrorAction Continue; exit 2 }
+if (-not (Test-Path $dataFile)) { Write-Error "ALL_FEATURES.jsonl not found at $dataFile" -ErrorAction Continue; Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (ALL_FEATURES.jsonl not found)'; exit 2 }
+if (-not (Test-Path $validate)) { Write-Error "validate.ps1 not found at $validate" -ErrorAction Continue; Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (validate.ps1 not found)'; exit 2 }
+if (-not (Test-Path $schemaFile)) { Write-Error "ALL_FEATURES.schema.json not found at $schemaFile" -ErrorAction Continue; Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (ALL_FEATURES.schema.json not found)'; exit 2 }
+if (-not (Test-Path $subjectMapFile)) { Write-Error "allfeatures-subject-reach.json not found at $subjectMapFile" -ErrorAction Continue; Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (allfeatures-subject-reach.json not found)'; exit 2 }
 
 # Current public record count (non-blank lines)
 $count = @(Get-Content -LiteralPath $dataFile | Where-Object { $_.Trim().Length -gt 0 }).Count
@@ -184,7 +184,7 @@ if ($UpdateBaseline) {
     $floorAllowed = Test-BaselineFloorWrite -Gate 'assert-allfeatures-sync' -Previous $previousCount -Current $count -Reason $Reason
     $rowsAllowed = Test-BaselineWrite -Gate 'assert-allfeatures-sync' -Previous $previousRows -Current $gateRows `
         -Reason $Reason -Guard Removals
-    if (-not ($floorAllowed -and $rowsAllowed)) { exit 2 }
+    if (-not ($floorAllowed -and $rowsAllowed)) { Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (the baseline write was refused)'; exit 2 }
     $scope = $null
     try {
         $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason 'assert-allfeatures-sync.ps1 -UpdateBaseline'
@@ -193,6 +193,7 @@ if ($UpdateBaseline) {
     }
     finally { Exit-CodeLockScope -Scope $scope }
     Write-Host "assert-allfeatures-sync: baselines updated -> count $count, gated records $($gateRows.Count)"
+    Write-Host 'assert-allfeatures-sync: PASS (baselines updated)'
     exit 0
 }
 
@@ -213,7 +214,7 @@ $regressed = ($count -lt $baseline)
 # restates it, so widening the list stays a one-line edit in one file (S1392).
 $schema = $null
 try { $schema = Get-Content -LiteralPath $schemaFile -Raw -Encoding UTF8 | ConvertFrom-Json }
-catch { Write-Error "ALL_FEATURES.schema.json is not valid JSON: $($_.Exception.Message)" -ErrorAction Continue; exit 2 }
+catch { Write-Error "ALL_FEATURES.schema.json is not valid JSON: $($_.Exception.Message)" -ErrorAction Continue; Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (ALL_FEATURES.schema.json is not valid JSON)'; exit 2 }
 $allowedAreas = @()
 if ($schema.PSObject.Properties.Name -contains 'properties' -and
     $schema.properties.PSObject.Properties.Name -contains 'area' -and
@@ -222,6 +223,7 @@ if ($schema.PSObject.Properties.Name -contains 'properties' -and
 }
 if ($allowedAreas.Count -eq 0) {
     Write-Error "docs/ALL_FEATURES.schema.json declares no 'area' enum - the vocabulary check cannot run." -ErrorAction Continue
+    Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (the schema declares no area enum)'
     exit 2
 }
 
@@ -229,7 +231,7 @@ if ($allowedAreas.Count -eq 0) {
 # supplies that flag's row and the full dimension. Both are read once, before the record walk.
 $subjects = @()
 try { $subjectMap = Get-Content -LiteralPath $subjectMapFile -Raw -Encoding UTF8 | ConvertFrom-Json }
-catch { Write-Error "allfeatures-subject-reach.json is not valid JSON: $($_.Exception.Message)" -ErrorAction Continue; exit 2 }
+catch { Write-Error "allfeatures-subject-reach.json is not valid JSON: $($_.Exception.Message)" -ErrorAction Continue; Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (allfeatures-subject-reach.json is not valid JSON)'; exit 2 }
 if ($subjectMap.PSObject.Properties.Name -contains 'subjects') { $subjects = @($subjectMap.subjects) }
 
 $matrix = Get-FlavorMatrixTable
@@ -237,6 +239,7 @@ if ($subjects.Count -gt 0 -and $matrix.Flags.Count -eq 0) {
     # Only when a subject is actually declared: a repository with an empty map has no reach rule to
     # run and must not be failed for a grid it never consults.
     Write-Error "docs/FLAVOR_MATRIX.md could not be read ($($matrix.Path)) - the subject-reach check cannot run. Regenerate it with scripts/docs/generate-flavor-matrix.ps1." -ErrorAction Continue
+    Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (docs/FLAVOR_MATRIX.md could not be read)'
     exit 2
 }
 $fullDimensionSig = Get-FlavorSetSignature -Flavors $matrix.Flavors
@@ -246,6 +249,7 @@ foreach ($s in $subjects) {
         # A subject pointing at a flag the matrix does not carry checks nothing while looking like
         # it does - the same silent switch-off an unknown `gate` value is rejected for in validate.ps1.
         Write-Error "allfeatures-subject-reach.json: subject '$($s.name)' names gate '$flag', which is not a flag in docs/FLAVOR_MATRIX.md." -ErrorAction Continue
+        Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (a subject names a gate that is not in the flavor matrix)'
         exit 2
     }
 }
@@ -297,6 +301,7 @@ if (Test-Path -LiteralPath $gateBaselineFile) {
         $parts = @($trimmed -split '\s+', 2)
         if ($parts.Count -ne 2) {
             Write-Error "allfeatures-gate-baseline.txt: '$trimmed' is not a '<id> <gate>' pair." -ErrorAction Continue
+            Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (a gate baseline row is not an id-gate pair)'
             exit 2
         }
         $gateBaselineRows++
@@ -320,23 +325,23 @@ $gatesOk = ($lostGates.Count -eq 0)
 $badBoundary = [System.Collections.Generic.List[string]]::new()
 $boundaryIdCount = 0
 if (-not (Test-Path -LiteralPath $wearBoundaryMapFile)) {
-    Write-Error "allfeatures-wear-boundary-map.json not found at $wearBoundaryMapFile" -ErrorAction Continue; exit 2
+    Write-Error "allfeatures-wear-boundary-map.json not found at $wearBoundaryMapFile" -ErrorAction Continue; Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (allfeatures-wear-boundary-map.json not found)'; exit 2
 }
 if (-not (Test-Path -LiteralPath $wearPolicyFile)) {
-    Write-Error "wear/config/store-boundary-policy.json not found at $wearPolicyFile - the wear boundary check cannot run." -ErrorAction Continue; exit 2
+    Write-Error "wear/config/store-boundary-policy.json not found at $wearPolicyFile - the wear boundary check cannot run." -ErrorAction Continue; Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (store-boundary-policy.json not found)'; exit 2
 }
 try { $wearMap = Get-Content -LiteralPath $wearBoundaryMapFile -Raw -Encoding UTF8 | ConvertFrom-Json }
-catch { Write-Error "allfeatures-wear-boundary-map.json is not valid JSON: $($_.Exception.Message)" -ErrorAction Continue; exit 2 }
+catch { Write-Error "allfeatures-wear-boundary-map.json is not valid JSON: $($_.Exception.Message)" -ErrorAction Continue; Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (allfeatures-wear-boundary-map.json is not valid JSON)'; exit 2 }
 try { $wearPolicy = Get-Content -LiteralPath $wearPolicyFile -Raw -Encoding UTF8 | ConvertFrom-Json }
-catch { Write-Error "wear/config/store-boundary-policy.json is not valid JSON: $($_.Exception.Message)" -ErrorAction Continue; exit 2 }
+catch { Write-Error "wear/config/store-boundary-policy.json is not valid JSON: $($_.Exception.Message)" -ErrorAction Continue; Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (store-boundary-policy.json is not valid JSON)'; exit 2 }
 
 $expectedWear = @($wearMap.wearFlavors | ForEach-Object { [string]$_ })
 if ($expectedWear.Count -eq 0) {
-    Write-Error "allfeatures-wear-boundary-map.json declares no 'wearFlavors' value - there is no requirement to check." -ErrorAction Continue; exit 2
+    Write-Error "allfeatures-wear-boundary-map.json declares no 'wearFlavors' value - there is no requirement to check." -ErrorAction Continue; Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (the wear boundary map declares no wearFlavors value)'; exit 2
 }
 $policyCategories = @($wearPolicy.noLegalOnly | ForEach-Object { [string]$_.category })
 if ($policyCategories.Count -eq 0) {
-    Write-Error "wear/config/store-boundary-policy.json declares no noLegalOnly categories - the wear boundary check cannot run." -ErrorAction Continue; exit 2
+    Write-Error "wear/config/store-boundary-policy.json declares no noLegalOnly categories - the wear boundary check cannot run." -ErrorAction Continue; Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (the wear store-boundary policy declares no noLegalOnly category)'; exit 2
 }
 
 # One read of the ledger for the axis, for the same reason Get-RecordGateMap exists: the record walk
@@ -417,6 +422,8 @@ if ($Gate -and (-not $schemaOk -or $regressed -or -not $areasOk -or -not $reachO
     if (-not $gatesOk) { $failed += "gate retention ($($lostGates.Count) record(s))" }
     if (-not $boundaryOk) { $failed += "wear store boundary ($($badBoundary.Count) finding(s))" }
     Write-Error "assert-allfeatures-sync: FAIL - $($failed -join '; '). The per-check detail is printed above." -ErrorAction Continue
+    Write-Host "assert-allfeatures-sync: FAIL ($($failed -join '; '))"
     exit 1
 }
+Write-Host 'assert-allfeatures-sync: PASS'
 exit 0

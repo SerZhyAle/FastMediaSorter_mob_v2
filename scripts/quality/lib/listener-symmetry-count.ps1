@@ -31,6 +31,8 @@
                                               make them (S1815). Only a line whose FIRST non-space
                                               characters are a comment marker is dropped, so a code
                                               line carrying a `"http://.."` literal keeps its call.
+      SDK-selected listener overloads         two exclusive calls with the same receiver, method
+                                              and listener count once; removal is still required.
 
     A discount only ever SHRINKS an imbalance in the leak direction. Subtracting it from the add count
     and then taking the absolute difference does the opposite on a file that pairs its call: the add
@@ -71,6 +73,19 @@ function Remove-ImportLines([string]$text) {
     return (($text -split "`n") | Where-Object { $_ -notmatch '^\s*import\s' }) -join "`n"
 }
 
+function Remove-ExclusiveSdkListenerAlternatives([string]$text) {
+    # Only single-call branches qualify: discounting a broader block could hide another registration.
+    # Matching the receiver, method and listener also keeps separate subscriptions independent.
+    $alternatives = [regex]::new(@'
+(?x)
+\bif\s*\(\s*Build\.VERSION\.SDK_INT\s*(?:>=|>)\s*Build\.VERSION_CODES\.\w+\s*\)\s*\{\s*
+(?<modern>(?<receiver>\w+(?:\.\w+)*)\.(?<method>add\w*Listener)\s*\(\s*\w+\s*,\s*(?<listener>\w+)\s*\))\s*
+\}\s*else\s*\{\s*(?:@Suppress\("DEPRECATION"\)\s*)?
+\k<receiver>\.\k<method>\s*\(\s*\k<listener>\s*\)\s*\}
+'@)
+    return $alternatives.Replace($text, '${modern}')
+}
+
 function Get-CategoryImbalance([int]$add, [int]$remove, [int]$discount) {
     $raw = $add - $remove
     if ($raw -le 0) { return [Math]::Abs($raw) }
@@ -79,7 +94,7 @@ function Get-CategoryImbalance([int]$add, [int]$remove, [int]$discount) {
 
 function Get-FileImbalance([string]$text) {
     if ([string]::IsNullOrEmpty($text)) { return 0 }
-    $text = Remove-CommentLines (Remove-ImportLines $text)
+    $text = Remove-ExclusiveSdkListenerAlternatives (Remove-CommentLines (Remove-ImportLines $text))
     $dObs = Get-CategoryImbalance $regContentObserver.Matches($text).Count $unregContentObserver.Matches($text).Count 0
     $dRec = Get-CategoryImbalance $regReceiver.Matches($text).Count $unregReceiver.Matches($text).Count $regReceiverNull.Matches($text).Count
     $dList = Get-CategoryImbalance $addListener.Matches($text).Count $removeListener.Matches($text).Count ($addListenerDom.Matches($text).Count + $addListenerTask.Matches($text).Count)
@@ -93,7 +108,7 @@ function Get-FileImbalance([string]$text) {
 # "imbalance: 1", which reads as a broken gate rather than as a discounted call.
 function Get-FileImbalanceDetail([string]$text) {
     if ([string]::IsNullOrEmpty($text)) { return '' }
-    $text = Remove-CommentLines (Remove-ImportLines $text)
+    $text = Remove-ExclusiveSdkListenerAlternatives (Remove-CommentLines (Remove-ImportLines $text))
     $parts = [System.Collections.Generic.List[string]]::new()
 
     $a = $regContentObserver.Matches($text).Count; $b = $unregContentObserver.Matches($text).Count

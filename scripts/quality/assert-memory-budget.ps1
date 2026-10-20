@@ -79,13 +79,21 @@
     Exit codes (CLAUDE.md Rule 7):
       0  at or below MaxBytes with every link resolving, or a report-only run.
       1  -Gate and the index is above MaxBytes, or -Gate and a `[[link]]` is unresolvable.
-      2  cannot verify - the index or the memory directory does not exist.
+      2  cannot verify - .claude/ is absent from this checkout (unless -AllowAbsentInput), or the index or
+         the memory directory does not exist.
       4  Code.Scripts is held by another session, so no baseline was written. The queue place is
          held - wait for the turn in the background and rerun (S2635).
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-memory-budget.ps1 -Gate
     pwsh -NoProfile -File scripts/quality/assert-memory-budget.ps1 -Path temp/probe/MEMORY.md -MaxBytes 100 -Gate
+
+.PARAMETER AllowAbsentInput
+    The caller declaring a checkout without the gitignored root acceptable for this run.
+    assert-fast-gates.ps1 passes it, because the GitHub Static Gates job runs on a clone that does
+    not carry PLAN/ or .claude/. With it the absence ends `<gate>: NOT APPLICABLE (..)` with exit 0,
+    which every aggregator counts as skipped, never as passed (CHECK-VERDICT 0.12 item A.1); without
+    it the same absence is exit 2 (S4380, lib/absent-input.ps1).
 #>
 [CmdletBinding()]
 param(
@@ -95,7 +103,8 @@ param(
     [int]$TargetBytes = 9000,
     [switch]$Gate,
     [switch]$UpdateBaseline,
-    [int]$SlackBytes = 1024
+    [int]$SlackBytes = 1024,
+    [switch]$AllowAbsentInput
 )
 
 Set-StrictMode -Version Latest
@@ -117,11 +126,12 @@ elseif (-not [System.IO.Path]::IsPathRooted($Path)) {
 # present is a real finding - somebody deleted it - and must stay exit 2.
 if (-not (Test-Path -LiteralPath (Join-Path $repoRoot '.claude'))) {
     Exit-InputAbsent -Gate 'assert-memory-budget' -Path '.claude/' `
-        -Reason 'gitignored - the agent memory it judges is not published'
+        -Reason 'gitignored - the agent memory it judges is not published' -Allow:$AllowAbsentInput
 }
 
 if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
     Write-Error "assert-memory-budget: memory index not found at $Path - nothing was judged." -ErrorAction Continue
+    Write-Host 'assert-memory-budget: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -140,6 +150,7 @@ $overshoot = $bytes - $MaxBytes
 if ($UpdateBaseline) {
     if ($bytes -gt $MaxBytes) {
         Write-Error ("assert-memory-budget: refusing to RAISE the ceiling {0} -> {1} B." -f $MaxBytes, $bytes) -ErrorAction Continue
+        Write-Host 'assert-memory-budget: FAIL (see the findings above)'
         exit 1
     }
     # min(), not the measured size: the ceiling must still never rise, and the slack is granted

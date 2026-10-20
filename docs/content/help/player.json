@@ -1,0 +1,396 @@
+{
+  "help": "player",
+  "surface": "PlayerActivity",
+  "elements": [
+    { "id": "back", "viewId": "btnBack", "labelKey": "back" },
+    { "id": "previous", "viewId": "btnPreviousCmd", "labelKey": "previous_item" },
+    { "id": "random", "viewId": "btnRandomCmd", "labelKey": "random_file_description" },
+    { "id": "next", "viewId": "btnNextCmd", "labelKey": "next_item" },
+    { "id": "slideshow", "viewId": "btnSlideshowCmd", "labelKey": "slideshow" },
+    { "id": "favorite", "viewId": "btnFavorite", "labelKey": "favorite" },
+    { "id": "share", "viewId": "btnShareCmd", "labelKey": "share" },
+    { "id": "info", "viewId": "btnInfoCmd", "labelKey": "file_information" },
+    { "id": "rename", "viewId": "btnRenameCmd", "labelKey": "rename" },
+    { "id": "edit", "viewId": "btnEditCmd", "labelKey": "edit" },
+    { "id": "delete", "viewId": "btnDeleteCmd", "labelKey": "delete" },
+    { "id": "undo", "viewId": "btnUndoCmd", "labelKey": "undo" },
+    { "id": "fullscreen", "viewId": "btnFullscreenCmd", "labelKey": "fullscreen_mode" },
+    { "id": "more-actions", "viewId": "btnOverflowMenu", "labelKey": "more_actions" },
+    { "id": "seek-bar", "viewId": "exo_progress" },
+    { "id": "playback-order", "viewId": "exo_repeat", "labelKey": "playback_order_menu_title" },
+    { "id": "previous-file", "viewId": "exo_prev_file", "labelKey": "previous_file" },
+    { "id": "rewind", "viewId": "btnRewind10", "labelKey": "rewind_10_seconds" },
+    { "id": "play-pause", "viewId": "exo_play_pause", "labelKey": "play_pause" },
+    { "id": "forward", "viewId": "btnForward30", "labelKey": "forward_10_seconds" },
+    { "id": "next-file", "viewId": "exo_next_file", "labelKey": "next_file" },
+    { "id": "playback-settings", "viewId": "btnPlaybackControl", "labelKey": "control" },
+    { "id": "picture-in-picture", "viewId": "btnPictureInPicture", "labelKey": "picture_in_picture" }
+  ],
+  "related": [
+    { "help": "browse" },
+    { "help": "settings-playback" },
+    { "help": "settings-media" },
+    { "pageId": "player.video-playback-controls" },
+    { "pageId": "player.subtitles-and-audio-tracks" },
+    { "pageId": "player.pip-and-background-play" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Player",
+      "purpose": "The player opens a file from the file browser: it plays a video or music, shows a photo, and reads a document, a book or a text. The same screen has the buttons to move on to another file, to file the one you are on and to share it.",
+      "steps": [
+        "Open a file from the file browser. A video starts in full screen: tap the picture to bring the buttons back, and use Fullscreen (13) to switch between the picture alone and the picture with the command panel.",
+        "Play/Pause (19) starts and stops playback; Rewind (18) and Forward (20) jump 10 seconds, and the seek bar (15) takes you to any moment.",
+        "Previous file (17) and Next file (21) walk through the folder in the order of the file browser; a swipe left or right on the picture does the same. Random (3) jumps to any file.",
+        "Playback order (16) chooses what happens when a file ends: repeat one, loop the list, play through or shuffle.",
+        "Playback settings (22) holds speed, volume, soundtrack, subtitles and colors.",
+        "Rename (9), Edit (10), Delete (11) and Share (7) act on the file you are on, Undo (12) takes back a delete or a move, and Favorite (6) adds the file to your favorites.",
+        "More actions (14) opens the menu with everything else for this kind of file, such as save a frame, rotate, cast or translate. Picture in picture (23) shrinks a video into a small window, and Help in the menu or F1 opens this page."
+      ],
+      "groups": [
+        {
+          "title": "Command panel",
+          "elements": ["back", "previous", "random", "next", "slideshow", "favorite", "share", "info", "rename", "edit", "delete", "undo", "fullscreen", "more-actions"]
+        },
+        {
+          "title": "Playback",
+          "elements": ["seek-bar", "playback-order", "previous-file", "rewind", "play-pause", "forward", "next-file", "playback-settings", "picture-in-picture"]
+        }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Closes the player and returns to the file list.",
+          "details": "The Back button of the device does the same. A tap in the top left corner of the picture does it too."
+        },
+        "previous": {
+          "summary": "Goes to the previous file of the folder.",
+          "details": "It follows the order of the file browser. A file you deleted or moved is already gone from the list, so Previous never lands on it."
+        },
+        "random": {
+          "summary": "Jumps to a random file of the folder.",
+          "details": "Handy for a mixed listen or a quick look at something you forgot you had."
+        },
+        "next": {
+          "summary": "Goes to the next file of the folder.",
+          "details": "It follows the order of the file browser. A swipe left on a photo or video does the same."
+        },
+        "slideshow": {
+          "summary": "Starts and stops the slideshow.",
+          "details": "In a slideshow the player moves to the next file by itself. The pace and the look are set in Settings, on the Media tab."
+        },
+        "favorite": {
+          "summary": "Adds the file to your favorites, or takes it out.",
+          "details": "Everything you mark is gathered in Favorites on the main screen."
+        },
+        "share": {
+          "summary": "Sends the file to another app or person.",
+          "details": "A file from a network or cloud folder is fetched as a temporary copy first."
+        },
+        "info": {
+          "summary": "Shows what the app knows about the file.",
+          "details": "Size, full path and, where they apply, resolution or camera settings."
+        },
+        "rename": {
+          "summary": "Renames the file you are on.",
+          "details": "A dialog asks for the new name."
+        },
+        "edit": {
+          "summary": "Opens the editing tools for the file you are on.",
+          "details": "What opens depends on the kind of file: the playback settings for a video or music, the editing window for a photo, a GIF or a PDF."
+        },
+        "delete": {
+          "summary": "Deletes the file you are on, after you confirm.",
+          "details": "A deleted file leaves the list at once.",
+          "undo": "Undo brings the file back for as long as the app still remembers the operation."
+        },
+        "undo": {
+          "summary": "Takes back the last delete or move.",
+          "details": "The button appears right after such an operation."
+        },
+        "fullscreen": {
+          "summary": "Hides the command panel so only the picture is left.",
+          "details": "To get the panel back, tap the picture or the Exit fullscreen button that stays in the corner. Turning the phone sideways goes full screen by itself, and turning it back upright brings the panel back. A video keeps playing through both."
+        },
+        "more-actions": {
+          "summary": "Opens the menu with the rest of the actions.",
+          "details": "Buttons that did not fit move here, so nothing disappears. The menu depends on the kind of file: save a frame of a video, rotate or crop a photo, search, translate and extract text in a document or a book, lyrics and sleep timer for music, cast, print and Send to. The F1 key opens this page; so does Help in this menu.\n\nChoose a file: G opens Thumbnails, F4 opens File list, and N opens Go to file. File numbers start at 1. The same actions are in the three-dots menu. A window without a collection explains why file navigation is unavailable.\n\nVideo keys: Use . for Next frame. Previous frame stays disabled with a reason when the decoder cannot step backwards. Shift+L sets A, then B, then clears the repeat; B must be after A. The range is shown until canceled, the file changes or the window stops. These video actions are also in the menu.\n\nSlideshow keys: S starts a slideshow. Press S again to halve the running interval, down to 1 second; I starts or switches to random order. This also works in a separate player when its folder contains several files. A single-file window explains the limitation."
+        },
+        "seek-bar": {
+          "name": "Seek bar",
+          "summary": "Shows how far the file has played and lets you jump to any moment.",
+          "details": "Drag the knob or tap on the bar. The time played and the length of the file stand on both sides of it."
+        },
+        "playback-order": {
+          "summary": "Chooses what happens when a file ends.",
+          "details": "Repeat one plays the same file over and over. Loop list goes back to the first file after the last. Play through stops after the last file. Shuffle plays in a random order."
+        },
+        "previous-file": {
+          "summary": "Goes to the previous file of the folder.",
+          "details": "The same as Previous on the command panel, close to the thumb."
+        },
+        "rewind": {
+          "summary": "Jumps 10 seconds back.",
+          "details": "Press it several times to go back further."
+        },
+        "play-pause": {
+          "summary": "Starts and pauses playback.",
+          "details": "For an animated picture such as a GIF it plays and stops the animation. The player remembers how far you watched, so the same file continues from there next time."
+        },
+        "forward": {
+          "summary": "Jumps 10 seconds ahead.",
+          "details": "Press it several times to skip a long intro."
+        },
+        "next-file": {
+          "summary": "Goes to the next file of the folder.",
+          "details": "The same as Next on the command panel, close to the thumb."
+        },
+        "playback-settings": {
+          "summary": "Opens the window with the playback settings.",
+          "details": "Speed, including very slow 0.1x and 0.3x, volume, brightness, soundtrack, subtitles and colors. In portrait the sliders stand upright, so a thumb moves them from bottom to top."
+        },
+        "picture-in-picture": {
+          "summary": "Shrinks the video into a small window above other apps.",
+          "details": "The button is shown for a video when the device supports it."
+        }
+      }
+    },
+    "ru": {
+      "title": "Плеер",
+      "purpose": "Плеер открывает файл из браузера файлов: воспроизводит видео или музыку, показывает фото, читает документ, книгу или текст. На этом же экране есть кнопки, чтобы перейти к другому файлу, разложить текущий по папкам и поделиться им.",
+      "steps": [
+        "Откройте файл в браузере файлов. Видео начинается на весь экран: нажмите на картинку, чтобы вернуть кнопки, а кнопкой «Во весь экран» (13) переключайтесь между одной картинкой и картинкой с панелью команд.",
+        "«Воспроизвести / пауза» (19) запускает и останавливает воспроизведение; «Перемотать назад» (18) и «Перемотать вперёд» (20) прыгают на 10 секунд, а шкала (15) переносит в любой момент.",
+        "«Предыдущий файл» (17) и «Следующий файл» (21) идут по папке в порядке браузера файлов; свайп влево или вправо по картинке делает то же. «Случайный переход» (3) прыгает на любой файл.",
+        "«Порядок воспроизведения» (16) выбирает, что будет, когда файл закончится: повтор одного, цикл по списку, воспроизведение до конца или перемешивание.",
+        "«Настройки воспроизведения» (22) - скорость, громкость, звуковая дорожка, субтитры и цвета.",
+        "«Переименовать» (9), «Редактировать» (10), «Удалить» (11) и «Поделиться» (7) работают с текущим файлом, «Отменить» (12) возвращает удаление или перемещение, а «Избранное» (6) добавляет файл в избранное.",
+        "«Ещё» (14) открывает меню со всем остальным для этого вида файла: сохранить кадр, повернуть, вывести на экран или перевести. «Картинка в картинке» (23) сворачивает видео в маленькое окно, а пункт «Справка» в меню или клавиша F1 открывает эту страницу."
+      ],
+      "groups": [
+        {
+          "title": "Панель команд",
+          "elements": ["back", "previous", "random", "next", "slideshow", "favorite", "share", "info", "rename", "edit", "delete", "undo", "fullscreen", "more-actions"]
+        },
+        {
+          "title": "Воспроизведение",
+          "elements": ["seek-bar", "playback-order", "previous-file", "rewind", "play-pause", "forward", "next-file", "playback-settings", "picture-in-picture"]
+        }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Закрывает плеер и возвращает к списку файлов.",
+          "details": "Кнопка «Назад» устройства делает то же самое. Нажатие в левом верхнем углу картинки тоже."
+        },
+        "previous": {
+          "summary": "Переходит к предыдущему файлу папки.",
+          "details": "Порядок такой же, как в браузере файлов. Удалённый или перемещённый файл уже исчез из списка, так что на него вы не попадёте."
+        },
+        "random": {
+          "summary": "Прыгает на случайный файл папки.",
+          "details": "Удобно для перемешанного прослушивания или чтобы глянуть то, о чём вы забыли."
+        },
+        "next": {
+          "summary": "Переходит к следующему файлу папки.",
+          "details": "Порядок такой же, как в браузере файлов. Свайп влево по фото или видео делает то же самое."
+        },
+        "slideshow": {
+          "summary": "Запускает и останавливает показ.",
+          "details": "В режиме показа плеер сам переходит к следующему файлу. Темп и оформление настраиваются в настройках, на вкладке «Медиа»."
+        },
+        "favorite": {
+          "summary": "Добавляет файл в избранное или убирает его оттуда.",
+          "details": "Всё отмеченное собирается в «Избранном» на главном экране."
+        },
+        "share": {
+          "summary": "Отправляет файл в другое приложение или человеку.",
+          "details": "Файл из сетевой или облачной папки сначала загружается во временную копию."
+        },
+        "info": {
+          "summary": "Показывает, что приложение знает о файле.",
+          "details": "Размер, полный путь и, где это применимо, разрешение или параметры съёмки."
+        },
+        "rename": {
+          "summary": "Переименовывает текущий файл.",
+          "details": "Диалог спросит новое имя."
+        },
+        "edit": {
+          "summary": "Открывает инструменты редактирования текущего файла.",
+          "details": "Что откроется, зависит от вида файла: настройки воспроизведения для видео и музыки, окно редактирования для фото, GIF или PDF."
+        },
+        "delete": {
+          "summary": "Удаляет текущий файл после подтверждения.",
+          "details": "Удалённый файл сразу пропадает из списка.",
+          "undo": "«Отменить» возвращает файл, пока приложение ещё помнит операцию."
+        },
+        "undo": {
+          "summary": "Возвращает последнее удаление или перемещение.",
+          "details": "Кнопка появляется сразу после такой операции."
+        },
+        "fullscreen": {
+          "summary": "Скрывает панель команд, чтобы осталась только картинка.",
+          "details": "Чтобы вернуть панель, нажмите на картинку или на кнопку «Выйти из полноэкранного режима» в углу. Если повернуть телефон набок, плеер сам уйдёт на весь экран, а если вернуть вертикально, панель вернётся. Видео при этом продолжает играть."
+        },
+        "more-actions": {
+          "summary": "Открывает меню с остальными действиями.",
+          "details": "Кнопки, которые не поместились, переезжают сюда, так что ничего не пропадает. Меню зависит от вида файла: сохранить кадр видео, повернуть или обрезать фото, поиск, перевод и извлечение текста в документе или книге, текст песни и таймер сна для музыки, вывод на экран, печать и «Отправить в..». Клавиша F1 открывает эту страницу; пункт «Справка» в этом меню - тоже.\n\nВыбор файла: G открывает Миниатюры, F4 - Список файлов, N - Перейти к файлу. Нумерация начинается с 1. Эти же действия есть в меню с тремя точками. Если коллекции нет, окно объясняет недоступность переходов.\n\nКлавиши видео: точка вызывает Следующий кадр. Предыдущий кадр недоступен с объяснением, если декодер не поддерживает шаг назад. Shift+L задаёт A, затем B, затем отключает повтор; B должна быть после A. Границы показаны до отмены, смены файла или остановки окна. Эти действия доступны и в меню.\n\nКлавиши слайд-шоу: S запускает показ. Повторное S сокращает текущий интервал вдвое, но не ниже 1 секунды; I запускает случайный порядок или переключает на него. Это работает и в отдельном плеере, если в папке несколько файлов. Одиночное окно объясняет ограничение."
+        },
+        "seek-bar": {
+          "name": "Шкала времени",
+          "summary": "Показывает, как далеко продвинулся файл, и позволяет перейти в любой момент.",
+          "details": "Потяните ползунок или нажмите на шкалу. С двух сторон от неё стоят время воспроизведения и длина файла."
+        },
+        "playback-order": {
+          "summary": "Выбирает, что будет, когда файл закончится.",
+          "details": "«Повторять один» играет тот же файл снова и снова. «По кругу» после последнего файла возвращается к первому. «До конца» останавливается после последнего файла. Последний вариант играет файлы в случайном порядке."
+        },
+        "previous-file": {
+          "summary": "Переходит к предыдущему файлу папки.",
+          "details": "То же, что «Предыдущий» на панели команд, но ближе к большому пальцу."
+        },
+        "rewind": {
+          "summary": "Прыгает на 10 секунд назад.",
+          "details": "Нажмите несколько раз, чтобы вернуться ещё дальше."
+        },
+        "play-pause": {
+          "summary": "Запускает и ставит на паузу воспроизведение.",
+          "details": "Для анимированной картинки, например GIF, запускает и останавливает анимацию. Плеер помнит, как далеко вы досмотрели, поэтому тот же файл продолжится оттуда в следующий раз."
+        },
+        "forward": {
+          "summary": "Прыгает на 10 секунд вперёд.",
+          "details": "Нажмите несколько раз, чтобы пропустить длинную заставку."
+        },
+        "next-file": {
+          "summary": "Переходит к следующему файлу папки.",
+          "details": "То же, что «Следующий» на панели команд, но ближе к большому пальцу."
+        },
+        "playback-settings": {
+          "summary": "Открывает окно настроек воспроизведения.",
+          "details": "Скорость, включая очень медленные 0,1x и 0,3x, громкость, яркость, звуковая дорожка, субтитры и цвета. В портретной ориентации ползунки стоят вертикально, так что большой палец двигает их снизу вверх."
+        },
+        "picture-in-picture": {
+          "summary": "Сворачивает видео в маленькое окно поверх других приложений.",
+          "details": "Кнопка есть у видео, если устройство это поддерживает."
+        }
+      }
+    },
+    "uk": {
+      "title": "Плеєр",
+      "purpose": "Плеєр відкриває файл із браузера файлів: відтворює відео чи музику, показує фото, читає документ, книгу або текст. На цьому ж екрані є кнопки, щоб перейти до іншого файлу, розкласти поточний по теках і поділитися ним.",
+      "steps": [
+        "Відкрийте файл у браузері файлів. Відео починається на весь екран: торкніться картинки, щоб повернути кнопки, а кнопкою «На весь екран» (13) перемикайтеся між самою картинкою та картинкою з панеллю команд.",
+        "«Відтворити / пауза» (19) запускає й зупиняє відтворення; «Перемотати назад» (18) і «Перемотати вперед» (20) стрибають на 10 секунд, а шкала (15) переносить у будь-який момент.",
+        "«Попередній файл» (17) і «Наступний файл» (21) ідуть по папці в порядку браузера файлів; свайп ліворуч чи праворуч по картинці робить те саме. «Випадковий перехід» (3) стрибає на будь-який файл.",
+        "«Порядок відтворення» (16) обирає, що буде, коли файл закінчиться: повтор одного, цикл по списку, відтворення до кінця або перемішування.",
+        "«Налаштування відтворення» (22) - швидкість, гучність, звукова доріжка, субтитри й кольори.",
+        "«Перейменувати» (9), «Редагувати» (10), «Видалити» (11) і «Поділитися» (7) працюють із поточним файлом, «Скасувати» (12) повертає видалення чи переміщення, а «Обране» (6) додає файл до обраного.",
+        "«Ще» (14) відкриває меню з усім іншим для цього виду файлу: зберегти кадр, повернути, вивести на екран або перекласти. «Картинка в картинці» (23) згортає відео в маленьке вікно, а пункт «Довідка» в меню або клавіша F1 відкриває цю сторінку."
+      ],
+      "groups": [
+        {
+          "title": "Панель команд",
+          "elements": ["back", "previous", "random", "next", "slideshow", "favorite", "share", "info", "rename", "edit", "delete", "undo", "fullscreen", "more-actions"]
+        },
+        {
+          "title": "Відтворення",
+          "elements": ["seek-bar", "playback-order", "previous-file", "rewind", "play-pause", "forward", "next-file", "playback-settings", "picture-in-picture"]
+        }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Закриває плеєр і повертає до списку файлів.",
+          "details": "Кнопка «Назад» пристрою робить те саме. Торкання в лівому верхньому куті картинки теж."
+        },
+        "previous": {
+          "summary": "Переходить до попереднього файлу папки.",
+          "details": "Порядок такий самий, як у браузері файлів. Видалений чи переміщений файл уже зник зі списку, тож на нього ви не потрапите."
+        },
+        "random": {
+          "summary": "Стрибає на випадковий файл папки.",
+          "details": "Зручно для перемішаного прослуховування або щоб глянути на те, про що ви забули."
+        },
+        "next": {
+          "summary": "Переходить до наступного файлу папки.",
+          "details": "Порядок такий самий, як у браузері файлів. Свайп ліворуч по фото чи відео робить те саме."
+        },
+        "slideshow": {
+          "summary": "Запускає й зупиняє показ.",
+          "details": "У режимі показу плеєр сам переходить до наступного файлу. Темп і оформлення налаштовуються в налаштуваннях, на вкладці «Медіа»."
+        },
+        "favorite": {
+          "summary": "Додає файл до обраного або прибирає його звідти.",
+          "details": "Усе позначене збирається в «Обраному» на головному екрані."
+        },
+        "share": {
+          "summary": "Надсилає файл в інший застосунок або людині.",
+          "details": "Файл із мережевої чи хмарної папки спершу завантажується в тимчасову копію."
+        },
+        "info": {
+          "summary": "Показує, що застосунок знає про файл.",
+          "details": "Розмір, повний шлях і, де це доречно, роздільна здатність або параметри зйомки."
+        },
+        "rename": {
+          "summary": "Перейменовує поточний файл.",
+          "details": "Діалог запитає нову назву."
+        },
+        "edit": {
+          "summary": "Відкриває інструменти редагування поточного файлу.",
+          "details": "Що відкриється, залежить від виду файлу: налаштування відтворення для відео й музики, вікно редагування для фото, GIF або PDF."
+        },
+        "delete": {
+          "summary": "Видаляє поточний файл після підтвердження.",
+          "details": "Видалений файл одразу зникає зі списку.",
+          "undo": "«Скасувати» повертає файл, поки застосунок ще пам’ятає операцію."
+        },
+        "undo": {
+          "summary": "Повертає останнє видалення або переміщення.",
+          "details": "Кнопка з’являється одразу після такої операції."
+        },
+        "fullscreen": {
+          "summary": "Ховає панель команд, щоб лишилася тільки картинка.",
+          "details": "Щоб повернути панель, торкніться картинки або кнопки «Вийти з повноекранного режиму» в куті. Якщо повернути телефон набік, плеєр сам піде на весь екран, а якщо повернути вертикально, панель повернеться. Відео при цьому триває."
+        },
+        "more-actions": {
+          "summary": "Відкриває меню з рештою дій.",
+          "details": "Кнопки, що не вмістилися, переїжджають сюди, тож нічого не зникає. Меню залежить від виду файлу: зберегти кадр відео, повернути чи обрізати фото, пошук, переклад і витягання тексту в документі чи книзі, текст пісні й таймер сну для музики, виведення на екран, друк і «Надіслати до..». Клавіша F1 відкриває цю сторінку; пункт «Довідка» в цьому меню - теж.\n\nВибір файлу: G відкриває Мініатюри, F4 - Список файлів, N - Перейти до файлу. Нумерація починається з 1. Ці самі дії є в меню з трьома крапками. Якщо колекції немає, вікно пояснює недоступність переходів.\n\nКлавіші відео: крапка викликає Наступний кадр. Попередній кадр недоступний із поясненням, якщо декодер не підтримує крок назад. Shift+L задає A, потім B, потім вимикає повтор; B має бути після A. Межі показано до скасування, зміни файлу або зупинки вікна. Ці дії доступні й у меню.\n\nКлавіші слайд-шоу: S запускає показ. Повторне S скорочує поточний інтервал удвічі, але не нижче 1 секунди; I запускає випадковий порядок або перемикає на нього. Це працює й в окремому плеєрі, якщо в папці кілька файлів. Одиночне вікно пояснює обмеження."
+        },
+        "seek-bar": {
+          "name": "Шкала часу",
+          "summary": "Показує, як далеко просунувся файл, і дає змогу перейти в будь-який момент.",
+          "details": "Потягніть повзунок або торкніться шкали. З обох боків від неї стоять час відтворення й довжина файлу."
+        },
+        "playback-order": {
+          "summary": "Обирає, що буде, коли файл закінчиться.",
+          "details": "«Повторювати один» грає той самий файл знову й знову. «По колу» після останнього файлу повертається до першого. «До кінця» зупиняється після останнього файлу. «Перемішати» грає у випадковому порядку."
+        },
+        "previous-file": {
+          "summary": "Переходить до попереднього файлу папки.",
+          "details": "Те саме, що «Попередній» на панелі команд, але ближче до великого пальця."
+        },
+        "rewind": {
+          "summary": "Стрибає на 10 секунд назад.",
+          "details": "Натисніть кілька разів, щоб повернутися ще далі."
+        },
+        "play-pause": {
+          "summary": "Запускає й ставить на паузу відтворення.",
+          "details": "Для анімованої картинки, наприклад GIF, запускає й зупиняє анімацію. Плеєр пам’ятає, як далеко ви додивилися, тож той самий файл продовжиться звідти наступного разу."
+        },
+        "forward": {
+          "summary": "Стрибає на 10 секунд уперед.",
+          "details": "Натисніть кілька разів, щоб пропустити довгу заставку."
+        },
+        "next-file": {
+          "summary": "Переходить до наступного файлу папки.",
+          "details": "Те саме, що «Наступний» на панелі команд, але ближче до великого пальця."
+        },
+        "playback-settings": {
+          "summary": "Відкриває вікно налаштувань відтворення.",
+          "details": "Швидкість, зокрема дуже повільні 0,1x і 0,3x, гучність, яскравість, звукова доріжка, субтитри й кольори. У портретній орієнтації повзунки стоять вертикально, тож великий палець рухає їх знизу вгору."
+        },
+        "picture-in-picture": {
+          "summary": "Згортає відео в маленьке вікно поверх інших застосунків.",
+          "details": "Кнопка є у відео, якщо пристрій це підтримує."
+        }
+      }
+    }
+  }
+}

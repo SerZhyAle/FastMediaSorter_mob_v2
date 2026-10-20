@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "একটি কোড স্ক্যান করে আপনার পিসির ফোল্ডার খুলুন - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-bn.html
 ---
-<sub class="doc-stamp">26.09.25 02:15</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> একটি কোড স্ক্যান করে আপনার পিসির ফোল্ডার খুলুন
 
 > **স্তর:** শিক্ষানবিস &bull; **ফ্লেভার:** Standard, Photos, Legacy, VR, noLegal (Lite-এ কোনো নেটওয়ার্ক সোর্স নেই; স্ক্যান করতে একটা ক্যামেরা লাগে, ফাইল পদ্ধতি সব জায়গায় কাজ করে)
-
-{% include lang-switcher.html doc="scenario-companion-share" dir="/docs/howto/" current="bn" %}
 
 আপনি আপনার Windows পিসিতে একটা ছোট হেল্পার প্রোগ্রাম চালান, আপনার ভিডিও, মিউজিক, ডকুমেন্ট বা ছবির ফোল্ডার বেছে নেন, এবং এটা স্ক্রিনে একটা কোড দেখায়। ফোনে আপনি **Add** ট্যাপ করেন, ক্যামেরাটা ওই কোডের সামনে ধরেন, এবং পিসির ফোল্ডারগুলো তাৎক্ষণিকভাবে সংযুক্ত হয়ে যায় - কোনো ঠিকানা টাইপ করা নেই, কোনো পোর্ট নেই, কোনো পাসওয়ার্ড নেই, কোনো তার নেই।
 

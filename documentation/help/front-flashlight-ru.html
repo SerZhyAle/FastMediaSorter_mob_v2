@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Справка - Фронтальный фонарик</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Оглавление справки">
+<a href="index-ru.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Фронтальный фонарик</span>
+</nav>
+<header class="hero">
+<h1>Фронтальный фонарик</h1>
+</header>
+<h2>Для чего этот экран</h2>
+<p class="lead">Фронтальный фонарик превращает весь экран в лампу: светящееся поле выбранного цвета и яркости с часами. Пригодится как свет в тёмной комнате.</p>
+<h2>Порядок действий</h2>
+<ol class="order">
+<li>Откройте «Фронтальный фонарик» из меню программ, с панели программ или виджетом на домашнем экране. Если его там нет, сначала включите его в «Настройках», на вкладке «Управление», в группе «Дополнительные программы и сценарии». Весь экран <a class="ref" href="#glow-screen">1</a> загорится на полную яркость.</li>
+<li>Нажмите «Цвет свечения» <a class="ref" href="#color">3</a>, если вам нужен не белый, выберите цвет в палитре <a class="ref" href="#picker-palette">6</a> и подтвердите кнопкой «ОК» <a class="ref" href="#picker-ok">8</a>. Выбор запоминается до следующего раза.</li>
+<li>Задайте яркость одной из пяти ступеней <a class="ref" href="#brightness">4</a> или свайпом вверх либо вниз в любом месте экрана. Оба способа переключают те же пять ступеней.</li>
+<li>Часы <a class="ref" href="#clock">2</a> показывают время, пока лампа горит, так что выключать её ради этого не нужно.</li>
+<li>Коснитесь пустого места экрана <a class="ref" href="#glow-screen">1</a>, чтобы закрыть лампу. С клавиатурой или D-pad нажмите Enter.</li>
+</ol>
+<h2>Элементы</h2>
+<div class="elements">
+<h3>Светящийся экран</h3>
+<details class="el" id="glow-screen">
+<summary><span class="mk">1</span><span><span class="name">Светящийся экран</span><span class="one">Всё окно светится выбранным цветом, и экран работает как лампа.</span></span></summary>
+<div class="full">
+<p>Свечение занимает всё окно, в том числе области за вырезом камеры и системными панелями, а экран не гаснет, пока лампа открыта. Повышается только яркость этого окна, а не настройка яркости телефона, поэтому после закрытия лампы телефон остаётся ровно таким, каким был.</p>
+<p>Короткое касание пустого места закрывает лампу. Свайп вверх или вниз меняет яркость, а свайп вбок ничего не делает. Если фокус стоит на одном из элементов управления, Enter нажимает его, а не закрывает лампу.</p>
+<dl class="facts">
+<dt>Сочетание клавиш</dt><dd><kbd>Enter</kbd> / <kbd>D-pad center</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="clock">
+<summary><span class="mk">2</span><span><span class="name">Часы</span><span class="one">Показывают время на светящемся поле, на четверти высоты экрана.</span></span></summary>
+<div class="full">
+<p>Время нарисовано чёрным и обновляется в начале каждой минуты. В каком формате оно показано, 12 или 24 часа, зависит от системы единиц приложения (метрическая показывает 24 часа, американская - 12), а не от формата часов устройства. Это только индикатор: касание часов закрывает лампу так же, как касание любого другого места.</p>
+</div>
+</details>
+<h3>Управление светом</h3>
+<details class="el" id="color">
+<summary><span class="mk">3</span><span><span class="name">Цвет свечения</span><span class="one">Выбирает другой цвет света.</span></span></summary>
+<div class="full">
+<p>Открывает диалог с палитрой цветов. В первый раз свет белый, потом лампа открывается в том цвете, который вы выбрали в последний раз. Тёплый жёлтый удобен для чтения, а красный не мешает глазам, привыкшим к темноте.</p>
+</div>
+</details>
+<details class="el" id="brightness">
+<summary><span class="mk">4</span><span><span class="name">Ступени яркости</span><span class="one">Пять ступеней от тусклого света до полного, каждая - одним касанием.</span></span></summary>
+<div class="full">
+<p>Коснитесь ступени, чтобы задать яркость: ступень, на которой сейчас горит окно, подсвечена. Самая низкая ступень тусклая, но не чёрная, поэтому экран никогда не выглядит выключенным.</p>
+<p>Свайп вверх или вниз в любом месте экрана переключает те же пять ступеней: вверх - ярче, вниз - тусклее, а один проход по всей высоте охватывает весь диапазон. Лампа всегда открывается на самой яркой ступени, потому что яркость не запоминается.</p>
+</div>
+</details>
+<h3>Диалог «Выберите цвет»</h3>
+<details class="el" id="picker-preview">
+<summary><span class="mk">5</span><span><span class="name">Текущий цвет</span><span class="one">Показывает цвет, который вы собираетесь применить, и его название.</span></span></summary>
+<div class="full">
+<p>Квадрат и название рядом с ним меняются, как только вы касаетесь цвета в палитре. До нажатия «ОК» на лампу ничего не попадает.</p>
+</div>
+</details>
+<details class="el" id="picker-palette">
+<summary><span class="mk">6</span><span><span class="name">Палитра цветов</span><span class="one">Тридцать готовых цветов на выбор.</span></span></summary>
+<div class="full">
+<p>Коснитесь цвета, чтобы выбрать его: галочка отмечает выбор, а образец выше следует за ним. Пробуйте сколько угодно, пока не подтвердили. В палитре есть красные, синие, зелёные, жёлтые и оранжевые оттенки, землистые тона, серые, чёрный и белый.</p>
+</div>
+</details>
+<details class="el" id="picker-cancel">
+<summary><span class="mk">7</span><span><span class="name">Отмена</span><span class="one">Закрывает диалог и оставляет тот цвет, который у лампы уже есть.</span></span></summary>
+<div class="full">
+<p>Ничего не меняется: лампа сохраняет цвет, который был до открытия диалога.</p>
+<dl class="facts">
+<dt>Сочетание клавиш</dt><dd><kbd>Esc</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="picker-ok">
+<summary><span class="mk">8</span><span><span class="name">ОК</span><span class="one">Применяет выбранный цвет к лампе.</span></span></summary>
+<div class="full">
+<p>Свечение меняется сразу, а цвет сохраняется, так что в следующий раз лампа откроется в нём. При открытии диалога фокус стоит на этой кнопке, поэтому с клавиатуры достаточно одного нажатия Enter.</p>
+<dl class="facts">
+<dt>Сочетание клавиш</dt><dd><kbd>Enter</kbd></dd>
+</dl>
+</div>
+</details>
+</div>
+<h2>Связанное</h2>
+<ul class="related">
+<li><a href="main-ru.html"><b>Главный экран</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-operations-ru.html"><b>Настройки: Управление</b><span class="pill">Экран</span></a></li>
+<li><a href="water-flashlight-ru.html"><b>Водный фонарь</b><span class="pill">Экран</span></a></li>
+<li><a href="mirror-ru.html"><b>Зеркало</b><span class="pill">Экран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/built-in-mini-apps-ru.html"><b>Built-in Programs - Switching Them On, the Lights, the Mirror and the SOS Signal</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/home-screen-widgets-ru.html"><b>FastMediaSorter Widgets for Your Home Screen - Camera, Photo Frame, Music, Recorder and More</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="index-ru.html"><b>Оглавление справки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index-ru.html">Оглавление справки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
+</footer>
+</main>
+</body>
+</html>

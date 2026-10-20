@@ -54,6 +54,7 @@ $registry = Join-Path $repoRoot 'scripts/quality/gate-recovery-hints.psd1'
 foreach ($required in @($facade, $registry)) {
     if (-not (Test-Path -LiteralPath $required)) {
         Write-Error "assert-gate-hints-sync: not found: $required" -ErrorAction Continue
+        Write-Host 'assert-gate-hints-sync: COULD NOT VERIFY (the facade or the hint registry was not found)'
         exit 2
     }
 }
@@ -63,6 +64,7 @@ try {
 }
 catch {
     Write-Error "assert-gate-hints-sync: unreadable registry: $($_.Exception.Message)" -ErrorAction Continue
+    Write-Host 'assert-gate-hints-sync: COULD NOT VERIFY (the hint registry is unreadable)'
     exit 2
 }
 
@@ -102,6 +104,7 @@ $labels = @(
 
 if ($labels.Count -eq 0) {
     Write-Error "assert-gate-hints-sync: no gate labels found in $facade or the libs it dot-sources - the extraction pattern no longer matches the facade." -ErrorAction Continue
+    Write-Host 'assert-gate-hints-sync: COULD NOT VERIFY (no gate label was found in the facade; the extraction pattern no longer matches)'
     exit 2
 }
 
@@ -124,5 +127,6 @@ if ($orphanKey.Count -gt 0) {
 $actual = $missingHint.Count + $orphanKey.Count
 Write-Host ("assert-gate-hints-sync: expected: 0 | actual: {0}  (labels: {1}, hints: {2})" -f $actual, $labels.Count, $keys.Count)
 
-if ($Gate -and $actual -gt 0) { exit 1 }
+if ($Gate -and $actual -gt 0) { Write-Host "assert-gate-hints-sync: FAIL ($actual label/hint divergence(s))"; exit 1 }
+Write-Host ("assert-gate-hints-sync: PASS (actual {0}{1})" -f $actual, $(if ($actual -gt 0) { '; report mode, -Gate not set' } else { '' }))
 exit 0

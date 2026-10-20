@@ -1,13 +1,11 @@
 ---
-layout: default
+layout: doc
 title: "FastMediaSorter v2"
 permalink: /docs/README-de.html
 ---
-<sub class="doc-stamp">26.10.09 14:52</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="de" dir="ltr" markdown="1">
-
-{% include lang-switcher.html doc="README" dir="/docs/" current="de" %}
 
 # FastMediaSorter v2 🚀
 

@@ -18,6 +18,10 @@
     - SITE-EXPERIENCE rules 2, 3, 4, 12 and 15 on the portal layer (S4099): a copied kit colour, the
       kit linked after the layer, a style attribute or element, a missing component or a doubled
       edition badge, an empty search result without the query, a page without its skip link.
+    - An in-app help page under documentation/help/ without the site chrome passes, and still fails on a
+      missing viewport tag; the same page outside documentation/help/ fails.
+    - Footer scope (S4366): a portal page footer without the hub, the Support or the contact link fails, a
+      404.html footer without the contact fails, and a search.js without the legacy ?l= reader fails.
 
 .NOTES
     Exit codes:
@@ -122,6 +126,8 @@ html[data-theme="light"] {
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
     document.addEventListener('keydown', function(e) {});
+    var query = new URLSearchParams(window.location.search);
+    var wanted = query.get('lang') || query.get('l');
 })();
 '@
         Set-Content -LiteralPath (Join-Path $assetsDir 'search.js') -Value $js -Encoding utf8
@@ -153,7 +159,7 @@ html[data-theme="light"] {
         <img src="assets/docs.css" alt="Valid asset reference">
         <a href="../docs/PRIVACY_POLICY.html">Privacy</a>
     </main>
-    <footer class="doc-footer">Footer</footer>
+    <footer class="doc-footer"><a href="../docs/SUPPORT.html">Support</a> <a href="mailto:sza@ukr.net">sza@ukr.net</a> <a href="https://github.com/SerZhyAle">GitHub</a> <a href="https://sza.od.ua">sza.od.ua</a></footer>
     <script src="assets/search.js"></script>
 </body>
 </html>
@@ -162,6 +168,7 @@ html[data-theme="light"] {
 
         # Jekyll markdown source
         Set-Content -LiteralPath (Join-Path $docsDir 'PRIVACY_POLICY.md') -Value '# Privacy Policy' -Encoding utf8
+        Set-Content -LiteralPath (Join-Path $docsDir 'SUPPORT.md') -Value '# Support' -Encoding utf8
     }
 
     # Test 2: Synthetic valid tree passes
@@ -226,9 +233,10 @@ html[data-theme="light"] {
     Assert-That "Search shard traversal is refused" ($LASTEXITCODE -ne 0 -and ($out10 -match 'Invalid search shard name')) ($out10 -join '; ')
 
     # SITE-EXPERIENCE rules 2, 3, 4, 12 and 15 (S4099): one change per case against the valid tree.
-    function Test-PortalRule([string]$name, [string]$relative, [string]$pattern, [string]$replacement, [string]$expected) {
+    function Test-PortalRule([string]$name, [string]$relative, [string]$pattern, [string]$replacement, [string]$expected, [scriptblock]$Prepare) {
         $caseDir = Join-Path $scratchRoot ('s4099-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
         Initialize-SyntheticDocTree $caseDir
+        if ($Prepare) { & $Prepare $caseDir }
         $target = Join-Path $caseDir $relative
         $text = Get-Content -LiteralPath $target -Raw
         $changed = $text -replace $pattern, $replacement
@@ -252,14 +260,78 @@ html[data-theme="light"] {
     Test-PortalRule 'A style element fails (rule 4)' 'documentation/index.html' '</head>' '<style>.x { color: red; }</style></head>' 'a <style> element'
     Test-PortalRule 'A style string inside a script is not judged (rule 4)' 'documentation/index.html' '<script src="assets/search.js"></script>' '<script>var html = ''<b style="color: red">x</b>'';</script><script src="assets/search.js"></script>' ''
     Test-PortalRule 'An empty search result without the query fails (rule 12)' 'documentation/assets/search.js' '\{query\}' '' 'SITE-EXPERIENCE rule 12'
+    # S4366: the footer scope of a child or portal page, and the legacy locale query.
+    Test-PortalRule 'A footer without the hub link fails (S4366)' 'documentation/index.html' ' <a href="https://sza\.od\.ua">sza\.od\.ua</a>' '' 'footer lacks the hub link'
+    Test-PortalRule 'A footer without the Support link fails (S4366)' 'documentation/index.html' '<a href="\.\./docs/SUPPORT\.html">Support</a> ' '' 'footer lacks the Support page link'
+    Test-PortalRule 'A footer without the contact fails (S4366)' 'documentation/index.html' ' <a href="mailto:sza@ukr\.net">sza@ukr\.net</a>' '' 'footer lacks the contact sza@ukr.net'
+    Test-PortalRule 'A not-found page without the contact fails (S4366)' '404.html' 'mailto:sza@ukr\.net' 'mailto:nobody@example.org' '404.html - footer lacks the contact' -Prepare {
+        param($dir)
+        Set-Content -LiteralPath (Join-Path $dir '404.html') -Value '<footer><a href="SUPPORT.html">S</a> <a href="mailto:sza@ukr.net">m</a> <a href="https://github.com/SerZhyAle">g</a> <a href="https://sza.od.ua">h</a></footer>' -Encoding utf8
+    }
+    Test-PortalRule 'A search.js without the legacy ?l= reader fails (S4366)' 'documentation/assets/search.js' " \|\| query\.get\('l'\)" '' 'PAGE-STYLE 3.1 item 1'
     Test-PortalRule 'A page without its skip link fails (rule 15)' 'documentation/index.html' '<a class="doc-skip-link" href="#main-content">Skip to content</a>' '' 'skip link to #main-content'
+    # The docs/ pages in the portal shell (S4117): the layout is judged like a portal page, a page
+    # names the doc layout, and an include that is not in _includes/ is refused.
+    $caseLayout = Join-Path $scratchRoot 's4117-layout'
+    Initialize-SyntheticDocTree $caseLayout
+    New-Item -ItemType Directory -Path (Join-Path $caseLayout '_layouts') -Force | Out-Null
+    $layoutText = (Get-Content (Join-Path $caseLayout 'documentation/index.html') -Raw) -replace 'href="\.\./styles\.css"', 'href="{{ ''/styles.css'' | relative_url }}"' -replace '"assets/(docs\.css|search\.js)"', '"{{ ''/documentation/assets/$1'' | relative_url }}"'
+    Set-Content -LiteralPath (Join-Path $caseLayout '_layouts/doc.html') -Value $layoutText -Encoding utf8
+    Set-Content -LiteralPath (Join-Path $caseLayout 'docs/FAQ.md') -Value "---`nlayout: doc`n---`n# FAQ" -Encoding utf8
+    $outLayout = & $pwshExe -NoProfile -File $gateScript -RepoRoot $caseLayout 2>&1
+    Assert-That 'A docs/ page on the doc layout passes (S4117)' ($LASTEXITCODE -eq 0) ($outLayout -join '; ')
+    Test-PortalRule 'A docs/ layout without its skip link fails (S4117)' '_layouts/doc.html' '<a class="doc-skip-link" href="#main-content">Skip to content</a>' '' '_layouts/doc.html - the page does not open with a skip link' -Prepare {
+        param($dir)
+        New-Item -ItemType Directory -Path (Join-Path $dir '_layouts') -Force | Out-Null
+        Copy-Item -LiteralPath (Join-Path $dir 'documentation/index.html') -Destination (Join-Path $dir '_layouts/doc.html')
+    }
+    Test-PortalRule 'A docs/ page on another layout fails (S4117)' 'docs/PRIVACY_POLICY.md' '# Privacy Policy' "---`nlayout: default`n---`n# Privacy Policy" "layout 'default' is not the portal shell 'doc'"
+    Test-PortalRule 'A docs/ page including a missing file fails (S4117)' 'docs/PRIVACY_POLICY.md' '# Privacy Policy' "# Privacy Policy`n{% include lang-switcher.html doc=`"x`" %}" "includes 'lang-switcher.html', which is not in _includes/"
     Test-PortalRule 'A skip link after the chrome fails (rule 15)' 'documentation/index.html' '(<a class="doc-skip-link"[^>]*>[^<]*</a>)(\s*)(<header class="doc-header">.*?</header>)' '$3$2$1' 'skip link to #main-content'
+
+    # An in-app help page (CONTEXT-HELP rule 10) is not a site page: it carries no theme script, toggle,
+    # search client or skip link, and every other check still judges it.
+    function New-HelpPageCase([string]$name) {
+        $caseDir = Join-Path $scratchRoot $name
+        Initialize-SyntheticDocTree $caseDir
+        $helpDir = Join-Path $caseDir 'documentation/help'
+        New-Item -ItemType Directory -Path $helpDir -Force | Out-Null
+        $page = @'
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Help</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body>
+<main><h1>Help</h1></main>
+</body>
+</html>
+'@
+        Set-Content -LiteralPath (Join-Path $helpDir 'main.html') -Value $page -Encoding utf8
+        Set-Content -LiteralPath (Join-Path $helpDir 'help.css') -Value 'body { margin: 0; }' -Encoding utf8
+        return $caseDir
+    }
+    $caseHelp = New-HelpPageCase 'help-page-no-chrome'
+    $outHelp = & $pwshExe -NoProfile -File $gateScript -RepoRoot $caseHelp 2>&1
+    Assert-That 'A help page without the site chrome passes' ($LASTEXITCODE -eq 0) ($outHelp -join '; ')
+    $caseHelpBad = New-HelpPageCase 'help-page-no-viewport'
+    $helpPagePath = Join-Path $caseHelpBad 'documentation/help/main.html'
+    (Get-Content -LiteralPath $helpPagePath -Raw) -replace '<meta name="viewport"[^>]+>', '' | Set-Content -LiteralPath $helpPagePath -Encoding utf8
+    $outHelpBad = & $pwshExe -NoProfile -File $gateScript -RepoRoot $caseHelpBad 2>&1
+    Assert-That 'A help page without a viewport tag still fails' ($LASTEXITCODE -ne 0 -and (($outHelpBad -join "`n") -match 'documentation/help/main\.html - missing responsive viewport')) ($outHelpBad -join '; ')
+    $caseSiteBad = New-HelpPageCase 'site-page-no-chrome'
+    Copy-Item -LiteralPath (Join-Path $caseSiteBad 'documentation/help/main.html') -Destination (Join-Path $caseSiteBad 'documentation/guide.html')
+    $outSiteBad = & $pwshExe -NoProfile -File $gateScript -RepoRoot $caseSiteBad 2>&1
+    Assert-That 'The same page outside documentation/help still fails' ($LASTEXITCODE -ne 0 -and (($outSiteBad -join "`n") -match 'documentation/guide\.html - missing theme toggle button')) ($outSiteBad -join '; ')
 } finally {
     if (Test-Path -LiteralPath $scratchRoot) {
         Remove-Item -LiteralPath $scratchRoot -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
 
-Write-Host "`nSuite Result: $($script:pass) passed, $($script:fail) failed." -ForegroundColor $(if ($script:fail -eq 0) { 'Green' } else { 'Red' })
+Write-Host "assert-docs-portal-ui-ux.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

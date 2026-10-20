@@ -99,6 +99,6 @@ exit 0
     $env:SBOM_TEST_MODE = $oldMode
     Remove-Item -LiteralPath $fixture -Recurse -Force -ErrorAction SilentlyContinue
 }
-Write-Host "build-sbom tests: $passed passed, $failed failed"
+Write-Host "build-sbom tests: $(if ($failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($passed + $failed) skipped=0)"
 if ($failed -gt 0) { Write-Host 'SBOM regression suite failed.'; exit 1 }
 exit 0

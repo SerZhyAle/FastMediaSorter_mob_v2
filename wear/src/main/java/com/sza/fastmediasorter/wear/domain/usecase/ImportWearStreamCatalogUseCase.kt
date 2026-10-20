@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
+import com.sza.fastmediasorter.domain.streams.facets.StreamBankFetchRetry
 import com.sza.fastmediasorter.domain.streams.facets.StreamFacetFolding
+import com.sza.fastmediasorter.domain.streams.facets.StreamTopicFolding
 import com.sza.fastmediasorter.wear.data.repository.WearFaviconAtlasStore
 import com.sza.fastmediasorter.wear.data.repository.WearStreamCatalogCsvParser
 import com.sza.fastmediasorter.wear.data.repository.WearStreamCollectionsJsonParser
@@ -109,11 +111,16 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
         // wearer the bank that imported fine. A null payload means the archive carried no such
         // entry, and the stored collections stay ALONE rather than being cleared - an
         // already-released archive has no entry, and clearing on its absence would empty the picker
-        // on every import from an older publication.
+        // on every import from an older publication. A refused entry (STREAM-BANK 2.4 SB-A7) keeps the
+        // stored set for the same reason; only a valid entry, empty included, replaces it.
         if (payload.collectionsJson != null) {
             try {
-                val collections = collectionsParser.parse(payload.collectionsJson)
-                collectionRepository.saveAll(collections)
+                val parsed = collectionsParser.parse(payload.collectionsJson)
+                if (parsed.refused) {
+                    Timber.w("Wear stream catalog import: collections entry refused; the stored set is kept")
+                } else {
+                    collectionRepository.saveAll(parsed.collections)
+                }
             } catch (e: Exception) {
                 e.warnUnlessCancellation(
                     "Wear stream catalog import: collections could not be stored; channels unaffected"
@@ -125,15 +132,28 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
         CatalogImportResult.Success(channels.size)
     }
 
-    private fun downloadCatalog(): CatalogPayload? {
+    // STREAM-BANK rule 11 / 2.4 SB-A13: a 404 during the publish window is retried, cancellably, before
+    // it becomes a failure; each attempt closes its response before the wait.
+    private suspend fun downloadCatalog(): CatalogPayload? {
         val request = Request.Builder().url(CATALOG_URL).build()
         val client = okHttpClient.newBuilder()
             .callTimeout(CATALOG_CALL_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .build()
-        client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) error("HTTP ${response.code}")
-            val stream = response.body?.byteStream() ?: error("empty response body")
-            return extractCatalog(stream)
+        val outcome = StreamBankFetchRetry.fetch(
+            onRetry = { attempt -> Timber.i("Wear stream catalog import: HTTP 404 on attempt %d, retrying", attempt) }
+        ) {
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val stream = response.body?.byteStream() ?: error("empty response body")
+                    StreamBankFetchRetry.Attempt.Done(extractCatalog(stream))
+                } else {
+                    StreamBankFetchRetry.Attempt.HttpStatus(response.code)
+                }
+            }
+        }
+        return when (outcome) {
+            is StreamBankFetchRetry.Attempt.Done -> outcome.value
+            is StreamBankFetchRetry.Attempt.HttpStatus -> error("HTTP ${outcome.code}")
         }
     }
 
@@ -212,7 +232,8 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
         /**
          * S4133: one parsed catalog row as a stored channel. Language and country go through the shared
          * STREAM-BANK 2.3 folds, so a catalog published before the amendment still reaches the watch's
-         * filter as one entry per language and assigned country codes only.
+         * filter as one entry per language and assigned country codes only. Topic goes through the
+         * STREAM-BANK 2.4 fold the phone uses, so one bank row shows the same rubric on both devices.
          */
         internal fun toChannel(entry: WearParsedCatalogEntry, mediaKind: String): WearStreamChannel =
             WearStreamChannel(
@@ -222,7 +243,7 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
                 mediaKind = mediaKind,
                 faviconIndex = entry.faviconIndex,
                 category = entry.category.ifBlank { null },
-                topic = entry.topic.ifBlank { null },
+                topic = StreamTopicFolding.canonicalTopic(entry.topic),
                 language = StreamFacetFolding.foldLanguages(entry.language).ifBlank { null },
                 country = StreamFacetFolding.foldCountry(entry.country).ifBlank { null },
                 access = entry.access.ifBlank { null }

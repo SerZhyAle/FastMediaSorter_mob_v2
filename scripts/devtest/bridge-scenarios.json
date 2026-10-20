@@ -543,6 +543,19 @@
       "notes": ""
     },
     {
+      "id": "I6",
+      "slug": "protected-broadcast-handed-off-with-pass",
+      "group": "I",
+      "channels": [
+        "/fms/phone/stream_broadcast_pass",
+        "/fms/watch/stream_transfer_ack"
+      ],
+      "logMarker": "/fms/phone/stream_broadcast_pass",
+      "requiresPair": true,
+      "expectation": "A broadcast with a relay endpoint or auth is sent with its descriptor and pass, stored on the watch and plays there through the relay without the phone; an older watch build does not answer.",
+      "notes": "S4261"
+    },
+    {
       "id": "J1",
       "slug": "show-on-phone-three-outcomes",
       "group": "J",
@@ -725,6 +738,19 @@
       "requiresPair": true,
       "expectation": "Connect watch on a server card of the phone's My devices: the watch enrolls into that account with a pairing code, the server lists the watch as a device of the account, the watch's Settings > Exchange servers shows the server, and the phone states the outcome in words - enrolled, refused with the reason, no watch, or no answer.",
       "notes": "S4158. Needs a live exchange server (FMS_W) and an enrolled phone entry; the phone's menu item arrives with S4116 phase 04. Refusal reasons from the watch: malformed, unsupported_version, code_expired, certificate_untrusted, certificate_changed, unreachable, token-not-stored, or the server's own 7.10 reason."
+    },
+    {
+      "id": "J16",
+      "slug": "phone-hands-folder-pin-to-watch",
+      "group": "J",
+      "channels": [
+        "/fms/phone/resource_pass",
+        "/fms/watch/resource_pass_ack"
+      ],
+      "logMarker": "/fms/watch/resource_pass_ack",
+      "requiresPair": true,
+      "expectation": "Pushing a selection that holds a protected exchange folder whose PIN is entered on the phone: the phone sends one resource pass per protected folder, the watch stores the PIN and answers stored, and the folder opens on the watch without input; unticking the folder removes it and its PIN.",
+      "notes": "S4228. Needs a live exchange server (FMS_W), a protected sftp-share of the account and the watch on its own Wi-Fi or LTE. Refusal reasons from the watch: malformed, unsupported_version, not_stored."
     },
     {
       "id": "K1",

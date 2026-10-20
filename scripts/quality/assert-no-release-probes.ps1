@@ -70,6 +70,7 @@ $scanRoot = Join-Path $srcRoot 'main'
 
 if (-not (Test-Path -LiteralPath $scanRoot)) {
     Write-Error "assert-no-release-probes: module src/main not found at $scanRoot" -ErrorAction Continue
+    Write-Host "assert-no-release-probes: COULD NOT VERIFY (module src/main not found at $scanRoot)"
     exit 2
 }
 
@@ -84,6 +85,7 @@ try {
     . (Join-Path $PSScriptRoot 'lib/blockneedusertest-probes.ps1')
 } catch {
     Write-Error "assert-no-release-probes: shared harness library unavailable - $($_.Exception.Message)" -ErrorAction Continue
+    Write-Host 'assert-no-release-probes: COULD NOT VERIFY (the shared harness library is unavailable)'
     exit 2
 }
 
@@ -148,5 +150,6 @@ if (-not $Quiet -and $actual -gt 0) {
 
 Write-Host ("assert-no-release-probes: expected: 0 | actual: {0} release probe(s) in {1}/src/{{{2}}}" -f $actual, $Module, (($scanRoots | ForEach-Object Name) -join ','))
 
-if ($actual -gt 0) { exit 1 }
+if ($actual -gt 0) { Write-Host "assert-no-release-probes: FAIL ($actual release probe(s) in $Module)"; exit 1 }
+Write-Host "assert-no-release-probes: PASS (0 release probe(s) in $Module)"
 exit 0

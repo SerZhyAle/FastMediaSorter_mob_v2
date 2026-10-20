@@ -276,4 +276,27 @@
     <string name="cross_device_transfer_expired_removed">समय-समाप्त पैकेट हटाए गए: %1$d</string>
     <string name="setting_mic_recording_destination_default_recordings">डिफ़ॉल्ट: Recordings फ़ोल्डर (Android 11 और पुराने में Music)</string>
     <string name="setting_screen_recording_destination_default_movies">डिफ़ॉल्ट: Movies फ़ोल्डर</string>
+    <string name="drive_channel_enabled_title">Google Drive के ज़रिए फ़ाइलें</string>
+    <string name="drive_channel_enabled_subtitle">एक्सचेंज सर्वर के बिना, अपने Google Drive के ज़रिए अपने ही डिवाइस के बीच फ़ाइलें भेजें और पाएं</string>
+    <string name="drive_channel_background_title">Google Drive के ज़रिए बैकग्राउंड में जांचें</string>
+    <string name="drive_channel_background_subtitle">हर 15 मिनट में, ताकि ऐप बंद होने पर भी आपके अन्य डिवाइस इस फ़ोन के साझा फ़ोल्डर खोल सकें</string>
+    <string name="drive_channel_row_from">%1$s से</string>
+    <string name="drive_channel_row_for_device">%1$s के लिए</string>
+    <string name="drive_channel_row_for_any">मेरे किसी भी डिवाइस के लिए</string>
+    <string name="drive_channel_row_waiting">प्राप्त होने की प्रतीक्षा में</string>
+    <string name="drive_channel_delete_without_receiving">बिना प्राप्त किए हटाएं</string>
+    <string name="drive_channel_delete">हटाएं</string>
+    <string name="drive_channel_deleted">आपके Google Drive से हटा दिया गया।</string>
+    <string name="drive_channel_sign_in_required">Google Drive के ज़रिए फ़ाइलें इस्तेमाल करने के लिए Google में फिर से साइन इन करें। कुछ भी हटाया नहीं गया।</string>
+    <string name="drive_channel_daily_limit">Google Drive की दैनिक अपलोड सीमा पूरी हो गई, बाद में फिर कोशिश करें।</string>
+    <string name="drive_channel_not_enough_space">आपके Google Drive में पर्याप्त जगह नहीं है: %1$s खाली है। अपने Google खाते में जगह खाली करें, फिर कोशिश करें।</string>
+    <string name="drive_channel_too_large">यह %1$s से बड़ा है, जो Google Drive के ज़रिए एक ट्रांसफ़र में भेजा जा सकने वाला अधिकतम है। एक बार में कम फ़ाइलें भेजें।</string>
+    <string name="drive_channel_backing_off">Google Drive ने धीमा होने को कहा। थोड़ी देर में फिर जांचेंगे।</string>
+    <string name="drive_channel_off_hint">Google Drive के ज़रिए फ़ाइलें बंद हैं। उन्हें सेटिंग्स, लंबित डिवाइस ट्रांसफ़र में चालू करें।</string>
+    <string name="drive_channel_delete_message">इसे आपके सभी डिवाइस के लिए आपके Google Drive से हटा दिया जाता है। जो फ़ाइलें पहले ही प्राप्त हो चुकी हैं वे जहाँ हैं वहीं रहेंगी।</string>
+    <string name="drive_channel_send_title">Google Drive के ज़रिए किसे भेजें</string>
+    <string name="drive_channel_send_any">मेरा कोई भी डिवाइस</string>
+    <string name="drive_channel_send_no_devices">आपके किसी अन्य डिवाइस ने अभी Google Drive का उपयोग नहीं किया है। दूसरे डिवाइस पर भी Google Drive के ज़रिए फ़ाइलें चालू करें, फिर कोशिश करें।</string>
+    <string name="drive_channel_send_waiting_for">%1$s के Google Drive के ज़रिए इसे प्राप्त करने की प्रतीक्षा है।</string>
+    <string name="drive_channel_send_waiting_any">आपके किसी डिवाइस के Google Drive के ज़रिए इसे प्राप्त करने की प्रतीक्षा है।</string>
 </resources>

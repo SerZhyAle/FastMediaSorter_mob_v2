@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Counter</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Counter</span>
+</nav>
+<header class="hero">
+<h1>Counter</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">A tally counter for anything you count by hand: people through a gate, laps, items on a shelf. Every tap adds or removes one, the total is kept when you leave, and each finished count goes into a dated history.</p>
+<h2>In this order</h2>
+<ol class="order">
+<li>If the count should begin somewhere other than 0, press Starting number <a class="ref" href="#start-value">7</a> first and type it. That number also becomes the current count.</li>
+<li>Press the big +1 key <a class="ref" href="#plus-one">4</a> each time you count one. The total <a class="ref" href="#count">1</a> goes up at once. -1 <a class="ref" href="#minus-one">3</a> takes one back, but never below 0.</li>
+<li>For bigger jumps, turn on the switch <a class="ref" href="#extra-steps-switch">5</a>: a row of keys from +3 to +1000 <a class="ref" href="#extra-steps">6</a> appears.</li>
+<li>The line under the total <a class="ref" href="#start-line">2</a> shows the starting number and when this count began.</li>
+<li>When a count is finished, press Reset <a class="ref" href="#reset">8</a>. The total returns to the starting number and the finished count is saved in the history <a class="ref" href="#history">9</a>.</li>
+<li>Clear <a class="ref" href="#clear-history">10</a> empties the history when you no longer need it.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>The count</h3>
+<details class="el" id="count">
+<summary><span class="mk">1</span><span><span class="name">Count</span><span class="one">The current total, in large digits.</span></span></summary>
+<div class="full">
+<p>The total is saved after every press, so it is still there when you leave the screen, switch to another app or restart the phone. It can go from 0 up to 999,999,999. A screen reader announces each change.</p>
+</div>
+</details>
+<details class="el" id="start-line">
+<summary><span class="mk">2</span><span><span class="name">Starting number and start time</span><span class="one">Reminds you what a reset returns to and since when you have been counting.</span></span></summary>
+<div class="full">
+<p>The first line reads Starting number and its value. The second line, Counting since and a date and time, appears after the first press following a reset; until then nothing has been counted, so there is no start time.</p>
+</div>
+</details>
+<details class="el" id="minus-one">
+<summary><span class="mk">3</span><span><span class="name">Subtract one</span><span class="one">Takes one away from the total.</span></span></summary>
+<div class="full">
+<p>Use it when you counted one too many. The key is grayed out at 0, because the total never goes negative.</p>
+</div>
+</details>
+<details class="el" id="plus-one">
+<summary><span class="mk">4</span><span><span class="name">Add one</span><span class="one">Adds one to the total with a single large key.</span></span></summary>
+<div class="full">
+<p>The key is large on purpose, so you can press it without looking. It has the focus when the screen opens, so on a keyboard or a remote you can press Enter or the center button at once. The first press after a reset also records the moment the count began.</p>
+</div>
+</details>
+<h3>Bigger steps</h3>
+<details class="el" id="extra-steps-switch">
+<summary><span class="mk">5</span><span><span class="name">More buttons: +3 to +1000</span><span class="one">Shows or hides the row of keys for bigger jumps.</span></span></summary>
+<div class="full">
+<p>When you count in tens or hundreds, one at a time is slow. The switch keeps those keys out of the way until you need them, and the app remembers your choice.</p>
+</div>
+</details>
+<details class="el" id="extra-steps">
+<summary><span class="mk">6</span><span><span class="name">Extra step keys</span><span class="one">Add 3, 5, 10, 50, 100 or 1000 to the total with one press.</span></span></summary>
+<div class="full">
+<p>Six keys, +3, +5, +10, +50, +100 and +1000, each adding that number. They are shown only while the switch above is on. The total stops at 999,999,999.</p>
+</div>
+</details>
+<h3>Starting number, reset and history</h3>
+<details class="el" id="start-value">
+<summary><span class="mk">7</span><span><span class="name">Starting number</span><span class="one">Sets the number the counter begins from and returns to after a reset.</span></span></summary>
+<div class="full">
+<p>A window asks for a whole number from 0. A new starting number also becomes the current count at once. If you were in the middle of a count, it is not saved in the history, so press Reset first when you want to keep it.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The count in progress is replaced by the starting number and is not archived. There is no undo.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="reset">
+<summary><span class="mk">8</span><span><span class="name">Reset</span><span class="one">Finishes the current count and starts over from the starting number.</span></span></summary>
+<div class="full">
+<p>A window asks first and tells you which number the counter will return to. The finished count goes to the top of the history with the time it began and the time it ended. If nothing was counted since the last reset, nothing is archived.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The total goes back to the starting number. The finished count is kept in the history, so you can read it there, but you cannot put it back on the counter.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="history">
+<summary><span class="mk">9</span><span><span class="name">History</span><span class="one">The finished counts, newest first.</span></span></summary>
+<div class="full">
+<p>Each row shows the total and the period it was counted over, from the first press to the reset. The list holds the last 100 counts; older ones drop off. While it is empty it says there are no finished counts yet.</p>
+</div>
+</details>
+<details class="el" id="clear-history">
+<summary><span class="mk">10</span><span><span class="name">Clear</span><span class="one">Deletes every finished count from the history.</span></span></summary>
+<div class="full">
+<p>A window asks first. The key is grayed out while the history is empty. The count on the screen is not touched.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The history is removed for good and cannot be restored.</dd>
+</dl>
+</div>
+</details>
+<h3>Windows that ask for a decision</h3>
+<details class="el" id="start-field">
+<summary><span class="mk">11</span><span><span class="name">Starting number field</span><span class="one">Where you type the starting number.</span></span></summary>
+<div class="full">
+<p>The field opens with the current starting number selected, so you can type over it. Confirm with OK or with the Done key of the keyboard. An empty entry, a number below 0 or one above 999,999,999 keeps the window open and shows a message asking for a whole number from 0.</p>
+</div>
+</details>
+<details class="el" id="start-ok">
+<summary><span class="mk">12</span><span><span class="name">OK</span><span class="one">Accepts the starting number.</span></span></summary>
+<div class="full">
+<p>The counter jumps to the new number and the start time is cleared until the next press.</p>
+</div>
+</details>
+<details class="el" id="confirm-reset">
+<summary><span class="mk">13</span><span><span class="name">Reset the counter?</span><span class="one">Asks you to confirm before the count is finished.</span></span></summary>
+<div class="full">
+<p>It says the counter returns to the starting number and that the current count is saved to history. Press Reset to go ahead or Cancel to keep counting.</p>
+</div>
+</details>
+<details class="el" id="confirm-clear">
+<summary><span class="mk">14</span><span><span class="name">Clear the counter history?</span><span class="one">Asks you to confirm before the history is deleted.</span></span></summary>
+<div class="full">
+<p>Press Clear to delete every finished count, or Cancel to keep them.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Cleared counts cannot be restored.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="dialog-cancel">
+<summary><span class="mk">15</span><span><span class="name">Cancel</span><span class="one">Closes the window and changes nothing.</span></span></summary>
+<div class="full">
+<p>It is on every window of this screen: the starting number stays as it was, the counter keeps its total and the history keeps its rows.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="tourist-info.html"><b>Tourist</b><span class="pill">Screen</span></a></li>
+<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/built-in-mini-apps.html"><b>Built-in Programs - Switching Them On, the Lights, the Mirror and the SOS Signal</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

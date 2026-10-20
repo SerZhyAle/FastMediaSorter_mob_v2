@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase.wear
 import com.google.gson.Gson
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeRefusedException
 import com.sza.fastmediasorter.data.repository.DeviceExchangeAccountRepository
+import com.sza.fastmediasorter.data.repository.ExchangeE2eRepository
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.DeviceExchangePairingCode
 import com.sza.fastmediasorter.domain.model.WatchExchangeHandoverOutcome
@@ -30,7 +31,8 @@ class ConnectWatchToExchangeEntryUseCaseTest {
     private val accounts = mockk<DeviceExchangeAccountRepository>()
     private val dataLayer = mockk<WearableDataLayerRepository>()
     private val gson = Gson()
-    private val useCase = ConnectWatchToExchangeEntryUseCase(accounts, dataLayer, gson)
+    private val e2e = mockk<ExchangeE2eRepository>(relaxed = true)
+    private val useCase = ConnectWatchToExchangeEntryUseCase(accounts, dataLayer, gson, e2e)
 
     @Test
     fun `companion off asks the server nothing`() = runTest {
@@ -74,12 +76,27 @@ class ConnectWatchToExchangeEntryUseCaseTest {
             val parsed = WearExchangeHandoverCodec.parse(thirdArg(), gson) as WearExchangeHandoverParseResult.Parsed
             assertEquals(CODE, parsed.payload.pairingCode)
             assertEquals(PIN, parsed.payload.pinnedCertificate)
+            assertEquals(KEY, parsed.payload.pinnedKey)
             assertEquals(LOGIN, parsed.payload.login)
             WearSyncEvents.emitExchangeHandoverAck(WearExchangeHandoverAck(parsed.payload.requestId, enrolled = true))
         }
 
         assertEquals(WatchExchangeHandoverOutcome.Enrolled, useCase(ENTRY))
         assertEquals(listOf("a"), sentTo)
+    }
+
+    @Test
+    fun `the key the watch answered with is trusted for its deviceId`() = runTest {
+        companion()
+        coEvery { accounts.issuePairingCode(ENTRY) } returns DeviceExchangePairingCode(CODE, EXPIRES_AT)
+        coEvery { dataLayer.sendMessage(any(), any(), any()) } coAnswers {
+            val parsed = WearExchangeHandoverCodec.parse(thirdArg(), gson) as WearExchangeHandoverParseResult.Parsed
+            val ack = WearExchangeHandoverAck(parsed.payload.requestId, true, deviceId = WATCH_ID, e2eKem = WATCH_KEM)
+            WearSyncEvents.emitExchangeHandoverAck(ack)
+        }
+
+        assertEquals(WatchExchangeHandoverOutcome.Enrolled, useCase(ENTRY))
+        coVerify(exactly = 1) { e2e.trustHandedOver(ENTRY, WATCH_ID, WATCH_KEM) }
     }
 
     @Test
@@ -130,9 +147,12 @@ class ConnectWatchToExchangeEntryUseCaseTest {
 
     private companion object {
         const val CODE = "7KQ2M9XA"
+        const val WATCH_ID = "watch-device-id"
+        const val WATCH_KEM = "BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw"
         const val EXPIRES_AT = "2026-10-11T12:10:00Z"
         const val LOGIN = "owner.home"
         const val PIN = "SHA256:pinned"
+        const val KEY = "SHA256:key"
         const val ACK_TIMEOUT_MS = 45_000L
         val NODES = listOf(WearNode("a", "Watch A"), WearNode("b", "Watch B"))
         val ENTRY = DeviceExchangeAccountEntry(
@@ -141,6 +161,7 @@ class ConnectWatchToExchangeEntryUseCaseTest {
             login = LOGIN,
             deviceId = "AAAAAAAAAAAAAAAAAAAAAA",
             pinnedCertificate = PIN,
+            pinnedKey = KEY,
         )
     }
 }

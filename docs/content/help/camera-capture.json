@@ -1,0 +1,483 @@
+{
+  "help": "camera-capture",
+  "surface": "CameraCaptureActivity",
+  "elements": [
+    { "id": "viewfinder", "viewId": "previewViewCamera" },
+    { "id": "save-destination", "viewId": "cameraSaveDestination" },
+    { "id": "scenario-label", "viewId": "cameraScenarioLabel" },
+    { "id": "recording-timer", "viewId": "cameraRecordingTimer" },
+    { "id": "countdown", "viewId": "cameraCountdownOverlay" },
+    { "id": "close", "viewId": "btnCloseCamera", "labelKey": "close" },
+    { "id": "microphone", "viewId": "toggleCameraMicrophone", "labelKey": "camera_capture_microphone" },
+    { "id": "flash", "viewId": "btnCameraFlash", "labelKey": "camera_control_flash" },
+    { "id": "profile", "viewId": "btnCameraProfile" },
+    { "id": "settings", "viewId": "btnCameraSettings", "labelKey": "camera_settings_title" },
+    { "id": "zoom-presets", "viewId": "cameraZoomPresetGroup" },
+    { "id": "zoom-slider", "viewId": "cameraZoomSlider" },
+    { "id": "mode-tabs", "viewId": "cameraModeSelector" },
+    { "id": "gallery", "viewId": "btnGalleryThumbnail", "labelKey": "camera_gallery_preview" },
+    { "id": "pause-resume", "viewId": "btnCameraPauseResume", "labelKey": "camera_control_pause" },
+    { "id": "shutter", "viewId": "btnCapturePhoto", "labelKey": "cmd_camera_capture" },
+    { "id": "send-to", "viewId": "btnCameraSendTo", "labelKey": "camera_control_send_to" },
+    { "id": "lens-switch", "viewId": "btnCameraLensSwitch", "labelKey": "camera_control_switch_lens" },
+    { "id": "s-timer", "labelKey": "camera_setting_timer" },
+    { "id": "s-grid", "labelKey": "camera_setting_grid" },
+    { "id": "s-aspect", "labelKey": "camera_setting_aspect" },
+    { "id": "s-resolution", "labelKey": "camera_setting_resolution" },
+    { "id": "s-exposure", "labelKey": "camera_setting_exposure" },
+    { "id": "s-white-balance", "labelKey": "camera_setting_white_balance" },
+    { "id": "s-manual", "labelKey": "camera_setting_manual_sensor" },
+    { "id": "s-hdr", "labelKey": "camera_setting_hdr" },
+    { "id": "s-cancel", "labelKey": "cancel" },
+    { "id": "s-apply", "labelKey": "apply" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "browse" },
+    { "help": "camera-ocr-translate" },
+    { "help": "mirror" },
+    { "pageId": "capture.quick-photo-capture" },
+    { "pageId": "capture.camera-lenses-zoom-and-profiles" },
+    { "pageId": "storage.capture-to-destination" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Camera",
+      "purpose": "The in-app camera takes photos and records video without leaving the app, and puts the file where you want it. Opened from the programs menu or a widget it stays open for several shots; opened for one job, such as a photo into a folder, it takes one shot and returns.",
+      "steps": [
+        "Open the camera from the programs menu, from a camera widget, or with the Take photo command inside a folder. The first time, allow the camera when asked - without it the camera closes. The label (2) says where the shot will be saved.",
+        "Frame the shot on the viewfinder (1): tap to focus, pinch or double-tap to zoom. The zoom pills (11) and the slider (12) set an exact value, the light (8) helps in the dark, and the shooting profile (9) prepares the camera for night, portrait, macro and more.",
+        "Where the Photo and Video tabs (13) are shown, pick the mode first, or swipe sideways. In video mode the microphone (7) decides whether sound is recorded.",
+        "Open Adjust camera (10) for the self-timer, grid, frame shape, resolution, exposure, white balance and HDR (19 to 26). Cancel (27) drops the changes, Apply (28) keeps them.",
+        "Press the big round shutter (16): a photo is taken, or the recording starts and the next press stops it. With a self-timer a countdown (5) comes first, and a recording shows its time (4) and a Pause button (15).",
+        "In the stay-open camera the shot is saved at once and a thumbnail (14) of it appears: tap it to look, or press Send to (17) to pass the shot on, then keep shooting. The lens button (18) switches to another camera.",
+        "Press Close (6) when you are done. A camera opened for one job closes by itself after the shot and hands it back."
+      ],
+      "groups": [
+        { "title": "Viewfinder and overlays", "elements": ["viewfinder", "save-destination", "scenario-label", "recording-timer", "countdown"] },
+        { "title": "Top bar", "elements": ["close", "microphone", "flash", "profile", "settings"] },
+        { "title": "Zoom and mode", "elements": ["zoom-presets", "zoom-slider", "mode-tabs"] },
+        { "title": "Shutter row", "elements": ["gallery", "pause-resume", "shutter", "send-to", "lens-switch"] },
+        { "title": "Adjust camera dialog", "elements": ["s-timer", "s-grid", "s-aspect", "s-resolution", "s-exposure", "s-white-balance", "s-manual", "s-hdr", "s-cancel", "s-apply"] }
+      ],
+      "elements": {
+        "viewfinder": {
+          "name": "Viewfinder",
+          "summary": "The live picture from the camera, with gestures for focus, zoom and switching.",
+          "details": "It shows what will be saved. Tap a spot to focus there; a ring appears where the camera can do it. Double-tap to jump between 1x and the lens maximum, and pinch to zoom smoothly. A swipe up or down switches to another lens on a phone with several, and a swipe left or right switches between Photo and Video where the tabs are shown.\n\nThe shape of the frame follows Aspect ratio in the camera settings, and the grid, when it is on, is drawn over it. The screen is locked to portrait and stays awake; when you turn the phone only the icons turn."
+        },
+        "save-destination": {
+          "name": "Save destination",
+          "summary": "Names the folder the next shot will be saved into.",
+          "details": "It appears next to the close button only when the camera knows a name. In the stay-open camera it is the folder you chose for camera photos, or for video recordings in video mode, and the Camera folder of the phone when you chose none. When the camera is opened from a folder, it shows that folder."
+        },
+        "scenario-label": {
+          "name": "Scenario label",
+          "summary": "Tells why the camera was opened, when it was opened for a specific job.",
+          "details": "It appears above the zoom pills only when another screen opened the camera for a task, for example Text recognition. For a plain photo or video nothing is shown there."
+        },
+        "recording-timer": {
+          "name": "Recording timer",
+          "summary": "Shows how long the current recording is.",
+          "details": "It appears at the top, with a red dot, only while a video is being recorded. The time stops counting while the recording is paused and goes on when you resume."
+        },
+        "countdown": {
+          "name": "Self-timer countdown",
+          "summary": "A big number counting down to the shot.",
+          "details": "It appears only after you press the shutter with a self-timer set. The shutter is disabled while the number counts down, and then the photo is taken or the recording starts. Leaving the screen cancels the countdown."
+        },
+        "close": {
+          "summary": "Leaves the camera.",
+          "details": "In the stay-open camera everything shot so far is already saved, and a recording in progress is stopped and saved. When the camera was opened for a single job, Close cancels that job and no picture is returned."
+        },
+        "microphone": {
+          "summary": "Switches the sound of the next video on or off.",
+          "details": "It appears only in video mode. The icon shows whether the microphone is on or crossed out, and it is on at first. The first recording with sound asks for the microphone permission; if you refuse, the video is recorded without sound and a message says so. Decide before you press record: the choice does not change a recording that is already running."
+        },
+        "flash": {
+          "summary": "Turns the camera light on for dark scenes.",
+          "details": "It appears only when the lens in use has a flash unit. The light stays lit like a torch until you turn it off, for photos and for video, and it goes off by itself whenever the lens changes."
+        },
+        "profile": {
+          "name": "Shooting profile",
+          "summary": "Picks a ready recipe for the shot: night, portrait, selfie, macro, sport or document.",
+          "details": "It appears only in photo mode and only when the phone offers a profile besides Normal. A tap opens a menu of the profiles the lens in use can deliver, and the icon of the button shows the active one: Normal, Document (main lens, 1x and the light on, for pages and screens), Night, Portrait, Selfie (switches to the front camera), Macro, and Sport (a short exposure that freezes motion; frames get darker in low light, and a message says so).\n\nChoosing the active profile again turns it off. The tooltip of the button says Manual when you have moved exposure or white balance off automatic in Normal. Each lens remembers its own profile."
+        },
+        "settings": {
+          "summary": "Opens the dialog with the finer camera settings.",
+          "details": "The dialog, described in the last group, holds the self-timer, the grid, the frame shape, the resolution, exposure, white balance, manual ISO and shutter, and HDR. A row the phone cannot deliver is left out. The button is there as soon as the camera is ready."
+        },
+        "zoom-presets": {
+          "name": "Zoom presets",
+          "summary": "Quick zoom steps in the values you know from other cameras.",
+          "details": "It appears only when the lens can zoom. Tap a value to jump there; the value that matches the current zoom is highlighted. The numbers are equivalents of the main lens, so an ultra-wide reads 0.5, and a value in amber marks the optical limit of the lens. The first pill can switch to another lens that gives a wider view. A lens with no zoom range of its own, such as an ultra-wide, shows one pill per rear lens instead, and a tap switches the lens."
+        },
+        "zoom-slider": {
+          "name": "Zoom slider",
+          "summary": "Smooth zoom between the presets, with the exact value beside it.",
+          "details": "It appears only when the lens can zoom. Drag it to any value; the number to its right shows the current zoom, for example 2.5x, and the presets follow. It moves also when you pinch or double-tap the viewfinder."
+        },
+        "mode-tabs": {
+          "name": "Photo and Video tabs",
+          "summary": "Switches between taking photos and recording video.",
+          "details": "They appear only in the stay-open camera, and only when both photo and video are available. The active tab is bold. A tap switches at once, and a sideways swipe on the screen does the same. The tabs are locked while a recording runs.\n\nVideo mode changes the screen: the shooting profile button hides, the microphone button appears, the shutter becomes a record button, and Full screen is not offered as a frame shape, because a video is recorded as 16:9."
+        },
+        "gallery": {
+          "summary": "A small picture of the last shot; a tap opens it.",
+          "details": "It appears only in the stay-open camera after the first save, and it is hidden while a recording runs. A tap opens the last photo or video in the app's own viewer or player, and closing that returns you to the camera. The frame of the picture flashes briefly when a new shot is stored, which is the confirmation of the save."
+        },
+        "pause-resume": {
+          "summary": "Holds the recording and carries on in the same file.",
+          "details": "It appears only while a video is being recorded, in the place of the thumbnail. Tap once to pause: the icon turns into Resume and the timer stops. Tap again to continue."
+        },
+        "shutter": {
+          "summary": "Takes the photo, or starts and stops the recording.",
+          "details": "In Photo mode it takes a photo. In Video mode it shows a red dot; the first press starts the recording, the button turns into a red square, and the next press stops it. With a self-timer a countdown comes first. The button is grayed out until the camera is ready, and for a moment after each shot.\n\nIn the stay-open camera the file is saved to the destination shown at the top and the camera is ready for the next one. When the camera was opened for one job, it closes after the shot and hands the file back.",
+          "shortcut": "Enter / D-pad center"
+        },
+        "send-to": {
+          "summary": "Sends the last photo or video on to another place or app.",
+          "details": "It appears only in the stay-open camera after a shot has been saved, and not while a recording runs. It opens the Send to menu for the last saved file, so you can pass the shot on without leaving the camera."
+        },
+        "lens-switch": {
+          "summary": "Flips to the next camera of the phone.",
+          "details": "It appears only on a phone with more than one camera. Its icon and the small label beside it name the lens in use: Front, Ultra-wide, Wide, Tele or Macro. After a switch the camera needs a moment to restart, the light is off, and the zoom row is rebuilt for the new lens. Each lens remembers its own profile, white balance and manual settings. A swipe up or down on the viewfinder does the same."
+        },
+        "s-timer": {
+          "summary": "Delays the shot, so you can step into the frame.",
+          "details": "Choose 0, 3, 5 or 10 seconds. With a delay set, the shutter starts a countdown, and the photo is taken or the recording starts when it reaches zero. It takes effect when you press Apply."
+        },
+        "s-grid": {
+          "summary": "Draws a grid of thirds over the viewfinder to help with composition.",
+          "details": "Two vertical and two horizontal lines divide the frame into nine parts, which helps to keep the horizon level and to place the subject off center. The grid is only a guide and is not saved into the photo. The choice is remembered for the next time."
+        },
+        "s-aspect": {
+          "summary": "Chooses the shape of the frame: 4:3, 16:9 or Full screen.",
+          "details": "The choice changes both the live picture and the saved file. It is remembered for the next time, and 16:9 is the first choice. Full screen fills the screen and is saved cut to that shape; it is offered for photos only, because a video is recorded as 16:9. A row without choices is hidden."
+        },
+        "s-resolution": {
+          "summary": "Picks the size of the photo in pixels.",
+          "details": "The list holds only the sizes that fit the chosen frame shape, so a value in it is never ignored. Larger sizes keep more detail and take more space. The row is hidden when the phone offers no choice."
+        },
+        "s-exposure": {
+          "summary": "Makes the picture lighter or darker.",
+          "details": "Drag the slider below zero for a darker picture and above zero for a lighter one; the value beside the label shows the step. The preview follows while you drag. The row is hidden when the lens does not support it. Moving it away from zero turns the Normal profile button into Manual."
+        },
+        "s-white-balance": {
+          "summary": "Corrects the color cast of the light: Auto, Daylight, Cloudy and others.",
+          "details": "Auto lets the camera decide. A fixed value, such as Incandescent, Fluorescent, Warm fluorescent, Daylight, Cloudy, Twilight or Shade, helps when the light has a clear color. The row lists only the modes the phone supports and is hidden when there is no choice; the preview follows at once."
+        },
+        "s-manual": {
+          "summary": "Lets you set the ISO and the shutter time yourself.",
+          "details": "The row appears only on a phone that allows it. Turning it on shows two sliders: ISO, the sensitivity to light, and Shutter, the exposure time. The preview changes while you drag. Turning it off hands both back to the camera."
+        },
+        "s-hdr": {
+          "summary": "Merges several exposures to keep detail in light and dark areas.",
+          "details": "The row appears only on a phone whose camera offers HDR. The preview follows when you change it, and the setting stays for the shots that follow."
+        },
+        "s-cancel": {
+          "summary": "Closes the dialog and puts back what you had before you opened it.",
+          "details": "Everything you tried in the dialog, also the live preview of exposure, white balance, HDR and manual ISO and shutter, goes back to the values from before.",
+          "shortcut": "Esc"
+        },
+        "s-apply": {
+          "summary": "Keeps the changes and closes the dialog.",
+          "details": "The self-timer, grid, frame shape and resolution take effect now, together with the changes that were already visible in the preview. The grid and the frame shape are remembered for the next time.",
+          "shortcut": "Enter"
+        }
+      }
+    },
+    "ru": {
+      "title": "Камера",
+      "purpose": "Встроенная камера снимает фото и записывает видео, не выходя из приложения, и кладёт файл туда, куда вам нужно. Открытая из меню программ или виджетом, она остаётся открытой для нескольких кадров; открытая для одной задачи, например фото в папку, делает один снимок и возвращается.",
+      "steps": [
+        "Откройте камеру из меню программ, виджетом камеры или командой «Снять фото» внутри папки. В первый раз разрешите камеру, когда её спросят - без этого камера закроется. Подпись (2) сообщает, куда сохранится снимок.",
+        "Скомпонуйте кадр на видоискателе (1): коснитесь, чтобы навести резкость, сведите пальцы или дважды коснитесь, чтобы приблизить. Кнопки масштаба (11) и ползунок (12) задают точное значение, свет (8) помогает в темноте, а профиль съёмки (9) готовит камеру к ночи, портрету, макро и другому.",
+        "Если показаны вкладки «Фото» и «Видео» (13), сначала выберите режим или смахните в сторону. В режиме видео микрофон (7) решает, записывается ли звук.",
+        "В «Настроить камеру» (10) задаются таймер, сетка, форма кадра, разрешение, экспозиция, баланс белого и HDR (с 19 по 26). «Отмена» (27) отбрасывает изменения, «Применить» (28) сохраняет их.",
+        "Нажмите большую круглую кнопку затвора (16): снимается фото, а видео начинает запись, и следующее нажатие её останавливает. Если задан таймер, сначала идёт обратный отсчёт (5), а запись показывает своё время (4) и кнопку паузы (15).",
+        "В камере, которая остаётся открытой, снимок сохраняется сразу и появляется его миниатюра (14): коснитесь её, чтобы посмотреть, или нажмите «Отправить в..» (17), чтобы передать снимок дальше, и снимайте ещё. Кнопка объектива (18) переключает на другую камеру.",
+        "Когда закончите, нажмите «Закрыть» (6). Камера, открытая для одной задачи, закрывается сама после снимка и отдаёт его."
+      ],
+      "groups": [
+        { "title": "Видоискатель и надписи", "elements": ["viewfinder", "save-destination", "scenario-label", "recording-timer", "countdown"] },
+        { "title": "Верхняя панель", "elements": ["close", "microphone", "flash", "profile", "settings"] },
+        { "title": "Масштаб и режим", "elements": ["zoom-presets", "zoom-slider", "mode-tabs"] },
+        { "title": "Ряд затвора", "elements": ["gallery", "pause-resume", "shutter", "send-to", "lens-switch"] },
+        { "title": "Диалог «Настроить камеру»", "elements": ["s-timer", "s-grid", "s-aspect", "s-resolution", "s-exposure", "s-white-balance", "s-manual", "s-hdr", "s-cancel", "s-apply"] }
+      ],
+      "elements": {
+        "viewfinder": {
+          "name": "Видоискатель",
+          "summary": "Живое изображение с камеры, с жестами для фокуса, масштаба и переключения.",
+          "details": "Он показывает то, что будет сохранено. Коснитесь точки, чтобы навести на неё резкость; кольцо появляется там, где камера это умеет. Двойное касание переключает между 1x и максимумом объектива, а сведение пальцев плавно меняет масштаб. Свайп вверх или вниз переключает на другой объектив, если их у телефона несколько, а свайп влево или вправо переключает «Фото» и «Видео», когда вкладки показаны.\n\nФорма кадра следует параметру «Соотношение сторон» в настройках камеры, а сетка, когда она включена, рисуется поверх. Экран закреплён в портретной ориентации и не гаснет; при повороте телефона поворачиваются только значки."
+        },
+        "save-destination": {
+          "name": "Куда сохранится",
+          "summary": "Называет папку, в которую сохранится следующий снимок.",
+          "details": "Подпись появляется рядом с кнопкой закрытия, только когда камере известно название. В камере, которая остаётся открытой, это папка, выбранная для фото с камеры (а в режиме видео - для записей видео), а если папка не выбрана - папка «Камера» телефона. Когда камера открыта из папки, показана эта папка."
+        },
+        "scenario-label": {
+          "name": "Подпись задачи",
+          "summary": "Сообщает, зачем открыта камера, если она открыта для определённой задачи.",
+          "details": "Подпись появляется над кнопками масштаба, только когда камеру для задачи открыл другой экран, например «Распознавание текста». Для обычного фото или видео там ничего нет."
+        },
+        "recording-timer": {
+          "name": "Таймер записи",
+          "summary": "Показывает, как долго идёт текущая запись.",
+          "details": "Он появляется вверху, с красной точкой, только пока записывается видео. Во время паузы время не идёт и продолжается, когда вы возобновляете запись."
+        },
+        "countdown": {
+          "name": "Обратный отсчёт таймера",
+          "summary": "Большое число, отсчитывающее время до снимка.",
+          "details": "Он появляется, только когда вы нажали затвор при заданном таймере. Пока число отсчитывается, затвор неактивен, а затем снимается фото или начинается запись. Выход с экрана отменяет отсчёт."
+        },
+        "close": {
+          "summary": "Выходит из камеры.",
+          "details": "В камере, которая остаётся открытой, всё снятое уже сохранено, а идущая запись останавливается и сохраняется. Если камеру открыли для одной задачи, «Закрыть» отменяет эту задачу, и снимок не возвращается."
+        },
+        "microphone": {
+          "summary": "Включает и выключает звук в следующем видео.",
+          "details": "Кнопка есть только в режиме видео. Значок показывает, включён микрофон или перечёркнут; сначала он включён. При первой записи со звуком спрашивается разрешение на микрофон; если вы откажете, видео запишется без звука, и сообщение об этом скажет. Решайте до нажатия записи: выбор не меняет уже идущую запись."
+        },
+        "flash": {
+          "summary": "Включает свет камеры для тёмных сцен.",
+          "details": "Кнопка есть только если у используемого объектива есть вспышка. Свет горит как фонарик, пока вы его не выключите, для фото и для видео, а при смене объектива гаснет сам."
+        },
+        "profile": {
+          "name": "Профиль съёмки",
+          "summary": "Выбирает готовый рецепт для кадра: ночь, портрет, селфи, макро, спорт или документы.",
+          "details": "Кнопка есть только в режиме фото и только если телефон предлагает профиль кроме «Норма». Касание открывает меню профилей, которые может дать текущий объектив, а значок на кнопке показывает активный: «Норма», «Документы» (основной объектив, 1x и включённый свет - для страниц и экранов), «Ночь», «Портрет», «Селфи» (переключает на фронтальную камеру), «Макро» и «Спорт» (короткая выдержка, замораживающая движение; в темноте кадры темнее, и об этом говорит сообщение).\n\nПовторный выбор активного профиля выключает его. Подсказка кнопки говорит «Ручной», когда в профиле «Норма» вы увели экспозицию или баланс белого с автоматического режима. Каждый объектив помнит свой профиль."
+        },
+        "settings": {
+          "summary": "Открывает диалог с тонкими настройками камеры.",
+          "details": "В диалоге, описанном в последней группе, есть таймер, сетка, форма кадра, разрешение, экспозиция, баланс белого, ручные ISO и выдержка и HDR. Строка, которую телефон не может обеспечить, пропускается. Кнопка появляется, как только камера готова."
+        },
+        "zoom-presets": {
+          "name": "Кнопки масштаба",
+          "summary": "Быстрые шаги масштаба в привычных по другим камерам значениях.",
+          "details": "Кнопки есть только если объектив умеет менять масштаб. Коснитесь значения, чтобы перейти к нему; значение, совпадающее с текущим масштабом, выделено. Числа - эквиваленты основного объектива, поэтому у ультраширика написано 0,5, а значение янтарного цвета отмечает оптический предел объектива. Первая кнопка может переключать на другой объектив, дающий более широкий угол. У объектива без собственного диапазона масштаба, например ультраширика, ряд показывает вместо этого по кнопке на каждый задний объектив, и касание переключает объектив."
+        },
+        "zoom-slider": {
+          "name": "Ползунок масштаба",
+          "summary": "Плавный масштаб между шагами, с точным значением рядом.",
+          "details": "Ползунок есть только если объектив умеет менять масштаб. Перетащите его на любое значение; число справа показывает текущий масштаб, например 2,5x, и кнопки следуют за ним. Он движется и когда вы сводите пальцы или дважды касаетесь видоискателя."
+        },
+        "mode-tabs": {
+          "name": "Вкладки «Фото» и «Видео»",
+          "summary": "Переключают между съёмкой фото и записью видео.",
+          "details": "Вкладки есть только в камере, которая остаётся открытой, и только когда доступны и фото, и видео. Активная вкладка выделена жирным. Касание переключает сразу, и то же делает свайп в сторону по экрану. Пока идёт запись, вкладки заблокированы.\n\nРежим видео меняет экран: кнопка профиля съёмки прячется, появляется кнопка микрофона, затвор становится кнопкой записи, а «На весь экран» не предлагается как форма кадра, потому что видео записывается в 16:9."
+        },
+        "gallery": {
+          "summary": "Маленькая картинка последнего снимка; касание открывает его.",
+          "details": "Она есть только в камере, которая остаётся открытой, после первого сохранения, и прячется, пока идёт запись. Касание открывает последнее фото или видео во встроенном просмотрщике или плеере приложения, а закрытие возвращает в камеру. Рамка картинки коротко вспыхивает, когда новый снимок сохранён, - так подтверждается сохранение."
+        },
+        "pause-resume": {
+          "summary": "Приостанавливает запись и продолжает её в том же файле.",
+          "details": "Кнопка есть только пока записывается видео, на месте миниатюры. Одно касание ставит на паузу: значок меняется на «Продолжить», таймер останавливается. Ещё одно касание продолжает запись."
+        },
+        "shutter": {
+          "summary": "Снимает фото или начинает и останавливает запись.",
+          "details": "В режиме «Фото» снимает фото. В режиме «Видео» на ней красная точка; первое нажатие начинает запись, кнопка превращается в красный квадрат, а следующее нажатие останавливает. При заданном таймере сначала идёт обратный отсчёт. Кнопка неактивна, пока камера не готова, и на мгновение после каждого снимка.\n\nВ камере, которая остаётся открытой, файл сохраняется в место, показанное вверху, и камера готова к следующему. Если камеру открыли для одной задачи, после снимка она закрывается и отдаёт файл.",
+          "shortcut": "Enter / D-pad center"
+        },
+        "send-to": {
+          "summary": "Отправляет последнее фото или видео дальше, в другое место или приложение.",
+          "details": "Кнопка есть только в камере, которая остаётся открытой, после сохранения снимка и не во время записи. Она открывает меню «Отправить в..» для последнего сохранённого файла, так что передать снимок можно, не выходя из камеры."
+        },
+        "lens-switch": {
+          "summary": "Переключает на следующую камеру телефона.",
+          "details": "Кнопка есть только на телефоне с несколькими камерами. Её значок и маленькая подпись рядом называют используемый объектив: «Фронт», «Ультраширик», «Широкий», «Теле» или «Макро». После переключения камере нужно мгновение на перезапуск, свет выключен, а ряд масштаба перестраивается под новый объектив. Каждый объектив помнит свои профиль, баланс белого и ручные настройки. То же делает свайп вверх или вниз по видоискателю."
+        },
+        "s-timer": {
+          "summary": "Откладывает снимок, чтобы вы успели встать в кадр.",
+          "details": "Выберите 0, 3, 5 или 10 секунд. Если задержка задана, затвор запускает обратный отсчёт, и по его окончании снимается фото или начинается запись. Параметр вступает в силу, когда вы нажмёте «Применить»."
+        },
+        "s-grid": {
+          "summary": "Рисует поверх видоискателя сетку третей для удобства композиции.",
+          "details": "Две вертикальные и две горизонтальные линии делят кадр на девять частей: так легче держать горизонт ровно и ставить объект не по центру. Сетка - только подсказка и в фото не сохраняется. Выбор запоминается до следующего раза."
+        },
+        "s-aspect": {
+          "summary": "Выбирает форму кадра: 4:3, 16:9 или «На весь экран».",
+          "details": "Выбор меняет и живое изображение, и сохранённый файл. Он запоминается до следующего раза, а в начале выбрано 16:9. «На весь экран» заполняет экран и сохраняется обрезанным до этой формы; для видео этот вариант не предлагается, потому что видео записывается в 16:9. Строка без вариантов скрыта."
+        },
+        "s-resolution": {
+          "summary": "Выбирает размер фото в пикселях.",
+          "details": "В списке только размеры, подходящие к выбранной форме кадра, поэтому значение из него никогда не игнорируется. Большие размеры сохраняют больше деталей и занимают больше места. Если телефон не даёт выбора, строка скрыта."
+        },
+        "s-exposure": {
+          "summary": "Делает изображение светлее или темнее.",
+          "details": "Перетащите ползунок ниже нуля, чтобы стало темнее, и выше нуля, чтобы светлее; значение рядом с названием показывает шаг. Предпросмотр следует за ползунком. Если объектив это не поддерживает, строка скрыта. Если отвести экспозицию от нуля, кнопка профиля «Норма» превращается в «Ручной»."
+        },
+        "s-white-balance": {
+          "summary": "Исправляет цветовой оттенок света: «Авто», «Дневной свет», «Облачно» и другие.",
+          "details": "«Авто» оставляет решение камере. Фиксированное значение - «Лампа накаливания», «Люминесцентная», «Тёплая люминесцентная», «Дневной свет», «Облачно», «Сумерки» или «Тень» - помогает, когда у света явный оттенок. В строке только режимы, которые поддерживает телефон; без выбора она скрыта, а предпросмотр меняется сразу."
+        },
+        "s-manual": {
+          "summary": "Позволяет самим задать ISO и время выдержки.",
+          "details": "Строка есть только на телефоне, который это позволяет. Включение показывает два ползунка: ISO - чувствительность к свету, и «Выдержка» - время экспозиции. Предпросмотр меняется, пока вы тянете ползунок. Выключение возвращает оба значения камере."
+        },
+        "s-hdr": {
+          "summary": "Объединяет несколько экспозиций, чтобы сохранить детали в светлых и тёмных местах.",
+          "details": "Строка есть только на телефоне, камера которого предлагает HDR. Предпросмотр следует за изменением, а настройка остаётся для следующих снимков."
+        },
+        "s-cancel": {
+          "summary": "Закрывает диалог и возвращает то, что было до его открытия.",
+          "details": "Всё, что вы пробовали в диалоге, в том числе живой предпросмотр экспозиции, баланса белого, HDR и ручных ISO и выдержки, возвращается к прежним значениям.",
+          "shortcut": "Esc"
+        },
+        "s-apply": {
+          "summary": "Сохраняет изменения и закрывает диалог.",
+          "details": "Таймер, сетка, форма кадра и разрешение вступают в силу сейчас, вместе с изменениями, которые уже были видны в предпросмотре. Сетка и форма кадра запоминаются до следующего раза.",
+          "shortcut": "Enter"
+        }
+      }
+    },
+    "uk": {
+      "title": "Камера",
+      "purpose": "Вбудована камера знімає фото й записує відео, не виходячи із застосунку, і кладе файл туди, куди вам потрібно. Відкрита з меню програм або віджетом, вона лишається відкритою для кількох кадрів; відкрита для одного завдання, наприклад фото в теку, робить один знімок і повертається.",
+      "steps": [
+        "Відкрийте камеру з меню програм, віджетом камери або командою «Зробити фото» всередині теки. Уперше дозвольте камеру, коли її попросять - без цього камера закриється. Напис (2) повідомляє, куди збережеться знімок.",
+        "Скомпонуйте кадр на видошукачі (1): торкніться, щоб навести різкість, зведіть пальці або двічі торкніться, щоб наблизити. Кнопки масштабу (11) і повзунок (12) задають точне значення, світло (8) допомагає в темряві, а профіль зйомки (9) готує камеру до ночі, портрета, макро й іншого.",
+        "Якщо показано вкладки «Фото» і «Відео» (13), спершу виберіть режим або змахніть убік. У режимі відео мікрофон (7) вирішує, чи записується звук.",
+        "У «Налаштувати камеру» (10) задаються таймер, сітка, форма кадру, роздільна здатність, експозиція, баланс білого та HDR (з 19 по 26). «Скасувати» (27) відкидає зміни, «Застосувати» (28) зберігає їх.",
+        "Натисніть велику круглу кнопку затвора (16): знімається фото, а відео починає запис, і наступне натискання його зупиняє. Якщо задано таймер, спершу йде зворотний відлік (5), а запис показує свій час (4) і кнопку паузи (15).",
+        "У камері, що лишається відкритою, знімок зберігається одразу й з'являється його мініатюра (14): торкніться її, щоб подивитися, або натисніть «Надіслати до..» (17), щоб передати знімок далі, і знімайте ще. Кнопка об'єктива (18) перемикає на іншу камеру.",
+        "Коли закінчите, натисніть «Закрити» (6). Камера, відкрита для одного завдання, закривається сама після знімка й віддає його."
+      ],
+      "groups": [
+        { "title": "Видошукач і написи", "elements": ["viewfinder", "save-destination", "scenario-label", "recording-timer", "countdown"] },
+        { "title": "Верхня панель", "elements": ["close", "microphone", "flash", "profile", "settings"] },
+        { "title": "Масштаб і режим", "elements": ["zoom-presets", "zoom-slider", "mode-tabs"] },
+        { "title": "Ряд затвора", "elements": ["gallery", "pause-resume", "shutter", "send-to", "lens-switch"] },
+        { "title": "Діалог «Налаштувати камеру»", "elements": ["s-timer", "s-grid", "s-aspect", "s-resolution", "s-exposure", "s-white-balance", "s-manual", "s-hdr", "s-cancel", "s-apply"] }
+      ],
+      "elements": {
+        "viewfinder": {
+          "name": "Видошукач",
+          "summary": "Живе зображення з камери, із жестами для фокуса, масштабу та перемикання.",
+          "details": "Він показує те, що буде збережено. Торкніться точки, щоб навести на неї різкість; кільце з'являється там, де камера це вміє. Подвійний дотик перемикає між 1x і максимумом об'єктива, а зведення пальців плавно змінює масштаб. Свайп угору чи вниз перемикає на інший об'єктив, якщо їх у телефона кілька, а свайп ліворуч чи праворуч перемикає «Фото» і «Відео», коли вкладки показано.\n\nФорма кадру йде за параметром «Співвідношення сторін» у налаштуваннях камери, а сітка, коли її ввімкнено, малюється поверх. Екран закріплено в портретній орієнтації, і він не гасне; під час повороту телефона повертаються лише значки."
+        },
+        "save-destination": {
+          "name": "Куди збережеться",
+          "summary": "Називає теку, до якої збережеться наступний знімок.",
+          "details": "Напис з'являється поруч із кнопкою закриття, лише коли камері відома назва. У камері, що лишається відкритою, це тека, вибрана для фото з камери (а в режимі відео - для записів відео), а якщо теку не вибрано - тека «Камера» телефона. Коли камеру відкрито з теки, показано цю теку."
+        },
+        "scenario-label": {
+          "name": "Напис завдання",
+          "summary": "Повідомляє, навіщо відкрито камеру, якщо її відкрито для певного завдання.",
+          "details": "Напис з'являється над кнопками масштабу, лише коли камеру для завдання відкрив інший екран, наприклад «Розпізнавання тексту». Для звичайного фото чи відео там нічого немає."
+        },
+        "recording-timer": {
+          "name": "Таймер запису",
+          "summary": "Показує, як довго триває поточний запис.",
+          "details": "Він з'являється вгорі, з червоною цяткою, лише поки записується відео. Під час паузи час не йде й продовжується, коли ви відновлюєте запис."
+        },
+        "countdown": {
+          "name": "Зворотний відлік таймера",
+          "summary": "Велике число, що відлічує час до знімка.",
+          "details": "Він з'являється, лише коли ви натиснули затвор за заданого таймера. Поки число відлічується, затвор неактивний, а потім знімається фото або починається запис. Вихід з екрана скасовує відлік."
+        },
+        "close": {
+          "summary": "Виходить із камери.",
+          "details": "У камері, що лишається відкритою, усе знято вже збережено, а запис, що триває, зупиняється й зберігається. Якщо камеру відкрито для одного завдання, «Закрити» скасовує це завдання, і знімок не повертається."
+        },
+        "microphone": {
+          "summary": "Вмикає й вимикає звук у наступному відео.",
+          "details": "Кнопка є лише в режимі відео. Значок показує, чи мікрофон увімкнено, чи перекреслено; спершу він увімкнений. Під час першого запису зі звуком запитується дозвіл на мікрофон; якщо ви відмовите, відео запишеться без звуку, і повідомлення про це скаже. Вирішуйте до натискання запису: вибір не змінює запис, що вже триває."
+        },
+        "flash": {
+          "summary": "Вмикає світло камери для темних сцен.",
+          "details": "Кнопка є лише якщо в об'єктива, що використовується, є спалах. Світло горить як ліхтарик, доки ви його не вимкнете, для фото і для відео, а під час зміни об'єктива гасне саме."
+        },
+        "profile": {
+          "name": "Профіль зйомки",
+          "summary": "Вибирає готовий рецепт для кадру: ніч, портрет, селфі, макро, спорт або документи.",
+          "details": "Кнопка є лише в режимі фото і лише якщо телефон пропонує профіль, крім «Норма». Дотик відкриває меню профілів, які може дати поточний об'єктив, а значок на кнопці показує активний: «Норма», «Документи» (основний об'єктив, 1x і ввімкнене світло - для сторінок і екранів), «Ніч», «Портрет», «Селфі» (перемикає на фронтальну камеру), «Макро» і «Спорт» (коротка витримка, що заморожує рух; у темряві кадри темніші, і про це каже повідомлення).\n\nПовторний вибір активного профілю вимикає його. Підказка кнопки каже «Ручний», коли в профілі «Норма» ви відвели експозицію чи баланс білого з автоматичного режиму. Кожен об'єктив пам'ятає свій профіль."
+        },
+        "settings": {
+          "summary": "Відкриває діалог із тонкими налаштуваннями камери.",
+          "details": "У діалозі, описаному в останній групі, є таймер, сітка, форма кадру, роздільна здатність, експозиція, баланс білого, ручні ISO та витримка і HDR. Рядок, який телефон не може забезпечити, пропускається. Кнопка з'являється, щойно камера готова."
+        },
+        "zoom-presets": {
+          "name": "Кнопки масштабу",
+          "summary": "Швидкі кроки масштабу у звичних за іншими камерами значеннях.",
+          "details": "Кнопки є лише якщо об'єктив уміє змінювати масштаб. Торкніться значення, щоб перейти до нього; значення, що збігається з поточним масштабом, виділено. Числа - еквіваленти основного об'єктива, тож в ультраширика написано 0,5, а значення бурштинового кольору позначає оптичну межу об'єктива. Перша кнопка може перемикати на інший об'єктив, що дає ширший кут. В об'єктива без власного діапазону масштабу, наприклад ультраширика, ряд показує натомість по кнопці на кожен задній об'єктив, і дотик перемикає об'єктив."
+        },
+        "zoom-slider": {
+          "name": "Повзунок масштабу",
+          "summary": "Плавний масштаб між кроками, з точним значенням поруч.",
+          "details": "Повзунок є лише якщо об'єктив уміє змінювати масштаб. Перетягніть його на будь-яке значення; число праворуч показує поточний масштаб, наприклад 2,5x, і кнопки йдуть за ним. Він рухається й коли ви зводите пальці чи двічі торкаєтеся видошукача."
+        },
+        "mode-tabs": {
+          "name": "Вкладки «Фото» і «Відео»",
+          "summary": "Перемикають між зйомкою фото і записом відео.",
+          "details": "Вкладки є лише в камері, що лишається відкритою, і лише коли доступні і фото, і відео. Активну вкладку виділено жирним. Дотик перемикає одразу, і те саме робить свайп убік по екрану. Поки триває запис, вкладки заблоковано.\n\nРежим відео змінює екран: кнопка профілю зйомки ховається, з'являється кнопка мікрофона, затвор стає кнопкою запису, а «На весь екран» не пропонується як форма кадру, бо відео записується у 16:9."
+        },
+        "gallery": {
+          "summary": "Маленька картинка останнього знімка; дотик відкриває його.",
+          "details": "Вона є лише в камері, що лишається відкритою, після першого збереження, і ховається, поки триває запис. Дотик відкриває останнє фото чи відео у вбудованому переглядачі або плеєрі застосунку, а закриття повертає в камеру. Рамка картинки коротко спалахує, коли новий знімок збережено, - так підтверджується збереження."
+        },
+        "pause-resume": {
+          "summary": "Призупиняє запис і продовжує його в тому самому файлі.",
+          "details": "Кнопка є лише поки записується відео, на місці мініатюри. Одне торкання ставить на паузу: значок змінюється на «Продовжити», таймер зупиняється. Ще одне торкання продовжує запис."
+        },
+        "shutter": {
+          "summary": "Знімає фото або починає і зупиняє запис.",
+          "details": "У режимі «Фото» знімає фото. У режимі «Відео» на ній червона цятка; перше натискання починає запис, кнопка перетворюється на червоний квадрат, а наступне натискання зупиняє. За заданого таймера спершу йде зворотний відлік. Кнопка неактивна, поки камера не готова, і на мить після кожного знімка.\n\nУ камері, що лишається відкритою, файл зберігається в місце, показане вгорі, і камера готова до наступного. Якщо камеру відкрито для одного завдання, після знімка вона закривається й віддає файл.",
+          "shortcut": "Enter / D-pad center"
+        },
+        "send-to": {
+          "summary": "Надсилає останнє фото чи відео далі, в інше місце або застосунок.",
+          "details": "Кнопка є лише в камері, що лишається відкритою, після збереження знімка і не під час запису. Вона відкриває меню «Надіслати до..» для останнього збереженого файлу, тож передати знімок можна, не виходячи з камери."
+        },
+        "lens-switch": {
+          "summary": "Перемикає на наступну камеру телефона.",
+          "details": "Кнопка є лише на телефоні з кількома камерами. Її значок і маленький напис поруч називають об'єктив, що використовується: «Фронт», «Ультраширик», «Широкий», «Теле» або «Макро». Після перемикання камері потрібна мить на перезапуск, світло вимкнено, а ряд масштабу перебудовується під новий об'єктив. Кожен об'єктив пам'ятає свої профіль, баланс білого та ручні налаштування. Те саме робить свайп угору чи вниз по видошукачу."
+        },
+        "s-timer": {
+          "summary": "Відкладає знімок, щоб ви встигли стати в кадр.",
+          "details": "Виберіть 0, 3, 5 або 10 секунд. Якщо затримку задано, затвор запускає зворотний відлік, і після його завершення знімається фото або починається запис. Параметр набуває чинності, коли ви натиснете «Застосувати»."
+        },
+        "s-grid": {
+          "summary": "Малює поверх видошукача сітку третин для зручності композиції.",
+          "details": "Дві вертикальні й дві горизонтальні лінії ділять кадр на дев'ять частин: так легше тримати горизонт рівно й ставити об'єкт не по центру. Сітка - лише підказка, і у фото вона не зберігається. Вибір запам'ятовується до наступного разу."
+        },
+        "s-aspect": {
+          "summary": "Вибирає форму кадру: 4:3, 16:9 або «На весь екран».",
+          "details": "Вибір змінює і живе зображення, і збережений файл. Він запам'ятовується до наступного разу, а на початку вибрано 16:9. «На весь екран» заповнює екран і зберігається обрізаним до цієї форми; для відео цей варіант не пропонується, бо відео записується у 16:9. Рядок без варіантів приховано."
+        },
+        "s-resolution": {
+          "summary": "Вибирає розмір фото в пікселях.",
+          "details": "У списку лише розміри, що підходять до вибраної форми кадру, тож значення з нього ніколи не ігнорується. Більші розміри зберігають більше деталей і займають більше місця. Якщо телефон не дає вибору, рядок приховано."
+        },
+        "s-exposure": {
+          "summary": "Робить зображення світлішим або темнішим.",
+          "details": "Перетягніть повзунок нижче нуля, щоб стало темніше, і вище нуля, щоб світліше; значення поруч із назвою показує крок. Попередній перегляд іде за повзунком. Якщо об'єктив цього не підтримує, рядок приховано. Якщо відвести експозицію від нуля, кнопка профілю «Норма» перетворюється на «Ручний»."
+        },
+        "s-white-balance": {
+          "summary": "Виправляє колірний відтінок світла: «Авто», «Денне світло», «Хмарно» та інші.",
+          "details": "«Авто» залишає рішення камері. Фіксоване значення - «Лампа розжарювання», «Люмінесцентна», «Тепла люмінесцентна», «Денне світло», «Хмарно», «Сутінки» або «Тінь» - допомагає, коли в світла виразний відтінок. У рядку лише режими, які підтримує телефон; без вибору він прихований, а попередній перегляд змінюється одразу."
+        },
+        "s-manual": {
+          "summary": "Дає змогу самим задати ISO і час витримки.",
+          "details": "Рядок є лише на телефоні, який це дозволяє. Увімкнення показує два повзунки: ISO - чутливість до світла, і «Витримка» - час експозиції. Попередній перегляд змінюється, поки ви тягнете повзунок. Вимкнення повертає обидва значення камері."
+        },
+        "s-hdr": {
+          "summary": "Об'єднує кілька експозицій, щоб зберегти деталі у світлих і темних місцях.",
+          "details": "Рядок є лише на телефоні, камера якого пропонує HDR. Попередній перегляд іде за зміною, а налаштування лишається для наступних знімків."
+        },
+        "s-cancel": {
+          "summary": "Закриває діалог і повертає те, що було до його відкриття.",
+          "details": "Усе, що ви пробували в діалозі, зокрема й живий попередній перегляд експозиції, балансу білого, HDR та ручних ISO і витримки, повертається до попередніх значень.",
+          "shortcut": "Esc"
+        },
+        "s-apply": {
+          "summary": "Зберігає зміни й закриває діалог.",
+          "details": "Таймер, сітка, форма кадру і роздільна здатність набувають чинності зараз, разом зі змінами, що вже були видимі в попередньому перегляді. Сітка і форма кадру запам'ятовуються до наступного разу.",
+          "shortcut": "Enter"
+        }
+      }
+    }
+  }
+}

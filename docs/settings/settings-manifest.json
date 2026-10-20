@@ -1271,6 +1271,36 @@
       "titleUk": "Як опублікувати папки ПК для Android"
     },
     {
+      "key": "btnCrossDevicePacketsClose",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_cross_device_packets",
+      "kind": "BUTTON",
+      "titleEn": "Close",
+      "titleRu": "Закрыть",
+      "titleUk": "Закрити"
+    },
+    {
+      "key": "btnCrossDeviceRemoveExpired",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_cross_device_packets",
+      "kind": "BUTTON",
+      "titleEn": "Remove expired packets",
+      "titleRu": "Удалить устаревшие пакеты",
+      "titleUk": "Видалити застарілі пакети"
+    },
+    {
+      "key": "btnCrossDeviceSendSettings",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_cross_device_packets",
+      "kind": "BUTTON",
+      "titleEn": "Send to my device (Drive)",
+      "titleRu": "Отправить на моё устройство (Drive)",
+      "titleUk": "Надіслати на мій пристрій (Drive)"
+    },
+    {
       "key": "btnDownloadableExtensions",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1279,6 +1309,16 @@
       "titleEn": "Downloadable Extensions",
       "titleRu": "Загружаемые расширения",
       "titleUk": "Додаткові модулі"
+    },
+    {
+      "key": "btnDriveChannelPortal",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_cross_device_packets",
+      "kind": "BUTTON",
+      "titleEn": "About Files via Google Drive",
+      "titleRu": "О файлах через Google Drive",
+      "titleUk": "Про файли через Google Drive"
     },
     {
       "key": "btnExportFavorites",
@@ -1491,6 +1531,16 @@
       "titleUk": "Змінити"
     },
     {
+      "key": "btnSftpExchangeFoldersPortal",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "About folders through the exchange server",
+      "titleRu": "О папках через сервер обмена",
+      "titleUk": "Про папки через сервер обміну"
+    },
+    {
       "key": "btnSftpExchangeMyDevices",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1509,6 +1559,16 @@
       "titleEn": "New access link",
       "titleRu": "Новая ссылка доступа",
       "titleUk": "Нове посилання доступу"
+    },
+    {
+      "key": "btnSftpExchangePortal",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "About access from outside the home network",
+      "titleRu": "О доступе не из домашней сети",
+      "titleUk": "Про доступ не з домашньої мережі"
     },
     {
       "key": "btnSftpServerAddRoot",
@@ -1539,6 +1599,16 @@
       "titleEn": "New password",
       "titleRu": "Новый пароль",
       "titleUk": "Новий пароль"
+    },
+    {
+      "key": "btnSftpServerPortal",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "About the phone as a server",
+      "titleRu": "О телефоне как сервере",
+      "titleUk": "Про телефон як сервер"
     },
     {
       "key": "btnSftpServerShowQr",
@@ -1851,6 +1921,26 @@
       "titleUk": "Вимкнути анімацію"
     },
     {
+      "key": "rowDriveChannelBackground",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_cross_device_packets",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Check via Google Drive in the background",
+      "titleRu": "Проверять через Google Drive в фоне",
+      "titleUk": "Перевіряти через Google Drive у фоні"
+    },
+    {
+      "key": "rowDriveChannelEnabled",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_cross_device_packets",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Files via Google Drive",
+      "titleRu": "Файлы через Google Drive",
+      "titleUk": "Файли через Google Drive"
+    },
+    {
       "key": "rowEnableBackgroundSync",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -2037,8 +2127,8 @@
       "layout": "fragment_settings_general",
       "kind": "TOGGLE_ROW",
       "titleEn": "Share access through Google Drive",
-      "titleRu": "Доступ через Google Диск",
-      "titleUk": "Доступ через Google Диск"
+      "titleRu": "Доступ через Google Drive",
+      "titleUk": "Доступ через Google Drive"
     },
     {
       "key": "rowSftpExchangeEnabled",
@@ -3227,8 +3317,8 @@
       "layout": "fragment_settings_other",
       "kind": "BUTTON",
       "titleEn": "Retry",
-      "titleRu": "Повторить",
-      "titleUk": "Повторити"
+      "titleRu": "Повторить попытку",
+      "titleUk": "Повторити спробу"
     },
     {
       "key": "layoutExtensionsManager",

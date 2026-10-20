@@ -196,6 +196,16 @@ object WearDataLayerPaths {
     const val EXCHANGE_HANDOVER_ACK = "/fms/watch/exchange_handover_ack"
 
     /**
+     * Message, phone -> watch. The PIN of one protected exchange folder (S4228), keyed by the folder's identity.
+     * A message and never a DataItem: a DataItem persists on both devices, and the PIN belongs only in the
+     * watch's secret store.
+     */
+    const val RESOURCE_PASS = "/fms/phone/resource_pass"
+
+    /** Message, watch -> phone. Answers one pass - stored, or refused with a reason. */
+    const val RESOURCE_PASS_ACK = "/fms/watch/resource_pass_ack"
+
+    /**
      * Message, phone → watch. Asks the watch for a picture of its own screen (S3110).
      *
      * The image never rides this route: a Data Layer message is capped at 100 KB, so the watch sends
@@ -244,6 +254,14 @@ object WearDataLayerPaths {
 
     /** Message, watch → phone. Carries the transfer outcome for one stream channel. */
     const val STREAM_TRANSFER_ACK = "/fms/watch/stream_transfer_ack"
+
+    /**
+     * Message, phone -> watch. A broadcast with its descriptor and, when protected, its pass (S4261,
+     * LIVE-BROADCAST item P). Its own path so an older watch build stays silent rather than keep a bare
+     * URL; answered on [STREAM_TRANSFER_ACK]. A message and never a DataItem: the pass belongs only in
+     * the watch's secret store. Mirrored verbatim in the wear module's copy of this object.
+     */
+    const val STREAM_BROADCAST_PASS = "/fms/phone/stream_broadcast_pass"
 
     /**
      * Data Item, phone → watch. Carries the whole set of pinned stream identities (S2149).

@@ -44,6 +44,7 @@
             android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Subtitle"
             android:visibility="gone" />
 
+
         <LinearLayout
             android:id="@+id/layoutScheduledOpsActions"
             android:layout_width="match_parent"

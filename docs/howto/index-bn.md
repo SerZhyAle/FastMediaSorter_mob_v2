@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "ধাপে ধাপে গাইড - FastMediaSorter v2"
 permalink: /docs/howto/index-bn.html
 ---
-<sub class="doc-stamp">26.09.25 02:12</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> ধাপে ধাপে গাইড
 
 বাস্তব ব্যবহারের ক্ষেত্রের জন্য ব্যবহারিক নির্দেশনা। আগের কোনো অভিজ্ঞতার প্রয়োজন নেই - প্রতিটি ধাপ শুরু থেকে ব্যাখ্যা করা হয়েছে।
-
-{% include lang-switcher.html doc="index" dir="/docs/howto/" current="bn" %}
 
 ---
 

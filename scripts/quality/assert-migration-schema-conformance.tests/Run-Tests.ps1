@@ -580,6 +580,5 @@ foreach ($case in $cases) {
     }
 }
 
-Write-Host ("assert-migration-schema-conformance.tests: {0} passed, {1} failed." -f $script:pass, $script:fail) `
-    -ForegroundColor ($(if ($script:fail -gt 0) { 'Red' } else { 'Green' }))
+Write-Host "assert-migration-schema-conformance.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 exit ($(if ($script:fail -gt 0) { 1 } else { 0 }))

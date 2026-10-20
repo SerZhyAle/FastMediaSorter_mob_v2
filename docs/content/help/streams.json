@@ -1,0 +1,604 @@
+{
+  "help": "streams",
+  "surface": "StreamsActivity",
+  "elements": [
+    { "id": "toolbar", "viewId": "toolbar", "labelKey": "streams_title" },
+    { "id": "catalog-banner", "viewId": "streamsCatalogBanner", "labelKey": "streams_catalog_refresh_suggestion" },
+    { "id": "search", "viewId": "etSearch", "labelKey": "streams_search_hint" },
+    { "id": "media-video", "viewId": "btnMediaKindVideo", "labelKey": "streams_media_filter_video" },
+    { "id": "media-audio", "viewId": "btnMediaKindAudio", "labelKey": "streams_media_filter_audio" },
+    { "id": "media-own", "viewId": "btnMediaKindOwn", "labelKey": "streams_media_filter_own" },
+    { "id": "filter", "viewId": "btnFilter", "labelKey": "streams_filter" },
+    { "id": "sort", "viewId": "btnSort", "labelKey": "streams_sort" },
+    { "id": "collections", "viewId": "streamCollectionsStrip", "labelKey": "streams_collection_strip_description" },
+    { "id": "devices-header", "viewId": "streamsDevicesHeader", "labelKey": "streams_section_device_broadcasts" },
+    { "id": "devices-portal", "viewId": "btnDevicesPortal", "labelKey": "exchange_portal_link_broadcast" },
+    { "id": "pinned-header", "viewId": "streamsPinnedHeader", "labelKey": "streams_section_pinned" },
+    { "id": "main-header", "viewId": "streamsMainHeader", "labelKey": "streams_section_main" },
+    { "id": "channel-list", "viewId": "rvStreams" },
+    { "id": "empty-add", "viewId": "btnEmptyAddUrl", "labelKey": "streams_add" },
+    { "id": "empty-import", "viewId": "btnEmptyImport", "labelKey": "streams_import" },
+    { "id": "scroll-top", "viewId": "fabStreamsScrollToTop", "labelKey": "scroll_to_top" },
+    { "id": "page-up", "viewId": "fabStreamsPageUp", "labelKey": "scroll_page_up" },
+    { "id": "page-down", "viewId": "fabStreamsPageDown", "labelKey": "scroll_page_down" },
+    { "id": "scroll-bottom", "viewId": "fabStreamsScrollToBottom", "labelKey": "scroll_to_bottom" },
+    { "id": "mini-stop", "viewId": "btnMiniPlayStop", "labelKey": "streams_stop" },
+    { "id": "view-toggle" },
+    { "id": "import-catalog", "labelKey": "streams_import_catalog" },
+    { "id": "menu-add", "labelKey": "streams_add" },
+    { "id": "menu-import-url", "labelKey": "streams_import_from_url" },
+    { "id": "menu-import-broadcast", "labelKey": "broadcast_import_menu_label" },
+    { "id": "menu-refresh", "labelKey": "streams_refresh" },
+    { "id": "menu-clear", "labelKey": "streams_clear_downloaded" },
+    { "id": "menu-help", "labelKey": "help" },
+    { "id": "add-url", "labelKey": "streams_add_url_hint" },
+    { "id": "add-title", "labelKey": "streams_title_hint" },
+    { "id": "add-audio-lang", "labelKey": "stream_channel_audio_language" },
+    { "id": "add-subtitle-lang", "labelKey": "stream_channel_subtitle_language" },
+    { "id": "add-subtitles", "labelKey": "subtitle_track" },
+    { "id": "offload-info", "labelKey": "offload_dialog_title" },
+    { "id": "offload-download", "labelKey": "offload_action_download" },
+    { "id": "offload-try-anyway", "labelKey": "offload_action_try_anyway" },
+    { "id": "offload-cancel", "labelKey": "offload_action_cancel" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "player" },
+    { "help": "settings-media" },
+    { "help": "my-devices" },
+    { "help": "broadcast" },
+    { "help": "wear-companion" },
+    { "help": "add-resource" },
+    { "pageId": "streams.channel-catalog-browsing" },
+    { "pageId": "streams.live-stream-playback" },
+    { "pageId": "streams.custom-m3u-playlists" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Streams",
+      "purpose": "Streams is your list of internet radio stations, TV channels and cameras. Add a stream by its address, bring in the built-in catalog or a ready playlist, find a channel and play it - radio plays right on this screen, video opens in the full-screen player.",
+      "steps": [
+        "Open Streams from the programs on the main screen. While the list is empty, Add stream (15) takes the address of one station or channel, and Import list (16) brings in a ready list.",
+        "To fill the list with the built-in catalog, press Import catalog (23) in the toolbar. The banner (2) may offer the same update when you open the screen.",
+        "Find a channel: type a few letters into Search (3), tap the video, audio or own-streams button (4, 5, 6), or open Filter (7) for category, topic, language and country. Collections (9) are hand-picked sets, shown when the catalog has them.",
+        "Sort (8) sets the order, and the view button (22) switches between rows and tiles.",
+        "Tap a channel in the list (14) to play it. Radio plays right here, with Stop (21) at the bottom; video opens in the full-screen player.",
+        "Press and hold a channel to pin it. Pinned channels collect under Pinned (12) above Channels (13); tap a header to fold its section.",
+        "Broadcasts of your other devices wait under (10). Refresh channel status (27) checks which channels answer, and Help (29) opens this page."
+      ],
+      "groups": [
+        { "title": "Toolbar, search and filters", "elements": ["toolbar", "catalog-banner", "search", "media-video", "media-audio", "media-own", "filter", "sort", "collections"] },
+        { "title": "Channel lists", "elements": ["devices-header", "devices-portal", "pinned-header", "main-header", "channel-list", "empty-add", "empty-import"] },
+        { "title": "Scrolling and playback", "elements": ["scroll-top", "page-up", "page-down", "scroll-bottom", "mini-stop"] },
+        { "title": "Toolbar buttons and menu", "elements": ["view-toggle", "import-catalog", "menu-add", "menu-import-url", "menu-import-broadcast", "menu-refresh", "menu-clear", "menu-help"] },
+        { "title": "Add stream window", "elements": ["add-url", "add-title", "add-audio-lang", "add-subtitle-lang", "add-subtitles"] },
+        { "title": "Save to local copy sheet", "elements": ["offload-info", "offload-download", "offload-try-anyway", "offload-cancel"] }
+      ],
+      "elements": {
+        "toolbar": {
+          "summary": "The title bar: the way back, the view switch, the catalog import and the menu with the other commands.",
+          "details": "The arrow, like the system Back, leaves the screen. If a station is still playing in the background, the app may first ask whether to stop it or let it play on, and it can remember your answer. On the right sit the grid or list switch, Import catalog and the three dots menu; they are described under Toolbar buttons and menu. In landscape the search field, the video, audio and own-streams buttons, Filter and Sort move up into this bar to give the list more height."
+        },
+        "catalog-banner": {
+          "summary": "Offers to refresh the channel list from the built-in catalog.",
+          "details": "The banner appears at the top only when Updating the channel list is set to Suggest when I open in the Streams section of Settings, and the last update was more than six hours ago or never happened. Update downloads the catalog; the close button dismisses the banner and changes nothing. It does not fade by itself, so you can answer when you are ready. Nothing is downloaded until you press Update."
+        },
+        "search": {
+          "summary": "Narrows the list as you type.",
+          "details": "Type part of a channel name, topic or language and the rows narrow down at once; the cross at the end clears the field. The text is not remembered, so the field is empty each time you open Streams. Search works together with the filters below."
+        },
+        "media-video": {
+          "summary": "Shows only video channels, as tiles with picture previews.",
+          "details": "Tap it to see the video channels that came from the catalog or an imported list; tap it again to bring everything back. Choosing it switches the list to tiles so that previews can show, and your earlier view returns when you leave this filter. Streams you added by hand are not counted here - they are under the own-streams button."
+        },
+        "media-audio": {
+          "summary": "Shows only radio and other audio channels.",
+          "details": "Tap it to see the audio channels that came from the catalog or an imported list; tap it again to show everything. Streams you added by hand are under the own-streams button."
+        },
+        "media-own": {
+          "summary": "Shows only the streams you added by hand.",
+          "details": "Handy when the catalog holds thousands of channels and you want your own few. Channels that came with an imported playlist do not count as your own. Tap it again to clear."
+        },
+        "filter": {
+          "summary": "Opens the full set of filters: type, category, language, topic, country and pinned only.",
+          "details": "The window has All, Audio, Video and Own at the top, then Category and Language, Topic (only when the catalog has topics) and Country. Each row opens a list you can search. Pinned only keeps just the channels you pinned. Choices apply at once; OK closes the window and Clear filters resets everything. While any filter is on, the icon changes to show it, and your choices are remembered for the next visit."
+        },
+        "sort": {
+          "summary": "Chooses the order of the channels.",
+          "details": "Pick By name, By topic, By language, By country or Recently added; the order is remembered. Pinned channels keep their own order in their own section, so Sort changes the Channels section. With a collection selected, a sort replaces the curator's order but keeps you inside the collection."
+        },
+        "collections": {
+          "summary": "Hand-picked sets of channels, as a row of chips.",
+          "details": "The row appears only after the catalog has delivered collections. The first chip, All, shows the whole list; tap another chip to see just that set, in the order its compilers chose. Only one chip is active at a time."
+        },
+        "devices-header": {
+          "summary": "Live broadcasts of your other devices, folded away until you open it.",
+          "details": "This section shows only while the phone is signed in to an exchange server (see My devices). It starts closed, and the app looks for broadcasts only while it is open, which saves traffic. Opening it first says Looking for broadcasts.. and then lists each one with its title, the device name and the mode: audio only, camera only, or camera and audio. Tap a broadcast to add it to your channels; a message says whether it was added, updated or was already there, and you then play it from the Channels list. A broadcast this version cannot play is marked as such."
+        },
+        "devices-portal": {
+          "summary": "Opens a page of the project website about broadcasts and casting.",
+          "details": "The button shows only while the section above is open. The page opens in your browser and explains how to receive a broadcast from another device."
+        },
+        "pinned-header": {
+          "summary": "Your pinned channels, kept at the top.",
+          "details": "The section appears as soon as one channel is pinned and goes away when none is. Tap the header to fold it so the rest gets the whole screen, and tap again to unfold; folding is not remembered between visits. In this section the three dots menu of a channel also offers Move up, Move down and Move to top, so you set your own order. The watch lists these same channels first, and Watch stream pins in the Wear companion edits this very set."
+        },
+        "main-header": {
+          "summary": "All the channels that are not pinned.",
+          "details": "This section holds the catalog, imported lists and the streams you added. While some channels are pinned, tap the header to fold this section and give the pinned ones the whole screen. With nothing pinned the header does nothing."
+        },
+        "channel-list": {
+          "name": "Channel list",
+          "summary": "The channels themselves - tap to play, hold to pin.",
+          "details": "Each row shows the channel's logo or flag, its name and address, small marks for region lock, topic, country and language, and a status mark: a hollow ring means not played yet, a check means it played from here, an exclamation mark means the last try failed. Tap a row to play. Radio keeps playing on this screen with Stop at the bottom, and tapping the playing row again stops it; video opens in the full-screen player. With no network the app says so at once instead of waiting. If a station does not answer, a window offers Retry or Remove; when the phone is offline it only offers Retry.\n\nPress and hold a row, or tap its pin icon, to pin or unpin it. The three dots on a row open more: add to favorites (when Favorites is on), add to the home screen, edit (for streams you added by hand), send to the watch or open on the watch (when the Wear companion is on), open in VR (for video channels with a headset connected), channel information, send the link and remove. In tile mode a tile does the same, with a pin badge and pin or unpin inside the menu. A right click with a mouse opens the same menu.",
+          "undo": "Remove asks first and takes the channel out of the list. There is no Undo: a catalog channel can come back with a later catalog update, but a stream you typed in stays gone until you add its address again."
+        },
+        "empty-add": {
+          "summary": "Opens the window where you type the address of a stream.",
+          "details": "This message with its two buttons appears when the list has nothing to show - on the first visit, or when your search and filters match nothing. Add stream opens the same window as the command in the toolbar menu: the address, an optional title and optional language choices."
+        },
+        "empty-import": {
+          "summary": "Brings in a whole list of channels at once.",
+          "details": "It asks how: Import catalog downloads the built-in catalog, Import from URL takes the address of a playlist you already have. Both are also in the toolbar."
+        },
+        "scroll-top": {
+          "summary": "Jumps to the first channel.",
+          "details": "The four round buttons at the right edge belong to the Channels list and appear only when it is longer than the screen. This one shows once you have moved away from the top."
+        },
+        "page-up": {
+          "summary": "Moves the list one screenful up.",
+          "details": "It appears together with Scroll to top, once you are not at the top of the list."
+        },
+        "page-down": {
+          "summary": "Moves the list one screenful down.",
+          "details": "It shows while there are more channels below, and goes away at the end of the list."
+        },
+        "scroll-bottom": {
+          "summary": "Jumps to the last channel.",
+          "details": "Useful in a long catalog when the list is sorted so that the channel you want comes last. It goes away when you are at the bottom."
+        },
+        "mini-stop": {
+          "summary": "Stops the radio that is playing on this screen.",
+          "details": "A slim bar at the bottom appears while a station plays here. It shows the station name, and the song title when the station sends it. Stop ends playback; tapping the playing row does the same. With background playback on in Settings, the station can keep playing after you leave the screen."
+        },
+        "view-toggle": {
+          "name": "Grid view / List view",
+          "summary": "Switches the lists between rows and tiles.",
+          "details": "The button shows the view you get next: the grid icon while rows are on screen, the list icon while tiles are. Tiles show a picture for each channel - a live frame, a preview or a logo - and suit browsing video; rows leave more room for text. The pinned and main sections switch together, and your choice is remembered. In tile mode, pulling the list down refreshes the pictures of the visible tiles."
+        },
+        "import-catalog": {
+          "summary": "Downloads the built-in catalog of channels and adds it to your list.",
+          "details": "It needs a network connection. When it finishes, a message tells how many channels were added, updated or removed. Right after an update the app may offer to download channel pictures and station logos; each is a separate extra download that you can decline. Streams you added or imported yourself are not changed by the catalog."
+        },
+        "menu-add": {
+          "summary": "Adds one stream by its address.",
+          "details": "Opens the Add stream window, the same as the button in the empty list. An address that is not valid, or is already in your list, gets a short message instead of being added."
+        },
+        "menu-import-url": {
+          "summary": "Imports a whole playlist from its address.",
+          "details": "Opens the same window under the title Import list, with one field for the address of an .m3u or .m3u8 playlist. The channels join your list and a message says how many came in. A JSON playlist is not supported, and the app says so. Imported channels count as downloaded, not as your own."
+        },
+        "menu-import-broadcast": {
+          "summary": "Adds a channel from the description of a live broadcast.",
+          "details": "It asks how to bring the description in: Scan QR Code or Select Descriptor File. Use it when another device is on air and gave you a code or a file. A broadcast protected by a password asks for it first. The broadcast then appears in your list as an ordinary channel."
+        },
+        "menu-refresh": {
+          "summary": "Checks which of the channels on screen answer.",
+          "details": "The app quietly tries each channel that is now visible and updates the mark beside it: a check for a channel that answers, a hollow ring for one that has not been confirmed. A check alone never marks a channel as failed - only a real play attempt can. In tile mode it also refreshes the pictures. Touching the list, search or filters while it runs stops the check. On an empty list nothing happens."
+        },
+        "menu-clear": {
+          "summary": "Removes every channel that came from the catalog or an imported list.",
+          "details": "It asks first, under Clear downloaded channels?, and says what stays: the channels you added by hand. Afterwards a message tells how many were removed. It sits last in the menu on purpose, away from the import commands it undoes.",
+          "undo": "There is no Undo. Catalog channels come back with the next catalog update, and imported lists must be imported again. Channels you added by hand are never touched."
+        },
+        "menu-help": {
+          "summary": "Opens this page.",
+          "details": "It explains each button of the screen and the usual order of use. The F1 key opens it too.",
+          "shortcut": "F1"
+        },
+        "add-url": {
+          "summary": "The address of the stream you want to add.",
+          "details": "Type or paste an address that starts with http, https or rtsp - a radio station, a TV channel, a camera. The app guesses audio or video from the address; you can change it later in the Edit window of the channel. In Import list mode the same field takes the address of a playlist instead, and the window title says which of the two you are in. OK adds it, Cancel closes the window without saving."
+        },
+        "add-title": {
+          "summary": "A name for the channel.",
+          "details": "It is shown in the list in place of the address. If you leave it empty, the site name from the address is used. This field is in the Add stream and Edit windows only - an imported playlist brings its own names."
+        },
+        "add-audio-lang": {
+          "summary": "The audio language this channel should start with.",
+          "details": "Choose Default to follow the stream defaults from Settings, or English, Russian or Ukrainian for this channel only. It matters for channels that carry several audio tracks. The row is shown when you add one channel, not when you import a list."
+        },
+        "add-subtitle-lang": {
+          "summary": "The subtitle language for this channel.",
+          "details": "Choose Default to follow the stream defaults, or pick English, Russian or Ukrainian for this channel only. It works with the Subtitles row below."
+        },
+        "add-subtitles": {
+          "summary": "Turns subtitles on or off for this channel.",
+          "details": "Default follows the stream defaults, On shows subtitles when the channel has them, and Off hides them. The choice belongs to the channel's address and is kept when you edit the channel."
+        },
+        "offload-info": {
+          "summary": "A sheet in the player that offers to download a file instead of streaming it.",
+          "details": "The player raises it when it judges that a file from a network share or a cloud folder will not play smoothly at the current speed. It lists the file size, the connection speed against the speed the file needs, how long the download would take, the free space on the phone and where the copy would go. When the free space is not enough, a warning appears and Save local copy is switched off. It concerns files of network and cloud resources rather than live internet channels."
+        },
+        "offload-download": {
+          "summary": "Downloads the file to the phone and plays it from there.",
+          "details": "A progress window shows the download and lets you cancel it. When it finishes, playback continues from the local copy and no longer needs the network. The button is off when the phone has no room for the file plus a tenth spare. When you leave the player, you may be asked whether to keep or delete the copy, unless the streaming cache setting already decides that.",
+          "undo": "Cancelling the download removes the partial file. The original on the server or in the cloud is never changed, and the local copy can be deleted when the player asks.",
+          "shortcut": "Enter"
+        },
+        "offload-try-anyway": {
+          "summary": "Keeps streaming as before.",
+          "details": "Closes the sheet and carries on playing over the network. Expect pauses while the connection is slow. Nothing is downloaded or changed."
+        },
+        "offload-cancel": {
+          "summary": "Turns the offer down.",
+          "details": "Closes the sheet and carries on with streaming, the same as Try anyway. The system Back gesture or a tap outside the sheet does the same."
+        }
+      }
+    },
+    "ru": {
+      "title": "Трансляции",
+      "purpose": "«Трансляции» - ваш список интернет-радио, телеканалов и камер. Добавьте трансляцию по адресу, загрузите встроенный каталог или готовый плейлист, найдите канал и запустите: радио играет прямо на этом экране, видео открывается в полноэкранном плеере.",
+      "steps": [
+        "Откройте «Трансляции» из программ на главном экране. Пока список пуст, «Добавить трансляцию» (15) принимает адрес одной станции или канала, а «Импорт списка» (16) загружает готовый список.",
+        "Чтобы наполнить список встроенным каталогом, нажмите «Импорт каталога» (23) на панели. Ту же загрузку может предложить баннер (2) при открытии экрана.",
+        "Найдите канал: введите несколько букв в «Поиск» (3), нажмите кнопку видео, аудио или своих трансляций (4, 5, 6) либо откройте «Фильтр» (7) - категория, рубрика, язык и страна. «Подборки» (9) - наборы, составленные вручную; они видны, если есть в каталоге.",
+        "«Сортировка» (8) задаёт порядок, а кнопка вида (22) переключает строки и плитки.",
+        "Нажмите канал в списке (14), чтобы запустить. Радио играет прямо здесь, внизу появляется «Остановить» (21); видео открывается в полноэкранном плеере.",
+        "Нажмите канал и удерживайте, чтобы закрепить. Закреплённые собираются в «Закреплённые» (12) над «Каналы» (13); нажатие на заголовок сворачивает раздел.",
+        "Трансляции ваших других устройств ждут в разделе (10). «Обновить состояние каналов» (27) проверяет, какие каналы отвечают, а «Справка» (29) открывает эту страницу."
+      ],
+      "groups": [
+        { "title": "Панель, поиск и фильтры", "elements": ["toolbar", "catalog-banner", "search", "media-video", "media-audio", "media-own", "filter", "sort", "collections"] },
+        { "title": "Списки каналов", "elements": ["devices-header", "devices-portal", "pinned-header", "main-header", "channel-list", "empty-add", "empty-import"] },
+        { "title": "Прокрутка и воспроизведение", "elements": ["scroll-top", "page-up", "page-down", "scroll-bottom", "mini-stop"] },
+        { "title": "Кнопки и меню панели", "elements": ["view-toggle", "import-catalog", "menu-add", "menu-import-url", "menu-import-broadcast", "menu-refresh", "menu-clear", "menu-help"] },
+        { "title": "Окно добавления трансляции", "elements": ["add-url", "add-title", "add-audio-lang", "add-subtitle-lang", "add-subtitles"] },
+        { "title": "Окно «Сохранить локальную копию»", "elements": ["offload-info", "offload-download", "offload-try-anyway", "offload-cancel"] }
+      ],
+      "elements": {
+        "toolbar": {
+          "summary": "Верхняя панель: возврат назад, переключатель вида, импорт каталога и меню с остальными командами.",
+          "details": "Стрелка, как и системная кнопка «Назад», закрывает экран. Если станция ещё играет в фоне, приложение может сначала спросить, остановить её или оставить играть, и запомнить ваш ответ. Справа находятся переключатель вида (сеткой или списком), «Импорт каталога» и меню с тремя точками; они описаны в группе «Кнопки и меню панели». В альбомной ориентации поле поиска, кнопки видео, аудио и своих трансляций, «Фильтр» и «Сортировка» переезжают на эту панель, чтобы списку хватало высоты."
+        },
+        "catalog-banner": {
+          "summary": "Предлагает обновить список каналов из встроенного каталога.",
+          "details": "Баннер появляется вверху, только если в настройках, в разделе «Трансляции», пункт «Обновление списка каналов» стоит в положении «Предлагать при открытии», а последнее обновление было больше шести часов назад или не было вовсе. «Обновить» загружает каталог, кнопка закрытия просто убирает баннер. Он не исчезает сам, поэтому можно ответить, когда вам удобно. Пока вы не нажмёте «Обновить», ничего не загружается."
+        },
+        "search": {
+          "summary": "Сужает список по мере набора.",
+          "details": "Введите часть названия канала, рубрики или языка - строки сузятся сразу; крестик в конце очищает поле. Текст не запоминается, поэтому при каждом открытии экрана поле пустое. Поиск работает вместе с фильтрами ниже."
+        },
+        "media-video": {
+          "summary": "Оставляет только видеоканалы, плитками с превью.",
+          "details": "Нажмите, чтобы увидеть видеоканалы из каталога и импортированных списков; повторное нажатие возвращает всё. При выборе список переключается на плитки, чтобы показать превью, а после выхода из этого фильтра возвращается прежний вид. Трансляции, добавленные вручную, здесь не считаются - они под кнопкой своих трансляций."
+        },
+        "media-audio": {
+          "summary": "Оставляет только радио и другие аудиоканалы.",
+          "details": "Нажмите, чтобы увидеть аудиоканалы из каталога и импортированных списков; повторное нажатие показывает всё. Трансляции, добавленные вручную, - под кнопкой своих трансляций."
+        },
+        "media-own": {
+          "summary": "Оставляет только трансляции, добавленные вами вручную.",
+          "details": "Удобно, когда в каталоге тысячи каналов, а нужны ваши несколько. Каналы из импортированного плейлиста своими не считаются. Повторное нажатие снимает фильтр."
+        },
+        "filter": {
+          "summary": "Открывает все фильтры: тип, категория, язык, рубрика, страна и только закреплённые.",
+          "details": "Вверху окна - «Все», «Аудио», «Видео» и «Свои», ниже «Категория» и «Язык», «Рубрика» (только если в каталоге есть рубрики) и «Страна». Каждая строка открывает список с поиском. «Только закреплённые» оставляет лишь закреплённые вами каналы. Выбор применяется сразу; «ОК» закрывает окно, «Сбросить фильтры» очищает всё. Пока включён любой фильтр, значок меняется, а ваш выбор запоминается до следующего раза."
+        },
+        "sort": {
+          "summary": "Выбирает порядок каналов.",
+          "details": "Варианты: «По названию», «По рубрике», «По языку», «По стране» и «Недавно добавленные»; порядок запоминается. Закреплённые каналы идут в своём разделе в вашем порядке, поэтому сортировка меняет раздел «Каналы». Если выбрана подборка, сортировка заменяет порядок составителя, но подборка остаётся."
+        },
+        "collections": {
+          "summary": "Наборы каналов, подобранные вручную, - строкой плашек.",
+          "details": "Строка появляется, только когда каталог привёз подборки. Первая плашка, «Все», показывает весь список; нажмите другую, чтобы увидеть только этот набор в порядке, выбранном составителями. Активна всегда одна плашка."
+        },
+        "devices-header": {
+          "summary": "Прямые трансляции ваших других устройств; раздел свёрнут, пока вы его не откроете.",
+          "details": "Раздел виден, только когда телефон вошёл на сервер обмена (см. «Мои устройства»). Он начинает свёрнутым, а приложение ищет трансляции, только пока он открыт, - так экономится трафик. После раскрытия сначала видно «Ищем трансляции..», затем список: название, имя устройства и режим - только аудио, только камера или камера и аудио. Нажмите трансляцию, чтобы добавить её в каналы; сообщение скажет, добавлена она, обновлена или уже была, а запускать её вы будете из списка «Каналы». Трансляция, которую эта версия не умеет воспроизводить, помечена."
+        },
+        "devices-portal": {
+          "summary": "Открывает страницу сайта проекта о трансляциях и cast.",
+          "details": "Кнопка видна, только пока раздел выше раскрыт. Страница открывается в браузере и объясняет, как принять трансляцию с другого устройства."
+        },
+        "pinned-header": {
+          "summary": "Закреплённые каналы - всегда сверху.",
+          "details": "Раздел появляется, как только закреплён хотя бы один канал, и исчезает, когда закреплённых нет. Нажмите заголовок, чтобы свернуть раздел и отдать всё место остальным каналам; ещё раз - чтобы развернуть. Сворачивание не запоминается между запусками. В этом разделе меню с тремя точками у канала дополнительно предлагает «Вверх», «Вниз» и «В самый верх» - так вы задаёте свой порядок. Часы показывают первыми эти же каналы, а «Закреплённые трансляции часов» в Wear-компаньоне редактируют именно этот набор."
+        },
+        "main-header": {
+          "summary": "Все каналы, которые не закреплены.",
+          "details": "Здесь каталог, импортированные списки и добавленные вами трансляции. Пока есть закреплённые каналы, нажатие на заголовок сворачивает этот раздел и отдаёт весь экран закреплённым. Если закреплённых нет, заголовок ничего не делает."
+        },
+        "channel-list": {
+          "name": "Список каналов",
+          "summary": "Сами каналы: нажмите, чтобы запустить, удерживайте, чтобы закрепить.",
+          "details": "В строке - логотип или флаг канала, название и адрес, маленькие метки региона, рубрики, страны и языка, а также отметка состояния: пустое кольцо - ещё не запускался, галочка - запускался отсюда, восклицательный знак - последняя попытка не удалась. Нажмите строку, чтобы запустить. Радио продолжает играть на этом экране с кнопкой «Остановить» внизу; повторное нажатие на играющую строку тоже останавливает его. Видео открывается в полноэкранном плеере. Без сети приложение сразу говорит об этом, а не ждёт. Если станция не отвечает, окно предлагает «Повторить попытку» или «Удалить»; когда телефон не в сети, остаётся только «Повторить попытку».\n\nНажмите строку и удерживайте либо нажмите значок кнопки закрепления, чтобы закрепить или открепить канал. Три точки у строки открывают остальное: «В избранное» (когда включено «Избранное»), «На домашний экран», «Изменить» (для трансляций, добавленных вручную), «Передать на часы» и «Открыть на часах» (когда включён Wear-компаньон), «Открыть в VR» (для видеоканалов, если подключён шлем), «Информация о канале», «Отправить ссылку» и «Удалить». В режиме плиток плитка делает то же самое, со значком закрепления, а «Закрепить» и «Открепить» лежат в меню. Правый щелчок мыши открывает то же меню.",
+          "undo": "«Удалить» сначала спрашивает, затем убирает канал из списка. Отмены нет: канал из каталога может вернуться со следующим обновлением каталога, а введённая вами трансляция пропадает, пока вы не добавите её адрес снова."
+        },
+        "empty-add": {
+          "summary": "Открывает окно, где вводится адрес трансляции.",
+          "details": "Это сообщение с двумя кнопками появляется, когда показывать нечего - при первом запуске или если поиск и фильтры ничего не нашли. «Добавить трансляцию» открывает то же окно, что и команда в меню панели: адрес, необязательное название и необязательный выбор языков."
+        },
+        "empty-import": {
+          "summary": "Загружает сразу целый список каналов.",
+          "details": "Приложение спросит, как именно: «Импорт каталога» загружает встроенный каталог, «Импорт по URL» берёт адрес плейлиста, который у вас уже есть. Оба варианта есть и на панели."
+        },
+        "scroll-top": {
+          "summary": "Переходит к первому каналу.",
+          "details": "Четыре круглые кнопки у правого края относятся к списку «Каналы» и появляются, только когда он длиннее экрана. Эта кнопка видна, когда вы ушли от начала списка."
+        },
+        "page-up": {
+          "summary": "Прокручивает список на страницу вверх.",
+          "details": "Появляется вместе с «В начало списка», когда вы не в начале списка."
+        },
+        "page-down": {
+          "summary": "Прокручивает список на страницу вниз.",
+          "details": "Видна, пока ниже есть ещё каналы, и пропадает в конце списка."
+        },
+        "scroll-bottom": {
+          "summary": "Переходит к последнему каналу.",
+          "details": "Полезно в длинном каталоге, когда нужный канал при такой сортировке оказывается в конце. Пропадает, когда вы уже внизу."
+        },
+        "mini-stop": {
+          "summary": "Останавливает радио, которое играет на этом экране.",
+          "details": "Тонкая полоса внизу появляется, пока здесь играет станция. В ней название станции и, если станция его передаёт, название песни. «Остановить» прекращает воспроизведение; то же делает нажатие на играющую строку. Если в настройках включено воспроизведение в фоне, станция может играть и после выхода с экрана."
+        },
+        "view-toggle": {
+          "name": "Сеткой / Списком",
+          "summary": "Переключает списки между строками и плитками.",
+          "details": "Кнопка показывает вид, который включится следующим: значок сетки, пока на экране строки, и значок списка, пока плитки. Плитки показывают картинку каждого канала - живой кадр, превью или логотип - и удобны для просмотра видео; строки оставляют больше места для текста. Закреплённый и основной разделы переключаются вместе, а выбор запоминается. В режиме плиток движение пальца вниз по списку обновляет картинки видимых плиток."
+        },
+        "import-catalog": {
+          "summary": "Загружает встроенный каталог каналов и добавляет его в список.",
+          "details": "Нужна сеть. Когда загрузка закончится, сообщение скажет, сколько каналов добавлено, обновлено и удалено. Сразу после обновления приложение может предложить загрузить картинки каналов и логотипы станций; это отдельные дополнительные загрузки, от каждой можно отказаться. Трансляции, которые вы добавили или импортировали сами, каталог не меняет."
+        },
+        "menu-add": {
+          "summary": "Добавляет одну трансляцию по адресу.",
+          "details": "Открывает окно «Добавить трансляцию», как и кнопка в пустом списке. Если адрес некорректен или уже есть в списке, появится короткое сообщение, а канал не добавится."
+        },
+        "menu-import-url": {
+          "summary": "Импортирует целый плейлист по его адресу.",
+          "details": "Открывает то же окно с заголовком «Импорт списка» и одним полем для адреса плейлиста .m3u или .m3u8. Каналы попадают в ваш список, а сообщение скажет, сколько их пришло. Плейлист в формате JSON не поддерживается - приложение скажет об этом. Импортированные каналы считаются загруженными, а не своими."
+        },
+        "menu-import-broadcast": {
+          "summary": "Добавляет канал по описанию прямой трансляции.",
+          "details": "Приложение спросит, как получить описание: «Сканировать QR-код» или «Выбрать файл описания». Пользуйтесь, когда другое устройство в эфире и дало вам код или файл. Трансляция с паролем сначала запросит его. Затем трансляция появится в списке как обычный канал."
+        },
+        "menu-refresh": {
+          "summary": "Проверяет, какие из каналов на экране отвечают.",
+          "details": "Приложение тихо пробует каждый видимый сейчас канал и обновляет отметку рядом с ним: галочка у канала, который отвечает, пустое кольцо у того, чей ответ не подтверждён. Одна проверка никогда не помечает канал как неудавшийся - это может сделать только настоящая попытка запуска. В режиме плиток заодно обновляются картинки. Если во время проверки коснуться списка, поиска или фильтров, она прекращается. В пустом списке ничего не происходит."
+        },
+        "menu-clear": {
+          "summary": "Удаляет все каналы, пришедшие из каталога или импортированных списков.",
+          "details": "Сначала спрашивает «Очистить загруженные каналы?» и говорит, что останется: каналы, добавленные вручную. После этого сообщение скажет, сколько каналов удалено. Пункт стоит в меню последним намеренно - подальше от команд импорта, действие которых он отменяет.",
+          "undo": "Отмены нет. Каналы каталога вернутся со следующим обновлением каталога, а импортированные списки нужно импортировать заново. Каналы, добавленные вручную, не затрагиваются."
+        },
+        "menu-help": {
+          "summary": "Открывает эту страницу.",
+          "details": "Здесь описана каждая кнопка экрана и обычный порядок действий. То же открывает клавиша F1.",
+          "shortcut": "F1"
+        },
+        "add-url": {
+          "summary": "Адрес трансляции, которую вы добавляете.",
+          "details": "Введите или вставьте адрес, который начинается с http, https или rtsp, - радиостанция, телеканал, камера. Аудио или видео приложение определяет по адресу; позже это можно поменять в окне «Изменить» у канала. В режиме «Импорт списка» то же поле принимает адрес плейлиста, а заголовок окна подсказывает, где вы находитесь. «ОК» добавляет, «Отмена» закрывает окно без сохранения."
+        },
+        "add-title": {
+          "summary": "Название канала.",
+          "details": "Показывается в списке вместо адреса. Если оставить поле пустым, берётся имя сайта из адреса. Это поле есть только в окнах добавления и изменения - импортированный плейлист приносит свои названия."
+        },
+        "add-audio-lang": {
+          "summary": "Язык звука, с которого канал начнёт играть.",
+          "details": "«По умолчанию» следует общим настройкам трансляций, а «Английский», «Русский» или «Украинский» действуют только для этого канала. Это важно для каналов с несколькими звуковыми дорожками. Строка есть при добавлении одного канала, но не при импорте списка."
+        },
+        "add-subtitle-lang": {
+          "summary": "Язык субтитров для этого канала.",
+          "details": "«По умолчанию» следует общим настройкам трансляций, либо выберите «Английский», «Русский» или «Украинский» только для этого канала. Работает вместе со строкой «Субтитры» ниже."
+        },
+        "add-subtitles": {
+          "summary": "Включает или выключает субтитры для этого канала.",
+          "details": "«По умолчанию» следует общим настройкам, «Включены» показывает субтитры, если они есть у канала, «Выкл» скрывает их. Выбор привязан к адресу канала и сохраняется, когда вы его изменяете."
+        },
+        "offload-info": {
+          "summary": "Окно в плеере, которое предлагает скачать файл вместо воспроизведения по сети.",
+          "details": "Плеер показывает его, когда решает, что файл из сетевой папки или облака при текущей скорости не будет играть плавно. В окне указаны размер файла, скорость соединения и скорость, которая нужна файлу, примерное время загрузки, свободное место на телефоне и куда ляжет копия. Если места не хватает, появляется предупреждение, а «Сохранить локальную копию» отключается. Окно относится к файлам сетевых ресурсов и облака, а не к живым интернет-каналам."
+        },
+        "offload-download": {
+          "summary": "Скачивает файл на телефон и воспроизводит оттуда.",
+          "details": "Окно с ходом загрузки позволяет её отменить. Когда загрузка закончится, воспроизведение продолжится с локальной копии и сеть больше не понадобится. Кнопка отключена, если на телефоне нет места под файл и запас в десятую часть. При выходе из плеера вас могут спросить, оставить копию или удалить, если это ещё не решено настройкой кэша трансляций.",
+          "undo": "Если отменить загрузку, неполный файл удаляется. Оригинал на сервере или в облаке не меняется никогда, а локальную копию можно удалить, когда плеер спросит.",
+          "shortcut": "Enter"
+        },
+        "offload-try-anyway": {
+          "summary": "Оставляет воспроизведение по сети как было.",
+          "details": "Закрывает окно и продолжает играть по сети. Пока соединение медленное, возможны паузы. Ничего не скачивается и не меняется."
+        },
+        "offload-cancel": {
+          "summary": "Отклоняет предложение.",
+          "details": "Закрывает окно и продолжает воспроизведение по сети - так же, как «Попробовать всё равно». То же делает системный жест «Назад» или касание вне окна."
+        }
+      }
+    },
+    "uk": {
+      "title": "Трансляції",
+      "purpose": "«Трансляції» - ваш список інтернет-радіо, телеканалів і камер. Додайте трансляцію за адресою, завантажте вбудований каталог або готовий плейлист, знайдіть канал і запустіть: радіо грає просто на цьому екрані, відео відкривається в повноекранному плеєрі.",
+      "steps": [
+        "Відкрийте «Трансляції» з програм на головному екрані. Поки список порожній, «Додати трансляцію» (15) приймає адресу однієї станції чи каналу, а «Імпорт списку» (16) завантажує готовий список.",
+        "Щоб наповнити список вбудованим каталогом, натисніть «Імпорт каталогу» (23) на панелі. Те саме оновлення може запропонувати банер (2) під час відкриття екрана.",
+        "Знайдіть канал: введіть кілька літер у «Пошук» (3), натисніть кнопку відео, аудіо або власних трансляцій (4, 5, 6) чи відкрийте «Фільтр» (7) - категорія, рубрика, мова й країна. «Добірки» (9) - набори, складені вручну; вони видимі, якщо є в каталозі.",
+        "«Сортування» (8) задає порядок, а кнопка вигляду (22) перемикає рядки й плитки.",
+        "Натисніть канал у списку (14), щоб запустити. Радіо грає просто тут, унизу з’являється «Зупинити» (21); відео відкривається в повноекранному плеєрі.",
+        "Натисніть канал і втримуйте, щоб закріпити. Закріплені збираються в «Закріплені» (12) над «Канали» (13); натискання на заголовок згортає розділ.",
+        "Трансляції ваших інших пристроїв чекають у розділі (10). «Оновити стан каналів» (27) перевіряє, які канали відповідають, а «Довідка» (29) відкриває цю сторінку."
+      ],
+      "groups": [
+        { "title": "Панель, пошук і фільтри", "elements": ["toolbar", "catalog-banner", "search", "media-video", "media-audio", "media-own", "filter", "sort", "collections"] },
+        { "title": "Списки каналів", "elements": ["devices-header", "devices-portal", "pinned-header", "main-header", "channel-list", "empty-add", "empty-import"] },
+        { "title": "Прокручування й відтворення", "elements": ["scroll-top", "page-up", "page-down", "scroll-bottom", "mini-stop"] },
+        { "title": "Кнопки й меню панелі", "elements": ["view-toggle", "import-catalog", "menu-add", "menu-import-url", "menu-import-broadcast", "menu-refresh", "menu-clear", "menu-help"] },
+        { "title": "Вікно додавання трансляції", "elements": ["add-url", "add-title", "add-audio-lang", "add-subtitle-lang", "add-subtitles"] },
+        { "title": "Вікно «Зберегти локальну копію»", "elements": ["offload-info", "offload-download", "offload-try-anyway", "offload-cancel"] }
+      ],
+      "elements": {
+        "toolbar": {
+          "summary": "Верхня панель: повернення назад, перемикач вигляду, імпорт каталогу та меню з рештою команд.",
+          "details": "Стрілка, як і системна кнопка «Назад», закриває екран. Якщо станція ще грає у фоні, застосунок може спершу спитати, зупинити її чи залишити грати, і запам’ятати вашу відповідь. Праворуч розташовані перемикач вигляду (сіткою чи списком), «Імпорт каталогу» та меню з трьома крапками; вони описані в групі «Кнопки й меню панелі». В альбомній орієнтації поле пошуку, кнопки відео, аудіо й власних трансляцій, «Фільтр» та «Сортування» переїжджають на цю панель, щоб списку вистачало висоти."
+        },
+        "catalog-banner": {
+          "summary": "Пропонує оновити список каналів із вбудованого каталогу.",
+          "details": "Банер з’являється вгорі, лише якщо в налаштуваннях, у розділі «Трансляції», пункт «Оновлення списку каналів» стоїть у положенні «Пропонувати під час відкриття», а останнє оновлення було понад шість годин тому або не було взагалі. «Оновити» завантажує каталог, кнопка закриття просто прибирає банер. Він не зникає сам, тож можна відповісти, коли вам зручно. Доки ви не натиснете «Оновити», нічого не завантажується."
+        },
+        "search": {
+          "summary": "Звужує список під час набору.",
+          "details": "Введіть частину назви каналу, рубрики чи мови - рядки звузяться одразу; хрестик у кінці очищає поле. Текст не запам’ятовується, тож під час кожного відкриття екрана поле порожнє. Пошук працює разом із фільтрами нижче."
+        },
+        "media-video": {
+          "summary": "Залишає лише відеоканали, плитками з попереднім переглядом.",
+          "details": "Натисніть, щоб побачити відеоканали з каталогу та імпортованих списків; повторне натискання повертає все. Під час вибору список перемикається на плитки, щоб показати попередній перегляд, а після виходу з цього фільтра повертається попередній вигляд. Трансляції, додані вручну, тут не враховуються - вони під кнопкою власних трансляцій."
+        },
+        "media-audio": {
+          "summary": "Залишає лише радіо та інші аудіоканали.",
+          "details": "Натисніть, щоб побачити аудіоканали з каталогу та імпортованих списків; повторне натискання показує все. Трансляції, додані вручну, - під кнопкою власних трансляцій."
+        },
+        "media-own": {
+          "summary": "Залишає лише трансляції, додані вами вручну.",
+          "details": "Зручно, коли в каталозі тисячі каналів, а потрібні ваші кілька. Канали з імпортованого плейлиста власними не вважаються. Повторне натискання знімає фільтр."
+        },
+        "filter": {
+          "summary": "Відкриває всі фільтри: тип, категорія, мова, рубрика, країна й лише закріплені.",
+          "details": "Угорі вікна - «Усі», «Аудіо», «Відео» та «Власні», нижче «Категорія» і «Мова», «Рубрика» (лише якщо в каталозі є рубрики) та «Країна». Кожен рядок відкриває список із пошуком. «Лише закріплені» залишає тільки закріплені вами канали. Вибір застосовується одразу; «OK» закриває вікно, «Скинути фільтри» очищає все. Поки ввімкнено будь-який фільтр, значок змінюється, а ваш вибір запам’ятовується до наступного разу."
+        },
+        "sort": {
+          "summary": "Вибирає порядок каналів.",
+          "details": "Варіанти: «За назвою», «За рубрикою», «За мовою», «За країною» та «Нещодавно додані»; порядок запам’ятовується. Закріплені канали йдуть у своєму розділі у вашому порядку, тому сортування змінює розділ «Канали». Якщо вибрано добірку, сортування замінює порядок укладача, але добірка лишається."
+        },
+        "collections": {
+          "summary": "Набори каналів, дібрані вручну, - рядком плашок.",
+          "details": "Рядок з’являється, лише коли каталог привіз добірки. Перша плашка, «Усі», показує весь список; натисніть іншу, щоб побачити тільки цей набір у порядку, який обрали укладачі. Активна завжди одна плашка."
+        },
+        "devices-header": {
+          "summary": "Прямі трансляції ваших інших пристроїв; розділ згорнуто, доки ви його не відкриєте.",
+          "details": "Розділ видно, лише коли телефон увійшов на сервер обміну (див. «Мої пристрої»). Він починає згорнутим, а застосунок шукає трансляції, лише поки він відкритий, - так заощаджується трафік. Після розгортання спершу видно «Шукаємо трансляції..», потім список: назва, ім’я пристрою й режим - лише аудіо, лише камера або камера й аудіо. Натисніть трансляцію, щоб додати її до каналів; повідомлення скаже, чи її додано, оновлено, чи вона вже була, а запускати її ви будете зі списку «Канали». Трансляцію, яку ця версія не вміє відтворювати, позначено."
+        },
+        "devices-portal": {
+          "summary": "Відкриває сторінку сайту проєкту про трансляції та cast.",
+          "details": "Кнопка видима, лише поки розділ вище розгорнуто. Сторінка відкривається в браузері й пояснює, як прийняти трансляцію з іншого пристрою."
+        },
+        "pinned-header": {
+          "summary": "Закріплені канали - завжди вгорі.",
+          "details": "Розділ з’являється, щойно закріплено хоча б один канал, і зникає, коли закріплених немає. Натисніть заголовок, щоб згорнути розділ і віддати все місце решті каналів; ще раз - щоб розгорнути. Згортання не запам’ятовується між запусками. У цьому розділі меню з трьома крапками біля каналу додатково пропонує «Вгору», «Вниз» і «На самий верх» - так ви задаєте власний порядок. Годинник показує першими ці самі канали, а «Закріплені трансляції годинника» у Wear-супутнику редагують саме цей набір."
+        },
+        "main-header": {
+          "summary": "Усі канали, які не закріплено.",
+          "details": "Тут каталог, імпортовані списки та додані вами трансляції. Поки є закріплені канали, натискання на заголовок згортає цей розділ і віддає весь екран закріпленим. Якщо закріплених немає, заголовок нічого не робить."
+        },
+        "channel-list": {
+          "name": "Список каналів",
+          "summary": "Самі канали: натисніть, щоб запустити, втримуйте, щоб закріпити.",
+          "details": "У рядку - логотип чи прапор каналу, назва й адреса, маленькі позначки регіону, рубрики, країни та мови, а також позначка стану: порожнє кільце - ще не запускався, галочка - запускався звідси, знак оклику - остання спроба не вдалася. Натисніть рядок, щоб запустити. Радіо продовжує грати на цьому екрані з кнопкою «Зупинити» внизу; повторне натискання на рядок, що грає, теж зупиняє його. Відео відкривається в повноекранному плеєрі. Без мережі застосунок одразу про це каже, а не чекає. Якщо станція не відповідає, вікно пропонує «Повторити спробу» або «Видалити»; коли телефон не в мережі, лишається тільки «Повторити спробу».\n\nНатисніть рядок і втримуйте або натисніть значок кнопки закріплення, щоб закріпити чи відкріпити канал. Три крапки біля рядка відкривають решту: «До обраного» (коли ввімкнено «Обране»), «На домашній екран», «Змінити» (для трансляцій, доданих вручну), «Надіслати на годинник» і «Відкрити на годиннику» (коли ввімкнено Wear-супутник), «Відкрити у VR» (для відеоканалів, якщо підключено шолом), «Інформація про канал», «Надіслати посилання» та «Видалити». У режимі плиток плитка робить те саме, зі значком закріплення, а «Закріпити» й «Відкріпити» лежать у меню. Правий клік миші відкриває те саме меню.",
+          "undo": "«Видалити» спершу питає, потім прибирає канал зі списку. Скасування немає: канал із каталогу може повернутися з наступним оновленням каталогу, а введена вами трансляція зникає, доки ви не додасте її адресу знову."
+        },
+        "empty-add": {
+          "summary": "Відкриває вікно, де вводиться адреса трансляції.",
+          "details": "Це повідомлення з двома кнопками з’являється, коли показувати нічого - під час першого запуску або якщо пошук і фільтри нічого не знайшли. «Додати трансляцію» відкриває те саме вікно, що й команда в меню панелі: адреса, необов’язкова назва та необов’язковий вибір мов."
+        },
+        "empty-import": {
+          "summary": "Завантажує одразу цілий список каналів.",
+          "details": "Застосунок спитає, як саме: «Імпорт каталогу» завантажує вбудований каталог, «Імпорт за URL» бере адресу плейлиста, який у вас уже є. Обидва варіанти є й на панелі."
+        },
+        "scroll-top": {
+          "summary": "Переходить до першого каналу.",
+          "details": "Чотири круглі кнопки біля правого краю стосуються списку «Канали» й з’являються, лише коли він довший за екран. Ця кнопка видна, коли ви відійшли від початку списку."
+        },
+        "page-up": {
+          "summary": "Прокручує список на сторінку вгору.",
+          "details": "З’являється разом із «На початок списку», коли ви не на початку списку."
+        },
+        "page-down": {
+          "summary": "Прокручує список на сторінку вниз.",
+          "details": "Видна, поки нижче є ще канали, і зникає наприкінці списку."
+        },
+        "scroll-bottom": {
+          "summary": "Переходить до останнього каналу.",
+          "details": "Корисно в довгому каталозі, коли потрібний канал за такого сортування опиняється в кінці. Зникає, коли ви вже внизу."
+        },
+        "mini-stop": {
+          "summary": "Зупиняє радіо, що грає на цьому екрані.",
+          "details": "Тонка смуга внизу з’являється, поки тут грає станція. У ній назва станції та, якщо станція її передає, назва пісні. «Зупинити» припиняє відтворення; те саме робить натискання на рядок, що грає. Якщо в налаштуваннях увімкнено відтворення у фоні, станція може грати й після виходу з екрана."
+        },
+        "view-toggle": {
+          "name": "Сіткою / Списком",
+          "summary": "Перемикає списки між рядками та плитками.",
+          "details": "Кнопка показує вигляд, який увімкнеться наступним: значок сітки, поки на екрані рядки, і значок списку, поки плитки. Плитки показують картинку кожного каналу - живий кадр, попередній перегляд чи логотип - і зручні для перегляду відео; рядки лишають більше місця для тексту. Закріплений і основний розділи перемикаються разом, а вибір запам’ятовується. У режимі плиток рух пальця вниз по списку оновлює картинки видимих плиток."
+        },
+        "import-catalog": {
+          "summary": "Завантажує вбудований каталог каналів і додає його до списку.",
+          "details": "Потрібна мережа. Коли завантаження закінчиться, повідомлення скаже, скільки каналів додано, оновлено й вилучено. Одразу після оновлення застосунок може запропонувати завантажити картинки каналів і логотипи станцій; це окремі додаткові завантаження, від кожного можна відмовитися. Трансляції, які ви додали чи імпортували самі, каталог не змінює."
+        },
+        "menu-add": {
+          "summary": "Додає одну трансляцію за адресою.",
+          "details": "Відкриває вікно «Додати трансляцію», як і кнопка в порожньому списку. Якщо адреса некоректна або вже є в списку, з’явиться коротке повідомлення, а канал не додасться."
+        },
+        "menu-import-url": {
+          "summary": "Імпортує цілий плейлист за його адресою.",
+          "details": "Відкриває те саме вікно із заголовком «Імпорт списку» та одним полем для адреси плейлиста .m3u або .m3u8. Канали потрапляють до вашого списку, а повідомлення скаже, скільки їх прийшло. Плейлист у форматі JSON не підтримується - застосунок про це скаже. Імпортовані канали вважаються завантаженими, а не власними."
+        },
+        "menu-import-broadcast": {
+          "summary": "Додає канал за описом прямої трансляції.",
+          "details": "Застосунок спитає, як отримати опис: «Сканувати QR-код» або «Обрати файл опису». Користуйтеся, коли інший пристрій в ефірі й дав вам код чи файл. Трансляція з паролем спершу запитає його. Потім трансляція з’явиться в списку як звичайний канал."
+        },
+        "menu-refresh": {
+          "summary": "Перевіряє, які з каналів на екрані відповідають.",
+          "details": "Застосунок тихо пробує кожен видимий нині канал і оновлює позначку поряд із ним: галочка біля каналу, що відповідає, порожнє кільце біля того, чия відповідь не підтверджена. Сама перевірка ніколи не позначає канал як невдалий - це може зробити тільки справжня спроба запуску. У режимі плиток заразом оновлюються картинки. Якщо під час перевірки торкнутися списку, пошуку чи фільтрів, вона припиняється. У порожньому списку нічого не відбувається."
+        },
+        "menu-clear": {
+          "summary": "Видаляє всі канали, що прийшли з каталогу чи імпортованих списків.",
+          "details": "Спершу питає «Очистити завантажені канали?» і каже, що залишиться: канали, додані вручну. Після цього повідомлення скаже, скільки каналів вилучено. Пункт стоїть у меню останнім навмисно - подалі від команд імпорту, дію яких він скасовує.",
+          "undo": "Скасування немає. Канали каталогу повернуться з наступним оновленням каталогу, а імпортовані списки треба імпортувати знову. Канали, додані вручну, не зачіпаються."
+        },
+        "menu-help": {
+          "summary": "Відкриває цю сторінку.",
+          "details": "Тут описано кожну кнопку екрана й звичайний порядок дій. Те саме відкриває клавіша F1.",
+          "shortcut": "F1"
+        },
+        "add-url": {
+          "summary": "Адреса трансляції, яку ви додаєте.",
+          "details": "Введіть або вставте адресу, що починається з http, https або rtsp, - радіостанція, телеканал, камера. Аудіо чи відео застосунок визначає за адресою; пізніше це можна змінити у вікні «Змінити» біля каналу. У режимі «Імпорт списку» те саме поле приймає адресу плейлиста, а заголовок вікна підказує, де ви перебуваєте. «OK» додає, «Скасувати» закриває вікно без збереження."
+        },
+        "add-title": {
+          "summary": "Назва каналу.",
+          "details": "Показується у списку замість адреси. Якщо залишити поле порожнім, береться ім’я сайту з адреси. Це поле є лише у вікнах додавання та зміни - імпортований плейлист приносить власні назви."
+        },
+        "add-audio-lang": {
+          "summary": "Мова звуку, з якої канал почне грати.",
+          "details": "«За замовчуванням» слідує загальним налаштуванням трансляцій, а «Англійська», «Російська» чи «Українська» діють лише для цього каналу. Це важливо для каналів із кількома звуковими доріжками. Рядок є під час додавання одного каналу, але не під час імпорту списку."
+        },
+        "add-subtitle-lang": {
+          "summary": "Мова субтитрів для цього каналу.",
+          "details": "«За замовчуванням» слідує загальним налаштуванням трансляцій, або оберіть «Англійська», «Російська» чи «Українська» лише для цього каналу. Працює разом із рядком «Субтитри» нижче."
+        },
+        "add-subtitles": {
+          "summary": "Вмикає або вимикає субтитри для цього каналу.",
+          "details": "«За замовчуванням» слідує загальним налаштуванням, «Увімкнені» показують субтитри, якщо вони є в каналу, «Вимк» ховає їх. Вибір прив’язано до адреси каналу, і він зберігається, коли ви його змінюєте."
+        },
+        "offload-info": {
+          "summary": "Вікно в плеєрі, яке пропонує завантажити файл замість відтворення мережею.",
+          "details": "Плеєр показує його, коли вирішує, що файл із мережевої папки чи хмари за поточної швидкості не гратиме плавно. У вікні вказано розмір файлу, швидкість з’єднання та швидкість, потрібну файлу, приблизний час завантаження, вільне місце на телефоні й куди ляже копія. Якщо місця не вистачає, з’являється попередження, а «Зберегти локальну копію» вимикається. Вікно стосується файлів мережевих ресурсів і хмари, а не живих інтернет-каналів."
+        },
+        "offload-download": {
+          "summary": "Завантажує файл на телефон і відтворює звідти.",
+          "details": "Вікно з ходом завантаження дає змогу її скасувати. Коли завантаження закінчиться, відтворення продовжиться з локальної копії, і мережа вже не потрібна. Кнопку вимкнено, якщо на телефоні немає місця під файл і запас у десяту частину. Під час виходу з плеєра вас можуть спитати, залишити копію чи видалити, якщо це ще не вирішено налаштуванням кешу трансляцій.",
+          "undo": "Якщо скасувати завантаження, неповний файл видаляється. Оригінал на сервері чи в хмарі не змінюється ніколи, а локальну копію можна видалити, коли плеєр спитає.",
+          "shortcut": "Enter"
+        },
+        "offload-try-anyway": {
+          "summary": "Залишає відтворення мережею як було.",
+          "details": "Закриває вікно й далі грає мережею. Поки з’єднання повільне, можливі паузи. Нічого не завантажується й не змінюється."
+        },
+        "offload-cancel": {
+          "summary": "Відхиляє пропозицію.",
+          "details": "Закриває вікно й продовжує відтворення мережею - так само, як «Спробувати все одно». Те саме робить системний жест «Назад» або дотик поза вікном."
+        }
+      }
+    }
+  }
+}

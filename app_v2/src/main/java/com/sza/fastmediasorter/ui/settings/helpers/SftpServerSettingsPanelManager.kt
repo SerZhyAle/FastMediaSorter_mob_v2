@@ -20,9 +20,11 @@ import com.sza.fastmediasorter.domain.model.SftpServerAuthMode
 import com.sza.fastmediasorter.domain.model.SftpServerConfig
 import com.sza.fastmediasorter.domain.model.SftpServerFailure
 import com.sza.fastmediasorter.domain.model.SftpServerState
+import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeGrantsUseCase
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeProducerUseCase
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageSftpServerUseCase
 import com.sza.fastmediasorter.service.SftpServerService
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.queryTreeDisplayName
@@ -38,7 +40,8 @@ import timber.log.Timber
  * list, the port, the login mode and the running status with the credentials a client needs.
  *
  * The toggle mirrors the server's real state rather than a stored wish, so a server the system
- * stopped - at the data-sync daily limit, or with the app swiped away - reads as off here too.
+ * stopped - at the data-sync daily limit, or with the app swiped away - reads as off here too. The
+ * stored wish is what `SftpServerResumeCoordinator` acts on at the next foreground (S4225).
  */
 @Suppress("TooManyFunctions")
 class SftpServerSettingsPanelManager(
@@ -46,10 +49,13 @@ class SftpServerSettingsPanelManager(
     private val binding: FragmentSettingsGeneralBinding,
     private val manageSftpServer: ManageSftpServerUseCase,
     manageExchangeProducer: ManageExchangeProducerUseCase,
+    manageExchangeGrants: ManageExchangeGrantsUseCase,
     private val capabilityAvailability: CapabilityAvailability,
     private val mediaCapabilities: MediaCapabilities,
     private val launchRootPicker: (Intent) -> Unit,
 ) {
+
+    private val outwardAccess = ExchangeOutwardAccessDialogManager(fragment, manageExchangeGrants)
 
     private val context get() = fragment.requireContext()
     private var lastConfig: SftpServerConfig? = null
@@ -109,6 +115,9 @@ class SftpServerSettingsPanelManager(
 
     private fun bindControls() {
         binding.rowSftpServerEnabled.setOnCheckedChangeListener(::onToggle)
+        binding.btnSftpServerPortal.setOnClickListener {
+            MediaExchangePortalLinks.open(fragment.requireActivity(), MediaExchangePortalLinks.Page.PHONE_SHARING)
+        }
         binding.btnSftpServerAddRoot.setOnClickListener { launchRootPicker(buildRootPickerIntent()) }
         binding.etSftpServerPort.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) savePort()
@@ -174,6 +183,7 @@ class SftpServerSettingsPanelManager(
             ?.let { context.getString(R.string.settings_sftp_server_status_running, "$it:${state.port}") }
             ?: context.getString(R.string.settings_sftp_server_status_no_network)
         is SftpServerState.Failed -> failureText(state.reason, config.port)
+        is SftpServerState.Paused -> context.getString(R.string.settings_sftp_server_status_paused)
     }
 
     private fun failureText(reason: SftpServerFailure, port: Int): String = when (reason) {
@@ -266,6 +276,17 @@ class SftpServerSettingsPanelManager(
 
     private inner class RootRow(val treeUri: String) {
         private val label = TextView(context)
+        private var shownName: String = ""
+
+        // Contract DEVICE-EXCHANGE items BD and BE: outward access is given per folder, so it opens from the row.
+        private val outwardButton = ImageButton(context).apply {
+            setImageResource(R.drawable.ic_share)
+            setBackgroundResource(android.R.color.transparent)
+            isFocusable = true
+            minimumWidth = touchTargetPx()
+            minimumHeight = touchTargetPx()
+            setOnClickListener { outwardAccess.show(treeUri, shownName) }
+        }
         private val removeButton = ImageButton(context).apply {
             setImageResource(R.drawable.ic_remove_circle_outline)
             setBackgroundResource(android.R.color.transparent)
@@ -276,6 +297,7 @@ class SftpServerSettingsPanelManager(
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             addView(label, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            addView(outwardButton)
             addView(removeButton)
         }
 
@@ -286,6 +308,8 @@ class SftpServerSettingsPanelManager(
         fun showName(resolvedName: String?) {
             val name = resolvedName ?: Uri.parse(treeUri).lastPathSegment
             label.text = name
+            shownName = name.orEmpty()
+            outwardButton.contentDescription = context.getString(R.string.exchange_outward_open, name)
             removeButton.contentDescription =
                 context.getString(R.string.settings_sftp_server_remove_root, name)
         }
@@ -317,4 +341,6 @@ class SftpServerSettingsPanelManager(
 
     private fun launchInView(block: suspend () -> Unit): Job =
         fragment.viewLifecycleOwner.lifecycleScope.launch { block() }
+
+    private fun touchTargetPx(): Int = context.resources.getDimensionPixelSize(R.dimen.touch_target_min_height)
 }

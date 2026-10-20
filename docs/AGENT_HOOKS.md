@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.13 14:42</sub>
+<sub class="doc-stamp">26.10.17 03:46</sub>
 
 # Agent Hooks - the complete inventory
 
@@ -6,25 +6,26 @@ Claude Code hooks run around your tool calls. One may **refuse** a call before i
 
 **When a call is refused or a result looks altered, start here.** The refusal text is self-sufficient by design: it names the hook, cites its `CLAUDE.md` rule, states the reason, gives the exact remedy and names the escape hatch, and it arrives on stderr, which is shown to the model. This file carries the full contract behind that one-line remedy.
 
-## The two homes, and why it matters
+## The three homes, and why it matters
 
 - **global** - `~/.claude/hooks/`, registered in `~/.claude/settings.json`. Per-machine, **not** version-controlled, and **absent on a fresh machine or a clean checkout**. A behaviour you rely on here may simply not exist for another contributor.
+- **plugin** - the canon's `sza` plugin, registered in the `hooks/hooks.json` of its **installed** cache (found through `~/.claude/plugins/installed_plugins.json`). Per-machine like global: it travels with the plugin, not with the checkout.
 - **project** - `.claude/hooks/`, registered in `.claude/settings.json`. Travels with the checkout, so it is live for everyone who clones the repository.
 
-The canon ships some of these guards in its own `hooks/` folder. Until the *installed* plugin cache carries a given `.ps1`, the hand-wired registration in `~/.claude/settings.json` is the only thing making it live - removing one "because the plugin has it now" silently disarms it. Verify the installed cache, not the marketplace clone.
+Until the *installed* plugin cache carries a given `.ps1`, a hand-wired registration in `~/.claude/settings.json` is the only thing making that guard live - removing one "because the plugin has it now" silently disarms it. Verify the installed cache, not the marketplace clone.
 
-**Open as of the 2026-08-18 canon re-sync: every `global` row below is now also shipped by the plugin, and both fire.** The installed cache at `sza/2026.818.1` carries `guard-bash.ps1` (absorbing the `find`, `.ps1`-head, cmdlet-head and missing-interpreter checks), `guard-fire-and-forget.ps1`, `guard-uncapped-read.ps1` and `on-user-prompt.ps1`. Each therefore costs a second PowerShell start (170-250 ms) on every matching call and, for the read guard, a second rewrite of the same input - the plugin's window is 500 lines against the hand-wired one's own threshold. Dropping the six hand-wired registrations from `~/.claude/settings.json` is the canon-sanctioned fix, but that file is **per-machine and outside this repository**, so it is the owner's call and is deliberately not made here. The rows stay listed while they stay registered: `assert-hook-inventory.ps1` judges the global half against that file whenever it is readable, so deleting a row before its registration would fail the gate.
+**The six rows below that were once hand-wired are now served by the plugin.** The hand-wired registrations are gone from `~/.claude/settings.json`, and the installed cache registers `guard-bash.ps1` (it absorbed the `find`, `.ps1`-head, cmdlet-head and missing-interpreter checks), `guard-fire-and-forget.ps1`, `guard-uncapped-read.ps1` and `on-user-prompt.ps1` (it absorbed the context-size warning). A row stays as the contract text of its check; its Home cell says `plugin` when the plugin ships a script of the row's own name and `plugin, in <script>.ps1` when the check lives inside another one, and `assert-hook-inventory.ps1` judges it against that script's registration in the installed cache.
 
 ## Inventory
 
 | Hook | Event / matcher | Verdict | Home | Rule | Contract tests |
 |------|-----------------|---------|------|:----:|----------------|
-| `guard-find-command.ps1` | PreToolUse / Bash | refuses | global | 24 | - |
-| `guard-ps1-in-bash.ps1` | PreToolUse / Bash | refuses | global | 25 | - |
-| `guard-fire-and-forget.ps1` | PreToolUse / Bash | refuses | global | 26 | - |
-| `guard-bash-unavailable-command.ps1` | PreToolUse / Bash | refuses | global | 28 | `.claude/hooks/global-hook-tests/Run-GuardBashUnavailableCommand-Tests.ps1` |
-| `guard-uncapped-read.ps1` | PreToolUse / Read | **rewrites** | global | - | `.claude/hooks/global-hook-tests/Run-GuardUncappedRead-Tests.ps1` |
-| `warn-context-size.ps1` | UserPromptSubmit / `*` | warns | global | - | `.claude/hooks/global-hook-tests/Run-WarnContextSize-Tests.ps1` |
+| `guard-find-command.ps1` | PreToolUse / Bash | refuses | plugin, in `guard-bash.ps1` | 24 | - |
+| `guard-ps1-in-bash.ps1` | PreToolUse / Bash | refuses | plugin, in `guard-bash.ps1` | 25 | - |
+| `guard-fire-and-forget.ps1` | PreToolUse / Bash | refuses | plugin | 26 | - |
+| `guard-bash-unavailable-command.ps1` | PreToolUse / Bash | refuses | plugin, in `guard-bash.ps1` | 28 | `.claude/hooks/global-hook-tests/Run-GuardBashUnavailableCommand-Tests.ps1` |
+| `guard-uncapped-read.ps1` | PreToolUse / Read | **rewrites** | plugin | - | `.claude/hooks/global-hook-tests/Run-GuardUncappedRead-Tests.ps1` |
+| `warn-context-size.ps1` | UserPromptSubmit / `*` | warns | plugin, in `on-user-prompt.ps1` | - | `.claude/hooks/global-hook-tests/Run-WarnContextSize-Tests.ps1` |
 | `guard-catalog-before-kt-search.ps1` | PreToolUse / Grep, Glob | refuses | project | - | `.claude/hooks/tests/run-guard-catalog-cases.ps1` |
 | `guard-mcp-one-way-tools.ps1` | PreToolUse / one-way MCP device tools | refuses | project | 35 | `.claude/hooks/tests/Run-GuardMcpOneWayTools-Tests.ps1` |
 | `guard-release-freeze.ps1` | PreToolUse / Bash, PowerShell | refuses | project | 23 | `.claude/hooks/tests/Run-GuardReleaseFreeze-Tests.ps1` |
@@ -91,7 +92,7 @@ Build, tickets, the class catalogue, log intake and publishing stay with scripts
 
 ### Rewriting and observing
 
-- **`guard-uncapped-read`** does **not** refuse. A `Read` with no `offset`/`limit` against a file over 200 lines is rewritten to `limit: 800`, and when the file is longer it returns a notice naming the real length and how much is hidden. **This is the one hook that changes what you see**, so treat a long file you did not window explicitly as partially read. **Escape:** pass an explicit `offset`/`limit` - never intercepted - and `.claude/commands|skills|templates|reference|agents` are exempt outright.
+- **`guard-uncapped-read`** does **not** refuse. A `Read` with no `offset`/`limit` against a file over 500 lines is rewritten to `limit: 500`, and it returns a notice naming the file and saying the rest is not shown. **This is the one hook that changes what you see**, so treat a long file you did not window explicitly as partially read. **Escape:** pass an explicit `offset`/`limit` - never intercepted; PDFs, notebooks and images are never windowed; `SZA_HOOKS_OFF=1` turns every plugin hook off.
 - **`observe-plan-tick-batching`** says one line after a **second** `plan-tick.ps1 -State Done` on the same `-Id` and `-Phase` inside 120 s, naming the single `-Steps a,b` call the pair could have been. It observes and never refuses: by the time the second tick is visible the first has already written its Step Log entry, so blocking the second would leave a finished step unmarked with no legal way forward. Measured 2026-09-13..19: 64 strictly adjacent pairs (median gap 8 s, max 28 s) out of 36,103 tool calls. **Escape:** `FMS_PLAN_TICK_GATE=0`. State is one per-session file, `temp/plan-tick-last-*.json`, declared in `scripts/utils/temp-root-inventory.ps1`.
 - **`observe-kt-edit-detekt`** (S4190) runs `scripts/quality/detekt-scoped.ps1` on the `.kt` file under `app_v2/` or `wear/` that an `Edit`, `MultiEdit` or `Write` just changed (about 3 s, no gradle, a private report directory under `temp/scratch/detekt-on-edit/`) and attaches each new finding as context in the same turn. Measured 2026-09-29..10-13: `detekt-preflight` refused 99 of 203 closures, always after the file had left the working context. It never refuses: a clean file, an analyser that cannot verify and a 45 s timeout are silent, and the closure's preflight still judges the set. A `case` prefilter on `.kt"` keeps every other edit free of a pwsh launch. **Escape:** `FMS_KT_EDIT_DETEKT=0`.
 - **`observe-device-walk-progress`** (S4190) reads the `WINDOW` and `LAYOUT` lines `scripts/devtest/adb.ps1 shot` / `uidump` print (and their `-Json` fields) from an agent's `Bash` or `PowerShell` call and counts consecutive calls on the same screen per session in `temp/scratch/device-walk/`; a new window, a changed resource-id layout or a 30-minute gap resets it. From `FMS_WALK_SAME_LIMIT` (default 20) on, it answers `decision: block` with a stop message - the call has already run, the message is the verdict. Measured 2026-10-03: an exploratory walk scrolled one screen for about two hours. Scripts that call `adb.ps1` themselves are invisible to it, which is why the stop is here and not an `adb.ps1` exit code. **Escape:** `FMS_WALK_GUARD=0`.
@@ -109,6 +110,8 @@ Build, tickets, the class catalogue, log intake and publishing stay with scripts
 `scripts/quality/assert-hook-inventory.ps1` compares three things and fails on any divergence: the registered set against the names above, in either direction, and since S2872 the names above against `docs/NON_CLAUDE_RUNTIME_RULES.md`, which must name every one of them in its `## The rules` or `## Not portable` section. It is wired into `scripts/quality/assert-fast-gates.ps1`, so `.\a.ps1 fg` runs it. A missing rule sheet is exit 2, "could not verify", not a pass.
 
 It judges asymmetrically, by design. The **project** half is judged strictly and always: it is version-controlled, so the verdict reproduces on any machine. The **global** half is judged only when `~/.claude/settings.json` is readable; where it is absent the gate prints one advisory line and does not fail, because a red that cannot be fixed from the repository is a red that teaches people to bypass the gate.
+
+The **plugin** half follows the global one (S4295). A row whose Home cell says `plugin` is judged against the `hooks/hooks.json` of the installed `sza` plugin, and fails when that cache registers no hook under the script the cell names. An absent `installed_plugins.json`, a plugin not installed for this repository, one the global settings disable and an unreadable hooks file each print one advisory and judge nothing. The reverse direction is an advisory too: a hook the plugin registers that no row names (External: today `guard-git-rewind.ps1` and `session-start.ps1`, both shipped by the plugin) is reported but never fails, because the plugin inventories its own hooks in its `hooks/README.md` and a plugin update must not turn this repository red before anyone has read what changed.
 
 ## Authoring a new hook
 

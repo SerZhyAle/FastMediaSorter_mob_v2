@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "আপনার ওয়াচে FastMedia রাখুন - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-bn.html
 ---
-<sub class="doc-stamp">26.09.30 11:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/wear-install-bn.html
 > **স্তর:** শিক্ষানবিস &bull; **সময়:** ~৫ মিনিট &bull; **ডিভাইস:** একটা অ্যান্ড্রয়েড ফোনের সাথে পেয়ার করা Wear OS স্মার্টওয়াচ
 
 > **দুটো সংস্করণ।** Google Play থেকে আসা সংস্করণটা একটা ছোট প্রথম রিলিজ: Calculator, Stopwatch, Mini-game, Settings এবং Programs টাইল। মিউজিক, ছবি, নেটওয়ার্ক শেয়ার এবং ফোন ফিচার শুধু ফুল ভার্সনে আছে, যা [Downloads](../DOWNLOADS.md) থেকে সরাসরি APK ডাউনলোড।
-
-{% include lang-switcher.html doc="wear-install" dir="/docs/howto/" current="bn" %}
 
 FastMedia Wear হলো FastMediaSorter-এর ওয়াচ অংশ। একবার এটা আপনার কব্জিতে থাকলে আপনি সরাসরি ওয়াচ থেকে মিউজিক বাজাতে এবং ছবি দেখতে পারেন, আপনার পেয়ার করা ফোন থেকে শেয়ার করা ফোল্ডার নাগালে পেতে পারেন, এবং ওয়াচটা নিজে থেকে সংযুক্ত হয় এমন নেটওয়ার্ক শেয়ার খুলতে পারেন। এই পাতাটা এটা ইনস্টল এবং পেয়ার করা কভার করে।
 

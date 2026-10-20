@@ -12,11 +12,12 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.slot
 import io.mockk.unmockkAll
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -36,7 +37,7 @@ class InputBindingRepositoryTest {
 
     @Before
     fun setUp() {
-        // insertAllAsOverrides wraps its writes in db.withTransaction; make the mock run the block.
+        // removeUntouchedSeed wraps its deletes in db.withTransaction; make the mock run the block.
         mockkStatic("androidx.room.RoomDatabaseKt")
         // withTransaction is an extension fn: mockk indexes the receiver as arg 0, so the block is not
         // firstArg. Pick the function argument and run it so the wrapped writes actually execute.
@@ -114,20 +115,55 @@ class InputBindingRepositoryTest {
         assertEquals(1, slot.captured.slot)
     }
 
+    private val seed = listOf(keyDefault("navigation.next_file", 22), keyDefault("sorting.favourite", 34))
+
+    private fun row(commandId: String, trigger: String, slot: Int = 0) =
+        InputBindingEntity(commandId, "keyboard", slot, trigger, 0L)
+
     @Test
-    fun `insertAllAsOverrides maps trigger type to device`() = runBlocking {
-        val captured = mutableListOf<InputBindingEntity>()
-        coEvery { dao.upsert(capture(captured)) } returns Unit
+    fun `untouched seed is removed`() = runBlocking {
+        coEvery { dao.getAll() } returns
+            listOf(row("navigation.next_file", "key:22:0"), row("sorting.favourite", "key:34:0"), row("x", "key:1:0"))
 
-        repository.insertAllAsOverrides(
+        assertTrue(repository.removeUntouchedSeed(seed))
+        coVerify { dao.deleteByCommandAndDevice("navigation.next_file", "keyboard") }
+        coVerify { dao.deleteByCommandAndDevice("sorting.favourite", "keyboard") }
+        coVerify(exactly = 0) { dao.deleteByCommandAndDevice("x", any()) }
+    }
+
+    @Test
+    fun `a seed with one user change is kept whole`() = runBlocking {
+        coEvery { dao.getAll() } returns
+            listOf(row("navigation.next_file", "key:22:0"), row("sorting.favourite", "key:40:0"))
+
+        assertFalse(repository.removeUntouchedSeed(seed))
+        coVerify(exactly = 0) { dao.deleteByCommandAndDevice(any(), any()) }
+    }
+
+    @Test
+    fun `a seed row with an added second key is kept`() = runBlocking {
+        coEvery { dao.getAll() } returns
             listOf(
-                InputBinding("a", InputTrigger.Key(1), BindingSource.OVERRIDE),
-                InputBinding("b", InputTrigger.MouseButton(2), BindingSource.OVERRIDE),
+                row("navigation.next_file", "key:22:0"),
+                row("navigation.next_file", "key:93:0", slot = 1),
+                row("sorting.favourite", "key:34:0"),
             )
-        )
 
-        assertEquals("keyboard", captured.first { it.commandId == "a" }.device)
-        assertEquals("mouse", captured.first { it.commandId == "b" }.device)
+        assertFalse(repository.removeUntouchedSeed(seed))
+    }
+
+    @Test
+    fun `remap committed before transaction acquisition is preserved`() = runBlocking {
+        var rows = listOf(row("navigation.next_file", "key:22:0"), row("sorting.favourite", "key:34:0"))
+        every { dao.observeAll() } returns flowOf(rows)
+        coEvery { dao.getAll() } coAnswers { rows }
+        coEvery { db.withTransaction<Any?>(any()) } coAnswers {
+            rows = listOf(row("navigation.next_file", "key:22:0"), row("sorting.favourite", "key:40:0"))
+            (args.first { it is Function<*> } as suspend () -> Any?).invoke()
+        }
+
+        assertFalse(repository.removeUntouchedSeed(seed))
+        coVerify(exactly = 0) { dao.deleteByCommandAndDevice(any(), any()) }
     }
 
     @Test
@@ -140,11 +176,5 @@ class InputBindingRepositoryTest {
     fun `overriddenCommandIds reads distinct dao ids`() = runBlocking {
         coEvery { dao.distinctCommandIds() } returns listOf("view.zoom_in")
         assertEquals(listOf("view.zoom_in"), repository.overriddenCommandIds())
-    }
-
-    @Test
-    fun `hasOverrides reflects dao content`() = runBlocking {
-        coEvery { dao.hasAny() } returns true
-        assertTrue(repository.hasOverrides())
     }
 }

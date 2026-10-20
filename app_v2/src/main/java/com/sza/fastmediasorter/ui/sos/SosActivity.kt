@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivitySosBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.sos.SosMode
+import com.sza.fastmediasorter.ui.common.help.HelpOverlayEntryManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -32,6 +33,7 @@ import javax.inject.Inject
 class SosActivity : BaseActivity<ActivitySosBinding>() {
 
     private val viewModel: SosViewModel by viewModels()
+    private var helpEntry: HelpOverlayEntryManager? = null
 
     @Inject
     lateinit var startFromWatchNotifier: SosStartFromWatchNotifier
@@ -74,6 +76,7 @@ class SosActivity : BaseActivity<ActivitySosBinding>() {
     private var stopRequested = false
 
     override fun setupViews() {
+        helpEntry = HelpOverlayEntryManager(this, binding.sosRoot, javaClass.simpleName, null)
         binding.btnSosStop.setOnClickListener { stopAndLeave() }
         binding.groupSosMode.addOnButtonCheckedListener(modeCheckedListener)
         viewModel.resolveInitialMode(intent?.getStringExtra(EXTRA_MODE)?.let(SosMode::fromNameOrDefault))
@@ -86,6 +89,8 @@ class SosActivity : BaseActivity<ActivitySosBinding>() {
 
     /** Leaving by the system back gesture must end the signal too - a hidden siren is not a paused one. */
     override fun onDestroy() {
+        helpEntry?.release()
+        helpEntry = null
         binding.groupSosMode.removeOnButtonCheckedListener(modeCheckedListener)
         binding.btnSosStop.setOnClickListener(null)
         applyWindowBrightness(WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)

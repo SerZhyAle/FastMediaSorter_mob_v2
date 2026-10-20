@@ -17,12 +17,15 @@
 
     That registry lives in the shared contracts catalog, which is OUTSIDE this repository and whose
     location is named in exactly one tracked file - CLAUDE.md. So this gate never spells it: it takes
-    -CatalogRoot, falls back to $env:FMS_CONTRACTS_ROOT, and returns 3 (could not verify) when
-    neither resolves. A checkout without the catalog is the ordinary case, not a defect, and a gate
-    that failed there would be permanently red for everyone but the maintainer. Until 2026-09-22 the
-    path was hard-coded under the repo root, where the catalog has never been mounted: the gate had
-    been returning 2 on every run, and `a.ps1 fg` counted it among its failures without anyone
-    reading which one it was.
+    -CatalogRoot, falls back to $env:FMS_CONTRACTS_ROOT, and answers COULD NOT VERIFY (exit 2) when
+    neither resolves - a machine that cannot see the catalog has learned nothing about whether the
+    code agrees with it (CHECK-VERDICT rule 2.2, which names this very check). A checkout without
+    the catalog is the ordinary case for a CI clone, so the caller that expects one passes
+    -AllowNoCatalog and gets NOT APPLICABLE (exit 0) instead; a gate that failed there with no way
+    out would be permanently red for everyone but the maintainer. Until 2026-09-22 the path was
+    hard-coded under the repo root, where the catalog has never been mounted: the gate had been
+    returning 2 on every run, and `a.ps1 fg` counted it among its failures without anyone reading
+    which one it was.
 
     A pinned row carries a Coverage token. `default` means the publisher's current revision
     defaults still produce the name on every run, and the gate fails when such a row stops
@@ -34,19 +37,32 @@
     The produced set is derived from the publisher itself - the "<base>-{0}.<ext>" -f $Rev
     format strings and the matching parameter defaults - so no asset name is spelled twice.
 
+.PARAMETER AllowNoCatalog
+    The caller declaring a checkout without the shared contracts catalog acceptable for this run.
+    `assert-fast-gates.ps1` passes it, because the GitHub Static Gates job runs on a clone that
+    does not carry the catalog. With it, an unreachable catalog ends
+    `assert-stream-asset-revisions: NOT APPLICABLE (..; -AllowNoCatalog)` with exit 0, which every
+    aggregator counts as skipped, never as passed (CHECK-VERDICT 0.12 item A.1). Without it the
+    same situation is exit 2. The publisher's own call (StreamPublisher.Delivery.ps1) omits it, so a
+    publication without the catalog is still refused.
+
 .NOTES
     Exit codes:
-      0  every `default` pinned asset is still produced by the publisher.
+      0  every `default` pinned asset is still produced by the publisher; or NOT APPLICABLE
+         because -AllowNoCatalog was passed and the catalog is not reachable.
       1  a pinned asset marked `default` would stop being published - the run is refused.
-      2  the gate itself cannot run: the publisher is missing, the markers are absent, the
-         pinned block is empty, a Coverage token is unknown, or a revision parameter's
-         default could not be read.
-      3  could not verify: the shared contracts catalog is not reachable from this machine,
-         so the consumer registry could not be read at all. Not a finding about the tree.
+      2  could not verify: the gate cannot run - the shared contracts catalog is not reachable
+         from this machine (unless -AllowNoCatalog), the publisher is missing, the markers are
+         absent, the pinned block is empty, a Coverage token is unknown, or a revision
+         parameter's default could not be read.
+
+    The last stdout line is the verdict: `PASS (..)`, `FAIL (..)`, `COULD NOT VERIFY (..)` or
+    `NOT APPLICABLE (..)`.
 #>
 param(
     [switch] $Gate,
     [switch] $Quiet,
+    [switch] $AllowNoCatalog,
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
     # The shared contracts catalog's root. Never defaulted to a literal path here - CLAUDE.md is the
     # one tracked file allowed to name it, and a clone of this repository does not have it at all.
@@ -57,20 +73,30 @@ $ErrorActionPreference = 'Stop'
 
 function Deny([string] $message, [int] $code) {
     Write-Error "stream-asset-revisions: $message" -ErrorAction Continue
+    # CHECK-VERDICT rules 2.5 and 2.11: the verdict line is last on stdout, on the failure path too.
+    if ($code -eq 1) {
+        Write-Host 'assert-stream-asset-revisions: FAIL (a pinned asset would stop being published)'
+    }
+    else {
+        Write-Host 'assert-stream-asset-revisions: COULD NOT VERIFY (see the error above)'
+    }
     exit $code
 }
 
-function Skip([string] $message) {
-    if (-not $Quiet) { Write-Host "stream-asset-revisions: SKIP - $message" }
-    exit 3
+function Stop-NoCatalog([string] $message) {
+    if ($AllowNoCatalog) {
+        Write-Host "assert-stream-asset-revisions: NOT APPLICABLE ($message; -AllowNoCatalog)"
+        exit 0
+    }
+    Deny $message 2
 }
 
 if ([string]::IsNullOrWhiteSpace($CatalogRoot)) {
-    Skip 'the shared contracts catalog is not configured - set FMS_CONTRACTS_ROOT (CLAUDE.md names its location).'
+    Stop-NoCatalog 'the shared contracts catalog is not configured - set FMS_CONTRACTS_ROOT (CLAUDE.md names its location)'
 }
 $registryPath = Join-Path $CatalogRoot 'stream-catalog/CONSUMERS.md'
 if (-not (Test-Path -LiteralPath $registryPath)) {
-    Skip "the STREAM-BANK consumer registry is not readable at '$registryPath'."
+    Stop-NoCatalog "the STREAM-BANK consumer registry is not readable at '$registryPath'"
 }
 $publisherPaths = @(
     Join-Path $RepoRoot 'scripts/streams/collect-stream-candidates.ps1'
@@ -155,11 +181,9 @@ if ($lost.Count -gt 0) {
         "the STREAM-BANK consumer registry in the same change - a frozen row is never republished but is never deleted either.") 1
 }
 
-if (-not $Quiet) {
-    $defaults = ($pinned | Where-Object { $_.Coverage -eq 'default' }).Count
-    $frozen = ($pinned | Where-Object { $_.Coverage -eq 'frozen' }).Count
-    Write-Host ("assert-stream-asset-revisions: PASS - {0} pinned asset(s) still published, {1} frozen and untouched." -f `
-        $defaults, $frozen) -ForegroundColor Green
-}
+$defaults = ($pinned | Where-Object { $_.Coverage -eq 'default' }).Count
+$frozen = ($pinned | Where-Object { $_.Coverage -eq 'frozen' }).Count
+Write-Host ("assert-stream-asset-revisions: PASS - {0} pinned asset(s) still published, {1} frozen and untouched." -f `
+    $defaults, $frozen) -ForegroundColor Green
 
 exit 0

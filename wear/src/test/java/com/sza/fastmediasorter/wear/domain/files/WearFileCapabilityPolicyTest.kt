@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.wear.domain.files
 import android.content.Context
 import android.net.Uri
 import com.sza.fastmediasorter.wear.data.files.WearWatchFilePublisher
-import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiverCatalogRepository
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileStorageClass
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
@@ -465,8 +465,8 @@ class WearFileCapabilityPolicyTest {
         return consent
     }
 
-    private fun receiversThatAre(entries: List<WearSendToReceiverEntry>): WearSendToReceiversRepository {
-        val repository = mockk<WearSendToReceiversRepository>()
+    private fun receiversThatAre(entries: List<WearSendToReceiverEntry>): WearSendToReceiverCatalogRepository {
+        val repository = mockk<WearSendToReceiverCatalogRepository>()
         every { repository.observe() } returns MutableStateFlow(entries)
         return repository
     }

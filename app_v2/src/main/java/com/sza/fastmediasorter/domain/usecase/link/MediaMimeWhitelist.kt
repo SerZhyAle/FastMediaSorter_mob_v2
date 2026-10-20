@@ -8,7 +8,7 @@ package com.sza.fastmediasorter.domain.usecase.link
 object MediaMimeWhitelist {
 
     private val IMAGE_SUBTYPES = setOf(
-        "jpeg", "jpg", "png", "webp", "heic", "heif", "gif", "bmp", "avif",
+        "jpeg", "jpg", "png", "webp", "heic", "heif", "gif", "bmp", "avif", "jxl",
     )
     private val VIDEO_SUBTYPES = setOf(
         "mp4", "webm", "ogg", "x-matroska", "quicktime", "mpeg", "x-msvideo", "3gpp",
@@ -27,6 +27,7 @@ object MediaMimeWhitelist {
         "jpg" to "image/jpeg", "jpeg" to "image/jpeg", "png" to "image/png",
         "webp" to "image/webp", "gif" to "image/gif", "bmp" to "image/bmp",
         "avif" to "image/avif", "heic" to "image/heic", "heif" to "image/heif",
+        "jxl" to "image/jxl",
         "mp4" to "video/mp4", "webm" to "video/webm", "mkv" to "video/x-matroska",
         "mov" to "video/quicktime", "mpeg" to "video/mpeg", "avi" to "video/x-msvideo",
         "3gp" to "video/3gpp",

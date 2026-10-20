@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "ایپ کو اپنی ہوم اسکرین کے طور پر استعمال کریں - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-ur.html
 ---
-<sub class="doc-stamp">26.09.25 02:22</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
 # 🖥️ ایپ کو اپنی ہوم اسکرین کے طور پر استعمال کریں
 
 > **سطح:** ابتدائی &bull; **فلیور:** Standard / noLegal
-
-{% include lang-switcher.html doc="scenario-launcher-mode" dir="/docs/howto/" current="ur" %}
 
 FastMediaSorter آپ کی ڈیوائس کی ہوم اسکرین کو اپنے خود کے ڈیسک ٹاپ سے بدل سکتا ہے - آپ کے فولڈرز، ایک گھڑی، موسم، آپ کی ایپس، اور ایک کنارے پر ایک ٹاسک بار۔ اگر آپ نے کبھی Windows ڈیسک ٹاپ استعمال کیا ہے تو یہ جانا پہچانا محسوس ہوگا: چیزیں وہیں رہتی ہیں جہاں آپ نے انہیں رکھا، اور ایک Start بٹن مینو کھولتا ہے۔ اسے **لانچر موڈ** کہا جاتا ہے۔
 

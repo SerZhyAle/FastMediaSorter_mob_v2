@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "एक कोड स्कैन करके अपने पीसी के फ़ोल्डर खोलें - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-hi.html
 ---
-<sub class="doc-stamp">26.09.25 02:15</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> एक कोड स्कैन करके अपने पीसी के फ़ोल्डर खोलें
 
 > **लेवल:** शुरुआती &bull; **एडिशन:** Standard, Photos, Legacy, VR, noLegal (Lite में नेटवर्क सोर्स नहीं हैं; स्कैनिंग के लिए कैमरा चाहिए, फ़ाइल वाला तरीका हर जगह काम करता है)
-
-{% include lang-switcher.html doc="scenario-companion-share" dir="/docs/howto/" current="hi" %}
 
 आप अपने Windows पीसी पर एक छोटा हेल्पर प्रोग्राम चलाते हैं, अपनी वीडियो, म्यूज़िक, दस्तावेज़ या फ़ोटो वाले फ़ोल्डर चुनते हैं, और यह स्क्रीन पर एक कोड दिखा देता है. फोन पर आप **Add** टैप करते हैं, कैमरे को उस कोड के सामने रखते हैं, और पीसी के फ़ोल्डर तुरंत जुड़ जाते हैं - कोई पता टाइप करना नहीं, कोई पोर्ट नहीं, कोई पासवर्ड नहीं, कोई केबल नहीं.
 

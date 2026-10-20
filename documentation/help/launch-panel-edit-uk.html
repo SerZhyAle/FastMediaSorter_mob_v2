@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="uk" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Довідка - Редагувати панель</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Зміст довідки">
+<a href="index-uk.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Редагувати панель</span>
+</nav>
+<header class="hero">
+<h1>Редагувати панель</h1>
+</header>
+<h2>Для чого цей екран</h2>
+<p class="lead">Виберіть, що показує панель «Швидкий запуск». На панелі п’ятнадцять сталих місць; тут ви заповнюєте кожне застосунком, інструментом FastMediaSorter, одним із ваших ресурсів або екраном налаштувань Android, а також можете міняти плитки місцями й очищати їх.</p>
+<figure class="shot">
+<img class="on-light" src="img/launch-panel-edit-uk-light.webp" alt="Редагувати панель">
+<img class="on-dark" src="img/launch-panel-edit-uk-dark.webp" alt="Редагувати панель">
+</figure>
+<h2>Порядок дій</h2>
+<ol class="order">
+<li>Сюди потрапляють кнопкою «Змінити» на панелі «Швидкий запуск», натисканням на вільне місце на ній або з налаштувань жестів краю екрана. Сітка <a class="ref" href="#tiles">3</a> показує панель у її теперішньому вигляді.</li>
+<li>Натисніть вільне місце <a class="ref" href="#empty-slot">5</a> або будь-яку плитку <a class="ref" href="#tile">4</a>. Вікно «Додати на панель» <a class="ref" href="#add-chooser">9</a> запитає, який ярлик потрібен: застосунок, функція FastMediaSorter, ресурс FastMediaSorter чи налаштування Android.</li>
+<li>Відкриється список вибраного виду (11-14). Натисніть потрібний пункт, і він одразу стане на місце. У короткому списку поля пошуку немає, у довгому воно з’являється <a class="ref" href="#picker-search">10</a>.</li>
+<li>Щоб змінити плитку, що вже стоїть, натисніть на неї й утримуйте: «Перемістити» <a class="ref" href="#move">6</a> міняє її місцями з іншим місцем, «Замінити» <a class="ref" href="#replace">7</a> знову відкриває вибір виду, «Видалити» <a class="ref" href="#remove">8</a> звільняє місце.</li>
+<li>«Скидання панелі» <a class="ref" href="#reset">2</a> після підтвердження повертає типовий набір. «Назад» <a class="ref" href="#back">1</a> закриває екран - кожна зміна зберігається одразу.</li>
+</ol>
+<h2>Елементи</h2>
+<div class="elements">
+<h3>Верхня панель</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Назад</span><span class="one">Закриває екран і повертає до панелі.</span></span></summary>
+<div class="full">
+<p>Зберігати нічого: кожна зміна записується одразу, а панель покаже її під час наступного відкриття.</p>
+</div>
+</details>
+<details class="el" id="reset">
+<summary><span class="mk">2</span><span><span class="name">Скидання панелі</span><span class="one">Повертає панель до набору, який був після встановлення.</span></span></summary>
+<div class="full">
+<p>Застосунок питає «Скинути панель?» і пояснює, що панель повернеться до типового набору програм і ярликів, як після встановлення. Доки ви не підтвердите, нічого не змінюється. Типовий набір - це спершу FastMediaSorter, потім його власні інструменти, що є у вашій редакції, один із ваших ресурсів і налаштування Android, а останні місця лишаються вільними.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Усі ваші плитки зникають, і повертається типовий набір. Щоб повернути плитку, додайте її знову.</dd>
+</dl>
+</div>
+</details>
+<h3>Сітка плиток</h3>
+<details class="el" id="tiles">
+<summary><span class="mk">3</span><span><span class="name">Сітка плиток</span><span class="one">П’ятнадцять сталих місць панелі.</span></span></summary>
+<div class="full">
+<p>У сітці три стовпці у вузькому вікні та п’ять у широкому - як і на самій панелі. Кількість місць змінити не можна. Кожне місце - це або плитка зі значком і назвою, або вільне місце з плюсом. Під час відкриття екрана фокус клавіатури й D-pad переходить на сітку.</p>
+</div>
+</details>
+<details class="el" id="tile">
+<summary><span class="mk">4</span><span><span class="name">Плитка</span><span class="one">Ярлик, який уже є на панелі.</span></span></summary>
+<div class="full">
+<p>Натисніть, щоб замінити: вікно «Додати на панель» відкриється для того самого місця, і вибране стане замість попереднього. Натисніть і утримуйте, щоб відкрити меню «Перемістити», «Замінити», «Видалити». Значок показує, що відкриє плитка: у застосунку лишається власний значок, а в інструментів і налаштувань - свої.</p>
+</div>
+</details>
+<details class="el" id="empty-slot">
+<summary><span class="mk">5</span><span><span class="name">Порожньо - натисніть, щоб додати</span><span class="one">Вільне місце, що чекає на ярлик.</span></span></summary>
+<div class="full">
+<p>Натисніть або натисніть і утримуйте - тут це одне й те саме, - і відкриється вікно «Додати на панель». Місце лишається вільним, доки ви нічого не виберете.</p>
+</div>
+</details>
+<h3>Меню плитки (довге натискання)</h3>
+<details class="el" id="move">
+<summary><span class="mk">6</span><span><span class="name">Перемістити</span><span class="one">Переносить плитку на інше місце.</span></span></summary>
+<div class="full">
+<p>Відкриється список місць із номерами від 1 до 15. Виберіть потрібний номер. Якщо на цьому місці вже є плитка, плитки поміняються місцями; якщо воно вільне, плитка просто переїде. «Скасувати» залишає все як було.</p>
+</div>
+</details>
+<details class="el" id="replace">
+<summary><span class="mk">7</span><span><span class="name">Замінити</span><span class="one">Ставить на це місце щось інше.</span></span></summary>
+<div class="full">
+<p>Відкриває те саме вікно «Додати на панель», що й натискання на плитку. Новий вибір займає місце попереднього; стара плитка не зберігається.</p>
+</div>
+</details>
+<details class="el" id="remove">
+<summary><span class="mk">8</span><span><span class="name">Видалити</span><span class="one">Звільняє місце.</span></span></summary>
+<div class="full">
+<p>Плитку одразу знімають із панелі, без запитання, і місце знову вільне. Застосунок, інструмент чи ресурс, на які вона вказувала, не зачіпаються.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Повернути плитку кнопкою скасування не можна. Додайте її знову на вільне місце або скористайтеся «Скиданням панелі», щоб отримати типовий набір.</dd>
+</dl>
+</div>
+</details>
+<h3>Вікно «Додати на панель»</h3>
+<details class="el" id="add-chooser">
+<summary><span class="mk">9</span><span><span class="name">Додати на панель</span><span class="one">Питає, який ярлик поставити на це місце.</span></span></summary>
+<div class="full">
+<p>Короткий список із чотирьох варіантів: «Застосунок», «Функція FastMediaSorter», «Ресурс FastMediaSorter» і «Налаштування ОС Андроїд». У кожного свій список. «Скасувати» закриває вікно, нічого не змінюючи. Те саме вікно відкривається й під час «Замінити».</p>
+</div>
+</details>
+<details class="el" id="picker-search">
+<summary><span class="mk">10</span><span><span class="name">Введіть для пошуку</span><span class="one">Звужує довгий список під час введення.</span></span></summary>
+<div class="full">
+<p>У поля є кнопка очищення, і воно з’являється, лише коли список довший за вікно; у короткому списку поля немає. Введіть частину назви, і рядки звужуються просто під час введення. Якщо нічого не підходить, у списку написано «Нічого не знайдено». У всіх чотирьох списках нижче пошук працює однаково.</p>
+</div>
+</details>
+<details class="el" id="app-picker">
+<summary><span class="mk">11</span><span><span class="name">Виберіть програму</span><span class="one">Список застосунків, які можна закріпити плиткою.</span></span></summary>
+<div class="full">
+<p>Показує встановлені на телефоні застосунки, які можна запустити, за абеткою й кожен зі своїм значком. Натисніть один, і він стане на місце. Якщо потім видалити цей застосунок з телефона, його плитка нічого не відкриє.</p>
+</div>
+</details>
+<details class="el" id="feature-picker">
+<summary><span class="mk">12</span><span><span class="name">Вибір функції</span><span class="one">Список інструментів і екранів самого FastMediaSorter.</span></span></summary>
+<div class="full">
+<p>Показує те, що є у вашій редакції, наприклад калькулятор, секундомір, мережевий монітор, міні-гру, «Потоки» й «Обране»; спершу йдуть інструменти, потім решта. Інструмент, вимкнений у налаштуваннях, лишається в списку з позначкою «Вимкнено - натисніть, щоб увімкнути»; плитка з ним відкриває відповідне налаштування замість інструмента. Функцій, яких немає у вашій редакції, у списку не показано.</p>
+</div>
+</details>
+<details class="el" id="os-picker">
+<summary><span class="mk">13</span><span><span class="name">Вибір налаштування ОС Андроїд</span><span class="one">Список екранів налаштувань Android, які можна закріпити.</span></span></summary>
+<div class="full">
+<p>Показує лише ті екрани, які телефон справді може відкрити: «Налаштування», Wi-Fi, Bluetooth, «Дисплей», «Звук», «Батарея», «Сховище», «Про застосунок», «Дата і час» та, якщо вони є в телефоні, «Для розробників», «Економія заряду», «Автообертання», «Спеціальні можливості», «Бездротові мережі», «Передача даних», NFC, VPN, «Геолокація» і «Точка доступу». Екрана, якого немає у вашому телефоні, у списку просто немає.</p>
+</div>
+</details>
+<details class="el" id="resource-picker">
+<summary><span class="mk">14</span><span><span class="name">Вибір ресурсу</span><span class="one">Список ваших ресурсів, які можна закріпити.</span></span></summary>
+<div class="full">
+<p>Показує ваші ресурси за назвою, кожен зі значком свого типу - тека на пристрої, мережева тека чи хмара. Одна плитка вказує на один ресурс; пізніше натискання на плитку на панелі відкриває цей ресурс у браузері файлів.</p>
+</div>
+</details>
+</div>
+<h2>Пов'язане</h2>
+<ul class="related">
+<li><a href="launch-panel-uk.html"><b>Швидкий запуск</b><span class="pill">Екран</span></a></li>
+<li><a href="main-uk.html"><b>Головний екран</b><span class="pill">Екран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/edge-gestures-and-quick-access-panel-uk.html"><b>Screen-Edge Gestures and the Quick-Access Panel</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="index-uk.html"><b>Зміст довідки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index-uk.html">Зміст довідки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
+</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,496 @@
+{
+  "help": "welcome",
+  "surface": "WelcomeActivity",
+  "elements": [
+    { "id": "previous", "viewId": "btnPrevious", "labelKey": "previous" },
+    { "id": "enable-all", "viewId": "btnEnableAll", "labelKey": "welcome_enable_all" },
+    { "id": "next", "viewId": "btnNext", "labelKey": "next" },
+    { "id": "finish", "viewId": "btnFinish", "labelKey": "finish" },
+    { "id": "help", "viewId": "btnWelcomeHelp", "labelKey": "help" },
+    { "id": "language", "viewId": "btnWelcomeLanguage", "labelKey": "welcome_language_picker_hint" },
+    { "id": "theme", "viewId": "layoutThemePicker", "labelKey": "welcome_theme_picker_hint" },
+    { "id": "profiles", "viewId": "rvProfiles", "labelKey": "welcome_profile_selector_title" },
+    { "id": "primary-window", "viewId": "rvPrimaryWindowChoices", "labelKey": "welcome_primary_window_title" },
+    { "id": "smb", "viewId": "rowSourceSmb", "labelKey": "settings_remote_source_smb_title" },
+    { "id": "ftp", "viewId": "rowSourceFtp", "labelKey": "settings_remote_source_ftp_title" },
+    { "id": "cloud", "viewId": "rowSourceCloud", "labelKey": "settings_remote_source_cloud_title" },
+    { "id": "companion-site", "viewId": "btnCompanionSite", "labelKey": "welcome_networks_companion_button" },
+    { "id": "exchange-portal", "viewId": "btnMediaExchangePortal", "labelKey": "media_exchange_portal_link" },
+    { "id": "file-manager", "viewId": "rowFileManager", "labelKey": "welcome_func_file_manager" },
+    { "id": "audio", "viewId": "rowAudio", "labelKey": "welcome_func_audio" },
+    { "id": "video", "viewId": "rowVideo", "labelKey": "welcome_func_video" },
+    { "id": "documents", "viewId": "rowDocuments", "labelKey": "welcome_func_documents" },
+    { "id": "ocr", "viewId": "rowOcr", "labelKey": "welcome_func_ocr" },
+    { "id": "translation", "viewId": "rowTranslation", "labelKey": "welcome_func_translation" },
+    { "id": "streams", "viewId": "rowStreams", "labelKey": "welcome_func_streams" },
+    { "id": "statistics", "viewId": "rowStatistics", "labelKey": "settings_statistics_collection_title" },
+    { "id": "gestures", "viewId": "rowGestures", "labelKey": "welcome_func_gestures" },
+    { "id": "optional-elements", "viewId": "btnElements", "labelKey": "welcome_func_elements_button" },
+    { "id": "grant-all", "viewId": "btnGrantAll", "labelKey": "perm_btn_grant_all" },
+    { "id": "open-settings", "viewId": "btnOpenSettings", "labelKey": "perm_btn_open_system_settings" },
+    { "id": "permission-list", "viewId": "rvPermissions", "labelKey": "welcome_permissions_title" },
+    { "id": "default-audio", "viewId": "btnSetDefaultAudio", "labelKey": "welcome_default_player_btn_audio" },
+    { "id": "default-video", "viewId": "btnSetDefaultVideo", "labelKey": "welcome_default_player_btn_video" },
+    { "id": "default-images", "viewId": "btnSetDefaultImages", "labelKey": "welcome_default_player_btn_images" },
+    { "id": "default-docs", "viewId": "btnSetDefaultDocs", "labelKey": "welcome_default_player_btn_docs" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "settings-general" },
+    { "pageId": "getting-started.welcome-and-setup" },
+    { "pageId": "getting-started.permissions-guide" },
+    { "pageId": "getting-started.main-screen-overview" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Welcome wizard",
+      "purpose": "The welcome wizard runs on first launch and walks you through language, theme, device profile, network sources, capabilities, permissions and the default player. You can open it again from Settings.",
+      "steps": [
+        "On the first page, choose your language (6) and theme (7). Everything you pick in the wizard can be changed later in Settings, so there is no wrong choice here.",
+        "Press Next (3) to reach the device profile page and tap the tile (8) that matches your device. It tunes the defaults for you; tapping the selected tile again moves you on.",
+        "Switch on the network sources you plan to use (10, 11, 12). The page is left out when the edition has none of them.",
+        "On the capabilities page, turn on what you need (15 to 23) - audio, video, documents, text recognition, translation, streams, gestures. Optional parts download right there.",
+        "On the permissions page, press Grant All (25) to go through the requests one by one. A permission you skip stays off, and you can come back to it later.",
+        "If your edition offers it, make FastMediaSorter the default app for audio, video, images and documents (28 to 31).",
+        "Press Finish (4) to close the wizard. Previous (1) steps back, Enable all (2) on the first page does the whole setup in one go, and Help (5) opens this page."
+      ],
+      "groups": [
+        { "title": "Navigation", "elements": ["previous", "enable-all", "next", "finish", "help"] },
+        { "title": "Welcome", "elements": ["language", "theme"] },
+        { "title": "How will you use this device?", "elements": ["profiles", "primary-window"] },
+        { "title": "Network resources", "elements": ["smb", "ftp", "cloud", "companion-site", "exchange-portal"] },
+        { "title": "What should the app do?", "elements": ["file-manager", "audio", "video", "documents", "ocr", "translation", "streams", "statistics", "gestures", "optional-elements"] },
+        { "title": "Permissions", "elements": ["grant-all", "open-settings", "permission-list"] },
+        { "title": "Default Player", "elements": ["default-audio", "default-video", "default-images", "default-docs"] }
+      ],
+      "elements": {
+        "previous": {
+          "summary": "Goes back one page.",
+          "details": "It is hidden on the first page, where there is nothing to go back to."
+        },
+        "enable-all": {
+          "summary": "Does the whole setup in one go.",
+          "details": "It is on the first page only. First it explains what will happen, then lets you confirm your device profile, and only after that turns everything on, asks for the permissions and the default-app choice, and finishes. The pages in between are skipped.",
+          "undo": "Nothing is applied until you confirm the device profile; Back or a tap outside applies nothing. Anything it turned on can be changed later in Settings."
+        },
+        "next": {
+          "summary": "Moves to the next page.",
+          "details": "On the last page it is replaced by Finish."
+        },
+        "finish": {
+          "summary": "Saves your device profile and closes the wizard.",
+          "details": "Permissions are granted on their own page, so Finish asks for nothing more. It appears on the last page in place of Next."
+        },
+        "help": {
+          "summary": "Opens help for this screen.",
+          "details": "You get the usual order of the wizard and what each control does."
+        },
+        "language": {
+          "summary": "Opens the list of app languages.",
+          "details": "The wizard reloads in the language you pick. You can change the language later in Settings."
+        },
+        "theme": {
+          "summary": "Picks Auto, Light or Dark for the whole app.",
+          "details": "Auto follows your device. The theme is applied immediately, so you see the result at once."
+        },
+        "profiles": {
+          "summary": "Picks the kind of device you are setting up.",
+          "details": "Tiles cover a personal smartphone, tablet, TV box, car head unit, photo frame, e-book reader and more, and the one that fits best is marked as recommended. A profile tunes many defaults at once. Other keeps the settings as they are.",
+          "undo": "You can change the profile later in Settings."
+        },
+        "primary-window": {
+          "summary": "Chooses what the app opens as: device home screen, in-app desktop or main screen.",
+          "details": "This choice appears only in editions that include the home surface. The recommended option is marked."
+        },
+        "smb": {
+          "summary": "Turns on shared folders on your local network.",
+          "details": "For example a shared folder on a Windows PC, a NAS such as Synology or QNAP, or a USB disk plugged into your router."
+        },
+        "ftp": {
+          "summary": "Turns on servers reached over FTP and SFTP.",
+          "details": "For example a hosting account over FTP, your own home server over SFTP, or a camera that uploads photos to an FTP folder."
+        },
+        "cloud": {
+          "summary": "Turns on cloud storage: Google Drive, OneDrive and Dropbox.",
+          "details": "For example, sign in to Google Drive once and browse your photo backup like any other folder. The row is hidden in editions without cloud support."
+        },
+        "companion-site": {
+          "summary": "Opens the page for the Windows companion app.",
+          "details": "If your media sits on a Windows PC, the companion shares those folders to this device in a couple of clicks, with no server setup."
+        },
+        "exchange-portal": {
+          "summary": "Opens the guide to exchanging media between devices.",
+          "details": "Read it when you want to move files between your own devices."
+        },
+        "file-manager": {
+          "summary": "Allows the All Files mode.",
+          "details": "This switch only permits the mode, so you still turn it on for each resource."
+        },
+        "audio": {
+          "summary": "Turns on music and audio.",
+          "details": "Play music and audio, and sort tracks into folders."
+        },
+        "video": {
+          "summary": "Turns on video.",
+          "details": "Play videos and sort clips with the built-in player."
+        },
+        "documents": {
+          "summary": "Turns on documents.",
+          "details": "Open PDF, text, e-books and office files."
+        },
+        "ocr": {
+          "summary": "Turns on text recognition for images and scans.",
+          "details": "Recognize text and copy it. The recognition pack downloads right on this page, with progress shown under the row, and the feature turns on once the download has succeeded."
+        },
+        "translation": {
+          "summary": "Turns on translation of recognized and selected text.",
+          "details": "Works offline. The translation pack downloads right on this page, and the feature turns on once the download has succeeded."
+        },
+        "streams": {
+          "summary": "Turns on internet streams.",
+          "details": "Play internet streams and import the built-in catalog. The catalog is imported right on this page, with progress shown under the row."
+        },
+        "statistics": {
+          "summary": "Turns on usage statistics.",
+          "details": "They are collected on your device and nothing is sent automatically."
+        },
+        "gestures": {
+          "summary": "Turns on swipes from the left edge of the screen.",
+          "details": "The swipes open the menu and take a screenshot, normal or silent. Android may ask for the Display over other apps permission first."
+        },
+        "optional-elements": {
+          "summary": "Opens the list of downloadable, optional parts of the app.",
+          "details": "Install the ones you want now, or leave them for later: you can also reach the same list from Settings."
+        },
+        "grant-all": {
+          "summary": "Walks you through all the permission requests.",
+          "details": "First comes one Android dialog for the regular permissions, then the special ones open as separate system screens, one at a time. Turn the switch on there and press Back to continue."
+        },
+        "open-settings": {
+          "summary": "Opens the Android settings page of this app.",
+          "details": "Use it when you want to review or change a permission yourself, or when Android no longer shows its own request."
+        },
+        "permission-list": {
+          "summary": "Lists every permission this edition can ask for.",
+          "details": "Each row says what the permission is for and has its own button to grant it or open the matching settings. Opting out means leaving a permission off; nothing is hidden from you."
+        },
+        "default-audio": {
+          "summary": "Makes FastMediaSorter the app that plays your audio files.",
+          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+        },
+        "default-video": {
+          "summary": "Makes FastMediaSorter the app that plays your videos.",
+          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+        },
+        "default-images": {
+          "summary": "Makes FastMediaSorter the app that opens your images.",
+          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+        },
+        "default-docs": {
+          "summary": "Makes FastMediaSorter the app that opens your documents.",
+          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+        }
+      }
+    },
+    "ru": {
+      "title": "Мастер приветствия",
+      "purpose": "Мастер приветствия запускается при первом старте и проводит вас через язык, тему, профиль устройства, сетевые источники, возможности, разрешения и плеер по умолчанию. Позже его можно открыть снова из настроек.",
+      "steps": [
+        "На первой странице выберите язык (6) и тему (7). Всё, что вы выбираете в мастере, потом можно изменить в настройках, так что ошибиться здесь нельзя.",
+        "Нажмите «Далее» (3), чтобы перейти к профилю устройства, и коснитесь плитки (8), которая подходит вашему устройству. Профиль настроит значения по умолчанию; повторное нажатие на выбранную плитку ведёт дальше.",
+        "Включите сетевые источники, которыми собираетесь пользоваться (10, 11, 12). Если в версии приложения их нет, эта страница пропускается.",
+        "На странице возможностей включите нужное (с 15 по 23): аудио, видео, документы, распознавание текста, перевод, трансляции, жесты. Необязательные части загружаются прямо там.",
+        "На странице разрешений нажмите «Выдать все» (25), чтобы пройти запросы по очереди. Пропущенное разрешение остаётся выключенным, и к нему можно вернуться позже.",
+        "Если версия приложения это предлагает, сделайте FastMediaSorter приложением по умолчанию для аудио, видео, изображений и документов (с 28 по 31).",
+        "«Готово» (4) закрывает мастер. «Назад» (1) возвращает на страницу, «Включить всё» (2) на первой странице выполняет всю настройку за один раз, а «Справка» (5) открывает эту страницу."
+      ],
+      "groups": [
+        { "title": "Навигация", "elements": ["previous", "enable-all", "next", "finish", "help"] },
+        { "title": "Приветствие", "elements": ["language", "theme"] },
+        { "title": "Как вы будете использовать устройство?", "elements": ["profiles", "primary-window"] },
+        { "title": "Сетевые ресурсы", "elements": ["smb", "ftp", "cloud", "companion-site", "exchange-portal"] },
+        { "title": "Что приложение будет делать?", "elements": ["file-manager", "audio", "video", "documents", "ocr", "translation", "streams", "statistics", "gestures", "optional-elements"] },
+        { "title": "Разрешения", "elements": ["grant-all", "open-settings", "permission-list"] },
+        { "title": "Плеер по умолчанию", "elements": ["default-audio", "default-video", "default-images", "default-docs"] }
+      ],
+      "elements": {
+        "previous": {
+          "summary": "Возвращает на одну страницу назад.",
+          "details": "На первой странице кнопка скрыта: возвращаться некуда."
+        },
+        "enable-all": {
+          "summary": "Выполняет всю настройку за один раз.",
+          "details": "Кнопка есть только на первой странице. Сначала приложение объясняет, что произойдёт, затем просит подтвердить профиль устройства и лишь после этого включает всё, запрашивает разрешения и выбор приложения по умолчанию, а в конце завершает настройку. Страницы между ними пропускаются.",
+          "undo": "Пока вы не подтвердите профиль устройства, ничего не применяется; «Назад» или нажатие снаружи ничего не меняют. Всё, что было включено, потом можно изменить в настройках."
+        },
+        "next": {
+          "summary": "Переходит на следующую страницу.",
+          "details": "На последней странице вместо неё появляется «Готово»."
+        },
+        "finish": {
+          "summary": "Сохраняет профиль устройства и закрывает мастер.",
+          "details": "Разрешения выдаются на отдельной странице, поэтому «Готово» больше ничего не спрашивает. Кнопка появляется на последней странице вместо «Далее»."
+        },
+        "help": {
+          "summary": "Открывает справку по этому экрану.",
+          "details": "Вы узнаете, в каком порядке обычно проходят мастер и что делает каждый элемент."
+        },
+        "language": {
+          "summary": "Открывает список языков приложения.",
+          "details": "Мастер перезагрузится на выбранном языке. Язык можно сменить позже в настройках."
+        },
+        "theme": {
+          "summary": "Выбирает «Авто», светлую или тёмную тему для всего приложения.",
+          "details": "«Авто» следует за устройством. Тема применяется сразу, так что результат виден тут же."
+        },
+        "profiles": {
+          "summary": "Выбирает, какое устройство вы настраиваете.",
+          "details": "Плитки есть для личного смартфона, планшета, ТВ-приставки, автомагнитолы, фоторамки, электронной книги и не только; подходящая лучше всего отмечена как рекомендуемая. Профиль настраивает сразу много значений по умолчанию. «Другой / Без изменений» оставляет настройки как есть.",
+          "undo": "Профиль можно сменить позже в настройках."
+        },
+        "primary-window": {
+          "summary": "Выбирает, чем будет приложение при запуске: домашним экраном устройства, рабочим столом внутри приложения или главным экраном.",
+          "details": "Этот выбор есть только в версиях, где есть домашний экран. Рекомендуемый вариант отмечен."
+        },
+        "smb": {
+          "summary": "Включает общие папки в локальной сети.",
+          "details": "Например: общая папка на компьютере с Windows, NAS вроде Synology или QNAP, USB-диск, подключённый к роутеру."
+        },
+        "ftp": {
+          "summary": "Включает серверы по FTP и SFTP.",
+          "details": "Например: хостинг по FTP, собственный домашний сервер по SFTP, камера, которая выгружает снимки в папку FTP."
+        },
+        "cloud": {
+          "summary": "Включает облачные хранилища: Google Drive, OneDrive и Dropbox.",
+          "details": "Например: войдите в Google Drive один раз и открывайте резервную копию фотографий как обычную папку. В версиях без поддержки облака эта строка скрыта."
+        },
+        "companion-site": {
+          "summary": "Открывает страницу приложения-компаньона для Windows.",
+          "details": "Если ваши медиа лежат на ПК с Windows, компаньон в пару кликов делится этими папками с устройством, без настройки сервера."
+        },
+        "exchange-portal": {
+          "summary": "Открывает руководство по обмену медиа между устройствами.",
+          "details": "Загляните, когда нужно переносить файлы между своими устройствами."
+        },
+        "file-manager": {
+          "summary": "Разрешает режим «Все файлы».",
+          "details": "Переключатель лишь разрешает режим, а включать его нужно отдельно для каждого ресурса."
+        },
+        "audio": {
+          "summary": "Включает музыку и аудио.",
+          "details": "Воспроизведение музыки и аудио, сортировка треков по папкам."
+        },
+        "video": {
+          "summary": "Включает видео.",
+          "details": "Воспроизведение видео и сортировка роликов встроенным плеером."
+        },
+        "documents": {
+          "summary": "Включает документы.",
+          "details": "Открытие PDF, текста, электронных книг и офисных файлов."
+        },
+        "ocr": {
+          "summary": "Включает распознавание текста на изображениях и сканах.",
+          "details": "Текст распознаётся и копируется. Пакет распознавания загружается прямо на этой странице, ход загрузки виден под строкой, а функция включается после успешной загрузки."
+        },
+        "translation": {
+          "summary": "Включает перевод распознанного и выделенного текста.",
+          "details": "Работает офлайн. Пакет перевода загружается прямо на этой странице, а функция включается после успешной загрузки."
+        },
+        "streams": {
+          "summary": "Включает интернет-трансляции.",
+          "details": "Воспроизведение интернет-трансляций и импорт встроенного каталога. Каталог импортируется прямо на этой странице, ход импорта виден под строкой."
+        },
+        "statistics": {
+          "summary": "Включает статистику использования.",
+          "details": "Она собирается на вашем устройстве, автоматически ничего не отправляется."
+        },
+        "gestures": {
+          "summary": "Включает свайпы от левого края экрана.",
+          "details": "Свайпы открывают меню и делают скриншот - обычный или тихий. Сначала Android может запросить разрешение «Поверх других приложений»."
+        },
+        "optional-elements": {
+          "summary": "Открывает список загружаемых необязательных частей приложения.",
+          "details": "Установите нужные сейчас или оставьте на потом: тот же список есть и в настройках."
+        },
+        "grant-all": {
+          "summary": "Проводит вас по всем запросам разрешений.",
+          "details": "Сначала появляется один диалог Android для обычных разрешений, затем особые разрешения открываются отдельными системными экранами, по одному. Включите там переключатель и нажмите «Назад», чтобы продолжить."
+        },
+        "open-settings": {
+          "summary": "Открывает страницу настроек этого приложения в Android.",
+          "details": "Пригодится, когда хочется самому посмотреть или изменить разрешение либо когда Android больше не показывает собственный запрос."
+        },
+        "permission-list": {
+          "summary": "Перечисляет все разрешения, которые может запросить эта версия.",
+          "details": "У каждой строки есть пояснение, зачем нужно разрешение, и своя кнопка: выдать его или открыть нужные настройки. Отказ - это просто невыданное разрешение; ничего не скрыто."
+        },
+        "default-audio": {
+          "summary": "Назначает FastMediaSorter приложением для воспроизведения аудио.",
+          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+        },
+        "default-video": {
+          "summary": "Назначает FastMediaSorter приложением для воспроизведения видео.",
+          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+        },
+        "default-images": {
+          "summary": "Назначает FastMediaSorter приложением для открытия изображений.",
+          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+        },
+        "default-docs": {
+          "summary": "Назначает FastMediaSorter приложением для открытия документов.",
+          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+        }
+      }
+    },
+    "uk": {
+      "title": "Майстер привітання",
+      "purpose": "Майстер привітання запускається під час першого старту й проводить вас через мову, тему, профіль пристрою, мережеві джерела, можливості, дозволи та плеєр за замовчуванням. Пізніше його можна відкрити знову з налаштувань.",
+      "steps": [
+        "На першій сторінці виберіть мову (6) і тему (7). Усе, що ви обираєте в майстрі, потім можна змінити в налаштуваннях, тож помилитися тут не можна.",
+        "Натисніть «Далі» (3), щоб перейти до профілю пристрою, і торкніться плитки (8), яка пасує вашому пристрою. Профіль налаштує значення за замовчуванням; повторне натискання на вибрану плитку веде далі.",
+        "Увімкніть мережеві джерела, якими збираєтеся користуватися (10, 11, 12). Якщо у версії застосунку їх немає, ця сторінка пропускається.",
+        "На сторінці можливостей увімкніть потрібне (з 15 по 23): аудіо, відео, документи, розпізнавання тексту, переклад, трансляції, жести. Необов’язкові частини завантажуються просто там.",
+        "На сторінці дозволів натисніть «Надати всі» (25), щоб пройти запити по черзі. Пропущений дозвіл лишається вимкненим, і до нього можна повернутися пізніше.",
+        "Якщо версія застосунку це пропонує, зробіть FastMediaSorter застосунком за замовчуванням для аудіо, відео, зображень і документів (з 28 по 31).",
+        "«Готово» (4) закриває майстер. «Назад» (1) повертає на сторінку, «Увімкнути все» (2) на першій сторінці виконує все налаштування за один раз, а «Довідка» (5) відкриває цю сторінку."
+      ],
+      "groups": [
+        { "title": "Навігація", "elements": ["previous", "enable-all", "next", "finish", "help"] },
+        { "title": "Привітання", "elements": ["language", "theme"] },
+        { "title": "Як ви будете використовувати пристрій?", "elements": ["profiles", "primary-window"] },
+        { "title": "Мережеві ресурси", "elements": ["smb", "ftp", "cloud", "companion-site", "exchange-portal"] },
+        { "title": "Що застосунок робитиме?", "elements": ["file-manager", "audio", "video", "documents", "ocr", "translation", "streams", "statistics", "gestures", "optional-elements"] },
+        { "title": "Дозволи", "elements": ["grant-all", "open-settings", "permission-list"] },
+        { "title": "Плеєр за замовчуванням", "elements": ["default-audio", "default-video", "default-images", "default-docs"] }
+      ],
+      "elements": {
+        "previous": {
+          "summary": "Повертає на одну сторінку назад.",
+          "details": "На першій сторінці кнопка прихована: повертатися нікуди."
+        },
+        "enable-all": {
+          "summary": "Виконує все налаштування за один раз.",
+          "details": "Кнопка є лише на першій сторінці. Спершу застосунок пояснює, що станеться, потім просить підтвердити профіль пристрою й лише після цього вмикає все, запитує дозволи та вибір застосунку за замовчуванням, а наприкінці завершує налаштування. Сторінки між ними пропускаються.",
+          "undo": "Доки ви не підтвердите профіль пристрою, нічого не застосовується; «Назад» або натискання поза вікном нічого не змінюють. Усе, що було ввімкнено, потім можна змінити в налаштуваннях."
+        },
+        "next": {
+          "summary": "Переходить на наступну сторінку.",
+          "details": "На останній сторінці замість неї з’являється «Готово»."
+        },
+        "finish": {
+          "summary": "Зберігає профіль пристрою й закриває майстер.",
+          "details": "Дозволи надаються на окремій сторінці, тож «Готово» більше нічого не питає. Кнопка з’являється на останній сторінці замість «Далі»."
+        },
+        "help": {
+          "summary": "Відкриває довідку про цей екран.",
+          "details": "Ви дізнаєтеся, у якому порядку зазвичай проходять майстер і що робить кожен елемент."
+        },
+        "language": {
+          "summary": "Відкриває список мов застосунку.",
+          "details": "Майстер перезавантажиться вибраною мовою. Мову можна змінити пізніше в налаштуваннях."
+        },
+        "theme": {
+          "summary": "Обирає «Авто», світлу або темну тему для всього застосунку.",
+          "details": "«Авто» стежить за пристроєм. Тема застосовується одразу, тож результат видно відразу."
+        },
+        "profiles": {
+          "summary": "Обирає, який пристрій ви налаштовуєте.",
+          "details": "Плитки є для особистого смартфона, планшета, ТВ-приставки, автомагнітоли, фоторамки, електронної книги та не тільки; найкращу позначено як рекомендовану. Профіль налаштовує одразу багато значень за замовчуванням. «Інший / Без змін» залишає налаштування як є.",
+          "undo": "Профіль можна змінити пізніше в налаштуваннях."
+        },
+        "primary-window": {
+          "summary": "Обирає, чим буде застосунок під час запуску: домашнім екраном пристрою, робочим столом усередині застосунку чи головним екраном.",
+          "details": "Цей вибір є лише у версіях, де є домашній екран. Рекомендований варіант позначено."
+        },
+        "smb": {
+          "summary": "Вмикає спільні папки в локальній мережі.",
+          "details": "Наприклад: спільна папка на ПК з Windows, NAS на кшталт Synology або QNAP, USB-диск у роутері."
+        },
+        "ftp": {
+          "summary": "Вмикає сервери через FTP і SFTP.",
+          "details": "Наприклад: хостинг через FTP, власний домашній сервер через SFTP, камера, яка вивантажує знімки в папку FTP."
+        },
+        "cloud": {
+          "summary": "Вмикає хмарні сховища: Google Drive, OneDrive і Dropbox.",
+          "details": "Наприклад: увійдіть у Google Drive один раз і відкривайте резервну копію фотографій як звичайну папку. У версіях без підтримки хмари цей рядок прихований."
+        },
+        "companion-site": {
+          "summary": "Відкриває сторінку застосунку-супутника для Windows.",
+          "details": "Якщо ваші медіа лежать на ПК з Windows, супутник у пару кліків ділиться цими папками з пристроєм, без налаштування сервера."
+        },
+        "exchange-portal": {
+          "summary": "Відкриває керівництво з обміну медіа між пристроями.",
+          "details": "Зазирніть, коли треба переносити файли між власними пристроями."
+        },
+        "file-manager": {
+          "summary": "Дозволяє режим «Усі файли».",
+          "details": "Перемикач лише дозволяє режим, а вмикати його потрібно окремо для кожного ресурсу."
+        },
+        "audio": {
+          "summary": "Вмикає музику й аудіо.",
+          "details": "Відтворення музики й аудіо, сортування треків по папках."
+        },
+        "video": {
+          "summary": "Вмикає відео.",
+          "details": "Відтворення відео та сортування роликів вбудованим плеєром."
+        },
+        "documents": {
+          "summary": "Вмикає документи.",
+          "details": "Відкриття PDF, тексту, електронних книг та офісних файлів."
+        },
+        "ocr": {
+          "summary": "Вмикає розпізнавання тексту на зображеннях і сканах.",
+          "details": "Текст розпізнається й копіюється. Пакет розпізнавання завантажується просто на цій сторінці, хід завантаження видно під рядком, а функція вмикається після успішного завантаження."
+        },
+        "translation": {
+          "summary": "Вмикає переклад розпізнаного та виділеного тексту.",
+          "details": "Працює офлайн. Пакет перекладу завантажується просто на цій сторінці, а функція вмикається після успішного завантаження."
+        },
+        "streams": {
+          "summary": "Вмикає інтернет-трансляції.",
+          "details": "Відтворення інтернет-трансляцій та імпорт вбудованого каталогу. Каталог імпортується просто на цій сторінці, хід імпорту видно під рядком."
+        },
+        "statistics": {
+          "summary": "Вмикає статистику використання.",
+          "details": "Вона збирається на вашому пристрої, автоматично нічого не надсилається."
+        },
+        "gestures": {
+          "summary": "Вмикає свайпи від лівого краю екрана.",
+          "details": "Свайпи відкривають меню й роблять знімок екрана - звичайний або тихий. Спершу Android може запитати дозвіл «Поверх інших застосунків»."
+        },
+        "optional-elements": {
+          "summary": "Відкриває список завантажуваних необов’язкових частин застосунку.",
+          "details": "Установіть потрібні зараз або залиште на потім: той самий список є й у налаштуваннях."
+        },
+        "grant-all": {
+          "summary": "Проводить вас по всіх запитах дозволів.",
+          "details": "Спершу з’являється один діалог Android для звичайних дозволів, а тоді особливі дозволи відкриваються окремими системними екранами, по одному. Увімкніть там перемикач і натисніть «Назад», щоб продовжити."
+        },
+        "open-settings": {
+          "summary": "Відкриває сторінку налаштувань цього застосунку в Android.",
+          "details": "Стане в пригоді, коли хочеться самому переглянути чи змінити дозвіл або коли Android більше не показує власний запит."
+        },
+        "permission-list": {
+          "summary": "Перелічує всі дозволи, які може запитати ця версія.",
+          "details": "У кожного рядка є пояснення, навіщо потрібен дозвіл, і своя кнопка: надати його або відкрити потрібні налаштування. Відмова - це просто ненаданий дозвіл; нічого не приховано."
+        },
+        "default-audio": {
+          "summary": "Призначає FastMediaSorter застосунком для відтворення аудіо.",
+          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+        },
+        "default-video": {
+          "summary": "Призначає FastMediaSorter застосунком для відтворення відео.",
+          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+        },
+        "default-images": {
+          "summary": "Призначає FastMediaSorter застосунком для відкривання зображень.",
+          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+        },
+        "default-docs": {
+          "summary": "Призначає FastMediaSorter застосунком для відкривання документів.",
+          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+        }
+      }
+    }
+  }
+}

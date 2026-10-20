@@ -46,9 +46,26 @@ class WearExchangeHandoverCodecTest {
         val bytes = gson.toJson(payload.copy(formatVersion = 9)).toByteArray()
 
         assertEquals(
-            WearExchangeHandoverParseResult.UnsupportedVersion(9),
+            WearExchangeHandoverParseResult.UnsupportedVersion(version = 9, requestId = "r-1"),
             WearExchangeHandoverCodec.parse(bytes, gson),
         )
+    }
+
+    @Test
+    fun `a newer format that renamed the fields is still refused by its version`() {
+        val bytes = """{"requestId":"r-7","formatVersion":3,"server":{"host":"h"},"code":"c"}""".toByteArray()
+
+        assertEquals(
+            WearExchangeHandoverParseResult.UnsupportedVersion(version = 3, requestId = "r-7"),
+            WearExchangeHandoverCodec.parse(bytes, gson),
+        )
+    }
+
+    @Test
+    fun `an unknown version without an id is malformed`() {
+        val bytes = gson.toJson(payload.copy(requestId = " ", formatVersion = 9)).toByteArray()
+
+        assertEquals(WearExchangeHandoverParseResult.Malformed, WearExchangeHandoverCodec.parse(bytes, gson))
     }
 
     @Test

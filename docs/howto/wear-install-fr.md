@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "Installer FastMedia sur votre montre - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-fr.html
 ---
-<sub class="doc-stamp">26.09.30 11:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/wear-install-fr.html
 > **Niveau :** Débutant &bull; **Durée :** ~5 minutes &bull; **Appareil :** Montre connectée Wear OS associée à un téléphone Android
 
 > **Deux versions.** La version de Google Play est une petite première version : Calculatrice, Chronomètre, Mini-jeu, Paramètres et la tuile Programmes. La musique, les photos, les partages réseau et les fonctionnalités du téléphone ne sont disponibles que dans la version complète, un téléchargement direct de l'APK depuis [Téléchargements](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="wear-install" dir="/docs/howto/" current="fr" %}
 
 FastMedia Wear est la moitié montre de FastMediaSorter. Une fois qu'elle est à votre poignet, vous pouvez lire de la musique et voir des photos directement depuis la montre, atteindre les dossiers partagés par votre téléphone associé, et ouvrir des partages réseau auxquels la montre se connecte toute seule. Cette page vous guide pour l'installer et l'associer.
 

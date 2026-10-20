@@ -77,6 +77,7 @@ try {
 }
 catch {
     Write-Error "assert-shared-test-flavor-scope: $($_.Exception.Message)" -ErrorAction Continue
+    Write-Host 'assert-shared-test-flavor-scope: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -87,6 +88,7 @@ if ($map.Unparsed.Count -gt 0) {
     'silently, so the run is reported as unverifiable rather than clean. Teach the parser the new ' +
     'form in scripts/quality/lib/flavor-source-map.ps1.'
     Write-Error $why -ErrorAction Continue
+    Write-Host 'assert-shared-test-flavor-scope: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -174,6 +176,7 @@ foreach ($entry in $index.Values) {
 $sharedTestRoot = Join-Path $RepoRoot "$Module/src/test"
 if (-not (Test-Path -LiteralPath $sharedTestRoot)) {
     Write-Error "assert-shared-test-flavor-scope: no shared unit-test set at $sharedTestRoot - nothing was examined." -ErrorAction Continue
+    Write-Host 'assert-shared-test-flavor-scope: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -247,6 +250,7 @@ foreach ($testSet in $map.TestSetMounts.Keys) {
     $testHome = @(Get-TestSetFlavors $testSet)
     if ($testHome.Count -eq 0) {
         Write-Error "assert-shared-test-flavor-scope: no mounted flavor home for $Module/src/$testSet - nothing was examined." -ErrorAction Continue
+        Write-Host 'assert-shared-test-flavor-scope: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     $homeKey = Get-FlavorSetKey $testHome
@@ -327,6 +331,7 @@ if ($mirrorIssues.Count -gt 0) {
     'reintroduces the defect this gate exists to refuse.'
     if ($Gate) {
         Write-Error $mirrorWhy -ErrorAction Continue
+        Write-Host 'assert-shared-test-flavor-scope: FAIL (see the findings above)'
         exit 1
     }
     Write-Host $mirrorWhy
@@ -353,10 +358,12 @@ foreach ($testSet in $capabilityCatalogRules.Keys) {
             })
         if ($catalogFiles.Count -eq 0) {
             Write-Error "assert-shared-test-flavor-scope: $fqcn has no copy visible to flavor $flavor." -ErrorAction Continue
+            Write-Host 'assert-shared-test-flavor-scope: COULD NOT VERIFY (see the error above)'
             exit 2
         }
         if ($catalogFiles.Count -gt 1) {
             Write-Error "assert-shared-test-flavor-scope: $fqcn has multiple copies visible to flavor $flavor." -ErrorAction Continue
+            Write-Host 'assert-shared-test-flavor-scope: COULD NOT VERIFY (see the error above)'
             exit 2
         }
 
@@ -385,6 +392,7 @@ if ($capabilityIssues.Count -gt 0) {
     'whose visible catalog is non-empty.'
     if ($Gate) {
         Write-Error $capabilityWhy -ErrorAction Continue
+        Write-Host 'assert-shared-test-flavor-scope: FAIL (see the findings above)'
         exit 1
     }
     Write-Host $capabilityWhy
@@ -408,6 +416,7 @@ if ($violations.Count -gt 0) {
     'dev/FLAVOR_DEVELOPMENT_RULES.md RULE 7.'
     if ($Gate) {
         Write-Error $why -ErrorAction Continue
+        Write-Host 'assert-shared-test-flavor-scope: FAIL (see the findings above)'
         exit 1
     }
     Write-Host $why

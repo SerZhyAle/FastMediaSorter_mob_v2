@@ -59,4 +59,18 @@ class KeyBindingManagerTest {
             val manager = KeyBindingManager(repo, this)
             assertNull(manager.resolve(triggerUnknown, InputSurface.PLAYER))
         }
+
+    @Test
+    fun `override beats a default bound to the same trigger in either order`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val shiftOne = InputTrigger.Key(8, 1)
+            val default = InputBinding("sorting.copy_slot_1", shiftOne, BindingSource.DEFAULT)
+            val override = InputBinding("sorting.favourite", shiftOne, BindingSource.OVERRIDE)
+            listOf(listOf(default, override), listOf(override, default)).forEach { bindings ->
+                val repo = mockk<InputBindingRepository>()
+                every { repo.observeResolvedBindings() } returns flowOf(bindings)
+                val manager = KeyBindingManager(repo, this)
+                assertEquals("sorting.favourite", manager.resolve(shiftOne, InputSurface.PLAYER))
+            }
+        }
 }

@@ -7,7 +7,7 @@ import com.sza.fastmediasorter.util.BinaryFileTypeDetector
 import java.util.Locale
 
 object MediaTypeUtils {
-    val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp", "heic", "heif", "bmp", "avif")
+    val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp", "heic", "heif", "bmp", "avif", "jxl")
     val GIF_EXTENSIONS = setOf("gif")
     val VIDEO_EXTENSIONS = setOf(
         "mp4", "mkv", "mov", "webm", "3gp", "flv", "wmv", "m4v", "avi", "mpg", "mpeg",

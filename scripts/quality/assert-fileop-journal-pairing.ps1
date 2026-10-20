@@ -256,6 +256,7 @@ if ($UpdateBaseline) {
     $frozen = @($unpaired | Where-Object { $allowed -notcontains $_.Key } | ForEach-Object { $_.Key } | Sort-Object)
     $previous = @(Read-AllowlistRow -Path $BaselinePath | ForEach-Object { $_.Token })
     if (-not (Test-BaselineWrite -Gate 'assert-fileop-journal-pairing' -Previous $previous -Current $frozen -Reason $Reason)) {
+        Write-Host 'assert-fileop-journal-pairing: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     $scope = $null
@@ -323,7 +324,7 @@ if ($findings.Count -gt 0) {
 }
 
 if ($findings.Count -gt 0 -or $reasonless.Count -gt 0) {
-    if ($Gate) { exit 1 }
+    if ($Gate) { Write-Host 'assert-fileop-journal-pairing: FAIL (see the findings above)'; exit 1 }
     exit 0
 }
 

@@ -21,17 +21,56 @@ data class WearExchangeEntry(
     @SerializedName("pinnedCertificate") val pinnedCertificate: String?,
     /** The watch broadcasts audio through this entry (S4157 on the phone); on exactly one entry while any exist. */
     @SerializedName("outgoing") val outgoing: Boolean = false,
+    /**
+     * S4227: `welcome.features` as last seen on this entry, null until this build opened a stream on it.
+     *
+     * Nullable on purpose: Gson leaves an absent key null whatever a Kotlin default says, and an older
+     * build reading this record drops the key on its next write without losing the entry.
+     */
+    @SerializedName("features") val features: List<String>? = null,
+    /** S4227: `welcome.accountKind` as last seen (`member` or `guest`, 19 item AO); null when never seen. */
+    @SerializedName("accountKind") val accountKind: String? = null,
+    /**
+     * The public-key fingerprint of [pinnedCertificate] (19 item AY): a renewed leaf with this key passes with no
+     * prompt. Null without a pin, and from an older phone until the first matching connect fills it in.
+     */
+    @SerializedName("pinnedKey") val pinnedKey: String? = null,
 ) {
 
     /** Host lower-cased, port and login compared case-insensitively (5.1); the phone keys its entries alike. */
     val identity: String
         get() = host.lowercase(Locale.ROOT) + ":" + port + "/" + login.lowercase(Locale.ROOT)
 
+    /**
+     * Whether the clipboard actions may be offered for this entry (contract 22 items BV and CA).
+     *
+     * An entry this build has not opened yet counts as eligible: the action's own fresh `welcome`
+     * decides and names a refusal, which keeps the receiver from vanishing right after an update.
+     */
+    val clipboardEligible: Boolean
+        get() = accountKind != ACCOUNT_KIND_GUEST && (features == null || FEATURE_CLIPBOARD in features)
+
+    /** Whether the watch may broadcast through this entry: never a `guest` account (19 item AO). */
+    val mayProduce: Boolean
+        get() = accountKind != ACCOUNT_KIND_GUEST
+
+    /** The address the person connected to, the only server name the watch shows (contract 25 item DA). */
+    val label: String
+        get() = "$host:$port"
+
     // DIAGNOSTIC-REPORT section 10: host, login and pin are private.
     override fun toString(): String =
-        "WearExchangeEntry(port=$port, deviceId=$deviceId, pinned=${pinnedCertificate != null}, outgoing=$outgoing)"
+        "WearExchangeEntry(port=$port, deviceId=$deviceId, pinned=${pinnedCertificate != null}, " +
+            "pinnedKey=${pinnedKey != null}, " +
+            "outgoing=$outgoing, features=$features, accountKind=$accountKind)"
 
     companion object {
+        const val ACCOUNT_KIND_GUEST = "guest"
+        const val FEATURE_CLIPBOARD = "clipboard"
+
+        /** S4240: the server keeps and delivers sealed content (27 item DP); nothing goes through one without it. */
+        const val FEATURE_SEALED = "sealed"
+
         private const val DEVICE_ID_BYTES = 16
         private val random = SecureRandom()
 
@@ -46,7 +85,12 @@ data class WearExchangeEntry(
 /** How one `enroll` ended; only [Enrolled] carries a token, and only the repository stores it. */
 sealed interface WearExchangeEnrollResult {
 
-    class Enrolled(val token: String) : WearExchangeEnrollResult {
+    /**
+     * [deviceId] and [kem] name the enrolled device and its published key once the repository recorded it; the
+     * hand-over answer carries them so the phone trusts this key over the directory (27 item DG).
+     */
+    class Enrolled(val token: String, val deviceId: String? = null, val kem: String? = null) :
+        WearExchangeEnrollResult {
         override fun toString(): String = "Enrolled(token=***)"
     }
 

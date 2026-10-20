@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.04 16:02</sub>
+<sub class="doc-stamp">26.10.20 13:45</sub>
 
 # Play publishing state
 
@@ -185,6 +185,26 @@ indicator never existed on a Wear OS 4+ watch. The letter repeats neither the li
 `260924231` and watch `260924236` (`2.60.9242.311`), still read `completed` in block 2 - a rejected
 release keeps that status, as block 2 explains.
 
+**Transcribed:** 2026-10-18, from the owner's Play verdict letter of 2026-10-18 (06:04 -0700),
+Routing ID `ZLFS`. **A different app:** the watch face `com.sza.fastmediasorter.watchface`, versionCode
+`261014176` (`2.61.0141.706`, `wear:production`), not the phone and watch app this file otherwise
+records.
+
+`Rejected` - one row, dated 2026-10-18, Wear:
+
+| Row | Claim | Carrier |
+|-----|-------|---------|
+| 1 | `Issue found: Play listing icon` / "Your app icon don't accurately represent the watch face." - area `In-app experience`, screenshot of the launcher icon (the brand waves on a dark dial, no time) | no ticket - icon re-captured from the face 2026-10-18, `play/watchface/README.md` |
+
+The rejected bundle was built 2026-10-14, before the icon redraw of 2026-10-15; that redraw was still
+a drawing (thick bright waves the face does not draw), so it was replaced by a capture of the real face
+in the launcher icon, the picker preview, the store icon and the icon tile of the feature graphic.
+
+Republished 2026-10-18: bundle `261018159` (`2.61.0181.546`) on the face's `wear:production` and the
+three-locale listing committed, both **held** - Play refuses automatic review while the rejection
+stands, so nothing is in review until the owner sends it from `Publishing overview`. The face's
+`wear:internal` still holds the 2026-09-30 draft `260930119`, which carries the original icon.
+
 ### Contacts Permission declaration (S4030)
 
 <!-- s4030:transcribed:contacts-declaration -->
@@ -197,6 +217,19 @@ Allowed states: `not filed`, `filed`, `approved`, `rejected`, `extension request
 the state and its date here right after submitting the form and after reading each Play verdict; the
 text that was submitted, the console path and the rollback are in `store_assets/PLAY_CONTACTS_DECLARATION.md`.
 The pre-release gate reads this block, so keep the three field lines above in this form.
+
+### dataSync foreground service declaration (S4271)
+
+**State:** filed
+**Date:** 2026-10-15
+**Video:** recorded
+
+The owner reported on 2026-10-15 that the demonstration video is recorded and the `dataSync`
+declaration is saved in Play Console. The `standard` store build still ships without `dataSync`
+until `fms.dataSyncFgsStandard=on` is set after release 46 ships (S4271 phase 02). The text that was
+submitted, the video steps and the rollback are in `store_assets/PLAY_FGS_DECLARATIONS.md`. Allowed
+states are the same as for the Contacts declaration above; the owner updates this block after
+reading each Play verdict.
 
 ---
 
@@ -217,7 +250,7 @@ the only writer of this block and the only script that reads that API.
 
 <!-- s2272:measured:vitals:begin -->
 
-**Verdict:** `insufficient-data` - measured 2026-10-14 (UTC), window 2026-09-15..2026-10-12 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
+**Verdict:** `insufficient-data` - measured 2026-10-20 (UTC), window 2026-09-18..2026-10-15 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
 
 | Finding | Scope | Value | Band | Colour | Distinct users |
 |---------|-------|-------|------|--------|----------------|
@@ -228,13 +261,47 @@ the only writer of this block and the only script that reads that API.
 
 Google anomalies in the window: none.
 
-Top error issues by distinct users (6):
+Top error issues by distinct users (4):
 - `CRASH` com.sza.fastmediasorter.core.cache.MediaFilesCacheManager.clearAllCaches at `java.lang.IllegalStateException` - 1 users, 1 reports, last versionCode 260915215 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/2e3fceb39a01cb7b3ff9e119aff3a3e5/details)
-- `APPLICATION_NOT_RESPONDING` androidx.recyclerview.widget.OpReorderer.getLastMoveOutOfOrder at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260912134 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/4973f43d832111cb3ab08b3f52aa3823/details)
+  - `Exception java.lang.IllegalStateException:`
+  - `at android.util.LruCache.trimToSize (LruCache.java:203)`
+  - `at android.util.LruCache.evictAll (LruCache.java:311)`
+  - `at com.sza.fastmediasorter.core.cache.MediaFilesCacheManager.clearAllCaches (MediaFilesCacheManager.java:180)`
+  - `at com.sza.fastmediasorter.FastMediaSorterApp.releaseRecomputableCaches (FastMediaSorterApp.kt:699)`
+  - `at com.sza.fastmediasorter.FastMediaSorterApp.onTrimMemory (FastMediaSorterApp.kt:650)`
+  - `at android.app.ActivityThread.handleTrimMemory (ActivityThread.java:7053)`
+  - `at android.app.ActivityThread.-$$Nest$mhandleTrimMemory (ActivityThread.java)`
+  - `at android.app.ActivityThread$ApplicationThread.lambda$scheduleTrimMemory$0 (ActivityThread.java:1903)`
 - `CRASH` com.sza.fastmediasorter.core.ui.BaseActivity.getBinding at `java.lang.IllegalStateException` - 1 users, 1 reports, last versionCode 261004154 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/81ac31a3e59c8e3b2089ff2fe8ded6af/details)
+  - `Exception java.lang.IllegalStateException: Binding is only valid between onCreate and onDestroy`
+  - `at com.sza.fastmediasorter.core.ui.BaseActivity.getBinding (BaseActivity.kt:77)`
+  - `at com.sza.fastmediasorter.ui.player.PlayerActivity.getActivityBinding$app_v2 (PlayerActivity.java:110)`
+  - `at com.sza.fastmediasorter.ui.player.PlayerManagerInitializer.initUiCoordinators$lambda$44 (PlayerManagerInitializer.java:1029)`
+  - `at com.sza.fastmediasorter.ui.player.helpers.FilenameOverlayAutoHideManager.animateHide (FilenameOverlayAutoHideManager.java:276)`
+  - `at com.sza.fastmediasorter.ui.player.helpers.FilenameOverlayAutoHideManager.hideRunnable$lambda$1 (FilenameOverlayAutoHideManager.java:55)`
+  - `at android.os.Handler.handleCallback (Handler.java:958)`
+  - `at android.os.Handler.dispatchMessage (Handler.java:99)`
+  - `at android.os.Looper.loopOnce (Looper.java:205)`
 - `CRASH` com.sza.fastmediasorter.FastMediaSorterApp.getFirstFrameSignal at `java.lang.NullPointerException` - 1 users, 1 reports, last versionCode 260601015 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/88a52ab68a18ad68933502e788e41c1d/details)
-- `CRASH` com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore.prefs_delegate$lambda$0 at `javax.crypto.AEADBadTagException` - 1 users, 2 reports, last versionCode 260912134 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/a5cb8257ba37c0467310a95a78d003b5/details)
+  - `Exception java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.Class java.lang.Object.getClass()' on a null object reference`
+  - `at kotlin.UnsafeLazyImpl.getValue (Lazy.kt:100)`
+  - `at com.sza.fastmediasorter.FastMediaSorterApp.getFirstFrameSignal (FastMediaSorterApp.java:135)`
+  - `at com.sza.fastmediasorter.FastMediaSorterApp.access$getFirstFrameSignal (FastMediaSorterApp.java:44)`
+  - `at com.sza.fastmediasorter.FastMediaSorterApp$onCreate$2.invokeSuspend (FastMediaSorterApp.kt:218)`
+  - `at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith (ContinuationImpl.kt:34)`
+  - `at kotlinx.coroutines.DispatchedTask.run (DispatchedTask.kt:108)`
+  - `at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run (LimitedDispatcher.kt:115)`
+  - `at kotlinx.coroutines.scheduling.TaskImpl.run (Tasks.kt:103)`
 - `CRASH` com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore$Companion$STAMP_MAP_TYPE$1.<init> at `java.lang.RuntimeException` - 1 users, 1 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/daf4cfa06fbe2ac60ec520ebecc05e00/details)
+  - `Exception java.lang.ExceptionInInitializerError:`
+  - `at com.sza.fastmediasorter.DaggerFastMediaSorterApp_HiltComponents_SingletonC$ViewModelCImpl.sharedPreferencesWearSettingsMirrorStore (DaggerFastMediaSorterApp_HiltComponents_SingletonC.java:4104)`
+  - `at com.sza.fastmediasorter.DaggerFastMediaSorterApp_HiltComponents_SingletonC$ViewModelCImpl$SwitchingProvider.get (DaggerFastMediaSorterApp_HiltComponents_SingletonC.java:4384)`
+  - `at dagger.hilt.android.internal.lifecycle.HiltViewModelFactory$2.createViewModel (HiltViewModelFactory.java:133)`
+  - `at dagger.hilt.android.internal.lifecycle.HiltViewModelFactory$2.create (HiltViewModelFactory.java:103)`
+  - `at dagger.hilt.android.internal.lifecycle.HiltViewModelFactory.create (HiltViewModelFactory.java:171)`
+  - `at androidx.lifecycle.ViewModelProvider.get (ViewModelProvider.kt:184)`
+  - `at androidx.lifecycle.ViewModelProvider.get (ViewModelProvider.kt:150)`
+  - `at androidx.lifecycle.ViewModelLazy.getValue (ViewModelLazy.kt:53)`
 
 <!-- s2272:measured:vitals:end -->
 

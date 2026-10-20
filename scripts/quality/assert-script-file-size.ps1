@@ -63,6 +63,7 @@ $ErrorActionPreference = 'Stop'
 
 if (-not (Test-Path -LiteralPath $RepoRoot)) {
     Write-Error "script-file-size: cannot run - repository root not found: $RepoRoot" -ErrorAction Continue
+    Write-Host "assert-script-file-size: COULD NOT VERIFY (repository root not found: $RepoRoot)"
     exit 2
 }
 
@@ -85,6 +86,7 @@ if ($ChangedFiles) {
 else {
     if ($discoveryRoots.Count -eq 0) {
         Write-Error "script-file-size: cannot run - no discovery root under $RepoRoot" -ErrorAction Continue
+        Write-Host "assert-script-file-size: COULD NOT VERIFY (no discovery root under $RepoRoot)"
         exit 2
     }
     foreach ($discovered in (Get-ChildItem -Path $discoveryRoots -Recurse -Filter '*.ps1' -File)) {
@@ -110,12 +112,20 @@ if ($findings.Count -gt 0) {
     }
     Write-Host '  Extract a self-contained block into a dot-sourced library beside its siblings (scripts/quality/lib/),' -ForegroundColor Yellow
     Write-Host '  keeping the caller''s scope: the extraction must not change what the script does.' -ForegroundColor Yellow
-    if ($Gate) { exit 1 }
+    if ($Gate) {
+        Write-Host "assert-script-file-size: FAIL ($($findings.Count) script(s) above the $MaxLines-line ceiling)"
+        exit 1
+    }
+    Write-Host "assert-script-file-size: PASS (report mode, -Gate not set; $($findings.Count) script(s) above the $MaxLines-line ceiling listed above)"
     exit 0
 }
 
-if (-not $Quiet) {
-    $scopeNote = if ($ChangedFiles) { 'in the changed set' } else { 'in scripts/, .claude/ and the repository root' }
-    Write-Host "script-file-size: OK - $($candidates.Count) script(s) $scopeNote, none above the $MaxLines-line ceiling." -ForegroundColor Green
+if ($ChangedFiles -and $candidates.Count -eq 0) {
+    . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+    Write-EmptySetPass -GateName 'assert-script-file-size'
+    exit 0
 }
+
+$scopeNote = if ($ChangedFiles) { 'in the changed set' } else { 'in scripts/, .claude/ and the repository root' }
+Write-Host "assert-script-file-size: PASS ($($candidates.Count) script(s) $scopeNote, none above the $MaxLines-line ceiling)" -ForegroundColor Green
 exit 0

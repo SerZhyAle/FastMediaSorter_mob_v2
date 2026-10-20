@@ -67,6 +67,7 @@ function Get-ModuleVersion {
 
     if (-not (Test-Path -LiteralPath $Path)) {
         Write-Error "assert-module-version-parity: build file not found - '$Path'." -ErrorAction Continue
+        Write-Host "assert-module-version-parity: COULD NOT VERIFY (build file not found - '$Path')"
         exit 2
     }
 
@@ -80,6 +81,7 @@ function Get-ModuleVersion {
 
     if (-not $codeMatch.Success -or -not $nameMatch.Success) {
         Write-Error "assert-module-version-parity: '$Module' states no defaultAppVersionCode/defaultAppVersionName pair in '$Path'." -ErrorAction Continue
+        Write-Host "assert-module-version-parity: COULD NOT VERIFY ('$Module' states no version pair in '$Path')"
         exit 2
     }
 
@@ -138,10 +140,9 @@ if ($violations.Count -gt 0) {
     # construction. The hint used to name build-release-spectrum.ps1 -SkipBuild, which after that
     # ticket resolves a version and writes nothing - it would have sent the reader to a no-op.
     Write-Host '  Fix: edit both build files by hand - keep versionName byte-identical, then take both codes from `. scripts/utils/build-version-stamp.ps1; Get-BuildVersionStamp -Now <the instant that versionName encodes>`. No build writes these constants (S1873).'
+    Write-Host 'assert-module-version-parity: FAIL (app_v2 and wear disagree on the version)'
     exit 1
 }
 
-if (-not $Quiet) {
-    Write-Host "assert-module-version-parity: OK - app_v2 $($app.Name) ($($app.Code)) / wear $($wear.Name) ($($wear.Code))."
-}
+Write-Host "assert-module-version-parity: PASS (app_v2 $($app.Name) ($($app.Code)) / wear $($wear.Name) ($($wear.Code)))"
 exit 0

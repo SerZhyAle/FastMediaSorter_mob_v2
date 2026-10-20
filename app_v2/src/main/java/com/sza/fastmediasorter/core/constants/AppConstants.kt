@@ -16,8 +16,15 @@ object AppConstants {
      * Default slideshow interval when not specified by user settings.
      * Used by slideshow controllers and managers.
      */
-    const val DEFAULT_SLIDESHOW_INTERVAL_MS = 3000L // 3 seconds
-    
+    const val DEFAULT_SLIDESHOW_INTERVAL_MS = 10_000L
+
+    /**
+     * Slideshow interval bounds in seconds, the settings range. MEDIA-VIEWER rule 5.2: the 1-second
+     * floor wins over every source, preset and in-player paths included.
+     */
+    const val MIN_SLIDESHOW_INTERVAL_SECONDS = 1
+    const val MAX_SLIDESHOW_INTERVAL_SECONDS = 3600
+
     /**
      * Countdown tick interval for slideshow countdown timers.
      */

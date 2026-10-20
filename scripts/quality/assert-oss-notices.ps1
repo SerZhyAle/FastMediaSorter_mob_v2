@@ -138,6 +138,7 @@ $declaredInputs = @(
 
 if (-not (Test-FixedInputsChargeable -ChangedFiles $ChangedFiles -InputPaths $declaredInputs)) {
     Write-NotChargedVerdict -GateName 'assert-oss-notices' -Findings @($findings)
+    Write-Host 'assert-oss-notices: PASS WITH ADVISORIES (see the findings above)'
     exit 3
 }
 

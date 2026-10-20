@@ -11,6 +11,9 @@ env:
 # timeline cannot be read; the pause action on the play/pause button plus no buffering indicator is
 # the state that profile keeps.
 # Reuse the fixture on subsequent runs; never clear the device's stream catalog.
+# Advisory: the fixture is an external host, so a failure without an app crash does not block a
+# release (owner decision 2026-10-14, S4249); scripts/devtest/prerelease-verdict.ps1 reads the token.
+# maestro-advisory: network
 
 - launchApp
 - runFlow: ../_shared/permissions.yaml

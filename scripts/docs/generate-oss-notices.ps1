@@ -290,7 +290,7 @@ function Format-NoticePage {
     $lines = [System.Collections.Generic.List[string]]::new()
 
     $lines.Add('---')
-    $lines.Add('layout: default')
+    $lines.Add('layout: doc')
     $lines.Add('title: "{0}"' -f $text.Title)
     $lines.Add('permalink: {0}' -f $text.Permalink)
     $lines.Add('---')

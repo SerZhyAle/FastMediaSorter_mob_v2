@@ -93,6 +93,7 @@ $baselinePath = Join-Path $PSScriptRoot 'guide-coverage-baseline.txt'
 
 function Stop-CannotRun([string]$why) {
     Write-Error "assert-guide-coverage: COULD NOT VERIFY - $why" -ErrorAction Continue
+    Write-Host "assert-guide-coverage: COULD NOT VERIFY ($why)"
     exit 2
 }
 
@@ -213,7 +214,7 @@ if ($UpdateBaseline) {
     if (Test-Path $baselinePath) {
         $previous = @(Get-Content $baselinePath | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith('#') })
     }
-    if (-not (Test-BaselineWrite -Gate 'assert-guide-coverage' -Previous $previous -Current $body -Reason $Reason)) { exit 2 }
+    if (-not (Test-BaselineWrite -Gate 'assert-guide-coverage' -Previous $previous -Current $body -Reason $Reason)) { Write-Host 'assert-guide-coverage: COULD NOT VERIFY (the baseline write was refused)'; exit 2 }
     $scope = $null
     try {
         $scope = Enter-CodeLockOrExit -Path $baselinePath -Reason 'assert-guide-coverage.ps1 -UpdateBaseline'
@@ -221,6 +222,7 @@ if ($UpdateBaseline) {
     }
     finally { Exit-CodeLockScope -Scope $scope }
     Write-Output "assert-guide-coverage: baseline rewritten with $($body.Count) id(s)."
+    Write-Host "assert-guide-coverage: PASS (baseline rewritten with $($body.Count) id(s))"
     exit 0
 }
 
@@ -259,6 +261,7 @@ Write-Output ("assert-guide-coverage: expected: 0 | actual: $($fresh.Count) new 
 
 if ($Gate -and $fresh.Count -gt 0) {
     Write-Error "assert-guide-coverage: $($fresh.Count) shipped capability(ies) appear in no user guide." -ErrorAction Continue
+    Write-Host "assert-guide-coverage: FAIL ($($fresh.Count) shipped capability(ies) appear in no user guide)"
     exit 1
 }
 

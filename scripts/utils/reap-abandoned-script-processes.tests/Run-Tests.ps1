@@ -56,8 +56,10 @@ function Start-Fixture {
 }
 
 $failures = @()
+$script:executed = 0
 function Assert-Verdict {
     param([string]$Case, [int]$ProcessId, [string]$Expected, $Payload)
+    $script:executed++
     $isCandidate = @($Payload.candidates | Where-Object { $_.pid -eq $ProcessId }).Count -gt 0
     $isProtected = @($Payload.protected | Where-Object { $_.pid -eq $ProcessId }).Count -gt 0
     $actual = if ($isCandidate) { 'candidate' } elseif ($isProtected) { 'protected' } else { 'absent' }
@@ -102,8 +104,8 @@ finally {
 }
 
 if ($failures.Count -gt 0) {
-    Write-Host "reap tests: $($failures.Count) case(s) failed." -ForegroundColor Red
+    Write-Host "reap tests: $(if ($failures.Count -gt 0) { 'FAIL' } else { 'PASS' }) (run=$script:executed skipped=0)"
     exit 1
 }
-Write-Host "reap tests: all cases passed." -ForegroundColor Green
+Write-Host "reap tests: $(if ($failures.Count -gt 0) { 'FAIL' } else { 'PASS' }) (run=$script:executed skipped=0)"
 exit 0

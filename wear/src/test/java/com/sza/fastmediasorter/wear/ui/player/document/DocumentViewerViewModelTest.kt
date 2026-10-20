@@ -145,6 +145,8 @@ class DocumentViewerViewModelTest {
             selectedMediaManager = selectedMediaManager,
             readDocumentText = readDocumentText,
             preferences = preferences,
+            // S4227: unstubbed - a text document must never reach the PDF renderer.
+            pdfRenderer = mockk(),
             savedStateHandle = SavedStateHandle(mapOf(WearRoutes.ARG_FILE_ID to FILE_ID))
         )
         testDispatcher.scheduler.advanceUntilIdle()
@@ -166,6 +168,8 @@ class DocumentViewerViewModelTest {
             selectedMediaManager = selectedMediaManager,
             readDocumentText = readDocumentText,
             preferences = preferences,
+            // S4227: unstubbed - a text document must never reach the PDF renderer.
+            pdfRenderer = mockk(),
             savedStateHandle = SavedStateHandle(mapOf(WearRoutes.ARG_FILE_ID to FILE_ID))
         )
     }

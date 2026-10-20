@@ -57,6 +57,36 @@ object WearFileNameConflictResolver {
         return Pair(free, true)
     }
 
+    /**
+     * S4230: the same rule as [resolveLocal] for a folder the watch cannot test one name at a time, a listing
+     * of a share or an FTP and SFTP directory.
+     *
+     * Names compare case-insensitively: SMB shares and many FTP servers treat `A.jpg` and `a.jpg` as one file, so a
+     * case-only difference would otherwise replace the existing file instead of getting a suffix.
+     */
+    fun resolveAmong(
+        existingNames: Set<String>,
+        intendedName: String,
+        now: Long = System.currentTimeMillis(),
+        zone: ZoneId = ZoneId.systemDefault()
+    ): Pair<String, Boolean> {
+        val taken = existingNames.mapTo(HashSet()) { it.lowercase() }
+        val suffixed = applySecondsSuffix(intendedName, now, zone)
+        return when {
+            intendedName.lowercase() !in taken -> Pair(intendedName, false)
+            suffixed.lowercase() !in taken -> Pair(suffixed, true)
+            else -> Pair(firstFreeIndexedAmong(taken, suffixed), true)
+        }
+    }
+
+    private fun firstFreeIndexedAmong(takenLowercase: Set<String>, suffixedName: String): String {
+        var index = FIRST_INDEX
+        while (insertBeforeExtension(suffixedName, index.toString()).lowercase() in takenLowercase) {
+            index++
+        }
+        return insertBeforeExtension(suffixedName, index.toString())
+    }
+
     /** Walks `-2`, `-3`, .. past every name the directory already holds. */
     private fun firstFreeIndexed(parentDir: File, suffixedName: String): String {
         var index = FIRST_INDEX

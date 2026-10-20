@@ -1,0 +1,160 @@
+{
+  "help": "sos",
+  "surface": "SosActivity",
+  "elements": [
+    { "id": "mode-all", "viewId": "btnSosModeAll", "labelKey": "sos_mode_all" },
+    { "id": "mode-sound", "viewId": "btnSosModeSoundOnly", "labelKey": "sos_mode_sound_only" },
+    { "id": "mode-light", "viewId": "btnSosModeLightOnly", "labelKey": "sos_mode_light_only" },
+    { "id": "stop", "viewId": "btnSosStop", "labelKey": "sos_stop_action" },
+    { "id": "flash", "viewId": "viewSosFlash" },
+    { "id": "notification" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "settings-operations" },
+    { "help": "tourist-info" },
+    { "help": "front-flashlight" },
+    { "pageId": "programs.built-in-mini-apps" },
+    { "pageId": "wear.wrist-mini-apps-and-tools" }
+  ],
+  "locales": {
+    "en": {
+      "title": "SOS emergency signal",
+      "purpose": "The SOS signal repeats the Morse SOS pattern - three short, three long, three short - with a loud siren, a flashing light, or both, so that people nearby can hear or see you. It only makes sound and light: it does not call anyone or send your location.",
+      "steps": [
+        "Open SOS emergency signal from the programs menu, the programs panel or the SOS signal button on the Tourist screen. It is off after installation, so switch it on first in Settings, on the Management tab, in the group Additional programs and scenarios.",
+        "The signal starts the moment the screen opens, in the mode you used last. The first time that is Sound and light, so expect a loud siren and a strobing light at once.",
+        "To change what it does while it runs, press Sound and light (1), Sound only (2) or Light only (3). The new mode takes over immediately and is remembered for the next time.",
+        "The siren, the rear flash and the flashing screen (5) all follow the same beat: three short, three long, three short, then a pause and again.",
+        "You can leave the screen or let it turn off: the signal keeps going, and the notification (6) shows that it is active and offers Stop signal.",
+        "Press Stop signal (4) to end it. Leaving the screen with the Back button or gesture ends it too. If you do nothing, it stops by itself after 30 minutes to save the battery and the flash.",
+        "With a paired watch, starting or stopping the signal on the phone does the same on the watch. If the watch is out of range, each device signals on its own."
+      ],
+      "groups": [
+        { "title": "What it does", "elements": ["mode-all", "mode-sound", "mode-light"] },
+        { "title": "Stop and strobe", "elements": ["stop", "flash"] },
+        { "title": "Outside the screen", "elements": ["notification"] }
+      ],
+      "elements": {
+        "mode-all": {
+          "summary": "Siren and strobe together, so you are heard and seen.",
+          "details": "A loud siren plays together with the rear flash and the flashing screen, all on the Morse SOS beat. This is the default the first time. The siren uses the alarm sound channel, so it is heard even when the ringer is silenced. For as long as the signal runs, the alarm volume is raised as far as the phone allows, and it is put back when the signal ends."
+        },
+        "mode-sound": {
+          "summary": "The siren alone, for daylight or when a light would blind someone.",
+          "details": "The torch and the screen stay dark, which saves the battery. The siren is the same loud one on the alarm channel, rising and falling so the ear does not tune it out."
+        },
+        "mode-light": {
+          "summary": "The strobe alone, for a quiet night or when sound would draw the wrong attention.",
+          "details": "The rear flash and the white flashing screen follow the Morse beat with no sound. A phone without a flash unit still signals: the screen alone is the light. While the light is engaged, the window is raised to full brightness, never the brightness setting of the phone."
+        },
+        "stop": {
+          "summary": "Ends the signal here and on the paired watch, and closes the screen.",
+          "details": "It is the largest button on the screen on purpose, so it is easy to hit with cold or wet hands while the siren is loud. One press stops the siren, the flash and the strobe, asks the paired watch to stop as well and closes the screen. There is nothing to confirm. To signal again, open the screen again."
+        },
+        "flash": {
+          "name": "Flashing screen",
+          "summary": "A white flash across the whole screen on the beat of the signal.",
+          "details": "In the modes with light, the whole screen flashes white on the same Morse beat as the rear flash. It makes the phone a light even where there is no flash unit, and it adds a second light where there is one. The flash is only a display: a touch goes through it to the buttons underneath, so Stop signal works while the screen is lit."
+        },
+        "notification": {
+          "name": "Signal notification",
+          "summary": "Keeps the signal in reach when the screen is closed or the phone is locked.",
+          "details": "While the signal runs, a notification named SOS emergency signal shows the text Signal active with the mode and stays as an ongoing notification. The action Stop signal in it ends the signal at once, and a tap on the notification opens this screen again. The signal keeps going when the screen turns off or you switch to another app."
+        }
+      }
+    },
+    "ru": {
+      "title": "Аварийный сигнал SOS",
+      "purpose": "Сигнал SOS повторяет сигнал SOS по Морзе - три коротких, три длинных, три коротких - громкой сиреной, мигающим светом или тем и другим, чтобы вас услышали или увидели. Он только издаёт звук и свет: никому не звонит и не отправляет ваше местоположение.",
+      "steps": [
+        "Откройте «Аварийный сигнал SOS» из меню программ, с панели программ или кнопкой «Сигнал SOS» на экране «Турист». После установки он выключен, поэтому сначала включите его в «Настройках», на вкладке «Управление», в группе «Дополнительные программы и сценарии».",
+        "Сигнал начинается в тот момент, когда открывается экран, в режиме, которым вы пользовались в последний раз. В первый раз это «Звук и свет», так что сразу ждите громкую сирену и мигающий свет.",
+        "Чтобы изменить работу сигнала на ходу, нажмите «Звук и свет» (1), «Только звук» (2) или «Только свет» (3). Новый режим включается сразу и запоминается до следующего раза.",
+        "Сирена, задняя вспышка и мигающий экран (5) идут в одном ритме: три коротких, три длинных, три коротких, затем пауза и снова.",
+        "Экран можно закрыть или дать ему погаснуть: сигнал продолжится, а уведомление (6) покажет, что он активен, и предложит «Остановить сигнал».",
+        "Нажмите «Остановить сигнал» (4), чтобы прекратить его. Выход с экрана кнопкой или жестом «Назад» тоже останавливает сигнал. Если ничего не делать, он выключится сам через 30 минут, чтобы сберечь батарею и вспышку.",
+        "Если есть парные часы, запуск или остановка сигнала на телефоне делает то же самое на часах. Если часы вне зоны связи, каждое устройство сигналит само."
+      ],
+      "groups": [
+        { "title": "Что он делает", "elements": ["mode-all", "mode-sound", "mode-light"] },
+        { "title": "Остановка и стробоскоп", "elements": ["stop", "flash"] },
+        { "title": "Вне экрана", "elements": ["notification"] }
+      ],
+      "elements": {
+        "mode-all": {
+          "summary": "Сирена и стробоскоп вместе: вас и слышно, и видно.",
+          "details": "Громкая сирена звучит вместе с задней вспышкой и мигающим экраном - всё в ритме SOS по Морзе. В первый раз выбран именно этот режим. Сирена идёт по каналу будильника, поэтому слышна, даже когда звонок отключён. Пока сигнал работает, громкость будильника поднята настолько, насколько позволяет телефон, а когда сигнал заканчивается - возвращается прежней."
+        },
+        "mode-sound": {
+          "summary": "Только сирена - для дневного времени или когда свет может ослепить.",
+          "details": "Фонарик и экран остаются тёмными, и это бережёт батарею. Сирена та же громкая, на канале будильника, и звук то нарастает, то спадает, чтобы ухо к нему не привыкало."
+        },
+        "mode-light": {
+          "summary": "Только стробоскоп - для тихой ночи или когда звук привлечёт лишнее внимание.",
+          "details": "Задняя вспышка и белый мигающий экран идут в ритме Морзе без звука. Телефон без вспышки всё равно подаёт сигнал: светом тогда служит один экран. Пока свет включён, окно доводится до полной яркости, но не настройка яркости телефона."
+        },
+        "stop": {
+          "summary": "Прекращает сигнал здесь и на парных часах и закрывает экран.",
+          "details": "Эта кнопка самая крупная на экране намеренно: в неё легко попасть замёрзшими или мокрыми руками, пока громко воет сирена. Одно нажатие останавливает сирену, вспышку и стробоскоп, просит парные часы тоже остановиться и закрывает экран. Подтверждать ничего не нужно. Чтобы подать сигнал снова, откройте экран ещё раз."
+        },
+        "flash": {
+          "name": "Мигающий экран",
+          "summary": "Белая вспышка на весь экран в ритме сигнала.",
+          "details": "В режимах со светом весь экран вспыхивает белым в том же ритме Морзе, что и задняя вспышка. Благодаря этому телефон служит светом, даже когда вспышки нет, а где она есть, добавляется второй источник света. Вспышка - только картинка: касание проходит сквозь неё к кнопкам под ней, так что «Остановить сигнал» работает и при белом экране."
+        },
+        "notification": {
+          "name": "Уведомление о сигнале",
+          "summary": "Держит сигнал под рукой, когда экран закрыт или телефон заблокирован.",
+          "details": "Пока сигнал работает, в шторке висит уведомление «Аварийный сигнал SOS» с текстом «Сигнал активен» и названием режима, и остаётся постоянным уведомлением. Действие «Остановить сигнал» в нём прекращает сигнал сразу, а касание самого уведомления снова открывает этот экран. Сигнал продолжается, когда экран гаснет или вы переходите в другое приложение."
+        }
+      }
+    },
+    "uk": {
+      "title": "Аварійний сигнал SOS",
+      "purpose": "Сигнал SOS повторює сигнал SOS за Морзе - три короткі, три довгі, три короткі - гучною сиреною, мигтючим світлом або і тим, і тим, щоб вас почули чи побачили. Він лише видає звук і світло: нікому не телефонує й не надсилає ваше місцезнаходження.",
+      "steps": [
+        "Відкрийте «Аварійний сигнал SOS» з меню програм, із панелі програм або кнопкою «Сигнал SOS» на екрані «Турист». Після встановлення він вимкнений, тому спершу ввімкніть його в «Налаштуваннях», на вкладці «Управління», у групі «Додаткові програми та сценарії».",
+        "Сигнал починається в ту мить, коли відкривається екран, у режимі, яким ви користувалися востаннє. Уперше це «Звук і світло», тож одразу чекайте гучну сирену й мигтюче світло.",
+        "Щоб змінити роботу сигналу на ходу, натисніть «Звук і світло» (1), «Тільки звук» (2) або «Тільки світло» (3). Новий режим вмикається одразу й запам'ятовується до наступного разу.",
+        "Сирена, задній спалах і мигтючий екран (5) ідуть в одному ритмі: три короткі, три довгі, три короткі, потім пауза і знову.",
+        "Екран можна закрити або дати йому згаснути: сигнал триватиме, а сповіщення (6) покаже, що він активний, і запропонує «Зупинити сигнал».",
+        "Натисніть «Зупинити сигнал» (4), щоб припинити його. Вихід з екрана кнопкою чи жестом «Назад» теж зупиняє сигнал. Якщо нічого не робити, він вимкнеться сам за 30 хвилин, щоб зберегти батарею та спалах.",
+        "Якщо є парний годинник, запуск чи зупинка сигналу на телефоні робить те саме на годиннику. Якщо годинник поза зоною зв'язку, кожен пристрій сигналить сам."
+      ],
+      "groups": [
+        { "title": "Що він робить", "elements": ["mode-all", "mode-sound", "mode-light"] },
+        { "title": "Зупинка і стробоскоп", "elements": ["stop", "flash"] },
+        { "title": "Поза екраном", "elements": ["notification"] }
+      ],
+      "elements": {
+        "mode-all": {
+          "summary": "Сирена і стробоскоп разом: вас і чутно, і видно.",
+          "details": "Гучна сирена лунає разом із заднім спалахом і мигтючим екраном - усе в ритмі SOS за Морзе. Уперше обрано саме цей режим. Сирена йде каналом будильника, тому її чутно, навіть коли дзвінок вимкнено. Поки сигнал працює, гучність будильника піднято настільки, наскільки дозволяє телефон, а коли сигнал закінчується - вона повертається колишньою."
+        },
+        "mode-sound": {
+          "summary": "Лише сирена - для денного часу або коли світло може засліпити.",
+          "details": "Ліхтарик і екран лишаються темними, і це береже батарею. Сирена та сама гучна, на каналі будильника, і звук то наростає, то спадає, щоб вухо до нього не звикало."
+        },
+        "mode-light": {
+          "summary": "Лише стробоскоп - для тихої ночі або коли звук привернув би зайву увагу.",
+          "details": "Задній спалах і білий мигтючий екран ідуть в ритмі Морзе без звуку. Телефон без спалаху все одно подає сигнал: світлом тоді править один екран. Поки світло ввімкнене, вікно доводиться до повної яскравості, але не налаштування яскравості телефона."
+        },
+        "stop": {
+          "summary": "Припиняє сигнал тут і на парному годиннику та закриває екран.",
+          "details": "Ця кнопка найбільша на екрані навмисно: у неї легко поцілити змерзлими чи мокрими руками, поки голосно виє сирена. Одне натискання зупиняє сирену, спалах і стробоскоп, просить парний годинник теж зупинитися й закриває екран. Підтверджувати нічого не потрібно. Щоб подати сигнал знову, відкрийте екран ще раз."
+        },
+        "flash": {
+          "name": "Мигтючий екран",
+          "summary": "Біле спалахування на весь екран у ритмі сигналу.",
+          "details": "У режимах зі світлом увесь екран спалахує білим в тому самому ритмі Морзе, що й задній спалах. Завдяки цьому телефон править за світло, навіть коли спалаху немає, а де він є, додається друге джерело світла. Спалах - лише картинка: дотик проходить крізь нього до кнопок під ним, тож «Зупинити сигнал» працює і за білого екрана."
+        },
+        "notification": {
+          "name": "Сповіщення про сигнал",
+          "summary": "Тримає сигнал під рукою, коли екран закрито або телефон заблоковано.",
+          "details": "Поки сигнал працює, у шторці висить сповіщення «Аварійний сигнал SOS» з текстом «Сигнал активний» і назвою режиму, і лишається постійним сповіщенням. Дія «Зупинити сигнал» у ньому припиняє сигнал одразу, а дотик до самого сповіщення знову відкриває цей екран. Сигнал триває, коли екран гасне або ви переходите в інший застосунок."
+        }
+      }
+    }
+  }
+}

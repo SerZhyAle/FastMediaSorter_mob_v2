@@ -98,4 +98,11 @@
     <string name="scheduled_op_last_success_never">Nessuna esecuzione riuscita finora</string>
     <string name="scheduled_op_filter_conditions">+ condizioni</string>
     <string name="scheduled_ops_op_archive">Archivia</string>
+    <string name="scheduled_op_history">Cronologia</string>
+    <string name="scheduled_op_history_line_ok">%1$s · OK · %2$d file</string>
+    <string name="scheduled_op_history_line_skipped">%1$s · Saltata · %2$s</string>
+    <string name="scheduled_op_history_line_error">%1$s · Non riuscita · %2$d file · %3$s</string>
+    <string name="scheduled_op_badge_error">L\'ultima esecuzione non è riuscita. Apri la Cronologia per i dettagli.</string>
+    <string name="scheduled_op_badge_skipped">L\'ultima esecuzione è stata saltata: un lato non era raggiungibile. Verrà ritentata alla prossima pianificazione.</string>
+    <string name="scheduled_ops_notif_failed_title">Operazione pianificata non riuscita</string>
 </resources>

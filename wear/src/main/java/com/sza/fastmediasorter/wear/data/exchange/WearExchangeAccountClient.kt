@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.data.exchange
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.sza.fastmediasorter.data.security.e2e.E2eDeviceKey
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,9 +28,10 @@ class WearExchangeAccountClient @Inject constructor(
         entry: WearExchangeEntry,
         pairingCode: String,
         profile: WearExchangeDeviceProfile,
+        key: E2eDeviceKey? = null,
     ): WearExchangeEnrollResult = try {
-        val answer = connector.connect(entry.host, entry.port, entry.pinnedCertificate).use { stream ->
-            WearExchangeFrameCodec.write(stream.output, enrollEnvelope(entry, pairingCode, profile))
+        val answer = connector.connect(entry.host, entry.port, entry.pinnedCertificate, entry.pinnedKey).use { stream ->
+            WearExchangeFrameCodec.write(stream.output, enrollEnvelope(entry, pairingCode, profile, key))
             WearExchangeFrameCodec.read(stream.input).also { answer ->
                 // The enrolled stream is authenticated and would become the control stream; this one only enrolls.
                 if (answer?.type == WearExchangeEnvelope.TYPE_ENROLLED) {
@@ -55,7 +57,7 @@ class WearExchangeAccountClient @Inject constructor(
      * @throws IOException when the server cannot be reached, refuses the token or the write fails.
      */
     fun revokeOwnDevice(entry: WearExchangeEntry, token: String, productVersion: String) {
-        connector.connect(entry.host, entry.port, entry.pinnedCertificate).use { stream ->
+        connector.connect(entry.host, entry.port, entry.pinnedCertificate, entry.pinnedKey).use { stream ->
             WearExchangeFrameCodec.write(stream.output, helloEnvelope(entry, token, productVersion))
             val answer = WearExchangeFrameCodec.read(stream.input)
             if (answer?.type != WearExchangeEnvelope.TYPE_WELCOME) {
@@ -81,18 +83,27 @@ class WearExchangeAccountClient @Inject constructor(
         }
     }
 
-    private fun enrollEnvelope(entry: WearExchangeEntry, pairingCode: String, profile: WearExchangeDeviceProfile) =
-        WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_ENROLL) {
-            addProperty(KEY_LOGIN, entry.login)
-            addProperty(KEY_PAIRING_CODE, pairingCode)
-            addProperty(KEY_DEVICE_ID, entry.deviceId)
-            addProperty(KEY_DEVICE_NAME, profile.deviceName)
-            addProperty(KEY_PRODUCT, PRODUCT_FMS_WEAR)
-            addProperty(KEY_PRODUCT_VERSION, profile.productVersion)
-            addProperty(KEY_PLATFORM, PLATFORM_ANDROID)
-            add(KEY_ROLES, JsonArray().apply { ROLES.forEach(::add) })
-            add(KEY_RECEIVER, receiver())
+    // S4240: a watch without a key declares neither `e2eKey` nor `e2e-v1` (item DF), so it is never a recipient.
+    private fun enrollEnvelope(
+        entry: WearExchangeEntry,
+        pairingCode: String,
+        profile: WearExchangeDeviceProfile,
+        key: E2eDeviceKey?,
+    ) = WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_ENROLL) {
+        addProperty(KEY_LOGIN, entry.login)
+        addProperty(KEY_PAIRING_CODE, pairingCode)
+        addProperty(KEY_DEVICE_ID, entry.deviceId)
+        addProperty(KEY_DEVICE_NAME, profile.deviceName)
+        addProperty(KEY_PRODUCT, PRODUCT_FMS_WEAR)
+        addProperty(KEY_PRODUCT_VERSION, profile.productVersion)
+        addProperty(KEY_PLATFORM, PLATFORM_ANDROID)
+        add(KEY_ROLES, JsonArray().apply { ROLES.forEach(::add) })
+        add(KEY_RECEIVER, receiver())
+        key?.let {
+            add(KEY_CAPABILITIES, JsonArray().apply { add(E2eDeviceKey.CAPABILITY) })
+            add(E2eDeviceKey.KEY_E2E_KEY, it.toWire())
         }
+    }
 
     // Contract section 3: the watch plays AUDIO_ONLY, and S4116 phase 08 receives it from RELAY.
     private fun receiver() = JsonObject().apply {
@@ -112,10 +123,16 @@ class WearExchangeAccountClient @Inject constructor(
         const val ROLE_BROADCASTER = "broadcaster"
         const val ROLE_RECEIVER = "receiver"
 
+        /** Contract DEVICE-EXCHANGE 22 item BV: the watch sends and receives the clipboard on the server. */
+        const val ROLE_CLIPBOARD = "clipboard"
+
+        /** S4228: contract DEVICE-EXCHANGE 23 item CE - the watch opens the account's folders. */
+        const val ROLE_RESOURCE_CONSUMER = "resource-consumer"
+
         private const val PLATFORM_ANDROID = "android"
         private const val MODE_AUDIO_ONLY = "AUDIO_ONLY"
         private const val TRANSPORT_RELAY = "RELAY"
-        private val ROLES = listOf(ROLE_BROADCASTER, ROLE_RECEIVER)
+        private val ROLES = listOf(ROLE_BROADCASTER, ROLE_RECEIVER, ROLE_CLIPBOARD, ROLE_RESOURCE_CONSUMER)
 
         private const val KEY_LOGIN = "login"
         private const val KEY_PAIRING_CODE = "pairingCode"
@@ -127,6 +144,7 @@ class WearExchangeAccountClient @Inject constructor(
         private const val KEY_PLATFORM = "platform"
         private const val KEY_ROLES = "roles"
         private const val KEY_RECEIVER = "receiver"
+        private const val KEY_CAPABILITIES = "capabilities"
         private const val KEY_MODES = "modes"
         private const val KEY_TRANSPORTS = "transports"
     }

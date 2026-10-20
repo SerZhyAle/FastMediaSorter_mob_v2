@@ -1,8 +1,8 @@
-<sub class="doc-stamp">26.10.02 14:54</sub>
+<sub class="doc-stamp">26.10.15 13:39</sub>
 
 # Security posture - what this app can touch and what it can send
 
-**Last reconciled:** 2026-10-02
+**Last reconciled:** 2026-10-15
 **Contract:** canon `rules/SECURITY_AND_PRIVACY.md` section 7 (the permission and network-surface inventories).
 **Checked by:** `scripts/quality/assert-security-posture.ps1`, run in the release scope (`scripts/quality/assert-release-scope-gates.ps1`, step 0.4 of `/spec-prerelease`).
 
@@ -43,10 +43,10 @@ the request itself.
 | `android.permission.CHANGE_WIFI_STATE` | `app_v2/src/networkMonitor` | standard, noLegal | Network Monitor radio toggles | `-` | no |
 | `android.permission.EXPAND_STATUS_BAR` | `app_v2/src/main` | all seven | launcher shade-panel control | `-` | no |
 | `android.permission.FOREGROUND_SERVICE` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | every foreground service below | `-` | no |
-| `android.permission.FOREGROUND_SERVICE_CAMERA` | `app_v2/src/broadcastVideoBackground` | noLegal | video broadcast that survives leaving the screen (S3154 keeps it off the store flavors) | `-` | no |
-| `android.permission.FOREGROUND_SERVICE_DATA_SYNC` | `app_v2/src/main` | all seven, debug build type only | scheduled file operations | `-` | no |
+| `android.permission.FOREGROUND_SERVICE_CAMERA` | `app_v2/src/broadcastVideoBackground` | standard, noLegal | video broadcast that survives leaving the screen (S4235 enables for standard; legacy retains foreground-only) | `-` | no |
+| `android.permission.FOREGROUND_SERVICE_DATA_SYNC` | `app_v2/src/main` | all seven in debug builds; in a release only noLegal, and standard when built with `fms.dataSyncFgsStandard=on` (S4271) | background file transfers and scheduled file operations; the phone's folder-sharing service (S3041, lifetime S4225) | `-` | no |
 | `android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | audio playback service | `-` | no |
-| `android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION` | `app_v2/src/screenCapture` | noLegal, standard when the capture suite is built | screen capture and screen recording | `-` | no |
+| `android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION` | `app_v2/src/screenCapture`, `app_v2/src/broadcastSource` | noLegal, standard, legacy | screen capture and screen recording (standard: when the capture suite is built); the phone-screen broadcast (S4233) | `-` | no |
 | `android.permission.FOREGROUND_SERVICE_MICROPHONE` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | quick voice recorder widget; watch voice recorder | `-` | no |
 | `android.permission.FOREGROUND_SERVICE_SPECIAL_USE` | `app_v2/src/noLegal`, `app_v2/src/standardScreenCapture` | noLegal, standard when the edge overlay is built | edge-gesture overlay host | `-` | no |
 | `android.permission.health.READ_HEART_RATE` | `wear/src/noLegal` | `wear:noLegal` | watch heart-rate readout (Health permission, API 36+) | `-` | no |
@@ -91,8 +91,8 @@ prompts per use.
   `noLegal`: the Now Playing gadget and the launcher's notification counters. Both features are off until the
   user turns them on; no notification content is read or stored.
 - `android.permission.BIND_TILE_PROVIDER` - the watch tile services.
-- Screen-capture consent: `MediaProjection` asks the system every time a recording starts, so it cannot be
-  granted ahead of time.
+- Screen-capture consent: `MediaProjection` asks the system every time a recording starts or the phone's screen
+  is broadcast (S4233), so it cannot be granted ahead of time.
 
 ---
 
@@ -103,16 +103,23 @@ Every surface that opens a listening port, initiates an outbound connection, or 
 | Surface | Where | Variants | On by default | Turned on by | Lifetime | What leaves, to where |
 |---|---|---|---|---|---|---|
 | Live audio broadcast HTTP server (`/live-audio.aac`, NanoHTTPD bound to `0.0.0.0`) | `app_v2/src/broadcastSource/.../broadcast/BroadcastHttpServer.kt` | standard, noLegal, legacy | no | the user starting a broadcast from the broadcast screen, its tile or its widget | the broadcast session; stopped with it | live AAC audio to any client on the local network that opens the announced URL |
-| Camera and microphone RTSP server (RootEncoder `rtsp-server`) | `app_v2/src/broadcastSource/.../broadcast/VideoBroadcastService.kt` | standard, legacy (on screen only); noLegal (also in background) | no | the user starting a video broadcast, or accepting a watch camera request | the broadcast session | live camera and microphone stream to local-network clients |
+| Camera and microphone RTSP server (RootEncoder `rtsp-server`) | `app_v2/src/broadcastSource/.../broadcast/VideoBroadcastService.kt` | standard, noLegal (also in background, camera foreground-service type, S4235); legacy (on screen only) | no | the user starting a video broadcast, or accepting a watch camera request | the broadcast session; ends with Stop in its notification or in the app | live camera and microphone stream to local-network clients, or through the exchange server sealed (items DL and DM of `DEVICE-EXCHANGE`) |
+| Phone-screen broadcast (MediaProjection) | `app_v2/src/broadcastSource/.../broadcast/BroadcastScreenService.kt` | standard, noLegal, legacy | no | the user starting a screen broadcast and accepting the system's projection consent, asked for every session (S4233) | the broadcast session; ends with Stop, or when the user ends the sharing from the system's indicator | the live screen stream, to the same receivers as any broadcast |
+| Ready-file broadcast | `app_v2/src/broadcastSource/.../broadcast/BroadcastFileAudioService.kt`, `BroadcastFileVideoService.kt` | standard, noLegal, legacy | no | the user picking a stored file to broadcast (S4234) | the broadcast session | that one file's stream to the same receivers; no camera or microphone is opened |
 | Companion discovery (mDNS/NSD client) | `app_v2/src/main/.../data/remote/sftp/CompanionMdnsDiscovery.kt` | all seven | no | opening network discovery while adding a resource | the discovery pass | service queries on the local network; no user content |
 | SMB / SFTP / FTP clients | `data/remote/{smb,sftp,ftp}` | all but lite | no | adding a network resource | per browse or transfer session | file listings and file content to and from the hosts the user configured |
-| Cloud storage clients (Google Drive, Dropbox, OneDrive) | `ui/cloudfolders/*`, OAuth receivers | all but foss | no | signing in while adding a cloud resource | the OAuth session and its stored token | file metadata and content over HTTPS to the chosen provider |
+| Cloud storage clients (Google Drive, Dropbox, OneDrive) | `ui/cloudfolders/*`, OAuth receivers | standard, noLegal, photos, legacy, vr, xr (`SUPPORT_CLOUD` in `docs/FLAVOR_MATRIX.md`) | no | signing in while adding a cloud resource | the OAuth session and its stored token | file metadata and content over HTTPS to the chosen provider |
 | Google Cast | `core/cast` + `src/castEnabled` | standard, noLegal, lite, photos, legacy | discovery on, casting off | the user picking a cast device | the cast session | the media being played, to the chosen device on the local network |
 | Wear Data Layer | `src/wearGms/PhoneWearListenerService`, `wear/.../WatchWearListenerService` | standard, noLegal + their watch counterparts | yes, once a watch is paired | pairing a watch | the pairing | resource metadata, favourites, playback state and transferred files, between phone and paired watch only |
 | Stream playback (HLS, DASH, RTSP, HTTP) | Media3 ExoPlayer, NewPipe extractor | every flavor with stream support | no | the user opening a stream | the playback session | requests to the stream URL the user supplied |
 | Remote image loading | Glide over OkHttp | all seven | no | a remote thumbnail or avatar being shown | per request | image requests to cloud and map endpoints |
 | Map gadgets | launcher map tiles | standard, noLegal | no | the user adding a map gadget | while the tile is on screen | the area coordinates, to an online map-tile service, and a reverse-geocode lookup |
 | External IP check | Network Monitor | standard, noLegal | no | the user asking for it | the request | the request itself, to a third-party IP-echo service that sees the address; the result is shown, not stored |
+| Exchange server client (account, device directory, resource and broadcast records) | `app_v2/src/main/.../data/remote/exchange/DeviceExchangeAccountClient.kt`; watch `wear/src/main/.../data/exchange/WearExchangeAccountClient.kt` | every flavor; both watch flavors | no | the user adding a server from a connection string or QR, or the watch taking it from the paired phone | while the entry is signed in; closed by "Sign out on this device" or "Delete my account" | login, password at sign-in only, device names, roles and public keys, folder and broadcast names and presence, to the one server the user entered, over TLS checked against the certificate fingerprint saved at the first connection |
+| Exchange tunnels and relay (folders of another own device, broadcast relay, cast) | `app_v2/src/main/.../data/remote/exchange/`, `.../data/remote/sftp/` | every flavor; both watch flavors | no | the user opening a folder of another own device, or a broadcast, through the server | the tunnel or the broadcast | SFTP inside SSH end to end for folders; broadcast media and tunnel sealed (items DI, DL, DM of `DEVICE-EXCHANGE`); the server joins two outgoing connections and reads no content |
+| Clipboard on the exchange server | `app_v2/src/main/.../data/remote/exchange/DeviceExchangeClipboardClient.kt` | every flavor; both watch flavors | no | the user's "send clipboard to server" or "get clipboard from server" action | one transfer; the value lives in the server's memory only, replaced by the next one | one sealed value - text, image or one file, up to the server's limit - to every non-guest account entry the device is signed in to; no preview, history or background read |
+| Google Drive channel between own devices (packet queue, records, clipboard via GD) | `app_v2/src/main/.../domain/model/transfer/CrossDevicePacketCodec.kt`, `DriveChannelMessages.kt` | standard, noLegal, photos, legacy, vr, xr (`SUPPORT_CLOUD`) | no | the user switching the Drive channel on after signing in to Google | while on: a listing every 10 s with a waiting screen, every 60 s in the foreground, every 15 min in the background; files expire after 7 days, the clipboard value is replaced by the next | files, requests and replies, the clipboard value and the directory records, in the hidden `drive.appdata` folder of the user's own Google account, over HTTPS; not sealed (item DO); a broadcast is announced there and never streamed |
+| Watch microphone broadcast and "Send to.." | `wear/src/main/.../service/`, `.../data/exchange/` | both watch flavors | no | the user's tap on the watch | the broadcast or the one transfer | the watch microphone's sound, and files and recordings handed to "Send to..", over the watch's own Wi-Fi or mobile connection to the same places as the phone; Bluetooth carries only the start and the secrets |
 
 **Born off, dies with its session.** Both servers above ship disabled, start only on a user action, and stop with
 the session that started them; neither publishes its loopback address as an external one - the wire-level form of
@@ -122,6 +129,35 @@ listening surface in this repository is held to the same four answers before it 
 **Cleartext.** `app_v2/src/main/res/xml/network_security_config.xml` permits cleartext app-wide, deliberately, so
 that `http://` internet-radio sources play (S0565). It is a property of what the user chooses to open, not of
 anything the app sends on its own.
+
+### 3.1 The exchange server: what is sealed, what it sees, what it keeps (S4241)
+
+The exchange server is a program the person runs or is invited to, never the developer's: no server of the
+developer exists and none is offered to the public (S4203 decision 4). Contract: `DEVICE-EXCHANGE` 0.29,
+items DE (the honest text), DO (Drive not sealed) and DQ (what the server keeps and sees).
+
+- **Sealed on the device, opened only on the account's own devices or by the people given access:** the
+  access record of a folder, a grant's access and credentials, a broadcast's credentials and keys, the media of
+  a relayed broadcast, the bytes of a broadcast tunnel, and every clipboard value with its kind, type and name.
+  A folder's files cross a tunnel inside SSH, end to end.
+- **Seen by the server, because without it nothing connects:** the account's login and kind, each device's
+  name, product, platform, roles, capabilities and public key, presence and last-seen time, resource names,
+  roots and host-key fingerprints, broadcast titles and modes, grants and the guest logins they name, who
+  connects to whom and when, client addresses, and the size and timing of every tunnel, relay chunk and
+  clipboard value.
+- **Kept on disk:** accounts with salted password hashes, enrolled devices and their public keys, resource and
+  broadcast records, the log within its operator's retention setting. **In memory only:** sealed access
+  records, sealed clipboard values (the newest only, no expiry, lost on restart), live tunnels and relay
+  buffers, pairing codes. **Never:** a password, a token, an invitation or content in the log.
+- **Deleting an account** erases the account, its devices, records, tokens, clipboard, pairing codes and
+  grants at once; the log is not rewritten. In the app: My devices, server card menu, "Delete my account".
+  Without the app, and for a server that is not the person's own: the operator deletes it, and the portal page
+  "How to delete an account" says both ways.
+- **The Google Drive path is not sealed.** The data lives in the person's own Google account in the hidden
+  `drive.appdata` folder, never addressed to another account, and no exchange server takes part; the
+  privacy page and the Data safety source say it in the contract's words.
+- **Where it is rendered:** `docs/PRIVACY_POLICY.md` (+ `-ru`, `-uk`), "Exchange Between Your Devices";
+  `store_assets/PLAY_DATA_SAFETY_EXCHANGE.md`; `store_assets/PLAY_FGS_DECLARATIONS.md`.
 
 ---
 

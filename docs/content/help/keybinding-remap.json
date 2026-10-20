@@ -1,0 +1,284 @@
+{
+  "help": "keybinding-remap",
+  "surface": "KeybindingRemapActivity",
+  "elements": [
+    { "id": "back", "viewId": "backButton", "labelKey": "back" },
+    { "id": "search", "viewId": "searchView", "labelKey": "keybinding_remap_search_hint" },
+    { "id": "groups", "viewId": "csh_title" },
+    { "id": "group-reset", "viewId": "csh_trailingSlot", "labelKey": "reset_group_title" },
+    { "id": "command-row", "viewId": "tvCommandLabel" },
+    { "id": "edit-binding", "viewId": "btnRemap", "labelKey": "keybinding_row_remap" },
+    { "id": "row-reset", "viewId": "btnReset", "labelKey": "keybinding_row_reset" },
+    { "id": "reset-all", "viewId": "btnResetAll", "labelKey": "keybinding_remap_reset_all" },
+    { "id": "capture-prompt", "labelKey": "keybinding_capture_title" },
+    { "id": "capture-countdown" },
+    { "id": "capture-captured" },
+    { "id": "capture-conflict" },
+    { "id": "capture-cancel", "labelKey": "keybinding_capture_cancel" },
+    { "id": "capture-commit", "labelKey": "keybinding_capture_commit" }
+  ],
+  "related": [
+    { "help": "settings-operations" },
+    { "help": "settings-general" },
+    { "help": "player" },
+    { "pageId": "settings.controls-and-key-remapping" },
+    { "pageId": "general.keyboard-dpad-tv-navigation" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Controls & Keybindings",
+      "purpose": "Choose which key, gamepad button or mouse button runs each command - playback, navigation, sorting and browsing. Every command comes with a factory key, so you change only what you want, and you can put it back whenever you like.",
+      "steps": [
+        "Open Controls & Keybindings from Settings, on the Management tab. The commands are grouped by purpose, and the groups start folded.",
+        "Find the command: type part of its name in the search field (2), or tap a group title (3) to open the group.",
+        "Press Edit binding (6) on the command's row (5) and pick the device whose key you want to change - Keyboard, Gamepad and so on.",
+        "A window opens (9) and waits. Press the new key or button within the time shown (10) and check what was caught (11).",
+        "If a red message says the key is taken (12), press another one or Cancel (13). Otherwise press Set (14) to save it.",
+        "To go back to the factory key, use the reset on the row (7) for one command, the group reset (4) for a whole group, or Reset All (8) for everything. The last two ask first.",
+        "Changes are saved the moment you make them. Back (1) leaves the screen."
+      ],
+      "groups": [
+        { "title": "Top bar and search", "elements": ["back", "search"] },
+        { "title": "Groups and commands", "elements": ["groups", "group-reset", "command-row", "edit-binding", "row-reset"] },
+        { "title": "Reset everything", "elements": ["reset-all"] },
+        { "title": "Key capture window", "elements": ["capture-prompt", "capture-countdown", "capture-captured", "capture-conflict", "capture-cancel", "capture-commit"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Leaves the screen and returns to Settings.",
+          "details": "There is nothing to confirm: every change is already saved when you make it."
+        },
+        "search": {
+          "summary": "Narrows the list to the commands that match.",
+          "details": "Type part of a command name, such as Next File, or of a key name, and the list shrinks as you type. A group with no match disappears. A folded group with a match shows only its title, so tap it to see the matching rows. Clear the field to bring everything back."
+        },
+        "groups": {
+          "name": "Command groups",
+          "summary": "Folds and unfolds the commands of one group.",
+          "details": "Commands are grouped by purpose: Playback, Navigation, View & Zoom, Audio & Subtitles, System UI, Sorting Actions, Operation shortcuts, Browser Actions and, only in builds with a VR runtime, VR Only. Groups start folded; tap a title to open one. The app remembers which groups you left open. On a wide window the rows are set in two columns."
+        },
+        "group-reset": {
+          "summary": "Puts one group back to its factory keys.",
+          "details": "This is the small round-arrow icon at the end of a group title. The app asks whether to reset all bindings in that group to factory defaults, and changes nothing until you press Reset. Only the keys you changed in that group are affected.",
+          "undo": "Your own keys in that group are lost and the factory ones return. To get a key back, assign it again with Edit binding."
+        },
+        "command-row": {
+          "name": "Command row",
+          "summary": "A command and the keys that run it.",
+          "details": "The command name is on top. Below it are its current keys, each with a mark for the device - keyboard, gamepad, mouse or VR; a dash means no key is set. One command can have keys on several devices at once, so a gamepad button and a keyboard key can do the same thing."
+        },
+        "edit-binding": {
+          "summary": "Gives this command a new key or button.",
+          "details": "A small menu asks which device to change. Keyboard and Gamepad are always offered, each with its current key or (not set); Mouse and VR appear only when the command already has a key for them. After you pick one, the key capture window opens. The new key takes the place of the old one for that device."
+        },
+        "row-reset": {
+          "summary": "Puts this one command back to its factory key.",
+          "details": "It works only for a command you have changed; for an untouched command the button is dimmed. It happens at once, without a question.",
+          "undo": "Your own key for this command is lost and the factory key returns. Assign it again with Edit binding if you want it back."
+        },
+        "reset-all": {
+          "summary": "Puts every command back to its factory keys.",
+          "details": "The app asks Reset every binding to factory defaults? This cannot be undone., and nothing changes until you press Reset. Afterwards each command uses its original keyboard, gamepad and mouse buttons.",
+          "undo": "All your own keys are lost at once and cannot be restored. Assign them again one by one."
+        },
+        "capture-prompt": {
+          "summary": "Tells you the app is waiting for your key.",
+          "details": "The window covers the screen and listens for a keyboard key (with Ctrl, Shift or Alt if you hold them), a gamepad button, a stick, trigger or D-pad push, or a mouse button. The system Back key is not taken as a new key."
+        },
+        "capture-countdown": {
+          "name": "Countdown",
+          "summary": "Shows how many seconds are left to press a key.",
+          "details": "You have 30 seconds. When the time runs out, the window closes on its own and nothing is changed."
+        },
+        "capture-captured": {
+          "name": "Captured key",
+          "summary": "Shows the key or button the app caught.",
+          "details": "It reads Captured: and the name of what you pressed, for example Ctrl+Shift+K for a keyboard key with modifiers. Before you press anything it shows a dash. If the first press was not what you meant, press another key - the last one counts."
+        },
+        "capture-conflict": {
+          "name": "Conflict message",
+          "summary": "Warns that another command already uses this key.",
+          "details": "A red line reads Already bound to: and the names of those commands. While it is shown, Set stays off, so two commands cannot share one key. Press a different key, or cancel and free the other command first."
+        },
+        "capture-cancel": {
+          "summary": "Closes the window and changes nothing.",
+          "details": "The command keeps its old key. Use it when you opened the window by mistake or the key you wanted is already taken."
+        },
+        "capture-commit": {
+          "summary": "Saves the caught key for this command.",
+          "details": "The button works only after a key was caught and no other command uses it. It saves the key right away, closes the window and updates the row."
+        }
+      }
+    },
+    "ru": {
+      "title": "Управление и клавиши",
+      "purpose": "Выберите, какая клавиша, кнопка геймпада или кнопка мыши запускает каждую команду - воспроизведение, навигацию, сортировку и просмотр. У каждой команды есть стандартная клавиша, поэтому вы меняете только то, что хотите, и в любой момент можете вернуть всё как было.",
+      "steps": [
+        "Откройте «Управление и клавиши» в настройках, на вкладке «Управление». Команды сгруппированы по назначению, и группы сначала свёрнуты.",
+        "Найдите команду: введите часть её названия в поле поиска (2) или нажмите заголовок группы (3), чтобы раскрыть её.",
+        "Нажмите «Редактировать назначение» (6) в строке команды (5) и выберите устройство, у которого хотите сменить клавишу, - клавиатуру, геймпад и так далее.",
+        "Откроется окно (9) и будет ждать. Нажмите новую клавишу или кнопку, пока идёт отсчёт (10), и проверьте, что захвачено (11).",
+        "Если красное сообщение говорит, что клавиша занята (12), нажмите другую или «Отмена» (13). Иначе нажмите «Назначить» (14), чтобы сохранить.",
+        "Чтобы вернуть стандартную клавишу, используйте сброс в строке (7) для одной команды, сброс группы (4) для целой группы или «Сбросить всё» (8) для всех сразу. Два последних сначала спрашивают.",
+        "Изменения сохраняются сразу. Кнопка «Назад» (1) закрывает экран."
+      ],
+      "groups": [
+        { "title": "Верхняя панель и поиск", "elements": ["back", "search"] },
+        { "title": "Группы и команды", "elements": ["groups", "group-reset", "command-row", "edit-binding", "row-reset"] },
+        { "title": "Сбросить всё", "elements": ["reset-all"] },
+        { "title": "Окно захвата клавиши", "elements": ["capture-prompt", "capture-countdown", "capture-captured", "capture-conflict", "capture-cancel", "capture-commit"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Закрывает экран и возвращает в настройки.",
+          "details": "Подтверждать нечего: каждое изменение сохраняется сразу, как только вы его делаете."
+        },
+        "search": {
+          "summary": "Оставляет в списке только подходящие команды.",
+          "details": "Введите часть названия команды, например «Следующий файл», или часть названия клавиши, и список сужается прямо при вводе. Группа без совпадений исчезает. Свёрнутая группа с совпадением показывает только заголовок, поэтому нажмите на неё, чтобы увидеть подходящие строки. Очистите поле, чтобы вернуть всё."
+        },
+        "groups": {
+          "name": "Группы команд",
+          "summary": "Сворачивает и разворачивает команды одной группы.",
+          "details": "Команды сгруппированы по назначению: «Воспроизведение», «Навигация», «Вид и масштаб», «Аудио и субтитры», «Системный интерфейс», «Сортировка», «Быстрые операции», «Действия браузера» и - только в сборках с поддержкой VR - «Только VR». Группы сначала свёрнуты; нажмите заголовок, чтобы открыть группу. Приложение помнит, какие группы вы оставили открытыми. В широком окне строки идут в два столбца."
+        },
+        "group-reset": {
+          "summary": "Возвращает одной группе стандартные клавиши.",
+          "details": "Это маленький значок с круглой стрелкой в конце заголовка группы. Приложение спрашивает, сбросить ли все назначения в этой группе до заводских, и ничего не меняет, пока вы не нажмёте «Сбросить». Затрагиваются только клавиши, которые вы изменили в этой группе.",
+          "undo": "Ваши клавиши в этой группе пропадают, а стандартные возвращаются. Чтобы вернуть свою клавишу, назначьте её снова через «Редактировать назначение»."
+        },
+        "command-row": {
+          "name": "Строка команды",
+          "summary": "Команда и клавиши, которые её запускают.",
+          "details": "Сверху - название команды. Под ним - её текущие клавиши, каждая с пометкой устройства: клавиатура, геймпад, мышь или VR; прочерк значит, что клавиша не задана. У одной команды могут быть клавиши сразу на нескольких устройствах, так что кнопка геймпада и клавиша клавиатуры могут делать одно и то же."
+        },
+        "edit-binding": {
+          "summary": "Назначает команде новую клавишу или кнопку.",
+          "details": "Небольшое меню спрашивает, для какого устройства менять. «Клавиатура» и «Геймпад» есть всегда, каждое с текущей клавишей или «(не задано)»; «Мышь» и VR появляются, только если у команды уже есть для них клавиша. После выбора открывается окно захвата клавиши. Новая клавиша заменяет прежнюю для этого устройства."
+        },
+        "row-reset": {
+          "summary": "Возвращает одной команде стандартную клавишу.",
+          "details": "Работает только для команды, которую вы меняли; у нетронутой команды кнопка приглушена. Сброс выполняется сразу, без вопроса.",
+          "undo": "Ваша клавиша для этой команды пропадает, возвращается стандартная. Если хотите вернуть свою, назначьте её снова через «Редактировать назначение»."
+        },
+        "reset-all": {
+          "summary": "Возвращает всем командам стандартные клавиши.",
+          "details": "Приложение спрашивает «Сбросить все назначения до заводских? Это нельзя отменить.» и ничего не меняет, пока вы не нажмёте «Сбросить». После этого каждая команда использует свои исходные кнопки клавиатуры, геймпада и мыши.",
+          "undo": "Все ваши клавиши пропадают разом, и вернуть их нельзя. Назначайте их заново по одной."
+        },
+        "capture-prompt": {
+          "summary": "Сообщает, что приложение ждёт вашу клавишу.",
+          "details": "Окно закрывает экран и ждёт клавишу клавиатуры (вместе с Ctrl, Shift или Alt, если вы их держите), кнопку геймпада, отклонение стика, триггера или крестовины либо кнопку мыши. Системная клавиша «Назад» новой клавишей не считается."
+        },
+        "capture-countdown": {
+          "name": "Отсчёт времени",
+          "summary": "Показывает, сколько секунд осталось на нажатие.",
+          "details": "У вас есть 30 секунд. Когда время выйдет, окно закроется само, и ничего не изменится."
+        },
+        "capture-captured": {
+          "name": "Захваченная клавиша",
+          "summary": "Показывает клавишу или кнопку, которую поймало приложение.",
+          "details": "Здесь написано «Захвачено:» и название того, что вы нажали, например Ctrl+Shift+K для клавиши клавиатуры с модификаторами. Пока вы ничего не нажали, виден прочерк. Если первое нажатие было не тем, нажмите другую клавишу - учитывается последняя."
+        },
+        "capture-conflict": {
+          "name": "Сообщение о конфликте",
+          "summary": "Предупреждает, что другая команда уже использует эту клавишу.",
+          "details": "Красная строка «Уже назначено:» и названия этих команд. Пока она видна, кнопка «Назначить» не работает, поэтому две команды не могут делить одну клавишу. Нажмите другую клавишу либо отмените и сначала освободите другую команду."
+        },
+        "capture-cancel": {
+          "summary": "Закрывает окно, ничего не меняя.",
+          "details": "Команда сохраняет прежнюю клавишу. Подходит, если вы открыли окно по ошибке или нужная клавиша уже занята."
+        },
+        "capture-commit": {
+          "summary": "Сохраняет пойманную клавишу для этой команды.",
+          "details": "Кнопка работает только после того, как клавиша поймана и ею не пользуется другая команда. Она сразу сохраняет клавишу, закрывает окно и обновляет строку."
+        }
+      }
+    },
+    "uk": {
+      "title": "Керування та клавіші",
+      "purpose": "Виберіть, яка клавіша, кнопка геймпада чи кнопка миші запускає кожну команду - відтворення, навігацію, сортування й перегляд. У кожної команди є стандартна клавіша, тож ви змінюєте лише те, що хочете, і будь-коли можете повернути все як було.",
+      "steps": [
+        "Відкрийте «Керування та клавіші» в налаштуваннях, на вкладці «Управління». Команди згруповано за призначенням, і групи спочатку згорнуті.",
+        "Знайдіть команду: введіть частину її назви в полі пошуку (2) або натисніть заголовок групи (3), щоб розгорнути її.",
+        "Натисніть «Редагувати призначення» (6) у рядку команди (5) і виберіть пристрій, для якого хочете змінити клавішу, - клавіатуру, геймпад тощо.",
+        "Відкриється вікно (9) і чекатиме. Натисніть нову клавішу чи кнопку, поки йде відлік (10), і перевірте, що захоплено (11).",
+        "Якщо червоне повідомлення каже, що клавішу зайнято (12), натисніть іншу або «Скасувати» (13). Інакше натисніть «Призначити» (14), щоб зберегти.",
+        "Щоб повернути стандартну клавішу, скористайтеся скиданням у рядку (7) для однієї команди, скиданням групи (4) для цілої групи або «Скинути все» (8) для всіх одразу. Два останні спершу запитують.",
+        "Зміни зберігаються одразу. Кнопка «Назад» (1) закриває екран."
+      ],
+      "groups": [
+        { "title": "Верхня панель і пошук", "elements": ["back", "search"] },
+        { "title": "Групи й команди", "elements": ["groups", "group-reset", "command-row", "edit-binding", "row-reset"] },
+        { "title": "Скинути все", "elements": ["reset-all"] },
+        { "title": "Вікно захоплення клавіші", "elements": ["capture-prompt", "capture-countdown", "capture-captured", "capture-conflict", "capture-cancel", "capture-commit"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Закриває екран і повертає до налаштувань.",
+          "details": "Підтверджувати нічого: кожна зміна зберігається одразу, щойно ви її робите."
+        },
+        "search": {
+          "summary": "Залишає в списку лише відповідні команди.",
+          "details": "Введіть частину назви команди, наприклад «Наступний файл», або частину назви клавіші, і список звужується просто під час введення. Група без збігів зникає. Згорнута група зі збігом показує лише заголовок, тому натисніть на неї, щоб побачити відповідні рядки. Очистьте поле, щоб повернути все."
+        },
+        "groups": {
+          "name": "Групи команд",
+          "summary": "Згортає й розгортає команди однієї групи.",
+          "details": "Команди згруповано за призначенням: «Відтворення», «Навігація», «Вигляд і масштаб», «Аудіо і субтитри», «Системний інтерфейс», «Сортування», «Швидкі операції», «Дії браузера» і - лише у збірках з підтримкою VR - «Лише VR». Групи спочатку згорнуті; натисніть заголовок, щоб відкрити групу. Застосунок пам’ятає, які групи ви залишили відкритими. У широкому вікні рядки йдуть у два стовпці."
+        },
+        "group-reset": {
+          "summary": "Повертає одній групі стандартні клавіші.",
+          "details": "Це маленька піктограма з круглою стрілкою в кінці заголовка групи. Застосунок питає, чи скинути всі призначення в цій групі до заводських, і нічого не змінює, доки ви не натиснете «Скинути». Зачіпаються лише клавіші, які ви змінили в цій групі.",
+          "undo": "Ваші клавіші в цій групі зникають, а стандартні повертаються. Щоб повернути свою клавішу, призначте її знову через «Редагувати призначення»."
+        },
+        "command-row": {
+          "name": "Рядок команди",
+          "summary": "Команда й клавіші, які її запускають.",
+          "details": "Згори - назва команди. Під нею - її поточні клавіші, кожна з позначкою пристрою: клавіатура, геймпад, миша чи VR; прочерк означає, що клавішу не задано. В однієї команди можуть бути клавіші одразу на кількох пристроях, тож кнопка геймпада й клавіша клавіатури можуть робити те саме."
+        },
+        "edit-binding": {
+          "summary": "Призначає команді нову клавішу чи кнопку.",
+          "details": "Невелике меню питає, для якого пристрою змінювати. «Клавіатура» та «Геймпад» є завжди, кожен із поточною клавішею або «(не задано)»; «Миша» й VR з’являються, лише коли в команди вже є для них клавіша. Після вибору відкривається вікно захоплення клавіші. Нова клавіша замінює попередню для цього пристрою."
+        },
+        "row-reset": {
+          "summary": "Повертає одній команді стандартну клавішу.",
+          "details": "Працює лише для команди, яку ви змінювали; у недоторканої команди кнопка приглушена. Скидання виконується одразу, без запитання.",
+          "undo": "Ваша клавіша для цієї команди зникає, повертається стандартна. Якщо хочете повернути свою, призначте її знову через «Редагувати призначення»."
+        },
+        "reset-all": {
+          "summary": "Повертає всім командам стандартні клавіші.",
+          "details": "Застосунок питає «Скинути всі призначення до заводських? Це не можна скасувати.» і нічого не змінює, доки ви не натиснете «Скинути». Після цього кожна команда використовує свої початкові кнопки клавіатури, геймпада й миші.",
+          "undo": "Усі ваші клавіші зникають разом, і повернути їх не можна. Призначайте їх знову по одній."
+        },
+        "capture-prompt": {
+          "summary": "Повідомляє, що застосунок чекає на вашу клавішу.",
+          "details": "Вікно закриває екран і чекає на клавішу клавіатури (разом із Ctrl, Shift чи Alt, якщо ви їх тримаєте), кнопку геймпада, відхилення стика, тригера чи хрестовини або кнопку миші. Системна клавіша «Назад» новою клавішею не вважається."
+        },
+        "capture-countdown": {
+          "name": "Відлік часу",
+          "summary": "Показує, скільки секунд залишилося на натискання.",
+          "details": "У вас є 30 секунд. Коли час мине, вікно закриється саме, і нічого не зміниться."
+        },
+        "capture-captured": {
+          "name": "Захоплена клавіша",
+          "summary": "Показує клавішу чи кнопку, яку впіймав застосунок.",
+          "details": "Тут написано «Захоплено:» і назву того, що ви натиснули, наприклад Ctrl+Shift+K для клавіші клавіатури з модифікаторами. Поки ви нічого не натиснули, видно прочерк. Якщо перше натискання було не те, натисніть іншу клавішу - враховується остання."
+        },
+        "capture-conflict": {
+          "name": "Повідомлення про конфлікт",
+          "summary": "Попереджає, що цю клавішу вже використовує інша команда.",
+          "details": "Червоний рядок «Вже призначено:» і назви цих команд. Поки він видимий, кнопка «Призначити» не працює, тому дві команди не можуть ділити одну клавішу. Натисніть іншу клавішу або скасуйте й спершу звільніть іншу команду."
+        },
+        "capture-cancel": {
+          "summary": "Закриває вікно, нічого не змінюючи.",
+          "details": "Команда зберігає попередню клавішу. Підходить, якщо ви відкрили вікно помилково або потрібну клавішу вже зайнято."
+        },
+        "capture-commit": {
+          "summary": "Зберігає впійману клавішу для цієї команди.",
+          "details": "Кнопка працює лише після того, як клавішу впіймано і нею не користується інша команда. Вона одразу зберігає клавішу, закриває вікно й оновлює рядок."
+        }
+      }
+    }
+  }
+}

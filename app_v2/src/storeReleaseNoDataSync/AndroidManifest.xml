@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S4263: Play store release manifest overlay.
+    Strips FOREGROUND_SERVICE_DATA_SYNC and the dataSync foreground service type from
+    SftpServerService and SystemForegroundService for store release builds.
+    Never mounted for noLegal (sideload). For standard it is mounted unless gradle.properties sets
+    fms.dataSyncFgsStandard=on (S4271), which is done only after the Play Console dataSync declaration
+    and its video are saved (store_assets/PLAY_FGS_DECLARATIONS.md). The condition lives in
+    app_v2/build.gradle.kts beside the other addStaticManifestFile calls.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Remove dataSync permission for store release builds -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"
+        tools:node="remove" />
+
+    <application>
+        <!-- Remove dataSync foregroundServiceType from SFTP server in store release builds -->
+        <service
+            android:name=".service.SftpServerService"
+            tools:remove="android:foregroundServiceType" />
+
+        <!-- Replace dataSync|mediaPlayback with mediaPlayback alone for WorkManager in store release builds -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="mediaPlayback"
+            tools:replace="android:foregroundServiceType" />
+    </application>
+
+</manifest>

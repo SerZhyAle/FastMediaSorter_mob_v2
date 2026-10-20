@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Settings: Player</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Settings: Player</span>
+</nav>
+<header class="hero">
+<h1>Settings: Player</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">Player holds the settings for viewing and playing your files: default order, slideshow timing, what you may do to a file while viewing it, player controls, touch zones and background audio.</p>
+<figure class="shot">
+<img class="on-light" src="../img/settings-playback-en-light.webp" alt="Settings: Player">
+<img class="on-dark" src="../img/settings-playback-en-dark.webp" alt="Settings: Player">
+</figure>
+<h2>In this order</h2>
+<p class="order-note">There is no fixed order here - every option works on its own. They are grouped below by the same section headers you see on the tab.</p>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Sorting, slideshow and playback order</h3>
+<details class="el" id="default-sort">
+<summary><span class="mk">1</span><span><span class="name">Default sort mode</span><span class="one">Sets the default order of files.</span></span></summary>
+<div class="full">
+<p>Choose manual order, or sort by name, date, size or type, each ascending or descending.</p>
+</div>
+</details>
+<details class="el" id="slideshow-interval">
+<summary><span class="mk">2</span><span><span class="name">Slideshow (s)</span><span class="one">Sets how long each image stays on screen in a slideshow.</span></span></summary>
+<div class="full">
+<p>From 1 to 3600 seconds; the default is 10. Videos play to the end or follow this timer, depending on the next option.</p>
+</div>
+</details>
+<details class="el" id="play-to-end">
+<summary><span class="mk">3</span><span><span class="name">Play video/audio in slideshow to end</span><span class="one">Lets video and audio in a slideshow finish before moving on.</span></span></summary>
+<div class="full">
+<p>Without it, the slideshow interval decides when to move to the next file.</p>
+</div>
+</details>
+<h3>Deletion and renaming in player</h3>
+<details class="el" id="allow-rename">
+<summary><span class="mk">4</span><span><span class="name">Allow rename</span><span class="one">Allows renaming a file from inside the player.</span></span></summary>
+<div class="full">
+<p>Handy while you sort: rename the current file without going back to the file browser.</p>
+</div>
+</details>
+<details class="el" id="allow-delete">
+<summary><span class="mk">5</span><span><span class="name">Allow delete</span><span class="one">Allows deleting a file from inside the player.</span></span></summary>
+<div class="full">
+<p>Handy while you sort: remove the current file without going back to the file browser.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>On local resources a deleted file waits in a hidden .trash folder, so you can bring it back with Undo before the resource is closed. On some network or cloud resources a deletion is permanent.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="confirm-delete">
+<summary><span class="mk">6</span><span><span class="name">Confirm delete</span><span class="one">Asks before a file is deleted in the player.</span></span></summary>
+<div class="full">
+<p>Turn it off if you prefer deleting with one tap.</p>
+</div>
+</details>
+<h3>Player interface and commands</h3>
+<details class="el" id="hide-system-ui">
+<summary><span class="mk">7</span><span><span class="name">Hide OS UI in fullscreen</span><span class="one">Hides the status bar and navigation in fullscreen.</span></span></summary>
+<div class="full">
+<p>The picture gets the whole screen.</p>
+</div>
+</details>
+<details class="el" id="follow-rotation">
+<summary><span class="mk">8</span><span><span class="name">Rotate player screen with OS auto-rotate</span><span class="one">Lets the player follow the system auto-rotate.</span></span></summary>
+<div class="full">
+<p>It works independently of the app-wide setting, so the rest of the app can stay as it is.</p>
+</div>
+</details>
+<details class="el" id="show-command-panel">
+<summary><span class="mk">9</span><span><span class="name">Show command panel by default</span><span class="one">Opens the command panel automatically when the player starts.</span></span></summary>
+<div class="full">
+<p>The panel gives quick access to copy, move, delete and other file actions.</p>
+</div>
+</details>
+<details class="el" id="panel-auto-hide">
+<summary><span class="mk">10</span><span><span class="name">Player panel auto-hide duration (s)</span><span class="one">Sets how many seconds the player panel stays before it hides.</span></span></summary>
+<div class="full">
+<p>A shorter time clears the screen sooner; a longer one keeps the buttons within reach.</p>
+</div>
+</details>
+<details class="el" id="black-screen">
+<summary><span class="mk">11</span><span><span class="name">Show &quot;Black Screen&quot; button</span><span class="one">Adds a button that blanks the screen while playback continues.</span></span></summary>
+<div class="full">
+<p>It sits in the player toolbar, so the screen goes dark while audio or video keeps playing.</p>
+</div>
+</details>
+<details class="el" id="pip">
+<summary><span class="mk">12</span><span><span class="name">Enable Picture-in-Picture</span><span class="one">Adds a Picture-in-Picture button to the player.</span></span></summary>
+<div class="full">
+<p>The player also enters Picture-in-Picture on its own when you press Home (Android 12 and newer).</p>
+</div>
+</details>
+<details class="el" id="big-buttons">
+<summary><span class="mk">13</span><span><span class="name">Big Buttons Mode</span><span class="one">Makes player buttons larger and full-width.</span></span></summary>
+<div class="full">
+<p>It suits car head units. The top toolbar shows 5 to 9 buttons depending on the width, and the rest move to the three-dots menu. In landscape, the tall bottom panel can reduce the playback area.</p>
+</div>
+</details>
+<details class="el" id="small-controls">
+<summary><span class="mk">14</span><span><span class="name">Compact player buttons</span><span class="one">Shrinks the bottom control buttons in the player.</span></span></summary>
+<div class="full">
+<p>Useful on smaller screens or when you want a less intrusive interface.</p>
+</div>
+</details>
+<h3>Touch zones and on-screen hints</h3>
+<details class="el" id="disable-nine-zone">
+<summary><span class="mk">15</span><span><span class="name">Disable 9-zone tracking</span><span class="one">Switches the player from 9 touch zones to 3.</span></span></summary>
+<div class="full">
+<p>With the 9-zone grid off, the player uses three zones: previous, zoom and next. Tap the left edge to open the command panel for file actions.</p>
+</div>
+</details>
+<details class="el" id="show-hint">
+<summary><span class="mk">16</span><span><span class="name">Show touch zones hint on first run</span><span class="one">Shows the touch zones hint the first time you open the player.</span></span></summary>
+<div class="full">
+<p>The overlay explains the nine zones: back, copy, rename, previous, move, next, command panel, delete and slideshow.</p>
+</div>
+</details>
+<details class="el" id="always-show-zones">
+<summary><span class="mk">17</span><span><span class="name">Always show touch zones overlay</span><span class="one">Keeps a semi-transparent grid of touch zones over the media.</span></span></summary>
+<div class="full">
+<p>It shows in fullscreen mode and helps while you learn which zone does what.</p>
+</div>
+</details>
+<details class="el" id="show-hint-now">
+<summary><span class="mk">18</span><span><span class="name">Show Hint Next Time</span><span class="one">Shows the touch zones hint again the next time you open the player.</span></span></summary>
+<div class="full">
+<p>Use it to see the scheme once more.</p>
+</div>
+</details>
+<h3>Background audio playback</h3>
+<details class="el" id="background-audio">
+<summary><span class="mk">19</span><span><span class="name">Background Playback</span><span class="one">Keeps audio playing when the app is minimized.</span></span></summary>
+<div class="full">
+<p>Music continues in the background. If notifications are blocked, a button appears here to manage that permission.</p>
+</div>
+</details>
+<details class="el" id="exit-behavior">
+<summary><span class="mk">20</span><span><span class="name">When leaving player or streams</span><span class="one">Chooses what happens to background audio when you leave the player or streams.</span></span></summary>
+<div class="full">
+<p>Asking every time is the default. You can also always stop the audio or always keep it playing. The choice appears once background playback is on.</p>
+</div>
+</details>
+<details class="el" id="now-playing-panel">
+<summary><span class="mk">21</span><span><span class="name">Show now-playing panel</span><span class="one">Shows a mini player bar while you browse images and other files.</span></span></summary>
+<div class="full">
+<p>The bar lets you control the track that is playing and leads back to the full audio player.</p>
+</div>
+</details>
+<h3>Reset</h3>
+<details class="el" id="reset-playback">
+<summary><span class="mk">22</span><span><span class="name">Reset Player settings</span><span class="one">Returns only this tab to its defaults.</span></span></summary>
+<div class="full">
+<p>Settings on the other tabs keep their values. The app asks you to confirm first.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-general.html"><b>Settings: General</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-media.html"><b>Settings: Media</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-operations.html"><b>Settings: Management</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/playback-and-sorting-preferences.html"><b>Playback, Power and Everyday Behavior - Screen, Rotation, Default Apps and the Launcher</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/settings-overview-and-search.html"><b>Settings - Finding Your Way Around and Searching It</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/video-playback-controls.html"><b>Watching Videos - Controls, Gestures and Saving Frames</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/pip-and-background-play.html"><b>Picture-in-Picture and Background Play</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

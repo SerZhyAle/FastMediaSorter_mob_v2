@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
 import com.sza.fastmediasorter.domain.model.DisplayMode
+import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
@@ -118,6 +119,108 @@ class BackupMapperTest {
         assertEquals(5L, restored.sourceResourceId)
         assertEquals(6L, restored.targetResourceId)
         assertEquals(ScheduledOpType.COPY, restored.operationType)
+    }
+
+    @Test
+    fun `S4238 exchange resource round-trips with binding pin and every access path`() {
+        val resource = createMediaResource(path = "sftp://10.0.0.5:2222/Photos", type = ResourceType.SFTP).copy(
+            hostKeyFingerprint = "SHA256:abc",
+            altAccessPaths = listOf(HostPort("203.0.113.9", 2222), HostPort("tunnel.example", 8443)),
+            exchangeAccount = "exchange.example.org:8443/alice",
+            exchangeResourceId = "res-1"
+        )
+
+        val restored = BackupMapper.toMediaResource(BackupMapper.toBackupResource(resource))
+
+        assertEquals("SHA256:abc", restored.hostKeyFingerprint)
+        assertEquals(resource.altAccessPaths, restored.altAccessPaths)
+        assertEquals("exchange.example.org:8443/alice", restored.exchangeAccount)
+        assertEquals("res-1", restored.exchangeResourceId)
+    }
+
+    @Test
+    fun `S4238 payload written before the exchange fields restores with none set`() {
+        val restored = BackupMapper.toMediaResource(BackupResource(name = "Old", path = "sftp://h/p", type = "SFTP"))
+
+        assertNull(restored.hostKeyFingerprint)
+        assertEquals(emptyList<HostPort>(), restored.altAccessPaths)
+        assertNull(restored.exchangeAccount)
+        assertNull(restored.exchangeResourceId)
+    }
+
+    @Test
+    fun `S4238 resource without extra paths is written as null not as an empty list`() {
+        val backup = BackupMapper.toBackupResource(createMediaResource())
+
+        assertNull(backup.altAccessPaths)
+    }
+
+    @Test
+    fun `S4238 scheduled op carries the exchange identity of both sides`() {
+        val src = createMediaResource(id = 1L, path = "sftp://a/x", type = ResourceType.SFTP)
+            .copy(exchangeAccount = "acc", exchangeResourceId = "src-id")
+        val dst = createMediaResource(id = 2L, path = "/dst", type = ResourceType.LOCAL)
+        val op = createScheduledOperation(sourceResourceId = 1L, targetResourceId = 2L)
+
+        val backup = BackupMapper.toBackupScheduledOperation(op, mapOf(1L to src, 2L to dst))!!
+
+        assertEquals("acc", backup.sourceExchangeAccount)
+        assertEquals("src-id", backup.sourceExchangeResourceId)
+        assertNull(backup.targetExchangeAccount)
+        assertNull(backup.targetExchangeResourceId)
+    }
+
+    @Test
+    fun `S4238 scheduled op finds an exchange resource whose path changed`() {
+        val src = createMediaResource(id = 5L, path = "sftp://new-host:2222/Photos", type = ResourceType.SFTP)
+            .copy(exchangeAccount = "acc", exchangeResourceId = "src-id")
+        val dst = createMediaResource(id = 6L, path = "/dst", type = ResourceType.LOCAL)
+        val backup = BackupScheduledOperation(
+            sourceResourcePath = "sftp://old-host:2222/Photos",
+            sourceResourceType = "SFTP",
+            sourceExchangeAccount = "acc",
+            sourceExchangeResourceId = "src-id",
+            operationType = "COPY",
+            targetResourcePath = "/dst",
+            targetResourceType = "LOCAL",
+        )
+
+        val restored = BackupMapper.toScheduledOperation(backup, mapOf("a" to src, "b" to dst))!!
+
+        assertEquals(5L, restored.sourceResourceId)
+        assertEquals(6L, restored.targetResourceId)
+    }
+
+    @Test
+    fun `S4238 exchange identity wins over a path that now names another resource`() {
+        val other = createMediaResource(id = 7L, path = "sftp://h/Photos", type = ResourceType.SFTP)
+        val bound = createMediaResource(id = 8L, path = "sftp://moved/Photos", type = ResourceType.SFTP)
+            .copy(exchangeAccount = "acc", exchangeResourceId = "src-id")
+        val backup = BackupScheduledOperation(
+            sourceResourcePath = "sftp://h/Photos",
+            sourceResourceType = "SFTP",
+            sourceExchangeAccount = "acc",
+            sourceExchangeResourceId = "src-id",
+            operationType = "DELETE",
+        )
+
+        val restored = BackupMapper.toScheduledOperation(backup, mapOf("a" to other, "b" to bound))!!
+
+        assertEquals(8L, restored.sourceResourceId)
+    }
+
+    @Test
+    fun `S4238 scheduled op without exchange identity still resolves by path and type`() {
+        val src = createMediaResource(id = 5L, path = "/src", type = ResourceType.LOCAL)
+        val backup = BackupScheduledOperation(
+            sourceResourcePath = "/src",
+            sourceResourceType = "LOCAL",
+            operationType = "DELETE",
+        )
+
+        val restored = BackupMapper.toScheduledOperation(backup, mapOf("a" to src))!!
+
+        assertEquals(5L, restored.sourceResourceId)
     }
 
     @Test

@@ -116,6 +116,11 @@ $countInText = {
 }
 
 if ($Gate -and $ChangedFiles -and (@(Expand-ChangedFiles -ChangedFiles $ChangedFiles).Count -gt 0)) {
+    if (@(Expand-ChangedFiles -ChangedFiles $ChangedFiles | Where-Object { $_ -match '\.kt$' }).Count -eq 0) {
+        Write-EmptySetPass -GateName 'assert-diagnostics-redaction'
+        exit 0
+    }
+    Assert-GitHeadResolvable -GateName 'assert-diagnostics-redaction' -RepoRoot $repoRoot
     $delta = Measure-ChangedFileGrowth -ChangedFiles $ChangedFiles -RepoRoot $repoRoot -Extensions @('.kt') -CountInText $countInText
     Write-Host ("diagnostics-redaction (changed set): new occurrence(s) {0}" -f $delta.Growth)
     if ($delta.Growth -gt 0) {
@@ -123,8 +128,10 @@ if ($Gate -and $ChangedFiles -and (@(Expand-ChangedFiles -ChangedFiles $ChangedF
             Write-Host ("  {0}: +{1}" -f $f.Path, $f.New)
         }
         Write-Host 'FAIL: a diagnostics or log-report field in your changed files carries a path, an account or a credential unmasked. Put the value through SecretMasker before it reaches the payload and name the field for it (maskedPath), or drop the field from the export.'
+        Write-Host 'assert-diagnostics-redaction: FAIL (a changed file carries an unmasked diagnostics field)'
         exit 1
     }
+    Write-Host 'assert-diagnostics-redaction: PASS (no new unmasked field in the changed files)'
     exit 0
 }
 
@@ -160,6 +167,7 @@ if ($PSCmdlet.ParameterSetName -eq 'Update') {
         if (-not (Test-Path -LiteralPath $baselineFile)) {
             Set-Content -LiteralPath $baselineFile -Value "$current"
             Write-Host "diagnostics-redaction baseline SEEDED: $current"
+            Write-Host "assert-diagnostics-redaction: PASS (baseline seeded at $current)"
             exit 0
         }
         $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
@@ -172,10 +180,12 @@ if ($PSCmdlet.ParameterSetName -eq 'Update') {
         }
         else {
             Write-Error "Refusing to RAISE baseline ($baseline -> $current). Mask the value before it reaches the payload."
+            Write-Host "assert-diagnostics-redaction: FAIL (refusing to raise the baseline $baseline -> $current)"
             exit 1
         }
     }
     finally { Exit-CodeLockScope -Scope $scope }
+    Write-Host "assert-diagnostics-redaction: PASS (baseline update ran; actual $current)"
     exit 0
 }
 
@@ -183,6 +193,7 @@ if ($PSCmdlet.ParameterSetName -eq 'Update') {
 # would otherwise show the same clean line as a surface that was actually judged.
 if (-not (Test-Path -LiteralPath $baselineFile)) {
     Write-Host "diagnostics-redaction: NO BASELINE yet | surfaces scanned $scannedFiles | actual $current - run -UpdateBaseline to seed."
+    Write-Host "assert-diagnostics-redaction: PASS (no baseline yet; actual $current)"
     exit 0
 }
 $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
@@ -190,9 +201,11 @@ $delta = $current - $baseline
 Write-Host ("unmasked path/credential fields in diagnostic exports: baseline {0} | actual {1} | delta {2:+#;-#;0} | surfaces scanned {3}" -f $baseline, $current, $delta, $scannedFiles)
 if ($Gate -and $current -gt $baseline) {
     Write-Host 'FAIL: a diagnostics or log-report field carries a path, an account or a credential unmasked. Put the value through SecretMasker before it reaches the payload and name the field for it (maskedPath), or drop the field from the export.'
+    Write-Host "assert-diagnostics-redaction: FAIL (unmasked fields grew from the baseline $baseline to $current)"
     exit 1
 }
 if ($current -lt $baseline) {
     Write-Host 'Note: count is below baseline - run -UpdateBaseline to ratchet the cap down.'
 }
+Write-Host "assert-diagnostics-redaction: PASS (baseline $baseline, actual $current)"
 exit 0

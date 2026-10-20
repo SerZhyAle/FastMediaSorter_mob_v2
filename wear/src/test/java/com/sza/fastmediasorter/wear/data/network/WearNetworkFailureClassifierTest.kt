@@ -66,6 +66,18 @@ class WearNetworkFailureClassifierTest {
         assertEquals(WearNetworkFailure.CONNECTION_REFUSED, classifier.classify(wrapped))
     }
 
+    // SHARE-SESSION 1.3: a server at capacity closes before its banner, and JSch 0.2.26 Session.connect reports
+    // that EOF as this exact message; it is an undetermined transport outcome, never a rejected login.
+    @Test
+    fun `a pre-banner close is OTHER, not an auth rejection`() {
+        val direct = JSchException("connection is closed by foreign host")
+        val wrapped = IOException("sftp connect failed", direct)
+
+        listOf(direct, wrapped).forEach { error ->
+            assertEquals(WearNetworkFailure.OTHER, classifier.classify(error))
+        }
+    }
+
     @Test
     fun `an exception matching nothing falls back to OTHER`() {
         assertEquals(WearNetworkFailure.OTHER, classifier.classify(IOException("disk went away")))

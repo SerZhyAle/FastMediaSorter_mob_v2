@@ -94,9 +94,17 @@
     Exit codes (CLAUDE.md Rule 7):
       0  registry and wiring agree (or findings exist but -Gate was not passed).
       1  at least one finding, under -Gate with a declared input in the changed set.
-      2  cannot verify - the registry is missing or a line is not valid JSON, or the spec-catalog
+      2  cannot verify - .claude/ is absent from a checkout whose root was not named (unless
+         -AllowAbsentInput), the registry is missing or a line is not valid JSON, or the spec-catalog
          journal is missing or unreadable.
       3  advisory: findings exist but no declared input was in the changed set (S2824).
+
+.PARAMETER AllowAbsentInput
+    The caller declaring a checkout without the gitignored root acceptable for this run.
+    assert-fast-gates.ps1 passes it, because the GitHub Static Gates job runs on a clone that does
+    not carry PLAN/ or .claude/. With it the absence ends `<gate>: NOT APPLICABLE (..)` with exit 0,
+    which every aggregator counts as skipped, never as passed (CHECK-VERDICT 0.12 item A.1); without
+    it the same absence is exit 2 (S4380, lib/absent-input.ps1).
 #>
 [CmdletBinding()]
 param(
@@ -107,7 +115,8 @@ param(
     [string]$Registry,
     [string]$SourceMap,
     [string]$Journal,
-    [switch]$Help
+    [switch]$Help,
+    [switch]$AllowAbsentInput
 )
 
 $ErrorActionPreference = 'Stop'
@@ -137,7 +146,7 @@ if (Test-Path -LiteralPath $fixedInputLib) { . $fixedInputLib }
 if (-not $PSBoundParameters.ContainsKey('RepoRoot') -and
     -not (Test-Path -LiteralPath (Join-Path $RepoRoot '.claude'))) {
     Exit-InputAbsent -Gate 'assert-gate-placement' -Path '.claude/' `
-        -Reason 'gitignored, and it carries two of the runners whose wiring this gate reads'
+        -Reason 'gitignored, and it carries two of the runners whose wiring this gate reads' -Allow:$AllowAbsentInput
 }
 
 $registryPath = if ($Registry) { $Registry } else { Get-GatePlacementRegistryPath -RepoRoot $RepoRoot }
@@ -147,6 +156,7 @@ try {
 }
 catch {
     Write-Error "assert-gate-placement: COULD NOT VERIFY - $($_.Exception.Message)" -ErrorAction Continue
+    Write-Host 'assert-gate-placement: COULD NOT VERIFY (the registry could not be read)'
     exit 2
 }
 
@@ -157,6 +167,7 @@ $journalPath = if ($Journal) { $Journal } else { Join-Path $RepoRoot 'PLAN/spec-
 $statusMap = Get-GatePlacementJournalStatuses -Path $journalPath
 if (-not $statusMap) {
     Write-Error "assert-gate-placement: COULD NOT VERIFY - the spec-catalog journal is missing or unreadable: $journalPath" -ErrorAction Continue
+    Write-Host 'assert-gate-placement: COULD NOT VERIFY (the spec-catalog journal is missing or unreadable)'
     exit 2
 }
 
@@ -386,7 +397,7 @@ if (-not $Quiet) {
 }
 
 if ($findings.Count -eq 0) {
-    if (-not $Quiet) { Write-Host 'assert-gate-placement: PASS (registry matches the wiring).' -ForegroundColor Green }
+    Write-Host 'assert-gate-placement: PASS (registry matches the wiring).' -ForegroundColor Green
     exit 0
 }
 
@@ -411,7 +422,11 @@ if (Get-Command Test-FixedInputsChargeable -ErrorAction SilentlyContinue) {
 
 if (-not $chargeable) {
     Write-NotChargedVerdict -GateName 'assert-gate-placement' -Findings $findings
-    if (-not $Gate) { exit 0 }
+    if (-not $Gate) {
+        Write-Host "assert-gate-placement: PASS (report mode, -Gate not set; $($findings.Count) divergence(s) not charged to this run)"
+        exit 0
+    }
+    Write-Host "assert-gate-placement: PASS WITH ADVISORIES ($($findings.Count) divergence(s) not charged to this run)"
     exit 3
 }
 
@@ -422,6 +437,7 @@ Write-Host ''
 Write-Host '  The registry is scripts/quality/gate-placement.jsonl - one JSON object per line, fields:'
 Write-Host '  gate, kind, scope, decided, ticket, basis (judged|seeded), reason.'
 
-if (-not $Gate) { exit 0 }
+if (-not $Gate) { Write-Host "assert-gate-placement: PASS (report mode, -Gate not set; $($findings.Count) finding(s) above)"; exit 0 }
 
+Write-Host "assert-gate-placement: FAIL ($($findings.Count) finding(s))"
 exit 1

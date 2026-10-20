@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.30 12:25</sub>
+<sub class="doc-stamp">26.10.18 15:45</sub>
 
 # Watch face - Google Play source and owner runbook
 
@@ -43,6 +43,8 @@ The Play publishing API cannot opt an app into a form factor or send an app for 
 
 ## How the graphics were made
 
-- `icon.png` - rendered from `watchface/src/main/res/drawable/ic_watch_face_launcher.xml` at 512x512.
+- `icon.png`, the launcher icon `watchface/src/main/res/mipmap-*/ic_watch_face_launcher.png` and the picker preview `watchface/src/main/res/drawable/preview.png` all come from one screenshot of the real face. Play rule WO-G4 (single-face apps): the icon must accurately represent the face, carry nothing the face does not draw, and be a centred round face touching the icon's edges. A drawn icon - the brand waves, later with the time added - was rejected on 2026-10-18 for not representing the face, because the face draws thin translucent lanes and the drawing showed thick bright ones.
+- Recipe: debug face (`.\a.ps1 wfd`) on the `Wear_OS_XL_Round` emulator (480x480, the face's own canvas), selected with the `DEBUG_SURFACE set-watchface` broadcast, nothing bound in the editor, clock set to 10:08 (`cmd alarm set-time`, the face's `PREVIEW_TIME`), notifications cleared so the system's unread dot is gone. `preview.png` is the capture itself; the icons are its inscribed circle with transparent corners, resized at 512 px for the store and 48/72/96/144/192 px for `mipmap-mdpi`..`xxxhdpi`. The top bar in the capture is the face's own watch battery bar.
+- A change to the face's look means re-capturing all of them in one go, the three locale copies of `icon.png` included.
 - `wearScreenshots/` - captured on the reviewed `Wear_OS_Large_Round` emulator (454x454, API 37): `01` with three buttons bound in the face editor, `02` as a store-only install shows the face, `03` always-on.
-- `featureGraphic.png` - drawn by `compose()` of `scripts/release/compose-feature-graphic.py` with the face icon, screenshot `01` as the mockup and the face headline per locale.
+- `featureGraphic.png` - drawn by `compose()` of `scripts/release/compose-feature-graphic.py` with the face icon, screenshot `01` as the mockup and the face headline per locale. On 2026-10-18 only its icon tile was replaced by the captured round face, over the composer's own `draw_background()`, so the headlines stayed as composed.

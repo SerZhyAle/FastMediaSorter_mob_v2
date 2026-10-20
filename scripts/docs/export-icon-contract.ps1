@@ -40,9 +40,12 @@
     Exit codes:
       0 - every artifact was written and the vocabulary is consistent.
       1 - the vocabulary is inconsistent (duplicate id, dangling reference, unknown enum value) or
-          a drawable it names is missing or cannot be converted; nothing is pruned.
-      2 - could not verify: no catalog root, no iconography/vocabulary.jsonl inside it, or no repo
-          venv to measure the style report with (scripts/docs/lib/requirements.txt).
+          a drawable it names is missing or cannot be converted; or the carrier
+          iconography/vocabulary.version differs from the ICON-SET version in iconography/README.md
+          (both values are named); nothing is pruned.
+      2 - could not verify: no catalog root, no iconography/vocabulary.jsonl inside it, no ICON-SET
+          contract header with a version in iconography/README.md, or no repo venv to measure the
+          style report with (scripts/docs/lib/requirements.txt).
 #>
 param(
     [string] $CatalogRoot = $env:FMS_CONTRACTS_ROOT,
@@ -67,6 +70,28 @@ $domain = Join-Path $CatalogRoot 'iconography'
 $vocabPath = Join-Path $domain 'vocabulary.jsonl'
 if (-not (Test-Path -LiteralPath $vocabPath)) {
     Stop-Verdict 2 'COULD NOT VERIFY' @("vocabulary not found: $vocabPath")
+}
+
+# ICON-SET section 5 bumps the carrier and the document version together; the exporter never writes the
+# carrier, so a regeneration after an amendment silently left vocabulary.version behind (S4353: 0.33 under 0.34).
+$readmePath = Join-Path $domain 'README.md'
+$docVersion = $null
+if (Test-Path -LiteralPath $readmePath) {
+    $readme = [System.IO.File]::ReadAllText($readmePath, $utf8)
+    $block = [regex]::Match($readme, '(?ms)^```contract\s*\r?\nid:\s*ICON-SET\s*\r?\n(.*?)^```')
+    if ($block.Success) {
+        $vm = [regex]::Match($block.Groups[1].Value, '(?m)^version:\s*(\S+)')
+        if ($vm.Success) { $docVersion = $vm.Groups[1].Value }
+    }
+}
+if (-not $docVersion) {
+    Stop-Verdict 2 'COULD NOT VERIFY' @("no ICON-SET contract header with a version in $readmePath")
+}
+$carrierPath = Join-Path $domain 'vocabulary.version'
+$carrier = if (Test-Path -LiteralPath $carrierPath) { [System.IO.File]::ReadAllText($carrierPath, $utf8).Trim() } else { '' }
+if ($carrier -ne "ICON-SET $docVersion") {
+    $shown = if ($carrier) { "'$carrier'" } else { 'missing' }
+    Stop-Verdict 1 'FAIL' @("vocabulary.version is $shown but iconography/README.md declares ICON-SET $docVersion - bump the carrier with the document (ICON-SET section 5)")
 }
 
 # ------------------------------------------------------------------ colour resources and VectorDrawable -> SVG

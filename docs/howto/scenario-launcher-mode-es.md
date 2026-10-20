@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Usa la App como tu Pantalla de Inicio - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-es.html
 ---
-<sub class="doc-stamp">26.09.25 02:15</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="es" dir="ltr" markdown="1">
 
 # 🖥️ Usa la App como tu Pantalla de Inicio
 
 > **Nivel:** Principiante &bull; **Edición:** Standard / noLegal
-
-{% include lang-switcher.html doc="scenario-launcher-mode" dir="/docs/howto/" current="es" %}
 
 FastMediaSorter puede reemplazar la pantalla de inicio de tu dispositivo con su propio escritorio - tus carpetas, un reloj, el clima, tus apps y una barra de tareas en un borde. Si alguna vez usaste un escritorio de Windows, te resultará familiar: las cosas permanecen donde las pones, y un botón Inicio abre el menú. Esto se llama **modo launcher**.
 

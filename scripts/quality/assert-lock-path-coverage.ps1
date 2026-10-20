@@ -52,17 +52,20 @@ $profileFile = if ($ProfilePath) { $ProfilePath } else { Join-Path $repoRoot '.s
 
 if (-not (Test-Path -LiteralPath $profileFile -PathType Leaf)) {
     Write-Error "assert-lock-path-coverage: profile not found at $profileFile" -ErrorAction Continue
+    Write-Host 'assert-lock-path-coverage: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 try {
     $profileData = Get-Content -LiteralPath $profileFile -Raw | ConvertFrom-Json
 } catch {
     Write-Error "assert-lock-path-coverage: profile is not valid JSON - $($_.Exception.Message)" -ErrorAction Continue
+    Write-Host 'assert-lock-path-coverage: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 $patterns = @($profileData.locks.pathRules | ForEach-Object { [string]$_.pattern } | Where-Object { $_ })
 if ($patterns.Count -eq 0) {
     Write-Error "assert-lock-path-coverage: $profileFile declares no locks.pathRules" -ErrorAction Continue
+    Write-Host 'assert-lock-path-coverage: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -73,6 +76,7 @@ if ($null -ne $Entries) {
     $tracked = & git -C $repoRoot -c core.quotepath=off ls-files
     if ($LASTEXITCODE -ne 0) {
         Write-Error "assert-lock-path-coverage: git ls-files failed with exit $LASTEXITCODE" -ErrorAction Continue
+        Write-Host 'assert-lock-path-coverage: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     # A path deleted in the work tree but not yet staged is still in the index; the tree is the

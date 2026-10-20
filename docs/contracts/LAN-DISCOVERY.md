@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 12:24</sub>
+<sub class="doc-stamp">26.10.18 17:45</sub>
 
 # Pointer - `LAN-DISCOVERY`
 
 | | |
 | --- | --- |
 | **Id** | `LAN-DISCOVERY` |
-| **Version** | 0.10, draft. Owner: shared (candidate owner FMS Companion) |
+| **Version** | 0.11, draft. Owner: shared (candidate owner FMS Companion) |
 | **Home** | `lan-discovery/README.md` in the shared contracts catalog |
 | **Role here** | consumer (discovers companion SFTP shares over mDNS/DNS-SD) |
 

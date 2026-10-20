@@ -57,6 +57,54 @@
             android:text="@string/streams_filter_media_own" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
+    <!-- Curated collection: a full-width row above the facets, because a collection is the broadest
+         selection and the list it opens can be long - it lives in a picker, never in a scrolled strip. -->
+    <LinearLayout
+        android:id="@+id/rowCollection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_normal"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:minHeight="@dimen/list_item_height"
+        android:orientation="vertical"
+        android:paddingTop="@dimen/padding_small"
+        android:paddingBottom="@dimen/padding_small">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/streams_filter_collection"
+                android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Body"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_chevron_right"
+                app:tint="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvCollectionValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Body"
+            android:textColor="?attr/colorPrimary" />
+    </LinearLayout>
+
     <!-- Category + language as two tappable columns; the chevron and accent-coloured value
          signal that each opens a picker (the label alone read as static text before). -->
     <LinearLayout

@@ -91,20 +91,27 @@ layout: null
         {
           "@type": "HowToStep",
           "position": 5,
+          "name": "Folders from the exchange server",
+          "text": "A folder you connected on the phone through an exchange server can be ticked in Resources for the watch like any other. The phone hands the watch the address and the pass; the files themselves come straight over the watch\u0027s own Wi-Fi or LTE, never through Bluetooth. If the watch is online only through the phone\u0027s Bluetooth, the folder says so: \u0022This folder opens only over the watch\u0027s own Wi-Fi or LTE.\u0022 At home the watch opens the folder by its address. Away from home it goes through the exchange server - for that the watch must be connected to the server too, which you do once on the phone. Without that the folder asks you to connect the watch on the phone. A protected folder opens on the watch without typing anything: the PIN you entered on the phone travels with it, and the watch never shows it. A folder set to view-only on the phone offers no delete on the watch. Untick a folder, and it leaves the watch together with its PIN. No phone nearby? On the watch, open Settings, Exchange servers, tap a server and choose Account folders. The watch lists the folders of that account by itself; tap one to add it to Resources. A protected one is added locked and opens once the phone hands over its PIN.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html#exchange-folders"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 6,
           "name": "Set up the watch from the phone",
           "text": "Below Watch operations, the window holds the watch\u0027s own settings, in the same four groups and the same order as the watch\u0027s Settings screen. Each switch row has the switch on the left, a title and a line that says what it changes on the watch; a ? button next to some of them explains more. - Media types - Audio, Video, Images, Documents and Show streams. Turn a type off, and the watch neither shows nor syncs files of that kind. Folded, the group lists the types that are on. - Slideshow - whether photos move on by themselves, and the Slideshow interval (seconds): 3, 5, 10, 15, 30, 60 or 120, or Enter custom value. Folded, it reads, for example, \u0022On, every 5 s\u0022. - Screen - Home and Resources view and Files view (List, Grid 2 or Grid 3), Watch background, Watch color scheme and Keep watch screen on. - Other - Album art (a cover picture for every synced song, which costs some watch storage), Disable animations, Watch power saving, Keep playing in background and Player panel auto-hide duration (s). Watch power saving offers Off, Always on and thresholds of 10, 15, 20 and 30 percent in one line you scroll sideways. The watch decides by its own battery, not the phone\u0027s.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html#watch-settings-groups"
         },
         {
           "@type": "HowToStep",
-          "position": 6,
+          "position": 7,
           "name": "Give the watch a color scheme and a background",
           "text": "In Screen, Watch color scheme offers eight schemes: Dark, Light, Dark green, Dark blue, Dark red, Light green, Light blue and Light red. They are the same families the phone app uses, so you can dress both devices alike. Dark is the starting scheme. Watch background sets what is behind the lists on the watch: Branded animation (the moving waves), Branded still, Your image or Empty (black screen). For Your image, tap Choose image, pick a photo, and the phone sends it over - \u0022Sending the image to the watch..\u0022, then \u0022Image is on the watch.\u0022 A preview shows how it will look. The watch\u0027s settings screens always stay on a plain background, and a light scheme lightens the background too, so text stays readable. You can pick both on the watch as well, in its Settings, Screen. A change on either device reaches the other.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html#colors-and-background"
         },
         {
           "@type": "HowToStep",
-          "position": 7,
+          "position": 8,
           "name": "Send the settings and check the sync",
           "text": "Tap Sync settings in the title bar. The phone sends the settings and waits up to fifteen seconds for the watch to report back what it applied. The line under the button - Last synced: with the date and time - moves only when the watch really answers, so a tap that reached nothing leaves the old time standing. If the watch stays silent, a message says: \u0022The watch did not confirm the settings. It may be off or out of range.\u0022 After the first sync, Watch operations also names the watch app that answered, such as Watch app: 2.62.0920.1415. When the watch app and the phone app come from different days, the line reads Watch app: followed by both versions, the watch\u0027s and the phone\u0027s, in a warning color - a hint to update the older one. A watch app too old to report its version shows Watch app: version unknown. On the watch, Settings shows the same sync line. When it has never synced, or the last sync is several days old, the line turns into the warning color and you can tap it to sync right there.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html#sync-settings"
@@ -148,7 +155,7 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp">26.10.07 01:10</div>
+<div class="doc-stamp">26.10.15 01:19</div>
     <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Header Chrome -->
@@ -560,9 +567,23 @@ layout: null
                 </div>
 
                 <!-- Step 5 -->
-                <div class="doc-step" id="watch-settings-groups">
+                <div class="doc-step" id="exchange-folders">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">5</span>
+                        <h2 class="doc-step-title">Folders from the exchange server</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>A folder you connected on the phone through an exchange server can be ticked in <strong>Resources for the watch</strong> like any other. The phone hands the watch the address and the pass; the files themselves come straight over the watch's own Wi-Fi or LTE, never through Bluetooth. If the watch is online only through the phone's Bluetooth, the folder says so: "This folder opens only over the watch's own Wi-Fi or LTE."</p>
+                        <p>At home the watch opens the folder by its address. Away from home it goes through the exchange server - for that the watch must be connected to the server too, which you do once on the phone. Without that the folder asks you to connect the watch on the phone.</p>
+                        <p>A protected folder opens on the watch without typing anything: the PIN you entered on the phone travels with it, and the watch never shows it. A folder set to view-only on the phone offers no delete on the watch. Untick a folder, and it leaves the watch together with its PIN.</p>
+                        <p>No phone nearby? On the watch, open <strong>Settings</strong>, <strong>Exchange servers</strong>, tap a server and choose <strong>Account folders</strong>. The watch lists the folders of that account by itself; tap one to add it to <strong>Resources</strong>. A protected one is added locked and opens once the phone hands over its PIN.</p>
+                    </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="doc-step" id="watch-settings-groups">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">6</span>
                         <h2 class="doc-step-title">Set up the watch from the phone</h2>
                     </div>
                     <div class="doc-step-body">
@@ -588,10 +609,10 @@ layout: null
                     </div>
                 </div>
 
-                <!-- Step 6 -->
+                <!-- Step 7 -->
                 <div class="doc-step" id="colors-and-background">
                     <div class="doc-step-header">
-                        <span class="doc-step-badge">6</span>
+                        <span class="doc-step-badge">7</span>
                         <h2 class="doc-step-title">Give the watch a color scheme and a background</h2>
                     </div>
                     <div class="doc-step-body">
@@ -605,10 +626,10 @@ layout: null
                     </div>
                 </div>
 
-                <!-- Step 7 -->
+                <!-- Step 8 -->
                 <div class="doc-step" id="sync-settings">
                     <div class="doc-step-header">
-                        <span class="doc-step-badge">7</span>
+                        <span class="doc-step-badge">8</span>
                         <h2 class="doc-step-title">Send the settings and check the sync</h2>
                     </div>
                     <div class="doc-step-body">
@@ -683,9 +704,10 @@ layout: null
                         <li><a href="#push-resources" class="doc-toc-link">2. Push them to the watch</a></li>
                         <li><a href="#sync-from-watch" class="doc-toc-link">3. Or ask for them from the watch</a></li>
                         <li><a href="#edits-both-sides" class="doc-toc-link">4. Edit on either side - the later edit wins</a></li>
-                        <li><a href="#watch-settings-groups" class="doc-toc-link">5. Set up the watch from the phone</a></li>
-                        <li><a href="#colors-and-background" class="doc-toc-link">6. Give the watch a color scheme and a background</a></li>
-                        <li><a href="#sync-settings" class="doc-toc-link">7. Send the settings and check the sync</a></li>
+                        <li><a href="#exchange-folders" class="doc-toc-link">5. Folders from the exchange server</a></li>
+                        <li><a href="#watch-settings-groups" class="doc-toc-link">6. Set up the watch from the phone</a></li>
+                        <li><a href="#colors-and-background" class="doc-toc-link">7. Give the watch a color scheme and a background</a></li>
+                        <li><a href="#sync-settings" class="doc-toc-link">8. Send the settings and check the sync</a></li>
                         <li><a href="#outcome" class="doc-toc-link">What You Get</a></li>
                         <li><a href="#tips" class="doc-toc-link">Tips and Troubleshooting</a></li>
                     </ul>
@@ -704,6 +726,9 @@ layout: null
                 <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+                <a href="../../docs/SUPPORT.html" data-footer-contact>Support</a>
+                <a href="mailto:sza@ukr.net" data-footer-contact>sza@ukr.net</a>
+                <a href="https://sza.od.ua" data-footer-contact>sza.od.ua</a>
             </div>
         </div>
     </footer>

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.08.16 10:20</sub>
+<sub class="doc-stamp">26.10.15 12:24</sub>
 
 # Maestro Testing - Troubleshooting Guide
 
@@ -199,6 +199,10 @@ adb shell pm grant com.sza.fastmediasorter.debug android.permission.POST_NOTIFIC
 
 #### B. Handle permission dialogs in test
 
+Every flow already runs `_shared/permissions.yaml`, which dismisses a dialog that is up. Write the
+taps below only for a dialog that belongs to one flow, and note that an optional tap on a dialog
+that is not there costs about 7 s (`WRITING_TESTS.md` "The cost of a failed lookup", S4252).
+
 ```yaml
 - launchApp
 
@@ -374,7 +378,8 @@ unzip -t <apk_file>
 
 **Problem**: the failure names the resource-type tabs, so it reads as a defect in whatever
 capability the flow was checking - but the whole suite fails the same way, in the shared fragment,
-and the capability is not involved at all.
+and the capability is not involved at all. The failing assertion is in `go_home.yaml` or, when its
+fast path did not reach the tabs, in `go_home_escape.yaml` (S4252); the cause below is the same.
 
 The usual cause is **launcher mode left on** by an earlier device test of the launcher desktop.
 With the HOME component enabled, leaving `MainActivity` lands on the app's own

@@ -81,7 +81,6 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-$gateName = 'assert-docs-termbase'
 $started = [Diagnostics.Stopwatch]::StartNew()
 
 function Resolve-RepoPath([string] $Path) {
@@ -99,7 +98,7 @@ function Get-Relative([string] $Full) {
 }
 
 function Exit-CannotVerify([string] $Reason) {
-    Write-Host "${gateName}: cannot verify - $Reason" -ForegroundColor Yellow
+    Write-Host "assert-docs-termbase: COULD NOT VERIFY ($Reason)" -ForegroundColor Yellow
     exit 2
 }
 
@@ -564,12 +563,18 @@ if (-not $Quiet) {
 }
 
 if ($schemaFindings.Count -gt 0 -or $corpusFindings.Count -gt 0) {
-    Write-Host ("{0}: FAIL - {1} schema finding(s) in {2}, {3} forbidden synonym(s) in {4} page(s) judged [{5}], {6}." -f `
-            $gateName, $schemaFindings.Count, $termbaseRel, $corpusFindings.Count, $pages.Count, $scope, $elapsed) -ForegroundColor Red
     Write-Host '  Fix: use the canonical name on the page, or add/repair the record in the termbase (docs/COMMUNICATION_POLICY.md section 7).'
+    Write-Host ("assert-docs-termbase: FAIL - {0} schema finding(s) in {1}, {2} forbidden synonym(s) in {3} page(s) judged [{4}], {5}." -f `
+            $schemaFindings.Count, $termbaseRel, $corpusFindings.Count, $pages.Count, $scope, $elapsed) -ForegroundColor Red
     exit 1
 }
 
-Write-Host ("{0}: PASS - {1} record(s), {2} forbidden synonym(s), {3} page(s) judged [{4}], {5}." -f `
-        $gateName, $records.Count, $matchers.Count, $pages.Count, $scope, $elapsed) -ForegroundColor Green
+if ($scope -eq 'changed set' -and $pages.Count -eq 0) {
+    . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+    Write-EmptySetPass -GateName 'assert-docs-termbase' -Note ("  termbase: {0} record(s), {1} forbidden synonym(s); no corpus page in the changed set." -f $records.Count, $matchers.Count)
+    exit 0
+}
+
+Write-Host ("assert-docs-termbase: PASS - {0} record(s), {1} forbidden synonym(s), {2} page(s) judged [{3}], {4}." -f `
+        $records.Count, $matchers.Count, $pages.Count, $scope, $elapsed) -ForegroundColor Green
 exit 0

@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "پی سی پر شیڈول شدہ کیمرہ بیک اپ - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-ur.html
 ---
-<sub class="doc-stamp">26.09.25 02:16</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
 # 📷 پی سی پر شیڈول شدہ کیمرہ بیک اپ
 
 > **سطح:** ابتدائی &bull; **وقت:** ~15 منٹ سیٹ اپ &bull; **فلیور:** Standard, Photos, Legacy, VR, noLegal (نیٹ ورک سورسز درکار ہیں - Lite میں کوئی نہیں)
-
-{% include lang-switcher.html doc="scenario-camera-backup" dir="/docs/howto/" current="ur" %}
 
 اپنے فون کے کیمرے سے نئی تصاویر کو خودکار طور پر **ہر رات، Wi-Fi پر** اپنے گھر کے کمپیوٹر پر کاپی کریں۔ ایک بار سیٹ اپ کریں - یہ بغیر کسی دستی عمل کے ہمیشہ چلتا رہتا ہے۔
 

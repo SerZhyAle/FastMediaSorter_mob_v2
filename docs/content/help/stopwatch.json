@@ -1,0 +1,443 @@
+{
+  "help": "stopwatch",
+  "surface": "StopwatchActivity",
+  "elements": [
+    { "id": "participant-area", "viewId": "stopwatchRegion0" },
+    { "id": "reading", "viewId": "stopwatchRegionReading" },
+    { "id": "laps", "viewId": "stopwatchRegionLaps" },
+    { "id": "start-lap", "viewId": "btnStopwatchRegionPrimary" },
+    { "id": "stop-reset", "viewId": "btnStopwatchRegionSecondary" },
+    { "id": "volume", "viewId": "sliderStopwatchVolume", "labelKey": "stopwatch_volume_label" },
+    { "id": "start-all", "viewId": "btnStopwatchStartAll" },
+    { "id": "reset-all", "viewId": "btnStopwatchResetAll", "labelKey": "stopwatch_action_reset_all" },
+    { "id": "result", "viewId": "btnStopwatchResult", "labelKey": "stopwatch_action_result" },
+    { "id": "settings", "viewId": "btnStopwatchSettings", "labelKey": "stopwatch_action_settings" },
+    { "id": "off-notice", "viewId": "stopwatchFallbackTitle", "labelKey": "stopwatch_enable_prompt_title" },
+    { "id": "off-open-settings", "viewId": "btnStopwatchOpenSettings", "labelKey": "stopwatch_open_settings" },
+    { "id": "res-description", "labelKey": "stopwatch_result_description_hint" },
+    { "id": "res-note", "labelKey": "stopwatch_result_note_hint" },
+    { "id": "res-preview", "labelKey": "stopwatch_result_preview_label" },
+    { "id": "res-cancel", "labelKey": "cancel" },
+    { "id": "res-save", "labelKey": "stopwatch_result_action_save" },
+    { "id": "res-send", "labelKey": "stopwatch_result_action_send" },
+    { "id": "set-participants", "labelKey": "stopwatch_settings_participants" },
+    { "id": "set-music", "labelKey": "stopwatch_settings_music" },
+    { "id": "set-track", "labelKey": "stopwatch_settings_track" },
+    { "id": "set-volume-keys", "labelKey": "stopwatch_settings_volume_keys" },
+    { "id": "set-cancel", "labelKey": "cancel" },
+    { "id": "set-apply", "labelKey": "apply" },
+    { "id": "music-picker", "labelKey": "stopwatch_music_picker_title" }
+  ],
+  "related": [
+    { "help": "calculator" },
+    { "help": "tourist-info" },
+    { "help": "main" },
+    { "help": "settings-operations" },
+    { "pageId": "programs.calculator-and-stopwatch" },
+    { "pageId": "programs.built-in-mini-apps" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Stopwatch",
+      "purpose": "A stopwatch for timing up to four people at once, with laps, music while it runs, and a result you can save or send. The volume buttons of the phone can start and stop it, so you can time a run without looking at the screen.",
+      "steps": [
+        "Open the stopwatch: it starts counting at once in every participant area (1). The big reading (2) shows minutes, seconds and hundredths.",
+        "To time one person, two or four, press the gear (10) and pick Participants. Each person gets an area of their own, and one person gets the whole screen.",
+        "While a participant runs, press Lap (4) to record a split. The newest lap goes to the top of the list (3). When that participant finishes, press Stop (5).",
+        "With two or four participants, Stop all (7) halts everyone at once, and the same key becomes Start all. Reset all (8) clears every time and every lap.",
+        "For music, choose a track in the settings (10). It plays while anything is running, and the slider (6) sets how loud.",
+        "When you are done, press Result (9), add a description and a note, and save the times to a file or send them on.",
+        "If the screen says that the stopwatch is off, press (12) to open Settings and switch it on."
+      ],
+      "groups": [
+        { "title": "Participant areas", "elements": ["participant-area", "reading", "laps", "start-lap", "stop-reset"] },
+        { "title": "Volume and the bottom bar", "elements": ["volume", "start-all", "reset-all", "result", "settings"] },
+        { "title": "When the stopwatch is off", "elements": ["off-notice", "off-open-settings"] },
+        { "title": "Stopwatch result window", "elements": ["res-description", "res-note", "res-preview", "res-cancel", "res-save", "res-send"] },
+        { "title": "Stopwatch settings window", "elements": ["set-participants", "set-music", "set-track", "set-volume-keys", "set-cancel", "set-apply"] },
+        { "title": "Music chooser", "elements": ["music-picker"] }
+      ],
+      "elements": {
+        "participant-area": {
+          "name": "Participant area",
+          "summary": "One person's stopwatch: the screen is split into one area for each participant.",
+          "details": "With one participant the area fills the screen. With two the screen is split in half, and with four it becomes a grid of four, each area named Participant 1 to Participant 4. Every area counts on its own, so stopping or resetting one never touches the others.\n\nTapping anywhere on an area does the same as its Start or Lap button, which is handy when you cannot aim at a small key. On a keyboard or a remote, press 1 to 4 to jump to an area.\n\nThe stopwatch starts counting as soon as the screen opens. The times are kept while the screen is open, so turning the phone or switching to another app does not stop them. Closing the screen throws them away, so press Result first if you need them.",
+          "shortcut": "1 / 2 / 3 / 4"
+        },
+        "reading": {
+          "name": "Time reading",
+          "summary": "The elapsed time of this participant, in large digits.",
+          "details": "It reads minutes, seconds and hundredths of a second, for example 2:07.45, and adds hours when a run passes an hour. The digits shrink on a crowded screen so that four participants still fit."
+        },
+        "laps": {
+          "name": "Laps list",
+          "summary": "The splits recorded for this participant, newest at the top.",
+          "details": "Every press of Lap adds a line with the lap number and the time since the start, so the one you have just recorded is readable without scrolling. Before the first lap the list asks you to press Lap while it runs. Long lists scroll."
+        },
+        "start-lap": {
+          "name": "Start / Lap",
+          "summary": "Starts this participant, and once it runs records a lap.",
+          "details": "The key says Start while the participant is stopped and Lap while it runs. A lap does not interrupt the count; it only writes down the time so far. Pressing Start after a Stop continues from where the participant stopped.",
+          "shortcut": "Space / Enter"
+        },
+        "stop-reset": {
+          "name": "Stop / Reset",
+          "summary": "Stops a running participant, and clears a stopped one.",
+          "details": "While the participant runs the key says Stop and freezes the time. When it is stopped the key says Reset and returns the participant to 0:00.00 with no laps. Reset stays grayed out until there is something to clear.\n\nOn a keyboard, S stops and R resets the area that has focus.",
+          "undo": "Reset removes that participant's time and laps for good and cannot be undone. If you may need them, open Result and save or send them first.",
+          "shortcut": "S / R"
+        },
+        "volume": {
+          "summary": "Sets how loud the music is, since the volume buttons of the phone drive the stopwatch.",
+          "details": "While the stopwatch is open and Volume keys start and stop is on, the phone's volume buttons start, lap and stop instead of changing the volume, so the slider gives the volume back on screen. It moves the media volume of the phone, the same one music apps use.\n\nThe row is hidden where there is no sound to adjust, for example in the Photos edition."
+        },
+        "start-all": {
+          "name": "Start all / Stop all",
+          "summary": "Starts or stops every participant with one press.",
+          "details": "While nobody runs, the key says Start all and starts all visible participants together. As soon as anyone runs it says Stop all and halts everyone; laps and times stay. A participant that is already running keeps its time when you press Start all.\n\nThe key is shown only with two or four participants. With one participant the Start and Stop keys of its area do the job."
+        },
+        "reset-all": {
+          "summary": "Clears the times and laps of every participant.",
+          "details": "Use it between two runs to start from zero for everyone. Running participants stop too, because their times go back to 0:00.00.",
+          "undo": "All times and laps are lost and there is no undo. Save or send the result first if you need it."
+        },
+        "result": {
+          "summary": "Opens a window to save or send the measured times.",
+          "details": "It collects the time and laps of every visible participant into a text you can describe, save and send. If nothing has been measured yet, a short message says so and the window does not open."
+        },
+        "settings": {
+          "summary": "Opens the stopwatch settings: participants, music and the volume buttons.",
+          "details": "The settings window is also reachable from Settings, on the Management tab. A change you apply reaches an open stopwatch at once."
+        },
+        "off-notice": {
+          "summary": "Tells you that the stopwatch is switched off in Settings.",
+          "details": "When the program is off, this short message replaces the participant areas. You can meet it, for example, by opening the stopwatch from a home-screen widget that was placed before the program was switched off. Nothing is measured until you switch it on."
+        },
+        "off-open-settings": {
+          "summary": "Opens Settings on the tab where the stopwatch is switched on.",
+          "details": "It takes you to the Management tab of Settings; the Stopwatch switch is under Additional programs and scenarios. Turn it on, come back here, and the areas are there."
+        },
+        "res-description": {
+          "summary": "A short title for the measurement, such as the name of the race.",
+          "details": "It goes on the first line of the result. Leave it empty and that line is simply left out of the preview, the file and the sent text."
+        },
+        "res-note": {
+          "summary": "Anything else worth keeping with the times, for example the weather or the track.",
+          "details": "It can run to a few lines and goes right after the description. An empty note is left out."
+        },
+        "res-preview": {
+          "summary": "Shows the exact text that will be saved or sent.",
+          "details": "It lists the description, the note, the moment of the measurement (Measured at) and one line for each participant with the total time and the laps. What you read here is what leaves the screen. The times are frozen at the moment you pressed Result, even if the stopwatch keeps running behind the window, so the preview, the file and the sent text agree."
+        },
+        "res-cancel": {
+          "summary": "Closes the window without saving or sending anything.",
+          "details": "The stopwatch behind it is untouched."
+        },
+        "res-save": {
+          "summary": "Writes the result to a text file in your Downloads folder.",
+          "details": "The file is named FastMediaSorter_stopwatch plus the date and time, and a message tells you its name. If the file cannot be written, a message says so and nothing is saved. Press it once; a second press while it writes is ignored."
+        },
+        "res-send": {
+          "summary": "Passes the result to another app, such as a chat or email.",
+          "details": "It opens the system share sheet with the text of the preview. Which apps you see depends on what is installed on the phone."
+        },
+        "set-participants": {
+          "summary": "Chooses how many people you time: 1, 2 or 4.",
+          "details": "The screen is split into that many areas. Changing the number does not stop a run in progress; areas that are no longer shown are simply hidden."
+        },
+        "set-music": {
+          "summary": "Plays the chosen track while any participant is running.",
+          "details": "The track loops for as long as a measurement is running, so a long run never falls silent halfway. It stops when everyone is stopped, and also when you leave the screen, although the times keep counting. The switch and the track row are hidden where the edition has no audio. Choosing a track turns the switch on."
+        },
+        "set-track": {
+          "summary": "Opens the list of music on your phone to pick the track.",
+          "details": "The row shows the chosen track, or Not chosen. Tapping it opens the music chooser, where you tap one track; the choice comes back to this window and takes effect when you press Apply."
+        },
+        "set-volume-keys": {
+          "summary": "Lets the volume buttons of the phone start, lap and stop the stopwatch.",
+          "details": "On: while the stopwatch is open, volume up starts or records a lap and volume down stops, so you can use it with gloves or without looking. The buttons act on the area that has focus, or on Participant 1 when nothing has. The phone volume does not change while you use them; use the slider on the screen instead. Off: the buttons go back to the system."
+        },
+        "set-cancel": {
+          "summary": "Closes the window and drops your changes.",
+          "details": "The settings stay as they were when you opened the window."
+        },
+        "set-apply": {
+          "summary": "Saves the four choices and closes the window.",
+          "details": "Only the stopwatch's own options are written, and an open stopwatch follows them at once."
+        },
+        "music-picker": {
+          "summary": "Lists the music on your phone so you can pick one track.",
+          "details": "Each row shows the title and, when known, the artist and the length. Tap a row to choose it; the window closes and the track appears in the settings. Only audio files that the phone has indexed are listed. When there are none, the window says no music was found on this device and suggests copying audio files to it."
+        }
+      }
+    },
+    "ru": {
+      "title": "Секундомер",
+      "purpose": "Секундомер, который засекает время до четырёх человек сразу, ставит отсечки на кругах, играет музыку во время отсчёта и даёт результат, который можно сохранить или отправить. Кнопки громкости телефона умеют запускать и останавливать его - можно засекать, не глядя на экран.",
+      "steps": [
+        "Откройте секундомер: отсчёт сразу идёт в каждой области участника (1). Крупное показание (2) показывает минуты, секунды и сотые.",
+        "Чтобы засекать одного, двух или четверых, нажмите шестерёнку (10) и выберите «Участники». У каждого человека своя область, а у одного - весь экран.",
+        "Пока участник идёт, нажимайте «Круг» (4), чтобы ставить отсечки. Новый круг оказывается вверху списка (3). Когда участник закончил, нажмите «Стоп» (5).",
+        "Если участников два или четыре, «Остановить всех» (7) останавливает всех сразу, а эта же кнопка потом становится «Стартовать всех». «Сбросить все» (8) обнуляет все времена и круги.",
+        "Для музыки выберите дорожку в настройках (10). Она играет, пока что-то идёт, а ползунок (6) задаёт громкость.",
+        "Когда закончите, нажмите «Результат» (9), добавьте описание и заметку, затем сохраните времена в файл или отправьте.",
+        "Если на экране написано, что секундомер выключен, нажмите (12): откроются настройки, где его можно включить."
+      ],
+      "groups": [
+        { "title": "Области участников", "elements": ["participant-area", "reading", "laps", "start-lap", "stop-reset"] },
+        { "title": "Громкость и нижняя панель", "elements": ["volume", "start-all", "reset-all", "result", "settings"] },
+        { "title": "Когда секундомер выключен", "elements": ["off-notice", "off-open-settings"] },
+        { "title": "Окно «Результат секундомера»", "elements": ["res-description", "res-note", "res-preview", "res-cancel", "res-save", "res-send"] },
+        { "title": "Окно «Настройки секундомера»", "elements": ["set-participants", "set-music", "set-track", "set-volume-keys", "set-cancel", "set-apply"] },
+        { "title": "Выбор музыки", "elements": ["music-picker"] }
+      ],
+      "elements": {
+        "participant-area": {
+          "name": "Область участника",
+          "summary": "Секундомер одного человека: экран делится на отдельную область для каждого участника.",
+          "details": "Если участник один, область занимает весь экран. Для двоих экран делится пополам, для четверых - на четыре части, а области называются «Участник 1» - «Участник 4». Каждая область считает сама по себе, поэтому остановка или сброс одной не затрагивает остальные.\n\nКасание в любом месте области действует так же, как кнопка «Старт» или «Круг» - удобно, когда трудно попасть в маленькую кнопку. На клавиатуре или пульте клавиши от 1 до 4 переводят на нужную область.\n\nОтсчёт начинается сразу, как только экран открылся. Пока экран открыт, времена сохраняются: поворот телефона или переход в другое приложение их не останавливает. Если закрыть экран, они пропадут, поэтому сначала нажмите «Результат», если времена нужны.",
+          "shortcut": "1 / 2 / 3 / 4"
+        },
+        "reading": {
+          "name": "Показание времени",
+          "summary": "Прошедшее время участника крупными цифрами.",
+          "details": "Показаны минуты, секунды и сотые доли секунды, например 2:07.45, а когда проходит час, добавляются часы. Цифры уменьшаются на тесном экране, чтобы поместились все четыре участника."
+        },
+        "laps": {
+          "name": "Список кругов",
+          "summary": "Отсечки этого участника, новая - сверху.",
+          "details": "Каждое нажатие «Круг» добавляет строку с номером круга и временем от старта, так что только что записанную отсечку видно без прокрутки. Пока кругов нет, список подсказывает нажать «Круг» во время отсчёта. Длинный список прокручивается."
+        },
+        "start-lap": {
+          "name": "Старт / Круг",
+          "summary": "Запускает участника, а когда он идёт, ставит отсечку.",
+          "details": "На кнопке написано «Старт», пока участник стоит, и «Круг», пока он идёт. Отсечка не прерывает отсчёт, а только записывает время на этот момент. Если нажать «Старт» после «Стоп», отсчёт продолжится с того места, где остановился.",
+          "shortcut": "Space / Enter"
+        },
+        "stop-reset": {
+          "name": "Стоп / Сброс",
+          "summary": "Останавливает идущего участника, а у остановленного очищает время.",
+          "details": "Пока участник идёт, на кнопке «Стоп», и она замораживает время. Когда он остановлен, на кнопке «Сброс»: она возвращает участника к 0:00.00 и убирает круги. Пока очищать нечего, «Сброс» неактивен.\n\nНа клавиатуре S останавливает, а R сбрасывает область, на которой стоит фокус.",
+          "undo": "«Сброс» навсегда удаляет время и круги этого участника, вернуть их нельзя. Если они могут пригодиться, сначала откройте «Результат» и сохраните или отправьте их.",
+          "shortcut": "S / R"
+        },
+        "volume": {
+          "summary": "Задаёт громкость музыки, потому что кнопки громкости телефона управляют секундомером.",
+          "details": "Пока секундомер открыт и включено «Кнопки громкости запускают и останавливают», кнопки громкости телефона запускают, ставят отсечку и останавливают, а не меняют громкость, поэтому ползунок возвращает регулировку на экран. Он меняет громкость мультимедиа телефона - ту же, что используют музыкальные приложения.\n\nСтрока скрыта там, где нечего регулировать - например, в редакции Photos."
+        },
+        "start-all": {
+          "name": "Стартовать всех / Остановить всех",
+          "summary": "Запускает или останавливает всех участников одним нажатием.",
+          "details": "Пока никто не идёт, на кнопке «Стартовать всех», и она запускает всех видимых участников вместе. Как только кто-то идёт, на ней «Остановить всех», и она останавливает всех; времена и круги остаются. Участник, который уже идёт, при «Стартовать всех» время не теряет.\n\nКнопка видна только при двух или четырёх участниках. При одном участнике справляются кнопки «Старт» и «Стоп» в его области."
+        },
+        "reset-all": {
+          "summary": "Очищает времена и круги всех участников.",
+          "details": "Пригодится между двумя забегами, чтобы все начали с нуля. Идущие участники тоже останавливаются, потому что их время возвращается к 0:00.00.",
+          "undo": "Все времена и круги будут потеряны, вернуть их нельзя. Если результат нужен, сначала сохраните или отправьте его."
+        },
+        "result": {
+          "summary": "Открывает окно, чтобы сохранить или отправить замеренные времена.",
+          "details": "Времена и круги всех видимых участников собираются в текст, к которому можно добавить описание, сохранить его и отправить. Если ничего ещё не замерено, короткое сообщение скажет об этом, и окно не откроется."
+        },
+        "settings": {
+          "summary": "Открывает настройки секундомера: участники, музыка и кнопки громкости.",
+          "details": "Окно настроек можно открыть и из раздела «Настройки» на вкладке «Управление». Применённое изменение сразу доходит до открытого секундомера."
+        },
+        "off-notice": {
+          "summary": "Сообщает, что секундомер выключен в настройках.",
+          "details": "Когда программа выключена, это короткое сообщение заменяет области участников. Оно встретится, например, если открыть секундомер из виджета на главном экране, поставленного до выключения программы. Пока вы не включите секундомер, замеров нет."
+        },
+        "off-open-settings": {
+          "summary": "Открывает настройки на вкладке, где секундомер включается.",
+          "details": "Кнопка ведёт на вкладку «Управление» в настройках; переключатель секундомера находится в разделе «Дополнительные программы и сценарии». Включите его, вернитесь сюда - и области на месте."
+        },
+        "res-description": {
+          "summary": "Короткое название замера, например имя забега.",
+          "details": "Оно попадает в первую строку результата. Если оставить поле пустым, строка просто не появится ни в предпросмотре, ни в файле, ни в отправленном тексте."
+        },
+        "res-note": {
+          "summary": "Всё, что стоит сохранить вместе с временами, например погода или трасса.",
+          "details": "Заметка может занимать несколько строк и идёт сразу после описания. Пустая заметка не включается."
+        },
+        "res-preview": {
+          "summary": "Показывает точный текст, который будет сохранён или отправлен.",
+          "details": "В нём описание, заметка, момент замера («Замер») и по строке на каждого участника с общим временем и кругами. Что вы видите здесь, то и уходит с экрана. Времена зафиксированы в тот момент, когда вы нажали «Результат», даже если секундомер за окном продолжает идти, поэтому предпросмотр, файл и отправленный текст совпадают."
+        },
+        "res-cancel": {
+          "summary": "Закрывает окно, ничего не сохраняя и не отправляя.",
+          "details": "Секундомер за окном остаётся как был."
+        },
+        "res-save": {
+          "summary": "Записывает результат в текстовый файл в папке «Загрузки».",
+          "details": "Файл называется FastMediaSorter_stopwatch плюс дата и время, а сообщение сообщит его имя. Если записать файл не удалось, сообщение скажет об этом, и ничего не сохранится. Нажимайте один раз: повторное нажатие во время записи игнорируется."
+        },
+        "res-send": {
+          "summary": "Передаёт результат другому приложению, например в чат или письмо.",
+          "details": "Открывается системное меню отправки с текстом предпросмотра. Какие приложения в нём видны, зависит от того, что установлено на телефоне."
+        },
+        "set-participants": {
+          "summary": "Выбирает, скольких человек засекать: 1, 2 или 4.",
+          "details": "Экран делится на столько областей. Смена числа не прерывает идущий отсчёт; области, которых больше нет на экране, просто скрываются."
+        },
+        "set-music": {
+          "summary": "Играет выбранную дорожку, пока идёт хоть один участник.",
+          "details": "Дорожка играет по кругу, пока идёт замер, поэтому долгий забег не остаётся без звука на полпути. Музыка останавливается, когда остановлены все, а также когда вы уходите с экрана, хотя времена продолжают идти. Переключатель и строка дорожки скрыты там, где в редакции нет звука. Выбор дорожки включает переключатель."
+        },
+        "set-track": {
+          "summary": "Открывает список музыки на телефоне, чтобы выбрать дорожку.",
+          "details": "В строке показана выбранная дорожка или «Не выбрана». Нажатие открывает выбор музыки, где достаточно коснуться одной дорожки; выбор возвращается в это окно и вступает в силу после нажатия «Применить»."
+        },
+        "set-volume-keys": {
+          "summary": "Позволяет кнопкам громкости телефона запускать, ставить отсечку и останавливать секундомер.",
+          "details": "Включено: пока секундомер открыт, громкость вверх запускает или ставит отсечку, а громкость вниз останавливает - удобно в перчатках или не глядя. Кнопки действуют на область, где стоит фокус, а если фокуса нет - на «Участник 1». Громкость телефона при этом не меняется; пользуйтесь ползунком на экране. Выключено: кнопки возвращаются системе."
+        },
+        "set-cancel": {
+          "summary": "Закрывает окно и отбрасывает изменения.",
+          "details": "Настройки остаются такими, какими были при открытии окна."
+        },
+        "set-apply": {
+          "summary": "Сохраняет четыре настройки и закрывает окно.",
+          "details": "Записываются только собственные параметры секундомера, и открытый секундомер сразу переходит на них."
+        },
+        "music-picker": {
+          "summary": "Показывает музыку на телефоне, чтобы выбрать одну дорожку.",
+          "details": "В каждой строке название и, если известно, исполнитель и длительность. Коснитесь строки, чтобы выбрать её: окно закроется, а дорожка появится в настройках. В списке только те аудиофайлы, которые телефон уже проиндексировал. Если их нет, окно сообщает, что музыка на устройстве не найдена, и советует скопировать на него аудиофайлы."
+        }
+      }
+    },
+    "uk": {
+      "title": "Секундомір",
+      "purpose": "Секундомір, який засікає час до чотирьох людей одночасно, ставить відсічки на колах, грає музику під час відліку та дає результат, який можна зберегти або надіслати. Кнопки гучності телефону вміють запускати й зупиняти його - можна засікати, не дивлячись на екран.",
+      "steps": [
+        "Відкрийте секундомір: відлік одразу йде в кожній області учасника (1). Велике показання (2) показує хвилини, секунди та соті.",
+        "Щоб засікати одного, двох чи чотирьох, натисніть шестірню (10) і виберіть «Учасники». У кожної людини своя область, а в одного - весь екран.",
+        "Поки учасник біжить, натискайте «Коло» (4), щоб ставити відсічки. Нове коло опиняється вгорі списку (3). Коли учасник закінчив, натисніть «Стоп» (5).",
+        "Якщо учасників два чи чотири, «Зупинити всіх» (7) зупиняє всіх одразу, а ця сама кнопка потім стає «Стартувати всіх». «Скинути все» (8) обнуляє всі часи та кола.",
+        "Для музики виберіть доріжку в налаштуваннях (10). Вона грає, поки щось іде, а повзунок (6) задає гучність.",
+        "Коли закінчите, натисніть «Результат» (9), додайте опис і нотатку, а потім збережіть часи у файл або надішліть.",
+        "Якщо на екрані написано, що секундомір вимкнено, натисніть (12): відкриються налаштування, де його можна ввімкнути."
+      ],
+      "groups": [
+        { "title": "Області учасників", "elements": ["participant-area", "reading", "laps", "start-lap", "stop-reset"] },
+        { "title": "Гучність і нижня панель", "elements": ["volume", "start-all", "reset-all", "result", "settings"] },
+        { "title": "Коли секундомір вимкнено", "elements": ["off-notice", "off-open-settings"] },
+        { "title": "Вікно «Результат секундоміра»", "elements": ["res-description", "res-note", "res-preview", "res-cancel", "res-save", "res-send"] },
+        { "title": "Вікно «Налаштування секундоміра»", "elements": ["set-participants", "set-music", "set-track", "set-volume-keys", "set-cancel", "set-apply"] },
+        { "title": "Вибір музики", "elements": ["music-picker"] }
+      ],
+      "elements": {
+        "participant-area": {
+          "name": "Область учасника",
+          "summary": "Секундомір однієї людини: екран ділиться на окрему область для кожного учасника.",
+          "details": "Якщо учасник один, область займає весь екран. Для двох екран ділиться навпіл, для чотирьох - на чотири частини, а області називаються «Учасник 1» - «Учасник 4». Кожна область рахує сама по собі, тому зупинка чи скидання однієї не торкається решти.\n\nДотик у будь-якому місці області діє так само, як кнопка «Старт» або «Коло» - зручно, коли важко влучити в малу кнопку. На клавіатурі чи пульті клавіші від 1 до 4 переводять на потрібну область.\n\nВідлік починається одразу, щойно екран відкрився. Поки екран відкритий, часи зберігаються: поворот телефону або перехід в інший застосунок їх не зупиняє. Якщо закрити екран, вони зникнуть, тому спершу натисніть «Результат», якщо часи потрібні.",
+          "shortcut": "1 / 2 / 3 / 4"
+        },
+        "reading": {
+          "name": "Показання часу",
+          "summary": "Час, що минув у учасника, великими цифрами.",
+          "details": "Показано хвилини, секунди та соті частки секунди, наприклад 2:07.45, а коли спливає година, додаються години. Цифри зменшуються на тісному екрані, щоб вмістилися всі чотири учасники."
+        },
+        "laps": {
+          "name": "Список кіл",
+          "summary": "Відсічки цього учасника, нова - зверху.",
+          "details": "Кожне натискання «Коло» додає рядок із номером кола та часом від старту, тож щойно записану відсічку видно без прокручування. Поки кіл немає, список підказує натиснути «Коло» під час відліку. Довгий список прокручується."
+        },
+        "start-lap": {
+          "name": "Старт / Коло",
+          "summary": "Запускає учасника, а коли він іде, ставить відсічку.",
+          "details": "На кнопці написано «Старт», поки учасник стоїть, і «Коло», поки він іде. Відсічка не перериває відлік, а лише записує час на цей момент. Якщо натиснути «Старт» після «Стоп», відлік продовжиться з того місця, де зупинився.",
+          "shortcut": "Space / Enter"
+        },
+        "stop-reset": {
+          "name": "Стоп / Скидання",
+          "summary": "Зупиняє учасника, що біжить, а в зупиненого очищує час.",
+          "details": "Поки учасник іде, на кнопці «Стоп», і вона заморожує час. Коли він зупинений, на кнопці «Скидання»: вона повертає учасника до 0:00.00 і прибирає кола. Поки очищувати нічого, «Скидання» неактивне.\n\nНа клавіатурі S зупиняє, а R скидає область, на якій стоїть фокус.",
+          "undo": "«Скидання» назавжди видаляє час і кола цього учасника, повернути їх не можна. Якщо вони можуть знадобитися, спершу відкрийте «Результат» і збережіть або надішліть їх.",
+          "shortcut": "S / R"
+        },
+        "volume": {
+          "summary": "Задає гучність музики, бо кнопки гучності телефону керують секундоміром.",
+          "details": "Поки секундомір відкритий і ввімкнено «Кнопки гучності запускають і зупиняють», кнопки гучності телефону запускають, ставлять відсічку й зупиняють, а не змінюють гучність, тому повзунок повертає регулювання на екран. Він змінює гучність мультимедіа телефону - ту саму, що використовують музичні застосунки.\n\nРядок схований там, де нема чого регулювати, - наприклад, у редакції Photos."
+        },
+        "start-all": {
+          "name": "Стартувати всіх / Зупинити всіх",
+          "summary": "Запускає або зупиняє всіх учасників одним натисканням.",
+          "details": "Поки ніхто не йде, на кнопці «Стартувати всіх», і вона запускає всіх видимих учасників разом. Щойно хтось іде, на ній «Зупинити всіх», і вона зупиняє всіх; часи та кола лишаються. Учасник, що вже йде, при «Стартувати всіх» час не втрачає.\n\nКнопка видима лише за двох чи чотирьох учасників. За одного учасника вистачає кнопок «Старт» і «Стоп» у його області."
+        },
+        "reset-all": {
+          "summary": "Очищує часи та кола всіх учасників.",
+          "details": "Знадобиться між двома забігами, щоб усі почали з нуля. Учасники, що йдуть, теж зупиняються, бо їхній час повертається до 0:00.00.",
+          "undo": "Усі часи та кола буде втрачено, повернути їх не можна. Якщо результат потрібен, спершу збережіть або надішліть його."
+        },
+        "result": {
+          "summary": "Відкриває вікно, щоб зберегти або надіслати заміряні часи.",
+          "details": "Часи та кола всіх видимих учасників збираються в текст, до якого можна додати опис, зберегти його й надіслати. Якщо ще нічого не заміряно, коротке повідомлення скаже про це, і вікно не відкриється."
+        },
+        "settings": {
+          "summary": "Відкриває налаштування секундоміра: учасники, музика та кнопки гучності.",
+          "details": "Вікно налаштувань можна відкрити й з розділу «Налаштування» на вкладці «Управління». Застосована зміна одразу доходить до відкритого секундоміра."
+        },
+        "off-notice": {
+          "summary": "Повідомляє, що секундомір вимкнено в налаштуваннях.",
+          "details": "Коли програму вимкнено, це коротке повідомлення замінює області учасників. Воно трапиться, наприклад, якщо відкрити секундомір із віджета на головному екрані, поставленого до вимкнення програми. Поки ви не ввімкнете секундомір, замірів немає."
+        },
+        "off-open-settings": {
+          "summary": "Відкриває налаштування на вкладці, де секундомір вмикається.",
+          "details": "Кнопка веде на вкладку «Управління» в налаштуваннях; перемикач секундоміра міститься в розділі «Додаткові програми та сценарії». Увімкніть його, поверніться сюди - і області на місці."
+        },
+        "res-description": {
+          "summary": "Коротка назва заміру, наприклад ім’я забігу.",
+          "details": "Вона потрапляє в перший рядок результату. Якщо залишити поле порожнім, рядок просто не з’явиться ні в попередньому перегляді, ні у файлі, ні у надісланому тексті."
+        },
+        "res-note": {
+          "summary": "Усе, що варто зберегти разом із часами, наприклад погода чи траса.",
+          "details": "Нотатка може займати кілька рядків і йде одразу після опису. Порожня нотатка не включається."
+        },
+        "res-preview": {
+          "summary": "Показує точний текст, який буде збережено або надіслано.",
+          "details": "У ньому опис, нотатка, момент заміру («Замір») і по рядку на кожного учасника із загальним часом та колами. Що ви бачите тут, те й іде з екрана. Часи зафіксовано в ту мить, коли ви натиснули «Результат», навіть якщо секундомір за вікном іде далі, тому попередній перегляд, файл і надісланий текст збігаються."
+        },
+        "res-cancel": {
+          "summary": "Закриває вікно, нічого не зберігаючи й не надсилаючи.",
+          "details": "Секундомір за вікном лишається як був."
+        },
+        "res-save": {
+          "summary": "Записує результат у текстовий файл у теці «Завантаження».",
+          "details": "Файл називається FastMediaSorter_stopwatch плюс дата й час, а повідомлення скаже його ім’я. Якщо записати файл не вдалося, повідомлення скаже про це, і нічого не збережеться. Натискайте один раз: повторне натискання під час запису ігнорується."
+        },
+        "res-send": {
+          "summary": "Передає результат іншому застосунку, наприклад у чат чи лист.",
+          "details": "Відкривається системне меню надсилання з текстом попереднього перегляду. Які застосунки в ньому видно, залежить від того, що встановлено на телефоні."
+        },
+        "set-participants": {
+          "summary": "Обирає, скількох людей засікати: 1, 2 або 4.",
+          "details": "Екран ділиться на стільки областей. Зміна числа не перериває відлік, що йде; області, яких більше нема на екрані, просто ховаються."
+        },
+        "set-music": {
+          "summary": "Грає обрану доріжку, поки йде хоч один учасник.",
+          "details": "Доріжка грає по колу, поки триває замір, тому довгий забіг не лишається без звуку на півдорозі. Музика зупиняється, коли зупинено всіх, а також коли ви йдете з екрана, хоча часи тривають. Перемикач і рядок доріжки сховані там, де в редакції нема звуку. Вибір доріжки вмикає перемикач."
+        },
+        "set-track": {
+          "summary": "Відкриває список музики на телефоні, щоб вибрати доріжку.",
+          "details": "У рядку показано обрану доріжку або «Не вибрана». Натискання відкриває вибір музики, де достатньо торкнутися однієї доріжки; вибір повертається в це вікно й набуває чинності після натискання «Застосувати»."
+        },
+        "set-volume-keys": {
+          "summary": "Дає змогу кнопкам гучності телефону запускати, ставити відсічку й зупиняти секундомір.",
+          "details": "Увімкнено: поки секундомір відкритий, гучність вгору запускає або ставить відсічку, а гучність вниз зупиняє - зручно в рукавичках чи не дивлячись. Кнопки діють на область, де стоїть фокус, а якщо фокуса нема - на «Учасник 1». Гучність телефону при цьому не змінюється; користуйтеся повзунком на екрані. Вимкнено: кнопки повертаються системі."
+        },
+        "set-cancel": {
+          "summary": "Закриває вікно й відкидає зміни.",
+          "details": "Налаштування лишаються такими, якими були під час відкриття вікна."
+        },
+        "set-apply": {
+          "summary": "Зберігає чотири налаштування й закриває вікно.",
+          "details": "Записуються лише власні параметри секундоміра, і відкритий секундомір одразу переходить на них."
+        },
+        "music-picker": {
+          "summary": "Показує музику на телефоні, щоб вибрати одну доріжку.",
+          "details": "У кожному рядку назва та, якщо відомо, виконавець і тривалість. Торкніться рядка, щоб вибрати його: вікно закриється, а доріжка з’явиться в налаштуваннях. У списку лише ті аудіофайли, які телефон уже проіндексував. Якщо їх нема, вікно повідомляє, що музики на пристрої не знайдено, і радить скопіювати на нього аудіофайли."
+        }
+      }
+    }
+  }
+}

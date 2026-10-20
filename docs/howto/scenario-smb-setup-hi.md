@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "NAS / Windows शेयर (SMB) से जुड़ें - FastMediaSorter v2"
 permalink: /docs/howto/scenario-smb-setup-hi.html
 ---
-<sub class="doc-stamp">26.09.25 02:20</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
 # 🖥️ होम NAS / Windows शेयर (SMB) से जुड़ें
 
 > **लेवल:** शुरुआती &bull; **एडिशन:** Standard, Photos, Legacy, VR, noLegal (Lite में नेटवर्क सोर्स नहीं हैं)
-
-{% include lang-switcher.html doc="scenario-smb-setup" dir="/docs/howto/" current="hi" %}
 
 SMB (जिसे Windows File Sharing या CIFS भी कहते हैं) आपको अपने होम पीसी, लैपटॉप, या NAS डिवाइस पर मौजूद फ़ाइलें बिल्कुल वैसे ब्राउज़ करने देता है जैसे वे आपके फोन पर हों - कोई केबल नहीं, कोई USB नहीं, बस Wi-Fi.
 

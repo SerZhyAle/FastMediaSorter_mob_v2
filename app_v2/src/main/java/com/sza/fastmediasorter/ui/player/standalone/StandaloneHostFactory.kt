@@ -142,7 +142,7 @@ class StandaloneHostFactory @Inject constructor(
         lifecycleScope: LifecycleCoroutineScope,
         callback: DestinationButtonsManager.DestinationButtonsCallback,
         shouldNumberSlots: () -> Boolean,
-        slotKeyGlyph: (Int) -> String?,
+        slotKeyGlyph: (String) -> String?,
     ): DestinationButtonsManager = DestinationButtonsManager(
         root = root,
         settingsRepository = settingsRepository,

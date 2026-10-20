@@ -28,5 +28,7 @@ data class DocumentViewerUiState(
     val isEmpty: Boolean = false,
     val failure: WearDocumentFailure? = null,
     val fontSize: DocumentFontSize = DocumentFontSize.MEDIUM,
-    val initialPosition: WearListPosition? = null
+    val initialPosition: WearListPosition? = null,
+    /** S4227: pages of a PDF the reader draws instead of [paragraphs]; 0 for a text document. */
+    val pdfPageCount: Int = 0
 )

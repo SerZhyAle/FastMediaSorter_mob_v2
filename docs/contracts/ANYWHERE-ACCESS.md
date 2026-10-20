@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.07 12:50</sub>
+<sub class="doc-stamp">26.10.15 14:50</sub>
 
 # Pointer - `ANYWHERE-ACCESS`
 
 | | |
 | --- | --- |
 | **Id** | `ANYWHERE-ACCESS` |
-| **Version** | 0.13, draft - [PROPOSED] in full; since 0.11 the exchange server, its wire and the Drive channel are `DEVICE-EXCHANGE`. Owner: FastMediaSorter Android |
+| **Version** | 1.0, active - declared 2026-10-15 (S4245, the owner's decision 22 of milestone S4203: sections 1 to 4, 5.5 and 8 and amendments A to L bind; sections 5.1 to 5.4, 6 and 7 are the record of the 0.10 wire); since 0.11 the exchange server, its wire and the Drive channel are `DEVICE-EXCHANGE`; since 0.14 section 4.3 states the phone code whole and an outward link is an `FMSSFTP2` code without `pw`. Owner: FastMediaSorter Android |
 | **Home** | `anywhere-access/README.md` in the shared contracts catalog |
 | **Role here** | owner, and reference producer and consumer - the phone's embedded SFTP server (S3041) shares over the rendezvous/tunnel, and this app reads others' shares |
 
@@ -23,6 +23,9 @@
   `SHARE-SESSION` rules 6-10 applied to the registration.
 - A share's `access` reaches Drive only with the user's explicit opt-in, off by default and worded to name
   Google (amendment H); `connect {shareId}` is TLS only (amendment I).
+- The phone's code and QR follow section 4.3 byte for byte, so FMS_W reads them with no address typed (amendment J).
+- An outward link is an `FMSSFTP2` code with its own login, no `pw` and its own `sid`; the embedded server checks the
+  link's password and confines its login to one root (amendments K and L).
 
 ## Where it will live here
 
@@ -40,3 +43,5 @@
   `PLAN/S4094_sftp-server-access-from-anywhere/`.
 - S4116 - migration of the S4094 tunnel code from the superseded 0.10 wire to `DEVICE-EXCHANGE`.
 - S4129 - the Drive opt-in for `access`.
+- S4215 - 0.14: the phone code text (4.3), the outward link and the per-grant login.
+- S4245 - 1.0: the contract leaves draft; no byte of `FMSSFTP2` or of `vectors/descriptor-v2.json` changes.

@@ -94,6 +94,18 @@
   "blood_pressure_stat_min",
   "body_sensor_bpm",
   "body_sensor_history_row",
+  {
+    "key": "broadcast_password_hint",
+    "locales": [
+      "it"
+    ]
+  },
+  {
+    "key": "broadcast_share_password",
+    "locales": [
+      "it"
+    ]
+  },
   "browse_menu_group_text",
   {
     "key": "btn_edit_receiver",
@@ -381,6 +393,24 @@
     ]
   },
   "draw_tool_text",
+  {
+    "key": "drive_channel_browse_file_desc",
+    "locales": [
+      "it"
+    ]
+  },
+  {
+    "key": "drive_channel_browse_title",
+    "locales": [
+      "fr"
+    ]
+  },
+  {
+    "key": "drive_channel_browse_via",
+    "locales": [
+      "fr"
+    ]
+  },
   "dropbox",
   "enable_audio",
   "enable_documents",
@@ -397,6 +427,64 @@
   "error_dialog_hide_details",
   "error_dialog_show_details",
   "error_title",
+  {
+    "key": "exchange_admin_address",
+    "locales": [
+      "de",
+      "it"
+    ]
+  },
+  {
+    "key": "exchange_admin_device_offline",
+    "locales": [
+      "de",
+      "it"
+    ]
+  },
+  {
+    "key": "exchange_admin_device_online",
+    "locales": [
+      "de",
+      "it"
+    ]
+  },
+  {
+    "key": "exchange_admin_invitation_code",
+    "locales": [
+      "de"
+    ]
+  },
+  {
+    "key": "exchange_admin_login_label",
+    "locales": [
+      "pt"
+    ]
+  },
+  {
+    "key": "exchange_admin_new_password_label",
+    "locales": [
+      "it"
+    ]
+  },
+  {
+    "key": "exchange_admin_section_invitations",
+    "locales": [
+      "fr"
+    ]
+  },
+  {
+    "key": "exchange_admin_section_limits",
+    "locales": [
+      "de"
+    ]
+  },
+  {
+    "key": "exchange_admin_section_status",
+    "locales": [
+      "de",
+      "pt"
+    ]
+  },
   {
     "key": "exchange_devices_card_login",
     "locales": [
@@ -427,6 +515,18 @@
     "key": "exchange_devices_signin_password",
     "locales": [
       "it"
+    ]
+  },
+  {
+    "key": "exchange_failure_details",
+    "locales": [
+      "de"
+    ]
+  },
+  {
+    "key": "exchange_failure_details_code",
+    "locales": [
+      "de"
     ]
   },
   "exchange_pin_hint",
@@ -1668,6 +1768,12 @@
   "stream_info_label_title",
   "stream_info_value_bitrate",
   "stream_info_value_frame_rate",
+  {
+    "key": "stream_source_live_badge",
+    "locales": [
+      "de"
+    ]
+  },
   "stream_wait_buffering",
   "streams_category_live_tv",
   "streams_category_on_demand_video",
@@ -1707,6 +1813,12 @@
   "streams_edit_type_label",
   "streams_edit_type_video",
   "streams_filter",
+  {
+    "key": "streams_filter_collection",
+    "locales": [
+      "fr"
+    ]
+  },
   "streams_filter_media_audio",
   "streams_filter_media_video",
   "streams_rubric_chillout",
@@ -2022,6 +2134,20 @@
   "wear_document_format_pdf",
   "wear_document_format_text",
   {
+    "key": "wear_exchange_broadcast_offline",
+    "locales": [
+      "de",
+      "it"
+    ]
+  },
+  {
+    "key": "wear_exchange_broadcast_video",
+    "locales": [
+      "de",
+      "it"
+    ]
+  },
+  {
     "key": "wear_exchange_login",
     "locales": [
       "pt"
@@ -2089,6 +2215,13 @@
   "wear_netmon_value_mhz",
   "wear_onboarding_microphone_title",
   "wear_onboarding_notifications_title",
+  {
+    "key": "wear_open_in_role_browser",
+    "locales": [
+      "de",
+      "it"
+    ]
+  },
   "wear_permissions_audio_title",
   "wear_phone_audio",
   "wear_phone_camera_start",

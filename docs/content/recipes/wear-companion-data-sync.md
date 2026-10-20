@@ -87,6 +87,17 @@ steps:
 
       Updated only one of the two apps? A sync between an older phone app and a newer watch app, or the other way round, still goes through: anything the older side does not know about is simply treated as not set, and every resource in the batch arrives.
   - number: 5
+    id: exchange-folders
+    title: Folders from the exchange server
+    text: |
+      A folder you connected on the phone through an exchange server can be ticked in **Resources for the watch** like any other. The phone hands the watch the address and the pass; the files themselves come straight over the watch's own Wi-Fi or LTE, never through Bluetooth. If the watch is online only through the phone's Bluetooth, the folder says so: "This folder opens only over the watch's own Wi-Fi or LTE."
+
+      At home the watch opens the folder by its address. Away from home it goes through the exchange server - for that the watch must be connected to the server too, which you do once on the phone. Without that the folder asks you to connect the watch on the phone.
+
+      A protected folder opens on the watch without typing anything: the PIN you entered on the phone travels with it, and the watch never shows it. A folder set to view-only on the phone offers no delete on the watch. Untick a folder, and it leaves the watch together with its PIN.
+
+      No phone nearby? On the watch, open **Settings**, **Exchange servers**, tap a server and choose **Account folders**. The watch lists the folders of that account by itself; tap one to add it to **Resources**. A protected one is added locked and opens once the phone hands over its PIN.
+  - number: 6
     id: watch-settings-groups
     title: Set up the watch from the phone
     text: |
@@ -106,7 +117,7 @@ steps:
       caption: "The watch settings, set from the phone."
       title: "Screenshot: Watch settings on the phone"
       desc: Phone, Wear Companion, Media types expanded, five switch rows with descriptions, Slideshow and Screen folded with summaries.
-  - number: 6
+  - number: 7
     id: colors-and-background
     title: Give the watch a color scheme and a background
     text: |
@@ -123,7 +134,7 @@ steps:
       caption: "The Light blue scheme on the watch."
       title: "Screenshot: Watch color scheme"
       desc: Round watch, home screen, Light blue color scheme, Branded still background.
-  - number: 7
+  - number: 8
     id: sync-settings
     title: Send the settings and check the sync
     text: |

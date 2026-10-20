@@ -194,6 +194,27 @@
             app:iconPadding="0dp"
             app:iconSize="@dimen/icon_tier_20"
             tools:visibility="visible" />
+
+        <!-- S4328: the "?" of the screen, last fixed control of the top bar. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnHelpHeader"
+            style="@style/Widget.FastMediaSorter.Camera.OverlayButton"
+            android:layout_width="@dimen/token_touch_target_min"
+            android:layout_height="@dimen/token_touch_target_min"
+            android:layout_marginStart="@dimen/token_spacing_8"
+            android:contentDescription="@string/help"
+            android:focusable="true"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:tooltipText="@string/help"
+            app:backgroundTint="@color/camera_capture_control_bg"
+            app:icon="@drawable/ic_help_outline"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="@dimen/icon_tier_20"
+            app:iconTint="@android:color/white"
+            app:strokeColor="@color/camera_capture_control_stroke" />
     </LinearLayout>
 
     <!-- S0566: recording timer overlay, centered in the top-bar row, shown only while recording. -->

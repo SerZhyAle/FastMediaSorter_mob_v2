@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.databinding.ActivityFrontFlashlightBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
+import com.sza.fastmediasorter.ui.common.help.HelpOverlayEntryManager
 import com.sza.fastmediasorter.ui.dialog.ColorPickerDialog
 import com.sza.fastmediasorter.ui.flashlight.helpers.FrontFlashlightBrightnessManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -48,6 +49,7 @@ class FrontFlashlightActivity : BaseActivity<ActivityFrontFlashlightBinding>() {
     private lateinit var gestureDetector: GestureDetector
 
     private val brightnessManager = FrontFlashlightBrightnessManager()
+    private var helpEntry: HelpOverlayEntryManager? = null
 
     private val brightnessCells: List<View> by lazy {
         listOf(
@@ -93,6 +95,9 @@ class FrontFlashlightActivity : BaseActivity<ActivityFrontFlashlightBinding>() {
     override fun setupViews() {
         Timber.d("flashlight opened, brightness level=${brightnessManager.currentLevel}")
         applyControlInsets()
+        helpEntry = HelpOverlayEntryManager(
+            this, binding.flashlightRoot, javaClass.simpleName, null, follow = binding.controlsOverlay,
+        )
         gestureDetector = GestureDetector(this, FlashlightGestures())
         binding.btnColor.setOnClickListener { openColorPicker() }
         bindBrightnessCells()
@@ -115,6 +120,8 @@ class FrontFlashlightActivity : BaseActivity<ActivityFrontFlashlightBinding>() {
     }
 
     override fun onDestroy() {
+        helpEntry?.release()
+        helpEntry = null
         binding.tvClock.removeCallbacks(clockTick)
         super.onDestroy()
     }

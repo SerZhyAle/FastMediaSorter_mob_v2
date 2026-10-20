@@ -467,6 +467,10 @@ val edgeGestureTileStandardEnabled =
 // S4030: rollback for the Play Contacts Permission declaration; 'off' strips READ_CONTACTS from standard only.
 val readContactsStandardEnabled =
     (providers.gradleProperty("fms.readContacts").orNull ?: "on").lowercase() != "off"
+// S4271: 'on' lets standard keep FOREGROUND_SERVICE_DATA_SYNC and the dataSync FGS types in a release; stays
+// 'off' until the Play Console dataSync declaration with its video is saved (the commit answers 403 before).
+val dataSyncFgsStandardEnabled =
+    (providers.gradleProperty("fms.dataSyncFgsStandard").orNull ?: "off").lowercase() != "off"
 // S1972: ABI splits, requested per invocation rather than per build type - `splits` is an
 // `android {}`-level block with no per-buildType form, so the debug builders pass
 // -Pfms.abiSplits=true and the release path passes nothing. Read here, at the top with the other
@@ -573,13 +577,16 @@ android {
         // bundled file withdrawn there is nothing left to guard, and the string itself no longer ends up
         // in the built BuildConfig.
 
-        // Git Hash
-        // === STARTUP DEBUG INFO ===
-        // Git Hash (Simplified for stability)
-        buildConfigField("String", "GIT_HASH", "\"Unknown\"")
-
-        // Build Time (Current)
-        buildConfigField("String", "BUILD_TIME", "\"Unknown\"")
+        // Gradle tracks the command output for configuration-cache invalidation when HEAD changes.
+        // Git resolves worktree metadata itself; source archives and hosts without Git still build.
+        val gitHash = runCatching {
+            providers.exec {
+                workingDir(rootDir)
+                commandLine("git", "rev-parse", "--short=12", "HEAD")
+                isIgnoreExitValue = true
+            }.standardOutput.asText.get().trim()
+        }.getOrDefault("").takeIf { it.matches(Regex("[0-9a-fA-F]{7,40}")) } ?: "Unknown"
+        buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
         buildConfigField("boolean", "IS_NO_LEGAL_FLAVOR", "false")
         buildConfigField("boolean", "SUPPORT_LAUNCHER", "false")
         // S1436: manifest-composition axis the permission registry filters on. Stripped from the
@@ -2059,9 +2066,10 @@ androidComponents {
         val broadcastFlavors = setOf("standard", "noLegal", "legacy")
         if (flavorName in broadcastFlavors) {
             variant.sources.manifests.addStaticManifestFile("src/broadcastSource/AndroidManifest.xml")
-            // S3154: FOREGROUND_SERVICE_CAMERA blocks the Play commit until a background-camera use
-            // case is declared, so only the sideload flavor keeps the camera type on the service.
-            val videoServiceDir = if (flavorName == "noLegal") "broadcastVideoBackground" else "broadcastVideoForeground"
+            // S3154: FOREGROUND_SERVICE_CAMERA blocked Play commit until background-camera use case was declared.
+            // S4235: standard store builds now declare camera background FGS for release 46 device exchange (B24);
+            // legacy retains the foreground-only declaration.
+            val videoServiceDir = if (flavorName in setOf("standard", "noLegal")) "broadcastVideoBackground" else "broadcastVideoForeground"
             variant.sources.manifests.addStaticManifestFile("src/$videoServiceDir/AndroidManifest.xml")
         }
 
@@ -2101,6 +2109,14 @@ androidComponents {
         if (flavorName == "standard" && !readContactsStandardEnabled) {
             // S4030: the src/main READ_CONTACTS declaration is shared with noLegal, so the removal is an overlay.
             variant.sources.manifests.addStaticManifestFile("src/standardNoContacts/AndroidManifest.xml")
+        }
+        // S4263: FOREGROUND_SERVICE_DATA_SYNC and dataSync FGS type are kept for noLegal (sideload),
+        // but stripped from store release builds until the Play Console FGS declaration with video is saved.
+        // S4271: standard alone returns to dataSync through fms.dataSyncFgsStandard; every other flavor keeps the strip.
+        val keepsDataSyncFgs =
+            flavorName == "noLegal" || (flavorName == "standard" && dataSyncFgsStandardEnabled)
+        if (variant.buildType == "release" && !keepsDataSyncFgs) {
+            variant.sources.manifests.addStaticManifestFile("src/storeReleaseNoDataSync/AndroidManifest.xml")
         }
 
         // S1436: the two manifest-composition axes whose value is not a literal. Set here rather

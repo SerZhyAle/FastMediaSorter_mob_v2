@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "Regarder des chaînes de télévision sur votre montre connectée - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-fr.html
 ---
-<sub class="doc-stamp">26.09.25 02:18</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-tv-fr.html
 > **Niveau :** Débutant &bull; **Durée :** ~10 minutes &bull; **Appareil :** Montre connectée Wear OS
 
 > **Version complète uniquement** - ce guide n'est pas implémenté dans la version distribuée via Google Play. Il s'applique à la version complète, un téléchargement direct de l'APK depuis [Téléchargements](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="scenario-watch-tv" dir="/docs/howto/" current="fr" %}
 
 FastMedia Wear lit les chaînes de télévision et de radio en direct directement au poignet. La montre ouvre le flux via son propre Wi-Fi, donc une fois qu'une chaîne est dans la liste, vous pouvez la regarder avec le téléphone dans une autre pièce, dans un sac, ou entièrement éteint.
 

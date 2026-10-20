@@ -22,7 +22,7 @@
     <string name="translation_model_prewarm_downloading">Загрузка модели перевода..</string>
     <string name="translation_model_prewarm_failed">Не удалось загрузить модель перевода. Попробуйте ещё раз.</string>
     <string name="translation_model_prewarm_ready">Модель перевода готова.</string>
-    <string name="translation_model_prewarm_retry">Повторить</string>
+    <string name="translation_model_prewarm_retry">Повторить попытку</string>
     <string name="translation_no_text_found">Нет текста для перевода</string>
     <string name="translation_settings">Настройки текста</string>
     <string name="translation_source_language">Исходный язык</string>

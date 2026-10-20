@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Backup Agendado da Câmera para o PC - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-pt.html
 ---
-<sub class="doc-stamp">26.09.25 02:13</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
 # 📷 Backup Agendado da Câmera para o PC
 
 > **Nível:** Iniciante &bull; **Tempo:** ~15 minutos de configuração &bull; **Edição:** Standard, Photos, Legacy, VR, noLegal (precisa de fontes de rede - Lite não tem)
-
-{% include lang-switcher.html doc="scenario-camera-backup" dir="/docs/howto/" current="pt" %}
 
 Copie automaticamente as novas fotos da câmera do seu celular para o seu computador de casa **todas as noites, pelo Wi-Fi**. Configure uma vez - e funciona para sempre, sem nenhuma ação manual.
 

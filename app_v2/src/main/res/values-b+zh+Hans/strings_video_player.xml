@@ -85,4 +85,21 @@
     <string name="playback_control_no_balance">单声道音频 - 无通道可平衡</string>
     <string name="playback_control_balance_value">平衡：%1$s</string>
     <string name="playback_control_balance_description">平衡 左 %1$d%%，右 %2$d%%</string>
+    <string name="player_file_grid">缩略图网格视图</string>
+    <string name="player_file_list">文件列表视图</string>
+    <string name="player_file_jump">转到文件</string>
+    <string name="player_file_number_hint">文件编号 (1..%1$d)</string>
+    <string name="player_file_number_error">请输入 1 到 %1$d 之间的整数。</string>
+    <string name="player_file_single">仅此文件可用。</string>
+    <string name="player_frame_unavailable">此视频不支持逐帧播放。</string>
+    <string name="player_frame_back_unavailable">无法显示上一帧：此解码器不支持向后单步。</string>
+    <string name="player_loop_title">A-B 循环</string>
+    <string name="player_loop_unavailable">A-B 重复需要可拖动进度的视频。</string>
+    <string name="player_loop_start">循环起点：%1$s。请选择终点。</string>
+    <string name="player_loop_active">A-B 重复：%1$s 至 %2$s</string>
+    <string name="player_loop_invalid_end">请选择位于起点之后的终点。</string>
+    <string name="player_frame_forward">下一帧</string>
+    <string name="player_action_unavailable">此操作不适用于该文件。</string>
+    <string name="player_audio_track_single">没有其他可用的音轨。</string>
+    <string name="player_frame_backward">上一帧</string>
 </resources>

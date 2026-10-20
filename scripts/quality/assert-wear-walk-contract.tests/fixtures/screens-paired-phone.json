@@ -1,0 +1,24 @@
+{
+  "_comment": [
+    "Fixture: S4210 - a paired-phone marker on a row the catalog adds only under a companion condition.",
+    "The accepting side of the check: a gate that refuses every marker proves as little as one that never does."
+  ],
+  "screens": [
+    {
+      "id": "alpha",
+      "name": "Alpha",
+      "expect": "Hello",
+      "screen": "AlphaScreen",
+      "expectRes": "good_marker",
+      "homeSection": "RESOURCES",
+      "requiresPairedPhone": true
+    }
+  ],
+  "excluded": [
+    {
+      "screen": "BetaScreen",
+      "reason": "not-a-destination",
+      "note": "Fixture: nested helper."
+    }
+  ]
+}

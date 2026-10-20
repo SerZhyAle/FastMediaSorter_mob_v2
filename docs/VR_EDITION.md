@@ -1,10 +1,10 @@
 ---
-layout: default
+layout: doc
 title: "FastMediaSorter VR Edition"
 permalink: /docs/VR_EDITION.html
 ---
 
-<sub class="doc-stamp">26.09.10 21:53</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # FastMediaSorter VR Edition
 

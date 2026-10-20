@@ -22,8 +22,9 @@ import com.sza.fastmediasorter.domain.usecase.intake.DispatchIntakeTextUseCase
 import com.sza.fastmediasorter.ui.addresource.helpers.AddResourceSftpQrCoordinator
 import com.sza.fastmediasorter.ui.addresource.helpers.CreatedResourcePinManager
 import com.sza.fastmediasorter.ui.addresource.helpers.CreatedResourcePlacementManager
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
+import com.sza.fastmediasorter.ui.common.help.HelpToolbarEntryManager
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
-import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.exchange.ExchangeDirectoryViewModel
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeDirectoryDialogManager
@@ -52,7 +53,13 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     private val keyboardDelegate = AddResourceKeyboardDelegate(object : AddResourceKeyboardDelegate.Callback {
         override fun navigateBack() { onBackPressedDispatcher.onBackPressed() }
-        override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, UiSurface.ADD_RESOURCE) }
+        override fun showHelp() {
+            HelpOpenManager.open(
+                this@AddResourceActivity,
+                AddResourceActivity::class.java.simpleName,
+                UiSurface.ADD_RESOURCE,
+            )
+        }
         override fun activateFocused(): Boolean = activateFocusedViewOrAncestor()
         override fun moveFocus(direction: FocusDirection) {
             val focusDir = when (direction) {
@@ -241,6 +248,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         directoryDialog = ExchangeDirectoryDialogManager(this, directoryViewModel)
 
         binding.toolbar.setUpNavigation(this)
+        HelpToolbarEntryManager.install(binding.toolbar, this, getHelpSurfaceId(), UiSurface.ADD_RESOURCE)
 
         resourceToAddAdapter = ResourceToAddAdapter(
             onSelectionChanged = { resource, selected -> viewModel.toggleResourceSelection(resource, selected) },

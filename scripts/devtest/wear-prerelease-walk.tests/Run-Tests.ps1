@@ -732,7 +732,265 @@ Assert-Equal -Label 'an out-of-flavor entry is counted apart from every other ou
 Assert-Equal -Label 'the walk verdict does not score an out-of-flavor row' `
     -Expected $false -Actual ($walkText -match '\$verdict = if \([^\r\n]*outOfFlavor')
 
+# --- S4210: a screen that needs a paired phone, on a run that has none ---------------------------
+#
+# Owner decision 2026-10-14: the watch verdict rests on the two reviewed emulators, and an emulator
+# cannot be paired. Since S4011 the Resources, Phone and Phone camera rows are drawn only while a
+# phone answers with FastMediaSorter, so each of their entries spent about 100 s hunting for a row
+# that was never drawn, then lost the walk its position for the entries after it.
+
+$walkAst = [System.Management.Automation.Language.Parser]::ParseFile($walk, [ref]$null, [ref]$null)
+foreach ($pureFunction in @('Get-WalkCompanionHintTokens', 'Test-WalkCompanionHintShown')) {
+    $definition = $walkAst.Find({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq $pureFunction
+        }, $true)
+    Assert-Equal -Label "the walk defines $pureFunction" -Expected $true -Actual ($null -ne $definition)
+    if ($null -ne $definition) { . ([scriptblock]::Create($definition.Extent.Text)) }
+}
+
+$hintTokens = @(Get-WalkCompanionHintTokens -WearRoot (Join-Path $repoRoot 'wear'))
+$wearStrings = {
+    param([string]$Locale)
+    $folder = if ($Locale) { "values-$Locale" } else { 'values' }
+    $xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot "wear/src/main/res/$folder/strings.xml") -Raw)
+    return $xml.SelectSingleNode("/resources/string[@name='wear_companion_hint_connect']").InnerText
+}
+$englishHint = & $wearStrings ''
+$russianHint = & $wearStrings 'ru'
+
+Assert-Equal -Label 'the hint tokens carry the resource-id, which survives any locale' `
+    -Expected $true -Actual ($hintTokens -ccontains 'wear_home_companion_hint')
+
+Assert-Equal -Label 'the hint tokens carry the English value, read from the module' `
+    -Expected $true -Actual ($hintTokens -ccontains $englishHint)
+
+Assert-Equal -Label 'the hint tokens carry a translated value too - the sweep runs in the device language' `
+    -Expected $true -Actual ($hintTokens -ccontains $russianHint)
+
+Assert-Equal -Label 'a tree carrying only the hint resource-id is read as the hint' `
+    -Expected $true -Actual (Test-WalkCompanionHintShown -Haystack "Programs  `n  wear_home_companion_hint" -Tokens $hintTokens)
+
+Assert-Equal -Label 'a tree carrying the Russian hint text is read as the hint' `
+    -Expected $true -Actual (Test-WalkCompanionHintShown -Haystack "Программы  `n$russianHint  " -Tokens $hintTokens)
+
+Assert-Equal -Label 'a Home without the hint is not read as the hint' `
+    -Expected $false -Actual (Test-WalkCompanionHintShown -Haystack "Resources  `nPhone  `nPrograms  " -Tokens $hintTokens)
+
+Assert-Equal -Label 'an unread tree is never read as the hint' `
+    -Expected $false -Actual (Test-WalkCompanionHintShown -Haystack $null -Tokens $hintTokens)
+
+Assert-Equal -Label 'the phoneBound branch runs after the flavor skip' `
+    -Expected $true `
+    -Actual ($walkText.IndexOf("`$row.outcome = 'outOfFlavor'") -lt $walkText.IndexOf("`$row.outcome = 'phoneBound'"))
+
+Assert-Equal -Label 'and before the walk reaches for any control' `
+    -Expected $true `
+    -Actual ($walkText.IndexOf("`$row.outcome = 'phoneBound'") -lt $walkText.IndexOf('$tap = Invoke-ReachControl'))
+
+Assert-Equal -Label 'a phoneBound entry is counted apart from every other outcome' `
+    -Expected $true -Actual ($walkText -match "phoneBound\s+= @\(\`$rows \| Where-Object \{ \`$_\.outcome -eq 'phoneBound' \}\)\.Count")
+
+Assert-Equal -Label 'the summary line reports the phoneBound count' `
+    -Expected $true -Actual ($walkText -match 'phoneBound \$\(\$result\.counts\.phoneBound\)')
+
+Assert-Equal -Label 'the walk verdict does not score a phoneBound row' `
+    -Expected $false -Actual ($walkText -match '\$verdict = if \([^\r\n]*phoneBound')
+
+$markedIds = @($declaredScreens | Where-Object {
+        $_.PSObject.Properties['requiresPairedPhone'] -and $_.requiresPairedPhone -eq $true
+    } | ForEach-Object { $_.id })
+Assert-Equal -Label 'exactly the four phone-bound entries carry the marker' `
+    -Expected 'phone,phone-camera,resources,resources-sync-transfer' -Actual ((@($markedIds) | Sort-Object) -join ',')
+
+# End to end against a scripted fake watch: the walk runs unchanged, every adb verb answered from a
+# scenario file, and every call journalled - which is how "never hunted" becomes a count of swipes
+# rather than a reading of the source.
+$fakeAdb = @'
+param(
+    [Parameter(Position = 0)][string]$Verb,
+    [string]$Cmd, [string]$DeviceId, [string]$Label, [string]$ResourceId, [switch]$Exact,
+    [string]$X, [string]$Y, [string]$X2, [string]$Y2, [string]$Duration,
+    [string]$Key, [string]$Repeat, [string]$OutDir, [string]$Module, [switch]$Release,
+    [switch]$Json, [string]$Tail
+)
+# Same as adb.ps1: the walk decodes this process's stdout as UTF-8, and a translated label is the case.
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$dir = $env:FAKE_ADB_DIR
+$scenario = Get-Content -LiteralPath (Join-Path $dir 'scenario.json') -Raw | ConvertFrom-Json
+$statePath = Join-Path $dir 'state.json'
+# Wrapped whole: an assignment from an if-statement unwraps a one-element array to the bare string,
+# and indexing a string answers a character.
+$stack = @(if (Test-Path -LiteralPath $statePath) { Get-Content -LiteralPath $statePath -Raw | ConvertFrom-Json } else { $scenario.start })
+Add-Content -LiteralPath (Join-Path $dir 'calls.log') -Value ("$Verb|$Label|$Cmd|$Key".TrimEnd('|')) -Encoding UTF8
+function Save-Stack { param([object[]]$Stack) ConvertTo-Json -InputObject @($Stack) -Compress | Set-Content -LiteralPath $statePath -Encoding UTF8 }
+$screen = $scenario.screens.($stack[-1])
+switch ($Verb) {
+    'shell' {
+        switch -Regex ($Cmd) {
+            '^dumpsys power' { 'mWakefulness=Awake' }
+            '^wm size' { 'Physical size: 384x384' }
+            '^dumpsys package' { "versionName=$($scenario.versionName)" }
+            '^dumpsys window' { '  mCurrentFocus=Window{1 com.sza.fastmediasorter/com.sza.fastmediasorter.wear.MainActivity}' }
+        }
+        exit 0
+    }
+    'current' { 'mResumedActivity: com.sza.fastmediasorter/.wear.MainActivity'; exit 0 }
+    'uidump' { [pscustomobject]@{ ok = $true; data = [pscustomobject]@{ nodes = @($screen.nodes) } } | ConvertTo-Json -Depth 6 -Compress; exit 0 }
+    'tap-label' {
+        $target = $screen.taps.PSObject.Properties[$Label]
+        if ($null -ne $target) { Save-Stack -Stack (@($stack) + $target.Value); "tapped $Label"; exit 0 }
+        "no node labelled '$Label'"; exit 8
+    }
+    'tap-id' { 'no node with that id'; exit 8 }
+    'key' { if ($stack.Count -gt 1) { Save-Stack -Stack @($stack[0..($stack.Count - 2)]) }; exit 0 }
+    'launch' { Save-Stack -Stack @($scenario.start); exit 0 }
+    'shot' { Join-Path $OutDir 'fake.png'; exit 0 }
+    default { exit 0 }
+}
+'@
+
+$fakeScreenList = [ordered]@{
+    screens  = @(
+        [ordered]@{ id = 'home'; name = 'Home'; expect = 'Programs'; backAfter = 0 },
+        [ordered]@{ id = 'resources'; name = 'Resources'; label = 'Resources'; expect = 'Sync from Phone'
+            homeSection = 'RESOURCES'; requiresPairedPhone = $true; backAfter = 0 },
+        [ordered]@{ id = 'resources-sync-transfer'; name = 'Sync'; label = 'Sync from Phone'; expect = 'Receiving data'
+            homeSection = 'RESOURCES'; requiresPairedPhone = $true; backAfter = 2 },
+        [ordered]@{ id = 'apps'; name = 'Programs'; label = 'Programs'; expect = 'Calculator'; backAfter = 1 }
+    )
+    excluded = @()
+}
+
+function Invoke-FakeWalk {
+    # One walk against the fake watch. Returns its exit code, its JSON result and the verbs it sent.
+    param([Parameter(Mandatory)][hashtable]$Screens)
+
+    $dir = Join-Path ([System.IO.Path]::GetTempPath()) ("s4210-walk-" + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    $previousDir = $env:FAKE_ADB_DIR
+    try {
+        $adb = Join-Path $dir 'fake-adb.ps1'
+        Set-Content -LiteralPath $adb -Value $fakeAdb -Encoding UTF8
+        $list = Join-Path $dir 'screens.json'
+        $fakeScreenList | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $list -Encoding UTF8
+        [ordered]@{ start = 'home'; versionName = '2.61.0141.503-DEBUG'; screens = $Screens } |
+            ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $dir 'scenario.json') -Encoding UTF8
+
+        $env:FAKE_ADB_DIR = $dir
+        $out = & pwsh -NoProfile -File $walk -AdbWrapper $adb -ScreenList $list -OutDir (Join-Path $dir 'out') `
+            -SettleMs 0 -MinBatteryPct 0 -SkipLogAudit -SkipShapeCheck -Json 2>&1
+        $exit = $LASTEXITCODE
+        $parsed = $null
+        try { $parsed = ($out | Where-Object { "$_" -match '^\s*\{' } | Select-Object -Last 1) | ConvertFrom-Json } catch { $parsed = $null }
+        $calls = @(Get-Content -LiteralPath (Join-Path $dir 'calls.log') -ErrorAction SilentlyContinue)
+        return [pscustomobject]@{ Exit = $exit; Result = $parsed; Calls = $calls }
+    }
+    finally {
+        $env:FAKE_ADB_DIR = $previousDir
+        Remove-Item -LiteralPath $dir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function Get-FakeRow {
+    param($Run, [string]$Id)
+    if ($null -eq $Run.Result) { return $null }
+    return @($Run.Result.screens | Where-Object { $_.id -eq $Id })[0]
+}
+
+# Unpaired: Home carries the hint in the device language and no Resources row, as on an emulator.
+$unpaired = Invoke-FakeWalk -Screens @{
+    home = @{ nodes = @(@{ label = 'Local' }, @{ label = 'Programs' }, @{ label = $russianHint }); taps = @{ Programs = 'apps' } }
+    apps = @{ nodes = @(@{ label = 'Calculator' }); taps = @{} }
+}
+
+Assert-Equal -Label 'unpaired: the walk produced a result' -Expected $true -Actual ($null -ne $unpaired.Result)
+
+Assert-Equal -Label 'unpaired: the run reads Home and calls itself unpaired' `
+    -Expected 'False' -Actual "$(if ($unpaired.Result) { $unpaired.Result.phonePairing.paired })"
+
+Assert-Equal -Label 'unpaired: a marked entry is recorded phoneBound' `
+    -Expected 'phoneBound' -Actual "$((Get-FakeRow $unpaired 'resources').outcome)"
+
+Assert-Equal -Label 'unpaired: and so is its child, without a second Home read' `
+    -Expected 'phoneBound' -Actual "$((Get-FakeRow $unpaired 'resources-sync-transfer').outcome)"
+
+Assert-Equal -Label 'unpaired: the walk never reaches for the phone-bound control' `
+    -Expected 0 -Actual @($unpaired.Calls | Where-Object { $_ -match '^tap-label\|(Resources|Sync from Phone)$' }).Count
+
+Assert-Equal -Label 'unpaired: the walk does not hunt - not one swipe in the whole run' `
+    -Expected 0 -Actual @($unpaired.Calls | Where-Object { $_ -eq 'swipe' }).Count
+
+Assert-Equal -Label 'unpaired: the entry after them is still walked from Home' `
+    -Expected 'observed' -Actual "$((Get-FakeRow $unpaired 'apps').outcome)"
+
+Assert-Equal -Label 'unpaired: phoneBound is counted' `
+    -Expected 2 -Actual "$(if ($unpaired.Result) { $unpaired.Result.counts.phoneBound })"
+
+Assert-Equal -Label 'unpaired: and is not counted as unreachable' `
+    -Expected 0 -Actual "$(if ($unpaired.Result) { $unpaired.Result.counts.unreachable })"
+
+Assert-Equal -Label 'unpaired: phoneBound never sets exit 1 - the run exits 0' `
+    -Expected 0 -Actual $unpaired.Exit
+
+# Paired: no hint anywhere on Home, the Resources row drawn - the entry is walked like any other.
+$paired = Invoke-FakeWalk -Screens @{
+    home      = @{ nodes = @(@{ label = 'Resources' }, @{ label = 'Local' }, @{ label = 'Programs' })
+        taps = @{ Resources = 'resources'; Programs = 'apps' } }
+    resources = @{ nodes = @(@{ label = 'Sync from Phone' }); taps = @{ 'Sync from Phone' = 'sync' } }
+    sync      = @{ nodes = @(@{ label = 'Receiving data' }); taps = @{} }
+    apps      = @{ nodes = @(@{ label = 'Calculator' }); taps = @{} }
+}
+
+Assert-Equal -Label 'paired: the run reads Home and calls itself paired' `
+    -Expected 'True' -Actual "$(if ($paired.Result) { $paired.Result.phonePairing.paired })"
+
+Assert-Equal -Label 'paired: the marked entry is walked and observed' `
+    -Expected 'observed' -Actual "$((Get-FakeRow $paired 'resources').outcome)"
+
+Assert-Equal -Label 'paired: its child is walked and observed' `
+    -Expected 'observed' -Actual "$((Get-FakeRow $paired 'resources-sync-transfer').outcome)"
+
+Assert-Equal -Label 'paired: the walk tapped the phone-bound control' `
+    -Expected 1 -Actual @($paired.Calls | Where-Object { $_ -eq 'tap-label|Resources' }).Count
+
+Assert-Equal -Label 'paired: nothing is recorded phoneBound' `
+    -Expected 0 -Actual "$(if ($paired.Result) { $paired.Result.counts.phoneBound })"
+
+Assert-Equal -Label 'paired: the run exits 0' -Expected 0 -Actual $paired.Exit
+
+# The verdict: a phoneBound row is accounted for and weighed by nothing, while a manual or an
+# unreachable screen beside it still refuses the PASS exactly as before.
+$phoneBoundVerdict = Invoke-VerdictOnScreens @(
+    @{ id = 'home'; outcome = 'observed'; detail = $null },
+    @{ id = 'resources'; outcome = 'phoneBound'; detail = 'no paired phone' }
+)
+
+Assert-Equal -Label 'verdict: PASS with phoneBound screens and everything else observed' `
+    -Expected $true -Actual ([bool]$(if ($phoneBoundVerdict) { $phoneBoundVerdict.pass }))
+
+Assert-Equal -Label 'verdict: the phoneBound count is carried' `
+    -Expected 1 -Actual "$(if ($phoneBoundVerdict) { $phoneBoundVerdict.breakdown.walk.phoneBound })"
+
+$phoneBoundManualVerdict = Invoke-VerdictOnScreens @(
+    @{ id = 'home'; outcome = 'observed'; detail = $null },
+    @{ id = 'resources'; outcome = 'phoneBound'; detail = 'no paired phone' },
+    @{ id = 'favourites'; outcome = 'manual'; detail = 'state-dependent' }
+)
+
+Assert-Equal -Label 'verdict: a manual screen beside phoneBound still blocks' `
+    -Expected 'False/True' -Actual "$([bool]$phoneBoundManualVerdict.pass)/$([bool]$phoneBoundManualVerdict.blocked)"
+
+$phoneBoundUnreachableVerdict = Invoke-VerdictOnScreens @(
+    @{ id = 'home'; outcome = 'observed'; detail = $null },
+    @{ id = 'resources'; outcome = 'phoneBound'; detail = 'no paired phone' },
+    @{ id = 'local'; outcome = 'unreachable'; detail = 'control not found' }
+)
+
+Assert-Equal -Label 'verdict: an unreachable screen beside phoneBound still fails' `
+    -Expected 'False/False' -Actual "$([bool]$phoneBoundUnreachableVerdict.pass)/$([bool]$phoneBoundUnreachableVerdict.blocked)"
+
 Write-Host ""
-Write-Host "wear-prerelease-walk.tests: $script:passed passed, $script:failed failed."
+Write-Host "wear-prerelease-walk.tests: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"
 if ($script:failed -gt 0) { exit 1 }
 exit 0

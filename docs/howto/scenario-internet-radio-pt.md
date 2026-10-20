@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Rádio pela Internet e Streams - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-pt.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
 # 📻 Rádio pela Internet e Streams
 
 > **Nível:** Iniciante - **Tempo:** ~10 minutos - **Edição:** Standard, Legacy, VR, noLegal (o Streams está ausente no Lite e no Photos)
-
-{% include lang-switcher.html doc="scenario-internet-radio" dir="/docs/howto/" current="pt" %}
 
 O FastMediaSorter inclui uma tela dedicada de Streams para fontes de áudio e vídeo pela internet. Adicione qualquer URL de rádio pela internet, importe uma playlist .m3u ou navegue por um catálogo de estações selecionado - sem precisar de um app de rádio separado. Funciona muito bem em rádios automotivos Android, players de áudio, celulares e tablets.
 

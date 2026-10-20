@@ -36,9 +36,11 @@ import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
+import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.input.UiSurface
-import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction
@@ -48,6 +50,7 @@ import com.sza.fastmediasorter.ui.player.helpers.BackgroundAudioExitDialog
 import com.sza.fastmediasorter.ui.player.standalone.AudioStandaloneActivity
 import com.sza.fastmediasorter.ui.streams.helpers.StreamAtlasPromptManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastImportManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastPasswordPromptManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamDeviceBroadcastsManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager
@@ -58,7 +61,6 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioViews
 import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
-import com.sza.fastmediasorter.ui.streams.helpers.StreamsCollectionStripManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsCommandLabelManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
@@ -249,12 +251,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private val broadcastImportManager: StreamBroadcastImportManager by lazy {
         StreamBroadcastImportManager(
             activity = this,
-            onScanQrRequested = {
-                broadcastQrScanLauncher.launch(
-                    com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrScanActivity
-                        .createIntent(this)
-                )
-            },
+            onScanQrRequested = ::scanBroadcastQr,
             onPickFileRequested = { broadcastDescriptorPickerLauncher.launch(arrayOf("*/*")) },
         )
     }
@@ -263,6 +260,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode != android.app.Activity.RESULT_OK) return@registerForActivityResult
+        if (result.data?.getBooleanExtra(PlayerActivity.EXTRA_BROADCAST_PASSWORD_REQUIRED, false) == true) {
+            latestState.sources.firstOrNull { it.id == fullscreenSourceId }?.let(::askBroadcastPassword)
+            return@registerForActivityResult
+        }
         val url = result.data
             ?.getStringExtra(PlayerActivity.EXTRA_STREAM_THUMBNAIL_URL)
             ?: return@registerForActivityResult
@@ -420,7 +421,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private lateinit var sectionsManager: StreamsSectionsManager
 
     private lateinit var controlsPlacement: StreamsControlsPlacementManager
-    private lateinit var collectionStrip: StreamsCollectionStripManager
 
     private lateinit var commandLabels: StreamsCommandLabelManager
 
@@ -453,6 +453,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     private val filterDialogManager by lazy { StreamsFilterDialogManager(this) }
+
+    private val broadcastPasswordPrompt by lazy { StreamBroadcastPasswordPromptManager(this) }
+
+    // The row the fullscreen player was opened for: its refusal result carries no row, and the password is kept
+    // per row, never per played address.
+    private var fullscreenSourceId: String? = null
 
     // S1474: the "about this channel" window. Both collaborators are passed as accessors rather than as
     // instances - `healthProbe` is lazy and `inlineAudio` is a lateinit created in onCreate, so reading
@@ -525,6 +531,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     if (isPlaying) source?.let(::persistStreamResume) else clearStreamResume()
                 },
                 onError = ::showStreamUnavailable,
+                onPasswordRequired = ::askBroadcastPassword,
                 onSuccess = { viewModel.recordStreamPlaySuccess(it.id) },
                 // S1142: mirror the live now-playing track onto the active channel's grid tile. The id
                 // comes from the manager itself - reading it back via inlineAudio here crashed on the
@@ -605,8 +612,13 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             chevron = binding.ivDevicesChevron,
             status = binding.tvDevicesStatus,
             list = binding.streamsDevicesList,
+            portalLink = binding.btnDevicesPortal,
             onToggle = deviceBroadcastsViewModel::toggle,
             onChosen = deviceBroadcastsViewModel::onBroadcastChosen,
+            onPortalLink = {
+                Timber.d("S4273: broadcasts of my devices link opens the receive page")
+                MediaExchangePortalLinks.open(this, MediaExchangePortalLinks.Page.BROADCAST_RECEIVE)
+            },
         )
     }
 
@@ -651,7 +663,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     true
                 }
                 R.id.action_help -> {
-                    DocsPageOpenManager.open(this, UiSurface.STREAMS)
+                    HelpOpenManager.open(this, StreamsActivity::class.java.simpleName, UiSurface.STREAMS)
                     true
                 }
                 else -> false
@@ -689,18 +701,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             },
         )
         mediaKindTrigger.bind()
-
-        // S2669: the curated-collection strip. The manager owns every decision about the strip; the
-        // Activity only forwards the tap to the ViewModel.
-        collectionStrip = StreamsCollectionStripManager(
-            strip = binding.streamCollectionsStrip,
-            chipGroup = binding.streamCollectionsChips,
-            announcementTarget = binding.streamsMainHeader,
-            onCollectionSelected = { collectionId ->
-                cancelHealthProbe()
-                viewModel.onCollectionSelected(collectionId)
-            },
-        )
     }
 
     private fun setupOrientationPlacement() {
@@ -926,8 +926,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             }
             binding.emptyStateView.isVisible = state.isEmpty
             latestState = state
-            // S2669: the strip decides its own visibility and selection from the delivered set.
-            collectionStrip.render(state.collections, state.filter.collectionId, state.sources.size)
             updateFilterIndicator(state.filter)
             // S1473: renders from the shared filter state, so a change made in the filter dialog
             // repaints the inline icons on the same emission.
@@ -995,6 +993,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     tryRestoreScroll(latestState.sources.size)
                 }
                 StreamsViewModel.StreamsEvent.SuggestCatalogRefresh -> showCatalogRefreshSuggestion()
+                is StreamsViewModel.StreamsEvent.BroadcastPasswordRequired ->
+                    broadcastPasswordPrompt.show(refused = false) { password ->
+                        viewModel.onImportBroadcastDescriptor(event.payload, password)
+                    }
             }
         }
     }
@@ -1080,6 +1082,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * interaction (see [cancelHealthProbe]); the amber "unknown" stays the not-yet-probed default.
      */
     private fun startHealthProbe() {
+        viewModel.refreshLiveBroadcasts()
         val visible = visibleSources()
         if (visible.isEmpty()) return
         Toast.makeText(this, R.string.streams_refresh_probing, Toast.LENGTH_SHORT).show()
@@ -1192,7 +1195,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             // both of which funnel through onPlay.
             !viewModel.hasNetworkForStream ->
                 Toast.makeText(this, R.string.streams_error_no_network, Toast.LENGTH_SHORT).show()
-            broadcastEndpoints.needsResolution(source.broadcastEndpoints) ->
+            ObserveLiveBroadcastSourcesUseCase.isLiveBroadcast(source) ||
+                broadcastEndpoints.needsResolution(source.broadcastEndpoints) ->
                 playBroadcast(source)
             else -> startPlayback(source)
         }
@@ -1247,6 +1251,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // VIDEO / RTSP: open the existing fullscreen player. The stream URL is carried as the initial
         // path against the synthetic single-item resource id; the player classifies the scheme to a
         // stream ResourceType and routes it to the stream playback helper (S0565 Phase 04).
+        fullscreenSourceId = source.id
         Timber.i("StreamsActivity: launching fullscreen stream - %s", source.url)
         streamPlayerLauncher.launch(
             PlayerActivity.createIntent(
@@ -1370,6 +1375,14 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         )
     }
 
+    /** LIVE-BROADCAST item M: the broadcast refused this row's pair; the typed password replaces it and replays. */
+    private fun askBroadcastPassword(played: StreamSourceEntity) {
+        val source = played.copy(url = broadcastEndpoints.storedUrl(played.id, played.url))
+        broadcastPasswordPrompt.show(refused = true) { password ->
+            viewModel.onBroadcastPasswordEntered(source, password)
+        }
+    }
+
     private fun confirmRemove(source: StreamSourceEntity) {
         // S1424: the dialog itself moved to a shared object so the launcher desktop asks the same
         // question instead of a copy of it.
@@ -1405,12 +1418,31 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             }
             .setNegativeButton(R.string.cancel, null)
             .create()
+        // S4406: the code a live broadcast shows is a descriptor, not a URL, so a scan bypasses the typed fields
+        // and imports through the same path as the overflow entry; camera-less devices keep the typed address.
+        dialogBinding.btnScanBroadcastQr.isVisible = !isImport && isBarcodeScanAvailable()
+        dialogBinding.btnScanBroadcastQr.setOnClickListener {
+            Timber.d("S4406: add-stream dialog scan QR tapped")
+            dialog.dismiss()
+            cancelHealthProbe()
+            scanBroadcastQr()
+        }
         DialogKeyboardDelegate.applyTo(dialog) {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
         }
         dialog.showBoundToHost(this@StreamsActivity)
         dialogBinding.etUrl.requestFocus()
     }
+
+    private fun scanBroadcastQr() {
+        broadcastQrScanLauncher.launch(
+            com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrScanActivity.createIntent(this)
+        )
+    }
+
+    /** Barcode import needs a camera; camera-less devices (TV boxes, headsets) type the address or pick a file. */
+    private fun isBarcodeScanAvailable(): Boolean =
+        packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_CAMERA_ANY)
 
     private fun showEditDialog(source: StreamSourceEntity) = StreamEditDialog.show(
         activity = this,
@@ -1466,21 +1498,38 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * selections to the ViewModel.
      */
     private fun showFilterDialog() {
-        filterDialogManager.show(latestState) { category, topic, language, country, mediaKind, pinnedOnly ->
-            viewModel.onFilter(
-                category = category,
-                topic = topic,
-                language = language,
-                country = country,
-                mediaKind = mediaKind,
-                pinnedOnly = pinnedOnly,
-            )
+        filterDialogManager.show(latestState, ::onFilterDialogApplied)
+    }
+
+    private fun onFilterDialogApplied(
+        collectionId: String?,
+        category: String?,
+        topic: String?,
+        language: String?,
+        country: String?,
+        mediaKind: StreamsViewModel.MediaKindFilter,
+        pinnedOnly: Boolean,
+    ) {
+        // The collection is a separate ViewModel input: it loads its membership asynchronously, so it
+        // is forwarded only when it actually changed, not on every facet pick.
+        if (collectionId != latestState.filter.collectionId) {
+            cancelHealthProbe()
+            viewModel.onCollectionSelected(collectionId)
         }
+        viewModel.onFilter(
+            category = category,
+            topic = topic,
+            language = language,
+            country = country,
+            mediaKind = mediaKind,
+            pinnedOnly = pinnedOnly,
+        )
     }
 
     /** Marks an active filter on the filter button by a dot glyph (shape, not color alone). */
     private fun updateFilterIndicator(filter: StreamsViewModel.StreamsFilter) {
-        val active = filter.category != null ||
+        val active = filter.collectionId != null ||
+            filter.category != null ||
             filter.topic != null ||
             filter.language != null ||
             filter.country != null ||
@@ -1578,6 +1627,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     override fun onStart() {
         super.onStart()
         deviceBroadcastsViewModel.onScreenStarted()
+        viewModel.refreshLiveBroadcasts()
         // S1154: the atlas may have been installed from the Extensions Manager while this screen sat in
         // the background - pick it up on return instead of waiting for the next catalog import.
         // S1445: either container counts as installed - a fresh install carries the pack and no sheet.

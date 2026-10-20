@@ -2,12 +2,13 @@ package com.sza.fastmediasorter.ui.duplicates
 
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.Menu
 import android.view.View
 import androidx.core.view.children
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityDuplicatesBinding
-import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -37,6 +38,12 @@ class DuplicatesActivity : BaseActivity<ActivityDuplicatesBinding>() {
         }
     }
 
+    // S4328: the "?" help action rides the support action bar; BaseActivity routes its click.
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_help_action, menu)
+        return true
+    }
+
     override fun setupViews() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -62,7 +69,7 @@ class DuplicatesActivity : BaseActivity<ActivityDuplicatesBinding>() {
         when (keyCode) {
             KeyEvent.KEYCODE_ESCAPE -> { finish(); return true }
             KeyEvent.KEYCODE_F1 -> {
-                InputHelpDialogFragment.show(supportFragmentManager, UiSurface.DUPLICATES)
+                HelpOpenManager.open(this, DuplicatesActivity::class.java.simpleName, UiSurface.DUPLICATES)
                 return true
             }
         }

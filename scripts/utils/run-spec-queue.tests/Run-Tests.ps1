@@ -30,8 +30,9 @@
 
 .NOTES
     Exit codes:
-      0 - every case passed, or the resolved harness predates a fix and its cases were skipped.
+      0 - at least one case executed and every executed case passed.
       1 - a case failed.
+      2 - no test executed.
 #>
 [CmdletBinding()]
 param()
@@ -66,7 +67,7 @@ $ErrorActionPreference = 'Stop'
 $env:SZA_PROJECT_ROOT = $Sandbox
 . $HarnessLib
 $out = [ordered]@{ threshold = (Get-IdleRunPolicy).Threshold }
-foreach ($id in @('S9001', 'S9002', 'S9003', 'S9004', 'S9005', 'S9006')) {
+foreach ($id in @('S9001', 'S9002', 'S9003', 'S9004', 'S9005', 'S9006', 'S9007', 'S9008', 'S9009')) {
     $s = Get-IdleRunSeries -Id $id
     $out[$id] = [ordered]@{ count = $s.Count; last = [string]$s.LastOutcome; held = [bool](Test-IdleRunHeld -Id $id) }
 }
@@ -101,6 +102,12 @@ function New-Sandbox {
         '{"id":"S9004","moved":false,"outcome":"ok","finishedAt":"2026-09-01T10:00:00"}'
         '{"id":"S9006","moved":false,"outcome":"ok","finishedAt":"2026-09-01T10:00:00"}'
         'this line is not json at all'
+        # S4265: S9007 is ok, a limit hit, then ok - the limit steps over; S9008 is a limit hit alone;
+        # S9009 is ok followed by three consecutive limit hits, which leave its series as it was.
+        '{"id":"S9007","moved":false,"outcome":"ok","finishedAt":"2026-09-01T10:00:00"}'
+        '{"id":"S9007","moved":false,"outcome":"limit-hit","finishedAt":"2026-09-01T11:00:00"}'
+        '{"id":"S9008","moved":false,"outcome":"limit-hit","finishedAt":"2026-09-01T10:00:00"}'
+        '{"id":"S9009","moved":false,"outcome":"ok","finishedAt":"2026-09-01T10:00:00"}'
     )
     $runsB = @(
         '{"id":"S9001","moved":false,"outcome":"ok","finishedAt":"2026-09-01T11:00:00"}'
@@ -108,6 +115,10 @@ function New-Sandbox {
         '{"id":"S9002","moved":false,"outcome":"timeout","finishedAt":"2026-09-01T14:00:00"}'
         '{"id":"S9003","moved":false,"outcome":"ok","finishedAt":"2026-09-01T13:00:00"}'
         '{"id":"S9006","moved":false,"outcome":"no-progress-or-claim-lost","finishedAt":"2026-09-01T11:00:00"}'
+        '{"id":"S9007","moved":false,"outcome":"ok","finishedAt":"2026-09-01T12:00:00"}'
+        '{"id":"S9009","moved":false,"outcome":"limit-hit","finishedAt":"2026-09-01T11:00:00"}'
+        '{"id":"S9009","moved":false,"outcome":"limit-hit","finishedAt":"2026-09-01T12:00:00"}'
+        '{"id":"S9009","moved":false,"outcome":"limit-hit","finishedAt":"2026-09-01T13:00:00"}'
     )
     Set-Content -LiteralPath (Join-Path $sandbox 'temp/spec-queue/runs-a.jsonl') -Value $runsA -Encoding UTF8
     Set-Content -LiteralPath (Join-Path $sandbox 'temp/spec-queue/runs-b.jsonl') -Value $runsB -Encoding UTF8
@@ -136,9 +147,9 @@ try {
     $harnessLib = $null
 }
 if (-not $harnessLib -or -not (Test-Path -LiteralPath $harnessLib)) {
-    Write-Host '  SKIP S2695 idle-run series (8 cases) - the resolved harness predates the fix.' -ForegroundColor DarkGray
+    Write-Host '  SKIP S2695 idle-run series and S4265 limit series (11 cases) - the resolved harness predates the fix.' -ForegroundColor DarkGray
     Write-Host "        Run with SZA_HARNESS_ROOT pointed at the canon checkout to execute them." -ForegroundColor DarkGray
-    $skipped = 8
+    $skipped = 11
 } else {
     $sandboxes = @()
     try {
@@ -175,6 +186,19 @@ if (-not $harnessLib -or -not (Test-Path -LiteralPath $harnessLib)) {
         Assert-Case -Name 'an unparsable journal line is skipped without losing the file' `
             -Ok ($r.S9004.count -eq 1) `
             -Detail "expected: 1 - S9004 sits after the malformed line in runs-a | actual: $($r.S9004.count)"
+
+        # S4265: a limit hit is neither a run that counts nor one that ends the series.
+        Assert-Case -Name 'a usage-limit run is stepped over - it neither counts nor ends the series' `
+            -Ok ($r.S9007.count -eq 2 -and $r.S9007.last -eq 'ok') `
+            -Detail "expected: 2 / ok (the limit row between two idle runs is skipped) | actual: $($r.S9007.count) / $($r.S9007.last)"
+
+        Assert-Case -Name 'a ticket hit by the limit alone has no series' `
+            -Ok ($r.S9008.count -eq 0 -and -not $r.S9008.held) `
+            -Detail "expected: 0 / not held | actual: $($r.S9008.count) / held=$($r.S9008.held)"
+
+        Assert-Case -Name 'three limit-hit rows in a row leave the series as the idle run before them made it' `
+            -Ok ($r.S9009.count -eq 1 -and $r.S9009.last -eq 'ok') `
+            -Detail "expected: 1 / ok | actual: $($r.S9009.count) / $($r.S9009.last)"
 
         # A second process, because the profile and the map are both cached per process.
         $sandbox3 = New-Sandbox -Threshold 3
@@ -409,6 +433,134 @@ if (-not $hasOutcomeResolver) {
 }
 
 Write-Host ''
+Write-Host 'run-spec-queue tests - the usage limit is not the ticket (S4265)' -ForegroundColor Cyan
+
+# The limit signal and the shared hold live in batch/_limit-hold.ps1, which reads the profile and
+# keeps process-local state, so they are exercised in a nested process over a sandbox - the same
+# reason the idle series is (see the S2695 block). The hold cases run in the probe's own order: the
+# past-hold check comes before any write, because a write also remembers the hold in this process
+# and a remembered future hold would answer for a file that has expired.
+$limitProbeBody = @'
+param([Parameter(Mandatory)][string]$HarnessLib, [Parameter(Mandatory)][string]$Sandbox)
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+$env:SZA_PROJECT_ROOT = $Sandbox
+. $HarnessLib
+$dir = Join-Path $Sandbox 'transcripts'
+New-Item -ItemType Directory -Path $dir -Force | Out-Null
+$limit = '{"type":"assistant","message":{"model":"<synthetic>"},"isApiErrorMessage":true,"apiError":"usage_limit_reached","error":"rate_limit","apiErrorStatus":429,"quotaLimits":{"resetsAt":1791892800,"rateLimitType":"seven_day"}}'
+$work = '{"type":"assistant","message":{"model":"claude-opus-5-5","content":[{"type":"text","text":"resumed"}]}}'
+$tail = '{"type":"last-prompt","lastPrompt":"x"}'
+$limitLast = Join-Path $dir 'limit-last.jsonl'
+Set-Content -LiteralPath $limitLast -Value @($limit, $tail) -Encoding UTF8
+$limitThenWork = Join-Path $dir 'limit-then-work.jsonl'
+Set-Content -LiteralPath $limitThenWork -Value @($limit, $work, $tail) -Encoding UTF8
+$out = [ordered]@{}
+$s = Get-LimitSignal -TranscriptPath $limitLast -LogBody '' -ExitCode 1
+$out.transcriptLimit = if ($null -eq $s) { $null } else { [ordered]@{ source = $s.Source; resetsAt = $s.ResetsAt; type = $s.RateLimitType } }
+$s = Get-LimitSignal -TranscriptPath $limitThenWork -LogBody '' -ExitCode 1
+$out.transcriptThenWork = ($null -ne $s)
+$s = Get-LimitSignal -TranscriptPath '' -LogBody "You've hit your weekly limit · resets 2pm" -ExitCode 1
+$out.logLimit = ($null -ne $s)
+$s = Get-LimitSignal -TranscriptPath '' -LogBody "You've hit your weekly limit" -ExitCode 0
+$out.logExitZero = ($null -ne $s)
+$s = Get-LimitSignal -TranscriptPath '' -LogBody 'plain failure' -ExitCode 1
+$out.noSignal = ($null -ne $s)
+
+$hold = Join-Path $dir 'limit-hold.json'
+$now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+$past = @{ resetsAt = ($now - 3600); rateLimitType = 'seven_day' } | ConvertTo-Json
+Set-Content -LiteralPath $hold -Value $past -Encoding UTF8
+$out.pastHoldActive = [bool](Get-LimitHoldState -Path $hold).Active
+
+Write-LimitHold -Path $hold -ResetsAt ($now + 7200) -RateLimitType 'seven_day' -Instance 'a' -Ticket 'S9010' | Out-Null
+$out.futureHoldActive = [bool](Get-LimitHoldState -Path $hold).Active
+$first = (Read-LimitHold -Path $hold).ResetsAt
+Write-LimitHold -Path $hold -ResetsAt ($now + 3600) -RateLimitType 'seven_day' -Instance 'b' -Ticket 'S9011' | Out-Null
+$out.smallerNotLowered = ((Read-LimitHold -Path $hold).ResetsAt -eq $first)
+$out | ConvertTo-Json -Depth 5 -Compress
+'@
+
+$limitLib = $null
+$limitRunner = $null
+try {
+    . (Join-Path $repoRoot 'scripts/utils/agent-lock-domains.ps1')
+    $limitLib = Get-SzaHarnessScript 'batch/_limit-hold.ps1'
+    $limitRunner = Get-SzaHarnessScript 'batch/run-spec-queue.ps1'
+} catch {
+    $limitLib = $null
+    $limitRunner = $null
+}
+$hasLimitSupport = $limitLib -and (Test-Path -LiteralPath $limitLib) -and
+    (Select-String -LiteralPath $limitLib -Pattern 'function Get-LimitSignal' -Quiet) -and
+    $limitRunner -and (Test-Path -LiteralPath $limitRunner) -and
+    (Select-String -LiteralPath $limitRunner -Pattern '\[switch\] \$LimitHit' -Quiet)
+if (-not $hasLimitSupport) {
+    Write-Host '  SKIP S4265 usage-limit classification and hold (10 cases) - the resolved harness predates the fix.' -ForegroundColor DarkGray
+    Write-Host '        Run with SZA_HARNESS_ROOT pointed at the canon checkout to execute them.' -ForegroundColor DarkGray
+    $skipped += 10
+} else {
+    # Resolve-RunOutcome gained -LimitHit in the same change; lift it again rather than trust the
+    # earlier block, which runs only when the outcome resolver was present.
+    $limitAst = [System.Management.Automation.Language.Parser]::ParseFile($limitRunner, [ref]$null, [ref]$null)
+    $limitFn = $limitAst.FindAll({
+            param($n)
+            $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'Resolve-RunOutcome'
+        }, $true)
+    if ($limitFn.Count -eq 0) { throw "function Resolve-RunOutcome not found in $limitRunner" }
+    . ([scriptblock]::Create($limitFn[0].Extent.Text))
+
+    # A usage limit on a child that exited 1 is the limit, not a failure of the ticket, and the run
+    # is still journalled as moved when the ticket advanced before the limit arrived.
+    $limitHit = Resolve-RunOutcome -Outcome 'ok' -ExitCode 1 -StatusBefore 'Draft' -StatusAfter 'Draft' -ElapsedSeconds 1 -LimitHit
+    Assert-Case -Name 'a child that ended on the usage limit is limit-hit, not child-failed' `
+        -Ok ($limitHit.Outcome -eq 'limit-hit' -and -not $limitHit.Moved) `
+        -Detail "expected: limit-hit / moved false | actual: $($limitHit.Outcome) / moved=$($limitHit.Moved)"
+
+    $limitMoved = Resolve-RunOutcome -Outcome 'ok' -ExitCode 1 -StatusBefore 'Tactical' -StatusAfter 'In Progress' -ElapsedSeconds 1140 -LimitHit
+    Assert-Case -Name 'a limit hit after a real status move still reports the move' `
+        -Ok ($limitMoved.Outcome -eq 'limit-hit' -and $limitMoved.Moved) `
+        -Detail "expected: limit-hit / moved true | actual: $($limitMoved.Outcome) / moved=$($limitMoved.Moved)"
+
+    $limitProbe = $null
+    $limitSandbox = New-Sandbox -Threshold 2
+    try {
+        $limitProbePath = Join-Path $limitSandbox 'limit-probe.ps1'
+        Set-Content -LiteralPath $limitProbePath -Value $limitProbeBody -Encoding UTF8
+        $limitRaw = & pwsh -NoProfile -File $limitProbePath -HarnessLib $limitLib -Sandbox $limitSandbox 2>&1 | Out-String
+        try { $limitProbe = $limitRaw | ConvertFrom-Json } catch { throw "limit probe returned no JSON:`n$limitRaw" }
+    } finally {
+        Remove-Item -LiteralPath $limitSandbox -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
+    Assert-Case -Name 'a transcript whose last assistant record is the limit reads as a limit, with its reset time' `
+        -Ok ($null -ne $limitProbe.transcriptLimit -and $limitProbe.transcriptLimit.source -eq 'transcript' -and
+            $limitProbe.transcriptLimit.resetsAt -eq 1791892800 -and $limitProbe.transcriptLimit.type -eq 'seven_day') `
+        -Detail "expected: transcript / 1791892800 / seven_day | actual: $($limitProbe.transcriptLimit | ConvertTo-Json -Compress)"
+
+    Assert-Case -Name 'the same limit record followed by ordinary assistant work is a past event, not this exit' `
+        -Ok (-not $limitProbe.transcriptThenWork) -Detail "expected: no limit | actual: limit=$($limitProbe.transcriptThenWork)"
+
+    Assert-Case -Name 'a limit named only in a failed run log is recognised when no transcript exists' `
+        -Ok ([bool]$limitProbe.logLimit) -Detail "expected: limit | actual: $($limitProbe.logLimit)"
+
+    Assert-Case -Name 'limit prose in the log of a run that exited 0 is not a limit' `
+        -Ok (-not $limitProbe.logExitZero) -Detail "expected: no limit | actual: limit=$($limitProbe.logExitZero)"
+
+    Assert-Case -Name 'a failure with no limit anywhere stays a plain failure' `
+        -Ok (-not $limitProbe.noSignal) -Detail "expected: no limit | actual: limit=$($limitProbe.noSignal)"
+
+    Assert-Case -Name 'a hold whose reset time has passed does not hold the runner' `
+        -Ok (-not $limitProbe.pastHoldActive) -Detail "expected: inactive | actual: active=$($limitProbe.pastHoldActive)"
+
+    Assert-Case -Name 'a hold with a future reset time holds the runner' `
+        -Ok ([bool]$limitProbe.futureHoldActive) -Detail "expected: active | actual: active=$($limitProbe.futureHoldActive)"
+
+    Assert-Case -Name 'a later hold with an earlier reset time does not lower the one on disk' `
+        -Ok ([bool]$limitProbe.smallerNotLowered) -Detail "expected: reset time unchanged | actual: lowered"
+}
+
+Write-Host ''
 Write-Host 'run-spec-queue tests - the spec declares its own complexity (S4193)' -ForegroundColor Cyan
 
 # Select-ModelFor and its reader are lifted out of the runner the way the S2698 functions are: the
@@ -549,10 +701,66 @@ if (-not $hasComplexityRule) {
 }
 
 Write-Host ''
+Write-Host "run-spec-queue tests - the child's session id is chosen before the pick" -ForegroundColor Cyan
+
+# The reservation is made in the child's name, so the id has to exist before the ranking runs. The
+# function is lifted the same way as Resolve-RunOutcome, with the CLI's --help probe stubbed: the
+# real one starts the agent CLI.
+$plannedRunner = $null
+try {
+    . (Join-Path $repoRoot 'scripts/utils/agent-lock-domains.ps1')
+    $plannedRunner = Get-SzaHarnessScript 'batch/run-spec-queue.ps1'
+} catch {
+    $plannedRunner = $null
+}
+$hasPlannedId = $plannedRunner -and (Test-Path -LiteralPath $plannedRunner) -and
+    (Select-String -LiteralPath $plannedRunner -Pattern 'function Get-PlannedChildSessionId' -Quiet)
+if (-not $hasPlannedId) {
+    Write-Host '  SKIP planned child session id (5 cases) - the resolved harness predates pick-and-claim.' -ForegroundColor DarkGray
+    Write-Host '        Run with SZA_HARNESS_ROOT pointed at the canon checkout to execute them.' -ForegroundColor DarkGray
+    $skipped += 5
+} else {
+    $plannedAst = [System.Management.Automation.Language.Parser]::ParseFile($plannedRunner, [ref]$null, [ref]$null)
+    $plannedFn = $plannedAst.FindAll({
+            param($n)
+            $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'Get-PlannedChildSessionId'
+        }, $true)
+    if ($plannedFn.Count -eq 0) { throw "function Get-PlannedChildSessionId not found in $plannedRunner" }
+    . ([scriptblock]::Create($plannedFn[0].Extent.Text))
+    $script:cliTakesSessionId = $true
+    function Test-ChildTakesSessionId { return $script:cliTakesSessionId }
+
+    $plainTemplate = @('-p', '{prompt}', '--permission-mode', '{permissionMode}', '--model', '{model}')
+    $guidOut = [guid]::Empty
+    $fresh1 = Get-PlannedChildSessionId -Template $plainTemplate
+    $fresh2 = Get-PlannedChildSessionId -Template $plainTemplate
+    Assert-Case -Name 'a plain template gets a fresh guid per launch' `
+        -Ok ([guid]::TryParse([string]$fresh1, [ref]$guidOut) -and $fresh1 -ne $fresh2) `
+        -Detail "expected: two different guids | actual: '$fresh1' / '$fresh2'"
+
+    $pinned = '0f0e0d0c-0b0a-0908-0706-050403020100'
+    $pinnedOut = Get-PlannedChildSessionId -Template ($plainTemplate + @('--session-id', $pinned))
+    Assert-Case -Name 'a template naming its own guid is obeyed' -Ok ($pinnedOut -eq $pinned) `
+        -Detail "expected: $pinned | actual: '$pinnedOut'"
+
+    $badPinned = Get-PlannedChildSessionId -Template ($plainTemplate + @('--session-id', 'not-a-guid'))
+    Assert-Case -Name 'a template naming a non-guid session gets none' -Ok ($null -eq $badPinned) `
+        -Detail "expected: null | actual: '$badPinned'"
+
+    $resumed = Get-PlannedChildSessionId -Template ($plainTemplate + @('--resume'))
+    Assert-Case -Name 'a resuming template gets none - the CLI refuses --session-id beside it' -Ok ($null -eq $resumed) `
+        -Detail "expected: null | actual: '$resumed'"
+
+    $script:cliTakesSessionId = $false
+    $noFlag = Get-PlannedChildSessionId -Template $plainTemplate
+    Assert-Case -Name 'a CLI that does not list --session-id gets none' -Ok ($null -eq $noFlag) `
+        -Detail "expected: null | actual: '$noFlag'"
+}
+
+Write-Host ''
 if ($failures -gt 0) {
-    Write-Host ("run-spec-queue tests: FAIL ({0} of {1} case(s))" -f $failures, $caseCount) -ForegroundColor Red
+    Write-Host "run-spec-queue tests: FAIL (run=$caseCount skipped=$skipped)" -ForegroundColor Red
     exit 1
 }
-$skipNote = if ($skipped -gt 0) { ", $skipped skipped" } else { '' }
-Write-Host ("run-spec-queue tests: PASS ({0} case(s){1})" -f $caseCount, $skipNote) -ForegroundColor Green
-exit 0
+Write-Host "run-spec-queue tests: $(if ($caseCount -eq 0) { 'COULD NOT VERIFY' } else { 'PASS' }) (run=$caseCount skipped=$skipped)" -ForegroundColor Green
+exit $(if ($caseCount -eq 0) { 2 } else { 0 })

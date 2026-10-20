@@ -65,6 +65,13 @@ $ErrorActionPreference = 'Stop'
 function Exit-Gate {
     param([Parameter(Mandatory)] [string] $Message, [Parameter(Mandatory)] [int] $Code)
     Write-Error "assert-deobfuscation-retained: $Message" -ErrorAction Continue
+    # CHECK-VERDICT rules 2.5 and 2.11: the verdict line is last on stdout, on the failure path too.
+    if ($Code -eq 1) {
+        Write-Host "assert-deobfuscation-retained: FAIL ($Message)"
+    }
+    else {
+        Write-Host "assert-deobfuscation-retained: COULD NOT VERIFY ($Message)"
+    }
     exit $Code
 }
 

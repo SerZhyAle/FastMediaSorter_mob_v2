@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Player de Música no Carro (Rádio Android) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-pt.html
 ---
-<sub class="doc-stamp">26.09.25 02:14</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
 # 🚗 Player de Música no Carro (Rádio Android)
 
 > **Nível:** Iniciante &bull; **Tempo:** ~10 minutos &bull; **Edição:** Standard, Legacy, VR, noLegal (Lite toca áudio local, mas não tem reprodução em segundo plano nem Streams; Photos não tem áudio)
-
-{% include lang-switcher.html doc="scenario-car-music" dir="/docs/howto/" current="pt" %}
 
 O FastMediaSorter funciona muito bem como player de música no carro em rádios Android - acesso instantâneo a toda a sua coleção de músicas no cartão SD ou pendrive USB, com suporte aos botões do volante já integrado.
 

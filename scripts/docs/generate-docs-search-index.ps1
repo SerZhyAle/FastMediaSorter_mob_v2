@@ -71,6 +71,16 @@ if (Test-Path $docRoot) {
         $cleanBody = [System.Net.WebUtility]::HtmlDecode($cleanBody) -replace '\s+', ' '
         $cleanBody = $cleanBody.Trim()
 
+        # The in-app help copies carry no meta description (CONTEXT-HELP pages load nothing), so their first
+        # paragraph stands in; a record without a description fails assert-docs-search.ps1.
+        if ([string]::IsNullOrWhiteSpace($desc)) {
+            $firstParagraph = [regex]::Match($mainBody, '<p\b[^>]*>([\s\S]*?)</p>', 'IgnoreCase')
+            if ($firstParagraph.Success) {
+                $desc = ([System.Net.WebUtility]::HtmlDecode(($firstParagraph.Groups[1].Value -replace '<[^>]+>', ' ')) -replace '\s+', ' ').Trim()
+            }
+            if ([string]::IsNullOrWhiteSpace($desc)) { $desc = $cleanTitle }
+        }
+
         # Determine page_id from path or manifest
         $matchedManifest = $null
         foreach ($p in $manifestPages.Values) {

@@ -1,19 +1,23 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.os.SystemClock
+import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.core.input.KeyBindingManager
 import com.sza.fastmediasorter.domain.input.CommandId
-import com.sza.fastmediasorter.domain.input.InputSurface as DomainSurface
 import com.sza.fastmediasorter.domain.input.InputTrigger
 import com.sza.fastmediasorter.domain.input.fromKeyEvent
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.common.MouseEventHandler
 import com.sza.fastmediasorter.utils.UserActionLogger
 import timber.log.Timber
+import com.sza.fastmediasorter.domain.input.InputSurface as DomainSurface
+
+/** Zoom actions shared by the still and video surfaces (MEDIA-VIEWER rules 3.1-3.2). */
+enum class ZoomAction { IN, OUT, FIT, ACTUAL_SIZE }
 
 /**
  * Keyboard and mouse-wheel handler for [PlayerActivity] and [StandalonePlayerActivity].
@@ -28,6 +32,8 @@ class PlayerKeyboardHandler(
     // Exposed so gamepad dispatch in PlayerActivity can reuse the same callback routes.
     internal val callback: PlayerKeyboardCallback,
     private val keyBindingManager: KeyBindingManager,
+    /** True while an editable field owns focus: no key may then reach a viewer action (VIEWER-KEYBOARD). */
+    var textInputFocused: () -> Boolean = { false },
 ) {
     /** Debounce window for media button events to prevent double-trigger (Activity + MediaSession). */
     private var lastMediaButtonTimeMs = 0L
@@ -35,6 +41,22 @@ class PlayerKeyboardHandler(
     private companion object {
         const val MEDIA_BUTTON_DEBOUNCE_MS = 300L
         const val SEEK_INCREMENT_SECONDS = 10
+        const val SHORT_SEEK_SECONDS = 3
+        const val STEP_TEN = 10
+        const val STEP_HUNDRED = 100
+
+        val KEYBOARD_ARROW_COMMANDS = setOf(
+            CommandId.NEXT_OR_SEEK_FORWARD,
+            CommandId.PREVIOUS_OR_SEEK_BACKWARD,
+            CommandId.STEP_FORWARD_TEN,
+            CommandId.STEP_BACK_TEN,
+        )
+        val DPAD_DIRECTIONS = setOf(
+            KeyEvent.KEYCODE_DPAD_UP,
+            KeyEvent.KEYCODE_DPAD_DOWN,
+            KeyEvent.KEYCODE_DPAD_LEFT,
+            KeyEvent.KEYCODE_DPAD_RIGHT,
+        )
     }
 
     interface PlayerKeyboardCallback {
@@ -86,11 +108,36 @@ class PlayerKeyboardHandler(
         fun onUndoOperation() {}
         fun canCopyCurrent(): Boolean = false
         fun canMoveCurrent(): Boolean = false
-        /** Launch the [slotIndex]-th (1..10) button of the addressable Copy/Move group. Returns false when no such button exists. */
-        fun onOperationSlot(slotIndex: Int): Boolean = false
+
+        /** Move to global destination [slot] (1..10, digits); false when the host has no route. */
+        fun onMoveToSlot(slot: Int): Boolean = false
+
+        /** Copy to global destination [slot] (Shift+digits); false when the host has no route. */
+        fun onCopyToSlot(slot: Int): Boolean = false
+
+        /** Apply a zoom action on the current still or video (MEDIA-VIEWER rules 3.1-3.2). */
+        fun onZoom(action: ZoomAction): Boolean = false
+
+        /** Ctrl+wheel zoom by [factor] around ([x], [y]); consuming the event means it never pages. */
+        fun onZoomAt(factor: Float, x: Float, y: Float): Boolean = false
         fun onToggleBlackScreen() {}
         // S0162: toggle player-level rotation sensor (no-op when the player follows the OS - guard in ViewModel)
         fun onToggleRotationSensor() {}
+        // ── VIEWER-KEYBOARD actions (INPUT-PARITY 0.4); false = this host has no route ──
+
+        fun onStepFiles(offset: Int): Boolean = false
+        fun onEdgeFile(last: Boolean): Boolean = false
+        fun onRandomFile(): Boolean = false
+        fun onRotateContent(clockwise: Boolean): Boolean = false
+        fun onChangeSpeed(faster: Boolean): Boolean = false
+        fun onCycleAudioTrack(): Boolean = false
+        fun onStartSlideshow(random: Boolean): Boolean = false
+        fun onShowFileGrid(): Boolean = false
+        fun onShowFileList(): Boolean = false
+        fun onShowFileNumber(): Boolean = false
+        fun hasModalInput(): Boolean = false
+        fun onFrameStep(forward: Boolean): Boolean = false
+        fun onToggleAbLoop(): Boolean = false
     }
 
     // ── pointer / wheel input ────────────────────────────────────────────────
@@ -164,12 +211,15 @@ class PlayerKeyboardHandler(
         }
 
         if (event == null) return false
+        if (textInputFocused() || callback.hasModalInput()) return false
+
+        Timber.d("S4363: player keyboard key=%s type=%s", effectiveKeyCode, currentType)
 
         // Primary path: resolve trigger → commandId → handleCommand.
         val commandId = keyBindingManager.resolve(InputTrigger.fromKeyEvent(event), DomainSurface.PLAYER)
         if (commandId != null) {
             Timber.v("PlayerKeyboardHandler: commandId=%s type=%s", commandId, currentType)
-            return handleCommand(commandId)
+            return dispatchResolved(commandId, effectiveKeyCode, event, currentType)
         }
 
         // Scan-code fallback: KEYCODE_UNKNOWN events have effectiveKeyCode from scan-code table.
@@ -188,11 +238,11 @@ class PlayerKeyboardHandler(
      * Dispatches a resolved [CommandId] to the appropriate callback, applying
      * media-type-aware routing for navigation commands (PDF / EPUB / TEXT).
      *
-     * Seek steps preserve pre-migration values: seek_forward_5s → 10 s,
-     * seek_forward_30s → 60 s (legacy step preserved for Phase 03).
+     * The seek_*_5s and seek_*_30s ids are frozen storage keys for stored remaps;
+     * their steps are 10 s and 60 s (VIEWER-KEYBOARD media keys and Ctrl+arrows).
      */
-    // Digit/numpad slot commands map to a 1..10 position in the addressable Copy/Move group.
-    private val operationSlotCommands: Map<String, Int> = mapOf(
+    // Digit keys address global destination slots (MEDIA-VIEWER rule 4.1): op slots move, copy slots copy.
+    private val moveSlotCommands: Map<String, Int> = mapOf(
         CommandId.OPERATION_SLOT_1 to 1,
         CommandId.OPERATION_SLOT_2 to 2,
         CommandId.OPERATION_SLOT_3 to 3,
@@ -205,9 +255,87 @@ class PlayerKeyboardHandler(
         CommandId.OPERATION_SLOT_10 to 10,
     )
 
+    private val copySlotCommands: Map<String, Int> = mapOf(
+        CommandId.COPY_SLOT_1 to 1,
+        CommandId.COPY_SLOT_2 to 2,
+        CommandId.COPY_SLOT_3 to 3,
+        CommandId.COPY_SLOT_4 to 4,
+        CommandId.COPY_SLOT_5 to 5,
+        CommandId.COPY_SLOT_6 to 6,
+        CommandId.COPY_SLOT_7 to 7,
+        CommandId.COPY_SLOT_8 to 8,
+        CommandId.COPY_SLOT_9 to 9,
+        CommandId.COPY_SLOT_10 to 10,
+    )
+
+    private fun dispatchResolved(commandId: String, keyCode: Int, event: KeyEvent, type: MediaType?): Boolean = when {
+        // A TV remote sends the same D-pad codes as keyboard arrows; it keeps focus traversal.
+        commandId in KEYBOARD_ARROW_COMMANDS && keyCode in DPAD_DIRECTIONS && !isFromAlphabeticKeyboard(event) -> false
+        // VIEWER-KEYBOARD: Space advances where the view is not playable; K and the media key do not.
+        commandId == CommandId.PAUSE_PLAY && keyCode == KeyEvent.KEYCODE_SPACE && !isPlayable(type) ->
+            handleCommand(CommandId.NEXT_FILE)
+        else -> handleCommand(commandId)
+    }
+
+    // An event with no device (injected by a test harness) counts as a keyboard.
+    private fun isFromAlphabeticKeyboard(event: KeyEvent): Boolean =
+        event.device?.keyboardType?.let { it == InputDevice.KEYBOARD_TYPE_ALPHABETIC } ?: true
+
+    private fun isPlayable(type: MediaType?) = type == MediaType.VIDEO || type == MediaType.AUDIO
+
+    private fun isDocument(type: MediaType?) = when (type) {
+        MediaType.PDF, MediaType.TEXT, MediaType.EPUB, MediaType.OFFICE_DOCUMENT -> true
+        else -> false
+    }
+
+    /** VIEWER-KEYBOARD commands (INPUT-PARITY 0.4); null = not one of them. Navigation half here, view half below. */
+    private fun handleViewerKeyCommand(commandId: String, type: MediaType?): Boolean? = when (commandId) {
+        CommandId.NEXT_OR_SEEK_FORWARD ->
+            if (isPlayable(type)) seek(SEEK_INCREMENT_SECONDS) else handleCommand(CommandId.NEXT_FILE)
+        CommandId.PREVIOUS_OR_SEEK_BACKWARD ->
+            if (isPlayable(type)) seek(-SEEK_INCREMENT_SECONDS) else handleCommand(CommandId.PREVIOUS_FILE)
+        CommandId.SEEK_FORWARD_3S -> seek(SHORT_SEEK_SECONDS)
+        CommandId.SEEK_BACKWARD_3S -> seek(-SHORT_SEEK_SECONDS)
+        CommandId.STEP_FORWARD_TEN -> !isDocument(type) && callback.onStepFiles(STEP_TEN)
+        CommandId.STEP_BACK_TEN -> !isDocument(type) && callback.onStepFiles(-STEP_TEN)
+        CommandId.STEP_FORWARD_HUNDRED -> !isDocument(type) && callback.onStepFiles(STEP_HUNDRED)
+        CommandId.STEP_BACK_HUNDRED -> !isDocument(type) && callback.onStepFiles(-STEP_HUNDRED)
+        CommandId.RANDOM_FILE -> !isDocument(type) && callback.onRandomFile()
+
+        else -> handleViewerViewCommand(commandId, type)
+    }
+
+    private fun handleViewerViewCommand(commandId: String, type: MediaType?): Boolean? = when (commandId) {
+        CommandId.FILE_GRID -> callback.onShowFileGrid()
+        CommandId.FILE_LIST -> callback.onShowFileList()
+        CommandId.FILE_NUMBER -> callback.onShowFileNumber()
+        CommandId.ROTATE -> callback.onRotateContent(clockwise = true)
+        CommandId.ROTATE_COUNTER -> callback.onRotateContent(clockwise = false)
+        CommandId.SPEED_UP -> isPlayable(type) && callback.onChangeSpeed(faster = true)
+        CommandId.SPEED_DOWN -> isPlayable(type) && callback.onChangeSpeed(faster = false)
+        CommandId.CYCLE_TRACK -> type == MediaType.VIDEO && callback.onCycleAudioTrack()
+        CommandId.SLIDESHOW_START -> callback.onStartSlideshow(random = false)
+        CommandId.SLIDESHOW_RANDOM -> callback.onStartSlideshow(random = true)
+        else -> handleVideoCommand(commandId, type)
+    }
+
+    private fun handleVideoCommand(commandId: String, type: MediaType?): Boolean? = when (commandId) {
+        CommandId.FRAME_STEP_FORWARD -> type == MediaType.VIDEO && callback.onFrameStep(forward = true)
+        CommandId.FRAME_STEP_BACKWARD -> type == MediaType.VIDEO && callback.onFrameStep(forward = false)
+        CommandId.AB_LOOP -> type == MediaType.VIDEO && callback.onToggleAbLoop()
+        else -> null
+    }
+
+    private fun seek(seconds: Int): Boolean {
+        if (seconds >= 0) callback.onSeekForward(seconds) else callback.onSeekBackward(-seconds)
+        return true
+    }
+
     internal fun handleCommand(commandId: String): Boolean {
+        if (callback.hasModalInput()) return false
+        Timber.d("S4362: handleCommand id=$commandId")
         val currentType = callback.getCurrentMediaType()
-        return when (commandId) {
+        return handleViewerKeyCommand(commandId, currentType) ?: when (commandId) {
             CommandId.PAUSE_PLAY, CommandId.PLAY, CommandId.PAUSE -> { handlePlayPause(); true }
             CommandId.STOP -> {
                 val t = callback.getCurrentMediaType()
@@ -220,7 +348,6 @@ class PlayerKeyboardHandler(
             CommandId.SEEK_BACKWARD_5S -> { callback.onSeekBackward(SEEK_INCREMENT_SECONDS); true }
             CommandId.SEEK_FORWARD_30S -> { callback.onSeekForward(60); true }
             CommandId.SEEK_BACKWARD_30S -> { callback.onSeekBackward(60); true }
-            CommandId.FRAME_STEP_FORWARD, CommandId.FRAME_STEP_BACKWARD -> false
             CommandId.NEXT_FILE -> when (currentType) {
                 MediaType.PDF -> { callback.onPdfNextPage(); true }
                 MediaType.TEXT, MediaType.EPUB -> false
@@ -235,13 +362,15 @@ class PlayerKeyboardHandler(
                 MediaType.PDF -> { callback.onPdfHome(); true }
                 MediaType.EPUB -> { callback.onEpubHome(); true }
                 MediaType.TEXT -> { callback.onTextHome(); true }
-                else -> false
+                MediaType.OFFICE_DOCUMENT -> false
+                else -> callback.onEdgeFile(last = false)
             }
             CommandId.JUMP_END -> when (currentType) {
                 MediaType.PDF -> { callback.onPdfEnd(); true }
                 MediaType.EPUB -> { callback.onEpubEnd(); true }
                 MediaType.TEXT -> { callback.onTextEnd(); true }
-                else -> false
+                MediaType.OFFICE_DOCUMENT -> false
+                else -> callback.onEdgeFile(last = true)
             }
             CommandId.FULLSCREEN -> { callback.onToggleFullscreen(); true }
             CommandId.VOLUME_UP -> { callback.onChangeVolume(+1); true }
@@ -271,18 +400,51 @@ class PlayerKeyboardHandler(
             CommandId.SAVE -> { callback.onSaveCurrent(); true }
             CommandId.BLACK_SCREEN -> { callback.onToggleBlackScreen(); true }
             CommandId.ROTATION_TOGGLE -> { callback.onToggleRotationSensor(); true }
-            else -> operationSlotCommands[commandId]?.let { callback.onOperationSlot(it) } ?: false
+            CommandId.ZOOM_IN -> zoomCommand(ZoomAction.IN, currentType)
+            CommandId.ZOOM_OUT -> zoomCommand(ZoomAction.OUT, currentType)
+            CommandId.FIT_SCREEN, CommandId.ZOOM_RESET -> zoomCommand(ZoomAction.FIT, currentType)
+            CommandId.ZOOM_ACTUAL_SIZE -> zoomCommand(ZoomAction.ACTUAL_SIZE, currentType)
+            else -> slotCommand(commandId)
         }
     }
+
+    // MV-3.1/3.2: zoom keys exist for stills and video; documents keep paging (strategic non-goals).
+    private fun zoomCommand(action: ZoomAction, type: MediaType?): Boolean =
+        if (supportsZoom(type)) callback.onZoom(action) else false
+
+    /** Slots need the operation to be available on the current resource, mirroring the Move/Copy panel shortcuts. */
+    private fun slotCommand(commandId: String): Boolean =
+        moveSlotCommands[commandId]?.let { callback.canMoveCurrent() && callback.onMoveToSlot(it) }
+            ?: copySlotCommands[commandId]?.let { callback.canCopyCurrent() && callback.onCopyToSlot(it) }
+            ?: false
 
     // ── pointer / wheel input ────────────────────────────────────────────────
 
     fun handlePointerEvent(view: View, event: MotionEvent?): Boolean {
         if (event == null) return false
+        // MV-3.7: with Ctrl held, the wheel zooms the still or video and is consumed here, so the
+        // activity level can never page with it; without Ctrl the mouse handler pages as before.
+        val isZoomWheel = event.actionMasked == MotionEvent.ACTION_SCROLL &&
+            isCtrlPressed(event) &&
+            supportsZoom(callback.getCurrentMediaType())
+        if (isZoomWheel) {
+            val scroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
+            if (scroll != 0f) {
+                Timber.d("S4362: ctrl wheel zoom factor branch")
+                val factor = if (scroll > 0f) ViewerZoomMath.STEP else 1f / ViewerZoomMath.STEP
+                return callback.onZoomAt(factor, event.x, event.y)
+            }
+        }
         if (mouseHandler.handleMotionEvent(view, event)) return true
         if (mouseHandler.handleGenericMotionEvent(view, event)) return true
         return false
     }
+
+    private fun isCtrlPressed(event: MotionEvent): Boolean =
+        event.metaState and KeyEvent.META_CTRL_ON != 0
+
+    private fun supportsZoom(type: MediaType?): Boolean =
+        type == MediaType.IMAGE || type == MediaType.GIF || type == MediaType.VIDEO
 
     private fun handleWheelScroll(scrollY: Float) {
         if (scrollY == 0f) return

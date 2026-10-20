@@ -274,5 +274,5 @@ if ($script:Failed -gt 0) {
     Write-Error "detekt-scoped tests: $($script:Passed) passed, $($script:Failed) FAILED" -ErrorAction Continue
     exit 1
 }
-Write-Host "detekt-scoped tests: $($script:Passed) passed" -ForegroundColor Green
+Write-Host "detekt-scoped tests: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"
 exit 0

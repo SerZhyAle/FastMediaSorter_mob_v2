@@ -51,8 +51,9 @@ $localeDirs = @(
 ) | Where-Object { Test-Path (Join-Path $resRoot $_.Dir) }
 
 if (-not (Test-Path $resRoot)) {
-    Write-Error "Resource dir not found: $resRoot"
-    exit 1
+    Write-Error "Resource dir not found: $resRoot" -ErrorAction Continue
+    Write-Host "assert-string-format: COULD NOT VERIFY (resource dir not found: $resRoot)"
+    exit 2
 }
 
 $entriesByKey = @{}
@@ -138,6 +139,7 @@ if ($PSCmdlet.ParameterSetName -eq 'Update') {
         if (-not (Test-Path $baselineFile)) {
             Set-Content -LiteralPath $baselineFile -Value $currentIds
             Write-Host "string-format baseline SEEDED: $($currentIds.Count)"
+            Write-Host "assert-string-format: PASS (baseline seeded at $($currentIds.Count))"
             exit 0
         }
 
@@ -146,6 +148,7 @@ if ($PSCmdlet.ParameterSetName -eq 'Update') {
 
         if ($additions.Count -gt 0) {
             Write-Error "Refusing to RAISE baseline. New string-format findings were introduced - fix them instead."
+            Write-Host 'assert-string-format: FAIL (refusing to raise the baseline: new string-format findings)'
             exit 1
         }
 
@@ -158,11 +161,13 @@ if ($PSCmdlet.ParameterSetName -eq 'Update') {
         }
     }
     finally { Exit-CodeLockScope -Scope $scope }
+    Write-Host "assert-string-format: PASS (baseline update ran; actual $($currentIds.Count))"
     exit 0
 }
 
 if (-not (Test-Path $baselineFile)) {
     Write-Host "string-format: NO BASELINE yet | actual $($currentIds.Count) - run -UpdateBaseline to seed."
+    Write-Host "assert-string-format: PASS (no baseline yet; actual $($currentIds.Count))"
     exit 0
 }
 
@@ -177,9 +182,11 @@ if ($Gate -and $newFindings.Count -gt 0) {
         Write-Host ("  NEW: {0} | {1} | {2} | {3}" -f $finding.File, $finding.Locale, $finding.Key, $finding.Message)
     }
     Write-Host "FAIL: string format findings grew above baseline. Fix invalid specifiers or locale contract mismatches before merge."
+    Write-Host 'assert-string-format: FAIL (string format findings grew above the baseline)'
     exit 1
 }
 if (@($resolvedFindings).Count -gt 0) {
     Write-Host "Note: count is below baseline - run -UpdateBaseline to ratchet the cap down."
 }
+Write-Host "assert-string-format: PASS (actual $($currentIds.Count))"
 exit 0

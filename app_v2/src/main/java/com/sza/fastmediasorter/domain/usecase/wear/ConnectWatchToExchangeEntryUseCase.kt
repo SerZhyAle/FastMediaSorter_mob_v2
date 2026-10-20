@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeRefusedException
 import com.sza.fastmediasorter.data.repository.DeviceExchangeAccountRepository
+import com.sza.fastmediasorter.data.repository.ExchangeE2eRepository
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.DeviceExchangePairingCode
 import com.sza.fastmediasorter.domain.model.WatchExchangeHandoverOutcome
@@ -34,6 +35,7 @@ class ConnectWatchToExchangeEntryUseCase @Inject constructor(
     private val accounts: DeviceExchangeAccountRepository,
     private val dataLayer: WearableDataLayerRepository,
     private val gson: Gson,
+    private val e2e: ExchangeE2eRepository,
 ) {
 
     suspend operator fun invoke(entry: DeviceExchangeAccountEntry): WatchExchangeHandoverOutcome {
@@ -55,7 +57,7 @@ class ConnectWatchToExchangeEntryUseCase @Inject constructor(
         } catch (e: IOException) {
             return issueFailure(e)
         }
-        return deliver(payload(entry, code), nodes)
+        return deliver(entry, payload(entry, code), nodes)
     }
 
     private fun issueFailure(failure: IOException): WatchExchangeHandoverOutcome =
@@ -68,6 +70,7 @@ class ConnectWatchToExchangeEntryUseCase @Inject constructor(
         }
 
     private suspend fun deliver(
+        entry: DeviceExchangeAccountEntry,
         payload: WearExchangeHandoverPayload,
         nodes: List<WearNode>,
     ): WatchExchangeHandoverOutcome {
@@ -82,9 +85,19 @@ class ConnectWatchToExchangeEntryUseCase @Inject constructor(
         return when {
             ack === NOT_SENT -> WatchExchangeHandoverOutcome.NoConnectedWatch
             ack == null -> WatchExchangeHandoverOutcome.WatchDidNotAnswer
-            ack.enrolled -> WatchExchangeHandoverOutcome.Enrolled
+            ack.enrolled -> {
+                trustWatchKey(entry, ack)
+                WatchExchangeHandoverOutcome.Enrolled
+            }
             else -> WatchExchangeHandoverOutcome.WatchRefused(ack.reason ?: REASON_UNKNOWN)
         }
+    }
+
+    // The key the watch answered with outranks the directory, where the server could have put another (item DG).
+    private suspend fun trustWatchKey(entry: DeviceExchangeAccountEntry, ack: WearExchangeHandoverAck) {
+        val deviceId = ack.deviceId
+        val kem = ack.e2eKem
+        if (deviceId != null && kem != null) e2e.trustHandedOver(entry, deviceId, kem)
     }
 
     /** True when a node took the message; the nodes after it are never offered the code. */
@@ -103,6 +116,7 @@ class ConnectWatchToExchangeEntryUseCase @Inject constructor(
             pinnedCertificate = entry.pinnedCertificate,
             pairingCode = code.code,
             expiresAt = code.expiresAt,
+            pinnedKey = entry.pinnedKey,
         )
 
     private companion object {

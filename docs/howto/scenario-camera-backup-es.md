@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Copia de Seguridad Programada de la Cámara al PC - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-es.html
 ---
-<sub class="doc-stamp">26.09.25 02:12</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="es" dir="ltr" markdown="1">
 
 # 📷 Copia de Seguridad Programada de la Cámara al PC
 
 > **Nivel:** Principiante &bull; **Tiempo:** ~15 minutos de configuración &bull; **Edición:** Standard, Photos, Legacy, VR, noLegal (necesita fuentes de red - Lite no tiene ninguna)
-
-{% include lang-switcher.html doc="scenario-camera-backup" dir="/docs/howto/" current="es" %}
 
 Copia automáticamente las fotos nuevas de la cámara de tu teléfono a tu computadora de casa **cada noche, por Wi-Fi**. Configúralo una vez - funciona para siempre sin ninguna acción manual.
 

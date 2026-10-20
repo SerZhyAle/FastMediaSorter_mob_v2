@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4281: white border of the bright frame on the broadcast control screen; the middle stays transparent. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@android:color/transparent" />
+    <stroke
+        android:width="@dimen/broadcast_light_frame_stroke"
+        android:color="@color/white" />
+</shape>

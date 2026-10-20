@@ -64,7 +64,7 @@ layout: null
           "@type": "HowToStep",
           "position": 1,
           "name": "Turn the server on",
-          "text": "Open Settings, the General tab, and find the Share over SFTP card. Switch on SFTP server - \u0022Other devices on your network can open the folders you pick\u0022 - and the status line below moves from Off to Starting.. and then to Running at 192.168.1.42:2222, its address and port. Turning it on with nothing shared yet, or with no way to sign in configured, is caught before it starts: \u0022Add at least one folder to share, then turn the server on\u0022 or \u0022Add a public key or switch to password login, then turn the server on.\u0022 A phone with no Wi-Fi connection can still switch the server on, but it says so plainly: \u0022Running, but the phone is not on Wi-Fi - other devices cannot reach it yet.\u0022 A foreground notification, \u0022SFTP server is on\u0022, stays up the whole time with the address to connect to and a one-tap Stop button.",
+          "text": "Open Settings, the General tab, and find the Share over SFTP card. Switch on SFTP server - \u0022Other devices on your network can open the folders you pick\u0022 - and the status line below moves from Off to Starting.. and then to Running at 192.168.1.42:2222, its address and port. Turning it on with nothing shared yet, or with no way to sign in configured, is caught before it starts: \u0022Add at least one folder to share, then turn the server on\u0022 or \u0022Add a public key or switch to password login, then turn the server on.\u0022 A phone with no Wi-Fi connection can still switch the server on, but it says so plainly: \u0022Running, but the phone is not on Wi-Fi - other devices reach it through the exchange server or via Google Drive.\u0022 A foreground notification, \u0022SFTP server is on\u0022, stays up the whole time with the address to connect to and a one-tap Stop button; when the phone moves to another Wi-Fi network, the address shown follows it. Sharing stays on until you switch it off yourself. It starts again on its own every time the app is opened - including when the app is your home screen - and Android 15 and newer may pause it after about 6 hours in the background in one day: the notification \u0022Sharing paused\u0022 says so, and opening the app continues it. There is no start after the phone reboots until the app is opened. Sharing over mobile internet uses mobile traffic.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server.html#turn-on"
         },
         {
@@ -457,7 +457,8 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Open <strong>Settings</strong>, the <strong>General</strong> tab, and find the <strong>Share over SFTP</strong> card. Switch on <strong>SFTP server</strong> - "Other devices on your network can open the folders you pick" - and the status line below moves from <strong>Off</strong> to <strong>Starting..</strong> and then to <strong>Running at 192.168.1.42:2222</strong>, its address and port. Turning it on with nothing shared yet, or with no way to sign in configured, is caught before it starts: "Add at least one folder to share, then turn the server on" or "Add a public key or switch to password login, then turn the server on."</p>
-                        <p>A phone with no Wi-Fi connection can still switch the server on, but it says so plainly: "Running, but the phone is not on Wi-Fi - other devices cannot reach it yet." A foreground notification, "SFTP server is on", stays up the whole time with the address to connect to and a one-tap <strong>Stop</strong> button.</p>
+                        <p>A phone with no Wi-Fi connection can still switch the server on, but it says so plainly: "Running, but the phone is not on Wi-Fi - other devices reach it through the exchange server or via Google Drive." A foreground notification, "SFTP server is on", stays up the whole time with the address to connect to and a one-tap <strong>Stop</strong> button; when the phone moves to another Wi-Fi network, the address shown follows it.</p>
+                        <p>Sharing stays on until you switch it off yourself. It starts again on its own every time the app is opened - including when the app is your home screen - and Android 15 and newer may pause it after about 6 hours in the background in one day: the notification "Sharing paused" says so, and opening the app continues it. There is no start after the phone reboots until the app is opened. Sharing over mobile internet uses mobile traffic.</p>
                     </div>
                 </div>
 
@@ -535,7 +536,7 @@ layout: null
 
                 <h2 id="outcome">What You Get</h2>
                 <div class="doc-callout doc-callout-note">
-                        <p>The phone shares exactly the folders you picked, with everyone else needing either a password or an accepted SSH key to get in, and pairing another FastMediaSorter takes one scan instead of typing an address by hand. A tap on Stop, in the app or the notification, ends it.</p>
+                        <p>The phone shares exactly the folders you picked, with everyone else needing either a password or an accepted SSH key to get in, and pairing another FastMediaSorter takes one scan instead of typing an address by hand. A tap on Stop, in the app or the notification, ends it until you turn it on again.</p>
                 </div>
 
                 <h2 id="tips">Tips and Troubleshooting</h2>
@@ -602,6 +603,9 @@ layout: null
                 <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+                <a href="../../docs/SUPPORT.html" data-footer-contact>Support</a>
+                <a href="mailto:sza@ukr.net" data-footer-contact>sza@ukr.net</a>
+                <a href="https://sza.od.ua" data-footer-contact>sza.od.ua</a>
             </div>
         </div>
     </footer>

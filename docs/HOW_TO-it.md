@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "📖 Guide pratiche"
 permalink: /docs/HOW_TO-it.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="it" dir="ltr" markdown="1">
 
@@ -15,8 +15,6 @@ Questa guida è ora organizzata su due livelli:
 
 - **Gruppi di scenari** per flussi di lavoro reali più ricchi e combinazioni di funzioni.
 - **Riferimento rapido alle attività** per ricette dirette a singola funzione, più avanti.
-
-{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="it" %}
 
 ---
 

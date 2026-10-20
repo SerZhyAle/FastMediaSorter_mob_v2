@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Справка - Браузер файлов</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Оглавление справки">
+<a href="index.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Браузер файлов</span>
+</nav>
+<header class="hero">
+<h1>Браузер файлов</h1>
+</header>
+<h2>Для чего этот экран</h2>
+<p class="lead">Браузер файлов показывает содержимое одного ресурса: папки и файлы плитками или списком. Здесь вы находите нужный файл, сортируете и фильтруете папку, выделяете файлы и выполняете над ними действия или запускаете воспроизведение.</p>
+<figure class="shot">
+<img class="on-light" src="../img/browse-ru-light.webp" alt="Браузер файлов">
+<img class="on-dark" src="../img/browse-ru-dark.webp" alt="Браузер файлов">
+</figure>
+<h2>Порядок действий</h2>
+<ol class="order">
+<li>Нажмите файл в списке <a class="ref" href="#file-list">17</a>, чтобы открыть его в плеере. Нажмите папку, чтобы зайти в неё: имя папки <a class="ref" href="#path">2</a> покажет, где вы находитесь, а «Назад» <a class="ref" href="#back">1</a> поднимает на уровень выше.</li>
+<li>Порядок задаётся кнопкой «Сортировка» <a class="ref" href="#sort">3</a>, список сужает «Фильтр» <a class="ref" href="#filter">4</a>, а в «Поиск» <a class="ref" href="#search">5</a> можно набрать несколько букв имени. «Обновить» <a class="ref" href="#refresh">6</a> заново проверяет папку, если файлы изменились вне приложения.</li>
+<li>Кнопка <a class="ref" href="#toggle-view">7</a> переключает плитки и список - когда нужно больше миниатюр или больше подробностей на экране.</li>
+<li>Нажмите и удерживайте файл, чтобы начать выделение, или воспользуйтесь «Выбрать всё» <a class="ref" href="#select-all">8</a>. Внизу появится панель действий: «Копировать» <a class="ref" href="#copy">18</a>, «Переместить» <a class="ref" href="#move">19</a>, «Переименовать» <a class="ref" href="#rename">20</a>, «Удалить» <a class="ref" href="#delete">21</a>, «Поделиться» <a class="ref" href="#share">23</a> и «Архив» <a class="ref" href="#archive">24</a>.</li>
+<li>«Отменить» <a class="ref" href="#undo">22</a> возвращает последнее удаление или перемещение, пока приложение ещё помнит операцию.</li>
+<li>«Воспроизвести» <a class="ref" href="#play">15</a> запускает показ в плеере, а «Случайный» <a class="ref" href="#play-random">14</a> воспроизводит файлы в случайном порядке.</li>
+<li>«Создать папку» <a class="ref" href="#create-folder">10</a>, «Создать заметку» <a class="ref" href="#create-text-note">11</a>, «Создать рисунок» <a class="ref" href="#create-drawing">12</a> и микрофон <a class="ref" href="#mic-record">13</a> добавляют новые файлы прямо здесь; всё, что не поместилось на узком экране, ждёт в меню <a class="ref" href="#more-actions">16</a> вместе с «Справкой».</li>
+</ol>
+<h2>Элементы</h2>
+<div class="elements">
+<h3>Навигация и поиск</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Назад</span><span class="one">Возвращает на шаг назад: из текущей папки, а из верхней папки - на главный экран.</span></span></summary>
+<div class="full">
+<p>Кнопка «Назад» устройства делает то же самое, поэтому из глубокой папки вы выходите по одному уровню, а не вылетаете из ресурса одним нажатием.</p>
+</div>
+</details>
+<details class="el" id="path">
+<summary><span class="mk">2</span><span><span class="name">Текущая папка</span><span class="one">Показывает папку, в которой вы находитесь, и позволяет перейти в любую папку выше.</span></span></summary>
+<div class="full">
+<p>Кнопка появляется, когда вы зашли в подпапку. Нажмите её, чтобы открыть список папок от ресурса до текущей, и выберите любую - вы сразу окажетесь там.</p>
+</div>
+</details>
+<details class="el" id="sort">
+<summary><span class="mk">3</span><span><span class="name">Сортировка</span><span class="one">Показывает, как упорядочены файлы, и открывает меню для смены порядка.</span></span></summary>
+<div class="full">
+<p>Выберите имя, дату, размер или тип; для папки с файлами одного вида есть ещё исполнитель, название, длительность или дата съёмки фото. «Случайно» перемешивает список, и повторный выбор перемешивает ещё раз. «Ручной порядок» позволяет перетаскивать файлы в нужном порядке. Порядок запоминается для каждого ресурса.</p>
+</div>
+</details>
+<details class="el" id="filter">
+<summary><span class="mk">4</span><span><span class="name">Фильтр</span><span class="one">Сужает список по дате, размеру и типу медиа.</span></span></summary>
+<div class="full">
+<p>Задайте диапазон дат, диапазон размера в мегабайтах или отметьте нужные типы медиа и примените. Небольшое число на кнопке показывает, сколько фильтров включено, а строка под панелью - какие именно. Фильтр относится к этому ресурсу, а кнопка сброса отменяет его целиком.</p>
+</div>
+</details>
+<details class="el" id="search">
+<summary><span class="mk">5</span><span><span class="name">Поиск</span><span class="one">Находит файл по нескольким буквам имени.</span></span></summary>
+<div class="full">
+<p>На панели появляется поле поиска, и список сужается по мере ввода, без повторной проверки папки. Закройте поле, чтобы снова увидеть всё.</p>
+</div>
+</details>
+<details class="el" id="refresh">
+<summary><span class="mk">6</span><span><span class="name">Обновить</span><span class="one">Заново проверяет папку на новые и изменённые файлы.</span></span></summary>
+<div class="full">
+<p>Нажмите после копирования файлов из другого приложения или с компьютера, а также если сетевая папка была недоступна. Потянув список вниз, можно сделать то же самое.</p>
+</div>
+</details>
+<details class="el" id="toggle-view">
+<summary><span class="mk">7</span><span><span class="name">Сетка / список</span><span class="one">Переключает папку между сеткой миниатюр и списком.</span></span></summary>
+<div class="full">
+<p>Сетка показывает плитку-картинку для каждого файла, список - по строке на файл и больше места для текста. Выбор запоминается. Ресурс только с музыкой остаётся списком: показывать нечего.</p>
+</div>
+</details>
+<h3>Выделение и новые файлы</h3>
+<details class="el" id="select-all">
+<summary><span class="mk">8</span><span><span class="name">Выбрать всё</span><span class="one">Выделяет все файлы в папке.</span></span></summary>
+<div class="full">
+<p>Удобно перед копированием, перемещением или удалением, когда нужна вся папка. Начать выделение можно и долгим нажатием на файл, отмечая файлы по одному.</p>
+</div>
+</details>
+<details class="el" id="deselect-all">
+<summary><span class="mk">9</span><span><span class="name">Снять выбор</span><span class="one">Снимает выделение.</span></span></summary>
+<div class="full">
+<p>Панель действий внизу при этом пропадает. Нажатие на отмеченную галочку снимает выделение только с этого файла.</p>
+</div>
+</details>
+<details class="el" id="create-folder">
+<summary><span class="mk">10</span><span><span class="name">Создать папку</span><span class="one">Добавляет подпапку в текущую папку.</span></span></summary>
+<div class="full">
+<p>Работает на папках устройства, сетевых папках и облачных ресурсах. На ресурсе только для чтения кнопка скрыта.</p>
+</div>
+</details>
+<details class="el" id="create-text-note">
+<summary><span class="mk">11</span><span><span class="name">Создать заметку</span><span class="one">Начинает новую текстовую заметку в текущей папке.</span></span></summary>
+<div class="full">
+<p>Заметка сохраняется, только когда вы её сохраните, и имя спрашивается именно в этот момент. На ресурсе только для чтения кнопка скрыта.</p>
+</div>
+</details>
+<details class="el" id="create-drawing">
+<summary><span class="mk">12</span><span><span class="name">Создать рисунок</span><span class="one">Открывает чистый лист редактора рисунков.</span></span></summary>
+<div class="full">
+<p>Рисунок сохраняется прямо в текущую папку. На ресурсе только для чтения кнопка скрыта.</p>
+</div>
+</details>
+<details class="el" id="mic-record">
+<summary><span class="mk">13</span><span><span class="name">Микрофон: запись аудио</span><span class="one">Записывает голосовую заметку в текущую папку.</span></span></summary>
+<div class="full">
+<p>Нажмите и держите - идёт запись, отпустите - она остановится; короткое нажатие лишь напомнит, что кнопку нужно удерживать. Когда запись закончится, приложение спросит имя файла.</p>
+</div>
+</details>
+<h3>Воспроизведение и меню</h3>
+<details class="el" id="play-random">
+<summary><span class="mk">14</span><span><span class="name">Случайный</span><span class="one">Воспроизводит файлы в случайном порядке.</span></span></summary>
+<div class="full">
+<p>Кнопка есть, когда в папке только один вид медиа, например только фото или только музыка.</p>
+</div>
+</details>
+<details class="el" id="play">
+<summary><span class="mk">15</span><span><span class="name">Воспроизвести</span><span class="one">Запускает показ в плеере.</span></span></summary>
+<div class="full">
+<p>Он начинается с файла, который вы смотрели последним в этом ресурсе, а если такого нет - с первого выделенного файла или с начала списка. Плеер открывается в режиме показа и сам переходит к следующему файлу.</p>
+</div>
+</details>
+<details class="el" id="more-actions">
+<summary><span class="mk">16</span><span><span class="name">Ещё: действия с ресурсом</span><span class="one">Открывает меню со всем, чего нет на панели.</span></span></summary>
+<div class="full">
+<p>Команды, не поместившиеся на узком экране, переезжают сюда, так что ничего не пропадает. В меню есть и действия с ресурсом, например поиск дубликатов, «Настройки программы» и «Справка», которая открывает эту страницу; клавиша F1 открывает её тоже.</p>
+</div>
+</details>
+<h3>Файлы</h3>
+<details class="el" id="file-list">
+<summary><span class="mk">17</span><span><span class="name">Файлы</span><span class="one">Файлы и папки ресурса.</span></span></summary>
+<div class="full">
+<p>Нажмите папку, чтобы открыть её, и файл, чтобы просмотреть или воспроизвести. В каждой строке есть звёздочка, которая добавляет файл в избранное, и четыре кнопки, чтобы скопировать, переместить, переименовать или удалить именно этот файл; в настройках их можно свернуть в меню «три точки» на строке. Свайп влево или вправо запускает быстрое действие, которое выбирается в настройках. Под именем стоит вторая строка с самым важным: у фото это разрешение и дата.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Удаление сначала спрашивает подтверждение, а «Отменить» на панели действий возвращает файлы, пока приложение ещё помнит операцию.</dd>
+</dl>
+</div>
+</details>
+<h3>Действия над выделенным</h3>
+<details class="el" id="copy">
+<summary><span class="mk">18</span><span><span class="name">Копировать</span><span class="one">Копирует выделенные файлы в выбранное вами место.</span></span></summary>
+<div class="full">
+<p>Назначение выбирается в диалоге из ваших ресурсов-назначений. Долгое копирование может идти в фоне, пока вы продолжаете просмотр.</p>
+</div>
+</details>
+<details class="el" id="move">
+<summary><span class="mk">19</span><span><span class="name">Переместить</span><span class="one">Перемещает выделенные файлы в выбранное вами место.</span></span></summary>
+<div class="full">
+<p>Тот же диалог, что у копирования. Когда перемещение закончится, файлов в этой папке не останется.</p>
+</div>
+</details>
+<details class="el" id="rename">
+<summary><span class="mk">20</span><span><span class="name">Переименовать</span><span class="one">Переименовывает выделенный файл.</span></span></summary>
+<div class="full">
+<p>Работает с одним файлом за раз и открывает диалог, только когда выделен ровно один файл.</p>
+</div>
+</details>
+<details class="el" id="delete">
+<summary><span class="mk">21</span><span><span class="name">Удалить</span><span class="one">Удаляет выделенные файлы после подтверждения.</span></span></summary>
+<div class="full">
+<p>Сначала приложение просит подтвердить удаление. Сразу после этого «Отменить» может вернуть файлы.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>«Отменить» появляется на этой же панели сразу после удаления или перемещения.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="undo">
+<summary><span class="mk">22</span><span><span class="name">Отменить</span><span class="one">Возвращает последнее удаление или перемещение.</span></span></summary>
+<div class="full">
+<p>Кнопка остаётся на панели, пока приложение ещё помнит операцию.</p>
+</div>
+</details>
+<details class="el" id="share">
+<summary><span class="mk">23</span><span><span class="name">Поделиться</span><span class="one">Отправляет выделенные файлы в другое приложение или на другое устройство.</span></span></summary>
+<div class="full">
+<p>Открывается список «Отправить в..» с приложениями, которые могут принять файлы.</p>
+</div>
+</details>
+<details class="el" id="archive">
+<summary><span class="mk">24</span><span><span class="name">Архив</span><span class="one">Упаковывает выделенные файлы в один архив.</span></span></summary>
+<div class="full">
+<p>Кнопка есть у ресурса в собственной памяти этого устройства.</p>
+</div>
+</details>
+</div>
+<h2>Связанное</h2>
+<ul class="related">
+<li><a href="main.html"><b>Главный экран</b><span class="pill">Экран</span></a></li>
+<li><a href="player.html"><b>Плеер</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-media.html"><b>Настройки: Медиа</b><span class="pill">Экран</span></a></li>
+<li><a href="duplicates.html"><b>Дубликаты</b><span class="pill">Экран</span></a></li>
+<li><a href="scheduled-operations.html"><b>Операции над файлами по расписанию</b><span class="pill">Экран</span></a></li>
+<li><a href="resource-editor.html"><b>Редактировать ресурс</b><span class="pill">Экран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/grid-and-list-views-ru.html"><b>Browsing Media Collections</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/sorting-and-filtering-ru.html"><b>Sorting, Filtering and Quick Search</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/batch-selection-ru.html"><b>Multi-Selection and Batch Operations</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="index.html"><b>Оглавление справки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Оглавление справки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
+</footer>
+</main>
+</body>
+</html>

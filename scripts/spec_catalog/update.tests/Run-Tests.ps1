@@ -52,6 +52,7 @@ $probeHelper = Join-Path $repoRoot 'scripts/quality/lib/ticket-acceptance-probes
 
 $script:pass = 0
 $script:fail = 0
+$script:skipped = 0
 
 function Assert-That([string]$name, [bool]$ok, [string]$detail) {
     if ($ok) {
@@ -140,6 +141,7 @@ try {
     $candidate = if ($candidates.Count -gt 0) { $candidates[0] } else { $null }
     if ($null -eq $candidate) {
         Write-Host "  SKIP  C2 - no active temporary Timber probe in the tree; the source-backed contract case is not exercised this run" -ForegroundColor Yellow
+        $script:skipped++
     }
     else {
         $candidateId = $candidate.Ticket
@@ -204,8 +206,8 @@ finally {
 
 Write-Host ""
 if ($script:fail -eq 0) {
-    Write-Host "update binding tests: $script:pass passed" -ForegroundColor Green
+    Write-Host "update binding tests: PASS (run=$($script:pass + $script:fail) skipped=$script:skipped)" -ForegroundColor Green
     exit 0
 }
-Write-Host "update binding tests: $script:pass passed, $script:fail FAILED" -ForegroundColor Red
+Write-Host "update binding tests: FAIL (run=$($script:pass + $script:fail) skipped=$script:skipped)" -ForegroundColor Red
 exit 1

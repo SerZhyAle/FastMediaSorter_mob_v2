@@ -11,4 +11,7 @@
     <string name="browse_network_error_timeout">Nessuna risposta in tempo. Verifica la rete e riprova.</string>
     <string name="browse_network_error_auth">Nome utente o password errati. Aggiorna la risorsa sul telefono.</string>
     <string name="browse_network_error_unknown_host">Computer non trovato su questa rete. Verifica la connessione Wi-Fi.</string>
+    <string name="exchange_folder_needs_own_network">Questa cartella si apre solo con il Wi-Fi o l\'LTE dell\'orologio. Attiva il Wi-Fi o l\'LTE sull\'orologio.</string>
+    <string name="exchange_folder_pin_on_phone">Questa cartella è protetta e il suo PIN si inserisce sul telefono. Apri la cartella sul telefono e inserisci il PIN.</string>
+    <string name="exchange_folder_connect_watch_on_phone">Fuori casa questa cartella richiede l\'orologio collegato al server. Collega l\'orologio dal telefono.</string>
 </resources>

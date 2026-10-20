@@ -1,0 +1,8 @@
+• Tourist on the watch - pressure, altitude, trip, course and light readings.
+• Dark screen clock - a tap shows the time and date.
+• Rotation switch - the screen stops turning with the wrist.
+• Stopwatch autostart - opens already running.
+
+
+• Home and Streams lists fit the round glass.
+• Tourist screens no longer crash on Wear OS API 28-29.

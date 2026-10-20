@@ -336,6 +336,9 @@ class EnableAllCoverageClassificationTest {
                 "enableStatistics",
                 "recordGnssTrack",
                 "secureSensitiveScreens",
+                // S4116: it drops the consent prompt for content another device sends, so the button must
+                // not answer "may a cast start playing on its own" for the user.
+                "streamsCastPlayAtOnce",
             ),
             Coverage.STARTS_ON_REACH to setOf(
                 // S3224: SosActivity starts SosService as it resolves its mode, so opening the program

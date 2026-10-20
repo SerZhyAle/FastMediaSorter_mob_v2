@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.wear.ui.favourites
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiverCatalogRepository
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.files.WearSendToReceiverFilter
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_LOCAL
@@ -72,7 +72,7 @@ class FavouritesViewModel @Inject constructor(
     private val selectedMediaManager: SelectedMediaManager,
     private val capabilityPolicy: WearFileCapabilityPolicy,
     private val performFileOperation: PerformWearFileOperationUseCase,
-    private val sendToReceiversRepository: WearSendToReceiversRepository,
+    private val sendToReceiversRepository: WearSendToReceiverCatalogRepository,
     private val thumbnailRepository: com.sza.fastmediasorter.wear.domain.repository.WearThumbnailRepository,
     preferencesRepository: WearPreferencesRepository
 ) : ViewModel() {

@@ -229,6 +229,6 @@ Assert-That 'compose() refuses an unfittable headline end-to-end' `
     ((Get-Measured 'compose_refuses') -eq 'True') `
     "expected: True | actual: $(Get-Measured 'compose_refuses')"
 
-Write-Host ("`ncompose-feature-graphic.tests: {0} passed, {1} failed" -f $script:pass, $script:fail)
+Write-Host "compose-feature-graphic.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

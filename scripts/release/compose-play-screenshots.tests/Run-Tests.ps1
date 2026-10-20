@@ -231,6 +231,6 @@ Assert-That 'the superseded draw_caption is gone rather than left beside its rep
     ((Get-Observed 'has_draw_caption') -eq 'False') `
     "expected: False | actual: $(Get-Observed 'has_draw_caption') - a dead painter is the one a future edit calls by mistake"
 
-Write-Host ("`ncompose-play-screenshots.tests: {0} passed, {1} failed" -f $script:pass, $script:fail)
+Write-Host "compose-play-screenshots.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

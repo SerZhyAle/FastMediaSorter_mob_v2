@@ -14,6 +14,10 @@
     HTML without a <body> (an include fragment) and files outside the documentation scope are skipped
     and counted.
 
+    A portal recipe source (docs/content/recipes*/*.md) lends its stamp to its generated page, so after
+    restamping one the script runs generate-docs-pages.ps1 -StampOnly for that language; the page
+    otherwise stays stale against its source until the next full render.
+
     Scope: docs/, documentation/, dev/ (not dev/archive or dev/CATALOG), the root pages, store_assets/,
     maestro/, delivery/, play/, meta/, inttent/, app_v2/ Markdown and scripts/ Markdown. Never
     stamped: PLAN/ (the catalog rewrites those headers), temp/, the read-only trees, .claude/, .venv,
@@ -48,7 +52,7 @@
     Exit codes:
       0  every considered document is stamped and current (or was stamped now)
       1  -Check found a missing or stale stamp
-      2  no input given, or a file could not be read or written
+      2  no input given, a file could not be read or written, or a recipe page restamp failed
 #>
 [CmdletBinding()]
 param(
@@ -144,6 +148,10 @@ if ($candidates.Count -eq 0) {
 $stamped = 0; $refreshed = 0; $current = 0; $skippedScope = 0; $skippedFragment = 0; $skippedGenerated = 0; $problems = 0
 $pending = [System.Collections.Generic.List[string]]::new()
 $nowDate = Get-Date
+# generate-docs-pages.ps1 copies a recipe source's stamp into its page, and its -Check compares the
+# stamped page: restamping the source alone failed the next closure's docs-external-content (S4099, S4277).
+$recipeSourcePattern = '^docs/content/recipes(?:-(?<lang>[a-z]{2}))?/[^/]+\.md$'
+$restampedRecipeLangs = [System.Collections.Generic.SortedSet[string]]::new([StringComparer]::Ordinal)
 
 foreach ($path in ($candidates | Select-Object -Unique)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { $skippedScope++; continue }
@@ -168,14 +176,20 @@ foreach ($path in ($candidates | Select-Object -Unique)) {
 
         if ($Check) { $pending.Add($rel + $(if ($null -eq $existing) { '  [missing]' } else { "  [stale: $existing < $dateText]" })); continue }
 
+        $recipeLang = if ($rel -match $recipeSourcePattern) { if ($Matches['lang']) { $Matches['lang'] } else { 'en' } } else { $null }
         $keep = if ($Now) { $nowDate } else { $mtime }
         if ($null -ne $existing) {
-            if (Update-DocStampInPlace -Path $path -Date $dateText -KeepTime $keep) { $refreshed++; continue }
+            if (Update-DocStampInPlace -Path $path -Date $dateText -KeepTime $keep) {
+                $refreshed++
+                if ($recipeLang) { $null = $restampedRecipeLangs.Add($recipeLang) }
+                continue
+            }
         }
         $newText = Add-DocStamp -Text $doc.Text -Kind $kind -Date $dateText
         if ($null -eq $newText) { $skippedFragment++; continue }
         Write-DocFile -Path $path -Text $newText -HasBom $doc.HasBom -KeepTime $keep
         if ($null -ne $existing) { $refreshed++ } else { $stamped++ }
+        if ($recipeLang) { $null = $restampedRecipeLangs.Add($recipeLang) }
     } catch {
         $problems++
         Write-Host "stamp-doc-dates: $rel - $($_.Exception.Message)" -ForegroundColor Red
@@ -187,6 +201,20 @@ if ($Check) {
     Write-Host "stamp-doc-dates -Check: $($pending.Count) need a stamp, $current current, $skippedGenerated generated skipped, $skippedScope out of scope" -ForegroundColor $(if ($pending.Count) { 'Red' } else { 'Green' })
     if ($problems) { exit 2 }
     exit $(if ($pending.Count) { 1 } else { 0 })
+}
+
+$pageGenerator = Join-Path $PSScriptRoot 'generate-docs-pages.ps1'
+if ($restampedRecipeLangs.Count -gt 0 -and (Test-Path -LiteralPath $pageGenerator)) {
+    $pwshExe = (Get-Process -Id $PID).Path
+    foreach ($lang in $restampedRecipeLangs) {
+        $genOut = @(& $pwshExe -NoProfile -File $pageGenerator -StampOnly -Lang $lang 2>&1)
+        $genLast = [string]($genOut | Select-Object -Last 1)
+        if ($LASTEXITCODE -ne 0) {
+            $problems++
+            Write-Host "stamp-doc-dates: recipe page restamp ($lang) failed, exit $LASTEXITCODE - $genLast" -ForegroundColor Red
+        }
+        elseif (-not $Quiet) { Write-Host "  $genLast" }
+    }
 }
 
 Write-Host "stamp-doc-dates: stamped $stamped, refreshed $refreshed, already current $current, fragments skipped $skippedFragment, generated skipped $skippedGenerated, out of scope $skippedScope, errors $problems" -ForegroundColor $(if ($problems) { 'Red' } else { 'Green' })

@@ -131,7 +131,7 @@ function Render-Doc([string] $locale, [string[]] $flavorScope, [bool] $isNoLegal
     # Jekyll front matter must be the very first bytes so GitHub Pages renders the
     # page as HTML at the permalink instead of serving raw markdown.
     [void]$sb.Append("---`n")
-    [void]$sb.Append("layout: default`n")
+    [void]$sb.Append("layout: doc`n")
     [void]$sb.Append("title: `"$title`"`n")
     [void]$sb.Append("permalink: /docs/$permalinkName.html`n")
     [void]$sb.Append("---`n")

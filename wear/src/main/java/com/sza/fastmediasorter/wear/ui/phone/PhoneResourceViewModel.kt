@@ -9,7 +9,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
-import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiverCatalogRepository
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
@@ -194,7 +194,7 @@ class PhoneResourceViewModel @Inject constructor(
     private val selectedMediaManager: SelectedMediaManager,
     private val capabilityPolicy: WearFileCapabilityPolicy,
     private val performFileOperation: PerformWearFileOperationUseCase,
-    private val sendToReceiversRepository: WearSendToReceiversRepository,
+    private val sendToReceiversRepository: WearSendToReceiverCatalogRepository,
     @ApplicationContext context: Context,
     preferencesRepository: WearPreferencesRepository,
     savedStateHandle: SavedStateHandle

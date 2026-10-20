@@ -242,7 +242,7 @@ if (-not $prepared) {
 }
 
 Write-Host ''
-Write-Host ("passed: {0}  failed: {1}" -f $script:pass, $script:fail) -ForegroundColor Cyan
+Write-Host "assert-gate-timing-claims.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) {
     Write-Host 'assert-gate-timing-claims suite: FAIL' -ForegroundColor Red
     exit 1

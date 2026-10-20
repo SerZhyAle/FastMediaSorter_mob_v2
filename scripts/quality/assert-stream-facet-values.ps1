@@ -62,11 +62,13 @@ try {
     $rows = @(Import-Csv -LiteralPath $CatalogPath -Encoding utf8)
 } catch {
     Write-Host "assert-stream-facet-values: invalid input - the catalog cannot be parsed: $($_.Exception.Message)"
+    Write-Host 'assert-stream-facet-values: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 if ($rows.Count -eq 0 -or -not ($rows[0].PSObject.Properties.Name -contains 'language') -or
     -not ($rows[0].PSObject.Properties.Name -contains 'country')) {
     Write-Host 'assert-stream-facet-values: invalid input - the catalog has no language or country column'
+    Write-Host 'assert-stream-facet-values: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 

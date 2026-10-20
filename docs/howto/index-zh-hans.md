@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "分步指南 - FastMediaSorter v2"
 permalink: /docs/howto/index-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.25 02:11</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> 分步指南
 
 面向实际使用场景的实用教程。无需任何预备知识 - 每一步都从零讲解。
-
-{% include lang-switcher.html doc="index" dir="/docs/howto/" current="zh-Hans" %}
 
 ---
 

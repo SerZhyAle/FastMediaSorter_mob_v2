@@ -26,6 +26,50 @@ function Expand-ChangedFiles {
         Where-Object { $_ }
 }
 
+function Test-ChangeSetDeclared {
+    <# True when the caller named at least one path. An absent or empty -ChangedFiles means the caller
+       narrowed nothing and is charged the whole tree (CHECK-VERDICT rule 2.8); a declared set that holds
+       no file the check watches is the empty determined set of rule 2.12 and must never fall back to a
+       full scan. Ask this BEFORE the check filters the set to its own extensions. #>
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param([AllowEmptyCollection()][AllowNull()][AllowEmptyString()][string[]]$ChangedFiles)
+    return @(Expand-ChangedFiles -ChangedFiles $ChangedFiles).Count -gt 0
+}
+
+function Write-EmptySetPass {
+    <# CHECK-VERDICT rule 2.12 (S4378): a check whose input is the caller's change set, run over a declared
+       set that holds nothing it watches, ends on `<GateName>: PASS (0 file(s) inspected)`. The caller keeps
+       its own `exit 0`. -Quiet never reaches this line: the verdict line is owed on every path (rule 2.11). #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string]$GateName,
+        [string]$Note = ''
+    )
+    if ($Note) { Write-Host $Note }
+    Write-Host ("{0}: PASS (0 file(s) inspected)" -f $GateName) -ForegroundColor Green
+}
+
+function Invoke-SourceGatesEngine {
+    <# S4378: runs assert-source-gates.ps1 for a forwarder, replays its host output unchanged and reports
+       the engine's exit code plus whether its verdict line carried the empty-set form. Only the
+       information stream (Write-Host) is captured; errors keep going straight to the caller's stderr. #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string]$Runner,
+        [Parameter(Mandatory = $true)][hashtable]$Forward
+    )
+    $captured = @(& $Runner @Forward 6>&1)
+    $code = [int]$LASTEXITCODE
+    $emptySet = $false
+    foreach ($item in $captured) {
+        $text = if ($item -is [System.Management.Automation.InformationRecord]) { [string]$item.MessageData } else { [string]$item }
+        if ($text -match 'PASS \(0 file\(s\) inspected\)') { $emptySet = $true }
+        Write-Host $text
+    }
+    return [pscustomobject]@{ Code = $code; EmptySet = $emptySet }
+}
+
 function Select-ChangedFileFindings {
     <# Return the subset of $FindingFiles (already lowercased, forward-slash paths from the detekt
        Checkstyle report) that match any of $ChangedFiles. A finding matches when its path contains

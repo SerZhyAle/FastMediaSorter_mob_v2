@@ -33,7 +33,6 @@ class ObserveWearTouristWeatherUseCase @Inject constructor(
         }
             .distinctUntilChanged()
             .collect { answer ->
-                Timber.d("S4152: weather tiles fresh=%s", answer != null)
                 send(answer)
             }
     }

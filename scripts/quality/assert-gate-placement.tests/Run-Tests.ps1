@@ -1,4 +1,4 @@
-﻿<#
+<#
 Run-Tests.ps1 - contract tests for assert-gate-placement.ps1 (S2870).
 
 Every case builds a throwaway repository root under the system temp directory and runs the gate
@@ -327,6 +327,6 @@ Assert-Case -Name 'gate named in an argv lib and consumed passes per-ticket (S41
 foreach ($f in $fixtures) { Remove-Item -LiteralPath $f -Recurse -Force -ErrorAction SilentlyContinue }
 
 Write-Host ''
-Write-Host ("assert-gate-placement tests: {0} passed, {1} failed" -f $passed, $failed)
+Write-Host "assert-gate-placement tests: $(if ($failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($passed + $failed) skipped=0)"
 if ($failed -gt 0) { exit 1 }
 exit 0

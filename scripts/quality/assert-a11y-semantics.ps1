@@ -355,6 +355,7 @@ if (@($allowlist.Malformed).Count -gt 0) {
     Write-Host 'FAIL: the decorative allowlist holds a row this gate cannot read.'
     foreach ($row in $allowlist.Malformed) { Write-Host "  $row" }
     Write-Host "Each row is '<layout-file>.xml:<resource-id>  # <reason>'; the reason is what makes the exception re-judgeable."
+    Write-Host 'assert-a11y-semantics: FAIL (the decorative allowlist holds a row this gate cannot read)'
     exit 1
 }
 
@@ -373,11 +374,11 @@ if ($Gate -and $ChangedFiles -and (@(Expand-ChangedFiles -ChangedFiles $ChangedF
         }
     }
     if ($subject.Count -eq 0) {
-        Write-Host 'a11y-semantics [scoped]: no layout or Kotlin source in the changed set - nothing to judge.'
-        Write-Host 'assert-a11y-semantics: PASS (scoped).'
+        Write-EmptySetPass -GateName 'assert-a11y-semantics' -Note 'a11y-semantics [scoped]: no layout or Kotlin source in the changed set - nothing to judge.'
         exit 0
     }
 
+    Assert-GitHeadResolvable -GateName 'assert-a11y-semantics' -RepoRoot $repoRoot
     $delta = Measure-ChangedFileGrowth -ChangedFiles $subject -RepoRoot $repoRoot -Extensions @('.xml', '.kt') -CountInText $countInText
     Write-Host ("a11y-semantics [scoped to {0} changed file(s)]: new finding(s) {1}" -f $subject.Count, $delta.Growth)
     if ($List) {
@@ -395,6 +396,7 @@ if ($Gate -and $ChangedFiles -and (@(Expand-ChangedFiles -ChangedFiles $ChangedF
             Write-Host ("  {0}: HEAD {1} -> working {2}" -f $row.Path, $row.Head, $row.Work)
         }
         Write-Host 'FAIL: a changed file added an accessibility finding. Give the icon-only control an android:contentDescription, expose role and state from the custom view through an accessibility delegate, or raise the target to 48dp. A decorative image is exempted by marking it importantForAccessibility="no" AND adding a reasoned row to scripts/quality/a11y-decorative-allowlist.txt - never by calling an interactive control decorative.'
+        Write-Host 'assert-a11y-semantics: FAIL (a changed file added an accessibility finding)'
         exit 1
     }
     Write-Host 'assert-a11y-semantics: PASS (no new accessibility finding in the changed files).'
@@ -455,6 +457,7 @@ if ($UpdateBaseline) {
         if (-not (Test-Path -LiteralPath $baselineFile)) {
             Set-Content -LiteralPath $baselineFile -Value "$current"
             Write-Host "a11y-semantics baseline SEEDED: $current"
+            Write-Host "assert-a11y-semantics: PASS (baseline seeded at $current)"
             exit 0
         }
         $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
@@ -467,15 +470,18 @@ if ($UpdateBaseline) {
         }
         else {
             Write-Host "FAIL: refusing to RAISE the a11y-semantics baseline ($baseline -> $current). Name the icon, expose the role, or reach the 48dp floor."
+            Write-Host "assert-a11y-semantics: FAIL (refusing to raise the baseline $baseline -> $current)"
             exit 1
         }
     }
     finally { Exit-CodeLockScope -Scope $scope }
+    Write-Host "assert-a11y-semantics: PASS (baseline update ran; actual $current)"
     exit 0
 }
 
 if (-not (Test-Path -LiteralPath $baselineFile)) {
     Write-Host "a11y-semantics: NO BASELINE yet | actual $current - run -UpdateBaseline to seed."
+    Write-Host "assert-a11y-semantics: PASS (no baseline yet; actual $current)"
     exit 0
 }
 $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
@@ -483,9 +489,11 @@ $delta = $current - $baseline
 Write-Host ("accessibility findings in app_v2 layouts and custom views: baseline {0} | actual {1} | delta {2:+#;-#;0}" -f $baseline, $current, $delta)
 if ($Gate -and $current -gt $baseline) {
     Write-Host 'FAIL: accessibility findings grew above the baseline. Give the icon-only control an android:contentDescription, expose role and state from the custom view through an accessibility delegate, or raise the target to 48dp. A decorative image is exempted by marking it importantForAccessibility="no" AND adding a reasoned row to scripts/quality/a11y-decorative-allowlist.txt.'
+    Write-Host "assert-a11y-semantics: FAIL (findings grew from the baseline $baseline to $current)"
     exit 1
 }
 if ($current -lt $baseline) {
     Write-Host 'Note: count is below baseline - run -UpdateBaseline to ratchet the cap down.'
 }
+Write-Host "assert-a11y-semantics: PASS (baseline $baseline, actual $current)"
 exit 0

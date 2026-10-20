@@ -103,7 +103,6 @@ class AndroidWearTouristRepository @Inject constructor(
     override suspend fun resetTrip() {
         lastGpsLocation = null
         tripTracker.reset()
-        Timber.d("S4146: trip reset - distance, time, ascent and descent zeroed")
     }
 
     override fun resetSteps() {
@@ -115,7 +114,6 @@ class AndroidWearTouristRepository @Inject constructor(
     @OptIn(FlowPreview::class)
     override fun observeTelemetry(): Flow<WearTouristState> = callbackFlow {
         tripTracker.ensureLoaded()
-        Timber.d("S4146: tourist telemetry subscribed, stored trip loaded")
         // A new subscription is a return to the screen: its first fix only anchors, so the walk done
         // while the section was closed is never added as a straight line.
         lastGpsLocation = null
@@ -155,7 +153,6 @@ class AndroidWearTouristRepository @Inject constructor(
         }
 
         awaitClose {
-            Timber.d("S4146: tourist telemetry released, sensors unregistered")
             ticker.cancel()
             sensorManager?.unregisterListener(sensorListener)
             environmentSensors.unregister(sensorManager, environmentListener)

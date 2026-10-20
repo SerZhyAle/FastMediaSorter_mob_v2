@@ -1,7 +1,10 @@
 package com.sza.fastmediasorter.wear.data.network.ftp
 
+import android.net.Network
 import android.net.Uri
 import com.sza.fastmediasorter.wear.data.network.WearEndpointResolver
+import com.sza.fastmediasorter.wear.domain.files.WearFileNameConflictResolver
+import com.sza.fastmediasorter.wear.domain.files.WearRemoteFileNames
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry
@@ -19,7 +22,17 @@ import timber.log.Timber
 import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
+import java.time.Duration
 import javax.inject.Inject
+
+/**
+ * S4230: the server answered a store or a rename with a negative reply. The code is kept as a field and not read
+ * back out of the message, so the failure classifier maps it without parsing text.
+ */
+internal class FtpStoreRefusedException(val replyCode: Int) : IOException("FTP refused the store (code=$replyCode)")
+
+/** How long a send waits on a silent server, for connect, control replies and the data connection alike. */
+private const val TRANSFER_TIMEOUT_MS = 30_000
 
 class FtpDataSource @Inject constructor(
     private val endpointResolver: WearEndpointResolver
@@ -143,6 +156,62 @@ class FtpDataSource @Inject constructor(
                 runCatching { if (client.isConnected) client.disconnect() }
             }
         }
+
+    /**
+     * S4230: store [input] in [directory] and return the name it ended up with.
+     *
+     * Binary mode first, or commons-net corrupts every media file in ASCII; the bytes go under a partial name and
+     * are renamed only after the server confirmed the whole transfer, and a name the folder already holds is
+     * replaced by a free one so nothing the watch did not create is overwritten. The control and data connections
+     * both ride the granted [network].
+     */
+    suspend fun storeFile(
+        source: NetworkSource,
+        directory: String,
+        intendedName: String,
+        input: InputStream,
+        network: Network? = null
+    ): Result<String> = withContext(Dispatchers.IO) {
+        val token = WearRemoteFileNames.newToken()
+        val partial = WearRemoteFileNames.joinRemote(directory, WearRemoteFileNames.partialName(token))
+        val client = FTPClient()
+        // The listing path keeps the client's own defaults, but a send the wearer is waiting on must give up:
+        // an unreachable host and a data connection that stalls would otherwise hold the radio indefinitely.
+        client.connectTimeout = TRANSFER_TIMEOUT_MS
+        client.setDataTimeout(Duration.ofMillis(TRANSFER_TIMEOUT_MS.toLong()))
+        var renamed = false
+        try {
+            client.openFtpSession(endpointResolver.resolve(source, network), network)
+            client.soTimeout = TRANSFER_TIMEOUT_MS
+            client.setFileType(FTP.BINARY_FILE_TYPE)
+            val finalName = freeNameIn(client, directory, intendedName)
+            if (!client.storeFile(partial, input)) {
+                throw FtpStoreRefusedException(client.replyCode)
+            }
+            if (!client.rename(partial, WearRemoteFileNames.joinRemote(directory, finalName))) {
+                throw FtpStoreRefusedException(client.replyCode)
+            }
+            renamed = true
+            Result.success(finalName)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IOException) {
+            Timber.w(e, "Failed to store FTP file")
+            Result.failure(e)
+        } catch (e: IllegalStateException) {
+            Timber.w(e, "Failed to store FTP file")
+            Result.failure(e)
+        } finally {
+            if (!renamed) runCatching { client.dele(partial) }
+            runCatching { client.logout() }
+            runCatching { if (client.isConnected) client.disconnect() }
+        }
+    }
+
+    private fun freeNameIn(client: FTPClient, directory: String, intendedName: String): String {
+        val names = client.listNames(directory).orEmpty().map { it.substringAfterLast('/') }.toSet()
+        return WearFileNameConflictResolver.resolveAmong(names, intendedName).first
+    }
 
     private fun failStream(
         cause: Exception,

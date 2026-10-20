@@ -179,6 +179,13 @@ try {
     Invoke-Case 'an inline cap on main fails' $f 1 'FAIL [WIDTH] 404.html: an inline max-width 46rem on <main>'
 
     $f = New-Fixture
+    New-Item -ItemType Directory -Path (Join-Path $f.Site '_layouts') -Force | Out-Null
+    Set-Page $f '_layouts/doc.html' $cleanPage
+    Invoke-Case 'a clean docs/ layout is judged and passes' $f 0 'PASS (7 pages)'
+    Set-Page $f '_layouts/doc.html' ($cleanPage -replace 'data-lang="ua">UA<', 'data-lang="uk">UA<')
+    Invoke-Case 'a docs/ layout storing uk fails' $f 1 'FAIL [LANG] _layouts/doc.html: a link carries data-lang="uk"'
+
+    $f = New-Fixture
     Invoke-Case 'no catalog cannot verify' $f 2 'COULD NOT VERIFY' -CatalogOverride (Join-Path $f.Site 'no-such-catalog')
 
     $f = New-Fixture
@@ -189,6 +196,6 @@ finally {
     foreach ($dir in $fixtures) { Remove-Item -LiteralPath $dir -Recurse -Force -ErrorAction SilentlyContinue }
 }
 
-Write-Host "assert-page-style tests: $passed passed, $failed failed"
+Write-Host "assert-page-style tests: $(if ($failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($passed + $failed) skipped=0)"
 if ($failed -gt 0) { exit 1 }
 exit 0

@@ -84,4 +84,21 @@
     <string name="playback_control_no_balance">मोनो ऑडियो - संतुलित करने के लिए कोई चैनल नहीं</string>
     <string name="playback_control_balance_value">संतुलन: %1$s</string>
     <string name="playback_control_balance_description">संतुलन %1$d प्रतिशत बाएं, %2$d प्रतिशत दाएं</string>
+    <string name="player_file_grid">थंबनेल ग्रिड व्यू</string>
+    <string name="player_file_list">फ़ाइल सूची व्यू</string>
+    <string name="player_file_jump">फ़ाइल पर जाएँ</string>
+    <string name="player_file_number_hint">फ़ाइल संख्या (1..%1$d)</string>
+    <string name="player_file_number_error">1 से %1$d तक की कोई पूर्ण संख्या दर्ज करें।</string>
+    <string name="player_file_single">केवल यही फ़ाइल उपलब्ध है।</string>
+    <string name="player_frame_unavailable">इस वीडियो के लिए फ़्रेम-दर-फ़्रेम स्टेपिंग उपलब्ध नहीं है।</string>
+    <string name="player_frame_back_unavailable">पिछला फ़्रेम उपलब्ध नहीं: यह डिकोडर पीछे नहीं जा सकता।</string>
+    <string name="player_loop_title">A-B लूप</string>
+    <string name="player_loop_unavailable">A-B रिपीट के लिए ऐसा वीडियो चाहिए जिसमें सीक किया जा सके।</string>
+    <string name="player_loop_start">लूप की शुरुआत: %1$s। अंतिम बिंदु चुनें।</string>
+    <string name="player_loop_active">A-B रिपीट: %1$s से %2$s</string>
+    <string name="player_loop_invalid_end">शुरुआत के बाद का कोई अंतिम बिंदु चुनें।</string>
+    <string name="player_frame_forward">अगला फ़्रेम</string>
+    <string name="player_action_unavailable">यह कार्रवाई इस फ़ाइल के लिए उपलब्ध नहीं है।</string>
+    <string name="player_audio_track_single">कोई अन्य ऑडियो ट्रैक उपलब्ध नहीं है।</string>
+    <string name="player_frame_backward">पिछला फ़्रेम</string>
 </resources>

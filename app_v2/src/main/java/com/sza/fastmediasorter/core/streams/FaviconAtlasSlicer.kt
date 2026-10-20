@@ -81,10 +81,10 @@ class FaviconAtlasSlicer(
             return Rect(left, top, left + TILE, top + TILE)
         }
 
-        internal fun inBoundsOf(index: Int, atlasWidth: Int, atlasHeight: Int): Boolean {
-            val rect = rectOf(index)
-            return index >= 0 && rect.right <= atlasWidth && rect.bottom <= atlasHeight
-        }
+        // STREAM-BANK 2.4 SB-A12: compared in tile units because `row * TILE` overflows Int for an index
+        // near Int.MAX_VALUE and wraps back inside the sheet.
+        internal fun inBoundsOf(index: Int, atlasWidth: Int, atlasHeight: Int): Boolean =
+            index >= 0 && index % COLS < atlasWidth / TILE && index / COLS < atlasHeight / TILE
     }
 }
 

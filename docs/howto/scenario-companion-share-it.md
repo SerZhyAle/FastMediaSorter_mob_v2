@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Apri le cartelle del tuo PC scansionando un codice - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-it.html
 ---
-<sub class="doc-stamp">26.09.25 02:15</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="it" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Apri le cartelle del tuo PC scansionando un codice
 
 > **Livello:** Principiante &bull; **Edizione:** Standard, Photos, Legacy, VR, noLegal (Lite non ha fonti di rete; la scansione richiede una fotocamera, il metodo via file funziona ovunque)
-
-{% include lang-switcher.html doc="scenario-companion-share" dir="/docs/howto/" current="it" %}
 
 Esegui un piccolo programma di supporto sul tuo PC Windows, scegli le cartelle con i tuoi video, musica, documenti o foto, e lui mostra un codice sullo schermo. Sul telefono tocchi **Aggiungi**, punti la fotocamera verso quel codice, e le cartelle del PC vengono collegate all'istante - senza digitare un indirizzo, senza porta, senza password, senza cavi.
 

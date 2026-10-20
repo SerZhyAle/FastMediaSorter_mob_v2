@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "🚀 Quick Start Guide - FastMediaSorter v2"
 permalink: /docs/QUICK_START-zh-hans.html
 ---
-<sub class="doc-stamp">26.10.09 14:52</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 🚀 快速上手指南 - FastMediaSorter v2
 
 *5 分钟快速上手！适合初学者的简明指南。*
-
-{% include lang-switcher.html doc="QUICK_START" dir="/docs/" current="zh-Hans" %}
 
 ---
 

@@ -1,11 +1,11 @@
 ---
-layout: default
+layout: doc
 title: "Build and Verification"
 permalink: /docs/BUILD_AND_VERIFICATION.html
 lang: en
 ---
 
-<sub class="doc-stamp">26.10.06 14:18</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # Build and Verification
 

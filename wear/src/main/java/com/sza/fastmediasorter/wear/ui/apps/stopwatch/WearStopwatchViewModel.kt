@@ -72,7 +72,6 @@ class WearStopwatchViewModel @Inject constructor(
                     // The session update waits for restore and preserves clocks that already run.
                     change { state, now ->
                         val resized = WearStopwatchEngine.resize(state, count)
-                        Timber.d("S4180: watch stopwatch autostart participants=%d", resized.participants.size)
                         WearStopwatchEngine.startAll(resized, now)
                     }
                 } else if (session.current().participants.size != WearStopwatchState.snapCount(count)) {

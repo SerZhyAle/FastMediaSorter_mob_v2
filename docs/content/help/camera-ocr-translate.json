@@ -1,0 +1,385 @@
+{
+  "help": "camera-ocr-translate",
+  "surface": "CameraOcrTranslateActivity",
+  "elements": [
+    { "id": "crop-preview", "viewId": "ivCropPreview" },
+    { "id": "crop-frame", "viewId": "cropOverlay", "labelKey": "camera_ocr_crop_frame_desc" },
+    { "id": "crop-retry", "viewId": "btnCropRetry", "labelKey": "camera_ocr_crop_retry" },
+    { "id": "crop-source-lang", "viewId": "btnCropOcrLang", "labelKey": "camera_ocr_crop_lang_ocr_desc" },
+    { "id": "crop-arrow", "viewId": "ivCropLangArrow" },
+    { "id": "crop-target-lang", "viewId": "btnCropTargetLang", "labelKey": "camera_ocr_crop_lang_target_desc" },
+    { "id": "crop-confirm", "viewId": "btnCropConfirm", "labelKey": "camera_ocr_crop_confirm" },
+    { "id": "loading", "viewId": "layoutLoading" },
+    { "id": "translation-card", "viewId": "cardTranslation", "labelKey": "camera_ocr_pane_translation" },
+    { "id": "original-card", "viewId": "cardOriginalOcr", "labelKey": "camera_ocr_pane_original" },
+    { "id": "settings", "viewId": "btnSettings", "labelKey": "settings" },
+    { "id": "save-txt", "viewId": "btnSaveTxt", "labelKey": "camera_ocr_btn_save" },
+    { "id": "next-photo", "viewId": "btnNextPhoto", "labelKey": "camera_ocr_btn_next" },
+    { "id": "close", "viewId": "btnClose", "labelKey": "close" },
+    { "id": "empty-message", "viewId": "layoutEmptyState", "labelKey": "ocr_no_text_found" },
+    { "id": "empty-retry", "viewId": "btnEmptyRetry", "labelKey": "camera_ocr_btn_next" },
+    { "id": "empty-close", "viewId": "btnEmptyClose", "labelKey": "close" },
+    { "id": "d-source", "labelKey": "translation_source_language" },
+    { "id": "d-target", "labelKey": "translation_target_language" },
+    { "id": "d-ocr-only", "labelKey": "setting_camera_ocr_only_title" },
+    { "id": "d-cancel", "labelKey": "cancel" },
+    { "id": "d-apply", "labelKey": "apply" }
+  ],
+  "related": [
+    { "help": "camera-capture" },
+    { "help": "main" },
+    { "help": "settings-operations" },
+    { "pageId": "tools.ocr-text-recognition" },
+    { "pageId": "tools.inline-translation" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Camera OCR translation",
+      "purpose": "Take a photo of a printed text - a sign, a menu, a page - and the app reads it and translates it into the language you choose. You get the translation and the original text on one screen, and can save both as a text file.",
+      "steps": [
+        "Open Camera OCR translation from the programs menu, the quick-access panel or the launcher desktop; it is switched on in Settings, on the Management tab, in the group Additional programs and scenarios. The screen opens the in-app camera at once, so photograph the text. The first time, the text recognition engines may need to be downloaded. A screenshot sent here skips the camera. If you leave the camera without a photo, the screen closes.",
+        "Crop state: the photo appears (1) under a frame (2). Drag an edge or a corner of the frame to cover only the text you need, or leave the frame alone to use the whole photo. Retry (3) throws the photo away and opens the camera again.",
+        "Check the languages under the photo: the button on the left (4) is the language of the text, and AUTO lets the app detect it; the button on the right (6) is the language to translate into, and the arrow (5) shows the direction. Each opens a searchable list. When translation is off, only the first button is left.",
+        "Press Apply (7). The cropped photo is saved to the phone's Camera folder, and the loading state (8) shows the progress while the text is read and translated.",
+        "Result state: the translation (9) is on top and the original text (10) below it. Press and hold a word to select text and search it in Google or send a number to the calculator.",
+        "Settings (11) changes the languages or switches the translation off and runs the recognition again on the same photo. Save as .txt (12) writes the text to a file, Next photo (13) takes another picture, and Close (14) leaves.",
+        "Empty state: if no text was found, the message (15) asks for a clearer photo. Next photo (16) tries again, and Close (17) leaves."
+      ],
+      "groups": [
+        { "title": "Crop state", "elements": ["crop-preview", "crop-frame", "crop-retry", "crop-source-lang", "crop-arrow", "crop-target-lang", "crop-confirm"] },
+        { "title": "Loading state", "elements": ["loading"] },
+        { "title": "Result state", "elements": ["translation-card", "original-card", "settings", "save-txt", "next-photo", "close"] },
+        { "title": "Empty state", "elements": ["empty-message", "empty-retry", "empty-close"] },
+        { "title": "Settings dialog", "elements": ["d-source", "d-target", "d-ocr-only", "d-cancel", "d-apply"] }
+      ],
+      "elements": {
+        "crop-preview": {
+          "name": "Photo to read",
+          "summary": "The photo you just took, ready to be cropped.",
+          "details": "It fills the space above the buttons, fitted to the screen. Only the part inside the frame is read."
+        },
+        "crop-frame": {
+          "summary": "The frame that marks the part of the photo to read.",
+          "details": "Grab an edge or a corner to resize the frame, and drag inside it to move it; the rest of the photo is dimmed. If you do not touch the frame at all, the whole photo is used. With a keyboard or a D-pad, Enter switches resize mode on and off and the arrow keys nudge the frame.",
+          "shortcut": "Enter / D-pad center"
+        },
+        "crop-retry": {
+          "summary": "Throws the photo away and opens the camera again.",
+          "details": "Use it when the text is blurred or cut off. The current photo is not kept.",
+          "undo": "The discarded photo is lost and cannot be brought back; take a new one."
+        },
+        "crop-source-lang": {
+          "summary": "Sets the language of the text in the photo.",
+          "details": "The label shows a flag and a code, for example AUTO, which means that the app works the language out by itself. A tap opens a list with a search field; type a part of the name and tap the language. Pick a language yourself when AUTO guesses wrong. The choice is saved for the next time."
+        },
+        "crop-arrow": {
+          "name": "Direction arrow",
+          "summary": "Shows that the text is translated from the left language into the right one.",
+          "details": "It is only a sign and cannot be pressed. It is shown, together with the right-hand button, only when translation is available: translation is on in Settings and Only OCR is off."
+        },
+        "crop-target-lang": {
+          "summary": "Sets the language the text is translated into.",
+          "details": "It appears only when translation is available. A tap opens the same kind of searchable list. The first translation into a language may ask to download a model of about 30 MB; the app asks before it downloads. The choice is saved for the next time."
+        },
+        "crop-confirm": {
+          "summary": "Starts reading and translating the framed part of the photo.",
+          "details": "The part inside the frame, or the whole photo when you did not touch the frame, is cut out and saved as a picture in the Camera folder of the phone (in Downloads when that folder refuses the write). Then the recognition begins and the loading state takes over."
+        },
+        "loading": {
+          "name": "Progress screen",
+          "summary": "Shows that the photo is being processed.",
+          "details": "A spinner and a line of text say what is happening: first Processing photo.., then Extracting text and translating.. with a request to wait when a translation is made. The screen ignores touches meanwhile. If a translation model is missing, the app first asks whether to download it."
+        },
+        "translation-card": {
+          "summary": "The translated text, large and on top.",
+          "details": "It is shown only when a translation was made; with Only OCR on, the card is not there. Scroll inside the card if the text is long. Press and hold to select text: the selection menu offers Search in Google and, when the calculator is switched on, Calculator."
+        },
+        "original-card": {
+          "summary": "The text exactly as it was read from the photo.",
+          "details": "Use it to check what the recognition read, or as the result itself when translation is off. It scrolls and can be selected in the same way as the translation. Recognition is not perfect on blurred or decorative letters, so compare it with the photo when a word looks strange."
+        },
+        "settings": {
+          "summary": "Opens the dialog with the languages and the Only OCR switch.",
+          "details": "Change the languages without taking a new photo. A different language of the text reads the same photo again, and a different target language only translates the text that is already there. The dialog is described in the last group."
+        },
+        "save-txt": {
+          "summary": "Saves the result as a text file.",
+          "details": "The file goes to the Documents folder of the phone, or to Downloads when Documents refuses it, and a message tells the folder and the file name. With a translation, the file holds two parts marked TRANSLATION and ORIGINAL; without one, only the recognized text. Every save makes a new file with its own name."
+        },
+        "next-photo": {
+          "summary": "Opens the camera for another photo.",
+          "details": "The results on the screen stay until the new photo is taken and processed. If you leave the camera without a photo, you come back to the current result."
+        },
+        "close": {
+          "summary": "Leaves the screen.",
+          "details": "The result is not stored by itself. Save the text first if you need it; the cropped photo is already in the Camera folder of the phone.",
+          "undo": "The recognized text and the translation are lost on close; take a new photo to get them again."
+        },
+        "empty-message": {
+          "summary": "Tells that no text was found in the photo.",
+          "details": "The screen shows the message No text found in image and advises to make sure that the photo contains clear text. Common causes are a blurred shot, too little light or a frame that missed the text."
+        },
+        "empty-retry": {
+          "summary": "Opens the camera to try again.",
+          "details": "It takes a new photo and leads through the crop step again. The languages you chose are kept."
+        },
+        "empty-close": {
+          "summary": "Leaves the screen without a result.",
+          "details": "Nothing is saved except the cropped photo, which was already put into the Camera folder at the crop step."
+        },
+        "d-source": {
+          "summary": "The language of the text, used to read the photo again.",
+          "details": "A tap opens the searchable list. Changing it reads the same photo again with the new language and translates the result. The row is grayed out and cannot be used when the photo is no longer kept, for example after the screen was restarted by the system."
+        },
+        "d-target": {
+          "summary": "The language the text is translated into.",
+          "details": "A tap opens the searchable list. Changing only this row translates the text that is already read, without reading the photo again. The row is grayed out when translation is off in Settings or Only OCR is on."
+        },
+        "d-ocr-only": {
+          "summary": "Skips the translation and shows only the recognized text.",
+          "details": "With it on, the translation card and the target language disappear and the original text is the whole result. Switch it off to get the translation again. The choice is saved for the next time."
+        },
+        "d-cancel": {
+          "summary": "Closes the dialog and changes nothing.",
+          "details": "The languages and the Only OCR switch keep the values they had before."
+        },
+        "d-apply": {
+          "summary": "Saves the choices and updates the result.",
+          "details": "The choices become the settings of the app. The text is read again or translated again, as needed, and the screen shows the new result."
+        }
+      }
+    },
+    "ru": {
+      "title": "Быстрый перевод с камеры",
+      "purpose": "Сфотографируйте печатный текст - вывеску, меню, страницу - и приложение прочитает его и переведёт на выбранный вами язык. Перевод и исходный текст собраны на одном экране, и оба можно сохранить в текстовый файл.",
+      "steps": [
+        "Откройте «Быстрый перевод с камеры» из меню программ, с панели быстрого доступа или с рабочего стола лаунчера; включается он в «Настройках», на вкладке «Управление», в группе «Дополнительные программы и сценарии». Экран сразу открывает встроенную камеру, так что сфотографируйте текст. В первый раз может понадобиться загрузить модули распознавания текста. Снимок экрана, отправленный сюда, обходится без камеры. Если выйти из камеры без снимка, экран закроется.",
+        "Состояние обрезки: фото появляется (1) под рамкой (2). Потяните за сторону или угол рамки, чтобы охватить только нужный текст, или не трогайте рамку, и будет использовано всё фото. «Повторить попытку» (3) отбрасывает фото и снова открывает камеру.",
+        "Проверьте языки под фото: левая кнопка (4) - язык текста, а AUTO позволяет приложению определить его самому; правая кнопка (6) - язык перевода, а стрелка (5) показывает направление. Каждая открывает список с поиском. Если перевод выключен, остаётся только первая кнопка.",
+        "Нажмите «Применить» (7). Обрезанное фото сохраняется в папку «Камера» телефона, а состояние загрузки (8) показывает ход работы, пока текст читается и переводится.",
+        "Состояние результата: сверху перевод (9), ниже исходный текст (10). Нажмите и удерживайте слово, чтобы выделить текст и найти его в Google или передать число в калькулятор.",
+        "«Настройки» (11) меняют языки или выключают перевод и запускают распознавание заново на том же фото. «Сохранить в .txt» (12) записывает текст в файл, «Следующее фото» (13) делает ещё один снимок, а «Закрыть» (14) выходит.",
+        "Пустое состояние: если текст не найден, сообщение (15) просит сделать фото чётче. «Следующее фото» (16) пробует снова, а «Закрыть» (17) выходит."
+      ],
+      "groups": [
+        { "title": "Состояние обрезки", "elements": ["crop-preview", "crop-frame", "crop-retry", "crop-source-lang", "crop-arrow", "crop-target-lang", "crop-confirm"] },
+        { "title": "Состояние загрузки", "elements": ["loading"] },
+        { "title": "Состояние результата", "elements": ["translation-card", "original-card", "settings", "save-txt", "next-photo", "close"] },
+        { "title": "Пустое состояние", "elements": ["empty-message", "empty-retry", "empty-close"] },
+        { "title": "Диалог настроек", "elements": ["d-source", "d-target", "d-ocr-only", "d-cancel", "d-apply"] }
+      ],
+      "elements": {
+        "crop-preview": {
+          "name": "Фото для чтения",
+          "summary": "Только что снятое фото, готовое к обрезке.",
+          "details": "Оно занимает место над кнопками и вписано в экран. Читается только часть внутри рамки."
+        },
+        "crop-frame": {
+          "summary": "Рамка, отмечающая часть фото, которую нужно прочитать.",
+          "details": "Потяните за сторону или угол, чтобы изменить размер рамки, и перетаскивайте внутри неё, чтобы сдвинуть; остальная часть фото затемнена. Если рамку не трогать совсем, используется всё фото. С клавиатурой или D-pad клавиша Enter включает и выключает режим изменения размера, а стрелки сдвигают рамку понемногу.",
+          "shortcut": "Enter / D-pad center"
+        },
+        "crop-retry": {
+          "summary": "Отбрасывает фото и снова открывает камеру.",
+          "details": "Пригодится, когда текст размыт или обрезан. Текущее фото не сохраняется.",
+          "undo": "Отброшенное фото пропадает и вернуть его нельзя; снимите новое."
+        },
+        "crop-source-lang": {
+          "summary": "Задаёт язык текста на фото.",
+          "details": "На кнопке флаг и код, например AUTO, что значит: приложение определяет язык само. Касание открывает список с полем поиска; введите часть названия и коснитесь языка. Выберите язык сами, если AUTO ошибается. Выбор запоминается до следующего раза."
+        },
+        "crop-arrow": {
+          "name": "Стрелка направления",
+          "summary": "Показывает, что текст переводится с левого языка на правый.",
+          "details": "Это лишь знак, нажимать его нельзя. Он виден вместе с правой кнопкой только когда перевод доступен: перевод включён в настройках, а «Только распознавание» выключено."
+        },
+        "crop-target-lang": {
+          "summary": "Задаёт язык, на который переводится текст.",
+          "details": "Кнопка появляется только когда перевод доступен. Касание открывает такой же список с поиском. Первый перевод на язык может потребовать загрузить модель примерно в 30 МБ; приложение спросит, прежде чем загружать. Выбор запоминается до следующего раза."
+        },
+        "crop-confirm": {
+          "summary": "Запускает чтение и перевод выделенной рамкой части фото.",
+          "details": "Часть внутри рамки, а если рамку не трогали - всё фото, вырезается и сохраняется картинкой в папку «Камера» телефона (в «Загрузки», если эта папка не принимает запись). Затем начинается распознавание, и состояние загрузки берёт управление на себя."
+        },
+        "loading": {
+          "name": "Экран хода работы",
+          "summary": "Показывает, что фото обрабатывается.",
+          "details": "Индикатор и строка текста сообщают, что происходит: сначала «Обработка фото..», затем «Распознавание и перевод..» с просьбой подождать, если делается перевод. Всё это время экран не реагирует на касания. Если модели перевода не хватает, приложение сначала спросит, загружать ли её."
+        },
+        "translation-card": {
+          "summary": "Переведённый текст, крупно и сверху.",
+          "details": "Карточка есть только если перевод сделан; при включённом «Только распознавание» её нет. Если текст длинный, прокручивайте внутри карточки. Нажмите и удерживайте, чтобы выделить текст: в меню выделения есть «Найти в Google» и, если калькулятор включён, «Калькулятор»."
+        },
+        "original-card": {
+          "summary": "Текст точно так, как он прочитан с фото.",
+          "details": "Пригодится, чтобы проверить, что прочитало распознавание, или как сам результат при выключенном переводе. Карточка прокручивается и выделяется так же, как перевод. На размытых или декоративных буквах распознавание ошибается, поэтому при странном слове сверьтесь с фото."
+        },
+        "settings": {
+          "summary": "Открывает диалог с языками и переключателем «Только распознавание».",
+          "details": "Меняйте языки, не снимая новое фото. Другой язык текста заново читает то же фото, а другой язык перевода лишь переводит уже имеющийся текст. Диалог описан в последней группе."
+        },
+        "save-txt": {
+          "summary": "Сохраняет результат в текстовый файл.",
+          "details": "Файл попадает в папку «Документы» телефона, а если она не принимает запись, - в «Загрузки»; сообщение называет папку и имя файла. С переводом в файле две части с пометками TRANSLATION и ORIGINAL, без него - только распознанный текст. Каждое сохранение создаёт новый файл со своим именем."
+        },
+        "next-photo": {
+          "summary": "Открывает камеру для следующего фото.",
+          "details": "Результат на экране остаётся, пока новое фото не снято и не обработано. Если выйти из камеры без снимка, вы вернётесь к текущему результату."
+        },
+        "close": {
+          "summary": "Выходит с экрана.",
+          "details": "Результат сам не сохраняется. Сначала сохраните текст, если он нужен; обрезанное фото уже лежит в папке «Камера» телефона.",
+          "undo": "Распознанный текст и перевод при закрытии пропадают; чтобы получить их снова, снимите новое фото."
+        },
+        "empty-message": {
+          "summary": "Сообщает, что на фото текст не найден.",
+          "details": "Экран показывает сообщение «Текст на изображении не найден» и советует убедиться, что на фото есть чёткий текст. Чаще всего причина в размытом снимке, слабом свете или рамке, которая прошла мимо текста."
+        },
+        "empty-retry": {
+          "summary": "Открывает камеру, чтобы попробовать ещё раз.",
+          "details": "Снимается новое фото, и снова идёт шаг обрезки. Выбранные языки сохраняются."
+        },
+        "empty-close": {
+          "summary": "Выходит с экрана без результата.",
+          "details": "Не сохраняется ничего, кроме обрезанного фото, которое уже попало в папку «Камера» на шаге обрезки."
+        },
+        "d-source": {
+          "summary": "Язык текста, по которому фото читается заново.",
+          "details": "Касание открывает список с поиском. Смена языка читает то же фото заново с новым языком и переводит результат. Строка серая и недоступна, если фото больше не хранится, например после перезапуска экрана системой."
+        },
+        "d-target": {
+          "summary": "Язык, на который переводится текст.",
+          "details": "Касание открывает список с поиском. Смена только этой строки переводит уже прочитанный текст, не читая фото заново. Строка серая, если перевод выключен в настройках или включено «Только распознавание»."
+        },
+        "d-ocr-only": {
+          "summary": "Пропускает перевод и показывает только распознанный текст.",
+          "details": "Когда он включён, карточка перевода и язык перевода исчезают, а исходный текст - весь результат. Выключите, чтобы снова получать перевод. Выбор запоминается до следующего раза."
+        },
+        "d-cancel": {
+          "summary": "Закрывает диалог и ничего не меняет.",
+          "details": "Языки и переключатель «Только распознавание» остаются такими, какими были."
+        },
+        "d-apply": {
+          "summary": "Сохраняет выбор и обновляет результат.",
+          "details": "Выбор становится настройками приложения. Текст при необходимости читается или переводится заново, и экран показывает новый результат."
+        }
+      }
+    },
+    "uk": {
+      "title": "Швидкий переклад з камери",
+      "purpose": "Сфотографуйте друкований текст - вивіску, меню, сторінку - і застосунок прочитає його та перекладе вибраною вами мовою. Переклад і вихідний текст зібрано на одному екрані, і обидва можна зберегти в текстовий файл.",
+      "steps": [
+        "Відкрийте «Швидкий переклад з камери» з меню програм, із панелі швидкого доступу або з робочого столу лаунчера; вмикається він у «Налаштуваннях», на вкладці «Управління», у групі «Додаткові програми та сценарії». Екран одразу відкриває вбудовану камеру, тож сфотографуйте текст. Уперше може знадобитися завантажити модулі розпізнавання тексту. Знімок екрана, надісланий сюди, обходиться без камери. Якщо вийти з камери без знімка, екран закриється.",
+        "Стан обрізання: фото з'являється (1) під рамкою (2). Потягніть за сторону чи кут рамки, щоб охопити лише потрібний текст, або не чіпайте рамку, і буде використано все фото. «Повторити спробу» (3) відкидає фото й знову відкриває камеру.",
+        "Перевірте мови під фото: ліва кнопка (4) - мова тексту, а AUTO дає змогу застосунку визначити її самому; права кнопка (6) - мова перекладу, а стрілка (5) показує напрямок. Кожна відкриває список із пошуком. Якщо переклад вимкнено, лишається тільки перша кнопка.",
+        "Натисніть «Застосувати» (7). Обрізане фото зберігається в теку «Камера» телефона, а стан завантаження (8) показує перебіг роботи, поки текст читається й перекладається.",
+        "Стан результату: зверху переклад (9), нижче вихідний текст (10). Натисніть і утримуйте слово, щоб виділити текст і знайти його в Google або передати число в калькулятор.",
+        "«Налаштування» (11) змінюють мови або вимикають переклад і запускають розпізнавання знову на тому самому фото. «Зберегти в .txt» (12) записує текст у файл, «Наступне фото» (13) робить ще один знімок, а «Закрити» (14) виходить.",
+        "Порожній стан: якщо текст не знайдено, повідомлення (15) просить зробити фото чіткішим. «Наступне фото» (16) пробує знову, а «Закрити» (17) виходить."
+      ],
+      "groups": [
+        { "title": "Стан обрізання", "elements": ["crop-preview", "crop-frame", "crop-retry", "crop-source-lang", "crop-arrow", "crop-target-lang", "crop-confirm"] },
+        { "title": "Стан завантаження", "elements": ["loading"] },
+        { "title": "Стан результату", "elements": ["translation-card", "original-card", "settings", "save-txt", "next-photo", "close"] },
+        { "title": "Порожній стан", "elements": ["empty-message", "empty-retry", "empty-close"] },
+        { "title": "Діалог налаштувань", "elements": ["d-source", "d-target", "d-ocr-only", "d-cancel", "d-apply"] }
+      ],
+      "elements": {
+        "crop-preview": {
+          "name": "Фото для читання",
+          "summary": "Щойно зроблене фото, готове до обрізання.",
+          "details": "Воно займає місце над кнопками й вписане в екран. Читається лише частина всередині рамки."
+        },
+        "crop-frame": {
+          "summary": "Рамка, що позначає частину фото, яку потрібно прочитати.",
+          "details": "Потягніть за сторону чи кут, щоб змінити розмір рамки, і перетягуйте всередині неї, щоб зсунути; решту фото затемнено. Якщо рамку не чіпати зовсім, використовується все фото. З клавіатурою чи D-pad клавіша Enter вмикає й вимикає режим зміни розміру, а стрілки зсувають рамку потрошку.",
+          "shortcut": "Enter / D-pad center"
+        },
+        "crop-retry": {
+          "summary": "Відкидає фото й знову відкриває камеру.",
+          "details": "Стане в пригоді, коли текст розмитий або обрізаний. Поточне фото не зберігається.",
+          "undo": "Відкинуте фото зникає, і повернути його не можна; зніміть нове."
+        },
+        "crop-source-lang": {
+          "summary": "Задає мову тексту на фото.",
+          "details": "На кнопці прапор і код, наприклад AUTO, що означає: застосунок визначає мову сам. Дотик відкриває список із полем пошуку; введіть частину назви й торкніться мови. Виберіть мову самі, якщо AUTO помиляється. Вибір запам'ятовується до наступного разу."
+        },
+        "crop-arrow": {
+          "name": "Стрілка напрямку",
+          "summary": "Показує, що текст перекладається з лівої мови на праву.",
+          "details": "Це лише знак, натискати його не можна. Він видимий разом із правою кнопкою тільки коли переклад доступний: переклад увімкнено в налаштуваннях, а «Тільки розпізнавання» вимкнено."
+        },
+        "crop-target-lang": {
+          "summary": "Задає мову, на яку перекладається текст.",
+          "details": "Кнопка з'являється лише коли переклад доступний. Дотик відкриває такий самий список із пошуком. Перший переклад на мову може потребувати завантаження моделі приблизно в 30 МБ; застосунок спитає, перш ніж завантажувати. Вибір запам'ятовується до наступного разу."
+        },
+        "crop-confirm": {
+          "summary": "Запускає читання й переклад виділеної рамкою частини фото.",
+          "details": "Частина всередині рамки, а якщо рамку не чіпали - все фото, вирізається й зберігається картинкою в теку «Камера» телефона (у «Завантаження», якщо ця тека не приймає запис). Потім починається розпізнавання, і стан завантаження бере керування на себе."
+        },
+        "loading": {
+          "name": "Екран перебігу роботи",
+          "summary": "Показує, що фото обробляється.",
+          "details": "Індикатор і рядок тексту повідомляють, що відбувається: спершу «Обробка фото..», потім «Розпізнавання та переклад..» з проханням зачекати, якщо робиться переклад. Увесь цей час екран не реагує на дотики. Якщо моделі перекладу бракує, застосунок спершу спитає, чи завантажувати її."
+        },
+        "translation-card": {
+          "summary": "Перекладений текст, великий і зверху.",
+          "details": "Картка є лише якщо переклад зроблено; за ввімкненого «Тільки розпізнавання» її немає. Якщо текст довгий, прокручуйте всередині картки. Натисніть і утримуйте, щоб виділити текст: у меню виділення є «Шукати в Google» і, якщо калькулятор увімкнено, «Калькулятор»."
+        },
+        "original-card": {
+          "summary": "Текст точно так, як його прочитано з фото.",
+          "details": "Стане в пригоді, щоб перевірити, що прочитало розпізнавання, або як сам результат за вимкненого перекладу. Картка прокручується й виділяється так само, як переклад. На розмитих або декоративних літерах розпізнавання помиляється, тож за дивного слова звірте його з фото."
+        },
+        "settings": {
+          "summary": "Відкриває діалог із мовами та перемикачем «Тільки розпізнавання».",
+          "details": "Змінюйте мови, не знімаючи нове фото. Інша мова тексту читає те саме фото заново, а інша мова перекладу лише перекладає наявний текст. Діалог описано в останній групі."
+        },
+        "save-txt": {
+          "summary": "Зберігає результат у текстовий файл.",
+          "details": "Файл потрапляє в теку «Документи» телефона, а якщо вона не приймає запис, - у «Завантаження»; повідомлення називає теку й ім'я файлу. З перекладом у файлі дві частини з позначками TRANSLATION і ORIGINAL, без нього - лише розпізнаний текст. Кожне збереження створює новий файл зі своїм ім'ям."
+        },
+        "next-photo": {
+          "summary": "Відкриває камеру для наступного фото.",
+          "details": "Результат на екрані лишається, поки нове фото не зроблено й не оброблено. Якщо вийти з камери без знімка, ви повернетеся до поточного результату."
+        },
+        "close": {
+          "summary": "Виходить з екрана.",
+          "details": "Результат сам не зберігається. Спершу збережіть текст, якщо він потрібен; обрізане фото вже лежить у теці «Камера» телефона.",
+          "undo": "Розпізнаний текст і переклад під час закриття зникають; щоб отримати їх знову, зніміть нове фото."
+        },
+        "empty-message": {
+          "summary": "Повідомляє, що на фото текст не знайдено.",
+          "details": "Екран показує повідомлення «Текст на зображенні не знайдено» і радить переконатися, що на фото є чіткий текст. Найчастіше причина в розмитому знімку, слабкому світлі або рамці, що пройшла повз текст."
+        },
+        "empty-retry": {
+          "summary": "Відкриває камеру, щоб спробувати ще раз.",
+          "details": "Знімається нове фото, і знову йде крок обрізання. Вибрані мови зберігаються."
+        },
+        "empty-close": {
+          "summary": "Виходить з екрана без результату.",
+          "details": "Не зберігається нічого, крім обрізаного фото, яке вже потрапило в теку «Камера» на кроці обрізання."
+        },
+        "d-source": {
+          "summary": "Мова тексту, за якою фото читається заново.",
+          "details": "Дотик відкриває список із пошуком. Зміна мови читає те саме фото заново з новою мовою й перекладає результат. Рядок сірий і недоступний, якщо фото вже не зберігається, наприклад після перезапуску екрана системою."
+        },
+        "d-target": {
+          "summary": "Мова, на яку перекладається текст.",
+          "details": "Дотик відкриває список із пошуком. Зміна лише цього рядка перекладає вже прочитаний текст, не читаючи фото заново. Рядок сірий, якщо переклад вимкнено в налаштуваннях або ввімкнено «Тільки розпізнавання»."
+        },
+        "d-ocr-only": {
+          "summary": "Пропускає переклад і показує лише розпізнаний текст.",
+          "details": "Коли його ввімкнено, картка перекладу й мова перекладу зникають, а вихідний текст - увесь результат. Вимкніть, щоб знову отримувати переклад. Вибір запам'ятовується до наступного разу."
+        },
+        "d-cancel": {
+          "summary": "Закриває діалог і нічого не змінює.",
+          "details": "Мови та перемикач «Тільки розпізнавання» лишаються такими, якими були."
+        },
+        "d-apply": {
+          "summary": "Зберігає вибір і оновлює результат.",
+          "details": "Вибір стає налаштуваннями застосунку. Текст за потреби читається або перекладається заново, і екран показує новий результат."
+        }
+      }
+    }
+  }
+}

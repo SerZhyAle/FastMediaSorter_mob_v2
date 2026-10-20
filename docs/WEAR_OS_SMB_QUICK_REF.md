@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "Wear OS SMB Quick Reference"
 permalink: /docs/WEAR_OS_SMB_QUICK_REF.html
 ---
-<sub class="doc-stamp">26.10.01 17:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # Wear OS SMB Quick Reference
 

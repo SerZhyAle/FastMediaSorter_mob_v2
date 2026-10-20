@@ -6,6 +6,7 @@ import androidx.camera.core.CameraSelector
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraLensEntry
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -67,12 +68,34 @@ class ListBroadcastCameraLensesUseCaseTest {
         assertEquals("external", wire.lenses.single().facing)
     }
 
+    @Test
+    fun `keeps the CameraX set and never asks Camera2 when CameraX lists a camera`() {
+        var camera2Asked = false
+        val entries = useCase.withCamera2Fallback(listOf(entry("0"))) {
+            camera2Asked = true
+            listOf(entry("9"))
+        }
+
+        assertEquals(listOf("0"), entries.map { it.id })
+        assertFalse(camera2Asked)
+    }
+
+    @Test
+    fun `answers from Camera2 when CameraX lists nothing while the broadcast holds the camera`() {
+        val entries = useCase.withCamera2Fallback(emptyList()) {
+            listOf(entry("0", cameraInfo = null), entry("0", physicalId = "2", cameraInfo = null))
+        }
+
+        assertEquals(listOf("0", "0/2"), entries.map { it.id })
+    }
+
     private fun entry(
         logicalId: String,
         physicalId: String? = null,
-        facing: Int = CameraSelector.LENS_FACING_BACK
+        facing: Int = CameraSelector.LENS_FACING_BACK,
+        cameraInfo: CameraInfo? = mockk<CameraInfo>(relaxed = true),
     ): CameraLensEntry = CameraLensEntry(
-        cameraInfo = mockk<CameraInfo>(relaxed = true),
+        cameraInfo = cameraInfo,
         logicalCameraId = logicalId,
         physicalCameraId = physicalId,
         lensFacing = facing

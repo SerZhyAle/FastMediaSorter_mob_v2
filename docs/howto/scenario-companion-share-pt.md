@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Abra as Pastas do Seu PC Escaneando um Único Código - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-pt.html
 ---
-<sub class="doc-stamp">26.09.25 02:16</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Abra as Pastas do Seu PC Escaneando um Único Código
 
 > **Nível:** Iniciante &bull; **Edição:** Standard, Photos, Legacy, VR, noLegal (Lite não tem fontes de rede; o escaneamento precisa de câmera, o método por arquivo funciona em qualquer lugar)
-
-{% include lang-switcher.html doc="scenario-companion-share" dir="/docs/howto/" current="pt" %}
 
 Você executa um pequeno programa auxiliar no seu PC Windows, escolhe as pastas com seus vídeos, músicas, documentos ou fotos, e ele mostra um código na tela. No celular você toca em **Adicionar**, aponta a câmera para esse código, e as pastas do PC são conectadas instantaneamente - sem digitar endereço, sem porta, sem senha, sem cabos.
 

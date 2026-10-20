@@ -17,10 +17,10 @@ foreach ($file in $testFiles) {
     . $file.FullName
 }
 
-Write-Output ("RESULT | pass: {0} | fail: {1}" -f $script:TestStats.pass, $script:TestStats.fail)
 foreach ($failure in $script:TestStats.failures) {
     Write-Output $failure
 }
+Write-Output "doc-drift.tests: $(if ($script:TestStats.fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:TestStats.pass + $script:TestStats.fail) skipped=0)"
 
 if ($script:TestStats.fail -eq 0) {
     exit 0

@@ -149,6 +149,10 @@ class StartWatchCameraBroadcastUseCaseTest {
 
         override fun selectLens(lensId: String) = Unit
 
+        override fun startFile(uri: android.net.Uri) = Unit
+
+        override fun startScreen(resultCode: Int, data: android.content.Intent) = Unit
+
         override fun acknowledgeFailure() {
             if (stateFlow.value is BroadcastState.Failed) {
                 stateFlow.value = BroadcastState.Idle

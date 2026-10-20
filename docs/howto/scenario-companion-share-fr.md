@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Ouvrir les dossiers de votre PC en scannant un seul code - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-fr.html
 ---
-<sub class="doc-stamp">26.09.25 02:13</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Ouvrir les dossiers de votre PC en scannant un seul code
 
 > **Niveau :** Débutant &bull; **Édition :** Standard, Photos, Legacy, VR, noLegal (Lite n'a pas de sources réseau ; le scan nécessite une caméra, la méthode par fichier fonctionne partout)
-
-{% include lang-switcher.html doc="scenario-companion-share" dir="/docs/howto/" current="fr" %}
 
 Vous exécutez un petit programme d'assistance sur votre PC Windows, vous choisissez les dossiers contenant vos vidéos, votre musique, vos documents ou vos photos, et il affiche un code à l'écran. Sur le téléphone, vous appuyez sur **Ajouter**, vous placez la caméra devant ce code, et les dossiers du PC sont instantanément connectés - sans saisir d'adresse, sans port, sans mot de passe, sans câbles.
 

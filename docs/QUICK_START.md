@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "🚀 Quick Start Guide - FastMediaSorter v2"
 permalink: /docs/QUICK_START.html
 ---
-<sub class="doc-stamp">26.10.09 14:52</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 🚀 Quick Start Guide - FastMediaSorter v2
 
 *Get started in 5 minutes! Simple guide for beginners.*
-
-{% include lang-switcher.html doc="QUICK_START" dir="/docs/" current="en" %}
 
 ---
 

@@ -116,6 +116,7 @@ class MainLayoutChromeManager(
             binding.btnSettings,
             binding.btnToggleView,
             binding.btnFavorites,
+            binding.btnHelp,
             binding.btnStartPlayer
         ).forEach { button ->
             styleCommandButton(
@@ -292,6 +293,7 @@ class MainLayoutChromeManager(
             binding.btnSettings to R.string.settings,
             binding.btnToggleView to R.string.toggle_view,
             binding.btnFavorites to R.string.favorites,
+            binding.btnHelp to R.string.help,
             binding.btnStartPlayer to R.string.slideshow
         )
     }
@@ -480,6 +482,7 @@ class MainLayoutChromeManager(
             binding.btnSettings,
             binding.btnToggleView,
             binding.btnFavorites,
+            binding.btnHelp,
             binding.btnStartPlayer
         )
         val inlineChips: List<View> = listOf(

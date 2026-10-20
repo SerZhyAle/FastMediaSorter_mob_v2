@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.repository
 
 import com.sza.fastmediasorter.data.repository.StreamCollectionsJsonParser.ParsedStreamCollection
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,6 +47,15 @@ class StreamCollectionsJsonParserTest {
         val result = parser.parse(VALID.replace("\"schemaVersion\": 1", "\"schemaVersion\": 2"))
 
         assertEquals(emptyList<ParsedStreamCollection>(), result.collections)
+        assertTrue("an unknown version must keep the stored set (SB-A7)", result.refused)
+    }
+
+    @Test
+    fun `a valid empty document clears rather than refuses`() {
+        val result = parser.parse("""{"schemaVersion": 1, "collections": []}""")
+
+        assertEquals(emptyList<ParsedStreamCollection>(), result.collections)
+        assertFalse("an empty array is the publisher clearing the set", result.refused)
     }
 
     @Test
@@ -98,6 +108,7 @@ class StreamCollectionsJsonParserTest {
         val result = parser.parse("not json at all")
 
         assertEquals(emptyList<ParsedStreamCollection>(), result.collections)
+        assertTrue(result.refused)
     }
 
     private companion object {

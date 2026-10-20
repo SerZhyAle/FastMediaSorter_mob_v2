@@ -33,8 +33,18 @@
 .PARAMETER Json
     Emit one JSON object instead of prose.
 
+.PARAMETER Scope
+    S4249. phone (default) or wear - which sweep's fingerprint. phone keeps
+    temp\RELEASE-FREEZE-FINGERPRINTS.json and every group; wear writes
+    temp\RELEASE-FREEZE-FINGERPRINTS-WEAR.json and Record/Compare consider only the groups the
+    `scopes.wear` list of release-scope-fingerprint.groups.json names, so the watch sweep's single
+    compare is not made noisy by phone-only edits. The record also carries `scope`.
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/release-scope-fingerprint.ps1 -Verb Record
+
+.EXAMPLE
+    pwsh -NoProfile -File scripts/quality/release-scope-fingerprint.ps1 -Verb Record -Scope wear
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/release-scope-fingerprint.ps1 -Verb Compare -Json
@@ -54,13 +64,17 @@ param(
     [ValidateSet('Record', 'Compare')]
     [string] $Verb,
 
-    [switch] $Json
+    [switch] $Json,
+
+    [ValidateSet('phone', 'wear')]
+    [string] $Scope = 'phone'
 )
 
 $ErrorActionPreference = 'Stop'
 
 $RepoRoot = if ($env:FMS_REPO_ROOT) { $env:FMS_REPO_ROOT } else { Split-Path -Parent (Split-Path -Parent $PSScriptRoot) }
-$RecordPath = Join-Path $RepoRoot 'temp\RELEASE-FREEZE-FINGERPRINTS.json'
+$RecordName = if ($Scope -eq 'wear') { 'temp\RELEASE-FREEZE-FINGERPRINTS-WEAR.json' } else { 'temp\RELEASE-FREEZE-FINGERPRINTS.json' }
+$RecordPath = Join-Path $RepoRoot $RecordName
 
 # The groups are the release-scope gates' inputs, named, and they live in the sibling .groups.json
 # rather than here. Two reasons, one mechanical and one editorial. assert-code-domain-writers.ps1
@@ -78,7 +92,15 @@ if (-not (Test-Path -LiteralPath $GroupsFile)) {
 }
 $Groups = [ordered]@{}
 $groupsJson = Get-Content -LiteralPath $GroupsFile -Raw -Encoding UTF8 | ConvertFrom-Json
+# S4249: a scope keeps only its own groups. A groups file without a scopes map, or a scope it does not
+# list, keeps every group - the pre-S4249 behaviour, and the safe default (re-measure, never assume).
+$scopeGroups = $null
+if ($groupsJson.PSObject.Properties.Name -contains 'scopes' -and
+    $groupsJson.scopes.PSObject.Properties.Name -contains $Scope) {
+    $scopeGroups = @($groupsJson.scopes.$Scope)
+}
 foreach ($property in $groupsJson.groups.PSObject.Properties) {
+    if ($null -ne $scopeGroups -and $scopeGroups -notcontains $property.Name) { continue }
     $Groups[$property.Name] = @($property.Value)
 }
 
@@ -136,6 +158,7 @@ switch ($Verb) {
         $map = Get-CurrentFingerprint
         $record = [ordered]@{
             schema     = 1
+            scope      = $Scope
             recordedAt = (Get-Date).ToString('s')
             groups     = $map
         }

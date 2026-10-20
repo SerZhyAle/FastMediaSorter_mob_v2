@@ -114,7 +114,7 @@ class LiveAudioLanServer @Inject constructor() {
 
     /** True between [start] and [stop]. */
     val isRunning: Boolean
-        get() = serverSocket != null
+        get() = synchronized(lock) { serverSocket != null }
 
     /** How many listeners are connected right now, for the screen that says the broadcast is heard. */
     val listenerCount: Int
@@ -145,9 +145,10 @@ class LiveAudioLanServer @Inject constructor() {
         bindAddress: InetAddress? = null,
         preferredPort: Int? = null
     ): LiveAudioEndpoint {
-        check(!isRunning) { "The live audio server is already running" }
-        val socket = bind(preferredPort, bindAddress)
-        serverSocket = socket
+        val socket = synchronized(lock) {
+            check(serverSocket == null) { "The live audio server is already running" }
+            bind(preferredPort, bindAddress).also { serverSocket = it }
+        }
         acceptJob = scope.launch(Dispatchers.IO) { acceptLoop(scope, socket, source) }
         val host = bindAddress?.hostAddress ?: lanAddress()
         return LiveAudioEndpoint(host = host, port = socket.localPort)
@@ -177,16 +178,16 @@ class LiveAudioLanServer @Inject constructor() {
     fun stop() {
         acceptJob?.cancel()
         acceptJob = null
-        val open = synchronized(lock) {
-            clients.toList().also {
-                clients.clear()
-                publishHumanListeners()
-            }
+        val (socket, open) = synchronized(lock) {
+            val currentSocket = serverSocket
+            serverSocket = null
+            val active = clients.toList()
+            clients.clear()
+            publishHumanListeners()
+            currentSocket to active
         }
-        open.forEach { closeQuietly(it) }
-        val socket = serverSocket
-        serverSocket = null
         closeQuietly(socket)
+        open.forEach { closeQuietly(it) }
     }
 
     /**
@@ -215,9 +216,16 @@ class LiveAudioLanServer @Inject constructor() {
     }
 
     private suspend fun serve(socket: Socket, source: LiveAudioSource) {
-        if (!admit(socket)) {
-            refuse(socket)
-            return
+        when (admit(socket)) {
+            Admission.STOPPED -> {
+                closeQuietly(socket)
+                return
+            }
+            Admission.BUSY -> {
+                refuse(socket)
+                return
+            }
+            Admission.ADMITTED -> Unit
         }
         var attached: OutputStream? = null
         try {
@@ -241,15 +249,19 @@ class LiveAudioLanServer @Inject constructor() {
     }
 
     /** Answers whether there is room, and takes the room in the same step so two racing accepts cannot both win. */
-    private fun admit(socket: Socket): Boolean = synchronized(lock) {
-        if (clients.size >= LiveAudioLimits.MAX_LISTENERS) {
-            false
-        } else {
-            clients.add(socket)
-            publishHumanListeners()
-            true
+    private fun admit(socket: Socket): Admission = synchronized(lock) {
+        when {
+            serverSocket == null -> Admission.STOPPED
+            clients.size >= LiveAudioLimits.MAX_LISTENERS -> Admission.BUSY
+            else -> {
+                clients.add(socket)
+                publishHumanListeners()
+                Admission.ADMITTED
+            }
         }
     }
+
+    private enum class Admission { ADMITTED, BUSY, STOPPED }
 
     private fun release(socket: Socket) {
         synchronized(lock) {

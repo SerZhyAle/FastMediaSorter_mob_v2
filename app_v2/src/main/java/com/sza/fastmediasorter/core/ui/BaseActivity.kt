@@ -8,6 +8,7 @@ import android.os.SystemClock
 import android.view.FocusFinder
 import android.view.InputDevice
 import android.view.KeyEvent
+import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -29,8 +30,8 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.common.ActivityMouseDispatchHelper
 import com.sza.fastmediasorter.ui.common.backgroundop.BackgroundOperationBarAttachManager
 import com.sza.fastmediasorter.ui.common.backgroundop.BackgroundOperationTrackManager
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.input.FocusTargetResolver
-import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.Flow
@@ -513,18 +514,42 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
      * The input-help surface for this screen, or null when F1 help does not apply (default).
      * Screens that consume F1 in their own onKeyDown (player / browse / settings handlers) leave
      * this null - their handler fires first and this fallback is never reached. Screens without an
-     * own F1 handler override this so the global F1 key (S0510) opens the per-surface help dialog.
+     * own F1 handler override this so the screen-level F1 key opens this surface's help through
+     * [HelpOpenManager]: the bundled help page when the help map has one, else the shortcut dialog.
+     * A screen that only needs its help page (no shortcut dialog fallback) leaves this null: see
+     * [getHelpSurfaceId].
      */
     protected open fun getInputHelpSurface(): UiSurface? = null
 
+    /**
+     * The help-map surface id F1 resolves, or null when F1 help does not apply. Defaults to the
+     * activity class name, which is the id the help map uses, whenever [getInputHelpSurface] is set or
+     * the map gives that id a bundled page (its own or an inherited one): a screen with a help page
+     * answers F1 without declaring a keyboard surface.
+     */
+    protected open fun getHelpSurfaceId(): String? {
+        val id = this::class.java.simpleName
+        return if (getInputHelpSurface() != null || HelpOpenManager.hasHelp(this, id)) id else null
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_F1) {
-            getInputHelpSurface()?.let { surface ->
-                InputHelpDialogFragment.show(supportFragmentManager, surface)
-                return true
-            }
-        }
+        if (keyCode == KeyEvent.KEYCODE_F1 && openScreenHelp()) return true
         return super.onKeyDown(keyCode, event)
+    }
+
+    // S4328: the options-menu half of the "?" action - a host that sets a support action bar
+    // reaches this instead of HelpToolbarEntryManager, and the same map gate answers both paths.
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.action_help && openScreenHelp()) return true
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun openScreenHelp(): Boolean {
+        val surfaceId = getHelpSurfaceId()
+        if (surfaceId != null) {
+            HelpOpenManager.open(this, surfaceId, getInputHelpSurface())
+        }
+        return surfaceId != null
     }
 
     private fun handleGamepadShoulderPageJump(event: KeyEvent): Boolean {

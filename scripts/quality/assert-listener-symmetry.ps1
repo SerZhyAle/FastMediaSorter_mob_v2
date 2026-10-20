@@ -91,14 +91,21 @@ if ($ChangedFiles) {
     # disagree about what is in scope.
     $expanded = @(Expand-ChangedFiles -ChangedFiles $ChangedFiles)
     $scoped = @($expanded | Where-Object { Test-InSymmetryScope $_ })
+    if (@($expanded | Where-Object { $_ -match '\.kt$' }).Count -eq 0 -or $scoped.Count -eq 0) {
+        Write-EmptySetPass -GateName 'assert-listener-symmetry'
+        exit 0
+    }
+    Assert-GitHeadResolvable -GateName 'assert-listener-symmetry' -RepoRoot $repoRoot
     $countFn = { param($t) Get-FileImbalance $t }
     $d = Measure-ChangedFileGrowth -ChangedFiles $scoped -RepoRoot $repoRoot -Extensions @('.kt') -CountInText $countFn
     Write-Host ("listener-symmetry [delta over changed files]: new imbalance {0}" -f $d.Growth)
     if ($Gate -and $d.Growth -gt 0) {
         foreach ($p in $d.PerFile) { if ($p.New -gt 0) { Write-Host ("  +{0} in {1}" -f $p.New, $p.Path) } }
         Write-Host "FAIL: listener/observer/receiver/callback imbalance grew in the changed file(s). Pair every add/register with its remove/unregister on the symmetric lifecycle edge."
+        Write-Host 'assert-listener-symmetry: FAIL (listener imbalance grew in the changed files)'
         exit 1
     }
+    Write-Host 'assert-listener-symmetry: PASS (no new imbalance in the changed files)'
     exit 0
 }
 
@@ -144,6 +151,7 @@ if ($PSCmdlet.ParameterSetName -eq 'Update') {
         if (-not (Test-Path $baselineFile)) {
             Set-Content -LiteralPath $baselineFile -Value "$current"
             Write-Host "listener-symmetry baseline SEEDED: $current"
+            Write-Host "assert-listener-symmetry: PASS (baseline seeded at $current)"
             exit 0
         }
         $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
@@ -156,15 +164,18 @@ if ($PSCmdlet.ParameterSetName -eq 'Update') {
         }
         else {
             Write-Error "Refusing to RAISE baseline ($baseline -> $current). Mismatched listeners grew - ensure every add/register has a matching remove/unregister."
+            Write-Host "assert-listener-symmetry: FAIL (refusing to raise the baseline $baseline -> $current)"
             exit 1
         }
     }
     finally { Exit-CodeLockScope -Scope $scope }
+    Write-Host "assert-listener-symmetry: PASS (baseline update ran; actual $current)"
     exit 0
 }
 
 if (-not (Test-Path $baselineFile)) {
     Write-Host "listener-symmetry: NO BASELINE yet | actual $current - run -UpdateBaseline to seed."
+    Write-Host "assert-listener-symmetry: PASS (no baseline yet; actual $current)"
     exit 0
 }
 $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
@@ -172,9 +183,11 @@ $delta = $current - $baseline
 Write-Host ("listener-symmetry: baseline {0} | actual {1} | delta {2:+#;-#;0}" -f $baseline, $current, $delta)
 if ($Gate -and $current -gt $baseline) {
     Write-Host "FAIL: Listener/observer/receiver/callback symmetry grew above baseline. Balance all registrations."
+    Write-Host "assert-listener-symmetry: FAIL (imbalance grew from the baseline $baseline to $current)"
     exit 1
 }
 if ($current -lt $baseline) {
     Write-Host "Note: count is below baseline - run -UpdateBaseline to ratchet the cap down."
 }
+Write-Host "assert-listener-symmetry: PASS (baseline $baseline, actual $current)"
 exit 0

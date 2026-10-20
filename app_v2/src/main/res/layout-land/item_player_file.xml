@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:padding="@dimen/token_spacing_8" android:minHeight="@dimen/player_file_item_min_height"
+    android:focusable="true" android:clickable="true"
+    android:background="?attr/selectableItemBackground">
+    <ImageView android:id="@+id/thumbnail" android:layout_width="match_parent"
+        android:layout_height="@dimen/player_file_thumbnail_height" android:scaleType="centerInside"
+        android:importantForAccessibility="no" android:src="@drawable/ic_image" />
+    <TextView android:id="@+id/fileName" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:maxLines="3"
+        android:ellipsize="end" />
+</LinearLayout>

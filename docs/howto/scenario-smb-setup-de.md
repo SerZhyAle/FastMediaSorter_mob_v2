@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Mit NAS / Windows-Freigabe verbinden (SMB) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-smb-setup-de.html
 ---
-<sub class="doc-stamp">26.09.25 02:19</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
 # 🖥️ Mit Heim-NAS / Windows-Freigabe verbinden (SMB)
 
 > **Niveau:** Anfänger &bull; **Edition:** Standard, Photos, Legacy, VR, noLegal (Lite hat keine Netzwerkquellen)
-
-{% include lang-switcher.html doc="scenario-smb-setup" dir="/docs/howto/" current="de" %}
 
 SMB (auch Windows-Dateifreigabe oder CIFS genannt) lässt Sie Dateien auf Ihrem Heim-PC, Laptop oder NAS-Gerät genau so durchsuchen, als wären sie auf Ihrem Handy - keine Kabel, kein USB, nur Wi-Fi.
 

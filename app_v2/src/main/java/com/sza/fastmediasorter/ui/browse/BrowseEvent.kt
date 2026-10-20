@@ -6,6 +6,17 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 
 sealed class BrowseEvent {
     data class ShowError(val message: String, val details: String? = null, val exception: Throwable? = null) : BrowseEvent()
+
+    /**
+     * S4231: opening a resource attached from another own device failed on every live path; the error
+     * offers to open the same folder via Google Drive (DEVICE-EXCHANGE item CO, the last channel).
+     */
+    data class OfferDriveChannel(
+        val message: String,
+        val exchangeResourceId: String,
+        val resourceUri: String,
+        val resourceName: String
+    ) : BrowseEvent()
     data class ShowMessage(val message: String) : BrowseEvent()
     data class ShowUndoToast(val operationType: String) : BrowseEvent()
 

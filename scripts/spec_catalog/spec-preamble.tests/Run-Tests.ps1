@@ -156,6 +156,6 @@ finally {
     if (Test-Path -LiteralPath $sandbox) { Remove-Item -LiteralPath $sandbox -Recurse -Force }
 }
 
-Write-Host ("spec-preamble tests: {0} passed, {1} failed" -f $script:pass, $script:fail)
+Write-Host "spec-preamble tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

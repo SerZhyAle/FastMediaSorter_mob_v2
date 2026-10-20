@@ -213,7 +213,7 @@ finally {
 }
 
 Write-Host ''
-Write-Host "run-script-suites tests: $($script:pass) passed, $($script:fail) FAILED" -ForegroundColor ($script:fail -eq 0 ? 'Green' : 'Red')
+Write-Host "run-script-suites tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 
 if ($script:fail -gt 0) {
     Write-Error "run-script-suites tests: $($script:fail) case(s) failed." -ErrorAction Continue

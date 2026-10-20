@@ -121,6 +121,19 @@
             android:src="@drawable/ic_flip"
             app:tint="@color/black" />
 
+        <!-- S4328: the "?" of the screen, last in the top-end corner group. -->
+        <ImageButton
+            android:id="@+id/btnHelpHeader"
+            android:layout_width="@dimen/mirror_control_button_size"
+            android:layout_height="@dimen/mirror_control_button_size"
+            android:background="@drawable/mirror_control_button_background"
+            android:contentDescription="@string/help"
+            android:focusable="true"
+            android:padding="@dimen/padding_normal"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_help_outline"
+            app:tint="@color/black" />
+
     </LinearLayout>
 
     <!-- Left empty on purpose: MirrorZoomManager inflates one preset per entry of its ratio list, so

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Edit panel</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Edit panel</span>
+</nav>
+<header class="hero">
+<h1>Edit panel</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">Choose what the Quick launch panel shows. The panel has fifteen fixed places; here you fill each one with an app, a tool of FastMediaSorter, one of your resources or an Android settings screen, and you can swap them around or clear them.</p>
+<figure class="shot">
+<img class="on-light" src="../img/launch-panel-edit-en-light.webp" alt="Edit panel">
+<img class="on-dark" src="../img/launch-panel-edit-en-dark.webp" alt="Edit panel">
+</figure>
+<h2>In this order</h2>
+<ol class="order">
+<li>You get here from the Edit button of the Quick launch panel, by tapping a free place on it, or from the edge gesture settings. The grid <a class="ref" href="#tiles">3</a> shows the panel as it is now.</li>
+<li>Tap a free place <a class="ref" href="#empty-slot">5</a> or any tile <a class="ref" href="#tile">4</a>. The Add to panel window <a class="ref" href="#add-chooser">9</a> asks what kind of shortcut you want: an Android app, a FastMediaSorter feature, a FastMediaSorter resource or an Android setting.</li>
+<li>A list of that kind opens (11 to 14). Tap the item you want and it goes into the place at once. A short list has no search field; a long one gets it <a class="ref" href="#picker-search">10</a>.</li>
+<li>To change a tile that is already there, long-press it: Move <a class="ref" href="#move">6</a> swaps it with another place, Replace <a class="ref" href="#replace">7</a> opens the same kind choice again, Remove <a class="ref" href="#remove">8</a> empties the place.</li>
+<li>Reset panel <a class="ref" href="#reset">2</a> puts the factory set back after you confirm. Back <a class="ref" href="#back">1</a> leaves the screen - every change is saved as you make it.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Top bar</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Back</span><span class="one">Leaves the screen and returns to the panel.</span></span></summary>
+<div class="full">
+<p>There is nothing to save: each change is stored as soon as you make it, and the panel shows it the next time it opens.</p>
+</div>
+</details>
+<details class="el" id="reset">
+<summary><span class="mk">2</span><span><span class="name">Reset panel</span><span class="one">Puts the panel back to the set it had after installation.</span></span></summary>
+<div class="full">
+<p>The app asks Reset panel? and explains that the panel returns to the default set of apps and shortcuts created at install. Nothing changes until you confirm. The factory set is FastMediaSorter first, then its own tools that exist in your edition, one of your resources and Android Settings, with the last places left free.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>All your own tiles are lost and the factory set returns. To get a tile back, add it again.</dd>
+</dl>
+</div>
+</details>
+<h3>Tile grid</h3>
+<details class="el" id="tiles">
+<summary><span class="mk">3</span><span><span class="name">Tile grid</span><span class="one">The fifteen fixed places of the panel.</span></span></summary>
+<div class="full">
+<p>The grid has three columns in a narrow window and five in a wide one, the same as the panel. The number of places cannot be changed. Every place is either a tile with an icon and a name or a free place with a plus. The grid takes keyboard and D-pad focus when the screen opens.</p>
+</div>
+</details>
+<details class="el" id="tile">
+<summary><span class="mk">4</span><span><span class="name">Tile</span><span class="one">A shortcut that is already on the panel.</span></span></summary>
+<div class="full">
+<p>Tap it to replace it: the Add to panel window opens for the same place, and whatever you pick takes its spot. Long-press it for the menu with Move, Replace and Remove. The icon shows what the tile opens: an app keeps its own icon, and tools and settings have theirs.</p>
+</div>
+</details>
+<details class="el" id="empty-slot">
+<summary><span class="mk">5</span><span><span class="name">Empty - tap to add</span><span class="one">A free place waiting for a shortcut.</span></span></summary>
+<div class="full">
+<p>Tap it, or long-press it - both do the same here - and the Add to panel window opens. The place stays free until you pick something.</p>
+</div>
+</details>
+<h3>Tile menu (long press)</h3>
+<details class="el" id="move">
+<summary><span class="mk">6</span><span><span class="name">Move</span><span class="one">Moves a tile to another place.</span></span></summary>
+<div class="full">
+<p>A list of places numbered from 1 to 15 opens. Pick the number you want. If that place already has a tile, the two tiles swap; if it is free, the tile just moves there. Cancel leaves everything where it was.</p>
+</div>
+</details>
+<details class="el" id="replace">
+<summary><span class="mk">7</span><span><span class="name">Replace</span><span class="one">Puts something else into the same place.</span></span></summary>
+<div class="full">
+<p>Opens the same Add to panel window as a tap on the tile. The new choice takes the place of the old one; the old tile is not kept.</p>
+</div>
+</details>
+<details class="el" id="remove">
+<summary><span class="mk">8</span><span><span class="name">Remove</span><span class="one">Empties the place.</span></span></summary>
+<div class="full">
+<p>The tile is taken off the panel at once, without a question, and the place becomes free again. The app, tool or resource it pointed to is not touched.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The tile cannot be brought back with an undo button. Add it again from the free place, or use Reset panel to get the factory set.</dd>
+</dl>
+</div>
+</details>
+<h3>Add to panel window</h3>
+<details class="el" id="add-chooser">
+<summary><span class="mk">9</span><span><span class="name">Add to panel</span><span class="one">Asks what kind of shortcut should go into this place.</span></span></summary>
+<div class="full">
+<p>A short list with four choices: Android app, FastMediaSorter feature, FastMediaSorter resource and Android OS settings. Each opens its own list. Cancel closes the window and changes nothing. The same window opens for Replace.</p>
+</div>
+</details>
+<details class="el" id="picker-search">
+<summary><span class="mk">10</span><span><span class="name">Type to search</span><span class="one">Narrows a long list as you type.</span></span></summary>
+<div class="full">
+<p>The field has a clear button and appears only when the list is longer than the window; a short list shows no field. Type part of a name and the rows narrow as you go. If nothing matches, the list says Nothing found. It works the same way in all four lists below.</p>
+</div>
+</details>
+<details class="el" id="app-picker">
+<summary><span class="mk">11</span><span><span class="name">Choose an app</span><span class="one">Lists the apps you can pin as a tile.</span></span></summary>
+<div class="full">
+<p>Shows the apps installed on this phone that can be launched, sorted by name and each with its own icon. Tap one and it goes into the place. If you later remove that app from the phone, its tile opens nothing.</p>
+</div>
+</details>
+<details class="el" id="feature-picker">
+<summary><span class="mk">12</span><span><span class="name">Choose a feature</span><span class="one">Lists tools and screens of FastMediaSorter itself.</span></span></summary>
+<div class="full">
+<p>Shows what exists in your edition, for example the calculator, the stopwatch, the network monitor, the mini-game, Streams and Favorites; the tools come first and the rest follow. A tool that is switched off in Settings stays in the list with the note Off - tap to turn on; as a tile it opens the matching setting instead of the tool. Features that are not part of your edition are not listed.</p>
+</div>
+</details>
+<details class="el" id="os-picker">
+<summary><span class="mk">13</span><span><span class="name">Choose Android OS setting</span><span class="one">Lists Android settings screens you can pin.</span></span></summary>
+<div class="full">
+<p>Shows only the screens this phone can really open: Settings, Wi-Fi, Bluetooth, Display, Sound, Battery, Storage, App info, Date and time and, where your phone has them, Developer options, Battery saver, Auto-rotate, Accessibility, Wireless networks, Data usage, NFC, VPN, Location and Hotspot. A screen your phone does not have is simply missing.</p>
+</div>
+</details>
+<details class="el" id="resource-picker">
+<summary><span class="mk">14</span><span><span class="name">Choose a resource</span><span class="one">Lists your resources you can pin.</span></span></summary>
+<div class="full">
+<p>Shows your resources by name, each with the icon of its type, such as a device folder, a network share or a cloud folder. One tile points to one resource; tapping the tile on the panel later opens that resource in the file browser.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="launch-panel.html"><b>Quick launch</b><span class="pill">Screen</span></a></li>
+<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/edge-gestures-and-quick-access-panel.html"><b>Screen-Edge Gestures and the Quick-Access Panel</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

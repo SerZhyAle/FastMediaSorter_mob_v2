@@ -1,0 +1,2 @@
+# CHECK-VERDICT 0.13 Rule G legacy test-count writers. Shrink only.
+# Identity is relative path plus executable output and resolved count assignment; never add entries.

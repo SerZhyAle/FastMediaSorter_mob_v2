@@ -8,6 +8,7 @@ import android.util.SizeF
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.systeminfo.CameraActiveArrayText
+import com.sza.fastmediasorter.core.systeminfo.SystemInfoGroup
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoSection
 import com.sza.fastmediasorter.data.capture.CameraHardwareDataSource
 import com.sza.fastmediasorter.domain.model.CameraHardwareEntry
@@ -30,6 +31,7 @@ class GatherCameraDiagnosticsUseCase @Inject constructor(
     operator fun invoke(): SystemInfoSection = SystemInfoSection(
         title = context.getString(R.string.sysinfo_section_cameras),
         fields = cameraHardware.read().entries.flatMap(::fieldsOf),
+        group = SystemInfoGroup.CAMERAS,
     )
 
     private fun fieldsOf(entry: CameraHardwareEntry): List<Pair<String, String>> {

@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "अपनी स्मार्टवॉच पर टीवी चैनल देखें - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-hi.html
 ---
-<sub class="doc-stamp">26.09.25 02:22</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-tv-hi.html
 > **लेवल:** शुरुआती &bull; **समय:** ~10 मिनट &bull; **डिवाइस:** Wear OS स्मार्टवॉच
 
 > **सिर्फ़ फुल वर्शन** - यह गाइड Google Play से मिलने वाले वर्शन में लागू नहीं है. यह फुल वर्शन पर लागू होता है, जो [Downloads](../DOWNLOADS.md) से सीधा APK डाउनलोड है.
-
-{% include lang-switcher.html doc="scenario-watch-tv" dir="/docs/howto/" current="hi" %}
 
 FastMedia Wear आपकी कलाई पर सीधे लाइव टीवी और रेडियो चैनल चलाता है. वॉच स्ट्रीम को अपने खुद के Wi-Fi पर खोलती है, इसलिए एक बार चैनल लिस्ट में आ जाए तो आप उसे फोन के दूसरे कमरे में होने, बैग में होने, या पूरी तरह बंद होने पर भी देख सकते हैं.
 

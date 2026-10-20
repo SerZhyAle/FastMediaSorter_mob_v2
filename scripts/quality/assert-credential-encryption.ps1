@@ -131,6 +131,11 @@ $countInText = {
 }
 
 if ($Gate -and $ChangedFiles -and (@(Expand-ChangedFiles -ChangedFiles $ChangedFiles).Count -gt 0)) {
+    if (@(Expand-ChangedFiles -ChangedFiles $ChangedFiles | Where-Object { $_ -match '\.kt$' }).Count -eq 0) {
+        Write-EmptySetPass -GateName 'assert-credential-encryption'
+        exit 0
+    }
+    Assert-GitHeadResolvable -GateName 'assert-credential-encryption' -RepoRoot $repoRoot
     $delta = Measure-ChangedFileGrowth -ChangedFiles $ChangedFiles -RepoRoot $repoRoot -Extensions @('.kt') -CountInText $countInText
     Write-Host ("credential-encryption (changed set): new occurrence(s) {0}" -f $delta.Growth)
     if ($delta.Growth -gt 0) {
@@ -185,6 +190,7 @@ if ($PSCmdlet.ParameterSetName -eq 'Update') {
         }
         else {
             Write-Error "Refusing to RAISE baseline ($baseline -> $current). Route the field through CryptoHelper instead."
+            Write-Host 'assert-credential-encryption: FAIL (see the findings above)'
             exit 1
         }
     }

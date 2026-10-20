@@ -370,8 +370,9 @@
         <!-- S2508: Live Broadcast share activity (QR code barcode display + file export) -->
         <activity android:name=".ui.broadcast.BroadcastShareActivity" android:exported="false" android:label="@string/broadcast_share_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
-        <!-- S3038: Live Broadcast control activity (camera preview, toggles, listener count, screen off) -->
-        <activity android:name=".ui.broadcast.BroadcastControlActivity" android:exported="false" android:label="@string/broadcast_control_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <!-- Re-entry above a picker must reuse its owner: two control activities would share the
+             singleton manager's launchers, and destroying either would detach the surviving screen. -->
+        <activity android:name=".ui.broadcast.BroadcastControlActivity" android:exported="false" android:launchMode="singleTask" android:label="@string/broadcast_control_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <!-- S2818: broadcast entry confirmation - the screen the shortcut, QS tile and widget open.
              No intent filter: surfaces launch it by explicit component. No orientation|screenSize in
@@ -400,6 +401,10 @@
 
         <activity android:name=".ui.keybinding.KeybindingRemapActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
+        <!-- S4288: offline help page viewer. Rotation is absorbed so the WebView keeps its page history
+             and scroll position instead of reloading the start page. -->
+        <activity android:name=".ui.common.help.HelpPageActivity" android:exported="false" android:label="@string/help_page_title" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" />
+
         <!-- S0623 Phase 04: standalone Edit-panel screen for the app-launch panel. Launched internally
              from the panel dialog; recreated on rotation so the grid picks the portrait/landscape span. -->
         <activity android:name=".ui.applaunchpanel.edit.EditAppLaunchPanelActivity" android:exported="false" android:label="@string/edit_app_launch_panel_title" />
@@ -414,6 +419,13 @@
              which is what makes the layout-land variant apply. -->
         <activity android:name=".ui.settings.auth.AuthSessionsActivity" android:exported="false" android:label="@string/setting_saved_authorizations_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
         <activity android:name=".ui.exchange.MyDevicesActivity" android:exported="false" android:label="@string/exchange_devices_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
+        <activity
+            android:name=".ui.exchange.ExchangeServerAdminActivity"
+            android:exported="false"
+            android:label="@string/exchange_admin_title"
+            android:parentActivityName=".ui.exchange.MyDevicesActivity"
+            android:excludeFromRecents="true"
+            android:configChanges="keyboardHidden" />
 
         <!-- S0473 Phase 04: opt-in statistics dashboard launched from General settings (visible only when the toggle is on). -->
         <activity android:name=".ui.statistics.StatisticsActivity" android:exported="false" android:label="@string/statistics_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
@@ -432,6 +444,11 @@
              shortcuts and the widget all target it, and it draws nothing itself. The surfaces gate it
              by availability, so on flavors without the watch bridge it is simply never launched. -->
         <activity android:name=".ui.wear.WatchListenLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+
+        <!-- S4226: the window behind the two clipboard programs. From Android 10 the clipboard answers only the
+             window holding input focus (DEVICE-EXCHANGE 22 item CB), so a shortcut or a panel tile opens this
+             translucent window, which reads the clip on focus and only follows the transfer worker. -->
+        <activity android:name=".ui.exchange.ExchangeClipboardActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" />
 
         <activity android:name=".ui.addresource.AddResourceActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
@@ -1024,6 +1041,7 @@
                 <data android:mimeType="image/heif" />
                 <data android:mimeType="image/bmp" />
                 <data android:mimeType="image/avif" />
+                <data android:mimeType="image/jxl" />
                 <data android:mimeType="image/*" />
             </intent-filter>
         </activity-alias>
@@ -1135,6 +1153,7 @@
                 <data android:mimeType="image/heif" />
                 <data android:mimeType="image/bmp" />
                 <data android:mimeType="image/avif" />
+                <data android:mimeType="image/jxl" />
                 <data android:mimeType="image/*" />
             </intent-filter>
         </activity-alias>

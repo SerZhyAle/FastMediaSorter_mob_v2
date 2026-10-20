@@ -32,6 +32,23 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- S4288: top-end help action, declared after the pager so it draws above the page. No control holds this
+         corner; WelcomeActivity.applyWindowInsets moves it clear of the status bar and side cutouts. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnWelcomeHelp"
+        style="@style/Widget.FastMediaSorter.Button.Icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/help"
+        android:focusable="true"
+        android:clickable="true"
+        android:foreground="@drawable/focus_button_background"
+        android:nextFocusDown="@id/viewPager"
+        app:icon="@drawable/ic_help_outline"
+        app:iconTint="?attr/colorOnSurface"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- Single bottom navigation bar: Back | indicator | Skip | Next/Finish -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutBottomNav"

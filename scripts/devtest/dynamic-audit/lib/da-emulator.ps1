@@ -207,9 +207,10 @@ function Get-DaSubject {
         $deviceSha = (($sum.Lines | Select-Object -First 1) -split '\s+')[0]
     }
     $hostMatch = $null
-    $apkRoot = Join-Path (Get-DaPaths).RepoRoot 'app_v2/build/outputs/apk'
-    if ($deviceSha -and (Test-Path -LiteralPath $apkRoot)) {
-        foreach ($apk in (Get-ChildItem -LiteralPath $apkRoot -Recurse -Filter '*.apk' -File)) {
+    # The watch build shares the debug application id, so its artifact is looked up beside the phone's.
+    $apkRoots = @(@('app_v2/build/outputs/apk', 'wear/build/outputs/apk') | ForEach-Object { Join-Path (Get-DaPaths).RepoRoot $_ } | Where-Object { Test-Path -LiteralPath $_ })
+    if ($deviceSha -and $apkRoots.Count) {
+        foreach ($apk in (Get-ChildItem -LiteralPath $apkRoots -Recurse -Filter '*.apk' -File)) {
             if ((Get-DaFileSha256 -Path $apk.FullName) -eq $deviceSha) {
                 $hostMatch = [System.IO.Path]::GetRelativePath((Get-DaPaths).RepoRoot, $apk.FullName) -replace '\\', '/'
                 break

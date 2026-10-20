@@ -36,7 +36,16 @@ data class WearNetworkSourcePayload(
     // S2502: when the sender last edited this record, in the sender's own time base. Absent on a
     // payload from a side that predates the stamp, and the receiver then applies the record exactly
     // as it did before this ticket rather than refusing it.
-    val lastEditedAt: Long? = null
+    val lastEditedAt: Long? = null,
+    // S4228: the exchange binding of an SFTP folder (contract DEVICE-EXCHANGE 23 item CG) - the entry identity and
+    // the producer's resourceId the account tunnel is opened with. Absent from an older phone and for any
+    // other resource.
+    val exchangeAccount: String? = null,
+    val exchangeResourceId: String? = null,
+    // S4228: read-only set on the phone (20 item BH); absent reads as writable, as before.
+    val readOnly: Boolean? = null,
+    // S4228: the root demands its original PIN (17 item AG), which reaches the watch as a separate message.
+    val pinProtected: Boolean? = null
 )
 
 /** S2488: one connection endpoint of a source's address group. Wire names must match the phone's. */
@@ -50,10 +59,10 @@ data class WearEndpointPayload(
  */
 data class WearSyncPayload(
     // S2488: raised to 2 with the `endpoints` field. S2502 raised it to 3 with `lastEditedAt`.
-    // S2882 raised it to 4 with `deselectedIds`. Nothing branches on it - it records the contract
-    // generation rather than gating anything, and in particular the merge rule reads the presence of
-    // the stamps themselves, not this number.
-    val version: Int = 4,
+    // S2882 raised it to 4 with `deselectedIds`, S4228 to 5 with the exchange members. Nothing
+    // branches on it - it records the contract generation rather than gating anything, and in
+    // particular the merge rule reads the presence of the stamps themselves, not this number.
+    val version: Int = 5,
     val sentAt: Long,               // Epoch ms - used to reject stale replays (> 24 h)
     val phoneName: String,          // e.g. "Pixel 8 Pro" - shown on watch during transfer
     val sources: List<WearNetworkSourcePayload>,

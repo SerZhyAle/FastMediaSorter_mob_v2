@@ -641,6 +641,34 @@ function Build-EcosystemHero {
     return $sb.ToString()
 }
 
+# A numbered "how to set it up" slide for one scenario page of the portal (S4242): four cards in two columns,
+# or six in three, drawn like home-steps. Keys are <Prefix>.title, .desc, .sub and <Prefix>.<n>.t / .b.
+function Build-ScenarioSteps {
+    param([string]$Prefix, [string[]]$Icons, [string[]]$Accents, [int]$Seed = 9)
+    $p = $script:Palette
+    $count = $Icons.Count
+    if ($count -ne 4 -and $count -ne 6) { throw "scenario slide '$Prefix' needs four or six cards, got $count" }
+    $sb = Open-SvgDocument -W 1920 -H 1080 -TitleKey "$Prefix.title" -DescKey "$Prefix.desc"
+    [void]$sb.Append((New-SvgWaves -W 1920 -H 1080 -Base 1030 -Seed $Seed -Amp 20))
+    [void]$sb.Append((New-SvgHeading -TitleKey "$Prefix.title" -SubKey "$Prefix.sub" -X 100 -Y 140 -TitleSize 54 -SubSize 26))
+    $cols = if ($count -eq 4) { 2 } else { 3 }
+    $cardW = if ($count -eq 4) { 820 } else { 560 }
+    $stepX = if ($count -eq 4) { 900 } else { 580 }
+    for ($i = 0; $i -lt $count; $i++) {
+        $col = $i % $cols; $row = [math]::Floor($i / $cols)
+        $x = 100 + $col * $stepX; $y = 280 + $row * 360
+        $a = $Accents[$i]
+        [void]$sb.Append((New-SvgRect -X $x -Y $y -W $cardW -H 330 -Fill $p.panel -Stroke $p.panelStroke -StrokeWidth 1.5 -Rx 24))
+        [void]$sb.Append((New-SvgRect -X $x -Y $y -W $cardW -H 8 -Fill $p[$a] -Rx 4))
+        [void]$sb.Append((New-SvgStepBadge -X ($x + 54) -Y ($y + 70) -Number ($i + 1) -Accent $a -R 28))
+        [void]$sb.Append((New-SvgIcon -Name $Icons[$i] -X ($x + $cardW - 90) -Y ($y + 36) -Size 58 -Fill $p[$a] -Opacity 0.9))
+        [void]$sb.Append((New-SvgText -X ($x + 40) -Y ($y + 150) -Key "$Prefix.$($i + 1).t" -Size 30 -Fill $p.text -Weight '700'))
+        [void]$sb.Append((New-SvgText -X ($x + 40) -Y ($y + 200) -Key "$Prefix.$($i + 1).b" -Size 21 -Fill $p.muted -LineHeight 1.4))
+    }
+    [void]$sb.Append('</svg>')
+    return $sb.ToString()
+}
+
 # The picture set, in the order the docs page shows it. `name` is the published file stem.
 $script:UsageSchemeDiagrams = @(
     @{ name = 'ecosystem-hero'; style = 'slide'; build = { Build-EcosystemHero } }
@@ -657,4 +685,12 @@ $script:UsageSchemeDiagrams = @(
     @{ name = 'home-scheme'; style = 'scheme'; build = { Build-HomeScheme } }
     @{ name = 'home-steps'; style = 'slide'; build = { Build-HomeSteps } }
     @{ name = 'home-pairing'; style = 'slide'; build = { Build-HomePairing } }
+    @{ name = 'steps-folders-exchange'; style = 'slide'; build = { Build-ScenarioSteps -Prefix 'sc.folders-exchange' -Seed 3 -Icons @('person', 'folder', 'swap', 'search', 'check', 'lock') -Accents @('control', 'tunnel', 'server', 'media', 'tunnel', 'lan') } }
+    @{ name = 'steps-folders-drive'; style = 'slide'; build = { Build-ScenarioSteps -Prefix 'sc.folders-drive' -Seed 4 -Icons @('person', 'cloud', 'folder', 'swap') -Accents @('control', 'server', 'tunnel', 'media') } }
+    @{ name = 'steps-broadcast-start'; style = 'slide'; build = { Build-ScenarioSteps -Prefix 'sc.broadcast-start' -Seed 5 -Icons @('camera', 'play', 'qr', 'antenna') -Accents @('media', 'tunnel', 'server', 'control') } }
+    @{ name = 'steps-broadcast-receive'; style = 'slide'; build = { Build-ScenarioSteps -Prefix 'sc.broadcast-receive' -Seed 6 -Icons @('antenna', 'qr', 'key', 'cast') -Accents @('control', 'server', 'media', 'tunnel') } }
+    @{ name = 'steps-watch'; style = 'slide'; build = { Build-ScenarioSteps -Prefix 'sc.watch' -Seed 7 -Icons @('server', 'watch', 'key', 'check', 'wifi', 'phone') -Accents @('server', 'control', 'media', 'tunnel', 'lan', 'control') } }
+    @{ name = 'steps-schedule'; style = 'slide'; build = { Build-ScenarioSteps -Prefix 'sc.schedule' -Seed 8 -Icons @('tune', 'folder', 'swap', 'log') -Accents @('control', 'tunnel', 'media', 'server') } }
+    @{ name = 'steps-phone-sharing'; style = 'slide'; build = { Build-ScenarioSteps -Prefix 'sc.phone-sharing' -Seed 10 -Icons @('phone', 'folder', 'home', 'cellular') -Accents @('server', 'tunnel', 'lan', 'media') } }
+    @{ name = 'steps-my-devices'; style = 'slide'; build = { Build-ScenarioSteps -Prefix 'sc.my-devices' -Seed 12 -Icons @('qr', 'shield', 'key', 'phone', 'server', 'check') -Accents @('control', 'tunnel', 'media', 'lan', 'server', 'tunnel') } }
 )

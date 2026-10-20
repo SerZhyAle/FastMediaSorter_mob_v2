@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "total_pages": 318,
+  "total_pages": 423,
   "chunks": [
     {
       "file": "search-pages-en-01.json",
@@ -35,6 +35,10 @@
       "lang": "ru"
     },
     {
+      "file": "search-pages-ru-06.json",
+      "lang": "ru"
+    },
+    {
       "file": "search-pages-uk-01.json",
       "lang": "uk"
     },
@@ -48,6 +52,14 @@
     },
     {
       "file": "search-pages-uk-04.json",
+      "lang": "uk"
+    },
+    {
+      "file": "search-pages-uk-05.json",
+      "lang": "uk"
+    },
+    {
+      "file": "search-pages-uk-06.json",
       "lang": "uk"
     }
   ]

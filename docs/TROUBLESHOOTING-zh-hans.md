@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "🔧 Troubleshooting Guide"
 permalink: /docs/TROUBLESHOOTING-zh-hans.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 🔧 故障排查指南
 
 FastMediaSorter v2 的最新故障排查指南。当问题与所选的构建路径（Standard、Lite、Photos、Legacy 或 XR / noLegal）有关时，请使用 [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) 中的权威版本对照表。
-
-{% include lang-switcher.html doc="TROUBLESHOOTING" dir="/docs/" current="zh-Hans" %}
 
 ---
 

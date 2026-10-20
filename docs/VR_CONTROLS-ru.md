@@ -1,10 +1,10 @@
 ---
-layout: default
+layout: doc
 title: "Управление в иммерсивном VR"
 permalink: /docs/VR_CONTROLS-ru.html
 ---
 
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # Управление в иммерсивном VR
 

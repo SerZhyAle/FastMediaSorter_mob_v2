@@ -2,8 +2,12 @@ package com.sza.fastmediasorter.data.broadcast.exchange
 
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialRegistry
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastDigest
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeSession
+import com.sza.fastmediasorter.data.security.e2e.E2eRelayRecords
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -22,7 +26,6 @@ import java.io.Closeable
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.Collections
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,31 +42,64 @@ import javax.inject.Singleton
 @Singleton
 class ExchangeRelayUploader @Inject constructor(
     private val client: DeviceExchangeAccountClient,
+    private val keys: ExchangeRelayKeys,
     @ApplicationScope private val appScope: CoroutineScope,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val credentials: BroadcastCredentialRegistry,
 ) {
 
     private val mutableAccepted = MutableStateFlow<String?>(null)
     val accepted: StateFlow<String?> = mutableAccepted.asStateFlow()
 
     private var job: Job? = null
+    private var activeGeneration: Generation? = null
 
-    // Blocking reads on both streams ignore cancellation; closing them is what ends an upload.
-    private val openStreams: MutableSet<Closeable> = Collections.synchronizedSet(mutableSetOf())
+    private inner class Generation(val broadcastId: String) {
+        private val lock = Any()
+        private val streams = mutableSetOf<Closeable>()
+        private var stopped = false
+
+        fun registerOrClose(stream: Closeable): Boolean = synchronized(lock) {
+            if (stopped) {
+                closeQuietly(stream)
+                false
+            } else {
+                streams.add(stream)
+                true
+            }
+        }
+
+        fun unregister(stream: Closeable) {
+            synchronized(lock) {
+                streams.remove(stream)
+            }
+        }
+
+        fun stop(): List<Closeable> = synchronized(lock) {
+            stopped = true
+            streams.toList().also { streams.clear() }
+        }
+
+        val isStopped: Boolean
+            get() = synchronized(lock) { stopped }
+    }
 
     /** Uploads the ADTS stream served at [sourceUrl] as broadcast [broadcastId] through [entry]. */
     @Synchronized
     fun start(entry: DeviceExchangeAccountEntry, broadcastId: String, sourceUrl: String) {
         stopLocked()
-        job = appScope.launch(ioDispatcher) { uploadUntilStopped(entry, broadcastId, Source.Adts(sourceUrl)) }
+        val generation = Generation(broadcastId)
+        activeGeneration = generation
+        job = appScope.launch(ioDispatcher) { uploadUntilStopped(generation, entry, Source.Adts(sourceUrl)) }
     }
 
     /** Uploads the MPEG-TS the video session publishes into [feed] as broadcast [broadcastId] through [entry]. */
     @Synchronized
     fun startVideo(entry: DeviceExchangeAccountEntry, broadcastId: String, feed: ExchangeVideoRelayFeed) {
-        Timber.d("S4116: video relay upload starting")
         stopLocked()
-        job = appScope.launch(ioDispatcher) { uploadUntilStopped(entry, broadcastId, Source.Ts(feed)) }
+        val generation = Generation(broadcastId)
+        activeGeneration = generation
+        job = appScope.launch(ioDispatcher) { uploadUntilStopped(generation, entry, Source.Ts(feed)) }
     }
 
     @Synchronized
@@ -72,75 +108,132 @@ class ExchangeRelayUploader @Inject constructor(
     private fun stopLocked() {
         job?.cancel()
         job = null
-        val streams = synchronized(openStreams) { openStreams.toList().also { openStreams.clear() } }
-        streams.forEach(::closeQuietly)
+        val oldGen = activeGeneration
+        activeGeneration = null
+        oldGen?.stop()?.forEach(::closeQuietly)
         mutableAccepted.value = null
     }
 
-    private suspend fun uploadUntilStopped(entry: DeviceExchangeAccountEntry, broadcastId: String, source: Source) {
+    @Synchronized
+    private fun publishAccepted(generation: Generation) {
+        if (activeGeneration === generation && !generation.isStopped) {
+            mutableAccepted.value = generation.broadcastId
+        }
+    }
+
+    @Synchronized
+    private fun clearAccepted(generation: Generation) {
+        if (activeGeneration === generation) {
+            mutableAccepted.value = null
+        }
+    }
+
+    private suspend fun uploadUntilStopped(
+        generation: Generation,
+        entry: DeviceExchangeAccountEntry,
+        source: Source
+    ) {
         var backoffMs = INITIAL_BACKOFF_MS
         var refused = false
-        while (currentCoroutineContext().isActive && !refused) {
-            try {
-                refused = !upload(entry, broadcastId, source)
-                backoffMs = INITIAL_BACKOFF_MS
-            } catch (e: IOException) {
-                Timber.i(e, "ExchangeRelayUploader: upload ended")
+        try {
+            while (currentCoroutineContext().isActive && !refused && !generation.isStopped) {
+                try {
+                    refused = !upload(generation, entry, source)
+                    backoffMs = INITIAL_BACKOFF_MS
+                } catch (e: IOException) {
+                    Timber.i(e, "ExchangeRelayUploader: upload ended")
+                } finally {
+                    clearAccepted(generation)
+                }
+                if (refused || !currentCoroutineContext().isActive || generation.isStopped) break
+                delay(backoffMs)
+                backoffMs = (backoffMs * 2).coerceAtMost(MAX_BACKOFF_MS)
             }
-            mutableAccepted.compareAndSet(broadcastId, null)
-            if (refused) break
-            delay(backoffMs)
-            backoffMs = (backoffMs * 2).coerceAtMost(MAX_BACKOFF_MS)
+        } finally {
+            clearAccepted(generation)
+            generation.stop().forEach(::closeQuietly)
         }
     }
 
     /** False when the server refused the upload - a deployment without the relay - which no retry changes. */
-    private suspend fun upload(entry: DeviceExchangeAccountEntry, broadcastId: String, source: Source): Boolean {
-        // Read before the stream opens, so no server stream is held while the encoder warms up.
+    private suspend fun upload(
+        generation: Generation,
+        entry: DeviceExchangeAccountEntry,
+        source: Source
+    ): Boolean {
         val header = (source as? Source.Ts)?.feed?.header?.filterNotNull()?.first()
-        val session = client.openAuthenticated(entry).also(openStreams::add)
+        if (generation.isStopped || !currentCoroutineContext().isActive) {
+            return false
+        }
+        val session = client.openAuthenticated(entry)
+        return uploadSession(generation, session, source, header)
+    }
+
+    private suspend fun uploadSession(
+        generation: Generation,
+        session: DeviceExchangeSession,
+        source: Source,
+        header: ByteArray?
+    ): Boolean {
+        if (!generation.registerOrClose(session)) {
+            return false
+        }
+        var accepted = false
         try {
-            session.send(
-                DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_UPLOAD) {
-                    addProperty(DeviceExchangeAccountClient.KEY_BROADCAST_ID, broadcastId)
-                    addProperty(KEY_CONTENT_TYPE, source.contentType)
+            if (!generation.isStopped && currentCoroutineContext().isActive) {
+                val features = session.welcome.features
+                val sealing = features?.contains(DeviceExchangeAccountEntry.FEATURE_SEALED) == true
+                val ring = keys.newEpoch(generation.broadcastId)?.takeIf { sealing }
+                accepted = ring != null && accepted(session, generation.broadcastId)
+                if (ring != null && accepted) {
+                    publishAccepted(generation)
+                    Timber.d("S4240: phone uploads a sealed relay epoch")
+                    val sealer = ExchangeRelaySealer(generation.broadcastId, source.contentType, ring) {
+                        keys.isCurrent(generation.broadcastId, ring)
+                    }
+                    val headerChunk = sealer.headerChunk(header)
+                    val writer = ExchangeRelayChunkWriter(session.connection.output, headerChunk, sealer)
+                    when (source) {
+                        is Source.Adts -> forward(generation, source.url, writer)
+                        is Source.Ts -> pump(source.feed, writer)
+                    }
+                    writer.end()
                 }
-            )
-            val answer = session.receive()
-            if (answer?.type != DeviceExchangeEnvelope.TYPE_UPLOAD_ACCEPTED) {
-                val reason = answer?.string(DeviceExchangeEnvelope.KEY_REASON)
-                Timber.i("ExchangeRelayUploader: upload not accepted (%s)", reason)
-                return false
             }
-            mutableAccepted.value = broadcastId
-            val writer = ExchangeRelayChunkWriter(session.connection.output, header)
-            when (source) {
-                is Source.Adts -> forward(source.url, writer)
-                is Source.Ts -> pump(source.feed, writer)
-            }
-            writer.end()
-            return true
         } finally {
-            openStreams.remove(session)
+            generation.unregister(session)
             closeQuietly(session)
         }
+        return accepted
+    }
+
+    private fun accepted(session: DeviceExchangeSession, broadcastId: String): Boolean {
+        session.send(
+            DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_UPLOAD) {
+                addProperty(DeviceExchangeAccountClient.KEY_BROADCAST_ID, broadcastId)
+                addProperty(KEY_CONTENT_TYPE, E2eRelayRecords.CONTENT_TYPE)
+            }
+        )
+        val answer = session.receive()
+        val accepted = answer?.type == DeviceExchangeEnvelope.TYPE_UPLOAD_ACCEPTED
+        if (!accepted) Timber.i("ExchangeRelayUploader: upload not accepted (%s)", answer?.string(KEY_REASON))
+        return accepted
     }
 
     // Whole frames per chunk keep every chunk joinable; a few frames per chunk keep the framing overhead small.
-    private fun forward(sourceUrl: String, writer: ExchangeRelayChunkWriter) {
-        val connection = (URL(sourceUrl).openConnection() as HttpURLConnection).apply {
-            connectTimeout = SOURCE_TIMEOUT_MS
-            readTimeout = SOURCE_TIMEOUT_MS
-        }
+    private fun forward(generation: Generation, sourceUrl: String, writer: ExchangeRelayChunkWriter) {
+        val connection = openSource(sourceUrl)
         val disconnect = Closeable { connection.disconnect() }
-        openStreams.add(disconnect)
+        if (!generation.registerOrClose(disconnect)) {
+            return
+        }
         try {
             connection.inputStream.use { input ->
                 val splitter = AdtsFrameSplitter()
                 val batch = mutableListOf<ByteArray>()
                 val buffer = ByteArray(READ_BUFFER_BYTES)
                 var read = input.read(buffer)
-                while (read >= 0) {
+                while (read >= 0 && !generation.isStopped) {
                     batch += splitter.feed(buffer, read)
                     if (batch.size >= FRAMES_PER_CHUNK) {
                         writer.write(batch.flatten(), joinable = true)
@@ -150,16 +243,41 @@ class ExchangeRelayUploader @Inject constructor(
                 }
             }
         } finally {
-            openStreams.remove(disconnect)
+            generation.unregister(disconnect)
             connection.disconnect()
         }
     }
+
+    // S4258: a protected broadcast's own server challenges this read like any listener's, loopback included,
+    // so the upload answers with the internal pair; the answer is sent and never logged.
+    private fun openSource(sourceUrl: String): HttpURLConnection {
+        val first = sourceConnection(sourceUrl, authorization = null)
+        val challenge = first.takeIf { it.responseCode == HttpURLConnection.HTTP_UNAUTHORIZED }
+            ?.headerFields?.entries
+            ?.filter { it.key.equals(BroadcastDigest.HEADER_CHALLENGE, ignoreCase = true) }
+            ?.flatMap { it.value }
+            ?.takeIf { it.isNotEmpty() }
+            ?.joinToString(", ")
+            ?: return first
+        first.disconnect()
+        val path = URL(sourceUrl).path
+        val answer = BroadcastDigest.answer(challenge, "GET", path, credentials.internalPair)
+        return sourceConnection(sourceUrl, answer)
+    }
+
+    private fun sourceConnection(sourceUrl: String, authorization: String?) =
+        (URL(sourceUrl).openConnection() as HttpURLConnection).apply {
+            connectTimeout = SOURCE_TIMEOUT_MS
+            readTimeout = SOURCE_TIMEOUT_MS
+            authorization?.let { setRequestProperty(BroadcastDigest.HEADER_AUTHORIZATION, it) }
+        }
 
     // Runs until the job is cancelled; a write to a dropped stream throws and the caller reconnects.
     private suspend fun pump(feed: ExchangeVideoRelayFeed, writer: ExchangeRelayChunkWriter) {
         var joined = false
         feed.chunks.collect { chunk ->
-            val fits = chunk.payload.size < ExchangeRelayChunkWriter.MAX_CHUNK_LENGTH
+            val room = ExchangeRelayChunkWriter.MAX_CHUNK_LENGTH - ExchangeRelaySealer.RECORD_OVERHEAD
+            val fits = chunk.payload.size < room
             // A skipped chunk would leave the listeners mid-picture, so the upload waits for the next keyframe.
             joined = fits && (joined || chunk.joinable)
             if (joined) writer.write(chunk.payload, chunk.joinable)
@@ -191,6 +309,7 @@ class ExchangeRelayUploader @Inject constructor(
 
     private companion object {
         const val KEY_CONTENT_TYPE = "contentType"
+        const val KEY_REASON = DeviceExchangeEnvelope.KEY_REASON
         const val CONTENT_TYPE_AAC = "audio/aac"
         const val CONTENT_TYPE_TS = "video/mp2t"
         const val FRAMES_PER_CHUNK = 4

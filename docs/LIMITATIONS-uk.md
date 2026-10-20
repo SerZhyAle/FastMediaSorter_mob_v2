@@ -1,10 +1,10 @@
 ---
-layout: default
+layout: doc
 title: "⚠️ Обмеження програми"
 permalink: /docs/LIMITATIONS-uk.html
 ---
 
-<sub class="doc-stamp">26.10.06 21:33</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # ⚠️ Обмеження програми
 

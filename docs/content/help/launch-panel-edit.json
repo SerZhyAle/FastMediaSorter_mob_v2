@@ -1,0 +1,264 @@
+{
+  "help": "launch-panel-edit",
+  "surface": "EditAppLaunchPanelActivity",
+  "elements": [
+    { "id": "back", "viewId": "backButton", "labelKey": "back" },
+    { "id": "reset", "viewId": "resetButton", "labelKey": "app_launch_panel_reset" },
+    { "id": "tiles", "viewId": "recyclerView" },
+    { "id": "tile", "viewId": "ivTileIcon" },
+    { "id": "empty-slot", "viewId": "tvTileLabel", "labelKey": "app_launch_panel_empty_slot" },
+    { "id": "move", "labelKey": "app_launch_panel_action_move" },
+    { "id": "replace", "labelKey": "app_launch_panel_action_replace" },
+    { "id": "remove", "labelKey": "app_launch_panel_action_remove" },
+    { "id": "add-chooser", "labelKey": "app_launch_panel_add_chooser_title" },
+    { "id": "picker-search", "labelKey": "streams_picker_search_hint" },
+    { "id": "app-picker", "labelKey": "app_picker_title" },
+    { "id": "feature-picker", "labelKey": "app_launch_panel_picker_feature_title" },
+    { "id": "os-picker", "labelKey": "app_launch_panel_picker_os_title" },
+    { "id": "resource-picker", "labelKey": "app_launch_panel_picker_resource_title" }
+  ],
+  "related": [
+    { "help": "launch-panel" },
+    { "help": "main" },
+    { "pageId": "capture.edge-gestures-and-quick-access-panel" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Edit panel",
+      "purpose": "Choose what the Quick launch panel shows. The panel has fifteen fixed places; here you fill each one with an app, a tool of FastMediaSorter, one of your resources or an Android settings screen, and you can swap them around or clear them.",
+      "steps": [
+        "You get here from the Edit button of the Quick launch panel, by tapping a free place on it, or from the edge gesture settings. The grid (3) shows the panel as it is now.",
+        "Tap a free place (5) or any tile (4). The Add to panel window (9) asks what kind of shortcut you want: an Android app, a FastMediaSorter feature, a FastMediaSorter resource or an Android setting.",
+        "A list of that kind opens (11 to 14). Tap the item you want and it goes into the place at once. A short list has no search field; a long one gets it (10).",
+        "To change a tile that is already there, long-press it: Move (6) swaps it with another place, Replace (7) opens the same kind choice again, Remove (8) empties the place.",
+        "Reset panel (2) puts the factory set back after you confirm. Back (1) leaves the screen - every change is saved as you make it."
+      ],
+      "groups": [
+        { "title": "Top bar", "elements": ["back", "reset"] },
+        { "title": "Tile grid", "elements": ["tiles", "tile", "empty-slot"] },
+        { "title": "Tile menu (long press)", "elements": ["move", "replace", "remove"] },
+        { "title": "Add to panel window", "elements": ["add-chooser", "picker-search", "app-picker", "feature-picker", "os-picker", "resource-picker"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Leaves the screen and returns to the panel.",
+          "details": "There is nothing to save: each change is stored as soon as you make it, and the panel shows it the next time it opens."
+        },
+        "reset": {
+          "summary": "Puts the panel back to the set it had after installation.",
+          "details": "The app asks Reset panel? and explains that the panel returns to the default set of apps and shortcuts created at install. Nothing changes until you confirm. The factory set is FastMediaSorter first, then its own tools that exist in your edition, one of your resources and Android Settings, with the last places left free.",
+          "undo": "All your own tiles are lost and the factory set returns. To get a tile back, add it again."
+        },
+        "tiles": {
+          "name": "Tile grid",
+          "summary": "The fifteen fixed places of the panel.",
+          "details": "The grid has three columns in a narrow window and five in a wide one, the same as the panel. The number of places cannot be changed. Every place is either a tile with an icon and a name or a free place with a plus. The grid takes keyboard and D-pad focus when the screen opens."
+        },
+        "tile": {
+          "name": "Tile",
+          "summary": "A shortcut that is already on the panel.",
+          "details": "Tap it to replace it: the Add to panel window opens for the same place, and whatever you pick takes its spot. Long-press it for the menu with Move, Replace and Remove. The icon shows what the tile opens: an app keeps its own icon, and tools and settings have theirs."
+        },
+        "empty-slot": {
+          "summary": "A free place waiting for a shortcut.",
+          "details": "Tap it, or long-press it - both do the same here - and the Add to panel window opens. The place stays free until you pick something."
+        },
+        "add-chooser": {
+          "summary": "Asks what kind of shortcut should go into this place.",
+          "details": "A short list with four choices: Android app, FastMediaSorter feature, FastMediaSorter resource and Android OS settings. Each opens its own list. Cancel closes the window and changes nothing. The same window opens for Replace."
+        },
+        "move": {
+          "summary": "Moves a tile to another place.",
+          "details": "A list of places numbered from 1 to 15 opens. Pick the number you want. If that place already has a tile, the two tiles swap; if it is free, the tile just moves there. Cancel leaves everything where it was."
+        },
+        "replace": {
+          "summary": "Puts something else into the same place.",
+          "details": "Opens the same Add to panel window as a tap on the tile. The new choice takes the place of the old one; the old tile is not kept."
+        },
+        "remove": {
+          "summary": "Empties the place.",
+          "details": "The tile is taken off the panel at once, without a question, and the place becomes free again. The app, tool or resource it pointed to is not touched.",
+          "undo": "The tile cannot be brought back with an undo button. Add it again from the free place, or use Reset panel to get the factory set."
+        },
+        "picker-search": {
+          "summary": "Narrows a long list as you type.",
+          "details": "The field has a clear button and appears only when the list is longer than the window; a short list shows no field. Type part of a name and the rows narrow as you go. If nothing matches, the list says Nothing found. It works the same way in all four lists below."
+        },
+        "app-picker": {
+          "summary": "Lists the apps you can pin as a tile.",
+          "details": "Shows the apps installed on this phone that can be launched, sorted by name and each with its own icon. Tap one and it goes into the place. If you later remove that app from the phone, its tile opens nothing."
+        },
+        "feature-picker": {
+          "summary": "Lists tools and screens of FastMediaSorter itself.",
+          "details": "Shows what exists in your edition, for example the calculator, the stopwatch, the network monitor, the mini-game, Streams and Favorites; the tools come first and the rest follow. A tool that is switched off in Settings stays in the list with the note Off - tap to turn on; as a tile it opens the matching setting instead of the tool. Features that are not part of your edition are not listed."
+        },
+        "os-picker": {
+          "summary": "Lists Android settings screens you can pin.",
+          "details": "Shows only the screens this phone can really open: Settings, Wi-Fi, Bluetooth, Display, Sound, Battery, Storage, App info, Date and time and, where your phone has them, Developer options, Battery saver, Auto-rotate, Accessibility, Wireless networks, Data usage, NFC, VPN, Location and Hotspot. A screen your phone does not have is simply missing."
+        },
+        "resource-picker": {
+          "summary": "Lists your resources you can pin.",
+          "details": "Shows your resources by name, each with the icon of its type, such as a device folder, a network share or a cloud folder. One tile points to one resource; tapping the tile on the panel later opens that resource in the file browser."
+        }
+      }
+    },
+    "ru": {
+      "title": "Редактировать панель",
+      "purpose": "Выберите, что показывает панель «Быстрый запуск». На панели пятнадцать постоянных мест; здесь вы заполняете каждое приложением, инструментом FastMediaSorter, одним из ваших ресурсов или экраном настроек Android, а также можете менять плитки местами и очищать их.",
+      "steps": [
+        "Сюда попадают кнопкой «Изменить» на панели «Быстрый запуск», нажатием на свободное место на ней или из настроек жестов края экрана. Сетка (3) показывает панель в её нынешнем виде.",
+        "Нажмите свободное место (5) или любую плитку (4). Окно «Добавить на панель» (9) спросит, какой ярлык нужен: приложение, функция FastMediaSorter, ресурс FastMediaSorter или настройка Android.",
+        "Откроется список выбранного вида (11-14). Нажмите нужный пункт, и он сразу встанет на место. В коротком списке поля поиска нет, в длинном оно появляется (10).",
+        "Чтобы изменить уже стоящую плитку, нажмите на неё и удерживайте: «Переместить» (6) меняет её местами с другим местом, «Заменить» (7) снова открывает выбор вида, «Удалить» (8) освобождает место.",
+        "«Сброс панели» (2) после подтверждения возвращает стандартный набор. «Назад» (1) закрывает экран - каждое изменение сохраняется сразу."
+      ],
+      "groups": [
+        { "title": "Верхняя панель", "elements": ["back", "reset"] },
+        { "title": "Сетка плиток", "elements": ["tiles", "tile", "empty-slot"] },
+        { "title": "Меню плитки (долгое нажатие)", "elements": ["move", "replace", "remove"] },
+        { "title": "Окно «Добавить на панель»", "elements": ["add-chooser", "picker-search", "app-picker", "feature-picker", "os-picker", "resource-picker"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Закрывает экран и возвращает к панели.",
+          "details": "Сохранять нечего: каждое изменение записывается сразу, а панель покажет его при следующем открытии."
+        },
+        "reset": {
+          "summary": "Возвращает панель к набору, который был после установки.",
+          "details": "Приложение спрашивает «Сбросить панель?» и поясняет, что панель вернётся к набору программ и ярлыков по умолчанию, как после установки. Пока вы не подтвердите, ничего не меняется. Стандартный набор - это сначала FastMediaSorter, затем его собственные инструменты, которые есть в вашей редакции, один из ваших ресурсов и настройки Android, а последние места остаются свободными.",
+          "undo": "Все ваши плитки пропадают, и возвращается стандартный набор. Чтобы вернуть плитку, добавьте её снова."
+        },
+        "tiles": {
+          "name": "Сетка плиток",
+          "summary": "Пятнадцать постоянных мест панели.",
+          "details": "В сетке три столбца в узком окне и пять в широком - как и на самой панели. Число мест изменить нельзя. Каждое место - это либо плитка со значком и названием, либо свободное место с плюсом. При открытии экрана фокус клавиатуры и D-pad переходит на сетку."
+        },
+        "tile": {
+          "name": "Плитка",
+          "summary": "Ярлык, который уже есть на панели.",
+          "details": "Нажмите, чтобы заменить: окно «Добавить на панель» откроется для того же места, и выбранное встанет вместо прежнего. Нажмите и удерживайте, чтобы открыть меню «Переместить», «Заменить», «Удалить». Значок показывает, что откроет плитка: у приложения остаётся свой значок, а у инструментов и настроек - свои."
+        },
+        "empty-slot": {
+          "summary": "Свободное место, которое ждёт ярлык.",
+          "details": "Нажмите или нажмите и удерживайте - здесь это одно и то же, - и откроется окно «Добавить на панель». Место остаётся свободным, пока вы ничего не выберете."
+        },
+        "add-chooser": {
+          "summary": "Спрашивает, какой ярлык поставить на это место.",
+          "details": "Короткий список из четырёх вариантов: «Приложение», «Функция FastMediaSorter», «Ресурс FastMediaSorter» и «Настройки ОС Андроид». У каждого свой список. «Отмена» закрывает окно, ничего не меняя. То же окно открывается и при «Заменить»."
+        },
+        "move": {
+          "summary": "Переносит плитку на другое место.",
+          "details": "Откроется список мест с номерами от 1 до 15. Выберите нужный номер. Если на этом месте уже есть плитка, плитки поменяются местами; если оно свободно, плитка просто переедет. «Отмена» оставляет всё как было."
+        },
+        "replace": {
+          "summary": "Ставит на это место что-то другое.",
+          "details": "Открывает то же окно «Добавить на панель», что и нажатие на плитку. Новый выбор занимает место прежнего; старая плитка не сохраняется."
+        },
+        "remove": {
+          "summary": "Освобождает место.",
+          "details": "Плитка сразу снимается с панели, без вопроса, и место снова свободно. Приложение, инструмент или ресурс, на которые она указывала, не затрагиваются.",
+          "undo": "Вернуть плитку кнопкой отмены нельзя. Добавьте её снова на свободное место или воспользуйтесь «Сбросом панели», чтобы получить стандартный набор."
+        },
+        "picker-search": {
+          "summary": "Сужает длинный список по мере ввода.",
+          "details": "У поля есть кнопка очистки, и оно появляется, только когда список длиннее окна; в коротком списке поля нет. Введите часть названия, и строки сужаются прямо при вводе. Если ничего не подходит, в списке написано «Ничего не найдено». Во всех четырёх списках ниже поиск работает одинаково."
+        },
+        "app-picker": {
+          "summary": "Список приложений, которые можно закрепить плиткой.",
+          "details": "Показывает установленные на телефоне приложения, которые можно запустить, по алфавиту и каждое со своим значком. Нажмите одно, и оно встанет на место. Если потом удалить это приложение с телефона, его плитка ничего не откроет."
+        },
+        "feature-picker": {
+          "summary": "Список инструментов и экранов самого FastMediaSorter.",
+          "details": "Показывает то, что есть в вашей редакции, например калькулятор, секундомер, сетевой монитор, мини-игру, «Потоки» и «Избранное»; сначала идут инструменты, затем остальное. Инструмент, выключенный в настройках, остаётся в списке с пометкой «Выключено - нажмите, чтобы включить»; плитка с ним открывает соответствующую настройку вместо инструмента. Функции, которых нет в вашей редакции, в списке не показываются."
+        },
+        "os-picker": {
+          "summary": "Список экранов настроек Android, которые можно закрепить.",
+          "details": "Показывает только те экраны, которые телефон действительно может открыть: «Настройки», Wi-Fi, Bluetooth, «Дисплей», «Звук», «Батарея», «Хранилище», «О приложении», «Дата и время» и, если они есть в телефоне, «Для разработчиков», «Энергосбережение», «Автоповорот», «Специальные возможности», «Беспроводные сети», «Передача данных», NFC, VPN, «Геолокация» и «Точка доступа». Экрана, которого нет в вашем телефоне, в списке просто нет."
+        },
+        "resource-picker": {
+          "summary": "Список ваших ресурсов, которые можно закрепить.",
+          "details": "Показывает ваши ресурсы по названию, каждый со значком своего типа - папка на устройстве, сетевая папка или облако. Одна плитка указывает на один ресурс; позже нажатие на плитку на панели открывает этот ресурс в браузере файлов."
+        }
+      }
+    },
+    "uk": {
+      "title": "Редагувати панель",
+      "purpose": "Виберіть, що показує панель «Швидкий запуск». На панелі п’ятнадцять сталих місць; тут ви заповнюєте кожне застосунком, інструментом FastMediaSorter, одним із ваших ресурсів або екраном налаштувань Android, а також можете міняти плитки місцями й очищати їх.",
+      "steps": [
+        "Сюди потрапляють кнопкою «Змінити» на панелі «Швидкий запуск», натисканням на вільне місце на ній або з налаштувань жестів краю екрана. Сітка (3) показує панель у її теперішньому вигляді.",
+        "Натисніть вільне місце (5) або будь-яку плитку (4). Вікно «Додати на панель» (9) запитає, який ярлик потрібен: застосунок, функція FastMediaSorter, ресурс FastMediaSorter чи налаштування Android.",
+        "Відкриється список вибраного виду (11-14). Натисніть потрібний пункт, і він одразу стане на місце. У короткому списку поля пошуку немає, у довгому воно з’являється (10).",
+        "Щоб змінити плитку, що вже стоїть, натисніть на неї й утримуйте: «Перемістити» (6) міняє її місцями з іншим місцем, «Замінити» (7) знову відкриває вибір виду, «Видалити» (8) звільняє місце.",
+        "«Скидання панелі» (2) після підтвердження повертає типовий набір. «Назад» (1) закриває екран - кожна зміна зберігається одразу."
+      ],
+      "groups": [
+        { "title": "Верхня панель", "elements": ["back", "reset"] },
+        { "title": "Сітка плиток", "elements": ["tiles", "tile", "empty-slot"] },
+        { "title": "Меню плитки (довге натискання)", "elements": ["move", "replace", "remove"] },
+        { "title": "Вікно «Додати на панель»", "elements": ["add-chooser", "picker-search", "app-picker", "feature-picker", "os-picker", "resource-picker"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Закриває екран і повертає до панелі.",
+          "details": "Зберігати нічого: кожна зміна записується одразу, а панель покаже її під час наступного відкриття."
+        },
+        "reset": {
+          "summary": "Повертає панель до набору, який був після встановлення.",
+          "details": "Застосунок питає «Скинути панель?» і пояснює, що панель повернеться до типового набору програм і ярликів, як після встановлення. Доки ви не підтвердите, нічого не змінюється. Типовий набір - це спершу FastMediaSorter, потім його власні інструменти, що є у вашій редакції, один із ваших ресурсів і налаштування Android, а останні місця лишаються вільними.",
+          "undo": "Усі ваші плитки зникають, і повертається типовий набір. Щоб повернути плитку, додайте її знову."
+        },
+        "tiles": {
+          "name": "Сітка плиток",
+          "summary": "П’ятнадцять сталих місць панелі.",
+          "details": "У сітці три стовпці у вузькому вікні та п’ять у широкому - як і на самій панелі. Кількість місць змінити не можна. Кожне місце - це або плитка зі значком і назвою, або вільне місце з плюсом. Під час відкриття екрана фокус клавіатури й D-pad переходить на сітку."
+        },
+        "tile": {
+          "name": "Плитка",
+          "summary": "Ярлик, який уже є на панелі.",
+          "details": "Натисніть, щоб замінити: вікно «Додати на панель» відкриється для того самого місця, і вибране стане замість попереднього. Натисніть і утримуйте, щоб відкрити меню «Перемістити», «Замінити», «Видалити». Значок показує, що відкриє плитка: у застосунку лишається власний значок, а в інструментів і налаштувань - свої."
+        },
+        "empty-slot": {
+          "summary": "Вільне місце, що чекає на ярлик.",
+          "details": "Натисніть або натисніть і утримуйте - тут це одне й те саме, - і відкриється вікно «Додати на панель». Місце лишається вільним, доки ви нічого не виберете."
+        },
+        "add-chooser": {
+          "summary": "Питає, який ярлик поставити на це місце.",
+          "details": "Короткий список із чотирьох варіантів: «Застосунок», «Функція FastMediaSorter», «Ресурс FastMediaSorter» і «Налаштування ОС Андроїд». У кожного свій список. «Скасувати» закриває вікно, нічого не змінюючи. Те саме вікно відкривається й під час «Замінити»."
+        },
+        "move": {
+          "summary": "Переносить плитку на інше місце.",
+          "details": "Відкриється список місць із номерами від 1 до 15. Виберіть потрібний номер. Якщо на цьому місці вже є плитка, плитки поміняються місцями; якщо воно вільне, плитка просто переїде. «Скасувати» залишає все як було."
+        },
+        "replace": {
+          "summary": "Ставить на це місце щось інше.",
+          "details": "Відкриває те саме вікно «Додати на панель», що й натискання на плитку. Новий вибір займає місце попереднього; стара плитка не зберігається."
+        },
+        "remove": {
+          "summary": "Звільняє місце.",
+          "details": "Плитку одразу знімають із панелі, без запитання, і місце знову вільне. Застосунок, інструмент чи ресурс, на які вона вказувала, не зачіпаються.",
+          "undo": "Повернути плитку кнопкою скасування не можна. Додайте її знову на вільне місце або скористайтеся «Скиданням панелі», щоб отримати типовий набір."
+        },
+        "picker-search": {
+          "summary": "Звужує довгий список під час введення.",
+          "details": "У поля є кнопка очищення, і воно з’являється, лише коли список довший за вікно; у короткому списку поля немає. Введіть частину назви, і рядки звужуються просто під час введення. Якщо нічого не підходить, у списку написано «Нічого не знайдено». У всіх чотирьох списках нижче пошук працює однаково."
+        },
+        "app-picker": {
+          "summary": "Список застосунків, які можна закріпити плиткою.",
+          "details": "Показує встановлені на телефоні застосунки, які можна запустити, за абеткою й кожен зі своїм значком. Натисніть один, і він стане на місце. Якщо потім видалити цей застосунок з телефона, його плитка нічого не відкриє."
+        },
+        "feature-picker": {
+          "summary": "Список інструментів і екранів самого FastMediaSorter.",
+          "details": "Показує те, що є у вашій редакції, наприклад калькулятор, секундомір, мережевий монітор, міні-гру, «Потоки» й «Обране»; спершу йдуть інструменти, потім решта. Інструмент, вимкнений у налаштуваннях, лишається в списку з позначкою «Вимкнено - натисніть, щоб увімкнути»; плитка з ним відкриває відповідне налаштування замість інструмента. Функцій, яких немає у вашій редакції, у списку не показано."
+        },
+        "os-picker": {
+          "summary": "Список екранів налаштувань Android, які можна закріпити.",
+          "details": "Показує лише ті екрани, які телефон справді може відкрити: «Налаштування», Wi-Fi, Bluetooth, «Дисплей», «Звук», «Батарея», «Сховище», «Про застосунок», «Дата і час» та, якщо вони є в телефоні, «Для розробників», «Економія заряду», «Автообертання», «Спеціальні можливості», «Бездротові мережі», «Передача даних», NFC, VPN, «Геолокація» і «Точка доступу». Екрана, якого немає у вашому телефоні, у списку просто немає."
+        },
+        "resource-picker": {
+          "summary": "Список ваших ресурсів, які можна закріпити.",
+          "details": "Показує ваші ресурси за назвою, кожен зі значком свого типу - тека на пристрої, мережева тека чи хмара. Одна плитка вказує на один ресурс; пізніше натискання на плитку на панелі відкриває цей ресурс у браузері файлів."
+        }
+      }
+    }
+  }
+}

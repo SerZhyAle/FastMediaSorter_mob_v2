@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="uk" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Довідка - Додати ресурс</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Зміст довідки">
+<a href="index.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Додати ресурс</span>
+</nav>
+<header class="hero">
+<h1>Додати ресурс</h1>
+</header>
+<h2>Для чого цей екран</h2>
+<p class="lead">«Додати ресурс» - екран, де ви підключаєте до застосунку нове місце з файлами: папку на пристрої, мережеву папку, сервер SFTP чи FTP, хмарну папку, інтернет-трансляцію або годинник. Оберіть тип, заповніть коротку форму - і новий ресурс з’явиться в списку на головному екрані.</p>
+<figure class="shot">
+<img class="on-light" src="../img/add-resource-uk-light.webp" alt="Додати ресурс">
+<img class="on-dark" src="../img/add-resource-uk-dark.webp" alt="Додати ресурс">
+</figure>
+<h2>Порядок дій</h2>
+<ol class="order">
+<li>Оберіть, що додати: «Локальна папка» <a class="ref" href="#type-local">2</a> - папка на пристрої, «Мережева папка» <a class="ref" href="#type-network">3</a> - ресурс SMB, далі «SFTP / FTP» <a class="ref" href="#type-sftp">4</a>, «Хмарне сховище» <a class="ref" href="#type-cloud">5</a>, «Трансляція» <a class="ref" href="#type-stream">6</a>, «Спарений годинник» <a class="ref" href="#type-watch">7</a> або «З моїх пристроїв» <a class="ref" href="#type-my-devices">8</a>. Типи, вимкнені в налаштуваннях або відсутні у вашій редакції, не показуються, а якщо натиснути «Додати» на головному екрані при відкритій вкладці типу, одразу відкриється форма цього типу.</li>
+<li>Папка на пристрої: натисніть «СКАНУВАТИ» <a class="ref" href="#local-scan">12</a>, щоб отримати підказки, або «Додати вручну» <a class="ref" href="#local-add-manually">13</a>, щоб обрати папку самому; позначте потрібне в списку <a class="ref" href="#local-list">14</a> і натисніть «Додати до ресурсів» <a class="ref" href="#add-to-resources">11</a>.</li>
+<li>Мережева папка: введіть адресу сервера <a class="ref" href="#smb-server">17</a> або знайдіть її через «Сканувати мережу» <a class="ref" href="#smb-scan-network">16</a>. Вкажіть ім’я користувача <a class="ref" href="#smb-username">18</a> і пароль <a class="ref" href="#smb-password">19</a>, перевірте їх кнопкою «Тест з'єднання» <a class="ref" href="#smb-test">20</a>, оберіть папку через «Сканувати хост» <a class="ref" href="#smb-scan-shares">21</a> або впишіть її ім’я <a class="ref" href="#smb-share-name">22</a> і натисніть «Додати цей ресурс» <a class="ref" href="#smb-add">27</a>.</li>
+<li>SFTP або FTP: оберіть протокол <a class="ref" href="#sftp-protocol">29</a>, введіть хост <a class="ref" href="#sftp-host">30</a> і дані для входу <a class="ref" href="#sftp-auth">31</a>, перевірте кнопкою «Перевірити з'єднання» <a class="ref" href="#sftp-test">32</a>, вкажіть шлях на сервері <a class="ref" href="#sftp-remote-path">34</a> і натисніть «Додати ресурс» <a class="ref" href="#sftp-add">36</a>.</li>
+<li>Хмарне сховище: натисніть на сервіс <a class="ref" href="#cloud-providers">15</a>, увійдіть в акаунт, потім заходьте в папки кнопкою «Всередину» <a class="ref" href="#picker-enter">45</a> і натисніть «Вибір» <a class="ref" href="#picker-select">46</a> біля потрібної папки.</li>
+<li>Маєте готову конфігурацію від companion-застосунку для Windows? «Імпорт із файлу» <a class="ref" href="#import-file">9</a> або «Імпорт за штрих-кодом» <a class="ref" href="#import-barcode">10</a> позбавлять від введення всіх даних уручну.</li>
+<li>«Назад» <a class="ref" href="#back">1</a> закриває екран, нічого не додаючи з того, що ще не збережено.</li>
+</ol>
+<h2>Елементи</h2>
+<div class="elements">
+<h3>Що додати</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Назад</span><span class="one">Закриває екран, не додаючи те, що ви ще не зберегли.</span></span></summary>
+<div class="full">
+<p>І зі списку типів, і з будь-якої форми кнопка повертає на екран, з якого ви прийшли, - зазвичай на головний. З форми до списку типів вона не повертає: щоб обрати інший тип, відкрийте «Додати» знову. Введене у формі, але не додане, пропаде.</p>
+<dl class="facts">
+<dt>Сполучення клавіш</dt><dd><kbd>Esc</kbd> / <kbd>F10</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="type-local">
+<summary><span class="mk">2</span><span><span class="name">Локальна папка</span><span class="one">Додає папку або добірку медіа з цього пристрою.</span></span></summary>
+<div class="full">
+<p>Відкриває форму локальної папки: застосунок може сам знайти папки з медіа, або ви обираєте будь-яку папку самі, зокрема на карті пам’яті чи USB-накопичувачі. Ця картка є завжди. Якщо всі віддалені джерела вимкнено або їх немає у вашій редакції, вибирати більше нема з чого, тож екран пропускає список типів і одразу відкриває цю форму.</p>
+</div>
+</details>
+<details class="el" id="type-network">
+<summary><span class="mk">3</span><span><span class="name">Мережева папка</span><span class="one">Додає спільну папку з комп’ютера чи NAS за протоколом SMB.</span></span></summary>
+<div class="full">
+<p>Відкриває форму SMB: адреса сервера, вхід і назва спільної папки. Картка з’являється, лише якщо SMB є у вашій редакції та ввімкнений у налаштуваннях, на вкладці «Загальні», у розділі «Віддалені ресурси (SMB/(S)FTP/Хмара)».</p>
+</div>
+</details>
+<details class="el" id="type-sftp">
+<summary><span class="mk">4</span><span><span class="name">SFTP / FTP</span><span class="one">Додає папку на сервері SFTP або FTP.</span></span></summary>
+<div class="full">
+<p>Відкриває форму SFTP / FTP: там обирають протокол і входять за паролем або SSH-ключем. Картка видима, якщо SFTP чи FTP є у вашій редакції та ввімкнені в налаштуваннях, на вкладці «Загальні», у розділі «Віддалені ресурси». Дві кнопки імпорту повторюються у верхній частині цієї форми.</p>
+</div>
+</details>
+<details class="el" id="type-cloud">
+<summary><span class="mk">5</span><span><span class="name">Хмарне сховище</span><span class="one">Додає папку з Google Диска, OneDrive або Dropbox.</span></span></summary>
+<div class="full">
+<p>Відкриває список хмарних сервісів. Хмара є не в усіх редакціях, а картка видима, лише поки в налаштуваннях, на вкладці «Загальні», у розділі «Віддалені ресурси», ввімкнено хоча б один хмарний сервіс.</p>
+</div>
+</details>
+<details class="el" id="type-stream">
+<summary><span class="mk">6</span><span><span class="name">Трансляція</span><span class="one">Додає інтернет-трансляцію за її адресою.</span></span></summary>
+<div class="full">
+<p>Замість форми на цьому екрані відкривається редактор ресурсу для нової трансляції. Там ви задаєте назву й адресу (http, https або rtsp), а за бажання - коментар чи ПІН-код. Після збереження трансляція з’являється серед ресурсів, як і будь-який інший.</p>
+</div>
+</details>
+<details class="el" id="type-watch">
+<summary><span class="mk">7</span><span><span class="name">Спарений годинник</span><span class="one">Додає ваш спарений годинник як ресурс.</span></span></summary>
+<div class="full">
+<p>Годинник не має ні адреси, ні пароля, тож застосунок питає лише назву (пропонується «Годинник»). Спареного годинника один, і якщо він уже є серед ресурсів, ви побачите повідомлення замість дубліката. Картка є лише в редакціях, які вміють працювати з годинником.</p>
+</div>
+</details>
+<details class="el" id="type-my-devices">
+<summary><span class="mk">8</span><span><span class="name">З моїх пристроїв</span><span class="one">Підключає ресурси, які публікують ваші інші пристрої.</span></span></summary>
+<div class="full">
+<p>Відкриває список ресурсів, якими ваші інші пристрої діляться через сервер обміну або Google Диск. Позначте потрібні й натисніть «Підключити» або «Підключити всі», щоб узяти весь список. Картка показується разом із карткою SFTP / FTP: підключені ресурси працюють як SFTP.</p>
+</div>
+</details>
+<details class="el" id="import-file">
+<summary><span class="mk">9</span><span><span class="name">Імпорт із файлу</span><span class="one">Створює ресурси з файлу конфігурації, підготовленого на комп’ютері.</span></span></summary>
+<div class="full">
+<p>Виберіть файл конфігурації, який зберіг companion-застосунок для Windows. Застосунок прочитає його, додасть нові ресурси, оновить наявні, повідомить, скільки змінилося, і закриє цей екран. Якщо у файлі немає пароля, спершу з’явиться вікно з назвою сервера й запитом пароля. Пошкоджений файл або файл від новішої версії відхиляється з повідомленням.</p>
+</div>
+</details>
+<details class="el" id="import-barcode">
+<summary><span class="mk">10</span><span><span class="name">Імпорт за штрих-кодом</span><span class="one">Створює ресурси за QR-кодом, який показує програма на комп’ютері.</span></span></summary>
+<div class="full">
+<p>Відкриває камеру для сканування коду й далі імпортує все так, як із файлу. Код сполучення з вбудованого SFTP-сервера іншого телефона теж підійде: він заповнить форму SFTP / FTP, а вам залишиться перевірити дані й зберегти. На пристроях без камери, зокрема VR-гарнітурах, кнопки немає - скористайтеся кнопкою «Імпорт із файлу».</p>
+</div>
+</details>
+<details class="el" id="add-to-resources">
+<summary><span class="mk">11</span><span><span class="name">Додати до ресурсів</span><span class="one">Зберігає папки, позначені в локальному списку.</span></span></summary>
+<div class="full">
+<p>Кнопка з’являється, лише коли у формі локальної папки є що додавати. Вона додає кожен позначений рядок як ресурс, повідомляє, скільки додано, і закриває екран. Якщо нічого не позначено, ви отримаєте нагадування вибрати хоча б один ресурс. Якщо список швидкого сортування заповнений, ресурси все одно додадуться, але зайві будуть без позначки швидкого сортування, а в повідомленні буде вказано, скільки їх.</p>
+</div>
+</details>
+<h3>Локальна папка і хмара</h3>
+<details class="el" id="local-scan">
+<summary><span class="mk">12</span><span><span class="name">СКАНУВАТИ</span><span class="one">Шукає на пристрої папки з медіа.</span></span></summary>
+<div class="full">
+<p>Складає список підказок: стандартні папки, папки з медіафайлами та добірки на кшталт «Нещодавні медіа» або «Вся музика». Уже додані папки й добірки до списку не потрапляють. Поки що нічого не зберігається - позначте потрібне в списку нижче й натисніть «Додати до ресурсів».</p>
+</div>
+</details>
+<details class="el" id="local-add-manually">
+<summary><span class="mk">13</span><span><span class="name">Додати вручну</span><span class="one">Обирає папку або добірку вручну.</span></span></summary>
+<div class="full">
+<p>Відкриває вікно «Вибрати папку». Кнопки розділу «Віртуальні ресурси» («Нещодавні медіа», «Вся музика», «Усі відео», «Фото з камери», «Усі зображення», «Усі документи») одразу додають добірку й закривають цей екран. «Швидкий вибір стандартних папок» пропонує корінь пам’яті, DCIM, Pictures, Download, «Документи» та папки WhatsApp, Telegram і Instagram; «Знімні носії» показують підключені картки й накопичувачі; решту покривають поле для шляху (лише там, де застосунку дозволено читати шляхи) та системний вибір папки. Обрана папка потрапляє до списку нижче вже з галочкою.</p>
+<p>Якщо Android спершу вимагає «Доступ до всіх файлів», вікно пояснить це й запропонує надати доступ або продовжити з обмеженнями.</p>
+</div>
+</details>
+<details class="el" id="local-list">
+<summary><span class="mk">14</span><span><span class="name">Ресурси для додавання:</span><span class="one">Знайдені або обрані папки - позначте потрібні й додайте.</span></span></summary>
+<div class="full">
+<p>У кожному рядку є прапорець, назва, яку можна змінити, шлях, кількість файлів і по одній літері на кожен тип медіа - натисніть на літеру, щоб увімкнути чи вимкнути цей тип. Нижче - «Швидке сортування», «Лише читання», «З підпапками» та «Усі файли». Папку, до якої не можна записувати, не можна позначити для швидкого сортування. Поки не надійшла перша папка, список схований.</p>
+</div>
+</details>
+<details class="el" id="cloud-providers">
+<summary><span class="mk">15</span><span><span class="name">Виберіть хмарний сервіс</span><span class="one">Входить у Google Диск, OneDrive або Dropbox і дає обрати папку.</span></span></summary>
+<div class="full">
+<p>На кожній картці написано «Не підключено» або «Підключено як» і акаунт. Натисніть на сервіс: якщо ви вже входили, оберіть акаунт або «Додати новий акаунт», інакше вхід почнеться одразу. Після успішного входу відкриється вибір папки (див. останню групу на цій сторінці).</p>
+</div>
+</details>
+<h3>Форма мережевої папки (SMB)</h3>
+<details class="el" id="smb-scan-network">
+<summary><span class="mk">16</span><span><span class="name">Сканувати мережу</span><span class="one">Знаходить у локальній мережі комп’ютери зі спільними папками.</span></span></summary>
+<div class="full">
+<p>Відкриває вікно «Виявлення мережі» і сканує вашу локальну мережу. Оберіть комп’ютер у списку: його адреса потрапить у поле «IP сервера», а застосунок покаже його спільні папки. На деяких версіях Android спершу запитується дозвіл на доступ до пристроїв у локальній мережі.</p>
+</div>
+</details>
+<details class="el" id="smb-server">
+<summary><span class="mk">17</span><span><span class="name">IP сервера</span><span class="one">Адреса комп’ютера чи NAS, що роздає папку.</span></span></summary>
+<div class="full">
+<p>Введіть IP-адресу. Поле починається з перших трьох чисел адреси самого телефона, тож зазвичай лишається дописати останнє. Порожня або хибна адреса зупиняє «Тест з'єднання» та «Сканувати хост» із повідомленням.</p>
+</div>
+</details>
+<details class="el" id="smb-username">
+<summary><span class="mk">18</span><span><span class="name">Ім'я користувача</span><span class="one">Обліковий запис, якому дозволено відкривати папку.</span></span></summary>
+<div class="full">
+<p>Введіть ім’я облікового запису на сервері. Домен Windows, якщо він використовується, вказується в розділі «Додаткові параметри».</p>
+</div>
+</details>
+<details class="el" id="smb-password">
+<summary><span class="mk">19</span><span><span class="name">Пароль</span><span class="one">Пароль цього облікового запису.</span></span></summary>
+<div class="full">
+<p>Він зберігається разом із ресурсом, щоб застосунок потім підключався сам. Поки ця форма відкрита, екран може ховатися від знімків екрана й списку нещодавніх застосунків - це залежить від налаштування «Захищати секретні екрани».</p>
+</div>
+</details>
+<details class="el" id="smb-test">
+<summary><span class="mk">20</span><span><span class="name">Тест з'єднання</span><span class="one">Перевіряє адресу й вхід, перш ніж ви збережете ресурс.</span></span></summary>
+<div class="full">
+<p>Підключається з тим, що ви ввели, і показує у вікні «Тест з'єднання - Успішно» або «Тест з'єднання - Помилка». Нічого не зберігається.</p>
+</div>
+</details>
+<details class="el" id="smb-scan-shares">
+<summary><span class="mk">21</span><span><span class="name">Сканувати хост</span><span class="one">Показує спільні папки, які пропонує сервер.</span></span></summary>
+<div class="full">
+<p>Питає в сервера, які спільні папки в нього є, і виводить їх списком. Оберіть одну - її назва потрапить у поле «Ім'я ресурсу /папки». У списку також є назви, які ви вводили вручну раніше, вони позначені галочкою, і рядок для введення назви самостійно. Якщо сервер нічого не показав, ви побачите повідомлення й впишете назву самі. Спершу заповніть «IP сервера», інакше надійде нагадування.</p>
+</div>
+</details>
+<details class="el" id="smb-share-name">
+<summary><span class="mk">22</span><span><span class="name">Ім'я ресурсу /папки</span><span class="one">Спільна папка, яку потрібно відкрити, і за бажання підпапка в ній.</span></span></summary>
+<div class="full">
+<p>Наприклад, Common або Photos. Візьміть назву зі списку «Сканувати хост» або впишіть сами; зворотні похилі риски замінюються на звичайні.</p>
+</div>
+</details>
+<details class="el" id="smb-resource-name">
+<summary><span class="mk">23</span><span><span class="name">Назва ресурсу</span><span class="one">Як ресурс називається у вашому списку.</span></span></summary>
+<div class="full">
+<p>Якщо залишити поле порожнім, застосунок візьме назву спільної папки. Пізніше ресурс можна перейменувати в його редакторі.</p>
+</div>
+</details>
+<details class="el" id="smb-scanning">
+<summary><span class="mk">24</span><span><span class="name">Умови сканування вмісту</span><span class="one">Визначає, які файли спільної папки враховує застосунок.</span></span></summary>
+<div class="full">
+<p>Розділ, що згортається, з п’ятьма параметрами. «З підпапками» шукає медіа в усіх вкладених папках. «Усі файли» показує файли будь-яких типів, а не лише медіа. «Показувати підпапки окремо» виводить підпапки як елементи, у які заходять натисканням. «Вимкнути мініатюри» показує значки розширень замість превʼю. «Запамʼятовувати список файлів для цього ресурсу» зберігає копію списку на пристрої, щоб він відкривався швидше.</p>
+</div>
+</details>
+<details class="el" id="smb-media-types">
+<summary><span class="mk">25</span><span><span class="name">Типи медіа</span><span class="one">Обирає, які види файлів показує ресурс.</span></span></summary>
+<div class="full">
+<p>Позначте «Зображення», «Відео», «Аудіо», GIFs, «Текст», PDF, EPUB і DOC - у списку є лише типи, ввімкнені в налаштуваннях і доступні у вашій редакції. Кнопка згори, спочатку «Довільний», відкриває «Профіль ресурсу» з готовими наборами: «Аудіотека», «Відеотека», «Фотосховище», «Документи» та «Файловий менеджер». «Усі файли» в розділі вище позначає всі типи й блокує прапорці.</p>
+</div>
+</details>
+<details class="el" id="smb-additional">
+<summary><span class="mk">26</span><span><span class="name">Додаткові параметри</span><span class="one">Необов’язкове: швидке сортування, лише читання, коментар, ПІН-код, домен і порт.</span></span></summary>
+<div class="full">
+<p>«Швидке сортування» робить папку місцем призначення для сортування. «Лише читання» забороняє в ній копіювання, переміщення й видалення та вимикає швидке сортування. «Коментар» - нотатка для себе, а «ПІН-код (необов'язково)» захищає ресурс 4-6 цифрами. «Домен (необов'язково)» потрібен для доменних облікових записів Windows, а «Порт» - 445, якщо ваш сервер не слухає іншого.</p>
+</div>
+</details>
+<details class="el" id="smb-add">
+<summary><span class="mk">27</span><span><span class="name">Додати цей ресурс</span><span class="one">Зберігає спільну папку як ресурс.</span></span></summary>
+<div class="full">
+<p>Зберігає дані для входу, додає ресурс, показує повідомлення й закриває цей екран. Якщо до папки одразу не вдалося достукатися, ви дізнаєтеся про це, але ресурс усе одно додасться - перевірте назву папки й доступ та виправте їх у редакторі.</p>
+</div>
+</details>
+<h3>Форма SFTP / FTP</h3>
+<details class="el" id="sftp-pc-guide">
+<summary><span class="mk">28</span><span><span class="name">Як опублікувати папки ПК для Android</span><span class="one">Відкриває посібник із публікації папок ПК для застосунку.</span></span></summary>
+<div class="full">
+<p>Посилання міститься у верхній частині форми поруч із двома кнопками імпорту й відкриває в браузері посібник із налаштування companion-застосунку. Стане в пригоді, якщо ви ще не опублікували папки на ПК і імпортувати нічого.</p>
+</div>
+</details>
+<details class="el" id="sftp-protocol">
+<summary><span class="mk">29</span><span><span class="name">Вибір протоколу:</span><span class="one">Обирає SFTP (захищений, через SSH) або звичайний FTP.</span></span></summary>
+<div class="full">
+<p>SFTP використовує порт 22, FTP - порт 21; поле порту змінюється слідом за вибором, якщо ви не вводили інший номер. FTP не шифрується, тож за можливості обирайте SFTP. Блок «Перевірка сервера» нижче стосується лише SFTP і для FTP схований.</p>
+</div>
+</details>
+<details class="el" id="sftp-host">
+<summary><span class="mk">30</span><span><span class="name">Хост</span><span class="one">Назва або IP-адреса сервера та його порт.</span></span></summary>
+<div class="full">
+<p>Введіть назву хоста або адресу. Порт підставляється сам (22 для SFTP, 21 для FTP); змінюйте його, лише якщо сервер слухає інший. Порожній або хибний хост відхиляється з повідомленням.</p>
+</div>
+</details>
+<details class="el" id="sftp-auth">
+<summary><span class="mk">31</span><span><span class="name">Спосіб входу</span><span class="one">Вхід за паролем або за SSH-ключем.</span></span></summary>
+<div class="full">
+<p>«Пароль» запитує ім’я користувача й пароль. «SSH ключ» запитує ім’я користувача та приватний ключ - вставте текст ключа або натисніть «Завантажити», щоб прочитати його з файлу, - а також парольну фразу, якщо вона в ключа є. SSH-ключі працюють лише з SFTP; для FTP завжди потрібен пароль.</p>
+</div>
+</details>
+<details class="el" id="sftp-test">
+<summary><span class="mk">32</span><span><span class="name">Перевірити з'єднання</span><span class="one">Перевіряє адресу й вхід, перш ніж ви збережете ресурс.</span></span></summary>
+<div class="full">
+<p>Підключається з тим, що ви ввели, і повідомляє у вікні, чи вдалося. Якщо сервер показав свій ключ, а поле перевірки ще порожнє, вікно запропонує «Закріпити ключ» - він сам потрапить у «Перевірку сервера».</p>
+</div>
+</details>
+<details class="el" id="sftp-verification">
+<summary><span class="mk">33</span><span><span class="name">Перевірка сервера (необов’язково)</span><span class="one">Прив’язує з’єднання до одного справжнього сервера.</span></span></summary>
+<div class="full">
+<p>Вставте відбиток ключа сервера у форматі SHA256, і застосунок відмовиться працювати з будь-якою іншою машиною, що відповідає за цією адресою. Так ви захищені від підміни сервера. Це необов’язково й стосується лише SFTP; найпростіше натиснути «Перевірити з'єднання», а потім «Закріпити ключ».</p>
+</div>
+</details>
+<details class="el" id="sftp-remote-path">
+<summary><span class="mk">34</span><span><span class="name">Віддалений шлях</span><span class="one">Папка на сервері, яка стане ресурсом.</span></span></summary>
+<div class="full">
+<p>Наприклад, /home/user/media або /, якщо потрібне все, що бачить обліковий запис. Одразу під ним поле «Назва ресурсу» - підпис у вашому списку; якщо залишити його порожнім, застосунок вигадає назву сам.</p>
+</div>
+</details>
+<details class="el" id="sftp-sections">
+<summary><span class="mk">35</span><span><span class="name">Сканування, типи медіа та додаткові параметри</span><span class="one">Три розділи, що згортаються, працюють так само, як у формі мережевої папки.</span></span></summary>
+<div class="full">
+<p>«Умови сканування вмісту», «Типи медіа» та «Додаткові параметри» містять ті самі варіанти, що й для папки SMB: підпапки, «Усі файли», мініатюри, типи медіа з кнопкою профілю, «Швидке сортування», «Лише читання», коментар і ПІН-код. Відкривайте їх, лише якщо типові налаштування вам не підходять.</p>
+</div>
+</details>
+<details class="el" id="sftp-add">
+<summary><span class="mk">36</span><span><span class="name">Додати ресурс</span><span class="one">Зберігає папку на сервері як ресурс.</span></span></summary>
+<div class="full">
+<p>Потрібні хост і хоча б один тип медіа, інакше повідомлення підкаже, чого бракує. Після збереження екран закривається. Якщо до сервера одразу не вдалося достукатися, ресурс усе одно додасться, а повідомлення скаже, що він поки недоступний, - дані можна виправити пізніше в редакторі.</p>
+</div>
+</details>
+<h3>Вікно «Виявлення мережі»</h3>
+<details class="el" id="discovery-status">
+<summary><span class="mk">37</span><span><span class="name">Перебіг пошуку</span><span class="one">Показує, як далеко просунувся пошук.</span></span></summary>
+<div class="full">
+<p>Поки триває пошук, рядок показує частину мережі, що перевіряється, і лічильник. Коли пошук завершено, з’являється «Сканування завершено».</p>
+</div>
+</details>
+<details class="el" id="discovery-hosts">
+<summary><span class="mk">38</span><span><span class="name">Знайдені пристрої</span><span class="one">Список пристроїв у мережі, що роздають файли.</span></span></summary>
+<div class="full">
+<p>У кожному рядку - назва пристрою, його адреса та служби, які він пропонує: SMB, FTP або SFTP. Натисніть на рядок, щоб обрати пристрій: його адреса потрапить у поле «IP сервера», вікно закриється, а застосунок покаже спільні папки. Якщо нічого не знайдено, з’явиться напис «Пристрої поки не знайдені»; переконайтеся, що ви в тій самій мережі Wi-Fi, і натисніть «Сканувати знову».</p>
+</div>
+</details>
+<details class="el" id="discovery-stop">
+<summary><span class="mk">39</span><span><span class="name">Стоп</span><span class="one">Зупиняє пошук або запускає його знову.</span></span></summary>
+<div class="full">
+<p>Поки пошук триває, кнопка називається «Стоп» і припиняє його, не закриваючи вікно. Коли пошук завершено або зупинено, вона називається «Сканувати знову» і запускає пошук наново.</p>
+</div>
+</details>
+<details class="el" id="discovery-cancel">
+<summary><span class="mk">40</span><span><span class="name">Скасувати</span><span class="one">Закриває вікно, не обираючи пристрій.</span></span></summary>
+<div class="full">
+<p>Незавершений пошук при цьому теж зупиняється.</p>
+</div>
+</details>
+<h3>Вибір хмарної папки (Google Диск, OneDrive, Dropbox)</h3>
+<details class="el" id="picker-refresh">
+<summary><span class="mk">41</span><span><span class="name">Потягнути вниз, щоб оновити</span><span class="one">Заново завантажує папки поточного рівня.</span></span></summary>
+<div class="full">
+<p>Потягніть список вниз, щоб завантажити його знову, наприклад після того, як ви створили папку в хмарі. З клавіатури те саме робить поєднання клавіш.</p>
+<dl class="facts">
+<dt>Сполучення клавіш</dt><dd><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd> / <kbd>Ctrl</kbd> + <kbd>F5</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="picker-add-as-destination">
+<summary><span class="mk">42</span><span><span class="name">Додати до призначень</span><span class="one">Заодно позначає обрану папку для швидкого сортування.</span></span></summary>
+<div class="full">
+<p>Якщо прапорець стоїть, обрана папка стане не лише ресурсом, а й місцем призначення для швидкого сортування. Позначте його до натискання «Вибір»; спочатку він знятий.</p>
+</div>
+</details>
+<details class="el" id="picker-scan-subdirectories">
+<summary><span class="mk">43</span><span><span class="name">З підпапками</span><span class="one">Охоплює все, що лежить усередині обраної папки.</span></span></summary>
+<div class="full">
+<p>Якщо прапорець стоїть (спочатку він стоїть), медіа шукаються в усіх папках, вкладених в обрану. Зніміть його, щоб дивитися лише верхній рівень.</p>
+</div>
+</details>
+<details class="el" id="picker-folder-list">
+<summary><span class="mk">44</span><span><span class="name">Список папок</span><span class="one">Папки вашого хмарного сховища, по одному рівню.</span></span></summary>
+<div class="full">
+<p>На панелі згори - шлях, де ви перебуваєте. Натисніть на рядок, щоб зайти в папку; у кожного рядка є й власні кнопки «Всередину» та «Вибір», а нижче верхнього рівня - «Назад». Якщо на рівні немає папок, про це повідомить напис.</p>
+<dl class="facts">
+<dt>Сполучення клавіш</dt><dd><kbd>Enter</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="picker-enter">
+<summary><span class="mk">45</span><span><span class="name">Всередину</span><span class="one">Відкриває папку, щоб показати папки всередині неї.</span></span></summary>
+<div class="full">
+<p>Робить те саме, що натискання на рядок. Спускайтеся з її допомогою до потрібної папки, перш ніж натиснути «Вибір».</p>
+</div>
+</details>
+<details class="el" id="picker-select">
+<summary><span class="mk">46</span><span><span class="name">Вибір</span><span class="one">Додає цю папку до ваших ресурсів.</span></span></summary>
+<div class="full">
+<p>Створює хмарний ресурс із папки з урахуванням ваших прапорців «Додати до призначень» і «З підпапками» та типів медіа, увімкнених у налаштуваннях. Ви побачите «Ресурс додано» й опинитеся на головному екрані. Папку, яку ви вже додавали, застосунок відхилить із поясненням.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>У хмарі нічого не змінюється. Щоб скасувати, видаліть ресурс на головному екрані - папка залишиться на місці.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="picker-back">
+<summary><span class="mk">47</span><span><span class="name">Назад</span><span class="one">Піднімається на один рівень вище.</span></span></summary>
+<div class="full">
+<p>Кнопка є у рядків нижче верхнього рівня. Стрілка на панелі та кнопка «Назад» на пристрої роблять те саме, а з верхнього рівня закривають вибір папки. Esc теж закриває його.</p>
+<dl class="facts">
+<dt>Сполучення клавіш</dt><dd><kbd>Backspace</kbd></dd>
+</dl>
+</div>
+</details>
+</div>
+<h2>Пов'язане</h2>
+<ul class="related">
+<li><a href="main.html"><b>Головний екран</b><span class="pill">Екран</span></a></li>
+<li><a href="settings-general.html"><b>Налаштування: Загальні</b><span class="pill">Екран</span></a></li>
+<li><a href="resource-editor.html"><b>Редагувати ресурс</b><span class="pill">Екран</span></a></li>
+<li><a href="auth-sessions.html"><b>Збережені авторизації</b><span class="pill">Екран</span></a></li>
+<li><a href="my-devices.html"><b>Мої пристрої</b><span class="pill">Екран</span></a></li>
+<li><a href="streams.html"><b>Трансляції</b><span class="pill">Екран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/storage-sources-setup-uk.html"><b>Adding Folders from Your Phone, Memory Card and USB Drive</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/network-and-cloud-sources-uk.html"><b>Adding Network Folders and Cloud Storage as Sources</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/windows-companion-uk.html"><b>Sharing PC Folders with Fast Media Sorter &amp; Sharing for Windows</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="index.html"><b>Зміст довідки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Зміст довідки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
+</footer>
+</main>
+</body>
+</html>

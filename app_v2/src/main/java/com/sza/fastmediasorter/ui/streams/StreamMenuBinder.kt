@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.core.menu.MenuActionSurface
 import com.sza.fastmediasorter.core.menu.StreamActionCatalog
 import com.sza.fastmediasorter.core.menu.StreamMenuAction
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 
 /**
  * S1424: fills a channel's overflow menu from [StreamActionCatalog], for the streams-screen list row
@@ -17,6 +18,20 @@ import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 object StreamMenuBinder {
 
     private const val ORIGIN_MANUAL = "MANUAL"
+
+    // S4392: ADR-1 - transient live broadcast rows do not offer pin, favorite, edit, shortcut or remove.
+    private val LIVE_EXCLUDED_ACTIONS = setOf(
+        StreamMenuAction.TOGGLE_PIN,
+        StreamMenuAction.MOVE_UP,
+        StreamMenuAction.MOVE_DOWN,
+        StreamMenuAction.MOVE_TO_TOP,
+        StreamMenuAction.TOGGLE_FAVORITE,
+        StreamMenuAction.ADD_SHORTCUT,
+        StreamMenuAction.ADD_DESKTOP_WINDOW,
+        StreamMenuAction.EDIT,
+        StreamMenuAction.SEND_TO_WATCH,
+        StreamMenuAction.REMOVE,
+    )
 
     // S1218: the kinds that carry video. RTSP is included so the row is offered and can explain its
     // own refusal; AUDIO is radio, which strategic §2 puts outside the feature entirely.
@@ -52,8 +67,11 @@ object StreamMenuBinder {
         facts: StreamActionCatalog.Facts,
         canRun: (StreamMenuAction) -> Boolean,
     ) {
+        val isLive = source.sourceOrigin == ObserveLiveBroadcastSourcesUseCase.SOURCE_ORIGIN_LIVE_BROADCAST
         val pinnedIndex = pinnedRows.indexOfFirst { it.id == source.id }
-        StreamActionCatalog.actionsFor(MenuActionSurface.MAIN_WINDOW, facts, canRun).forEach { action ->
+        StreamActionCatalog.actionsFor(MenuActionSurface.MAIN_WINDOW, facts) { action ->
+            if (isLive && action in LIVE_EXCLUDED_ACTIONS) false else canRun(action)
+        }.forEach { action ->
             // Order = Menu.NONE on every item, so the menu follows add-order without order literals.
             menu.add(Menu.NONE, action.menuItemId, Menu.NONE, StreamActionCatalog.labelRes(action, facts))
                 .isEnabled = isEnabled(action, pinnedIndex, pinnedRows.lastIndex)

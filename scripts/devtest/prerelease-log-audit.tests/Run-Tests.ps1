@@ -166,6 +166,6 @@ Assert-Equal $true ((Get-ActionableTags $crashed) -contains 'chromium') 'S4013: 
 Assert-Equal 1 $crashed.exitCode 'S4013: an unreaped renderer crash still exits 1'
 
 Write-Host ''
-Write-Host ("passed: {0} | failed: {1}" -f $script:passed, $script:failed)
+Write-Host "prerelease-log-audit.tests: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"
 if ($script:failed -gt 0) { exit 1 }
 exit 0

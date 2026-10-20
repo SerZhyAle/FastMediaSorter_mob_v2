@@ -1,11 +1,13 @@
 package com.sza.fastmediasorter.domain.usecase.streams
 
+import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.M3uPlaylistParser
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -69,6 +71,44 @@ class ImportStreamPlaylistUseCaseTest {
     }
 
     @Test
+    fun `the playlist bound is the reference reader's 32 MiB`() {
+        assertEquals(PLAYLIST_BOUND_MIB * BYTES_PER_MIB, ImportStreamPlaylistUseCase.MAX_PLAYLIST_BYTES)
+    }
+
+    @Test
+    fun `invalid scheme and host-less lines are dropped and two spellings import once`() = runTest {
+        val written = slot<List<StreamSourceEntity>>()
+        coEvery { repository.addAllIgnoringDuplicates(capture(written)) } answers { firstArg<List<*>>().size }
+        val playlist = listOf(
+            "#EXTM3U",
+            "http://radio.example/one",
+            "ftp://radio.example/archive",
+            "http:///no-host",
+            "not a url at all",
+            "HTTP://Radio.Example/one",
+            "http://radio.example/two",
+        ).joinToString("\n").toByteArray()
+
+        val result = useCaseServing(playlist)(PLAYLIST_URL)
+
+        assertEquals(ImportStreamPlaylistUseCase.ImportResult.Success(2), result)
+        assertEquals(
+            listOf("http://radio.example/one", "http://radio.example/two"),
+            written.captured.map { it.url }
+        )
+    }
+
+    @Test
+    fun `a list of only invalid lines is empty and writes nothing`() = runTest {
+        val playlist = "#EXTM3U\nftp://radio.example/archive\nhttp:///no-host\n".toByteArray()
+
+        val result = useCaseServing(playlist)(PLAYLIST_URL)
+
+        assertEquals(ImportStreamPlaylistUseCase.ImportResult.Empty, result)
+        coVerify(exactly = 0) { repository.addAllIgnoringDuplicates(any()) }
+    }
+
+    @Test
     fun `a JSON body is refused whole and writes nothing`() = runTest {
         val json = "﻿\n  {\n  \"schemaVersion\": 1,\n  \"channels\": [\n    \"http://radio.example/one\"\n  ]\n}\n"
 
@@ -125,6 +165,8 @@ class ImportStreamPlaylistUseCaseTest {
 
     private companion object {
         const val MEDIA_BYTES = 4096
+        const val PLAYLIST_BOUND_MIB = 32
+        const val BYTES_PER_MIB = 1024 * 1024
         const val HTTP_OK = 200
         const val PLAYLIST_URL = "http://lists.example/list.m3u"
         const val JSON_PLAYLIST_URL = "http://lists.example/list.sza-playlist.JSON?v=1"

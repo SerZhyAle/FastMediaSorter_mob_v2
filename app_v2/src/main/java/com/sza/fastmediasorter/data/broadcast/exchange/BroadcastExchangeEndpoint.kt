@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.data.broadcast.exchange
 
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.security.e2e.E2eBytes
+import com.sza.fastmediasorter.data.security.e2e.E2eRelayRecords
 import java.net.URI
 import java.security.MessageDigest
 
@@ -21,7 +23,12 @@ sealed interface BroadcastExchangeEndpoint {
         val server: ExchangeServer,
         val broadcastId: String,
         val certFingerprint: String?,
-    ) : BroadcastExchangeEndpoint
+        /** 27 item DK: the group key of a sealed relay (base64url), played only through the opening proxy. */
+        val groupKey: String? = null,
+    ) : BroadcastExchangeEndpoint {
+        // A group key opens the broadcast: never printed.
+        override fun toString(): String = "Relay(server=$server, sealed=${groupKey != null})"
+    }
 
     /** A broadcast tunnel: `fmsx://<publicEndpoint>/b/<broadcastId>/<scheme>`, played as [inner] via a forwarder. */
     data class Tunnel(
@@ -30,6 +37,8 @@ sealed interface BroadcastExchangeEndpoint {
         val scheme: String,
         val inner: String,
         val certFingerprint: String?,
+        /** 27 item DM: the `SHA256:` pin of the tunnel's own leaf, checked inside the server's TLS; null when clear. */
+        val tunnelPin: String? = null,
     ) : BroadcastExchangeEndpoint
 }
 
@@ -78,13 +87,26 @@ object BroadcastExchangeEndpoints {
             }
         }
 
+    /**
+     * Null for an endpoint this app cannot play: an unknown transport, a `seal` of an unknown version, or a sealed
+     * endpoint whose keys never arrived - none is ever played as clear bytes (27 item DK).
+     */
     fun parse(dto: BroadcastEndpointDto): BroadcastExchangeEndpoint? {
         val fingerprint = dto.certFingerprint?.trim()?.takeIf { it.isNotEmpty() }
+        val seal = dto.seal
+        val groupKey = seal?.key?.takeIf { key ->
+            runCatching { E2eBytes.fromB64url(key) }.getOrNull()?.size == E2eRelayRecords.GROUP_KEY_LENGTH
+        }
+        val tunnelPin = seal?.pin?.trim()?.takeIf { it.isNotEmpty() }
         return when (dto.transport.trim().uppercase()) {
             TRANSPORT_HTTP, TRANSPORT_RTSP ->
                 dto.url.trim().takeIf { it.isNotEmpty() }?.let(BroadcastExchangeEndpoint::Lan)
             TRANSPORT_RELAY -> parseRelay(dto.url.trim(), fingerprint)
+                ?.takeIf { seal == null || (seal.isKnown && groupKey != null) }
+                ?.copy(groupKey = groupKey)
             TRANSPORT_TUNNEL -> parseTunnel(dto.url.trim(), dto.inner?.trim(), fingerprint)
+                ?.takeIf { seal == null || (seal.isKnown && tunnelPin != null) }
+                ?.copy(tunnelPin = tunnelPin)
             else -> null
         }
     }

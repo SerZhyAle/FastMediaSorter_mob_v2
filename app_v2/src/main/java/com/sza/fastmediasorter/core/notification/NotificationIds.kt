@@ -85,6 +85,15 @@ object NotificationIds {
     /** S4116: a cast offered by another device of the account, one slot per broadcast id. */
     val EXCHANGE_CAST: IntRange = IntRange(start = 7700, endInclusive = 7799)
 
+    /** S4211: one failed-run notification per scheduled operation, so one failing schedule never hides another. */
+    val SCHEDULED_OPERATION_FAILURES: IntRange = IntRange(start = 7800, endInclusive = 7899)
+
+    /** S4226: a clipboard value travelling to or from the exchange server, carrying its Cancel action. */
+    const val EXCHANGE_CLIPBOARD_PROGRESS = 7900
+
+    /** S4226: how the last clipboard send or get ended. */
+    const val EXCHANGE_CLIPBOARD_RESULT = 7901
+
     /** MediaProjection screenshot capture service. */
     const val SCREEN_CAPTURE = 0x4053
 

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - System information</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>System information</span>
+</nav>
+<header class="hero">
+<h1>System information</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">A readable report about your phone and about this app: the device, Android version, battery, memory, storage, network, display and more. You can search it, copy a single value or the whole report, save it to a file or send it, which is what a person helping you with a problem usually asks for.</p>
+<figure class="shot">
+<img class="on-light" src="img/system-info-en-light.webp" alt="System information">
+<img class="on-dark" src="img/system-info-en-dark.webp" alt="System information">
+</figure>
+<h2>In this order</h2>
+<ol class="order">
+<li>Open the screen and wait a moment while the report is gathered. The groups appear collapsed, one line each, with the number of values inside.</li>
+<li>Tap a group <a class="ref" href="#groups">7</a> to open it. Expand all <a class="ref" href="#expand-collapse">4</a> opens every group at once, and the same key closes them. The app remembers which groups you left open.</li>
+<li>To find one value, type in the search field <a class="ref" href="#search">6</a>. Every group with a match opens and only the matching rows stay on the screen.</li>
+<li>Tap a row <a class="ref" href="#groups">7</a> to copy that value, or the copy key on a group's line to copy the whole group.</li>
+<li>To pass on everything, use Copy <a class="ref" href="#copy-report">2</a>, Save <a class="ref" href="#save-report">3</a> or Share <a class="ref" href="#share-report">5</a>. Look through the report first, because it contains technical identifiers of your device and network.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Title bar</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Back arrow</span><span class="one">Leaves the screen and returns to where you came from.</span></span></summary>
+<div class="full">
+<p>The title bar names the screen, System information, and the arrow in front of it takes you back, for example to the programs menu or to Settings. Nothing is lost: the report is gathered again the next time you open the screen.</p>
+</div>
+</details>
+<h3>Report actions</h3>
+<details class="el" id="copy-report">
+<summary><span class="mk">2</span><span><span class="name">Copy</span><span class="one">Copies the whole report to the clipboard as plain text.</span></span></summary>
+<div class="full">
+<p>Use it to paste the report into a chat or an email. The text lists the groups in the order of the screen, including those that are collapsed or hidden by a search. It holds every value the screen can show, so read it through before you paste it into a public place.</p>
+</div>
+</details>
+<details class="el" id="save-report">
+<summary><span class="mk">3</span><span><span class="name">Save</span><span class="one">Writes the whole report to a text file in your Downloads folder.</span></span></summary>
+<div class="full">
+<p>The file is named fms_system_info plus the date and time, and a message tells you where it went. If the file cannot be written, a message says so and nothing is saved. Use it when you want to attach the report to a message rather than paste it.</p>
+</div>
+</details>
+<details class="el" id="expand-collapse">
+<summary><span class="mk">4</span><span><span class="name">Expand all / Collapse all</span><span class="one">Opens every group at once, or closes every group.</span></span></summary>
+<div class="full">
+<p>The icon and the name change with the state: when everything is open it closes the groups, otherwise it opens them all. Your choice is remembered for the next visit. On a narrow screen the key may sit in the overflow menu.</p>
+</div>
+</details>
+<details class="el" id="share-report">
+<summary><span class="mk">5</span><span><span class="name">Share</span><span class="one">Sends the whole report to another app.</span></span></summary>
+<div class="full">
+<p>It opens the system share sheet with the report as text, so you can pass it to a chat, an email or a notes app. If no app can take it, the report is copied to the clipboard instead and a message says that nothing was found to share with.</p>
+</div>
+</details>
+<h3>Search and the list</h3>
+<details class="el" id="search">
+<summary><span class="mk">6</span><span><span class="name">Search system parameters..</span><span class="one">Narrows the report to the parameters that match what you type.</span></span></summary>
+<div class="full">
+<p>It looks in the names of the groups, the names of the values and the values themselves, ignoring upper and lower case. The groups with a match open for the time being, without changing what you left open. If nothing matches, the list says so. Clear the field to get your groups back.</p>
+</div>
+</details>
+<details class="el" id="groups">
+<summary><span class="mk">7</span><span><span class="name">Groups and parameters</span><span class="one">The report itself, in groups that you open and close.</span></span></summary>
+<div class="full">
+<p>Each group has an icon, a name and the number of its values. Tap the line to open or close it; the small copy key at the right end copies only that group, and a message names the group. Open groups list their values as rows of a name and a value; tap a row to copy it as name: value. In landscape the closed groups sit in four columns instead of two.</p>
+<p>The groups are Device, User, OS, App (version, build and edition), Hardware (processor and chip, kernel, graphics version, the app's memory limit), Cameras (what the phone declares and what the app made of it), Battery, Memory, Storage, Network (connection type, metered, VPN, airplane mode and the local address), Display, Locale, Time, System (language list, security patch, build fingerprint, installer, install dates) and Benchmarks. A group with nothing to show is left out.</p>
+<p>Benchmarks are short tests of memory and storage speed that run each time you open the screen, so the figures are rough and differ from run to run. In the noLegal edition seven more groups follow: OS &amp; Security, Special Permissions, Installer &amp; Signature, Bundled Runtimes, Mounts &amp; Storage, Network Diagnostics and Process Resources.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="settings-operations.html"><b>Settings: Management</b><span class="pill">Screen</span></a></li>
+<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="network-monitor.html"><b>Network Monitor</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/device-diagnostics-and-logs.html"><b>System Information and the Debug Log - Helping the Author Find a Problem</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/built-in-mini-apps.html"><b>Built-in Programs - Switching Them On, the Lights, the Mirror and the SOS Signal</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

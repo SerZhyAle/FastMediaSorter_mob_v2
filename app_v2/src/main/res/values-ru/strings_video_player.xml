@@ -99,4 +99,22 @@
     <string name="playback_control_no_balance">Моно-звук - каналов для баланса нет</string>
     <string name="playback_control_balance_value">Баланс: %1$s</string>
     <string name="playback_control_balance_description">Баланс %1$d процентов левый, %2$d процентов правый</string>
+    <string name="player_file_grid">Сетка миниатюр</string>
+    <string name="player_file_list">Список файлов</string>
+    <string name="player_file_jump">Перейти к файлу</string>
+    <string name="player_file_number_hint">Номер файла (1..%1$d)</string>
+    <string name="player_file_number_error">Введите целое число от 1 до %1$d.</string>
+    <string name="player_file_single">Доступен только этот файл.</string>
+    <string name="player_file_row">%1$d. %2$s</string>
+    <string name="player_frame_unavailable">Для этого видео покадровый просмотр недоступен.</string>
+    <string name="player_frame_back_unavailable">Предыдущий кадр недоступен: декодер не поддерживает шаг назад.</string>
+    <string name="player_loop_title">Повтор A-B</string>
+    <string name="player_loop_unavailable">Для повтора A-B нужно видео с перемоткой.</string>
+    <string name="player_loop_start">Начало повтора: %1$s. Выберите конечную точку.</string>
+    <string name="player_loop_active">Повтор A-B: %1$s - %2$s</string>
+    <string name="player_loop_invalid_end">Выберите конечную точку после начальной.</string>
+    <string name="player_frame_forward">Следующий кадр</string>
+    <string name="player_action_unavailable">Это действие недоступно для этого файла.</string>
+    <string name="player_audio_track_single">Других звуковых дорожек нет.</string>
+    <string name="player_frame_backward">Предыдущий кадр</string>
 </resources>

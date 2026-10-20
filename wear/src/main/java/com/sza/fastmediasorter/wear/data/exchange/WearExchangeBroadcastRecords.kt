@@ -5,6 +5,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParseException
 import com.sza.fastmediasorter.wear.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.wear.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.wear.data.broadcast.BroadcastSealDto
 import timber.log.Timber
 import java.time.Instant
 
@@ -36,6 +37,7 @@ object WearExchangeBroadcastRecords {
     private const val KEY_STARTED_AT = "startedAt"
     private const val KEY_UPDATED_AT = "updatedAt"
     private const val KEY_DESCRIPTOR = "descriptor"
+    private const val KEY_SEALED = "sealed"
 
     private val gson = Gson()
 
@@ -63,18 +65,26 @@ object WearExchangeBroadcastRecords {
             isLive = true,
             targetLatencyMs = RELAY_TARGET_LATENCY_MS,
             certFingerprint = publication.certFingerprint,
+            // 27 item DK: the relay carries only sealed records, and its group key rides the record's box.
+            seal = BroadcastSealDto(),
         )
         return publication.lan.copy(endpoints = if (relayUploading) lanEndpoints + relay else lanEndpoints)
     }
 
-    fun record(publication: WearExchangeBroadcastPublication, relayUploading: Boolean, updatedAtMs: Long): JsonObject =
-        JsonObject().apply {
-            addProperty(KEY_BROADCAST_ID, publication.broadcastId)
-            addProperty(KEY_DEVICE_ID, publication.deviceId)
-            publication.lan.title?.let { addProperty(KEY_TITLE, it) }
-            addProperty(KEY_MODE, BroadcastDescriptorDto.MODE_AUDIO_ONLY)
-            addProperty(KEY_STARTED_AT, Instant.ofEpochMilli(publication.startedAtMs).toString())
-            addProperty(KEY_UPDATED_AT, Instant.ofEpochMilli(updatedAtMs).toString())
-            add(KEY_DESCRIPTOR, gson.toJsonTree(descriptor(publication, relayUploading)))
-        }
+    /** [sealed] is the box of item DK over `relayKey`, or null while nobody can open one. */
+    fun record(
+        publication: WearExchangeBroadcastPublication,
+        relayUploading: Boolean,
+        updatedAtMs: Long,
+        sealed: JsonObject? = null,
+    ): JsonObject = JsonObject().apply {
+        addProperty(KEY_BROADCAST_ID, publication.broadcastId)
+        addProperty(KEY_DEVICE_ID, publication.deviceId)
+        publication.lan.title?.let { addProperty(KEY_TITLE, it) }
+        addProperty(KEY_MODE, BroadcastDescriptorDto.MODE_AUDIO_ONLY)
+        addProperty(KEY_STARTED_AT, Instant.ofEpochMilli(publication.startedAtMs).toString())
+        addProperty(KEY_UPDATED_AT, Instant.ofEpochMilli(updatedAtMs).toString())
+        add(KEY_DESCRIPTOR, gson.toJsonTree(descriptor(publication, relayUploading)))
+        sealed?.let { add(KEY_SEALED, it) }
+    }
 }

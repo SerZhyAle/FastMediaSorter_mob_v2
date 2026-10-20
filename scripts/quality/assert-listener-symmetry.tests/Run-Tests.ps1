@@ -138,6 +138,32 @@ Assert-That 'F1 the gate derives its roots instead of listing src/main' `
 Assert-That 'F2 both modes call the one scope predicate' `
     (([regex]'Test-InSymmetryScope').Matches($gateText).Count -ge 3) 'the predicate is not read by both modes'
 
+# SDK overloads share one listener lifetime, but independent or missing registrations must stay red.
+$sdkAlternative = @'
+if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+    manager.addOnSubscriptionsChangedListener(executor, listener)
+} else {
+    @Suppress("DEPRECATION")
+    manager.addOnSubscriptionsChangedListener(listener)
+}
+'@
+$pairedSdkAlternative = $sdkAlternative + "`nmanager.removeOnSubscriptionsChangedListener(listener)"
+Assert-Imbalance 'SDK paired overload alternatives count 0' $pairedSdkAlternative 0
+Assert-Imbalance 'SDK missing removal still counts 1' $sdkAlternative 1
+Assert-Imbalance 'SDK adjacent independent listener still counts 1' `
+    ($pairedSdkAlternative + "`nview.addScrollListener(other)") 1
+Assert-Imbalance 'SDK different listener identities are not discounted' `
+    ($pairedSdkAlternative.Replace('ChangedListener(listener)', 'ChangedListener(other)')) 1
+Assert-Imbalance 'SDK different receivers are not discounted' `
+    ($pairedSdkAlternative.Replace('manager.addOnSubscriptionsChangedListener(listener)',
+        'otherManager.addOnSubscriptionsChangedListener(listener)')) 1
+Assert-Imbalance 'Non-SDK alternatives are not discounted' `
+    ($pairedSdkAlternative.Replace('Build.VERSION.SDK_INT >= Build.VERSION_CODES.R', 'enabled')) 1
+Assert-Imbalance 'SDK branches with additional calls are not discounted' `
+    ($pairedSdkAlternative.Replace('    @Suppress', "    view.addScrollListener(other)`n    @Suppress")) 2
+Assert-That 'SDK detail agrees with the balanced count' `
+    ((Get-FileImbalanceDetail $pairedSdkAlternative) -eq '') 'detail reported an imbalance'
+
 # --- G: live regression - the repository scan stays at or below its baseline. ---
 Write-Host 'G: the repository scan is at or below the committed baseline' -ForegroundColor Yellow
 & $pwshExe -NoProfile -File $gate -Gate *> $null
@@ -146,8 +172,8 @@ Assert-That 'G1 repo scan exits 0' ($gateExit -eq 0) "expected 0, got $gateExit"
 
 Write-Host ''
 if ($script:fail -eq 0) {
-    Write-Host "assert-listener-symmetry tests: $script:pass passed" -ForegroundColor Green
+    Write-Host "assert-listener-symmetry tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
     exit 0
 }
-Write-Host "assert-listener-symmetry tests: $script:pass passed, $script:fail FAILED" -ForegroundColor Red
+Write-Host "assert-listener-symmetry tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 exit 1

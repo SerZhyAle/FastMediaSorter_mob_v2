@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.PermMedia
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Slideshow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -169,9 +169,8 @@ private fun ScalingLazyListScope.settingsItems(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Icon(
-                            imageVector = iconFor(route),
-                            contentDescription = null,
+                        SettingsDestinationIcon(
+                            route = route,
                             modifier = Modifier.size(CELL_ICON_SIZE)
                         )
                     }
@@ -274,6 +273,23 @@ private fun labelResFor(route: String): Int = when (route) {
     else -> R.string.settings
 }
 
+@Composable
+private fun SettingsDestinationIcon(route: String, modifier: Modifier = Modifier) {
+    if (route == SettingsRoutes.EXCHANGE_SERVERS) {
+        Icon(
+            painter = painterResource(R.drawable.ic_exchange_mono),
+            contentDescription = null,
+            modifier = modifier
+        )
+    } else {
+        Icon(
+            imageVector = iconFor(route),
+            contentDescription = null,
+            modifier = modifier
+        )
+    }
+}
+
 private fun iconFor(route: String) = when (route) {
     SettingsRoutes.MEDIA_TYPES -> Icons.Filled.PermMedia
     SettingsRoutes.SLIDESHOW -> Icons.Filled.Slideshow
@@ -281,7 +297,6 @@ private fun iconFor(route: String) = when (route) {
     SettingsRoutes.OTHER -> Icons.Filled.MoreHoriz
     SettingsRoutes.TILE_TARGETS -> Icons.Filled.Dashboard
     SettingsRoutes.PERMISSIONS -> Icons.Filled.Security
-    SettingsRoutes.EXCHANGE_SERVERS -> Icons.Filled.Share
     SettingsRoutes.ABOUT -> Icons.Filled.Info
     else -> Icons.Filled.Settings
 }

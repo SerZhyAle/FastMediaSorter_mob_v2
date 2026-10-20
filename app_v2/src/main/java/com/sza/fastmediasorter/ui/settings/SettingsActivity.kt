@@ -33,10 +33,10 @@ import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.databinding.ActivitySettingsBinding
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
+import com.sza.fastmediasorter.ui.common.help.HelpTooltipManager
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
-import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
-import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import com.sza.fastmediasorter.ui.settings.fragments.BaseSettingsFragment
 import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
@@ -97,7 +97,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
                 return true
             }
             override fun navigateBack() { onBackPressedDispatcher.onBackPressed() }
-            override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, UiSurface.SETTINGS) }
+            override fun showHelp() { openTabHelp() }
             override fun activateFocused(): Boolean = activateFocusedViewOrAncestor()
             override fun moveFocus(direction: FocusDirection) {
                 val focusDir = when (direction) {
@@ -281,6 +281,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 saveLastTabPosition(position)
+                // S4394: posted - the newly selected page's view may not exist yet, and the
+                // refresh resolves that page's fragment by tag.
+                binding.viewPager.post { refreshCollapseAllButton() }
             }
         })
 
@@ -288,6 +291,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         saveLastTabPosition(initialPosition)
 
         setupGlobalSearch()
+        setupCollapseAllButton()
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] setupGlobalSearch done")
         // Warm the lazy search index off the main thread so the first overlay open is instant;
         // the index is no longer built synchronously on the Settings open path.
@@ -542,13 +546,25 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     /** S0289 Phase 09: route mouse wheel onto the settings pager so each tab fragment scrolls naturally. */
     override fun getMouseScrollTargetView(): View? = binding.viewPager
 
+    /** The button and F1 both land here, so each tab gives one answer (CONTEXT-HELP rule 3). */
+    private fun openTabHelp() {
+        val surfaceId = when (binding.viewPager.currentItem) {
+            TAB_GENERAL -> "settings.general"
+            TAB_MEDIA -> "settings.media"
+            TAB_PLAYBACK -> "settings.playback"
+            TAB_OPERATIONS -> "settings.operations"
+            // A flavor extension tab has no page of its own yet; the screen-level entry answers for it.
+            else -> "SettingsActivity"
+        }
+        HelpOpenManager.open(this, surfaceId, UiSurface.SETTINGS)
+    }
+
     private fun setupGlobalSearch() {
         binding.searchResultsRecycler.layoutManager = LinearLayoutManager(this)
         binding.searchResultsRecycler.adapter = searchAdapter
 
-        binding.btnSettingsHelp.setOnClickListener {
-            DocsPageOpenManager.open(this, UiSurface.SETTINGS)
-        }
+        HelpTooltipManager.apply(binding.btnSettingsHelp)
+        binding.btnSettingsHelp.setOnClickListener { openTabHelp() }
 
         binding.searchButton.setOnClickListener {
             openSearchOverlay()
@@ -681,6 +697,39 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
                 view.alpha = animator.animatedValue as Float
             }
             start()
+        }
+    }
+
+    /** S4394: a page's view exists - sync the toolbar collapse-all affordance to its state. */
+    fun onSettingsPageViewReady() {
+        refreshCollapseAllButton()
+    }
+
+    private fun setupCollapseAllButton() {
+        binding.btnCollapseAllGroups.setOnClickListener {
+            Timber.d("S4394: collapse-all clicked")
+            (getSettingsFragment(binding.viewPager.currentItem) as? BaseSettingsFragment)?.collapseAllSections()
+        }
+        binding.viewPager.post { refreshCollapseAllButton() }
+    }
+
+    /**
+     * S4394: shows the toolbar collapse-all button while the current page has an expanded group.
+     * The observer stays attached for the page's view lifetime; the position guard keeps a
+     * background page's toggle from showing the button for a page the user is not on.
+     */
+    private fun refreshCollapseAllButton() {
+        val position = binding.viewPager.currentItem
+        val fragment = getSettingsFragment(position) as? BaseSettingsFragment
+        if (fragment == null) {
+            binding.btnCollapseAllGroups.isVisible = false
+            return
+        }
+        fragment.observeCollapseState { anyExpanded ->
+            if (binding.viewPager.currentItem == position) {
+                binding.btnCollapseAllGroups.isVisible = anyExpanded
+                Timber.d("S4394: collapse-all visible=$anyExpanded")
+            }
         }
     }
 

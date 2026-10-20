@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Geplantes Kamera-Backup auf den PC - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-de.html
 ---
-<sub class="doc-stamp">26.09.25 02:13</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
 # 📷 Geplantes Kamera-Backup auf den PC
 
 > **Niveau:** Anfänger &bull; **Zeit:** ~15 Minuten Einrichtung &bull; **Edition:** Standard, Photos, Legacy, VR, noLegal (benötigt Netzwerkquellen - Lite hat keine)
-
-{% include lang-switcher.html doc="scenario-camera-backup" dir="/docs/howto/" current="de" %}
 
 Kopieren Sie neue Fotos von der Kamera Ihres Handys automatisch **jede Nacht über Wi-Fi** auf Ihren Heimcomputer. Einmal eingerichtet, läuft es für immer ohne manuelles Zutun.
 

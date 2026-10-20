@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Cinéma maison et streaming VR - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema-fr.html
 ---
-<sub class="doc-stamp">26.09.25 02:14</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
 # 🍿 Cinéma maison et streaming VR
 
 > **Niveau :** Débutant &bull; **Durée :** ~15 minutes &bull; **Édition :** Standard, Legacy, VR, noLegal (Lite n'a pas de sources réseau, Photos n'a pas de vidéo)
-
-{% include lang-switcher.html doc="scenario-home-cinema" dir="/docs/howto/" current="fr" %}
 
 Regardez votre collection de séries directement depuis votre PC à la maison - sur votre téléphone, tablette, ou casque VR sous Android (Meta Quest, Pico). Sans copier de fichiers. Sans câbles USB. Il suffit d'appuyer sur lecture.
 

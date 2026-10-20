@@ -22,6 +22,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -53,29 +55,45 @@ class SftpDriveRendezvousPublisher @Inject constructor(
 
     private var job: Job? = null
 
+    // Every start and stop opens a generation; a presence write of an older one is dropped under [presenceWrites],
+    // so a stop's offline record can never land after the online record of the restart that followed it.
+    private var generation = 0L
+    private val presenceWrites = Mutex()
+
     /** Starts (or restarts) publishing a server on [port] reachable on whatever [addresses] returns at each tick. */
     @Synchronized
     fun start(port: Int, addresses: () -> List<String>) {
         job?.cancel()
-        job = appScope.launch(ioDispatcher) { run(port, addresses) }
+        val started = ++generation
+        job = appScope.launch(ioDispatcher) { run(started, port, addresses) }
     }
 
-    /** Stops publishing and marks this device offline, unless a restart claimed the channel meanwhile. */
+    /**
+     * Stops publishing and marks this device offline, unless a restart claimed the channel meanwhile.
+     * [offlineReason] rides the offline record only (DEVICE-EXCHANGE 26 item DC).
+     */
     @Synchronized
-    fun stop() {
+    fun stop(offlineReason: String? = null) {
         val running = job ?: return
         job = null
         running.cancel()
+        val stopped = ++generation
         appScope.launch(ioDispatcher) {
             running.join()
-            if (isIdle()) writeDevice(ids.deviceId(), SftpRendezvousDevice.PRESENCE_OFFLINE, System.currentTimeMillis())
+            writeDevice(
+                stopped,
+                ids.deviceId(),
+                SftpRendezvousDevice.PRESENCE_OFFLINE,
+                System.currentTimeMillis(),
+                offlineReason,
+            )
         }
     }
 
     @Synchronized
-    private fun isIdle(): Boolean = job == null
+    private fun isCurrent(owner: Long): Boolean = generation == owner
 
-    private suspend fun run(port: Int, addresses: () -> List<String>) {
+    private suspend fun run(owner: Long, port: Int, addresses: () -> List<String>) {
         val fingerprint = SshFingerprintNormalizer.canonical(identityStore.hostKeyFingerprint()) ?: return
         val deviceId = ids.deviceId()
         val binding = ids.resourceIdFor(fingerprint)
@@ -91,7 +109,7 @@ class SftpDriveRendezvousPublisher @Inject constructor(
             val changed = published != null && current != published
             val asked = published != null && wasAsked(deviceId, handled)
             if (due || changed || asked) {
-                published = current.takeIf { announce(deviceId, binding.resourceId, port, it, now) }
+                published = current.takeIf { announce(owner, deviceId, binding.resourceId, port, it, now) }
                 lastAttemptMs = now
             }
             delay(POLL_INTERVAL_MS)
@@ -99,15 +117,14 @@ class SftpDriveRendezvousPublisher @Inject constructor(
     }
 
     private suspend fun announce(
+        owner: Long,
         deviceId: String,
         resourceId: String,
         port: Int,
         publication: Publication,
         now: Long,
     ): Boolean {
-        Timber.d("S4110: publisher writes the device and resource records on Drive")
-        Timber.d("S4129: resource record access follows the Drive opt-in")
-        val deviceWritten = writeDevice(deviceId, SftpRendezvousDevice.PRESENCE_ONLINE, now)
+        val deviceWritten = writeDevice(owner, deviceId, SftpRendezvousDevice.PRESENCE_ONLINE, now)
         // A shared phone with no LAN address has nothing a consumer could dial; its device record alone says it
         // is up. An unshared record carries no address anyway, so it is written regardless.
         if (!deviceWritten || (publication.shared && publication.hosts.isEmpty())) return deviceWritten
@@ -139,7 +156,13 @@ class SftpDriveRendezvousPublisher @Inject constructor(
         ).encode()
     }
 
-    private suspend fun writeDevice(deviceId: String, presence: String, now: Long): Boolean {
+    private suspend fun writeDevice(
+        owner: Long,
+        deviceId: String,
+        presence: String,
+        now: Long,
+        offlineReason: String? = null,
+    ): Boolean {
         val device = SftpRendezvousDevice(
             deviceId = deviceId,
             deviceName = Build.MODEL.orEmpty(),
@@ -151,10 +174,17 @@ class SftpDriveRendezvousPublisher @Inject constructor(
             updatedAtMs = now,
             writtenAtMs = now,
             ttlSeconds = RECORD_TTL_SECONDS,
+            offlineReason = offlineReason,
         )
-        return store.writeDevice(device)
-            .onFailure { Timber.i("SftpDriveRendezvousPublisher: %s device record skipped (%s)", presence, it.message) }
-            .isSuccess
+        return presenceWrites.withLock {
+            if (!isCurrent(owner)) {
+                Timber.d("SftpDriveRendezvousPublisher: %s record of a superseded start/stop dropped", presence)
+                return@withLock false
+            }
+            store.writeDevice(device)
+                .onFailure { Timber.i("SftpDriveRendezvousPublisher: %s record skipped (%s)", presence, it.message) }
+                .isSuccess
+        }
     }
 
     /**

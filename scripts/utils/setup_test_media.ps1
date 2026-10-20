@@ -9,7 +9,8 @@
     FastMediaSorter_Test/
       DCIM/            – Block 1 (browse, filter, sort) + Block 2 (player)
         _subfolder/    – Block 1.1 (subfolder navigation)
-      Docs/            – Block 2.8 (PDF, TXT, EPUB)
+      Docs/            – Block 2.8 (PDF, TXT, EPUB) - exactly the four named fixtures
+      DocsExtra/       – any other document found in the corpus (step 10b)
       OCR/             – Block 3  (image with embedded text)
       Audio/           – Block 2.6 (audio + LRC lyrics file)
       Ops/
@@ -147,6 +148,7 @@ foreach ($serial in $serials) {
     foreach ($dir in @(
         "$DeviceDestDir/DCIM/_subfolder",
         "$DeviceDestDir/Docs",
+        "$DeviceDestDir/DocsExtra",
         "$DeviceDestDir/OCR",
         "$DeviceDestDir/Audio",
         "$DeviceDestDir/Ops/src",
@@ -284,8 +286,10 @@ printf 'This file has no extension. FastMediaSorter should display it without cr
     foreach ($localItem in $allLocalFiles) {
         if ($script:PushedFiles.Contains($localItem.Name)) { continue }
         $ext = $localItem.Extension.ToLowerInvariant()
+        # Documents never go to Docs/: the Maestro document flows assume its four named fixtures fit
+        # on one screen, and a corpus carrying 27 extra documents pushed readme.txt below the fold.
         $subDir = switch ($ext) {
-            { $_ -in '.pdf', '.epub', '.txt', '.doc', '.docx' } { 'Docs' }
+            { $_ -in '.pdf', '.epub', '.txt', '.doc', '.docx' } { 'DocsExtra' }
             { $_ -in '.mp3', '.flac', '.ogg', '.wav', '.m4a', '.lrc' } { 'Audio' }
             { $_ -in '.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.bmp' } { 'DCIM' }
             { $_ -in '.mp4', '.mkv', '.webm', '.mov', '.3gp', '.avi' } { 'DCIM' }

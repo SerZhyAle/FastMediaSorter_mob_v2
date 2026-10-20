@@ -47,6 +47,7 @@ $exclusionsFile = Join-Path $RepoRoot 'docs/settings/settings-scope-exclusions.j
 foreach ($f in @($searchCatalogFile, $docScopeCatalogFile, $exclusionsFile)) {
     if (-not (Test-Path $f)) {
         Write-Error "settings catalog: required file not found: $f" -ErrorAction Continue
+        Write-Host "assert-settings-catalog-complete: COULD NOT VERIFY (required file not found: $f)"
         exit 2
     }
 }
@@ -56,6 +57,7 @@ try {
     $exclusions = Get-Content $exclusionsFile -Raw | ConvertFrom-Json
 } catch {
     Write-Error "settings catalog: $exclusionsFile does not parse as JSON - $($_.Exception.Message)" -ErrorAction Continue
+    Write-Host "assert-settings-catalog-complete: COULD NOT VERIFY ($exclusionsFile does not parse as JSON)"
     exit 2
 }
 $excludedNames = @($exclusions.PSObject.Properties.Name)
@@ -98,8 +100,9 @@ if ($unclassified.Count -or $staleExclusions.Count) {
         $staleExclusions | ForEach-Object { Write-Host "  $_  - remove the entry, or the layout was renamed/deleted and the exclusion should follow." }
     }
     Write-Error "settings catalog: FAIL" -ErrorAction Continue
+    Write-Host 'assert-settings-catalog-complete: FAIL (a layout with settings rows is unclassified, or an exclusion is stale)'
     exit 1
 }
 
-Write-Host "settings catalog: OK - $($discovered.Count) layout(s) with settings rows, all classified ($($searchScoped.Count) search-scope, $($docScoped.Count) doc-scope, $($excludedNames.Count) excluded)." -ForegroundColor Green
+Write-Host "assert-settings-catalog-complete: PASS ($($discovered.Count) layout(s) with settings rows, all classified ($($searchScoped.Count) search-scope, $($docScoped.Count) doc-scope, $($excludedNames.Count) excluded))" -ForegroundColor Green
 exit 0

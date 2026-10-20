@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Застосунок замість домашнього екрана - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-uk.html
 ---
-<sub class="doc-stamp">26.09.24 20:50</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 🖥️ Застосунок замість домашнього екрана
 
 > **Рівень:** початківець &bull; **Збірка:** Standard / noLegal
-
-{% include lang-switcher.html doc="scenario-launcher-mode" dir="/docs/howto/" current="uk" %}
 
 FastMediaSorter вміє замінити домашній екран пристрою власним робочим столом - вашими папками, годинником, погодою, вашими застосунками та панеллю задач уздовж одного краю. Якщо ви колись працювали за робочим столом Windows, усе видасться знайомим: речі лишаються там, куди ви їх поклали, а кнопка «Пуск» відкриває меню. Це називається **режим лаунчера**.
 

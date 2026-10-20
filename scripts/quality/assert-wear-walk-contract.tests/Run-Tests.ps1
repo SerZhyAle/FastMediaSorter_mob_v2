@@ -27,6 +27,11 @@
     `wearApp` binding naming no enum member. Each of those silences a check instead of failing it,
     which is the shape of the fault this ticket was opened about.
 
+    S4210 added the fifth, the `requiresPairedPhone` marker, judged against fixtures/src/
+    HomeSectionCatalog.kt: accepted on the row added under a companion condition, refused on an
+    unconditional row, without a row, or as a non-boolean, and could-not-verify over a tree with no
+    catalog to read.
+
     The clean case is not decoration: a gate that fires on everything is as useless as one that fires
     on nothing, and it pins the ratchet's "at or below baseline passes" arithmetic.
 
@@ -205,7 +210,35 @@ Assert-Case -Label 'a wearApp naming no WearAppId member is reported' `
     -ExpectedExit 1 -ExpectedPattern "wearApp 'CALCULATORR' is not a member of WearAppId" `
     -Result (Invoke-Gate -ScreenListName 'screens-binding-unknown.json' -AsGate)
 
+# --- S4210: the paired-phone marker, accepted only on a row that waits for the phone -------------
+#
+# The walk never opens a marked entry on an unpaired run, and every emulator sweep is one. A marker on
+# a row the catalog draws without the phone would therefore leave a reachable screen unjudged on every
+# run the release verdict rests on, so the refusal is pinned beside the acceptance.
+
+Assert-Case -Label 'a paired-phone marker on a companion-gated row passes' `
+    -ExpectedExit 0 -ExpectedPattern 'PASS' `
+    -Result (Invoke-Gate -ScreenListName 'screens-paired-phone.json' -AsGate)
+
+$pairedPhoneBad = Invoke-Gate -ScreenListName 'screens-paired-phone-bad.json' -AsGate
+
+Assert-Case -Label 'a paired-phone marker on an unrelated homeSection is refused' `
+    -ExpectedExit 1 -ExpectedPattern "alpha-unbound : 'requiresPairedPhone' is set on homeSection 'APPS', which HomeSectionCatalog adds without reading the phone companion \(phone-bound rows: RESOURCES\)" `
+    -Result $pairedPhoneBad
+
+Assert-Case -Label 'a paired-phone marker naming no homeSection is refused' `
+    -ExpectedExit 1 -ExpectedPattern "alpha-no-section : 'requiresPairedPhone' needs a 'homeSection'" `
+    -Result $pairedPhoneBad
+
+Assert-Case -Label 'a paired-phone marker that is not a JSON boolean is refused' `
+    -ExpectedExit 1 -ExpectedPattern "alpha-not-boolean : 'requiresPairedPhone' must be a JSON boolean" `
+    -Result $pairedPhoneBad
+
+Assert-Case -Label 'a marker over a tree with no HomeSectionCatalog is could-not-verify, not a wrong marker' `
+    -ExpectedExit 2 -ExpectedPattern 'COULD NOT VERIFY - an entry declares requiresPairedPhone' `
+    -Result (Invoke-Gate -ScreenListName 'screens-paired-phone.json' -SourceDir 'src-scoped' -AsGate)
+
 Write-Host ""
-Write-Host "assert-wear-walk-contract.tests: $script:passed passed, $script:failed failed."
+Write-Host "assert-wear-walk-contract.tests: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"
 if ($script:failed -gt 0) { exit 1 }
 exit 0

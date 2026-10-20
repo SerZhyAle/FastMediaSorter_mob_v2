@@ -416,7 +416,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     /**
-     * S2496: asks the paired phone to open the portal.
+     * S2496: asks the paired phone to open the watch page of the portal.
      *
      * A second press while one request is in flight is refused for the same reason [sendLogReport]
      * refuses it - the two would carry the same address and the later could only overwrite the
@@ -428,7 +428,7 @@ class SettingsViewModel @Inject constructor(
         }
         _phonePortalState.value = WearPortalLinkState.Busy
         viewModelScope.launch {
-            val outcome = openUrlOnPhoneRepository.openOnPhone(WearPortalLinks.WEB_PORTAL_URL)
+            val outcome = openUrlOnPhoneRepository.openOnPhone(WearPortalLinks.watchExchangeUrl())
             _phonePortalState.value = WearPortalLinkState.Finished(outcome.toLinkOutcome())
         }
     }

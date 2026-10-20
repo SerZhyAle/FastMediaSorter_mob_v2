@@ -173,6 +173,18 @@ try {
         $e.Code -eq 0 -and (Get-Coverage $e.Text 'outside the work tree') -eq 1
     ) "exit $($e.Code): $($e.Text)"
 
+    # E2. PLAN/ is gitignored whole, so an unstaged helper dot-sourced by a PLAN attachment is no
+    # fresh-clone defect: neither side was ever delivered. It must not be judged or counted.
+    Write-Script (Join-Path $sandbox 'PLAN/S0000_fixture/attachments/plan-consumer.ps1') @(
+        '. "$PSScriptRoot\_plan-lib.ps1"',
+        'exit 0'
+    )
+    Write-Script (Join-Path $sandbox 'PLAN/S0000_fixture/attachments/_plan-lib.ps1') @('function Test-Plan { }')
+    $e2 = Invoke-Gate @('-Gate', '-Root', $sandbox, '-GitRoot', $sandbox)
+    Assert-That 'E2. an unstaged helper under PLAN/ is not judged' (
+        $e2.Code -eq 0 -and $e2.Text -match 'actual: 0 untracked' -and $e2.Text -notmatch '_plan-lib'
+    ) "exit $($e2.Code): $($e2.Text)"
+
     # F. -ChangedFiles narrows the CONSUMERS: naming only the clean consumer must not surface the
     # loose one's target, which is what makes the per-ticket half refuse its own author and nobody
     # else's work in flight.
@@ -231,7 +243,7 @@ if (-not $prepared) {
 }
 
 Write-Host ''
-Write-Host ("passed: {0}  failed: {1}" -f $script:pass, $script:fail) -ForegroundColor Cyan
+Write-Host "assert-dotsource-tracked.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) {
     Write-Host 'assert-dotsource-tracked suite: FAIL' -ForegroundColor Red
     exit 1

@@ -34,8 +34,11 @@ class DefaultsMapLoader @Inject constructor(
         return result
     }
 
-    fun loadChromeOsDefaults(): List<InputBinding> = listOf(
-        InputBinding("playback.pause_play",    InputTrigger.Key(KeyEvent.KEYCODE_SPACE),      BindingSource.DEFAULT),
+    /**
+     * The Chrome OS seed older builds wrote as slot-0 override rows. Both pause/play rows shared one
+     * primary key, so Enter replaced Space and the stored seed is these seven rows.
+     */
+    fun retiredChromeOsSeed(): List<InputBinding> = listOf(
         InputBinding("navigation.previous_file", InputTrigger.Key(KeyEvent.KEYCODE_DPAD_LEFT),  BindingSource.DEFAULT),
         InputBinding("navigation.next_file",   InputTrigger.Key(KeyEvent.KEYCODE_DPAD_RIGHT), BindingSource.DEFAULT),
         InputBinding("audio.volume_up",        InputTrigger.Key(KeyEvent.KEYCODE_DPAD_UP),    BindingSource.DEFAULT),

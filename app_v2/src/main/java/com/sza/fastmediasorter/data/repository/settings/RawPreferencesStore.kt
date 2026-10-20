@@ -34,14 +34,35 @@ object RawPreferencesStore {
      * Keys describing the state of THIS installation rather than a user choice. Restoring them on
      * another device would replay a one-shot decision the receiving install has its own answer for.
      */
-    private val EXCLUDED_KEYS = setOf("is_player_first_run")
+    private val EXCLUDED_KEYS = setOf(
+        "is_player_first_run",
+        // S4238: the grant list names logins whose passwords never leave the phone, and the account
+        // entries travel in their own typed section with a fresh device id and no token.
+        "exchange_grants_v1",
+        "device_exchange_account_entries"
+    )
+
+    /**
+     * S4238: secret families keyed by a hashed or per-login suffix, so no fixed name lists them. The device
+     * token and the folder PIN are encrypted with a key that never leaves the phone and the owner's rule is
+     * that neither reaches a backup at all; a family named here is excluded as a whole, so a new member of
+     * it needs no edit.
+     */
+    private val EXCLUDED_PREFIXES = listOf(
+        "device_exchange_token_",
+        "exchange_resource_pin_",
+        "exchange_grant_password_"
+    )
+
+    private fun isExcluded(name: String): Boolean =
+        name in EXCLUDED_KEYS || EXCLUDED_PREFIXES.any { name.startsWith(it) }
 
     /** Every stored entry of [preferences], excluded keys and unsupported value types apart. */
     fun export(preferences: Preferences): List<BackupPreference> =
         preferences.asMap().mapNotNull { (key, value) ->
             val name = key.name
             when {
-                name in EXCLUDED_KEYS -> null
+                isExcluded(name) -> null
                 else -> encode(value)?.let { (type, encoded) -> BackupPreference(name, type, encoded) }
             }
         }.sortedBy { it.key }
@@ -55,8 +76,9 @@ object RawPreferencesStore {
     fun apply(target: MutablePreferences, values: List<BackupPreference>) {
         val existing = target.asMap().entries.associate { it.key.name to it.value }
         values.forEach { entry ->
-            if (entry.key in EXCLUDED_KEYS) {
-                Timber.w("raw settings: %s excluded from restore", entry.key)
+            if (isExcluded(entry.key)) {
+                // The name is left out: a grant password key ends in the guest login.
+                Timber.w("raw settings: an excluded entry skipped on restore")
                 return@forEach
             }
             val decoded = decode(entry)

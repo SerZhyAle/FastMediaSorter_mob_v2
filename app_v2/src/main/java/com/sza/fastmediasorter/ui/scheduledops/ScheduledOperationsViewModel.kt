@@ -195,7 +195,7 @@ class ScheduledOperationsViewModel @Inject constructor(
             saved
         }
         if (scheduled.isEnabled) {
-            workManagerScheduler.scheduleOperation(scheduled)
+            workManagerScheduler.scheduleOperationUnlessPaused(scheduled)
         } else {
             workManagerScheduler.cancelOperation(scheduled.id)
         }
@@ -206,7 +206,7 @@ class ScheduledOperationsViewModel @Inject constructor(
             val updated = operation.copy(isEnabled = !operation.isEnabled)
             updateScheduledOperationUseCase(updated)
             if (updated.isEnabled) {
-                workManagerScheduler.scheduleOperation(updated)
+                workManagerScheduler.scheduleOperationUnlessPaused(updated)
             } else {
                 workManagerScheduler.cancelOperation(updated.id)
             }

@@ -20,8 +20,8 @@ class BroadcastDescriptorParser @Inject constructor() {
         (parseDetailed(raw) as? ParseOutcome.Valid)?.dto
 
     /**
-     * Separates a descriptor written by a newer app version from plain garbage, so the caller can
-     * tell the user to update rather than blame the payload.
+     * Separates a descriptor of a higher schema from plain garbage, so the caller shows the canonical
+     * `format-unsupported` refusal (LIVE-BROADCAST 1.1) rather than blame the payload.
      */
     fun parseDetailed(raw: String): ParseOutcome {
         val trimmed = raw.trim()

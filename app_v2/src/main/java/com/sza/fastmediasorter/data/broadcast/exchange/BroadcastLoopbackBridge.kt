@@ -14,6 +14,11 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
+/** A port on `127.0.0.1` a player is pointed at, closed when it is evicted. */
+interface LoopbackEndpoint : Closeable {
+    val port: Int
+}
+
 /**
  * S4160: a local port on `127.0.0.1` whose every accepted connection becomes one upstream stream to an exchange
  * server, spliced byte for byte until either side closes (`DEVICE-EXCHANGE` 7.7). It serves both shapes the
@@ -26,19 +31,21 @@ import java.util.concurrent.atomic.AtomicBoolean
 class BroadcastLoopbackBridge(
     private val label: String,
     private val opener: () -> ExchangeConnection,
-) : Closeable {
+) : LoopbackEndpoint {
 
     private val server =
         ServerSocket(0, ACCEPT_BACKLOG, InetAddress.getByName(BroadcastExchangeEndpoints.LOOPBACK_HOST))
     private val closed = AtomicBoolean(false)
+    private val lock = Any()
+    private val activeConnections = LinkedHashSet<Closeable>()
     private val workers: ExecutorService = Executors.newCachedThreadPool { runnable ->
         Thread(runnable, "fms-broadcast-bridge").apply { isDaemon = true }
     }
 
-    val port: Int get() = server.localPort
+    override val port: Int get() = server.localPort
 
     init {
-        workers.execute(::acceptLoop)
+        submit(::acceptLoop)
     }
 
     private fun acceptLoop() {
@@ -49,7 +56,8 @@ class BroadcastLoopbackBridge(
                 if (!closed.get()) Timber.w(e, "BroadcastLoopbackBridge %s: accept failed, bridge stops", label)
                 return
             }
-            workers.execute { serve(client) }
+            if (!track(client)) return
+            if (!submit { serve(client) }) release(client)
         }
     }
 
@@ -59,16 +67,23 @@ class BroadcastLoopbackBridge(
         } catch (e: IOException) {
             // The player sees a closed connection and runs its own retry; the reason is logged without the id.
             Timber.w("BroadcastLoopbackBridge %s: upstream refused - %s", label, e.javaClass.simpleName)
-            closeQuietly(client)
+            release(client)
             return
         }
-        workers.execute { pump(client.getInputStream(), upstream.output, client, upstream) }
-        pump(upstream.input, client.getOutputStream(), client, upstream)
+        val started = track(upstream) && submit { pump(clientToUpstream = true, client = client, upstream = upstream) }
+        if (started) {
+            pump(clientToUpstream = false, client = client, upstream = upstream)
+        } else {
+            release(client)
+            release(upstream)
+        }
     }
 
     // Either direction ending closes both sockets, which unblocks the opposite pump.
-    private fun pump(input: InputStream, output: OutputStream, client: Socket, upstream: ExchangeConnection) {
+    private fun pump(clientToUpstream: Boolean, client: Socket, upstream: ExchangeConnection) {
         try {
+            val input: InputStream = if (clientToUpstream) client.getInputStream() else upstream.input
+            val output: OutputStream = if (clientToUpstream) upstream.output else client.getOutputStream()
             val buffer = ByteArray(BUFFER_BYTES)
             while (true) {
                 val read = input.read(buffer)
@@ -81,15 +96,52 @@ class BroadcastLoopbackBridge(
         } catch (e: IOException) {
             Timber.d("BroadcastLoopbackBridge %s: stream failed - %s", label, e.javaClass.simpleName)
         } finally {
-            closeQuietly(client)
-            closeQuietly(upstream)
+            release(client)
+            release(upstream)
         }
     }
 
     override fun close() {
         if (!closed.compareAndSet(false, true)) return
         closeQuietly(server)
+        closeActiveConnections()
         workers.shutdownNow()
+    }
+
+    private fun track(closeable: Closeable): Boolean {
+        val admitted = synchronized(lock) {
+            if (closed.get()) {
+                false
+            } else {
+                activeConnections.add(closeable)
+                true
+            }
+        }
+        if (!admitted) closeQuietly(closeable)
+        return admitted
+    }
+
+    private fun release(closeable: Closeable) {
+        synchronized(lock) {
+            activeConnections.remove(closeable)
+        }
+        closeQuietly(closeable)
+    }
+
+    private fun closeActiveConnections() {
+        val snapshot = synchronized(lock) {
+            closed.set(true)
+            activeConnections.toList().also { activeConnections.clear() }
+        }
+        snapshot.forEach(::closeQuietly)
+    }
+
+    private fun submit(task: () -> Unit): Boolean = try {
+        workers.execute(task)
+        true
+    } catch (e: java.util.concurrent.RejectedExecutionException) {
+        Timber.v("BroadcastLoopbackBridge %s: task rejected after close - %s", label, e.javaClass.simpleName)
+        false
     }
 
     private fun closeQuietly(closeable: Closeable) {

@@ -27,7 +27,7 @@
     Exit codes (CLAUDE.md Rule 7):
       0  every Pester test passed.
       1  at least one Pester test failed.
-      2  could not verify - the Pester module is not installed.
+      2  could not verify - missing Pester, zero executed tests, or skipped declared tests.
 #>
 [CmdletBinding()]
 param()
@@ -46,7 +46,13 @@ $total = [int]$result.TotalCount
 $failedCount = [int]$result.FailedCount
 $passedCount = [int]$result.PassedCount
 
-Write-Host ("streams.tests: {0} test(s) | passed: {1} | failed: {2}" -f $total, $passedCount, $failedCount) -ForegroundColor Cyan
+$runCount = $passedCount + $failedCount
+$skippedCount = [Math]::Max(0, $total - $runCount)
+$word = if ($failedCount -gt 0) { 'FAIL' }
+    elseif ($runCount -eq 0 -or $skippedCount -gt 0) { 'COULD NOT VERIFY' }
+    else { 'PASS' }
+Write-Host "streams.tests: $word (run=$runCount skipped=$skippedCount)" -ForegroundColor Cyan
 
 if ($failedCount -gt 0) { exit 1 }
+if ($runCount -eq 0 -or $skippedCount -gt 0) { exit 2 }
 exit 0

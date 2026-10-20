@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.10 14:48</sub>
+<sub class="doc-stamp">26.10.16 22:21</sub>
 
 # FastMediaSorter v2 🚀
 
@@ -82,13 +82,13 @@ FastMediaSorter is a complete shell for an Android device - home screen, media p
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.61.0141.503 (October 2026)
+## What's New in v2.61.0202.318 (October 2026)
 
 **New:**
-More Tourist tiles, tally counter and stopwatch tile, searchable system information cards, Googlebook support, cleaner stream filters, mirrored page buttons for right-to-left languages, folder paging for files opened from other apps, SFTP address through Google Drive (opt-in), watch Tourist readings, dark screen clock and rotation switch.
+Exchange server accounts with end-to-end sealing and a shared clipboard, one resource across LAN, port forward and exchange tunnel, files via Google Drive between own phones, scheduled operations across devices, broadcasts of the phone screen and ready files, protected broadcasts, flashlight and bright frame, your broadcasts in Streams, in-app help on F1 and the ? button, player keyboard, collapse all in Settings, the watch on the exchange server.
 
 **Fixed:**
-Delete confirmation on shared storage, cloud-to-cloud copy names, SFTP transfers in the background, Tourist compass without a fused sensor, saved network logins in Android backup, watch crashes on Wear OS API 28-29, watch lists on the round glass.
+Phone sharing start on Android 14 and later, read-only resources in scheduled operations, live broadcast audio-to-video switch, camera lenses after a switch, broadcasting files without sound, the full-screen exit button, Network Monitor crash, password length in diagnostic dumps, watch alerts and lists on the round glass.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
@@ -331,6 +331,8 @@ Downloads folder cluttered? Open it in the source panel, set up destination butt
 **🌐 Official Website:** [https://serzhyale.github.io/FastMediaSorter_mob_v2/](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
 
 **📘 User Documentation:** [step-by-step guides for every feature, with search](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/)
+
+**❓ In-app Help:** [a help page for each main screen](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/help/index.html) - inside the app the `?` button and F1 open the same pages without internet.
 
 **🔁 Media Exchange Portal:** [which way fits you to move and open media between your own phone, watch, TV, VR headset and Windows PC](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/)
 

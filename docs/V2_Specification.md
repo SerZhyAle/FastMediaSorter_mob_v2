@@ -1,11 +1,11 @@
 ---
-layout: default
+layout: doc
 title: "Technical Specification"
 permalink: /docs/V2_Specification.html
 lang: en
 ---
 
-<sub class="doc-stamp">26.10.06 14:18</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # Technical Specification
 

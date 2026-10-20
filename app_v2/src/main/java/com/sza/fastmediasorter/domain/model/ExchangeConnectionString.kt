@@ -13,12 +13,15 @@ import java.util.Locale
  * deployment whose leaf validates against a platform trust store.
  * @property name a display hint, never an identity.
  * @property loginHint a login in the form of contract 5.1, lower case; never logged.
+ * @property invitation a one-time invitation of 19 item AR, 22 base64url characters. Unlike the rest of the
+ * string it is a secret until used: never logged, and never written by a client passing on an entry it holds.
  */
 data class ExchangeConnectionString(
     val endpoint: ExchangeEndpoint,
     val fingerprint: String? = null,
     val name: String? = null,
     val loginHint: String? = null,
+    val invitation: String? = null,
 ) {
 
     init {
@@ -28,6 +31,9 @@ data class ExchangeConnectionString(
         }
         require(name == null || ExchangeConnectionStringCodec.isName(name)) { "name breaks the contract rule" }
         require(loginHint == null || isCanonicalLogin(loginHint)) { "login hint breaks the contract rule" }
+        require(invitation == null || ExchangeConnectionStringCodec.isInvitation(invitation)) {
+            "invitation is not 22 base64url characters of 16 bytes"
+        }
         require(ExchangeConnectionStringCodec.encode(this).length <= ExchangeConnectionStringCodec.MAX_TEXT) {
             "the written string exceeds ${ExchangeConnectionStringCodec.MAX_TEXT} characters"
         }
@@ -38,8 +44,12 @@ data class ExchangeConnectionString(
 
     fun encode(): String = ExchangeConnectionStringCodec.encode(this)
 
-    // The login hint stays out of every log line; the endpoint is what a log needs to name the server.
-    override fun toString(): String = "ExchangeConnectionString(endpoint=$endpoint, pinned=${fingerprint != null})"
+    /** A string carrying `i` registers a new account instead of signing in to one (19 item AR). */
+    val isInvitation: Boolean get() = invitation != null
+
+    // The login hint and the invitation stay out of every log line; the endpoint names the server.
+    override fun toString(): String =
+        "ExchangeConnectionString(endpoint=$endpoint, pinned=${fingerprint != null}, invitation=$isInvitation)"
 
     private fun isCanonicalLogin(login: String): Boolean =
         ExchangeConnectionStringCodec.isLogin(login) && login == login.lowercase(Locale.ROOT)
@@ -75,6 +85,7 @@ enum class ExchangeConnectionStringRefusal(val code: String) {
     BAD_FP("bad-fp"),
     BAD_N("bad-n"),
     BAD_U("bad-u"),
+    BAD_I("bad-i"),
     FILE_TOO_LONG("file-too-long"),
     FILE_LINES("file-lines"),
 }

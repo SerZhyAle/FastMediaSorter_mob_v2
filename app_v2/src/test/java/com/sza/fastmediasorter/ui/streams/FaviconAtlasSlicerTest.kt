@@ -48,6 +48,13 @@ class FaviconAtlasSlicerTest {
     }
 
     @Test
+    fun `isInBounds rejects indices whose pixel rect would overflow Int`() {
+        // Under the old multiplication predicate both indices wrapped to a top of -32 and passed.
+        assertFalse(slicer.isInBounds(Int.MAX_VALUE, 512, 512))
+        assertFalse(slicer.isInBounds(Int.MAX_VALUE - 15, 512, 512))
+    }
+
+    @Test
     fun `tileFor returns a 32x32 tile whose centre matches the fixture colour`() = runTest {
         val tile0 = slicer.tileFor(0)
         assertNotNull("index 0 must decode", tile0)

@@ -1,0 +1,247 @@
+{
+  "help": "game",
+  "surface": "GameActivity",
+  "elements": [
+    { "id": "back", "viewId": "btnGameBack", "labelKey": "back" },
+    { "id": "level", "viewId": "txtGameLevel" },
+    { "id": "score", "viewId": "txtGameScore" },
+    { "id": "turns", "viewId": "txtGameTurns" },
+    { "id": "board", "viewId": "gameBoardContainer", "labelKey": "game_board_content_description" },
+    { "id": "arrows", "viewId": "layoutGameControls" },
+    { "id": "skip", "viewId": "btnGameSkip", "labelKey": "game_skip_turn" },
+    { "id": "reset", "viewId": "btnGameReset", "labelKey": "game_reset" },
+    { "id": "restart-level", "viewId": "btnGameRestartLevel", "labelKey": "game_restart_level" },
+    { "id": "mode", "viewId": "btnGameMode", "labelKey": "game_mode_picker_title" },
+    { "id": "help", "viewId": "btnGameHelp", "labelKey": "game_how_to_play" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "settings-operations" },
+    { "pageId": "programs.mini-game" },
+    { "pageId": "programs.built-in-mini-apps" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Kryvavitsa and the Monster",
+      "purpose": "A small turn-based puzzle on a grid. Lead the blue Monster to the green exit before the red Kryvavitsa and her purple helpers corner you: you move one cell per turn, the enemies answer after each move, and every level is a bigger board.",
+      "steps": [
+        "Open the game from the programs menu, the programs panel, the launcher or a home-screen widget. It is off after installation, so switch Mini-game on first in Settings, on the Management tab, in the group Additional programs and scenarios. The game saves itself and continues where you left it.",
+        "The first time, press How to play? (11): its own screen shows what every color on the board means and the rules.",
+        "Move one cell per turn on the board (5): swipe anywhere on it, tap the side of the Monster where you want to go, press the arrows (6), or use the keyboard or a D-pad. After each move the enemies move too.",
+        "Push gray walls into free cells to clear a path. If an enemy ends up on your cell or next to it, the level is lost.",
+        "Next turn (7) skips your step while the enemies still move, for the moments when standing still is safer than moving.",
+        "Reaching the exit gives +1000 and the next level starts by itself after a second, or at once with Next level (8). Level (2), Score (3) and Turns (4) keep count above the board.",
+        "If a level goes wrong, Restart level (9) starts it again on a fresh board for 500 points; Reset (8) throws the whole game away and starts from level 1. Mode (10) changes how the board looks."
+      ],
+      "groups": [
+        { "title": "Top bar and counters", "elements": ["back", "level", "score", "turns"] },
+        { "title": "Board and moves", "elements": ["board", "arrows", "skip"] },
+        { "title": "Game actions", "elements": ["reset", "restart-level", "mode", "help"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Leaves the game and returns to where you came from.",
+          "details": "The game saves itself after every move, so leaving does not lose your place: when you open the game again it continues with the same level, score and turns. The Back button of the device does the same.",
+          "shortcut": "Esc"
+        },
+        "level": {
+          "name": "Level",
+          "summary": "Shows which level you are on.",
+          "details": "You start at level 1. The board grows as the level goes up - 8 by 8 cells at first, one cell more every third level, up to 20 by 20 - and more purple enemies appear on it."
+        },
+        "score": {
+          "name": "Score",
+          "summary": "Your points: moves cost, pushes and the exit pay.",
+          "details": "Every turn costs 10 points, also a skipped one. Pushing a wall gives +10, crushing a purple enemy +50 and reaching the exit +1000. The score never goes below zero. Restarting a level costs 500 points."
+        },
+        "turns": {
+          "name": "Turns",
+          "summary": "How many turns you have played in this game.",
+          "details": "A step and a skipped turn both count. The number keeps growing from level to level and starts again from zero only when you reset the game."
+        },
+        "board": {
+          "summary": "The playing field: the Monster, the exit, the enemies and the walls.",
+          "details": "Blue is the Monster you control, green is the exit, red is the Kryvavitsa that hunts you, purple are her lesser helpers that wander at random, gray blocks are walls you can push, and the thick border cannot be crossed. A swipe in any direction, or a tap above, below or beside the Monster, moves it one cell that way; a tap right on the Monster does nothing. When you are caught, a line joins you to the enemy and a short message appears."
+        },
+        "reset": {
+          "summary": "Starts the next step of the game: a new game, the next level, or a restart after a defeat.",
+          "details": "Its label follows the situation. While you are playing it reads Reset and starts a brand new game from level 1, with score and turns at zero, without asking. After you reach the exit it reads Next level and moves on to the next board. After you were caught it reads Restart level and tries the same level again on a fresh board.",
+          "undo": "Reset throws away the level, score and turns of the running game, and there is no way back to them - only a new game from level 1. Restart level after a defeat costs 500 points.",
+          "shortcut": "Enter / Space / D-pad center"
+        },
+        "restart-level": {
+          "summary": "Starts the current level over on a fresh board when you are stuck.",
+          "details": "The level number stays, the board is generated again, and the price is the same as being caught: 500 points, never taking the score below zero. The button is shown only while a level is running; after a defeat the main button takes this label and does the same.",
+          "undo": "The current board and 500 points are lost, and the old board does not come back.",
+          "shortcut": "R"
+        },
+        "help": {
+          "summary": "Opens the game's own help screen with the legend and the rules.",
+          "details": "The screen is called How to play and has its own Back button. It tells the goal, shows what each color or figure on the board means (it follows the mode you chose) and lists the rules and the score. Close it to return to your game exactly as it was."
+        },
+        "mode": {
+          "summary": "Changes how the board looks: Classic, Kryvavitsa or Contrast.",
+          "details": "The button carries the name of the current mode. Press it to open the list Game mode and pick another one. Classic draws colored balls, Kryvavitsa draws figures - a man, a woman with a machine gun, women with knives, a door - and Contrast uses solid tiles in the classic colors. Only the look changes: the rules, your position and your score stay as they are. The choice is remembered."
+        },
+        "arrows": {
+          "name": "Arrow buttons",
+          "summary": "Four buttons that move the Monster one cell up, down, left or right.",
+          "details": "They do the same as a swipe or a tap on the board, which makes them handy when you prefer buttons or play with one hand. A move into the border or into a wall that cannot be pushed is refused and costs nothing. The keyboard works too: the arrow keys, W A S D or the numeric keypad.",
+          "shortcut": "Arrow keys / W, A, S, D / Numpad 8, 4, 2, 6"
+        },
+        "skip": {
+          "summary": "Lets the enemies move while the Monster stays where it is.",
+          "details": "It counts as a turn and costs 10 points, like a step. Use it when every step would bring you next to an enemy and waiting is safer."
+        }
+      }
+    },
+    "ru": {
+      "title": "Крывавица и Чудовище",
+      "purpose": "Небольшая пошаговая головоломка на клетчатом поле. Проведите синее Чудовище к зелёному выходу, пока красная Крывавица и её фиолетовые помощницы не загнали вас в угол: вы ходите на одну клетку, после каждого хода двигаются враги, а каждый следующий уровень - поле побольше.",
+      "steps": [
+        "Откройте игру из меню программ, с панели программ, из лаунчера или виджетом на домашнем экране. После установки она выключена, поэтому сначала включите «Мини-игра» в «Настройках», на вкладке «Управление», в группе «Дополнительные программы и сценарии». Игра сама сохраняется и продолжается с того места, где вы остановились.",
+        "В первый раз нажмите «Как играть?» (11): на отдельном экране показано, что означает каждый цвет на поле, и описаны правила.",
+        "Ходите на одну клетку за ход по полю (5): проведите пальцем где угодно, коснитесь поля с той стороны от Чудовища, куда хотите пойти, нажмите треугольники (6) или используйте клавиатуру или D-pad. После каждого хода двигаются и враги.",
+        "Толкайте серые стены в свободные клетки, чтобы расчистить путь. Если враг оказывается на вашей клетке или рядом с ней, уровень проигран.",
+        "«Следующий ход» (7) пропускает ваш шаг, а враги всё равно ходят: так делают, когда стоять на месте безопаснее, чем идти.",
+        "Выход приносит +1000, и следующий уровень начинается сам через секунду или сразу по «Следующий уровень» (8). «Уровень» (2), «Счёт» (3) и «Ходы» (4) ведут учёт над полем.",
+        "Если уровень не удался, «Начать уровень заново» (9) запускает его снова на новом поле за 500 очков, а «Сбросить» (8) отбрасывает всю игру и начинает с уровня 1. «Режим игры» (10) меняет внешний вид поля."
+      ],
+      "groups": [
+        { "title": "Верхняя строка и счётчики", "elements": ["back", "level", "score", "turns"] },
+        { "title": "Поле и ходы", "elements": ["board", "arrows", "skip"] },
+        { "title": "Действия в игре", "elements": ["reset", "restart-level", "mode", "help"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Выходит из игры туда, откуда вы пришли.",
+          "details": "Игра сохраняется после каждого хода, поэтому выход не теряет ваше место: когда вы откроете игру снова, она продолжится с тем же уровнем, счётом и ходами. Кнопка «Назад» на устройстве делает то же самое.",
+          "shortcut": "Esc"
+        },
+        "level": {
+          "name": "Уровень",
+          "summary": "Показывает, на каком вы уровне.",
+          "details": "Вы начинаете с уровня 1. С ростом уровня поле увеличивается - сначала 8 на 8 клеток, затем на клетку больше каждые три уровня, до 20 на 20 - и на нём появляется больше фиолетовых врагов."
+        },
+        "score": {
+          "name": "Счёт",
+          "summary": "Ваши очки: ходы стоят, толчки и выход приносят.",
+          "details": "Каждый ход стоит 10 очков, в том числе пропущенный. Толчок стены даёт +10, раздавленная фиолетовая помощница +50, а выход +1000. Счёт никогда не опускается ниже нуля. Повторный запуск уровня стоит 500 очков."
+        },
+        "turns": {
+          "name": "Ходы",
+          "summary": "Сколько ходов вы сделали в этой игре.",
+          "details": "Считаются и шаг, и пропущенный ход. Число растёт от уровня к уровню и обнуляется, только когда вы сбрасываете игру."
+        },
+        "board": {
+          "summary": "Игровое поле: Чудовище, выход, враги и стены.",
+          "details": "Синий - Чудовище, которым вы управляете, зелёный - выход, красный - Крывавица, идущая за вами, фиолетовые - её помощницы, которые бродят случайно, серые блоки - стены, которые можно толкать, а толстую рамку пересечь нельзя. Свайп в любую сторону или касание выше, ниже либо сбоку от Чудовища сдвигают его на одну клетку в эту сторону; касание точно по Чудовищу ничего не делает. Когда вас поймали, линия соединяет вас с врагом и появляется короткое сообщение."
+        },
+        "reset": {
+          "summary": "Запускает следующий шаг игры: новую игру, следующий уровень или повтор после поражения.",
+          "details": "Надпись зависит от ситуации. Пока вы играете, написано «Сбросить», и кнопка начинает совсем новую игру с уровня 1, с нулевыми счётом и ходами, не спрашивая. После выхода написано «Следующий уровень», и кнопка переходит на следующее поле. Если вас поймали, написано «Начать уровень заново», и кнопка пробует тот же уровень ещё раз на новом поле.",
+          "undo": "«Сбросить» выбрасывает уровень, счёт и ходы идущей игры, и вернуть их нельзя - только начать новую игру с уровня 1. «Начать уровень заново» после поражения стоит 500 очков.",
+          "shortcut": "Enter / Space / D-pad center"
+        },
+        "restart-level": {
+          "summary": "Запускает текущий уровень заново на новом поле, если вы застряли.",
+          "details": "Номер уровня остаётся, поле создаётся снова, а цена такая же, как за поражение: 500 очков, счёт не падает ниже нуля. Кнопка видна только пока идёт уровень; после поражения её название переходит к главной кнопке, и она делает то же самое.",
+          "undo": "Текущее поле и 500 очков теряются, а прежнее поле не вернуть.",
+          "shortcut": "R"
+        },
+        "help": {
+          "summary": "Открывает собственный экран помощи игры с легендой и правилами.",
+          "details": "Экран называется «Как играть» и имеет свою кнопку «Назад». Он рассказывает о цели, показывает, что означает каждый цвет или фигура на поле (это зависит от выбранного режима), и перечисляет правила и счёт. Закройте его, чтобы вернуться в игру точно туда, где вы были."
+        },
+        "mode": {
+          "summary": "Меняет внешний вид поля: «Классика», «Крывавица» или «На контрасте».",
+          "details": "На кнопке написано название текущего режима. Нажмите её, чтобы открыть список «Режим игры» и выбрать другой. «Классика» рисует цветные шарики, «Крывавица» - фигуры: мужчину, женщину с автоматом, женщин с ножами, дверь, а «На контрасте» использует сплошные плитки в классических цветах. Меняется только вид: правила, ваша позиция и счёт остаются прежними. Выбор запоминается."
+        },
+        "arrows": {
+          "name": "Кнопки-треугольники",
+          "summary": "Четыре кнопки двигают Чудовище на одну клетку вверх, вниз, влево или вправо.",
+          "details": "Они делают то же, что свайп или касание поля, и пригодятся, если вам удобнее кнопки или вы играете одной рукой. Ход в рамку или в стену, которую нельзя толкнуть, отклоняется и ничего не стоит. Работает и клавиатура: стрелки, W A S D или цифровой блок.",
+          "shortcut": "Arrow keys / W, A, S, D / Numpad 8, 4, 2, 6"
+        },
+        "skip": {
+          "summary": "Позволяет врагам ходить, пока Чудовище стоит на месте.",
+          "details": "Это считается ходом и стоит 10 очков, как шаг. Пользуйтесь, когда любой шаг приведёт вас к врагу, а ждать безопаснее."
+        }
+      }
+    },
+    "uk": {
+      "title": "Кривавиця і Чудовисько",
+      "purpose": "Невелика покрокова головоломка на клітинковому полі. Проведіть синє Чудовисько до зеленого виходу, доки червона Кривавиця та її фіолетові помічниці не загнали вас у кут: ви ходите на одну клітинку, після кожного ходу рухаються вороги, а кожен наступний рівень - це більше поле.",
+      "steps": [
+        "Відкрийте гру з меню програм, із панелі програм, із лаунчера або віджетом на домашньому екрані. Після встановлення вона вимкнена, тому спершу ввімкніть «Мінігра» в «Налаштуваннях», на вкладці «Управління», у групі «Додаткові програми та сценарії». Гра сама зберігається і продовжується з того місця, де ви зупинилися.",
+        "Уперше натисніть «Як грати?» (11): на окремому екрані показано, що означає кожен колір на полі, і описано правила.",
+        "Ходіть на одну клітинку за хід по полю (5): проведіть пальцем будь-де, торкніться поля з того боку від Чудовиська, куди хочете піти, натисніть трикутники (6) або скористайтеся клавіатурою чи D-pad. Після кожного ходу рухаються й вороги.",
+        "Штовхайте сірі стіни у вільні клітинки, щоб розчистити шлях. Якщо ворог опиняється на вашій клітинці або поруч, рівень програно.",
+        "«Наступний хід» (7) пропускає ваш крок, а вороги все одно ходять: так роблять, коли стояти на місці безпечніше, ніж іти.",
+        "Вихід приносить +1000, і наступний рівень починається сам за секунду або одразу за «Наступний рівень» (8). «Рівень» (2), «Рахунок» (3) і «Ходи» (4) ведуть облік над полем.",
+        "Якщо рівень не вдався, «Почати рівень заново» (9) запускає його знову на новому полі за 500 очок, а «Скинути» (8) відкидає всю гру й починає з рівня 1. «Режим гри» (10) змінює вигляд поля."
+      ],
+      "groups": [
+        { "title": "Верхній рядок і лічильники", "elements": ["back", "level", "score", "turns"] },
+        { "title": "Поле і ходи", "elements": ["board", "arrows", "skip"] },
+        { "title": "Дії в грі", "elements": ["reset", "restart-level", "mode", "help"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Виходить із гри туди, звідки ви прийшли.",
+          "details": "Гра зберігається після кожного ходу, тому вихід не втрачає ваше місце: коли ви відкриєте гру знову, вона продовжиться з тим самим рівнем, рахунком і ходами. Кнопка «Назад» на пристрої робить те саме.",
+          "shortcut": "Esc"
+        },
+        "level": {
+          "name": "Рівень",
+          "summary": "Показує, на якому ви рівні.",
+          "details": "Ви починаєте з рівня 1. Із зростанням рівня поле збільшується - спершу 8 на 8 клітинок, потім на клітинку більше щотретього рівня, до 20 на 20 - і на ньому з'являється більше фіолетових ворогів."
+        },
+        "score": {
+          "name": "Рахунок",
+          "summary": "Ваші очки: ходи коштують, поштовхи й вихід приносять.",
+          "details": "Кожен хід коштує 10 очок, зокрема й пропущений. Поштовх стіни дає +10, розчавлена фіолетова помічниця +50, а вихід +1000. Рахунок ніколи не опускається нижче нуля. Початок рівня заново коштує 500 очок."
+        },
+        "turns": {
+          "name": "Ходи",
+          "summary": "Скільки ходів ви зробили в цій грі.",
+          "details": "Зараховуються і крок, і пропущений хід. Число росте від рівня до рівня й обнуляється, лише коли ви скидаєте гру."
+        },
+        "board": {
+          "summary": "Ігрове поле: Чудовисько, вихід, вороги та стіни.",
+          "details": "Синій - Чудовисько, яким ви керуєте, зелений - вихід, червона - Кривавиця, що йде за вами, фіолетові - її помічниці, які блукають випадково, сірі блоки - стіни, які можна штовхати, а товсту рамку перетнути не можна. Свайп у будь-який бік або дотик вище, нижче чи збоку від Чудовиська зсувають його на одну клітинку в цей бік; дотик точно по Чудовиську нічого не робить. Коли вас спіймали, лінія з'єднує вас із ворогом і з'являється коротке повідомлення."
+        },
+        "reset": {
+          "summary": "Запускає наступний крок гри: нову гру, наступний рівень або повтор після поразки.",
+          "details": "Напис залежить від ситуації. Поки ви граєте, написано «Скинути», і кнопка починає зовсім нову гру з рівня 1, з нульовими рахунком і ходами, не питаючи. Після виходу написано «Наступний рівень», і кнопка переходить на наступне поле. Якщо вас спіймали, написано «Почати рівень заново», і кнопка пробує той самий рівень ще раз на новому полі.",
+          "undo": "«Скинути» викидає рівень, рахунок і ходи гри, що триває, і повернути їх не можна - лише почати нову гру з рівня 1. «Почати рівень заново» після поразки коштує 500 очок.",
+          "shortcut": "Enter / Space / D-pad center"
+        },
+        "restart-level": {
+          "summary": "Запускає поточний рівень заново на новому полі, якщо ви застрягли.",
+          "details": "Номер рівня лишається, поле створюється знову, а ціна така сама, як за поразку: 500 очок, рахунок не падає нижче нуля. Кнопку видно лише поки триває рівень; після поразки її назва переходить до головної кнопки, і вона робить те саме.",
+          "undo": "Поточне поле та 500 очок втрачаються, а попереднє поле не повернути.",
+          "shortcut": "R"
+        },
+        "help": {
+          "summary": "Відкриває власний екран допомоги гри з легендою та правилами.",
+          "details": "Екран називається «Як грати» і має власну кнопку «Назад». Він розповідає про мету, показує, що означає кожен колір чи фігура на полі (це залежить від вибраного режиму), і перелічує правила та рахунок. Закрийте його, щоб повернутися в гру точно туди, де ви були."
+        },
+        "mode": {
+          "summary": "Змінює вигляд поля: «Класика», «Кривавиця» або «На контрасті».",
+          "details": "На кнопці написано назву поточного режиму. Натисніть її, щоб відкрити список «Режим гри» і вибрати інший. «Класика» малює кольорові кульки, «Кривавиця» - фігури: чоловіка, жінку з автоматом, жінок із ножами, двері, а «На контрасті» використовує суцільні плитки в класичних кольорах. Змінюється лише вигляд: правила, ваша позиція та рахунок залишаються колишніми. Вибір запам'ятовується."
+        },
+        "arrows": {
+          "name": "Кнопки-трикутники",
+          "summary": "Чотири кнопки рухають Чудовисько на одну клітинку вгору, вниз, ліворуч або праворуч.",
+          "details": "Вони роблять те саме, що свайп чи дотик до поля, і стануть у пригоді, якщо вам зручніші кнопки або ви граєте однією рукою. Хід у рамку або в стіну, яку не можна штовхнути, відхиляється і нічого не коштує. Працює й клавіатура: стрілки, W A S D або цифровий блок.",
+          "shortcut": "Arrow keys / W, A, S, D / Numpad 8, 4, 2, 6"
+        },
+        "skip": {
+          "summary": "Дає ворогам ходити, поки Чудовисько стоїть на місці.",
+          "details": "Це зараховується як хід і коштує 10 очок, як крок. Користуйтеся, коли будь-який крок приведе вас до ворога, а чекати безпечніше."
+        }
+      }
+    }
+  }
+}

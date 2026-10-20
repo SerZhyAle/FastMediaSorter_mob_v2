@@ -15,11 +15,14 @@ import com.sza.fastmediasorter.domain.model.SftpTunnelAddress
 import com.sza.fastmediasorter.domain.model.SftpTunnelAddress.forLog
 import com.sza.fastmediasorter.utils.SftpPathUtils
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -62,6 +65,9 @@ class SftpEndpointResolver @Inject constructor(
     // address on Drive within minutes, and a per-epoch cache would hide it until the next network change.
     private val fallbackUntilMs = ConcurrentHashMap<String, Long>()
 
+    // Owned by this singleton for the process's life; every attempt in it ends at its own window.
+    private val raceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     init {
         networkStateMonitor.registerCallback(this)
     }
@@ -83,7 +89,7 @@ class SftpEndpointResolver @Inject constructor(
             return requested
         }
 
-        val answered = probe(candidates, group.pin) ?: rendezvousRetry(group)
+        val answered = probe(candidates, group.pin, group.discovered) ?: rendezvousRetry(group)
         val winner = answered ?: candidates.first()
         // LAN-DISCOVERY rule 5: a discovered endpoint that lost the race is re-resolved once, not trusted.
         if (group.discovered != null && group.pin != null && winner != group.discovered) {
@@ -126,7 +132,6 @@ class SftpEndpointResolver @Inject constructor(
      */
     private suspend fun rendezvousRetry(group: CandidateGroup): HostPort? {
         val pin = group.pin ?: return null
-        Timber.d("S4110: every stored candidate failed, retrying with Drive-announced addresses")
         rendezvous.refreshAfterFailure()
         val fresh = rendezvous.endpointsFor(pin) - group.endpoints.toSet()
         val winner = if (fresh.isEmpty()) null else probe(fresh, pin)
@@ -208,19 +213,34 @@ class SftpEndpointResolver @Inject constructor(
     }
 
     /**
-     * Happy-eyeballs: probe every candidate concurrently, prefer the LAN (first) candidate within a
-     * short grace window, otherwise take the first candidate (in contract order) that answers.
-     * Returns null only when no candidate answers, so the caller falls back to the primary and the
-     * normal SFTP connect surfaces the real error instead of hanging.
+     * The race of contract DEVICE-EXCHANGE item BB over [SftpChannelRacePlan]: direct addresses, then the port
+     * forward, then the tunnel, each attempt started a stagger after the previous one and bounded by the window of
+     * its kind; the first that answers wins. Returns null only when no candidate answers, so the caller falls back
+     * to the primary and the normal SFTP connect surfaces the real error instead of hanging.
+     *
+     * The attempts run in [raceScope], not in the caller's scope: a blocking socket connect ignores cancellation,
+     * and waiting for a losing tunnel attempt's window would hold the winner back by up to ten seconds.
      */
-    private suspend fun probe(candidates: List<HostPort>, pin: String?): HostPort? = coroutineScope {
-        val jobs = candidates.map { candidate ->
-            async(Dispatchers.IO) { if (isReachable(candidate, pin)) candidate else null }
+    private suspend fun probe(candidates: List<HostPort>, pin: String?, discovered: HostPort? = null): HostPort? {
+        val attempts = SftpChannelRacePlan.plan(candidates, discovered)
+        val winner = CompletableDeferred<HostPort?>()
+        val jobs = attempts.map { attempt ->
+            raceScope.launch {
+                delay(attempt.startDelayMs)
+                if (isReachable(attempt.endpoint, pin, attempt.windowMs)) {
+                    Timber.d("S4224: race attempt answered kind=${attempt.kind} delay=${attempt.startDelayMs}")
+                    winner.complete(attempt.endpoint)
+                }
+            }
         }
-        try {
-            withTimeoutOrNull(LAN_GRACE_MS) { jobs.first().await() }?.let { return@coroutineScope it }
-            jobs.mapNotNull { it.await() }.firstOrNull()
+        val allDone = raceScope.launch {
+            jobs.joinAll()
+            winner.complete(null)
+        }
+        return try {
+            winner.await()
         } finally {
+            allDone.cancel()
             jobs.forEach { it.cancel() }
         }
     }
@@ -232,17 +252,18 @@ class SftpEndpointResolver @Inject constructor(
      */
     // A tunnel address is no TCP endpoint of its own: only the SSH handshake through the exchange
     // server proves it, so an unpinned tunnel candidate is never raced on a bare socket.
-    private suspend fun isReachable(endpoint: HostPort, pin: String?): Boolean = withContext(Dispatchers.IO) {
-        when {
-            pin != null -> presentsPinnedKey(endpoint, pin)
-            SftpTunnelAddress.isTunnel(endpoint.host) -> false
-            else -> acceptsTcp(endpoint)
+    private suspend fun isReachable(endpoint: HostPort, pin: String?, windowMs: Int): Boolean =
+        withContext(Dispatchers.IO) {
+            when {
+                pin != null -> presentsPinnedKey(endpoint, pin, windowMs)
+                SftpTunnelAddress.isTunnel(endpoint.host) -> false
+                else -> acceptsTcp(endpoint, windowMs)
+            }
         }
-    }
 
-    private fun acceptsTcp(endpoint: HostPort): Boolean = try {
+    private fun acceptsTcp(endpoint: HostPort, windowMs: Int): Boolean = try {
         Socket().use { socket ->
-            socket.connect(InetSocketAddress(endpoint.host, endpoint.port), PROBE_TIMEOUT_MS)
+            socket.connect(InetSocketAddress(endpoint.host, endpoint.port), windowMs)
         }
         true
     } catch (e: IOException) {
@@ -254,14 +275,14 @@ class SftpEndpointResolver @Inject constructor(
      * Runs the SSH key exchange only: [KeyExchangeProbe] records the verdict and then rejects every
      * key, so JSch aborts before authentication and the server never sees a login attempt.
      */
-    private fun presentsPinnedKey(endpoint: HostPort, pin: String): Boolean {
+    private fun presentsPinnedKey(endpoint: HostPort, pin: String, windowMs: Int): Boolean {
         val verdict = KeyExchangeProbe(PinnedHostKeyRepository(pin))
         val session = JSch().getSession(PROBE_USER, endpoint.host, endpoint.port)
         ExchangeTunnelProxy.attachIfTunnel(session, endpoint.host)
         session.setHostKeyRepository(verdict)
         session.setConfig("StrictHostKeyChecking", "yes")
         try {
-            session.connect(PROBE_TIMEOUT_MS)
+            session.connect(windowMs)
         } catch (e: JSchException) {
             // Expected on every path: the probe's own rejection aborts even a matching handshake.
             if (!verdict.matched) {
@@ -288,8 +309,6 @@ class SftpEndpointResolver @Inject constructor(
     private fun key(host: String, port: Int): String = "$host:$port"
 
     companion object {
-        private const val PROBE_TIMEOUT_MS = 2500
-        private const val LAN_GRACE_MS = 600L
         private const val PROBE_USER = "fms-probe"
         private const val PINNED_FALLBACK_CACHE_MS = 60_000L
     }

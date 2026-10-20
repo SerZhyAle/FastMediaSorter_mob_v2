@@ -96,6 +96,21 @@
             android:textAppearance="?attr/textAppearanceBodySmall"
             android:visibility="gone" />
 
+        <TextView
+            android:id="@+id/textExchangeSignInInvitation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:accessibilityLiveRegion="polite"
+            android:drawablePadding="@dimen/margin_small"
+            android:drawableStart="@drawable/ic_exchange_invitation"
+            android:drawableTint="?attr/colorControlNormal"
+            android:gravity="center_vertical"
+            android:text="@string/exchange_signin_invitation_present"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:visibility="gone" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilExchangeSignInAddress"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -153,7 +168,29 @@
                 android:imeOptions="actionDone|flagNoExtractUi"
                 android:inputType="textPassword"
                 android:nextFocusUp="@id/etExchangeSignInLogin"
-                android:nextFocusDown="@id/checkExchangeSignInUseCode" />
+                android:nextFocusDown="@+id/etExchangeSignInPasswordRepeat" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilExchangeSignInPasswordRepeat"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:hint="@string/exchange_signin_password_repeat"
+            android:visibility="gone"
+            app:endIconMode="password_toggle">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etExchangeSignInPasswordRepeat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:imeOptions="actionDone|flagNoExtractUi"
+                android:inputType="textPassword"
+                android:nextFocusUp="@id/etExchangeSignInSecret"
+                android:nextFocusDown="@+id/checkExchangeSignInUseCode" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow
@@ -162,15 +199,54 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_small"
             android:nextFocusUp="@id/etExchangeSignInSecret"
+            android:nextFocusDown="@+id/checkExchangeSignInUseInvitationPassword"
             app:fcr_title="@string/exchange_devices_signin_use_code" />
 
-        <TextView
-            android:id="@+id/textExchangeSignInStatus"
+        <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow
+            android:id="@+id/checkExchangeSignInUseInvitationPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_small"
-            android:accessibilityLiveRegion="polite"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:visibility="gone" />
+            android:nextFocusUp="@id/checkExchangeSignInUseCode"
+            android:nextFocusDown="@+id/etExchangeSignInInvitationPassword"
+            app:fcr_title="@string/exchange_signin_use_invitation_password" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilExchangeSignInInvitationPassword"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:hint="@string/exchange_signin_invitation_password"
+            android:visibility="gone"
+            app:endIconMode="password_toggle">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etExchangeSignInInvitationPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:imeOptions="actionDone|flagNoExtractUi"
+                android:inputType="textPassword"
+                android:nextFocusUp="@id/checkExchangeSignInUseInvitationPassword" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExchangePortalSignIn"
+            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusUp="@id/checkExchangeSignInUseInvitationPassword"
+            android:text="@string/exchange_portal_link_my_devices" />
+
+        <include
+            android:id="@+id/exchangeFailurePanel"
+            layout="@layout/view_exchange_failure_panel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 </ScrollView>

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.30 08:05</sub>
+<sub class="doc-stamp">26.10.18 15:45</sub>
 
 # Pre-publication testing tools and requirements for eight distribution channels
 
@@ -43,7 +43,7 @@ How to read this file: entries marked **[Verified 2026-09-21]** were read live f
 - **Target API**: Wear apps must target **API 34+ from 2025-08-31**, **API 35+ from 2026-08-31**; apps at or below API 31 are not discoverable on newer Wear devices. **64-bit support mandatory from 2026-09-15.** **[Verified 2026-09-21]**
 - Visual/UX (selection): WO-V2 touch targets 48x48 dp; WO-V3 swipe-to-close back navigation on almost all screens; WO-V4 use `OngoingActivity`/Live Update for long-running operations; WO-V13 black background for apps and tiles; WO-V14 minimum 12 sp essential / 10 sp non-essential text; WO-V15 splash icon 48 dp on black; WO-V16 content fits >= 192 dp circle; WO-V5 preserve state across background/foreground. **[Verified 2026-09-21]**
 - Function/performance: WO-P2/P3 install-launch-run without crashes; WO-P5 non-standalone apps must work with the companion; WO-P6 no direct username/password entry on the watch; watch-face specific budgets (Watch Face Format): WO-P7 always-on <= 15% lit pixels, WO-P8 <= 10 MB ambient / <= 100 MB interactive memory, WO-P10 <= 8 complication slots. **[Verified 2026-09-21]**
-- Listing: WO-G7 Wear + phone apps must share the same package name and signing key; WO-G3/G4 watch-face icons must be a centered circular face touching the icon edges (from **2026-07-15**); WO-G5/G6 screenshots 1:1, no device frames, no transparency; WO-G2 listing must not say "Android Wear". **[Verified 2026-09-21]**
+- Listing: WO-G7 Wear + phone apps must share the same package name and signing key; WO-G3/G4 watch-face icons must accurately represent the face, carry no text or graphics the face does not draw, and be a centered circular face touching the icon edges (from **2026-07-15**; a drawn icon was rejected on 2026-10-18 - use a capture of the face, recipe in `play/watchface/README.md`) **[Verified 2026-10-18]**; WO-G5/G6 screenshots 1:1, no device frames, no transparency; WO-G2 listing must not say "Android Wear". **[Verified 2026-09-21]**
 - **Watch Face Format required for all new watch faces from January 2026.** **[Verified 2026-09-21]**
 
 ---

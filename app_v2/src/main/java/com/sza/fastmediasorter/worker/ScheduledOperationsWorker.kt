@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -19,10 +20,18 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.core.util.StoragePermissionRule
-import com.sza.fastmediasorter.domain.model.MIN_SCHEDULED_INTERVAL_MS
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.domain.model.ScheduledRunOutcome
+import com.sza.fastmediasorter.domain.model.ScheduledRunRecord
+import com.sza.fastmediasorter.domain.model.afterRun
+import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
+import com.sza.fastmediasorter.domain.repository.ScheduledRunJournalRepository
 import com.sza.fastmediasorter.domain.usecase.ExecuteScheduledOperationUseCase
+import com.sza.fastmediasorter.domain.usecase.ScheduledExecutionResult
+import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import timber.log.Timber
@@ -32,7 +41,9 @@ class ScheduledOperationsWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted workerParams: WorkerParameters,
     private val executeScheduledOperationUseCase: ExecuteScheduledOperationUseCase,
-    private val scheduledOperationRepository: ScheduledOperationRepository
+    private val scheduledOperationRepository: ScheduledOperationRepository,
+    private val runJournal: ScheduledRunJournalRepository,
+    private val resourceRepository: ResourceRepository
 ) : CoroutineWorker(context, workerParams) {
 
     companion object {
@@ -42,6 +53,9 @@ class ScheduledOperationsWorker @AssistedInject constructor(
         // S0710: separate id so the permission advisory survives the ongoing "running" notification.
         // S1292: ids now come from NotificationIds - two sync workers used to reuse this very value.
         private const val PERMISSION_NOTIFICATION_ID = NotificationIds.SCHEDULED_OPERATIONS_PERMISSION
+
+        // Kept short: the journal row and the notification body are one or two lines on a phone.
+        private const val MAX_MESSAGE_LENGTH = 300
 
         // S0759: live counter of in-flight scheduled file operations. This worker runs as a foreground
         // service (DATA_SYNC) for its whole doWork(), so a non-zero count means a background file op is
@@ -81,28 +95,22 @@ class ScheduledOperationsWorker @AssistedInject constructor(
         // S0759: mark this op in-flight for the whole foreground run so the exit button can detect it.
         onWorkStarted()
         try {
-            try {
-                setForeground(createForegroundInfo())
-            } catch (e: Exception) {
-                Timber.w(e, "ScheduledOperationsWorker: setForeground failed (non-fatal)")
-            }
+            // The marker the next SINCE_LAST run compares against is this moment, not the finish: a file
+            // that appears while the run is copying must stay newer than it.
+            val startedAt = System.currentTimeMillis()
+            val foregroundNote = enterForeground()
 
             val execResult = executeScheduledOperationUseCase(operationId)
 
-            // Update lastRunAt, lastRunStatus, nextRunAt in DB; rescheduling is handled by the
-            // WorkManagerScheduler observer.
+            // Update lastRunAt, lastRunStatus, lastSuccessAt, nextRunAt in DB; rescheduling is handled by the
+            // WorkManagerScheduler observer. The row is re-read: the user may have edited it mid-run.
             val operation = scheduledOperationRepository.getById(operationId)
             if (operation != null && operation.isEnabled) {
-                val now = System.currentTimeMillis()
-                val nextRunAt = calculateNextRunAt(operation, now)
-                val updated = operation.copy(
-                    lastRunAt = now,
-                    lastRunStatus = execResult.statusString,
-                    lastSuccessAt = if (execResult.isSuccess) now else operation.lastSuccessAt,
-                    nextRunAt = nextRunAt,
-                    workerId = "sched_op_$operationId"
+                val finishedAt = System.currentTimeMillis()
+                scheduledOperationRepository.update(
+                    operation.afterRun(execResult.outcome, runReason(execResult), startedAt, finishedAt)
                 )
-                scheduledOperationRepository.update(updated)
+                reportRun(operation, execResult, journalRecord(execResult, startedAt, finishedAt, foregroundNote))
             }
 
             // S0710: a permission-required halt cannot be resolved in the background. Tell the user once so
@@ -113,10 +121,115 @@ class ScheduledOperationsWorker @AssistedInject constructor(
 
             Timber.i("ScheduledOperationsWorker: op=$operationId done - ${execResult.filesProcessed} files, errors=${execResult.errors.size}")
             com.sza.fastmediasorter.widget.ScheduledTasksWidgetRefresher.refresh(context)
+            // Always success on purpose: the owner rejected retries, the next slot is the retry, and the
+            // reschedule observer only continues the chain from a SUCCEEDED state.
             return Result.success()
         } finally {
             onWorkFinished()
         }
+    }
+
+    /**
+     * Promotes the run to a foreground service. A refusal (Android 12+ background-start limits, a
+     * revoked notification channel) used to be swallowed; it is now returned as a note that the run
+     * journal keeps, so a run that later dies mid-way is explainable from the screen.
+     */
+    private suspend fun enterForeground(): String? = try {
+        setForeground(createForegroundInfo())
+        null
+    } catch (e: Exception) {
+        Timber.w(e, "ScheduledOperationsWorker: setForeground failed (non-fatal)")
+        "Foreground service could not start: ${e.message ?: e.javaClass.simpleName}"
+    }
+
+    /**
+     * Journal entry and failure notification. Neither may fail the work: the reschedule observer only
+     * continues the chain from a SUCCEEDED state, so an exception out of here would stop the schedule
+     * for good, over a missing history line.
+     */
+    private suspend fun reportRun(
+        operation: ScheduledOperation,
+        result: ScheduledExecutionResult,
+        record: ScheduledRunRecord
+    ) {
+        try {
+            runJournal.append(operation.id, record)
+            notifyRunFailed(operation, result)
+        } catch (e: Exception) {
+            e.rethrowIfCancellation()
+            Timber.w(e, "ScheduledOperationsWorker: could not report run of op=${operation.id}")
+        }
+    }
+
+    private fun runReason(result: ScheduledExecutionResult): String? =
+        (result.skippedReason ?: result.errors.firstOrNull())?.take(MAX_MESSAGE_LENGTH)
+
+    private fun journalRecord(
+        result: ScheduledExecutionResult,
+        startedAt: Long,
+        finishedAt: Long,
+        foregroundNote: String?
+    ) = ScheduledRunRecord(
+        startedAt = startedAt,
+        finishedAt = finishedAt,
+        outcome = result.outcome,
+        filesProcessed = result.filesProcessed,
+        message = runReason(result),
+        note = foregroundNote
+    )
+
+    /**
+     * S4211: one notification for a run that ended in ERROR. A skipped run (offline server) is a normal
+     * state and a permission halt has its own advisory, so neither posts here. The schedule card keeps
+     * the warning badge either way - that is the mark for a device without the notification permission.
+     */
+    private suspend fun notifyRunFailed(operation: ScheduledOperation, result: ScheduledExecutionResult) {
+        val wanted = result.outcome == ScheduledRunOutcome.ERROR &&
+            !result.permissionRequired &&
+            !operation.silentMode &&
+            NotificationManagerCompat.from(context).areNotificationsEnabled()
+        if (!wanted) return
+        createNotificationChannel()
+        val label = scheduleLabel(operation)
+        val text = context.getString(
+            R.string.scheduled_ops_notif_failed_text,
+            label,
+            runReason(result).orEmpty()
+        )
+        val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+            .setContentTitle(context.getString(R.string.scheduled_ops_notif_failed_title))
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
+            .setAutoCancel(true)
+            .setContentIntent(buildScreenIntent())
+            .build()
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.notify(
+            NotificationIds.slotIn(NotificationIds.SCHEDULED_OPERATION_FAILURES, operation.id.toInt()),
+            notification
+        )
+    }
+
+    private suspend fun scheduleLabel(operation: ScheduledOperation): String {
+        val source = resourceRepository.getResourceById(operation.sourceResourceId)?.name
+            ?: context.getString(R.string.scheduled_op_unknown_resource)
+        if (operation.operationType == ScheduledOpType.DELETE || operation.targetResourceId == null) return source
+        val target = resourceRepository.getResourceById(operation.targetResourceId)?.name
+            ?: context.getString(R.string.scheduled_op_unknown_resource)
+        return "$source → $target"
+    }
+
+    private fun buildScreenIntent(): PendingIntent {
+        val intent = Intent(context, ScheduledOperationsActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
+        return PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     private fun notifyPermissionRequired() {
@@ -154,11 +267,6 @@ class ScheduledOperationsWorker @AssistedInject constructor(
             Timber.w(e, "ScheduledOperationsWorker: failed to build All-Files-Access intent")
             null
         }
-    }
-
-    private fun calculateNextRunAt(op: ScheduledOperation, fromMs: Long): Long {
-        val intervalMs = (op.intervalHours * 3600L + op.intervalMinutes * 60L) * 1000L
-        return fromMs + intervalMs.coerceAtLeast(MIN_SCHEDULED_INTERVAL_MS)
     }
 
     private fun createForegroundInfo(): ForegroundInfo {

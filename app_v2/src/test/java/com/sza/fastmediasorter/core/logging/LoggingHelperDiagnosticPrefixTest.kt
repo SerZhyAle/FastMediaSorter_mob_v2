@@ -12,6 +12,12 @@ import org.junit.Test
 class LoggingHelperDiagnosticPrefixTest {
 
     @Test
+    fun `process exits are persisted in release logs`() {
+        assertTrue(isAlwaysPersistedDiagnostic("Process exit: API unavailable; cause unknown"))
+        assertFalse(isAlwaysPersistedDiagnostic("Retry after Process exit: API unavailable"))
+    }
+
+    @Test
     fun `stream session summary is persisted`() {
         assertTrue(isAlwaysPersistedDiagnostic("Stream session: ttff=812ms stalls=3 dropped=0"))
     }
@@ -36,6 +42,36 @@ class LoggingHelperDiagnosticPrefixTest {
     @Test
     fun `audio diag lines are persisted`() {
         assertTrue(isAlwaysPersistedDiagnostic("Audio diag: decoder initialized name=c2.android.aac"))
+    }
+
+    @Test
+    fun `startup info is persisted`() {
+        assertTrue(isAlwaysPersistedDiagnostic("Startup info:\n==========================================\n"))
+    }
+
+    @Test
+    fun `settings dump is persisted`() {
+        assertTrue(isAlwaysPersistedDiagnostic("Settings dump:\n==========================================\n"))
+    }
+
+    @Test
+    fun `player playVideo START is persisted`() {
+        assertTrue(isAlwaysPersistedDiagnostic("PlayerMediaLoaderManager.playVideo: START - path=/sdcard/video.mp4"))
+    }
+
+    @Test
+    fun `player playing file is persisted`() {
+        assertTrue(
+            isAlwaysPersistedDiagnostic(
+                "PlayerMediaLoaderManager: playing file=track01.mp3 type=AUDIO size=4096KB resource=local isAudio=true"
+            )
+        )
+    }
+
+    @Test
+    fun `generic app and player diag lines are persisted`() {
+        assertTrue(isAlwaysPersistedDiagnostic("App diag: foreground transition reason=user"))
+        assertTrue(isAlwaysPersistedDiagnostic("Player diag: track transition old=1 new=2"))
     }
 
     @Test

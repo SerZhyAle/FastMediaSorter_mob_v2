@@ -206,6 +206,11 @@ class PlayerMediaLoaderManager(
         // The settings screen offers 1..600 s; the clamp guards a hand-edited or migrated value.
         private const val PANEL_AUTO_HIDE_MAX_SECONDS = 600
         private const val MILLIS_PER_SECOND = 1000
+
+        private val IMAGE_EXTENSIONS = setOf(
+            ".jpg", ".jpeg", ".png", ".gif", ".webp",
+            ".bmp", ".heif", ".heic", ".avif", ".jxl"
+        )
     }
 
     private val stereoDetector = com.sza.fastmediasorter.ui.player.StereoDetector()
@@ -262,7 +267,7 @@ class PlayerMediaLoaderManager(
             handleCooldownReentry(path, remainingSec)
             return
         }
-        Timber.w("PlayerMediaLoaderManager.playVideo: START - path=$path")
+        Timber.i("PlayerMediaLoaderManager.playVideo: START - path=$path")
         // Only cancel prefetch if the new file differs from what is being prefetched
         if (audioPrefetchPath != path) {
             cancelAudioPrefetch()
@@ -277,9 +282,11 @@ class PlayerMediaLoaderManager(
         
         // Safety check: never try to play image files with ExoPlayer
         val lowerPath = path.lowercase()
-        val imageExtensions = listOf(".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".heif", ".heic", ".avif")
-        if (imageExtensions.any { lowerPath.endsWith(it) }) {
-            Timber.w("PlayerMediaLoaderManager.playVideo: Detected image file (${lowerPath.substringAfterLast('.')}), redirecting to displayImage()")
+        if (IMAGE_EXTENSIONS.any { lowerPath.endsWith(it) }) {
+            Timber.w(
+                "PlayerMediaLoaderManager.playVideo: Detected image file " +
+                    "(${lowerPath.substringAfterLast('.')}), redirecting to displayImage()"
+            )
             displayImage(path)
             return
         }
@@ -303,7 +310,7 @@ class PlayerMediaLoaderManager(
         }
 
         val isAudioFile = currentFile?.type == MediaType.AUDIO
-        Timber.w(
+        Timber.i(
             "PlayerMediaLoaderManager: playing file=" + (currentFile?.name ?: "<unknown>") +
             " type=" + (currentFile?.type ?: "?") +
             " size=" + ((currentFile?.size ?: 0L) / 1024L) + "KB" +

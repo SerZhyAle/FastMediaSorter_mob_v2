@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: doc
 title: "Легенда значків"
 permalink: /docs/ICON_LEGEND-uk.html
 ---
@@ -38,6 +38,8 @@ permalink: /docs/ICON_LEGEND-uk.html
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Дата і час |
 | <img src="icons/svg/ic_developer_options.svg" alt="ic_developer_options" width="24" height="24"> | Для розробників |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Дисплей |
+| <img src="icons/svg/ic_clipboard_get_server.svg" alt="ic_clipboard_get_server" width="24" height="24"> | Отримати буфер із сервера |
+| <img src="icons/svg/ic_clipboard_send_server.svg" alt="ic_clipboard_send_server" width="24" height="24"> | Надіслати буфер на сервер |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Обране |
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Фронтальний ліхтарик |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Міні-гра |
@@ -135,8 +137,8 @@ permalink: /docs/ICON_LEGEND-uk.html
 | <img src="icons/svg/ic_mirror.svg" alt="ic_mirror" width="24" height="24"> | Дзеркало |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Статистика |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Відеозапис екрана |
-| <img src="icons/svg/ic_cloud.svg" alt="ic_cloud" width="24" height="24"> | Доступ через Google Диск |
-| <img src="icons/svg/ic_cloud.svg" alt="ic_cloud" width="24" height="24"> | Сервер обміну |
+| <img src="icons/svg/ic_cloud.svg" alt="ic_cloud" width="24" height="24"> | Доступ через Google Drive |
+| <img src="icons/svg/ic_exchange_mono.svg" alt="ic_exchange_mono" width="24" height="24"> | Сервер обміну |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | SFTP-сервер |
 | <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Показувати кнопку «Чорний екран» |
 | <img src="icons/svg/ic_resource_cloud.svg" alt="ic_resource_cloud" width="24" height="24"> | У хмарних ресурсах |
@@ -155,6 +157,7 @@ permalink: /docs/ICON_LEGEND-uk.html
 
 | Значок | Значення |
 |---|---|
+| <img src="icons/svg/ic_repeat_one.svg" alt="ic_repeat_one" width="24" height="24"> | Повтор A-B |
 | <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Чорний екран |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Вивести на екран.. |
 | <img src="icons/svg/ic_compress.svg" alt="ic_compress" width="24" height="24"> | Стиснута копія |
@@ -169,9 +172,14 @@ permalink: /docs/ICON_LEGEND-uk.html
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Пошук по всіх главах |
 | <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Налаштування тексту |
 | <img src="icons/svg/ic_star_outline.svg" alt="ic_star_outline" width="24" height="24"> | Обране |
+| <img src="icons/svg/ic_view_grid.svg" alt="ic_view_grid" width="24" height="24"> | Сітка мініатюр |
+| <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Список файлів |
+| <img src="icons/svg/ic_skip_previous.svg" alt="ic_skip_previous" width="24" height="24"> | Попередній кадр недоступний: декодер не підтримує крок назад. |
+| <img src="icons/svg/ic_skip_next.svg" alt="ic_skip_next" width="24" height="24"> | Наступний кадр |
 | <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | На весь екран |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Пошук у Google Lens |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Пошук у Google Lens |
+| <img src="icons/svg/ic_help_outline.svg" alt="ic_help_outline" width="24" height="24"> | Довідка |
 | <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Налаштування тексту |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Інформація про файл |
 | <img src="icons/svg/ic_lyrics.svg" alt="ic_lyrics" width="24" height="24"> | Текст пісні |

@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityTouristInfoBinding
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
 import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
+import com.sza.fastmediasorter.ui.common.help.HelpToolbarEntryManager
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristActionsManager
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristHeroTileManager
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristPermissionManager
@@ -52,6 +53,7 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
     override fun setupViews() {
         binding.touristRoot.applySystemBarInsetPadding()
         binding.toolbar.setUpNavigation(this)
+        HelpToolbarEntryManager.install(binding.toolbar, this, getHelpSurfaceId(), null)
 
         val valueFormatter = TouristTileValueFormatter(this, quantityFormatter) {
             unitSystemProvider.value

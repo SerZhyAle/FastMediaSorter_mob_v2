@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "اپنی واچ پر میوزک سنیں - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music-ur.html
 ---
-<sub class="doc-stamp">26.09.25 02:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-music-ur.html
 > **سطح:** ابتدائی &bull; **وقت:** ~5 منٹ &bull; **ڈیوائس:** Wear OS اسمارٹ واچ (Android فون کے ساتھ پیئرڈ)
 
 > **صرف مکمل ورژن** - یہ رہنما Google Play کے ذریعے تقسیم کیے گئے ورژن میں شامل نہیں ہے۔ یہ مکمل ورژن پر لاگو ہوتا ہے، [Downloads](../DOWNLOADS.md) سے براہ راست APK ڈاؤن لوڈ۔
-
-{% include lang-switcher.html doc="scenario-watch-music" dir="/docs/howto/" current="ur" %}
 
 FastMediaSorter آپ کو اپنی اسمارٹ واچ Wear OS سے براہ راست اپنا میوزک کلیکشن براؤز اور چلانے دیتا ہے۔ آپ اپنے پیئرڈ فون سے شیئر کردہ ٹریکس اسٹریم کر سکتے ہیں یا واچ کے اسٹوریج میں محفوظ مقامی آڈیو فائلیں چلا سکتے ہیں، کور آرٹ ورک، شفل، روٹری بیزل والیوم کنٹرول، ایپ چھوڑنے پر بھی برقرار رہنے والا بیک گراؤنڈ پلے بیک، اور ایک اسکرین-آف موڈ کے ساتھ جو ڈسپلے تاریک ہونے پر بھی میوزک جاری رکھتا ہے۔
 

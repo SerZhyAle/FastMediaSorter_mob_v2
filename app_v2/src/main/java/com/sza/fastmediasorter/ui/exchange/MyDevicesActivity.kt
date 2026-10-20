@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.exchange
 
 import android.content.Context
 import android.content.Intent
+import android.view.Menu
 import android.view.View
 import android.widget.PopupMenu
 import android.widget.Toast
@@ -14,6 +15,9 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityMyDevicesBinding
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeAccountDialogManager
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeFailureDialogManager
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeIntakeLaunchers
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeServerCardAdapter
 import com.sza.fastmediasorter.ui.exchange.helpers.MyDevicesDialogManager
@@ -45,6 +49,8 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
         readUri = { uri -> viewModel.readConnectionFile(contentResolver, uri) },
     )
     private val dialogs: MyDevicesDialogManager by lazy { MyDevicesDialogManager(this, viewModel, launchers) }
+    private val accountDialogs: ExchangeAccountDialogManager by lazy { ExchangeAccountDialogManager(this, viewModel) }
+    private val failureDialogs: ExchangeFailureDialogManager by lazy { ExchangeFailureDialogManager(this) }
     private val adapter: ExchangeServerCardAdapter by lazy {
         ExchangeServerCardAdapter(
             dialogs::showDevices,
@@ -54,7 +60,13 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
 
     override fun getViewBinding(): ActivityMyDevicesBinding = ActivityMyDevicesBinding.inflate(layoutInflater)
 
-    override fun getMouseScrollTargetView(): View = binding.rvExchangeServers
+    override fun getMouseScrollTargetView(): View = binding.scrollExchangeServers
+
+    // S4328: the "?" help action rides the support action bar; BaseActivity routes its click.
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_help_action, menu)
+        return true
+    }
 
     override fun setupViews() {
         setSupportActionBar(binding.toolbar)
@@ -64,6 +76,17 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
         binding.rvExchangeServers.adapter = adapter
         binding.btnExchangeAddServer.setOnClickListener {
             startActivity(ExchangeSignInActivity.createIntent(this))
+        }
+        binding.btnExchangePortalAddServer.setOnClickListener {
+            MediaExchangePortalLinks.open(this, MediaExchangePortalLinks.Page.MY_DEVICES)
+        }
+        binding.btnExchangePortalServer.setOnClickListener {
+            MediaExchangePortalLinks.open(this, MediaExchangePortalLinks.Page.EXCHANGE_SERVER)
+        }
+        // The same condition as the Connect watch menu item: the page is about that action.
+        binding.btnExchangePortalWatch.isVisible = mediaCapabilities.supportsWearCompanion
+        binding.btnExchangePortalWatch.setOnClickListener {
+            MediaExchangePortalLinks.open(this, MediaExchangePortalLinks.Page.WATCH_EXCHANGE)
         }
     }
 
@@ -75,9 +98,11 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
         collectOnLifecycle(viewModel.messages) { message ->
             Toast.makeText(this, dialogs.resolve(message), Toast.LENGTH_LONG).show()
         }
+        collectOnLifecycle(viewModel.failures) { failureDialogs.show(it) }
         collectOnLifecycle(viewModel.signIn) { dialogs.renderSignIn(it) }
         collectOnLifecycle(viewModel.devices) { dialogs.renderDevices(it) }
         collectOnLifecycle(viewModel.pairingCode) { dialogs.renderPairingCode(it) }
+        collectOnLifecycle(viewModel.accountAction) { accountDialogs.render(it) }
     }
 
     override fun getInitialFocusView(): View? =
@@ -100,13 +125,23 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
                 R.id.action_exchange_make_outgoing -> viewModel.makeOutgoing(entry)
                 R.id.action_exchange_connect_watch -> viewModel.connectWatch(entry)
                 R.id.action_exchange_share -> dialogs.showShare(entry)
+                R.id.action_exchange_administer -> startActivity(ExchangeServerAdminActivity.createIntent(this, entry))
                 R.id.action_exchange_auto_attach -> viewModel.setAutoAttach(entry, !entry.autoAttach)
+                R.id.action_exchange_sign_in_again -> signInAgain(entry)
+                R.id.action_exchange_change_password -> accountDialogs.showChangePassword(entry)
                 R.id.action_exchange_remove -> dialogs.confirmRemove(entry)
+                R.id.action_exchange_delete_account -> accountDialogs.showDeleteAccount(entry)
                 else -> return@setOnMenuItemClickListener false
             }
             true
         }
         popup.show()
+    }
+
+    // The held address, pin and login refill the form, so the same identity re-enrolls its own deviceId.
+    private fun signInAgain(entry: DeviceExchangeAccountEntry) {
+        dialogs.showSignIn()
+        viewModel.signInAgainString(entry)?.let(dialogs::applyIntakeText)
     }
 
     companion object {

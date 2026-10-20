@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.model
 
+import com.sza.fastmediasorter.utils.SftpPathUtils
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 
 /** The binding of an attached resource (contract DEVICE-EXCHANGE 9.2 and 9.8): its store key and `resourceId`. */
@@ -117,7 +118,8 @@ object ExchangeAttachPlanner {
         val pin = payload?.let { SshFingerprintNormalizer.canonical(it.hostKeyFingerprint) }
         if (payload == null || pin == null) return null
         val root = item.record.root?.let { if (it.startsWith(PATH_SEPARATOR)) it else PATH_SEPARATOR + it }.orEmpty()
-        val tunnel = SftpTunnelAddress.fromPairing(payload) ?: shareTunnel(item.record.shareId, entryEndpoint)
+        val tunnel = SftpTunnelAddress.fromPairing(payload)
+            ?: shareTunnel(item.record.shareId ?: item.record.resourceId, entryEndpoint)
         return Access(
             payload = payload,
             pin = pin,
@@ -149,16 +151,48 @@ object ExchangeAttachPlanner {
 
     /**
      * The attached resource with a later record's access in place of the kept one (9.2), or null when nothing it
-     * stores changed. Everything the user set on the resource stays.
+     * stores changed. Everything the user set on the resource stays, and so does a tunnel through another exchange
+     * server that listed the same folder (item BB): this listing does not own it. [entryHost] is the server of the
+     * entry that listed [access].
      */
-    fun refreshed(bound: MediaResource, access: Access, credentialsId: String): MediaResource? {
+    fun refreshed(bound: MediaResource, access: Access, credentialsId: String, entryHost: String?): MediaResource? {
+        val otherServers = bound.altAccessPaths.filter { alt ->
+            val tunnel = SftpTunnelAddress.parse(alt.host)
+            tunnel != null && tunnel.exchangeHost != entryHost && alt !in access.altPaths
+        }
         val updated = bound.copy(
             path = access.path,
             credentialsId = credentialsId,
             hostKeyFingerprint = access.pin,
-            altAccessPaths = access.altPaths,
+            altAccessPaths = access.altPaths + otherServers,
         )
         return updated.takeIf { it != bound }
+    }
+
+    /** The identity of the folder [item] lists (item BA): its host key and the root a record of it opens. */
+    fun identity(item: ExchangeListedResource, access: Access): ResourceIdentity? =
+        ResourceIdentity.of(item.record.hostKeyFingerprint ?: access.pin, item.record.root ?: item.record.identityRoot)
+
+    /**
+     * [existing] - a record of the same identity reached by another channel - with [item]'s channels added
+     * (item BB). An unbound record takes the binding and every path of [access]; a record already bound to another
+     * entry takes only the tunnel, because its own entry keeps the binding. Name, read-only and every user setting
+     * stay. Null when nothing it stores changes.
+     */
+    fun joined(existing: MediaResource, item: ExchangeListedResource, access: Access): MediaResource? {
+        val unbound = existing.exchangeAccount == null
+        val offered = if (unbound) {
+            access.credentialHosts
+        } else {
+            access.altPaths.filter { SftpTunnelAddress.isTunnel(it.host) }
+        }
+        val primary = SftpPathUtils.parseSftpPath(existing.path)?.let { HostPort(it.host, it.port) }
+        val updated = existing.copy(
+            altAccessPaths = (existing.altAccessPaths + offered).distinct().filterNot { it == primary },
+            exchangeAccount = if (unbound) item.sourceKey else existing.exchangeAccount,
+            exchangeResourceId = if (unbound) item.record.resourceId else existing.exchangeResourceId,
+        )
+        return updated.takeIf { it != existing }
     }
 
     private fun shareTunnel(shareId: String?, entryEndpoint: HostPort?): HostPort? {

@@ -45,6 +45,7 @@ if (-not (Test-Path -LiteralPath $gate)) {
 
 $script:pass = 0
 $script:fail = 0
+$script:skipped = 0
 
 function Assert-That([string]$name, [bool]$ok, [string]$detail) {
     if ($ok) {
@@ -95,6 +96,7 @@ if ($unscopedForbidden -gt 0) {
 }
 else {
     Write-Host '  SKIP  in-scope/out-of-scope pair - the tree currently holds no forbidden log id to place'
+    $script:skipped += 2
 }
 
 # --- Case 4-5: missing-probe half returns a distinct code when scoped ---------------------------
@@ -112,6 +114,7 @@ if ($unscopedMissing -gt 0) {
 }
 else {
     Write-Host '  SKIP  missing-probe pair - every BlockNeedUserTest ticket currently has a probe or an excuse'
+    $script:skipped += 2
 }
 
 # --- Case 6: the release path is untouched ------------------------------------------------------
@@ -143,6 +146,6 @@ Assert-That 'the probe-line-shape predicate accepts only a probe alone on its li
     ($shapeWrong.Count -eq 0) `
     ("misjudged: " + ($shapeWrong -join ' | '))
 
-Write-Host ("`nassert-no-ticket-logs.tests: {0} passed, {1} failed" -f $script:pass, $script:fail)
+Write-Host "assert-no-ticket-logs.tests: $(if ($script:fail) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=$script:skipped)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

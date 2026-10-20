@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "स्मार्टवॉच को NAS और पीसी शेयर से जोड़ें - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-network-hi.html
 ---
-<sub class="doc-stamp">26.09.25 02:21</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-network-hi.html
 > **लेवल:** मध्यम &bull; **समय:** ~10 मिनट &bull; **डिवाइस:** Wear OS स्मार्टवॉच
 
 > **सिर्फ़ फुल वर्शन** - यह गाइड Google Play से मिलने वाले वर्शन में लागू नहीं है. यह फुल वर्शन पर लागू होता है, जो [Downloads](../DOWNLOADS.md) से सीधा APK डाउनलोड है.
-
-{% include lang-switcher.html doc="scenario-watch-network" dir="/docs/howto/" current="hi" %}
 
 Wear OS पर FastMediaSorter Wi-Fi पर सीधे आपके होम नेटवर्क स्टोरेज (NAS, पीसी शेयर की गई फ़ोल्डर, FTP, या SFTP सर्वर) से जुड़ता है. आप रिमोट फ़ाइलें ब्राउज़ कर सकते हैं, Bluetooth हेडफ़ोन पर म्यूज़िक स्ट्रीम कर सकते हैं, और अपने फोन के बिना अपने पसंदीदा फ़ोल्डर सिंक कर सकते हैं.
 

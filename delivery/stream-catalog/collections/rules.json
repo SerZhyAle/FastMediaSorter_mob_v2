@@ -3,7 +3,7 @@
     "id": "tv-europe",
     "order": 10,
     "names": {
-      "en": "Television of Europe",
+      "en": "TV Europe",
       "ru": "Телевидение Европы",
       "uk": "Телебачення Європи"
     },
@@ -16,7 +16,7 @@
     "id": "tv-asia",
     "order": 20,
     "names": {
-      "en": "Television of Asia",
+      "en": "TV Asia",
       "ru": "Телевидение Азии",
       "uk": "Телебачення Азії"
     },
@@ -29,7 +29,7 @@
     "id": "tv-latin-america",
     "order": 30,
     "names": {
-      "en": "Television of Latin America",
+      "en": "TV Latin America",
       "ru": "Телевидение Латинской Америки",
       "uk": "Телебачення Латинської Америки"
     },
@@ -42,7 +42,7 @@
     "id": "tv-africa",
     "order": 40,
     "names": {
-      "en": "Television of Africa",
+      "en": "TV Africa",
       "ru": "Телевидение Африки",
       "uk": "Телебачення Африки"
     },
@@ -55,7 +55,7 @@
     "id": "tv-north-america",
     "order": 50,
     "names": {
-      "en": "Television of North America",
+      "en": "TV North America",
       "ru": "Телевидение Северной Америки",
       "uk": "Телебачення Північної Америки"
     },

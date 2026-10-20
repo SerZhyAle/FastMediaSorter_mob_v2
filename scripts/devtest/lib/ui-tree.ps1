@@ -201,3 +201,49 @@ function Get-ClipVerdict {
     if ($Node.scrollAncestor -and $scrolled -le $r) { return @{ kind = 'CLIPPED'; overflow = $worst } }
     return @{ kind = 'OFF-GLASS'; overflow = $worst }
 }
+
+# The soft keyboard's own window, read from a `dumpsys window windows` dump (S4290). It takes every
+# touch inside its touchable region, so a tap aimed at a node under that region reaches the keys instead.
+#
+# isVisible is the signal, not mInputShown from `dumpsys input_method`: the window block is already in
+# the dump, so one call answers both. A hidden keyboard keeps its block with isVisible=false and prints
+# no touchable region at all, which reads back as no rectangles. The plain `dumpsys window` form has the
+# isVisible line but not the touchable region, so it cannot place the keyboard - this is why the caller
+# asks for `windows`.
+#
+# The region is parsed from every rectangle on its line, not only the first: a region that Skia splits
+# into several pieces must not lose the ones after the first. The block split matches the one
+# Test-SecureFocusedWindow uses, so a neighbouring window's region is never read as the keyboard's.
+function Get-ImeTouchRegion {
+    param([string]$DumpsysWindow)
+    foreach ($block in ($DumpsysWindow -split '(?m)^\s*Window #\d+ ')) {
+        if ($block -notmatch '^Window\{\w+ u\d+ InputMethod\}') { continue }
+        $visible = [bool]($block -match '(?m)^\s*isVisible=true\s*$')
+        if (-not $visible) { return [ordered]@{ visible = $false; package = ''; rects = @() } }
+        $pkg = [regex]::Match($block, '(?m)\bpackage=(\S+)').Groups[1].Value
+        # A plain array: a List handed into the ordered literal below fails with "Argument types do not match".
+        $rects = @()
+        $region = [regex]::Match($block, '(?m)^\s*touchable region=(.*?)\s*$')
+        if ($region.Success) {
+            foreach ($m in [regex]::Matches($region.Groups[1].Value, '\((-?\d+),(-?\d+),(-?\d+),(-?\d+)\)')) {
+                $rects += ,([ordered]@{
+                    x1 = [int]$m.Groups[1].Value; y1 = [int]$m.Groups[2].Value
+                    x2 = [int]$m.Groups[3].Value; y2 = [int]$m.Groups[4].Value
+                })
+            }
+        }
+        return [ordered]@{ visible = $true; package = $pkg; rects = $rects }
+    }
+    return [ordered]@{ visible = $false; package = ''; rects = @() }
+}
+
+# Right and bottom edges are exclusive, as Skia's region and Android's Rect both define them: a point
+# on x2 or y2 lies outside the keyboard, and a tap there reaches the node it names.
+function Test-PointUnderImeRegion {
+    param([int]$X, [int]$Y, $Region)
+    if (-not $Region.visible) { return $false }
+    foreach ($r in $Region.rects) {
+        if ($X -ge $r.x1 -and $X -lt $r.x2 -and $Y -ge $r.y1 -and $Y -lt $r.y2) { return $true }
+    }
+    return $false
+}

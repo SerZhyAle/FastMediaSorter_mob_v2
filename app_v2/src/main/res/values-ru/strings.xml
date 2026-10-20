@@ -17,7 +17,7 @@
     <string name="camera_ocr_save_error">Не удалось сохранить текстовый файл</string>
     <string name="camera_ocr_camera_error">Не удалось запустить камеру или сделать снимок</string>
     <string name="camera_ocr_engine_error">Служба перевода в данный момент недоступна</string>
-    <string name="camera_ocr_crop_retry">Переснять</string>
+    <string name="camera_ocr_crop_retry">Повторить попытку</string>
     <string name="camera_ocr_crop_confirm">Применить</string>
     <string name="camera_ocr_crop_frame_desc">Рамка выделения области</string>
     <string name="start_player">Запустить плеер</string>
@@ -32,11 +32,11 @@
     <string name="edit">Редактировать</string>
     <string name="control">Настройки воспроизведения</string>
     <string name="undo">Отменить</string>
-    <string name="action_retry">Повторить</string>
+    <string name="action_retry">Повторить попытку</string>
     <string name="cancel">Отмена</string>
     <string name="sign_in">Войти</string>
     <string name="ok">ОК</string>
-    <string name="help">Помощь</string>
+    <string name="help">Справка</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
     <string name="select_all">Выбрать всё</string>
@@ -177,7 +177,7 @@
     <string name="connecting_to_resource">Подключение к %1$s..</string>
     <string name="scan_progress_indicator">Сканирование файлов</string>
     <string name="operation_progress_indicator">Операция в процессе</string>
-    <string name="retry">Повторить</string>
+    <string name="retry">Повторить попытку</string>
     <string name="select_resource_type">Выберите тип ресурса</string>
 
     <!-- Connection Error Messages -->
@@ -325,7 +325,7 @@
     <string name="btn_save_copy">Сохранить как копию</string>
     <string name="btn_save_as_copy">Сохранить как копию</string>
     <string name="btn_reset_changes">Сбросить изменения</string>
-    <string name="btn_retry">Повторить</string>
+    <string name="btn_retry">Повторить попытку</string>
     <string name="btn_test_connection">Проверить подключение</string>
     <string name="btn_use_suggested_name">Использовать предложенное имя</string>
     <string name="btn_use_name_format">Использовать \"%1$s\"</string>
@@ -1958,7 +1958,7 @@
     <string name="delivery_state_error">Не удалось скачать - проверьте соединение и повторите.</string>
     <string name="delivery_percent">%1$d%%</string>
     <string name="delivery_action_download">Скачать</string>
-    <string name="delivery_action_retry">Повторить</string>
+    <string name="delivery_action_retry">Попробовать снова</string>
     <string name="delivery_progress_content_description">Ход загрузки</string>
 
     <!-- Extensions Manager Strings -->
@@ -2689,6 +2689,7 @@
     <string name="streams_atlas_prompt_message">Скачать превью каналов, чтобы видеоканалы показывали картинку до запуска?</string>
     <string name="streams_atlas_prompt_action">Скачать</string>
     <string name="streams_filter_topic">Рубрика</string>
+    <string name="streams_filter_collection">Подборка</string>
     <string name="launcher_gadget_weather">Погода</string>
     <string name="launcher_gadget_weather_actions">Погода. Нажмите, чтобы открыть погодное приложение, удерживайте, чтобы сменить место</string>
     <string name="launcher_gadget_weather_no_location">Удерживайте, чтобы выбрать место</string>
@@ -2843,7 +2844,7 @@
     <string name="perm_addendum_read_external_storage_local_resource">Это нужно, чтобы создать локальный ресурс из папки на устройстве.</string>
     <string name="perm_rationale_access_local_network">Приложение подключается к серверам SMB, SFTP, FTP и DLNA в вашей сети и находит их, просматривая устройства в ней. Без этого разрешения такие источники останутся недоступны; за пределы вашей сети приложение не обращается.</string>
     <string name="perm_addendum_camera_qr_pairing">Для сканирования QR-кода companion-приложения нужна камера.</string>
-    <string name="perm_rationale_record_audio">Микрофон нужен для голосовых заметок и для звука в записи экрана. Без него запись не начнётся.</string>
+    <string name="perm_rationale_record_audio">Микрофон нужен для голосовых заметок, для звука в записи экрана и для живого звука при вещании. Без него запись и звуковое вещание не начнутся.</string>
     <string name="perm_addendum_record_audio_screen_recording">Звук в записи экрана берётся с микрофона.</string>
     <string name="perm_addendum_post_notifications_screen_recording">В уведомлении о записи находится кнопка остановки.</string>
     <string name="perm_rationale_location">Местоположение используется только для записи координат в снимки и видео, снятые в приложении. Никуда ничего не отправляется.</string>
@@ -3252,7 +3253,7 @@
     <string name="launcher_now_playing_artwork">Обложка альбома</string>
     <string name="launcher_gadget_translator">Переводчик</string>
     <string name="launcher_translator_hint">Текст для перевода</string>
-    <string name="launcher_translator_paste">Перевести из буфера обмена</string>
+    <string name="launcher_translator_paste">Вставить и перевести</string>
     <string name="launcher_translator_swap">Поменять местами языки</string>
     <string name="launcher_translator_model_missing">Языковой пакет ещё скачивается. Перевод начнётся, как только он будет готов.</string>
     <string name="launcher_translator_empty">Введите или вставьте текст для перевода.</string>
@@ -3624,7 +3625,6 @@
     <string name="exif_orientation_rotate_270">Повёрнуто на 270° по часовой стрелке</string>
     <string name="exif_orientation_unknown">Неизвестно (%1$d)</string>
     <string name="storage_reach_limited_browse">В этой папке доступны только фото, видео и звук. Чтобы увидеть документы, добавьте папку заново и выберите её в системном окне.</string>
-    <string name="file_count_reach_limited">%1$s - только фото, видео и звук</string>
     <string name="reach_limited_nothing_readable">Документы не читаются</string>
     <string name="storage_reach_limited_virtual">Документы и другие файлы на этом устройстве приложению не видны. Чтобы открыть их, добавьте нужную папку через системное окно выбора.</string>
     <string name="storage_reach_limited_browse_reconnect">В этой папке доступны только фото, видео и звук. Чтобы увидеть документы, откройте меню с тремя точками в строке папки на главном экране и выберите «Переподключить ресурс».</string>
@@ -3779,7 +3779,6 @@
     <string name="broadcast_import_dialog_title">Импорт трансляции</string>
     <string name="broadcast_import_option_qr">Сканировать QR-код</string>
     <string name="broadcast_import_malformed">Неверный формат описания трансляции</string>
-    <string name="broadcast_import_unsupported_version">Неподдерживаемая версия описания трансляции</string>
     <string name="broadcast_import_success">Канал трансляции добавлен</string>
     <string name="broadcast_import_option_file">Выбрать файл описания</string>
     <string name="launcher_settings_unit_system_title">Система единиц</string>
@@ -3835,9 +3834,6 @@
     <string name="launcher_tray_battery_charging_ac">Батарея %1$d%%, заряжается от сети</string>
     <string name="launcher_tray_battery_charging_usb">Батарея %1$d%%, заряжается по USB</string>
     <string name="launcher_tray_battery_charging_wireless">Батарея %1$d%%, беспроводная зарядка</string>
-    <string name="streams_collection_all">Все</string>
-    <string name="streams_collection_strip_description">Подборки</string>
-    <string name="streams_collection_selected_count">Каналов в подборке: %1$d</string>
     <string name="camera_session_consent_channel_name">Запросы камеры с часов</string>
     <string name="camera_session_consent_notification_title">Часы просят показать камеру</string>
     <string name="camera_session_consent_notification_text">Разрешить часам смотреть с камеры и микрофона этого телефона.</string>
@@ -4137,7 +4133,7 @@
     <string name="sftp_server_notification_title">SFTP-сервер включён</string>
     <string name="sftp_server_notification_starting">Запуск..</string>
     <string name="sftp_server_notification_address">Подключайтесь к %1$s</string>
-    <string name="sftp_server_notification_no_network">Подключите телефон к Wi-Fi, чтобы другие устройства могли к нему подключиться</string>
+    <string name="sftp_server_notification_no_network">Нет Wi-Fi - другие устройства подключаются к телефону через сервер обмена или через Google Drive</string>
     <string name="sftp_server_action_stop">Остановить</string>
     <string name="settings_sftp_server_title">Доступ по SFTP</string>
     <string name="settings_sftp_server_enable_title">SFTP-сервер</string>
@@ -4145,7 +4141,7 @@
     <string name="settings_sftp_server_status_off">Выключен</string>
     <string name="settings_sftp_server_status_starting">Запуск..</string>
     <string name="settings_sftp_server_status_running">Работает: %1$s</string>
-    <string name="settings_sftp_server_status_no_network">Работает, но телефон не подключён к Wi-Fi - другие устройства пока его не видят</string>
+    <string name="settings_sftp_server_status_no_network">Работает, но телефон не в сети Wi-Fi - другие устройства подключаются к нему через сервер обмена или через Google Drive</string>
     <string name="settings_sftp_server_failure_no_folders">Добавьте хотя бы одну папку и снова включите сервер</string>
     <string name="settings_sftp_server_failure_no_credential">Добавьте открытый ключ или включите вход по паролю, затем снова включите сервер</string>
     <string name="settings_sftp_server_failure_port">Порт %1$d занят другим приложением - выберите другой</string>
@@ -4265,7 +4261,7 @@
     <string name="streams_error_playlist_json_unsupported">Это плейлист в формате JSON. Импортировать можно только списки .m3u и .m3u8.</string>
     <string name="perm_rationale_camera">Камера снимает фото и видео прямо в приложении, распознаёт текст и сканирует QR-коды. Снимки остаются на устройстве, пока вы сами ими не поделитесь или не начнёте трансляцию.</string>
     <string name="perm_rationale_read_phone_state">Строка состояния рабочего стола и монитор сети читают уровень сигнала и сеть каждой SIM-карты, чтобы показать их вам. Звонки и сообщения не затрагиваются, и ничего никуда не отправляется.</string>
-    <string name="perm_rationale_post_notifications">Уведомления показывают ход воспроизведения, передачи файлов, записи и захвата экрана, и в каждом есть кнопка, которая его останавливает. Без этого разрешения работа всё равно идёт, но незаметно.</string>
+    <string name="perm_rationale_post_notifications">Уведомления показывают ход воспроизведения, передачи файлов, записи, захвата экрана и вещания, и в каждом есть кнопка, которая его останавливает. Без этого разрешения работа всё равно идёт, но незаметно.</string>
     <string name="perm_rationale_manage_media">Android спрашивает подтверждение каждый раз, когда приложение перемещает или удаляет фото или видео, созданное не им. С этим доступом файлы, которые вы сортируете, перемещаются и удаляются без лишнего вопроса. Он используется только для файлов, которые вы сами выбрали.</string>
     <string name="perm_rationale_system_alert_window">Полоса жестов у края экрана рисуется поверх других приложений, чтобы её можно было смахнуть откуда угодно. Без этого разрешения полоса не появится. То, что на экране под ней, не читается и не записывается.</string>
     <string name="perm_rationale_request_install_packages">Открытие APK-файла из просматриваемой папки передаёт его установщику Android, которому нужно это разрешение. Приложение ничего не устанавливает само - каждую установку вы подтверждаете на системном экране.</string>
@@ -4338,15 +4334,13 @@
     <string name="settings_sftp_exchange_status_connecting">Подключение к серверу обмена..</string>
     <string name="settings_sftp_exchange_status_registered">Доступен отовсюду через %1$s</string>
     <string name="settings_sftp_exchange_status_registered_port">Доступен отовсюду через %1$s. Другие SFTP-программы: %2$s</string>
-    <string name="settings_sftp_exchange_status_unreachable">Сервер обмена недоступен, повторная попытка</string>
-    <string name="settings_sftp_exchange_status_certificate">Сервер обмена предъявил другой сертификат, подключение остановлено</string>
     <string name="settings_sftp_exchange_new_link">Новая ссылка доступа</string>
     <string name="settings_sftp_exchange_new_link_done">Коды, выданные раньше, больше не открывают этот сервер</string>
     <string name="settings_sftp_server_legacy_qr">Код для старых версий приложения</string>
     <string name="error_sftp_peer_tunnel_not_registered">Устройство с этой папкой сейчас не подключено к своему серверу обмена. Проверьте, что на нём запущен SFTP-сервер и включён «Доступ отовсюду».</string>
     <string name="error_sftp_peer_unreachable_here">Устройство с этой папкой в сети, но из этой сети до него не достучаться. Подключите оба устройства к одному Wi-Fi или настройте «Доступ отовсюду» через сервер обмена.</string>
-    <string name="settings_sftp_drive_access_title">Доступ через Google Диск</string>
-    <string name="settings_sftp_drive_access_subtitle">Записывает адрес, логин и пароль этого сервера в папку приложения на вашем Google Диске, чтобы ваши устройства с тем же аккаунтом Google могли подключиться. Выключено - они видят ресурс, но подключиться к нему не могут.</string>
+    <string name="settings_sftp_drive_access_title">Доступ через Google Drive</string>
+    <string name="settings_sftp_drive_access_subtitle">Записывает адрес, логин и пароль этого сервера в папку приложения в вашем Google Drive, чтобы ваши устройства с тем же аккаунтом Google могли подключиться. Выключено - они видят ресурс, но подключиться к нему не могут.</string>
     <string name="tourist_tile_pressure">Давление</string>
     <string name="tourist_tile_baro_altitude">Высота по барометру</string>
     <string name="tourist_tile_elevation_gain_loss">Набор высоты</string>
@@ -4447,4 +4441,57 @@
     <string name="tourist_stopwatch_action_stop">Стоп</string>
     <string name="tourist_stopwatch_action_reset">Сброс</string>
     <string name="tourist_stopwatch_action_open_full">Открыть секундомер</string>
+    <string name="sftp_server_notification_paused_title">Раздача приостановлена</string>
+    <string name="sftp_server_notification_paused_text">Android приостановил раздачу по суточному пределу. Откройте приложение, чтобы продолжить.</string>
+    <string name="settings_sftp_server_status_paused">Приостановлено Android - продолжится, когда вы откроете приложение</string>
+    <string name="broadcast_failed_file">Этот файл нельзя вещать - он не открылся или не содержит проигрываемой дорожки</string>
+    <string name="broadcast_notification_file_title">Вещание файла</string>
+    <string name="broadcast_notification_file_text">Идёт вещание файла</string>
+    <string name="broadcast_control_file_action">Вещать готовый файл</string>
+    <string name="broadcast_control_screen_action">Вещать экран</string>
+    <string name="broadcast_notification_screen_title">Вещание экрана</string>
+    <string name="broadcast_notification_screen_text">Идёт вещание экрана</string>
+    <string name="broadcast_share_password">Пароль: %1$s</string>
+    <string name="broadcast_share_new_password">Новый пароль</string>
+    <string name="broadcast_share_new_password_cd">Создать новый пароль трансляции. Старый перестанет работать</string>
+    <string name="broadcast_share_password_hint">Новый пароль задан. Сообщите его отдельно от ссылки - ни ссылка, ни QR-код его не содержат</string>
+    <string name="broadcast_password_title">Пароль трансляции</string>
+    <string name="broadcast_password_message">Введите пароль трансляции, который вам передали вместе со ссылкой.</string>
+    <string name="broadcast_password_protected">Трансляция защищена паролем</string>
+    <string name="broadcast_password_hint">Пароль</string>
+    <string name="broadcast_password_connect">Подключить</string>
+    <string name="broadcast_password_empty">Введите пароль</string>
+    <string name="stream_send_to_watch_unplayable">Часы не могут воспроизвести эту трансляцию</string>
+    <string name="stream_send_to_watch_password_first">Сначала откройте трансляцию на телефоне и введите пароль</string>
+    <string name="stream_send_to_watch_no_reply_update">Часы не ответили. Обновите приложение на часах и попробуйте снова</string>
+    <string name="broadcast_guests_button">Гости</string>
+    <string name="broadcast_guests_title">Выдать трансляцию гостю</string>
+    <string name="broadcast_guests_login_hint">Логин гостя</string>
+    <string name="broadcast_guests_give">Выдать</string>
+    <string name="broadcast_guests_withdraw">Отозвать</string>
+    <string name="broadcast_guests_state_pending">Ждёт ответа сервера</string>
+    <string name="broadcast_guests_state_granted">Выдано</string>
+    <string name="broadcast_guests_state_refused">Сервер отклонил выдачу</string>
+    <string name="broadcast_guests_empty">Гостей пока нет. Введите логин гостя, чтобы выдать ему эту трансляцию.</string>
+    <string name="broadcast_guests_withdraw_cd">Отозвать у %1$s</string>
+    <string name="broadcast_guests_login_invalid">Введите логин гостя: от 3 до 64 латинских букв, цифр, точек, дефисов или подчёркиваний</string>
+    <string name="broadcast_guests_give_failed">У этого гостя трансляция уже есть, или она больше не объявлена через сервер</string>
+    <string name="broadcast_control_torch_on">Фонарик ВКЛ</string>
+    <string name="broadcast_control_torch_off">Фонарик ВЫКЛ</string>
+    <string name="broadcast_control_torch_cd">Включить или выключить вспышку камеры, чтобы подсветить кадр</string>
+    <string name="broadcast_control_light_frame_on">Яркая рамка ВКЛ</string>
+    <string name="broadcast_control_light_frame_off">Яркая рамка ВЫКЛ</string>
+    <string name="broadcast_control_light_frame_cd">Включить или выключить яркую белую рамку по краям экрана, чтобы подсветить лицо</string>
+    <string name="wear_screenshot_last_at">Последний снимок: %1$s</string>
+    <string name="wear_screenshot_open_browse">Открыть в Просмотре</string>
+    <string name="help_page_title">Справка</string>
+    <string name="help_open_on_site">Открыть в новом окне на сайте</string>
+    <string name="help_keyboard_shortcuts">Все комбинации клавиш</string>
+    <string name="help_external_link_title">Открыть в браузере?</string>
+    <string name="help_external_link_message">Эта ссылка ведёт за пределы приложения и откроется в браузере.</string>
+    <string name="help_with_key">Справка (F1)</string>
+    <string name="broadcast_control_group_commands">Управление эфиром</string>
+    <string name="broadcast_control_group_share">Ссылка и обмен</string>
+    <string name="msg_transfer_same_folder_refused">Это и есть папка файла. Выберите другое назначение.</string>
+    <string name="settings_collapse_all">Свернуть всё</string>
 </resources>

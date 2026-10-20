@@ -86,6 +86,7 @@ internal object Ipv6Literal {
 
     private fun parse(text: String): IntArray? {
         val halves = text.split("::")
+        if (halves.size == 2 && '.' in halves[0]) return null
         val head = halves.firstOrNull()?.let(::groups)
         val tail = if (halves.size == 2) groups(halves[1]) else emptyList()
         val groupCount = (head?.size ?: 0) + (tail?.size ?: 0)

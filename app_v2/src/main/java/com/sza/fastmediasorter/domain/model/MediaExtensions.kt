@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.domain.model
 import com.sza.fastmediasorter.util.BinaryFileTypeDetector
 
 object MediaExtensions {
-    val IMAGE = setOf("jpg", "jpeg", "png", "gif", "bmp", "webp", "heic", "heif", "avif")
+    val IMAGE = setOf("jpg", "jpeg", "png", "gif", "bmp", "webp", "heic", "heif", "avif", "jxl")
     val VIDEO = setOf(
         "mp4", "mkv", "mov", "wmv", "flv", "webm", "m4v", "3gp", "mpg", "mpeg",
         "ts", "m2ts", "vob", "ogv", "divx", "m2v", "mts", "avi", "3g2", "asf"

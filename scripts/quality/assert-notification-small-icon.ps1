@@ -48,6 +48,7 @@ $srcRoots = @("$root/app_v2/src", "$root/wear/src") | Where-Object { Test-Path $
 
 if ($srcRoots.Count -eq 0) {
     Write-Error "assert-notification-small-icon: no source root under '$root' - nothing to scan." -ErrorAction Continue
+    Write-Host 'assert-notification-small-icon: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 

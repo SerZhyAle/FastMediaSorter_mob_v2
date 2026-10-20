@@ -140,6 +140,8 @@ steps:
 outcome: |
   You can watch a whole folder of videos without reaching for tiny buttons: tap or swipe to move on, zoom into the details, save the best moments as pictures, and file each video away as you go - and the player remembers where you stopped.
 tips:
+  - "**Choose a file:** G opens **Thumbnails**, F4 opens **File list**, and N opens **Go to file**. File numbers start at 1. The same actions are in the three-dots menu. A window without a collection explains why file navigation is unavailable."
+  - "**Video keys:** Use . for **Next frame**. **Previous frame** stays disabled with a reason when the decoder cannot step backwards. Shift+L sets A, then B, then clears the repeat; B must be after A. The range is shown until canceled, the file changes or the window stops. These video actions are also in the menu."
   - "**The controls are there when you open a video.** The player shows its buttons as soon as a video opens, and a tap in the middle of the picture brings them back after they hide."
   - "**Using a TV box or a car screen?** Every button can be reached with the arrow keys of a remote. See [keyboard, D-pad and TV control](page:general.keyboard-dpad-tv-navigation)."
   - "**Video from a network folder stutters?** The player keeps a buffer suited to each kind of connection, and if playback stalls it notices and restarts the stream on its own. A slow Wi-Fi is the usual cause - see [offline caching for remote files](page:network.network-sync-and-cache)."
@@ -165,6 +167,6 @@ next_recipes:
     description: Play the video on your TV.
 ---
 
-<sub class="doc-stamp">26.10.10 14:37</sub>
+<sub class="doc-stamp">26.10.19 16:16</sub>
 
 Play videos full screen or with the command panel, move between them with taps and swipes, zoom in, resume where you stopped, save still frames as pictures and sort your videos while you watch.

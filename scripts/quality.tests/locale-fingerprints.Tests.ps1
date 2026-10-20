@@ -175,6 +175,6 @@ Assert-Equal "A stale orphaned temporary is swept by the next save" $false (Test
 if (Test-Path -LiteralPath $retryPath) { Remove-Item -LiteralPath $retryPath -Force }
 
 Write-Host "`n=== Summary ===" -ForegroundColor Cyan
-Write-Host "PASS: $script:pass | FAIL: $script:fail"
+Write-Host "locale-fingerprints.Tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

@@ -12,14 +12,16 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.domain.model.computeNextRunAt
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -79,19 +81,19 @@ class WorkManagerScheduler @Inject constructor(
                 .setInitialDelay(1, TimeUnit.MINUTES) // Delay first run to reduce startup load
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .build()
-            
+
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 TrashCleanupWorker.WORK_NAME,
                 ExistingPeriodicWorkPolicy.KEEP, // Keep existing if already scheduled
                 workRequest
             )
-            
+
             Timber.i("WorkManagerScheduler: Scheduled periodic trash cleanup (every 15 minutes, first run in 1 minute)")
         } catch (e: Exception) {
             Timber.e(e, "WorkManagerScheduler: Failed to schedule trash cleanup")
         }
     }
-    
+
     /**
      * Cancel trash cleanup worker
      */
@@ -194,7 +196,9 @@ class WorkManagerScheduler @Inject constructor(
 
     /**
      * Schedule a one-time run of [operation] at [operation.nextRunAt].
-     * If nextRunAt is null or in the past, runs immediately.
+     * If nextRunAt is in the past (an overdue slot), runs immediately. If it is null - a schedule that
+     * was just restored or imported - the slot is taken from the schedule's own grid and stored, so a
+     * restore no longer fires every schedule at once.
      */
     fun scheduleOperation(operation: ScheduledOperation) {
         if (!operation.isEnabled) {
@@ -202,18 +206,32 @@ class WorkManagerScheduler @Inject constructor(
             return
         }
         try {
-            val delayMs = ((operation.nextRunAt ?: 0L) - System.currentTimeMillis())
-                .coerceAtLeast(0L)
+            val now = System.currentTimeMillis()
+            val slot = operation.nextRunAt ?: computeNextRunAt(
+                operation.startTimeHour,
+                operation.startTimeMinute,
+                operation.intervalHours,
+                operation.intervalMinutes,
+                now,
+            ).also { persistInitialSlot(operation.id, it) }
+            val delayMs = (slot - now).coerceAtLeast(0L)
             val inputData = Data.Builder()
                 .putLong(ScheduledOperationsWorker.KEY_OPERATION_ID, operation.id)
                 .build()
             val request = OneTimeWorkRequestBuilder<ScheduledOperationsWorker>()
                 .setInputData(inputData)
                 .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
+                // S4232: any live network, never UNMETERED - the owner allows mobile data for a
+                // scheduled run and the user carries the responsibility, so WorkManager defers the
+                // slot to the first moment a network exists instead of firing into a dead one.
+                .setConstraints(
+                    Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+                )
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .addTag("sched_op_${operation.id}")
                 .addTag(TAG_SCHEDULED_OP)
                 .build()
+            Timber.d("S4232: scheduled run requested with the any-network constraint")
             WorkManager.getInstance(context).enqueueUniqueWork(
                 "sched_op_${operation.id}",
                 ExistingWorkPolicy.REPLACE,
@@ -348,23 +366,37 @@ class WorkManagerScheduler @Inject constructor(
     }
 
     /**
-     * Makes the program off-switch take effect whoever writes it - the settings card, the program
-     * screen, the program registry, a preset, "enable all" or a restore. The side effect used to live
-     * in one ViewModel, so every other writer left the enqueued workers running. The first value is
-     * skipped: the startup path already reschedules for the stored state. Idempotent.
+     * [scheduleOperation] unless the scheduler is paused. A pause keeps every enabled row stored but
+     * leaves nothing queued, and Resume all queues the rows again, so every path that enqueues on its
+     * own (an edit, a card toggle, the chain continuing after a finished run) goes through here.
+     */
+    suspend fun scheduleOperationUnlessPaused(operation: ScheduledOperation) {
+        if (settingsRepository.getSettings().first().scheduledOperationsPaused) {
+            Timber.i("WorkManagerScheduler: paused - op=${operation.id} not queued")
+            return
+        }
+        scheduleOperation(operation)
+    }
+
+    /**
+     * Makes the program off-switch and the Pause state take effect whoever writes them - the settings
+     * card, the program screen, its Pause button, the program registry, a preset, "enable all" or a
+     * restore. The side effect used to live in one ViewModel (and the widget), so every other writer
+     * left the enqueued workers running. The first value is skipped: the startup path already
+     * reschedules for the stored state. Idempotent, and the explicit [pauseAll] / [resumeAll] it
+     * overlaps with converge on the same end state.
      */
     fun startFollowingScheduledOperationsSwitch() {
         if (!followingSwitch.compareAndSet(false, true)) return
         scope.launch {
             settingsRepository.getSettings()
                 .map { it.enableScheduledOperations to it.scheduledOperationsPaused }
-                .distinctUntilChangedBy { it.first }
+                .distinctUntilChanged()
                 .drop(1)
                 .collect { (enabled, paused) ->
                     when {
-                        !enabled -> cancelAllScheduledOperations()
-                        !paused -> rescheduleAll()
-                        else -> Timber.i("WorkManagerScheduler: switch on while paused - nothing rescheduled")
+                        !enabled || paused -> cancelAllScheduledOperations()
+                        else -> rescheduleAll()
                     }
                     com.sza.fastmediasorter.widget.ScheduledTasksWidgetRefresher.refresh(context)
                 }
@@ -468,6 +500,23 @@ class WorkManagerScheduler @Inject constructor(
     // -------------------------------------------------------------------------
 
     /**
+     * Stores a slot computed by [scheduleOperation] for a row that had none, so the screen shows the
+     * moment the work request was really enqueued for. A row that gained a slot in the meantime is kept.
+     */
+    private fun persistInitialSlot(operationId: Long, slot: Long) {
+        scope.launch {
+            try {
+                scheduledOperationRepository.getById(operationId)
+                    ?.takeIf { it.nextRunAt == null }
+                    ?.let { scheduledOperationRepository.update(it.copy(nextRunAt = slot)) }
+            } catch (e: Exception) {
+                e.rethrowIfCancellation()
+                Timber.w(e, "WorkManagerScheduler: could not store the initial slot of op=$operationId")
+            }
+        }
+    }
+
+    /**
      * After [requestId] reaches a terminal state, reschedule the next run of [operationId]
      * if the work succeeded. Called from scheduleOperation/runNow to break the self-scheduling
      * race that occurred when enqueueUniqueWork(REPLACE) was called inside doWork.
@@ -482,7 +531,7 @@ class WorkManagerScheduler @Inject constructor(
                 if (workInfo?.state == WorkInfo.State.SUCCEEDED) {
                     val updated = scheduledOperationRepository.getById(operationId)
                     if (updated != null && updated.isEnabled) {
-                        scheduleOperation(updated)
+                        scheduleOperationUnlessPaused(updated)
                     }
                 } else {
                     Timber.w("WorkManagerScheduler: op=$operationId finished with state=${workInfo?.state} - skipping reschedule")

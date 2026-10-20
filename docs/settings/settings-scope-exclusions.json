@@ -34,5 +34,9 @@
   "activity_tourist_counter": {
     "category": "session-scoped",
     "reason": "The tally counter keeps its running count, start value, history and whether the extra-step row is expanded as one TouristCounterState in its own repository preferences, not in AppSettings. switchExtraSteps discloses the +3/+5/+10 row of that one counter; it is not an app-wide preference and no settings screen leads to it."
+  },
+  "activity_broadcast_control": {
+    "category": "session-scoped",
+    "reason": "Live audio broadcast controller activity; configures runtime broadcast session parameters rather than standing app-wide settings."
   }
 }

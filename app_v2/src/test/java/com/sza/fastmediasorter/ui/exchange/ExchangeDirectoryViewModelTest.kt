@@ -19,6 +19,9 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -83,13 +86,69 @@ class ExchangeDirectoryViewModelTest {
     private fun viewModel(view: ExchangeDirectoryView): ExchangeDirectoryViewModel {
         coEvery { useCase.observe() } returns flowOf(view)
         coEvery { useCase.sync(any()) } returns view
-        return ExchangeDirectoryViewModel(useCase).also { it.open() }
+        return ExchangeDirectoryViewModel(useCase, mockk(relaxed = true)).also { it.open() }
     }
 
     private fun ExchangeDirectoryViewModel.resourceRows() =
         (state.value as ExchangeDirectoryState.Loaded).rows.filterIsInstance<ExchangeDirectoryRow.Resource>()
 
     private fun asking(vm: ExchangeDirectoryViewModel) = vm.pinPrompt.value as ExchangePinPrompt.Asking
+
+    private fun TestScope.completions(vm: ExchangeDirectoryViewModel): List<Unit> {
+        val events = mutableListOf<Unit>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            vm.attachmentsCompleted.toList(events)
+        }
+        return events
+    }
+
+    @Test
+    fun `selected resource completion fires only after persistence returns`() = runTest {
+        val vm = viewModel(viewOf(listingOf(record("r1", "Public", protectedPin = false))))
+        val events = completions(vm)
+        val persisted = kotlinx.coroutines.CompletableDeferred<ExchangeAttachResult>()
+        coEvery { useCase.attach(any()) } coAnswers { persisted.await() }
+        vm.toggle(vm.resourceRows().single(), true)
+
+        vm.attachSelected()
+        vm.attachSelected()
+        assertTrue(events.isEmpty())
+        persisted.complete(ExchangeAttachResult(1, 0, 0, emptyList()))
+
+        assertEquals(1, events.size)
+        coVerify(exactly = 1) { useCase.attach(any()) }
+    }
+
+    @Test
+    fun `mixed batch completes after the last protected resource succeeds`() = runTest {
+        val vm = viewModel(viewOf(listingOf(record("r1", "Public", false), record("r2", "Private"))))
+        val events = completions(vm)
+        coEvery { useCase.attach(any()) } returns
+            ExchangeAttachResult(1, 0, 0, listOf(ExchangeBinding(SERVER, "r2")))
+        coEvery { useCase.attachProtected(any(), "4711") } returns ExchangePinAttempt.ACCEPTED
+
+        vm.attachAll()
+        assertTrue(events.isEmpty())
+        vm.submitPin("4711")
+
+        assertEquals(ExchangePinPrompt.None, vm.pinPrompt.value)
+        assertEquals(1, events.size)
+    }
+
+    @Test
+    fun `partial failure and empty result leave the wizard open`() = runTest {
+        val vm = viewModel(viewOf(listingOf(record("r1", "Public", false))))
+        val events = completions(vm)
+        coEvery { useCase.attach(any()) } returnsMany listOf(
+            ExchangeAttachResult(1, 0, 1, emptyList()),
+            ExchangeAttachResult(0, 1, 0, emptyList()),
+        )
+
+        vm.attachAll()
+        vm.attachAll()
+
+        assertTrue(events.isEmpty())
+    }
 
     @Test
     fun `a protected resource is marked like any other and counts as attachable`() = runTest {
@@ -105,6 +164,7 @@ class ExchangeDirectoryViewModelTest {
     fun `attach all asks for each PIN in list order and a skipped one stays unattached`() = runTest {
         val listing = listingOf(record("r1", "First"), record("r2", "Second"))
         val vm = viewModel(viewOf(listing))
+        val events = completions(vm)
         coEvery { useCase.attach(any()) } returns ExchangeAttachResult(
             attached = 0,
             alreadyAttached = 0,
@@ -121,6 +181,7 @@ class ExchangeDirectoryViewModelTest {
 
         vm.skipPin()
         assertEquals(ExchangePinPrompt.None, vm.pinPrompt.value)
+        assertTrue(events.isEmpty())
         coVerify(exactly = 1) { useCase.attachProtected(any(), any()) }
     }
 

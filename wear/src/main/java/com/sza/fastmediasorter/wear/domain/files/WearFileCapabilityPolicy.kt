@@ -4,7 +4,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import com.sza.fastmediasorter.wear.data.files.WearWatchFilePublisher
-import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiverCatalogRepository
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileStorageClass
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
@@ -58,7 +58,7 @@ private val TO_WATCH_OPERATIONS = setOf(
 class WearFileCapabilityPolicy @Inject constructor(
     @ApplicationContext private val context: Context,
     private val mediaStoreConsent: WearMediaStoreConsent,
-    private val sendToReceivers: WearSendToReceiversRepository,
+    private val sendToReceivers: WearSendToReceiverCatalogRepository,
     private val watchPublisher: WearWatchFilePublisher
 ) {
 

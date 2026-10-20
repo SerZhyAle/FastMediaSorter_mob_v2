@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "🔧 Руководство по устранению неполадок"
 permalink: /docs/TROUBLESHOOTING-ru.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 🔧 Руководство по устранению неполадок
 
 Частые проблемы и решения для FastMediaSorter v2.
-
-{% include lang-switcher.html doc="TROUBLESHOOTING" dir="/docs/" current="ru" %}
 
 ---
 

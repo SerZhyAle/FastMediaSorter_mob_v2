@@ -1,7 +1,9 @@
 #requires -Version 7.0
 <#
-  assert-16kb-alignment.ps1 (S1149)
+.SYNOPSIS
+  Asserts every shipped 64-bit native .so is 16 KB page-size aligned (S1149).
 
+.DESCRIPTION
   Assert every shipped 64-bit native .so is 16 KB page-size aligned, as required by
   Google Play for apps targeting Android 15+ (API >= 35). Generalizes the one-off
   readelf check in scripts/builders/build-ffmpeg-dts.sh so future native-dependency
@@ -12,13 +14,17 @@
   not cover 32-bit (armeabi-v7a, x86), which stay 4 KB aligned by design.
 
   Needs a prior build: scans the AGP native-lib output (merged_native_libs) plus
-  committed jniLibs. If no built .so exist yet, it is an advisory skip (exit 0).
+  committed jniLibs. With no built .so, or no readelf toolchain, the requested work did not
+  run: that is COULD NOT VERIFY (exit 2), never a pass (CHECK-VERDICT 0.12 item A.2).
 
   Exit codes:
-    0 - all checked 64-bit .so have every LOAD segment aligned >= 16 KB, OR nothing
-        to verify (no .so found) / readelf toolchain unavailable (advisory skip).
+    0 - all checked 64-bit .so have every LOAD segment aligned >= 16 KB.
     1 - at least one 64-bit .so has a LOAD segment below 16 KB (Play would reject).
-    2 - usage error (invalid -ScanRoot or -Readelf path).
+    2 - could not verify: no scan root exists, no 64-bit .so was found, readelf/llvm-readelf
+        was not found, or -Readelf names a missing file.
+
+  The last stdout line is the verdict: `assert-16kb-alignment: PASS (..)`, `: FAIL (..)` or
+  `: COULD NOT VERIFY (..)`.
 
   -Gate is accepted for uniformity with the other scripts/quality/assert-*.ps1 gates and
   is a no-op here: this gate already exits 1 on a finding with no advisory mode. Batch
@@ -52,8 +58,9 @@ foreach ($r in $ScanRoot) {
     if (Test-Path $r) { $roots += (Resolve-Path $r).Path }
 }
 if ($roots.Count -eq 0) {
-    Write-Host '[16k] Nothing to verify: no scan root exists yet (build native libs first). Advisory skip.'
-    exit 0
+    Write-Host '[16k] Nothing to verify: no scan root exists yet (build native libs first).'
+    Write-Host 'assert-16kb-alignment: COULD NOT VERIFY (no scan root exists; build the native libs first)'
+    exit 2
 }
 
 # --- Resolve readelf --------------------------------------------------------
@@ -62,6 +69,7 @@ function Resolve-Readelf {
     if ($Explicit) {
         if (Test-Path $Explicit) { return (Resolve-Path $Explicit).Path }
         Write-FailLine "[16k] -Readelf path not found: $Explicit"
+        Write-Host "assert-16kb-alignment: COULD NOT VERIFY (-Readelf path not found: $Explicit)"
         exit 2
     }
     $sdk = $env:ANDROID_HOME
@@ -93,8 +101,9 @@ function Resolve-Readelf {
 
 $readelfPath = Resolve-Readelf -Explicit $Readelf
 if (-not $readelfPath) {
-    Write-Host '[16k] readelf/llvm-readelf not found (NDK or PATH). Cannot verify - advisory skip (exit 0).'
-    exit 0
+    Write-FailLine '[16k] readelf/llvm-readelf not found (NDK or PATH).'
+    Write-Host 'assert-16kb-alignment: COULD NOT VERIFY (readelf/llvm-readelf not found in the NDK or on PATH)'
+    exit 2
 }
 
 # --- Collect unique 64-bit .so (dedup identical copies across variants) ------
@@ -114,8 +123,9 @@ foreach ($root in $roots) {
     }
 }
 if ($unique.Count -eq 0) {
-    Write-Host '[16k] No 64-bit .so found under scan roots. Nothing to verify - advisory skip (exit 0).'
-    exit 0
+    Write-FailLine '[16k] No 64-bit .so found under the scan roots.'
+    Write-Host 'assert-16kb-alignment: COULD NOT VERIFY (no 64-bit .so found under the scan roots; build the native libs first)'
+    exit 2
 }
 
 # --- Read LOAD-segment alignments via readelf -------------------------------
@@ -159,8 +169,10 @@ Write-Host ('[16k] Checked {0} unique 64-bit .so via {1}: {2} passed, {3} failed
 if ($failures.Count -gt 0) {
     Write-FailLine "[16k] $($failures.Count) native lib(s) below 16 KB alignment - Google Play will reject this artifact."
     Write-FailLine '[16k] Fix: rebuild/repackage with -Wl,-z,max-page-size=16384 (NDK r27c+) or bump the dependency to a 16 KB-aligned release.'
+    Write-Host "assert-16kb-alignment: FAIL ($($failures.Count) of $($unique.Count) native lib(s) below 16 KB alignment)"
     exit 1
 }
 
-Write-Host '[16k] PASS - all shipped 64-bit native libs are 16 KB page-size aligned.'
+Write-Host '[16k] all shipped 64-bit native libs are 16 KB page-size aligned.'
+Write-Host "assert-16kb-alignment: PASS ($passed of $($unique.Count) native lib(s) checked)"
 exit 0

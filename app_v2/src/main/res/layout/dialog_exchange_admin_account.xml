@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/dialog_padding_large">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_exchange_admin_login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/exchange_admin_login_label">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_exchange_admin_login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:inputType="text"
+            android:importantForAutofill="no"
+            android:focusable="true"
+            android:clickable="true" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_exchange_admin_password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/exchange_admin_new_password_label">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_exchange_admin_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:inputType="textPassword"
+            android:autofillHints="no"
+            android:importantForAutofill="no"
+            android:saveEnabled="false"
+            android:freezesText="false"
+            android:focusable="true"
+            android:clickable="true" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <RadioGroup
+        android:id="@+id/rg_exchange_admin_kind"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/rb_exchange_admin_kind_member"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:checked="true"
+            android:text="@string/exchange_admin_kind_member" />
+
+        <RadioButton
+            android:id="@+id/rb_exchange_admin_kind_guest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:text="@string/exchange_admin_kind_guest" />
+    </RadioGroup>
+</LinearLayout>

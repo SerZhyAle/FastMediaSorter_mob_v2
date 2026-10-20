@@ -1,5 +1,8 @@
 package com.sza.fastmediasorter.wear.data.exchange
 
+import com.sza.fastmediasorter.data.security.e2e.E2eBytes
+import com.sza.fastmediasorter.data.security.e2e.E2eRelayMedia
+import com.sza.fastmediasorter.data.security.e2e.E2eRelayRecords
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -26,6 +29,32 @@ class WearExchangeRelayFramingTest {
         WearExchangeRelayChunkWriter(out).write(byteArrayOf(6), joinable = false)
 
         assertArrayEquals(byteArrayOf(0, 0, 0, 2, 0, 6), out.toByteArray())
+    }
+
+    @Test
+    fun `a sealed upload opens with the key ring alone and seals each chunk under its flag`() {
+        val groupKey = ByteArray(E2eRelayRecords.GROUP_KEY_LENGTH) { 7 }
+        val ring = WearExchangeRelayRing(2L, ByteArray(E2eRelayRecords.EPOCH_KEY_LENGTH) { 1 }, groupKey)
+        val sealer = WearExchangeRelaySealer(BROADCAST_ID, "audio/aac", ring)
+        val out = ByteArrayOutputStream()
+
+        WearExchangeRelayChunkWriter(out, sealer.headerChunk(), sealer).write(byteArrayOf(5, 6), joinable = true)
+
+        val bytes = out.toByteArray()
+        val headerLength = E2eBytes.readU32be(bytes, 0).toInt()
+        assertEquals(WearExchangeRelayChunkWriter.FLAG_HEADER, bytes[4].toInt())
+        val header = requireNotNull(E2eRelayRecords.split(bytes.copyOfRange(5, 4 + headerLength)))
+        assertEquals("ADTS has no format header", listOf(E2eRelayRecords.TYPE_KEY_RING), header.map { it.type })
+        val opened = requireNotNull(E2eRelayRecords.openKeyRing(BROADCAST_ID, header[0].body, groupKey))
+        assertEquals("audio/aac", opened.mediaType)
+        val chunkStart = 4 + headerLength
+        assertEquals(WearExchangeRelayChunkWriter.FLAG_JOINABLE, bytes[chunkStart + 4].toInt())
+        val media = requireNotNull(E2eRelayRecords.split(bytes.copyOfRange(chunkStart + 5, bytes.size))).single()
+        val flag = WearExchangeRelayChunkWriter.FLAG_JOINABLE
+        val clear = E2eRelayRecords.openMedia(BROADCAST_ID, media.body, flag) { epoch ->
+            opened.epochKey.takeIf { epoch == opened.epoch }
+        }
+        assertArrayEquals(byteArrayOf(5, 6), (clear as E2eRelayMedia.Clear).bytes)
     }
 
     @Test
@@ -88,5 +117,6 @@ class WearExchangeRelayFramingTest {
 
     private companion object {
         const val ADTS_HEADER = 7
+        const val BROADCAST_ID = "b1"
     }
 }

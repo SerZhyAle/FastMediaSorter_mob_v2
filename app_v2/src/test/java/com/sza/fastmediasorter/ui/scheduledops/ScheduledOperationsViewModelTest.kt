@@ -210,7 +210,7 @@ class ScheduledOperationsViewModelTest {
         val viewModel = viewModel()
         viewModel.toggleEnabled(sampleOperation.copy(isEnabled = false))
         coVerify { updateScheduledOperation(match { it.isEnabled }) }
-        verify { workManagerScheduler.scheduleOperation(match { it.id == sampleOperation.id }) }
+        coVerify { workManagerScheduler.scheduleOperationUnlessPaused(match { it.id == sampleOperation.id }) }
     }
 
     @Test

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Saved authorizations</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Saved authorizations</span>
+</nav>
+<header class="hero">
+<h1>Saved authorizations</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">Saved authorizations lists the sign-ins that the in-app web browser keeps for websites, so the app can fetch content from sites that need an account without asking you to sign in again. Here you add, rename, renew and delete them. Open it from Settings, General tab, Authorization and accounts.</p>
+<figure class="shot">
+<img class="on-light" src="img/auth-sessions-en-light.webp" alt="Saved authorizations">
+<img class="on-dark" src="img/auth-sessions-en-dark.webp" alt="Saved authorizations">
+</figure>
+<h2>In this order</h2>
+<ol class="order">
+<li>Press + Add authorization <a class="ref" href="#add-authorization">2</a> and choose a site from the list, or Enter address manually for another one.</li>
+<li>Sign in on the page that opens <a class="ref" href="#web-page">12</a> the way you would in a browser, then press Save authorization <a class="ref" href="#web-save">13</a>.</li>
+<li>Give the account a name you will recognize <a class="ref" href="#web-name-account">15</a> and press Save.</li>
+<li>The account appears under its site in the list <a class="ref" href="#sessions-list">5</a>. To add a second account for the same site, press the plus in the site's header <a class="ref" href="#host-add-account">7</a>.</li>
+<li>When a site stops accepting a saved sign-in, press Sign in again <a class="ref" href="#relogin">9</a>. Rename account <a class="ref" href="#rename">10</a> changes only the name shown here.</li>
+<li>Delete saved authorization <a class="ref" href="#delete">11</a> removes a sign-in you no longer need, after you confirm.</li>
+<li>Nothing on this screen needs saving: every change applies at once, and Back <a class="ref" href="#back">1</a> simply leaves.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>The list</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Back</span><span class="one">Leaves the list.</span></span></summary>
+<div class="full">
+<p>Everything on this screen is applied the moment you do it, so there is nothing to confirm when you leave.</p>
+</div>
+</details>
+<details class="el" id="add-authorization">
+<summary><span class="mk">2</span><span><span class="name">+ Add authorization</span><span class="one">Starts a new sign-in for a website.</span></span></summary>
+<div class="full">
+<p>The first choice is a list of known sites; the last line, Enter address manually, asks for a full web address that starts with http or https. After you pick a site, its sign-in page opens in the sign-in window described at the end of this page. Addresses on Google domains open in a Custom Tabs browser instead; if no such browser is installed, a Browser needed window explains what to install.</p>
+</div>
+</details>
+<details class="el" id="help-menu">
+<summary><span class="mk">3</span><span><span class="name">Help</span><span class="one">Opens the help for this screen.</span></span></summary>
+<div class="full">
+<p>It sits in the overflow menu of the toolbar, because it is rarely needed.</p>
+<dl class="facts">
+<dt>Shortcut</dt><dd><kbd>F1</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="info">
+<summary><span class="mk">4</span><span><span class="name">Explanation</span><span class="one">A short reminder of what a saved authorization is.</span></span></summary>
+<div class="full">
+<p>Each entry stores the cookies of one account on one site. An entry marked Not authorized (you declined) was created when you chose Do not ask in a sign-in prompt, and it stops the prompt from appearing for that site again. To add a second account for the same site, use + Add authorization or the plus in the site's header.</p>
+</div>
+</details>
+<details class="el" id="sessions-list">
+<summary><span class="mk">5</span><span><span class="name">Sign-in list</span><span class="one">All saved sign-ins, grouped by site.</span></span></summary>
+<div class="full">
+<p>Every site has a header with its name; Instagram, Threads and Facebook are recognized by name, other sites show their address. The accounts of that site follow the header. The list stays empty until you save your first sign-in.</p>
+</div>
+</details>
+<details class="el" id="empty">
+<summary><span class="mk">6</span><span><span class="name">No saved authorizations</span><span class="one">Tells you that nothing is saved yet.</span></span></summary>
+<div class="full">
+<p>The note replaces the list while there are no entries. Press + Add authorization in the toolbar to save the first one.</p>
+</div>
+</details>
+<h3>Sites and accounts</h3>
+<details class="el" id="host-add-account">
+<summary><span class="mk">7</span><span><span class="name">Add another account</span><span class="one">Adds another account for the same site.</span></span></summary>
+<div class="full">
+<p>The plus in a site's header opens that site's sign-in page. Use it when you have two accounts on one site and want both to be available.</p>
+</div>
+</details>
+<details class="el" id="account-row">
+<summary><span class="mk">8</span><span><span class="name">Account entry</span><span class="one">One saved sign-in: its name and its details.</span></span></summary>
+<div class="full">
+<p>Under the name, a grey line shows how many cookies are stored, when the entry was saved and when it was last used, or not yet used. An entry called Not authorized (you declined) is not a real sign-in: it only remembers that you declined to sign in to that site, so the app stops offering. It has the delete button only; delete it to be asked again.</p>
+</div>
+</details>
+<details class="el" id="relogin">
+<summary><span class="mk">9</span><span><span class="name">Sign in again</span><span class="one">Signs in to the same site again and renews the entry.</span></span></summary>
+<div class="full">
+<p>Use it when a site no longer accepts the saved sign-in, for example because it expired or you changed the password. The sign-in page opens with no old cookies, so the site starts from a clean state. The button is not shown for declined entries.</p>
+</div>
+</details>
+<details class="el" id="rename">
+<summary><span class="mk">10</span><span><span class="name">Rename account</span><span class="one">Changes the name the account has in this list.</span></span></summary>
+<div class="full">
+<p>A small window with the current name opens. Type a new one and press OK; an empty name is ignored. The sign-in itself is not touched. The button is not shown for declined entries.</p>
+</div>
+</details>
+<details class="el" id="delete">
+<summary><span class="mk">11</span><span><span class="name">Delete saved authorization</span><span class="one">Removes a saved sign-in from the app.</span></span></summary>
+<div class="full">
+<p>A window asks Delete sign-in for and the account name, with OK and Cancel. After OK, the cookies stored for that account are gone and the entry disappears from the list.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The saved sign-in is lost and cannot be restored; your account on the site is not touched. To get it back, sign in again with + Add authorization or the plus in the site's header.</dd>
+</dl>
+</div>
+</details>
+<h3>Sign-in window</h3>
+<details class="el" id="web-page">
+<summary><span class="mk">12</span><span><span class="name">Sign-in page</span><span class="one">The site's own sign-in page, shown inside the app.</span></span></summary>
+<div class="full">
+<p>Sign in the way the site asks, including any code it sends you. The page starts signed out: old cookies are cleared first, so a leftover session cannot get in the way. Depending on the Secure sensitive screens setting, the window is hidden from screenshots and the recent apps view.</p>
+</div>
+</details>
+<details class="el" id="web-save">
+<summary><span class="mk">13</span><span><span class="name">Save authorization</span><span class="one">Stores the sign-in you just made.</span></span></summary>
+<div class="full">
+<p>The button stays dimmed until the page has set at least one cookie, so sign in first; if you press it too early, the app reminds you to sign in. After the press, a window asks you to name the account.</p>
+</div>
+</details>
+<details class="el" id="web-cancel">
+<summary><span class="mk">14</span><span><span class="name">Cancel</span><span class="one">Closes the sign-in window and saves nothing.</span></span></summary>
+<div class="full">
+<p>Use it if you opened the wrong site or changed your mind.</p>
+</div>
+</details>
+<details class="el" id="web-name-account">
+<summary><span class="mk">15</span><span><span class="name">Name this account</span><span class="one">Gives the saved sign-in a name you will recognize.</span></span></summary>
+<div class="full">
+<p>The field already holds a name that the app could read from the sign-in, or Default account if it could not read any. Press Save to store the entry; if the same account of that site is already stored, the app updates that entry instead of adding a second one. The sign-in window is then cleared of cookies and cache, and the entry appears in the list.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="settings-general.html"><b>Settings: General</b><span class="pill">Screen</span></a></li>
+<li><a href="add-resource.html"><b>Add Resource</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/privacy-and-network-security.html"><b>Privacy, Saved Sign-ins and Error Reports - Staying in Control and Reporting Problems Well</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

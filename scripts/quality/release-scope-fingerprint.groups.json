@@ -20,5 +20,21 @@
     "specs-archive": [
       "PLAN/archive"
     ]
+  },
+  "scopes": {
+    "$comment": "S4249: which groups each sweep's fingerprint covers. The phone sweep judges every group; the watch sweep judges only what its gates read, so a phone-only edit during it does not force the watch sweep's second pass.",
+    "phone": [
+      "phone-src",
+      "wear-src",
+      "play-listing",
+      "docs",
+      "scripts",
+      "specs-archive"
+    ],
+    "wear": [
+      "wear-src",
+      "docs",
+      "scripts"
+    ]
   }
 }

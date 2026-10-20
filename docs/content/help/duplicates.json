@@ -1,0 +1,237 @@
+{
+  "help": "duplicates",
+  "surface": "DuplicatesActivity",
+  "elements": [
+    { "id": "back", "viewId": "toolbar", "labelKey": "back" },
+    { "id": "resources", "viewId": "cgResources", "labelKey": "duplicate_select_resources_subtitle" },
+    { "id": "start-scan", "viewId": "btnStartScan", "labelKey": "duplicate_scan_start" },
+    { "id": "scan-progress", "viewId": "tvScanPhase" },
+    { "id": "cancel-scan", "viewId": "btnCancelScan", "labelKey": "cancel" },
+    { "id": "summary", "viewId": "tvSummary" },
+    { "id": "groups", "viewId": "rvDuplicates" },
+    { "id": "group-header" },
+    { "id": "file-row" },
+    { "id": "delete-selected", "viewId": "fabDeleteSelected", "labelKey": "duplicate_delete_title" },
+    { "id": "none-found", "viewId": "tvEmpty", "labelKey": "duplicate_none_found" }
+  ],
+  "related": [
+    { "help": "browse" },
+    { "help": "settings-operations" },
+    { "pageId": "storage.cleaning-up-space" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Duplicates",
+      "purpose": "Duplicates finds files with identical content in the resources you pick, so you can free the space the extra copies take. Open it from the file browser, in the More actions: resource menu, with Find Duplicates, or with Find and Delete Duplicates to have the extra copies removed straight after the scan.",
+      "steps": [
+        "Open the screen from the file browser: More actions: resource, then Find Duplicates. The resource you came from is already ticked in the list (2) and stands first.",
+        "Tick the other resources to search too, or untick the ones you do not need. Start Scan (3) stays off while none is ticked.",
+        "Press Start Scan (3). If a network or cloud resource is ticked, a window warns that the scan can take long and use a lot of traffic; confirm to go on.",
+        "Watch the progress (4). Cancel (5) stops the search and nothing is deleted.",
+        "Read the summary (6): how many groups of identical files were found and how much space they waste. Open a group (8) to see its copies.",
+        "The app has already ticked every copy except the oldest one in each group (9). Untick any you want to keep, or tick more.",
+        "Press Delete Selected (10) and confirm. The files are deleted and the screen closes."
+      ],
+      "groups": [
+        { "title": "Choosing what to scan", "elements": ["back", "resources", "start-scan"] },
+        { "title": "While the scan runs", "elements": ["scan-progress", "cancel-scan"] },
+        { "title": "Results and deletion", "elements": ["summary", "groups", "group-header", "file-row", "delete-selected", "none-found"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Closes the screen; nothing is deleted by leaving.",
+          "details": "The arrow in the toolbar, the Back button of the device and the Esc key all close the screen at once. The results of a finished scan are not kept, so a new visit starts from the beginning.",
+          "shortcut": "Esc"
+        },
+        "resources": {
+          "summary": "The resources that will be searched, as chips you can tick.",
+          "details": "Each chip carries the name of a resource and its type. A tick means the resource takes part in the scan; tap a chip to switch it. Several resources can be scanned together, so a copy of a photo in two different resources is found as well. If you opened the screen from a resource's menu, that resource is ticked and listed first."
+        },
+        "start-scan": {
+          "summary": "Starts the search for files with identical content.",
+          "details": "The button is off until at least one resource is ticked. Files are compared by their content, not by name: first by size, then by a short piece from the start, and only the files that still match are compared completely. Empty files are ignored. For network or cloud resources a window first warns that the scan may take a long time and a lot of traffic; press OK to continue. When you came through Find and Delete Duplicates, the pre-ticked copies are deleted as soon as the scan ends, without a further question - use Find Duplicates when you want to look first."
+        },
+        "scan-progress": {
+          "name": "Scan progress",
+          "summary": "Shows what the scan is doing and how far it has come.",
+          "details": "The stage appears in capital letters: LISTING while the files are collected, QUICK_HASH while the starts of equal-sized files are compared, and FULL_HASH while the remaining candidates are compared completely. Below it a counter shows the number of files processed out of the total."
+        },
+        "cancel-scan": {
+          "summary": "Stops the scan and brings you back to the list of resources.",
+          "details": "Nothing is deleted by cancelling. You can change the ticked resources and start again."
+        },
+        "summary": {
+          "name": "Result summary",
+          "summary": "How many groups of identical files were found and how much space is wasted.",
+          "details": "The line reads, for example, Found 12 groups, then Wasted space and a size. Wasted space counts every copy except one per group, so it is the amount you can free."
+        },
+        "groups": {
+          "name": "Duplicate groups",
+          "summary": "One row per set of identical files.",
+          "details": "Each group is a set of files with the same content. A group always holds at least two files. Scroll the list to go through all groups."
+        },
+        "group-header": {
+          "name": "Group header",
+          "summary": "Names the group and opens or closes its copies.",
+          "details": "The title is the name of one file of the group, and the line under it gives the size of one file and the number of files. Tap the header to expand the group and see where each copy lies; all groups start collapsed."
+        },
+        "file-row": {
+          "name": "File row with checkbox",
+          "summary": "One copy: its name, its full path and a checkbox that marks it for deletion.",
+          "details": "Tap the row or its checkbox to tick or untick the copy. A ticked copy is deleted when you press Delete Selected. Dragging a finger down along the checkboxes of one group ticks a whole range at once and never unticks. The app does not stop you from ticking every copy of a group, so keep at least one copy unticked. The row cannot open the file; use the path to find it in the file browser."
+        },
+        "delete-selected": {
+          "summary": "Deletes all ticked copies after you confirm.",
+          "details": "The button appears as soon as at least one copy is ticked and shows how many files will go and how much space they take. A confirmation window with Delete and Cancel repeats the number and says the deletion cannot be undone. After deleting, a short message tells you the files are gone and the screen closes.",
+          "undo": "The selected files are lost. They stay in a hidden .trash folder of their resource only when Use trash folder (.trash) is switched on in Settings and the files are local ones that can be moved there; network and cloud files, and everything with the trash off, are deleted for good. Restoring from a backup is then the only way back."
+        },
+        "none-found": {
+          "summary": "Tells you that no identical files were found.",
+          "details": "It appears when the scan has finished and there are no groups: nothing to delete in the chosen resources. Go back and pick other resources to search more."
+        }
+      }
+    },
+    "ru": {
+      "title": "Дубликаты",
+      "purpose": "«Дубликаты» находит файлы с одинаковым содержимым в выбранных ресурсах, чтобы вы могли освободить место, занятое лишними копиями. Откройте экран из браузера файлов, в меню «Ещё: действия с ресурсом», пунктом «Найти дубликаты» или «Найти и удалить дубликаты» - тогда лишние копии удалятся сразу после сканирования.",
+      "steps": [
+        "Откройте экран из браузера файлов: «Ещё: действия с ресурсом», затем «Найти дубликаты». Ресурс, из которого вы пришли, уже отмечен в списке (2) и стоит первым.",
+        "Отметьте другие ресурсы для поиска или снимите отметки с ненужных. Пока не отмечен ни один, «Начать сканирование» (3) недоступно.",
+        "Нажмите «Начать сканирование» (3). Если отмечен сетевой или облачный ресурс, окно предупредит, что сканирование может занять много времени и трафика; подтвердите, чтобы продолжить.",
+        "Следите за ходом (4). «Отмена» (5) останавливает поиск, ничего не удаляя.",
+        "Прочитайте итог (6): сколько групп одинаковых файлов найдено и сколько места они занимают впустую. Откройте группу (8), чтобы увидеть её копии.",
+        "Приложение уже отметило все копии, кроме самой старой в каждой группе (9). Снимите отметку с тех, что хотите оставить, или отметьте ещё.",
+        "Нажмите «Удалить выбранные» (10) и подтвердите. Файлы будут удалены, а экран закроется."
+      ],
+      "groups": [
+        { "title": "Что сканировать", "elements": ["back", "resources", "start-scan"] },
+        { "title": "Пока идёт сканирование", "elements": ["scan-progress", "cancel-scan"] },
+        { "title": "Результаты и удаление", "elements": ["summary", "groups", "group-header", "file-row", "delete-selected", "none-found"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Закрывает экран; выход ничего не удаляет.",
+          "details": "Стрелка на панели, кнопка «Назад» на устройстве и клавиша Esc сразу закрывают экран. Результаты завершённого сканирования не сохраняются, поэтому следующий заход начинается с начала.",
+          "shortcut": "Esc"
+        },
+        "resources": {
+          "summary": "Ресурсы, в которых пойдёт поиск, - в виде отмечаемых плашек.",
+          "details": "На каждой плашке - название ресурса и его тип. Отметка значит, что ресурс участвует в сканировании; нажмите на плашку, чтобы переключить её. Можно сканировать сразу несколько ресурсов, поэтому копия фото в двух разных ресурсах тоже найдётся. Если вы открыли экран из меню ресурса, этот ресурс уже отмечен и стоит первым."
+        },
+        "start-scan": {
+          "summary": "Запускает поиск файлов с одинаковым содержимым.",
+          "details": "Кнопка недоступна, пока не отмечен хотя бы один ресурс. Файлы сравниваются по содержимому, а не по названию: сначала по размеру, затем по короткому фрагменту из начала, и полностью сравниваются только те, что всё ещё совпадают. Пустые файлы не учитываются. Для сетевых и облачных ресурсов сначала появится окно с предупреждением, что сканирование может занять много времени и трафика; нажмите «ОК», чтобы продолжить. Если вы пришли через «Найти и удалить дубликаты», отмеченные копии удаляются сразу после сканирования, без лишних вопросов, - чтобы сначала посмотреть, выбирайте «Найти дубликаты»."
+        },
+        "scan-progress": {
+          "name": "Ход сканирования",
+          "summary": "Показывает, что делает сканирование и как далеко оно продвинулось.",
+          "details": "Этап написан заглавными буквами: LISTING - пока собираются файлы, QUICK_HASH - пока сравниваются начала файлов одного размера, FULL_HASH - пока оставшиеся кандидаты сравниваются целиком. Ниже счётчик показывает, сколько файлов обработано из общего числа."
+        },
+        "cancel-scan": {
+          "summary": "Останавливает сканирование и возвращает к списку ресурсов.",
+          "details": "Отмена ничего не удаляет. Можно изменить отмеченные ресурсы и начать заново."
+        },
+        "summary": {
+          "name": "Итог поиска",
+          "summary": "Сколько групп одинаковых файлов найдено и сколько места занято впустую.",
+          "details": "Строка выглядит, например, так: «Найдено 12 групп», затем «Занято впустую» и размер. В занятое впустую входят все копии, кроме одной на группу, то есть это объём, который можно освободить."
+        },
+        "groups": {
+          "name": "Группы дубликатов",
+          "summary": "Одна строка на каждый набор одинаковых файлов.",
+          "details": "Группа - это набор файлов с одним содержимым. В группе всегда не меньше двух файлов. Прокручивайте список, чтобы просмотреть все группы."
+        },
+        "group-header": {
+          "name": "Заголовок группы",
+          "summary": "Называет группу и раскрывает или сворачивает её копии.",
+          "details": "Заголовок - название одного из файлов группы, а строка под ним показывает размер одного файла и число файлов. Нажмите на заголовок, чтобы раскрыть группу и увидеть, где лежит каждая копия; все группы сначала свёрнуты."
+        },
+        "file-row": {
+          "name": "Строка файла с флажком",
+          "summary": "Одна копия: название, полный путь и флажок, который отмечает её для удаления.",
+          "details": "Нажмите на строку или на флажок, чтобы отметить копию или снять отметку. Отмеченная копия удаляется, когда вы нажимаете «Удалить выбранные». Если провести пальцем вниз вдоль флажков одной группы, сразу отметится целый диапазон, снятия при этом не происходит. Приложение не мешает отметить все копии группы, поэтому одну копию оставляйте без отметки. Строка не открывает файл; по пути его можно найти в браузере файлов."
+        },
+        "delete-selected": {
+          "summary": "Удаляет все отмеченные копии после подтверждения.",
+          "details": "Кнопка появляется, как только отмечена хотя бы одна копия, и показывает, сколько файлов будет удалено и сколько места они занимают. Окно подтверждения с кнопками «Удалить» и «Отмена» повторяет число и сообщает, что удаление нельзя отменить. После удаления короткое сообщение скажет, что файлы удалены, и экран закроется.",
+          "undo": "Выбранные файлы теряются. В скрытой папке .trash своего ресурса они остаются, только если в настройках включено «Использовать корзину (.trash)» и файлы локальные и могут быть перемещены туда; сетевые и облачные файлы, а также всё при выключенной корзине удаляются безвозвратно. Тогда вернуть их можно лишь из резервной копии."
+        },
+        "none-found": {
+          "summary": "Сообщает, что одинаковых файлов не найдено.",
+          "details": "Надпись появляется, когда сканирование закончено, а групп нет: в выбранных ресурсах удалять нечего. Вернитесь и выберите другие ресурсы, чтобы искать дальше."
+        }
+      }
+    },
+    "uk": {
+      "title": "Дублікати",
+      "purpose": "«Дублікати» знаходить файли з однаковим вмістом у вибраних ресурсах, щоб ви могли звільнити місце, зайняте зайвими копіями. Відкрийте екран із браузера файлів, у меню «Ще: дії з ресурсом», пунктом «Знайти дублікати» або «Знайти та видалити дублікати» - тоді зайві копії видаляться одразу після сканування.",
+      "steps": [
+        "Відкрийте екран із браузера файлів: «Ще: дії з ресурсом», потім «Знайти дублікати». Ресурс, з якого ви прийшли, уже позначено в списку (2), і він стоїть першим.",
+        "Позначте інші ресурси для пошуку або зніміть позначки з непотрібних. Доки не позначено жодного, «Почати сканування» (3) недоступне.",
+        "Натисніть «Почати сканування» (3). Якщо позначено мережевий чи хмарний ресурс, вікно попередить, що сканування може зайняти багато часу та трафіку; підтвердьте, щоб продовжити.",
+        "Стежте за перебігом (4). «Скасувати» (5) зупиняє пошук, нічого не видаляючи.",
+        "Прочитайте підсумок (6): скільки груп однакових файлів знайдено й скільки місця вони займають даремно. Відкрийте групу (8), щоб побачити її копії.",
+        "Застосунок уже позначив усі копії, крім найстарішої в кожній групі (9). Зніміть позначку з тих, що хочете залишити, або позначте ще.",
+        "Натисніть «Видалити вибрані» (10) і підтвердьте. Файли буде видалено, а екран закриється."
+      ],
+      "groups": [
+        { "title": "Що сканувати", "elements": ["back", "resources", "start-scan"] },
+        { "title": "Поки триває сканування", "elements": ["scan-progress", "cancel-scan"] },
+        { "title": "Результати й видалення", "elements": ["summary", "groups", "group-header", "file-row", "delete-selected", "none-found"] }
+      ],
+      "elements": {
+        "back": {
+          "summary": "Закриває екран; вихід нічого не видаляє.",
+          "details": "Стрілка на панелі, кнопка «Назад» на пристрої та клавіша Esc одразу закривають екран. Результати завершеного сканування не зберігаються, тому наступний захід починається з початку.",
+          "shortcut": "Esc"
+        },
+        "resources": {
+          "summary": "Ресурси, у яких піде пошук, - у вигляді плашок, які можна позначати.",
+          "details": "На кожній плашці - назва ресурсу та його тип. Позначка означає, що ресурс бере участь у скануванні; натисніть на плашку, щоб перемкнути її. Можна сканувати одразу кілька ресурсів, тому копія фото в двох різних ресурсах теж знайдеться. Якщо ви відкрили екран із меню ресурсу, цей ресурс уже позначено, і він стоїть першим."
+        },
+        "start-scan": {
+          "summary": "Запускає пошук файлів з однаковим вмістом.",
+          "details": "Кнопка недоступна, доки не позначено хоча б один ресурс. Файли порівнюються за вмістом, а не за назвою: спершу за розміром, потім за коротким фрагментом із початку, і повністю порівнюються лише ті, що все ще збігаються. Порожні файли не враховуються. Для мережевих і хмарних ресурсів спершу з’явиться вікно з попередженням, що сканування може зайняти багато часу та трафіку; натисніть «OK», щоб продовжити. Якщо ви прийшли через «Знайти та видалити дублікати», позначені копії видаляються одразу після сканування, без зайвих запитань, - щоб спершу подивитися, обирайте «Знайти дублікати»."
+        },
+        "scan-progress": {
+          "name": "Перебіг сканування",
+          "summary": "Показує, що робить сканування і як далеко воно просунулося.",
+          "details": "Етап написано великими літерами: LISTING - поки збираються файли, QUICK_HASH - поки порівнюються початки файлів одного розміру, FULL_HASH - поки решта кандидатів порівнюється повністю. Нижче лічильник показує, скільки файлів оброблено із загальної кількості."
+        },
+        "cancel-scan": {
+          "summary": "Зупиняє сканування й повертає до списку ресурсів.",
+          "details": "Скасування нічого не видаляє. Можна змінити позначені ресурси й почати заново."
+        },
+        "summary": {
+          "name": "Підсумок пошуку",
+          "summary": "Скільки груп однакових файлів знайдено й скільки місця зайнято даремно.",
+          "details": "Рядок виглядає, наприклад, так: «Знайдено 12 груп», потім «Витрачено даремно» і розмір. До витраченого даремно входять усі копії, крім однієї на групу, тобто це обсяг, який можна звільнити."
+        },
+        "groups": {
+          "name": "Групи дублікатів",
+          "summary": "Один рядок на кожен набір однакових файлів.",
+          "details": "Група - це набір файлів з одним вмістом. У групі завжди щонайменше два файли. Прокручуйте список, щоб переглянути всі групи."
+        },
+        "group-header": {
+          "name": "Заголовок групи",
+          "summary": "Називає групу й розгортає чи згортає її копії.",
+          "details": "Заголовок - назва одного з файлів групи, а рядок під ним показує розмір одного файлу та кількість файлів. Натисніть на заголовок, щоб розгорнути групу й побачити, де лежить кожна копія; усі групи спочатку згорнуті."
+        },
+        "file-row": {
+          "name": "Рядок файлу з прапорцем",
+          "summary": "Одна копія: назва, повний шлях і прапорець, що позначає її для видалення.",
+          "details": "Натисніть на рядок або на прапорець, щоб позначити копію чи зняти позначку. Позначена копія видаляється, коли ви натискаєте «Видалити вибрані». Якщо провести пальцем униз уздовж прапорців однієї групи, одразу позначиться цілий діапазон, знімання при цьому не відбувається. Застосунок не заважає позначити всі копії групи, тому одну копію залишайте без позначки. Рядок не відкриває файл; за шляхом його можна знайти в браузері файлів."
+        },
+        "delete-selected": {
+          "summary": "Видаляє всі позначені копії після підтвердження.",
+          "details": "Кнопка з’являється, щойно позначено хоча б одну копію, і показує, скільки файлів буде видалено та скільки місця вони займають. Вікно підтвердження з кнопками «Видалити» та «Скасувати» повторює число й повідомляє, що видалення не можна скасувати. Після видалення коротке повідомлення скаже, що файли видалено, і екран закриється.",
+          "undo": "Вибрані файли втрачаються. У прихованій папці .trash свого ресурсу вони лишаються, лише якщо в налаштуваннях увімкнено «Використовувати кошик (.trash)» і файли локальні та можуть бути переміщені туди; мережеві та хмарні файли, а також усе за вимкненого кошика видаляються безповоротно. Тоді повернути їх можна лише з резервної копії."
+        },
+        "none-found": {
+          "summary": "Повідомляє, що однакових файлів не знайдено.",
+          "details": "Напис з’являється, коли сканування завершено, а груп немає: у вибраних ресурсах видаляти нічого. Поверніться й виберіть інші ресурси, щоб шукати далі."
+        }
+      }
+    }
+  }
+}

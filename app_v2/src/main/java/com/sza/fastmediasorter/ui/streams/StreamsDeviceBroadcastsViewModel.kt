@@ -6,8 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.ExchangeDeviceBroadcast
 import com.sza.fastmediasorter.domain.model.ExchangeDeviceBroadcasts
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.usecase.exchange.ObserveDeviceBroadcastsUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamBroadcastUseCase
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -68,7 +70,6 @@ class StreamsDeviceBroadcastsViewModel @Inject constructor(
     }
 
     fun onBroadcastChosen(item: ExchangeDeviceBroadcast) {
-        Timber.d("S4116: device broadcast chosen in the streams list")
         if (!item.playable) {
             _messages.trySend(R.string.streams_device_broadcast_unsupported)
             return
@@ -97,7 +98,11 @@ class StreamsDeviceBroadcastsViewModel @Inject constructor(
         ImportStreamBroadcastUseCase.ImportResult.Duplicate -> R.string.streams_device_broadcast_already_added
         ImportStreamBroadcastUseCase.ImportResult.InvalidUrl,
         ImportStreamBroadcastUseCase.ImportResult.InvalidDescriptor -> R.string.broadcast_import_malformed
-        ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion -> R.string.broadcast_import_unsupported_version
+        ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion -> {
+            Timber.i("LIVE-BROADCAST: device broadcast schema above supported, format-unsupported")
+            Timber.d("S4353: device broadcast refused as format-unsupported")
+            ExchangeMessageText.what(ExchangeMessage.FORMAT_UNSUPPORTED)
+        }
     }
 
     private companion object {

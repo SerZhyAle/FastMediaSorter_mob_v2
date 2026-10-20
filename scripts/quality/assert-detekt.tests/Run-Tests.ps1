@@ -134,8 +134,8 @@ finally {
 
 Write-Host ''
 if ($script:fail -eq 0) {
-    Write-Host "assert-detekt tests: $script:pass passed" -ForegroundColor Green
+    Write-Host "assert-detekt tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
     exit 0
 }
-Write-Host "assert-detekt tests: $script:pass passed, $script:fail FAILED" -ForegroundColor Red
+Write-Host "assert-detekt tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 exit 1

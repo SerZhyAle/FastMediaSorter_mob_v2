@@ -78,6 +78,14 @@ function Invoke-Merged([string]$ManifestPath, [string]$FlavorName) {
     return [pscustomobject]@{ ExitCode = [int]$LASTEXITCODE; Output = $output }
 }
 
+# S4267: most pairing cases never create the registry file this path points at, so a run that
+# needed one would exit 2 - which is how a missing registry is proven not to stop the pair check.
+function Invoke-Pairing([string]$ManifestPath) {
+    $argv = @('-NoProfile', '-NonInteractive', '-File', $gate, '-Gate', '-PairingOnly', '-RepoRoot', $fixtureRoot, '-RegistryPath', $registry, '-Manifests', $ManifestPath, '-Flavor', 'standard')
+    $output = & $pwshExe @argv 2>&1 | Out-String
+    return [pscustomobject]@{ ExitCode = [int]$LASTEXITCODE; Output = $output }
+}
+
 $cameraRow = '{"kind":"permission","key":"android.permission.CAMERA","modules":["app_v2"],"flavors":["standard"],"sources":["app_v2/src/main/AndroidManifest.xml"],"justification":"The in-app capture screen photographs a document straight into the sorted folder."}'
 
 try {
@@ -217,11 +225,150 @@ try {
         Assert-Equal 1 $r.ExitCode 'project-wide verdict'
         if ($r.Output -notmatch 'both modules') { throw "the run did not say what it scanned - output: $($r.Output)" }
     }
+
+    # S4267: the foreground service pair. Every case below runs the real merged-manifest path
+    # against a fixture, because the pair exists only after merging and CI is the one place that
+    # path otherwise runs.
+    $dataSyncPermission = '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />'
+    $dataSyncService = @(
+        '    <application>',
+        '        <service android:name=".service.SftpServerService" android:foregroundServiceType="dataSync" />',
+        '    </application>'
+    )
+
+    Test-Case 'a typed foreground service whose permission is declared is paired' {
+        Reset-Fixture
+        Set-Manifest (@($dataSyncPermission) + $dataSyncService)
+        $r = Invoke-Pairing $manifestRel
+        Assert-Equal 0 $r.ExitCode "paired service verdict - output: $($r.Output)"
+        if ($r.Output -notmatch 'unpaired 0') { throw "the run did not report the pair count - output: $($r.Output)" }
+    }
+
+    Test-Case 'a typed foreground service with no paired permission is refused by service and type' {
+        Reset-Fixture
+        Set-Manifest $dataSyncService
+        $r = Invoke-Pairing $manifestRel
+        Assert-Equal 1 $r.ExitCode 'unpaired service verdict'
+        if ($r.Output -notmatch 'SftpServerService') { throw "the refusal did not name the service - output: $($r.Output)" }
+        if ($r.Output -notmatch 'FOREGROUND_SERVICE_DATA_SYNC') { throw "the refusal did not name the missing permission - output: $($r.Output)" }
+    }
+
+    Test-Case 'a pipe-joined type list is paired value by value' {
+        Reset-Fixture
+        Set-Manifest @(
+            '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />',
+            '    <application>',
+            '        <service android:name=".PlayerService" android:foregroundServiceType="mediaPlayback|dataSync" />',
+            '    </application>'
+        )
+        $r = Invoke-Pairing $manifestRel
+        Assert-Equal 1 $r.ExitCode 'partially paired service verdict'
+        if ($r.Output -notmatch 'FOREGROUND_SERVICE_DATA_SYNC') { throw "the refusal did not name the unpaired value - output: $($r.Output)" }
+        if ($r.Output -match 'no uses-permission android\.permission\.FOREGROUND_SERVICE_MEDIA_PLAYBACK') { throw "the paired value was reported - output: $($r.Output)" }
+    }
+
+    Test-Case 'a camelCase type maps to its underscore-split permission' {
+        Reset-Fixture
+        Set-Manifest @(
+            '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />',
+            '    <application>',
+            '        <service android:name=".LinkService" android:foregroundServiceType="connectedDevice" />',
+            '    </application>'
+        )
+        $r = Invoke-Pairing $manifestRel
+        Assert-Equal 0 $r.ExitCode "camelCase pair verdict - output: $($r.Output)"
+    }
+
+    Test-Case 'shortService is the one type that needs no permission' {
+        Reset-Fixture
+        Set-Manifest @(
+            '    <application>',
+            '        <service android:name=".ShortService" android:foregroundServiceType="shortService" />',
+            '    </application>'
+        )
+        $r = Invoke-Pairing $manifestRel
+        Assert-Equal 0 $r.ExitCode "shortService verdict - output: $($r.Output)"
+    }
+
+    Test-Case 'a permission an overlay removes does not pair' {
+        Reset-Fixture
+        Set-Manifest (@('    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" tools:node="remove" />') + $dataSyncService)
+        $r = Invoke-Pairing $manifestRel
+        Assert-Equal 1 $r.ExitCode 'removed permission verdict'
+    }
+
+    Test-Case 'a permission capped below API 34 does not pair' {
+        Reset-Fixture
+        Set-Manifest (@('    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" android:maxSdkVersion="33" />') + $dataSyncService)
+        $r = Invoke-Pairing $manifestRel
+        Assert-Equal 1 $r.ExitCode 'capped permission verdict'
+    }
+
+    Test-Case 'a permission requested from API 34 on pairs' {
+        Reset-Fixture
+        Set-Manifest (@('    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" android:minSdkVersion="34" />') + $dataSyncService)
+        $r = Invoke-Pairing $manifestRel
+        Assert-Equal 0 $r.ExitCode "minSdkVersion pair verdict - output: $($r.Output)"
+    }
+
+    Test-Case 'a comment that names the permission does not pair' {
+        Reset-Fixture
+        Set-Manifest (@('    <!-- Re-enable android.permission.FOREGROUND_SERVICE_DATA_SYNC when the feature ships -->') + $dataSyncService)
+        $r = Invoke-Pairing $manifestRel
+        Assert-Equal 1 $r.ExitCode 'comment-only verdict'
+    }
+
+    Test-Case 'the pair is judged beside the registry on the merged path' {
+        Reset-Fixture
+        Set-Registry @('{"kind":"foregroundServiceType","key":"dataSync","modules":["app_v2"],"flavors":["standard"],"justification":"The folder-sharing server keeps a transfer alive off screen."}')
+        Set-Manifest $dataSyncService
+        $r = Invoke-Merged $manifestRel 'standard'
+        Assert-Equal 1 $r.ExitCode 'justified but unpaired verdict'
+        if ($r.Output -notmatch 'unjustified 0') { throw "the registry half did not run - output: $($r.Output)" }
+        if ($r.Output -notmatch 'unpaired 1') { throw "the pairing half did not run - output: $($r.Output)" }
+    }
+
+    Test-Case '-PairingOnly judges no registry row and needs no registry' {
+        Reset-Fixture
+        Set-Manifest (@($dataSyncPermission, '    <uses-permission android:name="android.permission.READ_SMS" />') + $dataSyncService)
+        $r = Invoke-Pairing $manifestRel
+        Assert-Equal 0 $r.ExitCode "pairing-only verdict - output: $($r.Output)"
+    }
+
+    Test-Case 'a source manifest is not asked for the pair' {
+        Reset-Fixture
+        Set-Registry @('{"kind":"foregroundServiceType","key":"dataSync","modules":["app_v2"],"flavors":["standard"],"justification":"The folder-sharing server keeps a transfer alive off screen."}')
+        Set-Manifest $dataSyncService
+        $r = Invoke-Gate $manifestRel
+        Assert-Equal 0 $r.ExitCode "source manifest verdict - output: $($r.Output)"
+        if ($r.Output -match 'unpaired') { throw "a source manifest was paired - output: $($r.Output)" }
+    }
+
+    Test-Case 'a malformed merged manifest cannot verify rather than passing' {
+        Reset-Fixture
+        Set-Content -LiteralPath (Join-Path $mainDir 'AndroidManifest.xml') -Value '<manifest><service' -Encoding UTF8
+        $r = Invoke-Pairing $manifestRel
+        Assert-Equal 2 $r.ExitCode 'malformed manifest verdict'
+    }
+
+    Test-Case 'a merged manifest that is not on disk cannot verify rather than passing' {
+        Reset-Fixture
+        $r = Invoke-Pairing 'app_v2/build/intermediates/merged_manifests/standardRelease/AndroidManifest.xml'
+        Assert-Equal 2 $r.ExitCode 'absent merged manifest verdict'
+    }
+
+    Test-Case '-PairingOnly without a merged manifest cannot verify' {
+        Reset-Fixture
+        Set-Manifest $dataSyncService
+        $argv = @('-NoProfile', '-NonInteractive', '-File', $gate, '-Gate', '-PairingOnly', '-RepoRoot', $fixtureRoot, '-ChangedFiles', $manifestRel)
+        $output = & $pwshExe @argv 2>&1 | Out-String
+        Assert-Equal 2 ([int]$LASTEXITCODE) "pairing-only without -Manifests verdict - output: $output"
+    }
 }
 finally {
     Remove-Item -LiteralPath $fixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-Write-Host ("AssertManifestRiskDiff.Tests: {0} passed, {1} failed." -f $script:pass, $script:fail)
+Write-Host "AssertManifestRiskDiff.Tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

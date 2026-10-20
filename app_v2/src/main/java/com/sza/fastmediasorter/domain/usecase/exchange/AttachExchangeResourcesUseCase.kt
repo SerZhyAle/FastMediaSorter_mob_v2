@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.domain.model.ExchangeResourceDefaults
 import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceIdentity
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
@@ -83,7 +84,6 @@ class AttachExchangeResourcesUseCase @Inject constructor(
      * item is not attached here: its binding comes back in [ExchangeAttachResult.needPin].
      */
     suspend fun attach(items: List<ExchangeListedResource>): ExchangeAttachResult {
-        Timber.d("S4116: attach from my devices")
         return attach(items, accounts.entries.first())
     }
 
@@ -92,7 +92,6 @@ class AttachExchangeResourcesUseCase @Inject constructor(
      * its own; only an accepted PIN is kept and only then is the resource added (17 item AJ).
      */
     suspend fun attachProtected(item: ExchangeListedResource, pin: String): ExchangePinAttempt {
-        Timber.d("S4201: protected resource attach with a PIN")
         val access = usableAccess(item)
         val proven = access?.let { verifyPin(it, pin) } ?: ExchangePinAttempt.FAILED
         return if (access != null && proven == ExchangePinAttempt.ACCEPTED) keepAndAdd(item, access, pin) else proven
@@ -100,7 +99,6 @@ class AttachExchangeResourcesUseCase @Inject constructor(
 
     /** Replaces the PIN of an attached resource once the owner accepts the new one (17 item AI). */
     suspend fun renewPin(item: ExchangeListedResource, pin: String): ExchangePinAttempt {
-        Timber.d("S4201: PIN renewal for an attached resource")
         val binding = ExchangeBinding(item.sourceKey, item.record.resourceId)
         // No usable access means the owner is offline: nothing was proven either way.
         val proven = usableAccess(item)?.let { verifyPin(it, pin) } ?: ExchangePinAttempt.UNREACHABLE
@@ -119,16 +117,21 @@ class AttachExchangeResourcesUseCase @Inject constructor(
         val fresh = items.filterNot { ExchangeBinding(it.sourceKey, it.record.resourceId) in held }
         val (protectedItems, open) = fresh.partition { it.access == ExchangeResourceAccess.PIN_REQUIRED }
         val defaults = defaults()
+        var joined = 0
         val made = open.mapNotNull { item ->
             val access = ExchangeAttachPlanner.access(item, endpointOf(item.sourceKey, entries))
             val credentialsId = access?.let { saveCredentials(it) }
-            credentialsId?.let { ExchangeAttachPlanner.newResource(item, access, it, defaults) }
+            when {
+                access == null || credentialsId == null -> null
+                join(item, access) -> null.also { joined++ }
+                else -> ExchangeAttachPlanner.newResource(item, access, credentialsId, defaults)
+            }
         }
         val added = if (made.isEmpty()) 0 else addResource.addMultiple(made).getOrNull()?.addedCount ?: 0
-        val failed = open.size - added
+        val failed = open.size - added - joined
         if (failed > 0) Timber.i("AttachExchangeResourcesUseCase: %d of %d not attached", failed, open.size)
         return ExchangeAttachResult(
-            attached = added,
+            attached = added + joined,
             alreadyAttached = items.size - fresh.size,
             failed = failed,
             needPin = protectedItems.map { ExchangeBinding(it.sourceKey, it.record.resourceId) },
@@ -147,8 +150,12 @@ class AttachExchangeResourcesUseCase @Inject constructor(
         val binding = ExchangeBinding(item.sourceKey, item.record.resourceId)
         val credentialsId = if (pinStore.save(binding, pin)) saveCredentials(access) else null
         val added = credentialsId?.let { id ->
-            val resource = ExchangeAttachPlanner.newResource(item, access, id, defaults())
-            addResource.addMultiple(listOf(resource)).getOrNull()?.addedCount
+            if (join(item, access)) {
+                1
+            } else {
+                val resource = ExchangeAttachPlanner.newResource(item, access, id, defaults())
+                addResource.addMultiple(listOf(resource)).getOrNull()?.addedCount
+            }
         } ?: 0
         if (added > 0) verifyPin.accepted(binding) else pinStore.forget(binding)
         return if (added > 0) ExchangePinAttempt.ACCEPTED else ExchangePinAttempt.FAILED
@@ -173,7 +180,8 @@ class AttachExchangeResourcesUseCase @Inject constructor(
         val access = listing.resource(binding.sourceKey, binding.resourceId)
             ?.let { item -> ExchangeAttachPlanner.access(item, endpointOf(item.sourceKey, entries)) } ?: return
         val credentialsId = saveCredentials(access) ?: return
-        ExchangeAttachPlanner.refreshed(bound, access, credentialsId)?.let { resources.updateResource(it) }
+        val entryHost = endpointOf(binding.sourceKey, entries)?.host
+        ExchangeAttachPlanner.refreshed(bound, access, credentialsId, entryHost)?.let { resources.updateResource(it) }
     }
 
     // Credentials are looked up per host:port at connect time, so every path of the share needs its own row.
@@ -183,6 +191,22 @@ class AttachExchangeResourcesUseCase @Inject constructor(
             credentials.saveSftpCredentials(path.host, path.port, access.payload.username, password).getOrNull()
         }
         return ids.firstOrNull()
+    }
+
+    /**
+     * Item BB: one folder is one record. When a record of the same identity already holds the folder - imported
+     * from a code, or attached through another entry - [item] adds its channels to it and no second record is made.
+     */
+    private suspend fun join(item: ExchangeListedResource, access: ExchangeAttachPlanner.Access): Boolean {
+        val identity = ExchangeAttachPlanner.identity(item, access)
+        val existing = identity?.let { wanted ->
+            resources.getAllResourcesSync().firstOrNull { ResourceIdentity.of(it) == wanted }
+        }
+        existing?.let { ExchangeAttachPlanner.joined(it, item, access) }?.let { resources.updateResource(it) }
+        if (existing != null) {
+            Timber.d("S4224: directory item joined the record of the same host key and root")
+        }
+        return existing != null
     }
 
     private suspend fun attached(): List<MediaResource> = resources.getAllResourcesSync()

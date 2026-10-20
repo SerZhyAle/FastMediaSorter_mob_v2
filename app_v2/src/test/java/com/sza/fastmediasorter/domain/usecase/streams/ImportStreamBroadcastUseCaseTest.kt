@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase.streams
 
+import com.sza.fastmediasorter.data.broadcast.BroadcastAuthDto
+import com.sza.fastmediasorter.data.broadcast.BroadcastCredentialsDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorParser
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorSerializer
@@ -7,9 +9,12 @@ import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
+import com.sza.fastmediasorter.domain.repository.BroadcastPasswordStore
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.testing.InMemoryRoomRule
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -48,7 +53,95 @@ class ImportStreamBroadcastUseCaseTest {
     private val parser = BroadcastDescriptorParser()
     private val serializer = BroadcastDescriptorSerializer()
     private val addStreamUseCase get() = AddStreamSourceUseCase(repo, StreamMediaKindClassifier(), stats)
-    private val importUseCase get() = ImportStreamBroadcastUseCase(parser, addStreamUseCase, repo)
+    private val passwords = FakeBroadcastPasswordStore()
+    private val importUseCase get() = ImportStreamBroadcastUseCase(parser, addStreamUseCase, repo, passwords)
+
+    private class FakeBroadcastPasswordStore : BroadcastPasswordStore {
+        val pairs = mutableMapOf<String, BroadcastPasswordStore.StoredPair>()
+        override suspend fun get(streamId: String) = pairs[streamId]
+        override suspend fun put(streamId: String, user: String, password: String?): Boolean {
+            pairs[streamId] = BroadcastPasswordStore.StoredPair(user, password)
+            return true
+        }
+        override suspend fun remove(streamId: String) {
+            pairs.remove(streamId)
+        }
+    }
+
+    private fun protectedDescriptor() = BroadcastDescriptorDto(
+        schemaVersion = 1,
+        url = "http://192.168.1.50:8768/live-audio.aac",
+        title = "Protected",
+        mode = "AUDIO_ONLY",
+        auth = BroadcastAuthDto(user = "listener"),
+    )
+
+    @Test
+    fun importProtectedDescriptor_keepsTypedPasswordForTheNewRow() = runTest {
+        val result = importUseCase(serializer.serialize(protectedDescriptor()), password = "s3cret")
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Success, result)
+        val id = requireNotNull(dao.getByUrl("http://192.168.1.50:8768/live-audio.aac")).id
+        assertEquals(BroadcastPasswordStore.StoredPair("listener", "s3cret"), passwords.pairs[id])
+    }
+
+    @Test
+    fun importProtectedDescriptorAgain_keepsThePasswordAlreadyTyped() = runTest {
+        importUseCase(serializer.serialize(protectedDescriptor()), password = "s3cret")
+        importUseCase(serializer.serialize(protectedDescriptor()))
+
+        val id = requireNotNull(dao.getByUrl("http://192.168.1.50:8768/live-audio.aac")).id
+        assertEquals("s3cret", passwords.pairs[id]?.password)
+    }
+
+    @Test
+    fun importProtectedDescriptorWithoutPassword_recordsTheUserOnly() = runTest {
+        importUseCase(serializer.serialize(protectedDescriptor()))
+
+        val id = requireNotNull(dao.getByUrl("http://192.168.1.50:8768/live-audio.aac")).id
+        assertEquals(BroadcastPasswordStore.StoredPair("listener", null), passwords.pairs[id])
+    }
+
+    @Test
+    fun importOwnProtectedDescriptor_keepsTheAccountPairFromTheBox() = runTest {
+        val own = protectedDescriptor().copy(credentials = BroadcastCredentialsDto("account", "own-secret"))
+
+        importUseCase(serializer.serialize(own))
+
+        val id = requireNotNull(dao.getByUrl("http://192.168.1.50:8768/live-audio.aac")).id
+        assertEquals(BroadcastPasswordStore.StoredPair("account", "own-secret"), passwords.pairs[id])
+    }
+
+    @Test
+    fun importUnprotectedDescriptor_storesNoPair() = runTest {
+        importUseCase(serializer.serialize(protectedDescriptor().copy(auth = null)), password = "ignored")
+
+        assertEquals(emptyMap<String, BroadcastPasswordStore.StoredPair>(), passwords.pairs)
+    }
+
+    @Test
+    fun needsPassword_asksOnlyForAProtectedDescriptorWithNoPairOnThisDevice() = runTest {
+        val protected = serializer.serialize(protectedDescriptor())
+        val own = serializer.serialize(
+            protectedDescriptor().copy(credentials = BroadcastCredentialsDto("account", "own-secret")),
+        )
+
+        assertEquals(true, importUseCase.needsPassword(protected))
+        assertEquals(false, importUseCase.needsPassword(own))
+        assertEquals(false, importUseCase.needsPassword(serializer.serialize(protectedDescriptor().copy(auth = null))))
+        importUseCase(protected, password = "s3cret")
+        assertEquals(false, importUseCase.needsPassword(protected))
+    }
+
+    @Test
+    fun replacePassword_keepsTheRecordedUserAndTheNewPassword() = runTest {
+        importUseCase(serializer.serialize(protectedDescriptor()), password = "old")
+        val id = requireNotNull(dao.getByUrl("http://192.168.1.50:8768/live-audio.aac")).id
+
+        assertEquals(true, importUseCase.replacePassword(id, "new"))
+        assertEquals(BroadcastPasswordStore.StoredPair("listener", "new"), passwords.pairs[id])
+        assertEquals(false, importUseCase.replacePassword("unknown-row", "new"))
+    }
 
     @Test
     fun importFromValidCompressedPayload_addsOrdinaryStreamSourceEntity() = runTest {
@@ -105,6 +198,27 @@ class ImportStreamBroadcastUseCaseTest {
         val result = importUseCase(serializer.serialize(dto))
 
         assertEquals(ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion, result)
+    }
+
+    // LIVE-BROADCAST 1.1: a schemaVersion 2 descriptor is refused before any field is used, nothing is imported,
+    // and the refusal shown is the canonical format-unsupported text.
+    @Test
+    fun importSchemaVersionTwo_importsNothingAndMapsToFormatUnsupported() = runTest {
+        val dto = watchDto(FIRST_URL, endpoints = exchangeEndpoints("a"))
+            .copy(schemaVersion = 2, auth = BroadcastAuthDto(user = "listener"))
+
+        val result = importUseCase(serializer.serializeCompressed(dto), password = "s3cret")
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion, result)
+        assertEquals(0, dao.observeAll().first().size)
+        assertEquals(emptyMap<String, BroadcastPasswordStore.StoredPair>(), passwords.pairs)
+        val shown = RuntimeEnvironment.getApplication().getString(
+            ExchangeMessageText.what(ExchangeMessage.FORMAT_UNSUPPORTED),
+        )
+        assertEquals(
+            "This format is newer than this program supports. Nothing was imported. Use a compatible program.",
+            shown,
+        )
     }
 
     // S2813: the four ways a scanned descriptor can meet the catalog. They differ only in stored
@@ -231,6 +345,98 @@ class ImportStreamBroadcastUseCaseTest {
         assertEquals(1, dao.observeAll().first().size)
     }
 
+    // S4289: the descriptor's mode decides the row's kind on import and on every refresh.
+
+    @Test
+    fun importVideoBroadcast_storesAVideoKindEvenWhenTheUrlHasNoExtension() = runTest {
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "VIDEO_AUDIO")))
+
+        assertEquals("VIDEO", dao.getByUrl(LIVE_URL)?.mediaKind)
+    }
+
+    @Test
+    fun importVideoOnlyBroadcastOverRtsp_keepsTheRtspKind() = runTest {
+        importUseCase(serializer.serialize(watchDto(RTSP_URL, mode = "VIDEO_ONLY")))
+
+        assertEquals("RTSP", dao.getByUrl(RTSP_URL)?.mediaKind)
+    }
+
+    @Test
+    fun importOfABroadcastThatSwitchedFromAudioToVideo_refreshesTheKindAndKeepsTheRest() = runTest {
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, title = "Kitchen watch", mode = "AUDIO_ONLY")))
+        val before = requireNotNull(dao.getByUrl(LIVE_URL))
+        repo.pinToTop(before.id)
+
+        val video = watchDto(LIVE_URL, title = "Kitchen watch", mode = "VIDEO_AUDIO")
+        val result = importUseCase(serializer.serialize(video))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        assertEquals(1, dao.observeAll().first().size)
+        val after = requireNotNull(dao.getByUrl(LIVE_URL))
+        assertEquals(before.id, after.id)
+        assertEquals("VIDEO", after.mediaKind)
+        assertEquals("Kitchen watch", after.title)
+        assertEquals("the pin must survive the kind refresh", true, after.pinned)
+    }
+
+    @Test
+    fun importOfABroadcastThatSwitchedFromVideoToAudio_refreshesTheKindBack() = runTest {
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "VIDEO_AUDIO")))
+
+        val result = importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "AUDIO_ONLY")))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        assertEquals("AUDIO", dao.getByUrl(LIVE_URL)?.mediaKind)
+    }
+
+    @Test
+    fun importOfABroadcastWhoseKindDidNotChange_isADuplicate() = runTest {
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "VIDEO_AUDIO")))
+
+        val result = importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "VIDEO_AUDIO")))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Duplicate, result)
+    }
+
+    @Test
+    fun importOverwritesATypeTheUserChoseInTheEditDialog() = runTest {
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "AUDIO_ONLY")))
+        val typed = requireNotNull(dao.getByUrl(LIVE_URL))
+        repo.updateUserFields(typed.id, typed.url, typed.title, "VIDEO")
+
+        val result = importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "AUDIO_ONLY")))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        assertEquals("AUDIO", dao.getByUrl(LIVE_URL)?.mediaKind)
+    }
+
+    @Test
+    fun importOfAKnownDeviceOnANewAddressAndANewMode_movesTheRowAndRefreshesTheKind() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL, mode = "AUDIO_ONLY")))
+        val before = requireNotNull(dao.getByUrl(FIRST_URL))
+        repo.pinToTop(before.id)
+
+        val result = importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "VIDEO_AUDIO")))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        val after = requireNotNull(dao.getByUrl(LIVE_URL))
+        assertEquals(before.id, after.id)
+        assertEquals("VIDEO", after.mediaKind)
+        assertEquals("the pin must survive the move", true, after.pinned)
+    }
+
+    @Test
+    fun importWithAModeThisAppDoesNotKnow_keepsTheStoredKindAndClassifiesANewRowByUrl() = runTest {
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "FUTURE_MODE")))
+        assertEquals("AUDIO", dao.getByUrl(LIVE_URL)?.mediaKind)
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "VIDEO_AUDIO")))
+
+        val result = importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "FUTURE_MODE")))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Duplicate, result)
+        assertEquals("VIDEO", dao.getByUrl(LIVE_URL)?.mediaKind)
+    }
+
     private fun exchangeEndpoints(broadcastId: String) = listOf(
         BroadcastEndpointDto(url = FIRST_URL, transport = "HTTP"),
         BroadcastEndpointDto(
@@ -252,11 +458,12 @@ class ImportStreamBroadcastUseCaseTest {
         sourceId: String? = WATCH_ID,
         title: String = "Galaxy Watch",
         endpoints: List<BroadcastEndpointDto>? = null,
+        mode: String = "AUDIO_ONLY",
     ) = BroadcastDescriptorDto(
         schemaVersion = 1,
         url = url,
         title = title,
-        mode = "AUDIO_ONLY",
+        mode = mode,
         sourceId = sourceId,
         endpoints = endpoints,
     )
@@ -265,6 +472,8 @@ class ImportStreamBroadcastUseCaseTest {
         const val WATCH_ID = "6f1a8f0e-0f4e-4a2b-9d1c-2b7f1a8f0e00"
         const val FIRST_URL = "http://192.168.1.77:41000/live-audio.aac"
         const val SECOND_URL = "http://192.168.1.77:52311/live-audio.aac"
+        const val LIVE_URL = "http://192.168.1.77:41000/live"
+        const val RTSP_URL = "rtsp://192.168.1.77:8554/live"
         const val FINGERPRINT = "SHA256:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU"
     }
 }

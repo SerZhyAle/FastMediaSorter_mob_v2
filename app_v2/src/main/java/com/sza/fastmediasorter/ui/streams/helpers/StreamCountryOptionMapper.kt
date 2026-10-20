@@ -40,7 +40,6 @@ object StreamCountryOptionMapper {
         val all = named.map { (normalized, name) -> option(normalized, name) }
         val block = InterfaceLanguageCountries.forLocale(uiLocale)
         val leading = all.filter { it.id in block }.map { it.copy(rowKey = BLOCK_ROW_PREFIX + it.id) }
-        Timber.d("S4133: country picker locale=${uiLocale.language} block=${leading.size} total=${all.size}")
         return leading + all
     }
 

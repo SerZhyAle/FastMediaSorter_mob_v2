@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "家庭影院与 VR 串流 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.25 02:17</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 🍿 家庭影院与 VR 串流
 
 > **难度：** 入门 &bull; **用时：** 约 15 分钟 &bull; **版本：** Standard、Legacy、VR、noLegal（Lite 没有网络资源功能，Photos 没有视频功能）
-
-{% include lang-switcher.html doc="scenario-home-cinema" dir="/docs/howto/" current="zh-Hans" %}
 
 直接从家里的电脑观看您的剧集收藏 - 可以在手机、平板，或基于 Android 的 VR 头显（Meta Quest、Pico）上观看。无需复制文件，无需 USB 数据线，按下播放即可。
 

@@ -8,91 +8,60 @@ appId: com.sza.fastmediasorter.debug
 # restored player/browse screen until the resource-type tabs are shown, giving every capability
 # flow a deterministic MainActivity starting point.
 #
-# Each back is guarded on tabResourceTypes, so a screen that is already home is never
-# over-backed out of (which would exit the app).
+# S4252: the fragment is a fast path plus the old cascade as an escape. Maestro 2.6.1 answers a
+# lookup that succeeds in 0.2-1 s and spends ~7 s (once per unbroken run of failures) on one that
+# fails, and the seven guards this fragment used to run were all `notVisible` on the tabs - a
+# failure whenever the tabs were already on screen, which is where every guard after the first
+# back press found them. Measured 2026-10-15: the fragment cost 12-15 s, of which about 7 s was that
+# single wait. The common start is the restored player or browse screen, so:
+# - the guard on a missing tab strip is kept as the first step (a success there: the strip is
+#   absent), and so is its single back press;
+# - after the back, `extendedWaitUntil` returns as soon as the strip is visible instead of the
+#   fixed animation wait, and a positive `visible` check - a success - replaces the `notVisible`
+#   chain as the question "are we home?";
+# - only when that check fails does go_home_escape.yaml run: the previous cascade, unchanged.
 #
-# S1673: backing out is not always enough. A back press only walks the app's own task stack, so
-# any state where the foreground screen is NOT on that stack is unreachable by backing. Launcher
-# mode is the case that surfaced it: with the HOME component enabled, leaving MainActivity lands
-# on the app's own LauncherHomeActivity desktop, from which back never returns to MainActivity -
-# the three guarded backs then change nothing and the final assert fails naming tabResourceTypes,
-# pointing at the resource tabs instead of at the launcher mode that actually caused it. Because
-# this fragment backs every capability flow, that turns one leftover device setting into a red
-# suite - the false red that teaches the reader to ignore red.
+# One ~7 s wait remains by design: when the tabs are already on screen at the start, the first
+# guard is a failed lookup and costs what it always cost. The two start states cannot both be
+# answered by a success - the check that is fast for one is the slow one for the other - so the
+# order favours the restored player, which is the usual start of a flow after a flow that opened
+# a file.
 #
-# The relaunch below is the escape hatch. LauncherHomeActivity declares MAIN/HOME only, while
-# MainActivity holds MAIN/LAUNCHER, so the launcher intent Maestro fires always resolves to
-# MainActivity regardless of launcher mode. That makes the suite independent of the setting
-# instead of dependent on the operator having turned it back off, which nothing enforces.
+# The settle window after the back press is not optional. Measured 2026-10-15 on the test phone
+# (add_resource_forms, a flow that starts with the app parked in "All music"): the tabs were visible
+# right after the back, and about 0.3-0.5 s later the app reopened the restored browse screen, so
+# the positive check below said "home" and the final assertion then waited 17 s for tabs that were
+# gone. The old cascade survived this only because every back was followed by
+# waitForAnimationToEnd and a fresh guard. `extendedWaitUntil notVisible` returns the moment the
+# tabs vanish (the escape then runs) and costs its full timeout, flagged WARNED, when they stay.
 - runFlow:
     when:
       notVisible:
         id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
     commands:
       - back
-      - waitForAnimationToEnd
-- runFlow:
-    when:
-      notVisible:
-        id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
-    commands:
-      - back
-      - waitForAnimationToEnd
-- runFlow:
-    when:
-      notVisible:
-        id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
-    commands:
-      - back
-      - waitForAnimationToEnd
+      - extendedWaitUntil:
+          visible:
+            id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+          timeout: 2000
+          optional: true
+      - extendedWaitUntil:
+          notVisible:
+            id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+          timeout: 1500
+          optional: true
 
-# First escape hatch - a plain relaunch, no stopApp. LauncherHomeActivity declares MAIN/HOME only
-# while MainActivity holds MAIN/LAUNCHER, so the launcher intent resolves to MainActivity even when
-# this app currently HOLDS the home role (verified 2026-09-08 on emulator-5554: the intent landed on
-# ui.main.MainActivity from the app's own desktop).
-#
-# S2720: this step exists because the stopApp hatch below hangs in exactly that state - stopping the
-# app that owns the home role leaves no home surface and Maestro never returns, which took a launcher
-# flow out at a 7-minute timeout. Trying the cheap relaunch first means the stopApp branch is only
-# reached when the role is elsewhere, where it is safe.
+- evalScript: ${output.homeReached = false}
 - runFlow:
     when:
-      notVisible:
+      visible:
         id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
     commands:
-      - launchApp:
-          appId: "com.sza.fastmediasorter.debug"
-      - waitForAnimationToEnd
-
-# Second escape hatch - only reached when the plain relaunch failed too. stopApp drops whatever task
-# is in the way; clearState is deliberately NOT set, because it would wipe the registered resources
-# every flow depends on.
+      - evalScript: ${output.homeReached = true}
 - runFlow:
     when:
-      notVisible:
-        id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
-    commands:
-      - launchApp:
-          appId: "com.sza.fastmediasorter.debug"
-          stopApp: true
-      - waitForAnimationToEnd
-
-# The relaunch is a cold start, so resumeOnNextLaunch can reopen the last played file on top of
-# MainActivity. Back out of that restored screen the same guarded way as above.
-- runFlow:
-    when:
-      notVisible:
-        id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
-    commands:
-      - back
-      - waitForAnimationToEnd
-- runFlow:
-    when:
-      notVisible:
-        id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
-    commands:
-      - back
-      - waitForAnimationToEnd
+      true: ${!output.homeReached}
+    file: go_home_escape.yaml
 
 - assertVisible:
     id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"

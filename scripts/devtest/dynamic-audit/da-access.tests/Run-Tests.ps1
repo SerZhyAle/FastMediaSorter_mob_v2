@@ -672,6 +672,6 @@ finally {
     if (Test-Path -LiteralPath $daSuiteRoot) { Remove-Item -LiteralPath $daSuiteRoot -Recurse -Force -ErrorAction SilentlyContinue }
 }
 
-Write-Host ("da-access.tests: {0} passed, {1} failed" -f $script:daPassed, $script:daFailed.Count)
+Write-Host "da-access.tests: $(if ($script:daFailed.Count) { 'FAIL' } else { 'PASS' }) (run=$($script:daPassed + $script:daFailed.Count) skipped=0)"
 if ($script:daFailed.Count -gt 0) { exit 1 }
 exit 0

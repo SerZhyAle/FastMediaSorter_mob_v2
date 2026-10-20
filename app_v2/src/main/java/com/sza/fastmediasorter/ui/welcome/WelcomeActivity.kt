@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.Toast
@@ -14,6 +15,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.viewpager2.widget.ViewPager2
@@ -32,6 +34,9 @@ import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.launcher.LauncherPrimaryWindow
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
+import com.sza.fastmediasorter.ui.common.help.HelpTooltipManager
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.profile.DeviceProfilePickerDialogFragment
@@ -330,6 +335,11 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             barPadding + sideInset,
             barPadding + navBar.bottom
         )
+
+        binding.btnWelcomeHelp.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            topMargin = statusBar.top
+            marginEnd = sideInset
+        }
     }
 
     private fun setupViewPager() {
@@ -611,6 +621,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     }
 
     private fun setupButtons() {
+        HelpTooltipManager.apply(binding.btnWelcomeHelp)
+        binding.btnWelcomeHelp.setOnClickListener {
+            HelpOpenManager.open(this, HELP_SURFACE_ID, UiSurface.WELCOME)
+        }
         binding.btnPrevious.setOnClickListener {
             if (currentPage > 0) {
                 binding.viewPager.currentItem = currentPage - 1
@@ -914,8 +928,13 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     /** S0289 Phase 09: route mouse wheel onto the onboarding pager. */
     override fun getMouseScrollTargetView(): View? = binding.viewPager
 
+    override fun getInputHelpSurface(): UiSurface = UiSurface.WELCOME
+
+    override fun getHelpSurfaceId(): String = HELP_SURFACE_ID
+
     companion object {
         private const val KEY_CURRENT_PAGE = "key_current_page"
+        private const val HELP_SURFACE_ID = "WelcomeActivity"
 
         // S2311: own result key so the enable-all confirmation cannot collide with the Settings screen's
         // use of the same picker.

@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeBroadcastAnnounce
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeCastCodec
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectory
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeSealedContentOpener
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpServerTunnelManager
 import com.sza.fastmediasorter.data.repository.DeviceExchangeAccountRepository
 import com.sza.fastmediasorter.domain.model.ExchangeCastAction
@@ -47,7 +48,8 @@ import javax.inject.Singleton
  * one control stream ([SftpServerTunnelManager]). As a receiver it holds that stream while streams are on and an
  * outgoing entry exists, imports every offered broadcast as a live channel (9.5), and asks through a notification
  * unless the user chose "play at once". As a sender it lists the receivers on the same stream, so opening the
- * list never displaces the broadcast's control stream (7.3), and sends one `cast` per chosen receiver.
+ * list never displaces the broadcast's control stream (7.3), and sends one `cast` per chosen receiver. Receiving
+ * follows the outgoing entry whatever its kind; sending only one that may produce (19 item AO).
  */
 // Both halves of cast meet here on purpose: they share the one control stream and its single collector.
 @Suppress("LongParameterList")
@@ -61,6 +63,7 @@ class ExchangeCastCoordinator @Inject constructor(
     private val parser: BroadcastDescriptorParser,
     private val importBroadcast: ImportStreamBroadcastUseCase,
     private val notifier: ExchangeCastNotifier,
+    private val sealed: ExchangeSealedContentOpener,
     @ApplicationScope private val scope: CoroutineScope,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
@@ -69,8 +72,11 @@ class ExchangeCastCoordinator @Inject constructor(
     private val machine = ExchangeCastReceiverMachine()
     private val machineLock = Mutex()
 
-    /** A broadcast can be cast only through an outgoing entry, the one it is announced on (item AC). */
-    val castAvailable: Flow<Boolean> = accounts.outgoing.map { it != null }.distinctUntilChanged()
+    /**
+     * A broadcast can be cast only through an outgoing entry, the one it is announced on (item AC), and never a
+     * `guest` one, whose `cast` the server refuses (19 item AO).
+     */
+    val castAvailable: Flow<Boolean> = accounts.producer.map { it != null }.distinctUntilChanged()
 
     /** Every `cast-result` this device receives as a broadcaster (item R). */
     val results: Flow<ExchangeCastResult> = tunnel.controlEvents.mapNotNull(DeviceExchangeCastCodec::result)
@@ -104,7 +110,7 @@ class ExchangeCastCoordinator @Inject constructor(
      */
     suspend fun castTargets(): List<ExchangeCastTarget>? = withContext(ioDispatcher) {
         val descriptor = announcer.announcedDescriptor
-        val own = accounts.outgoing.first()?.deviceId
+        val own = accounts.producer.first()?.deviceId
         if (descriptor == null || own == null) return@withContext null
         withTimeoutOrNull(LIST_TIMEOUT_MS) { listOnControl() }
             ?.let { ExchangeCastRules.castTargets(it.devices, own, endpointPairs(descriptor)) }
@@ -125,13 +131,15 @@ class ExchangeCastCoordinator @Inject constructor(
 
     /** Sends one `cast` of the announced broadcast per receiver (7.8); the number actually written. */
     suspend fun cast(receiverDeviceIds: List<String>): Int = withContext(ioDispatcher) {
-        Timber.d("S4116: cast sent to chosen receivers")
         val broadcastId = announcer.announcedBroadcastId ?: return@withContext 0
         receiverDeviceIds.count { tunnel.sendControl(DeviceExchangeCastCodec.cast(broadcastId, it)) }
     }
 
-    private suspend fun onOffer(offer: ExchangeCastOffer) {
-        Timber.d("S4116: cast offer received")
+    private suspend fun onOffer(received: ExchangeCastOffer) {
+        // 27 item DK: the offered record's box is opened into its endpoints before anything imports it.
+        val record = accounts.outgoingEntry()?.let { sealed.openCast(it, received.record) }
+            ?: received.record.copy(sealed = null)
+        val offer = received.copy(record = record)
         val dto = (parser.parseDetailed(offer.record.descriptorJson) as? BroadcastDescriptorParser.ParseOutcome.Valid)
             ?.dto
         if (dto != null) importBroadcast(offer.record.descriptorJson)

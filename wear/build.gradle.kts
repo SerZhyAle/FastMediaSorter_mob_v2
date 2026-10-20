@@ -231,6 +231,9 @@ android {
         getByName("main") {
             kotlin.srcDir("../app_v2/src/main/java/com/sza/fastmediasorter/data/security/fdsec")
             kotlin.srcDir("../app_v2/src/main/java/com/sza/fastmediasorter/domain/streams/facets")
+            // S4240: the DEVICE-EXCHANGE sealing layer - the phone and the watch must seal and open the
+            // same bytes, and the package imports only Bouncy Castle and Gson, both on this classpath.
+            kotlin.srcDir("../app_v2/src/main/java/com/sza/fastmediasorter/data/security/e2e")
         }
 
         // The same source's conformance suite, so the watch reproduces the contract's published
@@ -241,6 +244,7 @@ android {
         getByName("test") {
             kotlin.srcDir("../app_v2/src/test/java/com/sza/fastmediasorter/data/security/fdsec")
             kotlin.srcDir("../app_v2/src/test/java/com/sza/fastmediasorter/domain/streams/facets")
+            kotlin.srcDir("../app_v2/src/test/java/com/sza/fastmediasorter/data/security/e2e")
             resources.srcDir("../app_v2/src/test/resources")
         }
     }
@@ -416,6 +420,8 @@ dependencies {
     
     // Coil for image loading (Compose-friendly)
     implementation(libs.coil.coil.compose)
+    // S4227: animated GIF and WebP in the full-screen image viewer, through the platform decoder (minSdk 28).
+    implementation(libs.coil.coil.gif)
     
     // Hilt Dependency Injection
     implementation(libs.dagger.hilt.android)

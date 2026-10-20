@@ -202,6 +202,11 @@ abstract class ResourceDao {
     @Query("SELECT * FROM resources WHERE exchange_account = :account")
     abstract suspend fun getByExchangeAccount(account: String): List<ResourceEntity>
 
+    @Query(
+        "SELECT exchange_resource_id FROM resources WHERE exchange_account = :account AND exchange_resource_id IS NOT NULL"
+    )
+    abstract suspend fun getExchangeResourceIds(account: String): List<String>
+
     /** An entry's address was edited in place: its attachments follow it (contract item AA). */
     @Query("UPDATE resources SET exchange_account = :to WHERE exchange_account = :from")
     abstract suspend fun rebindExchangeAccount(from: String, to: String): Int

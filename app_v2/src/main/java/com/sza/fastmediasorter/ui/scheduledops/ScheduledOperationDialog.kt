@@ -152,7 +152,6 @@ class ScheduledOperationDialog(
     // ARCHIVE keeps the target but hides overwrite: every run writes a fresh, auto-deduplicated ZIP name,
     // so the switch would have nothing to act on.
     private fun applyOperationVisibility(type: ScheduledOpType) {
-        timber.log.Timber.d("S4173: editor operation type=$type")
         val targetVisibility = if (type == ScheduledOpType.DELETE) View.GONE else View.VISIBLE
         b.tvTargetLabel.visibility = targetVisibility
         b.tilTarget.visibility = targetVisibility

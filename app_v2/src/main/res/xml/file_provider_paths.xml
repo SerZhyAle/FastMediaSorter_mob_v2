@@ -26,4 +26,10 @@
     <files-path
         name="gnss_tracks"
         path="gnss-tracks/" />
+
+    <!-- S4226: the one value received from the clipboard on the exchange server, placed in the system clipboard
+         as a URI. Scoped like the GNSS tracks: filesDir as a whole holds the DataStore preference files. -->
+    <files-path
+        name="exchange_clipboard"
+        path="exchange-clipboard/received/" />
 </paths>

@@ -175,7 +175,7 @@
                             android:layout_marginStart="@dimen/margin_small"
                             android:maxLines="1"
                             app:autoSizeTextType="uniform"
-                            app:autoSizeMinTextSize="@dimen/text_size_tiny"
+                            app:autoSizeMinTextSize="@dimen/network_monitor_tile_title_text_size_min"
                             app:autoSizeMaxTextSize="@dimen/text_size_small"
                             android:text="@string/network_monitor_section_wifi" />
                     </LinearLayout>
@@ -223,7 +223,7 @@
                             android:layout_marginStart="@dimen/margin_small"
                             android:maxLines="1"
                             app:autoSizeTextType="uniform"
-                            app:autoSizeMinTextSize="@dimen/text_size_tiny"
+                            app:autoSizeMinTextSize="@dimen/network_monitor_tile_title_text_size_min"
                             app:autoSizeMaxTextSize="@dimen/text_size_small"
                             android:text="@string/network_monitor_section_mobile" />
                     </LinearLayout>
@@ -272,7 +272,7 @@
                             android:layout_marginStart="@dimen/margin_small"
                             android:maxLines="1"
                             app:autoSizeTextType="uniform"
-                            app:autoSizeMinTextSize="@dimen/text_size_tiny"
+                            app:autoSizeMinTextSize="@dimen/network_monitor_tile_title_text_size_min"
                             app:autoSizeMaxTextSize="@dimen/text_size_small"
                             android:text="@string/network_monitor_section_bluetooth" />
                     </LinearLayout>
@@ -321,7 +321,7 @@
                             android:layout_marginStart="@dimen/margin_small"
                             android:maxLines="1"
                             app:autoSizeTextType="uniform"
-                            app:autoSizeMinTextSize="@dimen/text_size_tiny"
+                            app:autoSizeMinTextSize="@dimen/network_monitor_tile_title_text_size_min"
                             app:autoSizeMaxTextSize="@dimen/text_size_small"
                             android:text="@string/network_monitor_section_gnss" />
                     </LinearLayout>
@@ -370,7 +370,7 @@
                             android:layout_marginStart="@dimen/margin_small"
                             android:maxLines="1"
                             app:autoSizeTextType="uniform"
-                            app:autoSizeMinTextSize="@dimen/text_size_tiny"
+                            app:autoSizeMinTextSize="@dimen/network_monitor_tile_title_text_size_min"
                             app:autoSizeMaxTextSize="@dimen/text_size_small"
                             android:text="@string/network_monitor_section_internet" />
                     </LinearLayout>
@@ -419,7 +419,7 @@
                             android:layout_marginStart="@dimen/margin_small"
                             android:maxLines="1"
                             app:autoSizeTextType="uniform"
-                            app:autoSizeMinTextSize="@dimen/text_size_tiny"
+                            app:autoSizeMinTextSize="@dimen/network_monitor_tile_title_text_size_min"
                             app:autoSizeMaxTextSize="@dimen/text_size_small"
                             android:text="@string/network_monitor_section_history" />
                     </LinearLayout>
@@ -467,7 +467,7 @@
                             android:layout_marginStart="@dimen/margin_small"
                             android:maxLines="1"
                             app:autoSizeTextType="uniform"
-                            app:autoSizeMinTextSize="@dimen/text_size_tiny"
+                            app:autoSizeMinTextSize="@dimen/network_monitor_tile_title_text_size_min"
                             app:autoSizeMaxTextSize="@dimen/text_size_small"
                             android:text="@string/network_monitor_section_tools" />
                     </LinearLayout>
@@ -515,7 +515,7 @@
                             android:layout_marginStart="@dimen/margin_small"
                             android:maxLines="1"
                             app:autoSizeTextType="uniform"
-                            app:autoSizeMinTextSize="@dimen/text_size_tiny"
+                            app:autoSizeMinTextSize="@dimen/network_monitor_tile_title_text_size_min"
                             app:autoSizeMaxTextSize="@dimen/text_size_small"
                             android:text="@string/network_monitor_section_resource_speed" />
                     </LinearLayout>

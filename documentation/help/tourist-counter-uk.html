@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="uk" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Довідка - Лічильник</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Зміст довідки">
+<a href="index-uk.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Лічильник</span>
+</nav>
+<header class="hero">
+<h1>Лічильник</h1>
+</header>
+<h2>Для чого цей екран</h2>
+<p class="lead">Лічильник для всього, що ви рахуєте вручну: людей на вході, кола, предмети на полиці. Кожне натискання додає або віднімає одиницю, підсумок зберігається при виході, а кожен завершений підрахунок потрапляє в історію з датами.</p>
+<h2>Порядок дій</h2>
+<ol class="order">
+<li>Якщо лік має починатися не з 0, спершу натисніть «Початкове число» <a class="ref" href="#start-value">7</a> і введіть його. Це число стане й поточним ліком.</li>
+<li>Натискайте велику кнопку +1 <a class="ref" href="#plus-one">4</a> щоразу, коли рахуєте одиницю. Підсумок <a class="ref" href="#count">1</a> одразу зростає. Кнопка -1 <a class="ref" href="#minus-one">3</a> забирає одиницю, але не нижче 0.</li>
+<li>Для більших стрибків увімкніть перемикач <a class="ref" href="#extra-steps-switch">5</a>: з’явиться ряд кнопок від +3 до +1000 <a class="ref" href="#extra-steps">6</a>.</li>
+<li>Рядок під підсумком <a class="ref" href="#start-line">2</a> показує початкове число й час початку цього підрахунку.</li>
+<li>Коли підрахунок закінчено, натисніть «Скинути» <a class="ref" href="#reset">8</a>. Підсумок повернеться до початкового числа, а завершений підрахунок збережеться в історії <a class="ref" href="#history">9</a>.</li>
+<li>«Очистити» <a class="ref" href="#clear-history">10</a> спустошує історію, коли вона більше не потрібна.</li>
+</ol>
+<h2>Елементи</h2>
+<div class="elements">
+<h3>Лік</h3>
+<details class="el" id="count">
+<summary><span class="mk">1</span><span><span class="name">Лік</span><span class="one">Поточний підсумок великими цифрами.</span></span></summary>
+<div class="full">
+<p>Підсумок зберігається після кожного натискання, тому він на місці, коли ви виходите з екрана, перемикаєтеся в інший застосунок чи перезавантажуєте телефон. Він може бути від 0 до 999 999 999. Програма читання з екрана оголошує кожну зміну.</p>
+</div>
+</details>
+<details class="el" id="start-line">
+<summary><span class="mk">2</span><span><span class="name">Початкове число та час початку</span><span class="one">Нагадує, до чого поверне скидання і відколи ви рахуєте.</span></span></summary>
+<div class="full">
+<p>Перший рядок - «Початкове число» і його значення. Другий, «Лік триває з» та дата з часом, з’являється після першого натискання, що йде за скиданням; до цього нічого не пораховано, тому часу початку немає.</p>
+</div>
+</details>
+<details class="el" id="minus-one">
+<summary><span class="mk">3</span><span><span class="name">Відняти один</span><span class="one">Забирає одиницю з підсумку.</span></span></summary>
+<div class="full">
+<p>Знадобиться, якщо ви нарахували зайву одиницю. На нулі кнопка неактивна, бо підсумок не буває від’ємним.</p>
+</div>
+</details>
+<details class="el" id="plus-one">
+<summary><span class="mk">4</span><span><span class="name">Додати один</span><span class="one">Додає одиницю до підсумку однією великою кнопкою.</span></span></summary>
+<div class="full">
+<p>Кнопку зроблено великою навмисно, щоб натискати її не дивлячись. Фокус при відкритті екрана стоїть на ній, тому на клавіатурі чи пульті можна одразу натискати Enter або центральну кнопку. Перше натискання після скидання записує й момент початку підрахунку.</p>
+</div>
+</details>
+<h3>Великі кроки</h3>
+<details class="el" id="extra-steps-switch">
+<summary><span class="mk">5</span><span><span class="name">Більше кнопок: від +3 до +1000</span><span class="one">Показує або ховає ряд кнопок для більших стрибків.</span></span></summary>
+<div class="full">
+<p>Коли ви рахуєте десятками чи сотнями, по одному - довго. Перемикач прибирає ці кнопки з очей, поки вони не потрібні, а застосунок запам’ятовує ваш вибір.</p>
+</div>
+</details>
+<details class="el" id="extra-steps">
+<summary><span class="mk">6</span><span><span class="name">Кнопки великих кроків</span><span class="one">Додають до підсумку 3, 5, 10, 50, 100 або 1000 одним натисканням.</span></span></summary>
+<div class="full">
+<p>Шість кнопок: +3, +5, +10, +50, +100 і +1000, кожна додає своє число. Вони видимі, лише поки ввімкнено перемикач вище. Підсумок зупиняється на 999 999 999.</p>
+</div>
+</details>
+<h3>Початкове число, скидання та історія</h3>
+<details class="el" id="start-value">
+<summary><span class="mk">7</span><span><span class="name">Початкове число</span><span class="one">Задає число, з якого лічильник починає і до якого повертається після скидання.</span></span></summary>
+<div class="full">
+<p>Вікно просить ціле число від 0. Нове початкове число одразу стає й поточним ліком. Якщо ви були посеред підрахунку, він не потрапить в історію, тому спершу натисніть «Скинути», якщо хочете його зберегти.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Підрахунок, що йде, замінюється початковим числом і не архівується. Скасувати це не можна.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="reset">
+<summary><span class="mk">8</span><span><span class="name">Скинути</span><span class="one">Завершує поточний підрахунок і починає заново з початкового числа.</span></span></summary>
+<div class="full">
+<p>Спершу з’являється вікно й повідомляє, до якого числа повернеться лічильник. Завершений підрахунок потрапляє на початок історії з часом початку й закінчення. Якщо після попереднього скидання нічого не рахували, нічого й не архівується.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Підсумок повертається до початкового числа. Завершений підрахунок лишається в історії, де його можна прочитати, але повернути на лічильник не можна.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="history">
+<summary><span class="mk">9</span><span><span class="name">Історія</span><span class="one">Завершені підрахунки, нові зверху.</span></span></summary>
+<div class="full">
+<p>У кожному рядку підсумок і період, за який його набрано, - від першого натискання до скидання. У списку останні 100 підрахунків, старіші відпадають. Поки список порожній, він повідомляє, що завершених відліків поки немає.</p>
+</div>
+</details>
+<details class="el" id="clear-history">
+<summary><span class="mk">10</span><span><span class="name">Очистити</span><span class="one">Видаляє всі завершені підрахунки з історії.</span></span></summary>
+<div class="full">
+<p>Спершу з’являється вікно із запитанням. Поки історія порожня, кнопка неактивна. Лік на екрані не зачіпається.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Історія видаляється назавжди, відновити її не можна.</dd>
+</dl>
+</div>
+</details>
+<h3>Вікна, де потрібне рішення</h3>
+<details class="el" id="start-field">
+<summary><span class="mk">11</span><span><span class="name">Поле початкового числа</span><span class="one">Тут вводиться початкове число.</span></span></summary>
+<div class="full">
+<p>Поле відкривається з виділеним поточним початковим числом, тож можна одразу друкувати поверх. Підтвердьте кнопкою «OK» або клавішею «Готово» на клавіатурі. Порожній ввід, число менше за 0 чи більше за 999 999 999 залишає вікно відкритим і показує повідомлення з проханням ввести ціле число від 0.</p>
+</div>
+</details>
+<details class="el" id="start-ok">
+<summary><span class="mk">12</span><span><span class="name">OK</span><span class="one">Приймає початкове число.</span></span></summary>
+<div class="full">
+<p>Лічильник переходить на нове число, а час початку скидається до наступного натискання.</p>
+</div>
+</details>
+<details class="el" id="confirm-reset">
+<summary><span class="mk">13</span><span><span class="name">Скинути лічильник?</span><span class="one">Просить підтвердити, перш ніж завершити підрахунок.</span></span></summary>
+<div class="full">
+<p>У вікні сказано, що лічильник повернеться до початкового числа, а поточний лік збережеться в історії. Натисніть «Скинути», щоб продовжити, або «Скасувати», щоб рахувати далі.</p>
+</div>
+</details>
+<details class="el" id="confirm-clear">
+<summary><span class="mk">14</span><span><span class="name">Очистити історію лічильника?</span><span class="one">Просить підтвердити, перш ніж видалити історію.</span></span></summary>
+<div class="full">
+<p>Натисніть «Очистити», щоб видалити всі завершені підрахунки, або «Скасувати», щоб залишити їх.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Очищені підрахунки відновити не можна.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="dialog-cancel">
+<summary><span class="mk">15</span><span><span class="name">Скасувати</span><span class="one">Закриває вікно, нічого не змінюючи.</span></span></summary>
+<div class="full">
+<p>Кнопка є в кожному вікні цього екрана: початкове число лишається попереднім, лічильник зберігає підсумок, а історія - свої рядки.</p>
+</div>
+</details>
+</div>
+<h2>Пов'язане</h2>
+<ul class="related">
+<li><a href="tourist-info-uk.html"><b>Турист</b><span class="pill">Екран</span></a></li>
+<li><a href="main-uk.html"><b>Головний екран</b><span class="pill">Екран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/built-in-mini-apps-uk.html"><b>Built-in Programs - Switching Them On, the Lights, the Mirror and the SOS Signal</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="index-uk.html"><b>Зміст довідки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index-uk.html">Зміст довідки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
+</footer>
+</main>
+</body>
+</html>

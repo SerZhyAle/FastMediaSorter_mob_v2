@@ -48,8 +48,8 @@ $ErrorActionPreference = 'Stop'
 $manifestPath = Join-Path $RepoRoot 'docs/settings/settings-manifest.json'
 $vocabPath    = Join-Path $RepoRoot 'docs/settings/howto-path-vocab.json'
 
-if (-not (Test-Path $manifestPath)) { Write-Host "howto-settings-paths: manifest not found: $manifestPath" -ForegroundColor Red; exit 1 }
-if (-not (Test-Path $vocabPath))    { Write-Host "howto-settings-paths: vocab not found: $vocabPath" -ForegroundColor Red; exit 1 }
+if (-not (Test-Path $manifestPath)) { Write-Host "assert-howto-settings-paths: COULD NOT VERIFY (manifest not found: $manifestPath)" -ForegroundColor Red; exit 2 }
+if (-not (Test-Path $vocabPath))    { Write-Host "assert-howto-settings-paths: COULD NOT VERIFY (vocab not found: $vocabPath)" -ForegroundColor Red; exit 2 }
 
 $arrow   = [char]0x2192
 $locales = @('en', 'ru', 'uk')
@@ -321,10 +321,10 @@ foreach ($grp in $fileGroups) {
 
 # --- verdict ------------------------------------------------------------------
 if ($failures.Count -gt 0) {
-    Write-Host "howto-settings-paths: FAIL ($($failures.Count) issue(s))" -ForegroundColor Red
     $failures | ForEach-Object { Write-Host "  $_" }
+    Write-Host "assert-howto-settings-paths: FAIL ($($failures.Count) issue(s))" -ForegroundColor Red
     exit 1
 }
 
-Write-Host "howto-settings-paths: OK - $totalRecipes recipes across $($fileGroups.Count) guide group(s), all paths resolve against the manifest; HOW_TO locales in parity." -ForegroundColor Green
+Write-Host "assert-howto-settings-paths: PASS - $totalRecipes recipes across $($fileGroups.Count) guide group(s), all paths resolve against the manifest; HOW_TO locales in parity." -ForegroundColor Green
 exit 0

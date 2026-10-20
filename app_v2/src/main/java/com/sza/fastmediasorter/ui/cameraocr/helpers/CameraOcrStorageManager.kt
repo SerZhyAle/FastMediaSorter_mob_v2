@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.usecase.WriteCaptureFileUseCase
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
 import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.CaptureFileNamer.CaptureKind
+import com.sza.fastmediasorter.util.ExifTimeWriter
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -69,6 +70,7 @@ class CameraOcrStorageManager(
                         throw IOException("Bitmap.compress returned false for $name")
                     }
                 }
+                ExifTimeWriter.writeCaptureTime(temp, captureMillis)
                 writeWithFallback(temp, CaptureDestinationPolicy.resolveCameraDestination(null), name) != null
             } catch (e: IOException) {
                 Timber.e(e, "CameraOcrStorageManager: Save bitmap to gallery failed")

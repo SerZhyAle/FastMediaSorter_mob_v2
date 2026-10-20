@@ -728,4 +728,16 @@
 -keepclassmembernames enum com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks$Page {
     <fields>;
 }
+# S4297: two enums flagged by assert-enum-persistence-contract as red on the whole tree.
+# ExchangeGrant.Kind.name is stamped by ExchangeGrantRepository into the grant properties file
+# (F_KIND) and restored by matching the stored string, so an R8 rename makes a grant written by
+# an earlier build read back as null. ScheduledRunOutcome.name is one column of the scheduled-run
+# journal line written by ScheduledRunJournalRepositoryImpl and restored the same way, so a rename
+# silently drops the run's outcome instead of throwing.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ExchangeGrant$Kind {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ScheduledRunOutcome {
+    <fields>;
+}
 

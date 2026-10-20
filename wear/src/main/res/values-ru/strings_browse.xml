@@ -9,4 +9,7 @@
     <string name="browse_network_error_timeout">Нет ответа. Проверьте сеть и попробуйте снова.</string>
     <string name="browse_network_error_auth">Неверный логин или пароль. Обновите ресурс на телефоне.</string>
     <string name="browse_network_error_unknown_host">Компьютер не найден в этой сети. Проверьте подключение к Wi-Fi.</string>
+    <string name="exchange_folder_needs_own_network">Эта папка открывается только по Wi-Fi или LTE самих часов. Включите Wi-Fi или LTE на часах.</string>
+    <string name="exchange_folder_pin_on_phone">Эта папка защищена, и её PIN вводится на телефоне. Откройте папку на телефоне и введите PIN.</string>
+    <string name="exchange_folder_connect_watch_on_phone">Вне дома этой папке нужны часы, подключённые к серверу. Подключите часы на телефоне.</string>
 </resources>

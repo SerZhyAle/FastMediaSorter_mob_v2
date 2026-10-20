@@ -86,8 +86,8 @@ $appNs = 'http://schemas.android.com/apk/res-auto'
 $settingsSurfaces = @('settings-header', 'settings-row')
 $vrDrawable = 'ic_vr_headset'
 
-if (-not (Test-Path $invPath))  { Write-Host "icon-inventory-sync: inventory not found: $invPath" -ForegroundColor Red; exit 1 }
-if (-not (Test-Path $renderer)) { Write-Host "icon-inventory-sync: renderer not found: $renderer" -ForegroundColor Red; exit 1 }
+if (-not (Test-Path $invPath))  { Write-Host "icon-inventory-sync: inventory not found: $invPath" -ForegroundColor Red; Write-Host 'assert-icon-inventory-sync: FAIL (see the findings above)'; exit 1 }
+if (-not (Test-Path $renderer)) { Write-Host "icon-inventory-sync: renderer not found: $renderer" -ForegroundColor Red; Write-Host 'assert-icon-inventory-sync: FAIL (see the findings above)'; exit 1 }
 
 $failures = New-Object System.Collections.Generic.List[string]
 function Add-Fail([string] $stage, [string] $msg) { [void]$failures.Add("[$stage] $msg") }
@@ -345,10 +345,12 @@ if ($RegenerateInventory) {
     }
     if ($timedOut) {
         Write-Error "assert-icon-inventory-sync: regeneration run timed out after ${TimeoutSeconds}s (exit 2)" -ErrorAction Continue
+        Write-Host 'assert-icon-inventory-sync: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     if ($genExit -ne 0) {
         Write-Error "assert-icon-inventory-sync: regeneration run failed (gradle exit $genExit)" -ErrorAction Continue
+        Write-Host 'assert-icon-inventory-sync: COULD NOT VERIFY (see the error above)'
         exit 2
     }
     Write-Host 'icon-inventory-sync: docs/icons/icon-inventory.json regenerated - review and commit it.' -ForegroundColor Green

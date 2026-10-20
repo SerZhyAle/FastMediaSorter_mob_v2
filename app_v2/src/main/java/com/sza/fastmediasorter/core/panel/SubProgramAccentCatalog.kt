@@ -100,6 +100,8 @@ object SubProgramAccentCatalog {
         InternalRouteCatalog.KEY_WEAR_COMPANION to R.color.color_program_accent_teal,
         InternalRouteCatalog.KEY_WATCH_LISTEN to R.color.color_program_accent_teal,
         InternalRouteCatalog.KEY_WATCH_LISTEN_RECORD to R.color.color_program_accent_teal,
+        InternalRouteCatalog.KEY_CLIPBOARD_SEND to R.color.color_program_accent_teal,
+        InternalRouteCatalog.KEY_CLIPBOARD_GET to R.color.color_program_accent_teal,
 
         // Taking a photo.
         InternalRouteCatalog.KEY_QUICK_CAMERA to R.color.color_program_accent_blue,

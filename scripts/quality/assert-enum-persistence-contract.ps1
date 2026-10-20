@@ -68,6 +68,7 @@ if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
 # attributing it to the wrong one is the same silent mis-attribution this gate exists to prevent.
 if ($Mapping -and -not $Module) {
     Write-Error 'assert-enum-persistence-contract: -Mapping needs -Module (app_v2 or wear) - a mapping belongs to one module.' -ErrorAction Continue
+    Write-Host 'assert-enum-persistence-contract: COULD NOT VERIFY (-Mapping needs -Module)'
     exit 2
 }
 
@@ -86,6 +87,7 @@ $moduleSpecs = @($moduleSpecs | Where-Object {
 
 if ($moduleSpecs.Count -eq 0) {
     Write-Error 'assert-enum-persistence-contract: no module has both a source root and a ProGuard file.' -ErrorAction Continue
+    Write-Host 'assert-enum-persistence-contract: COULD NOT VERIFY (no module has both a source root and a ProGuard file)'
     exit 2
 }
 
@@ -441,6 +443,7 @@ $totalDurable = 0
 foreach ($r in $results) { $totalDurable += $r.DurableEnums.Count }
 if ($totalDurable -eq 0) {
     Write-Error 'assert-enum-persistence-contract: no durable enum-name path was discovered.' -ErrorAction Continue
+    Write-Host 'assert-enum-persistence-contract: COULD NOT VERIFY (no durable enum-name path was discovered)'
     exit 2
 }
 
@@ -455,7 +458,7 @@ foreach ($r in $results) {
         $failed = $true
     }
 }
-if ($failed) { exit 1 }
+if ($failed) { Write-Host 'assert-enum-persistence-contract: FAIL (a durable enum is not pinned)'; exit 1 }
 
 if (-not $Mapping) {
     if (-not ($Gate -or $Quiet)) {
@@ -463,6 +466,7 @@ if (-not $Mapping) {
             Write-Host "assert-enum-persistence-contract [$($r.Module)]: PASS ($($r.DurableEnums.Count) durable enum(s) pinned; $($r.DeclaredCount) declared enum(s) scanned)."
         }
     }
+    Write-Host "assert-enum-persistence-contract: PASS ($totalDurable durable enum(s) across $(@($results).Count) module(s))"
     exit 0
 }
 
@@ -471,6 +475,7 @@ $durableEnums = $results[0].DurableEnums
 
 if (-not (Test-Path -LiteralPath $Mapping)) {
     Write-Error "assert-enum-persistence-contract: mapping file not found at $Mapping." -ErrorAction Continue
+    Write-Host "assert-enum-persistence-contract: COULD NOT VERIFY (mapping file not found at $Mapping)"
     exit 2
 }
 
@@ -526,19 +531,23 @@ if ($renamed.Count -gt 0) {
     foreach ($entry in $renamed) {
         Write-Error "assert-enum-persistence-contract [$Module]: persisted enum member renamed by R8 - $entry." -ErrorAction Continue
     }
+    Write-Host "assert-enum-persistence-contract: FAIL ($(@($renamed).Count) persisted enum member(s) renamed by R8 in $Module)"
     exit 1
 }
 if ($inspected -eq 0) {
     Write-Error "assert-enum-persistence-contract [$Module]: no durable enum appears in $Mapping - nothing was proven." -ErrorAction Continue
+    Write-Host "assert-enum-persistence-contract: COULD NOT VERIFY (no durable enum appears in $Mapping; nothing was proven)"
     exit 2
 }
 # A mapping that names the classes but yields no member line means the parse walked past them, not
 # that the members are unchanged - the exact shape that made this mode a false green before S2596.
 if ($membersRead -eq 0) {
     Write-Error "assert-enum-persistence-contract [$Module]: $inspected durable enum(s) named in $Mapping but no member line was read - nothing was proven." -ErrorAction Continue
+    Write-Host "assert-enum-persistence-contract: COULD NOT VERIFY (no member line was read from $Mapping; nothing was proven)"
     exit 2
 }
 if (-not ($Gate -or $Quiet)) {
     Write-Host "assert-enum-persistence-contract [$Module]: PASS ($($durableEnums.Count) durable enum(s) pinned; $inspected class(es) and $membersRead member(s) read from $Mapping)."
 }
+Write-Host "assert-enum-persistence-contract: PASS ($($durableEnums.Count) durable enum(s) pinned in $Module)"
 exit 0

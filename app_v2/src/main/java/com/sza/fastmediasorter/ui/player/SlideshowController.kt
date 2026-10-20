@@ -150,7 +150,7 @@ class SlideshowController(
         Timber.d("SlideshowController: Starting slideshow with interval ${intervalSeconds}s")
 
         val wasActive = isActive
-        intervalMs = intervalSeconds * 1000L
+        intervalMs = intervalSeconds.toFlooredIntervalMs()
         isActive = true
         isPaused = false
         enduranceTransitions = 0
@@ -227,7 +227,7 @@ class SlideshowController(
      * @param intervalSeconds new interval in seconds
      */
     fun updateInterval(intervalSeconds: Int) {
-        intervalMs = intervalSeconds * 1000L
+        intervalMs = intervalSeconds.toFlooredIntervalMs()
         
         if (isActive && !isPaused) {
             // Reschedule with new interval. S1308: drop the pending countdown lambda too, otherwise
@@ -282,6 +282,9 @@ class SlideshowController(
         handler.postDelayed(slideShowRunnable, intervalMs)
     }
     
+    private fun Int.toFlooredIntervalMs(): Long =
+        coerceAtLeast(AppConstants.MIN_SLIDESHOW_INTERVAL_SECONDS) * MILLIS_PER_SECOND
+
     private fun showCountdown() {
         countdownRunnable.remainingSeconds = 3
         countdownHandler.post(countdownRunnable)
@@ -317,5 +320,9 @@ class SlideshowController(
         isActive = false
         isPaused = false
         Timber.d("SlideshowController: Cleaned up")
+    }
+
+    private companion object {
+        const val MILLIS_PER_SECOND = 1000L
     }
 }

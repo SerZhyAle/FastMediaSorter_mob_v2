@@ -99,13 +99,36 @@
     as a pass. Every scanned script, the suites included, is refused when a code line carries a
     lowercase "<subject>: not applicable". No baseline: S4130 migrated the two sites it measured.
 
+    RULE G - test counter writers use run=N skipped=M (CHECK-VERDICT 0.13).
+    The parser distinguishes live output commands from comments and fixture bodies. Exact
+    path-plus-command identities in test-count-baseline.txt allow only the existing residue;
+    new writers and stale residue fail. Check aggregators count checks and are outside this rule.
+
+    RULE H - a failing or undecided path names its verdict (S4367, contract CHECK-VERDICT rule 2.11:
+    the verdict line is owed on every path that sets a verdict code, the failure path included). In
+    every `assert-*.ps1` an `exit 1`, `exit 2` or `exit 3` with a constant code must have the check's
+    own `<basename>: FAIL | COULD NOT VERIFY | PASS WITH ADVISORIES | PASS | NOT APPLICABLE` in a code
+    line within the eight code lines above it, because a run that dies on that path otherwise hands
+    its caller a number and a prose error nobody can match. Read off the parser, so a string that
+    merely contains "exit 2" is not a site; `exit $code` is not judged (its value is not statically
+    known); an exit that follows a `| ConvertTo-Json` pipeline within twelve lines is exempt, because
+    its stdout is a JSON document by contract and a text line would corrupt it. Measured 2026-10-18:
+    96 sites in 49 of 169 checks. No baseline: S4367 gave every one its line.
+
+    RULE I - empty determined change set prints PASS (0 file(s) inspected) (S4378, CHECK-VERDICT
+    rule 2.12). Every `assert-*.ps1` whose param block declares ChangedFiles, Files, Manifests or
+    ChangedPaths must carry Write-EmptySetPass or the literal '0 file(s) inspected' in a code line,
+    or be listed in scripts/quality/empty-set-form-exempt.txt. A listed check that carries the form,
+    no longer declares the parameter, or no longer exists fails the gate. A -Path probe gates with an empty list.
+
     Exit codes:
       0 - no unreachable exit site, no silent script, Rule C at or below baseline,
-          no unlisted or stale Rule D entry (or report mode).
+          no unlisted or stale Rule D entry, no Rule H site, no Rule I violation (or report mode).
       1 - substantive failure: an unreachable exit site, a silent script, Rule C
           above its baseline, a Rule D check with no verdict line / a stale listing,
           a Rule E line spelling exit 2 other than COULD NOT VERIFY, or a Rule F line
-          spelling NOT APPLICABLE in lowercase.
+          spelling NOT APPLICABLE in lowercase, new/stale Rule G test counters, a Rule H
+          exit site with no verdict line of its own, or a Rule I empty-set form violation / stale exempt row.
       2 - the gate itself cannot run (scan root missing). Distinct from 1 on purpose -
           this gate must not commit the very sin it audits.
 
@@ -139,10 +162,12 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'lib/test-count-contract.ps1')
 
 # The gate's own refusal path must reach its own exit code - see the note above.
 function Reject([string]$msg) {
     Write-Error $msg -ErrorAction Continue
+    Write-Host "assert-exit-contract: COULD NOT VERIFY ($msg)"
     exit 2
 }
 
@@ -187,6 +212,24 @@ if (-not $Path -and (Test-Path -LiteralPath $verdictBaselineFile)) {
     foreach ($l in (Get-Content -LiteralPath $verdictBaselineFile)) {
         $t = $l.Trim()
         if ($t -and -not $t.StartsWith('#')) { [void]$verdictResidue.Add($t) }
+    }
+}
+
+# Rule I (S4378, CHECK-VERDICT rule 2.12): exempt checks outside the empty-set PASS line requirement.
+# A -Path fixture probe gates with an empty list.
+$emptySetExemptFile = Join-Path $PSScriptRoot 'empty-set-form-exempt.txt'
+$emptySetExempt = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+$emptySetExemptMalformed = [System.Collections.Generic.List[string]]::new()
+if (-not $Path -and (Test-Path -LiteralPath $emptySetExemptFile)) {
+    foreach ($l in (Get-Content -LiteralPath $emptySetExemptFile)) {
+        $t = $l.Trim()
+        if (-not $t -or $t.StartsWith('#')) { continue }
+        $parts = $t -split '\s*\|\s*'
+        if ($parts.Count -lt 3 -or [string]::IsNullOrWhiteSpace($parts[0])) {
+            $emptySetExemptMalformed.Add($t)
+        } else {
+            [void]$emptySetExempt.Add($parts[0].Trim())
+        }
     }
 }
 
@@ -358,6 +401,12 @@ $reasonless = @()
 $parseFallback = @()
 $noVerdict = @()
 $verdictScanned = @()
+# Rule H: exit 1|2|3 sites of a check with no verdict line of its own above them.
+$exitNoVerdict = @()
+# Rule I: checks with change-set parameter missing form or stale exempt list entries.
+$ruleIFailures = [System.Collections.Generic.List[object]]::new()
+$seenChangeSetParamChecks = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+$staleExemptChecks = [System.Collections.Generic.List[object]]::new()
 $oldSpelling = @()
 # Rule E reads the suites too: the main scan skips them for rule A's sake, but a suite asserting the
 # old word is exactly what would pin a subject to it.
@@ -375,6 +424,21 @@ $oldSpellingPattern = '(?-i)CANNOT[ ]VERIFY|[A-Za-z0-9)-]: (cannot|could not)[ ]
 # the aggregators read it off the verdict line case-sensitively and a lowercase spelling counts as a pass.
 $naSpellingPattern = '(?-i)[A-Za-z0-9)-]: not[ ]applicable\b'
 $naSpelling = @()
+$testCountBaselineFile = Join-Path $PSScriptRoot 'test-count-baseline.txt'
+$testCountBaseline = if (-not $Path -and (Test-Path -LiteralPath $testCountBaselineFile)) {
+    @(Get-Content -LiteralPath $testCountBaselineFile)
+} else { @() }
+try {
+    $testCountFiles = @(foreach ($root in $scanRoots) {
+        if (Test-Path -LiteralPath $root -PathType Leaf) { Get-Item -LiteralPath $root }
+        else { Get-ChildItem -LiteralPath $root -Recurse -File -Filter *.ps1 }
+    })
+    $legacyTestCounts = @(Get-LegacyTestCountWriter -Files @($testCountFiles.FullName) -RepoRoot $repoRoot)
+    $testCountResidue = Get-TestCountResidue -Writers $legacyTestCounts -Baseline $testCountBaseline
+} catch {
+    Write-Host "assert-exit-contract: COULD NOT VERIFY - $($_.Exception.Message)"
+    exit 2
+}
 foreach ($f in $spellingFiles) {
     $spellLines = Get-Content -LiteralPath $f.FullName -ErrorAction SilentlyContinue
     if (-not $spellLines) { continue }
@@ -416,6 +480,56 @@ foreach ($f in $files) {
         if (-not (($code -match "$($subject):\s*PASS") -and ($code -match "$($subject):\s*FAIL"))) {
             $noVerdict += $rel
         }
+
+        # Rule H (S4367, CHECK-VERDICT rule 2.11): the same name must stand within eight code lines above
+        # every constant exit 1|2|3. The parser keeps a string that merely says "exit 2" out of the count.
+        $verdictRx = [regex]::new("$($subject):\s*(PASS WITH ADVISORIES|PASS|FAIL|COULD NOT VERIFY|NOT APPLICABLE)")
+        $hAst = [System.Management.Automation.Language.Parser]::ParseInput(($lines -join "`n"), [ref]$null, [ref]$null)
+        foreach ($exitAst in $hAst.FindAll({ param($n) $n -is [System.Management.Automation.Language.ExitStatementAst] }, $true)) {
+            if (-not $exitAst.Pipeline) { continue }
+            $exitExpr = $exitAst.Pipeline.GetPureExpression()
+            if ($exitExpr -isnot [System.Management.Automation.Language.ConstantExpressionAst] -or $exitExpr.Value -isnot [int]) { continue }
+            if ($exitExpr.Value -lt 1 -or $exitExpr.Value -gt 3) { continue }
+            $exitLine = $exitAst.Extent.StartLineNumber
+            $above = @(for ($k = [Math]::Max(1, $exitLine - 8); $k -le $exitLine; $k++) { if ($lines[$k - 1] -notmatch '^\s*#') { $lines[$k - 1] } })
+            if ($verdictRx.IsMatch($above -join "`n")) { continue }
+            # A verb that renders JSON owes its caller a JSON document, not a text line.
+            $jsonAbove = @(for ($k = [Math]::Max(1, $exitLine - 12); $k -lt $exitLine; $k++) { $lines[$k - 1] }) -join "`n"
+            if ($jsonAbove -match '\|\s*ConvertTo-Json') { continue }
+            $exitNoVerdict += [pscustomobject]@{ File = $rel; Line = $exitLine; Code = $exitExpr.Value }
+        }
+
+        # Rule I (S4378, CHECK-VERDICT rule 2.12): every assert-*.ps1 declaring a change-set parameter
+        # must carry Write-EmptySetPass or '0 file(s) inspected' in a code line, or be listed in the exempt file.
+        $hasChangeSetParam = $false
+        if ($hAst.ParamBlock -and $hAst.ParamBlock.Parameters) {
+            foreach ($p in $hAst.ParamBlock.Parameters) {
+                $pName = $p.Name.VariablePath.UserPath
+                if ($pName -in @('ChangedFiles', 'Files', 'Manifests', 'ChangedPaths')) {
+                    $hasChangeSetParam = $true
+                    break
+                }
+            }
+        }
+        $hasEmptySetForm = ($code -match '\bWrite-EmptySetPass\b') -or ($code -match '0 file\(s\) inspected')
+        $isExempt = $emptySetExempt.Contains($f.BaseName)
+
+        if ($hasChangeSetParam) {
+            [void]$seenChangeSetParamChecks.Add($f.BaseName)
+            if ($isExempt) {
+                if ($hasEmptySetForm) {
+                    $staleExemptChecks.Add([pscustomobject]@{ Name = $f.BaseName; Reason = 'carries the empty-set form but is listed in exempt file' })
+                }
+            } else {
+                if (-not $hasEmptySetForm) {
+                    $ruleIFailures.Add([pscustomobject]@{ File = $rel; Name = $f.BaseName; Reason = 'declares change-set parameter but lacks Write-EmptySetPass / 0 file(s) inspected' })
+                }
+            }
+        } else {
+            if ($isExempt) {
+                $staleExemptChecks.Add([pscustomobject]@{ Name = $f.BaseName; Reason = 'listed in exempt file but does not declare a change-set parameter' })
+            }
+        }
     }
 
     # Rule C: an `exit N` (N non-zero) with no message printed just before it. Unlike rules A
@@ -430,7 +544,15 @@ foreach ($f in $files) {
         }
         if ($line -match '<#') { $inBlockComment = ($line -notmatch '#>'); continue }
         if ($line -match '^\s*#') { continue }
+        # Token offsets distinguish trailing comments from executable exits without stripping '#'
+        # inside a string. Rule C remains line-based for its reason lookback.
         if ($line -notmatch '(^|\s|\}|;)exit\s+([1-9]\d*)\b') { continue }
+        $commentTokens = $null
+        $commentErrors = $null
+        [void][System.Management.Automation.Language.Parser]::ParseInput($line, [ref]$commentTokens, [ref]$commentErrors)
+        $trailingComment = @($commentTokens | Where-Object Kind -eq Comment | Select-Object -First 1)
+        $exitLine = if ($trailingComment.Count) { $line.Substring(0, $trailingComment[0].Extent.StartOffset) } else { $line }
+        if ($exitLine -notmatch '(^|\s|\}|;)exit\s+([1-9]\d*)\b') { continue }
         $exitCode = [int]$Matches[2]
 
         $hasReason = $false
@@ -605,11 +727,61 @@ if (-not $Quiet -and $naSpelling.Count -gt 0) {
 
 Write-Host ("assert-exit-contract: expected: 0 | actual: {0} unreachable exit site(s), {1} silent script(s), {2} reasonless exit(s) (baseline {3}), {4} verdict-less check(s) of {5} (residue {6}, stale {7}), {8} old exit-2 spelling(s), {9} lowercase not-applicable spelling(s)" -f $findings.Count, $silent.Count, $reasonless.Count, $reasonBaseline, $newNoVerdict.Count, $verdictScanned.Count, $verdictResidue.Count, $staleVerdict.Count, $oldSpelling.Count, $naSpelling.Count)
 
-if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0 -or $reasonless.Count -gt $reasonBaseline -or $newNoVerdict.Count -gt 0 -or $staleVerdict.Count -gt 0 -or $oldSpelling.Count -gt 0 -or $naSpelling.Count -gt 0)) {
-    Write-Host 'assert-exit-contract: FAIL - a script cannot deliver the exit code it means to send, exits without saying why, names no verdict, or misspells COULD NOT VERIFY or NOT APPLICABLE.' -ForegroundColor Red
+if (-not $Quiet) {
+    foreach ($writer in $testCountResidue.New) {
+        Write-Host ("  {0}:{1} legacy test counters: {2}" -f $writer.File, $writer.Line, $writer.Text)
+    }
+    foreach ($entry in $testCountResidue.Stale) { Write-Host "  stale test-count baseline: $entry" }
+}
+Write-Host ("assert-exit-contract rule G: expected: 0 new/stale | actual: {0} new, {1} stale (residue {2})" -f $testCountResidue.New.Count, $testCountResidue.Stale.Count, $testCountResidue.Count)
+
+if (-not $Quiet) {
+    foreach ($x in $exitNoVerdict) {
+        Write-Host ("  {0}:{1}  exit {2} with no '<name>: FAIL | COULD NOT VERIFY | PASS WITH ADVISORIES' verdict line within eight lines above" -f $x.File, $x.Line, $x.Code) -ForegroundColor Red
+    }
+    if ($exitNoVerdict.Count -gt 0) {
+        Write-Host ''
+        Write-Host "  Fix: print the check's own verdict line right before the exit - FAIL for 1, COULD NOT VERIFY for 2, PASS WITH ADVISORIES for 3 (CHECK-VERDICT rule 2.11)." -ForegroundColor Yellow
+    }
+}
+Write-Host ("assert-exit-contract rule H: expected: 0 | actual: {0} exit site(s) of a check with no verdict line of its own" -f $exitNoVerdict.Count)
+
+# Rule I: checks in emptySetExempt that no longer exist
+if (-not $Path) {
+    foreach ($exName in $emptySetExempt) {
+        if (-not $seenChangeSetParamChecks.Contains($exName)) {
+            # Check if file exists at all
+            $exPath = Join-Path (Join-Path $repoRoot 'scripts/quality') "$exName.ps1"
+            if (-not (Test-Path -LiteralPath $exPath)) {
+                $staleExemptChecks.Add([pscustomobject]@{ Name = $exName; Reason = 'listed in exempt file but script does not exist' })
+            }
+        }
+    }
+}
+
+if (-not $Quiet) {
+    foreach ($f in $ruleIFailures) {
+        Write-Host ("  {0}  declares change-set parameter but lacks Write-EmptySetPass / 0 file(s) inspected" -f $f.File) -ForegroundColor Red
+    }
+    foreach ($s in $staleExemptChecks) {
+        Write-Host ("  {0}  is stale in empty-set-form-exempt.txt: {1}" -f $s.Name, $s.Reason) -ForegroundColor Red
+    }
+    foreach ($m in $emptySetExemptMalformed) {
+        Write-Host ("  empty-set-form-exempt.txt  malformed row: {0}" -f $m) -ForegroundColor Red
+    }
+    if ($ruleIFailures.Count -gt 0 -or $staleExemptChecks.Count -gt 0 -or $emptySetExemptMalformed.Count -gt 0) {
+        Write-Host ''
+        Write-Host '  Fix: implement Write-EmptySetPass for empty determined set, or update/prune scripts/quality/empty-set-form-exempt.txt (CHECK-VERDICT rule 2.12).' -ForegroundColor Yellow
+    }
+}
+$ruleITotal = $ruleIFailures.Count + $staleExemptChecks.Count + $emptySetExemptMalformed.Count
+Write-Host ("assert-exit-contract rule I: expected: 0 | actual: {0} non-conforming check(s), {1} stale exempt row(s), {2} malformed row(s)" -f $ruleIFailures.Count, $staleExemptChecks.Count, $emptySetExemptMalformed.Count)
+
+if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0 -or $reasonless.Count -gt $reasonBaseline -or $newNoVerdict.Count -gt 0 -or $staleVerdict.Count -gt 0 -or $oldSpelling.Count -gt 0 -or $naSpelling.Count -gt 0 -or $testCountResidue.New.Count -gt 0 -or $testCountResidue.Stale.Count -gt 0 -or $exitNoVerdict.Count -gt 0 -or $ruleITotal -gt 0)) {
+    Write-Host 'assert-exit-contract: FAIL - unreachable or silent exit, missing verdict, invalid verdict spelling, new/stale legacy test counters, exit site with no verdict line, or rule I empty-set form violation.' -ForegroundColor Red
     exit 1
 }
-if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0 -and $newNoVerdict.Count -eq 0 -and $staleVerdict.Count -eq 0 -and $oldSpelling.Count -eq 0 -and $naSpelling.Count -eq 0) {
-    Write-Host 'assert-exit-contract: PASS - every exit code is reachable, every scanned script sets one, and every check names its verdict.' -ForegroundColor Green
+if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0 -and $newNoVerdict.Count -eq 0 -and $staleVerdict.Count -eq 0 -and $oldSpelling.Count -eq 0 -and $naSpelling.Count -eq 0 -and $testCountResidue.New.Count -eq 0 -and $testCountResidue.Stale.Count -eq 0 -and $exitNoVerdict.Count -eq 0 -and $ruleITotal -eq 0) {
+    Write-Host 'assert-exit-contract: PASS - every exit code is reachable, every scanned script sets one, every check names its verdict, and empty-set forms conform.' -ForegroundColor Green
 }
 exit 0

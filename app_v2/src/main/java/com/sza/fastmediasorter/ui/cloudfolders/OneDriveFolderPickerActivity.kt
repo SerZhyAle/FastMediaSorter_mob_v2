@@ -12,7 +12,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityOnedriveFolderPickerBinding
 import com.sza.fastmediasorter.databinding.ItemCloudFolderBinding
-import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -44,7 +44,13 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
             override fun navigateUp() { handleBackNavigation() }
             override fun refresh() { viewModel.loadFolders() }
             override fun cancel() { finish() }
-            override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, UiSurface.CLOUD_PICKER) }
+            override fun showHelp() {
+                HelpOpenManager.open(
+                    this@OneDriveFolderPickerActivity,
+                    OneDriveFolderPickerActivity::class.java.simpleName,
+                    UiSurface.CLOUD_PICKER,
+                )
+            }
         })
 
     override fun getViewBinding(): ActivityOnedriveFolderPickerBinding {

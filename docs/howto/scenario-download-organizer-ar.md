@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "منظم التنزيلات (الفرز السريع) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-ar.html
 ---
-<sub class="doc-stamp">26.09.25 02:19</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
 # 🧹 منظم التنزيلات - فرز الملفات بلمسة واحدة
 
 > **المستوى:** مبتدئ &bull; **الإصدار:** أي إصدار (Standard وLite وPhotos وLegacy وVR وnoLegal)
-
-{% include lang-switcher.html doc="scenario-download-organizer" dir="/docs/howto/" current="ar" %}
 
 **الفرز السريع** هو الميزة الأبرز في FastMediaSorter: أعدّ مجلداتك مرة واحدة، ثم افرز مئات الملفات بمجرد الضغط على رقم. بلا سحب وإفلات. بلا قوائم. فقط اضغط **1**، أو **2**، أو **3** - وينتقل الملف إلى المكان الصحيح.
 

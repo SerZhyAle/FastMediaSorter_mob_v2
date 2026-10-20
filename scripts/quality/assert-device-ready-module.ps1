@@ -65,9 +65,11 @@ $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+. (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
 $probeRelative = 'scripts/devtest/device-ready.ps1'
 if (-not (Test-Path -LiteralPath (Join-Path $repoRoot $probeRelative))) {
     Write-Error "device-ready-module: COULD NOT VERIFY - $probeRelative does not exist in this checkout." -ErrorAction Continue
+    Write-Host "assert-device-ready-module: COULD NOT VERIFY ($probeRelative does not exist in this checkout)"
     exit 2
 }
 
@@ -194,6 +196,12 @@ if ($findings.Count -eq 0) {
     if (-not $Quiet) {
         Write-Host 'device-ready-module: OK - every device-ready.ps1 call site names a -Module.' -ForegroundColor Green
     }
+    if ($inspected -eq 0 -and (Test-ChangeSetDeclared -ChangedFiles $ChangedFiles)) {
+        # A declared set with no call site of the probe is the empty determined set (CHECK-VERDICT 2.12).
+        Write-EmptySetPass -GateName 'assert-device-ready-module'
+        exit 0
+    }
+    Write-Host "assert-device-ready-module: PASS ($inspected call site(s) inspected)"
     exit 0
 }
 
@@ -202,5 +210,6 @@ foreach ($rel in $findings) {
 }
 Write-Host 'Fix: add -Module app_v2 (phone) or -Module wear (watch) to the invocation. A constant caller writes the literal; a caller entering from a ticket resolves it with scripts/devtest/resolve-ticket-module.ps1 -Id <Sxxxx>. Without it the probe takes whatever device is attached, which is the S2600 incident.'
 
-if ($Gate) { exit 1 }
+if ($Gate) { Write-Host "assert-device-ready-module: FAIL ($($findings.Count) call site(s) name no -Module)"; exit 1 }
+Write-Host "assert-device-ready-module: PASS (report mode, -Gate not set; $($findings.Count) call site(s) name no -Module)"
 exit 0

@@ -30,11 +30,10 @@ class WearFaviconAtlasSlicer(
         return TileRect(left, top, left + TILE, top + TILE)
     }
 
-    fun isInBounds(index: Int, atlasWidth: Int, atlasHeight: Int): Boolean {
-        if (index < 0) return false
-        val rect = rectFor(index)
-        return rect.right <= atlasWidth && rect.bottom <= atlasHeight
-    }
+    // STREAM-BANK 2.4 SB-A12: compared in tile units because `row * TILE` overflows Int for an index
+    // near Int.MAX_VALUE and wraps back inside the sheet.
+    fun isInBounds(index: Int, atlasWidth: Int, atlasHeight: Int): Boolean =
+        index >= 0 && index % COLS < atlasWidth / TILE && index / COLS < atlasHeight / TILE
 
     suspend fun tileFor(index: Int): Bitmap? = withContext(Dispatchers.IO) {
         if (index < 0) return@withContext null

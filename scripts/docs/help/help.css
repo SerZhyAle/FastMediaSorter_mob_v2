@@ -1,0 +1,154 @@
+/* Help page styles - CONTEXT-HELP 0.1 reference layer with the kit tokens inlined; generated pages link this file.
+
+   Source of truth: scripts/docs/help/help.css. scripts/docs/help/generate-help-pages.ps1 copies it to the app assets
+   and to the documentation portal, so edit only this copy.
+   A page makes no request (rule 12): no font, no image, no @import, no URL. The font is the system stack.
+   Light and dark follow the system through prefers-color-scheme; a WebView that darkens pages answers the same query.
+   Logical (start / end) properties throughout, so a right-to-left page mirrors. One column, full width.
+   Screenshot markers are drawn into the image by the generator (rule 14), so this file has no pin layer. */
+
+/* ---------- tokens: light first, dark when the system asks ---------- */
+:root {
+  color-scheme: light dark;
+  --bg: #eef3ea; --bg-2: #ffffff; --bg-3: #e4ecdf;
+  --card: rgba(255, 255, 255, .70); --card-hover: rgba(255, 255, 255, .92);
+  --border: rgba(16, 40, 20, .12); --border-hover: rgba(47, 143, 58, .40);
+  --text: #16210f; --text-2: #384534; --muted: #5f6b54;
+  --acc: #2f8f3a; --acc-strong: #267a30; --acc-ink: #ffffff;
+  --gold: #9a6a13; --gold-strong: #7e560f; --gold-ink: #ffffff;
+  --shadow: 0 6px 24px rgba(20, 40, 20, .10);
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, Menlo, monospace;
+  --gutter: clamp(16px, 2.5vw, 40px);
+  --radius: 16px; --radius-sm: 10px; --radius-pill: 30px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a0f0a; --bg-2: #0f1610; --bg-3: #131c14;
+    --card: rgba(255, 255, 255, .035); --card-hover: rgba(255, 255, 255, .06);
+    --border: rgba(255, 255, 255, .08); --border-hover: rgba(63, 185, 80, .35);
+    --text: #f1f5ee; --text-2: #c3ccbc; --muted: #94a08c;
+    --acc: #3fb950; --acc-strong: #56d364; --acc-ink: #04130c;
+    --gold: #e3b341; --gold-strong: #f0c862; --gold-ink: #1c1403;
+    --shadow: 0 10px 30px rgba(0, 0, 0, .45);
+  }
+}
+
+/* ---------- base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { scrollbar-width: thin; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.62;
+  -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+h1, h2, h3, p, ul, ol, dl, dd, figure { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+h1, h2, h3 { line-height: 1.2; letter-spacing: -.01em; }
+a { color: var(--acc-strong); text-decoration: none; }
+a:hover { text-decoration: underline; }
+img { display: block; max-width: 100%; height: auto; }
+kbd { font-family: var(--font-mono); font-size: .8em; padding: .12em .45em; border-radius: 5px;
+  background: var(--bg-3); color: var(--text); border: 1px solid var(--border); border-block-end-width: 2px; }
+
+/* a visible keyboard focus on everything the page lets you reach */
+:focus-visible { outline: 2px solid var(--acc-strong); outline-offset: 2px; border-radius: 4px; }
+
+/* ---------- layout: one column, the full width less the gutter, no sticky chrome ---------- */
+.container { max-width: 100%; margin-inline: auto; padding-inline: var(--gutter); }
+.help { padding-block: 1.2rem 3rem; overflow-wrap: anywhere; }
+.help img, .help .shot { max-width: 100%; }
+
+.help-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .7rem; margin-block-end: .4rem;
+  font-size: .85rem; color: var(--muted); }
+.help-crumbs a { color: var(--muted); }
+.help-crumbs a:hover { color: var(--text); }
+.help-crumbs .sep { opacity: .5; }
+
+.hero { padding-block: .6rem 1rem; }
+.hero h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 800; }
+.help h2 { font-size: 1.15rem; font-weight: 700; margin-block: 2rem .8rem; }
+.help h3 { font-size: 1rem; font-weight: 700; margin-block: 1.4rem .6rem; color: var(--text-2); }
+.lead { color: var(--text-2); font-size: 1.02rem; }
+.lead + .lead { margin-block-start: .6rem; }
+
+/* ---------- the screenshot ---------- */
+.shot { margin: 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-2);
+  overflow: hidden; box-shadow: var(--shadow); margin-block-start: 1.6rem; }
+.shot img { width: 100%; }
+/* a light and a dark capture of one surface: the system's scheme chooses */
+.shot .on-dark { display: none; }
+@media (prefers-color-scheme: dark) {
+  .shot .on-dark { display: block; }
+  .shot .on-light { display: none; }
+}
+
+/* ---------- the numbered badge shared by the elements and the order list ---------- */
+.mk, .order .ref { display: inline-grid; place-items: center; flex: none; border-radius: 50%;
+  background: var(--gold); color: var(--gold-ink); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.mk { width: 1.7rem; height: 1.7rem; font-size: .78rem; }
+
+/* ---------- "In this order" ---------- */
+.order { counter-reset: step; display: grid; gap: .55rem; }
+.order li { counter-increment: step; position: relative; padding-inline-start: 2.3rem; color: var(--text-2); }
+.order li::before { content: counter(step); position: absolute; inset-inline-start: 0; top: .05rem;
+  width: 1.5rem; height: 1.5rem; border-radius: 50%; display: grid; place-items: center;
+  background: var(--acc-strong); color: var(--acc-ink); font-weight: 800; font-size: .78rem; }
+.order .ref { width: 1.35rem; height: 1.35rem; font-size: .7rem; vertical-align: .05em; text-decoration: none; }
+.order .ref:hover { background: var(--acc-strong); color: var(--acc-ink); text-decoration: none; }
+.order-note { color: var(--text-2); }
+
+/* ---------- the elements: short to see, complete to open ---------- */
+.elements { display: grid; gap: .6rem; }
+.elements h3 { margin-block-end: 0; }
+details.el { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  border-inline-start: 3px solid var(--gold); padding-inline: 1.1rem; scroll-margin-block-start: 1rem;
+  transition: border-color .2s, background .2s; }
+details.el:hover { border-color: var(--border-hover); background: var(--card-hover); border-inline-start-color: var(--acc); }
+details.el:target { border-color: var(--gold); border-inline-start-color: var(--gold); }
+details.el > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: .8rem;
+  padding-block: .8rem; min-height: 44px; }
+details.el > summary::-webkit-details-marker { display: none; }
+/* the chevron is drawn with borders, so the file holds no data URI and therefore no URL */
+details.el > summary::after { content: ""; flex: none; margin-inline-start: auto; width: .55rem; height: .55rem;
+  border-inline-end: 2px solid var(--muted); border-block-end: 2px solid var(--muted);
+  transform: rotate(45deg); transition: transform .2s; }
+details.el[open] > summary::after { transform: rotate(-135deg); }
+details.el .name { display: block; font-weight: 700; }
+details.el .one { display: block; color: var(--muted); font-size: .88rem; }
+details.el .full { padding-block: .2rem 1rem; color: var(--text-2); }
+details.el .full > * + * { margin-block-start: .7rem; }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: .35rem 1rem; font-size: .9rem; }
+.facts dt { color: var(--muted); font-weight: 700; font-size: .72rem; text-transform: uppercase;
+  letter-spacing: .1em; padding-block-start: .2rem; }
+.facts dd { color: var(--text-2); }
+@media (max-width: 520px) {
+  .facts { grid-template-columns: 1fr; }
+  .facts dd { margin-block-end: .4rem; }
+}
+
+/* ---------- related ---------- */
+.related { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: .6rem; }
+.related a { display: block; padding: .75rem .95rem; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--card); color: var(--text); min-height: 44px; }
+.related a:hover { border-color: var(--border-hover); background: var(--card-hover); text-decoration: none; }
+.related b { font-weight: 700; }
+.pill { display: inline-block; margin-inline-start: .4rem; font-size: .68rem; font-weight: 700; letter-spacing: .04em;
+  padding: .2rem .65rem; border-radius: var(--radius-pill); color: var(--text-2);
+  background: color-mix(in srgb, var(--acc) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--acc) 30%, transparent); }
+.pill.gold { background: color-mix(in srgb, var(--gold) 14%, transparent);
+  border-color: color-mix(in srgb, var(--gold) 34%, transparent); }
+
+/* ---------- footer ---------- */
+.help-foot { margin-block-start: 2.5rem; padding-block-start: 1.2rem; border-block-start: 1px solid var(--border);
+  display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; color: var(--muted); font-size: .82rem; }
+.help-foot a { display: inline-block; min-height: 44px; line-height: 44px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+@media print {
+  :root { --bg: #fff; --bg-2: #fff; --bg-3: #f2f2f2; --card: #fff; --card-hover: #fff; --border: #999;
+    --text: #000; --text-2: #111; --muted: #333; --acc-strong: #000; --gold: #000; --shadow: none; }
+  details.el > summary::after { display: none; }
+  .shot { box-shadow: none; break-inside: avoid; }
+}

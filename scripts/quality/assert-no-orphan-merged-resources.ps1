@@ -33,9 +33,13 @@
     Module directory relative to the repo root. Default app_v2.
 
 .PARAMETER Fix
-    Delete the orphaned artifacts and the incremental merge state, so the next build re-merges from
-    source. Both go together: dropping an artifact while leaving the state that lists it is what turns
-    one stale file into an inconsistent merge.
+    Delete the orphaned artifacts and, for each variant that held one, its incremental merge and
+    package state (build/intermediates/incremental/<variant>/merge<Variant>Resources and
+    package<Variant>Resources), so the next build of that variant re-merges from source. Both go
+    together: dropping an artifact while leaving the state that lists it is what turns one stale file
+    into an inconsistent merge. The state lives under the variant folder; a sweep of
+    incremental/merge*Resources at the top level matches nothing in this AGP layout and left the state
+    behind (S4359).
 
 .PARAMETER Quiet
     Print the verdict line only, without naming each orphan.
@@ -120,10 +124,11 @@ foreach ($variantDir in (Get-ChildItem -LiteralPath $mergedRoot -Directory)) {
         if ($rawFolder -ne $folder -and (Test-HasSource -Folder $rawFolder -File $file)) { continue }
 
         $orphans.Add([pscustomobject]@{
-            Variant = $variantDir.Name
-            Source  = "$folder/$file"
-            Age     = $flat.LastWriteTime.ToString('yyyy-MM-dd')
-            Path    = $flat.FullName
+            Variant   = $variantDir.Name
+            MergeTask = $flat.Directory.Name
+            Source    = "$folder/$file"
+            Age       = $flat.LastWriteTime.ToString('yyyy-MM-dd')
+            Path      = $flat.FullName
         })
     }
 }
@@ -155,12 +160,19 @@ if ($Fix) {
     }
     # The merge state lists the artifacts it wrote, so it goes with them - a state that still names a
     # deleted artifact is what makes the next incremental merge inconsistent rather than corrective.
+    # It sits under the variant folder (incremental/<variant>/merge<Variant>Resources), next to the
+    # package task's own state that lists the packaged copy; only the variants that held an orphan are
+    # reset, so a clean variant keeps its incremental merge.
     $incremental = Join-Path $modulePath 'build/intermediates/incremental'
-    if (Test-Path -LiteralPath $incremental) {
-        Get-ChildItem -LiteralPath $incremental -Directory -Filter 'merge*Resources' -ErrorAction SilentlyContinue |
-            ForEach-Object { Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue }
+    foreach ($orphan in $orphans) {
+        $packageTask = $orphan.MergeTask -replace '^merge', 'package'
+        foreach ($task in @($orphan.MergeTask, $packageTask)) {
+            $stateDir = Join-Path $incremental (Join-Path $orphan.Variant $task)
+            Remove-Item -LiteralPath $stateDir -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
     Write-Host "assert-no-orphan-merged-resources: removed $($orphans.Count) artifact(s) and the incremental merge state - rebuild to re-merge." -ForegroundColor Yellow
 }
 
+Write-Host 'assert-no-orphan-merged-resources: FAIL (see the findings above)'
 exit 1

@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Cadre photo numérique sur tablette - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-fr.html
 ---
-<sub class="doc-stamp">26.09.25 02:16</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
 # 🖼️ Cadre photo numérique sur tablette
 
 > **Niveau :** Débutant &bull; **Durée :** ~15 minutes &bull; **Édition :** Standard, Photos, Legacy, VR, noLegal (pour les photos NAS/cloud) ou n'importe quelle édition (pour les photos locales)
-
-{% include lang-switcher.html doc="scenario-photo-frame" dir="/docs/howto/" current="fr" %}
 
 Transformez n'importe quelle tablette Android en un magnifique cadre photo numérique toujours allumé - diffusant vos souvenirs depuis un NAS domestique ou le cloud, avec musique de fond en option. Aucun stockage local utilisé.
 

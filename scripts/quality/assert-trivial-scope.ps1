@@ -39,6 +39,11 @@
     tell an edit from a creation there. The rule exists to catch new types, layouts and navigation
     graphs; applying it to an ignored tree escalated every edit under it instead.
 
+    S4298: an edited declaration line of an existing class, interface or object is not judged as an
+    added type. A modified line reads as added in git diff -U0, so if its type name also appears on a
+    removed declaration line of the same file, it is an edit (e.g. constructor parameter added)
+    rather than a new type.
+
 .PARAMETER Id
     Ticket id, echoed in the verdict; also names the snapshot under temp/<Id>/.
 
@@ -77,9 +82,11 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
 
 function Stop-BadInvocation([string]$Reason) {
     Write-Host "trivial-scope: cannot judge - $Reason"
+    Write-Host "assert-trivial-scope: COULD NOT VERIFY ($Reason)"
     exit 2
 }
 
@@ -95,9 +102,13 @@ if (-not (Test-Path -LiteralPath $RepoRoot)) { Stop-BadInvocation "repo root '$R
 & git -C $RepoRoot rev-parse --is-inside-work-tree *> $null
 if ($LASTEXITCODE -ne 0) { Stop-BadInvocation "'$RepoRoot' is not a git work tree" }
 
+. (Join-Path $PSScriptRoot 'lib/changed-files-delta.ps1')
+Assert-GitHeadResolvable -GateName 'assert-trivial-scope' -RepoRoot $RepoRoot
+
 $label = if ($Id) { "$Id " } else { '' }
 function Stop-Escalate([string]$Reason) {
     Write-Host "trivial-scope: ${label}ESCALATE - $Reason"
+    Write-Host "assert-trivial-scope: FAIL (${label}ESCALATE - $Reason)"
     exit 1
 }
 function Get-BaselinePath([string]$Ticket) {
@@ -145,12 +156,14 @@ if ($RecordBaseline) {
     if ($snapshot.Sha) {
         Set-Content -LiteralPath $basePath -Value $snapshot.Sha -Encoding ascii
         Write-Host "trivial-scope: ${label}baseline $($snapshot.Sha)"
+        Write-Host "assert-trivial-scope: PASS (${label}baseline recorded)"
         exit 0
     }
     # The marker line lets the judging run repeat the warning instead of passing HEAD off as a snapshot.
     Set-Content -LiteralPath $basePath -Value @($head, $HeadFallbackMarker) -Encoding ascii
     Write-Host "trivial-scope: ${label}snapshot failed - $($snapshot.Reason)"
     Write-Host "trivial-scope: ${label}fallback to HEAD $head - uncommitted sibling lines will read as this ticket's"
+    Write-Host "assert-trivial-scope: PASS (${label}baseline recorded from the HEAD fallback)"
     exit 0
 }
 
@@ -219,6 +232,11 @@ foreach ($path in @($changed | Where-Object { $_ -notmatch '^(PLAN|temp)/' })) {
 }
 $judgedRemoved = @($removed | Where-Object { $_ -notmatch '^(PLAN|temp)/' -and -not (Test-GeneratedPath $_) })
 $total = $judgedChanged.Count + $judgedRemoved.Count
+if ($total -eq 0) {
+    # Every path is under PLAN/, temp/ or generated: nothing to judge, and said in the one form (CHECK-VERDICT 2.12).
+    Write-EmptySetPass -GateName 'assert-trivial-scope'
+    exit 0
+}
 if ($total -gt [int]$trivial.maxFiles) {
     Stop-Escalate "$total files changed, the Trivial limit is $($trivial.maxFiles)"
 }
@@ -237,16 +255,36 @@ foreach ($path in $judgedChanged) {
         continue
     }
     if ([System.IO.Path]::GetExtension($path) -notin $extensions) { continue }
-    # -U0 leaves only the changed lines; the '+++' file header is not an added line.
-    $added = @(& git -C $RepoRoot diff -U0 $base -- $path |
-            Where-Object { $_ -match '^\+(?!\+\+)' } |
-            ForEach-Object { $_.Substring(1) })
+    # -U0 leaves only the changed lines; the '+++' / '---' file headers are not added/removed lines.
+    $diffLines = @(& git -C $RepoRoot diff -U0 $base -- $path)
+    $added = @($diffLines | Where-Object { $_ -match '^\+(?!\+\+)' } | ForEach-Object { $_.Substring(1) })
+    $removedLines = @($diffLines | Where-Object { $_ -match '^\-(?!\-\-)' } | ForEach-Object { $_.Substring(1) })
+
+    $removedTypeNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    $typeDeclRegex = '^\s*(?:(?:public|private|internal|protected|abstract|open|sealed|data|enum|inner|value|annotation|fun)\s+)*(?:class|interface|object)\s+(\w+)'
+    foreach ($rLine in $removedLines) {
+        if ($rLine -match $typeDeclRegex) {
+            [void]$removedTypeNames.Add($Matches[1])
+        }
+    }
+
     foreach ($line in $added) {
         foreach ($pattern in $patterns) {
-            if ($line -match $pattern) { Stop-Escalate "$path adds '$($line.Trim())' (pattern $pattern)" }
+            if ($line -match $pattern) {
+                # S4298: an edited declaration line of an existing type (e.g. constructor parameter
+                # added) reads as an added line in git diff -U0. If its type name also appears on a
+                # removed declaration line of the same file, it is a modification, not a new type.
+                if ($pattern.Contains('class|interface|object') -and $line -match $typeDeclRegex) {
+                    $typeName = $Matches[1]
+                    if ($removedTypeNames.Contains($typeName)) {
+                        continue
+                    }
+                }
+                Stop-Escalate "$path adds '$($line.Trim())' (pattern $pattern)"
+            }
         }
     }
 }
 
-Write-Host "trivial-scope: ${label}PASS - $total file(s) within the Trivial checklist."
+Write-Host "assert-trivial-scope: PASS (${label}$total file(s) within the Trivial checklist)"
 exit 0

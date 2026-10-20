@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsContributor
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsSection
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoAccessClassifier
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoBenchmark
+import com.sza.fastmediasorter.core.systeminfo.SystemInfoGroup
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoReport
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoSection
 import com.sza.fastmediasorter.core.systeminfo.renderSystemInfo
@@ -90,12 +91,14 @@ class GatherSystemInfoUseCase @Inject constructor(
                 label(R.string.sysinfo_field_model) to safe { sanitize(Build.MODEL) },
                 label(R.string.sysinfo_field_product) to safe { sanitize(Build.PRODUCT, sanitize(Build.DEVICE)) },
             ),
+            SystemInfoGroup.DEVICE,
         ),
         SystemInfoSection(
             label(R.string.sysinfo_section_user),
             listOf(
                 label(R.string.sysinfo_field_user_name) to safe { userName() },
             ),
+            SystemInfoGroup.USER,
         ),
         SystemInfoSection(
             label(R.string.sysinfo_section_os),
@@ -105,6 +108,7 @@ class GatherSystemInfoUseCase @Inject constructor(
                 },
                 label(R.string.sysinfo_field_api_level) to safe { Build.VERSION.SDK_INT.toString() },
             ),
+            SystemInfoGroup.OS,
         ),
         SystemInfoSection(
             label(R.string.sysinfo_section_app),
@@ -113,19 +117,21 @@ class GatherSystemInfoUseCase @Inject constructor(
                 label(R.string.sysinfo_field_build) to safe { BuildConfig.VERSION_CODE.toString() },
                 label(R.string.sysinfo_field_flavor) to safe { BuildConfig.FLAVOR },
             ),
+            SystemInfoGroup.APP,
         ),
-        SystemInfoSection(label(R.string.sysinfo_section_hardware), hardwareFields()),
+        SystemInfoSection(label(R.string.sysinfo_section_hardware), hardwareFields(), SystemInfoGroup.HARDWARE),
         cameraSection(appCameraView),
-        SystemInfoSection(label(R.string.sysinfo_section_battery), batteryFields()),
-        SystemInfoSection(label(R.string.sysinfo_section_memory), memoryFields()),
-        SystemInfoSection(label(R.string.sysinfo_section_storage), storageFields()),
-        SystemInfoSection(label(R.string.sysinfo_section_network), networkFields()),
-        SystemInfoSection(label(R.string.sysinfo_section_display), displayFields()),
+        SystemInfoSection(label(R.string.sysinfo_section_battery), batteryFields(), SystemInfoGroup.BATTERY),
+        SystemInfoSection(label(R.string.sysinfo_section_memory), memoryFields(), SystemInfoGroup.MEMORY),
+        SystemInfoSection(label(R.string.sysinfo_section_storage), storageFields(), SystemInfoGroup.STORAGE),
+        SystemInfoSection(label(R.string.sysinfo_section_network), networkFields(), SystemInfoGroup.NETWORK),
+        SystemInfoSection(label(R.string.sysinfo_section_display), displayFields(), SystemInfoGroup.DISPLAY),
         SystemInfoSection(
             label(R.string.sysinfo_section_locale),
             listOf(
                 label(R.string.sysinfo_field_locale_current) to safe { Locale.getDefault().toLanguageTag() },
             ),
+            SystemInfoGroup.LOCALE,
         ),
         SystemInfoSection(
             label(R.string.sysinfo_section_time),
@@ -133,9 +139,10 @@ class GatherSystemInfoUseCase @Inject constructor(
                 label(R.string.sysinfo_field_time_current) to safe { currentTime() },
                 label(R.string.sysinfo_field_timezone) to safe { timezone() },
             ),
+            SystemInfoGroup.TIME,
         ),
-        SystemInfoSection(label(R.string.sysinfo_section_system), systemFields()),
-        SystemInfoSection(label(R.string.sysinfo_section_benchmark), benchmarkFields()),
+        SystemInfoSection(label(R.string.sysinfo_section_system), systemFields(), SystemInfoGroup.SYSTEM),
+        SystemInfoSection(label(R.string.sysinfo_section_benchmark), benchmarkFields(), SystemInfoGroup.BENCHMARKS),
     )
 
     /** A refused camera read degrades to an empty section, which the formatter drops entirely. */
@@ -145,6 +152,7 @@ class GatherSystemInfoUseCase @Inject constructor(
         // derived from it) - comparing the two is how a device report localizes a lens defect (S1261).
         fields = safeList { cameraDiagnostics().fields }.orEmpty() +
             appCameraView.map { label(R.string.sysinfo_field_camera_app_view) to it },
+        group = SystemInfoGroup.CAMERAS,
     )
 
     private fun benchmarkFields(): List<Pair<String, String>> = safeList {

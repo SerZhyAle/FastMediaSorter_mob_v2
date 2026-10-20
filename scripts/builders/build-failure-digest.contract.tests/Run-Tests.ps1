@@ -273,8 +273,7 @@ Assert-That 'a bare FAILURE: block reads as failure with no actionable line' `
 
 # --- summary ---------------------------------------------------------------------------------------
 Write-Host ""
-Write-Host "build-failure-digest.contract: $($script:pass) passed, $($script:fail) failed" `
-    -ForegroundColor $(if ($script:fail -eq 0) { 'Green' } else { 'Red' })
+Write-Host "build-failure-digest.contract: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 
 if ($script:fail -gt 0) { exit 1 }
 exit 0

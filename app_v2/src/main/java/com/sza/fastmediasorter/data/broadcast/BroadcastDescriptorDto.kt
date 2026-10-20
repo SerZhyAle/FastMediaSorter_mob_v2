@@ -22,8 +22,16 @@ data class BroadcastDescriptorDto(
     /** S3051: explicit marker indicating this stream is live */
     @SerializedName("isLive") val isLive: Boolean? = null,
     /** S3051: recommended consumer target latency in milliseconds */
-    @SerializedName("targetLatencyMs") val targetLatencyMs: Long? = null
+    @SerializedName("targetLatencyMs") val targetLatencyMs: Long? = null,
+    /** S4258, LIVE-BROADCAST item M: present when every endpoint demands a password; never carries the password. */
+    @SerializedName("auth") val auth: BroadcastAuthDto? = null,
+    /** S4258: the own pair from an opened directory record's box; never on a descriptor that is shared. */
+    @SerializedName("credentials") val credentials: BroadcastCredentialsDto? = null,
 ) {
+
+    /** True when a listener must answer a `password-v1` challenge to play this broadcast. */
+    val isProtected: Boolean get() = auth?.isPasswordV1 == true
+
     /**
      * Returns explicit [endpoints] if present and non-empty, or synthesizes a single legacy endpoint
      * from root fields.

@@ -277,4 +277,27 @@
     <string name="cross_device_transfer_expired_removed">Paquetes caducados eliminados: %1$d</string>
     <string name="setting_mic_recording_destination_default_recordings">Predeterminado: carpeta Grabaciones (Música en Android 11 y anteriores)</string>
     <string name="setting_screen_recording_destination_default_movies">Predeterminado: carpeta Películas</string>
+    <string name="drive_channel_enabled_title">Archivos mediante Google Drive</string>
+    <string name="drive_channel_enabled_subtitle">Envía y recibe archivos entre tus propios dispositivos a través de tu Google Drive, sin el servidor de intercambio</string>
+    <string name="drive_channel_background_title">Comprobar mediante Google Drive en segundo plano</string>
+    <string name="drive_channel_background_subtitle">Cada 15 minutos, para que tus otros dispositivos puedan abrir las carpetas compartidas de este teléfono mientras la app está cerrada</string>
+    <string name="drive_channel_row_from">De %1$s</string>
+    <string name="drive_channel_row_for_device">Para %1$s</string>
+    <string name="drive_channel_row_for_any">Para cualquiera de mis dispositivos</string>
+    <string name="drive_channel_row_waiting">Esperando a ser recibido</string>
+    <string name="drive_channel_delete_without_receiving">Eliminar sin recibir</string>
+    <string name="drive_channel_delete">Eliminar</string>
+    <string name="drive_channel_deleted">Eliminado de tu Google Drive.</string>
+    <string name="drive_channel_sign_in_required">Inicia sesión de nuevo en Google para usar archivos mediante Google Drive. No se eliminó nada.</string>
+    <string name="drive_channel_daily_limit">Se alcanzó el límite diario de subida de Google Drive; inténtalo de nuevo más tarde.</string>
+    <string name="drive_channel_not_enough_space">No hay espacio suficiente en tu Google Drive: %1$s libres. Libera espacio en tu cuenta de Google e inténtalo de nuevo.</string>
+    <string name="drive_channel_too_large">Esto supera %1$s, el máximo que admite una transferencia mediante Google Drive. Envía menos archivos a la vez.</string>
+    <string name="drive_channel_backing_off">Google Drive pidió reducir el ritmo. Se volverá a comprobar en breve.</string>
+    <string name="drive_channel_off_hint">Archivos mediante Google Drive está desactivado. Actívalo en Ajustes, Transferencias de dispositivo pendientes.</string>
+    <string name="drive_channel_delete_message">Se elimina de tu Google Drive para todos tus dispositivos. Los archivos ya recibidos se quedan donde están.</string>
+    <string name="drive_channel_send_title">Enviar mediante Google Drive a</string>
+    <string name="drive_channel_send_any">Cualquiera de mis dispositivos</string>
+    <string name="drive_channel_send_no_devices">Ninguno de tus otros dispositivos ha usado Google Drive todavía. Activa también Archivos mediante Google Drive en el otro dispositivo e inténtalo de nuevo.</string>
+    <string name="drive_channel_send_waiting_for">Esperando a que %1$s lo reciba mediante Google Drive.</string>
+    <string name="drive_channel_send_waiting_any">Esperando a que uno de tus dispositivos lo reciba mediante Google Drive.</string>
 </resources>

@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "اپنی اسمارٹ واچ پر ٹی وی چینلز دیکھیں - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv-ur.html
 ---
-<sub class="doc-stamp">26.09.25 02:28</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-tv-ur.html
 > **سطح:** ابتدائی &bull; **وقت:** ~10 منٹ &bull; **ڈیوائس:** Wear OS اسمارٹ واچ
 
 > **صرف مکمل ورژن** - یہ رہنما Google Play کے ذریعے تقسیم کیے گئے ورژن میں شامل نہیں ہے۔ یہ مکمل ورژن پر لاگو ہوتا ہے، [Downloads](../DOWNLOADS.md) سے براہ راست APK ڈاؤن لوڈ۔
-
-{% include lang-switcher.html doc="scenario-watch-tv" dir="/docs/howto/" current="ur" %}
 
 FastMedia Wear لائیو ٹی وی اور ریڈیو چینلز سیدھا آپ کی کلائی پر چلاتا ہے۔ واچ اسٹریم کو اپنے خود کے Wi-Fi پر کھولتی ہے، تو ایک بار چینل لسٹ میں شامل ہو جائے تو آپ اسے فون کو دوسرے کمرے میں، بیگ میں، یا مکمل طور پر بند رکھتے ہوئے بھی دیکھ سکتے ہیں۔
 

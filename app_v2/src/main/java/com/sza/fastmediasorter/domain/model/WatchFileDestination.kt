@@ -11,8 +11,16 @@ package com.sza.fastmediasorter.domain.model
  */
 sealed interface WatchFileDestination {
 
-    /** A directory on this device; [directoryPath] is a plain filesystem path. */
-    data class Local(val directoryPath: String, val name: String) : WatchFileDestination
+    /**
+     * A directory on this device; [directoryPath] is a plain filesystem path. [resourceId] names the
+     * registered resource it belongs to, or is null for the app's own downloads fallback, which no
+     * resource covers (S4282).
+     */
+    data class Local(
+        val directoryPath: String,
+        val name: String,
+        val resourceId: Long? = null
+    ) : WatchFileDestination
 
     /**
      * A network or cloud resource. [parentPath] keeps its scheme prefix (`smb://`, `sftp://`,

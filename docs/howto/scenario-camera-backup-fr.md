@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Sauvegarde photo programmée vers le PC - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-fr.html
 ---
-<sub class="doc-stamp">26.09.25 02:12</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
 # 📷 Sauvegarde photo programmée vers le PC
 
 > **Niveau :** Débutant &bull; **Durée :** ~15 minutes de configuration &bull; **Édition :** Standard, Photos, Legacy, VR, noLegal (nécessite des sources réseau - Lite n'en a pas)
-
-{% include lang-switcher.html doc="scenario-camera-backup" dir="/docs/howto/" current="fr" %}
 
 Copiez automatiquement les nouvelles photos de l'appareil photo de votre téléphone vers votre ordinateur **chaque nuit, via le Wi-Fi**. Configurez-le une fois - il fonctionne pour toujours sans aucune action manuelle.
 

@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "ڈاؤن لوڈ آرگنائزر (کوئیک سورٹ) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-download-organizer-ur.html
 ---
-<sub class="doc-stamp">26.09.25 02:19</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
 # 🧹 ڈاؤن لوڈ آرگنائزر - ایک ٹیپ سے فائلیں ترتیب دیں
 
 > **سطح:** ابتدائی &bull; **فلیور:** Any (Standard, Lite, Photos, Legacy, VR, noLegal)
-
-{% include lang-switcher.html doc="scenario-download-organizer" dir="/docs/howto/" current="ur" %}
 
 **کوئیک سورٹ** FastMediaSorter کی خاص خصوصیت ہے: اپنے فولڈرز ایک بار سیٹ اپ کریں، پھر صرف ایک نمبر ٹیپ کر کے سینکڑوں فائلیں ترتیب دیں۔ نہ ڈریگ اینڈ ڈراپ، نہ مینوز۔ بس **1**، **2**، یا **3** ٹیپ کریں - اور فائل درست جگہ چلی جاتی ہے۔
 

@@ -1,0 +1,133 @@
+# STREAM-BANK 2.4 topic fold vectors, version 1. Read by StreamTopicFoldingTest (phone and watch) and by
+# scripts/streams.tests/StreamPublisher.Common.Tests.ps1 (publisher). Format: raw<TAB>expected; the raw
+# column is taken verbatim, untrimmed. An empty expected column means the topic stays blank.
+# Lines starting with # and empty lines are skipped.
+#
+# Blank and whitespace stay blank (SB-A3).
+	
+   	
+# Every rubric id folds to itself, in its own case and in lower case (SB-A4).
+General	General
+general	General
+News	News
+news	News
+Pop	Pop
+pop	Pop
+Religious	Religious
+religious	Religious
+Kids	Kids
+kids	Kids
+Oldies	Oldies
+oldies	Oldies
+Movies & Series	Movies & Series
+movies & series	Movies & Series
+Country & Folk	Country & Folk
+country & folk	Country & Folk
+Rock	Rock
+rock	Rock
+Sports	Sports
+sports	Sports
+World	World
+world	World
+Jazz & Blues	Jazz & Blues
+jazz & blues	Jazz & Blues
+Chillout	Chillout
+chillout	Chillout
+Electronic	Electronic
+electronic	Electronic
+Hip-hop	Hip-hop
+hip-hop	Hip-hop
+Talk	Talk
+talk	Talk
+Local radio	Local radio
+local radio	Local radio
+Comedy	Comedy
+comedy	Comedy
+Classical	Classical
+classical	Classical
+Latin	Latin
+latin	Latin
+Documentary	Documentary
+documentary	Documentary
+Education	Education
+education	Education
+Test	Test
+test	Test
+R&B & Soul	R&B & Soul
+r&b & soul	R&B & Soul
+Metal	Metal
+metal	Metal
+Webcam	Webcam
+webcam	Webcam
+Traffic cams	Traffic cams
+traffic cams	Traffic cams
+Reggae	Reggae
+reggae	Reggae
+Shopping	Shopping
+shopping	Shopping
+Business	Business
+business	Business
+Lifestyle	Lifestyle
+lifestyle	Lifestyle
+Adult	Adult
+adult	Adult
+# Upper case, padding and inner whitespace runs.
+NEWS	News
+  Jazz   &  Blues  	Jazz & Blues
+TEST	Test
+# An unknown non-blank value folds to General (SB-A2).
+Future topic	General
+zzqx	General
+!!!	General
+# Exact aliases.
+Adult Contemporary	Pop
+Blues Rock	Rock
+CHR	Pop
+Alternative	Rock
+Christmas Music	Pop
+Explicit	Adult
+Traffic	Traffic cams
+Variety	General
+Apache 207	Hip-hop
+Disney	Kids
+الموسيقى العربية	World
+# Ordered rules: first match wins.
+test pattern	Test
+128kbps	Test
+Christian	Religious
+Gospel Music	Religious
+Beach Cam	Webcam
+Heavy Metal	Metal
+Metal Rock	Metal
+Hip Hop	Hip-hop
+Punk Rock	Rock
+jazz	Jazz & Blues
+blues	Jazz & Blues
+Opera	Classical
+Deep House	Electronic
+Lo-Fi	Chillout
+RnB	R&B & Soul
+Roots Reggae	Reggae
+country	Country & Folk
+Salsa	Latin
+Bollywood	World
+Oldies	Oldies
+80's	Oldies
+80’s	Oldies
+1990s	Oldies
+K-Pop	Pop
+Breaking News	News
+Podcast	Talk
+Soccer	Sports
+children	Kids
+movies	Movies & Series
+open movies	Movies & Series
+science	Documentary
+Education	Education
+Stand-up Comedy	Comedy
+Finance	Business
+Home Shopping	Shopping
+Cooking	Lifestyle
+Adult Talk	Talk
+101.5 FM	Local radio
+Community Radio	Local radio

@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Цифровая фоторамка на планшете - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-ru.html
 ---
-<sub class="doc-stamp">26.09.24 20:50</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 🖼️ Цифровая фоторамка на планшете
 
 > **Уровень:** Начинающий &bull; **Время:** ~15 минут &bull; **Версия:** Standard, Photos, Legacy, VR, noLegal (для фото с NAS/облака) или любая (для локальных фото)
-
-{% include lang-switcher.html doc="scenario-photo-frame" dir="/docs/howto/" current="ru" %}
 
 Превратите любой Android-планшет в красивую всегда включённую цифровую фоторамку - стриминг воспоминаний с домашнего NAS или облака с фоновой музыкой. Память устройства не расходуется.
 

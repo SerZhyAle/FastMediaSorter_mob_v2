@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="uk" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Довідка - Секундомір</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Зміст довідки">
+<a href="index-uk.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Секундомір</span>
+</nav>
+<header class="hero">
+<h1>Секундомір</h1>
+</header>
+<h2>Для чого цей екран</h2>
+<p class="lead">Секундомір, який засікає час до чотирьох людей одночасно, ставить відсічки на колах, грає музику під час відліку та дає результат, який можна зберегти або надіслати. Кнопки гучності телефону вміють запускати й зупиняти його - можна засікати, не дивлячись на екран.</p>
+<h2>Порядок дій</h2>
+<ol class="order">
+<li>Відкрийте секундомір: відлік одразу йде в кожній області учасника <a class="ref" href="#participant-area">1</a>. Велике показання <a class="ref" href="#reading">2</a> показує хвилини, секунди та соті.</li>
+<li>Щоб засікати одного, двох чи чотирьох, натисніть шестірню <a class="ref" href="#settings">10</a> і виберіть «Учасники». У кожної людини своя область, а в одного - весь екран.</li>
+<li>Поки учасник біжить, натискайте «Коло» <a class="ref" href="#start-lap">4</a>, щоб ставити відсічки. Нове коло опиняється вгорі списку <a class="ref" href="#laps">3</a>. Коли учасник закінчив, натисніть «Стоп» <a class="ref" href="#stop-reset">5</a>.</li>
+<li>Якщо учасників два чи чотири, «Зупинити всіх» <a class="ref" href="#start-all">7</a> зупиняє всіх одразу, а ця сама кнопка потім стає «Стартувати всіх». «Скинути все» <a class="ref" href="#reset-all">8</a> обнуляє всі часи та кола.</li>
+<li>Для музики виберіть доріжку в налаштуваннях <a class="ref" href="#settings">10</a>. Вона грає, поки щось іде, а повзунок <a class="ref" href="#volume">6</a> задає гучність.</li>
+<li>Коли закінчите, натисніть «Результат» <a class="ref" href="#result">9</a>, додайте опис і нотатку, а потім збережіть часи у файл або надішліть.</li>
+<li>Якщо на екрані написано, що секундомір вимкнено, натисніть <a class="ref" href="#off-open-settings">12</a>: відкриються налаштування, де його можна ввімкнути.</li>
+</ol>
+<h2>Елементи</h2>
+<div class="elements">
+<h3>Області учасників</h3>
+<details class="el" id="participant-area">
+<summary><span class="mk">1</span><span><span class="name">Область учасника</span><span class="one">Секундомір однієї людини: екран ділиться на окрему область для кожного учасника.</span></span></summary>
+<div class="full">
+<p>Якщо учасник один, область займає весь екран. Для двох екран ділиться навпіл, для чотирьох - на чотири частини, а області називаються «Учасник 1» - «Учасник 4». Кожна область рахує сама по собі, тому зупинка чи скидання однієї не торкається решти.</p>
+<p>Дотик у будь-якому місці області діє так само, як кнопка «Старт» або «Коло» - зручно, коли важко влучити в малу кнопку. На клавіатурі чи пульті клавіші від 1 до 4 переводять на потрібну область.</p>
+<p>Відлік починається одразу, щойно екран відкрився. Поки екран відкритий, часи зберігаються: поворот телефону або перехід в інший застосунок їх не зупиняє. Якщо закрити екран, вони зникнуть, тому спершу натисніть «Результат», якщо часи потрібні.</p>
+<dl class="facts">
+<dt>Сполучення клавіш</dt><dd><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> / <kbd>4</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="reading">
+<summary><span class="mk">2</span><span><span class="name">Показання часу</span><span class="one">Час, що минув у учасника, великими цифрами.</span></span></summary>
+<div class="full">
+<p>Показано хвилини, секунди та соті частки секунди, наприклад 2:07.45, а коли спливає година, додаються години. Цифри зменшуються на тісному екрані, щоб вмістилися всі чотири учасники.</p>
+</div>
+</details>
+<details class="el" id="laps">
+<summary><span class="mk">3</span><span><span class="name">Список кіл</span><span class="one">Відсічки цього учасника, нова - зверху.</span></span></summary>
+<div class="full">
+<p>Кожне натискання «Коло» додає рядок із номером кола та часом від старту, тож щойно записану відсічку видно без прокручування. Поки кіл немає, список підказує натиснути «Коло» під час відліку. Довгий список прокручується.</p>
+</div>
+</details>
+<details class="el" id="start-lap">
+<summary><span class="mk">4</span><span><span class="name">Старт / Коло</span><span class="one">Запускає учасника, а коли він іде, ставить відсічку.</span></span></summary>
+<div class="full">
+<p>На кнопці написано «Старт», поки учасник стоїть, і «Коло», поки він іде. Відсічка не перериває відлік, а лише записує час на цей момент. Якщо натиснути «Старт» після «Стоп», відлік продовжиться з того місця, де зупинився.</p>
+<dl class="facts">
+<dt>Сполучення клавіш</dt><dd><kbd>Space</kbd> / <kbd>Enter</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="stop-reset">
+<summary><span class="mk">5</span><span><span class="name">Стоп / Скидання</span><span class="one">Зупиняє учасника, що біжить, а в зупиненого очищує час.</span></span></summary>
+<div class="full">
+<p>Поки учасник іде, на кнопці «Стоп», і вона заморожує час. Коли він зупинений, на кнопці «Скидання»: вона повертає учасника до 0:00.00 і прибирає кола. Поки очищувати нічого, «Скидання» неактивне.</p>
+<p>На клавіатурі S зупиняє, а R скидає область, на якій стоїть фокус.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>«Скидання» назавжди видаляє час і кола цього учасника, повернути їх не можна. Якщо вони можуть знадобитися, спершу відкрийте «Результат» і збережіть або надішліть їх.</dd>
+<dt>Сполучення клавіш</dt><dd><kbd>S</kbd> / <kbd>R</kbd></dd>
+</dl>
+</div>
+</details>
+<h3>Гучність і нижня панель</h3>
+<details class="el" id="volume">
+<summary><span class="mk">6</span><span><span class="name">Гучність музики</span><span class="one">Задає гучність музики, бо кнопки гучності телефону керують секундоміром.</span></span></summary>
+<div class="full">
+<p>Поки секундомір відкритий і ввімкнено «Кнопки гучності запускають і зупиняють», кнопки гучності телефону запускають, ставлять відсічку й зупиняють, а не змінюють гучність, тому повзунок повертає регулювання на екран. Він змінює гучність мультимедіа телефону - ту саму, що використовують музичні застосунки.</p>
+<p>Рядок схований там, де нема чого регулювати, - наприклад, у редакції Photos.</p>
+</div>
+</details>
+<details class="el" id="start-all">
+<summary><span class="mk">7</span><span><span class="name">Стартувати всіх / Зупинити всіх</span><span class="one">Запускає або зупиняє всіх учасників одним натисканням.</span></span></summary>
+<div class="full">
+<p>Поки ніхто не йде, на кнопці «Стартувати всіх», і вона запускає всіх видимих учасників разом. Щойно хтось іде, на ній «Зупинити всіх», і вона зупиняє всіх; часи та кола лишаються. Учасник, що вже йде, при «Стартувати всіх» час не втрачає.</p>
+<p>Кнопка видима лише за двох чи чотирьох учасників. За одного учасника вистачає кнопок «Старт» і «Стоп» у його області.</p>
+</div>
+</details>
+<details class="el" id="reset-all">
+<summary><span class="mk">8</span><span><span class="name">Скинути все</span><span class="one">Очищує часи та кола всіх учасників.</span></span></summary>
+<div class="full">
+<p>Знадобиться між двома забігами, щоб усі почали з нуля. Учасники, що йдуть, теж зупиняються, бо їхній час повертається до 0:00.00.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Усі часи та кола буде втрачено, повернути їх не можна. Якщо результат потрібен, спершу збережіть або надішліть його.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="result">
+<summary><span class="mk">9</span><span><span class="name">Результат</span><span class="one">Відкриває вікно, щоб зберегти або надіслати заміряні часи.</span></span></summary>
+<div class="full">
+<p>Часи та кола всіх видимих учасників збираються в текст, до якого можна додати опис, зберегти його й надіслати. Якщо ще нічого не заміряно, коротке повідомлення скаже про це, і вікно не відкриється.</p>
+</div>
+</details>
+<details class="el" id="settings">
+<summary><span class="mk">10</span><span><span class="name">Налаштування секундоміра</span><span class="one">Відкриває налаштування секундоміра: учасники, музика та кнопки гучності.</span></span></summary>
+<div class="full">
+<p>Вікно налаштувань можна відкрити й з розділу «Налаштування» на вкладці «Управління». Застосована зміна одразу доходить до відкритого секундоміра.</p>
+</div>
+</details>
+<h3>Коли секундомір вимкнено</h3>
+<details class="el" id="off-notice">
+<summary><span class="mk">11</span><span><span class="name">Секундомір вимкнено</span><span class="one">Повідомляє, що секундомір вимкнено в налаштуваннях.</span></span></summary>
+<div class="full">
+<p>Коли програму вимкнено, це коротке повідомлення замінює області учасників. Воно трапиться, наприклад, якщо відкрити секундомір із віджета на головному екрані, поставленого до вимкнення програми. Поки ви не ввімкнете секундомір, замірів немає.</p>
+</div>
+</details>
+<details class="el" id="off-open-settings">
+<summary><span class="mk">12</span><span><span class="name">Відкрити налаштування</span><span class="one">Відкриває налаштування на вкладці, де секундомір вмикається.</span></span></summary>
+<div class="full">
+<p>Кнопка веде на вкладку «Управління» в налаштуваннях; перемикач секундоміра міститься в розділі «Додаткові програми та сценарії». Увімкніть його, поверніться сюди - і області на місці.</p>
+</div>
+</details>
+<h3>Вікно «Результат секундоміра»</h3>
+<details class="el" id="res-description">
+<summary><span class="mk">13</span><span><span class="name">Опис</span><span class="one">Коротка назва заміру, наприклад ім’я забігу.</span></span></summary>
+<div class="full">
+<p>Вона потрапляє в перший рядок результату. Якщо залишити поле порожнім, рядок просто не з’явиться ні в попередньому перегляді, ні у файлі, ні у надісланому тексті.</p>
+</div>
+</details>
+<details class="el" id="res-note">
+<summary><span class="mk">14</span><span><span class="name">Нотатка</span><span class="one">Усе, що варто зберегти разом із часами, наприклад погода чи траса.</span></span></summary>
+<div class="full">
+<p>Нотатка може займати кілька рядків і йде одразу після опису. Порожня нотатка не включається.</p>
+</div>
+</details>
+<details class="el" id="res-preview">
+<summary><span class="mk">15</span><span><span class="name">Попередній перегляд</span><span class="one">Показує точний текст, який буде збережено або надіслано.</span></span></summary>
+<div class="full">
+<p>У ньому опис, нотатка, момент заміру («Замір») і по рядку на кожного учасника із загальним часом та колами. Що ви бачите тут, те й іде з екрана. Часи зафіксовано в ту мить, коли ви натиснули «Результат», навіть якщо секундомір за вікном іде далі, тому попередній перегляд, файл і надісланий текст збігаються.</p>
+</div>
+</details>
+<details class="el" id="res-cancel">
+<summary><span class="mk">16</span><span><span class="name">Скасувати</span><span class="one">Закриває вікно, нічого не зберігаючи й не надсилаючи.</span></span></summary>
+<div class="full">
+<p>Секундомір за вікном лишається як був.</p>
+</div>
+</details>
+<details class="el" id="res-save">
+<summary><span class="mk">17</span><span><span class="name">Зберегти у файл</span><span class="one">Записує результат у текстовий файл у теці «Завантаження».</span></span></summary>
+<div class="full">
+<p>Файл називається FastMediaSorter_stopwatch плюс дата й час, а повідомлення скаже його ім’я. Якщо записати файл не вдалося, повідомлення скаже про це, і нічого не збережеться. Натискайте один раз: повторне натискання під час запису ігнорується.</p>
+</div>
+</details>
+<details class="el" id="res-send">
+<summary><span class="mk">18</span><span><span class="name">Поділитися</span><span class="one">Передає результат іншому застосунку, наприклад у чат чи лист.</span></span></summary>
+<div class="full">
+<p>Відкривається системне меню надсилання з текстом попереднього перегляду. Які застосунки в ньому видно, залежить від того, що встановлено на телефоні.</p>
+</div>
+</details>
+<h3>Вікно «Налаштування секундоміра»</h3>
+<details class="el" id="set-participants">
+<summary><span class="mk">19</span><span><span class="name">Учасники</span><span class="one">Обирає, скількох людей засікати: 1, 2 або 4.</span></span></summary>
+<div class="full">
+<p>Екран ділиться на стільки областей. Зміна числа не перериває відлік, що йде; області, яких більше нема на екрані, просто ховаються.</p>
+</div>
+</details>
+<details class="el" id="set-music">
+<summary><span class="mk">20</span><span><span class="name">Грати музику під час відліку</span><span class="one">Грає обрану доріжку, поки йде хоч один учасник.</span></span></summary>
+<div class="full">
+<p>Доріжка грає по колу, поки триває замір, тому довгий забіг не лишається без звуку на півдорозі. Музика зупиняється, коли зупинено всіх, а також коли ви йдете з екрана, хоча часи тривають. Перемикач і рядок доріжки сховані там, де в редакції нема звуку. Вибір доріжки вмикає перемикач.</p>
+</div>
+</details>
+<details class="el" id="set-track">
+<summary><span class="mk">21</span><span><span class="name">Доріжка</span><span class="one">Відкриває список музики на телефоні, щоб вибрати доріжку.</span></span></summary>
+<div class="full">
+<p>У рядку показано обрану доріжку або «Не вибрана». Натискання відкриває вибір музики, де достатньо торкнутися однієї доріжки; вибір повертається в це вікно й набуває чинності після натискання «Застосувати».</p>
+</div>
+</details>
+<details class="el" id="set-volume-keys">
+<summary><span class="mk">22</span><span><span class="name">Кнопки гучності запускають і зупиняють</span><span class="one">Дає змогу кнопкам гучності телефону запускати, ставити відсічку й зупиняти секундомір.</span></span></summary>
+<div class="full">
+<p>Увімкнено: поки секундомір відкритий, гучність вгору запускає або ставить відсічку, а гучність вниз зупиняє - зручно в рукавичках чи не дивлячись. Кнопки діють на область, де стоїть фокус, а якщо фокуса нема - на «Учасник 1». Гучність телефону при цьому не змінюється; користуйтеся повзунком на екрані. Вимкнено: кнопки повертаються системі.</p>
+</div>
+</details>
+<details class="el" id="set-cancel">
+<summary><span class="mk">23</span><span><span class="name">Скасувати</span><span class="one">Закриває вікно й відкидає зміни.</span></span></summary>
+<div class="full">
+<p>Налаштування лишаються такими, якими були під час відкриття вікна.</p>
+</div>
+</details>
+<details class="el" id="set-apply">
+<summary><span class="mk">24</span><span><span class="name">Застосувати</span><span class="one">Зберігає чотири налаштування й закриває вікно.</span></span></summary>
+<div class="full">
+<p>Записуються лише власні параметри секундоміра, і відкритий секундомір одразу переходить на них.</p>
+</div>
+</details>
+<h3>Вибір музики</h3>
+<details class="el" id="music-picker">
+<summary><span class="mk">25</span><span><span class="name">Вибір музики</span><span class="one">Показує музику на телефоні, щоб вибрати одну доріжку.</span></span></summary>
+<div class="full">
+<p>У кожному рядку назва та, якщо відомо, виконавець і тривалість. Торкніться рядка, щоб вибрати його: вікно закриється, а доріжка з’явиться в налаштуваннях. У списку лише ті аудіофайли, які телефон уже проіндексував. Якщо їх нема, вікно повідомляє, що музики на пристрої не знайдено, і радить скопіювати на нього аудіофайли.</p>
+</div>
+</details>
+</div>
+<h2>Пов'язане</h2>
+<ul class="related">
+<li><a href="calculator-uk.html"><b>Калькулятор</b><span class="pill">Екран</span></a></li>
+<li><a href="tourist-info-uk.html"><b>Турист</b><span class="pill">Екран</span></a></li>
+<li><a href="main-uk.html"><b>Головний екран</b><span class="pill">Екран</span></a></li>
+<li><a href="settings-operations-uk.html"><b>Налаштування: Управління</b><span class="pill">Екран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/calculator-and-stopwatch-uk.html"><b>The Calculator and the Stopwatch</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/built-in-mini-apps-uk.html"><b>Built-in Programs - Switching Them On, the Lights, the Mirror and the SOS Signal</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="index-uk.html"><b>Зміст довідки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index-uk.html">Зміст довідки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
+</footer>
+</main>
+</body>
+</html>

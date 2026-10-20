@@ -49,4 +49,10 @@ class ChannelPreviewAtlasSlicerTest {
         assertTrue("an in-range index fits", slicer.isInBounds(0, w, h))
         assertTrue("last column of a valid row fits", slicer.isInBounds(ChannelPreviewAtlasSlicer.COLS - 1, w, h))
     }
+
+    @Test
+    fun `isInBounds rejects indices whose pixel rect would overflow Int`() {
+        assertFalse(slicer.isInBounds(Int.MAX_VALUE, 8192, 8192))
+        assertFalse(slicer.isInBounds(Int.MAX_VALUE - 15, 8192, 8192))
+    }
 }

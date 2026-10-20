@@ -1,0 +1,506 @@
+{
+  "help": "calculator",
+  "surface": "CalculatorActivity",
+  "elements": [
+    { "id": "memory-indicator", "viewId": "calculatorMemoryIndicator" },
+    { "id": "history", "viewId": "calculatorHistory" },
+    { "id": "display", "viewId": "calculatorDisplay" },
+    { "id": "memory-toggle", "viewId": "btnCalculatorMemoryToggle", "labelKey": "calculator_action_memory_toggle" },
+    { "id": "memory-add", "viewId": "btnCalculatorMemoryAdd", "labelKey": "calculator_action_memory_add" },
+    { "id": "memory-subtract", "viewId": "btnCalculatorMemorySubtract", "labelKey": "calculator_action_memory_subtract" },
+    { "id": "memory-recall", "viewId": "btnCalculatorMemoryRecall", "labelKey": "calculator_action_memory_recall" },
+    { "id": "memory-clear", "viewId": "btnCalculatorMemoryClear", "labelKey": "calculator_action_memory_clear" },
+    { "id": "clear", "viewId": "btnCalculatorClear", "labelKey": "calculator_action_clear" },
+    { "id": "clear-entry", "viewId": "btnCalculatorClearEntry", "labelKey": "calculator_action_clear_entry" },
+    { "id": "backspace", "viewId": "btnCalculatorBackspace", "labelKey": "calculator_action_backspace" },
+    { "id": "percent", "viewId": "btnCalculatorPercent", "labelKey": "calculator_action_percent" },
+    { "id": "digits", "viewId": "btnCalculatorSeven" },
+    { "id": "decimal", "viewId": "btnCalculatorDecimal", "labelKey": "calculator_action_decimal" },
+    { "id": "toggle-sign", "viewId": "btnCalculatorToggleSign", "labelKey": "calculator_action_toggle_sign" },
+    { "id": "add", "viewId": "btnCalculatorAdd", "labelKey": "calculator_action_add" },
+    { "id": "subtract", "viewId": "btnCalculatorSubtract", "labelKey": "calculator_action_subtract" },
+    { "id": "multiply", "viewId": "btnCalculatorMultiply", "labelKey": "calculator_action_multiply" },
+    { "id": "divide", "viewId": "btnCalculatorDivide", "labelKey": "calculator_action_divide" },
+    { "id": "equals", "viewId": "btnCalculatorEquals", "labelKey": "calculator_action_equals" },
+    { "id": "menu", "viewId": "btnCalculatorMenu", "labelKey": "more_actions" },
+    { "id": "off-notice", "viewId": "calculatorFallbackTitle", "labelKey": "calculator_enable_prompt_title" },
+    { "id": "off-open-settings", "viewId": "btnCalculatorOpenSettings", "labelKey": "calculator_open_settings" },
+    { "id": "function-window", "labelKey": "calculator_action_function" },
+    { "id": "set-group-digits", "labelKey": "calculator_settings_group_thousands" },
+    { "id": "set-result-size", "labelKey": "calculator_settings_text_size" },
+    { "id": "set-keypad", "labelKey": "calculator_settings_keypad_mode" },
+    { "id": "set-cancel", "labelKey": "cancel" },
+    { "id": "set-apply", "labelKey": "apply" }
+  ],
+  "related": [
+    { "help": "stopwatch" },
+    { "help": "main" },
+    { "help": "settings-operations" },
+    { "pageId": "programs.calculator-and-stopwatch" },
+    { "pageId": "programs.built-in-mini-apps" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Calculator",
+      "purpose": "A calculator for quick sums without leaving the app. It shows the answer while you type, keeps a history you can copy, send or save, and has memory keys and scientific functions under the menu.",
+      "steps": [
+        "Type the first number with the digit keys (13) and the decimal point (14). The number appears in the result (3). Backspace (11) removes the last digit.",
+        "Press an operator: plus (16), minus (17), times (18) or divide (19). Then type the second number. While you type it, the history (2) already shows what Equals would give.",
+        "Press Equals (20) to finish the sum. It goes into the history (2), and tapping the result (3) copies it.",
+        "Percent (12) and Change sign (15) work on the number you are typing. Clear entry (10) wipes only that number, and Clear (9) starts the whole sum again.",
+        "To keep a running total, show the memory keys with (4) and use M+ (5), M- (6), MR (7) and MC (8). The indicator (1) tells you what is stored.",
+        "Touch and hold a key for its second job, written in small type under its symbol. The menu key (21) holds the rest: functions, send, save history and settings.",
+        "If the screen says that the calculator is off, press (23) to open Settings and switch it on."
+      ],
+      "groups": [
+        { "title": "Result and history", "elements": ["memory-indicator", "history", "display"] },
+        { "title": "Memory keys", "elements": ["memory-toggle", "memory-add", "memory-subtract", "memory-recall", "memory-clear"] },
+        { "title": "Keypad", "elements": ["clear", "clear-entry", "backspace", "percent", "digits", "decimal", "toggle-sign", "add", "subtract", "multiply", "divide", "equals", "menu"] },
+        { "title": "When the calculator is off", "elements": ["off-notice", "off-open-settings"] },
+        { "title": "Function window", "elements": ["function-window"] },
+        { "title": "Calculator settings window", "elements": ["set-group-digits", "set-result-size", "set-keypad", "set-cancel", "set-apply"] }
+      ],
+      "elements": {
+        "memory-indicator": {
+          "name": "Memory indicator",
+          "summary": "Shows the number kept in memory, so you do not have to remember it.",
+          "details": "It reads M and the stored number, and it sits to the left of the M key. It appears only while the memory holds something other than zero, and it disappears again after you clear the memory."
+        },
+        "memory-toggle": {
+          "summary": "Shows or hides the row of four memory keys.",
+          "details": "The memory keys stay out of the way until you need them. Press M once to show the row and again to hide it. The calculator remembers whether the row was open the next time you come back."
+        },
+        "history": {
+          "name": "History",
+          "summary": "Lists the finished sums, with the one you are typing at the bottom.",
+          "details": "Each finished sum takes one line, for example 125+37=162. While you type the second number of a sum, the last line also shows the answer Equals would give, so you see it before you press anything. If the sum has no answer yet, such as a divide by a zero you are still typing past, the line simply stays as it was.\n\nThe history is kept between launches. You can select any part of it with a long press and copy it. Pinch it with two fingers to make the text bigger or smaller; there are five sizes, and the one you choose is remembered. With the Large keys keypad the history shrinks to a few lines.\n\nYou can send the whole history away or save it as a file from the menu.",
+          "undo": "Clear history in the menu deletes every saved line. It cannot be undone, so save the history first if you may need it."
+        },
+        "display": {
+          "name": "Result",
+          "summary": "Shows the number you are typing, and then the answer.",
+          "details": "Tap it to copy the number to the clipboard; the copy has no digit grouping, so it pastes cleanly anywhere. Touch and hold it to paste a number from the clipboard. If the clipboard holds a whole sum, such as 12*7+5, the calculator works it out and puts the answer in the history.\n\nLong numbers shrink to fit the width. With Group digits on, a comma separates every three digits. A message such as Can't divide by zero. shows here when a sum has no answer; Clear or any digit key takes it away."
+        },
+        "memory-add": {
+          "summary": "Adds the number on the result line to the memory.",
+          "details": "Use it to build a running total across several sums: work out one amount, press M+, then start the next. The result line does not change, and the indicator shows the new total in memory. The memory is saved, so it is still there after you close the calculator."
+        },
+        "memory-subtract": {
+          "summary": "Subtracts the number on the result line from the memory.",
+          "details": "It is the opposite of M+. Use it when a figure has to come off the running total. The result line does not change; the indicator shows the new total."
+        },
+        "memory-recall": {
+          "summary": "Puts the number kept in memory on the result line.",
+          "details": "The stored number is typed in as if you had entered it yourself, so you can use it as the first or the second number of a sum. The memory itself stays as it was."
+        },
+        "memory-clear": {
+          "summary": "Sets the memory back to zero.",
+          "details": "Use it when a running total is finished and you want to start another. The memory indicator disappears.",
+          "undo": "The stored number is lost, and the calculator has no undo for it. Press MR first if you want to see it one last time."
+        },
+        "clear": {
+          "summary": "Wipes the whole sum and starts again from 0.",
+          "details": "It clears the number you are typing, the operator you pressed and the unfinished line at the bottom of the history, and it also takes away an error message. The history and the memory are not touched.",
+          "shortcut": "Esc"
+        },
+        "clear-entry": {
+          "summary": "Wipes only the number you are typing and keeps the sum.",
+          "details": "Use it when you mistyped the second number of a sum: the first number and the operator stay, and you can type the second number again. With no operator pressed it simply sets the number back to 0."
+        },
+        "backspace": {
+          "summary": "Removes the last digit you typed.",
+          "details": "Use it for a typo. When the result line holds a finished answer instead of a number you are typing, one press resets it to 0.",
+          "shortcut": "Backspace"
+        },
+        "percent": {
+          "summary": "Turns the number into a percentage in the way you probably mean it.",
+          "details": "After plus or minus it takes that percent of the first number: 200 + 10 % gives 20, so Equals then adds 20 to 200. Otherwise it divides the number by 100. Touch and hold the key to save the history to a file, as Save history in the menu does."
+        },
+        "digits": {
+          "name": "Digit keys 0-9",
+          "summary": "Type the number: ten keys, 0 to 9, three rows of three and a 0 below.",
+          "details": "Each press adds a digit to the number on the result line. Leading zeros are dropped, so 007 becomes 7. A physical keyboard works too: the digits on the top row or the number pad.\n\nEvery digit key has a second job when you touch and hold it, written in small type under the digit: 1 gives 1/x, 2 gives x squared, 3 the cube root, 4 the square root, 5 raises to a power, 6 the factorial, 7 the sine, 8 the cosine and 9 the tangent. Holding 0 types three zeros at once, which is handy for thousands. Each of these does the same as the matching row in the Function window.",
+          "shortcut": "0 / 1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9"
+        },
+        "decimal": {
+          "summary": "Adds a decimal point to the number.",
+          "details": "A number can have only one point, so a second press does nothing. After an operator, or on a fresh sum, the point starts the number as 0.. Touch and hold the key to put in the number pi.",
+          "shortcut": "."
+        },
+        "toggle-sign": {
+          "summary": "Switches the number between positive and negative.",
+          "details": "Press it before or after typing the number. It does nothing to a zero. Touch and hold the key for the cotangent (ctg) of the number, in degrees."
+        },
+        "add": {
+          "summary": "Adds the next number to the one before it.",
+          "details": "Press it after the first number, then type the second one. In a longer chain the sum is worked out from left to right: pressing the next operator after the second number works out the sum so far and carries the answer on. Touch and hold the key to copy the result. On a keyboard, the plus key does the same as a tap."
+        },
+        "subtract": {
+          "summary": "Takes the next number away from the one before it.",
+          "details": "Use it between two numbers. To type a negative number, use Change sign instead. Touch and hold the key to paste a number or a sum from the clipboard.",
+          "shortcut": "-"
+        },
+        "multiply": {
+          "summary": "Multiplies the number before it by the next one.",
+          "details": "Press it between two numbers. Touch and hold the key to send the result to another app through the share sheet.",
+          "shortcut": "*"
+        },
+        "divide": {
+          "summary": "Divides the number before it by the next one.",
+          "details": "Press it between two numbers. A division by zero has no answer, so the history stays quiet while you type, and the message Can't divide by zero. appears only when you press Equals. The calculator then also shows a joke alert that looks like a system warning about deleted data; it is a prank, and nothing is deleted. Its only button, More details.., opens a web page about April Fools' Day in your browser.\n\nTouch and hold the key to round the number on the result line to a whole number.",
+          "shortcut": "/"
+        },
+        "equals": {
+          "summary": "Finishes the sum and shows the answer.",
+          "details": "The finished sum goes into the history. Press Equals again straight away to repeat the last operation: after 5 + 3 = 8 the next press gives 11, then 14. Starting a new number clears that repeat.",
+          "shortcut": "Enter / ="
+        },
+        "menu": {
+          "summary": "Opens the menu with copy, paste, functions, history and settings.",
+          "details": "The key marked with three lines opens a menu of eight rows. Copy and Paste work with the clipboard, as tapping and holding the result do. Round makes the number on the result line a whole number. Function opens a list of functions. Send result passes the number to another app, and if no app can take it a short message says so. Save history writes the history to a text file in your Downloads folder and tells you its name; with an empty history it says so instead. Clear history empties the history. Calculator settings opens the settings window.\n\nTouch and hold this key to close the calculator. Opening the calculator from the text editor with a selected sum and closing it this way hands the result back to the editor, which puts it into the text.",
+          "undo": "Clear history deletes every saved line at once and cannot be undone. It is only in the menu, never under a held key, so a long press cannot wipe it by accident."
+        },
+        "off-notice": {
+          "summary": "Tells you that the calculator is switched off in Settings.",
+          "details": "When the calculator is switched off in Settings, the keypad gives way to a short message. You can meet it, for example, when you open the calculator from a home-screen widget. The calculator does not work until you switch it on again."
+        },
+        "off-open-settings": {
+          "summary": "Opens Settings on the tab where the calculator is switched on.",
+          "details": "It takes you to the Management tab of Settings; the Calculator switch is under Additional programs and scenarios. Turn it on, come back to this screen, and the keypad is there. No restart is needed."
+        },
+        "function-window": {
+          "summary": "Lists fifteen extra functions in two columns.",
+          "details": "Pick a function and the window closes. Most work on the number on the result line at once: sin, cos, tg and ctg (in degrees), square root, cube root, square, 1/x, log, ln and n!. Power (xʸ), DIV (whole-number division) and mod (remainder) are operators: press one, then type the second number and press Equals. The pi row puts the number pi on the result line. A function that has no answer for the number, such as the square root of a negative or the factorial of 1.5, shows an error message instead. The same functions sit under a held digit key."
+        },
+        "set-group-digits": {
+          "summary": "Puts a comma between every three digits so long numbers are easier to read.",
+          "details": "With it on, 1234567 reads as 1,234,567. The grouping applies on both sides of the decimal point and only changes how the number looks. A copied number always has no commas. It is on by default."
+        },
+        "set-result-size": {
+          "summary": "Sets how large the result is, from small to very large.",
+          "details": "Drag the slider to choose the biggest size the result can have. Very long numbers still shrink so that they fit the line. The default is a middle size."
+        },
+        "set-keypad": {
+          "summary": "Picks the shape of the keypad: Normal, Large keys or Compact.",
+          "details": "Normal is the standard layout. Large keys makes the keypad take most of the screen and cuts the history to a few lines, which is easier with big fingers. Compact, bottom right gathers smaller keys in the bottom right corner so that one thumb reaches all of them."
+        },
+        "set-cancel": {
+          "summary": "Closes the window without saving your choices.",
+          "details": "Nothing changes: the settings stay as they were before you opened the window."
+        },
+        "set-apply": {
+          "summary": "Saves the three choices and closes the window.",
+          "details": "The calculator uses the new settings at once. The choices are kept for the next time."
+        }
+      }
+    },
+    "ru": {
+      "title": "Калькулятор",
+      "purpose": "Калькулятор для быстрых подсчётов, не выходя из приложения. Он показывает ответ прямо во время ввода, хранит историю, которую можно скопировать, отправить или сохранить, а кнопки памяти и функции доступны из меню.",
+      "steps": [
+        "Наберите первое число цифрами (13) и десятичной точкой (14). Число появится в результате (3). «Удалить последний символ» (11) убирает последнюю цифру.",
+        "Нажмите знак действия: «Сложить» (16), «Вычесть» (17), «Умножить» (18) или «Разделить» (19) - и наберите второе число. Пока вы его вводите, в истории (2) уже виден ответ, который даст «Равно».",
+        "Нажмите «Равно» (20), чтобы завершить пример. Он попадёт в историю (2), а касание результата (3) копирует число.",
+        "«Процент» (12) и «Сменить знак» (15) работают с числом, которое вы вводите. «Очистить ввод» (10) стирает только это число, а «Очистить» (9) начинает пример заново.",
+        "Чтобы вести накопительный итог, покажите кнопки памяти (4) и пользуйтесь M+ (5), M- (6), MR (7) и MC (8). Индикатор (1) подскажет, что хранится в памяти.",
+        "Удерживайте кнопку, чтобы выполнить её второе действие: оно подписано мелким шрифтом под значком. Остальное - функции, отправка, сохранение истории и настройки - находится в меню (21).",
+        "Если на экране написано, что калькулятор выключен, нажмите (23): откроются настройки, где его можно включить."
+      ],
+      "groups": [
+        { "title": "Результат и история", "elements": ["memory-indicator", "history", "display"] },
+        { "title": "Кнопки памяти", "elements": ["memory-toggle", "memory-add", "memory-subtract", "memory-recall", "memory-clear"] },
+        { "title": "Клавиатура", "elements": ["clear", "clear-entry", "backspace", "percent", "digits", "decimal", "toggle-sign", "add", "subtract", "multiply", "divide", "equals", "menu"] },
+        { "title": "Когда калькулятор выключен", "elements": ["off-notice", "off-open-settings"] },
+        { "title": "Окно функций", "elements": ["function-window"] },
+        { "title": "Окно настроек калькулятора", "elements": ["set-group-digits", "set-result-size", "set-keypad", "set-cancel", "set-apply"] }
+      ],
+      "elements": {
+        "memory-indicator": {
+          "name": "Индикатор памяти",
+          "summary": "Показывает число, хранящееся в памяти, чтобы вам не приходилось его помнить.",
+          "details": "Он выглядит как «M» и число и находится слева от кнопки M. Индикатор виден, только пока в памяти не ноль, и пропадает после очистки памяти."
+        },
+        "memory-toggle": {
+          "summary": "Показывает или скрывает ряд из четырёх кнопок памяти.",
+          "details": "Кнопки памяти не мешают, пока вы ими не пользуетесь. Нажмите M один раз, чтобы показать ряд, и ещё раз, чтобы скрыть. Калькулятор запоминает, был ли ряд открыт, и при следующем запуске покажет его так же."
+        },
+        "history": {
+          "name": "История",
+          "summary": "Перечисляет готовые примеры, а внизу - тот, что вы сейчас вводите.",
+          "details": "Каждый готовый пример занимает одну строку, например 125+37=162. Пока вы вводите второе число, в последней строке уже виден ответ, который даст «Равно», - нажимать ничего не нужно. Если у примера пока нет ответа, например вы набираете делитель и в нём ещё ноль, строка просто остаётся прежней.\n\nИстория сохраняется между запусками. Любую её часть можно выделить долгим нажатием и скопировать. Сведите или разведите два пальца, чтобы уменьшить или увеличить текст: размеров пять, выбранный запоминается. С клавиатурой «Крупные кнопки» история сжимается до нескольких строк.\n\nВсю историю можно отправить или сохранить в файл из меню.",
+          "undo": "«Очистить историю» в меню удаляет все сохранённые строки. Вернуть их нельзя, поэтому сначала сохраните историю, если она может понадобиться."
+        },
+        "display": {
+          "name": "Результат",
+          "summary": "Показывает число, которое вы вводите, а затем ответ.",
+          "details": "Нажмите, чтобы скопировать число в буфер обмена: копия приходит без разделителей разрядов, поэтому её удобно вставлять куда угодно. Удерживайте, чтобы вставить число из буфера. Если в буфере целый пример, например 12*7+5, калькулятор сам его посчитает и запишет ответ в историю.\n\nДлинные числа уменьшаются, чтобы поместиться. Если включено «Разделять разряды», между каждыми тремя цифрами стоит запятая. Когда у примера нет ответа, здесь появляется сообщение, например «Делить на ноль нельзя.»; «Очистить» или любая цифра его убирает."
+        },
+        "memory-add": {
+          "summary": "Прибавляет число с экрана к памяти.",
+          "details": "Подходит для накопительного итога по нескольким примерам: посчитали одну сумму, нажали M+, перешли к следующей. Число на экране не меняется, а индикатор показывает новый итог в памяти. Память сохраняется, поэтому она остаётся и после закрытия калькулятора."
+        },
+        "memory-subtract": {
+          "summary": "Вычитает число с экрана из памяти.",
+          "details": "Это противоположность M+: используйте, когда какую-то сумму нужно убрать из итога. Число на экране не меняется, а индикатор показывает новый итог."
+        },
+        "memory-recall": {
+          "summary": "Выводит на экран число, хранящееся в памяти.",
+          "details": "Число подставляется так, будто вы набрали его сами, поэтому его можно использовать и как первое, и как второе число примера. Сама память не меняется."
+        },
+        "memory-clear": {
+          "summary": "Сбрасывает память в ноль.",
+          "details": "Пригодится, когда накопительный итог подсчитан и хочется начать новый. Индикатор памяти исчезает.",
+          "undo": "Сохранённое число теряется, вернуть его нельзя. Если хотите увидеть его ещё раз, сначала нажмите MR."
+        },
+        "clear": {
+          "summary": "Стирает весь пример и начинает с нуля.",
+          "details": "Сбрасываются набираемое число, выбранное действие и незаконченная строка внизу истории, а также сообщение об ошибке. История и память остаются нетронутыми.",
+          "shortcut": "Esc"
+        },
+        "clear-entry": {
+          "summary": "Стирает только вводимое число, пример сохраняется.",
+          "details": "Пригодится, если вы ошиблись во втором числе: первое число и действие остаются, и вы можете набрать второе заново. Если действие ещё не выбрано, она просто возвращает число к 0."
+        },
+        "backspace": {
+          "summary": "Убирает последнюю набранную цифру.",
+          "details": "Удобна при опечатке. Если на экране готовый ответ, а не набираемое число, одно нажатие сбрасывает его в 0.",
+          "shortcut": "Backspace"
+        },
+        "percent": {
+          "summary": "Превращает число в процент так, как вы, скорее всего, и имеете в виду.",
+          "details": "После сложения или вычитания берёт этот процент от первого числа: 200 + 10 % даёт 20, и «Равно» прибавит к 200 эти 20. В остальных случаях делит число на 100. Удерживайте кнопку, чтобы сохранить историю в файл, как это делает «Сохранить историю» в меню."
+        },
+        "digits": {
+          "name": "Цифры 0-9",
+          "summary": "Набор числа: десять кнопок от 0 до 9 - три ряда по три и 0 внизу.",
+          "details": "Каждое нажатие добавляет цифру к числу на экране. Лишние нули в начале отбрасываются: 007 превращается в 7. Работает и физическая клавиатура: цифры верхнего ряда или цифровой блок.\n\nУ каждой цифры есть второе действие при удержании, оно подписано мелким шрифтом под цифрой: 1 - 1/x, 2 - квадрат, 3 - кубический корень, 4 - квадратный корень, 5 - возведение в степень, 6 - факториал, 7 - синус, 8 - косинус, 9 - тангенс. Удержание 0 вводит сразу три нуля - удобно для тысяч. Каждое из этих действий делает то же, что и одноимённая строка в окне функций.",
+          "shortcut": "0 / 1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9"
+        },
+        "decimal": {
+          "summary": "Добавляет к числу десятичную точку.",
+          "details": "В числе может быть только одна точка, поэтому второе нажатие ничего не делает. После знака действия или в новом примере точка начинает число с 0.. Удерживайте кнопку, чтобы ввести число пи.",
+          "shortcut": "."
+        },
+        "toggle-sign": {
+          "summary": "Переключает число между положительным и отрицательным.",
+          "details": "Нажимайте до ввода числа или после. Ноль она не меняет. Удерживайте кнопку, чтобы получить котангенс (ctg) числа в градусах."
+        },
+        "add": {
+          "summary": "Прибавляет следующее число к предыдущему.",
+          "details": "Нажмите её после первого числа и наберите второе. В длинной цепочке пример считается слева направо: знак действия после второго числа сначала считает уже набранную часть и продолжает с ответом. Удерживайте кнопку, чтобы скопировать результат. На клавиатуре то же, что нажатие, делает клавиша плюс."
+        },
+        "subtract": {
+          "summary": "Вычитает следующее число из предыдущего.",
+          "details": "Используйте её между двумя числами. Чтобы ввести отрицательное число, лучше нажать «Сменить знак». Удерживайте кнопку, чтобы вставить число или пример из буфера обмена.",
+          "shortcut": "-"
+        },
+        "multiply": {
+          "summary": "Умножает предыдущее число на следующее.",
+          "details": "Нажимайте между двумя числами. Удерживайте кнопку, чтобы отправить результат в другое приложение через системное меню отправки.",
+          "shortcut": "*"
+        },
+        "divide": {
+          "summary": "Делит предыдущее число на следующее.",
+          "details": "Нажимайте между двумя числами. Деление на ноль не имеет ответа, поэтому пока вы набираете число, история молчит, а сообщение «Делить на ноль нельзя.» появляется только после «Равно». Тогда же калькулятор показывает шуточное окно, похожее на системное предупреждение об удалении данных: это розыгрыш, ничего не удаляется. Его единственная кнопка «Подробнее..» открывает в браузере страницу о Дне дурака.\n\nУдерживайте кнопку, чтобы округлить число на экране до целого.",
+          "shortcut": "/"
+        },
+        "equals": {
+          "summary": "Завершает пример и показывает ответ.",
+          "details": "Готовый пример попадает в историю. Если сразу нажать «Равно» ещё раз, последнее действие повторится: после 5 + 3 = 8 следующее нажатие даст 11, потом 14. Как только вы начнёте новое число, повтор сбрасывается.",
+          "shortcut": "Enter / ="
+        },
+        "menu": {
+          "summary": "Открывает меню: копирование, вставка, функции, история и настройки.",
+          "details": "Кнопка со значком из трёх линий открывает меню из восьми строк. «Копировать» и «Вставить» работают с буфером обмена, как касание и удержание результата. «Округлить» делает число на экране целым. «Функция» открывает список функций. «Отправить результат» передаёт число другому приложению, а если подходящего нет, короткое сообщение об этом скажет. «Сохранить историю» записывает историю в текстовый файл в папку «Загрузки» и сообщает его имя; если история пуста, об этом тоже будет сообщение. «Очистить историю» опустошает историю. «Настройки калькулятора» открывают окно настроек.\n\nУдерживайте эту кнопку, чтобы закрыть калькулятор. Если вы открыли калькулятор из текстового редактора с выделенным примером, то при закрытии таким способом результат возвращается в редактор и вставляется в текст.",
+          "undo": "«Очистить историю» удаляет все сохранённые строки сразу, вернуть их нельзя. Эта строка есть только в меню, а не под удерживаемой кнопкой, чтобы стереть историю случайно не получилось."
+        },
+        "off-notice": {
+          "summary": "Сообщает, что калькулятор выключен в настройках.",
+          "details": "Если калькулятор выключен в настройках, вместо клавиатуры вы видите короткое сообщение. Оно встретится, например, при запуске из виджета на главном экране. Пока вы не включите калькулятор, он не работает."
+        },
+        "off-open-settings": {
+          "summary": "Открывает настройки на вкладке, где калькулятор включается.",
+          "details": "Кнопка ведёт на вкладку «Управление» в настройках; переключатель калькулятора находится в разделе «Дополнительные программы и сценарии». Включите его и вернитесь на этот экран - клавиатура уже будет на месте. Перезапуск не нужен."
+        },
+        "function-window": {
+          "summary": "Показывает пятнадцать дополнительных функций в два столбца.",
+          "details": "Выберите функцию - окно закроется. Большинство из них сразу применяются к числу на экране: sin, cos, tg и ctg (в градусах), квадратный и кубический корень, квадрат, 1/x, log, ln и n!. Степень (xʸ), DIV (целочисленное деление) и mod (остаток) - действия между двумя числами: нажмите одно из них, наберите второе число и нажмите «Равно». Строка «π» выводит на экран число пи. Если для числа функция не имеет ответа, например корень из отрицательного или факториал от 1.5, появится сообщение об ошибке. Те же функции доступны удержанием цифр."
+        },
+        "set-group-digits": {
+          "summary": "Ставит запятую между каждыми тремя цифрами, чтобы длинные числа читались легче.",
+          "details": "Когда переключатель включён, 1234567 выглядит как 1,234,567. Разряды разделяются по обе стороны от точки, и меняется только вид числа. В скопированном числе запятых нет. По умолчанию включено."
+        },
+        "set-result-size": {
+          "summary": "Задаёт размер результата - от мелкого до очень крупного.",
+          "details": "Перетащите ползунок, чтобы выбрать наибольший размер результата. Очень длинные числа всё равно уменьшаются и умещаются в строку. По умолчанию выбран средний размер."
+        },
+        "set-keypad": {
+          "summary": "Выбирает вид клавиатуры: «Обычная», «Крупные кнопки» или «Компактная, справа внизу».",
+          "details": "«Обычная» - стандартная раскладка. «Крупные кнопки» занимают почти весь экран и сокращают историю до нескольких строк - так удобнее попадать крупными пальцами. «Компактная, справа внизу» собирает кнопки поменьше в правом нижнем углу, чтобы до всех достать одним большим пальцем."
+        },
+        "set-cancel": {
+          "summary": "Закрывает окно без сохранения выбора.",
+          "details": "Ничего не меняется: настройки остаются такими, какими были до открытия окна."
+        },
+        "set-apply": {
+          "summary": "Сохраняет три настройки и закрывает окно.",
+          "details": "Калькулятор сразу переходит на новые настройки, они сохраняются на будущее."
+        }
+      }
+    },
+    "uk": {
+      "title": "Калькулятор",
+      "purpose": "Калькулятор для швидких підрахунків, не виходячи із застосунку. Він показує відповідь просто під час введення, зберігає історію, яку можна скопіювати, надіслати або зберегти, а кнопки пам’яті та функції доступні з меню.",
+      "steps": [
+        "Наберіть перше число цифрами (13) і десятковою крапкою (14). Число з’явиться в результаті (3). «Видалити останній символ» (11) прибирає останню цифру.",
+        "Натисніть знак дії: «Додати» (16), «Відняти» (17), «Помножити» (18) або «Поділити» (19) - і наберіть друге число. Поки ви його вводите, в історії (2) уже видно відповідь, яку дасть «Дорівнює».",
+        "Натисніть «Дорівнює» (20), щоб завершити приклад. Він потрапить в історію (2), а дотик до результату (3) копіює число.",
+        "«Відсоток» (12) і «Змінити знак» (15) працюють з числом, яке ви вводите. «Очистити введення» (10) стирає лише це число, а «Очистити» (9) починає приклад заново.",
+        "Щоб вести накопичувальний підсумок, покажіть кнопки пам’яті (4) і користуйтеся M+ (5), M- (6), MR (7) та MC (8). Індикатор (1) підкаже, що зберігається в пам’яті.",
+        "Утримуйте кнопку, щоб виконати її другу дію: вона підписана дрібним шрифтом під символом. Решта - функції, надсилання, збереження історії та налаштування - у меню (21).",
+        "Якщо на екрані написано, що калькулятор вимкнено, натисніть (23): відкриються налаштування, де його можна ввімкнути."
+      ],
+      "groups": [
+        { "title": "Результат та історія", "elements": ["memory-indicator", "history", "display"] },
+        { "title": "Кнопки пам’яті", "elements": ["memory-toggle", "memory-add", "memory-subtract", "memory-recall", "memory-clear"] },
+        { "title": "Клавіатура", "elements": ["clear", "clear-entry", "backspace", "percent", "digits", "decimal", "toggle-sign", "add", "subtract", "multiply", "divide", "equals", "menu"] },
+        { "title": "Коли калькулятор вимкнено", "elements": ["off-notice", "off-open-settings"] },
+        { "title": "Вікно функцій", "elements": ["function-window"] },
+        { "title": "Вікно налаштувань калькулятора", "elements": ["set-group-digits", "set-result-size", "set-keypad", "set-cancel", "set-apply"] }
+      ],
+      "elements": {
+        "memory-indicator": {
+          "name": "Індикатор пам’яті",
+          "summary": "Показує число, що зберігається в пам’яті, щоб вам не доводилося його пам’ятати.",
+          "details": "Він виглядає як «M» і число та розташований ліворуч від кнопки M. Індикатор видно лише тоді, коли в пам’яті не нуль, і він зникає після очищення пам’яті."
+        },
+        "memory-toggle": {
+          "summary": "Показує або ховає ряд із чотирьох кнопок пам’яті.",
+          "details": "Кнопки пам’яті не заважають, доки ви ними не користуєтеся. Натисніть M один раз, щоб показати ряд, і ще раз, щоб сховати. Калькулятор пам’ятає, чи був ряд відкритий, і наступного разу покаже його так само."
+        },
+        "history": {
+          "name": "Історія",
+          "summary": "Перелічує готові приклади, а внизу - той, що ви зараз вводите.",
+          "details": "Кожен готовий приклад займає один рядок, наприклад 125+37=162. Поки ви вводите друге число, в останньому рядку вже видно відповідь, яку дасть «Дорівнює», - натискати нічого не потрібно. Якщо в прикладу поки немає відповіді, наприклад ви набираєте дільник і в ньому ще нуль, рядок просто лишається попереднім.\n\nІсторія зберігається між запусками. Будь-яку її частину можна виділити довгим натисканням і скопіювати. Зведіть або розведіть два пальці, щоб зменшити чи збільшити текст: розмірів п’ять, обраний запам’ятовується. З клавіатурою «Великі кнопки» історія стискається до кількох рядків.\n\nУсю історію можна надіслати або зберегти у файл із меню.",
+          "undo": "«Очистити історію» в меню видаляє всі збережені рядки. Повернути їх не можна, тому спершу збережіть історію, якщо вона може знадобитися."
+        },
+        "display": {
+          "name": "Результат",
+          "summary": "Показує число, яке ви вводите, а потім відповідь.",
+          "details": "Натисніть, щоб скопіювати число в буфер обміну: копія приходить без роздільників розрядів, тому її зручно вставляти будь-куди. Утримуйте, щоб вставити число з буфера. Якщо в буфері цілий приклад, наприклад 12*7+5, калькулятор сам його порахує і запише відповідь в історію.\n\nДовгі числа зменшуються, щоб вміститися. Якщо ввімкнено «Розділяти розряди», між кожними трьома цифрами стоїть кома. Коли в прикладу немає відповіді, тут з’являється повідомлення, наприклад «Ділити на нуль не можна.»; «Очистити» або будь-яка цифра його прибирає."
+        },
+        "memory-add": {
+          "summary": "Додає число з екрана до пам’яті.",
+          "details": "Підходить для накопичувального підсумку за кількома прикладами: порахували одну суму, натиснули M+, перейшли до наступної. Число на екрані не змінюється, а індикатор показує новий підсумок у пам’яті. Пам’ять зберігається, тому вона лишається і після закриття калькулятора."
+        },
+        "memory-subtract": {
+          "summary": "Віднімає число з екрана від пам’яті.",
+          "details": "Це протилежність M+: користуйтеся, коли якусь суму потрібно прибрати з підсумку. Число на екрані не змінюється, а індикатор показує новий підсумок."
+        },
+        "memory-recall": {
+          "summary": "Виводить на екран число, що зберігається в пам’яті.",
+          "details": "Число підставляється так, ніби ви набрали його самі, тому його можна використати і як перше, і як друге число прикладу. Сама пам’ять не змінюється."
+        },
+        "memory-clear": {
+          "summary": "Скидає пам’ять до нуля.",
+          "details": "Знадобиться, коли накопичувальний підсумок пораховано і хочеться почати новий. Індикатор пам’яті зникає.",
+          "undo": "Збережене число втрачається, повернути його не можна. Якщо хочете побачити його ще раз, спершу натисніть MR."
+        },
+        "clear": {
+          "summary": "Стирає весь приклад і починає з нуля.",
+          "details": "Стираються набране число, обрана дія й незакінчений рядок унизу історії, а також повідомлення про помилку. Історія та пам’ять лишаються недоторканими.",
+          "shortcut": "Esc"
+        },
+        "clear-entry": {
+          "summary": "Стирає лише число, що вводиться, приклад зберігається.",
+          "details": "Знадобиться, якщо ви помилилися в другому числі: перше число та дія лишаються, і ви можете набрати друге заново. Якщо дію ще не обрано, вона просто повертає число до 0."
+        },
+        "backspace": {
+          "summary": "Прибирає останню набрану цифру.",
+          "details": "Зручна при описці. Якщо на екрані готова відповідь, а не число, яке ви набираєте, одне натискання скидає її до 0.",
+          "shortcut": "Backspace"
+        },
+        "percent": {
+          "summary": "Перетворює число на відсоток так, як ви, найімовірніше, й маєте на увазі.",
+          "details": "Після додавання чи віднімання бере цей відсоток від першого числа: 200 + 10 % дає 20, і «Дорівнює» додасть до 200 ці 20. В інших випадках ділить число на 100. Утримуйте кнопку, щоб зберегти історію у файл, як це робить «Зберегти історію» в меню."
+        },
+        "digits": {
+          "name": "Цифри 0-9",
+          "summary": "Набір числа: десять кнопок від 0 до 9 - три ряди по три і 0 внизу.",
+          "details": "Кожне натискання додає цифру до числа на екрані. Зайві нулі на початку відкидаються: 007 перетворюється на 7. Працює й фізична клавіатура: цифри верхнього ряду або цифровий блок.\n\nУ кожної цифри є друга дія при утриманні, вона підписана дрібним шрифтом під цифрою: 1 - 1/x, 2 - квадрат, 3 - кубічний корінь, 4 - квадратний корінь, 5 - піднесення до степеня, 6 - факторіал, 7 - синус, 8 - косинус, 9 - тангенс. Утримання 0 вводить одразу три нулі - зручно для тисяч. Кожна з цих дій робить те саме, що й однойменний рядок у вікні функцій.",
+          "shortcut": "0 / 1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9"
+        },
+        "decimal": {
+          "summary": "Додає до числа десяткову крапку.",
+          "details": "У числі може бути лише одна крапка, тому друге натискання нічого не робить. Після знака дії або в новому прикладі крапка починає число з 0.. Утримуйте кнопку, щоб ввести число пі.",
+          "shortcut": "."
+        },
+        "toggle-sign": {
+          "summary": "Перемикає число між додатним і від’ємним.",
+          "details": "Натискайте до введення числа або після. Нуль вона не змінює. Утримуйте кнопку, щоб отримати котангенс (ctg) числа в градусах."
+        },
+        "add": {
+          "summary": "Додає наступне число до попереднього.",
+          "details": "Натисніть її після першого числа і наберіть друге. У довгому ланцюжку приклад рахується зліва направо: знак дії після другого числа спершу рахує вже набрану частину й продовжує з відповіддю. Утримуйте кнопку, щоб скопіювати результат. На клавіатурі те саме, що натискання, робить клавіша плюс."
+        },
+        "subtract": {
+          "summary": "Віднімає наступне число від попереднього.",
+          "details": "Користуйтеся нею між двома числами. Щоб ввести від’ємне число, краще натиснути «Змінити знак». Утримуйте кнопку, щоб вставити число або приклад із буфера обміну.",
+          "shortcut": "-"
+        },
+        "multiply": {
+          "summary": "Множить попереднє число на наступне.",
+          "details": "Натискайте між двома числами. Утримуйте кнопку, щоб надіслати результат до іншого застосунку через системне меню надсилання.",
+          "shortcut": "*"
+        },
+        "divide": {
+          "summary": "Ділить попереднє число на наступне.",
+          "details": "Натискайте між двома числами. Ділення на нуль не має відповіді, тому поки ви набираєте число, історія мовчить, а повідомлення «Ділити на нуль не можна.» з’являється лише після «Дорівнює». Тоді ж калькулятор показує жартівливе вікно, схоже на системне попередження про видалення даних: це розіграш, нічого не видаляється. Його єдина кнопка «Докладніше..» відкриває в браузері сторінку про День сміху.\n\nУтримуйте кнопку, щоб округлити число на екрані до цілого.",
+          "shortcut": "/"
+        },
+        "equals": {
+          "summary": "Завершує приклад і показує відповідь.",
+          "details": "Готовий приклад потрапляє в історію. Якщо одразу натиснути «Дорівнює» ще раз, остання дія повториться: після 5 + 3 = 8 наступне натискання дасть 11, потім 14. Щойно ви почнете нове число, повтор скидається.",
+          "shortcut": "Enter / ="
+        },
+        "menu": {
+          "summary": "Відкриває меню: копіювання, вставлення, функції, історія та налаштування.",
+          "details": "Кнопка зі значком із трьох ліній відкриває меню з восьми рядків. «Копіювати» і «Вставити» працюють з буфером обміну, як дотик і утримання результату. «Округлити» робить число на екрані цілим. «Функція» відкриває список функцій. «Надіслати результат» передає число іншому застосунку, а якщо відповідного немає, коротке повідомлення про це скаже. «Зберегти історію» записує історію в текстовий файл у теку «Завантаження» і повідомляє його ім’я; якщо історія порожня, про це теж буде повідомлення. «Очистити історію» спустошує історію. «Налаштування калькулятора» відкривають вікно налаштувань.\n\nУтримуйте цю кнопку, щоб закрити калькулятор. Якщо ви відкрили калькулятор із текстового редактора з виділеним прикладом, то при закритті таким способом результат повертається в редактор і вставляється в текст.",
+          "undo": "«Очистити історію» видаляє всі збережені рядки одразу, повернути їх не можна. Цей рядок є лише в меню, а не під кнопкою, яку утримують, щоб стерти історію випадково не вийшло."
+        },
+        "off-notice": {
+          "summary": "Повідомляє, що калькулятор вимкнено в налаштуваннях.",
+          "details": "Якщо калькулятор вимкнено в налаштуваннях, замість клавіатури ви бачите коротке повідомлення. Воно трапиться, наприклад, під час запуску з віджета на головному екрані. Поки ви не ввімкнете калькулятор, він не працює."
+        },
+        "off-open-settings": {
+          "summary": "Відкриває налаштування на вкладці, де калькулятор вмикається.",
+          "details": "Кнопка веде на вкладку «Управління» в налаштуваннях; перемикач калькулятора міститься в розділі «Додаткові програми та сценарії». Увімкніть його й поверніться на цей екран - клавіатура вже буде на місці. Перезапуск не потрібен."
+        },
+        "function-window": {
+          "summary": "Показує п’ятнадцять додаткових функцій у два стовпці.",
+          "details": "Оберіть функцію - вікно закриється. Більшість із них одразу застосовуються до числа на екрані: sin, cos, tg і ctg (у градусах), квадратний і кубічний корінь, квадрат, 1/x, log, ln та n!. Степінь (xʸ), DIV (цілочисельне ділення) і mod (залишок) - дії між двома числами: натисніть одну з них, наберіть друге число й натисніть «Дорівнює». Рядок «π» виводить на екран число пі. Якщо для числа функція не має відповіді, наприклад корінь із від’ємного або факторіал від 1.5, з’явиться повідомлення про помилку. Ті самі функції доступні утриманням цифр."
+        },
+        "set-group-digits": {
+          "summary": "Ставить кому між кожними трьома цифрами, щоб довгі числа читалися легше.",
+          "details": "Коли перемикач увімкнено, 1234567 виглядає як 1,234,567. Розряди розділяються по обидва боки від крапки, і змінюється лише вигляд числа. У скопійованому числі ком немає. За замовчуванням увімкнено."
+        },
+        "set-result-size": {
+          "summary": "Задає розмір результату - від дрібного до дуже великого.",
+          "details": "Перетягніть повзунок, щоб вибрати найбільший розмір результату. Дуже довгі числа все одно зменшуються й вміщуються в рядок. За замовчуванням обрано середній розмір."
+        },
+        "set-keypad": {
+          "summary": "Обирає вигляд клавіатури: «Звичайна», «Великі кнопки» або «Компактна, справа внизу».",
+          "details": "«Звичайна» - стандартне розташування. «Великі кнопки» займають майже весь екран і скорочують історію до кількох рядків - так зручніше влучати великими пальцями. «Компактна, справа внизу» збирає менші кнопки в правому нижньому куті, щоб до всіх дотягнутися одним великим пальцем."
+        },
+        "set-cancel": {
+          "summary": "Закриває вікно без збереження вибору.",
+          "details": "Нічого не змінюється: налаштування лишаються такими, якими були до відкриття вікна."
+        },
+        "set-apply": {
+          "summary": "Зберігає три налаштування й закриває вікно.",
+          "details": "Калькулятор одразу переходить на нові налаштування, вони зберігаються на майбутнє."
+        }
+      }
+    }
+  }
+}

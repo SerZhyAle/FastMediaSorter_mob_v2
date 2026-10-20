@@ -182,6 +182,7 @@ $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
 if ($UpdateBaseline) {
     if ($current -gt $baseline) {
         Write-Host ("  refusing to RAISE the baseline ({0} -> {1}). Register the new writer instead." -f $baseline, $current) -ForegroundColor Red
+        Write-Host 'assert-code-domain-writers: FAIL (see the findings above)'
         exit 1
     }
     if ($current -lt $baseline) {

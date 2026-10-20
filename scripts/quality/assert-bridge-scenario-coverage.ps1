@@ -268,6 +268,7 @@ if ($UpdateBaseline) {
     . (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
     if ($count -gt $baseline) {
         Write-Error "assert-bridge-scenario-coverage: refusing to raise the baseline from $baseline to $count - the ratchet only tightens. Repair the registry instead." -ErrorAction Continue
+        Write-Host 'assert-bridge-scenario-coverage: FAIL (see the findings above)'
         exit 1
     }
     $scope = $null

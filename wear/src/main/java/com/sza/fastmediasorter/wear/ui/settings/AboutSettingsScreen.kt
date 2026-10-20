@@ -151,7 +151,7 @@ private fun WebPortalRow(
     WearLinkRow(
         label = stringResource(R.string.about_web_portal),
         onClick = {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(WearPortalLinks.WEB_PORTAL_URL))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(WearPortalLinks.watchExchangeUrl()))
             val launched = try {
                 context.startActivity(intent)
                 true

@@ -14,10 +14,13 @@ import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.domain.exchange.ExchangeCastCoordinator
 import com.sza.fastmediasorter.domain.model.ExchangeCastResult
-import com.sza.fastmediasorter.domain.model.ExchangeCastRules
 import com.sza.fastmediasorter.domain.model.ExchangeCastTarget
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
+import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -100,6 +103,10 @@ class BroadcastCastManager @Inject constructor(
                     activity.lifecycleScope.launch { onSent(activity, coordinator.cast(chosen), chosen.size) }
                 }
             }
+            .setNeutralButton(R.string.exchange_portal_link_broadcast) { _, _ ->
+                Timber.d("S4273: cast picker link opens the receive page")
+                MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.BROADCAST_RECEIVE)
+            }
             .setNegativeButton(R.string.cancel, null)
             .showBoundTo(activity)
     }
@@ -117,19 +124,13 @@ class BroadcastCastManager @Inject constructor(
         val text = if (result.accepted) {
             activity.getString(R.string.exchange_cast_result_accepted, name)
         } else {
-            activity.getString(reasonText(result.reason), name)
+            activity.getString(
+                R.string.exchange_failure_named,
+                name,
+                activity.getString(ExchangeMessageText.what(ExchangeMessage.ofCast(result.reason))),
+            )
         }
         Toast.makeText(activity, text, Toast.LENGTH_LONG).show()
-    }
-
-    // An unknown reason reads as the generic refusal (7.10).
-    @StringRes
-    private fun reasonText(reason: String?): Int = when (reason) {
-        ExchangeCastRules.REASON_UNAVAILABLE -> R.string.exchange_cast_result_unavailable
-        ExchangeCastRules.REASON_DECLINED -> R.string.exchange_cast_result_declined
-        ExchangeCastRules.REASON_TIMEOUT -> R.string.exchange_cast_result_timeout
-        ExchangeCastRules.REASON_UNSUPPORTED -> R.string.exchange_cast_result_unsupported
-        else -> R.string.exchange_cast_result_refused
     }
 
     private fun toast(activity: AppCompatActivity, @StringRes text: Int) {

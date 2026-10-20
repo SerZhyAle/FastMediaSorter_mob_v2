@@ -79,6 +79,18 @@
 
         </com.google.android.material.tabs.TabLayout>
 
+        <!-- S4394: collapse-all for the current page; triangle up = drop-down glyph rotated, gone until a group is expanded -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCollapseAllGroups"
+            style="@style/Widget.FastMediaSorter.Button.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/settings_collapse_all"
+            android:rotation="180"
+            android:visibility="gone"
+            app:icon="@drawable/ic_arrow_drop_down"
+            app:iconTint="?attr/colorOnPrimary" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSettingsHelp"
             style="@style/Widget.FastMediaSorter.Button.Icon"

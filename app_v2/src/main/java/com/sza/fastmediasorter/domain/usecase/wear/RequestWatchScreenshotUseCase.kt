@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase.wear
 
 import com.google.gson.Gson
 import com.sza.fastmediasorter.core.util.warnUnlessCancellation
+import com.sza.fastmediasorter.data.wear.WatchFileLandingRegistry
 import com.sza.fastmediasorter.domain.model.WatchScreenshotOutcome
 import com.sza.fastmediasorter.domain.model.WearNode
 import com.sza.fastmediasorter.domain.model.WearScreenshotRefusalReasons
@@ -26,7 +27,8 @@ import javax.inject.Inject
  */
 class RequestWatchScreenshotUseCase @Inject constructor(
     private val dataLayerRepository: WearableDataLayerRepository,
-    private val gson: Gson
+    private val gson: Gson,
+    private val landingRegistry: WatchFileLandingRegistry
 ) {
 
     suspend operator fun invoke(): WatchScreenshotOutcome =
@@ -68,10 +70,23 @@ class RequestWatchScreenshotUseCase @Inject constructor(
 
     private fun answered(ack: WearScreenshotRequestAck?) = when {
         ack == null -> WatchScreenshotOutcome.WatchDidNotAnswer
-        ack.captured -> WatchScreenshotOutcome.Captured(ack.fileName.orEmpty())
+        ack.captured -> captured(ack.fileName.orEmpty())
         ack.reason == WearScreenshotRefusalReasons.NO_FOREGROUND_SCREEN ->
             WatchScreenshotOutcome.WatchAppNotOpen
         else -> WatchScreenshotOutcome.WatchRefused(ack.reason.orEmpty())
+    }
+
+    /**
+     * S4282: the watch confirms a file only after this phone's receiver acknowledged it, so its landing is
+     * normally already recorded. A missing one still reports the capture - just without a place to open.
+     */
+    private fun captured(fileName: String): WatchScreenshotOutcome.Captured {
+        val landing = landingRegistry.take(fileName)
+        return WatchScreenshotOutcome.Captured(
+            fileName = fileName,
+            capturedAtEpochMillis = landing?.landedAtEpochMillis ?: System.currentTimeMillis(),
+            browseResourceId = landing?.resourceId
+        )
     }
 
     private fun payload(requestId: String) = WearScreenshotRequestPayload(

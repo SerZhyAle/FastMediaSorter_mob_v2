@@ -22,10 +22,11 @@ $failures = 0
 $roots = @()
 
 function New-Root {
-    param([string[]] $Rows, [int] $StubExit = 0)
+    param([string[]] $Rows, [int] $StubExit = 0, [hashtable] $Specs = @{})
     $root = Join-Path ([System.IO.Path]::GetTempPath()) ('untriaged-tests-' + [guid]::NewGuid().ToString('n').Substring(0, 8))
     New-Item -ItemType Directory -Path (Join-Path $root 'PLAN') -Force | Out-Null
     if ($null -ne $Rows) { Set-Content -LiteralPath (Join-Path $root 'PLAN/spec-catalog.jsonl') -Value $Rows -Encoding UTF8 }
+    foreach ($rel in $Specs.Keys) { Set-Content -LiteralPath (Join-Path $root $rel) -Value $Specs[$rel] -Encoding UTF8 }
     $stub = Join-Path $root 'stub-archive.ps1'
     "param([string]`$Id) Set-Content -LiteralPath '$root/archived.txt' -Value `$Id; exit $StubExit" | Set-Content -LiteralPath $stub -Encoding UTF8
     $script:roots += $root
@@ -43,7 +44,9 @@ function Get-Archived([string] $Root) {
     return ''
 }
 
+$script:executed = 0
 function Assert-Case([string] $Name, [scriptblock] $Body) {
+    $script:executed++
     try {
         $message = & $Body
         if ($message) { Write-Host "FAIL  $Name - $message" -ForegroundColor Red; $script:failures++ }
@@ -102,12 +105,52 @@ try {
         if ($r.Exit -ne 0) { return "expected exit 0, got $($r.Exit)" }
         if ((Get-Archived $root) -ne 'S0001,S0002') { return "archived '$(Get-Archived $root)', expected S0001,S0002" }
     }
+
+    # S4268: a crash, release or security finding survives the expiry; the topic is read from the
+    # ticket name and from section 0 of its spec file, never from the template boilerplate.
+    $note = 'Parked finding, untriaged (S4190). parked: ' + $old
+    $severeRows = @(
+        $rows[0],
+        ('{"id":"S0010","name":"bugfix-release-strips-fgs-permission","status":"BlockQuestions","statusNote":"' + $note + '"}'),
+        ('{"id":"S0011","name":"grid-flicker","status":"BlockQuestions","statusNote":"' + $note + '","file":"PLAN/S0011_grid-flicker.md"}'),
+        ('{"id":"S0012","name":"toolbar-padding","status":"BlockQuestions","statusNote":"' + $note + '","file":"PLAN/S0012_toolbar-padding.md"}')
+    )
+    $specs = @{
+        'PLAN/S0011_grid-flicker.md'   = "# Draft`n`n## 0. Inbox`n`nThe viewer crashes on rotate with an uncaught exception.`n`n---`n`n### 3.3 Owner inputs`n"
+        'PLAN/S0012_toolbar-padding.md' = "# Draft`n`n## 0. Inbox`n`nThe toolbar title sits 2dp too low.`n`n---`n`n## 5. Release plan`n`nship it in the next release.`n"
+    }
+
+    Assert-Case 'T7 a release finding named in the slug is exempt from the expiry' {
+        $root = New-Root $severeRows 0 $specs
+        $r = Invoke-Script $root
+        if ($r.Exit -ne 0) { return "expected exit 0, got $($r.Exit): $($r.Out)" }
+        $archived = Get-Archived $root
+        if ($archived -match 'S0010') { return "the release finding was archived: '$archived'" }
+        if ($r.Out -notmatch 'S0010') { return "the kept finding was not named: $($r.Out)" }
+    }
+
+    Assert-Case 'T8 a crash named only in section 0 is exempt, a later section does not count' {
+        $root = New-Root $severeRows 0 $specs
+        $r = Invoke-Script $root
+        $archived = Get-Archived $root
+        if ($archived -match 'S0011') { return "the crash finding was archived: '$archived'" }
+        if ($archived -ne 'S0001,S0012' -and $archived -ne 'S0012,S0001') { return "archived '$archived', expected S0001 and S0012 only" }
+    }
+
+    Assert-Case 'T9 -List marks the exempt ones with their keyword and keeps EXPIRED for the rest' {
+        $root = New-Root $severeRows 0 $specs
+        $r = Invoke-Script $root @('-List')
+        if ($r.Exit -ne 0 -or (Get-Archived $root)) { return "expected a read-only listing, got exit $($r.Exit)" }
+        if ($r.Out -notmatch 'S0010 .* - EXEMPT \(release\)') { return "no EXEMPT (release) line: $($r.Out)" }
+        if ($r.Out -notmatch 'S0011 .* - EXEMPT \(crash\w*\)') { return "no EXEMPT (crash) line: $($r.Out)" }
+        if ($r.Out -notmatch 'S0012 toolbar-padding - parked \d+ day\(s\) - EXPIRED') { return "S0012 is not EXPIRED: $($r.Out)" }
+    }
 }
 finally {
     foreach ($root in $roots) { Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue }
 }
 
 Write-Host ''
-if ($failures -gt 0) { Write-Host "archive-untriaged-drafts tests: $failures case(s) failed" -ForegroundColor Red; exit 1 }
-Write-Host 'archive-untriaged-drafts tests: all cases passed' -ForegroundColor Green
+if ($failures -gt 0) { Write-Host "archive-untriaged-drafts tests: $(if ($failures -gt 0) { 'FAIL' } else { 'PASS' }) (run=$script:executed skipped=0)"; exit 1 }
+Write-Host "archive-untriaged-drafts tests: $(if ($failures -gt 0) { 'FAIL' } else { 'PASS' }) (run=$script:executed skipped=0)"
 exit 0

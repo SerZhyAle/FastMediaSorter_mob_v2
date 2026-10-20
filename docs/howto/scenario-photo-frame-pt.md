@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Porta-Retrato Digital no Tablet - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-pt.html
 ---
-<sub class="doc-stamp">26.09.25 02:19</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
 # 🖼️ Porta-Retrato Digital no Tablet
 
 > **Nível:** Iniciante &bull; **Tempo:** ~15 minutos &bull; **Edição:** Standard, Photos, Legacy, VR, noLegal (para fotos de NAS/nuvem) ou qualquer edição (para fotos locais)
-
-{% include lang-switcher.html doc="scenario-photo-frame" dir="/docs/howto/" current="pt" %}
 
 Transforme qualquer tablet Android em um lindo porta-retrato digital sempre ligado - transmitindo suas memórias de um NAS de casa ou da nuvem, com música de fundo opcional. Zero armazenamento local usado.
 

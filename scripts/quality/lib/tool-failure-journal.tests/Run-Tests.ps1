@@ -165,6 +165,5 @@ Assert-That 'an unwritable journal leaves the caller at exit 0' ($result.Code -e
 if (Test-Path -LiteralPath $scratchRoot) { Remove-Item -LiteralPath $scratchRoot -Recurse -Force }
 
 Write-Host ""
-Write-Host ("tool-failure-journal.tests: {0} passed, {1} failed." -f $script:pass, $script:fail) `
-    -ForegroundColor ($script:fail -gt 0 ? 'Red' : 'Green')
+Write-Host "tool-failure-journal.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 exit ($script:fail -gt 0 ? 1 : 0)

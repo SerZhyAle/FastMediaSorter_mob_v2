@@ -52,11 +52,13 @@
     tap-id               locate a node by its resource-id and tap the centre of its bounds:
                          -ResourceId <short-or-full> [-Exact] [-Index N]. PREFER THIS over tap-label:
                          a label is translated and an id is not, so a label-aimed call passes on the
-                         locale it was written on and returns 8 everywhere else (S1879)
+                         locale it was written on and returns 8 everywhere else (S1879). A centre
+                         under the open soft keyboard is refused the same way, nothing tapped (S4290)
     tap-label            find a node by its text or content-description and tap the centre of its
                          bounds: -Label <substring> [-Exact] [-Index N]. Tapping a label instead of
                          a remembered coordinate is what survives a list that scrolled (S1847).
-                         Right where there is no id to aim at - most of Compose on the watch
+                         Right where there is no id to aim at - most of Compose on the watch.
+                         A centre under the open soft keyboard is refused as tap-id is (S4302)
     set-text             replace the value of an input field: -ResourceId <short-or-full> -Text <s>
                          [-Exact] [-Index N]. Taps the node, erases what it holds whatever the
                          cursor position, types -Text, then re-reads the tree and compares the
@@ -75,7 +77,8 @@
                          goes into the device state journal (S3201)
     state-begin          open an on-device run: put back whatever an earlier run left in the journal,
                          then snapshot wm density, wm size, font_scale and declared settings DataStores
-                         into temp/DEVICE.STATE/<serial>.json (S3201)
+                         into temp/DEVICE.STATE/<serial>.json, or avd-<name>.json for an emulator
+                         (S3201, S4304)
     state-check          close an on-device run: compare the device with the journal, put every
                          drifted value back, print one RESTORED line per value, clear the journal.
                          -NoRestore reports the drift instead and exits 13 when there is any
@@ -174,7 +177,8 @@
         was tapped. Distinct from 7 because "the screen does not show it" and "the tap failed" call
         for different next moves - the first usually means an animation was still running, the
         list needs scrolling, or the target simply is not on this screen and the name was guessed
-        rather than read off `uidump`
+        rather than read off `uidump`. Both verbs also return 8 when the centre of the node lies under the
+        open soft keyboard: the keyboard would take the tap, and hiding it is the caller's decision (S4290, S4302)
     9 - `clip-check`: at least one node is OFF-GLASS. EDGE and CLIPPED never reach this code
    10 - `clip-check -Strict`: at least one node is CLIPPED in THIS frame. Separate from 9 because
         the two answer different questions - 9 is "no scroll position saves it", 10 is "a reviewer
@@ -257,7 +261,7 @@
   See where the matching controls actually are before tapping anything.
 
 .EXAMPLE
-  pwsh -NoProfile -File scripts/devtest/adb.ps1 tap-id -ResourceId rowLauncherModeEnabled
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 tap-id -ResourceId rowLauncherPrimaryWindow
   Tap the settings row by the name its layout gives it. The same call works on a device in any
   language, which the equivalent tap-label does not.
 
@@ -684,13 +688,30 @@ function Get-Stamp { (Get-Date).ToString('yyyyMMdd_HHmmss') }
 
 # ---------- device state journal (S3201) ----------
 
-# Keyed by the device's own serial, never by the adb id: the watch is reached over wireless debugging
-# and its ip:port changes every session, so an id-keyed journal written today would be invisible to
-# tomorrow's state-begin - which is exactly the run that has to put it back.
+# An emulator is keyed by its AVD name. Every emulator of one image reports the same ro.serialno
+# (derived from the emulator binary version), so a serial key made two running emulators share and
+# overwrite one journal. The console port is not used: it is assigned at launch, and a port-keyed
+# journal would hand one AVD's values to a different AVD that later takes the same port.
+function Get-EmulatorStateKey {
+    param([string]$Id)
+    # Invoke-Adb merges stderr into the output (2>&1), so a line can be an ErrorRecord with no Trim().
+    $lines = @(Invoke-Adb $Id @('emu', 'avd', 'name') -AllowFail | ForEach-Object { "$_".Trim() })
+    $name = $lines | Where-Object { $_ -and $_ -ne 'OK' } | Select-Object -First 1
+    if ([string]::IsNullOrWhiteSpace($name)) { return $Id }
+    return 'avd-' + ($name -replace '[^\w.\-]', '_')
+}
+
+# A physical device is keyed by its own serial, never by the adb id: the watch is reached over wireless
+# debugging and its ip:port changes every session, so an id-keyed journal written today would be
+# invisible to tomorrow's state-begin - which is exactly the run that has to put it back.
 function Get-StateSerial {
     param([string]$Id)
     if ($script:stateSerial) { return $script:stateSerial }
     $serial = ((Invoke-Adb $Id @('shell', 'getprop', 'ro.serialno') -AllowFail) -join '').Trim()
+    if ($Id -match '^emulator-\d+$' -or $serial -match '^EMULATOR') {
+        $script:stateSerial = Get-EmulatorStateKey -Id $Id
+        return $script:stateSerial
+    }
     if ([string]::IsNullOrWhiteSpace($serial) -or $serial -match '\s') { $serial = $Id }
     $script:stateSerial = $serial
     return $serial
@@ -777,6 +798,9 @@ function Invoke-StateRestore {
         $original = $journal.entries[$key].original
         if ($key -like 'datastore.*') {
             $pkg = $key.Substring('datastore.'.Length)
+            # S4253: run-as requires the package to be installed on the device.
+            $pmList = (Invoke-Adb $Id @('shell', 'pm', 'list', 'packages', $pkg) -AllowFail) -join "`n"
+            if ($pmList -notmatch "package:$pkg\b") { continue }
             # Old journals captured runtime files too; filter both sides before comparing or restoring.
             $recorded = [ordered]@{}
             foreach ($name in $original.files.Keys) {
@@ -786,17 +810,17 @@ function Invoke-StateRestore {
             $fileDrift = @(Compare-DeviceStateFiles -Recorded $recorded -Current $current)
             if ($fileDrift.Count -eq 0) { continue }
             if (-not $ReportOnly) {
-                Invoke-Adb $Id @('shell', 'am', 'force-stop', $pkg) | Out-Null
+                Invoke-Adb $Id @('shell', 'am', 'force-stop', $pkg) -AllowFail | Out-Null
                 $saved = Get-StateDataStoreDir -JournalPath $Path -Pkg $pkg
                 foreach ($d in $fileDrift) {
                     if ($d.Action -eq 'remove') {
-                        Invoke-Adb $Id @('shell', "run-as $pkg rm -f files/datastore/$($d.Name)") | Out-Null
+                        Invoke-Adb $Id @('shell', "run-as $pkg rm -f files/datastore/$($d.Name)") -AllowFail | Out-Null
                         continue
                     }
                     $tmp = "/data/local/tmp/fms_state_$($d.Name)"
-                    Invoke-Adb $Id @('push', (Join-Path $saved $d.Name), $tmp) | Out-Null
-                    Invoke-Adb $Id @('shell', "chmod 644 $tmp") | Out-Null
-                    Invoke-Adb $Id @('shell', "run-as $pkg cp $tmp files/datastore/$($d.Name)") | Out-Null
+                    Invoke-Adb $Id @('push', (Join-Path $saved $d.Name), $tmp) -AllowFail | Out-Null
+                    Invoke-Adb $Id @('shell', "chmod 644 $tmp") -AllowFail | Out-Null
+                    Invoke-Adb $Id @('shell', "run-as $pkg cp $tmp files/datastore/$($d.Name)") -AllowFail | Out-Null
                     Invoke-Adb $Id @('shell', "rm -f $tmp") -AllowFail | Out-Null
                 }
             }
@@ -1491,6 +1515,14 @@ switch ($Verb.ToLowerInvariant()) {
             Fail 1 "-Index $Index is out of range: '$ResourceId' matches $($hits.Count) node(s)"
         }
         $hit = $hits[$Index - 1]
+        # S4290: the soft keyboard takes every touch inside its own region, so a centre under it lands on a key,
+        # not on this node. Refuse with the same 8 as an absent node: the keyboard is the caller's to hide.
+        # `windows`, not the plain form: the plain dump prints each window without its touchable region,
+        # and that line is the only one that says where the keyboard takes touches (measured on Android 15).
+        $ime = Get-ImeTouchRegion ((Invoke-Adb $id @('shell', 'dumpsys', 'window', 'windows') -AllowFail) -join "`n")
+        if (Test-PointUnderImeRegion -X $hit.tapX -Y $hit.tapY -Region $ime) {
+            Fail 8 "the centre of '$($hit.resId)' ($($hit.tapX),$($hit.tapY)) lies under the soft keyboard (input method $($ime.package)) - nothing was tapped. Hide the keyboard (adb.ps1 key -Key BACK) and run tap-id again; the tree is at $file"
+        }
         Invoke-Adb $id @('shell', 'input', 'tap', "$($hit.tapX)", "$($hit.tapY)") | Out-Null
         if ($Json) { Emit-Ok @{ id = $id; resourceId = $hit.resId; label = $hit.label; x = $hit.tapX; y = $hit.tapY; matches = $hits.Count; file = $file } }
         Write-Host ("TAP-ID '{0}' at {1},{2} on {3}" -f $hit.resId, $hit.tapX, $hit.tapY, $id) -ForegroundColor Green
@@ -1517,6 +1549,12 @@ switch ($Verb.ToLowerInvariant()) {
             Fail 1 "-Index $Index is out of range: '$Label' matches $($hits.Count) node(s)"
         }
         $hit = $hits[$Index - 1]
+        # S4302: the S4290 refusal on the label path. A label is matched wherever it sits, so the centre of a
+        # labelled node is as likely to fall under the keyboard as an id-addressed one; the same dump answers both.
+        $ime = Get-ImeTouchRegion ((Invoke-Adb $id @('shell', 'dumpsys', 'window', 'windows') -AllowFail) -join "`n")
+        if (Test-PointUnderImeRegion -X $hit.tapX -Y $hit.tapY -Region $ime) {
+            Fail 8 "the centre of '$($hit.label.Replace("`n", ' '))' ($($hit.tapX),$($hit.tapY)) lies under the soft keyboard (input method $($ime.package)) - nothing was tapped. Hide the keyboard (adb.ps1 key -Key BACK) and run tap-label again; the tree is at $file"
+        }
         Invoke-Adb $id @('shell', 'input', 'tap', "$($hit.tapX)", "$($hit.tapY)") | Out-Null
         if ($Json) { Emit-Ok @{ id = $id; label = $hit.label; source = $hit.source; x = $hit.tapX; y = $hit.tapY; matches = $hits.Count; file = $file } }
         Write-Host ("TAP-LABEL '{0}' ({1}) at {2},{3} on {4}" -f $hit.label.Replace("`n", ' '), $hit.source, $hit.tapX, $hit.tapY, $id) -ForegroundColor Green

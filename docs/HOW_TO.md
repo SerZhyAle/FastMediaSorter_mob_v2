@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "📖 How-To Guides"
 permalink: /docs/HOW_TO.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.16 22:21</sub>
 
 # 📖 How-To Guides
 
@@ -14,7 +14,7 @@ This guide now has two layers:
 - **Scenario Groups** for richer real-life workflows and combinations of features.
 - **Core Task Reference** for direct one-feature recipes further below.
 
-{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="en" %}
+Every main screen also has its own help page: press the `?` button or F1 inside the app to open it without internet, or browse them all in the [in-app help index](../documentation/help/index.html).
 
 ---
 

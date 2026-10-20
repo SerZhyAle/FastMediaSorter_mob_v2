@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Abre las Carpetas de tu PC Escaneando un Código - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-es.html
 ---
-<sub class="doc-stamp">26.09.25 02:13</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="es" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Abre las Carpetas de tu PC Escaneando un Código
 
 > **Nivel:** Principiante &bull; **Edición:** Standard, Photos, Legacy, VR, noLegal (Lite no tiene fuentes de red; escanear necesita una cámara, el método de archivo funciona en todas partes)
-
-{% include lang-switcher.html doc="scenario-companion-share" dir="/docs/howto/" current="es" %}
 
 Ejecutas un pequeño programa auxiliar en tu PC con Windows, eliges las carpetas con tus videos, música, documentos o fotos, y muestra un código en pantalla. En el teléfono tocas **Agregar**, apuntas la cámara a ese código, y las carpetas del PC se conectan al instante - sin escribir una dirección, sin puerto, sin contraseña, sin cables.
 

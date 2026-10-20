@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "📖 Guías prácticas"
 permalink: /docs/HOW_TO-es.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="es" dir="ltr" markdown="1">
 
@@ -15,8 +15,6 @@ Esta guía tiene ahora dos niveles:
 
 - **Grupos de escenarios**, para flujos de trabajo más completos de la vida real y combinaciones de funciones.
 - **Referencia de tareas principales**, con recetas directas de una sola función, más abajo.
-
-{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="es" %}
 
 ---
 

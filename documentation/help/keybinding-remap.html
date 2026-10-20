@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Controls &amp; Keybindings</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Controls &amp; Keybindings</span>
+</nav>
+<header class="hero">
+<h1>Controls &amp; Keybindings</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">Choose which key, gamepad button or mouse button runs each command - playback, navigation, sorting and browsing. Every command comes with a factory key, so you change only what you want, and you can put it back whenever you like.</p>
+<figure class="shot">
+<img class="on-light" src="img/keybinding-remap-en-light.webp" alt="Controls &amp; Keybindings">
+<img class="on-dark" src="img/keybinding-remap-en-dark.webp" alt="Controls &amp; Keybindings">
+</figure>
+<h2>In this order</h2>
+<ol class="order">
+<li>Open Controls &amp; Keybindings from Settings, on the Management tab. The commands are grouped by purpose, and the groups start folded.</li>
+<li>Find the command: type part of its name in the search field <a class="ref" href="#search">2</a>, or tap a group title <a class="ref" href="#groups">3</a> to open the group.</li>
+<li>Press Edit binding <a class="ref" href="#edit-binding">6</a> on the command's row <a class="ref" href="#command-row">5</a> and pick the device whose key you want to change - Keyboard, Gamepad and so on.</li>
+<li>A window opens <a class="ref" href="#capture-prompt">9</a> and waits. Press the new key or button within the time shown <a class="ref" href="#capture-countdown">10</a> and check what was caught <a class="ref" href="#capture-captured">11</a>.</li>
+<li>If a red message says the key is taken <a class="ref" href="#capture-conflict">12</a>, press another one or Cancel <a class="ref" href="#capture-cancel">13</a>. Otherwise press Set <a class="ref" href="#capture-commit">14</a> to save it.</li>
+<li>To go back to the factory key, use the reset on the row <a class="ref" href="#row-reset">7</a> for one command, the group reset <a class="ref" href="#group-reset">4</a> for a whole group, or Reset All <a class="ref" href="#reset-all">8</a> for everything. The last two ask first.</li>
+<li>Changes are saved the moment you make them. Back <a class="ref" href="#back">1</a> leaves the screen.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Top bar and search</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Back</span><span class="one">Leaves the screen and returns to Settings.</span></span></summary>
+<div class="full">
+<p>There is nothing to confirm: every change is already saved when you make it.</p>
+</div>
+</details>
+<details class="el" id="search">
+<summary><span class="mk">2</span><span><span class="name">Search commands..</span><span class="one">Narrows the list to the commands that match.</span></span></summary>
+<div class="full">
+<p>Type part of a command name, such as Next File, or of a key name, and the list shrinks as you type. A group with no match disappears. A folded group with a match shows only its title, so tap it to see the matching rows. Clear the field to bring everything back.</p>
+</div>
+</details>
+<h3>Groups and commands</h3>
+<details class="el" id="groups">
+<summary><span class="mk">3</span><span><span class="name">Command groups</span><span class="one">Folds and unfolds the commands of one group.</span></span></summary>
+<div class="full">
+<p>Commands are grouped by purpose: Playback, Navigation, View &amp; Zoom, Audio &amp; Subtitles, System UI, Sorting Actions, Operation shortcuts, Browser Actions and, only in builds with a VR runtime, VR Only. Groups start folded; tap a title to open one. The app remembers which groups you left open. On a wide window the rows are set in two columns.</p>
+</div>
+</details>
+<details class="el" id="group-reset">
+<summary><span class="mk">4</span><span><span class="name">Reset Group</span><span class="one">Puts one group back to its factory keys.</span></span></summary>
+<div class="full">
+<p>This is the small round-arrow icon at the end of a group title. The app asks whether to reset all bindings in that group to factory defaults, and changes nothing until you press Reset. Only the keys you changed in that group are affected.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Your own keys in that group are lost and the factory ones return. To get a key back, assign it again with Edit binding.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="command-row">
+<summary><span class="mk">5</span><span><span class="name">Command row</span><span class="one">A command and the keys that run it.</span></span></summary>
+<div class="full">
+<p>The command name is on top. Below it are its current keys, each with a mark for the device - keyboard, gamepad, mouse or VR; a dash means no key is set. One command can have keys on several devices at once, so a gamepad button and a keyboard key can do the same thing.</p>
+</div>
+</details>
+<details class="el" id="edit-binding">
+<summary><span class="mk">6</span><span><span class="name">Edit binding</span><span class="one">Gives this command a new key or button.</span></span></summary>
+<div class="full">
+<p>A small menu asks which device to change. Keyboard and Gamepad are always offered, each with its current key or (not set); Mouse and VR appear only when the command already has a key for them. After you pick one, the key capture window opens. The new key takes the place of the old one for that device.</p>
+</div>
+</details>
+<details class="el" id="row-reset">
+<summary><span class="mk">7</span><span><span class="name">Reset to default</span><span class="one">Puts this one command back to its factory key.</span></span></summary>
+<div class="full">
+<p>It works only for a command you have changed; for an untouched command the button is dimmed. It happens at once, without a question.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Your own key for this command is lost and the factory key returns. Assign it again with Edit binding if you want it back.</dd>
+</dl>
+</div>
+</details>
+<h3>Reset everything</h3>
+<details class="el" id="reset-all">
+<summary><span class="mk">8</span><span><span class="name">Reset All</span><span class="one">Puts every command back to its factory keys.</span></span></summary>
+<div class="full">
+<p>The app asks Reset every binding to factory defaults? This cannot be undone., and nothing changes until you press Reset. Afterwards each command uses its original keyboard, gamepad and mouse buttons.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>All your own keys are lost at once and cannot be restored. Assign them again one by one.</dd>
+</dl>
+</div>
+</details>
+<h3>Key capture window</h3>
+<details class="el" id="capture-prompt">
+<summary><span class="mk">9</span><span><span class="name">Press a key or button..</span><span class="one">Tells you the app is waiting for your key.</span></span></summary>
+<div class="full">
+<p>The window covers the screen and listens for a keyboard key (with Ctrl, Shift or Alt if you hold them), a gamepad button, a stick, trigger or D-pad push, or a mouse button. The system Back key is not taken as a new key.</p>
+</div>
+</details>
+<details class="el" id="capture-countdown">
+<summary><span class="mk">10</span><span><span class="name">Countdown</span><span class="one">Shows how many seconds are left to press a key.</span></span></summary>
+<div class="full">
+<p>You have 30 seconds. When the time runs out, the window closes on its own and nothing is changed.</p>
+</div>
+</details>
+<details class="el" id="capture-captured">
+<summary><span class="mk">11</span><span><span class="name">Captured key</span><span class="one">Shows the key or button the app caught.</span></span></summary>
+<div class="full">
+<p>It reads Captured: and the name of what you pressed, for example Ctrl+Shift+K for a keyboard key with modifiers. Before you press anything it shows a dash. If the first press was not what you meant, press another key - the last one counts.</p>
+</div>
+</details>
+<details class="el" id="capture-conflict">
+<summary><span class="mk">12</span><span><span class="name">Conflict message</span><span class="one">Warns that another command already uses this key.</span></span></summary>
+<div class="full">
+<p>A red line reads Already bound to: and the names of those commands. While it is shown, Set stays off, so two commands cannot share one key. Press a different key, or cancel and free the other command first.</p>
+</div>
+</details>
+<details class="el" id="capture-cancel">
+<summary><span class="mk">13</span><span><span class="name">Cancel</span><span class="one">Closes the window and changes nothing.</span></span></summary>
+<div class="full">
+<p>The command keeps its old key. Use it when you opened the window by mistake or the key you wanted is already taken.</p>
+</div>
+</details>
+<details class="el" id="capture-commit">
+<summary><span class="mk">14</span><span><span class="name">Set</span><span class="one">Saves the caught key for this command.</span></span></summary>
+<div class="full">
+<p>The button works only after a key was caught and no other command uses it. It saves the key right away, closes the window and updates the row.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="settings-operations.html"><b>Settings: Management</b><span class="pill">Screen</span></a></li>
+<li><a href="settings-general.html"><b>Settings: General</b><span class="pill">Screen</span></a></li>
+<li><a href="player.html"><b>Player</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/controls-and-key-remapping.html"><b>Controls and Key Remapping - Keyboard, TV Remote and Gamepad, Your Way</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/general/keyboard-dpad-tv-navigation.html"><b>Keyboard, D-Pad and Android TV Control - Using the App Without Touching the Screen</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

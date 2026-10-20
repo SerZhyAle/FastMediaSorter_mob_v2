@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Utiliser l'application comme écran d'accueil - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode-fr.html
 ---
-<sub class="doc-stamp">26.09.25 02:15</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
 # 🖥️ Utiliser l'application comme écran d'accueil
 
 > **Niveau :** Débutant &bull; **Édition :** Standard / noLegal
-
-{% include lang-switcher.html doc="scenario-launcher-mode" dir="/docs/howto/" current="fr" %}
 
 FastMediaSorter peut remplacer l'écran d'accueil de votre appareil par son propre bureau - vos dossiers, une horloge, la météo, vos applications, et une barre des tâches le long d'un bord. Si vous avez déjà utilisé un bureau Windows, cela vous semblera familier : les choses restent là où vous les mettez, et un bouton Démarrer ouvre le menu. C'est ce qu'on appelle le **mode launcher**.
 

@@ -11,11 +11,15 @@ import java.net.URISyntaxException
  */
 internal object RtspEndpointAddress {
 
-    fun onLanHost(libraryEndpoint: String, lanHost: String): String? {
+    /** [publicPort], when given, replaces the library's port: S4258 puts an auth gate in front of the library. */
+    fun onLanHost(libraryEndpoint: String, lanHost: String, publicPort: Int? = null): String? {
         val parsed = if (isPublishable(lanHost)) parseOrNull(libraryEndpoint) else null
         return parsed
             ?.takeIf { uri -> !uri.scheme.isNullOrBlank() && uri.port > 0 }
-            ?.let { uri -> "${uri.scheme}://$lanHost:${uri.port}${uri.rawPath?.takeIf(String::isNotEmpty) ?: "/"}" }
+            ?.let { uri ->
+                val port = publicPort ?: uri.port
+                "${uri.scheme}://$lanHost:$port${uri.rawPath?.takeIf(String::isNotEmpty) ?: "/"}"
+            }
     }
 
     // An endpoint the library formed badly is not publishable; the caller ends the session on null.

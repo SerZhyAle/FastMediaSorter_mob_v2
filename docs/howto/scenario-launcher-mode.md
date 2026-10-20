@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Use the App as Your Home Screen - FastMediaSorter v2"
 permalink: /docs/howto/scenario-launcher-mode.html
 ---
-<sub class="doc-stamp">26.09.24 20:50</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # 🖥️ Use the App as Your Home Screen
 
 > **Level:** Beginner &bull; **Flavor:** Standard / noLegal
-
-{% include lang-switcher.html doc="scenario-launcher-mode" dir="/docs/howto/" current="en" %}
 
 FastMediaSorter can replace your device's home screen with its own desktop - your folders, a clock, the weather, your apps, and a taskbar along one edge. If you have ever used a Windows desktop it will feel familiar: things stay where you put them, and a Start button opens the menu. This is called **launcher mode**.
 

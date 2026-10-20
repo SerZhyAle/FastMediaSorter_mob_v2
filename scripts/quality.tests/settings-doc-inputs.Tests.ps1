@@ -189,7 +189,7 @@ Assert-Equal 'facade hint is stage-neutral' $false ($advisoryBlock -match 'rende
 
 Write-Host ""
 if ($script:fail -gt 0) {
-    Write-Host ("settings-doc-inputs: FAIL - {0} passed, {1} failed." -f $script:pass, $script:fail) -ForegroundColor Red
+    Write-Host "settings-doc-inputs: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
     exit 1
 }
 Write-Host ("settings-doc-inputs: PASS - {0} assertions." -f $script:pass) -ForegroundColor Green

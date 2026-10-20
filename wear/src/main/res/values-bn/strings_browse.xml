@@ -11,4 +11,7 @@
     <string name="browse_network_error_timeout">সময়ে কোনো উত্তর নেই। নেটওয়ার্ক পরীক্ষা করুন এবং আবার চেষ্টা করুন।</string>
     <string name="browse_network_error_auth">ভুল ব্যবহারকারীর নাম বা পাসওয়ার্ড। আপনার ফোনে রিসোর্সটি আপডেট করুন।</string>
     <string name="browse_network_error_unknown_host">এই নেটওয়ার্কে কম্পিউটার পাওয়া যায়নি। ওয়াই-ফাই সংযোগ পরীক্ষা করুন।</string>
+    <string name="exchange_folder_needs_own_network">এই ফোল্ডার শুধু ঘড়ির নিজের Wi-Fi বা LTE-তে খোলে। ঘড়িতে Wi-Fi বা LTE চালু করুন।</string>
+    <string name="exchange_folder_pin_on_phone">এই ফোল্ডার সুরক্ষিত, আর এর PIN ফোনে দিতে হয়। ফোনে ফোল্ডারটি খুলে PIN লিখুন।</string>
+    <string name="exchange_folder_connect_watch_on_phone">বাড়ির বাইরে এই ফোল্ডারের জন্য ঘড়িকে সার্ভারের সঙ্গে সংযুক্ত থাকতে হয়। ফোনে ঘড়ি সংযুক্ত করুন।</string>
 </resources>

@@ -31,7 +31,7 @@ class PlayerGestureSetupManager(
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
     private val videoTouchDelegate = VideoTouchDelegate(activity, binding)
-    private val videoZoom = VideoZoomGestureManager(binding.playerView)
+    internal val videoZoom = VideoZoomGestureManager(binding.playerView)
 
     private lateinit var gestureDetector: GestureDetector
     private lateinit var imageTouchGestureDetector: GestureDetector

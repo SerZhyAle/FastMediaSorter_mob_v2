@@ -70,12 +70,14 @@ function Read-RulesXml {
 
     if (-not (Test-Path -LiteralPath $Path)) {
         Write-Error "assert-backup-rules-consistent: file not found - '$Path'." -ErrorAction Continue
+        Write-Host "assert-backup-rules-consistent: COULD NOT VERIFY (file not found - '$Path')"
         exit 2
     }
     try {
         return [xml](Get-Content -LiteralPath $Path -Raw)
     } catch {
         Write-Error "assert-backup-rules-consistent: '$Path' is not well-formed XML - $($_.Exception.Message)" -ErrorAction Continue
+        Write-Host "assert-backup-rules-consistent: COULD NOT VERIFY ('$Path' is not well-formed XML)"
         exit 2
     }
 }
@@ -162,10 +164,12 @@ if ($violations.Count -gt 0) {
         Write-Host "  $violation"
     }
     Write-Host "  Fix: point the manifest at both rules files and repeat each pre-31 exclusion in both <cloud-backup> and <device-transfer>."
+    Write-Host 'assert-backup-rules-consistent: FAIL (a module does not wire both rules files or repeat a pre-31 exclusion)'
     exit 1
 }
 
 if (-not $Quiet) {
     Write-Host "assert-backup-rules-consistent: OK - modules [$($checked -join ', ')] wire both rules files and repeat every pre-31 exclusion."
 }
+Write-Host 'assert-backup-rules-consistent: PASS'
 exit 0

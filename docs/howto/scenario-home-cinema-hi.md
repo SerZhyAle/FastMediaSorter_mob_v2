@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "होम सिनेमा और VR स्ट्रीमिंग - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema-hi.html
 ---
-<sub class="doc-stamp">26.09.25 02:17</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
 # 🍿 होम सिनेमा और VR स्ट्रीमिंग
 
 > **लेवल:** शुरुआती &bull; **समय:** ~15 मिनट &bull; **एडिशन:** Standard, Legacy, VR, noLegal (Lite में नेटवर्क सोर्स नहीं हैं, Photos में वीडियो नहीं है)
-
-{% include lang-switcher.html doc="scenario-home-cinema" dir="/docs/howto/" current="hi" %}
 
 अपनी सीरीज़ कलेक्शन सीधे अपने घर के पीसी से देखें - अपने फोन, टैबलेट, या Android-आधारित VR हेडसेट (Meta Quest, Pico) पर. कोई फ़ाइल कॉपी नहीं. कोई USB केबल नहीं. बस प्ले दबाएं.
 

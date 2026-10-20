@@ -104,10 +104,13 @@ class GoogleDriveSftpRendezvousDataSource @Inject constructor(
     private inline fun <reified T : SftpRendezvousRecord> List<Entry<SftpRendezvousRecord>>.typed() =
         mapNotNull { entry -> (entry.record as? T)?.let { Entry(entry.fileId, entry.name, entry.modifiedMs, it) } }
 
-    private suspend fun read(file: CloudFile): String? =
-        (appData.downloadFile(file.id) as? CloudResult.Success)?.data
+    private suspend fun read(file: CloudFile): String? {
+        if (file.size > SftpRendezvousCodec.MAX_RECORD_BYTES) return null
+        return (appData.downloadFile(file.id, SftpRendezvousCodec.MAX_RECORD_BYTES.toLong()) as? CloudResult.Success)
+            ?.data
             ?.takeIf { it.size <= SftpRendezvousCodec.MAX_RECORD_BYTES }
             ?.toString(Charsets.UTF_8)
+    }
 
     private fun <T> failure(message: String): Result<T> = Result.failure(IOException(message))
 

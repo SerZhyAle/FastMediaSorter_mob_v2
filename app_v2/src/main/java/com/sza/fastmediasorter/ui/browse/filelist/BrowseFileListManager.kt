@@ -2,9 +2,11 @@ package com.sza.fastmediasorter.ui.browse.filelist
 
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
+import com.sza.fastmediasorter.domain.model.LocaleNameCollator
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.SortMode
 import timber.log.Timber
+import java.util.Locale
 import kotlin.random.Random
 
 /**
@@ -19,9 +21,10 @@ import kotlin.random.Random
 class BrowseFileListManager(
     private val resourceId: Long
 ) {
-    
-    /**
-     * Remove files from list by paths.
+    // MV-1.1: name sorts collate in the interface locale, one comparator per locale (cached).
+    private val nameCollator = LocaleNameCollator.comparator(Locale.getDefault())
+
+    /** Remove files from list by paths.
      * Updates cache automatically.
      * 
      * @param currentList Current file list
@@ -116,6 +119,7 @@ class BrowseFileListManager(
         forceSort: Boolean = false,
         randomSeed: Long? = null
     ): List<MediaFile> {
+        Timber.d("S4362: sortFiles mode=$sortMode count=${files.size}")
         if (!forceSort && files.size < 2) return files // Optimization: single-item list is always sorted
 
         // S0120: track sort changes on large folders for memory endurance analysis
@@ -132,8 +136,8 @@ class BrowseFileListManager(
         
         // Regular files are sorted according to sortMode
         val sortedFiles = when (sortMode) {
-            SortMode.NAME_ASC -> regularFiles.sortedBy { it.name.lowercase() }
-            SortMode.NAME_DESC -> regularFiles.sortedByDescending { it.name.lowercase() }
+            SortMode.NAME_ASC -> regularFiles.sortedWith(compareBy(nameCollator) { it.name })
+            SortMode.NAME_DESC -> regularFiles.sortedWith(compareByDescending(nameCollator) { it.name })
             SortMode.DATE_ASC -> regularFiles.sortedBy { it.createdDate }
             SortMode.DATE_DESC -> regularFiles.sortedByDescending { it.createdDate }
             SortMode.SIZE_ASC -> regularFiles.sortedBy { it.size }

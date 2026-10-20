@@ -37,6 +37,17 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
+        <!-- S4328: the "?" at the row's end; CONTEXT-HELP rule 2. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnHelpHeader"
+            style="@style/Widget.FastMediaSorter.Button.Icon"
+            android:layout_width="@dimen/token_touch_target_min"
+            android:layout_height="@dimen/token_touch_target_min"
+            android:contentDescription="@string/help"
+            android:focusable="true"
+            app:icon="@drawable/ic_help_outline"
+            app:iconTint="?attr/colorControlNormal" />
+
     </LinearLayout>
 
     <androidx.appcompat.widget.SearchView

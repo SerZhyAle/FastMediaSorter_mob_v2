@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.12 15:52</sub>
+<sub class="doc-stamp">26.10.15 16:55</sub>
 
 # Maestro Capability Suite
 
@@ -16,6 +16,9 @@ pwsh -NoProfile -File maestro/run-tests.ps1 -Suite features\player -Json
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite maestro/features/player/player_image.yaml -Json
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite player_image.yaml -ListFlows
 ```
+
+- `merge-shard-results.ps1` - joins the `-Json` results of concurrent `-ShardIndex`/`-ShardCount` runs into one result of the runner's shape (S4249).
+- `lib/flow-selection.ps1` - the runner's pure half: header markers, run order, shard partition, attempt records, shard merge (S4249).
 
 Runner contract:
 
@@ -110,11 +113,12 @@ operation resources and the file-operation menu is known tappable on that device
 
 `_shared/`:
 
-- `permissions.yaml` - optional system permission taps.
+- `permissions.yaml` - dismiss a system permission dialog when one is up; a no-op on a prepared device. Asks "is no dialog up?" first, because a failed lookup costs ~7.3 s (`WRITING_TESTS.md` "The cost of a failed lookup", S4252).
 - `navigate_to_add_resource.yaml` - shared add-resource navigation fragment.
-- `go_home.yaml` - back out of any restored player/browse to the main resource tabs (resumeOnNextLaunch reopens the last file on cold start). Every capability flow runs this right after `permissions.yaml`. When backing out cannot reach the tabs - the foreground screen is not on the app's back stack, as under launcher mode - it relaunches the app instead of failing (S1673).
+- `go_home.yaml` - back out of any restored player/browse to the main resource tabs (resumeOnNextLaunch reopens the last file on cold start). Every capability flow runs this right after `permissions.yaml`. One back press and a positive check cover the usual start; anything else runs `go_home_escape.yaml`, the full guarded back cascade. When backing out cannot reach the tabs - the foreground screen is not on the app's back stack, as under launcher mode - the escape relaunches the app instead of failing (S1673).
+- `go_home_escape.yaml` - the slow path of `go_home.yaml`: guarded back cascade, then a plain relaunch, then a `stopApp` relaunch. Never included by a flow directly.
 - `settings_open_interface.yaml` - open Settings, select the General tab and bring the Interface section into view, expanded. Extracted from the three launcher flows, which carried it verbatim (S2720).
-- `launcher_mode_enable.yaml` - turn launcher mode on and leave the caller on an active `rowLauncherSettings`. Tapping the toggle only makes the app a home-screen candidate; the row is enabled off the held `ROLE_HOME` role, so this fragment also answers the system role dialog (select the candidate row, then confirm - a lone confirm tap leaves the role where it was). A flow that runs it declares `# maestro-requires: home-role` in its header, and the runner restores the previous role holder afterwards (S2720).
+- `launcher_mode_enable.yaml` - turn launcher mode on and leave the caller on an active `rowLauncherSettings`. When the row is inactive it opens the `rowLauncherPrimaryWindow` dropdown (S3024 removed the former standalone toggle), picks its first entry, "Device home screen", and answers the system role dialog (select the candidate row by its app label, then confirm - a lone confirm tap leaves the role where it was); the role grant sends the device to the app's own desktop, so the fragment returns through `go_home.yaml` before re-opening Settings. A flow that runs it declares `# maestro-requires: home-role` in its header, and the runner restores the previous role holder afterwards (S2720, S4254).
 - `downloads_sort_reset.yaml` - scroll the open list back to the top (guarded `fabScrollToTop` tap), so a following down-only `scrollUntilVisible` reaches any target regardless of the per-resource scroll position restored by `rememberTheFileList`.
 
 `wear/` (the watch tree, S2548; invisible to `-Suite all` by construction - run `-Suite wear` with the

@@ -99,7 +99,6 @@ class ObserveTouristDashboardUseCase @Inject constructor(
         tripTracker.ensureLoaded()
         val capabilities = SensorCapability.entries.filter { sensorAvailabilityRepository.isAvailable(it) }.toSet()
         val isStepsAvail = SensorCapability.STEP_COUNTER in capabilities
-        Timber.d("S4145: dashboard subscribed, capabilities=%s", capabilities)
 
         val currentState = mutableSlot(
             TouristDashboardState(
@@ -134,7 +133,6 @@ class ObserveTouristDashboardUseCase @Inject constructor(
         } finally {
             // The last samples before the screen left would otherwise wait for the next 15 s tick that
             // never comes, and a process death right after would lose them.
-            Timber.d("S4145: dashboard unsubscribed, trip persisted")
             withContext(NonCancellable) { tripTracker.persist() }
         }
     }
@@ -388,7 +386,6 @@ class ObserveTouristDashboardUseCase @Inject constructor(
                 )
             }
         }
-        Timber.d("S4145: weather applied fresh=%s details=%s", result is WeatherResult.Fresh, snapshot?.details)
         return if (result is WeatherResult.Fresh) WEATHER_REFRESH_MS else WEATHER_RETRY_MS
     }
 

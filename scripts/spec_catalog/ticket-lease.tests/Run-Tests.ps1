@@ -56,7 +56,7 @@
     Exit codes:
       0 - every case passed; the sandbox is deleted.
       1 - at least one case failed; the sandbox is kept and its path printed.
-      2 - the sandbox could not be prepared.
+      2 - the sandbox could not be prepared, or no test executed.
 #>
 [CmdletBinding()]
 param()
@@ -552,13 +552,14 @@ finally {
     # The skip count rides in the summary line rather than only in the SKIP notice above it: the
     # gate that runs this suite reports the last line, and "57 passed" and "42 passed, 8 skipped"
     # are different answers about how much was actually observed.
-    $skipNote = if ($script:skipped -gt 0) { ", $script:skipped case(s) skipped" } else { '' }
     if ($script:fail -eq 0) {
         Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Host "ticket-lease tests: $script:pass passed$skipNote, sandbox removed." -ForegroundColor Cyan
+        Write-Host 'sandbox removed.' -ForegroundColor Cyan
+        Write-Host "ticket-lease tests: $(if ($script:pass -eq 0) { 'COULD NOT VERIFY' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=$script:skipped)" -ForegroundColor Cyan
     } else {
-        Write-Host "ticket-lease tests: $script:pass passed, $script:fail FAILED$skipNote - sandbox kept: $sandbox" -ForegroundColor Yellow
+        Write-Host "sandbox kept: $sandbox" -ForegroundColor Yellow
+        Write-Host "ticket-lease tests: FAIL (run=$($script:pass + $script:fail) skipped=$script:skipped)" -ForegroundColor Yellow
     }
 }
 
-exit ($(if ($script:fail -gt 0) { 1 } else { 0 }))
+exit ($(if ($script:fail -gt 0) { 1 } elseif ($script:pass -eq 0) { 2 } else { 0 }))

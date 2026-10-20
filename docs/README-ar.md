@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "FastMediaSorter v2"
 permalink: /docs/README-ar.html
 ---
-<sub class="doc-stamp">26.10.09 14:52</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/README-ar.html
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple?style=flat-square&logo=kotlin)
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 ![الترخيص](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
-
-{% include lang-switcher.html doc="README" dir="/docs/" current="ar" %}
 
 **📦 تنزيل:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="احصل عليه على IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
 

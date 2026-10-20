@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "راديو الإنترنت والبث - FastMediaSorter v2"
 permalink: /docs/howto/scenario-internet-radio-ar.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
 # 📻 راديو الإنترنت والبث
 
 > **المستوى:** مبتدئ - **الوقت:** ~10 دقائق - **الإصدار:** Standard وLegacy وVR وnoLegal (البث غير متوفر في Lite وPhotos)
-
-{% include lang-switcher.html doc="scenario-internet-radio" dir="/docs/howto/" current="ar" %}
 
 يتضمن FastMediaSorter شاشة بث مخصصة لمصادر الصوت والفيديو عبر الإنترنت. أضف أي رابط راديو إنترنت، أو استورد قائمة تشغيل ‎.m3u، أو تصفح كتالوج محطات منسّق - دون الحاجة لتطبيق راديو منفصل. يعمل بشكل رائع على وحدات رأس السيارة العاملة بنظام Android، ومشغلات الصوت، والهواتف، والأجهزة اللوحية.
 

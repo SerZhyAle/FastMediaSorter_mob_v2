@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.data.network.ftp
 
+import com.sza.fastmediasorter.wear.data.network.FakeWearExchangeEntryStore
 import com.sza.fastmediasorter.wear.data.network.FakeWearNetworkChannelMonitor
 import com.sza.fastmediasorter.wear.data.network.WearEndpointResolver
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
@@ -19,7 +20,7 @@ class FtpConnectionTestTest {
      */
     @Test
     fun `testFtp reports the connection failure rather than declaring FTP unsupported`() = runTest {
-        val resolver = WearEndpointResolver(FakeWearNetworkChannelMonitor())
+        val resolver = WearEndpointResolver(FakeWearNetworkChannelMonitor(), FakeWearExchangeEntryStore())
         val result = FtpConnectionTest(resolver).testFtp(unreachableSource())
 
         assertTrue(result.isFailure)

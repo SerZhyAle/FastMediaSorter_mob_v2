@@ -33,6 +33,7 @@ $trivialKey = (Get-Content -LiteralPath (Join-Path $repoRoot '.sza-profile.json'
 foreach ($name in 'a', 'b', 'c', 'd') {
     Set-Content -LiteralPath (Join-Path $fixture "$name.kt") -Value "package x`n`nfun $name() = 1" -Encoding utf8
 }
+Set-Content -LiteralPath (Join-Path $fixture 'existing.kt') -Value "package x`n`ndata class Offer(val url: String)" -Encoding utf8
 Set-Content -LiteralPath (Join-Path $fixture '.gitignore') -Value "ignored/`n" -Encoding utf8
 # S3515: one generated record, a glob, so both a modified and a brand-new generated file are covered.
 New-Item -ItemType Directory -Force -Path (Join-Path $fixture 'docs') | Out-Null
@@ -88,6 +89,13 @@ Invoke-Case 'a gitignored path is not judged as new' 0 @('-RepoRoot', $fixture, 
 
 Add-Line 'a.kt' 'data class Extra(val id: Int)'
 Invoke-Case 'an added class declaration escalates' 1 @('-RepoRoot', $fixture, '-Files', 'a.kt') 'adds'
+
+# S4298: an edited declaration line of an existing class/interface/object is not judged as new.
+Set-Content -LiteralPath (Join-Path $fixture 'existing.kt') -Value "package x`n`ndata class Offer(val url: String, val title: String?)" -Encoding utf8
+Invoke-Case 'a modified class declaration line passes' 0 @('-RepoRoot', $fixture, '-Files', 'existing.kt') 'PASS'
+
+Set-Content -LiteralPath (Join-Path $fixture 'existing.kt') -Value "package x`n`ndata class RenamedOffer(val url: String)" -Encoding utf8
+Invoke-Case 'a renamed class declaration line still escalates' 1 @('-RepoRoot', $fixture, '-Files', 'existing.kt') 'adds'
 
 Add-Line 'a.kt' '@Entity(tableName = "x")'
 Invoke-Case 'an added Room entity escalates' 1 @('-RepoRoot', $fixture, '-Files', 'a.kt') 'Entity'

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.07 01:49</sub>
+<sub class="doc-stamp">26.10.18 17:47</sub>
 
 # Contract pointers
 
@@ -23,11 +23,11 @@ catalog registry to one set of ids and versions.
 | Pointer | Id | This product's role |
 | --- | --- | --- |
 | [`STREAM-BANK.md`](STREAM-BANK.md) | `STREAM-BANK` | owner; producer (publish script) and consumer (phone and watch importers) |
-| [`LIVE-BROADCAST.md`](LIVE-BROADCAST.md) | `LIVE-BROADCAST` | owner; producer (phone and watch audio broadcast), and a consumer of its own descriptor |
+| [`LIVE-BROADCAST.md`](LIVE-BROADCAST.md) | `LIVE-BROADCAST` | owner; producer and receiver (phone and watch), and a consumer of its own descriptor |
 | [`FMSCFG.md`](FMSCFG.md) | `FMSCFG` | consumer (the `.fmscfg` importer); also writes `.fmscfg` files and `FMSCFG1:` QR payloads |
 | [`SHARE-SESSION.md`](SHARE-SESSION.md) | `SHARE-SESSION` | client - the SFTP connection to a shared folder |
-| [`ANYWHERE-ACCESS.md`](ANYWHERE-ACCESS.md) | `ANYWHERE-ACCESS` | owner; reference producer (phone shares over rendezvous/tunnel) and consumer (reads others' shares) - [PROPOSED], nothing ships against it yet |
-| [`DEVICE-EXCHANGE.md`](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | owner; phone - resource producer and consumer, broadcaster, receiver; watch - audio broadcaster and receiver - [PROPOSED], nothing ships yet |
+| [`ANYWHERE-ACCESS.md`](ANYWHERE-ACCESS.md) | `ANYWHERE-ACCESS` | owner; reference producer (phone shares over rendezvous/tunnel) and consumer (reads others' shares) |
+| [`DEVICE-EXCHANGE.md`](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | owner; phone - resource producer and consumer, broadcaster, receiver; watch - broadcaster of sound and receiver of sound and video |
 | [`OCR-OVERLAY.md`](OCR-OVERLAY.md) | `OCR-OVERLAY` | consumer - the player's OCR + translation overlay |
 | [`LETTERBOX-FILL.md`](LETTERBOX-FILL.md) | `LETTERBOX-BARS`, `LETTERBOX-HALO` | consumer - the player's edge-extended background behind a fitted photo |
 | [`OCR-ACCURACY.md`](OCR-ACCURACY.md) | `OCR-ACCURACY` | owner of the record |
@@ -38,6 +38,7 @@ catalog registry to one set of ids and versions.
 | [`ICON-EXTERNAL.md`](ICON-EXTERNAL.md) | `ICON-EXTERNAL` | owner; phone, launcher and watch |
 | [`CHECK-VERDICT.md`](CHECK-VERDICT.md) | `CHECK-VERDICT` | owner and reference implementation |
 | [`CHECK-BASELINE.md`](CHECK-BASELINE.md) | `CHECK-BASELINE` | owner |
+| [`CONTEXT-HELP.md`](CONTEXT-HELP.md) | `CONTEXT-HELP` | consumer - the phone app's F1 and `?` help, help map and offline help pages; the watch app's reasoned `none` map |
 | [`CHECK-PLACEMENT.md`](CHECK-PLACEMENT.md) | `CHECK-PLACEMENT` | owner |
 | [`BUILD-EVIDENCE.md`](BUILD-EVIDENCE.md) | `BUILD-EVIDENCE` | owner |
 | [`ICON-RENDER.md`](ICON-RENDER.md) | `ICON-RENDER` | owner and reference implementation; phone, launcher, watch, docs and site |
@@ -59,3 +60,10 @@ catalog registry to one set of ids and versions.
 | [`DOC-EXTERNAL-QUALITY.md`](DOC-EXTERNAL-QUALITY.md) | `DOC-EXTERNAL-QUALITY` | owner and reference implementation (external published docs quality) |
 | [`PRODUCT-SITE.md`](PRODUCT-SITE.md) | `SITE-STRUCTURE`, `SITE-EXPERIENCE`, `SITE-REPRESENTATION` | owner and reference implementation (the product site and its help portal: pages, look and behaviour, how the product and each function are presented) |
 | [`INPUT-PARITY.md`](INPUT-PARITY.md) | `INPUT-PARITY` | steward of the touch, gamepad and TV remote / D-pad columns |
+| [`MEDIA-VIEWER.md`](MEDIA-VIEWER.md) | `MEDIA-VIEWER` | consumer, scoped - the phone's Browse list and player, the watch image slideshow |
+| [`UI-SIZING.md`](UI-SIZING.md) | `UI-SIZING` | consumer - phone, launcher and watch (migration S4352) |
+| [`BUTTONS.md`](BUTTONS.md) | `BUTTONS` | consumer - phone, launcher, watch and the help pages (migration S4352) |
+| [`BOOLEAN-OPTION.md`](BOOLEAN-OPTION.md) | `BOOLEAN-OPTION` | consumer - phone, launcher and watch settings (migration S4352) |
+| [`COLLAPSIBLE-GROUP.md`](COLLAPSIBLE-GROUP.md) | `COLLAPSIBLE-GROUP` | consumer - phone and launcher (migration S4352) |
+| [`SETTINGS-NAVIGATION.md`](SETTINGS-NAVIGATION.md) | `SETTINGS-NAVIGATION` | consumer - main settings, settings dialogs and watch settings (migration S4352) |
+| [`EXCHANGE-MARK.md`](EXCHANGE-MARK.md) | `EXCHANGE-MARK` | consumer - mark of the exchange server on phone, watch, portal and docs |

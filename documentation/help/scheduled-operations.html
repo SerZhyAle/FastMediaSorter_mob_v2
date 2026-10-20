@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Help - Scheduled file operations</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Help index">
+<a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Scheduled file operations</span>
+</nav>
+<header class="hero">
+<h1>Scheduled file operations</h1>
+</header>
+<h2>What this is for</h2>
+<p class="lead">Scheduled file operations copy, move, archive or delete files in the background at the times you set - for example, moving new camera photos to a network folder every night. This screen switches the feature on, lists your operations and shows how every run went.</p>
+<figure class="shot">
+<img class="on-light" src="img/scheduled-operations-en-light.webp" alt="Scheduled file operations">
+<img class="on-dark" src="img/scheduled-operations-en-dark.webp" alt="Scheduled file operations">
+</figure>
+<h2>In this order</h2>
+<ol class="order">
+<li>Turn on Use scheduled operations <a class="ref" href="#enabled">2</a>. On Android 13 and later, press the notifications button <a class="ref" href="#notification-permission">3</a> if it shows up, so you can see when a run starts or fails.</li>
+<li>Press Add <a class="ref" href="#add">4</a> and describe the job once: the source, the operation, the destination, which files to take, when to start and how often. Try a new job as Copy before you trust it with Move or Delete.</li>
+<li>Find the new card in the list <a class="ref" href="#list">11</a>. Its own switch <a class="ref" href="#op-switch">12</a> holds just that job without deleting it.</li>
+<li>Not sure it works? Press Run now <a class="ref" href="#op-run-now">15</a> on the card, then open its History <a class="ref" href="#op-history">14</a> to see what was done.</li>
+<li>A warning mark <a class="ref" href="#op-warning">13</a> means the last run failed or was skipped. History <a class="ref" href="#history">7</a> shows the log of all runs, the card's History <a class="ref" href="#op-history">14</a> the runs of one job.</li>
+<li>To hold everything for a while use Pause all <a class="ref" href="#pause">6</a>. Run all now <a class="ref" href="#run-all">5</a> starts every enabled job once, outside the schedule.</li>
+<li>Edit <a class="ref" href="#op-edit">16</a> changes a job, Delete <a class="ref" href="#op-delete">17</a> removes one, and Clear all <a class="ref" href="#clear-all">8</a> removes them all. Clear log <a class="ref" href="#history-clear">10</a> empties the run history and leaves the jobs alone.</li>
+</ol>
+<h2>The elements</h2>
+<div class="elements">
+<h3>Switch and help</h3>
+<details class="el" id="help">
+<summary><span class="mk">1</span><span><span class="name">Help</span><span class="one">Opens help for this screen.</span></span></summary>
+<div class="full">
+<p>You get what each button does and the usual order of use, with numbers matching the markers on the screenshot.</p>
+</div>
+</details>
+<details class="el" id="enabled">
+<summary><span class="mk">2</span><span><span class="name">Use scheduled operations</span><span class="one">Turns scheduled runs on or off for the whole program.</span></span></summary>
+<div class="full">
+<p>While it is on, your operations run at their times, even when the app is closed. While it is off, nothing runs on schedule and the buttons and the list are hidden, but every operation stays saved. The switch also follows the list: it turns itself off when you delete the last operation and on again when you add one.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Nothing is lost. The operations stay saved, and switching it on queues their runs again.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="notification-permission">
+<summary><span class="mk">3</span><span><span class="name">Allow notifications for scheduled operations</span><span class="one">Lets scheduled runs show their notifications.</span></span></summary>
+<div class="full">
+<p>The button appears on Android 13 and later while the notification permission is missing, and goes away once you allow it. A run shows a notification while it works and when it fails, so without the permission you would notice neither. Tap it and answer the system question. The warning mark on an operation card shows a failed run either way.</p>
+</div>
+</details>
+<h3>Action bar</h3>
+<details class="el" id="add">
+<summary><span class="mk">4</span><span><span class="name">Add</span><span class="one">Creates a new scheduled operation.</span></span></summary>
+<div class="full">
+<p>A form opens where you describe the job once. Source is one of your resources or any folder on the device. Operation is Copy, Move, Archive or Delete, and everything except Delete also asks for a Destination. Then pick the file types, optionally a time filter such as only files that are new since the last run, extra limits by name, age or size, the start time and how often to repeat (at least every 15 minutes). A read-only source allows Copy only. Save operation puts the new card in the list.</p>
+<p>When you arrive from the file browser, the form opens with the folder you were in already set as the source. Move and Delete remove the original files in the background, which on some devices needs access to all files; the app tells you in a notification when it is missing.</p>
+</div>
+</details>
+<details class="el" id="run-all">
+<summary><span class="mk">5</span><span><span class="name">Run all now</span><span class="one">Starts every enabled operation once, right now.</span></span></summary>
+<div class="full">
+<p>The jobs run one after another and the regular schedule goes on as before. Operations whose own switch is off are skipped, and nothing happens while Pause all is active. There is no extra question, so make sure a Move or Delete job is really ready before you press it.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>Files that a run copied, moved or deleted stay that way. A scheduled Delete does not use the trash - what it removes is gone for good.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="pause">
+<summary><span class="mk">6</span><span><span class="name">Pause all</span><span class="one">Holds all schedules, or lets them go on.</span></span></summary>
+<div class="full">
+<p>While the schedules are paused the button reads Resume all. Pausing keeps every operation and its settings, makes Run all now do nothing, and keeps the app from queuing the schedules again after a restart. Resume all lifts the pause. To hold a single job, use the switch on its card.</p>
+</div>
+</details>
+<details class="el" id="history">
+<summary><span class="mk">7</span><span><span class="name">History</span><span class="one">Shows or hides the log of all runs.</span></span></summary>
+<div class="full">
+<p>The Run history panel opens under the buttons with the newest runs first: when each run happened, which operation it was, from where to where, and what came of it. Failures are shown in the error color. Press the button again to hide the panel.</p>
+</div>
+</details>
+<details class="el" id="clear-all">
+<summary><span class="mk">8</span><span><span class="name">Clear all</span><span class="one">Removes every scheduled operation at once.</span></span></summary>
+<div class="full">
+<p>The app asks Clear all scheduled operations? first. After you confirm, all operations are deleted and their schedules cancelled. Your files are not touched, and the log in the Run history panel stays. With the list empty, the main switch turns itself off.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The operations and their settings are lost and cannot be restored - create them again with Add. Files that earlier runs already copied, moved or deleted stay as they are.</dd>
+</dl>
+</div>
+</details>
+<h3>Run history</h3>
+<details class="el" id="history-panel">
+<summary><span class="mk">9</span><span><span class="name">Run history</span><span class="one">The log of recent runs, newest first.</span></span></summary>
+<div class="full">
+<p>Each entry shows the time, the operation, the source and the destination, and a short message. The panel keeps the last 200 entries in view. Until a run is recorded it says No runs recorded yet. It is one list for all operations; for one operation use the History button on its card.</p>
+</div>
+</details>
+<details class="el" id="history-clear">
+<summary><span class="mk">10</span><span><span class="name">Clear log</span><span class="one">Empties the log of all runs.</span></span></summary>
+<div class="full">
+<p>The app asks Clear the run history? first. After you confirm, the list is empty and fills up again with the next runs. Operations and schedules are not affected, and the runs shown by the card History buttons are kept.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The deleted log entries cannot be brought back. Only the entries are lost; nothing else changes.</dd>
+</dl>
+</div>
+</details>
+<h3>Operation list</h3>
+<details class="el" id="list">
+<summary><span class="mk">11</span><span><span class="name">Operation list</span><span class="one">One card for each scheduled operation.</span></span></summary>
+<div class="full">
+<p>A card shows the source and, except for Delete, the destination, with an icon for the operation. Below are the schedule (for example At 23:00 · Every 24h), which files it takes, and when it last succeeded or that no run has succeeded yet. A source or destination that was removed from the app is shown as (deleted). While the list is empty it says No scheduled operations yet. Tap + to create the first one.</p>
+</div>
+</details>
+<details class="el" id="op-switch">
+<summary><span class="mk">12</span><span><span class="name">Enable/disable scheduled operation</span><span class="one">Holds or resumes this one operation.</span></span></summary>
+<div class="full">
+<p>Off, the operation keeps its card and settings but its waiting run is cancelled. On, it is queued for its next time again. The other operations are not affected.</p>
+</div>
+</details>
+<details class="el" id="op-warning">
+<summary><span class="mk">13</span><span><span class="name">Warning mark</span><span class="one">Tells you the last run of this operation did not finish.</span></span></summary>
+<div class="full">
+<p>It appears after a run that failed or was skipped, for example because the source or the destination could not be reached. A skipped run is tried again at the next time. The mark stays until a run succeeds; open the card History to see why.</p>
+</div>
+</details>
+<details class="el" id="op-history">
+<summary><span class="mk">14</span><span><span class="name">History</span><span class="one">Shows the recent runs of this operation only.</span></span></summary>
+<div class="full">
+<p>A window lists the runs of this one job, newest first: when each ran, how many files it handled and why it stopped, if it did. Close it with Close. The runs go away together with the operation.</p>
+</div>
+</details>
+<details class="el" id="op-run-now">
+<summary><span class="mk">15</span><span><span class="name">Run now</span><span class="one">Starts this operation once, right now.</span></span></summary>
+<div class="full">
+<p>Use it to try a new job or to catch up without waiting for the next time. The regular schedule is not changed. When it is done, the result appears in History.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The same as for any run: copied, moved or deleted files stay that way, and Delete is permanent.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="op-edit">
+<summary><span class="mk">16</span><span><span class="name">Edit</span><span class="one">Changes the source, destination, files or times of this operation.</span></span></summary>
+<div class="full">
+<p>The same form as Add opens with the current settings. Save operation keeps your changes; closing the form without saving leaves the operation as it was.</p>
+</div>
+</details>
+<details class="el" id="op-delete">
+<summary><span class="mk">17</span><span><span class="name">Delete</span><span class="one">Removes this operation.</span></span></summary>
+<div class="full">
+<p>The app asks Delete this scheduled operation? first. After you confirm, the operation and its schedule are removed, together with its own run list and a folder that was chosen only for this job. Your files are not touched.</p>
+<dl class="facts">
+<dt>Undo</dt><dd>The operation cannot be restored - create it again with Add. Files that earlier runs already copied, moved or deleted stay as they are.</dd>
+</dl>
+</div>
+</details>
+<h3>Top bar menu</h3>
+<details class="el" id="portal">
+<summary><span class="mk">18</span><span><span class="name">About schedules for other devices</span><span class="one">Opens a web page about schedules that work with folders of other devices.</span></span></summary>
+<div class="full">
+<p>The item is in the three-dots menu of the top bar. It opens a page of the product website in your browser, so it needs an internet connection; the app tells you if the phone is offline or has no browser. The page explains how a schedule can take files from, or put them into, a folder on another device.</p>
+</div>
+</details>
+</div>
+<h2>Related</h2>
+<ul class="related">
+<li><a href="settings-operations.html"><b>Settings: Management</b><span class="pill">Screen</span></a></li>
+<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="browse.html"><b>File browser</b><span class="pill">Screen</span></a></li>
+<li><a href="add-resource.html"><b>Add Resource</b><span class="pill">Screen</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/scheduled-operations.html"><b>Running File Jobs on a Schedule</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/cleaning-up-space.html"><b>Freeing Space - Duplicates, Big Files and ZIP Archives</b><span class="pill gold">Guide</span></a></li>
+<li><a href="index.html"><b>Help index</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Help index</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
+</footer>
+</main>
+</body>
+</html>

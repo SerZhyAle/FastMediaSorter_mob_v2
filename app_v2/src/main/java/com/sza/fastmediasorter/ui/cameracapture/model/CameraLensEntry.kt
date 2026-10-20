@@ -10,12 +10,18 @@ import androidx.camera.core.CameraInfo
  * [cameraInfo] is always the **logical** camera to select; [physicalCameraId] narrows that selection
  * to one lens inside it. Describes a lens only - operating one belongs to the session manager
  * (strategic ADR-1).
+ *
+ * [cameraInfo] is null only for an entry read straight from Camera2 (S4287): CameraX drops a camera
+ * another client holds from its list, so the broadcast screens describe the lenses without it while
+ * live. Such an entry is never bound through CameraX - the capture screen builds only CameraX entries.
  */
 data class CameraLensEntry(
-    val cameraInfo: CameraInfo,
+    val cameraInfo: CameraInfo?,
     val logicalCameraId: String,
     val physicalCameraId: String? = null,
     val lensFacing: Int,
+    /** The logical camera this lens binds through has a flash unit. */
+    val hasFlashUnit: Boolean = false,
     val focalLengthMm: Float = 0f,
     val minZoomRatio: Float = CameraRuntimeCapabilities.DEFAULT_ZOOM,
     val minFocusDistanceDiopters: Float = 0f,

@@ -24,6 +24,7 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Gate))
 $auditManifest = Join-Path $repoRoot 'PLAN/S4166_deep-dynamic-audit/audit/manifest.json'
 $passed = 0
 $failed = 0
+$skipped = 0
 
 function Invoke-Case {
     param([string]$Name, [string[]]$Arguments, [int]$Expect)
@@ -45,8 +46,9 @@ if (Test-Path -LiteralPath $auditManifest -PathType Leaf) {
     Invoke-Case 'live validate of the first-pass audit data reports open coverage' @('-Validate', '-Quiet') 1
 } else {
     Write-Host 'SKIP  live validate - this checkout holds no S4166 audit data (PLAN/ is gitignored)'
+    $skipped++
 }
 
-Write-Host ("assert-dynamic-audit-coverage.tests: {0} passed, {1} failed" -f $passed, $failed)
+Write-Host "assert-dynamic-audit-coverage.tests: $(if ($failed) { 'FAIL' } else { 'PASS' }) (run=$($passed + $failed) skipped=$skipped)"
 if ($failed -gt 0) { exit 1 }
 exit 0

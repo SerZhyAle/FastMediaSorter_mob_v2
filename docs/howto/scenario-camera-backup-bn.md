@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "পিসিতে শিডিউল করা ক্যামেরা ব্যাকআপ - FastMediaSorter v2"
 permalink: /docs/howto/scenario-camera-backup-bn.html
 ---
-<sub class="doc-stamp">26.09.25 02:13</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
 # 📷 পিসিতে শিডিউল করা ক্যামেরা ব্যাকআপ
 
 > **স্তর:** শিক্ষানবিস &bull; **সময়:** ~১৫ মিনিট সেটআপ &bull; **ফ্লেভার:** Standard, Photos, Legacy, VR, noLegal (নেটওয়ার্ক সোর্স প্রয়োজন - Lite-এ কোনোটাই নেই)
-
-{% include lang-switcher.html doc="scenario-camera-backup" dir="/docs/howto/" current="bn" %}
 
 আপনার ফোনের ক্যামেরা থেকে নতুন ছবিগুলো **প্রতি রাতে, Wi-Fi-এর মাধ্যমে** স্বয়ংক্রিয়ভাবে আপনার বাড়ির কম্পিউটারে কপি করুন। একবার সেট করুন - এটা কোনো ম্যানুয়াল কাজ ছাড়াই চিরকাল চলতে থাকবে।
 

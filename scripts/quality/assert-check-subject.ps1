@@ -138,6 +138,7 @@ $charged = @($findings | Where-Object {
     })
 if ($charged.Count -eq 0) {
     Write-NotChargedVerdict -GateName 'assert-check-subject' -Findings @($findings.Text)
+    Write-Host 'assert-check-subject: PASS WITH ADVISORIES (see the findings above)'
     exit 3
 }
 

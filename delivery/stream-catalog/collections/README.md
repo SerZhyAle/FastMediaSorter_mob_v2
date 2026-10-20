@@ -46,7 +46,7 @@ An overlay entry naming an id that `rules.json` does not declare is a refusal, n
 ## Why two layers
 
 A rule alone cannot express two of the three collections this feature was asked for. "Radio of the
-former USSR" is a list of fifteen countries and "Television of Africa" is a continent; neither concept
+former USSR" is a list of fifteen countries and "TV Africa" is a continent; neither concept
 is a value in the bank. A manual list alone does not scale to nineteen thousand rows and goes stale on
 every collection run. The two layers together give both the coverage and the precision.
 

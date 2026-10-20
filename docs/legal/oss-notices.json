@@ -2452,6 +2452,32 @@
       "note": null
     },
     {
+      "coordinate": "io.coil-kt:coil-gif",
+      "modules": [
+        "wear"
+      ],
+      "name": "Coil GIF",
+      "spdx": "Apache-2.0",
+      "licenseUrl": "https://raw.githubusercontent.com/coil-kt/coil/main/LICENSE.txt",
+      "sourceUrl": "https://github.com/coil-kt/coil",
+      "oss": true,
+      "shippedIn": [
+        "foss",
+        "legacy",
+        "lite",
+        "noLegal",
+        "photos",
+        "standard",
+        "vr",
+        "xr"
+      ],
+      "allFlavors": true,
+      "transitive": false,
+      "via": null,
+      "bundled": false,
+      "note": null
+    },
+    {
       "coordinate": "io.documentnode:epub4j-core",
       "modules": [
         "app_v2"

@@ -852,7 +852,12 @@ function Invoke-DaCycleScene {
                 pointMonoMs = if ($qs.sample) { $qs.sample.hostMonoMs } else { (Get-DaMonotonicMs) }; point = $qs.sample; forcedGc = $false
             })
     }
-    Add-DaInvariant -Ctx $Ctx -Id 'process-survives-every-cycle' -Atomic @($entry.atomic)[0] -Holds ($restarts.Count -eq 0) -Detail $(if ($restarts.Count) { $restarts -join '; ' } else { "one process $firstPid through $($plan.Cycles) cycles" })
+    # The report maps a measurement to its cell by this atomic, so a watch run names the scene's watch atomic, not
+    # the phone's first one (run 261017-030304-wlrc16 landed in no cell).
+    $invAtomic = @($entry.atomic)[0]
+    $watchAtomic = @(@($entry.atomic) | Where-Object { $_ -like '*.watch-*' })
+    if ($Ctx.Watch -and $watchAtomic.Count) { $invAtomic = $watchAtomic[0] }
+    Add-DaInvariant -Ctx $Ctx -Id 'process-survives-every-cycle' -Atomic $invAtomic -Holds ($restarts.Count -eq 0) -Detail $(if ($restarts.Count) { $restarts -join '; ' } else { "one process $firstPid through $($plan.Cycles) cycles" })
     if ($Ctx.Watch) { $null = Invoke-DaAdb -Serial $s -Arguments @('shell', 'input', 'keyevent', 'KEYCODE_WAKEUP') }
     $warm = Invoke-DaSceneAction -Ctx $Ctx -Name 'warm-start' -Atomic $null -Body { Measure-DaStart -Serial $s -Package $p -Component $launch -Mode warm }
     & $emit ([ordered]@{ type = 'start'; scene = $Ctx.Scene; phase = 'warm'; index = [int]$plan.Cycles + 1; start = $warm })

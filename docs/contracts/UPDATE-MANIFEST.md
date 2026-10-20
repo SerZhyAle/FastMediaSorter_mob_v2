@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.07 04:59</sub>
+<sub class="doc-stamp">26.10.18 17:46</sub>
 
 # Pointer - `UPDATE-MANIFEST`
 
 | | |
 | --- | --- |
 | **Id** | `UPDATE-MANIFEST` |
-| **Version** | 0.11, draft. Owner: sza.od.ua hub |
+| **Version** | 0.12, draft. Owner: sza.od.ua hub |
 | **Home** | `app-update-feed/README.md` in the shared contracts catalog |
 | **Role here** | declared consumer; no feed client ships here yet (section 1) |
 
@@ -14,6 +14,8 @@
 - Nothing in this repository reads the feed today; the rules below bind the first client.
 - Query manifest at `https://sza.od.ua/updates/<product-id>.json`.
 - `channels.<channel>.version` is authoritative; `latestVersion` only mirrors `stable` (rule 2).
+- Compare a channel's `versionCode` with the installed one, offer nothing when `versionCode` is absent, and
+  never order by `version` (0.12).
 - An install managed by a package manager or a store is left to it (section 5).
 - Forward-tolerant parsing: reject higher `schemaVersion` cleanly, ignore unrecognized channel and package properties.
 - Silent degradation on network timeout or HTTP failure - never disrupt startup or block navigation.

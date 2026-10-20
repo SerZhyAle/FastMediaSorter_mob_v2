@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Cornice fotografica digitale su tablet - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-it.html
 ---
-<sub class="doc-stamp">26.09.25 02:18</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="it" dir="ltr" markdown="1">
 
 # 🖼️ Cornice fotografica digitale su tablet
 
 > **Livello:** Principiante &bull; **Durata:** ~15 minuti &bull; **Edizione:** Standard, Photos, Legacy, VR, noLegal (per foto da NAS/cloud) oppure qualsiasi edizione (per foto locali)
-
-{% include lang-switcher.html doc="scenario-photo-frame" dir="/docs/howto/" current="it" %}
 
 Trasforma qualsiasi tablet Android in una bellissima cornice fotografica digitale sempre accesa - trasmettendo i tuoi ricordi da un NAS di casa o dal cloud, con musica di sottofondo opzionale. Zero spazio di archiviazione locale usato.
 

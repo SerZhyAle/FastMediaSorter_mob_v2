@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Справка - Сохранённые авторизации</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Оглавление справки">
+<a href="index.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Сохранённые авторизации</span>
+</nav>
+<header class="hero">
+<h1>Сохранённые авторизации</h1>
+</header>
+<h2>Для чего этот экран</h2>
+<p class="lead">«Сохранённые авторизации» - список входов, которые встроенный браузер запоминает для сайтов, чтобы приложение могло брать содержимое с сайтов, требующих аккаунт, и не просило входить снова. Здесь их добавляют, переименовывают, обновляют и удаляют. Открывается из настроек, вкладка «Общие», раздел «Авторизация и аккаунты».</p>
+<figure class="shot">
+<img class="on-light" src="../img/auth-sessions-ru-light.webp" alt="Сохранённые авторизации">
+<img class="on-dark" src="../img/auth-sessions-ru-dark.webp" alt="Сохранённые авторизации">
+</figure>
+<h2>Порядок действий</h2>
+<ol class="order">
+<li>Нажмите «+ Добавить авторизацию» <a class="ref" href="#add-authorization">2</a> и выберите сайт из списка или «Ввести адрес вручную» для другого.</li>
+<li>На открывшейся странице <a class="ref" href="#web-page">12</a> войдите так же, как в обычном браузере, и нажмите «Сохранить авторизацию» <a class="ref" href="#web-save">13</a>.</li>
+<li>Дайте аккаунту понятное название <a class="ref" href="#web-name-account">15</a> и нажмите «Сохранить».</li>
+<li>Аккаунт появится в списке под своим сайтом <a class="ref" href="#sessions-list">5</a>. Чтобы добавить второй аккаунт на тот же сайт, нажмите плюс в заголовке сайта <a class="ref" href="#host-add-account">7</a>.</li>
+<li>Когда сайт перестаёт принимать сохранённый вход, нажмите «Войти снова» <a class="ref" href="#relogin">9</a>. «Переименовать аккаунт» <a class="ref" href="#rename">10</a> меняет только название здесь.</li>
+<li>«Удалить сохранённую авторизацию» <a class="ref" href="#delete">11</a> убирает ненужный вход после подтверждения.</li>
+<li>Ничего на этом экране сохранять не нужно: каждое изменение применяется сразу, а «Назад» <a class="ref" href="#back">1</a> просто закрывает экран.</li>
+</ol>
+<h2>Элементы</h2>
+<div class="elements">
+<h3>Список</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Назад</span><span class="one">Закрывает список.</span></span></summary>
+<div class="full">
+<p>Всё на этом экране применяется в момент действия, поэтому при выходе ничего подтверждать не нужно.</p>
+</div>
+</details>
+<details class="el" id="add-authorization">
+<summary><span class="mk">2</span><span><span class="name">+ Добавить авторизацию</span><span class="one">Начинает новый вход на сайт.</span></span></summary>
+<div class="full">
+<p>Сначала предлагается список известных сайтов; последняя строка, «Ввести адрес вручную», просит полный веб-адрес, который начинается с http или https. После выбора сайта его страница входа открывается в окне входа, описанном в конце этой страницы. Адреса в доменах Google открываются в браузере с Custom Tabs; если такого браузера нет, окно «Нужен браузер» подскажет, что установить.</p>
+</div>
+</details>
+<details class="el" id="help-menu">
+<summary><span class="mk">3</span><span><span class="name">Справка</span><span class="one">Открывает справку по этому экрану.</span></span></summary>
+<div class="full">
+<p>Пункт находится в дополнительном меню на панели, потому что нужен редко.</p>
+<dl class="facts">
+<dt>Сочетание клавиш</dt><dd><kbd>F1</kbd></dd>
+</dl>
+</div>
+</details>
+<details class="el" id="info">
+<summary><span class="mk">4</span><span><span class="name">Пояснение</span><span class="one">Короткое напоминание о том, что такое сохранённая авторизация.</span></span></summary>
+<div class="full">
+<p>Каждая запись хранит куки одного аккаунта на одном сайте. Запись «Не авторизован (вы отказались)» создана, когда в окне входа вы выбрали «Не предлагать», и она не даёт окну появляться для этого сайта снова. Чтобы добавить второй аккаунт на тот же сайт, используйте «+ Добавить авторизацию» или плюс в заголовке сайта.</p>
+</div>
+</details>
+<details class="el" id="sessions-list">
+<summary><span class="mk">5</span><span><span class="name">Список входов</span><span class="one">Все сохранённые входы, сгруппированные по сайтам.</span></span></summary>
+<div class="full">
+<p>У каждого сайта есть заголовок с названием: Instagram, Threads и Facebook узнаются по имени, у остальных сайтов показан адрес. Под заголовком идут аккаунты этого сайта. Пока вы не сохранили первый вход, список пуст.</p>
+</div>
+</details>
+<details class="el" id="empty">
+<summary><span class="mk">6</span><span><span class="name">Нет сохранённых авторизаций</span><span class="one">Сообщает, что пока ничего не сохранено.</span></span></summary>
+<div class="full">
+<p>Надпись заменяет список, пока записей нет. Нажмите «+ Добавить авторизацию» на панели, чтобы сохранить первую.</p>
+</div>
+</details>
+<h3>Сайты и аккаунты</h3>
+<details class="el" id="host-add-account">
+<summary><span class="mk">7</span><span><span class="name">Добавить ещё один аккаунт</span><span class="one">Добавляет ещё один аккаунт на тот же сайт.</span></span></summary>
+<div class="full">
+<p>Плюс в заголовке сайта открывает страницу входа этого сайта. Нажмите его, если на одном сайте у вас два аккаунта и нужны оба.</p>
+</div>
+</details>
+<details class="el" id="account-row">
+<summary><span class="mk">8</span><span><span class="name">Запись об аккаунте</span><span class="one">Один сохранённый вход: название и подробности.</span></span></summary>
+<div class="full">
+<p>Под названием серая строка показывает, сколько куки хранится, когда запись сохранена и когда использовалась в последний раз либо «ещё не использовалась». Запись «Не авторизован (вы отказались)» не настоящий вход: она лишь помнит, что вы отказались входить на этот сайт, и приложение перестаёт предлагать. У неё только кнопка удаления; удалите её, чтобы вас спросили снова.</p>
+</div>
+</details>
+<details class="el" id="relogin">
+<summary><span class="mk">9</span><span><span class="name">Войти снова</span><span class="one">Входит на тот же сайт заново и обновляет запись.</span></span></summary>
+<div class="full">
+<p>Пригодится, когда сайт больше не принимает сохранённый вход, например истёк срок или вы сменили пароль. Страница входа открывается без старых куки, так что сайт начинает с чистого листа. У отказных записей кнопки нет.</p>
+</div>
+</details>
+<details class="el" id="rename">
+<summary><span class="mk">10</span><span><span class="name">Переименовать аккаунт</span><span class="one">Меняет название аккаунта в этом списке.</span></span></summary>
+<div class="full">
+<p>Откроется небольшое окно с текущим названием. Введите новое и нажмите «ОК»; пустое название игнорируется. Сам вход не затрагивается. У отказных записей кнопки нет.</p>
+</div>
+</details>
+<details class="el" id="delete">
+<summary><span class="mk">11</span><span><span class="name">Удалить сохранённую авторизацию</span><span class="one">Удаляет сохранённый вход из приложения.</span></span></summary>
+<div class="full">
+<p>Окно спросит «Удалить вход для» с названием аккаунта и предложит «ОК» и «Отмена». После «ОК» куки этого аккаунта удаляются, а запись исчезает из списка.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Сохранённый вход теряется и не восстанавливается; ваш аккаунт на сайте не затрагивается. Чтобы вернуть вход, войдите заново через «+ Добавить авторизацию» или плюс в заголовке сайта.</dd>
+</dl>
+</div>
+</details>
+<h3>Окно входа</h3>
+<details class="el" id="web-page">
+<summary><span class="mk">12</span><span><span class="name">Страница входа</span><span class="one">Собственная страница входа сайта, показанная внутри приложения.</span></span></summary>
+<div class="full">
+<p>Входите так, как просит сайт, включая код, который он присылает. Страница открывается без входа: старые куки сначала удаляются, чтобы прежний сеанс не мешал. В зависимости от настройки «Защищать секретные экраны» окно скрыто от снимков экрана и списка недавних приложений.</p>
+</div>
+</details>
+<details class="el" id="web-save">
+<summary><span class="mk">13</span><span><span class="name">Сохранить авторизацию</span><span class="one">Сохраняет только что выполненный вход.</span></span></summary>
+<div class="full">
+<p>Кнопка остаётся неактивной, пока страница не установит хотя бы один куки, так что сначала войдите; если нажать слишком рано, приложение напомнит о входе. После нажатия появится окно с просьбой назвать аккаунт.</p>
+</div>
+</details>
+<details class="el" id="web-cancel">
+<summary><span class="mk">14</span><span><span class="name">Отмена</span><span class="one">Закрывает окно входа, ничего не сохраняя.</span></span></summary>
+<div class="full">
+<p>Нажмите, если открыли не тот сайт или передумали.</p>
+</div>
+</details>
+<details class="el" id="web-name-account">
+<summary><span class="mk">15</span><span><span class="name">Назовите аккаунт</span><span class="one">Даёт сохранённому входу понятное вам название.</span></span></summary>
+<div class="full">
+<p>В поле уже стоит название, которое приложению удалось прочитать из входа, или «Аккаунт по умолчанию», если прочитать ничего не вышло. Нажмите «Сохранить», чтобы запомнить запись; если тот же аккаунт этого сайта уже сохранён, приложение обновит его запись, а не добавит вторую. После этого куки и кэш в окне входа очищаются, а запись появляется в списке.</p>
+</div>
+</details>
+</div>
+<h2>Связанное</h2>
+<ul class="related">
+<li><a href="settings-general.html"><b>Настройки: Общие</b><span class="pill">Экран</span></a></li>
+<li><a href="add-resource.html"><b>Добавить ресурс</b><span class="pill">Экран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/privacy-and-network-security-ru.html"><b>Privacy, Saved Sign-ins and Error Reports - Staying in Control and Reporting Problems Well</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="index.html"><b>Оглавление справки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Оглавление справки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
+</footer>
+</main>
+</body>
+</html>

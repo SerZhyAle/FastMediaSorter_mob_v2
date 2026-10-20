@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import timber.log.Timber
 
 // S0238: VR-entry button visibility - open for video and pixel-media (image, gif).
 // Audio / docs / text / pdf / epub do not benefit from VR.
@@ -13,11 +14,19 @@ private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, Medi
 // bare literal) so the newest entry passes the detekt MagicNumber gate; the pre-existing entries'
 // literal priorities are already covered by the detekt baseline.
 private const val ROTATE_CONTENT_PRIORITY = 660
+private const val FILE_GRID_PRIORITY = 670
+private const val FILE_LIST_PRIORITY = 680
+private const val FILE_NUMBER_PRIORITY = 690
+private const val FRAME_FORWARD_PRIORITY = 700
+private const val FRAME_BACK_PRIORITY = 710
+private const val AB_LOOP_PRIORITY = 720
 
 // S1364: the counter-clockwise twin sits immediately after its forward partner so the two always
-// render adjacently in the sorted overflow list. This is now the lowest-priority command, a role
-// ROTATE_CONTENT held until this entry was added.
+// render adjacently in the sorted overflow list.
 private const val ROTATE_CONTENT_CCW_PRIORITY = 670
+
+// S4325: lowest-priority overflow-only command so Help always renders at the bottom of the menu.
+private const val HELP_PRIORITY = 680
 
 // S1474: "about this channel", one past INFO(495) so the window reads directly under the file details
 // wherever both are offered. Top-level like the two above, and necessarily so: an enum entry is
@@ -86,6 +95,36 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         FULLSCREEN(50, R.id.menu_fullscreen, true, R.string.fullscreen_mode, R.drawable.ic_fullscreen),
         SLIDESHOW(60, R.id.menu_slideshow, true, R.string.slideshow, R.drawable.ic_slideshow),
         RANDOM(70, R.id.menu_random, true, R.string.random_file_description, R.drawable.ic_random_nav),
+        FILE_GRID(FILE_GRID_PRIORITY, R.id.menu_file_grid, false, R.string.player_file_grid, R.drawable.ic_view_grid),
+        FILE_LIST(FILE_LIST_PRIORITY, R.id.menu_file_list, false, R.string.player_file_list, R.drawable.ic_view_list),
+        FILE_NUMBER(
+            FILE_NUMBER_PRIORITY,
+            R.id.menu_file_number,
+            false,
+            R.string.player_file_jump,
+            0
+        ),
+        FRAME_FORWARD(
+            FRAME_FORWARD_PRIORITY,
+            R.id.menu_frame_forward,
+            false,
+            R.string.player_frame_forward,
+            R.drawable.ic_skip_next
+        ),
+        FRAME_BACK(
+            FRAME_BACK_PRIORITY,
+            R.id.menu_frame_back,
+            false,
+            R.string.player_frame_back_unavailable,
+            R.drawable.ic_skip_previous
+        ),
+        AB_LOOP(
+            AB_LOOP_PRIORITY,
+            R.id.menu_ab_loop,
+            false,
+            R.string.player_loop_title,
+            R.drawable.ic_repeat_one
+        ),
 
         // ── Group 2 : current command-bar commands (priorities 200-499) ──────────────
 
@@ -311,6 +350,16 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             false,
             R.string.rotate_content_ccw_title,
             R.drawable.ic_rotate_90
+        ),
+
+        // S4325: in-app player help page (CONTEXT-HELP rule 3). Overflow-only at the bottom of the
+        // menu so phones without a hardware F1 key have a touch route to player help in every state.
+        HELP(
+            HELP_PRIORITY,
+            R.id.menu_help,
+            false,
+            R.string.help,
+            R.drawable.ic_help_outline
         );
 
         companion object {
@@ -339,7 +388,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
 
     /**
      * S0631's owner-approved subset for a playing channel, extracted from [buildActiveCommands] so that
-     * function stays inside its length budget. Composition unchanged.
+     * function stays inside its length budget. S4325 adds [PlayerCommand.HELP] at the bottom.
      */
     private fun liveVideoStreamCommands(
         state: PlayerViewModel.PlayerState,
@@ -353,6 +402,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         add(PlayerCommand.STREAM_INFO)
         if (state.showRotationToggle) add(PlayerCommand.ROTATION_TOGGLE)
         if (mediaCapabilities.supportsCast && isWifiConnected) add(PlayerCommand.CAST)
+        add(PlayerCommand.HELP)
     }.sortedBy { it.priority }
 
     /**
@@ -365,6 +415,13 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
      * @param showFavorite    Whether the Favorite button should be included (async setting).
      * @param showRandom      Whether the Random navigation button should be included.
      */
+    private fun videoKeyboardCommands(type: MediaType): List<PlayerCommand> =
+        if (type == MediaType.VIDEO) {
+            listOf(PlayerCommand.FRAME_FORWARD, PlayerCommand.FRAME_BACK, PlayerCommand.AB_LOOP)
+        } else {
+            emptyList()
+        }
+
     fun buildActiveCommands(
         state: PlayerViewModel.PlayerState,
         canWrite: Boolean,
@@ -376,6 +433,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         allowVrLaunch: Boolean = false,
     ): List<PlayerCommand> {
         val file = state.currentFile ?: return emptyList()
+        Timber.d("S4325: buildActiveCommands file=%s stream=%b", file.name, state.isLiveVideoStream)
 
         // S0631: live video stream profile. A stream is not a managed file, so delete/rename/edit-file/
         // copy/move/slideshow/favorite/sleep-timer etc. are inapplicable and hidden. Return only the
@@ -406,6 +464,10 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             add(PlayerCommand.SEND_TO)
             if (!isAudio && (isImage || isVideo || isPdf || isText || isEpub || isOffice)) add(PlayerCommand.FULLSCREEN)
             if (showRandom) add(PlayerCommand.RANDOM)
+            add(PlayerCommand.FILE_GRID)
+            add(PlayerCommand.FILE_LIST)
+            add(PlayerCommand.FILE_NUMBER)
+            addAll(videoKeyboardCommands(file.type))
 
             // ── Group 2 ──────────────────────────────────────────────────────────────
             if ((isAudio || isVideo) && state.showBlackScreenButton) add(PlayerCommand.BLACK_SCREEN)
@@ -477,6 +539,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             // (not audio, which has no frame). isVideo already excludes audio via the !isAudio guard.
             if (isImage || (isVideo && !isAudio)) add(PlayerCommand.ROTATE_CONTENT)
             if (isImage || (isVideo && !isAudio)) add(PlayerCommand.ROTATE_CONTENT_CCW)
+            add(PlayerCommand.HELP)
         }.sortedBy { it.priority }
     }
 

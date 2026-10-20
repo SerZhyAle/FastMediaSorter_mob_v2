@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "📖 Guides pratiques"
 permalink: /docs/HOW_TO-fr.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
@@ -15,8 +15,6 @@ Ce guide comporte désormais deux niveaux :
 
 - **Groupes de scénarios** pour des flux de travail réels plus riches et des combinaisons de fonctionnalités.
 - **Référence des tâches de base**, plus bas, pour des recettes directes portant sur une seule fonctionnalité.
-
-{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="fr" %}
 
 ---
 

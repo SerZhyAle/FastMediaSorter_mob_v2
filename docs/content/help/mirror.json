@@ -1,0 +1,186 @@
+{
+  "help": "mirror",
+  "surface": "MirrorActivity",
+  "elements": [
+    { "id": "preview", "viewId": "mirrorPreview" },
+    { "id": "glow-field", "viewId": "mirrorGlowField" },
+    { "id": "close", "viewId": "btnMirrorClose", "labelKey": "mirror_close_button" },
+    { "id": "backlight", "viewId": "btnMirrorBacklight", "labelKey": "mirror_backlight_button" },
+    { "id": "flip", "viewId": "btnMirrorFlip", "labelKey": "mirror_flip_button" },
+    { "id": "zoom", "viewId": "mirrorCornerBottomStart" },
+    { "id": "photo", "viewId": "btnMirrorPhoto", "labelKey": "mirror_photo_button" },
+    { "id": "video", "viewId": "btnMirrorVideo", "labelKey": "mirror_video_button" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "settings-operations" },
+    { "help": "front-flashlight" },
+    { "help": "camera-capture" },
+    { "pageId": "programs.built-in-mini-apps" },
+    { "pageId": "storage.capture-to-destination" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Mirror",
+      "purpose": "The mirror shows the front camera full screen inside a bright field that lights your face, like the lamp around a make-up mirror. Use it to check your face or hair, and to take a quick photo or video of yourself.",
+      "steps": [
+        "Open Mirror from the programs menu, the programs panel or a launcher shortcut. It is switched on by default on a phone with a front camera. The first time, allow the camera when asked. Your picture (1) appears inside the bright field (2).",
+        "Choose how close you want to be with the zoom buttons (6). The mirror opens at 2x the first time and afterwards at the step you used last.",
+        "Switch the bright field off and on with the Front flashlight button (4) if the light is too strong or you do not need it.",
+        "Press Flip image (5) to switch between the mirror view and the view other people have of you.",
+        "Take a photo with (7), or start and stop a video with (8). The first video asks for the microphone.",
+        "Press Close mirror (3) when you are done. The camera is released at once."
+      ],
+      "groups": [
+        { "title": "Picture and light", "elements": ["preview", "glow-field"] },
+        { "title": "Controls in the corners", "elements": ["close", "backlight", "flip", "zoom"] },
+        { "title": "Photo and video", "elements": ["photo", "video"] }
+      ],
+      "elements": {
+        "preview": {
+          "name": "Mirror picture",
+          "summary": "Your face from the front camera, shown the way a real mirror shows it.",
+          "details": "The front camera fills the screen. At first the picture is flipped sideways like a mirror, so left is left as you see yourself. The screen stays awake while the mirror is open.\n\nThe camera permission is asked on the first entry. If you refuse, the mirror closes with the message that it cannot open. On a device without a front camera it does not open at all."
+        },
+        "glow-field": {
+          "name": "Bright field",
+          "summary": "A white frame around the picture that lights your face.",
+          "details": "While the backlight is on, the window is raised to full brightness and the white field around the picture works like the lamp around a make-up mirror. Only the brightness of this window is raised, never the brightness setting of the phone. With the backlight off the field disappears and the window returns to the brightness your phone normally has."
+        },
+        "close": {
+          "summary": "Leaves the mirror and lets go of the camera.",
+          "details": "It sits in the top-left corner. If a video is being recorded, the recording is stopped and still saved. The zoom, the flip and the backlight are remembered for the next time."
+        },
+        "backlight": {
+          "summary": "Switches the bright white field on and off without leaving the screen.",
+          "details": "The field is on by default. With it on, the window is at full brightness and your face is lit; with it off, the screen around the picture is black and the phone uses its normal brightness. Your choice is remembered. The button carries the name of the Front flashlight program, because the field is the same idea: the screen as a lamp."
+        },
+        "flip": {
+          "summary": "Swaps between the mirror view and the view other people have of you.",
+          "details": "At first you see yourself as in a mirror, with left and right swapped. Press the button to see the picture the other way round, the way a camera shows you to others; press again to go back. Only what you see changes: photos and videos are saved as the camera captured them. The choice is remembered."
+        },
+        "zoom": {
+          "name": "Zoom presets",
+          "summary": "Four buttons, 1x, 2x, 3x and 5x, bring your face closer.",
+          "details": "The active step is shown in bold with inverted colors. The mirror opens at 2x the first time, and afterwards at the step you used last. On most front cameras every step above 1x is digital, so the picture gets coarser as the number grows. The zoom stays when you start a recording."
+        },
+        "photo": {
+          "summary": "Takes a photo of what the front camera sees.",
+          "details": "The photo is saved in the folder you chose for the photos of the in-app camera. If you chose none, or the chosen resource is not a folder on the device, it goes to the Camera folder of the phone. A short message confirms the save. The button is grayed out while a shot is being saved, so a double press does no harm. A photo taken with the phone on its side is saved the right way up."
+        },
+        "video": {
+          "summary": "Starts and stops a video recording from the front camera.",
+          "details": "The first press starts the recording and the button turns into a recording symbol; press it again to stop. The first recording asks for the microphone; if you refuse, the video is recorded without sound. After stopping, the button waits for a moment while the file is finished, and then a message confirms the save. The video goes to the folder chosen for video recording, or to the Camera folder of the phone when none is chosen or the chosen resource is not a folder on the device."
+        }
+      }
+    },
+    "ru": {
+      "title": "Зеркало",
+      "purpose": "Зеркало показывает фронтальную камеру на весь экран внутри яркого поля, которое освещает лицо, как лампа вокруг косметического зеркала. Пригодится, чтобы поправить лицо или причёску и быстро снять себя на фото или видео.",
+      "steps": [
+        "Откройте «Зеркало» из меню программ, с панели программ или ярлыком запуска. На телефоне с фронтальной камерой оно включено по умолчанию. В первый раз разрешите камеру, когда её спросят. Ваше изображение (1) появится внутри яркого поля (2).",
+        "Выберите, насколько приблизиться, кнопками увеличения (6). В первый раз зеркало открывается на 2x, потом - на последней ступени, которой вы пользовались.",
+        "Кнопкой «Фронтальный фонарик» (4) включайте и выключайте яркое поле, если свет слишком сильный или не нужен.",
+        "Кнопка «Отразить изображение» (5) переключает вид зеркала и вид, каким вас видят другие.",
+        "Сделайте фото кнопкой (7) или начните и остановите видео кнопкой (8). При первом видео будет запрошен микрофон.",
+        "Нажмите «Закрыть зеркало» (3), когда закончите. Камера освобождается сразу."
+      ],
+      "groups": [
+        { "title": "Изображение и свет", "elements": ["preview", "glow-field"] },
+        { "title": "Кнопки в углах", "elements": ["close", "backlight", "flip", "zoom"] },
+        { "title": "Фото и видео", "elements": ["photo", "video"] }
+      ],
+      "elements": {
+        "preview": {
+          "name": "Изображение зеркала",
+          "summary": "Ваше лицо с фронтальной камеры - так, как его показывает настоящее зеркало.",
+          "details": "Фронтальная камера занимает весь экран. Сначала изображение отражено по горизонтали, как в зеркале, так что левое для вас остаётся левым. Пока зеркало открыто, экран не гаснет.\n\nРазрешение на камеру спрашивается при первом входе. Если вы откажете, зеркало закроется с сообщением, что не может открыться. На устройстве без фронтальной камеры оно не откроется вовсе."
+        },
+        "glow-field": {
+          "name": "Яркое поле",
+          "summary": "Белая рамка вокруг изображения, подсвечивающая лицо.",
+          "details": "Пока подсветка включена, окно доводится до полной яркости, а белое поле вокруг изображения работает как лампа вокруг косметического зеркала. Повышается только яркость этого окна, а не настройка яркости телефона. Когда подсветка выключена, поле исчезает, и окно возвращается к привычной для телефона яркости."
+        },
+        "close": {
+          "summary": "Выходит из зеркала и отпускает камеру.",
+          "details": "Кнопка стоит в левом верхнем углу. Если идёт запись видео, она останавливается и всё равно сохраняется. Увеличение, отражение и подсветка запоминаются до следующего раза."
+        },
+        "backlight": {
+          "summary": "Включает и выключает яркое белое поле, не выходя с экрана.",
+          "details": "По умолчанию поле включено. Когда оно включено, окно светится на полную яркость, и лицо освещено; когда выключено, экран вокруг изображения чёрный, а телефон использует обычную яркость. Выбор запоминается. У кнопки такое же название, как у программы «Фронтальный фонарик», потому что поле - та же идея: экран как лампа."
+        },
+        "flip": {
+          "summary": "Переключает вид зеркала и вид, каким вас видят другие.",
+          "details": "Сначала вы видите себя как в зеркале, с поменянными местами левой и правой сторонами. Нажмите кнопку, чтобы увидеть изображение наоборот, так, как камера показывает вас другим; нажмите ещё раз, чтобы вернуться. Меняется только то, что вы видите: фото и видео сохраняются так, как их снимает камера. Выбор запоминается."
+        },
+        "zoom": {
+          "name": "Ступени увеличения",
+          "summary": "Четыре кнопки - 1x, 2x, 3x и 5x - приближают лицо.",
+          "details": "Активная ступень выделена жирным шрифтом и инвертированными цветами. В первый раз зеркало открывается на 2x, потом - на последней использованной ступени. На большинстве фронтальных камер все ступени выше 1x цифровые, поэтому с ростом числа изображение становится грубее. Увеличение сохраняется, когда вы начинаете запись."
+        },
+        "photo": {
+          "summary": "Снимает фото того, что видит фронтальная камера.",
+          "details": "Фото сохраняется в папку, которую вы выбрали для фото встроенной камеры. Если папка не выбрана или выбранный ресурс - не папка на устройстве, фото попадает в папку «Камера» телефона. Короткое сообщение подтверждает сохранение. Пока снимок сохраняется, кнопка неактивна, так что двойное нажатие не навредит. Фото, снятое с повёрнутым набок телефоном, сохраняется в правильной ориентации."
+        },
+        "video": {
+          "summary": "Начинает и останавливает запись видео с фронтальной камеры.",
+          "details": "Первое нажатие начинает запись, а кнопка превращается в значок записи; нажмите ещё раз, чтобы остановить. При первой записи спрашивается микрофон; если вы откажете, видео запишется без звука. После остановки кнопка на мгновение ждёт, пока файл будет завершён, а затем сообщение подтверждает сохранение. Видео попадает в папку, выбранную для записи видео, или в папку «Камера» телефона, если папка не выбрана или выбранный ресурс - не папка на устройстве."
+        }
+      }
+    },
+    "uk": {
+      "title": "Дзеркало",
+      "purpose": "Дзеркало показує фронтальну камеру на весь екран усередині яскравого поля, що освітлює обличчя, як лампа навколо косметичного дзеркала. Стане в пригоді, щоб поправити обличчя чи зачіску і швидко зняти себе на фото або відео.",
+      "steps": [
+        "Відкрийте «Дзеркало» з меню програм, із панелі програм або ярликом запуску. На телефоні з фронтальною камерою воно ввімкнене за замовчуванням. Уперше дозвольте камеру, коли її попросять. Ваше зображення (1) з'явиться всередині яскравого поля (2).",
+        "Виберіть, наскільки наблизитися, кнопками збільшення (6). Уперше дзеркало відкривається на 2x, потім - на останньому ступені, яким ви користувалися.",
+        "Кнопкою «Фронтальний ліхтарик» (4) вмикайте й вимикайте яскраве поле, якщо світло надто сильне або не потрібне.",
+        "Кнопка «Віддзеркалити зображення» (5) перемикає вигляд дзеркала і вигляд, яким вас бачать інші.",
+        "Зробіть фото кнопкою (7) або почніть і зупиніть відео кнопкою (8). Під час першого відео буде запитано мікрофон.",
+        "Натисніть «Закрити дзеркало» (3), коли закінчите. Камеру звільнено одразу."
+      ],
+      "groups": [
+        { "title": "Зображення і світло", "elements": ["preview", "glow-field"] },
+        { "title": "Кнопки в кутах", "elements": ["close", "backlight", "flip", "zoom"] },
+        { "title": "Фото і відео", "elements": ["photo", "video"] }
+      ],
+      "elements": {
+        "preview": {
+          "name": "Зображення дзеркала",
+          "summary": "Ваше обличчя з фронтальної камери - так, як його показує справжнє дзеркало.",
+          "details": "Фронтальна камера займає весь екран. Спершу зображення віддзеркалене по горизонталі, як у дзеркалі, тож ліве для вас залишається лівим. Поки дзеркало відкрите, екран не гасне.\n\nДозвіл на камеру запитується під час першого входу. Якщо ви відмовите, дзеркало закриється з повідомленням, що не може відкритися. На пристрої без фронтальної камери воно не відкриється зовсім."
+        },
+        "glow-field": {
+          "name": "Яскраве поле",
+          "summary": "Біла рамка навколо зображення, що підсвічує обличчя.",
+          "details": "Поки підсвічування ввімкнене, вікно доводиться до повної яскравості, а біле поле навколо зображення працює як лампа навколо косметичного дзеркала. Підвищується лише яскравість цього вікна, а не налаштування яскравості телефона. Коли підсвічування вимкнене, поле зникає, і вікно повертається до звичної для телефона яскравості."
+        },
+        "close": {
+          "summary": "Виходить із дзеркала й відпускає камеру.",
+          "details": "Кнопка стоїть у лівому верхньому куті. Якщо триває запис відео, його зупиняють, і він усе одно зберігається. Збільшення, віддзеркалення та підсвічування запам'ятовуються до наступного разу."
+        },
+        "backlight": {
+          "summary": "Вмикає й вимикає яскраве біле поле, не виходячи з екрана.",
+          "details": "За замовчуванням поле ввімкнене. Коли воно ввімкнене, вікно світить на повну яскравість, і обличчя освітлене; коли вимкнене, екран навколо зображення чорний, а телефон використовує звичайну яскравість. Вибір запам'ятовується. У кнопки така сама назва, як у програми «Фронтальний ліхтарик», бо поле - та сама ідея: екран як лампа."
+        },
+        "flip": {
+          "summary": "Перемикає вигляд дзеркала і вигляд, яким вас бачать інші.",
+          "details": "Спершу ви бачите себе як у дзеркалі, з поміняними місцями лівим і правим боками. Натисніть кнопку, щоб побачити зображення навпаки, так, як камера показує вас іншим; натисніть ще раз, щоб повернутися. Змінюється лише те, що ви бачите: фото й відео зберігаються так, як їх знімає камера. Вибір запам'ятовується."
+        },
+        "zoom": {
+          "name": "Ступені збільшення",
+          "summary": "Чотири кнопки - 1x, 2x, 3x і 5x - наближають обличчя.",
+          "details": "Активний ступінь виділено жирним шрифтом та інвертованими кольорами. Уперше дзеркало відкривається на 2x, потім - на останньому використаному ступені. На більшості фронтальних камер усі ступені вище за 1x цифрові, тож зі зростанням числа зображення стає грубішим. Збільшення зберігається, коли ви починаєте запис."
+        },
+        "photo": {
+          "summary": "Знімає фото того, що бачить фронтальна камера.",
+          "details": "Фото зберігається в теку, яку ви вибрали для фото вбудованої камери. Якщо теку не вибрано або вибраний ресурс - не тека на пристрої, фото потрапляє в теку «Камера» телефона. Коротке повідомлення підтверджує збереження. Поки знімок зберігається, кнопка неактивна, тож подвійне натискання не зашкодить. Фото, зняте з повернутим набік телефоном, зберігається в правильній орієнтації."
+        },
+        "video": {
+          "summary": "Починає й зупиняє запис відео з фронтальної камери.",
+          "details": "Перше натискання починає запис, а кнопка перетворюється на значок запису; натисніть ще раз, щоб зупинити. Під час першого запису запитується мікрофон; якщо ви відмовите, відео запишеться без звуку. Після зупинки кнопка на мить чекає, поки файл буде завершено, а потім повідомлення підтверджує збереження. Відео потрапляє в теку, вибрану для запису відео, або в теку «Камера» телефона, якщо теку не вибрано або вибраний ресурс - не тека на пристрої."
+        }
+      }
+    }
+  }
+}

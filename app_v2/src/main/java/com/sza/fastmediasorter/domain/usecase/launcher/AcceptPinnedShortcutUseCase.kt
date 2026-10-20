@@ -7,15 +7,15 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
-import com.sza.fastmediasorter.domain.repository.addCellInAppSection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
- * S1205: takes a pinned-shortcut request from another app and puts it on the launcher desktop, in the
- * Android apps section (S4088) - a shortcut is an app entry, and the first free slot sits inside the
- * Resources section on a seeded desktop.
+ * S1205: takes a pinned-shortcut request from another app and puts it on the launcher desktop.
+ *
+ * S4357: pinned shortcuts are placed outside sections ([LauncherDesktopRepository.addCellOutsideSections])
+ * rather than inside existing sections (like Resources or Apps), so they remain independent desktop shortcuts.
  *
  * A UseCase rather than work inside the receiving activity, for the reason
  * [PlaceHomeWidgetOnLauncherDesktopUseCase] gives: choosing the orientation, resolving that
@@ -67,7 +67,7 @@ class AcceptPinnedShortcutUseCase @Inject constructor(
             labelOverride = null,
             addedAt = addedAt,
         )
-        val placedId = desktopRepository.addCellInAppSection(cell, columns)
+        val placedId = desktopRepository.addCellOutsideSections(cell, columns)
         if (placedId != null) {
             revealLauncherSection(placedId, orientation)
         }

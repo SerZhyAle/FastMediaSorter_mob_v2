@@ -1,15 +1,13 @@
 ---
-layout: default
+layout: doc
 title: "Пошаговые сценарии - FastMediaSorter v2"
 permalink: /docs/howto/index-ru.html
 ---
-<sub class="doc-stamp">26.10.10 14:48</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Пошаговые сценарии
 
 Практические руководства для реальных задач. Предварительные знания не нужны - каждый шаг объяснён с нуля.
-
-{% include lang-switcher.html doc="index" dir="/docs/howto/" current="ru" %}
 
 > **Нужно полное руководство?** [Портал документации FastMediaSorter](../../documentation/index-ru.html) теперь основной справочник: все возможности, словарь, предметный указатель и поиск по всем страницам. Сценарии ниже остаются короткими инструкциями под конкретные задачи.
 

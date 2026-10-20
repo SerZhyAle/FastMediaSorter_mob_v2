@@ -17,7 +17,9 @@ import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.DestinationSlotResolver
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter.domain.usecase.SameFolderTransferPolicy
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -38,9 +40,13 @@ class DestinationButtonsManager(
     private val callback: DestinationButtonsCallback,
     // True when the user drives the UI with non-touch input (TV remote / D-pad / hardware keyboard) - then slots are numbered.
     private val shouldNumberSlots: () -> Boolean,
-    private val slotKeyGlyph: (slotIndex: Int) -> String?
+    // Glyph of the key bound to a slot command id; null falls back to the position digit in refreshSlotBadges.
+    private val slotKeyGlyph: (commandId: String) -> String?
 ) {
     private val safeViews = PlayerBindingSafeViews(root)
+
+    // Full ordered destination list (current resource included) the slot keys address - MEDIA-VIEWER rule 4.1.
+    private var cachedOrderedDestinations: List<MediaResource> = emptyList()
 
     // Cache settings to avoid repeated reads
     private var cachedCopyCollapsed: Boolean? = null
@@ -54,6 +60,9 @@ class DestinationButtonsManager(
         fun onMoveClicked(destination: MediaResource)
         fun onCustomPathPickerRequested(operationType: FileOperationType)
         fun getCurrentResourceId(): Long
+
+        /** Path of the file the panels act on; null when no file is open. Used by the same-folder slot refusal. */
+        fun getCurrentFilePath(): String?
         fun onUpdateCommandAvailability()
 
         /** Check whether destination panels may be shown right now (used to prevent overlay/fullscreen races). */
@@ -72,6 +81,7 @@ class DestinationButtonsManager(
             Timber.d("DestinationButtonsManager: coroutine STARTED for resourceId=$resourceId")
             try {
                 val allDestinations = getDestinationsUseCase().first()
+                cachedOrderedDestinations = allDestinations
                 Timber.d("DestinationButtonsManager: getDestinationsUseCase returned ${allDestinations.size} resources: ${allDestinations.map { "${it.id}:${it.name}" }}")
                 val destinations = allDestinations.filter { it.id != resourceId } // Exclude current resource
                 Timber.d("DestinationButtonsManager: After filtering (exclude resourceId=$resourceId): ${destinations.size} destinations")
@@ -367,7 +377,8 @@ class DestinationButtonsManager(
                 else -> destination.name.take(8) + ".."
             }
             text = shortName
-            tag = SlotLabelBase(shortName, null)
+            val slot = DestinationSlotResolver.slotOf(destination.id, cachedOrderedDestinations)
+            tag = SlotLabelBase(shortName, null, slot)
 
             // S0227: auto-size keeps long labels stable, while the computed cap lets wide buttons grow.
             val minAutoSizeSp = SP_MIN.toInt()
@@ -567,15 +578,30 @@ class DestinationButtonsManager(
     }
 
     /**
-     * Launch the [slotIndex]-th (1-based) button across the addressable Copy/Move groups, numbered continuously:
-     * Copy buttons come first, then Move buttons. So with both groups expanded, Copy gets 1..N and Move continues N+1..
-     * Returns false (silent no-op) when the slot is out of range (no addressable group, or fewer buttons than the slot).
+     * MEDIA-VIEWER rule 4.2: move the current file to global destination slot [slot] (digit keys). A slot
+     * names the same destination whichever panel is open or resource is open. The current resource itself
+     * and a slot folder that holds the current file are refused with an explanation (rule 4.4). An empty
+     * slot is a silent no-op returning false.
      */
-    fun triggerSlotInAddressableGroup(slotIndex: Int): Boolean {
-        val buttons = addressableButtons()
-        val button = buttons.getOrNull(slotIndex - 1)
-        button?.performClick()
-        return button != null
+    fun moveToSlot(slot: Int): Boolean = transferToSlot(slot, isCopy = false)
+
+    /** Copy variant of [moveToSlot], bound to the Shift+digit keys. */
+    fun copyToSlot(slot: Int): Boolean = transferToSlot(slot, isCopy = true)
+
+    private fun transferToSlot(slot: Int, isCopy: Boolean): Boolean {
+        Timber.d("S4362: transferToSlot slot=$slot copy=$isCopy")
+        val destination = DestinationSlotResolver.destinationFor(slot, cachedOrderedDestinations) ?: return false
+        val path = callback.getCurrentFilePath()
+        val hitsOwnResource = path != null && destination.id == callback.getCurrentResourceId()
+        val hitsOwnFolder = path != null && SameFolderTransferPolicy.isSameFolder(path, destination.path)
+        if (hitsOwnResource || hitsOwnFolder) {
+            Toast.makeText(root.context, R.string.msg_transfer_same_folder_refused, Toast.LENGTH_LONG).show()
+        } else if (isCopy) {
+            callback.onCopyClicked(destination)
+        } else {
+            callback.onMoveClicked(destination)
+        }
+        return true
     }
 
     /** Buttons of all addressable groups in one continuous visual order: Copy first, then Move (each only when shown, expanded, non-empty). */
@@ -597,22 +623,36 @@ class DestinationButtonsManager(
             }
         }
 
-    /** Original button label/description, stashed in the button tag so badges can be applied and cleared idempotently. */
-    private data class SlotLabelBase(val text: CharSequence, val description: CharSequence?)
+    /**
+     * Original button label/description plus its global destination slot (null on non-destination buttons),
+     * stashed in the button tag so badges can be applied and cleared idempotently.
+     */
+    private data class SlotLabelBase(val text: CharSequence, val description: CharSequence?, val slot: Int? = null)
 
     /**
-     * Number the addressable groups continuously when non-touch input is active (TV remote / D-pad / keyboard); clear all badges otherwise.
-     * The sequence is Copy buttons then Move buttons, so both expanded groups are reachable (Copy 1..N, Move N+1..).
-     * The glyph reflects the bound key ([slotKeyGlyph]); falls back to the position digit (1..9, 0 = slot 10). A collapsed group is skipped.
+     * Number the addressable groups when non-touch input is active (TV remote / D-pad / keyboard); clear all badges otherwise.
+     * Each button shows the key bound to its own global slot (MEDIA-VIEWER rule 4.2): Move buttons read
+     * `sorting.op_slot_<slot>`, Copy buttons `sorting.copy_slot_<slot>` with the Shift chord; the position
+     * digit is the fallback. A button past slot 10 or in a collapsed group carries no badge.
      */
     fun refreshSlotBadges() {
-        val numbered = if (shouldNumberSlots()) addressableButtons() else emptyList()
-        // Clear badges on every button first, then re-apply the continuous numbering to the addressable sequence.
-        listOf(safeViews.copyToButtonsGrid, safeViews.moveToButtonsGrid).forEach { grid ->
-            flattenButtons(grid).forEach { button -> if (button !in numbered) applyBadge(button, null) }
+        val numberable = if (shouldNumberSlots()) addressableButtons().toSet() else emptySet()
+        listOf(safeViews.copyToButtonsGrid to true, safeViews.moveToButtonsGrid to false).forEach { (grid, isCopy) ->
+            flattenButtons(grid).forEach { button ->
+                val slot = (button.tag as? SlotLabelBase)?.slot
+                val glyph = if (button in numberable) slot?.let { slotBadgeGlyph(it, isCopy) } else null
+                applyBadge(button, glyph)
+            }
         }
-        numbered.forEachIndexed { index, button ->
-            applyBadge(button, slotKeyGlyph(index + 1) ?: positionDigit(index + 1))
+    }
+
+    /** Badge of one slot: the bound key of its command, Shift-prefixed for Copy, the position digit as fallback. */
+    private fun slotBadgeGlyph(slot: Int, isCopy: Boolean): String? {
+        val commandId = if (isCopy) "sorting.copy_slot_$slot" else "sorting.op_slot_$slot"
+        val bound = slotKeyGlyph(commandId)
+        return when {
+            isCopy -> bound?.let { "⇧$it" } ?: positionDigit(slot)?.let { "⇧$it" }
+            else -> bound ?: positionDigit(slot)
         }
     }
 

@@ -43,7 +43,12 @@ data class ExchangeListedResource(
     val sourceKey: String,
     val record: SftpRendezvousResource,
     val online: Boolean,
+    /** Offline because Android paused its producer's sharing (DEVICE-EXCHANGE 26 item DC), not closed. */
+    val paused: Boolean = false,
 ) {
+
+    /** Why access that came through the server is not usable here (27 item DR); null when nothing is wrong. */
+    val sealNotice: ExchangeMessage? get() = record.sealIssue?.message
 
     val access: ExchangeResourceAccess
         get() = when {
@@ -72,7 +77,12 @@ data class ExchangeListedDevice(
     val broadcasts: List<ExchangeListedBroadcast>,
 ) {
 
-    val online: Boolean get() = device?.isOnline ?: resources.any(ExchangeListedResource::online)
+    // Item BD: a guest lists no device of the owner, and a granted broadcast's record exists only while it is live.
+    val online: Boolean
+        get() = device?.isOnline
+            ?: (resources.any(ExchangeListedResource::online) || broadcasts.any { it.record.grantId != null })
+
+    val paused: Boolean get() = !online && device?.isSharePaused == true
 }
 
 /** The account directory as section 9.1 shows it: grouped by device, this device's own records left out. */
@@ -185,7 +195,8 @@ object ExchangeDirectoryRules {
                 deviceId = deviceId,
                 device = device,
                 resources = resources[deviceId].orEmpty().map { record ->
-                    ExchangeListedResource(source.key, record, isOnline(record, device))
+                    val online = isOnline(record, device)
+                    ExchangeListedResource(source.key, record, online, !online && device?.isSharePaused == true)
                 },
                 broadcasts = broadcasts[deviceId].orEmpty().map { record ->
                     ExchangeListedBroadcast(source.key, record, record.mode in playableModes)

@@ -245,7 +245,11 @@ if (-not $Quiet -and $absentTargets.Count -gt 0) {
 }
 
 if ($untracked.Count -eq 0) {
-    if (-not $Quiet) {
+    if ($changedKeys.Count -gt 0 -and $candidates.Count -eq 0) {
+        . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+        Write-EmptySetPass -GateName 'assert-invoked-tracked'
+    }
+    elseif (-not $Quiet) {
         Write-Host 'assert-invoked-tracked: PASS - every judged invoked script target is in the git index.' -ForegroundColor Green
     }
     exit 0

@@ -62,7 +62,7 @@ foreach ($relPath in $targetScripts) {
 }
 
 Write-Host ""
-Write-Host "passed: $passed | failed: $failed"
+Write-Host "devtest-encoding.tests: $(if ($failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($passed + $failed) skipped=0)"
 
 if ($failed -gt 0) {
     exit 1

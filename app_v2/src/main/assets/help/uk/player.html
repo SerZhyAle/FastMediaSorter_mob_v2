@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="uk" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Довідка - Плеєр</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.19 16:18</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Зміст довідки">
+<a href="index.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Плеєр</span>
+</nav>
+<header class="hero">
+<h1>Плеєр</h1>
+</header>
+<h2>Для чого цей екран</h2>
+<p class="lead">Плеєр відкриває файл із браузера файлів: відтворює відео чи музику, показує фото, читає документ, книгу або текст. На цьому ж екрані є кнопки, щоб перейти до іншого файлу, розкласти поточний по теках і поділитися ним.</p>
+<figure class="shot">
+<img class="on-light" src="../img/player-uk-light.webp" alt="Плеєр">
+<img class="on-dark" src="../img/player-uk-dark.webp" alt="Плеєр">
+</figure>
+<h2>Порядок дій</h2>
+<ol class="order">
+<li>Відкрийте файл у браузері файлів. Відео починається на весь екран: торкніться картинки, щоб повернути кнопки, а кнопкою «На весь екран» <a class="ref" href="#fullscreen">13</a> перемикайтеся між самою картинкою та картинкою з панеллю команд.</li>
+<li>«Відтворити / пауза» <a class="ref" href="#play-pause">19</a> запускає й зупиняє відтворення; «Перемотати назад» <a class="ref" href="#rewind">18</a> і «Перемотати вперед» <a class="ref" href="#forward">20</a> стрибають на 10 секунд, а шкала <a class="ref" href="#seek-bar">15</a> переносить у будь-який момент.</li>
+<li>«Попередній файл» <a class="ref" href="#previous-file">17</a> і «Наступний файл» <a class="ref" href="#next-file">21</a> ідуть по папці в порядку браузера файлів; свайп ліворуч чи праворуч по картинці робить те саме. «Випадковий перехід» <a class="ref" href="#random">3</a> стрибає на будь-який файл.</li>
+<li>«Порядок відтворення» <a class="ref" href="#playback-order">16</a> обирає, що буде, коли файл закінчиться: повтор одного, цикл по списку, відтворення до кінця або перемішування.</li>
+<li>«Налаштування відтворення» <a class="ref" href="#playback-settings">22</a> - швидкість, гучність, звукова доріжка, субтитри й кольори.</li>
+<li>«Перейменувати» <a class="ref" href="#rename">9</a>, «Редагувати» <a class="ref" href="#edit">10</a>, «Видалити» <a class="ref" href="#delete">11</a> і «Поділитися» <a class="ref" href="#share">7</a> працюють із поточним файлом, «Скасувати» <a class="ref" href="#undo">12</a> повертає видалення чи переміщення, а «Обране» <a class="ref" href="#favorite">6</a> додає файл до обраного.</li>
+<li>«Ще» <a class="ref" href="#more-actions">14</a> відкриває меню з усім іншим для цього виду файлу: зберегти кадр, повернути, вивести на екран або перекласти. «Картинка в картинці» <a class="ref" href="#picture-in-picture">23</a> згортає відео в маленьке вікно, а пункт «Довідка» в меню або клавіша F1 відкриває цю сторінку.</li>
+</ol>
+<h2>Елементи</h2>
+<div class="elements">
+<h3>Панель команд</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Назад</span><span class="one">Закриває плеєр і повертає до списку файлів.</span></span></summary>
+<div class="full">
+<p>Кнопка «Назад» пристрою робить те саме. Торкання в лівому верхньому куті картинки теж.</p>
+</div>
+</details>
+<details class="el" id="previous">
+<summary><span class="mk">2</span><span><span class="name">Попередній</span><span class="one">Переходить до попереднього файлу папки.</span></span></summary>
+<div class="full">
+<p>Порядок такий самий, як у браузері файлів. Видалений чи переміщений файл уже зник зі списку, тож на нього ви не потрапите.</p>
+</div>
+</details>
+<details class="el" id="random">
+<summary><span class="mk">3</span><span><span class="name">Випадковий перехід</span><span class="one">Стрибає на випадковий файл папки.</span></span></summary>
+<div class="full">
+<p>Зручно для перемішаного прослуховування або щоб глянути на те, про що ви забули.</p>
+</div>
+</details>
+<details class="el" id="next">
+<summary><span class="mk">4</span><span><span class="name">Наступний</span><span class="one">Переходить до наступного файлу папки.</span></span></summary>
+<div class="full">
+<p>Порядок такий самий, як у браузері файлів. Свайп ліворуч по фото чи відео робить те саме.</p>
+</div>
+</details>
+<details class="el" id="slideshow">
+<summary><span class="mk">5</span><span><span class="name">Слайдшоу</span><span class="one">Запускає й зупиняє показ.</span></span></summary>
+<div class="full">
+<p>У режимі показу плеєр сам переходить до наступного файлу. Темп і оформлення налаштовуються в налаштуваннях, на вкладці «Медіа».</p>
+</div>
+</details>
+<details class="el" id="favorite">
+<summary><span class="mk">6</span><span><span class="name">Обране</span><span class="one">Додає файл до обраного або прибирає його звідти.</span></span></summary>
+<div class="full">
+<p>Усе позначене збирається в «Обраному» на головному екрані.</p>
+</div>
+</details>
+<details class="el" id="share">
+<summary><span class="mk">7</span><span><span class="name">Поділитися</span><span class="one">Надсилає файл в інший застосунок або людині.</span></span></summary>
+<div class="full">
+<p>Файл із мережевої чи хмарної папки спершу завантажується в тимчасову копію.</p>
+</div>
+</details>
+<details class="el" id="info">
+<summary><span class="mk">8</span><span><span class="name">Інформація про файл</span><span class="one">Показує, що застосунок знає про файл.</span></span></summary>
+<div class="full">
+<p>Розмір, повний шлях і, де це доречно, роздільна здатність або параметри зйомки.</p>
+</div>
+</details>
+<details class="el" id="rename">
+<summary><span class="mk">9</span><span><span class="name">Перейменувати</span><span class="one">Перейменовує поточний файл.</span></span></summary>
+<div class="full">
+<p>Діалог запитає нову назву.</p>
+</div>
+</details>
+<details class="el" id="edit">
+<summary><span class="mk">10</span><span><span class="name">Редагувати</span><span class="one">Відкриває інструменти редагування поточного файлу.</span></span></summary>
+<div class="full">
+<p>Що відкриється, залежить від виду файлу: налаштування відтворення для відео й музики, вікно редагування для фото, GIF або PDF.</p>
+</div>
+</details>
+<details class="el" id="delete">
+<summary><span class="mk">11</span><span><span class="name">Видалити</span><span class="one">Видаляє поточний файл після підтвердження.</span></span></summary>
+<div class="full">
+<p>Видалений файл одразу зникає зі списку.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>«Скасувати» повертає файл, поки застосунок ще пам’ятає операцію.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="undo">
+<summary><span class="mk">12</span><span><span class="name">Скасувати</span><span class="one">Повертає останнє видалення або переміщення.</span></span></summary>
+<div class="full">
+<p>Кнопка з’являється одразу після такої операції.</p>
+</div>
+</details>
+<details class="el" id="fullscreen">
+<summary><span class="mk">13</span><span><span class="name">На весь екран</span><span class="one">Ховає панель команд, щоб лишилася тільки картинка.</span></span></summary>
+<div class="full">
+<p>Щоб повернути панель, торкніться картинки або кнопки «Вийти з повноекранного режиму» в куті. Якщо повернути телефон набік, плеєр сам піде на весь екран, а якщо повернути вертикально, панель повернеться. Відео при цьому триває.</p>
+</div>
+</details>
+<details class="el" id="more-actions">
+<summary><span class="mk">14</span><span><span class="name">Ще</span><span class="one">Відкриває меню з рештою дій.</span></span></summary>
+<div class="full">
+<p>Кнопки, що не вмістилися, переїжджають сюди, тож нічого не зникає. Меню залежить від виду файлу: зберегти кадр відео, повернути чи обрізати фото, пошук, переклад і витягання тексту в документі чи книзі, текст пісні й таймер сну для музики, виведення на екран, друк і «Надіслати до..». Клавіша F1 відкриває цю сторінку; пункт «Довідка» в цьому меню - теж.</p>
+<p>Вибір файлу: G відкриває Мініатюри, F4 - Список файлів, N - Перейти до файлу. Нумерація починається з 1. Ці самі дії є в меню з трьома крапками. Якщо колекції немає, вікно пояснює недоступність переходів.</p>
+<p>Клавіші відео: крапка викликає Наступний кадр. Попередній кадр недоступний із поясненням, якщо декодер не підтримує крок назад. Shift+L задає A, потім B, потім вимикає повтор; B має бути після A. Межі показано до скасування, зміни файлу або зупинки вікна. Ці дії доступні й у меню.</p>
+<p>Клавіші слайд-шоу: S запускає показ. Повторне S скорочує поточний інтервал удвічі, але не нижче 1 секунди; I запускає випадковий порядок або перемикає на нього. Це працює й в окремому плеєрі, якщо в папці кілька файлів. Одиночне вікно пояснює обмеження.</p>
+</div>
+</details>
+<h3>Відтворення</h3>
+<details class="el" id="seek-bar">
+<summary><span class="mk">15</span><span><span class="name">Шкала часу</span><span class="one">Показує, як далеко просунувся файл, і дає змогу перейти в будь-який момент.</span></span></summary>
+<div class="full">
+<p>Потягніть повзунок або торкніться шкали. З обох боків від неї стоять час відтворення й довжина файлу.</p>
+</div>
+</details>
+<details class="el" id="playback-order">
+<summary><span class="mk">16</span><span><span class="name">Порядок відтворення</span><span class="one">Обирає, що буде, коли файл закінчиться.</span></span></summary>
+<div class="full">
+<p>«Повторювати один» грає той самий файл знову й знову. «По колу» після останнього файлу повертається до першого. «До кінця» зупиняється після останнього файлу. «Перемішати» грає у випадковому порядку.</p>
+</div>
+</details>
+<details class="el" id="previous-file">
+<summary><span class="mk">17</span><span><span class="name">Попередній файл</span><span class="one">Переходить до попереднього файлу папки.</span></span></summary>
+<div class="full">
+<p>Те саме, що «Попередній» на панелі команд, але ближче до великого пальця.</p>
+</div>
+</details>
+<details class="el" id="rewind">
+<summary><span class="mk">18</span><span><span class="name">Перемотати назад на 10 секунд</span><span class="one">Стрибає на 10 секунд назад.</span></span></summary>
+<div class="full">
+<p>Натисніть кілька разів, щоб повернутися ще далі.</p>
+</div>
+</details>
+<details class="el" id="play-pause">
+<summary><span class="mk">19</span><span><span class="name">Відтворити / пауза</span><span class="one">Запускає й ставить на паузу відтворення.</span></span></summary>
+<div class="full">
+<p>Для анімованої картинки, наприклад GIF, запускає й зупиняє анімацію. Плеєр пам’ятає, як далеко ви додивилися, тож той самий файл продовжиться звідти наступного разу.</p>
+</div>
+</details>
+<details class="el" id="forward">
+<summary><span class="mk">20</span><span><span class="name">Перемотати вперед на 10 секунд</span><span class="one">Стрибає на 10 секунд уперед.</span></span></summary>
+<div class="full">
+<p>Натисніть кілька разів, щоб пропустити довгу заставку.</p>
+</div>
+</details>
+<details class="el" id="next-file">
+<summary><span class="mk">21</span><span><span class="name">Наступний файл</span><span class="one">Переходить до наступного файлу папки.</span></span></summary>
+<div class="full">
+<p>Те саме, що «Наступний» на панелі команд, але ближче до великого пальця.</p>
+</div>
+</details>
+<details class="el" id="playback-settings">
+<summary><span class="mk">22</span><span><span class="name">Налаштування відтворення</span><span class="one">Відкриває вікно налаштувань відтворення.</span></span></summary>
+<div class="full">
+<p>Швидкість, зокрема дуже повільні 0,1x і 0,3x, гучність, яскравість, звукова доріжка, субтитри й кольори. У портретній орієнтації повзунки стоять вертикально, тож великий палець рухає їх знизу вгору.</p>
+</div>
+</details>
+<details class="el" id="picture-in-picture">
+<summary><span class="mk">23</span><span><span class="name">Картинка в картинці</span><span class="one">Згортає відео в маленьке вікно поверх інших застосунків.</span></span></summary>
+<div class="full">
+<p>Кнопка є у відео, якщо пристрій це підтримує.</p>
+</div>
+</details>
+</div>
+<h2>Пов'язане</h2>
+<ul class="related">
+<li><a href="browse.html"><b>Браузер файлів</b><span class="pill">Екран</span></a></li>
+<li><a href="settings-playback.html"><b>Налаштування: Плеєр</b><span class="pill">Екран</span></a></li>
+<li><a href="settings-media.html"><b>Налаштування: Медіа</b><span class="pill">Екран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/video-playback-controls-uk.html"><b>Watching Videos - Controls, Gestures and Saving Frames</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/subtitles-and-audio-tracks-uk.html"><b>Subtitles, Audio Tracks, Sound Balance and 3D</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/pip-and-background-play-uk.html"><b>Picture-in-Picture and Background Play</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="index.html"><b>Зміст довідки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-19</span>
+<a href="index.html">Зміст довідки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
+</footer>
+</main>
+</body>
+</html>

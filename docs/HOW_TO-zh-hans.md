@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "📖 操作指南"
 permalink: /docs/HOW_TO-zh-hans.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
@@ -15,8 +15,6 @@ permalink: /docs/HOW_TO-zh-hans.html
 
 - **场景分组**，介绍更丰富的真实使用场景和功能组合。
 - **核心任务参考**，位于下方，是针对单一功能的直接操作说明。
-
-{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="zh-Hans" %}
 
 ---
 

@@ -49,6 +49,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -64,6 +65,8 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
+import coil.decode.ImageDecoderDecoder
+import coil.request.ImageRequest
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
@@ -366,8 +369,14 @@ private fun ZoomableImage(
         offset = Offset.Zero
     }
 
+    // S4227: the platform decoder animates a GIF or a WebP here only; thumbnails keep their first frame.
+    val context = LocalContext.current
+    val uri = uiState.mediaFile?.uri
+    val request = remember(uri) {
+        ImageRequest.Builder(context).data(uri).decoderFactory(ImageDecoderDecoder.Factory()).build()
+    }
     AsyncImage(
-        model = uiState.mediaFile?.uri,
+        model = request,
         contentDescription = uiState.mediaFile?.name,
         modifier = Modifier
             .fillMaxSize()

@@ -9,7 +9,7 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityResourceEditorBinding
 import com.sza.fastmediasorter.domain.model.ResourceEditorMode
 import com.sza.fastmediasorter.domain.model.ResourceType
-import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
@@ -62,7 +62,7 @@ class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {
             (currentFocus as? android.widget.TextView)?.onCheckIsTextEditor() == true
         when {
             keyCode == KeyEvent.KEYCODE_F1 -> {
-                InputHelpDialogFragment.show(supportFragmentManager, UiSurface.RESOURCE_EDITOR)
+                HelpOpenManager.open(this, ResourceEditorActivity::class.java.simpleName, UiSurface.RESOURCE_EDITOR)
                 return true
             }
             keyCode == KeyEvent.KEYCODE_S && event?.isCtrlPressed == true -> {

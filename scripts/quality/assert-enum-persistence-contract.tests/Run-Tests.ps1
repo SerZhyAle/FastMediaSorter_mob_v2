@@ -336,7 +336,7 @@ class WatchStore {
         (($result.Text -match 'app_v2') -and ($result.Text -match 'wear')) $result.Text
 
     Write-Host ''
-    Write-Host "assert-enum-persistence-contract.tests: $script:pass passed, $script:fail failed."
+    Write-Host "assert-enum-persistence-contract.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 }
 finally {
     foreach ($root in $script:roots) {

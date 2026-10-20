@@ -86,4 +86,21 @@
     <string name="playback_control_no_balance">Mono-Audio - keine Kanäle zum Ausbalancieren</string>
     <string name="playback_control_balance_value">Balance: %1$s</string>
     <string name="playback_control_balance_description">Balance %1$d Prozent links, %2$d Prozent rechts</string>
+    <string name="player_file_grid">Miniaturansicht als Raster</string>
+    <string name="player_file_list">Dateiliste</string>
+    <string name="player_file_jump">Zur Datei springen</string>
+    <string name="player_file_number_hint">Dateinummer (1..%1$d)</string>
+    <string name="player_file_number_error">Geben Sie eine ganze Zahl von 1 bis %1$d ein.</string>
+    <string name="player_file_single">Nur diese Datei ist verfügbar.</string>
+    <string name="player_frame_unavailable">Bildweises Springen ist für dieses Video nicht verfügbar.</string>
+    <string name="player_frame_back_unavailable">Vorheriges Bild nicht verfügbar: Dieser Decoder kann nicht rückwärts springen.</string>
+    <string name="player_loop_title">A-B-Schleife</string>
+    <string name="player_loop_unavailable">A-B-Wiederholung erfordert ein Video, in dem Sie spulen können.</string>
+    <string name="player_loop_start">Schleifenanfang: %1$s. Wählen Sie den Endpunkt.</string>
+    <string name="player_loop_active">A-B-Wiederholung: %1$s bis %2$s</string>
+    <string name="player_loop_invalid_end">Wählen Sie einen Endpunkt nach dem Anfang.</string>
+    <string name="player_frame_forward">Nächstes Bild</string>
+    <string name="player_action_unavailable">Diese Aktion ist für diese Datei nicht verfügbar.</string>
+    <string name="player_audio_track_single">Keine weitere Tonspur verfügbar.</string>
+    <string name="player_frame_backward">Vorheriges Bild</string>
 </resources>

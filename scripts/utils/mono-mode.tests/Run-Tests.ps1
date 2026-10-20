@@ -69,8 +69,10 @@ function New-FixtureLease {
     return $path
 }
 
+$script:executed = 0
 function Assert-Case {
     param([string] $Name, [scriptblock] $Body)
+    $script:executed++
     try {
         $message = & $Body
         if ($message) {
@@ -128,8 +130,8 @@ finally {
 }
 
 if ($failures -gt 0) {
-    Write-Host "mono-mode tests: $failures case(s) failed." -ForegroundColor Red
+    Write-Host "mono-mode tests: $(if ($failures -gt 0) { 'FAIL' } else { 'PASS' }) (run=$script:executed skipped=0)"
     exit 1
 }
-Write-Host 'mono-mode tests: all cases passed.' -ForegroundColor Green
+Write-Host "mono-mode tests: $(if ($failures -gt 0) { 'FAIL' } else { 'PASS' }) (run=$script:executed skipped=0)"
 exit 0

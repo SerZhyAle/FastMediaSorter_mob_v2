@@ -4,6 +4,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.sza.fastmediasorter.data.security.e2e.E2eDeviceKey
 import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import com.sza.fastmediasorter.domain.model.SftpRendezvousPlayPair
@@ -59,6 +60,13 @@ object SftpRendezvousCodec {
     private const val KEY_MODE = "mode"
     private const val KEY_TRANSPORT = "transport"
     private const val KEY_PRESENCE = "presence"
+    private const val KEY_OFFLINE_REASON = "offlineReason"
+    private const val KEY_CAPABILITIES = "capabilities"
+    private const val KEY_SEALED_ACCESS = "sealedAccess"
+    private const val KEY_SEALED = "sealed"
+    private const val KEY_GRANT_ID = "grantId"
+    private const val KEY_E2E_VERSION = "v"
+    private const val KEY_E2E_KEM = "kem"
     private const val KEY_UPDATED_AT = "updatedAt"
     private const val KEY_RESOURCE_ID = "resourceId"
     private const val KEY_KIND = "kind"
@@ -68,6 +76,7 @@ object SftpRendezvousCodec {
     private const val KEY_ACCESS = "access"
     private const val KEY_DESCRIPTOR = "descriptor"
     private const val KEY_ROOT = "root"
+    private const val KEY_HOST_KEY_FINGERPRINT = "hostKeyFingerprint"
     private const val KEY_SHARE_ID = "shareId"
     private const val KEY_PUBLIC_PORT = "publicPort"
     private const val KEY_BROADCAST_ID = "broadcastId"
@@ -78,6 +87,7 @@ object SftpRendezvousCodec {
     private const val KEY_ACTION = "action"
 
     private val KNOWN_PRESENCE = setOf(SftpRendezvousDevice.PRESENCE_ONLINE, SftpRendezvousDevice.PRESENCE_OFFLINE)
+    private val KNOWN_OFFLINE_REASONS = setOf(SftpRendezvousDevice.OFFLINE_REASON_TIME_LIMIT)
 
     /** The section 8.1 file name of the record of [type] keyed by [id]: `fmsx-<type>-<id>.json`. */
     fun fileName(type: String, id: String): String = filePrefix(type) + id + FILE_SUFFIX
@@ -165,8 +175,21 @@ object SftpRendezvousCodec {
         device.productVersion?.let { addProperty(KEY_PRODUCT_VERSION, it) }
         device.platform?.let { addProperty(KEY_PLATFORM, it) }
         add(KEY_ROLES, stringArray(device.roles))
+        // Both absent unless declared, so the records the rung 1 vectors freeze keep their byte form.
+        if (device.capabilities.isNotEmpty()) add(KEY_CAPABILITIES, stringArray(device.capabilities))
         device.receiver?.let { add(KEY_RECEIVER, receiverBody(it)) }
+        device.e2eKem?.let { kem ->
+            add(
+                E2eDeviceKey.KEY_E2E_KEY,
+                JsonObject().apply {
+                    addProperty(KEY_E2E_VERSION, E2eDeviceKey.VERSION)
+                    addProperty(KEY_E2E_KEM, kem)
+                },
+            )
+        }
         addProperty(KEY_PRESENCE, device.presence)
+        // Absent unless offline, so every record without a reason keeps the byte form the rung 1 vectors freeze.
+        device.offlineReason?.takeIf { !device.isOnline }?.let { addProperty(KEY_OFFLINE_REASON, it) }
         addProperty(KEY_UPDATED_AT, Iso8601Utc.format(device.updatedAtMs))
     }
 
@@ -212,8 +235,13 @@ object SftpRendezvousCodec {
                 }
             )
         }
+        resource.sealedAccess?.takeIf { open }?.let { add(KEY_SEALED_ACCESS, JsonParser.parseString(it)) }
         resource.shareId?.takeIf { open }?.let { addProperty(KEY_SHARE_ID, it) }
         resource.publicPort?.takeIf { open }?.let { addProperty(KEY_PUBLIC_PORT, it) }
+        // Item BA: identities, not secrets - written whatever the lock, last, so a record without them keeps the
+        // byte form the rung 1 vectors freeze.
+        resource.hostKeyFingerprint?.let { addProperty(KEY_HOST_KEY_FINGERPRINT, it) }
+        resource.identityRoot?.let { addProperty(KEY_ROOT, it) }
     }
 
     private fun broadcastBody(broadcast: SftpRendezvousBroadcast) = JsonObject().apply {
@@ -224,6 +252,7 @@ object SftpRendezvousCodec {
         broadcast.startedAtMs?.let { addProperty(KEY_STARTED_AT, Iso8601Utc.format(it)) }
         addProperty(KEY_UPDATED_AT, Iso8601Utc.format(broadcast.updatedAtMs))
         add(KEY_DESCRIPTOR, JsonParser.parseString(broadcast.descriptorJson))
+        broadcast.sealed?.let { add(KEY_SEALED, JsonParser.parseString(it)) }
     }
 
     private fun requestBody(request: SftpRendezvousRequest) = JsonObject().apply {
@@ -237,6 +266,10 @@ object SftpRendezvousCodec {
         val name = body.string(KEY_DEVICE_NAME)
         val product = body.string(KEY_PRODUCT)
         if (deviceId.isNullOrBlank() || name == null || product.isNullOrBlank()) return null
+        val presence = body.presence()
+        // 26 item DC: an unknown value, or one beside `online`, reads as no reason at all.
+        val offlineReason = body.string(KEY_OFFLINE_REASON)
+            ?.takeIf { it in KNOWN_OFFLINE_REASONS && presence == SftpRendezvousDevice.PRESENCE_OFFLINE }
         return SftpRendezvousDevice(
             deviceId = deviceId,
             deviceName = name,
@@ -244,11 +277,14 @@ object SftpRendezvousCodec {
             productVersion = body.string(KEY_PRODUCT_VERSION),
             platform = body.string(KEY_PLATFORM),
             roles = body.strings(KEY_ROLES),
-            presence = body.presence(),
+            presence = presence,
             updatedAtMs = body.string(KEY_UPDATED_AT)?.let(Iso8601Utc::parse) ?: writtenAt,
             writtenAtMs = writtenAt,
             ttlSeconds = ttl,
             receiver = (body.get(KEY_RECEIVER) as? JsonObject)?.let(::decodeReceiver),
+            offlineReason = offlineReason,
+            capabilities = body.strings(KEY_CAPABILITIES),
+            e2eKem = E2eDeviceKey.kemOf(body.get(E2eDeviceKey.KEY_E2E_KEY)),
         )
     }
 
@@ -295,6 +331,12 @@ object SftpRendezvousCodec {
             publicPort = body.long(KEY_PUBLIC_PORT)?.takeIf { open && it in 1..MAX_PORT }?.toInt(),
             root = access?.string(KEY_ROOT)?.takeIf { descriptor != null && it.isNotBlank() },
             presence = body.get(KEY_PRESENCE)?.let { body.presence() },
+            hostKeyFingerprint = body.string(KEY_HOST_KEY_FINGERPRINT)?.takeIf(String::isNotBlank),
+            identityRoot = body.string(KEY_ROOT)?.takeIf(String::isNotBlank),
+            // A granted record carries its box as `sealed` (27 item DJ), a published one as `sealedAccess` (item DI).
+            sealedAccess = ((body.get(KEY_SEALED_ACCESS) ?: body.get(KEY_SEALED)) as? JsonObject)
+                ?.takeIf { open }?.toString(),
+            grantId = body.string(KEY_GRANT_ID)?.takeIf(String::isNotBlank),
         )
     }
 
@@ -314,6 +356,8 @@ object SftpRendezvousCodec {
             descriptorJson = descriptor.toString(),
             writtenAtMs = writtenAt,
             ttlSeconds = ttl,
+            sealed = (body.get(KEY_SEALED) as? JsonObject)?.toString(),
+            grantId = body.string(KEY_GRANT_ID)?.takeIf(String::isNotBlank),
         )
     }
 

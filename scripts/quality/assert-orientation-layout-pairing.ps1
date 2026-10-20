@@ -65,6 +65,7 @@ $exceptionsPath = Join-Path $PSScriptRoot 'orientation-layout-pairing-exceptions
 
 if (-not (Test-Path -LiteralPath $srcRoot)) {
     Write-Error "assert-orientation-layout-pairing: source root not found: $srcRoot" -ErrorAction Continue
+    Write-Host "assert-orientation-layout-pairing: COULD NOT VERIFY (source root not found: $srcRoot)"
     exit 2
 }
 
@@ -119,6 +120,7 @@ foreach ($dir in $layoutDirs) {
 $manifests = @(Get-ChildItem -Path $srcRoot -Recurse -Filter 'AndroidManifest.xml' -File -ErrorAction SilentlyContinue)
 if ($manifests.Count -eq 0) {
     Write-Error "assert-orientation-layout-pairing: no AndroidManifest.xml found under $srcRoot" -ErrorAction Continue
+    Write-Host "assert-orientation-layout-pairing: COULD NOT VERIFY (no AndroidManifest.xml found under $srcRoot)"
     exit 2
 }
 
@@ -180,11 +182,13 @@ foreach ($f in $findings) { Write-Host $f }
 if ($Gate) {
     if ($findings.Count -gt 0) {
         Write-Host ("FAIL: {0} activit(ies) absorb orientation while owning a landscape layout" -f $findings.Count) -ForegroundColor Red
+        Write-Host ("assert-orientation-layout-pairing: FAIL ({0} activit(ies) absorb orientation while owning a landscape layout)" -f $findings.Count)
         exit 1
     }
-    Write-Host "assert-orientation-layout-pairing: OK - no absorption/landscape pair" -ForegroundColor Green
+    Write-Host "assert-orientation-layout-pairing: PASS (no absorption/landscape pair)" -ForegroundColor Green
     exit 0
 }
 
 Write-Host ("assert-orientation-layout-pairing: {0} activit(ies) absorb orientation while owning a landscape layout (report mode)" -f $findings.Count)
+Write-Host ("assert-orientation-layout-pairing: PASS (report mode, -Gate not set; {0} activit(ies) listed above)" -f $findings.Count)
 exit 0

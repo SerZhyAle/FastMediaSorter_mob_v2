@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "আপনার ওয়াচে মিউজিক শুনুন - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music-bn.html
 ---
-<sub class="doc-stamp">26.09.25 02:21</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-music-bn.html
 > **স্তর:** শিক্ষানবিস &bull; **সময়:** ~৫ মিনিট &bull; **ডিভাইস:** Wear OS স্মার্টওয়াচ (অ্যান্ড্রয়েড ফোনের সাথে পেয়ার করা)
 
 > **শুধু ফুল ভার্সনে** - এই গাইডটা Google Play-এর মাধ্যমে বিতরণ করা সংস্করণে বাস্তবায়িত নেই। এটা ফুল ভার্সনের জন্য প্রযোজ্য, যা [Downloads](../DOWNLOADS.md) থেকে সরাসরি APK ডাউনলোড।
-
-{% include lang-switcher.html doc="scenario-watch-music" dir="/docs/howto/" current="bn" %}
 
 FastMediaSorter আপনাকে সরাসরি আপনার Wear OS স্মার্টওয়াচ থেকে মিউজিক সংগ্রহ ব্রাউজ করতে এবং বাজাতে দেয়। আপনি আপনার পেয়ার করা ফোন থেকে শেয়ার করা ট্র্যাক স্ট্রিম করতে পারেন বা ওয়াচে সংরক্ষিত স্থানীয় অডিও ফাইল বাজাতে পারেন, কভার আর্টওয়ার্ক, শাফল, রোটারি বেজেল ভলিউম কন্ট্রোল, অ্যাপ ছাড়ার পরও টিকে থাকা ব্যাকগ্রাউন্ড প্লেব্যাক, এবং ডিসপ্লে অন্ধকার রেখে মিউজিক চালু রাখা একটা স্ক্রিন-অফ মোডসহ।
 

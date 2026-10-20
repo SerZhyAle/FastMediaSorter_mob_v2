@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4237: ICON-SET content.invitation - a ticket with a notch on each side and a perforation of three squares. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+    <path
+        android:fillColor="@android:color/white"
+        android:fillType="evenOdd"
+        android:pathData="M4,5h16a2,2 0,0 1,2 2v3a2,2 0,0 0,0 4v3a2,2 0,0 1,-2 2H4a2,2 0,0 1,-2 -2v-3a2,2 0,0 0,0 -4V7a2,2 0,0 1,2 -2zM11,7h2v2h-2zM11,11h2v2h-2zM11,15h2v2h-2z" />
+</vector>

@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Guías Paso a Paso - FastMediaSorter v2"
 permalink: /docs/howto/index-es.html
 ---
-<sub class="doc-stamp">26.09.25 02:11</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="es" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_book.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Guías Paso a Paso
 
 Recorridos prácticos para casos de uso reales. No necesitas experiencia previa - cada paso se explica desde cero.
-
-{% include lang-switcher.html doc="index" dir="/docs/howto/" current="es" %}
 
 ---
 

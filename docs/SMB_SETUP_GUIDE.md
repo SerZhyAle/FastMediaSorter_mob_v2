@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "SMB Network Storage Setup Guide"
 permalink: /docs/SMB_SETUP_GUIDE.html
 ---
-<sub class="doc-stamp">26.03.18 00:24</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # SMB Network Storage Setup Guide
 

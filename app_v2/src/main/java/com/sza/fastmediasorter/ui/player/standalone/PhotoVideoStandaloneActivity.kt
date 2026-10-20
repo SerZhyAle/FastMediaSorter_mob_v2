@@ -70,6 +70,7 @@ import com.sza.fastmediasorter.ui.player.print.PrintDispatchActivity
 import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.UserActionLogger
+import com.sza.fastmediasorter.utils.applyTopSystemBarInsetMargin
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.Lazy
@@ -564,6 +565,7 @@ class PhotoVideoStandaloneActivity :
                     customPathPicker.launch(operationType)
                 }
                 override fun getCurrentResourceId(): Long = -1L
+                override fun getCurrentFilePath(): String? = viewModel.state.value.mediaFile?.path
                 override fun onUpdateCommandAvailability() { /* panels are self-managed in standalone */ }
                 override fun shouldShowDestinationPanels(): Boolean =
                     viewModel.state.value.mediaFile != null && !destinationPanelsSuppressed
@@ -626,6 +628,9 @@ class PhotoVideoStandaloneActivity :
             }
         }
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
+        // S4305: this host keeps the status bar visible (S0920) and the media area runs under it once the
+        // command panel is hidden, so the exit overlay needs the bar's height as extra top margin.
+        btnFullscreenExit.applyTopSystemBarInsetMargin()
     }
 
     private fun setupCloseButton() {
@@ -769,8 +774,15 @@ class PhotoVideoStandaloneActivity :
             popup.menu.findItem(R.id.menu_youtube_music).isVisible = false // audio host only
             popup.menu.findItem(R.id.menu_lyrics).isVisible = false // audio host only
             popup.menu.findItem(R.id.menu_playback_speed).isVisible = false // audio host (video uses the control dialog)
+            viewerCommands.populateMenu(popup.menu)
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
+                    R.id.menu_file_grid,
+                    R.id.menu_file_list,
+                    R.id.menu_file_number,
+                    R.id.menu_frame_forward,
+                    R.id.menu_frame_back,
+                    R.id.menu_ab_loop -> viewerCommands.handleMenu(item.itemId)
                     R.id.menu_open_in_fms -> {
                         fileOperations.openInFms()
                         true
@@ -857,6 +869,16 @@ class PhotoVideoStandaloneActivity :
     }
 
     // S0393: unified onto the shared StandaloneKeyboardManager (was PhotoVideoStandaloneKeyboardManager).
+    private val viewerCommands by lazy {
+        com.sza.fastmediasorter.ui.player.standalone.helpers.StandaloneViewerCommandManager(
+            host = this,
+            viewModel = viewModel,
+            getPlayer = { viewManager.getPlayer(viewModel.state.value.mediaType) },
+            applyRotation = { viewManager.setContentRotationDegrees(it) },
+
+        )
+    }
+
     private fun setupKeyboardHandler() {
         keyboardHandler = StandaloneKeyboardManager(
             keyBindingManager = keyBindingManager,
@@ -880,13 +902,10 @@ class PhotoVideoStandaloneActivity :
                 updateFullscreenExitButtonVisibility()
             },
             onToggleRotationSensor = { viewModel.toggleRotationSensor() },
-            onShowHelp = {
-                com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.show(
-                    supportFragmentManager,
-                    com.sza.fastmediasorter.ui.common.input.UiSurface.PLAYER
-                )
-            },
-        ).handler
+            onShowHelp = { com.sza.fastmediasorter.ui.player.helpers.PlayerHelpEntryManager.open(this) },
+        ).also {
+            it.viewerCommands = viewerCommands
+        }.handler.also { it.textInputFocused = { currentFocus?.onCheckIsTextEditor() == true } }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {

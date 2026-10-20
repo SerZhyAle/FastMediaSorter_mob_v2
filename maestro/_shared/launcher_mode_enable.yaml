@@ -3,18 +3,28 @@ appId: com.sza.fastmediasorter.debug
 # S2720: turn launcher mode on and leave the caller back on General -> Interface with
 # rowLauncherSettings active. Precondition: _shared/settings_open_interface.yaml has just run.
 #
+# S4254: the enable toggle no longer exists (S3024 replaced it with the rowLauncherPrimaryWindow
+# dropdown). Choosing "Device home screen" there is the enable path: GeneralSettingsLauncherHelper
+# applies the choice and launches the system ROLE_HOME request in the same step.
+#
 # rowLauncherSettings is enabled off state.homeRoleHeld, NOT off the enabled HOME component
-# (GeneralSettingsLauncherHelper.refreshState -> updateOpenRowEnabled). So tapping the toggle is only
+# (GeneralSettingsLauncherHelper.refreshState -> updateOpenRowEnabled). So choosing the option is only
 # half the job: it enables the component and launches the system ROLE_HOME request, and if that
 # request is left unanswered the next onResume finds !homeRoleHeld && modeEnabled, disables the
-# component again and clears the switch. That is the whole of the original failure - the toggle tap
-# reported COMPLETED and the scroll to rowLauncherSettings then timed out with the mode still off.
+# component again and clears the selection. That is the whole of the original failure.
 #
-# Two properties of the system dialog, both measured on emulator-5554 2026-09-08:
-#  - Confirming needs the candidate row selected FIRST. A lone tap on android:id/button1 left the
-#    dialog standing and the role with the previous launcher.
-#  - The candidate list carries no per-row id, only a repeated title_and_subtitle; the requesting app
-#    is row 0 and the current default follows it.
+# The system dialog comes in two shapes, and the candidate step is needed only for the list shape:
+# Two shapes of the system dialog:
+#  - List shape: confirming needs the requesting app's row selected FIRST. A lone tap on
+#    android:id/button1 left the dialog standing and the role with the previous launcher. The rows
+#    share one id (title_and_subtitle) and their position is not stable - on test phone SM-G996U1
+#    (Android 15, 2026-10-15) the current default sits in row 0 - so the row is picked by the app
+#    label, which is the same brand name in every locale. The system cuts the label to
+#    "Fast Media Sorter & Orga" plus an ellipsis in the dialog (measured on the Pixel_9 AVD, API 35,
+#    2026-10-17), so the row is matched by that exact text: the Oracle convention forbids a regex
+#    selector (maestro/WRITING_TESTS.md). The dialog title carries the same cut label inside a longer
+#    sentence, so the exact match never hits the title.
+#  - Question shape: "Make <app> the default home app?" with button1 only; the row step is skipped.
 # Ids are used rather than labels because this dialog is rendered in the DEVICE locale, which is not
 # the app locale the rest of the suite matches against.
 #
@@ -31,20 +41,41 @@ appId: com.sza.fastmediasorter.debug
         enabled: true
     commands:
       - tapOn:
-          id: "com.sza.fastmediasorter.debug:id/rowLauncherModeEnabled"
+          id: "com.sza.fastmediasorter.debug:id/rowLauncherPrimaryWindow"
+      # The option list is a ListPopupWindow of simple_list_item_1 rows, and the device-home row is
+      # always the first one (choicesFor lists HOME_SCREEN first). Matched by position, not by label,
+      # because the app runs in Russian and the label differs per locale.
+      - extendedWaitUntil:
+          visible:
+            id: "android:id/text1"
+          timeout: 10000
+      - tapOn:
+          id: "android:id/text1"
+          index: 0
       - extendedWaitUntil:
           visible:
             id: "android:id/button1"
           timeout: 15000
-      - tapOn:
-          id: "com.android.permissioncontroller:id/title_and_subtitle"
-          index: 0
+      # The row list animates in after the dialog appears; a `when` evaluated before it settles reads
+      # "no list" and skips the pick, leaving the role with the previous launcher.
+      - waitForAnimationToEnd
+      - runFlow:
+          when:
+            visible:
+              text: "Fast Media Sorter & Orga…"
+          commands:
+            - tapOn:
+                text: "Fast Media Sorter & Orga…"
       - tapOn:
           id: "android:id/button1"
       - waitForAnimationToEnd
       - launchApp:
           appId: "com.sza.fastmediasorter.debug"
       - waitForAnimationToEnd
+      # Once the role is granted the app's own desktop (LauncherHomeActivity) is the foreground and
+      # the relaunch above only brings that task forward, so btnSettings is not in the tree.
+      # settings_open_interface.yaml needs MainActivity, which go_home.yaml reaches from there.
+      - runFlow: go_home.yaml
       - runFlow: settings_open_interface.yaml
 
 # Scroll rather than assert in place: the row sits below the Interface header and may be off-screen

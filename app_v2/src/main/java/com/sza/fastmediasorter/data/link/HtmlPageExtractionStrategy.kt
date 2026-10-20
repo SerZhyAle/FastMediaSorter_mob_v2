@@ -461,7 +461,7 @@ class HtmlPageExtractionStrategy @Inject constructor(
         const val IG_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 
         val LOGIN_MARKERS = listOf("login", "signin", "auth")
-        val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "avif")
+        val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "avif", "jxl")
     }
 }
 

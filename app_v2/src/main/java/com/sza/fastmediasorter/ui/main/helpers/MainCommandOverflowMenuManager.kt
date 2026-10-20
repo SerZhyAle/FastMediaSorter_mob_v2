@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.main.helpers
 
 import androidx.appcompat.widget.PopupMenu
 import com.google.android.material.button.MaterialButton
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
 
 /**
@@ -22,7 +23,8 @@ class MainCommandOverflowMenuManager(
     fun populate(popup: PopupMenu): Int {
         var added = 0
         chrome.commandLabels.forEach { (viewId, titleRes) ->
-            if (chrome.isOverflowed(viewId)) {
+            // S4288: the menu always carries its own Help item, so an evicted "?" must not add a second one.
+            if (chrome.isOverflowed(viewId) && viewId != R.id.btnHelp) {
                 // Icon read live off the button: btnToggleView swaps between grid and list art, and a
                 // second copy of that mapping here would show the stale one.
                 popup.menu.add(MENU_GROUP, viewId, MENU_ORDER, titleRes).icon = commandView(viewId)?.icon

@@ -4,6 +4,7 @@ import android.app.RemoteInput
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Bitmap
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ScrollState
@@ -304,12 +305,16 @@ private fun rememberChannelClick(
     navController: NavController
 ): (WearStreamChannel) -> Unit {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val unplayable = stringResource(R.string.wear_stream_broadcast_unplayable)
     var job by remember { mutableStateOf<Job?>(null) }
     return { channel ->
         if (job?.isActive != true) {
             job = scope.launch {
                 val target = viewModel.prepareStreamPlayback(channel)
-                if (target.isVideo) {
+                if (target.unplayable) {
+                    Toast.makeText(context, unplayable, Toast.LENGTH_SHORT).show()
+                } else if (target.isVideo) {
                     navController.navigate(WearRoutes.videoPlayer(target.fileId))
                 } else {
                     navController.navigate(WearRoutes.audioPlayer(target.fileId))

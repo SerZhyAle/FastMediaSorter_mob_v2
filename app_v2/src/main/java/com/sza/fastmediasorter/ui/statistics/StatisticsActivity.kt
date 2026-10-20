@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.statistics
 
+import android.view.Menu
 import android.view.View
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
@@ -49,6 +50,12 @@ class StatisticsActivity : BaseActivity<ActivityStatisticsBinding>() {
         ActivityStatisticsBinding.inflate(layoutInflater)
 
     override fun getMouseScrollTargetView(): View = binding.rvStatistics
+
+    // S4328: the "?" help action rides the support action bar; BaseActivity routes its click.
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_help_action, menu)
+        return true
+    }
 
     override fun setupViews() {
         setSupportActionBar(binding.toolbar)

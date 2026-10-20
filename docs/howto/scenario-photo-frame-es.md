@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Marco de Fotos Digital en Tablet - FastMediaSorter v2"
 permalink: /docs/howto/scenario-photo-frame-es.html
 ---
-<sub class="doc-stamp">26.09.25 02:16</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="es" dir="ltr" markdown="1">
 
 # 🖼️ Marco de Fotos Digital en Tablet
 
 > **Nivel:** Principiante &bull; **Tiempo:** ~15 minutos &bull; **Edición:** Standard, Photos, Legacy, VR, noLegal (para fotos en NAS/nube) o cualquier edición (para fotos locales)
-
-{% include lang-switcher.html doc="scenario-photo-frame" dir="/docs/howto/" current="es" %}
 
 Convierte cualquier tablet Android en un hermoso marco de fotos digital siempre encendido - transmitiendo tus recuerdos desde un NAS de casa o la nube, con música de fondo opcional. Cero almacenamiento local usado.
 

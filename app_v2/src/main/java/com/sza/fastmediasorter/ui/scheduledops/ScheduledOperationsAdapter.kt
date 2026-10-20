@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.domain.model.ScheduledRunStatus
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import dagger.hilt.android.EntryPointAccessors
 
@@ -21,6 +22,7 @@ class ScheduledOperationsAdapter(
     private val onEdit: (ScheduledOperation) -> Unit,
     private val onDelete: (ScheduledOperation) -> Unit,
     private val onRunNow: (ScheduledOperation) -> Unit,
+    private val onHistory: (ScheduledOperation) -> Unit,
     private val resourceNameProvider: (Long?) -> String?
 ) : ListAdapter<ScheduledOperation, ScheduledOperationsAdapter.ViewHolder>(DiffCallback) {
 
@@ -71,8 +73,16 @@ class ScheduledOperationsAdapter(
                     ?: ctx.getString(R.string.scheduled_op_unknown_resource)
             }
 
-            // Error badge
-            b.tvErrorBadge.isVisible = op.lastRunStatus != null && op.lastRunStatus.startsWith("ERROR")
+            // Warning badge: stays until a run succeeds. It is also the only mark on a device that
+            // withheld the notification permission, so a skipped run explains itself in its description.
+            b.tvErrorBadge.isVisible = ScheduledRunStatus.needsAttention(op.lastRunStatus)
+            b.tvErrorBadge.contentDescription = ctx.getString(
+                if (op.lastRunStatus?.startsWith(ScheduledRunStatus.SKIPPED_PREFIX) == true) {
+                    R.string.scheduled_op_badge_skipped
+                } else {
+                    R.string.scheduled_op_badge_error
+                }
+            )
 
             // Schedule info
             val hh = op.startTimeHour.toString().padStart(2, '0')
@@ -106,6 +116,7 @@ class ScheduledOperationsAdapter(
             } ?: ctx.getString(R.string.scheduled_op_last_success_never)
 
             // Buttons
+            b.btnHistory.setOnClickListener { onHistory(op) }
             b.btnRunNow.setOnClickListener { onRunNow(op) }
             b.btnEdit.setOnClickListener { onEdit(op) }
             b.btnDelete.setOnClickListener { onDelete(op) }

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.data.exchange
 
+import com.sza.fastmediasorter.wear.domain.model.WearExchangeMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -53,6 +54,11 @@ class WearExchangeControlStreams @Inject constructor(
 
     private val mutableLive = MutableStateFlow<Map<String, WearExchangeLiveStream>>(emptyMap())
     val live: StateFlow<Map<String, WearExchangeLiveStream>> = mutableLive.asStateFlow()
+
+    private val mutableFailures = MutableStateFlow<Map<String, WearExchangeMessage>>(emptyMap())
+
+    /** The last failure of each entry's stream, cleared once it is served again; the account list shows it. */
+    val failures: StateFlow<Map<String, WearExchangeMessage>> = mutableFailures.asStateFlow()
 
     private val sessions = ConcurrentHashMap<String, WearExchangeSession>()
     private val generations = AtomicLong()
@@ -109,14 +115,21 @@ class WearExchangeControlStreams @Inject constructor(
         val session = try {
             opener.open(entry, WearExchangeKeepalive.KEEPALIVE_SECONDS, WearExchangeConnector.NO_READ_TIMEOUT)
         } catch (e: IOException) {
-            return openFailure(e)
+            return openFailure(entry.identity, e)
         }
         // Released while the connect was in flight: the read below would otherwise block on a stream nobody wants.
         if (!currentCoroutineContext().isActive) session.close()
         return serve(entry.identity, session)
     }
 
-    private fun openFailure(failure: IOException): Outcome = when (failure) {
+    private fun openFailure(identity: String, failure: IOException): Outcome {
+        val message = WearExchangeFailureClassifier.of(failure)
+        mutableFailures.update { it + (identity to message) }
+        Timber.i("WearExchangeControlStreams: stream did not open, code=%s", message.code)
+        return openOutcome(failure)
+    }
+
+    private fun openOutcome(failure: IOException): Outcome = when (failure) {
         is WearExchangeNotEnrolledException -> Outcome.TERMINAL
         is WearExchangeRefusedException -> {
             Timber.w("WearExchangeControlStreams: refused (%s)", failure.reason)
@@ -133,11 +146,11 @@ class WearExchangeControlStreams @Inject constructor(
     }
 
     private suspend fun serve(identity: String, session: WearExchangeSession): Outcome = coroutineScope {
-        Timber.d("S4194: control stream welcomed by the exchange server")
         val generation = generations.incrementAndGet()
         sessions[identity] = session
         val stream = WearExchangeLiveStream(identity, generation, session.welcome.publicEndpoint)
         mutableLive.update { it + (identity to stream) }
+        mutableFailures.update { it - identity }
         val lastHeard = AtomicLong(nowMs())
         val intervalMs = WearExchangeKeepalive.intervalMs(session.welcome.keepaliveSeconds)
         val keepalive = launch { keepalive(session, intervalMs, lastHeard) }

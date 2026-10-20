@@ -43,6 +43,26 @@ function ConvertTo-DocumentationShell {
         param($match)
         return $match.Groups[1].Value + $themeBody + '</button>'
     })
+    # Footer scope (PAGE-CONTENT 1.5, SITE-FAMILY-MAP 1.5, SITE-STRUCTURE 0.3, S4366): a portal page
+    # footer carries the Support page, the one contact and the hub. Rewritten on every pass, so a
+    # generator keeps no copy of its own and a re-run never doubles the links.
+    $Html = [regex]::Replace($Html, '\r?\n[ \t]*<a [^>]*data-footer-contact[^>]*>[^<]*</a>', '')
+    $eol = if ($Html.Contains("`r`n")) { "`r`n" } else { "`n" }
+    $supportLabels = @{ en = 'Support'; ru = 'Поддержка'; uk = 'Підтримка' }
+    $supportFile = if ($locale -eq 'en') { 'SUPPORT.html' } else { "SUPPORT-$locale.html" }
+    $depth = ([regex]::Matches($RelativePath.Replace('\', '/'), '/')).Count
+    $supportHref = ('../' * ($depth + 1)) + 'docs/' + $supportFile
+    $Html = [regex]::Replace($Html, '(?s)(<div class="doc-footer-links">.*?)(\r?\n)([ \t]*)</div>', {
+        param($match)
+        $indent = $match.Groups[3].Value + '    '
+        $links = @(
+            "<a href=`"$supportHref`" data-footer-contact>$($supportLabels[$locale])</a>",
+            '<a href="mailto:sza@ukr.net" data-footer-contact>sza@ukr.net</a>',
+            '<a href="https://sza.od.ua" data-footer-contact>sza.od.ua</a>'
+        )
+        $block = ($links | ForEach-Object { $eol + $indent + $_ }) -join ''
+        return $match.Groups[1].Value + $block + $match.Groups[2].Value + $match.Groups[3].Value + '</div>'
+    }, 1)
     # Localized navigation stays on its matching translated page, including sidebar and footer links.
     $Html = [regex]::Replace($Html, '<a\b[^>]*href="([^"?#]+\.html)([?#][^"]*)?"[^>]*>', {
         param($match)

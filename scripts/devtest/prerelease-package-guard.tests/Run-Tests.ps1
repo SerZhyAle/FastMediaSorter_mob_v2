@@ -158,6 +158,6 @@ try {
 }
 
 Write-Host ""
-Write-Host ("prerelease-package-guard: {0} passed, {1} failed" -f $script:passed, $script:failed)
+Write-Host "prerelease-package-guard: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"
 if ($script:failed -gt 0) { exit 1 }
 exit 0

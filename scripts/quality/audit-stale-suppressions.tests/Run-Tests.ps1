@@ -213,6 +213,6 @@ try {
 }
 
 Write-Host ''
-Write-Host "audit-stale-suppressions tests: $script:pass passed, $script:fail failed"
+Write-Host "audit-stale-suppressions tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

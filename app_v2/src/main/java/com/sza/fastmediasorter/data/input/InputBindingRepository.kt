@@ -58,28 +58,23 @@ class InputBindingRepository @Inject constructor(
         dao.deleteAll()
     }
 
-    suspend fun hasOverrides(): Boolean = dao.hasAny()
-
-    suspend fun insertAllAsOverrides(bindings: List<InputBinding>) {
-        // One transaction so a kill mid-seed can't leave a partial override set: a partial apply would
-        // flip hasOverrides() to true permanently and skip the startup seed (AppStartupInitializer).
-        db.withTransaction {
-            bindings.forEach { binding ->
-                val device = when (binding.trigger) {
-                    is InputTrigger.Key -> "keyboard"
-                    is InputTrigger.MouseButton -> "mouse"
-                    is InputTrigger.GamepadButton, is InputTrigger.GamepadAxis -> "gamepad"
-                    is InputTrigger.VrEvent -> "vr"
-                }
-                dao.upsert(InputBindingEntity(
-                    commandId = binding.commandId,
-                    device = device,
-                    slot = 0,
-                    trigger = binding.trigger.serialize(),
-                    updatedAt = System.currentTimeMillis()
-                ))
-            }
+    /**
+     * Deletes a seed an older build wrote as override rows, but only while every seed row is still the only
+     * row of its command and device and holds its seed trigger: seed and remap rows look alike, so one user
+     * change keeps the whole set. Returns true when the seed was removed.
+     */
+    suspend fun removeUntouchedSeed(seed: List<InputBinding>): Boolean = db.withTransaction {
+        // The snapshot and deletes share a transaction so a concurrent remap cannot be erased.
+        val rows = dao.getAll()
+        val untouched = seed.isNotEmpty() && seed.all { binding ->
+            val device = deviceOf(binding.trigger)
+            val own = rows.filter { it.commandId == binding.commandId && it.device == device }
+            own.size == 1 && own[0].slot == 0 && own[0].trigger == binding.trigger.serialize()
         }
+        if (untouched) {
+            seed.forEach { dao.deleteByCommandAndDevice(it.commandId, deviceOf(it.trigger)) }
+        }
+        untouched
     }
 
     private fun merge(

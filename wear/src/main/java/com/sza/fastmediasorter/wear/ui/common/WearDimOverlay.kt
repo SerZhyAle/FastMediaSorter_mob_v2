@@ -183,7 +183,6 @@ internal fun WearDimOverlay(onExit: () -> Unit) {
                     onTap = { point ->
                         tapMark = point
                         tapClock = formatTapClock(clockFormatter, unitSystem)
-                        Timber.d("S4139: dim sheet tap shows clock")
                         val azimuth = heading?.takeIf { it.isTrustworthy }?.azimuthDegrees
                             ?: (Random.nextFloat() * FULL_CIRCLE_DEGREES)
                         sparkNorthAzimuthDegrees = (FULL_CIRCLE_DEGREES - azimuth) % FULL_CIRCLE_DEGREES
@@ -280,7 +279,6 @@ private fun DimSheetBrightnessEffect(context: Context, isTapResponseRunning: () 
             snapshotFlow { isTapResponseRunning() }
                 .distinctUntilChanged()
                 .collect { lit ->
-                    Timber.d("S4139: dim sheet brightness lit=$lit")
                     window.setScreenBrightness(
                         if (lit) MAX_BRIGHTNESS else WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF
                     )

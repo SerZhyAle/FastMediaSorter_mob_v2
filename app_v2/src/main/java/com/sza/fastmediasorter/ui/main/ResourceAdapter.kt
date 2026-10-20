@@ -16,6 +16,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
@@ -275,12 +276,18 @@ class ResourceAdapter(
         /** Above this the tile stops printing an exact number and says "over a thousand" instead. */
         private const val FILE_COUNT_SHOWN_EXACTLY_BELOW = 1000
 
+        /** Joins a file count to the type badge that says which types the count covers. */
+        private const val COUNT_BADGE_SEPARATOR = " - "
+
         /**
          * S2369: a bare count is a claim about the whole folder. A resource read through the
          * permission-narrowed provider cannot see its documents, so printing the number alone would
          * present a partial listing as a complete one - the tile has to name what the number covers.
          * Where the narrowing leaves no readable type at all, as on the "all documents" aggregate,
          * there is no honest number to print and the tile says so instead of showing a zero.
+         *
+         * S4354: the types the number covers are named by the same coloured badge the row's type column
+         * uses, not by a sentence, so a half-width row keeps the wording short in every language.
          */
         fun formatFileCount(context: android.content.Context, resource: MediaResource): CharSequence {
             val exact = when {
@@ -296,7 +303,9 @@ class ResourceAdapter(
             return when {
                 !LimitedStorageReach.isReachLimited(context, resource) -> exact
                 reachable.isEmpty() -> context.getString(R.string.reach_limited_nothing_readable)
-                else -> context.getString(R.string.file_count_reach_limited, exact)
+                else -> SpannableStringBuilder(exact)
+                    .append(COUNT_BADGE_SEPARATOR)
+                    .append(formatMediaTypes(context, reachable, allFiles = false))
             }
         }
 
@@ -447,6 +456,24 @@ class ResourceAdapter(
     private var isGridMode: Boolean = false
     private var useCompactElements: Boolean = false
     private var selectedResourceId: Long? = null
+    private var attachedRecyclerView: RecyclerView? = null
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        attachedRecyclerView = recyclerView
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        if (attachedRecyclerView === recyclerView) attachedRecyclerView = null
+        super.onDetachedFromRecyclerView(recyclerView)
+    }
+
+    /**
+     * S4354: the layout manager is the only owner of the column count and it changes on rotation and on
+     * the cell-size step, so the row asks it at bind time instead of keeping a copy that could go stale.
+     */
+    private fun isMultiColumnList(): Boolean =
+        (attachedRecyclerView?.layoutManager as? GridLayoutManager)?.let { it.spanCount > 1 } == true
 
     /** Optional drag listener; when non-null, drag handles become visible. */
     var dragStartListener: DragStartListener? = null
@@ -748,6 +775,13 @@ class ResourceAdapter(
                     tvResourceName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 18f)
                     tvResourcePath.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13f)
                     tvResourceComment.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                }
+                if (isMultiColumnList()) {
+                    // Half-width cells wrap the address one character per line at the regular size.
+                    tvResourcePath.setTextSize(
+                        android.util.TypedValue.COMPLEX_UNIT_PX,
+                        root.resources.getDimension(R.dimen.item_detail_text_size_tiny)
+                    )
                 }
 
                 tvResourcePath.text = displayPath(resource)

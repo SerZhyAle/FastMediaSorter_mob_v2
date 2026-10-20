@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.BadParcelableException
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
@@ -41,6 +42,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.content.ContextCompat
@@ -133,6 +135,8 @@ import com.sza.fastmediasorter.wear.ui.common.testlaunch.WearTestLaunchOverride
 import com.sza.fastmediasorter.wear.ui.common.testlaunch.WearTestLaunchOverrideReader
 import com.sza.fastmediasorter.wear.ui.common.testlaunch.rememberWearTestScreenMetrics
 import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
+import com.sza.fastmediasorter.wear.ui.exchange.WearAccountBroadcastsScreen
+import com.sza.fastmediasorter.wear.ui.exchange.WearAccountFoldersScreen
 import com.sza.fastmediasorter.wear.ui.exchange.WearExchangeServersScreen
 import com.sza.fastmediasorter.wear.ui.favourites.FavouritesScreen
 import com.sza.fastmediasorter.wear.ui.fdsec.FdSecCredentialScreen
@@ -1097,7 +1101,23 @@ private fun NavGraphBuilder.settingsRoutes(
     }
 
     composable(SettingsRoutes.EXCHANGE_SERVERS) {
-        WearExchangeServersScreen()
+        WearExchangeServersScreen(
+            onOpenBroadcasts = { navController.navigate(SettingsRoutes.EXCHANGE_BROADCASTS) },
+            onOpenFolders = { entry ->
+                navController.navigate(SettingsRoutes.exchangeAccountFolders(entry.identity))
+            },
+        )
+    }
+
+    composable(SettingsRoutes.EXCHANGE_BROADCASTS) {
+        WearAccountBroadcastsScreen(navController = navController)
+    }
+
+    composable(
+        route = SettingsRoutes.EXCHANGE_ACCOUNT_FOLDERS,
+        arguments = listOf(navArgument(SettingsRoutes.ARG_EXCHANGE_ENTRY) { type = NavType.StringType }),
+    ) {
+        WearAccountFoldersScreen()
     }
 
     composable(SettingsRoutes.ABOUT) {
@@ -1120,10 +1140,17 @@ private fun OpenStreamOnWatchEffect(
     prepareStreamPlayback: PrepareWearStreamPlaybackUseCase,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
+    val unplayable = stringResource(R.string.wear_stream_broadcast_unplayable)
     LaunchedEffect(navController) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             WatchStreamOpenEvents.requestFlow.collect { channel ->
                 val target = prepareStreamPlayback(channel)
+                if (target.unplayable) {
+                    // No "opened" confirmation: nothing plays, so the phone must not say it is playing.
+                    Toast.makeText(context, unplayable, Toast.LENGTH_SHORT).show()
+                    return@collect
+                }
                 val route = if (target.isVideo) {
                     WearRoutes.videoPlayer(target.fileId)
                 } else {
@@ -1715,7 +1742,6 @@ private fun TouristRoute(navController: NavHostController) {
     TouristScreen(
         onLaunchSos = { navigateGuarded(navController, WearRoutes.SOS) },
         onLaunchStopwatch = {
-            Timber.d("S4186: stopwatch tile launched from wear tourist")
             navigateGuarded(navController, WearRoutes.STOPWATCH)
         },
         onLaunchCounter = { navigateGuarded(navController, WearRoutes.TOURIST_COUNTER) },

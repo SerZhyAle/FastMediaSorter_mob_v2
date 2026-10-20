@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "Ouça Música no Seu Relógio - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music-pt.html
 ---
-<sub class="doc-stamp">26.09.25 02:20</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-music-pt.html
 > **Nível:** Iniciante &bull; **Tempo:** ~5 minutos &bull; **Dispositivo:** Smartwatch Wear OS (pareado com celular Android)
 
 > **Somente na versão completa** - este guia não está implementado na versão distribuída pelo Google Play. Ele se aplica à versão completa, um download direto do APK em [Downloads](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="scenario-watch-music" dir="/docs/howto/" current="pt" %}
 
 O FastMediaSorter permite navegar e tocar sua coleção de música diretamente do seu smartwatch Wear OS. Você pode transmitir faixas compartilhadas do celular pareado ou tocar arquivos de áudio locais armazenados no relógio, com capa do álbum, modo aleatório, controle de volume pela coroa giratória, reprodução em segundo plano que sobrevive ao sair do app, e um modo de tela apagada que mantém a música tocando com a tela escura.
 

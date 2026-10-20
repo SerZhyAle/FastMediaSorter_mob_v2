@@ -2,13 +2,26 @@ package com.sza.fastmediasorter.wear.ui.apps.clipboard
 
 import android.content.ClipboardManager
 import android.content.Context
+import android.text.format.DateUtils
+import android.text.format.Formatter
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.data.wear.WatchFileOpenEvents
+import com.sza.fastmediasorter.wear.domain.model.WearOpenInTarget
+import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardReceiveReport
+import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardValue
 import com.sza.fastmediasorter.wear.domain.repository.WearClipboardTextOutcome
+import com.sza.fastmediasorter.wear.domain.repository.WearServerClipboardRepository
+import com.sza.fastmediasorter.wear.domain.usecase.BuildWearServerClipboardOpenInObjectUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.GetWearServerClipboardUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.LaunchWearOpenInUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.ListWearOpenInTargetsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.SendWearClipboardTextUseCase
+import com.sza.fastmediasorter.wear.ui.apps.clipboard.helpers.ClipboardOpenInManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,16 +40,122 @@ import javax.inject.Inject
 @HiltViewModel
 class ClipboardViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val sendWearClipboardText: SendWearClipboardTextUseCase
+    private val sendWearClipboardText: SendWearClipboardTextUseCase,
+    private val getServerClipboard: GetWearServerClipboardUseCase,
+    private val serverClipboard: WearServerClipboardRepository,
+    listOpenInTargets: ListWearOpenInTargetsUseCase,
+    launchOpenIn: LaunchWearOpenInUseCase,
+    buildServerOpenInObject: BuildWearServerClipboardOpenInObjectUseCase,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(ClipboardUiState())
     val uiState: StateFlow<ClipboardUiState> = state.asStateFlow()
 
+    private val openIn = ClipboardOpenInManager(
+        scope = viewModelScope,
+        listTargets = listOpenInTargets,
+        launchOpenIn = launchOpenIn,
+        buildServerObject = buildServerOpenInObject,
+        update = { change -> state.update(change) },
+    )
+
     private var clipboardText: String = ""
+
+    private var getJob: Job? = null
 
     init {
         refresh()
+        viewModelScope.launch {
+            serverClipboard.hasEligibleEntry.collect { eligible -> updateServer { it.copy(available = eligible) } }
+        }
+        refreshServerState()
+    }
+
+    /**
+     * S4227: fetches the latest value of the clipboard on the server, saves it on the watch and opens it through
+     * the route a file from the phone takes (strategic ADR-3). A second tap while one runs is ignored. Leaving
+     * the screen cancels it like [cancelGet]: the job lives in [viewModelScope], and a cancelled transfer places
+     * nothing (strategic goal 5).
+     */
+    fun getFromServer() {
+        Timber.d("S4227: get clipboard from the server tapped")
+        if (state.value.server.receiving) {
+            return
+        }
+        openIn.forgetReceived()
+        updateServer { it.copy(receiving = true, progressPercent = 0, outcomeRes = null, skipped = null) }
+        getJob = viewModelScope.launch {
+            try {
+                val result = getServerClipboard { received, total -> showProgress(received, total) }
+                Timber.i("Server clipboard get: %s", result.report::class.java.simpleName)
+                updateServer { shown ->
+                    ServerClipboardResultMapper.map(result, shown) { Formatter.formatShortFileSize(context, it) }
+                }
+                result.openRequest?.let { WatchFileOpenEvents.requestFlow.emit(it) }
+                (result.report as? WearServerClipboardReceiveReport.Received)?.let {
+                    showStored(it.value)
+                    openIn.rememberReceived(it.value, it.saved)
+                }
+            } finally {
+                updateServer { it.copy(receiving = false) }
+            }
+        }
+    }
+
+    /**
+     * S4381: opens the system clipboard text in an application the wearer picks. The text is read again first, as
+     * [sendToPhone] does, so the list is built for what the clipboard holds now.
+     */
+    fun openInClipboard() {
+        Timber.d("S4381: open in tapped for the watch clipboard text")
+        if (state.value.openIn != null) {
+            return
+        }
+        refresh()
+        if (clipboardText.isBlank()) {
+            state.update { shown -> shown.copy(outcomeRes = R.string.wear_clipboard_empty, outcomeArg = null) }
+        } else {
+            openIn.openText(clipboardText)
+        }
+    }
+
+    /** S4381: opens the value received from the server on this visit in an application the wearer picks. */
+    fun openInServerValue() {
+        Timber.d("S4381: open in tapped for the received server value")
+        openIn.openReceived()
+    }
+
+    fun pickOpenIn(target: WearOpenInTarget) = openIn.pick(target)
+
+    fun dismissOpenIn() = openIn.dismiss()
+
+    fun cancelGet() {
+        getJob?.cancel()
+        updateServer { it.copy(outcomeRes = R.string.wear_file_op_outcome_cancelled, showDetailsLine = false) }
+    }
+
+    private fun refreshServerState() {
+        viewModelScope.launch {
+            serverClipboard.latestState()?.let(::showStored)
+        }
+    }
+
+    private fun showStored(value: WearServerClipboardValue) {
+        val stamp = value.storedAtMillis?.let {
+            DateUtils.formatDateTime(context, it, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME)
+        }
+        updateServer { it.copy(stateWhen = stamp, stateFrom = value.sourceDeviceName) }
+    }
+
+    private fun showProgress(received: Long, total: Long) {
+        val percent = if (total > 0) (received * PERCENT / total).toInt() else 0
+        if (percent != state.value.server.progressPercent) {
+            updateServer { it.copy(progressPercent = percent) }
+        }
+    }
+
+    private fun updateServer(change: (ServerClipboardUiState) -> ServerClipboardUiState) {
+        state.update { shown -> shown.copy(server = change(shown.server)) }
     }
 
     /** Re-reads the clipboard, so the preview shows what a send would actually carry. */
@@ -108,5 +227,6 @@ class ClipboardViewModel @Inject constructor(
     private companion object {
         const val PREVIEW_LENGTH = 80
         const val PREVIEW_ELLIPSIS = ".."
+        const val PERCENT = 100L
     }
 }

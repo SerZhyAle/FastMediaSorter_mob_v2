@@ -16,10 +16,10 @@ package com.sza.fastmediasorter.domain.ocr
  * when fragment length >= 3.
  *
  * Threshold derivation status (S1717):
- * - [INHERITED] MIN_CONFIDENCE = 30f (pending S1716 accuracy corpus measurement).
+ * - [INHERITED] MIN_CONFIDENCE = 30f (pending S2065 accuracy corpus measurement).
  * - [INHERITED] MIN_TEXT_LENGTH = 3 (for non-CJK text; CJK text allows min 1 char).
  * - [INHERITED] MAX_SPECIAL_TO_LETTER_RATIO = 0.5f (used as ratio bound in translatability check).
- * - [INHERITED] MIN_BOX_WIDTH = 20, MIN_BOX_HEIGHT = 10 (pending S1716 line-relative height derivation, ADR-3).
+ * - [INHERITED] MIN_BOX_WIDTH = 20, MIN_BOX_HEIGHT = 10 (pending S2065 line-relative height derivation, ADR-3).
  */
 object OcrBlockFilter {
 

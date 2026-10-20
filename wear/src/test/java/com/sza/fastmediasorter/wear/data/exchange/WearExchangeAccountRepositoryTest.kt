@@ -21,12 +21,12 @@ class WearExchangeAccountRepositoryTest {
     private val store = MemoryStore()
     private val client = mockk<WearExchangeAccountClient>()
     private val profile = WearExchangeDeviceProfile("Galaxy Watch", "2.6.0")
-    private val repository = WearExchangeAccountRepository(client, store, profile)
+    private val repository = WearExchangeAccountRepository(client, store, profile, FakeWearExchangeE2eStore())
 
     @Test
     fun `the first entry is enrolled with a fresh id, stored with its token and made outgoing`() = runBlocking {
         val sent = slot<WearExchangeEntry>()
-        every { client.enroll(capture(sent), CODE, profile) } returns WearExchangeEnrollResult.Enrolled(TOKEN)
+        every { client.enroll(capture(sent), CODE, profile, any()) } returns WearExchangeEnrollResult.Enrolled(TOKEN)
 
         val result = repository.enroll(join())
 
@@ -39,11 +39,22 @@ class WearExchangeAccountRepositoryTest {
     }
 
     @Test
+    fun `the key handed over beside the leaf is enrolled with and kept`() = runBlocking {
+        val sent = slot<WearExchangeEntry>()
+        every { client.enroll(capture(sent), CODE, profile, any()) } returns WearExchangeEnrollResult.Enrolled(TOKEN)
+
+        repository.enroll(join().copy(pinnedKey = KEY))
+
+        assertEquals(KEY, sent.captured.pinnedKey)
+        assertEquals(KEY, store.all().single().pinnedKey)
+    }
+
+    @Test
     fun `the same identity re-enrolls with its id and keeps its mark`() = runBlocking {
         store.put(WearExchangeEntry(HOST, PORT, "OWNER", HELD_ID, null, outgoing = false))
         store.put(WearExchangeEntry("other.example.net", PORT, LOGIN, "BBBB", null, outgoing = true))
         val sent = slot<WearExchangeEntry>()
-        every { client.enroll(capture(sent), CODE, profile) } returns WearExchangeEnrollResult.Enrolled(TOKEN)
+        every { client.enroll(capture(sent), CODE, profile, any()) } returns WearExchangeEnrollResult.Enrolled(TOKEN)
 
         repository.enroll(join())
 
@@ -57,7 +68,7 @@ class WearExchangeAccountRepositoryTest {
     @Test
     fun `a second entry joins the list without taking the mark`() = runBlocking {
         store.put(WearExchangeEntry("other.example.net", PORT, LOGIN, "BBBB", null, outgoing = true))
-        every { client.enroll(any(), CODE, profile) } returns WearExchangeEnrollResult.Enrolled(TOKEN)
+        every { client.enroll(any(), CODE, profile, any()) } returns WearExchangeEnrollResult.Enrolled(TOKEN)
 
         repository.enroll(join())
 
@@ -68,7 +79,7 @@ class WearExchangeAccountRepositoryTest {
     @Test
     fun `an id collision regenerates the fresh id once`() = runBlocking {
         val ids = mutableListOf<String>()
-        every { client.enroll(any(), CODE, profile) } answers {
+        every { client.enroll(any(), CODE, profile, any()) } answers {
             ids += firstArg<WearExchangeEntry>().deviceId
             if (ids.size == 1) {
                 WearExchangeEnrollResult.Refused(WearExchangeEnvelope.REASON_ID_COLLISION)
@@ -86,7 +97,7 @@ class WearExchangeAccountRepositoryTest {
 
     @Test
     fun `a refusal stores nothing`() = runBlocking {
-        every { client.enroll(any(), CODE, profile) } returns WearExchangeEnrollResult.Refused("bad-credentials")
+        every { client.enroll(any(), CODE, profile, any()) } returns WearExchangeEnrollResult.Refused("bad-credentials")
 
         assertEquals(WearExchangeEnrollResult.Refused("bad-credentials"), repository.enroll(join()))
         assertTrue(store.all().isEmpty())
@@ -95,7 +106,7 @@ class WearExchangeAccountRepositoryTest {
     @Test
     fun `a token the store refused leaves no entry`() = runBlocking {
         store.acceptTokens = false
-        every { client.enroll(any(), CODE, profile) } returns WearExchangeEnrollResult.Enrolled(TOKEN)
+        every { client.enroll(any(), CODE, profile, any()) } returns WearExchangeEnrollResult.Enrolled(TOKEN)
 
         val result = repository.enroll(join())
 
@@ -184,5 +195,6 @@ class WearExchangeAccountRepositoryTest {
         const val TOKEN = "tok3n"
         const val CODE = "7KQ2M9XA"
         const val PIN = "SHA256:pinned"
+        const val KEY = "SHA256:key"
     }
 }

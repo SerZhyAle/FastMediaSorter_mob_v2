@@ -30,6 +30,39 @@ class ExchangeBroadcastDescriptorsTest {
     }
 
     @Test
+    fun `a sealed descriptor marks RELAY and TUNNEL with seal v1 and leaves LAN clear`() {
+        val descriptor = ExchangeBroadcastDescriptors.withExchange(audio, ID, "exchange.example:7443", null, true)
+
+        val seals = descriptor.endpoints.orEmpty().associate { it.transport to it.seal }
+        assertNull(seals["HTTP"])
+        assertEquals(1, seals["RELAY"]?.v)
+        assertEquals(1, seals["TUNNEL"]?.v)
+        assertNull("a record carries no key in clear", seals["RELAY"]?.key)
+    }
+
+    @Test
+    fun `the outward descriptor carries the relay key and the tunnel pin in their seals`() {
+        val sealed = ExchangeBroadcastDescriptors.withExchange(audio, ID, "exchange.example:7443", null, true)
+
+        val outward = ExchangeBroadcastDescriptors.withOutwardKeys(sealed, "group-key", PIN)
+
+        val seals = outward.endpoints.orEmpty().associate { it.transport to it.seal }
+        assertNull(seals["HTTP"])
+        assertEquals("group-key", seals["RELAY"]?.key)
+        assertEquals(PIN, seals["TUNNEL"]?.pin)
+        assertEquals(1, seals["TUNNEL"]?.v)
+    }
+
+    @Test
+    fun `an outward sealed endpoint without its key is left out`() {
+        val sealed = ExchangeBroadcastDescriptors.withExchange(audio, ID, "exchange.example:7443", null, true)
+
+        val outward = ExchangeBroadcastDescriptors.withOutwardKeys(sealed, "group-key", tunnelPin = null)
+
+        assertEquals(listOf("HTTP", "RELAY"), outward.endpoints.orEmpty().map { it.transport })
+    }
+
+    @Test
     fun `no RELAY without an accepted upload`() {
         val descriptor = ExchangeBroadcastDescriptors.withExchange(audio, ID, "exchange.example:7443", null, false)
 

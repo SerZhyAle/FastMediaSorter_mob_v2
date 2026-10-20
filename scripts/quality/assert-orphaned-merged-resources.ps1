@@ -50,6 +50,7 @@ $moduleDir = Join-Path $repoRoot $Module
 
 if (-not (Test-Path -LiteralPath $moduleDir)) {
     Write-Error "assert-orphaned-merged-resources: module directory not found at $moduleDir" -ErrorAction Continue
+    Write-Host "assert-orphaned-merged-resources: COULD NOT VERIFY (module directory not found at $moduleDir)"
     exit 2
 }
 
@@ -59,6 +60,7 @@ if (-not (Test-Path -LiteralPath $mergedResDir)) {
         Write-Host "assert-orphaned-merged-resources: merged_res directory does not exist ($mergedResDir). Nothing to check." -ForegroundColor Gray
     }
     Write-Host "expected: 0 orphaned merged resource artifacts | actual: 0" -ForegroundColor Green
+    Write-Host 'assert-orphaned-merged-resources: PASS (no merged_res directory; 0 orphaned)'
     exit 0
 }
 
@@ -86,6 +88,7 @@ if ($null -eq $flatFiles -or $flatFiles.Count -eq 0) {
         Write-Host "assert-orphaned-merged-resources: no .flat files found in $mergedResDir." -ForegroundColor Gray
     }
     Write-Host "expected: 0 orphaned merged resource artifacts | actual: 0" -ForegroundColor Green
+    Write-Host 'assert-orphaned-merged-resources: PASS (no .flat files; 0 orphaned)'
     exit 0
 }
 
@@ -151,10 +154,13 @@ if ($orphans.Count -gt 0) {
             Write-Host "  [$($o.Variant)] $($o.FlatFile) (Folder: $($o.Folder), File: $($o.File))" -ForegroundColor Yellow
         }
     }
+    Write-Host "fix: pwsh -NoProfile -File scripts/quality/assert-no-orphan-merged-resources.ps1 -Module $Module -Fix (drops the artifacts and the variant's incremental merge state; the next build of that variant re-merges)" -ForegroundColor Yellow
     Write-Host "expected: 0 orphaned merged resource artifacts | actual: $($orphans.Count)" -ForegroundColor Red
     if ($Gate) {
+        Write-Host "assert-orphaned-merged-resources: FAIL ($($orphans.Count) orphaned merged resource artifact(s))"
         exit 1
     }
+    Write-Host "assert-orphaned-merged-resources: PASS (report mode, -Gate not set; $($orphans.Count) orphaned artifact(s) listed above)"
     exit 0
 }
 
@@ -162,4 +168,5 @@ if (-not $Quiet) {
     Write-Host "assert-orphaned-merged-resources: verified $($flatFiles.Count) .flat artifacts - 0 orphaned." -ForegroundColor Green
 }
 Write-Host "expected: 0 orphaned merged resource artifacts | actual: 0" -ForegroundColor Green
+Write-Host 'assert-orphaned-merged-resources: PASS (0 orphaned)'
 exit 0

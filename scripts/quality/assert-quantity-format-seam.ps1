@@ -113,6 +113,12 @@ if ($ChangedFiles) {
     $scopePaths = @($ChangedFiles | ForEach-Object { $_.Replace('\', '/').TrimStart('./') })
 }
 
+if ($scopePaths -and -not ($scopePaths | Where-Object { $_ -match '\.(kt|xml)$' })) {
+    . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+    Write-EmptySetPass -GateName 'assert-quantity-format-seam'
+    exit 0
+}
+
 $findings = New-Object System.Collections.Generic.List[string]
 
 function Add-Finding {

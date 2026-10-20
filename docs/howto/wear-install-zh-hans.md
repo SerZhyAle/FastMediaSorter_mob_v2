@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "在手表上安装 FastMedia - FastMediaSorter v2"
 permalink: /docs/howto/wear-install-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.30 11:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/wear-install-zh-hans.html
 > **难度：** 入门 &bull; **用时：** 约 5 分钟 &bull; **设备：** 与 Android 手机配对的 Wear OS 智能手表
 
 > **两个版本。** Google Play 上的版本是一个精简的首发版本：计算器、秒表、迷你游戏、设置和程序图块。音乐、照片、网络共享和手机联动功能仅在完整版中提供，需要从[下载页面](../DOWNLOADS.md)直接下载 APK。
-
-{% include lang-switcher.html doc="wear-install" dir="/docs/howto/" current="zh-Hans" %}
 
 FastMedia Wear 是 FastMediaSorter 在手表端的对应部分。安装到手表后，您可以直接在手表上播放音乐、查看照片，访问配对手机共享的文件夹，还可以让手表自行连接网络共享。本页将带您完成安装和配对。
 

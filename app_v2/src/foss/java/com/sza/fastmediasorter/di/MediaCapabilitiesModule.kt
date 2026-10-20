@@ -6,6 +6,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import timber.log.Timber
 import javax.inject.Singleton
 
 /**
@@ -19,18 +20,21 @@ object MediaCapabilitiesModule {
 
     @Provides
     @Singleton
-    fun provideMediaCapabilities(): MediaCapabilities = MediaCapabilities(
-        supportsVideo = BuildConfig.SUPPORT_VIDEO,
-        supportsAudio = BuildConfig.SUPPORT_AUDIO,
-        supportsImages = BuildConfig.SUPPORT_IMAGES,
-        supportsDocuments = BuildConfig.SUPPORT_DOCUMENTS,
-        supportsEpub = BuildConfig.ENABLE_EPUB,
-        supportsCloud = BuildConfig.SUPPORT_CLOUD,
-        supportsLocalNetworkSources = BuildConfig.SUPPORT_LOCAL_NETWORK,
-        supportsDefaultPlayer = BuildConfig.SUPPORTS_DEFAULT_PLAYER,
-        supportsCast = BuildConfig.SUPPORT_CAST,
-        supportsMicRecording = BuildConfig.SUPPORT_MIC_RECORDING,
-        supportsVrPlayer = BuildConfig.SUPPORT_VR_PLAYER,
-        supportsWearCompanion = BuildConfig.SUPPORT_WEAR_COMPANION,
-    )
+    fun provideMediaCapabilities(): MediaCapabilities {
+        Timber.d("S0403: foss capability set bound - no cloud, cast or watch pairing on this build")
+        return MediaCapabilities(
+            supportsVideo = BuildConfig.SUPPORT_VIDEO,
+            supportsAudio = BuildConfig.SUPPORT_AUDIO,
+            supportsImages = BuildConfig.SUPPORT_IMAGES,
+            supportsDocuments = BuildConfig.SUPPORT_DOCUMENTS,
+            supportsEpub = BuildConfig.ENABLE_EPUB,
+            supportsCloud = BuildConfig.SUPPORT_CLOUD,
+            supportsLocalNetworkSources = BuildConfig.SUPPORT_LOCAL_NETWORK,
+            supportsDefaultPlayer = BuildConfig.SUPPORTS_DEFAULT_PLAYER,
+            supportsCast = BuildConfig.SUPPORT_CAST,
+            supportsMicRecording = BuildConfig.SUPPORT_MIC_RECORDING,
+            supportsVrPlayer = BuildConfig.SUPPORT_VR_PLAYER,
+            supportsWearCompanion = BuildConfig.SUPPORT_WEAR_COMPANION,
+        )
+    }
 }

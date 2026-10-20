@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "扫描一个二维码打开电脑文件夹 - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.25 02:16</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> 扫描一个二维码打开电脑文件夹
 
 > **难度：** 入门 &bull; **版本：** Standard、Photos、Legacy、VR、noLegal（Lite 没有网络资源功能；扫码需要摄像头，文件方式在所有设备上都可用）
-
-{% include lang-switcher.html doc="scenario-companion-share" dir="/docs/howto/" current="zh-Hans" %}
 
 您在 Windows 电脑上运行一个小型辅助程序，选择存放视频、音乐、文档或照片的文件夹，它就会在屏幕上生成一个二维码。在手机上点击**添加**，把摄像头对准这个码，电脑文件夹就会立即连接 - 无需输入地址、端口、密码，也不需要数据线。
 

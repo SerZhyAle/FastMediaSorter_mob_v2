@@ -8,13 +8,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import javax.inject.Inject
 
 /** How a request to publish the share through the exchange ended. */
 enum class ExchangePublishStart {
     STARTED,
 
-    /** No entry is the outgoing one yet: the screen lets the user pick one, then asks again. */
+    /** No entry that may produce is the outgoing one yet: the screen lets the user pick one, then asks again. */
     NEEDS_OUTGOING,
 }
 
@@ -41,14 +42,18 @@ class ManageExchangeProducerUseCase @Inject constructor(
     private val server: SftpServerRepository,
 ) {
 
-    val entries: Flow<List<DeviceExchangeAccountEntry>> get() = accounts.entries
+    /** The entries the share may be published through: a `guest` account may not produce (19 item AO). */
+    val entries: Flow<List<DeviceExchangeAccountEntry>>
+        get() = accounts.entries.map { held -> held.filter(DeviceExchangeAccountEntry::mayProduce) }
 
     val outgoing: Flow<DeviceExchangeAccountEntry?> get() = accounts.outgoing
 
     val publishing: Flow<Boolean> get() = server.exchangeConfig.map { it.enabled }.distinctUntilChanged()
 
+    /** A guest outgoing entry asks for another one, exactly as no outgoing entry does. */
     suspend fun startPublishing(): ExchangePublishStart {
-        if (accounts.outgoingEntry() == null) return ExchangePublishStart.NEEDS_OUTGOING
+        Timber.d("S4257: publish start passes the guest producer gate")
+        if (accounts.outgoingEntry()?.mayProduce != true) return ExchangePublishStart.NEEDS_OUTGOING
         server.setExchangeEnabled(true)
         server.applyExchangeSettings()
         return ExchangePublishStart.STARTED

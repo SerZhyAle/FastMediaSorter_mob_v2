@@ -227,6 +227,11 @@ class StandaloneViewManager(
     }
 
     private var exoPlayer: ExoPlayer? = null
+        set(value) {
+            field?.let(PlayerFrameStepManager::detach)
+            field = value
+            value?.let(PlayerFrameStepManager::attach)
+        }
 
     // S0908: kept so releaseVideoPlayer() can remove this exact instance before release().
     private var videoErrorListener: Player.Listener? = null

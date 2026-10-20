@@ -1,0 +1,298 @@
+{
+  "help": "tourist-counter",
+  "surface": "TouristCounterActivity",
+  "elements": [
+    { "id": "count", "viewId": "tvCounterValue" },
+    { "id": "start-line", "viewId": "tvCounterStart" },
+    { "id": "minus-one", "viewId": "btnMinusOne", "labelKey": "tourist_counter_minus_one_description" },
+    { "id": "plus-one", "viewId": "btnPlusOne", "labelKey": "tourist_counter_plus_one_description" },
+    { "id": "extra-steps-switch", "viewId": "switchExtraSteps", "labelKey": "tourist_counter_extra_steps" },
+    { "id": "extra-steps", "viewId": "btnPlus3" },
+    { "id": "start-value", "viewId": "btnStartValue", "labelKey": "tourist_counter_set_start" },
+    { "id": "reset", "viewId": "btnReset", "labelKey": "tourist_counter_reset" },
+    { "id": "history", "viewId": "rvHistory", "labelKey": "tourist_counter_history" },
+    { "id": "clear-history", "viewId": "btnClearHistory", "labelKey": "tourist_counter_clear_history" },
+    { "id": "start-field" },
+    { "id": "start-ok", "labelKey": "ok" },
+    { "id": "confirm-reset" },
+    { "id": "confirm-clear" },
+    { "id": "dialog-cancel", "labelKey": "cancel" }
+  ],
+  "related": [
+    { "help": "tourist-info" },
+    { "help": "main" },
+    { "pageId": "programs.built-in-mini-apps" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Counter",
+      "purpose": "A tally counter for anything you count by hand: people through a gate, laps, items on a shelf. Every tap adds or removes one, the total is kept when you leave, and each finished count goes into a dated history.",
+      "steps": [
+        "If the count should begin somewhere other than 0, press Starting number (7) first and type it. That number also becomes the current count.",
+        "Press the big +1 key (4) each time you count one. The total (1) goes up at once. -1 (3) takes one back, but never below 0.",
+        "For bigger jumps, turn on the switch (5): a row of keys from +3 to +1000 (6) appears.",
+        "The line under the total (2) shows the starting number and when this count began.",
+        "When a count is finished, press Reset (8). The total returns to the starting number and the finished count is saved in the history (9).",
+        "Clear (10) empties the history when you no longer need it."
+      ],
+      "groups": [
+        { "title": "The count", "elements": ["count", "start-line", "minus-one", "plus-one"] },
+        { "title": "Bigger steps", "elements": ["extra-steps-switch", "extra-steps"] },
+        { "title": "Starting number, reset and history", "elements": ["start-value", "reset", "history", "clear-history"] },
+        { "title": "Windows that ask for a decision", "elements": ["start-field", "start-ok", "confirm-reset", "confirm-clear", "dialog-cancel"] }
+      ],
+      "elements": {
+        "count": {
+          "name": "Count",
+          "summary": "The current total, in large digits.",
+          "details": "The total is saved after every press, so it is still there when you leave the screen, switch to another app or restart the phone. It can go from 0 up to 999,999,999. A screen reader announces each change."
+        },
+        "start-line": {
+          "name": "Starting number and start time",
+          "summary": "Reminds you what a reset returns to and since when you have been counting.",
+          "details": "The first line reads Starting number and its value. The second line, Counting since and a date and time, appears after the first press following a reset; until then nothing has been counted, so there is no start time."
+        },
+        "minus-one": {
+          "summary": "Takes one away from the total.",
+          "details": "Use it when you counted one too many. The key is grayed out at 0, because the total never goes negative."
+        },
+        "plus-one": {
+          "summary": "Adds one to the total with a single large key.",
+          "details": "The key is large on purpose, so you can press it without looking. It has the focus when the screen opens, so on a keyboard or a remote you can press Enter or the center button at once. The first press after a reset also records the moment the count began."
+        },
+        "extra-steps-switch": {
+          "summary": "Shows or hides the row of keys for bigger jumps.",
+          "details": "When you count in tens or hundreds, one at a time is slow. The switch keeps those keys out of the way until you need them, and the app remembers your choice."
+        },
+        "extra-steps": {
+          "name": "Extra step keys",
+          "summary": "Add 3, 5, 10, 50, 100 or 1000 to the total with one press.",
+          "details": "Six keys, +3, +5, +10, +50, +100 and +1000, each adding that number. They are shown only while the switch above is on. The total stops at 999,999,999."
+        },
+        "start-value": {
+          "summary": "Sets the number the counter begins from and returns to after a reset.",
+          "details": "A window asks for a whole number from 0. A new starting number also becomes the current count at once. If you were in the middle of a count, it is not saved in the history, so press Reset first when you want to keep it.",
+          "undo": "The count in progress is replaced by the starting number and is not archived. There is no undo."
+        },
+        "reset": {
+          "summary": "Finishes the current count and starts over from the starting number.",
+          "details": "A window asks first and tells you which number the counter will return to. The finished count goes to the top of the history with the time it began and the time it ended. If nothing was counted since the last reset, nothing is archived.",
+          "undo": "The total goes back to the starting number. The finished count is kept in the history, so you can read it there, but you cannot put it back on the counter."
+        },
+        "history": {
+          "summary": "The finished counts, newest first.",
+          "details": "Each row shows the total and the period it was counted over, from the first press to the reset. The list holds the last 100 counts; older ones drop off. While it is empty it says there are no finished counts yet."
+        },
+        "clear-history": {
+          "summary": "Deletes every finished count from the history.",
+          "details": "A window asks first. The key is grayed out while the history is empty. The count on the screen is not touched.",
+          "undo": "The history is removed for good and cannot be restored."
+        },
+        "start-field": {
+          "name": "Starting number field",
+          "summary": "Where you type the starting number.",
+          "details": "The field opens with the current starting number selected, so you can type over it. Confirm with OK or with the Done key of the keyboard. An empty entry, a number below 0 or one above 999,999,999 keeps the window open and shows a message asking for a whole number from 0."
+        },
+        "start-ok": {
+          "summary": "Accepts the starting number.",
+          "details": "The counter jumps to the new number and the start time is cleared until the next press."
+        },
+        "confirm-reset": {
+          "name": "Reset the counter?",
+          "summary": "Asks you to confirm before the count is finished.",
+          "details": "It says the counter returns to the starting number and that the current count is saved to history. Press Reset to go ahead or Cancel to keep counting."
+        },
+        "confirm-clear": {
+          "name": "Clear the counter history?",
+          "summary": "Asks you to confirm before the history is deleted.",
+          "details": "Press Clear to delete every finished count, or Cancel to keep them.",
+          "undo": "Cleared counts cannot be restored."
+        },
+        "dialog-cancel": {
+          "summary": "Closes the window and changes nothing.",
+          "details": "It is on every window of this screen: the starting number stays as it was, the counter keeps its total and the history keeps its rows."
+        }
+      }
+    },
+    "ru": {
+      "title": "Счётчик",
+      "purpose": "Счётчик для всего, что вы считаете вручную: людей на входе, круги, предметы на полке. Каждое нажатие прибавляет или убавляет единицу, итог сохраняется при выходе, а каждый законченный подсчёт попадает в историю с датами.",
+      "steps": [
+        "Если счёт должен начинаться не с 0, сначала нажмите «Начальное число» (7) и введите его. Это число станет и текущим счётом.",
+        "Нажимайте большую кнопку +1 (4) каждый раз, когда считаете единицу. Итог (1) сразу растёт. Кнопка -1 (3) убирает единицу, но не ниже 0.",
+        "Для больших прыжков включите переключатель (5): появится ряд кнопок от +3 до +1000 (6).",
+        "Строка под итогом (2) показывает начальное число и время начала этого подсчёта.",
+        "Когда подсчёт закончен, нажмите «Сбросить» (8). Итог вернётся к начальному числу, а законченный подсчёт сохранится в истории (9).",
+        "«Очистить» (10) опустошает историю, когда она больше не нужна."
+      ],
+      "groups": [
+        { "title": "Счёт", "elements": ["count", "start-line", "minus-one", "plus-one"] },
+        { "title": "Большие шаги", "elements": ["extra-steps-switch", "extra-steps"] },
+        { "title": "Начальное число, сброс и история", "elements": ["start-value", "reset", "history", "clear-history"] },
+        { "title": "Окна, где нужно решение", "elements": ["start-field", "start-ok", "confirm-reset", "confirm-clear", "dialog-cancel"] }
+      ],
+      "elements": {
+        "count": {
+          "name": "Счёт",
+          "summary": "Текущий итог крупными цифрами.",
+          "details": "Итог сохраняется после каждого нажатия, поэтому он на месте, когда вы выходите с экрана, переключаетесь в другое приложение или перезагружаете телефон. Он может быть от 0 до 999 999 999. Программа чтения с экрана объявляет каждое изменение."
+        },
+        "start-line": {
+          "name": "Начальное число и время начала",
+          "summary": "Напоминает, к чему вернёт сброс и с какого момента вы считаете.",
+          "details": "Первая строка - «Начальное число» и его значение. Вторая, «Счёт идёт с» и дата со временем, появляется после первого нажатия, следующего за сбросом; до этого ничего не посчитано, поэтому времени начала нет."
+        },
+        "minus-one": {
+          "summary": "Убирает единицу из итога.",
+          "details": "Пригодится, если вы насчитали лишнюю единицу. На нуле кнопка неактивна, потому что итог не бывает отрицательным."
+        },
+        "plus-one": {
+          "summary": "Прибавляет единицу к итогу одной крупной кнопкой.",
+          "details": "Кнопка сделана крупной намеренно, чтобы нажимать её не глядя. Фокус при открытии экрана стоит на ней, поэтому на клавиатуре или пульте можно сразу нажимать Enter или центральную кнопку. Первое нажатие после сброса записывает и момент начала подсчёта."
+        },
+        "extra-steps-switch": {
+          "summary": "Показывает или скрывает ряд кнопок для больших прыжков.",
+          "details": "Когда вы считаете десятками или сотнями, по одному - долго. Переключатель убирает эти кнопки с глаз, пока они не нужны, а приложение запоминает ваш выбор."
+        },
+        "extra-steps": {
+          "name": "Кнопки больших шагов",
+          "summary": "Прибавляют к итогу 3, 5, 10, 50, 100 или 1000 одним нажатием.",
+          "details": "Шесть кнопок: +3, +5, +10, +50, +100 и +1000, каждая прибавляет своё число. Они видны, только пока включён переключатель выше. Итог останавливается на 999 999 999."
+        },
+        "start-value": {
+          "summary": "Задаёт число, с которого счётчик начинает и к которому возвращается после сброса.",
+          "details": "Окно просит целое число от 0. Новое начальное число сразу становится и текущим счётом. Если вы были посреди подсчёта, он не попадёт в историю, поэтому сначала нажмите «Сбросить», если хотите его сохранить.",
+          "undo": "Идущий подсчёт заменяется начальным числом и не архивируется. Отменить это нельзя."
+        },
+        "reset": {
+          "summary": "Завершает текущий подсчёт и начинает заново с начального числа.",
+          "details": "Сначала появляется окно и сообщает, к какому числу вернётся счётчик. Законченный подсчёт попадает в начало истории со временем начала и окончания. Если после прошлого сброса ничего не считали, ничего и не архивируется.",
+          "undo": "Итог возвращается к начальному числу. Законченный подсчёт остаётся в истории, где его можно прочитать, но вернуть на счётчик нельзя."
+        },
+        "history": {
+          "summary": "Законченные подсчёты, новые сверху.",
+          "details": "В каждой строке итог и период, за который он набран, - от первого нажатия до сброса. В списке последние 100 подсчётов, более старые уходят. Пока список пуст, он сообщает, что завершённых отсчётов пока нет."
+        },
+        "clear-history": {
+          "summary": "Удаляет все законченные подсчёты из истории.",
+          "details": "Сначала появляется окно с вопросом. Пока история пуста, кнопка неактивна. Счёт на экране не затрагивается.",
+          "undo": "История удаляется насовсем, восстановить её нельзя."
+        },
+        "start-field": {
+          "name": "Поле начального числа",
+          "summary": "Здесь вводится начальное число.",
+          "details": "Поле открывается с выделенным текущим начальным числом, так что можно сразу печатать поверх. Подтвердите кнопкой «ОК» или клавишей «Готово» на клавиатуре. Пустой ввод, число меньше 0 или больше 999 999 999 оставляет окно открытым и показывает сообщение с просьбой ввести целое число от 0."
+        },
+        "start-ok": {
+          "summary": "Принимает начальное число.",
+          "details": "Счётчик переходит на новое число, а время начала сбрасывается до следующего нажатия."
+        },
+        "confirm-reset": {
+          "name": "Сбросить счётчик?",
+          "summary": "Просит подтвердить, прежде чем завершить подсчёт.",
+          "details": "В окне сказано, что счётчик вернётся к начальному числу, а текущий счёт сохранится в истории. Нажмите «Сбросить», чтобы продолжить, или «Отмена», чтобы считать дальше."
+        },
+        "confirm-clear": {
+          "name": "Очистить историю счётчика?",
+          "summary": "Просит подтвердить, прежде чем удалить историю.",
+          "details": "Нажмите «Очистить», чтобы удалить все законченные подсчёты, или «Отмена», чтобы оставить их.",
+          "undo": "Очищенные подсчёты восстановить нельзя."
+        },
+        "dialog-cancel": {
+          "summary": "Закрывает окно, ничего не меняя.",
+          "details": "Кнопка есть в каждом окне этого экрана: начальное число остаётся прежним, счётчик сохраняет итог, а история - свои строки."
+        }
+      }
+    },
+    "uk": {
+      "title": "Лічильник",
+      "purpose": "Лічильник для всього, що ви рахуєте вручну: людей на вході, кола, предмети на полиці. Кожне натискання додає або віднімає одиницю, підсумок зберігається при виході, а кожен завершений підрахунок потрапляє в історію з датами.",
+      "steps": [
+        "Якщо лік має починатися не з 0, спершу натисніть «Початкове число» (7) і введіть його. Це число стане й поточним ліком.",
+        "Натискайте велику кнопку +1 (4) щоразу, коли рахуєте одиницю. Підсумок (1) одразу зростає. Кнопка -1 (3) забирає одиницю, але не нижче 0.",
+        "Для більших стрибків увімкніть перемикач (5): з’явиться ряд кнопок від +3 до +1000 (6).",
+        "Рядок під підсумком (2) показує початкове число й час початку цього підрахунку.",
+        "Коли підрахунок закінчено, натисніть «Скинути» (8). Підсумок повернеться до початкового числа, а завершений підрахунок збережеться в історії (9).",
+        "«Очистити» (10) спустошує історію, коли вона більше не потрібна."
+      ],
+      "groups": [
+        { "title": "Лік", "elements": ["count", "start-line", "minus-one", "plus-one"] },
+        { "title": "Великі кроки", "elements": ["extra-steps-switch", "extra-steps"] },
+        { "title": "Початкове число, скидання та історія", "elements": ["start-value", "reset", "history", "clear-history"] },
+        { "title": "Вікна, де потрібне рішення", "elements": ["start-field", "start-ok", "confirm-reset", "confirm-clear", "dialog-cancel"] }
+      ],
+      "elements": {
+        "count": {
+          "name": "Лік",
+          "summary": "Поточний підсумок великими цифрами.",
+          "details": "Підсумок зберігається після кожного натискання, тому він на місці, коли ви виходите з екрана, перемикаєтеся в інший застосунок чи перезавантажуєте телефон. Він може бути від 0 до 999 999 999. Програма читання з екрана оголошує кожну зміну."
+        },
+        "start-line": {
+          "name": "Початкове число та час початку",
+          "summary": "Нагадує, до чого поверне скидання і відколи ви рахуєте.",
+          "details": "Перший рядок - «Початкове число» і його значення. Другий, «Лік триває з» та дата з часом, з’являється після першого натискання, що йде за скиданням; до цього нічого не пораховано, тому часу початку немає."
+        },
+        "minus-one": {
+          "summary": "Забирає одиницю з підсумку.",
+          "details": "Знадобиться, якщо ви нарахували зайву одиницю. На нулі кнопка неактивна, бо підсумок не буває від’ємним."
+        },
+        "plus-one": {
+          "summary": "Додає одиницю до підсумку однією великою кнопкою.",
+          "details": "Кнопку зроблено великою навмисно, щоб натискати її не дивлячись. Фокус при відкритті екрана стоїть на ній, тому на клавіатурі чи пульті можна одразу натискати Enter або центральну кнопку. Перше натискання після скидання записує й момент початку підрахунку."
+        },
+        "extra-steps-switch": {
+          "summary": "Показує або ховає ряд кнопок для більших стрибків.",
+          "details": "Коли ви рахуєте десятками чи сотнями, по одному - довго. Перемикач прибирає ці кнопки з очей, поки вони не потрібні, а застосунок запам’ятовує ваш вибір."
+        },
+        "extra-steps": {
+          "name": "Кнопки великих кроків",
+          "summary": "Додають до підсумку 3, 5, 10, 50, 100 або 1000 одним натисканням.",
+          "details": "Шість кнопок: +3, +5, +10, +50, +100 і +1000, кожна додає своє число. Вони видимі, лише поки ввімкнено перемикач вище. Підсумок зупиняється на 999 999 999."
+        },
+        "start-value": {
+          "summary": "Задає число, з якого лічильник починає і до якого повертається після скидання.",
+          "details": "Вікно просить ціле число від 0. Нове початкове число одразу стає й поточним ліком. Якщо ви були посеред підрахунку, він не потрапить в історію, тому спершу натисніть «Скинути», якщо хочете його зберегти.",
+          "undo": "Підрахунок, що йде, замінюється початковим числом і не архівується. Скасувати це не можна."
+        },
+        "reset": {
+          "summary": "Завершує поточний підрахунок і починає заново з початкового числа.",
+          "details": "Спершу з’являється вікно й повідомляє, до якого числа повернеться лічильник. Завершений підрахунок потрапляє на початок історії з часом початку й закінчення. Якщо після попереднього скидання нічого не рахували, нічого й не архівується.",
+          "undo": "Підсумок повертається до початкового числа. Завершений підрахунок лишається в історії, де його можна прочитати, але повернути на лічильник не можна."
+        },
+        "history": {
+          "summary": "Завершені підрахунки, нові зверху.",
+          "details": "У кожному рядку підсумок і період, за який його набрано, - від першого натискання до скидання. У списку останні 100 підрахунків, старіші відпадають. Поки список порожній, він повідомляє, що завершених відліків поки немає."
+        },
+        "clear-history": {
+          "summary": "Видаляє всі завершені підрахунки з історії.",
+          "details": "Спершу з’являється вікно із запитанням. Поки історія порожня, кнопка неактивна. Лік на екрані не зачіпається.",
+          "undo": "Історія видаляється назавжди, відновити її не можна."
+        },
+        "start-field": {
+          "name": "Поле початкового числа",
+          "summary": "Тут вводиться початкове число.",
+          "details": "Поле відкривається з виділеним поточним початковим числом, тож можна одразу друкувати поверх. Підтвердьте кнопкою «OK» або клавішею «Готово» на клавіатурі. Порожній ввід, число менше за 0 чи більше за 999 999 999 залишає вікно відкритим і показує повідомлення з проханням ввести ціле число від 0."
+        },
+        "start-ok": {
+          "summary": "Приймає початкове число.",
+          "details": "Лічильник переходить на нове число, а час початку скидається до наступного натискання."
+        },
+        "confirm-reset": {
+          "name": "Скинути лічильник?",
+          "summary": "Просить підтвердити, перш ніж завершити підрахунок.",
+          "details": "У вікні сказано, що лічильник повернеться до початкового числа, а поточний лік збережеться в історії. Натисніть «Скинути», щоб продовжити, або «Скасувати», щоб рахувати далі."
+        },
+        "confirm-clear": {
+          "name": "Очистити історію лічильника?",
+          "summary": "Просить підтвердити, перш ніж видалити історію.",
+          "details": "Натисніть «Очистити», щоб видалити всі завершені підрахунки, або «Скасувати», щоб залишити їх.",
+          "undo": "Очищені підрахунки відновити не можна."
+        },
+        "dialog-cancel": {
+          "summary": "Закриває вікно, нічого не змінюючи.",
+          "details": "Кнопка є в кожному вікні цього екрана: початкове число лишається попереднім, лічильник зберігає підсумок, а історія - свої рядки."
+        }
+      }
+    }
+  }
+}

@@ -1,10 +1,14 @@
-<sub class="doc-stamp">26.10.10 14:49</sub>
+<sub class="doc-stamp">26.10.20 12:06</sub>
 
 # Media exchange and broadcasting portal - illustration set
 
-Status: **picture set selected; the portal pages are written** (ticket S4140). The pages are `index`,
-`home-network`, `exchange-server`, `live-broadcast`, `clouds`, `editions` and `windows-servers`, each in
-English, Russian (`-ru`) and Ukrainian (`-uk`); they embed the pictures listed below.
+Status: **picture set selected; the portal pages are written** (tickets S4140, S4243 and S4242). The pages are
+`index`, `home-network`, `exchange-server`, `exchange-server-purpose`, `exchange-server-quick-start`,
+`exchange-server-install`, `exchange-accounts`, `exchange-clipboard`, `account-deletion`, `live-broadcast`, `clouds`, `editions` and `windows-servers`, and
+the eight scenario pages `folders-exchange-server`, `folders-google-drive`, `broadcast-start`,
+`broadcast-receive`, `watch-exchange`, `schedule-remote-folders`, `phone-sharing` and `my-devices`,
+each in English, Russian (`-ru`) and Ukrainian (`-uk`); they embed the pictures listed below, and each
+page has its owner in `scripts/docs/portal-sections.json`.
 
 This folder holds the illustrations for the shared portal about media exchange and live broadcasting.
 Every product that takes part - FastMediaSorter for Android (phone, watch, TV, VR), Fast Media Sorter for
@@ -13,10 +17,11 @@ shows, where it came from, what it may and may not claim, and where it belongs o
 
 ## Folder layout
 
-- `diagrams/` - the generated set, 14 pictures in English, Russian and Ukrainian (`<name>-<lang>.svg`).
+- `diagrams/` - the generated set, 22 pictures in English, Russian and Ukrainian (`<name>-<lang>.svg`).
   Render targets: never edit them, change the drawing or the labels and re-render.
 - `labels/labels.<lang>.json` - every word on the generated pictures, one file per language.
 - `from-windows/` - three "quick scheme" cards from the Windows product, Russian only, copied with fixes.
+- `exchange-mark/` - vendored identity artwork of the Media Exchange Server per contract `EXCHANGE-MARK` 0.3 (`mark-24.png`, `mark-32.png`, `full-256.png`, `banner-1200x630.png`). Byte-exact copies from the catalog; never scaled or altered.
 - Drawing code: `scripts/docs/render-usage-schemes.ps1` (driver), `scripts/docs/usage-schemes/SvgKit.ps1`
   (primitives), `scripts/docs/usage-schemes/Diagrams.ps1` (one function per picture).
 - The pages use the pictures by relative path - `diagrams/<name>-<lang>.svg` and
@@ -66,11 +71,11 @@ The portal must say which of these is not shipped yet, or wait until it is. Stat
   exchange server. Live-broadcast playback that ships on Windows today is StreamsPlayer. The viewer of the
   development tree can listen live to a phone or watch broadcast, but real-device acceptance has not run,
   so no page promises a delay.
-- The exchange server's wire is a proposed contract (`DEVICE-EXCHANGE` plus `ANYWHERE-ACCESS`); no public
-  deployment exists. A server implementation (a Go program, `fms-exchange-server`) and its administration
-  in Share Manager exist in the Windows development tree only, behind a shipping gate that is off, as an
-  optional unticked component, and have not yet run on a real host. The Android side that registers the
-  phone's SFTP server on it has shipped.
+- The exchange server (a Go program, `fms-exchange-server`, administered in Share Manager) runs and was
+  checked by the owner (S4203, section 6.2); its wire is the contract `DEVICE-EXCHANGE` with
+  `ANYWHERE-ACCESS`. No public deployment exists by decision: each person runs a server, or joins one that
+  a person they know runs. The pages `exchange-server`, `exchange-server-install`, `exchange-accounts`,
+  `exchange-clipboard` and `account-deletion` describe it as part of release 46 (S4243).
 - Everything that shows a Windows PC as a member of the exchange - the "Windows zone" of `exchange-scheme`,
   the home and office PCs of `exchange-simple`, the Windows card `quick-scheme-1-internet` - rests on that
   development-tree work: the PC enrols into an account, publishes its shares and opens other devices'
@@ -368,6 +373,39 @@ was added afterwards (picture 15).
 - Embed snippet (alt text shortened for a page):
   `![One pairing code from Share Manager carries three addresses - home Wi-Fi, IPv6 and the internet -
   and the phone tries them at once and keeps the fastest.](diagrams/home-pairing-en.svg)`
+
+## Scenario step pictures - one per how-to page (S4242)
+
+Eight slides, all of one form: 1920 x 1080, the dark brand gradient with the waves-and-particles motif, a
+heading with a subtitle, and four numbered cards in two columns or six in three, drawn like `home-steps` by
+the one builder `Build-ScenarioSteps`. Each card has an icon, a title and a body of at most three lines. The
+label keys are `sc.<name>.title`, `.desc`, `.sub` and `.<n>.t` / `.<n>.b`; the `*.desc` label is the base of
+the alt text. The facts come from the contract `DEVICE-EXCHANGE` and the interface strings of the tree, and
+no picture claims anything beyond what a page of the same name says.
+
+- `steps-folders-exchange` (six cards) - add the server on both devices, share a folder, switch on Access
+  from anywhere, find the folder under From my devices, attach it, open it. Embedded by
+  `folders-exchange-server`.
+- `steps-folders-drive` (four cards) - the same Google account, the switch Files via Google Drive, send or
+  open, wait for the answer. Embedded by `folders-google-drive`.
+- `steps-broadcast-start` (four cards) - choose the source, start, share the link or the QR code, listeners
+  find it; the subtitle says the password travels separately. Embedded by `broadcast-start`.
+- `steps-broadcast-receive` (four cards) - the four ways to a broadcast: the list of your devices, a link or
+  a QR code or a file, a link with a password, a cast to this device. Embedded by `broadcast-receive`.
+- `steps-watch` (six cards) - the server on the phone, Connect watch, a code and not a password, the watch
+  joins, its own network, the phone may stay away. Embedded by `watch-exchange`. Facts drawn only from items
+  CF, CG and CH of the contract: the data goes over the watch's own network, Bluetooth carries the hand-over
+  and commands, the watch broadcasts only sound, no password is typed on it.
+- `steps-schedule` (four cards) - open the schedules, choose the folders, what and when, check History; the
+  subtitle says an unreachable side skips the run. Embedded by `schedule-remote-folders`.
+- `steps-phone-sharing` (four cards) - switch the server on, add the folders, leave it running, mind the
+  limits (the Android 15 daily limit and mobile data). Embedded by `phone-sharing`.
+- `steps-my-devices` (six cards) - open My devices, paste or scan or choose, trust the certificate, sign in,
+  pass it on, choose the outgoing server. Embedded by `my-devices`.
+
+The words follow the terms table of the contract (item CW): exchange server, via Google Drive, broadcast and
+broadcasting, clipboard, cast to your own device. A picture added here needs its page, its manifest section
+and its three label sets in the same change.
 
 ## Reserve - generated, not for the portal
 

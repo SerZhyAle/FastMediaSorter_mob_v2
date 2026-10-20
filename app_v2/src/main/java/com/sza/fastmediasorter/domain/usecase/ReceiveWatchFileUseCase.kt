@@ -10,9 +10,11 @@ import com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.data.transfer.local.LocalSink
+import com.sza.fastmediasorter.data.wear.WatchFileLandingRegistry
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.domain.model.WatchFileDestination
+import com.sza.fastmediasorter.domain.model.WatchFileLanding
 import com.sza.fastmediasorter.domain.model.WearFileReceiveOutcome
 import com.sza.fastmediasorter.domain.model.WearFileReceiveOutcome.QUEUED_FOR_UPLOAD
 import com.sza.fastmediasorter.domain.model.WearFileReceiveResult
@@ -54,7 +56,8 @@ class ReceiveWatchFileUseCase @Inject constructor(
     private val destinationClassifier: LocalDestinationClassifier,
     private val destinationWriter: LocalDestinationWriter,
     private val stagingDirectoryProvider: StagingDirectoryProvider,
-    private val workManager: WorkManager
+    private val workManager: WorkManager,
+    private val landingRegistry: WatchFileLandingRegistry
 ) {
 
     suspend operator fun invoke(
@@ -87,7 +90,8 @@ class ReceiveWatchFileUseCase @Inject constructor(
         limitBytes: Long,
         source: InputStream
     ): WearFileReceiveResult {
-        return when (val destination = resolveDestination()) {
+        val destination = resolveDestination()
+        val result = when (destination) {
             is WatchFileDestination.Local -> {
                 val sink = openSink(destination, fileName)
                 if (sink == null) {
@@ -100,6 +104,27 @@ class ReceiveWatchFileUseCase @Inject constructor(
             is WatchFileDestination.Remote -> {
                 stageForUpload(destination, fileName, limitBytes, source)
             }
+        }
+        recordLanding(fileName, destination, result)
+        return result
+    }
+
+    /**
+     * S4282: leaves the place the file came to rest for whoever asks about it by name. A file that did
+     * not arrive leaves nothing, so an answer from the watch about it finds no landing and says so.
+     */
+    private fun recordLanding(
+        fileName: String,
+        destination: WatchFileDestination,
+        result: WearFileReceiveResult
+    ) {
+        val arrived = result.outcome == WearFileReceiveOutcome.SAVED || result.outcome == QUEUED_FOR_UPLOAD
+        if (arrived) {
+            val resourceId = when (destination) {
+                is WatchFileDestination.Local -> destination.resourceId
+                is WatchFileDestination.Remote -> destination.resourceId
+            }
+            landingRegistry.record(fileName, WatchFileLanding(resourceId, System.currentTimeMillis()))
         }
     }
 
@@ -262,7 +287,7 @@ class ReceiveWatchFileUseCase @Inject constructor(
         return if (isRemote) {
             WatchFileDestination.Remote(resource.id, path, name)
         } else {
-            WatchFileDestination.Local(path, name)
+            WatchFileDestination.Local(path, name, resource.id)
         }
     }
 

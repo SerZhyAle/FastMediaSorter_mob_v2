@@ -276,4 +276,27 @@
     <string name="cross_device_transfer_expired_removed">میعاد ختم شدہ پیکٹ ہٹا دیے گئے: %1$d</string>
     <string name="setting_mic_recording_destination_default_recordings">ڈیفالٹ: ریکارڈنگز فولڈر (Android 11 اور اس سے پرانے ورژن پر Music)</string>
     <string name="setting_screen_recording_destination_default_movies">ڈیفالٹ: Movies فولڈر</string>
+    <string name="drive_channel_enabled_title">Google Drive کے ذریعے فائلیں</string>
+    <string name="drive_channel_enabled_subtitle">اپنے Google Drive کے ذریعے اپنے ہی آلات کے درمیان فائلیں بھیجیں اور وصول کریں، تبادلہ سرور کے بغیر</string>
+    <string name="drive_channel_background_title">پس منظر میں Google Drive کے ذریعے چیک کریں</string>
+    <string name="drive_channel_background_subtitle">ہر 15 منٹ پر، تاکہ آپ کے دوسرے آلات ایپ بند ہونے پر بھی اس فون کے شیئر کیے گئے فولڈرز کھول سکیں</string>
+    <string name="drive_channel_row_from">%1$s کی طرف سے</string>
+    <string name="drive_channel_row_for_device">%1$s کے لیے</string>
+    <string name="drive_channel_row_for_any">میرے کسی بھی آلے کے لیے</string>
+    <string name="drive_channel_row_waiting">وصولی کا انتظار ہے</string>
+    <string name="drive_channel_delete_without_receiving">وصول کیے بغیر حذف کریں</string>
+    <string name="drive_channel_delete">حذف کریں</string>
+    <string name="drive_channel_deleted">آپ کے Google Drive سے ہٹا دیا گیا۔</string>
+    <string name="drive_channel_sign_in_required">Google Drive کے ذریعے فائلیں استعمال کرنے کے لیے دوبارہ Google میں سائن ان کریں۔ کچھ بھی حذف نہیں ہوا۔</string>
+    <string name="drive_channel_daily_limit">Google Drive کی روزانہ اپ لوڈ کی حد پوری ہو گئی، بعد میں دوبارہ کوشش کریں۔</string>
+    <string name="drive_channel_not_enough_space">آپ کے Google Drive میں کافی جگہ نہیں: %1$s خالی ہے۔ اپنے Google اکاؤنٹ میں جگہ خالی کریں، پھر دوبارہ کوشش کریں۔</string>
+    <string name="drive_channel_too_large">یہ %1$s سے بڑا ہے، جو Google Drive کے ذریعے ایک منتقلی میں زیادہ سے زیادہ جا سکتا ہے۔ ایک وقت میں کم فائلیں بھیجیں۔</string>
+    <string name="drive_channel_backing_off">Google Drive نے رفتار کم کرنے کو کہا ہے۔ تھوڑی دیر میں دوبارہ جانچ ہوگی۔</string>
+    <string name="drive_channel_off_hint">Google Drive کے ذریعے فائلیں بند ہیں۔ انہیں ترتیبات، زیر التوا آلہ منتقلیاں میں آن کریں۔</string>
+    <string name="drive_channel_delete_message">یہ آپ کے تمام آلات کے لیے آپ کے Google Drive سے ہٹا دیا جاتا ہے۔ جو فائلیں پہلے ہی وصول ہو چکی ہیں وہ جہاں ہیں وہیں رہتی ہیں۔</string>
+    <string name="drive_channel_send_title">اس آلے کو Google Drive کے ذریعے بھیجیں</string>
+    <string name="drive_channel_send_any">میرا کوئی بھی آلہ</string>
+    <string name="drive_channel_send_no_devices">آپ کے کسی دوسرے آلے نے ابھی تک Google Drive استعمال نہیں کیا۔ دوسرے آلے پر بھی Google Drive کے ذریعے فائلیں آن کریں، پھر دوبارہ کوشش کریں۔</string>
+    <string name="drive_channel_send_waiting_for">Google Drive کے ذریعے %1$s کے وصول کرنے کا انتظار ہے۔</string>
+    <string name="drive_channel_send_waiting_any">Google Drive کے ذریعے آپ کے کسی آلے کے وصول کرنے کا انتظار ہے۔</string>
 </resources>

@@ -52,6 +52,8 @@ class BuildBackupPayloadUseCase @Inject constructor(
 
         // S3130: the whole settings store, looped rather than listed field by field.
         val rawSettings = rawSettingsRepository.exportAll()
+        // S4238: kept out of the loop above on purpose; this section carries no token and no device id.
+        val exchangeAccounts = rawSettingsRepository.exportExchangeAccounts()
 
         return BackupMapper.toBackupPayload(
             settings = settings,
@@ -65,7 +67,8 @@ class BuildBackupPayloadUseCase @Inject constructor(
             webAuthSessions = webAuthSessions,
             launcherCells = launcherCells,
             rawSettings = rawSettings,
-            launcherRecents = launcherRecents
+            launcherRecents = launcherRecents,
+            exchangeAccounts = exchangeAccounts.takeIf { it.isNotEmpty() }
         )
     }
 }

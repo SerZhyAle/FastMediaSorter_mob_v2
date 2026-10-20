@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.wear.companion
 
+import android.text.format.DateUtils
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -56,15 +58,17 @@ import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
 import com.sza.fastmediasorter.service.WearListenState
 import com.sza.fastmediasorter.ui.settings.ClipboardSendOutcomeText
+import com.sza.fastmediasorter.ui.settings.LastWatchScreenshot
 import com.sza.fastmediasorter.ui.settings.WearSyncUiState
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
+import java.text.DateFormat
 
 internal val SPACING_TINY = 4.dp
 internal val SPACING_SMALL = 8.dp
 internal val SPACING_CARD = 12.dp
 internal val SPACING_SECTION = 16.dp
 
-/** Matches the height of the label beside it, so the card does not change size while it waits. */
+/** Smaller than the stop button beside it, so the waiting row is as tall as the start button it replaces. */
 private val LISTEN_PROGRESS_SIZE = 24.dp
 
 /**
@@ -348,9 +352,10 @@ private fun SendClipboardRow(
 @Composable
 private fun RequestScreenshotRow(viewModel: WearSyncViewModel) {
     // Read here rather than beside the screen's other state: the host composable is at detekt's length
-    // ceiling, and these two values are read by nothing above this row.
+    // ceiling, and these values are read by nothing above this row.
     val requesting by viewModel.screenshotRequestInFlight.collectAsState()
     val outcome by viewModel.screenshotRequestOutcome.collectAsState()
+    val lastShot by viewModel.lastWatchScreenshot.collectAsState()
     val onRequest = viewModel::requestWatchScreenshot
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -372,6 +377,51 @@ private fun RequestScreenshotRow(viewModel: WearSyncViewModel) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = SPACING_SMALL)
+            )
+        }
+        val shot = lastShot
+        if (shot != null) {
+            LastScreenshotLine(shot = shot, onOpen = viewModel::openLastWatchScreenshots)
+        }
+    }
+}
+
+/**
+ * S4282: when the newest watch picture arrived, and a way into the folder that holds it.
+ *
+ * The button is withheld when the picture lies outside every registered resource: Browse opens
+ * resources, and the app's own downloads fallback is not one, so there would be nothing to open.
+ */
+@Composable
+private fun LastScreenshotLine(shot: LastWatchScreenshot, onOpen: () -> Unit) {
+    val time = remember(shot) {
+        DateUtils.formatSameDayTime(
+            shot.capturedAtEpochMillis,
+            System.currentTimeMillis(),
+            DateFormat.MEDIUM,
+            DateFormat.MEDIUM
+        ).toString()
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = SPACING_SMALL),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(R.string.wear_screenshot_last_at, time),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .weight(1f)
+                .testTag("wearLastScreenshotTime")
+        )
+        if (shot.browseResourceId != null) {
+            DocLinkButton(
+                iconRes = R.drawable.ic_open_in_browse,
+                labelRes = R.string.wear_screenshot_open_browse,
+                testTag = "wearOpenScreenshotsBrowse",
+                onClick = onOpen
             )
         }
     }
@@ -652,7 +702,8 @@ private fun NowPlayingCard(
  * A card, because listening is live state about the watch like the two above it - but unlike them it
  * is always drawn, since a control that appeared only once a session existed could never begin one.
  * The three appearances are the three states and nothing else: idle offers the start, waiting shows
- * that the request is with the owner's wrist, and listening offers the stop.
+ * that the request is with the owner's wrist beside a stop that withdraws it, and listening offers
+ * the same stop.
  */
 @Composable
 private fun ListenToWatchCard(
@@ -692,19 +743,29 @@ private fun ListenAction(state: WearListenState, onStart: () -> Unit, onStop: ()
         ) {
             Text(stringResource(R.string.wear_listen_start))
         }
-        // No cancel beside it: the request lives on the watch now, and the watch is where it is
-        // declined or left to expire - a phone-side cancel would be a second answer to one question.
-        WearListenState.Awaiting -> CircularProgressIndicator(
-            modifier = Modifier
-                .size(LISTEN_PROGRESS_SIZE)
-                .testTag("wearListenWaiting")
-        )
-        is WearListenState.Listening -> OutlinedButton(
-            onClick = onStop,
-            modifier = Modifier.testTag("wearListenStop")
-        ) {
-            Text(stringResource(R.string.wear_listen_stop))
+        // The request can stay unanswered for minutes, and a spinner alone gave the owner no way to
+        // withdraw it. The watch treats a stop for a request that is merely pending as "cancel the
+        // notification, start nothing", so offering the stop here is safe in this state too.
+        WearListenState.Awaiting -> Row(verticalAlignment = Alignment.CenterVertically) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .size(LISTEN_PROGRESS_SIZE)
+                    .testTag("wearListenWaiting")
+            )
+            Spacer(Modifier.width(SPACING_CARD))
+            ListenStopButton(onStop = onStop)
         }
+        is WearListenState.Listening -> ListenStopButton(onStop = onStop)
+    }
+}
+
+@Composable
+private fun ListenStopButton(onStop: () -> Unit) {
+    OutlinedButton(
+        onClick = onStop,
+        modifier = Modifier.testTag("wearListenStop")
+    ) {
+        Text(stringResource(R.string.wear_listen_stop))
     }
 }
 

@@ -201,4 +201,12 @@ class CommandPanelAvailabilityUpdaterTest {
         assertFalse(safeViews.copyToPanel.isVisible)
         assertFalse(safeViews.moveToPanel.isVisible)
     }
+
+    @Test
+    fun `an active file places HELP at the end of overflow commands`() {
+        updater().update(state(file(MediaType.IMAGE)))
+
+        assertTrue(safeViews.btnOverflowMenu.isVisible)
+        assertEquals(CommandPanelLayoutPlanner.PlayerCommand.HELP, overflowCommands?.lastOrNull())
+    }
 }

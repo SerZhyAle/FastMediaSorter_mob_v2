@@ -33,7 +33,6 @@ class TouristCounterViewModel @Inject constructor(
     }
 
     fun reset() {
-        Timber.d("S4185: counter reset confirmed")
         viewModelScope.launch { updateCounter.reset() }
     }
 
@@ -51,7 +50,6 @@ class TouristCounterViewModel @Inject constructor(
      */
     fun setStartValue(text: String): Boolean {
         val start = text.trim().toLongOrNull()?.takeIf { it in 0L..WearTouristCounterState.MAX_VALUE }
-        Timber.d("S4185: starting number entered, accepted=${start != null}")
         if (start != null) {
             viewModelScope.launch { updateCounter.setStartValue(start) }
         }

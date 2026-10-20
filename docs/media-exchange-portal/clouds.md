@@ -5,7 +5,7 @@ description: "Google Drive, Dropbox and OneDrive as a place every one of your si
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/clouds.html
 ---
-<sub class="doc-stamp">26.10.10 14:14</sub>
+<sub class="doc-stamp">26.10.15 15:03</sub>
 
 # Clouds: a shared box for your devices
 
@@ -24,6 +24,10 @@ Each cloud appears in FastMediaSorter as a resource next to the local folders an
 - **Settings backup** - one device backs up the app settings to Drive, and another device signed in to the same account restores them.
 - **App data** - settings, favorites, pinned streams and resources travel between your devices as one file per kind in your Drive.
 - **The phone's SFTP address** - with **Share access through Google Drive** switched on, Drive keeps the current address of the phone's SFTP server, so your other devices find it after a network change. See [Exchange server](exchange-server.html#what-works-today).
+
+## Between your own devices, with no server
+
+Apart from being a cloud you open as a resource, Google Drive can carry files between your own devices: **Files via Google Drive** sends files, opens a folder of another of your devices and runs a schedule through your own Google account, with no exchange server and no address. How: [Files and folders via Google Drive](folders-google-drive.html).
 
 ## When a cloud is the wrong choice
 

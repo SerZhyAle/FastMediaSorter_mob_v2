@@ -86,4 +86,21 @@
     <string name="playback_control_no_balance">صوت أحادي - لا توجد قنوات للتوازن</string>
     <string name="playback_control_balance_value">التوازن: %1$s</string>
     <string name="playback_control_balance_description">التوازن %1$d بالمائة يسار، %2$d بالمائة يمين</string>
+    <string name="player_file_grid">عرض شبكة المصغّرات</string>
+    <string name="player_file_list">عرض قائمة الملفات</string>
+    <string name="player_file_jump">الانتقال إلى ملف</string>
+    <string name="player_file_number_hint">رقم الملف (1..%1$d)</string>
+    <string name="player_file_number_error">أدخل عددًا صحيحًا من 1 إلى %1$d.</string>
+    <string name="player_file_single">هذا الملف فقط متاح.</string>
+    <string name="player_frame_unavailable">التقدّم إطارًا بإطار غير متاح لهذا الفيديو.</string>
+    <string name="player_frame_back_unavailable">الإطار السابق غير متاح: لا يمكن لهذا المفكّك الرجوع للخلف.</string>
+    <string name="player_loop_title">تكرار A-B</string>
+    <string name="player_loop_unavailable">يتطلب تكرار A-B فيديو يمكن التنقل داخله.</string>
+    <string name="player_loop_start">بداية التكرار: %1$s. اختر نقطة النهاية.</string>
+    <string name="player_loop_active">تكرار A-B: من %1$s إلى %2$s</string>
+    <string name="player_loop_invalid_end">اختر نقطة نهاية بعد البداية.</string>
+    <string name="player_frame_forward">الإطار التالي</string>
+    <string name="player_action_unavailable">هذا الإجراء غير متاح لهذا الملف.</string>
+    <string name="player_audio_track_single">لا يوجد مسار صوتي آخر متاح.</string>
+    <string name="player_frame_backward">الإطار السابق</string>
 </resources>

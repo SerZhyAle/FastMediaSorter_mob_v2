@@ -60,7 +60,7 @@ try {
     $runningHarness = Split-Path -Parent (Split-Path -Parent (Get-SzaHarnessScript 'locks/ticket-lease.ps1'))
 }
 catch {
-    Write-Host "assert-harness-drift: DID NOT LOOK - the shipped harness could not be resolved ($_)." -ForegroundColor Yellow
+    Write-Host "assert-harness-drift: COULD NOT VERIFY (the shipped harness could not be resolved: $_)" -ForegroundColor Yellow
     exit 2
 }
 
@@ -69,13 +69,13 @@ try {
     $canonHarness = Join-Path (Get-CanonRoot) 'tools/harness'
 }
 catch {
-    Write-Host "assert-harness-drift: DID NOT LOOK - the canon root could not be resolved ($_)." -ForegroundColor Yellow
+    Write-Host "assert-harness-drift: COULD NOT VERIFY (the canon root could not be resolved: $_)" -ForegroundColor Yellow
     exit 2
 }
 
 if (-not (Test-Path -LiteralPath $canonHarness -PathType Container)) {
-    Write-Host "assert-harness-drift: DID NOT LOOK - no canon checkout at $canonHarness." -ForegroundColor DarkGray
     Write-Host '  This is normal on any machine but the canon author its. Set SZA_CANON_ROOT to compare.' -ForegroundColor DarkGray
+    Write-Host "assert-harness-drift: COULD NOT VERIFY (no canon checkout at $canonHarness)" -ForegroundColor DarkGray
     exit 2
 }
 
@@ -121,7 +121,7 @@ if ($drift.Count -eq 0) {
 if (-not $Quiet) {
     foreach ($entry in $drift) { Write-Host "  $($entry.File) - $($entry.State)" -ForegroundColor Yellow }
 }
-Write-Host "assert-harness-drift: ADVISORY - $($drift.Count) harness file(s) drifted between the canon checkout and the copy that runs." -ForegroundColor Yellow
 Write-Host '  A fix present only in the canon working tree is not delivered: commit it and publish the plugin.' -ForegroundColor Yellow
 Write-Host '  A fix present only in the running copy is one plugin update from being lost.' -ForegroundColor Yellow
+Write-Host "assert-harness-drift: PASS WITH ADVISORIES ($($drift.Count) harness file(s) drifted between the canon checkout and the copy that runs)" -ForegroundColor Yellow
 exit 3

@@ -15,6 +15,8 @@ data class WearExchangeJoin(
     val login: String,
     val pinnedCertificate: String?,
     val pairingCode: String,
+    /** The key half of the phone entry's pin (19 item AY); null from an older phone or without a pin. */
+    val pinnedKey: String? = null,
 ) {
     override fun toString(): String = "WearExchangeJoin(port=$port, pinned=${pinnedCertificate != null})"
 }
@@ -29,6 +31,7 @@ class WearExchangeAccountRepository @Inject constructor(
     private val client: WearExchangeAccountClient,
     private val store: WearExchangeEntryStore,
     private val profile: WearExchangeDeviceProfile,
+    private val e2e: WearExchangeE2eStore,
 ) {
 
     val entries: Flow<List<WearExchangeEntry>> = store.entries
@@ -48,16 +51,20 @@ class WearExchangeAccountRepository @Inject constructor(
             port = join.port,
             login = join.login,
             pinnedCertificate = join.pinnedCertificate,
+            pinnedKey = join.pinnedKey,
         )
         var enrolled = candidate
-        var result = client.enroll(candidate, join.pairingCode, profile)
+        var result = client.enroll(candidate, join.pairingCode, profile, e2e.keyFor(candidate.deviceId))
         if (previous == null && result.isIdCollision()) {
+            e2e.forget(candidate.deviceId)
             enrolled = candidate.copy(deviceId = WearExchangeEntry.newDeviceId())
-            result = client.enroll(enrolled, join.pairingCode, profile)
+            result = client.enroll(enrolled, join.pairingCode, profile, e2e.keyFor(enrolled.deviceId))
         }
         if (result is WearExchangeEnrollResult.Enrolled) {
             record(enrolled.copy(outgoing = previous?.outgoing ?: held.none { it.outgoing }), result)
         } else {
+            // A key lives as long as its deviceId (item DF); an id that never became an entry takes its key along.
+            if (previous == null) e2e.forget(enrolled.deviceId)
             result
         }
     }
@@ -77,6 +84,7 @@ class WearExchangeAccountRepository @Inject constructor(
             WearExchangeRemoval.FORGOTTEN_LOCALLY
         }
         store.forgetToken(entry.identity)
+        e2e.forget(entry.deviceId)
         store.remove(entry.identity)
         val left = store.all()
         if (left.none { it.outgoing }) left.firstOrNull()?.let { store.setOutgoing(it.identity) }
@@ -88,7 +96,7 @@ class WearExchangeAccountRepository @Inject constructor(
         enrolled: WearExchangeEnrollResult.Enrolled,
     ): WearExchangeEnrollResult = if (store.saveToken(entry.identity, enrolled.token)) {
         store.put(entry)
-        enrolled
+        WearExchangeEnrollResult.Enrolled(enrolled.token, entry.deviceId, e2e.existing(entry.deviceId)?.kem)
     } else {
         WearExchangeEnrollResult.Refused(WearExchangeEnrollResult.REASON_TOKEN_NOT_STORED)
     }

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.25 02:50</sub>
+<sub class="doc-stamp">26.10.15 19:28</sub>
 
 # Document registry - how a page gets announced
 
@@ -68,7 +68,7 @@ with a reason. If it belongs to no existing group, add a record.
 ## Adding a language to the site (S1211)
 
 The site takes its language list from the app, so a language is data and text, never a template or a
-workflow edit. `_includes/lang-switcher.html`, `_layouts/` and `.github/workflows/jekyll-gh-pages.yml`
+workflow edit. `_layouts/` (whose `doc.html` reads `_data/languages.yml`) and `.github/workflows/jekyll-gh-pages.yml`
 stay untouched.
 
 1. Add the locale to `app_v2/src/main/res/xml/locales_config.xml` - the one declaration of the

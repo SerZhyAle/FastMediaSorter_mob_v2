@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Справка - Управление и клавиши</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<div class="doc-stamp">26.10.18 02:39</div>
+<main class="container">
+<nav class="help-crumbs" aria-label="Оглавление справки">
+<a href="index.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Управление и клавиши</span>
+</nav>
+<header class="hero">
+<h1>Управление и клавиши</h1>
+</header>
+<h2>Для чего этот экран</h2>
+<p class="lead">Выберите, какая клавиша, кнопка геймпада или кнопка мыши запускает каждую команду - воспроизведение, навигацию, сортировку и просмотр. У каждой команды есть стандартная клавиша, поэтому вы меняете только то, что хотите, и в любой момент можете вернуть всё как было.</p>
+<figure class="shot">
+<img class="on-light" src="../img/keybinding-remap-ru-light.webp" alt="Управление и клавиши">
+<img class="on-dark" src="../img/keybinding-remap-ru-dark.webp" alt="Управление и клавиши">
+</figure>
+<h2>Порядок действий</h2>
+<ol class="order">
+<li>Откройте «Управление и клавиши» в настройках, на вкладке «Управление». Команды сгруппированы по назначению, и группы сначала свёрнуты.</li>
+<li>Найдите команду: введите часть её названия в поле поиска <a class="ref" href="#search">2</a> или нажмите заголовок группы <a class="ref" href="#groups">3</a>, чтобы раскрыть её.</li>
+<li>Нажмите «Редактировать назначение» <a class="ref" href="#edit-binding">6</a> в строке команды <a class="ref" href="#command-row">5</a> и выберите устройство, у которого хотите сменить клавишу, - клавиатуру, геймпад и так далее.</li>
+<li>Откроется окно <a class="ref" href="#capture-prompt">9</a> и будет ждать. Нажмите новую клавишу или кнопку, пока идёт отсчёт <a class="ref" href="#capture-countdown">10</a>, и проверьте, что захвачено <a class="ref" href="#capture-captured">11</a>.</li>
+<li>Если красное сообщение говорит, что клавиша занята <a class="ref" href="#capture-conflict">12</a>, нажмите другую или «Отмена» <a class="ref" href="#capture-cancel">13</a>. Иначе нажмите «Назначить» <a class="ref" href="#capture-commit">14</a>, чтобы сохранить.</li>
+<li>Чтобы вернуть стандартную клавишу, используйте сброс в строке <a class="ref" href="#row-reset">7</a> для одной команды, сброс группы <a class="ref" href="#group-reset">4</a> для целой группы или «Сбросить всё» <a class="ref" href="#reset-all">8</a> для всех сразу. Два последних сначала спрашивают.</li>
+<li>Изменения сохраняются сразу. Кнопка «Назад» <a class="ref" href="#back">1</a> закрывает экран.</li>
+</ol>
+<h2>Элементы</h2>
+<div class="elements">
+<h3>Верхняя панель и поиск</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Назад</span><span class="one">Закрывает экран и возвращает в настройки.</span></span></summary>
+<div class="full">
+<p>Подтверждать нечего: каждое изменение сохраняется сразу, как только вы его делаете.</p>
+</div>
+</details>
+<details class="el" id="search">
+<summary><span class="mk">2</span><span><span class="name">Поиск команд..</span><span class="one">Оставляет в списке только подходящие команды.</span></span></summary>
+<div class="full">
+<p>Введите часть названия команды, например «Следующий файл», или часть названия клавиши, и список сужается прямо при вводе. Группа без совпадений исчезает. Свёрнутая группа с совпадением показывает только заголовок, поэтому нажмите на неё, чтобы увидеть подходящие строки. Очистите поле, чтобы вернуть всё.</p>
+</div>
+</details>
+<h3>Группы и команды</h3>
+<details class="el" id="groups">
+<summary><span class="mk">3</span><span><span class="name">Группы команд</span><span class="one">Сворачивает и разворачивает команды одной группы.</span></span></summary>
+<div class="full">
+<p>Команды сгруппированы по назначению: «Воспроизведение», «Навигация», «Вид и масштаб», «Аудио и субтитры», «Системный интерфейс», «Сортировка», «Быстрые операции», «Действия браузера» и - только в сборках с поддержкой VR - «Только VR». Группы сначала свёрнуты; нажмите заголовок, чтобы открыть группу. Приложение помнит, какие группы вы оставили открытыми. В широком окне строки идут в два столбца.</p>
+</div>
+</details>
+<details class="el" id="group-reset">
+<summary><span class="mk">4</span><span><span class="name">Сброс группы</span><span class="one">Возвращает одной группе стандартные клавиши.</span></span></summary>
+<div class="full">
+<p>Это маленький значок с круглой стрелкой в конце заголовка группы. Приложение спрашивает, сбросить ли все назначения в этой группе до заводских, и ничего не меняет, пока вы не нажмёте «Сбросить». Затрагиваются только клавиши, которые вы изменили в этой группе.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Ваши клавиши в этой группе пропадают, а стандартные возвращаются. Чтобы вернуть свою клавишу, назначьте её снова через «Редактировать назначение».</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="command-row">
+<summary><span class="mk">5</span><span><span class="name">Строка команды</span><span class="one">Команда и клавиши, которые её запускают.</span></span></summary>
+<div class="full">
+<p>Сверху - название команды. Под ним - её текущие клавиши, каждая с пометкой устройства: клавиатура, геймпад, мышь или VR; прочерк значит, что клавиша не задана. У одной команды могут быть клавиши сразу на нескольких устройствах, так что кнопка геймпада и клавиша клавиатуры могут делать одно и то же.</p>
+</div>
+</details>
+<details class="el" id="edit-binding">
+<summary><span class="mk">6</span><span><span class="name">Редактировать назначение</span><span class="one">Назначает команде новую клавишу или кнопку.</span></span></summary>
+<div class="full">
+<p>Небольшое меню спрашивает, для какого устройства менять. «Клавиатура» и «Геймпад» есть всегда, каждое с текущей клавишей или «(не задано)»; «Мышь» и VR появляются, только если у команды уже есть для них клавиша. После выбора открывается окно захвата клавиши. Новая клавиша заменяет прежнюю для этого устройства.</p>
+</div>
+</details>
+<details class="el" id="row-reset">
+<summary><span class="mk">7</span><span><span class="name">Сбросить к стандартным</span><span class="one">Возвращает одной команде стандартную клавишу.</span></span></summary>
+<div class="full">
+<p>Работает только для команды, которую вы меняли; у нетронутой команды кнопка приглушена. Сброс выполняется сразу, без вопроса.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Ваша клавиша для этой команды пропадает, возвращается стандартная. Если хотите вернуть свою, назначьте её снова через «Редактировать назначение».</dd>
+</dl>
+</div>
+</details>
+<h3>Сбросить всё</h3>
+<details class="el" id="reset-all">
+<summary><span class="mk">8</span><span><span class="name">Сбросить всё</span><span class="one">Возвращает всем командам стандартные клавиши.</span></span></summary>
+<div class="full">
+<p>Приложение спрашивает «Сбросить все назначения до заводских? Это нельзя отменить.» и ничего не меняет, пока вы не нажмёте «Сбросить». После этого каждая команда использует свои исходные кнопки клавиатуры, геймпада и мыши.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Все ваши клавиши пропадают разом, и вернуть их нельзя. Назначайте их заново по одной.</dd>
+</dl>
+</div>
+</details>
+<h3>Окно захвата клавиши</h3>
+<details class="el" id="capture-prompt">
+<summary><span class="mk">9</span><span><span class="name">Нажмите клавишу или кнопку..</span><span class="one">Сообщает, что приложение ждёт вашу клавишу.</span></span></summary>
+<div class="full">
+<p>Окно закрывает экран и ждёт клавишу клавиатуры (вместе с Ctrl, Shift или Alt, если вы их держите), кнопку геймпада, отклонение стика, триггера или крестовины либо кнопку мыши. Системная клавиша «Назад» новой клавишей не считается.</p>
+</div>
+</details>
+<details class="el" id="capture-countdown">
+<summary><span class="mk">10</span><span><span class="name">Отсчёт времени</span><span class="one">Показывает, сколько секунд осталось на нажатие.</span></span></summary>
+<div class="full">
+<p>У вас есть 30 секунд. Когда время выйдет, окно закроется само, и ничего не изменится.</p>
+</div>
+</details>
+<details class="el" id="capture-captured">
+<summary><span class="mk">11</span><span><span class="name">Захваченная клавиша</span><span class="one">Показывает клавишу или кнопку, которую поймало приложение.</span></span></summary>
+<div class="full">
+<p>Здесь написано «Захвачено:» и название того, что вы нажали, например Ctrl+Shift+K для клавиши клавиатуры с модификаторами. Пока вы ничего не нажали, виден прочерк. Если первое нажатие было не тем, нажмите другую клавишу - учитывается последняя.</p>
+</div>
+</details>
+<details class="el" id="capture-conflict">
+<summary><span class="mk">12</span><span><span class="name">Сообщение о конфликте</span><span class="one">Предупреждает, что другая команда уже использует эту клавишу.</span></span></summary>
+<div class="full">
+<p>Красная строка «Уже назначено:» и названия этих команд. Пока она видна, кнопка «Назначить» не работает, поэтому две команды не могут делить одну клавишу. Нажмите другую клавишу либо отмените и сначала освободите другую команду.</p>
+</div>
+</details>
+<details class="el" id="capture-cancel">
+<summary><span class="mk">13</span><span><span class="name">Отмена</span><span class="one">Закрывает окно, ничего не меняя.</span></span></summary>
+<div class="full">
+<p>Команда сохраняет прежнюю клавишу. Подходит, если вы открыли окно по ошибке или нужная клавиша уже занята.</p>
+</div>
+</details>
+<details class="el" id="capture-commit">
+<summary><span class="mk">14</span><span><span class="name">Назначить</span><span class="one">Сохраняет пойманную клавишу для этой команды.</span></span></summary>
+<div class="full">
+<p>Кнопка работает только после того, как клавиша поймана и ею не пользуется другая команда. Она сразу сохраняет клавишу, закрывает окно и обновляет строку.</p>
+</div>
+</details>
+</div>
+<h2>Связанное</h2>
+<ul class="related">
+<li><a href="settings-operations.html"><b>Настройки: Управление</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-general.html"><b>Настройки: Общие</b><span class="pill">Экран</span></a></li>
+<li><a href="player.html"><b>Плеер</b><span class="pill">Экран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/controls-and-key-remapping-ru.html"><b>Controls and Key Remapping - Keyboard, TV Remote and Gamepad, Your Way</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/general/keyboard-dpad-tv-navigation-ru.html"><b>Keyboard, D-Pad and Android TV Control - Using the App Without Touching the Screen</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="index.html"><b>Оглавление справки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index.html">Оглавление справки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
+</footer>
+</main>
+</body>
+</html>

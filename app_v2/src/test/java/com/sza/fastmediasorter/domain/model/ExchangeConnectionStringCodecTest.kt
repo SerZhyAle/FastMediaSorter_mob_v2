@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.model
 
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_ESCAPE
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_FP
+import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_I
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_N
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_U
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_UTF8
@@ -138,6 +139,14 @@ class ExchangeConnectionStringCodecTest {
     }
 
     @Test
+    fun `an embedded IPv4 address must occupy the final IPv6 groups`() {
+        assertNull(ExchangeEndpoint.parse("[192.0.2.1::]:1"))
+        assertNull(ExchangeEndpoint.parse("[1:192.0.2.1::2]:1"))
+        assertEquals("::ffff:192.0.2.1", ExchangeEndpoint.parse("[::ffff:192.0.2.1]:1")?.host)
+        assertEquals("1:2:3:4:5:6:c000:201", ExchangeEndpoint.parse("[1:2:3:4:5:6:192.0.2.1]:1")?.host)
+    }
+
+    @Test
     fun `the fingerprint is SHA256 and 43 standard base64 digits worth 32 bytes`() {
         val value = read("$MINIMAL&fp=SHA256%3A%2B%2B%2B%2B%2F%2F%2F%2FNA%2BxR01JbXXB5CJm2pgMG7SRVTB8msjcGFw")
         val bytes = checkNotNull(value.fingerprintBytes())
@@ -166,6 +175,17 @@ class ExchangeConnectionStringCodecTest {
     }
 
     @Test
+    fun `unpaired surrogates cannot become a connection string name`() {
+        listOf("\uD800", "\uDC00", "a\uD800b", "a\uDC00b", "\uDC00\uD800").forEach { name ->
+            assertFalse(ExchangeConnectionStringCodec.isName(name))
+            val construction = runCatching { ExchangeConnectionString(ENDPOINT, name = name) }
+            assertTrue(construction.exceptionOrNull() is IllegalArgumentException)
+        }
+        val value = ExchangeConnectionString(ENDPOINT, name = "a\uD83D\uDE00b")
+        assertEquals(value, read(value.encode()))
+    }
+
+    @Test
     fun `the login hint has the form of 5_1 and is written lower case`() {
         assertEquals("alice", read("$MINIMAL&u=Alice").loginHint)
         listOf("ab", "u".repeat(LOGIN_MAX + 1), "al%20ce", "alice%40example.org", "").forEach { u ->
@@ -183,6 +203,27 @@ class ExchangeConnectionStringCodecTest {
             "${PREFIX}x=%5B2001%3Adb8%3A%3A7%5D%3A22022",
             ExchangeConnectionString(ExchangeEndpoint("2001:db8::7", PORT)).encode(),
         )
+    }
+
+    @Test
+    fun `an invitation string carries i after u and makes the string an invitation`() {
+        val value = read("${PREFIX}i=$INVITATION&u=alice&x=192.0.2.10:22022")
+        assertEquals(INVITATION, value.invitation)
+        assertTrue(value.isInvitation)
+        assertEquals("$MINIMAL&u=alice&i=$INVITATION", value.encode())
+        assertFalse(read(MINIMAL).isInvitation)
+    }
+
+    @Test
+    fun `an invitation of the wrong length or with stray bits refuses the whole string`() {
+        assertEquals(BAD_I, refusal("$MINIMAL&i=${INVITATION.dropLast(1)}"))
+        assertEquals(BAD_I, refusal("$MINIMAL&i=${INVITATION.dropLast(1)}B"))
+        assertEquals(REPEATED_KEY, refusal("$MINIMAL&i=$INVITATION&i=$INVITATION"))
+    }
+
+    @Test
+    fun `toString never carries the invitation`() {
+        assertFalse(read("$MINIMAL&i=$INVITATION").toString().contains(INVITATION))
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -227,6 +268,7 @@ class ExchangeConnectionStringCodecTest {
         const val LOGIN_MAX = 64
         const val FINGERPRINT_BYTES = 32
         const val EMOJI_COUNT = 4
+        const val INVITATION = "q3Vb7YtK0xP2mN9s-_R4wA"
         const val FP_BODY = "Ul2rC03A44auS8B7ibLjJaAApHooIx%2F4R%2BSSgDTXUtY"
         val ENDPOINT = ExchangeEndpoint("192.0.2.10", PORT)
     }

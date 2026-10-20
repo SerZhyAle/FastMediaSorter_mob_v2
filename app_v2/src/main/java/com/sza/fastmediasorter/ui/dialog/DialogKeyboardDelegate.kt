@@ -28,7 +28,13 @@ object DialogKeyboardDelegate {
         dispatcher = KeyboardShortcutHandler.ActionDispatcher { false },
     )
 
-    fun applyTo(dialog: Dialog, onConfirm: () -> Unit) {
+    fun applyTo(dialog: Dialog, onConfirm: () -> Unit) = applyTo(dialog, onHelp = null, onConfirm = onConfirm)
+
+    /**
+     * [onHelp] lets a dialog that belongs to a surface with a help page open that page on F1; it returns
+     * true when it handled the key, otherwise the generic dialog shortcut sheet is shown.
+     */
+    fun applyTo(dialog: Dialog, onHelp: (() -> Boolean)?, onConfirm: () -> Unit) {
         dialog.setOnKeyListener { _, keyCode, event ->
             if (event.action != KeyEvent.ACTION_UP) return@setOnKeyListener false
 
@@ -46,7 +52,7 @@ object DialogKeyboardDelegate {
                     true
                 }
                 InputAction.ShowHelp -> {
-                    showHelp(dialog)
+                    if (onHelp?.invoke() != true) showHelp(dialog)
                     true
                 }
                 InputAction.ToggleSelection -> toggleFocusedControl(dialog)
@@ -64,6 +70,12 @@ object DialogKeyboardDelegate {
     fun applyToDialogFragment(dialog: Dialog?, onConfirm: () -> Unit) {
         dialog ?: return
         applyTo(dialog, onConfirm)
+    }
+
+    /** Variant of [applyToDialogFragment] whose F1 can open a help page, see [applyTo]. */
+    fun applyToDialogFragment(dialog: Dialog?, onHelp: (() -> Boolean)?, onConfirm: () -> Unit) {
+        dialog ?: return
+        applyTo(dialog, onHelp, onConfirm)
     }
 
     /**

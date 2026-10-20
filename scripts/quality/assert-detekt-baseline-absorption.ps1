@@ -153,6 +153,7 @@ if ($Update -and -not $Reason) {
     "another ticket's debt as permanent; an unexplained snapshot rewrite is the exact event this " +
     'gate exists to prevent.'
     Write-Error $why -ErrorAction Continue
+    Write-Host 'assert-detekt-baseline-absorption: COULD NOT VERIFY (-Update needs a -Reason)'
     exit 2
 }
 
@@ -164,6 +165,7 @@ if (($BaselineFile -or $SnapshotFile) -and -not $PSBoundParameters.ContainsKey('
     $why = 'assert-detekt-baseline-absorption: -BaselineFile/-SnapshotFile need an explicit -Module - ' +
     'a path override cannot describe both modules at once.'
     Write-Error $why -ErrorAction Continue
+    Write-Host 'assert-detekt-baseline-absorption: COULD NOT VERIFY (a path override needs an explicit -Module)'
     exit 2
 }
 
@@ -270,15 +272,16 @@ if ($Json) {
     Write-Host "Written: $jsonPath"
 }
 
-if ($cannotVerify) { exit 2 }
-if ($Update) { exit 0 }
+if ($cannotVerify) { Write-Host 'assert-detekt-baseline-absorption: COULD NOT VERIFY (a snapshot or baseline could not be read)'; exit 2 }
+if ($Update) { Write-Host 'assert-detekt-baseline-absorption: PASS (snapshot updated)'; exit 0 }
 
 if ($anyAbsorbed) {
     Write-Host ''
     Write-Host 'Fix the finding rather than freezing it. If the re-freeze is genuinely intentional,' -ForegroundColor Yellow
     Write-Host "accept it explicitly: -Update -Reason '<why>', then close through post-change.ps1 so" -ForegroundColor Yellow
     Write-Host 'the accepted debt has a dev-log row naming it.' -ForegroundColor Yellow
-    if ($Gate) { exit 1 }
+    if ($Gate) { Write-Host 'assert-detekt-baseline-absorption: FAIL (absorbed findings above)'; exit 1 }
 }
 
+Write-Host ("assert-detekt-baseline-absorption: PASS ({0})" -f $(if ($anyAbsorbed) { 'report mode, -Gate not set' } else { 'no absorbed finding' }))
 exit 0

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.systeminfo.helpers
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
@@ -10,16 +11,17 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.lifecycleScope
-import android.content.res.Configuration
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoReport
+import com.sza.fastmediasorter.core.systeminfo.SystemInfoSection
 import com.sza.fastmediasorter.core.systeminfo.renderSystemInfo
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.ActivitySystemInfoBinding
+import com.sza.fastmediasorter.domain.repository.SystemInfoGroupStateRepository
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.systeminfo.adapter.SystemInfoAdapter
 import com.sza.fastmediasorter.ui.systeminfo.model.SystemInfoListItem
 import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
@@ -39,11 +41,12 @@ import javax.inject.Inject
 class SystemInfoWindowManager @Inject constructor(
     private val systemInfoDialogManager: SystemInfoDialogManager,
     @ApplicationContext private val appContext: Context,
+    groupStateRepository: SystemInfoGroupStateRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
     private var currentReport: SystemInfoReport? = null
     private var systemInfoAdapter: SystemInfoAdapter? = null
-    private val expandedSections = mutableSetOf<String>()
+    private val expansionState = SystemInfoExpansionState(groupStateRepository)
     private var currentQuery: String = ""
 
     suspend fun gather(context: Context): SystemInfoReport = systemInfoDialogManager.gather(context)
@@ -54,20 +57,17 @@ class SystemInfoWindowManager @Inject constructor(
         binding.systemInfoToolbar.setOnMenuItemClickListener { item -> onAction(activity, binding, item.itemId) }
 
         systemInfoAdapter = SystemInfoAdapter(
-            onToggleSection = { title ->
-                if (expandedSections.contains(title)) {
-                    expandedSections.remove(title)
-                } else {
-                    expandedSections.add(title)
-                }
+            onToggleSection = { stateKey ->
+                expansionState.toggle(stateKey)
                 updateExpandCollapseIcon(binding)
                 filterAndSubmit(currentQuery)
             },
-            onCopySection = { title -> onCopySection(title) },
+            onCopySection = { stateKey -> onCopySection(stateKey) },
             onCopyField = { label, value -> onCopyField(label, value) },
         )
 
-        val spanCount = if (activity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
+        val isLandscape = activity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val spanCount = if (isLandscape) SPAN_COUNT_LANDSCAPE else SPAN_COUNT_PORTRAIT
         val gridLayoutManager = GridLayoutManager(activity, spanCount).apply {
             spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
                 override fun getSpanSize(position: Int): Int {
@@ -102,13 +102,14 @@ class SystemInfoWindowManager @Inject constructor(
     }
 
     private fun onAction(activity: AppCompatActivity, binding: ActivitySystemInfoBinding, itemId: Int): Boolean {
-        Timber.d("S4161: System information toolbar action $itemId")
         val report = currentReport
         when (itemId) {
             R.id.action_system_info_copy -> report?.let(::copyReport)
             R.id.action_system_info_save -> report?.let { activity.lifecycleScope.launch { saveReport(it) } }
             R.id.action_system_info_share -> report?.let { share(activity, it.fullText) }
             R.id.action_system_info_expand_collapse -> toggleExpandCollapseAll(binding)
+            // S4328: the "?" of the screen's own toolbar menu; the map decides through the host's id.
+            R.id.action_help -> HelpOpenManager.open(activity, activity::class.java.simpleName, null)
             else -> return false
         }
         return true
@@ -116,29 +117,24 @@ class SystemInfoWindowManager @Inject constructor(
 
     fun render(binding: ActivitySystemInfoBinding, report: SystemInfoReport) {
         currentReport = report
-        expandedSections.clear()
-        expandedSections.addAll(report.sections.filter { it.fields.isNotEmpty() }.map { it.title })
         updateExpandCollapseIcon(binding)
         filterAndSubmit(currentQuery)
     }
 
     private fun toggleExpandCollapseAll(binding: ActivitySystemInfoBinding) {
-        val allTitles = currentReport?.sections?.filter { it.fields.isNotEmpty() }?.map { it.title } ?: return
-        val allExpanded = expandedSections.containsAll(allTitles)
-        if (allExpanded) {
-            expandedSections.clear()
-        } else {
-            expandedSections.addAll(allTitles)
-        }
+        val sections = nonEmptySections() ?: return
+        expansionState.setAll(sections, expanded = !expansionState.allExpanded(sections))
         updateExpandCollapseIcon(binding)
         filterAndSubmit(currentQuery)
     }
 
+    private fun nonEmptySections(): List<SystemInfoSection>? =
+        currentReport?.sections?.filter { it.fields.isNotEmpty() }
+
     private fun updateExpandCollapseIcon(binding: ActivitySystemInfoBinding) {
-        val allTitles = currentReport?.sections?.filter { it.fields.isNotEmpty() }?.map { it.title } ?: return
+        val sections = nonEmptySections() ?: return
         val item = binding.systemInfoToolbar.menu.findItem(R.id.action_system_info_expand_collapse) ?: return
-        val allExpanded = expandedSections.containsAll(allTitles)
-        if (allExpanded) {
+        if (expansionState.allExpanded(sections)) {
             item.setIcon(R.drawable.ic_expand_less)
             item.setTitle(R.string.sysinfo_action_collapse_all)
         } else {
@@ -153,9 +149,7 @@ class SystemInfoWindowManager @Inject constructor(
         val trimmedQuery = query.trim()
         val isSearch = trimmedQuery.isNotEmpty()
 
-        val validSections = report.sections.filter { it.fields.isNotEmpty() }
-
-        validSections.forEach { section ->
+        report.sections.filter { it.fields.isNotEmpty() }.forEach { section ->
             val matchingFields = if (isSearch) {
                 section.fields.filter { (label, value) ->
                     label.contains(trimmedQuery, ignoreCase = true) ||
@@ -167,21 +161,26 @@ class SystemInfoWindowManager @Inject constructor(
             }
 
             if (matchingFields.isNotEmpty()) {
-                val isExpanded = if (isSearch) true else expandedSections.contains(section.title)
+                // A search expands every matching group for the view only; it must not overwrite what the
+                // user left remembered.
+                val isExpanded = isSearch || expansionState.isExpanded(section.stateKey)
                 items.add(
                     SystemInfoListItem.SectionHeader(
                         title = section.title,
+                        stateKey = section.stateKey,
                         count = matchingFields.size,
                         isExpanded = isExpanded,
+                        iconRes = SystemInfoGroupIcons.iconFor(section.group),
                     )
                 )
                 if (isExpanded) {
-                    matchingFields.forEach { (label, value) ->
+                    matchingFields.forEachIndexed { index, (label, value) ->
                         items.add(
                             SystemInfoListItem.Field(
-                                sectionTitle = section.title,
+                                sectionKey = section.stateKey,
                                 label = label,
                                 value = value,
+                                isShaded = index % 2 == 1,
                             )
                         )
                     }
@@ -200,11 +199,11 @@ class SystemInfoWindowManager @Inject constructor(
         systemInfoAdapter?.submitList(items)
     }
 
-    private fun onCopySection(title: String) {
-        val section = currentReport?.sections?.firstOrNull { it.title == title } ?: return
+    private fun onCopySection(stateKey: String) {
+        val section = currentReport?.sections?.firstOrNull { it.stateKey == stateKey } ?: return
         val text = listOf(section).renderSystemInfo()
-        appContext.copyTextToClipboard("System info $title", text)
-        val message = appContext.getString(R.string.sysinfo_toast_section_copied, title)
+        appContext.copyTextToClipboard("System info ${section.title}", text)
+        val message = appContext.getString(R.string.sysinfo_toast_section_copied, section.title)
         Toast.makeText(appContext, message, Toast.LENGTH_SHORT).show()
     }
 
@@ -263,5 +262,10 @@ class SystemInfoWindowManager @Inject constructor(
             File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), name)
                 .writeText(text)
         }
+    }
+
+    private companion object {
+        const val SPAN_COUNT_PORTRAIT = 2
+        const val SPAN_COUNT_LANDSCAPE = 4
     }
 }

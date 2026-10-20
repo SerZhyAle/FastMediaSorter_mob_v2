@@ -1,12 +1,15 @@
 package com.sza.fastmediasorter.wear.data.exchange
 
+import android.net.Network
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.net.ServerSocket
 import java.net.Socket
@@ -19,14 +22,25 @@ class WearExchangeSessionTest {
 
     private val server = ServerSocket(0)
     private val timeouts = mutableListOf<Int>()
+    private val pinnedKeys = mutableListOf<String?>()
+    private var presentedLeaf: String? = null
+    private var presentedKey: String? = null
     private val connector = object : WearExchangeConnector {
-        override fun connect(host: String, port: Int, pinned: String?, readTimeoutMs: Int): WearExchangeConnection {
+        override fun connect(
+            host: String,
+            port: Int,
+            pinned: String?,
+            pinnedKey: String?,
+            readTimeoutMs: Int,
+            network: Network?,
+        ): WearExchangeConnection {
             timeouts += readTimeoutMs
-            return WearExchangeConnection(Socket(host, port))
+            pinnedKeys += pinnedKey
+            return WearExchangeConnection(Socket(host, port), presentedLeaf, presentedKey)
         }
     }
     private val entry = WearExchangeEntry("127.0.0.1", server.localPort, "owner", DEVICE_ID, null)
-    private val store = FakeStore(mutableMapOf(entry.identity to TOKEN))
+    private val store = FakeStore(mutableMapOf(entry.identity to TOKEN), mutableListOf(entry))
     private val opener = WearExchangeSessionOpener(connector, store, WearExchangeDeviceProfile("Watch", "2.6.0"))
 
     @After
@@ -95,6 +109,77 @@ class WearExchangeSessionTest {
         assertEquals(emptyList<Int>(), timeouts)
     }
 
+    @Test
+    fun `a fresh welcome writes the clipboard facts back once`() {
+        val welcome = WearExchangeEnvelope.decode(
+            """{"schemaVersion":2,"type":"welcome","features":["clipboard"],"accountKind":"member"}"""
+        )
+        serve(welcome)
+        runBlocking { opener.open(entry, null, WearExchangeConnector.ENROLL_READ_TIMEOUT_MS) }.close()
+        serve(welcome)
+        runBlocking { opener.open(entry, null, WearExchangeConnector.ENROLL_READ_TIMEOUT_MS) }.close()
+
+        assertEquals(1, store.puts.size)
+        assertEquals(listOf("clipboard"), store.puts.single().features)
+        assertEquals("member", store.puts.single().accountKind)
+        assertTrue(store.puts.single().clipboardEligible)
+    }
+
+    @Test
+    fun `a guest welcome makes the entry ineligible`() {
+        serve(
+            WearExchangeEnvelope.decode(
+                """{"schemaVersion":2,"type":"welcome","features":["clipboard"],"accountKind":"guest"}"""
+            )
+        )
+
+        runBlocking { opener.open(entry, null, WearExchangeConnector.ENROLL_READ_TIMEOUT_MS) }.close()
+
+        assertFalse(store.puts.single().clipboardEligible)
+    }
+
+    @Test
+    fun `a same-key renewal replaces the stored leaf`() {
+        val pinned = entry.copy(pinnedCertificate = LEAF, pinnedKey = KEY)
+        val pinnedStore = FakeStore(mutableMapOf(pinned.identity to TOKEN), mutableListOf(pinned))
+        val pinnedOpener = WearExchangeSessionOpener(connector, pinnedStore, WearExchangeDeviceProfile("Watch", "2.6"))
+        presentedLeaf = RENEWED_LEAF
+        presentedKey = KEY
+        serve(WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_WELCOME))
+
+        runBlocking { pinnedOpener.open(pinned, null, WearExchangeConnector.ENROLL_READ_TIMEOUT_MS) }.close()
+
+        assertEquals(listOf<String?>(KEY), pinnedKeys)
+        assertEquals(RENEWED_LEAF, pinnedStore.puts.single().pinnedCertificate)
+        assertEquals(KEY, pinnedStore.puts.single().pinnedKey)
+    }
+
+    @Test
+    fun `a pin handed over without a key learns it from the matching leaf`() {
+        val pinned = entry.copy(pinnedCertificate = LEAF)
+        val pinnedStore = FakeStore(mutableMapOf(pinned.identity to TOKEN), mutableListOf(pinned))
+        val pinnedOpener = WearExchangeSessionOpener(connector, pinnedStore, WearExchangeDeviceProfile("Watch", "2.6"))
+        presentedLeaf = LEAF
+        presentedKey = KEY
+        serve(WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_WELCOME))
+
+        runBlocking { pinnedOpener.open(pinned, null, WearExchangeConnector.ENROLL_READ_TIMEOUT_MS) }.close()
+
+        assertEquals(LEAF, pinnedStore.puts.single().pinnedCertificate)
+        assertEquals(KEY, pinnedStore.puts.single().pinnedKey)
+    }
+
+    @Test
+    fun `an unpinned entry never gains a pin from a connect`() {
+        presentedLeaf = RENEWED_LEAF
+        presentedKey = KEY
+        serve(WearExchangeEnvelope.of(WearExchangeEnvelope.TYPE_WELCOME))
+
+        runBlocking { opener.open(entry, null, WearExchangeConnector.ENROLL_READ_TIMEOUT_MS) }.close()
+
+        assertTrue(store.puts.all { it.pinnedCertificate == null && it.pinnedKey == null })
+    }
+
     private fun serve(answer: WearExchangeEnvelope): ArrayBlockingQueue<WearExchangeEnvelope> {
         val asked = ArrayBlockingQueue<WearExchangeEnvelope>(1)
         thread(isDaemon = true) {
@@ -107,10 +192,17 @@ class WearExchangeSessionTest {
         return asked
     }
 
-    private class FakeStore(val tokens: MutableMap<String, String>) : WearExchangeEntryStore {
+    private class FakeStore(
+        val tokens: MutableMap<String, String>,
+        val held: MutableList<WearExchangeEntry>,
+    ) : WearExchangeEntryStore {
+        val puts = mutableListOf<WearExchangeEntry>()
         override val entries: Flow<List<WearExchangeEntry>> = MutableStateFlow(emptyList())
-        override suspend fun all(): List<WearExchangeEntry> = emptyList()
-        override suspend fun put(entry: WearExchangeEntry) = Unit
+        override suspend fun all(): List<WearExchangeEntry> = held.toList()
+        override suspend fun put(entry: WearExchangeEntry) {
+            puts += entry
+            held.replaceAll { if (it.identity == entry.identity) entry else it }
+        }
         override suspend fun remove(identity: String) = Unit
         override suspend fun setOutgoing(identity: String) = Unit
         override suspend fun token(identity: String): String? = tokens[identity]
@@ -125,5 +217,8 @@ class WearExchangeSessionTest {
         const val TOKEN = "token-1"
         const val KEEPALIVE = 30
         const val WAIT_SECONDS = 5L
+        const val LEAF = "SHA256:leaf"
+        const val RENEWED_LEAF = "SHA256:renewed"
+        const val KEY = "SHA256:key"
     }
 }

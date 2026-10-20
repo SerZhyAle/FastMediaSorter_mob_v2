@@ -141,6 +141,6 @@ Assert-Equal "Unnamed locale is still refused" $false (Test-LocaleIdenticalAllow
 Remove-Item -LiteralPath $scratchDir -Recurse -Force
 
 Write-Host "`n=== Summary ===" -ForegroundColor Cyan
-Write-Host "PASS: $script:pass | FAIL: $script:fail"
+Write-Host "locale-identical-allowlist.Tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

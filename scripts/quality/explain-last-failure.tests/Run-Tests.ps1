@@ -246,7 +246,5 @@ Assert-That 'no case returned exit 1' (
 if (Test-Path -LiteralPath $scratch) { Remove-Item -LiteralPath $scratch -Recurse -Force }
 
 Write-Host ""
-Write-Host ("explain-last-failure.tests: {0} passed, {1} failed, {2} case(s) skipped." -f
-    $script:pass, $script:fail, $script:skip) `
-    -ForegroundColor ($script:fail -gt 0 ? 'Red' : 'Green')
+Write-Host "explain-last-failure.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=$script:skip)"
 exit ($script:fail -gt 0 ? 1 : 0)

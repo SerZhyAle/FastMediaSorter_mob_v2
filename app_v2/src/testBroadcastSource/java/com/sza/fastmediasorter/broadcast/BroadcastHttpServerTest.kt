@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.broadcast
 
 import android.content.Context
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialPair
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastDigest
 import io.mockk.mockk
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -271,6 +273,53 @@ class BroadcastHttpServerTest {
         }
         assertEquals(200, connection.responseCode)
         return connection
+    }
+
+    @Test
+    fun `a protected server challenges first and streams to a right Digest answer`() {
+        val port = findFreePort()
+        val pair = BroadcastCredentialPair("listener", "secret-pass")
+        val config = BroadcastSessionConfig(
+            streamTitle = "Protected",
+            bitRateBps = 96_000,
+            port = port,
+            sampleRateHz = 48_000,
+            channelCount = 2,
+            sourceDeviceId = null,
+        )
+        val srv = BroadcastHttpServer(context, config, { TEST_SERVER_ADDRESS }, credentials = { listOf(pair) })
+        server = srv
+        assertEquals(port, srv.start())
+        val url = URL("http://127.0.0.1:$port$ENDPOINT")
+
+        val first = (url.openConnection() as HttpURLConnection).apply {
+            connectTimeout = 2000
+            readTimeout = 2000
+        }
+        val fields = try {
+            assertEquals(401, first.responseCode)
+            first.headerFields.entries
+                .filter { it.key.equals(BroadcastDigest.HEADER_CHALLENGE, ignoreCase = true) }
+                .flatMap { it.value }
+        } finally {
+            first.disconnect()
+        }
+        // RFC 7616 section 3.7: one challenge per header field, SHA-256 first - the shape curl and browsers read.
+        assertEquals(2, fields.size)
+        assertTrue(fields[0], fields[0].contains("algorithm=SHA-256"))
+        assertTrue(fields[1], fields[1].contains("algorithm=MD5"))
+        val challenge = fields.joinToString(", ")
+
+        val second = (url.openConnection() as HttpURLConnection).apply {
+            connectTimeout = 2000
+            readTimeout = 2000
+            setRequestProperty("Authorization", BroadcastDigest.answer(challenge, "GET", ENDPOINT, pair))
+        }
+        try {
+            assertEquals(200, second.responseCode)
+        } finally {
+            second.disconnect()
+        }
     }
 
     private fun awaitListeners(srv: BroadcastHttpServer, expected: Int) {

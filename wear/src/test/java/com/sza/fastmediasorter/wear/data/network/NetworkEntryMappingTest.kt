@@ -21,7 +21,7 @@ class NetworkEntryMappingTest {
 
     private val smb = SmbDataSource(mockk(relaxed = true))
     private val ftp = FtpDataSource(mockk(relaxed = true))
-    private val sftp = SftpDataSource(mockk(relaxed = true))
+    private val sftp = SftpDataSource(mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true))
 
     // --- SMB ---
 

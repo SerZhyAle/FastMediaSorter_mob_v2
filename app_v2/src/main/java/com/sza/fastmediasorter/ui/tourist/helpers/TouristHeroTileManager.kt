@@ -30,7 +30,6 @@ class TouristHeroTileManager(
     fun bind(state: TouristDashboardState, context: Context) {
         val tile = state.focusedTile
         val content = contentManager.content(tile, state)
-        Timber.d("S4145: hero bound tile=%s value=%s detail=%s", tile, content.value, content.detail)
 
         binding.cardHeroTile.setCardBackgroundColor(ContextCompat.getColor(context, content.backgroundRes))
         binding.cardHeroTile.contentDescription = content.spokenDescription
@@ -49,7 +48,6 @@ class TouristHeroTileManager(
 
         val isCompass = tile == TouristTileType.COMPASS
         if (isCompass && binding.layoutHeroCompass.visibility != View.VISIBLE) {
-            Timber.d("S4183: Tourist compass focused; rose left, heading right, equal halves")
         }
         bindVisual(content.visual, isCompass, context)
     }

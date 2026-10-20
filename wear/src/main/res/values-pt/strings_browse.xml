@@ -11,4 +11,7 @@
     <string name="browse_network_error_timeout">Sem resposta a tempo. Verifique a rede e tente novamente.</string>
     <string name="browse_network_error_auth">Nome de usuário ou senha incorretos. Atualize o recurso no seu telefone.</string>
     <string name="browse_network_error_unknown_host">Computador não encontrado nesta rede. Verifique a conexão Wi-Fi.</string>
+    <string name="exchange_folder_needs_own_network">Esta pasta abre somente pelo Wi-Fi ou LTE do próprio relógio. Ative o Wi-Fi ou o LTE no relógio.</string>
+    <string name="exchange_folder_pin_on_phone">Esta pasta é protegida, e o PIN é digitado no telefone. Abra a pasta no telefone e digite o PIN.</string>
+    <string name="exchange_folder_connect_watch_on_phone">Fora de casa, esta pasta exige o relógio conectado ao servidor. Conecte o relógio no telefone.</string>
 </resources>

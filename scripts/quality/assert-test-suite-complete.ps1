@@ -53,6 +53,7 @@ try {
 }
 catch {
     Write-Error "assert-test-suite-complete: $($_.Exception.Message)" -ErrorAction Continue
+    Write-Host 'assert-test-suite-complete: COULD NOT VERIFY (the source map could not be read)'
     exit 2
 }
 
@@ -61,6 +62,7 @@ if ($sourceMap.Unparsed.Count -gt 0) {
     "mount line(s) in $($sourceMap.GradleFile) were attributed to no source set, so the effective " +
     'source roots of this variant cannot be derived.'
     Write-Error $msg -ErrorAction Continue
+    Write-Host 'assert-test-suite-complete: COULD NOT VERIFY (a mount line was attributed to no source set)'
     exit 2
 }
 
@@ -85,17 +87,20 @@ else {
 if ($null -eq $flavor) {
     $known = ($sourceMap.FlavorNames -join ', ')
     Write-Error "assert-test-suite-complete: cannot read a flavor out of -TaskDir '$TaskDir' (known flavors: $known)" -ErrorAction Continue
+    Write-Host "assert-test-suite-complete: COULD NOT VERIFY (cannot read a flavor out of -TaskDir '$TaskDir')"
     exit 2
 }
 
 if (-not (Test-Path $sourceRoot)) {
     Write-Error "assert-test-suite-complete: no test sources at $sourceRoot" -ErrorAction Continue
+    Write-Host "assert-test-suite-complete: COULD NOT VERIFY (no test sources at $sourceRoot)"
     exit 2
 }
 if (-not (Test-Path $reportRoot)) {
     $msg = "assert-test-suite-complete: no reports at $reportRoot - run the suite first. " +
     '"Could not check" is not "checked and found nothing".'
     Write-Error $msg -ErrorAction Continue
+    Write-Host "assert-test-suite-complete: COULD NOT VERIFY (no reports at $reportRoot; run the suite first)"
     exit 2
 }
 
@@ -127,6 +132,7 @@ foreach ($root in $sourceRoots) {
 
 if ($sourceClasses.Count -eq 0) {
     Write-Error "assert-test-suite-complete: no *Test.kt under $($sourceRootsRelative -join ', ')" -ErrorAction Continue
+    Write-Host 'assert-test-suite-complete: COULD NOT VERIFY (no *Test.kt under the effective source roots)'
     exit 2
 }
 
@@ -166,6 +172,7 @@ if ($missing.Count -gt 0 -or $ratio -lt $MinCoverageRatio) {
     'worker JVM dies mid-run - treat this as a failed run, not as a result. Check the log for ' +
     'OutOfMemoryError and the test worker heap (testOptions.unitTests maxHeapSize).'
     Write-Error $why -ErrorAction Continue
+    Write-Host 'assert-test-suite-complete: FAIL (a package with test sources produced no report)'
     exit 1
 }
 

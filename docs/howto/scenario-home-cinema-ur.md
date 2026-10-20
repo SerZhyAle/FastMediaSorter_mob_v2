@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "ہوم سنیما اور VR اسٹریمنگ - FastMediaSorter v2"
 permalink: /docs/howto/scenario-home-cinema-ur.html
 ---
-<sub class="doc-stamp">26.09.25 02:20</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ur" dir="rtl" markdown="1">
 
 # 🍿 ہوم سنیما اور VR اسٹریمنگ
 
 > **سطح:** ابتدائی &bull; **وقت:** ~15 منٹ &bull; **فلیور:** Standard, Legacy, VR, noLegal (Lite میں نیٹ ورک سورسز نہیں ہیں، Photos میں ویڈیو نہیں ہے)
-
-{% include lang-switcher.html doc="scenario-home-cinema" dir="/docs/howto/" current="ur" %}
 
 اپنی سیریز کلیکشن براہ راست اپنے گھر کے پی سی سے دیکھیں - اپنے فون، ٹیبلٹ، یا Android پر مبنی VR ہیڈسیٹ (Meta Quest, Pico) پر۔ نہ فائلیں کاپی کرنا، نہ USB کیبلز۔ بس پلے دبائیں۔
 

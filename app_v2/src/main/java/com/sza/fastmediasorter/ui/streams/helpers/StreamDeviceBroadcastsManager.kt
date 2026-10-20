@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.databinding.ItemDeviceBroadcastRowBinding
 import com.sza.fastmediasorter.domain.model.ExchangeDeviceBroadcast
 import com.sza.fastmediasorter.ui.streams.DeviceBroadcastsSectionState
+import timber.log.Timber
 
 /**
  * Renders the "Broadcasts of my devices" section of the streams list (S4116 phase 07): a header that opens and
@@ -24,12 +25,19 @@ class StreamDeviceBroadcastsManager(
     private val chevron: ImageView,
     private val status: TextView,
     private val list: LinearLayout,
+    private val portalLink: View,
     private val onToggle: () -> Unit,
     private val onChosen: (ExchangeDeviceBroadcast) -> Unit,
+    onPortalLink: () -> Unit,
 ) {
+
+    // Rows stay bound to their items across store emissions: the list is rebuilt only when the shown items
+    // differ by value, so an emission that flips just pending/incomplete keeps the focused row alive (C37).
+    private var renderedItems: List<ExchangeDeviceBroadcast> = emptyList()
 
     init {
         header.setOnClickListener { onToggle() }
+        portalLink.setOnClickListener { onPortalLink() }
     }
 
     fun setAvailable(available: Boolean) {
@@ -54,9 +62,14 @@ class StreamDeviceBroadcastsManager(
         }
         status.isVisible = statusText != null
         statusText?.let(status::setText)
+        portalLink.isVisible = state.expanded
         list.isVisible = items.isNotEmpty()
-        list.removeAllViews()
-        items.forEach { list.addView(row(it)) }
+        if (items != renderedItems) {
+            Timber.d("S4342: rebuilding rows items=${items.size}")
+            list.removeAllViews()
+            items.forEach { list.addView(row(it)) }
+            renderedItems = items
+        }
     }
 
     private fun row(item: ExchangeDeviceBroadcast): View {

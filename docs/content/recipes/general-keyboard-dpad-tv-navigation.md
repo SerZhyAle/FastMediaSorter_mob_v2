@@ -134,6 +134,7 @@ steps:
 outcome: |
   You can run FastMediaSorter from the sofa with a TV remote, from a desk with a keyboard and mouse, or from a car's D-pad: every screen starts with the selection on something useful, every dialog answers to Escape and Enter, and the most common commands have their own key.
 tips:
+  - "**Player keys:** G opens thumbnails, F4 the file list, N a file number, Y a random file, and Up/Down steps back/forward 10 files; Shift+PageUp/PageDown steps 100. R/Shift+R rotates supported media, brackets change speed, and A changes a video audio track. On video, . requests the next frame and Shift+L sets or clears A-B repeat. S accelerates a running slideshow down to 1 second; I uses random order. Collection actions also work in folder-aware separate players. Fields and modal windows keep these keys for themselves."
   - "**Lost the selection frame?** Press any arrow key once - the frame appears on the current control."
   - "**Prefer other keys?** Change any of them in [Controls and key remapping](page:settings.controls-and-key-remapping)."
   - "**Watching videos with a remote?** The player's own keys and panels are in [Watching videos](page:player.video-playback-controls)."
@@ -156,6 +157,6 @@ next_recipes:
     description: Select many files and act on all of them at once.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.19 16:16</sub>
 
 A remote, a keyboard, a game controller or a mouse - FastMediaSorter answers to all of them. This page shows how to move around, answer dialogs, use the shortcuts and select files without touching the screen.

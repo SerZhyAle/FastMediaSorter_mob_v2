@@ -11,4 +11,4 @@ The buttons show data from any app or system source you pick in the watch face e
 
 Needs Wear OS 6 or newer. The face is built with Watch Face Format, so no app code runs on your watch to draw it.
 
-The face is made for FastMediaSorter, the media sorting app for Android phones, and for its FastMediaSorter watch app for Wear OS.
+The face is made for FastMediaSorter, the media sorting app for Android phones, and for its FastMediaSorter watch app for Wear OS. The app is on Google Play: https://play.google.com/store/apps/details?id=com.sza.fastmediasorter

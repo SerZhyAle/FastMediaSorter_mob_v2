@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.data.repository.settings.StreamsSessionStore
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
+import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamCollectionsUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamPlayOutcomesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
@@ -70,6 +71,8 @@ class StreamsStaleFacetSelectionTest {
         every { observeStreamPlayOutcomes() } returns flowOf(emptyMap())
         val observeStreamCollections = mockk<ObserveStreamCollectionsUseCase>()
         every { observeStreamCollections() } returns flowOf(emptyList())
+        val observeLiveBroadcastSources = mockk<ObserveLiveBroadcastSourcesUseCase>()
+        every { observeLiveBroadcastSources(any()) } returns flowOf(emptyList())
         return StreamsViewModel(
             observeStreamSources = observeStreamSources,
             addStreamSource = mockk(relaxed = true),
@@ -97,7 +100,9 @@ class StreamsStaleFacetSelectionTest {
             clearDownloadedStreams = mockk(relaxed = true),
             mediaCapabilities = mockk(relaxed = true),
             sendStreamToWatchUseCase = mockk(relaxed = true),
+            buildWatchBroadcastHandoff = mockk(relaxed = true),
             observeStreamCollections = observeStreamCollections,
+            observeLiveBroadcastSources = observeLiveBroadcastSources,
         )
     }
 

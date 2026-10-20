@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.model
 
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_ESCAPE
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_FP
+import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_I
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_N
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_U
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal.BAD_UTF8
@@ -44,13 +45,19 @@ object ExchangeConnectionStringCodec {
     private const val KEY_FP = "fp"
     private const val KEY_N = "n"
     private const val KEY_U = "u"
-    private val KNOWN_KEYS = setOf(KEY_X, KEY_FP, KEY_N, KEY_U)
+    private const val KEY_I = "i"
+    private val KNOWN_KEYS = setOf(KEY_X, KEY_FP, KEY_N, KEY_U, KEY_I)
     private const val FIELD_SEPARATOR = '&'
-    private const val BYTE_ORDER_MARK = "﻿"
+    private const val BYTE_ORDER_MARK = "\uFEFF"
     private const val FINGERPRINT_PREFIX = "SHA256:"
     private const val FINGERPRINT_CHARS = 43
     private const val FINGERPRINT_BYTES = 32
     private const val BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    private const val BASE64URL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+    private const val INVITATION_CHARS = 22
+
+    // 22 sextets carry 132 bits for 16 bytes (128 bits): the last digit's low four bits must be zero.
+    private const val INVITATION_STRAY_BITS_MASK = 0b1111
     private const val SEXTET_BITS = 6
     private const val BYTE_BITS = 8
     private const val BYTE_MASK = 0xFF
@@ -70,6 +77,7 @@ object ExchangeConnectionStringCodec {
         value.fingerprint?.let { add(KEY_FP to it) }
         value.name?.let { add(KEY_N to it) }
         value.loginHint?.let { add(KEY_U to it) }
+        value.invitation?.let { add(KEY_I to it) }
     }.joinToString(FIELD_SEPARATOR.toString(), prefix = PREFIX) { (key, text) ->
         "$key=" + URLEncoder.encode(text, Charsets.UTF_8.name())
     }
@@ -127,7 +135,22 @@ object ExchangeConnectionStringCodec {
 
     /** 1 to [MAX_NAME] Unicode scalar values with no control character (category Cc, all in the BMP). */
     fun isName(name: String): Boolean =
-        name.isNotEmpty() && name.codePointCount(0, name.length) <= MAX_NAME && name.none(Char::isISOControl)
+        name.isNotEmpty() && name.codePointCount(0, name.length) <= MAX_NAME &&
+            name.none(Char::isISOControl) && hasPairedSurrogates(name)
+
+    private fun hasPairedSurrogates(text: String): Boolean = text.indices.all { index ->
+        when {
+            text[index].isHighSurrogate() -> text.getOrNull(index + 1)?.isLowSurrogate() == true
+            text[index].isLowSurrogate() -> index > 0 && text[index - 1].isHighSurrogate()
+            else -> true
+        }
+    }
+
+    /** A one-time invitation of 19 items AP and AR: 22 base64url characters, no padding, decoding to 16 bytes. */
+    fun isInvitation(text: String): Boolean =
+        text.length == INVITATION_CHARS &&
+            text.all { it in BASE64URL_ALPHABET } &&
+            BASE64URL_ALPHABET.indexOf(text.last()) and INVITATION_STRAY_BITS_MASK == 0
 
     /** The login form of contract 5.1, compared case-insensitively, so upper case is tolerated on reading. */
     fun isLogin(login: String): Boolean =
@@ -144,9 +167,10 @@ object ExchangeConnectionStringCodec {
         val fingerprint = fields[KEY_FP]?.also { refuseIf(fingerprintBytes(it) == null, BAD_FP) }
         val name = fields[KEY_N]?.also { refuseIf(!isName(it), BAD_N) }
         val login = fields[KEY_U]?.also { refuseIf(!isLogin(it), BAD_U) }?.lowercase(Locale.ROOT)
+        val invitation = fields[KEY_I]?.also { refuseIf(!isInvitation(it), BAD_I) }
         // A value every field of which passed can still overflow when re-written; refuse rather than throw.
         val value = try {
-            ExchangeConnectionString(endpoint, fingerprint, name, login)
+            ExchangeConnectionString(endpoint, fingerprint, name, login, invitation)
         } catch (_: IllegalArgumentException) {
             refuse(TOO_LONG)
         }
@@ -160,7 +184,7 @@ object ExchangeConnectionStringCodec {
             URL_PREFIX.containsMatchIn(text) -> ExchangeConnectionStringLookalike.URL
             else -> null
         }
-        // `FMSEXCH0:` and `FMSEXCH01:` are no version of this format; only a major above 1 asks for an update.
+        // `FMSEXCH0:` and `FMSEXCH01:` are no version of this format; only a major above 1 is `format-unsupported`.
         return if (digits != null && digits.first() != '0' && digits != "1") {
             ExchangeConnectionStringResult.NewerMajor(digits.toIntOrNull() ?: Int.MAX_VALUE)
         } else {

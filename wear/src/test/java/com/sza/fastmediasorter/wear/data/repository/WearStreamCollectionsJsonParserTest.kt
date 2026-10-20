@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.data.repository
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -18,7 +19,7 @@ class WearStreamCollectionsJsonParserTest {
 
     @Test
     fun `parses two collections and keeps the curator order`() {
-        val result = parser.parse(VALID)
+        val result = parser.parse(VALID).collections
 
         assertEquals(2, result.size)
         val tv = result.first { it.id == "tv-ru" }
@@ -29,7 +30,7 @@ class WearStreamCollectionsJsonParserTest {
 
     @Test
     fun `one url belongs to two collections`() {
-        val result = parser.parse(VALID)
+        val result = parser.parse(VALID).collections
 
         val holders = result.filter { it.memberUrls.contains(URL_A) }.map { it.id }.sorted()
 
@@ -40,7 +41,21 @@ class WearStreamCollectionsJsonParserTest {
     fun `an unknown schema version yields nothing rather than a guess`() {
         val result = parser.parse(VALID.replace("\"schemaVersion\": 1", "\"schemaVersion\": 2"))
 
-        assertEquals(emptyList<String>(), result.map { it.id })
+        assertEquals(emptyList<String>(), result.collections.map { it.id })
+        assertTrue("an unknown version must keep the stored set (SB-A7)", result.refused)
+    }
+
+    @Test
+    fun `a valid empty document clears rather than refuses`() {
+        val result = parser.parse("""{"schemaVersion": 1, "collections": []}""")
+
+        assertEquals(emptyList<String>(), result.collections.map { it.id })
+        assertFalse("an empty array is the publisher clearing the set", result.refused)
+    }
+
+    @Test
+    fun `text that is not json is refused`() {
+        assertTrue(parser.parse("not json at all").refused)
     }
 
     @Test
@@ -52,7 +67,7 @@ class WearStreamCollectionsJsonParserTest {
               {"id": "tv-ru", "order": 2, "names": {"en": "Russian TV"}, "members": [{"url": "$URL_A", "order": 1}]}
             ]}
             """.trimIndent()
-        )
+        ).collections
 
         assertEquals(listOf("tv-ru"), result.map { it.id })
     }
@@ -65,7 +80,7 @@ class WearStreamCollectionsJsonParserTest {
               {"id": "tv-ru", "order": 1, "names": {"ru": "TV России"}, "members": [{"url": "$URL_A", "order": 1}]}
             ]}
             """.trimIndent()
-        )
+        ).collections
 
         assertEquals(emptyList<String>(), result.map { it.id })
     }
@@ -79,7 +94,7 @@ class WearStreamCollectionsJsonParserTest {
                "members": [{"url": "$URL_A", "order": 1, "note": "primary"}]}
             ]}
             """.trimIndent()
-        )
+        ).collections
 
         assertEquals(listOf(URL_A), result.single().memberUrls)
     }

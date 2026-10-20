@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.preset
 
 import android.content.Context
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
+import com.sza.fastmediasorter.core.constants.AppConstants
 import com.sza.fastmediasorter.core.letterbox.LetterboxFillMath
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -209,7 +210,14 @@ class DeviceProfilePresetApplier @Inject constructor(
             "networkParallelism" -> raw.toIntOrSkip(field) { settings.copy(networkParallelism = it) } ?: settings
             "cacheSizeMb" -> raw.toIntOrSkip(field) { settings.copy(cacheSizeMb = it) } ?: settings
             "backgroundSyncIntervalHours" -> raw.toIntOrSkip(field) { settings.copy(backgroundSyncIntervalHours = it) } ?: settings
-            "slideshowInterval" -> raw.toIntOrSkip(field) { settings.copy(slideshowInterval = it) } ?: settings
+            "slideshowInterval" -> raw.toIntOrSkip(field) {
+                settings.copy(
+                    slideshowInterval = it.coerceIn(
+                        AppConstants.MIN_SLIDESHOW_INTERVAL_SECONDS,
+                        AppConstants.MAX_SLIDESHOW_INTERVAL_SECONDS
+                    )
+                )
+            } ?: settings
             "defaultIconSize" -> raw.toIntOrSkip(field) { settings.copy(defaultIconSize = it) } ?: settings
             "stopwatchParticipantCount" ->
                 raw.toIntOrSkip(field) { settings.copy(stopwatchParticipantCount = it) } ?: settings

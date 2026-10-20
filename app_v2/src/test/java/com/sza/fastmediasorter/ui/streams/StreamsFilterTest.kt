@@ -197,6 +197,33 @@ class StreamsFilterTest {
     }
 
     @Test
+    fun `live broadcasts belong only to own category`() {
+        val sources = listOf(
+            source("catalogAudio", mediaKind = "AUDIO"),
+            source("manualVideo", mediaKind = "VIDEO", sourceOrigin = "MANUAL"),
+            source("liveAudio", mediaKind = "AUDIO", sourceOrigin = "LIVE_BROADCAST"),
+            source("liveVideo", mediaKind = "VIDEO", sourceOrigin = "LIVE_BROADCAST"),
+        )
+
+        assertEquals(
+            setOf("manualVideo", "liveAudio", "liveVideo"),
+            ids(StreamsViewModel.applyFilter(sources, StreamsFilter(mediaKind = MediaKindFilter.OWN))),
+        )
+        assertEquals(
+            setOf("catalogAudio"),
+            ids(StreamsViewModel.applyFilter(sources, StreamsFilter(mediaKind = MediaKindFilter.AUDIO))),
+        )
+        assertEquals(
+            emptySet<String>(),
+            ids(StreamsViewModel.applyFilter(sources, StreamsFilter(mediaKind = MediaKindFilter.VIDEO))),
+        )
+        assertEquals(
+            setOf("catalogAudio", "manualVideo"),
+            ids(StreamsViewModel.applyFilter(sources, StreamsFilter(mediaKind = MediaKindFilter.ALL))),
+        )
+    }
+
+    @Test
     fun `facetsOf splits comma-separated language cell into distinct facets`() {
         val facets = StreamsViewModel.facetsOf(
             listOf(

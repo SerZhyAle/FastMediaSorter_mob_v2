@@ -4,8 +4,10 @@ import com.sza.fastmediasorter.domain.model.ExchangeConnectionString
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringCodec
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringLookalike
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringResult
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.IntakeTextDispatch
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -32,9 +34,25 @@ class DispatchIntakeTextUseCaseTest {
     }
 
     @Test
-    fun `a later major asks for an update`() {
+    fun `a later major is refused before any field is read`() {
         val dispatch = useCase.dispatch("FMSEXCH2:x=192.0.2.10%3A22022&k=v")
         assertEquals(IntakeTextDispatch.NewerExchangeMajor(2), dispatch)
+    }
+
+    // DEVICE-EXCHANGE 1.3: a higher prefix carrying fields this version could read is still not imported.
+    @Test
+    fun `a later major with readable fields yields no exchange string`() {
+        val readable = fullValue().encode().removePrefix(ExchangeConnectionStringCodec.PREFIX)
+        val dispatch = useCase.dispatch("FMSEXCH2:$readable")
+        assertEquals(IntakeTextDispatch.NewerExchangeMajor(2), dispatch)
+    }
+
+    @Test
+    fun `the later-major refusal is the format-unsupported row with its own advice`() {
+        val row = ExchangeMessage.FORMAT_UNSUPPORTED
+        assertEquals("format-unsupported", row.code)
+        assertEquals(ExchangeMessage.Kind.LOCAL, row.kind)
+        assertNull(row.step)
     }
 
     @Test

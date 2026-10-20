@@ -1,0 +1,169 @@
+{
+  "help": "system-info",
+  "surface": "SystemInfoActivity",
+  "elements": [
+    { "id": "back", "viewId": "system_info_toolbar" },
+    { "id": "copy-report", "viewId": "action_system_info_copy", "labelKey": "copy" },
+    { "id": "save-report", "viewId": "action_system_info_save", "labelKey": "save" },
+    { "id": "expand-collapse", "viewId": "action_system_info_expand_collapse" },
+    { "id": "share-report", "viewId": "action_system_info_share", "labelKey": "share" },
+    { "id": "search", "viewId": "systemInfoSearchView", "labelKey": "sysinfo_search_hint" },
+    { "id": "groups", "viewId": "systemInfoRecyclerView" }
+  ],
+  "related": [
+    { "help": "settings-operations" },
+    { "help": "main" },
+    { "help": "network-monitor" },
+    { "pageId": "programs.device-diagnostics-and-logs" },
+    { "pageId": "programs.built-in-mini-apps" }
+  ],
+  "locales": {
+    "en": {
+      "title": "System information",
+      "purpose": "A readable report about your phone and about this app: the device, Android version, battery, memory, storage, network, display and more. You can search it, copy a single value or the whole report, save it to a file or send it, which is what a person helping you with a problem usually asks for.",
+      "steps": [
+        "Open the screen and wait a moment while the report is gathered. The groups appear collapsed, one line each, with the number of values inside.",
+        "Tap a group (7) to open it. Expand all (4) opens every group at once, and the same key closes them. The app remembers which groups you left open.",
+        "To find one value, type in the search field (6). Every group with a match opens and only the matching rows stay on the screen.",
+        "Tap a row (7) to copy that value, or the copy key on a group's line to copy the whole group.",
+        "To pass on everything, use Copy (2), Save (3) or Share (5). Look through the report first, because it contains technical identifiers of your device and network."
+      ],
+      "groups": [
+        { "title": "Title bar", "elements": ["back"] },
+        { "title": "Report actions", "elements": ["copy-report", "save-report", "expand-collapse", "share-report"] },
+        { "title": "Search and the list", "elements": ["search", "groups"] }
+      ],
+      "elements": {
+        "back": {
+          "name": "Back arrow",
+          "summary": "Leaves the screen and returns to where you came from.",
+          "details": "The title bar names the screen, System information, and the arrow in front of it takes you back, for example to the programs menu or to Settings. Nothing is lost: the report is gathered again the next time you open the screen."
+        },
+        "copy-report": {
+          "summary": "Copies the whole report to the clipboard as plain text.",
+          "details": "Use it to paste the report into a chat or an email. The text lists the groups in the order of the screen, including those that are collapsed or hidden by a search. It holds every value the screen can show, so read it through before you paste it into a public place."
+        },
+        "save-report": {
+          "summary": "Writes the whole report to a text file in your Downloads folder.",
+          "details": "The file is named fms_system_info plus the date and time, and a message tells you where it went. If the file cannot be written, a message says so and nothing is saved. Use it when you want to attach the report to a message rather than paste it."
+        },
+        "expand-collapse": {
+          "name": "Expand all / Collapse all",
+          "summary": "Opens every group at once, or closes every group.",
+          "details": "The icon and the name change with the state: when everything is open it closes the groups, otherwise it opens them all. Your choice is remembered for the next visit. On a narrow screen the key may sit in the overflow menu."
+        },
+        "share-report": {
+          "summary": "Sends the whole report to another app.",
+          "details": "It opens the system share sheet with the report as text, so you can pass it to a chat, an email or a notes app. If no app can take it, the report is copied to the clipboard instead and a message says that nothing was found to share with."
+        },
+        "search": {
+          "summary": "Narrows the report to the parameters that match what you type.",
+          "details": "It looks in the names of the groups, the names of the values and the values themselves, ignoring upper and lower case. The groups with a match open for the time being, without changing what you left open. If nothing matches, the list says so. Clear the field to get your groups back."
+        },
+        "groups": {
+          "name": "Groups and parameters",
+          "summary": "The report itself, in groups that you open and close.",
+          "details": "Each group has an icon, a name and the number of its values. Tap the line to open or close it; the small copy key at the right end copies only that group, and a message names the group. Open groups list their values as rows of a name and a value; tap a row to copy it as name: value. In landscape the closed groups sit in four columns instead of two.\n\nThe groups are Device, User, OS, App (version, build and edition), Hardware (processor and chip, kernel, graphics version, the app's memory limit), Cameras (what the phone declares and what the app made of it), Battery, Memory, Storage, Network (connection type, metered, VPN, airplane mode and the local address), Display, Locale, Time, System (language list, security patch, build fingerprint, installer, install dates) and Benchmarks. A group with nothing to show is left out.\n\nBenchmarks are short tests of memory and storage speed that run each time you open the screen, so the figures are rough and differ from run to run. In the noLegal edition seven more groups follow: OS & Security, Special Permissions, Installer & Signature, Bundled Runtimes, Mounts & Storage, Network Diagnostics and Process Resources."
+        }
+      }
+    },
+    "ru": {
+      "title": "Сведения о системе",
+      "purpose": "Понятный отчёт о вашем телефоне и об этом приложении: устройство, версия Android, батарея, память, хранилище, сеть, экран и многое другое. Его можно искать, копировать отдельное значение или весь отчёт, сохранить в файл или отправить - именно это обычно просит тот, кто помогает вам с проблемой.",
+      "steps": [
+        "Откройте экран и немного подождите, пока соберётся отчёт. Группы появляются свёрнутыми, по одной строке, с числом значений внутри.",
+        "Нажмите группу (7), чтобы раскрыть её. «Развернуть все» (4) раскрывает все группы сразу, а та же кнопка потом их сворачивает. Приложение запоминает, какие группы вы оставили открытыми.",
+        "Чтобы найти одно значение, введите запрос в поле поиска (6). Все группы с совпадениями раскроются, а на экране останутся только подходящие строки.",
+        "Нажмите строку (7), чтобы скопировать это значение, или кнопку копирования в строке группы, чтобы скопировать всю группу.",
+        "Чтобы передать всё, пользуйтесь «Копировать» (2), «Сохранить» (3) или «Поделиться» (5). Сначала просмотрите отчёт: в нём есть технические идентификаторы вашего устройства и сети."
+      ],
+      "groups": [
+        { "title": "Заголовок", "elements": ["back"] },
+        { "title": "Действия с отчётом", "elements": ["copy-report", "save-report", "expand-collapse", "share-report"] },
+        { "title": "Поиск и список", "elements": ["search", "groups"] }
+      ],
+      "elements": {
+        "back": {
+          "name": "Стрелка назад",
+          "summary": "Закрывает экран и возвращает туда, откуда вы пришли.",
+          "details": "В заголовке написано название экрана, «Сведения о системе», а стрелка перед ним возвращает назад, например в меню программ или в настройки. Ничего не теряется: при следующем открытии экрана отчёт собирается заново."
+        },
+        "copy-report": {
+          "summary": "Копирует весь отчёт в буфер обмена простым текстом.",
+          "details": "Пригодится, чтобы вставить отчёт в чат или письмо. Текст перечисляет группы в том порядке, в каком они на экране, в том числе свёрнутые и скрытые поиском. В нём все значения, которые может показать экран, поэтому прочитайте его, прежде чем вставлять в публичное место."
+        },
+        "save-report": {
+          "summary": "Записывает весь отчёт в текстовый файл в папке «Загрузки».",
+          "details": "Файл называется fms_system_info плюс дата и время, а сообщение подскажет, куда он попал. Если записать файл не удалось, сообщение скажет об этом, и ничего не сохранится. Используйте, когда отчёт нужно приложить к сообщению, а не вставить в текст."
+        },
+        "expand-collapse": {
+          "name": "Развернуть все / Свернуть все",
+          "summary": "Раскрывает все группы сразу или сворачивает их все.",
+          "details": "Значок и название зависят от состояния: когда всё раскрыто, кнопка сворачивает группы, иначе - раскрывает все. Выбор запоминается до следующего посещения. На узком экране кнопка может оказаться в меню «Ещё»."
+        },
+        "share-report": {
+          "summary": "Отправляет весь отчёт в другое приложение.",
+          "details": "Открывается системное меню отправки с отчётом в виде текста, так что его можно передать в чат, письмо или приложение для заметок. Если ни одно приложение не может его принять, отчёт копируется в буфер обмена, а сообщение говорит, что подходящего приложения не нашлось."
+        },
+        "search": {
+          "summary": "Оставляет в отчёте только параметры, подходящие под ваш запрос.",
+          "details": "Поиск идёт по названиям групп, названиям значений и самим значениям без учёта регистра. Группы с совпадениями раскрываются на время поиска и не меняют то, что вы оставили открытым. Если ничего не найдено, список так и скажет. Очистите поле, чтобы вернуть свои группы."
+        },
+        "groups": {
+          "name": "Группы и параметры",
+          "summary": "Сам отчёт - группы, которые можно раскрывать и сворачивать.",
+          "details": "У каждой группы есть значок, название и число значений. Нажмите строку, чтобы раскрыть или свернуть группу; маленькая кнопка копирования справа копирует только эту группу, а сообщение называет её. В раскрытой группе значения идут строками из названия и значения; нажмите строку, чтобы скопировать её как название: значение. В альбомной ориентации свёрнутые группы стоят в четыре столбца вместо двух.\n\nГруппы такие: «Устройство», «Пользователь», «ОС», «Приложение» (версия, сборка и редакция), «Оборудование» (процессор и чип, ядро, версия графики, предел памяти приложения), «Камеры» (что заявляет телефон и что из этого сделало приложение), «Батарея», «Память», «Хранилище», «Сеть» (тип подключения, тарифицируемость, VPN, режим полёта и локальный адрес), «Экран», «Локаль», «Время», «Система» (список языков, патч безопасности, отпечаток сборки, установщик, даты установки) и «Бенчмарки». Группа, которой нечего показать, не выводится.\n\n«Бенчмарки» - короткие тесты скорости памяти и хранилища, которые запускаются при каждом открытии экрана, поэтому цифры приблизительные и от раза к разу отличаются. В редакции noLegal ниже идут ещё семь групп: «ОС и безопасность», «Специальные разрешения», «Установщик и подпись», «Встроенные среды», «Монтирования и хранилище», «Сетевая диагностика» и «Ресурсы процесса»."
+        }
+      }
+    },
+    "uk": {
+      "title": "Відомості про систему",
+      "purpose": "Зрозумілий звіт про ваш телефон і про цей застосунок: пристрій, версія Android, батарея, пам’ять, сховище, мережа, екран та багато іншого. Його можна шукати, копіювати окреме значення або весь звіт, зберегти у файл чи надіслати - саме це зазвичай просить той, хто допомагає вам із проблемою.",
+      "steps": [
+        "Відкрийте екран і трохи зачекайте, поки збереться звіт. Групи з’являються згорнутими, по одному рядку, з кількістю значень усередині.",
+        "Натисніть групу (7), щоб розгорнути її. «Розгорнути все» (4) розгортає всі групи одразу, а ця сама кнопка потім їх згортає. Застосунок запам’ятовує, які групи ви залишили відкритими.",
+        "Щоб знайти одне значення, введіть запит у полі пошуку (6). Усі групи зі збігами розгорнуться, а на екрані залишаться лише підходящі рядки.",
+        "Натисніть рядок (7), щоб скопіювати це значення, або кнопку копіювання в рядку групи, щоб скопіювати всю групу.",
+        "Щоб передати все, користуйтеся «Копіювати» (2), «Зберегти» (3) або «Поділитися» (5). Спершу перегляньте звіт: у ньому є технічні ідентифікатори вашого пристрою та мережі."
+      ],
+      "groups": [
+        { "title": "Заголовок", "elements": ["back"] },
+        { "title": "Дії зі звітом", "elements": ["copy-report", "save-report", "expand-collapse", "share-report"] },
+        { "title": "Пошук і список", "elements": ["search", "groups"] }
+      ],
+      "elements": {
+        "back": {
+          "name": "Стрілка назад",
+          "summary": "Закриває екран і повертає туди, звідки ви прийшли.",
+          "details": "У заголовку написано назву екрана, «Відомості про систему», а стрілка перед ним повертає назад, наприклад до меню програм або в налаштування. Нічого не втрачається: під час наступного відкриття екрана звіт збирається заново."
+        },
+        "copy-report": {
+          "summary": "Копіює весь звіт до буфера обміну простим текстом.",
+          "details": "Знадобиться, щоб вставити звіт у чат чи лист. Текст перелічує групи в тому порядку, в якому вони на екрані, зокрема згорнуті й сховані пошуком. У ньому всі значення, які може показати екран, тому прочитайте його, перш ніж вставляти в публічне місце."
+        },
+        "save-report": {
+          "summary": "Записує весь звіт у текстовий файл у теці «Завантаження».",
+          "details": "Файл називається fms_system_info плюс дата й час, а повідомлення підкаже, куди він потрапив. Якщо записати файл не вдалося, повідомлення скаже про це, і нічого не збережеться. Користуйтеся, коли звіт потрібно додати до повідомлення, а не вставити в текст."
+        },
+        "expand-collapse": {
+          "name": "Розгорнути все / Згорнути все",
+          "summary": "Розгортає всі групи одразу або згортає їх усі.",
+          "details": "Значок і назва залежать від стану: коли все розгорнуто, кнопка згортає групи, інакше - розгортає всі. Вибір запам’ятовується до наступного відвідування. На вузькому екрані кнопка може опинитися в меню «Ще»."
+        },
+        "share-report": {
+          "summary": "Надсилає весь звіт до іншого застосунку.",
+          "details": "Відкривається системне меню надсилання зі звітом у вигляді тексту, тож його можна передати в чат, лист чи застосунок для нотаток. Якщо жоден застосунок не може його прийняти, звіт копіюється до буфера обміну, а повідомлення каже, що відповідного застосунку не знайшлося."
+        },
+        "search": {
+          "summary": "Залишає у звіті лише параметри, що підходять під ваш запит.",
+          "details": "Пошук іде по назвах груп, назвах значень і самих значеннях без урахування регістру. Групи зі збігами розгортаються на час пошуку й не змінюють те, що ви залишили відкритим. Якщо нічого не знайдено, список так і скаже. Очистьте поле, щоб повернути свої групи."
+        },
+        "groups": {
+          "name": "Групи та параметри",
+          "summary": "Сам звіт - групи, які можна розгортати та згортати.",
+          "details": "У кожної групи є значок, назва та кількість значень. Натисніть рядок, щоб розгорнути або згорнути групу; маленька кнопка копіювання праворуч копіює лише цю групу, а повідомлення називає її. У розгорнутій групі значення йдуть рядками з назви й значення; натисніть рядок, щоб скопіювати його як назва: значення. В альбомній орієнтації згорнуті групи стоять у чотири стовпці замість двох.\n\nГрупи такі: «Пристрій», «Користувач», «ОС», «Застосунок» (версія, збірка та редакція), «Обладнання» (процесор і чип, ядро, версія графіки, межа пам’яті застосунку), «Камери» (що заявляє телефон і що з цього зробив застосунок), «Батарея», «Пам’ять», «Сховище», «Мережа» (тип підключення, тарифікованість, VPN, режим польоту та локальна адреса), «Екран», «Локаль», «Час», «Система» (список мов, патч безпеки, відбиток збірки, інсталятор, дати встановлення) та «Бенчмарки». Група, якій нічого показати, не виводиться.\n\n«Бенчмарки» - короткі тести швидкості пам’яті та сховища, які запускаються щоразу, коли ви відкриваєте екран, тому цифри приблизні й від разу до разу відрізняються. У редакції noLegal нижче йдуть ще сім груп: «ОС та безпека», «Спеціальні дозволи», «Інсталятор та підпис», «Вбудовані середовища», «Монтування та сховище», «Мережева діагностика» та «Ресурси процесу»."
+        }
+      }
+    }
+  }
+}

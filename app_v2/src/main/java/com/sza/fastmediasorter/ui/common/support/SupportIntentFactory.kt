@@ -123,7 +123,6 @@ object SupportIntentFactory {
 
     private fun openHelp(context: Context): Intent {
         val url = helpUrl(context)
-        Timber.d("S4101: help entry opens $url")
         return Intent(Intent.ACTION_VIEW, Uri.parse(url))
     }
 

@@ -19,6 +19,9 @@ object HeifSupportUtils {
     /** Returns true if the device can natively decode AVIF images (API 31+). */
     fun isAvifSupported(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
+    /** Returns true if the device can natively decode JXL images (not supported natively in Android framework). */
+    fun isJxlSupported(): Boolean = false
+
     /**
      * Returns true if the given file extension can be decoded on this device.
      * Standard formats (jpg, png, etc.) always return true.
@@ -26,6 +29,7 @@ object HeifSupportUtils {
     fun isSupported(extension: String): Boolean = when (extension.lowercase()) {
         "heic", "heif" -> isHeicSupported()
         "avif" -> isAvifSupported()
+        "jxl" -> isJxlSupported()
         else -> true
     }
 
@@ -36,6 +40,7 @@ object HeifSupportUtils {
     fun minimumAndroidVersion(extension: String): String? = when (extension.lowercase()) {
         "heic", "heif" -> "Android 9 (API 28)"
         "avif" -> "Android 12 (API 31)"
+        "jxl" -> "Android native decode unsupported"
         else -> null
     }
 }

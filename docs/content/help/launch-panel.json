@@ -1,0 +1,203 @@
+{
+  "help": "launch-panel",
+  "surface": "AppLaunchPanelActivity",
+  "elements": [
+    { "id": "close", "viewId": "btnClosePanel", "labelKey": "close" },
+    { "id": "title", "viewId": "tvPanelTitle", "labelKey": "app_launch_panel_title" },
+    { "id": "edit", "viewId": "btnEditPanel", "labelKey": "app_launch_panel_edit_action" },
+    { "id": "tiles", "viewId": "rvPanelTiles" },
+    { "id": "tile", "viewId": "ivPanelTileIcon" },
+    { "id": "empty-slot", "viewId": "tvPanelTileLabel", "labelKey": "app_launch_panel_empty_slot" },
+    { "id": "open-tile" },
+    { "id": "open-gesture" },
+    { "id": "open-programs" }
+  ],
+  "related": [
+    { "help": "launch-panel-edit" },
+    { "help": "main" },
+    { "pageId": "capture.edge-gestures-and-quick-access-panel" },
+    { "pageId": "launcher.desktop-gestures-and-shortcuts" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Quick launch",
+      "purpose": "Quick launch is a pop-up grid of fifteen tiles that opens over whatever you are doing. One tap starts an app, a tool of FastMediaSorter, one of your resources or an Android settings screen, and the panel closes.",
+      "steps": [
+        "Open the panel in one of three ways: the Quick Settings tile (7), an edge swipe (8) or the Programs menu (9).",
+        "Tap a tile (5) to start what it points to. The panel closes by itself, so you land straight in the app or screen you picked.",
+        "A dimmed tile with a plus (6) is a free place. Tap it to choose what goes there.",
+        "Press Edit (3) to rearrange the panel, replace tiles or put it back to the factory set.",
+        "Press Close (1), tap outside the panel or use Back to dismiss it without starting anything."
+      ],
+      "groups": [
+        { "title": "Panel header", "elements": ["close", "title", "edit"] },
+        { "title": "Tile grid", "elements": ["tiles"] },
+        { "title": "Tiles", "elements": ["tile", "empty-slot"] },
+        { "title": "Ways to open the panel", "elements": ["open-tile", "open-gesture", "open-programs"] }
+      ],
+      "elements": {
+        "close": {
+          "summary": "Closes the panel and returns you to what you were doing.",
+          "details": "The panel floats over the app that was on the screen, so closing it simply takes it away. Tapping outside the panel or pressing Back does the same."
+        },
+        "title": {
+          "summary": "Names the panel.",
+          "details": "Quick launch is the name of the panel here, on the Quick Settings tile and in the Programs menu, so you recognize it wherever you open it from."
+        },
+        "edit": {
+          "summary": "Opens the screen where you choose what is on the panel.",
+          "details": "The Edit panel screen lets you fill a free place, replace a tile, move it, remove it or reset the panel to the factory set. Your changes show on the panel at once when you come back."
+        },
+        "tiles": {
+          "name": "Tile grid",
+          "summary": "Fifteen fixed places for your shortcuts.",
+          "details": "The grid always has fifteen places: three columns in a narrow window and five in a wide one. You cannot add more places, but any of them can be filled, replaced, moved or emptied in Edit panel.\n\nThe first time the panel opens, the app fills it in for you: FastMediaSorter first, then its own tools that exist in your edition, one of your resources and the Android settings, with the last few places left free for your own apps."
+        },
+        "tile": {
+          "name": "Tile",
+          "summary": "Starts the app, tool, resource or settings screen it shows.",
+          "details": "Tap a tile and the panel launches its target, then closes. A tile can point to an Android app, a FastMediaSorter tool such as the calculator, the mini-game, Streams or Favorites, one of your resources (it opens in the file browser) or an Android settings screen. If a tool is switched off in Settings, the tile opens the matching setting, where there is one, instead of doing nothing. A Wi-Fi or Bluetooth tile switches the radio right away in editions that can do it, and otherwise opens the matching Android screen. If a tile points to an app that has been removed, nothing opens and the panel just closes."
+        },
+        "empty-slot": {
+          "summary": "A free place waiting for your shortcut.",
+          "details": "The place is shown dimmed with a plus. Tapping it does not close the panel: it opens the Edit panel screen, where you choose what goes into that place."
+        },
+        "open-tile": {
+          "name": "Quick Settings tile",
+          "summary": "A Quick launch tile in the Android quick settings.",
+          "details": "Pull down the Android quick settings, tap its Edit button and drag the Quick launch tile in. Tapping the tile closes the shade and opens the panel over the app underneath. It is available in every edition on Android 7 and later, so it works even where edge swipes are not offered."
+        },
+        "open-gesture": {
+          "name": "Edge swipe",
+          "summary": "A swipe from the screen edge opens the panel.",
+          "details": "In the edge gesture settings, give one swipe direction the action Open quick-access panel. Edge gestures need the gesture overlay turned on in Settings and are offered in the Standard and noLegal editions; in these editions an upward swipe in the upper left band is already set to open the panel on first start. The panel then appears over the current app, with no screenshot and no extra prompts."
+        },
+        "open-programs": {
+          "name": "Programs menu",
+          "summary": "The Quick launch entry of the main screen's programs.",
+          "details": "On the main screen, Quick launch is always in the list of programs - there is no switch for it. You find the list in the programs panel, or under More actions when that panel is off. Choosing the entry opens the panel."
+        }
+      }
+    },
+    "ru": {
+      "title": "Быстрый запуск",
+      "purpose": "Быстрый запуск - это всплывающая сетка из пятнадцати плиток, которая открывается поверх того, чем вы заняты. Одно нажатие запускает приложение, инструмент FastMediaSorter, один из ваших ресурсов или экран настроек Android, и панель закрывается.",
+      "steps": [
+        "Откройте панель одним из трёх способов: плиткой быстрых настроек (7), жестом от края экрана (8) или через меню программ (9).",
+        "Нажмите плитку (5), чтобы запустить то, на что она указывает. Панель закроется сама, и вы сразу окажетесь в выбранном приложении или на нужном экране.",
+        "Приглушённая плитка с плюсом (6) - свободное место. Нажмите её, чтобы выбрать, что туда поставить.",
+        "Нажмите «Изменить» (3), чтобы переставить плитки, заменить их или вернуть панель к стандартному набору.",
+        "Нажмите «Закрыть» (1), коснитесь пространства вокруг панели или нажмите «Назад», чтобы убрать панель, ничего не запуская."
+      ],
+      "groups": [
+        { "title": "Шапка панели", "elements": ["close", "title", "edit"] },
+        { "title": "Сетка плиток", "elements": ["tiles"] },
+        { "title": "Плитки", "elements": ["tile", "empty-slot"] },
+        { "title": "Как открыть панель", "elements": ["open-tile", "open-gesture", "open-programs"] }
+      ],
+      "elements": {
+        "close": {
+          "summary": "Закрывает панель и возвращает вас к прежнему занятию.",
+          "details": "Панель висит поверх приложения, которое было на экране, поэтому закрытие просто убирает её. То же делают касание вне панели и кнопка «Назад»."
+        },
+        "title": {
+          "summary": "Называет панель.",
+          "details": "«Быстрый запуск» - так панель называется здесь, на плитке быстрых настроек и в меню программ, чтобы вы узнавали её, откуда бы ни открыли."
+        },
+        "edit": {
+          "summary": "Открывает экран, где вы выбираете, что будет на панели.",
+          "details": "Экран «Редактировать панель» позволяет занять свободное место, заменить плитку, переместить её, убрать или вернуть панель к стандартному набору. Изменения видны на панели сразу, когда вы возвращаетесь."
+        },
+        "tiles": {
+          "name": "Сетка плиток",
+          "summary": "Пятнадцать постоянных мест для ваших ярлыков.",
+          "details": "В сетке всегда пятнадцать мест: три столбца в узком окне и пять в широком. Добавить места нельзя, но любое можно занять, заменить, переместить или освободить в экране «Редактировать панель».\n\nПри первом открытии панели приложение заполняет её само: сначала FastMediaSorter, затем его собственные инструменты, которые есть в вашей редакции, один из ваших ресурсов и настройки Android, а последние несколько мест остаются свободными для ваших приложений."
+        },
+        "tile": {
+          "name": "Плитка",
+          "summary": "Запускает приложение, инструмент, ресурс или экран настроек, который на ней показан.",
+          "details": "Нажмите плитку, и панель запустит её цель, а затем закроется. Плитка может указывать на приложение Android, инструмент FastMediaSorter - например, калькулятор, мини-игру, «Потоки» или «Избранное», - на один из ваших ресурсов (он откроется в браузере файлов) или на экран настроек Android. Если инструмент выключен в настройках, плитка откроет соответствующую настройку, если она есть, вместо того, чтобы ничего не делать. Плитка Wi-Fi или Bluetooth сразу переключает связь в редакциях, где это возможно, а иначе открывает нужный экран Android. Если плитка указывает на удалённое приложение, ничего не откроется, а панель просто закроется."
+        },
+        "empty-slot": {
+          "summary": "Свободное место, которое ждёт вашего ярлыка.",
+          "details": "Место показано приглушённым, с плюсом. Нажатие не закрывает панель: оно открывает экран «Редактировать панель», где вы выбираете, что поставить на это место."
+        },
+        "open-tile": {
+          "name": "Плитка быстрых настроек",
+          "summary": "Плитка «Быстрый запуск» в быстрых настройках Android.",
+          "details": "Потяните вниз быстрые настройки Android, нажмите в них кнопку редактирования и перетащите плитку «Быстрый запуск». Нажатие на плитку сворачивает шторку и открывает панель поверх приложения, которое было под ней. Она есть в каждой редакции на Android 7 и новее, так что работает и там, где жесты от края экрана не предлагаются."
+        },
+        "open-gesture": {
+          "name": "Жест от края экрана",
+          "summary": "Свайп от края экрана открывает панель.",
+          "details": "В настройках жестов края экрана назначьте одному направлению свайпа действие «Открыть панель быстрого доступа». Жесты края требуют включённой накладки жестов в настройках и предлагаются в редакциях Standard и noLegal; в них свайп вверх в верхней левой полосе уже назначен на открытие панели при первом запуске. Панель появляется поверх текущего приложения без снимка экрана и без лишних запросов."
+        },
+        "open-programs": {
+          "name": "Меню программ",
+          "summary": "Пункт «Быстрый запуск» среди программ главного экрана.",
+          "details": "На главном экране «Быстрый запуск» всегда есть в списке программ - выключателя для него нет. Список находится на панели программ или, когда она выключена, в меню «Ещё». Выбор этого пункта открывает панель."
+        }
+      }
+    },
+    "uk": {
+      "title": "Швидкий запуск",
+      "purpose": "Швидкий запуск - це спливаюча сітка з п’ятнадцяти плиток, що відкривається поверх того, чим ви зайняті. Одне натискання запускає застосунок, інструмент FastMediaSorter, один із ваших ресурсів або екран налаштувань Android, і панель закривається.",
+      "steps": [
+        "Відкрийте панель одним із трьох способів: плиткою швидких налаштувань (7), жестом від краю екрана (8) або через меню програм (9).",
+        "Натисніть плитку (5), щоб запустити те, на що вона вказує. Панель закриється сама, і ви одразу опинитеся у вибраному застосунку чи на потрібному екрані.",
+        "Приглушена плитка з плюсом (6) - вільне місце. Натисніть її, щоб вибрати, що туди поставити.",
+        "Натисніть «Змінити» (3), щоб переставити плитки, замінити їх або повернути панель до типового набору.",
+        "Натисніть «Закрити» (1), торкніться простору поза панеллю або натисніть «Назад», щоб прибрати панель, нічого не запускаючи."
+      ],
+      "groups": [
+        { "title": "Шапка панелі", "elements": ["close", "title", "edit"] },
+        { "title": "Сітка плиток", "elements": ["tiles"] },
+        { "title": "Плитки", "elements": ["tile", "empty-slot"] },
+        { "title": "Як відкрити панель", "elements": ["open-tile", "open-gesture", "open-programs"] }
+      ],
+      "elements": {
+        "close": {
+          "summary": "Закриває панель і повертає вас до попередньої справи.",
+          "details": "Панель висить поверх застосунку, який був на екрані, тому закриття просто прибирає її. Те саме роблять дотик поза панеллю та кнопка «Назад»."
+        },
+        "title": {
+          "summary": "Називає панель.",
+          "details": "«Швидкий запуск» - так панель називається тут, на плитці швидких налаштувань і в меню програм, щоб ви впізнавали її, звідки б не відкрили."
+        },
+        "edit": {
+          "summary": "Відкриває екран, де ви вибираєте, що буде на панелі.",
+          "details": "Екран «Редагувати панель» дає змогу зайняти вільне місце, замінити плитку, перемістити її, прибрати або повернути панель до типового набору. Зміни видно на панелі одразу, коли ви повертаєтеся."
+        },
+        "tiles": {
+          "name": "Сітка плиток",
+          "summary": "П’ятнадцять сталих місць для ваших ярликів.",
+          "details": "У сітці завжди п’ятнадцять місць: три стовпці у вузькому вікні та п’ять у широкому. Додати місця не можна, але будь-яке можна зайняти, замінити, перемістити чи звільнити в екрані «Редагувати панель».\n\nПід час першого відкриття панелі застосунок заповнює її сам: спершу FastMediaSorter, потім його власні інструменти, що є у вашій редакції, один із ваших ресурсів і налаштування Android, а кілька останніх місць лишаються вільними для ваших застосунків."
+        },
+        "tile": {
+          "name": "Плитка",
+          "summary": "Запускає застосунок, інструмент, ресурс чи екран налаштувань, що на ній показано.",
+          "details": "Натисніть плитку, і панель запустить її ціль, а потім закриється. Плитка може вказувати на застосунок Android, інструмент FastMediaSorter - наприклад, калькулятор, міні-гру, «Потоки» чи «Обране», - на один із ваших ресурсів (він відкриється в браузері файлів) або на екран налаштувань Android. Якщо інструмент вимкнено в налаштуваннях, плитка відкриє відповідне налаштування, якщо воно є, замість того щоб нічого не робити. Плитка Wi-Fi чи Bluetooth одразу перемикає зв’язок у редакціях, де це можливо, а інакше відкриває потрібний екран Android. Якщо плитка вказує на вилучений застосунок, нічого не відкриється, а панель просто закриється."
+        },
+        "empty-slot": {
+          "summary": "Вільне місце, що чекає на ваш ярлик.",
+          "details": "Місце показано приглушеним, з плюсом. Натискання не закриває панель: воно відкриває екран «Редагувати панель», де ви вибираєте, що поставити на це місце."
+        },
+        "open-tile": {
+          "name": "Плитка швидких налаштувань",
+          "summary": "Плитка «Швидкий запуск» у швидких налаштуваннях Android.",
+          "details": "Потягніть униз швидкі налаштування Android, натисніть у них кнопку редагування й перетягніть плитку «Швидкий запуск». Натискання на плитку згортає шторку й відкриває панель поверх застосунку, що був під нею. Вона є в кожній редакції на Android 7 і новіших, тож працює й там, де жести від краю екрана не пропонуються."
+        },
+        "open-gesture": {
+          "name": "Жест від краю екрана",
+          "summary": "Свайп від краю екрана відкриває панель.",
+          "details": "У налаштуваннях жестів краю екрана призначте одному напрямку свайпу дію «Відкрити панель швидкого доступу». Жести краю потребують увімкненої накладки жестів у налаштуваннях і пропонуються в редакціях Standard і noLegal; у них свайп угору у верхній лівій смузі вже призначено на відкриття панелі під час першого запуску. Панель з’являється поверх поточного застосунку без знімка екрана та зайвих запитів."
+        },
+        "open-programs": {
+          "name": "Меню програм",
+          "summary": "Пункт «Швидкий запуск» серед програм головного екрана.",
+          "details": "На головному екрані «Швидкий запуск» завжди є в списку програм - перемикача для нього немає. Список розташований на панелі програм або, коли її вимкнено, в меню «Ще». Вибір цього пункту відкриває панель."
+        }
+      }
+    }
+  }
+}

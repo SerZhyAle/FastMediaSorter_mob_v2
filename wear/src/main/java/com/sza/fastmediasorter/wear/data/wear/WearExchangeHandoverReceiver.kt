@@ -6,7 +6,9 @@ import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeAccountRepository
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeEnrollResult
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeFailureClassifier
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeJoin
+import com.sza.fastmediasorter.wear.domain.model.WearExchangeMessage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
@@ -28,13 +30,9 @@ class WearExchangeHandoverReceiver @Inject constructor(
 ) {
 
     suspend fun handle(nodeId: String, data: ByteArray) {
-        Timber.d("S4158: exchange hand-over received on the watch")
         val ack = when (val parsed = WearExchangeHandoverCodec.parse(data, gson)) {
             WearExchangeHandoverParseResult.Malformed -> refusal(requestId = "", WearExchangeHandoverReasons.MALFORMED)
-            is WearExchangeHandoverParseResult.UnsupportedVersion -> {
-                Timber.w("Exchange hand-over: unknown format version ${parsed.version}")
-                refusal(requestId = "", WearExchangeHandoverReasons.UNSUPPORTED_VERSION)
-            }
+            is WearExchangeHandoverParseResult.UnsupportedVersion -> unsupportedVersionRefusal(parsed)
             is WearExchangeHandoverParseResult.Parsed -> take(parsed.payload)
         }
         answer(nodeId, ack)
@@ -50,6 +48,7 @@ class WearExchangeHandoverReceiver @Inject constructor(
                 login = payload.login,
                 pinnedCertificate = payload.pinnedCertificate,
                 pairingCode = payload.pairingCode,
+                pinnedKey = payload.pinnedKey?.takeIf { payload.pinnedCertificate != null },
             )
             acknowledge(payload.requestId, accounts.enroll(join))
         }
@@ -58,7 +57,7 @@ class WearExchangeHandoverReceiver @Inject constructor(
         when (result) {
             is WearExchangeEnrollResult.Enrolled -> {
                 Timber.i("Exchange hand-over: this watch enrolled")
-                WearExchangeHandoverAck(requestId, enrolled = true)
+                WearExchangeHandoverAck(requestId, enrolled = true, deviceId = result.deviceId, e2eKem = result.kem)
             }
             is WearExchangeEnrollResult.Refused -> refusal(requestId, result.reason)
             WearExchangeEnrollResult.CertificateUntrusted ->
@@ -66,15 +65,22 @@ class WearExchangeHandoverReceiver @Inject constructor(
             WearExchangeEnrollResult.CertificateChanged ->
                 refusal(requestId, WearExchangeHandoverReasons.CERTIFICATE_CHANGED)
             is WearExchangeEnrollResult.Unreachable -> {
+                val failure = WearExchangeFailureClassifier.of(result.cause)
                 // The class only: a connect failure's message names the host.
-                Timber.i("Exchange hand-over: server unreachable (%s)", result.cause.javaClass.simpleName)
-                WearExchangeHandoverAck(requestId, enrolled = false, reason = WearExchangeHandoverReasons.UNREACHABLE)
+                Timber.i(
+                    "Exchange hand-over: server not reached, code=%s (%s)",
+                    failure.code,
+                    result.cause.javaClass.simpleName,
+                )
+                WearExchangeHandoverAck(requestId, enrolled = false, reason = unreachableReason(failure))
             }
         }
 
-    private fun refusal(requestId: String, reason: String): WearExchangeHandoverAck {
-        Timber.w("Exchange hand-over: refused - %s", reason)
-        return WearExchangeHandoverAck(requestId, enrolled = false, reason = reason)
+    // The answer lets the phone name the right step: a silent server and a failed handshake are not a dead host.
+    private fun unreachableReason(failure: WearExchangeMessage): String = when (failure) {
+        WearExchangeMessage.UNANSWERED -> WearExchangeHandoverReasons.UNANSWERED
+        WearExchangeMessage.TLS_FAILED -> WearExchangeHandoverReasons.TLS_FAILED
+        else -> WearExchangeHandoverReasons.UNREACHABLE
     }
 
     private suspend fun answer(nodeId: String, ack: WearExchangeHandoverAck) {
@@ -94,6 +100,22 @@ class WearExchangeHandoverReceiver @Inject constructor(
     }
 
     companion object {
+
+        /**
+         * Echoes the sender's request id: the phone matches answers by it, so an empty one would be dropped and the
+         * person would wait out the whole timeout instead of being told to update the watch app.
+         */
+        fun unsupportedVersionRefusal(
+            parsed: WearExchangeHandoverParseResult.UnsupportedVersion,
+        ): WearExchangeHandoverAck {
+            Timber.w("Exchange hand-over: unknown format version %d", parsed.version)
+            return refusal(parsed.requestId, WearExchangeHandoverReasons.UNSUPPORTED_VERSION)
+        }
+
+        private fun refusal(requestId: String, reason: String): WearExchangeHandoverAck {
+            Timber.w("Exchange hand-over: refused - %s", reason)
+            return WearExchangeHandoverAck(requestId, enrolled = false, reason = reason)
+        }
 
         /**
          * True only for a server time already past. A text this build cannot read is left to the server, which

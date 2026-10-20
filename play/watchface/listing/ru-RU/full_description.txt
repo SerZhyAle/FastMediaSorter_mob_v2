@@ -11,4 +11,4 @@
 
 Нужен Wear OS 6 или новее. Циферблат сделан на Watch Face Format, поэтому для его отрисовки на часах не выполняется код приложения.
 
-Циферблат создан для FastMediaSorter - приложения для сортировки медиафайлов на телефонах Android - и для его часового приложения FastMediaSorter для Wear OS.
+Циферблат создан для FastMediaSorter - приложения для сортировки медиафайлов на телефонах Android - и для его часового приложения FastMediaSorter для Wear OS. Приложение есть в Google Play: https://play.google.com/store/apps/details?id=com.sza.fastmediasorter

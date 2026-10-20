@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.data.network.ftp
 
+import android.net.Network
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPReply
@@ -11,7 +12,10 @@ import org.apache.commons.net.ftp.FTPReply
  * work, and it can only do that while both take the same route. Timeouts stay with the caller,
  * because the test bounds itself while a listing follows the client's own defaults.
  */
-internal fun FTPClient.openFtpSession(source: NetworkSource) {
+internal fun FTPClient.openFtpSession(source: NetworkSource, network: Network? = null) {
+    // S4230: before connect, so the control connection and every passive data connection leave through the
+    // granted network and not through the Bluetooth proxy.
+    network?.let { setSocketFactory(it.socketFactory) }
     // S1688: before connect, never after - the control-channel reader is built inside connect
     // from the encoding current at that moment.
     applyUtf8Encoding()

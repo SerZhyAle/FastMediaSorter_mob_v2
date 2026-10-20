@@ -165,6 +165,6 @@ Remove-Item -LiteralPath $fixtureRoot -Recurse -Force
 Remove-Item -LiteralPath $mapDir -Recurse -Force
 if (Test-Path -LiteralPath $storePath) { Remove-Item -LiteralPath $storePath -Force }
 
-Write-Host ("`nTOTAL | pass: {0} | fail: {1}" -f $script:pass, $script:fail)
+Write-Host "seed-locale-fingerprints.Tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

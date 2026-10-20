@@ -7,7 +7,8 @@
     Covers the pure parts of scripts/devtest/dynamic-audit/: tree-hash determinism and diff, the device
     listing parser, the tar reader (UTF-8 and GNU long names, path-traversal refusal), the archive
     encryption round trip and tamper detection, the backup manifest shape, the runtime-permission
-    parser, JPEG fixture determinism, and the refusal path of the verified-backup precondition through
+    parser, JPEG fixture determinism, the process-start lines a failed restore comparison reports, and the
+    refusal path of the verified-backup precondition through
     the DA_STATE_DIR override - both in-process and through the facade, whose emulator guard must refuse
     a non-emulator serial before any adb call.
 
@@ -17,7 +18,8 @@
     with the crossing case, every invalid-run trigger returning the refused code, and thresholds read from
     the calibration record rather than a call site. Probe and sampler parsers (stat, meminfo, framestats,
     gfxinfo summary, am start), the tick scheduler's lateness and missed-tick accounting, the seeded run
-    order and the paired summary are covered without a device.
+    order and the paired summary are covered without a device, and so is the calibration control resolved from
+    the image when com.android.settings is absent (a watch).
 
     Faults and scenes (lib/da-fault.ps1, lib/da-ui.ps1, lib/da-scenes.ps1): the live fault catalogue and its
     shape errors, the run-directory confinement of every injector through a fake adb, the free-space
@@ -544,6 +546,27 @@ try {
     Assert-Case 'cycle rows carry index, phase and the point; warm-up excluded by phase' ($cyRows.Count -eq 5 -and (@($cyRows.index) -join ',') -eq '1,2,3,4,5' -and (@($cyRows.phase) -join ',') -eq 'warm-up,warm-up,measured,measured,measured' -and @($cyRows | Where-Object { -not $_.point -or $null -eq $_.pointMonoMs }).Count -eq 0)
     Assert-Case 'cold and warm starts are separate rows and no cycle forces a GC' ((@($crow | Where-Object { $_.type -eq 'start' } | ForEach-Object { $_.phase }) -join ',') -eq 'cold,warm' -and -not @($cyRows | Where-Object { $_.forcedGc }).Count)
     Assert-Case 'one process through every cycle is recorded as an invariant' (@($cctx.Invariants | Where-Object { $_.id -eq 'process-survives-every-cycle' -and $_.holds }).Count -eq 1)
+    $wDir = Join-Path $daSuiteRoot 'cycle-run-watch'
+    [void][System.IO.Directory]::CreateDirectory($wDir)
+    $wctx = @{
+        Serial = 'emulator-5556'; Package = 'p'; Scene = 'T99'; RunId = 'c2'; RunDir = $wDir; Watch = $true; CorrelationId = 'y'
+        CyclePlan = @{ Cycles = 2; WarmupCycles = 0; IdleSec = 1; HeapSnapshot = $false }
+        Actions = [System.Collections.Generic.List[object]]::new(); Invariants = [System.Collections.Generic.List[object]]::new(); Open = [System.Collections.Generic.List[object]]::new()
+        Notes = [System.Collections.Generic.List[string]]::new(); Findings = [System.Collections.Generic.List[object]]::new()
+    }
+    & {
+        function Get-DaSceneRegistry { [ordered]@{ T99 = [ordered]@{ runner = 'Invoke-DaCycleScene'; cycle = 'Invoke-StubCycle'; setup = 'Invoke-StubSetup'; quiescence = 'main'; watch = $true; atomic = @('T99.phone-a', 'T99.watch-b') } } }
+        function Invoke-StubSetup { param($Ctx) $true }
+        function Invoke-StubCycle { param($Ctx, $Index, $Segment) [ordered]@{ ok = $true; timings = [ordered]@{} } }
+        function Invoke-DaSceneAction { param($Ctx, $Name, $Atomic, $Body) $Ctx.Actions.Add($Name); & $Body }
+        function Invoke-DaAdb { param($Serial, $Arguments) [pscustomobject]@{ ExitCode = 0; Lines = @() } }
+        function Get-DaLaunchComponent { 'p/.Main' }
+        function Measure-DaStart { param($Serial, $Package, $Component, $Mode) [ordered]@{ mode = $Mode; outcome = 'ok' } }
+        function Wait-DaQuiescence { param($Ctx, $Point, $QuietMs) [ordered]@{ point = $Point; reached = $true; quietMs = $QuietMs; alive = $true; pid = 42; startTicks = 7; sample = [ordered]@{ hostMonoMs = 1000 } } }
+        Invoke-DaCycleScene -Ctx $wctx
+    }
+    $wInv = @($wctx.Invariants | Where-Object { $_.id -eq 'process-survives-every-cycle' })
+    Assert-Case 'a watch cycle run names the scene''s watch atomic in its cycle invariant' ($wInv.Count -eq 1 -and $wInv[0].atomic -eq 'T99.watch-b') "$($wInv | ForEach-Object { $_.atomic })"
 
     # 30. growth decision and run analysis: plateau, retained growth, warm-up excluded, unobserved metric open
     $gx = [double[]](1..17); $rnd = [System.Random]::new(7)
@@ -629,6 +652,12 @@ try {
     Assert-Case 'report: P1 on rung V stays a candidate hypothesis' ($card.severity -eq 'P1' -and $card.standing -eq 'candidate hypothesis')
     $capped = New-DaFindingCard -Finding ([ordered]@{ id = 'f2'; atomic = 'C12.held-key'; severityGuess = 'P0'; rung = 'T'; detail = 'x' }) -Record $recs[1] -BudgetOnly
     Assert-Case 'report: a hypothesis-budget exceedance alone caps the card at P2' ($capped.severity -eq 'P2' -and $capped.standing -eq 'confirmed')
+    $oRec = [pscustomobject]@{ Analysis = $null; Scene = [pscustomobject]@{ open = @(); invariants = @(); actions = @(1..20 | ForEach-Object { [pscustomobject]@{ name = "c$_-reaction-after-storm"; atomic = 'C12.watch-key-storm'; result = [pscustomobject]@{ outcome = 'ok'; hostReactionMs = 150 } } }) } }
+    $oMs = @(Get-DaRunMeasurements -Record $oRec | Where-Object { $_.property -eq 'O' })
+    Assert-Case 'report: a key probe that saw its frame (outcome ok) counts as a reaction' ($oMs.Count -eq 1 -and $oMs[0].detail -like '*no reaction 0 of 20' -and $oMs[0].verdict -eq 'fail') "$($oMs | ForEach-Object { "$($_.verdict) $($_.detail)" })"
+    $wide = [ordered]@{ title = 'outcome texts with encoded-path (1 occurrence(s))'; atomic = $null; severityGuess = 'P3'; rung = 'V'; steps = @('see messages[]'); expected = 'a readable path'; actual = 'percent-encoded path' }
+    $wideCards = @(New-DaFindingCard -Finding $wide -Record $recs[1] -Index 1; New-DaFindingCard -Finding $wide -Record $recs[1] -Index 2)
+    Assert-Case 'report: a scene-wide finding without id or atomic gets a distinct card, its steps and its actual text' ($wideCards[0].id -ne $wideCards[1].id -and $wideCards[0].id -like 'FC-*-f01' -and $wideCards[0].actual -eq 'percent-encoded path' -and @($wideCards[0].actions)[0] -eq 'see messages[]' -and $wideCards[0].cell -like 'C12||standard|') "$($wideCards[0].id) $($wideCards[0].cell)"
     $exp = Export-DaAggregate -AuditRoot $repAudit -RepoRoot $repRoot -Update $upd -Who 'suite'
     $md = Format-DaReport -Update $upd -Counts (Get-DaCoverageCounts -Matrix $upd.Matrix) -ValidatorLines @('-Validate exit 1 - assert-dynamic-audit-coverage: FAIL')
     $exported = (@(Get-ChildItem -LiteralPath (Join-Path $repRoot 'PLAN') -Recurse -File | ForEach-Object { [System.IO.File]::ReadAllText($_.FullName) }) -join "`n") + "`n" + $md
@@ -640,6 +669,20 @@ try {
     Assert-Case 'report: export manifest names who, what, where and when; evidence hash matches the file' (@($man.entries).Count -eq 1 -and $man.entries[0].who -eq 'suite' -and $man.entries[0].when -and $exp.EvidenceCount -eq 1 -and (Get-DaFileSha256 -Path (Join-Path $repRoot $ev.evidence[0].uri)) -eq $ev.evidence[0].sha256)
     Assert-Case 'report: the report states that no complete check exists' ($md -match 'No complete successful check exists' -and $md -match 'assert-dynamic-audit-coverage: ')
     Assert-Case 'report: stand context maps the held key to keyboard and the watch geometry to its AVD' ((Get-DaStandContext -Atomic 'C12.held-key') -eq 'en/keyboard/default' -and (Get-DaStandContext -Atomic 'C16.watch-idle' -Avd 'Wear_OS_Large_Round') -eq 'en/touch/large-round' -and $null -eq (Get-DaStandContext -Atomic 'C12.watch-key-storm' -Avd 'Pixel_9'))
+
+    # 33. calibration control on a watch image: the resolved settings activity, never the chooser or an error line
+    $wearSettings = @('priority=1 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true', 'com.google.android.apps.wearable.settings/com.google.android.clockwork.settings.MainSettingsActivity')
+    Assert-Case 'calibration control: the watch settings activity is taken from resolve-activity' ((ConvertFrom-DaResolvedComponent -Lines $wearSettings) -eq 'com.google.android.apps.wearable.settings/com.google.android.clockwork.settings.MainSettingsActivity')
+    Assert-Case 'calibration control: chooser, no match and empty output resolve to nothing' ($null -eq (ConvertFrom-DaResolvedComponent -Lines @('android/com.android.internal.app.ResolverActivity')) -and $null -eq (ConvertFrom-DaResolvedComponent -Lines @('No activity found')) -and $null -eq (ConvertFrom-DaResolvedComponent -Lines @()))
+
+    # 34. a failed restore comparison names what started the app again (event-log am_proc_start lines)
+    $procLines = @(
+        '10-17 02:57:30.367   608   644 I am_proc_start: [0,2608,10023,com.android.vending:quick_launch,bound-service,{com.android.vending/com.google.QuickLaunch}]',
+        '10-17 02:57:44.603   608   644 I am_proc_start: [0,2888,10095,com.sza.fastmediasorter.debug,bound-service,{com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.tile.WearProgramsTileService}]',
+        '10-17 03:03:10.086   608   644 I am_proc_start: [0,4133,10095,com.sza.fastmediasorter.debug,next-top-activity,{com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.MainActivity}]')
+    $procStarts = @(ConvertFrom-DaProcStartLines -Lines $procLines -Package 'com.sza.fastmediasorter.debug')
+    Assert-Case 'restore diagnostic: only the package''s own process starts, type and component kept' ($procStarts.Count -eq 2 -and $procStarts[0] -eq 'pid 2888 bound-service {com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.tile.WearProgramsTileService}' -and $procStarts[1] -like 'pid 4133 next-top-activity *') ($procStarts -join ' | ')
+    Assert-Case 'restore diagnostic: no event lines give no starts' (@(ConvertFrom-DaProcStartLines -Lines @() -Package 'com.sza.fastmediasorter.debug').Count -eq 0)
 }
 catch {
     $script:daFailed.Add("suite error: $($_.Exception.Message) at $($_.InvocationInfo.ScriptLineNumber)")
@@ -650,8 +693,9 @@ finally {
 }
 
 if ($script:daFailed.Count) {
-    Write-Host ("da.tests: FAIL - {0} passed, {1} failed: {2}" -f $script:daPassed, $script:daFailed.Count, ($script:daFailed -join ' | '))
+    Write-Host ($script:daFailed -join ' | ')
+    Write-Host "da.tests: FAIL (run=$($script:daPassed + $script:daFailed.Count) skipped=0)"
     exit 1
 }
-Write-Host ("da.tests: PASS - {0} cases" -f $script:daPassed)
+Write-Host "da.tests: PASS (run=$script:daPassed skipped=0)"
 exit 0

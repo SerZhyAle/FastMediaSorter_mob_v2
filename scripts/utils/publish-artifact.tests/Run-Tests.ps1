@@ -150,6 +150,6 @@ $r = Invoke-Publish @{ Path = $apk; CommanderPath = (Join-Path $c.Src 'ghost.apk
 Assert-That 'missing -CommanderPath - exit 1' ($r.Exit -eq 1) "exit $($r.Exit): $($r.Output)"
 
 Write-Host ''
-Write-Host "passed: $script:pass   failed: $script:fail" -ForegroundColor $(if ($script:fail) { 'Red' } else { 'Green' })
+Write-Host "publish-artifact.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

@@ -425,9 +425,11 @@ class PlayerDialogAndUiStateManager(
         destinationButtonsManager.toggleCopyPanel()
     }
 
-    /** Keyboard digit shortcut: launch the [slotIndex]-th button of the addressable Copy/Move group. */
-    fun triggerOperationSlot(slotIndex: Int): Boolean =
-        destinationButtonsManager.triggerSlotInAddressableGroup(slotIndex)
+    /** Digit shortcut: move the current file to global destination slot [slot] (MEDIA-VIEWER rule 4.2). */
+    fun triggerMoveSlot(slot: Int): Boolean = destinationButtonsManager.moveToSlot(slot)
+
+    /** Shift+digit shortcut: copy the current file to global destination slot [slot]. */
+    fun triggerCopySlot(slot: Int): Boolean = destinationButtonsManager.copyToSlot(slot)
 
     fun setCopyPanelExpanded(expanded: Boolean) {
         Timber.d("PlayerDialogAndUiStateManager: setCopyPanelExpanded(expanded=$expanded)")

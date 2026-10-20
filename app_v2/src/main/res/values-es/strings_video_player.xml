@@ -86,4 +86,21 @@
     <string name="playback_control_no_balance">Audio mono: no hay canales que equilibrar</string>
     <string name="playback_control_balance_value">Balance: %1$s</string>
     <string name="playback_control_balance_description">Balance %1$d por ciento izquierda, %2$d por ciento derecha</string>
+    <string name="player_file_grid">Vista de cuadrícula de miniaturas</string>
+    <string name="player_file_list">Vista de lista de archivos</string>
+    <string name="player_file_jump">Ir al archivo</string>
+    <string name="player_file_number_hint">Número de archivo (1..%1$d)</string>
+    <string name="player_file_number_error">Introduce un número entero del 1 al %1$d.</string>
+    <string name="player_file_single">Solo este archivo está disponible.</string>
+    <string name="player_frame_unavailable">El avance fotograma a fotograma no está disponible para este vídeo.</string>
+    <string name="player_frame_back_unavailable">Fotograma anterior no disponible: este decodificador no puede retroceder.</string>
+    <string name="player_loop_title">Bucle A-B</string>
+    <string name="player_loop_unavailable">La repetición A-B necesita un vídeo en el que se pueda buscar.</string>
+    <string name="player_loop_start">Inicio del bucle: %1$s. Elige el punto final.</string>
+    <string name="player_loop_active">Repetición A-B: de %1$s a %2$s</string>
+    <string name="player_loop_invalid_end">Elige un punto final posterior al inicio.</string>
+    <string name="player_frame_forward">Fotograma siguiente</string>
+    <string name="player_action_unavailable">Esta acción no está disponible para este archivo.</string>
+    <string name="player_audio_track_single">No hay otra pista de audio disponible.</string>
+    <string name="player_frame_backward">Fotograma anterior</string>
 </resources>

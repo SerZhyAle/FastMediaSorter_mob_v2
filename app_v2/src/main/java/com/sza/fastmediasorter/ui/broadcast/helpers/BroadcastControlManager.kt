@@ -1,12 +1,7 @@
 package com.sza.fastmediasorter.ui.broadcast.helpers
 
 import android.Manifest
-import android.content.ActivityNotFoundException
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.view.View
 import android.widget.Toast
@@ -19,10 +14,8 @@ import androidx.core.os.bundleOf
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.google.zxing.WriterException
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.broadcast.BroadcastLensChoice
 import com.sza.fastmediasorter.broadcast.BroadcastMode
@@ -31,41 +24,44 @@ import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.broadcast.ListBroadcastCameraLensesUseCase
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.core.share.SharePayload
-import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
-import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
-import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
-import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
-import com.sza.fastmediasorter.util.CaptureFileNamer
+import com.sza.fastmediasorter.domain.usecase.streams.BuildWatchBroadcastHandoffUseCase
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.Lazy
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.min
 
 @Singleton
+// S4261: one past detekt's ceiling with the watch hand-off form; this class is the screen's coordinator and every
+// collaborator is already a single-purpose manager or use case, so a wrapper would only move the list.
+@Suppress("LongParameterList")
 class BroadcastControlManager @Inject constructor(
     private val controller: BroadcastSourceController,
     private val previewBinder: BroadcastPreviewBinder,
     private val listLenses: ListBroadcastCameraLensesUseCase,
-    private val shareManager: BroadcastShareManager,
+    private val sharePanel: BroadcastSharePanelManager,
     private val blankScreenManager: BroadcastBlankScreenManager,
     private val settingsRepository: SettingsRepository,
     private val mediaCapabilities: MediaCapabilities,
     private val sendStreamToWatch: Lazy<SendStreamToWatchUseCase>,
+    private val buildWatchBroadcastHandoff: Lazy<BuildWatchBroadcastHandoffUseCase>,
     private val settingsPanelManager: BroadcastSettingsPanelManager,
 ) {
     /** Takes no dependencies of its own, so it is constructed here instead of going through Hilt. */
     private val preStreamPreview = BroadcastPreStreamPreviewManager()
-    private val qrFullscreen = BroadcastQrFullscreenManager()
+    private val sourceEntries = BroadcastSourceEntriesManager()
+
+    /** S4336: the mode and lens choices as dropdown rows, not chip rows. */
+    private val selectionRows = BroadcastSelectionRowsManager()
+
+    /** S4281: built here because this singleton is what keeps its on/off flag alive across a rotation. */
+    private val lightFrame = BroadcastLightFrameManager()
 
     /**
      * The mode a live switch is re-opening the session in, null while nothing switches. Until that mode
@@ -76,13 +72,15 @@ class BroadcastControlManager @Inject constructor(
 
     private var selectedMode: BroadcastMode = BroadcastMode.AUDIO_ONLY
     private var selectedLensId: String? = null
+
+    /** S4286: the last non-empty lens answer; this singleton outlives the activity a rotation destroys. */
+    private var lastLensChoice: BroadcastLensChoice = BroadcastLensChoice.EMPTY
     private var wearSendAvailable = false
     private var wearSendInProgress = false
 
     // Nullable and cleared in onDetach(): each launcher is registered on the activity's own
     // ActivityResultRegistry and its callback captures that activity, so a @Singleton holding
     // them would retain the last destroyed BroadcastControlActivity for the rest of the process.
-    private var exportFileLauncher: ActivityResultLauncher<String>? = null
     private var cameraPermissionLauncher: ActivityResultLauncher<String>? = null
     private var startPermissionLauncher: ActivityResultLauncher<String>? = null
 
@@ -92,11 +90,18 @@ class BroadcastControlManager @Inject constructor(
     /** One prompt per screen: a refused camera leaves the preview area empty instead of asking again. */
     private var cameraPermissionAsked = false
 
+    /**
+     * Built per attach: it binds headers of the activity's own view tree, and a [Singleton] holding
+     * the last one would pin that tree until the next attach overwrites it (S3767).
+     */
+    private var collapsibleSections: CollapsibleSectionsManager? = null
+
     fun setup(
         activity: AppCompatActivity,
         binding: ActivityBroadcastControlBinding
     ) {
         blankScreenManager.attach(activity, binding.root)
+        lightFrame.attach(activity, binding.root)
         cameraPermissionAsked = false
         keepPendingStartPermission(activity)
         cameraPermissionLauncher = activity.registerForActivityResult(
@@ -120,7 +125,9 @@ class BroadcastControlManager @Inject constructor(
         }
         setupPreStreamControls(activity, binding)
         setupLiveControls(activity, binding)
-        setupSharePanel(activity, binding)
+        sharePanel.setup(activity, binding)
+        sourceEntries.setup(controller, activity, binding)
+        setupCollapsibleSections(activity, binding)
 
         activity.lifecycleScope.launch {
             activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -132,6 +139,13 @@ class BroadcastControlManager @Inject constructor(
                 launch {
                     controller.listenerCount.collect { count ->
                         renderListenerCount(activity, binding, count)
+                    }
+                }
+                launch {
+                    // The announcement that adds `auth` lands after the session is live, not with a state change.
+                    sharePanel.shareChanges.collect {
+                        sharePanel.render(activity, binding)
+                        renderSendToWatch(binding, controller.state.value)
                     }
                 }
                 launch {
@@ -150,20 +164,50 @@ class BroadcastControlManager @Inject constructor(
         }
     }
 
+    /**
+     * S4336: the live commands and the share block collapse into persisted groups - the owner covered
+     * both blocks with expanding groups so the on-air screen stops spilling past its bottom edge.
+     */
+    private fun setupCollapsibleSections(
+        activity: AppCompatActivity,
+        binding: ActivityBroadcastControlBinding,
+    ) {
+        val sections = CollapsibleSectionsManager(activity)
+        collapsibleSections = sections
+        sections.register(
+            binding.headerLiveCommands,
+            binding.containerLiveCommands,
+            key = SECTION_LIVE_COMMANDS_KEY,
+        )
+        sections.register(
+            binding.headerSharePanel,
+            binding.containerSharePanel,
+            key = SECTION_SHARE_PANEL_KEY,
+        )
+        Timber.d("S4336: broadcast control groups registered")
+    }
+
     private fun setupPreStreamControls(
         activity: AppCompatActivity,
         binding: ActivityBroadcastControlBinding
     ) {
-        binding.cgBroadcastMode.setOnCheckedStateChangeListener { _, checkedIds ->
-            val checkedId = checkedIds.firstOrNull() ?: R.id.chipModeAudioOnly
-            selectedMode = when (checkedId) {
-                R.id.chipModeVideoAudio -> BroadcastMode.VIDEO_AUDIO
-                R.id.chipModeVideoOnly -> BroadcastMode.VIDEO_ONLY
-                else -> BroadcastMode.AUDIO_ONLY
-            }
-            updateLensSelectionVisibility(activity, binding)
-            requestLiveModeSwitch(activity, binding)
-        }
+        selectionRows.setup(
+            binding,
+            onModeSelected = { mode ->
+                selectedMode = mode
+                updateLensSelectionVisibility(activity, binding)
+                requestLiveModeSwitch(activity, binding)
+            },
+            onLensSelected = { lensId ->
+                selectedLensId = lensId
+                persistLensId(activity, lensId)
+                if (controller.state.value is BroadcastState.Live) {
+                    controller.selectLens(lensId)
+                } else {
+                    refreshPreStreamPreview(activity, binding)
+                }
+            },
+        )
 
         // The pre-start preview owns the camera the broadcast is about to open, so the service starts from
         // the close callback rather than from the tap (S3174).
@@ -203,7 +247,7 @@ class BroadcastControlManager @Inject constructor(
             startPermissionLauncher?.launch(missing)
         } else if (controller.state.value is BroadcastState.Live) {
             switchTargetMode = selectedMode
-            setModeControlsEnabled(binding, false)
+            selectionRows.setEnabled(binding, false)
             controller.switchMode(selectedMode, selectedLensId)
             val message = binding.root.context.getString(R.string.broadcast_control_mode_switching)
             Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
@@ -224,7 +268,7 @@ class BroadcastControlManager @Inject constructor(
         if (switchTargetMode != null || live.descriptor.mode == selectedMode.name) return
         activity.lifecycleScope.launch {
             if (selectedMode != BroadcastMode.AUDIO_ONLY) {
-                selectedLensId = live.activeLensId ?: resolveLensId(listLenses.listOptions())
+                selectedLensId = live.activeLensId ?: resolveLensId(loadLensChoice())
             }
             startSession(activity, binding)
         }
@@ -274,23 +318,11 @@ class BroadcastControlManager @Inject constructor(
         val hasCamera = selectedMode != BroadcastMode.AUDIO_ONLY
         if (hasCamera) {
             activity.lifecycleScope.launch {
-                val choice = listLenses.listOptions()
+                val choice = loadLensChoice()
                 selectedLensId = (controller.state.value as? BroadcastState.Live)?.activeLensId
                     ?: resolveLensId(choice)
-                val lensChips = BroadcastLensChipsRenderer(
-                    label = binding.tvLensHeader,
-                    group = binding.cgLensSelection,
-                    onLensSelected = { lensId ->
-                        selectedLensId = lensId
-                        persistLensId(activity, lensId)
-                        if (controller.state.value is BroadcastState.Live) {
-                            controller.selectLens(lensId)
-                        } else {
-                            refreshPreStreamPreview(activity, binding)
-                        }
-                    }
-                )
-                lensChips.render(
+                selectionRows.renderLens(
+                    binding,
                     BroadcastEntryUi.LensUi(
                         options = choice.options,
                         selectedLensId = selectedLensId,
@@ -300,11 +332,21 @@ class BroadcastControlManager @Inject constructor(
                 refreshPreStreamPreview(activity, binding)
             }
         } else {
-            binding.tvLensHeader.visibility = View.GONE
-            binding.cgLensSelection.visibility = View.GONE
+            binding.rowLensSelection.visibility = View.GONE
             selectedLensId = null
             refreshPreStreamPreview(activity, binding)
         }
+    }
+
+    /**
+     * S4286: every lens read of this screen goes through here, so the chips, the live mode switch and the live
+     * lens dialog agree on what the phone offers while CameraX's own list is momentarily empty.
+     */
+    private suspend fun loadLensChoice(): BroadcastLensChoice {
+        val fresh = listLenses.listOptions()
+        if (fresh.options.isNotEmpty()) lastLensChoice = fresh
+        val holdsCamera = controller.state.value is BroadcastState.Live || switchTargetMode != null
+        return BroadcastEntryUi.lensChoiceFor(fresh, lastLensChoice, holdsCamera)
     }
 
     /**
@@ -374,7 +416,20 @@ class BroadcastControlManager @Inject constructor(
             showLensPicker(activity)
         }
 
+        binding.btnToggleTorch.setOnClickListener {
+            controller.toggleTorch()
+        }
+
+        binding.btnLightFrame.setOnClickListener {
+            lightFrame.toggle()
+            renderLightFrameLabel(binding)
+        }
+
         binding.btnScreenOff.setOnClickListener {
+            // The black layer with a dim clock leaves the window brightness alone, so a raised frame
+            // would keep a blanked screen at full brightness.
+            lightFrame.turnOff()
+            renderLightFrameLabel(binding)
             blankScreenManager.onScreenOffRequested(activity)
         }
 
@@ -396,15 +451,19 @@ class BroadcastControlManager @Inject constructor(
         if (!wearSendAvailable || wearSendInProgress) return
 
         wearSendInProgress = true
+        Timber.d("S4261: live broadcast to watch")
         renderSendToWatch(binding, liveState)
         activity.lifecycleScope.launch {
             try {
                 val descriptor = liveState.descriptor
+                // S4261: a protected or server-reachable broadcast goes with its descriptor and the own pair.
+                val form = buildWatchBroadcastHandoff.get().forLiveBroadcast(descriptor)
                 val outcome = sendStreamToWatch.get()(
                     title = descriptor.title ?: descriptor.url,
                     url = descriptor.url,
                     mediaKind = descriptor.mode,
                     openNow = true,
+                    handoff = form as? BuildWatchBroadcastHandoffUseCase.Result.Handoff,
                 )
                 Toast.makeText(activity, outcome.toMessageRes(), Toast.LENGTH_SHORT).show()
             } finally {
@@ -426,115 +485,14 @@ class BroadcastControlManager @Inject constructor(
         is SendStreamToWatchUseCase.Outcome.Error -> R.string.stream_send_to_watch_failed
         SendStreamToWatchUseCase.Outcome.Opened -> R.string.stream_open_on_watch_opened
         SendStreamToWatchUseCase.Outcome.WatchAppNotOpen -> R.string.stream_open_on_watch_app_closed
-    }
-
-    private fun setupSharePanel(
-        activity: AppCompatActivity,
-        binding: ActivityBroadcastControlBinding
-    ) {
-        exportFileLauncher = activity.registerForActivityResult(
-            ActivityResultContracts.CreateDocument(BROADCAST_DESCRIPTOR_MIME_TYPE)
-        ) { uri ->
-            if (uri != null) writeBroadcastDescriptor(activity, uri)
-        }
-
-        binding.btnBroadcastHelp.setOnClickListener { openViewerGuide(activity) }
-        binding.btnBroadcastPortal.setOnClickListener {
-            MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.LIVE_BROADCAST)
-        }
-    }
-
-    /** S3175: the guide the broadcaster forwards to whoever receives the link, QR or file. */
-    private fun openViewerGuide(activity: AppCompatActivity) {
-        val url = SupportIntentFactory.broadcastGuideUrl(activity)
-        try {
-            activity.startActivity(SupportIntentFactory.openUrl(url))
-        } catch (e: ActivityNotFoundException) {
-            Timber.w(e, "No browser to open the broadcast viewer guide")
-            Toast.makeText(activity, R.string.settings_no_browser_for_docs, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    @Suppress("TooGenericExceptionCaught")
-    private fun renderShareData(
-        activity: AppCompatActivity,
-        binding: ActivityBroadcastControlBinding
-    ) {
-        val liveState = controller.state.value as? BroadcastState.Live ?: return
-        val descriptor = liveState.descriptor
-        val url = descriptor.url
-
-        binding.tvShareUrl.text = url
-
-        binding.btnCopyUrl.setOnClickListener {
-            val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip = ClipData.newPlainText("Broadcast URL", url)
-            clipboard.setPrimaryClip(clip)
-            Toast.makeText(activity, R.string.broadcast_share_saved, Toast.LENGTH_SHORT).show()
-        }
-
-        binding.btnShareSend.setOnClickListener {
-            val link = shareManager.generateShareLink(liveState)
-            SystemShareInvoker.invoke(
-                activity,
-                SharePayload.Text(link),
-                chooserTitle = activity.getString(R.string.broadcast_share_send_chooser_title)
-            )
-        }
-
-        binding.btnExportFile.setOnClickListener {
-            // The stream URL is stable across exports, so a URL-derived name made every save collide
-            // with the previous file and the system silently appended " (1)" (S3240).
-            val descriptorName = CaptureFileNamer.shared.allocate(
-                CaptureFileNamer.CaptureKind.BROADCAST,
-                BROADCAST_DESCRIPTOR_EXTENSION
-            )
-            exportFileLauncher?.launch(descriptorName)
-        }
-
-        val payload = shareManager.generateQrPayload(liveState)
-        binding.ivShareQr.setOnClickListener { qrFullscreen.show(activity, payload) }
-        qrFullscreen.update(activity, payload)
-        val metrics = activity.resources.displayMetrics
-        val size = (min(metrics.widthPixels, metrics.heightPixels) * QR_SIZE_FRACTION)
-            .toInt()
-            .coerceIn(QR_SIZE_MIN_PX, QR_SIZE_MAX_PX)
-        try {
-            binding.ivShareQr.setImageBitmap(QrCodeEncoder.encode(payload, size))
-        } catch (e: WriterException) {
-            Timber.w(e, "Failed to encode QR in BroadcastControlManager")
-        } catch (e: IllegalArgumentException) {
-            Timber.w(e, "Illegal argument when encoding QR in BroadcastControlManager")
-        }
-    }
-
-    private fun writeBroadcastDescriptor(activity: AppCompatActivity, uri: Uri) {
-        val liveState = controller.state.value as? BroadcastState.Live ?: return
-        val descriptor = liveState.descriptor
-        val json = shareManager.generateJsonPayload(liveState)
-        activity.lifecycleScope.launch {
-            val saved = withContext(Dispatchers.IO) {
-                runCatching {
-                    activity.contentResolver.openOutputStream(uri, "wt")?.bufferedWriter()?.use { writer ->
-                        writer.write(json)
-                    } ?: return@runCatching false
-                    true
-                }.onFailure { error ->
-                    Timber.e(error, "Writing broadcast descriptor failed")
-                }.getOrDefault(false)
-            }
-            Toast.makeText(
-                activity,
-                if (saved) R.string.broadcast_share_saved else R.string.broadcast_share_save_failed,
-                Toast.LENGTH_SHORT,
-            ).show()
-        }
+        SendStreamToWatchUseCase.Outcome.Unplayable -> R.string.stream_send_to_watch_unplayable
+        SendStreamToWatchUseCase.Outcome.NoReplyToBroadcast -> R.string.stream_send_to_watch_no_reply_update
     }
 
     /** Every lens the phone offers, not a front/back flip (S3050 owner requirement). */
     private fun showLensPicker(activity: AppCompatActivity) {
         activity.lifecycleScope.launch {
-            val choice = listLenses.listOptions()
+            val choice = loadLensChoice()
             if (choice.options.isEmpty()) {
                 Toast.makeText(activity, R.string.broadcast_lens_none, Toast.LENGTH_SHORT).show()
                 return@launch
@@ -566,24 +524,27 @@ class BroadcastControlManager @Inject constructor(
         binding: ActivityBroadcastControlBinding,
         state: BroadcastState
     ) {
+        sourceEntries.render(controller, binding, state)
         when (state) {
             is BroadcastState.Live -> {
                 val switching = switchTargetMode?.let { it.name != state.descriptor.mode } == true
                 if (!switching) switchTargetMode = null
+                Timber.d("S4336: live state render")
                 preStreamPreview.stop()
                 binding.btnStartBroadcast.visibility = View.GONE
                 binding.layoutLiveControls.visibility = View.VISIBLE
                 binding.layoutSharePanel.visibility = View.VISIBLE
                 renderScreenRealEstate(binding, state)
-                setModeControlsEnabled(binding, !switching)
+                selectionRows.setEnabled(binding, !switching)
                 if (!switching) {
                     checkModeChip(binding, state.descriptor.mode)
                     checkLensChip(binding, state.activeLensId)
                 }
-                renderModeControls(binding, state.descriptor.mode)
+                renderModeControls(binding, state.descriptor.mode, state.source != null)
+                renderLightControls(binding, state)
                 renderToggles(binding, state)
                 renderSendToWatch(binding, state)
-                renderShareData(activity, binding)
+                sharePanel.render(activity, binding)
                 previewBinder.attach(binding.previewContainer)
             }
             // The transient idle between the two services of an audio-video switch is not the end of the session.
@@ -596,23 +557,14 @@ class BroadcastControlManager @Inject constructor(
         }
     }
 
-    /** Keeps the mode chips on the mode on air: a relaunch or a refused switch would show another one. */
+    /** Keeps the mode row on the mode on air: a relaunch or a refused switch would show another one. */
     private fun checkModeChip(binding: ActivityBroadcastControlBinding, modeName: String) {
-        val chipId = when (modeName) {
-            BroadcastMode.VIDEO_AUDIO.name -> R.id.chipModeVideoAudio
-            BroadcastMode.VIDEO_ONLY.name -> R.id.chipModeVideoOnly
-            else -> R.id.chipModeAudioOnly
-        }
-        if (binding.cgBroadcastMode.checkedChipId != chipId) binding.cgBroadcastMode.check(chipId)
+        selectionRows.syncMode(binding, modeName)
     }
 
-    /** The lens dialog switches the lens too, so the chips follow the lens on air, not the last chip tap. */
+    /** The lens dialog switches the lens too, so the row follows the lens on air, not the last pick. */
     private fun checkLensChip(binding: ActivityBroadcastControlBinding, lensId: String?) {
-        if (lensId == null) return
-        for (i in 0 until binding.cgLensSelection.childCount) {
-            val chip = binding.cgLensSelection.getChildAt(i) as? Chip ?: continue
-            chip.isChecked = chip.tag == lensId
-        }
+        selectionRows.syncLens(binding, lensId)
     }
 
     private fun renderPreStream(
@@ -621,12 +573,13 @@ class BroadcastControlManager @Inject constructor(
         state: BroadcastState
     ) {
         previewBinder.detach()
-        qrFullscreen.dismiss()
+        sharePanel.dismissQr()
         binding.btnStartBroadcast.visibility = View.VISIBLE
         binding.layoutLiveControls.visibility = View.GONE
         binding.layoutSharePanel.visibility = View.GONE
+        renderLightControls(binding, state)
         renderScreenRealEstate(binding, state)
-        setModeControlsEnabled(binding, true)
+        selectionRows.setEnabled(binding, true)
         refreshPreStreamPreview(activity, binding)
     }
 
@@ -642,17 +595,6 @@ class BroadcastControlManager @Inject constructor(
             if (BroadcastEntryUi.showsSettingsCard(state)) View.VISIBLE else View.GONE
         binding.tvListenerCount.visibility =
             if (BroadcastEntryUi.showsListenerCount(state)) View.VISIBLE else View.GONE
-    }
-
-    private fun setModeControlsEnabled(binding: ActivityBroadcastControlBinding, enabled: Boolean) {
-        binding.cgBroadcastMode.isEnabled = enabled
-        for (i in 0 until binding.cgBroadcastMode.childCount) {
-            binding.cgBroadcastMode.getChildAt(i).isEnabled = enabled
-        }
-        binding.cgLensSelection.isEnabled = enabled
-        for (i in 0 until binding.cgLensSelection.childCount) {
-            binding.cgLensSelection.getChildAt(i).isEnabled = enabled
-        }
     }
 
     /**
@@ -676,20 +618,59 @@ class BroadcastControlManager @Inject constructor(
         binding: ActivityBroadcastControlBinding,
         state: BroadcastState,
     ) {
+        // The watch plays a protected broadcast from the account's directory with the own pair (S4229).
         val isVisible = state is BroadcastState.Live && wearSendAvailable
         binding.btnSendToWatch.visibility = if (isVisible) View.VISIBLE else View.GONE
         binding.btnSendToWatch.isEnabled = isVisible && !wearSendInProgress
     }
 
-    private fun renderModeControls(binding: ActivityBroadcastControlBinding, modeName: String) {
-        val hasCamera = modeName != BroadcastMode.AUDIO_ONLY.name
+    /**
+     * A file or screen session has no camera or microphone of its own (S4234, S4233): the capture
+     * toggles would do nothing, and blanking the app would blank the screen being shown.
+     */
+    private fun renderModeControls(
+        binding: ActivityBroadcastControlBinding,
+        modeName: String,
+        isSourceSession: Boolean = false,
+    ) {
+        val hasCamera = !isSourceSession && modeName != BroadcastMode.AUDIO_ONLY.name
         val cameraVisibility = if (hasCamera) View.VISIBLE else View.GONE
         binding.previewContainer.visibility = cameraVisibility
         binding.btnToggleCamera.visibility = cameraVisibility
         binding.btnSwitchCamera.visibility = cameraVisibility
         binding.btnToggleMic.visibility =
-            if (modeName == BroadcastMode.VIDEO_AUDIO.name) View.VISIBLE else View.GONE
+            if (!isSourceSession && modeName == BroadcastMode.VIDEO_AUDIO.name) View.VISIBLE else View.GONE
+        binding.btnScreenOff.visibility = if (isSourceSession) View.GONE else View.VISIBLE
         renderScreenOffLabel(binding)
+    }
+
+    /**
+     * S4281: the frame is lit only inside a camera session, so a state without one - a stop, a failure, a switch to
+     * audio, a file or screen source - puts it out, and the next broadcast starts from both buttons off.
+     */
+    private fun renderLightControls(binding: ActivityBroadcastControlBinding, state: BroadcastState) {
+        val showsRow = BroadcastEntryUi.showsLightControls(state)
+        if (!showsRow) lightFrame.turnOff()
+        binding.rowLightControls.visibility = if (showsRow) View.VISIBLE else View.GONE
+        binding.btnToggleTorch.visibility =
+            if (BroadcastEntryUi.showsTorchButton(state)) View.VISIBLE else View.GONE
+        val torchLit = (state as? BroadcastState.Live)?.torchEnabled == true
+        binding.btnToggleTorch.setText(
+            if (torchLit) R.string.broadcast_control_torch_on else R.string.broadcast_control_torch_off
+        )
+        binding.btnToggleTorch.setIconResource(
+            if (torchLit) R.drawable.ic_camera_flash_on else R.drawable.ic_camera_flash_off
+        )
+        renderLightFrameLabel(binding)
+    }
+
+    private fun renderLightFrameLabel(binding: ActivityBroadcastControlBinding) {
+        val label = if (lightFrame.isOn) {
+            R.string.broadcast_control_light_frame_on
+        } else {
+            R.string.broadcast_control_light_frame_off
+        }
+        binding.btnLightFrame.setText(label)
     }
 
     /** The action blanks the app in store builds and truly sleeps the display where the camera survives it. */
@@ -757,23 +738,23 @@ class BroadcastControlManager @Inject constructor(
     }
 
     fun onDetach() {
-        qrFullscreen.dismiss()
         preStreamPreview.stop()
         previewBinder.detach()
         blankScreenManager.detach()
-        // setup() re-registers all three on the next attach, so dropping them here loses nothing.
-        exportFileLauncher = null
+        lightFrame.detach()
+        sourceEntries.onDetach()
+        // setup() re-registers every launcher on the next attach, so dropping them here loses nothing.
+        sharePanel.onDetach()
+        collapsibleSections?.clear()
+        collapsibleSections = null
         cameraPermissionLauncher = null
         startPermissionLauncher = null
     }
 
     companion object {
-        private const val QR_SIZE_FRACTION = 0.45
-        private const val QR_SIZE_MIN_PX = 200
-        private const val QR_SIZE_MAX_PX = 500
-        private const val BROADCAST_DESCRIPTOR_MIME_TYPE = "application/vnd.fms.bcast+json"
-        private const val BROADCAST_DESCRIPTOR_EXTENSION = ".fmsbcast"
         private const val START_PERMISSION_STATE_KEY = "broadcast_control_pending_start_permission"
         private const val KEY_PENDING_START_PERMISSION = "permission"
+        private const val SECTION_LIVE_COMMANDS_KEY = "broadcast_control__live_commands"
+        private const val SECTION_SHARE_PANEL_KEY = "broadcast_control__share_panel"
     }
 }

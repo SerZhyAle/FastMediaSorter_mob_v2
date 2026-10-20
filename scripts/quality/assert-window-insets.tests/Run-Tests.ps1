@@ -188,8 +188,8 @@ Assert-That 'L1 full-scan gate exits 0 against the real tree' ($liveExit -eq 0) 
 
 Write-Host ''
 if ($script:fail -eq 0) {
-    Write-Host "assert-window-insets tests: $script:pass passed" -ForegroundColor Green
+    Write-Host "assert-window-insets tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
     exit 0
 }
-Write-Host "assert-window-insets tests: $script:pass passed, $script:fail FAILED" -ForegroundColor Red
+Write-Host "assert-window-insets tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 exit 1

@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "连接到 NAS / Windows 共享（SMB）- FastMediaSorter v2"
 permalink: /docs/howto/scenario-smb-setup-zh-hans.html
 ---
-<sub class="doc-stamp">26.09.25 02:20</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
 # 🖥️ 连接到家庭 NAS / Windows 共享（SMB）
 
 > **难度：** 入门 &bull; **版本：** Standard、Photos、Legacy、VR、noLegal（Lite 没有网络资源功能）
-
-{% include lang-switcher.html doc="scenario-smb-setup" dir="/docs/howto/" current="zh-Hans" %}
 
 SMB（也叫 Windows 文件共享或 CIFS）可以让您浏览家里电脑、笔记本或 NAS 设备上的文件，就像它们就在您手机上一样 - 无需数据线，无需 USB，只需 Wi-Fi。
 

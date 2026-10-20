@@ -1,0 +1,791 @@
+{
+  "help": "network-monitor",
+  "surface": "NetworkMonitorActivity",
+  "elements": [
+    { "id": "active-connection", "viewId": "networkMonitorActiveCard", "labelKey": "network_monitor_active_title" },
+    { "id": "local-ip", "viewId": "networkMonitorLocalIpRow", "labelKey": "network_monitor_local_ip_label" },
+    { "id": "external-ip", "viewId": "networkMonitorExternalIpRow", "labelKey": "network_monitor_external_ip_label" },
+    { "id": "current-speed", "viewId": "networkMonitorSpeedRow" },
+    { "id": "tile-wifi", "viewId": "tileWifi", "labelKey": "network_monitor_section_wifi" },
+    { "id": "tile-mobile", "viewId": "tileMobile", "labelKey": "network_monitor_section_mobile" },
+    { "id": "tile-bluetooth", "viewId": "tileBluetooth", "labelKey": "network_monitor_section_bluetooth" },
+    { "id": "tile-satellites", "viewId": "tileGnss", "labelKey": "network_monitor_section_gnss" },
+    { "id": "tile-internet", "viewId": "tileInternet", "labelKey": "network_monitor_section_internet" },
+    { "id": "tile-history", "viewId": "tileHistory", "labelKey": "network_monitor_section_history" },
+    { "id": "tile-tools", "viewId": "tileTools", "labelKey": "network_monitor_section_tools" },
+    { "id": "tile-resource-speed", "viewId": "tileSpeed", "labelKey": "network_monitor_section_resource_speed" },
+    { "id": "wifi-radio", "viewId": "wifiRadioSwitch", "labelKey": "network_monitor_radio_wifi" },
+    { "id": "wifi-network", "viewId": "wifiDetailsGroup", "labelKey": "network_monitor_wifi_network_label" },
+    { "id": "wifi-hotspot", "viewId": "wifiHotspotRow", "labelKey": "widget_network_monitor_indicator_hotspot_state" },
+    { "id": "wifi-signal-chart", "viewId": "wifiChart", "labelKey": "network_monitor_chart_signal_heading" },
+    { "id": "link-details", "viewId": "wifiLinkDetails", "labelKey": "network_monitor_link_heading" },
+    { "id": "mobile-sims", "viewId": "mobileSim1Group" },
+    { "id": "mobile-open-system", "viewId": "btnMobileOpenSystem", "labelKey": "network_monitor_mobile_open_system" },
+    { "id": "bt-radio", "viewId": "bluetoothRadioSwitch", "labelKey": "network_monitor_radio_bluetooth" },
+    { "id": "bt-devices", "viewId": "bluetoothConnectedList", "labelKey": "network_monitor_bluetooth_connected_heading" },
+    { "id": "bt-picker", "viewId": "bluetoothDevicePicker", "labelKey": "network_monitor_bluetooth_picker_label" },
+    { "id": "gnss-satellites", "viewId": "gnssVisibleRow", "labelKey": "network_monitor_gnss_visible_label" },
+    { "id": "gnss-position", "viewId": "gnssPositionGroup", "labelKey": "network_monitor_gnss_position_heading" },
+    { "id": "gnss-record", "viewId": "gnssTrackRow", "labelKey": "network_monitor_gnss_track_title" },
+    { "id": "gnss-share", "viewId": "btnGnssShareTrack", "labelKey": "network_monitor_gnss_track_share" },
+    { "id": "internet-path", "viewId": "internetPathDiagram", "labelKey": "network_monitor_path_heading" },
+    { "id": "internet-traffic", "viewId": "internetChart", "labelKey": "network_monitor_traffic_heading" },
+    { "id": "internet-target", "viewId": "internetTargetPicker", "labelKey": "network_monitor_target_label" },
+    { "id": "internet-check-resource", "viewId": "btnInternetCheckResource", "labelKey": "network_monitor_action_check_resource" },
+    { "id": "internet-scan", "viewId": "btnInternetScanSubnet", "labelKey": "network_monitor_action_scan_subnet" },
+    { "id": "internet-external-ip", "viewId": "btnInternetExternalIp", "labelKey": "network_monitor_action_external_ip" },
+    { "id": "internet-speed", "viewId": "btnInternetSpeedTest", "labelKey": "network_monitor_action_speed_test" },
+    { "id": "internet-stop", "viewId": "btnInternetCancel", "labelKey": "network_monitor_action_cancel" },
+    { "id": "tools-host", "viewId": "toolsHostInput", "labelKey": "network_monitor_host_hint" },
+    { "id": "tools-ping", "viewId": "btnToolsPing", "labelKey": "network_monitor_action_ping" },
+    { "id": "tools-traceroute", "viewId": "btnToolsTraceroute", "labelKey": "network_monitor_action_traceroute" },
+    { "id": "tools-scan", "viewId": "btnToolsScanSubnet", "labelKey": "network_monitor_action_scan_subnet" },
+    { "id": "tools-console", "viewId": "toolsConsoleOutput", "labelKey": "network_monitor_console_heading" },
+    { "id": "tools-copy", "viewId": "btnToolsCopyConsole", "labelKey": "network_monitor_action_copy" },
+    { "id": "tools-clear", "viewId": "btnToolsClearConsole", "labelKey": "network_monitor_action_clear" },
+    { "id": "speed-target", "viewId": "speedTargetPicker", "labelKey": "network_monitor_select_resource_heading" },
+    { "id": "speed-start", "viewId": "btnSpeedStartTest", "labelKey": "network_monitor_action_speed_test" },
+    { "id": "speed-results", "viewId": "speedDownValue", "labelKey": "network_monitor_speed_result_heading" },
+    { "id": "history-list", "viewId": "historyList", "labelKey": "network_monitor_section_history" },
+    { "id": "history-export", "viewId": "btnHistoryExport", "labelKey": "network_monitor_history_export" },
+    { "id": "history-clear", "viewId": "btnHistoryClear", "labelKey": "network_monitor_history_clear" },
+    { "id": "off-notice", "viewId": "networkMonitorFallbackTitle", "labelKey": "network_monitor_disabled_title" },
+    { "id": "off-open-settings", "viewId": "btnNetworkMonitorOpenSettings", "labelKey": "network_monitor_open_settings" },
+    { "id": "notice-continue", "labelKey": "network_monitor_action_continue" },
+    { "id": "notice-cancel", "labelKey": "cancel" },
+    { "id": "clear-confirm", "labelKey": "network_monitor_history_clear_confirm" },
+    { "id": "clear-cancel", "labelKey": "cancel" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "settings-operations" },
+    { "help": "system-info" },
+    { "pageId": "network.network-monitor" },
+    { "pageId": "getting-started.permissions-guide" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Network Monitor",
+      "purpose": "A live view of your connections: Wi-Fi, mobile network, Bluetooth and satellites, with signal graphs and the details of the active link. It also holds checks you can run, such as speed, ping and a scan of your local network, and keeps a history of what you measured.",
+      "steps": [
+        "Start on the summary. The card at the top (1) says what you are connected to and whether the internet works; below it are your local address (2), your external address (3) and the speed right now (4).",
+        "Each tile (5) opens one section. The line on a tile says in words whether the section works on this device, needs a permission, or has nothing to show, so you know before you open it.",
+        "Wi-Fi (13), mobile network (18) and Bluetooth (20) show what you are connected to, with a signal graph. Satellites (23) shows how many satellites the phone sees and where it thinks it is.",
+        "Internet (27) draws the path from the phone to the internet and the traffic now. Pick what to check (29), then check a resource, scan the local network, look up the external address or measure the speed. A notice (50) may come first.",
+        "Tools (35) pings a host, traces its route and scans a range of addresses. Resource speed (42) measures the speed to one of your resources.",
+        "Every check you run is kept in History (45). Export it (46) to send the list to someone, or clear it (47).",
+        "If the screen says that Network Monitor is off, press (49) to open Settings and turn it on."
+      ],
+      "groups": [
+        { "title": "Summary", "elements": ["active-connection", "local-ip", "external-ip", "current-speed", "tile-wifi", "tile-mobile", "tile-bluetooth", "tile-satellites", "tile-internet", "tile-history", "tile-tools", "tile-resource-speed"] },
+        { "title": "Wi-Fi, mobile network and Bluetooth", "elements": ["wifi-radio", "wifi-network", "wifi-hotspot", "wifi-signal-chart", "link-details", "mobile-sims", "mobile-open-system", "bt-radio", "bt-devices", "bt-picker"] },
+        { "title": "Satellites and Internet", "elements": ["gnss-satellites", "gnss-position", "gnss-record", "gnss-share", "internet-path", "internet-traffic", "internet-target", "internet-check-resource", "internet-scan", "internet-external-ip", "internet-speed", "internet-stop"] },
+        { "title": "Tools, resource speed and history", "elements": ["tools-host", "tools-ping", "tools-traceroute", "tools-scan", "tools-console", "tools-copy", "tools-clear", "speed-target", "speed-start", "speed-results", "history-list", "history-export", "history-clear"] },
+        { "title": "When Network Monitor is off", "elements": ["off-notice", "off-open-settings"] },
+        { "title": "Notice and confirmation windows", "elements": ["notice-continue", "notice-cancel", "clear-confirm", "clear-cancel"] }
+      ],
+      "elements": {
+        "active-connection": {
+          "summary": "Tells you what you are connected to and whether it reaches the internet.",
+          "details": "The headline reads like Wi-Fi - MyNetwork - Internet works. The last part says whether the internet works, whether the network wants you to sign in, whether you are connected without internet, or whether you are offline. With nothing connected the card says so and suggests turning on Wi-Fi or mobile data.\n\nThe readings are refreshed about once a second while this screen is open."
+        },
+        "local-ip": {
+          "summary": "The address of your phone inside the network you are on.",
+          "details": "Tap the row to copy the address. The row is shown only while something is connected. If the phone has no address yet, it says Unknown."
+        },
+        "external-ip": {
+          "summary": "The address the internet sees for you, shown only when you ask.",
+          "details": "It stays hidden until you tap the row, because finding it means asking a public service on the internet. The row then says Asking.. and shows the address; tap it again to copy it. The address is kept only while the app runs and is never written to the history.\n\nThe same lookup is under Internet, where it comes with a notice first."
+        },
+        "current-speed": {
+          "name": "Current speed",
+          "summary": "How much data is flowing to and from this phone right now.",
+          "details": "Two figures: incoming with a down arrow and outgoing with an up arrow, counted for the whole phone, not just this app. It is a live reading, not a speed test; the graph is in the Internet section. The row is hidden while nothing is connected."
+        },
+        "tile-wifi": {
+          "summary": "Opens the Wi-Fi section.",
+          "details": "The tile shows the network name and the link speed when the phone knows them. Its status line says Available, or why not: Permission not granted, Nothing connected right now, or No such hardware on this device. Before the first reading it says Open to check."
+        },
+        "tile-mobile": {
+          "summary": "Opens the mobile network section.",
+          "details": "The tile shows the name of the operator whose SIM is used for data. The status line works as on every tile."
+        },
+        "tile-bluetooth": {
+          "summary": "Opens the Bluetooth section.",
+          "details": "The tile shows how many devices are connected right now, for example Connected now: 2."
+        },
+        "tile-satellites": {
+          "summary": "Opens the satellites section.",
+          "details": "This tile uses the location receiver of the phone. If location is switched off in the system settings, the status line says so: Location is switched off in system settings."
+        },
+        "tile-internet": {
+          "summary": "Opens the Internet section with the path, the traffic and the checks.",
+          "details": "Once you have looked up your external address in this session, the tile shows it."
+        },
+        "tile-history": {
+          "summary": "Opens the list of the measurements you ran.",
+          "details": "Checks you start from Internet, Tools and Resource speed end up here."
+        },
+        "tile-tools": {
+          "summary": "Opens ping, traceroute and the subnet scan.",
+          "details": "These are for people who need to check a particular host or look at a local network."
+        },
+        "tile-resource-speed": {
+          "summary": "Opens the speed test for one of your resources.",
+          "details": "It measures how fast files move to and from a network or cloud resource you added to the app."
+        },
+        "wifi-radio": {
+          "summary": "Turns the Wi-Fi radio on or off.",
+          "details": "Android 10 and later usually do not let an app switch Wi-Fi by itself. When you tap the switch, the app tries, and if the system refuses it opens the system Wi-Fi panel instead; the switch moves when the panel changes the state. Where the device allows no switching at all, the switch is grayed out with a short explanation. If the state cannot be read it says State unknown.\n\nTap the section heading to open the system Wi-Fi settings."
+        },
+        "wifi-network": {
+          "summary": "The network you are connected to, its frequency, link speed and Wi-Fi standard.",
+          "details": "The network name needs the precise location permission, because Android treats a Wi-Fi name as location data. Without it that row says Permission not granted. Tap to grant it, or Permission is blocked. Tap to open app settings, and the rest of the rows still work. When nothing is connected, the block is replaced by the reason."
+        },
+        "wifi-hotspot": {
+          "summary": "Shows whether your phone is sharing its connection as a hotspot.",
+          "details": "It reads Hotspot: On, Off or Not determined. Tap it to open the system hotspot settings. The row is hidden when the phone cannot tell."
+        },
+        "wifi-signal-chart": {
+          "summary": "A graph of the Wi-Fi signal strength over the last minutes.",
+          "details": "One reading a second, in dBm; a value closer to 0 is a stronger signal. Under the graph you see now, lowest, highest and the trend: rising, falling or steady. Until the first readings arrive it says Collecting readings.. and the graph stays empty. It needs the precise location permission.\n\nTap the graph to restart it and begin collecting from now. A screen reader announces the restart."
+        },
+        "link-details": {
+          "summary": "The technical details of the active connection.",
+          "details": "Interface, IPv4 and IPv6 addresses, DNS servers, gateway, whether there is a default route, a proxy and the bandwidth estimates for incoming and outgoing data. A missing value reads Unknown. Handy when you need to tell a support person what your network looks like."
+        },
+        "mobile-sims": {
+          "name": "SIM cards",
+          "summary": "How many modems are active and which operator each SIM belongs to.",
+          "details": "The number of active modems needs no permission. The SIM rows show the operator of SIM 1 and SIM 2 and mark the one preferred for data; they need the phone permission, and without it the section says Permission not granted. Tap to grant it. Each SIM gets its own signal graph that you can restart by tapping it."
+        },
+        "mobile-open-system": {
+          "summary": "Opens the system screen where mobile data and SIMs are controlled.",
+          "details": "Android does not let an app switch mobile data or choose a SIM, and a note on the screen says so. This button takes you to the system network settings, where you can."
+        },
+        "bt-radio": {
+          "summary": "Turns the Bluetooth radio on or off.",
+          "details": "It works like the Wi-Fi switch: the app tries, and if the system refuses it opens the system Bluetooth settings. Tap the section heading to open them directly. The Adapter row says On, Off or Not on this device."
+        },
+        "bt-devices": {
+          "summary": "Lists the devices connected now and the ones only paired.",
+          "details": "Two lists: Connected now and Paired, not connected, each with a note when it is empty. Reading them needs the Bluetooth permission (Nearby devices on Android 12 and later); without it the lists say Permission not granted, and a tap asks for it."
+        },
+        "bt-picker": {
+          "summary": "Chooses a connected device to draw its signal graph.",
+          "details": "The list offers the devices connected now. Once you pick one, a Device signal graph appears and fills in once a second; tap the graph to restart it. With no connected device the field says there is nothing to chart."
+        },
+        "gnss-satellites": {
+          "summary": "How many satellites the phone sees, and how many it uses to fix its position.",
+          "details": "Below the two counts is a line for each satellite: the system and number, the signal strength in dB-Hz, and whether it is counted in the position. A message says Searching for satellites.. until the first ones are found. A signal strength graph follows; tap it to restart.\n\nThis section needs the precise location permission and location switched on. Tapping the heading or either count opens the system location settings."
+        },
+        "gnss-position": {
+          "summary": "Your coordinates, how accurate they are and when they were fixed.",
+          "details": "Latitude and longitude, the accuracy (for example ±5 m) and the time of the fix. Without a fix, or without the permission, the block gives the reason instead. The coordinates stay on the screen and are not sent anywhere."
+        },
+        "gnss-record": {
+          "summary": "Records the path you move along while this screen is open.",
+          "details": "The track stays on this device and is written only while the screen is open. Nothing is sent anywhere. While it records, a line counts the recorded points."
+        },
+        "gnss-share": {
+          "summary": "Sends the recorded track file to another app.",
+          "details": "The button appears once there is a track file. It opens the system share sheet with a CSV file. If a newer recording has replaced the file, a note asks you to turn recording on and try again."
+        },
+        "internet-path": {
+          "summary": "Draws the way from your phone to the internet in four steps.",
+          "details": "This device, Gateway (your router), DNS and Internet, each with its address or state and a mark showing whether it answers. Where the line breaks is where to look: the router, the name servers or the connection beyond them."
+        },
+        "internet-traffic": {
+          "summary": "Shows the traffic of the whole phone, now and over the last minutes.",
+          "details": "Incoming now and Outgoing now, with a graph beneath. It counts everything the phone moves, not only this app. Tap the graph to restart it."
+        },
+        "internet-target": {
+          "summary": "Chooses what the checks below look at: the internet or one of your resources.",
+          "details": "The list starts with The internet and continues with the resources you added. Check the selected resource is available only when a resource is chosen."
+        },
+        "internet-check-resource": {
+          "summary": "Checks whether the selected resource answers.",
+          "details": "It tries to reach the resource with its saved address and credentials and says The resource answered, or that it did not, so you check the address and credentials. If the resource was deleted meanwhile, the result says so."
+        },
+        "internet-scan": {
+          "summary": "Looks for devices on your local network and the ports they have open.",
+          "details": "Fill in the From and To addresses, or keep the range filled in for your own network. The result tells how many of the probed addresses answered and lists them with their open ports. A range that is too large or not a pair of addresses is refused with a hint. On newer Android versions the scan needs the local-network permission; if it is missing, the result tells you to grant it in the system settings and try again.\n\nThe scan contacts addresses on your network. Some office and campus networks treat that as unwanted, so the app shows a notice the first time in a session."
+        },
+        "internet-external-ip": {
+          "summary": "Asks a public service for the address the internet sees.",
+          "details": "The result shows the address and a note on whether it is your own or the operator translates it between its customers. If the router does not answer, the note says it can tell nothing either way. If no service answers, it says so and suggests trying again. The first time in a session a notice explains that the service sees the address it answers to."
+        },
+        "internet-speed": {
+          "summary": "Measures download and upload speed to the internet or to the chosen resource.",
+          "details": "The test downloads and uploads about 20 MB in total, so a notice appears first. On a network the phone knows as metered the notice appears every time, and without your approval nothing is measured. The result shows both speeds in Mbps. If the test cannot finish, the result asks you to check the connection."
+        },
+        "internet-stop": {
+          "summary": "Stops the check that is running.",
+          "details": "It appears with a progress bar while a check runs. Stop it at any time; the other checks stay unavailable until the running one finishes or is stopped."
+        },
+        "tools-host": {
+          "summary": "The address or name of the host to ping or trace.",
+          "details": "Type an IP address or a host name. Below the field are chips with the hosts you used before: tap one to reuse it, tap its cross to forget it."
+        },
+        "tools-ping": {
+          "summary": "Sends a few small requests to the host and reports how fast it answers.",
+          "details": "The console lists each attempt with its time in milliseconds, or No answer in time, and ends with how many of the attempts answered. A name that does not resolve or a missing network is reported in the console too."
+        },
+        "tools-traceroute": {
+          "summary": "Shows the hops between your phone and the host.",
+          "details": "Each hop that answers is listed with its time. The trace ends when the host is reached or after the maximum number of hops. Use it to see where a connection slows down or stops."
+        },
+        "tools-scan": {
+          "summary": "Looks for devices that answer in an address range.",
+          "details": "It works like the scan in Internet, with the same From and To fields, and writes the answering addresses into the console. Use it only on networks that are yours."
+        },
+        "tools-console": {
+          "summary": "Shows the results of ping, traceroute and the scan as text.",
+          "details": "Before anything runs it says that results will appear here. While an operation runs, a progress bar with Stop appears above the console."
+        },
+        "tools-copy": {
+          "summary": "Copies the console text to the clipboard.",
+          "details": "Use it to paste the results into a message or a note. With an empty console nothing is copied."
+        },
+        "tools-clear": {
+          "summary": "Empties the console.",
+          "details": "Only the text on the screen is removed. The measurements already written to the history stay there.",
+          "undo": "The console text is lost with no way back. Copy it first if you need it."
+        },
+        "speed-target": {
+          "summary": "Chooses what to measure the speed to: the internet or one resource.",
+          "details": "The list starts with The internet and continues with the network and cloud resources you added."
+        },
+        "speed-start": {
+          "summary": "Measures how fast data moves to and from the chosen target.",
+          "details": "It first checks that the target answers, then measures. A progress bar with Stop is shown while it runs. On a metered network a window asks first whether to go on."
+        },
+        "speed-results": {
+          "name": "Speed results",
+          "summary": "The download and upload speeds measured, in Mbps.",
+          "details": "Download and Upload, each in megabits per second. A resource that is read-only shows (Read-only resource) in place of the upload, because uploading would write to it. Under the figures a status line says that the measurement finished, was stopped, or why it failed."
+        },
+        "history-list": {
+          "summary": "The measurements you ran, newest first.",
+          "details": "Each row has the kind (Speed, Resource check, External address, Network scan, Ping or Traceroute), the network it ran on, the time and whether it answered. The list is kept on this device. While it is empty the screen says there are no measurements yet."
+        },
+        "history-export": {
+          "summary": "Sends the whole list as a text file.",
+          "details": "It opens the system share sheet with a plain text file. If the file cannot be prepared, a note asks you to free some space. The button is shown only when the list has rows."
+        },
+        "history-clear": {
+          "summary": "Deletes every stored measurement.",
+          "details": "A window asks first. The button is shown only when the list has rows.",
+          "undo": "Every measurement is removed from the device and cannot be restored. Export the list first if you still need it."
+        },
+        "off-notice": {
+          "summary": "Tells you that Network Monitor is switched off in Settings.",
+          "details": "Instead of the sections you see a short message and, where the feature exists, a button. In some editions Network Monitor is not part of the app at all; the message then says so and has no button. The screen does not show the message while it is still checking whether the monitor is on."
+        },
+        "off-open-settings": {
+          "summary": "Opens Settings on the tab where Network Monitor is switched on.",
+          "details": "It takes you to the Management tab, where the switch is under Additional programs and scenarios (the message on this screen calls it Operations). Turn it on, come back, and the summary appears."
+        },
+        "notice-continue": {
+          "summary": "Goes ahead with the check after you have read the notice.",
+          "details": "The notice says what the check does: that the speed test uses about 20 MB of traffic, that the scan contacts your local network, that the external address lookup is passed to a public service, or that this network charges for traffic. The traffic, scan and address notices come once per session; the metered notice comes before every speed test."
+        },
+        "notice-cancel": {
+          "summary": "Closes the notice and does not run the check.",
+          "details": "Nothing is sent and nothing is measured."
+        },
+        "clear-confirm": {
+          "summary": "Confirms that you want to clear the measurement history.",
+          "details": "The window says the stored measurements will be removed from this device and suggests exporting first.",
+          "undo": "The measurements are deleted for good. Export them before you confirm if you may need them."
+        },
+        "clear-cancel": {
+          "summary": "Closes the window and keeps the history.",
+          "details": "Nothing is deleted."
+        }
+      }
+    },
+    "ru": {
+      "title": "Сетевой монитор",
+      "purpose": "Живой обзор ваших подключений: Wi-Fi, мобильная сеть, Bluetooth и спутники, с графиками сигнала и подробностями активного канала. Здесь же есть проверки, которые можно запустить, - скорость, пинг и сканирование локальной сети, - и история измерений.",
+      "steps": [
+        "Начните со сводки. Карточка вверху (1) говорит, к чему вы подключены и работает ли интернет; ниже - ваш локальный адрес (2), внешний адрес (3) и скорость в этот момент (4).",
+        "Каждая плитка (5) открывает свой раздел. Строка на плитке словами говорит, работает ли раздел на этом устройстве, нужно ли разрешение или показывать нечего, - так что вы знаете это до открытия.",
+        "Wi-Fi (13), мобильная сеть (18) и Bluetooth (20) показывают, к чему вы подключены, и рисуют график сигнала. Спутники (23) показывают, сколько спутников видит телефон и где он себя находит.",
+        "«Интернет» (27) рисует путь от телефона до интернета и текущий трафик. Выберите, что проверять (29), и проверьте ресурс, просканируйте локальную сеть, узнайте внешний адрес или измерьте скорость. Сначала может появиться уведомление (50).",
+        "«Инструменты» (35) пингуют узел, трассируют его маршрут и сканируют диапазон адресов. «Скорость до ресурса» (42) измеряет скорость до одного из ваших ресурсов.",
+        "Каждая запущенная проверка сохраняется в разделе «История» (45). Экспортируйте её (46), чтобы отправить список кому-нибудь, или очистите (47).",
+        "Если на экране написано, что Сетевой монитор выключен, нажмите (49): откроются настройки, где его можно включить."
+      ],
+      "groups": [
+        { "title": "Сводка", "elements": ["active-connection", "local-ip", "external-ip", "current-speed", "tile-wifi", "tile-mobile", "tile-bluetooth", "tile-satellites", "tile-internet", "tile-history", "tile-tools", "tile-resource-speed"] },
+        { "title": "Wi-Fi, мобильная сеть и Bluetooth", "elements": ["wifi-radio", "wifi-network", "wifi-hotspot", "wifi-signal-chart", "link-details", "mobile-sims", "mobile-open-system", "bt-radio", "bt-devices", "bt-picker"] },
+        { "title": "Спутники и интернет", "elements": ["gnss-satellites", "gnss-position", "gnss-record", "gnss-share", "internet-path", "internet-traffic", "internet-target", "internet-check-resource", "internet-scan", "internet-external-ip", "internet-speed", "internet-stop"] },
+        { "title": "Инструменты, скорость до ресурса и история", "elements": ["tools-host", "tools-ping", "tools-traceroute", "tools-scan", "tools-console", "tools-copy", "tools-clear", "speed-target", "speed-start", "speed-results", "history-list", "history-export", "history-clear"] },
+        { "title": "Когда Сетевой монитор выключен", "elements": ["off-notice", "off-open-settings"] },
+        { "title": "Окна уведомления и подтверждения", "elements": ["notice-continue", "notice-cancel", "clear-confirm", "clear-cancel"] }
+      ],
+      "elements": {
+        "active-connection": {
+          "summary": "Говорит, к чему вы подключены и выходит ли это подключение в интернет.",
+          "details": "Заголовок выглядит так: Wi-Fi - МояСеть - Интернет работает. Последняя часть сообщает, работает ли интернет, требует ли сеть входа, подключены ли вы без интернета или вы не в сети. Если ничего не подключено, карточка так и пишет и советует включить Wi-Fi или мобильные данные.\n\nПоказания обновляются примерно раз в секунду, пока экран открыт."
+        },
+        "local-ip": {
+          "summary": "Адрес вашего телефона внутри сети, в которой вы находитесь.",
+          "details": "Нажмите строку, чтобы скопировать адрес. Строка видна, только пока что-то подключено. Если у телефона пока нет адреса, написано «Неизвестно»."
+        },
+        "external-ip": {
+          "summary": "Адрес, под которым вас видит интернет, - показывается, только когда вы попросите.",
+          "details": "Он скрыт, пока вы не нажмёте строку, потому что для его определения приходится спрашивать публичный сервис в интернете. Затем строка показывает «Запрашиваем..» и после этого адрес; нажмите ещё раз, чтобы скопировать. Адрес хранится, только пока работает приложение, и никогда не записывается в историю.\n\nТот же запрос есть в разделе «Интернет», но там перед ним появляется уведомление."
+        },
+        "current-speed": {
+          "name": "Текущая скорость",
+          "summary": "Сколько данных сейчас идёт на телефон и с него.",
+          "details": "Два значения: входящее со стрелкой вниз и исходящее со стрелкой вверх, по всему телефону, а не только по этому приложению. Это живое показание, а не тест скорости; график есть в разделе «Интернет». Пока ничего не подключено, строка скрыта."
+        },
+        "tile-wifi": {
+          "summary": "Открывает раздел Wi-Fi.",
+          "details": "На плитке видны имя сети и скорость канала, если телефон их знает. Строка состояния говорит «Доступно» или объясняет, почему нет: «Разрешение не выдано», «Сейчас ничего не подключено» или «На этом устройстве нет такого модуля». До первого показания там написано «Откройте, чтобы проверить»."
+        },
+        "tile-mobile": {
+          "summary": "Открывает раздел мобильной сети.",
+          "details": "На плитке видно название оператора, чья SIM используется для данных. Строка состояния работает так же, как на каждой плитке."
+        },
+        "tile-bluetooth": {
+          "summary": "Открывает раздел Bluetooth.",
+          "details": "На плитке видно, сколько устройств подключено сейчас, например «Сейчас подключено: 2»."
+        },
+        "tile-satellites": {
+          "summary": "Открывает раздел спутников.",
+          "details": "Плитка использует приёмник геолокации телефона. Если геолокация выключена в настройках системы, строка состояния так и пишет: «Геолокация выключена в настройках системы»."
+        },
+        "tile-internet": {
+          "summary": "Открывает раздел «Интернет»: путь, трафик и проверки.",
+          "details": "Если в этой сессии вы уже узнавали внешний адрес, плитка показывает его."
+        },
+        "tile-history": {
+          "summary": "Открывает список выполненных вами измерений.",
+          "details": "Сюда попадают проверки, запущенные из разделов «Интернет», «Инструменты» и «Скорость до ресурса»."
+        },
+        "tile-tools": {
+          "summary": "Открывает пинг, трассировку и сканирование подсети.",
+          "details": "Это для тех, кому нужно проверить конкретный узел или изучить локальную сеть."
+        },
+        "tile-resource-speed": {
+          "summary": "Открывает тест скорости до одного из ваших ресурсов.",
+          "details": "Он измеряет, как быстро файлы идут к сетевому или облачному ресурсу, добавленному в приложение, и от него."
+        },
+        "wifi-radio": {
+          "summary": "Включает и выключает радио Wi-Fi.",
+          "details": "Android 10 и новее обычно не дают приложению самому переключать Wi-Fi. Когда вы нажимаете переключатель, приложение пробует, а если система отказывает, открывает системную панель Wi-Fi; переключатель сдвинется, когда панель изменит состояние. Если устройство вообще не позволяет переключение, переключатель неактивен и рядом короткое пояснение. Если состояние прочитать нельзя, написано «Состояние неизвестно».\n\nНажмите заголовок раздела, чтобы открыть системные настройки Wi-Fi."
+        },
+        "wifi-network": {
+          "summary": "Сеть, к которой вы подключены, её частота, скорость канала и стандарт Wi-Fi.",
+          "details": "Для имени сети нужно разрешение на точную геолокацию, ведь Android считает название Wi-Fi данными о местоположении. Без него эта строка пишет «Разрешение не выдано. Нажмите, чтобы выдать его.» или «Разрешение заблокировано. Нажмите, чтобы открыть настройки приложения.», а остальные строки продолжают работать. Когда ничего не подключено, блок заменяется причиной."
+        },
+        "wifi-hotspot": {
+          "summary": "Показывает, раздаёт ли телефон своё подключение как точку доступа.",
+          "details": "Написано «Раздача: включена», «Раздача: выключена» или «Раздача: не определено». Нажмите, чтобы открыть системные настройки точки доступа. Если телефон не может определить состояние, строка скрыта."
+        },
+        "wifi-signal-chart": {
+          "summary": "График уровня сигнала Wi-Fi за последние минуты.",
+          "details": "Одно показание в секунду, в дБм; чем ближе значение к 0, тем сильнее сигнал. Под графиком видны текущее, наименьшее и наибольшее значение и тренд: растёт, падает или стабилен. Пока показаний нет, написано «Идёт сбор данных..». Нужно разрешение на точную геолокацию.\n\nНажмите график, чтобы перезапустить его и собирать данные заново. О перезапуске объявит программа чтения с экрана."
+        },
+        "link-details": {
+          "summary": "Технические подробности активного подключения.",
+          "details": "Интерфейс, адреса IPv4 и IPv6, серверы DNS, шлюз, наличие маршрута по умолчанию, прокси и оценки пропускной способности для входящих и исходящих данных. Отсутствующее значение читается как «Неизвестно». Пригодится, когда нужно рассказать специалисту, как устроена ваша сеть."
+        },
+        "mobile-sims": {
+          "name": "SIM-карты",
+          "summary": "Сколько модемов активно и какому оператору принадлежит каждая SIM.",
+          "details": "Число активных модемов не требует разрешения. Строки SIM показывают оператора SIM 1 и SIM 2 и отмечают ту, что основная для данных; для них нужно разрешение на телефон, а без него раздел пишет «Разрешение не выдано». Нажмите, чтобы выдать. У каждой SIM свой график сигнала, который можно перезапустить нажатием."
+        },
+        "mobile-open-system": {
+          "summary": "Открывает системный экран, где управляются мобильные данные и SIM.",
+          "details": "Android не позволяет приложению переключать мобильные данные или выбирать SIM, о чём сказано в заметке на экране. Эта кнопка ведёт в системные настройки сети, где это можно сделать."
+        },
+        "bt-radio": {
+          "summary": "Включает и выключает радио Bluetooth.",
+          "details": "Работает как переключатель Wi-Fi: приложение пробует, а если система отказывает, открывает системные настройки Bluetooth. Нажмите заголовок раздела, чтобы открыть их сразу. Строка «Адаптер» показывает «Включено», «Выключено» или «Отсутствует на этом устройстве»."
+        },
+        "bt-devices": {
+          "summary": "Перечисляет устройства, подключённые сейчас, и те, что только сопряжены.",
+          "details": "Два списка: «Подключены сейчас» и «Сопряжены, но не подключены», у каждого есть пометка, если он пуст. Чтобы их прочитать, нужно разрешение Bluetooth («Устройства поблизости» в Android 12 и новее); без него списки пишут «Разрешение не выдано», а нажатие запрашивает его."
+        },
+        "bt-picker": {
+          "summary": "Выбирает подключённое устройство, чтобы нарисовать график его сигнала.",
+          "details": "В списке устройства, подключённые сейчас. Как только вы выберете одно, появится график «Сигнал устройства» и будет пополняться раз в секунду; нажмите график, чтобы перезапустить. Если подключённых устройств нет, поле сообщает, что строить график не для чего."
+        },
+        "gnss-satellites": {
+          "summary": "Сколько спутников видит телефон и сколько из них он использует для определения позиции.",
+          "details": "Под двумя счётчиками по строке на каждый спутник: система и номер, уровень сигнала в дБ-Гц и учитывается ли он в позиции. Пока первые спутники не найдены, написано «Ищем спутники..». Ниже график уровня сигнала; нажмите, чтобы перезапустить.\n\nРазделу нужны разрешение на точную геолокацию и включённая геолокация. Нажатие на заголовок или любой счётчик открывает системные настройки геолокации."
+        },
+        "gnss-position": {
+          "summary": "Ваши координаты, их точность и время определения.",
+          "details": "Широта и долгота, точность (например ±5 м) и время фиксации. Без фиксации или без разрешения блок вместо координат объясняет причину. Координаты остаются на экране и никуда не отправляются."
+        },
+        "gnss-record": {
+          "summary": "Записывает путь, по которому вы движетесь, пока открыт этот экран.",
+          "details": "Трек остаётся на этом устройстве и пишется только пока открыт экран. Никуда ничего не отправляется. Во время записи строка считает записанные точки."
+        },
+        "gnss-share": {
+          "summary": "Отправляет файл записанного трека в другое приложение.",
+          "details": "Кнопка появляется, когда есть файл трека. Она открывает системное меню отправки с файлом CSV. Если файл заменила более новая запись, заметка просит включить запись и попробовать снова."
+        },
+        "internet-path": {
+          "summary": "Рисует путь от телефона до интернета в четыре шага.",
+          "details": "«Это устройство», «Шлюз» (ваш роутер), DNS и «Интернет» - у каждого свой адрес или состояние и отметка, отвечает ли он. Где линия обрывается, там и нужно искать: роутер, серверы имён или соединение за ними."
+        },
+        "internet-traffic": {
+          "summary": "Показывает трафик всего телефона - сейчас и за последние минуты.",
+          "details": "«Входящий сейчас» и «Исходящий сейчас» и график под ними. Считается всё, что передаёт телефон, а не только это приложение. Нажмите график, чтобы перезапустить его."
+        },
+        "internet-target": {
+          "summary": "Выбирает, что смотрят проверки ниже: интернет или один из ваших ресурсов.",
+          "details": "Список начинается с пункта «Интернет» и продолжается добавленными вами ресурсами. Кнопка «Проверить выбранный ресурс» доступна, только когда выбран ресурс."
+        },
+        "internet-check-resource": {
+          "summary": "Проверяет, отвечает ли выбранный ресурс.",
+          "details": "Приложение пытается связаться с ресурсом по сохранённому адресу и данным входа и сообщает, что ресурс ответил или не ответил, - тогда проверьте адрес и данные. Если ресурс тем временем удалён, результат так и скажет."
+        },
+        "internet-scan": {
+          "summary": "Ищет устройства в вашей локальной сети и открытые у них порты.",
+          "details": "Заполните адреса «От» и «До» или оставьте диапазон, подставленный для вашей сети. Результат сообщает, сколько из опрошенных адресов ответило, и перечисляет их с открытыми портами. Слишком большой диапазон или не пара адресов отклоняются с подсказкой. На новых версиях Android сканированию нужно разрешение на доступ к локальной сети; если его нет, результат просит выдать его в настройках системы и повторить.\n\nСканирование обращается к адресам вашей сети. Некоторые офисные и кампусные сети считают это нежелательным, поэтому в первый раз за сессию приложение показывает уведомление."
+        },
+        "internet-external-ip": {
+          "summary": "Спрашивает у публичного сервиса адрес, под которым вас видит интернет.",
+          "details": "Результат показывает адрес и пометку, собственный он у вас или оператор подменяет его для своих клиентов. Если роутер не ответил, пометка говорит, что ничего определённого сказать нельзя. Если сервис не ответил, результат так и скажет и предложит повторить. В первый раз за сессию уведомление объясняет, что сервис видит адрес, с которого получил запрос."
+        },
+        "internet-speed": {
+          "summary": "Измеряет скорость скачивания и отправки до интернета или до выбранного ресурса.",
+          "details": "Тест скачивает и отправляет примерно 20 МБ, поэтому сначала появляется уведомление. В сети, которую телефон считает тарифицируемой, уведомление появляется каждый раз, и без вашего согласия ничего не измеряется. Результат показывает обе скорости в Мбит/с. Если тест не завершился, результат просит проверить подключение."
+        },
+        "internet-stop": {
+          "summary": "Останавливает идущую проверку.",
+          "details": "Появляется вместе с индикатором хода, пока идёт проверка. Остановить можно в любой момент; остальные проверки недоступны, пока идущая не завершится или не будет остановлена."
+        },
+        "tools-host": {
+          "summary": "Адрес или имя узла для пинга или трассировки.",
+          "details": "Введите IP-адрес или имя узла. Под полем - метки с узлами, которые вы уже использовали: нажмите метку, чтобы подставить узел, нажмите её крестик, чтобы забыть."
+        },
+        "tools-ping": {
+          "summary": "Отправляет узлу несколько небольших запросов и сообщает, как быстро он отвечает.",
+          "details": "В консоли каждая попытка со временем в миллисекундах или «Ответа не дождались», а в конце - сколько попыток получили ответ. Имя, которое не определилось, и отсутствие сети тоже описываются в консоли."
+        },
+        "tools-traceroute": {
+          "summary": "Показывает переходы между телефоном и узлом.",
+          "details": "Каждый отвечающий переход указан со своим временем. Трассировка заканчивается, когда узел достигнут или исчерпан максимум переходов. Пригодится, чтобы увидеть, где соединение замедляется или обрывается."
+        },
+        "tools-scan": {
+          "summary": "Ищет устройства, отвечающие в диапазоне адресов.",
+          "details": "Работает как сканирование в разделе «Интернет», с теми же полями «От» и «До», и пишет отвечающие адреса в консоль. Используйте только в своих сетях."
+        },
+        "tools-console": {
+          "summary": "Показывает результаты пинга, трассировки и сканирования в виде текста.",
+          "details": "Пока ничего не запускалось, написано, что здесь появятся результаты. Пока операция идёт, над консолью видны индикатор хода и кнопка «Остановить»."
+        },
+        "tools-copy": {
+          "summary": "Копирует текст консоли в буфер обмена.",
+          "details": "Пригодится, чтобы вставить результаты в сообщение или заметку. Если консоль пуста, ничего не копируется."
+        },
+        "tools-clear": {
+          "summary": "Очищает консоль.",
+          "details": "Убирается только текст на экране. Измерения, уже записанные в историю, остаются там.",
+          "undo": "Текст консоли пропадает без возможности вернуть. Если он нужен, сначала скопируйте его."
+        },
+        "speed-target": {
+          "summary": "Выбирает, до чего измерять скорость: до интернета или до одного ресурса.",
+          "details": "Список начинается с пункта «Интернет» и продолжается добавленными сетевыми и облачными ресурсами."
+        },
+        "speed-start": {
+          "summary": "Измеряет, как быстро данные идут к выбранной цели и от неё.",
+          "details": "Сначала проверяется, отвечает ли цель, затем идёт замер. Пока он идёт, виден индикатор хода и кнопка «Остановить». В тарифицируемой сети сначала появляется окно с вопросом, продолжать ли."
+        },
+        "speed-results": {
+          "name": "Результаты замера",
+          "summary": "Измеренные скорости скачивания и отправки в Мбит/с.",
+          "details": "Скачивание и отправка, каждая в мегабитах в секунду. У ресурса только для чтения вместо отправки написано «(Ресурс только для чтения)», потому что отправка записала бы в него данные. Под значениями строка состояния сообщает, что замер завершён, остановлен или почему не удался."
+        },
+        "history-list": {
+          "summary": "Выполненные вами измерения, новые сверху.",
+          "details": "В каждой строке вид измерения (скорость, проверка ресурса, внешний адрес, сканирование сети, пинг или трассировка), сеть, в которой оно шло, время и ответил ли узел. Список хранится на этом устройстве. Пока он пуст, экран сообщает, что измерений ещё нет."
+        },
+        "history-export": {
+          "summary": "Отправляет весь список в виде текстового файла.",
+          "details": "Открывается системное меню отправки с обычным текстовым файлом. Если файл подготовить не удалось, заметка просит освободить место. Кнопка видна, только когда в списке есть строки."
+        },
+        "history-clear": {
+          "summary": "Удаляет все сохранённые измерения.",
+          "details": "Сначала появляется окно с вопросом. Кнопка видна, только когда в списке есть строки.",
+          "undo": "Все измерения удаляются с устройства, восстановить их нельзя. Если они ещё нужны, сначала экспортируйте список."
+        },
+        "off-notice": {
+          "summary": "Сообщает, что Сетевой монитор выключен в настройках.",
+          "details": "Вместо разделов вы видите короткое сообщение и, если функция есть, кнопку. В некоторых редакциях Сетевого монитора в приложении нет вообще; тогда сообщение так и говорит, а кнопки нет. Пока экран ещё выясняет, включён ли монитор, сообщение он не показывает."
+        },
+        "off-open-settings": {
+          "summary": "Открывает настройки на вкладке, где Сетевой монитор включается.",
+          "details": "Кнопка ведёт на вкладку «Управление», где переключатель находится в разделе «Дополнительные программы и сценарии» (в сообщении на этом экране она названа «Операции»). Включите монитор, вернитесь - и сводка появится."
+        },
+        "notice-continue": {
+          "summary": "Продолжает проверку после того, как вы прочли уведомление.",
+          "details": "Уведомление говорит, что делает проверка: тест скорости расходует около 20 МБ трафика, сканирование обращается к вашей локальной сети, определение внешнего адреса передаётся публичному сервису, либо эта сеть тарифицирует трафик. Уведомления о трафике, сканировании и адресе приходят раз за сессию, а о тарифицируемой сети - перед каждым тестом скорости."
+        },
+        "notice-cancel": {
+          "summary": "Закрывает уведомление и не запускает проверку.",
+          "details": "Ничего не отправляется и ничего не измеряется."
+        },
+        "clear-confirm": {
+          "summary": "Подтверждает, что вы хотите очистить историю измерений.",
+          "details": "В окне сказано, что сохранённые измерения будут удалены с этого устройства, и предложено сначала экспортировать их.",
+          "undo": "Измерения удаляются насовсем. Если они могут понадобиться, экспортируйте их до подтверждения."
+        },
+        "clear-cancel": {
+          "summary": "Закрывает окно и оставляет историю.",
+          "details": "Ничего не удаляется."
+        }
+      }
+    },
+    "uk": {
+      "title": "Мережевий монітор",
+      "purpose": "Живий огляд ваших підключень: Wi-Fi, мобільна мережа, Bluetooth і супутники, з графіками сигналу та подробицями активного каналу. Тут же є перевірки, які можна запустити, - швидкість, пінґ і сканування локальної мережі, - та історія вимірювань.",
+      "steps": [
+        "Почніть зі зведення. Картка вгорі (1) каже, до чого ви підключені й чи працює інтернет; нижче - ваша локальна адреса (2), зовнішня адреса (3) і швидкість у цю мить (4).",
+        "Кожна плитка (5) відкриває свій розділ. Рядок на плитці словами каже, чи працює розділ на цьому пристрої, чи потрібен дозвіл, чи показувати нічого, - тож ви знаєте це ще до відкриття.",
+        "Wi-Fi (13), мобільна мережа (18) і Bluetooth (20) показують, до чого ви підключені, і малюють графік сигналу. Супутники (23) показують, скільки супутників бачить телефон і де він себе знаходить.",
+        "«Інтернет» (27) малює шлях від телефону до інтернету та поточний трафік. Виберіть, що перевіряти (29), і перевірте ресурс, просканувайте локальну мережу, дізнайтеся зовнішню адресу чи виміряйте швидкість. Спершу може з’явитися сповіщення (50).",
+        "«Інструменти» (35) пінґують вузол, трасують його маршрут і сканують діапазон адрес. «Швидкість до ресурсу» (42) вимірює швидкість до одного з ваших ресурсів.",
+        "Кожна запущена перевірка зберігається в розділі «Історія» (45). Експортуйте її (46), щоб надіслати список комусь, або очистьте (47).",
+        "Якщо на екрані написано, що Мережевий монітор вимкнено, натисніть (49): відкриються налаштування, де його можна ввімкнути."
+      ],
+      "groups": [
+        { "title": "Зведення", "elements": ["active-connection", "local-ip", "external-ip", "current-speed", "tile-wifi", "tile-mobile", "tile-bluetooth", "tile-satellites", "tile-internet", "tile-history", "tile-tools", "tile-resource-speed"] },
+        { "title": "Wi-Fi, мобільна мережа та Bluetooth", "elements": ["wifi-radio", "wifi-network", "wifi-hotspot", "wifi-signal-chart", "link-details", "mobile-sims", "mobile-open-system", "bt-radio", "bt-devices", "bt-picker"] },
+        { "title": "Супутники та інтернет", "elements": ["gnss-satellites", "gnss-position", "gnss-record", "gnss-share", "internet-path", "internet-traffic", "internet-target", "internet-check-resource", "internet-scan", "internet-external-ip", "internet-speed", "internet-stop"] },
+        { "title": "Інструменти, швидкість до ресурсу та історія", "elements": ["tools-host", "tools-ping", "tools-traceroute", "tools-scan", "tools-console", "tools-copy", "tools-clear", "speed-target", "speed-start", "speed-results", "history-list", "history-export", "history-clear"] },
+        { "title": "Коли Мережевий монітор вимкнено", "elements": ["off-notice", "off-open-settings"] },
+        { "title": "Вікна сповіщення та підтвердження", "elements": ["notice-continue", "notice-cancel", "clear-confirm", "clear-cancel"] }
+      ],
+      "elements": {
+        "active-connection": {
+          "summary": "Каже, до чого ви підключені й чи виходить це підключення в інтернет.",
+          "details": "Заголовок виглядає так: Wi-Fi - МояМережа - Інтернет працює. Остання частина повідомляє, чи працює інтернет, чи вимагає мережа входу, чи ви підключені без інтернету, чи ви не в мережі. Якщо нічого не підключено, картка так і пише та радить увімкнути Wi-Fi або мобільні дані.\n\nПоказання оновлюються приблизно раз на секунду, поки екран відкритий."
+        },
+        "local-ip": {
+          "summary": "Адреса вашого телефону всередині мережі, в якій ви перебуваєте.",
+          "details": "Натисніть рядок, щоб скопіювати адресу. Рядок видно лише поки щось підключено. Якщо в телефону поки немає адреси, написано «Невідомо»."
+        },
+        "external-ip": {
+          "summary": "Адреса, під якою вас бачить інтернет, - показується лише коли ви попросите.",
+          "details": "Вона схована, доки ви не натиснете рядок, бо для її визначення доводиться питати публічний сервіс в інтернеті. Потім рядок показує «Запитуємо..» і після цього адресу; натисніть ще раз, щоб скопіювати. Адреса зберігається лише поки працює застосунок і ніколи не записується в історію.\n\nЦей самий запит є в розділі «Інтернет», але там перед ним з’являється сповіщення."
+        },
+        "current-speed": {
+          "name": "Поточна швидкість",
+          "summary": "Скільки даних зараз іде на телефон і з нього.",
+          "details": "Два значення: вхідне зі стрілкою вниз і вихідне зі стрілкою вгору, по всьому телефону, а не лише по цьому застосунку. Це живе показання, а не тест швидкості; графік є в розділі «Інтернет». Поки нічого не підключено, рядок схований."
+        },
+        "tile-wifi": {
+          "summary": "Відкриває розділ Wi-Fi.",
+          "details": "На плитці видно ім’я мережі та швидкість каналу, якщо телефон їх знає. Рядок стану каже «Доступно» або пояснює, чому ні: «Дозвіл не надано», «Зараз нічого не підключено» або «На цьому пристрої немає такого модуля». До першого показання там написано «Відкрийте, щоб перевірити»."
+        },
+        "tile-mobile": {
+          "summary": "Відкриває розділ мобільної мережі.",
+          "details": "На плитці видно назву оператора, чия SIM використовується для даних. Рядок стану працює так само, як на кожній плитці."
+        },
+        "tile-bluetooth": {
+          "summary": "Відкриває розділ Bluetooth.",
+          "details": "На плитці видно, скільки пристроїв підключено зараз, наприклад «Зараз підключено: 2»."
+        },
+        "tile-satellites": {
+          "summary": "Відкриває розділ супутників.",
+          "details": "Плитка використовує приймач геолокації телефону. Якщо геолокацію вимкнено в налаштуваннях системи, рядок стану так і пише: «Геолокацію вимкнено в налаштуваннях системи»."
+        },
+        "tile-internet": {
+          "summary": "Відкриває розділ «Інтернет»: шлях, трафік і перевірки.",
+          "details": "Якщо в цьому сеансі ви вже дізнавалися зовнішню адресу, плитка показує її."
+        },
+        "tile-history": {
+          "summary": "Відкриває список виконаних вами вимірювань.",
+          "details": "Сюди потрапляють перевірки, запущені з розділів «Інтернет», «Інструменти» та «Швидкість до ресурсу»."
+        },
+        "tile-tools": {
+          "summary": "Відкриває пінґ, трасування та сканування підмережі.",
+          "details": "Це для тих, кому треба перевірити конкретний вузол або вивчити локальну мережу."
+        },
+        "tile-resource-speed": {
+          "summary": "Відкриває тест швидкості до одного з ваших ресурсів.",
+          "details": "Він вимірює, як швидко файли йдуть до мережевого чи хмарного ресурсу, доданого в застосунок, і від нього."
+        },
+        "wifi-radio": {
+          "summary": "Вмикає та вимикає радіо Wi-Fi.",
+          "details": "Android 10 і новіші зазвичай не дають застосунку самому перемикати Wi-Fi. Коли ви натискаєте перемикач, застосунок пробує, а якщо система відмовляє, відкриває системну панель Wi-Fi; перемикач зсунеться, коли панель змінить стан. Якщо пристрій узагалі не дозволяє перемикання, перемикач неактивний і поруч коротке пояснення. Якщо стан прочитати не можна, написано «Стан невідомий».\n\nНатисніть заголовок розділу, щоб відкрити системні налаштування Wi-Fi."
+        },
+        "wifi-network": {
+          "summary": "Мережа, до якої ви підключені, її частота, швидкість каналу та стандарт Wi-Fi.",
+          "details": "Для імені мережі потрібен дозвіл на точну геолокацію, адже Android вважає назву Wi-Fi даними про місцеперебування. Без нього цей рядок пише «Дозвіл не надано. Натисніть, щоб надати його.» або «Дозвіл заблоковано. Натисніть, щоб відкрити налаштування програми.», а решта рядків і далі працює. Коли нічого не підключено, блок замінюється причиною."
+        },
+        "wifi-hotspot": {
+          "summary": "Показує, чи роздає телефон своє підключення як точку доступу.",
+          "details": "Написано «Роздача: увімкнена», «Роздача: вимкнена» або «Роздача: не визначено». Натисніть, щоб відкрити системні налаштування точки доступу. Якщо телефон не може визначити стан, рядок схований."
+        },
+        "wifi-signal-chart": {
+          "summary": "Графік рівня сигналу Wi-Fi за останні хвилини.",
+          "details": "Одне показання на секунду, в дБм; що ближче значення до 0, то сильніший сигнал. Під графіком видно поточне, найменше й найбільше значення та тренд: зростає, падає чи стабільний. Поки показань немає, написано «Триває збір даних..». Потрібен дозвіл на точну геолокацію.\n\nНатисніть графік, щоб перезапустити його й збирати дані наново. Про перезапуск оголосить програма читання з екрана."
+        },
+        "link-details": {
+          "summary": "Технічні подробиці активного підключення.",
+          "details": "Інтерфейс, адреси IPv4 та IPv6, сервери DNS, шлюз, наявність маршруту за замовчуванням, проксі й оцінки пропускної здатності для вхідних і вихідних даних. Відсутнє значення читається як «Невідомо». Знадобиться, коли треба розповісти фахівцеві, як улаштована ваша мережа."
+        },
+        "mobile-sims": {
+          "name": "SIM-картки",
+          "summary": "Скільки модемів активно і якому оператору належить кожна SIM.",
+          "details": "Кількість активних модемів не потребує дозволу. Рядки SIM показують оператора SIM 1 і SIM 2 та позначають ту, що основна для даних; для них потрібен дозвіл на телефон, а без нього розділ пише «Дозвіл не надано». Натисніть, щоб надати. У кожної SIM свій графік сигналу, який можна перезапустити натисканням."
+        },
+        "mobile-open-system": {
+          "summary": "Відкриває системний екран, де керуються мобільні дані та SIM.",
+          "details": "Android не дозволяє застосунку перемикати мобільні дані чи вибирати SIM, про що сказано в примітці на екрані. Ця кнопка веде в системні налаштування мережі, де це можна зробити."
+        },
+        "bt-radio": {
+          "summary": "Вмикає та вимикає радіо Bluetooth.",
+          "details": "Працює як перемикач Wi-Fi: застосунок пробує, а якщо система відмовляє, відкриває системні налаштування Bluetooth. Натисніть заголовок розділу, щоб відкрити їх одразу. Рядок «Адаптер» показує «Увімкнено», «Вимкнено» або «Відсутній на цьому пристрої»."
+        },
+        "bt-devices": {
+          "summary": "Перелічує пристрої, підключені зараз, і ті, що лише спарені.",
+          "details": "Два списки: «Підключені зараз» і «Спарені, але не підключені», у кожного є примітка, якщо він порожній. Щоб їх прочитати, потрібен дозвіл Bluetooth («Пристрої поблизу» в Android 12 і новіших); без нього списки пишуть «Дозвіл не надано», а натискання запитує його."
+        },
+        "bt-picker": {
+          "summary": "Вибирає підключений пристрій, щоб намалювати графік його сигналу.",
+          "details": "У списку пристрої, підключені зараз. Щойно ви виберете один, з’явиться графік «Сигнал пристрою» і поповнюватиметься раз на секунду; натисніть графік, щоб перезапустити. Якщо підключених пристроїв немає, поле повідомляє, що будувати графік нема для чого."
+        },
+        "gnss-satellites": {
+          "summary": "Скільки супутників бачить телефон і скільки з них він використовує для визначення позиції.",
+          "details": "Під двома лічильниками по рядку на кожен супутник: система й номер, рівень сигналу в дБ-Гц і чи враховується він у позиції. Поки перші супутники не знайдено, написано «Шукаємо супутники..». Нижче графік рівня сигналу; натисніть, щоб перезапустити.\n\nРозділу потрібні дозвіл на точну геолокацію та ввімкнена геолокація. Натискання на заголовок або будь-який лічильник відкриває системні налаштування геолокації."
+        },
+        "gnss-position": {
+          "summary": "Ваші координати, їхня точність і час визначення.",
+          "details": "Широта й довгота, точність (наприклад ±5 м) і час фіксації. Без фіксації або без дозволу блок замість координат пояснює причину. Координати залишаються на екрані й нікуди не надсилаються."
+        },
+        "gnss-record": {
+          "summary": "Записує шлях, яким ви рухаєтеся, поки відкрито цей екран.",
+          "details": "Трек залишається на цьому пристрої й пишеться лише поки відкрито екран. Нічого нікуди не надсилається. Під час запису рядок рахує записані точки."
+        },
+        "gnss-share": {
+          "summary": "Надсилає файл записаного треку до іншого застосунку.",
+          "details": "Кнопка з’являється, коли є файл треку. Вона відкриває системне меню надсилання з файлом CSV. Якщо файл замінив новіший запис, примітка просить увімкнути запис і спробувати знову."
+        },
+        "internet-path": {
+          "summary": "Малює шлях від телефону до інтернету в чотири кроки.",
+          "details": "«Цей пристрій», «Шлюз» (ваш роутер), DNS та «Інтернет» - у кожного своя адреса чи стан і позначка, відповідає він чи ні. Де лінія обривається, там і треба шукати: роутер, сервери імен або з’єднання за ними."
+        },
+        "internet-traffic": {
+          "summary": "Показує трафік усього телефону - зараз і за останні хвилини.",
+          "details": "«Вхідний зараз» і «Вихідний зараз» та графік під ними. Рахується все, що передає телефон, а не лише цей застосунок. Натисніть графік, щоб перезапустити його."
+        },
+        "internet-target": {
+          "summary": "Вибирає, на що дивляться перевірки нижче: інтернет чи один із ваших ресурсів.",
+          "details": "Список починається з пункту «Інтернет» і продовжується доданими вами ресурсами. Кнопка «Перевірити вибраний ресурс» доступна, лише коли вибрано ресурс."
+        },
+        "internet-check-resource": {
+          "summary": "Перевіряє, чи відповідає вибраний ресурс.",
+          "details": "Застосунок намагається зв’язатися з ресурсом за збереженою адресою та даними входу й повідомляє, що ресурс відповів чи не відповів, - тоді перевірте адресу й дані. Якщо ресурс тим часом видалено, результат так і скаже."
+        },
+        "internet-scan": {
+          "summary": "Шукає пристрої у вашій локальній мережі та відкриті в них порти.",
+          "details": "Заповніть адреси «Від» і «До» або залиште діапазон, підставлений для вашої мережі. Результат повідомляє, скільки з опитаних адрес відповіло, і перелічує їх із відкритими портами. Надто великий діапазон чи не пара адрес відхиляються з підказкою. На нових версіях Android скануванню потрібен дозвіл на доступ до локальної мережі; якщо його немає, результат просить надати його в налаштуваннях системи й повторити.\n\nСканування звертається до адрес вашої мережі. Деякі офісні та кампусні мережі вважають це небажаним, тому першого разу за сеанс застосунок показує сповіщення."
+        },
+        "internet-external-ip": {
+          "summary": "Питає в публічного сервісу адресу, під якою вас бачить інтернет.",
+          "details": "Результат показує адресу та примітку, чи вона власна у вас, чи оператор підміняє її для своїх клієнтів. Якщо роутер не відповів, примітка каже, що нічого певного сказати не можна. Якщо сервіс не відповів, результат так і скаже й запропонує повторити. Першого разу за сеанс сповіщення пояснює, що сервіс бачить адресу, з якої отримав запит."
+        },
+        "internet-speed": {
+          "summary": "Вимірює швидкість завантаження й надсилання до інтернету чи до вибраного ресурсу.",
+          "details": "Тест завантажує й надсилає приблизно 20 МБ, тому спершу з’являється сповіщення. У мережі, яку телефон вважає тарифікованою, сповіщення з’являється щоразу, і без вашої згоди нічого не вимірюється. Результат показує обидві швидкості в Мбіт/с. Якщо тест не завершився, результат просить перевірити підключення."
+        },
+        "internet-stop": {
+          "summary": "Зупиняє перевірку, що йде.",
+          "details": "З’являється разом із індикатором ходу, поки йде перевірка. Зупинити можна будь-коли; інші перевірки недоступні, поки та, що йде, не завершиться або не буде зупинена."
+        },
+        "tools-host": {
+          "summary": "Адреса або ім’я вузла для пінґа чи трасування.",
+          "details": "Введіть IP-адресу або ім’я вузла. Під полем - мітки з вузлами, які ви вже використовували: натисніть мітку, щоб підставити вузол, натисніть її хрестик, щоб забути."
+        },
+        "tools-ping": {
+          "summary": "Надсилає вузлу кілька невеликих запитів і повідомляє, як швидко він відповідає.",
+          "details": "У консолі кожна спроба з часом у мілісекундах або «Відповіді не дочекались», а наприкінці - скільки спроб отримали відповідь. Ім’я, яке не визначилося, і відсутність мережі теж описуються в консолі."
+        },
+        "tools-traceroute": {
+          "summary": "Показує переходи між телефоном і вузлом.",
+          "details": "Кожен перехід, що відповідає, указано зі своїм часом. Трасування закінчується, коли вузол досягнуто або вичерпано максимум переходів. Знадобиться, щоб побачити, де з’єднання сповільнюється чи обривається."
+        },
+        "tools-scan": {
+          "summary": "Шукає пристрої, що відповідають у діапазоні адрес.",
+          "details": "Працює як сканування в розділі «Інтернет», з тими самими полями «Від» і «До», і пише адреси, що відповіли, в консоль. Користуйтеся лише у своїх мережах."
+        },
+        "tools-console": {
+          "summary": "Показує результати пінґа, трасування та сканування у вигляді тексту.",
+          "details": "Поки нічого не запускалося, написано, що тут з’являться результати. Поки операція йде, над консоллю видно індикатор ходу й кнопку «Зупинити»."
+        },
+        "tools-copy": {
+          "summary": "Копіює текст консолі до буфера обміну.",
+          "details": "Знадобиться, щоб вставити результати в повідомлення чи нотатку. Якщо консоль порожня, нічого не копіюється."
+        },
+        "tools-clear": {
+          "summary": "Очищує консоль.",
+          "details": "Прибирається лише текст на екрані. Вимірювання, уже записані в історію, лишаються там.",
+          "undo": "Текст консолі зникає без можливості повернути. Якщо він потрібен, спершу скопіюйте його."
+        },
+        "speed-target": {
+          "summary": "Вибирає, до чого вимірювати швидкість: до інтернету чи до одного ресурсу.",
+          "details": "Список починається з пункту «Інтернет» і продовжується доданими мережевими та хмарними ресурсами."
+        },
+        "speed-start": {
+          "summary": "Вимірює, як швидко дані йдуть до вибраної цілі й від неї.",
+          "details": "Спершу перевіряється, чи відповідає ціль, потім іде замір. Поки він іде, видно індикатор ходу й кнопку «Зупинити». У тарифікованій мережі спершу з’являється вікно із запитанням, чи продовжувати."
+        },
+        "speed-results": {
+          "name": "Результати вимірювання",
+          "summary": "Виміряні швидкості завантаження й надсилання в Мбіт/с.",
+          "details": "Завантаження та надсилання, кожна в мегабітах на секунду. У ресурсу лише для читання замість надсилання написано «(Ресурс тільки для читання)», бо надсилання записало б у нього дані. Під значеннями рядок стану повідомляє, що замір завершено, зупинено або чому не вдався."
+        },
+        "history-list": {
+          "summary": "Виконані вами вимірювання, нові зверху.",
+          "details": "У кожному рядку вид вимірювання (швидкість, перевірка ресурсу, зовнішня адреса, сканування мережі, пінґ чи трасування), мережа, в якій воно йшло, час і чи відповів вузол. Список зберігається на цьому пристрої. Поки він порожній, екран повідомляє, що вимірювань ще немає."
+        },
+        "history-export": {
+          "summary": "Надсилає весь список у вигляді текстового файлу.",
+          "details": "Відкривається системне меню надсилання зі звичайним текстовим файлом. Якщо файл підготувати не вдалося, примітка просить звільнити місце. Кнопку видно, лише коли в списку є рядки."
+        },
+        "history-clear": {
+          "summary": "Видаляє всі збережені вимірювання.",
+          "details": "Спершу з’являється вікно із запитанням. Кнопку видно, лише коли в списку є рядки.",
+          "undo": "Усі вимірювання видаляються з пристрою, відновити їх не можна. Якщо вони ще потрібні, спершу експортуйте список."
+        },
+        "off-notice": {
+          "summary": "Повідомляє, що Мережевий монітор вимкнено в налаштуваннях.",
+          "details": "Замість розділів ви бачите коротке повідомлення і, якщо функція є, кнопку. У деяких редакціях Мережевого монітора в застосунку немає взагалі; тоді повідомлення так і каже, а кнопки немає. Поки екран ще з’ясовує, чи ввімкнено монітор, повідомлення він не показує."
+        },
+        "off-open-settings": {
+          "summary": "Відкриває налаштування на вкладці, де Мережевий монітор вмикається.",
+          "details": "Кнопка веде на вкладку «Управління», де перемикач міститься в розділі «Додаткові програми та сценарії» (в повідомленні на цьому екрані її названо «Операції»). Увімкніть монітор, поверніться - і зведення з’явиться."
+        },
+        "notice-continue": {
+          "summary": "Продовжує перевірку після того, як ви прочитали сповіщення.",
+          "details": "Сповіщення каже, що робить перевірка: тест швидкості витрачає близько 20 МБ трафіку, сканування звертається до вашої локальної мережі, визначення зовнішньої адреси передається публічному сервісу, або ця мережа тарифікує трафік. Сповіщення про трафік, сканування та адресу приходять раз за сеанс, а про тарифіковану мережу - перед кожним тестом швидкості."
+        },
+        "notice-cancel": {
+          "summary": "Закриває сповіщення й не запускає перевірку.",
+          "details": "Нічого не надсилається й нічого не вимірюється."
+        },
+        "clear-confirm": {
+          "summary": "Підтверджує, що ви хочете очистити історію вимірювань.",
+          "details": "У вікні сказано, що збережені вимірювання буде видалено з цього пристрою, і запропоновано спершу експортувати їх.",
+          "undo": "Вимірювання видаляються назавжди. Якщо вони можуть знадобитися, експортуйте їх до підтвердження."
+        },
+        "clear-cancel": {
+          "summary": "Закриває вікно й залишає історію.",
+          "details": "Нічого не видаляється."
+        }
+      }
+    }
+  }
+}

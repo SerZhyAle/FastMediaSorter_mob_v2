@@ -4,8 +4,11 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.data.network.WearExchangeEntryMissingException
+import com.sza.fastmediasorter.wear.data.network.WearExchangeNeedsOwnNetworkException
 import com.sza.fastmediasorter.wear.data.network.WearNetworkDataSources
 import com.sza.fastmediasorter.wear.data.network.WearNetworkFailureClassifier
+import com.sza.fastmediasorter.wear.data.network.sftp.WearResourcePinMissingException
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
 import com.sza.fastmediasorter.wear.domain.browse.BrowseListProjection
 import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineKeys
@@ -113,6 +116,10 @@ class BrowseViewModel @Inject constructor(
     /** The file list's own stored view, separate from the navigation screens' mode. */
     val fileListViewMode: StateFlow<WearViewMode> = preferencesRepository.fileListViewMode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(VIEW_MODE_SUBSCRIPTION_MS), WearViewMode.LIST)
+
+    // S4228: the browsed network source is read-only on the phone, so the file menu offers no deletion (20 item BH).
+    private val _browsedSourceReadOnly = MutableStateFlow(false)
+    val browsedSourceReadOnly: StateFlow<Boolean> = _browsedSourceReadOnly.asStateFlow()
 
     private val _thumbnails = MutableStateFlow<Map<Long, WearThumbnail>>(emptyMap())
     val thumbnails: StateFlow<Map<Long, WearThumbnail>> = _thumbnails.asStateFlow()
@@ -293,6 +300,7 @@ class BrowseViewModel @Inject constructor(
                 val currentPath = NetworkBasePath
                     .normalize(source.basePath, source.type, source.shareName)
                     .ifBlank { "/" }
+                _browsedSourceReadOnly.value = source.readOnly
                 Timber.d("Connecting to ${source.type} source: ${source.server}")
 
                 val mediaFiles: List<WearMediaFile> = when (source.type) {
@@ -357,7 +365,7 @@ class BrowseViewModel @Inject constructor(
      * S2488: the string the wearer reads for a failed network open. A cause the classifier cannot
      * name keeps the generic load failure, which is what the screen showed for every case before.
      */
-    private fun messageFor(error: Throwable?): Int = when (
+    private fun messageFor(error: Throwable?): Int = exchangeFolderMessageFor(error) ?: when (
         error?.let { networkFailureClassifier.classify(it) } ?: WearNetworkFailure.OTHER
     ) {
         WearNetworkFailure.CONNECTION_REFUSED -> R.string.browse_network_error_refused
@@ -365,6 +373,14 @@ class BrowseViewModel @Inject constructor(
         WearNetworkFailure.AUTH_REJECTED -> R.string.browse_network_error_auth
         WearNetworkFailure.UNKNOWN_HOST -> R.string.browse_network_error_unknown_host
         WearNetworkFailure.OTHER -> R.string.browse_load_failed
+    }
+
+    /** S4228: the three refusals of an exchange folder each name what the person can do; null for any other. */
+    private fun exchangeFolderMessageFor(error: Throwable?): Int? = when (error) {
+        is WearExchangeNeedsOwnNetworkException -> R.string.exchange_folder_needs_own_network
+        is WearResourcePinMissingException -> R.string.exchange_folder_pin_on_phone
+        is WearExchangeEntryMissingException -> R.string.exchange_folder_connect_watch_on_phone
+        else -> null
     }
 
     /**

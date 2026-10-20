@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Reproductor de Música en el Coche (Unidad Central Android) - FastMediaSorter v2"
 permalink: /docs/howto/scenario-car-music-es.html
 ---
-<sub class="doc-stamp">26.09.25 02:12</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="es" dir="ltr" markdown="1">
 
 # 🚗 Reproductor de Música en el Coche (Unidad Central Android)
 
 > **Nivel:** Principiante &bull; **Tiempo:** ~10 minutos &bull; **Edición:** Standard, Legacy, VR, noLegal (Lite reproduce audio local pero no tiene reproducción en segundo plano ni Streams; Photos no tiene audio)
-
-{% include lang-switcher.html doc="scenario-car-music" dir="/docs/howto/" current="es" %}
 
 FastMediaSorter funciona muy bien como reproductor de música para coche en unidades centrales Android - acceso instantáneo a toda tu colección de música en tarjeta SD o unidad USB, con soporte integrado para botones del volante.
 

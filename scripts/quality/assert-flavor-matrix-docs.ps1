@@ -78,6 +78,7 @@ function Write-Info([string] $Message) {
 
 function Fail-Unverifiable([string] $Message) {
     Write-Error "assert-flavor-matrix-docs: $Message" -ErrorAction Continue
+    Write-Host 'assert-flavor-matrix-docs: COULD NOT VERIFY (see the error above)'
     exit 2
 }
 
@@ -181,6 +182,7 @@ if (Test-Path -LiteralPath $generator) {
         if (-not $chargeable) {
             Write-NotChargedVerdict -GateName 'assert-flavor-matrix-docs' -Findings @(
                 'stale: docs/flavors/flavor-matrix.json lags app_v2/build.gradle.kts - regenerate it')
+            Write-Host 'assert-flavor-matrix-docs: PASS WITH ADVISORIES (see the findings above)'
             exit 3
         }
         Fail-Unverifiable 'snapshot is stale relative to app_v2/build.gradle.kts - regenerate it before gating documents.'
@@ -334,6 +336,7 @@ if ($findings.Count -gt 0) {
     if (-not $chargeable) {
         Write-NotChargedVerdict -GateName 'assert-flavor-matrix-docs' -Findings @(
             $findings | ForEach-Object { "{0}:{1} [{2}] {3}" -f $_.Path, $_.Line, $_.Class, $_.Message })
+        Write-Host 'assert-flavor-matrix-docs: PASS WITH ADVISORIES (see the findings above)'
         exit 3
     }
     if ($Gate) {

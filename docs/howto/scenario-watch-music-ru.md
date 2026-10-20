@@ -1,17 +1,15 @@
 ---
-layout: default
+layout: doc
 title: "Прослушивание музыки на часах - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-music-ru.html
 ---
-<sub class="doc-stamp">26.09.24 10:01</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 # <img src="../icons/doc/ic_audio.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Прослушивание музыки на часах
 
 > **Уровень:** Для начинающих &bull; **Время:** ~5 минут &bull; **Устройство:** Часы Wear OS (в связке с Android-телефоном)
 
 > **Только в полной версии** - это руководство не реализовано в версии, распространяемой через Google Play. Оно относится к полной версии - APK для прямой загрузки со страницы [Загрузки](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="scenario-watch-music" dir="/docs/howto/" current="ru" %}
 
 FastMediaSorter позволяет слушать любимую музыку прямо со смарт-часов Wear OS. Вы можете воспроизводить треки, переданные с телефона-компаньона, или локальные файлы из памяти часов, с отображением обложек альбомов, случайным порядком, регулировкой громкости безелем, фоновым воспроизведением после выхода из приложения и режимом погашенного экрана для экономии батареи.
 

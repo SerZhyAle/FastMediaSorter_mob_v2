@@ -169,7 +169,7 @@ function Render-Legend([string] $locale, [string] $permalinkName) {
     $sb = [System.Text.StringBuilder]::new()
     # Jekyll front matter must be the very first bytes so GitHub Pages renders HTML.
     [void]$sb.Append("---`n")
-    [void]$sb.Append("layout: default`n")
+    [void]$sb.Append("layout: doc`n")
     [void]$sb.Append("title: `"$($pageTitle[$locale])`"`n")
     [void]$sb.Append("permalink: /docs/$permalinkName.html`n")
     [void]$sb.Append("---`n")

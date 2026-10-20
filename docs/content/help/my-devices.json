@@ -1,0 +1,443 @@
+{
+  "help": "my-devices",
+  "surface": "MyDevicesActivity",
+  "elements": [
+    { "id": "toolbar", "viewId": "toolbar", "labelKey": "exchange_devices_title" },
+    { "id": "empty-text", "viewId": "textExchangeServersEmpty" },
+    { "id": "server-list", "viewId": "rvExchangeServers" },
+    { "id": "honest-note", "viewId": "textExchangeServerHonest" },
+    { "id": "add-server", "viewId": "btnExchangeAddServer", "labelKey": "exchange_devices_add_server" },
+    { "id": "portal-add-server", "viewId": "btnExchangePortalAddServer", "labelKey": "exchange_portal_link_my_devices" },
+    { "id": "portal-server", "viewId": "btnExchangePortalServer", "labelKey": "exchange_portal_link_server" },
+    { "id": "portal-watch", "viewId": "btnExchangePortalWatch", "labelKey": "exchange_portal_link_watch" },
+    { "id": "menu-edit-address", "labelKey": "exchange_devices_menu_edit_address" },
+    { "id": "menu-make-outgoing", "labelKey": "exchange_devices_menu_make_outgoing" },
+    { "id": "menu-connect-watch", "labelKey": "exchange_devices_menu_connect_watch" },
+    { "id": "menu-share", "labelKey": "exchange_devices_menu_share" },
+    { "id": "menu-auto-attach", "labelKey": "exchange_devices_menu_auto_attach" },
+    { "id": "menu-sign-in-again", "labelKey": "exchange_devices_menu_sign_in_again" },
+    { "id": "menu-change-password", "labelKey": "exchange_devices_menu_change_password" },
+    { "id": "menu-sign-out", "labelKey": "exchange_devices_menu_sign_out" },
+    { "id": "menu-delete-account", "labelKey": "exchange_devices_menu_delete_account" },
+    { "id": "devices-list" },
+    { "id": "devices-revoke", "labelKey": "exchange_devices_revoke" },
+    { "id": "devices-pairing", "labelKey": "exchange_devices_pairing_issue" },
+    { "id": "signin-string", "labelKey": "exchange_signin_intake_hint" },
+    { "id": "signin-address", "labelKey": "exchange_devices_signin_address" },
+    { "id": "signin-login", "labelKey": "exchange_devices_signin_login" },
+    { "id": "signin-password", "labelKey": "exchange_devices_signin_password" },
+    { "id": "signin-code", "labelKey": "exchange_devices_signin_use_code" },
+    { "id": "signin-submit", "labelKey": "exchange_devices_signin_submit" }
+  ],
+  "related": [
+    { "help": "settings-general" },
+    { "help": "streams" },
+    { "help": "broadcast" },
+    { "help": "wear-companion" },
+    { "help": "add-resource" },
+    { "pageId": "settings.backup-and-device-sync" },
+    { "pageId": "network.phone-as-sftp-server" },
+    { "pageId": "wear.companion-data-sync" }
+  ],
+  "locales": {
+    "en": {
+      "title": "My devices",
+      "purpose": "My devices holds the exchange servers that link all your own devices - phone, computer, watch, TV box. Once this phone is signed in to one, it can see the folders and broadcasts your other devices share, and they can see yours; the server only passes them along.",
+      "steps": [
+        "Open My devices from Settings, on the General tab (the row is there in editions with network sources). With no server yet, a short message (2) says so; press Add server (5) to begin.",
+        "In the sign-in window, bring in the server's connection string by pasting, scanning or choosing a file (21), then check the address (22) and type your login (23) and password (24). If the other device gave you a pairing code, tick (25) and enter the code instead of the password, then press Sign in (26).",
+        "Read What the server can see (4) once, so you know what the server learns and what stays encrypted on your devices.",
+        "Each server you add becomes a card in the list (3): its address, your login and the state of the link, such as Connected with the number of devices.",
+        "Tap a card to see the devices of that account (18). To bring a new device in without typing the password there, issue a pairing code (20); to remove a device you no longer use, press Revoke (19).",
+        "The three dots on a card (9 to 17) hold the rest: change the address, make this server the outgoing one, connect a watch, pass the server on, sign out, and more.",
+        "The three buttons at the bottom (6, 7, 8) open pages of the project website about adding a server, the server itself and connecting a watch."
+      ],
+      "groups": [
+        { "title": "The list of servers", "elements": ["toolbar", "empty-text", "server-list", "honest-note", "add-server"] },
+        { "title": "Pages of the project website", "elements": ["portal-add-server", "portal-server", "portal-watch"] },
+        { "title": "Server card menu (three dots)", "elements": ["menu-edit-address", "menu-make-outgoing", "menu-connect-watch", "menu-share", "menu-auto-attach", "menu-sign-in-again", "menu-change-password", "menu-sign-out", "menu-delete-account"] },
+        { "title": "Devices of an account (tap a card)", "elements": ["devices-list", "devices-revoke", "devices-pairing"] },
+        { "title": "Sign in to an exchange server window", "elements": ["signin-string", "signin-address", "signin-login", "signin-password", "signin-code", "signin-submit"] }
+      ],
+      "elements": {
+        "toolbar": {
+          "summary": "The title bar of the screen, with the way back.",
+          "details": "The arrow returns to the previous screen. Here a device is any phone, computer, watch or TV box that is signed in to the same account on an exchange server, and one account can sit on one server only. This screen lists those servers; the devices themselves are shown when you tap a card."
+        },
+        "empty-text": {
+          "name": "Empty list message",
+          "summary": "Tells you that there is no exchange server yet.",
+          "details": "It shows only while the list has no cards. It says that adding a server lets you see the resources and broadcasts of all your devices; Add server below is the way to do it."
+        },
+        "server-list": {
+          "name": "Server cards",
+          "summary": "One card per exchange server you are signed in to.",
+          "details": "A card shows the server's address, your login on it and a status line: Checking the connection.., Connected with the number of devices, or a short note about what is wrong - for example that the server does not answer or that this phone was signed out. Cards marked Outgoing are the server through which this phone publishes its folders and broadcasts. Tap a card to open the list of devices in that account; the three dots on the card open its menu."
+        },
+        "honest-note": {
+          "name": "What the server can see",
+          "summary": "A plain statement of what the exchange server learns and what it cannot read.",
+          "details": "The server sees the names of your account, devices, folders and broadcasts, which devices are online, and how much is sent and when. It cannot open what goes through it: folders and their files, broadcasts and the clipboard are encrypted on your device and opened only on your other devices or by people you gave access to. To look inside, whoever runs the server would have to add a device of their own to your account, and it would appear in your list of devices."
+        },
+        "add-server": {
+          "summary": "Signs this phone in to an exchange server.",
+          "details": "It opens the Sign in to an exchange server window. You need the server's connection string, or its address, and a login with a password or a pairing code. Nothing is saved until you press Sign in and the server accepts you. Afterwards the server appears as a card in the list."
+        },
+        "portal-add-server": {
+          "summary": "Opens a page of the project website about adding a server.",
+          "details": "The page walks through the pairing code and the connection string. It opens in your browser."
+        },
+        "portal-server": {
+          "summary": "Opens a page of the project website about the exchange server.",
+          "details": "It explains who runs a server, how it connects your devices without opening a router, and what it sees and keeps. It opens in your browser."
+        },
+        "portal-watch": {
+          "summary": "Opens a page of the project website about connecting a watch.",
+          "details": "The button shows only in editions that have the Wear companion, the same editions in which a card menu offers Connect watch. The page opens in your browser."
+        },
+        "menu-edit-address": {
+          "summary": "Changes the address of a server without signing in again.",
+          "details": "A small window shows the address as host and port. If the server has announced a different address, the window mentions it and offers Use the announced address. Save moves your sign-in to the new address. If an entry with that address and login already exists, or the sign-in could not be moved, nothing is changed and a message says so."
+        },
+        "menu-make-outgoing": {
+          "summary": "Makes this server the one through which this phone shares.",
+          "details": "This phone publishes its folders and broadcasts through one server at a time. Choosing this server moves publishing here and marks the card Outgoing. If the previous server could not be reached, publishing stops on this phone anyway and a message says that the share may stay listed there for a while. The item is hidden on the card that is already outgoing."
+        },
+        "menu-connect-watch": {
+          "summary": "Signs your watch in to this server.",
+          "details": "The phone hands the watch a one-time code, so you type no password on the watch. Keep the watch near, unlocked and connected. The item appears only in editions with the Wear companion, and a message says if the companion is off, no watch is connected, or the watch did not answer."
+        },
+        "menu-share": {
+          "summary": "Shows a code that tells another device where this server is.",
+          "details": "A window shows a QR code and a text. Send passes the text to another app and Copy puts it on the clipboard. The text carries the address and the certificate of the server, never your login or password, so the other device still needs its own sign-in."
+        },
+        "menu-auto-attach": {
+          "summary": "Adds every new folder of this account to this phone without asking.",
+          "details": "With the check mark on, a folder that one of your devices starts sharing appears in your resources by itself. It is off until you turn it on. Tap the item again to turn it off."
+        },
+        "menu-sign-in-again": {
+          "summary": "Opens the sign-in window with this server already filled in.",
+          "details": "Use it when the card says that you were signed out or the sign-in was revoked, or on a new phone after a backup restore. The address, the server's certificate and your login are filled in; you type the password once. The same entry is renewed, so nothing is duplicated."
+        },
+        "menu-change-password": {
+          "summary": "Changes the password of your account on this server.",
+          "details": "You enter the current password and the new one twice. After the change every other device of this account signs out and asks for the new password; this phone stays signed in. A forgotten password cannot be recovered, so keep it somewhere safe."
+        },
+        "menu-sign-out": {
+          "summary": "Takes this phone out of the account.",
+          "details": "It asks first. This phone leaves the account and forgets the sign-in. Resources attached from this server stay in the list and show as unavailable until you add the server again. If the server cannot be reached, a message says that the phone stays in the account's device list until another device revokes it.",
+          "undo": "The sign-in on this phone is forgotten. To come back, sign in again with the password or a pairing code; the account and its other devices are not touched."
+        },
+        "menu-delete-account": {
+          "summary": "Deletes your account from the server for good.",
+          "details": "You enter the account password to confirm, and the window opens on the safe button. The server erases the account at once: all its devices, published folders and broadcasts, sign-ins and the clipboard. Folders you added stay in your list but show as no longer published. A button in the window opens a page of the project website on how it works.",
+          "undo": "This cannot be undone. The account, its device list and everything published through it are gone from the server; only signing up again with a new invitation brings back an account, and it starts empty."
+        },
+        "devices-list": {
+          "name": "Device list",
+          "summary": "The devices that belong to this account, and whether each is online.",
+          "details": "A window titled with the server's address lists every device in the account: its name, the program it runs, and Online or Offline in words. This phone is shown as This phone. A device that has paused sharing is marked so. Close shuts the window."
+        },
+        "devices-revoke": {
+          "summary": "Cuts a device off from the account.",
+          "details": "Every device except this phone has a Revoke button. It asks first and names the device. The device loses access and can come back only by signing in again. This phone has no such button; it leaves with Sign out on this device.",
+          "undo": "The device is removed from the account at once. To bring it back, sign in again on that device with the password or a pairing code."
+        },
+        "devices-pairing": {
+          "summary": "Makes a one-time code for signing in another device.",
+          "details": "The code appears below the button together with the time it is valid until. Enter it on the other device instead of the password; it works once, so ask for a new one if it was not used. It is handy on a TV box or any device where typing a strong password is hard."
+        },
+        "signin-string": {
+          "summary": "Fills in the server from a connection string.",
+          "details": "Paste the text you were given, press Paste to take it from the clipboard, Scan QR to read a code with the camera, or Choose file to open a file of the kind the server makes. The string holds the server's address and the fingerprint of its certificate, never a login or a password, and it fills in what it can. If it is an invitation, the window turns into creating a new account: the password is asked twice and the button reads Create account."
+        },
+        "signin-address": {
+          "summary": "Where the server is, as host and port.",
+          "details": "Filled in by the connection string, or typed by hand as host:port. A wrong form is pointed out before anything is sent. Changing the address after reading a string drops the certificate that came with it."
+        },
+        "signin-login": {
+          "summary": "Your login on that server.",
+          "details": "A login is 3 to 64 Latin letters, digits, dots, hyphens or underscores. It is only an account name; the server's owner gives it to you or you choose it when you accept an invitation."
+        },
+        "signin-password": {
+          "summary": "Your password on that server.",
+          "details": "It is sent to the server once and not kept by the phone: the phone keeps a device sign-in instead. If you ticked the pairing code box, this field becomes the Pairing code field."
+        },
+        "signin-code": {
+          "summary": "Lets you use a pairing code in place of the password.",
+          "details": "Tick it when another of your devices issued a one-time code. The Password field becomes Pairing code. The code works once and for a short time only."
+        },
+        "signin-submit": {
+          "summary": "Tries the sign-in.",
+          "details": "While the server answers, the window shows progress. If the server presents a certificate this phone does not know, a window asks you to check its fingerprint against the one the server shows and then Trust it or Cancel; do not trust a fingerprint that does not match. On success the window closes and the server appears as a card."
+        }
+      }
+    },
+    "ru": {
+      "title": "Мои устройства",
+      "purpose": "«Мои устройства» - серверы обмена, которые связывают все ваши устройства: телефон, компьютер, часы, ТВ-приставку. Когда телефон вошёл на такой сервер, он видит папки и трансляции других ваших устройств, а они видят ваши; сервер лишь передаёт их дальше.",
+      "steps": [
+        "Откройте «Мои устройства» в настройках, на вкладке «Общие» (строка есть в версиях с сетевыми источниками). Если серверов ещё нет, об этом говорит короткое сообщение (2); нажмите «Добавить сервер» (5), чтобы начать.",
+        "В окне входа получите строку подключения сервера: вставьте её, отсканируйте или выберите файл (21), затем проверьте адрес (22) и введите логин (23) и пароль (24). Если другое устройство дало вам код сопряжения, отметьте (25) и введите код вместо пароля, затем нажмите «Войти» (26).",
+        "Один раз прочитайте «Что видит сервер» (4), чтобы знать, что сервер узнаёт и что остаётся зашифрованным на ваших устройствах.",
+        "Каждый добавленный сервер становится карточкой в списке (3): адрес, ваш логин и состояние связи, например «Связь есть» с числом устройств.",
+        "Нажмите карточку, чтобы увидеть устройства этого аккаунта (18). Чтобы подключить новое устройство без ввода пароля на нём, выдайте код сопряжения (20); чтобы убрать ненужное устройство, нажмите «Отозвать» (19).",
+        "Три точки на карточке (9-17) скрывают остальное: изменить адрес, сделать сервер исходящим, подключить часы, передать сервер, выйти и другое.",
+        "Три кнопки внизу (6, 7, 8) открывают страницы сайта проекта о добавлении сервера, о самом сервере и о подключении часов."
+      ],
+      "groups": [
+        { "title": "Список серверов", "elements": ["toolbar", "empty-text", "server-list", "honest-note", "add-server"] },
+        { "title": "Страницы сайта проекта", "elements": ["portal-add-server", "portal-server", "portal-watch"] },
+        { "title": "Меню карточки сервера (три точки)", "elements": ["menu-edit-address", "menu-make-outgoing", "menu-connect-watch", "menu-share", "menu-auto-attach", "menu-sign-in-again", "menu-change-password", "menu-sign-out", "menu-delete-account"] },
+        { "title": "Устройства аккаунта (нажатие на карточку)", "elements": ["devices-list", "devices-revoke", "devices-pairing"] },
+        { "title": "Окно «Вход на сервер обмена»", "elements": ["signin-string", "signin-address", "signin-login", "signin-password", "signin-code", "signin-submit"] }
+      ],
+      "elements": {
+        "toolbar": {
+          "summary": "Верхняя панель экрана с кнопкой возврата.",
+          "details": "Стрелка возвращает на предыдущий экран. Устройство здесь - любой телефон, компьютер, часы или ТВ-приставка, которые вошли в один и тот же аккаунт на сервере обмена; один аккаунт находится только на одном сервере. На этом экране перечислены серверы, а сами устройства показываются, когда вы нажимаете карточку."
+        },
+        "empty-text": {
+          "name": "Сообщение о пустом списке",
+          "summary": "Сообщает, что сервера обмена пока нет.",
+          "details": "Показывается, только пока в списке нет карточек. Говорит, что после добавления сервера вы увидите ресурсы и трансляции всех своих устройств; сделать это можно кнопкой «Добавить сервер» ниже."
+        },
+        "server-list": {
+          "name": "Карточки серверов",
+          "summary": "По карточке на каждый сервер обмена, на который вы вошли.",
+          "details": "В карточке - адрес сервера, ваш логин на нём и строка состояния: «Проверяем связь..», «Связь есть» с числом устройств или короткая заметка о неполадке, например что сервер не отвечает или что этот телефон вышел из аккаунта. Карточка с пометкой «Исходящая» - это сервер, через который телефон публикует свои папки и трансляции. Нажмите карточку, чтобы открыть список устройств аккаунта; три точки на карточке открывают её меню."
+        },
+        "honest-note": {
+          "name": "Что видит сервер",
+          "summary": "Прямо о том, что сервер обмена узнаёт и чего не может прочитать.",
+          "details": "Сервер видит названия вашего аккаунта, устройств, папок и трансляций, какие устройства сейчас в сети, а также сколько и когда передаётся. Открыть то, что через него проходит, он не может: папки с файлами, трансляции и буфер обмена шифруются на вашем устройстве и открываются только на других ваших устройствах или у людей, которым вы дали доступ. Чтобы заглянуть внутрь, тому, кто держит сервер, пришлось бы добавить в ваш аккаунт своё устройство, и оно появилось бы в вашем списке устройств."
+        },
+        "add-server": {
+          "summary": "Входит с этого телефона на сервер обмена.",
+          "details": "Открывает окно «Вход на сервер обмена». Нужны строка подключения сервера или его адрес и логин с паролем либо с кодом сопряжения. Пока вы не нажмёте «Войти» и сервер вас не примет, ничего не сохраняется. После входа сервер появляется карточкой в списке."
+        },
+        "portal-add-server": {
+          "summary": "Открывает страницу сайта проекта о добавлении сервера.",
+          "details": "Страница проводит через код сопряжения и строку подключения. Открывается в браузере."
+        },
+        "portal-server": {
+          "summary": "Открывает страницу сайта проекта о сервере обмена.",
+          "details": "Рассказывает, кто держит сервер, как он связывает ваши устройства, не требуя открывать порты на роутере, и что он видит и хранит. Открывается в браузере."
+        },
+        "portal-watch": {
+          "summary": "Открывает страницу сайта проекта о подключении часов.",
+          "details": "Кнопка видна только в версиях с Wear-компаньоном - тех же, где в меню карточки есть «Подключить часы». Страница открывается в браузере."
+        },
+        "menu-edit-address": {
+          "summary": "Меняет адрес сервера без повторного входа.",
+          "details": "В небольшом окне виден адрес в виде хоста и порта. Если сервер объявил другой адрес, окно упомянет его и предложит «Взять названный адрес». «Сохранить» переносит ваш вход на новый адрес. Если запись с таким адресом и логином уже есть или вход не удалось перенести, ничего не меняется, и сообщение об этом скажет."
+        },
+        "menu-make-outgoing": {
+          "summary": "Делает этот сервер тем, через который телефон делится.",
+          "details": "Телефон публикует папки и трансляции через один сервер за раз. Выбор этого сервера переносит публикацию сюда и помечает карточку «Исходящая». Если прежний сервер недоступен, публикация на этом телефоне всё равно прекращается, а сообщение предупредит, что общий доступ там может ещё какое-то время числиться. На карточке, которая уже исходящая, пункта нет."
+        },
+        "menu-connect-watch": {
+          "summary": "Подключает ваши часы к этому серверу.",
+          "details": "Телефон передаёт часам одноразовый код, поэтому пароль на часах вводить не нужно. Держите часы рядом, разблокированными и подключёнными. Пункт есть только в версиях с Wear-компаньоном, а сообщение скажет, если компаньон выключен, часы не подключены или не ответили."
+        },
+        "menu-share": {
+          "summary": "Показывает код, который сообщает другому устройству, где этот сервер.",
+          "details": "Окно показывает QR-код и текст. «Отправить» передаёт текст в другое приложение, «Копировать» кладёт его в буфер обмена. В тексте адрес и сертификат сервера, но никогда не логин и не пароль, поэтому другому устройству всё равно нужен собственный вход."
+        },
+        "menu-auto-attach": {
+          "summary": "Подключает к телефону каждую новую папку аккаунта без вопросов.",
+          "details": "Когда галочка стоит, папка, которой начало делиться одно из ваших устройств, сама появляется в ресурсах. По умолчанию выключено. Чтобы отключить, нажмите пункт ещё раз."
+        },
+        "menu-sign-in-again": {
+          "summary": "Открывает окно входа, где этот сервер уже заполнен.",
+          "details": "Пригодится, когда карточка сообщает, что вы вышли из аккаунта или вход отозван, а также на новом телефоне после восстановления из резервной копии. Адрес, сертификат сервера и ваш логин подставлены; пароль вы вводите один раз. Обновляется та же запись, поэтому дублей нет."
+        },
+        "menu-change-password": {
+          "summary": "Меняет пароль вашего аккаунта на этом сервере.",
+          "details": "Вы вводите текущий пароль и новый - дважды. После смены все остальные устройства аккаунта выходят и просят новый пароль; этот телефон остаётся в аккаунте. Забытый пароль восстановить нельзя, поэтому храните его в надёжном месте."
+        },
+        "menu-sign-out": {
+          "summary": "Выводит этот телефон из аккаунта.",
+          "details": "Сначала спрашивает. Телефон покидает аккаунт и забывает вход. Ресурсы, подключённые с этого сервера, остаются в списке и показываются недоступными, пока вы не добавите сервер снова. Если сервер недоступен, сообщение скажет, что телефон останется в списке устройств аккаунта, пока другое устройство его не отзовёт.",
+          "undo": "Вход на этом телефоне забывается. Чтобы вернуться, войдите снова с паролем или кодом сопряжения; сам аккаунт и другие его устройства не затрагиваются."
+        },
+        "menu-delete-account": {
+          "summary": "Навсегда удаляет ваш аккаунт с сервера.",
+          "details": "Для подтверждения нужно ввести пароль аккаунта, а окно открывается на безопасной кнопке. Сервер сразу стирает аккаунт: все его устройства, опубликованные папки и трансляции, входы и буфер обмена. Папки, которые вы добавили, остаются в списке, но показываются как больше не опубликованные. Кнопка в окне открывает страницу сайта проекта о том, как это устроено.",
+          "undo": "Отменить нельзя. Аккаунт, его список устройств и всё опубликованное через него исчезают с сервера; новый аккаунт можно получить только по новому приглашению, и он будет пустым."
+        },
+        "devices-list": {
+          "name": "Список устройств",
+          "summary": "Устройства этого аккаунта и то, в сети ли каждое.",
+          "details": "Окно с адресом сервера в заголовке перечисляет все устройства аккаунта: имя, программу на нём, а также «В сети» или «Не в сети» словами. Этот телефон показан как «Этот телефон». Устройство, приостановившее общий доступ, помечено. «Закрыть» закрывает окно."
+        },
+        "devices-revoke": {
+          "summary": "Отключает устройство от аккаунта.",
+          "details": "У каждого устройства, кроме этого телефона, есть кнопка «Отозвать». Она сначала спрашивает и называет устройство. Устройство теряет доступ и может вернуться, только войдя снова. У этого телефона такой кнопки нет - он выходит через «Выйти из аккаунта на этом устройстве».",
+          "undo": "Устройство сразу исключается из аккаунта. Чтобы вернуть его, войдите на нём снова с паролем или кодом сопряжения."
+        },
+        "devices-pairing": {
+          "summary": "Создаёт одноразовый код для входа с другого устройства.",
+          "details": "Код появляется под кнопкой вместе со временем, до которого он действует. Введите его на другом устройстве вместо пароля; код работает один раз, поэтому, если он не пригодился, выдайте новый. Удобно для ТВ-приставки и других устройств, где трудно набирать надёжный пароль."
+        },
+        "signin-string": {
+          "summary": "Заполняет сервер по строке подключения.",
+          "details": "Вставьте полученный текст, нажмите «Вставить», чтобы взять его из буфера обмена, «Сканировать QR», чтобы считать код камерой, или «Выбрать файл», чтобы открыть файл, который создаёт сервер. В строке адрес сервера и отпечаток его сертификата, но никогда не логин и пароль; она заполняет то, что может. Если это приглашение, окно превращается в создание нового аккаунта: пароль спрашивается дважды, а кнопка называется «Создать аккаунт»."
+        },
+        "signin-address": {
+          "summary": "Где находится сервер: хост и порт.",
+          "details": "Заполняется строкой подключения или вводится вручную как хост:порт. Неверную форму подсветят ещё до отправки. Если изменить адрес после чтения строки, сертификат, пришедший с ней, отбрасывается."
+        },
+        "signin-login": {
+          "summary": "Ваш логин на этом сервере.",
+          "details": "Логин - от 3 до 64 латинских букв, цифр, точек, дефисов или подчёркиваний. Это только имя аккаунта; его даёт владелец сервера или вы выбираете его, принимая приглашение."
+        },
+        "signin-password": {
+          "summary": "Ваш пароль на этом сервере.",
+          "details": "Он отправляется серверу один раз и не хранится на телефоне: телефон хранит вход устройства. Если отмечено, что у вас код сопряжения, это поле становится полем «Код сопряжения»."
+        },
+        "signin-code": {
+          "summary": "Позволяет использовать код сопряжения вместо пароля.",
+          "details": "Отметьте, если другое ваше устройство выдало одноразовый код. Поле «Пароль» превратится в «Код сопряжения». Код работает один раз и недолго."
+        },
+        "signin-submit": {
+          "summary": "Пробует войти.",
+          "details": "Пока сервер отвечает, окно показывает ход. Если сервер предъявляет сертификат, которого телефон не знает, окно просит сверить отпечаток с тем, что показывает сервер, и затем «Доверять» или «Отмена»; не доверяйте отпечатку, который не совпадает. При успехе окно закрывается, а сервер появляется карточкой."
+        }
+      }
+    },
+    "uk": {
+      "title": "Мої пристрої",
+      "purpose": "«Мої пристрої» - сервери обміну, які поєднують усі ваші пристрої: телефон, комп’ютер, годинник, ТВ-приставку. Коли телефон увійшов на такий сервер, він бачить теки й трансляції інших ваших пристроїв, а вони бачать ваші; сервер лише передає їх далі.",
+      "steps": [
+        "Відкрийте «Мої пристрої» в налаштуваннях, на вкладці «Загальні» (рядок є у версіях із мережевими джерелами). Якщо серверів ще немає, про це каже коротке повідомлення (2); натисніть «Додати сервер» (5), щоб почати.",
+        "У вікні входу отримайте рядок підключення сервера: вставте його, відскануйте або виберіть файл (21), потім перевірте адресу (22) і введіть логін (23) та пароль (24). Якщо інший пристрій дав вам код сполучення, позначте (25) і введіть код замість пароля, а тоді натисніть «Увійти» (26).",
+        "Один раз прочитайте «Що бачить сервер» (4), щоб знати, що сервер дізнається і що лишається зашифрованим на ваших пристроях.",
+        "Кожен доданий сервер стає карткою в списку (3): адреса, ваш логін і стан зв’язку, наприклад «Звʼязок є» з кількістю пристроїв.",
+        "Натисніть картку, щоб побачити пристрої цього акаунта (18). Щоб підключити новий пристрій без введення пароля на ньому, видайте код сполучення (20); щоб прибрати непотрібний пристрій, натисніть «Відкликати» (19).",
+        "Три крапки на картці (9-17) ховають решту: змінити адресу, зробити сервер вихідним, підключити годинник, передати сервер, вийти та інше.",
+        "Три кнопки внизу (6, 7, 8) відкривають сторінки сайту проєкту про додавання сервера, про сам сервер і про підключення годинника."
+      ],
+      "groups": [
+        { "title": "Список серверів", "elements": ["toolbar", "empty-text", "server-list", "honest-note", "add-server"] },
+        { "title": "Сторінки сайту проєкту", "elements": ["portal-add-server", "portal-server", "portal-watch"] },
+        { "title": "Меню картки сервера (три крапки)", "elements": ["menu-edit-address", "menu-make-outgoing", "menu-connect-watch", "menu-share", "menu-auto-attach", "menu-sign-in-again", "menu-change-password", "menu-sign-out", "menu-delete-account"] },
+        { "title": "Пристрої акаунта (натискання на картку)", "elements": ["devices-list", "devices-revoke", "devices-pairing"] },
+        { "title": "Вікно «Вхід на сервер обміну»", "elements": ["signin-string", "signin-address", "signin-login", "signin-password", "signin-code", "signin-submit"] }
+      ],
+      "elements": {
+        "toolbar": {
+          "summary": "Верхня панель екрана з кнопкою повернення.",
+          "details": "Стрілка повертає на попередній екран. Пристрій тут - будь-який телефон, комп’ютер, годинник чи ТВ-приставка, що ввійшли в один і той самий акаунт на сервері обміну; один акаунт міститься лише на одному сервері. На цьому екрані перелічено сервери, а самі пристрої показуються, коли ви натискаєте картку."
+        },
+        "empty-text": {
+          "name": "Повідомлення про порожній список",
+          "summary": "Повідомляє, що сервера обміну поки немає.",
+          "details": "Показується, лише поки в списку немає карток. Каже, що після додавання сервера ви побачите ресурси й трансляції всіх своїх пристроїв; зробити це можна кнопкою «Додати сервер» нижче."
+        },
+        "server-list": {
+          "name": "Картки серверів",
+          "summary": "По картці на кожен сервер обміну, на який ви ввійшли.",
+          "details": "У картці - адреса сервера, ваш логін на ньому та рядок стану: «Перевіряємо звʼязок..», «Звʼязок є» з кількістю пристроїв або коротка примітка про неполадку, наприклад що сервер не відповідає чи що цей телефон вийшов з акаунта. Картка з позначкою «Вихідна» - це сервер, через який телефон публікує свої теки й трансляції. Натисніть картку, щоб відкрити список пристроїв акаунта; три крапки на картці відкривають її меню."
+        },
+        "honest-note": {
+          "name": "Що бачить сервер",
+          "summary": "Прямо про те, що сервер обміну дізнається і чого не може прочитати.",
+          "details": "Сервер бачить назви вашого акаунта, пристроїв, тек і трансляцій, які пристрої зараз у мережі, а також скільки й коли передається. Відкрити те, що проходить крізь нього, він не може: теки з файлами, трансляції та буфер обміну шифруються на вашому пристрої й відкриваються лише на інших ваших пристроях або в людей, яким ви дали доступ. Щоб зазирнути всередину, тому, хто тримає сервер, довелося б додати у ваш акаунт власний пристрій, і він з’явився б у вашому списку пристроїв."
+        },
+        "add-server": {
+          "summary": "Входить із цього телефона на сервер обміну.",
+          "details": "Відкриває вікно «Вхід на сервер обміну». Потрібні рядок підключення сервера або його адреса та логін із паролем чи з кодом сполучення. Доки ви не натиснете «Увійти» і сервер вас не прийме, нічого не зберігається. Після входу сервер з’являється карткою в списку."
+        },
+        "portal-add-server": {
+          "summary": "Відкриває сторінку сайту проєкту про додавання сервера.",
+          "details": "Сторінка проводить через код сполучення й рядок підключення. Відкривається в браузері."
+        },
+        "portal-server": {
+          "summary": "Відкриває сторінку сайту проєкту про сервер обміну.",
+          "details": "Розповідає, хто тримає сервер, як він поєднує ваші пристрої, не вимагаючи відкривати порти на роутері, і що він бачить та зберігає. Відкривається в браузері."
+        },
+        "portal-watch": {
+          "summary": "Відкриває сторінку сайту проєкту про підключення годинника.",
+          "details": "Кнопка видна лише у версіях із Wear-супутником - тих самих, де в меню картки є «Підключити годинник». Сторінка відкривається в браузері."
+        },
+        "menu-edit-address": {
+          "summary": "Змінює адресу сервера без повторного входу.",
+          "details": "У невеликому вікні видно адресу у вигляді хоста й порту. Якщо сервер оголосив іншу адресу, вікно згадає про неї й запропонує «Узяти названу адресу». «Зберегти» переносить ваш вхід на нову адресу. Якщо запис із такою адресою та логіном уже є або вхід не вдалося перенести, нічого не змінюється, і повідомлення про це скаже."
+        },
+        "menu-make-outgoing": {
+          "summary": "Робить цей сервер тим, через який телефон ділиться.",
+          "details": "Телефон публікує теки й трансляції через один сервер за раз. Вибір цього сервера переносить публікацію сюди й позначає картку «Вихідна». Якщо попередній сервер недоступний, публікація на цьому телефоні все одно припиняється, а повідомлення попередить, що спільний доступ там може ще якийсь час значитися. На картці, що вже вихідна, пункту немає."
+        },
+        "menu-connect-watch": {
+          "summary": "Підключає ваш годинник до цього сервера.",
+          "details": "Телефон передає годиннику одноразовий код, тому пароль на годиннику вводити не потрібно. Тримайте годинник поруч, розблокованим і підключеним. Пункт є лише у версіях із Wear-супутником, а повідомлення скаже, якщо супутник вимкнений, годинник не підключений або не відповів."
+        },
+        "menu-share": {
+          "summary": "Показує код, який повідомляє іншому пристрою, де цей сервер.",
+          "details": "Вікно показує QR-код і текст. «Надіслати» передає текст в інший застосунок, «Копіювати» кладе його в буфер обміну. У тексті адреса й сертифікат сервера, але ніколи не логін і не пароль, тому іншому пристрою все одно потрібен власний вхід."
+        },
+        "menu-auto-attach": {
+          "summary": "Підключає до телефона кожну нову теку акаунта без запитань.",
+          "details": "Коли позначку встановлено, тека, якою почав ділитися один із ваших пристроїв, сама з’являється в ресурсах. За замовчуванням вимкнено. Щоб вимкнути, натисніть пункт ще раз."
+        },
+        "menu-sign-in-again": {
+          "summary": "Відкриває вікно входу, де цей сервер уже заповнено.",
+          "details": "Стане в пригоді, коли картка повідомляє, що ви вийшли з акаунта або вхід відкликано, а також на новому телефоні після відновлення з резервної копії. Адресу, сертифікат сервера й ваш логін підставлено; пароль ви вводите один раз. Оновлюється той самий запис, тож дублів немає."
+        },
+        "menu-change-password": {
+          "summary": "Змінює пароль вашого акаунта на цьому сервері.",
+          "details": "Ви вводите поточний пароль і новий - двічі. Після зміни всі інші пристрої акаунта виходять і просять новий пароль; цей телефон лишається в акаунті. Забутий пароль відновити не можна, тож зберігайте його в надійному місці."
+        },
+        "menu-sign-out": {
+          "summary": "Виводить цей телефон з акаунта.",
+          "details": "Спершу питає. Телефон залишає акаунт і забуває вхід. Ресурси, підключені з цього сервера, лишаються в списку й показуються недоступними, доки ви не додасте сервер знову. Якщо сервер недоступний, повідомлення скаже, що телефон лишиться у списку пристроїв акаунта, доки інший пристрій його не відкличе.",
+          "undo": "Вхід на цьому телефоні забувається. Щоб повернутися, увійдіть знову з паролем або кодом сполучення; сам акаунт та його інші пристрої не зачіпаються."
+        },
+        "menu-delete-account": {
+          "summary": "Назавжди видаляє ваш акаунт із сервера.",
+          "details": "Для підтвердження потрібно ввести пароль акаунта, а вікно відкривається на безпечній кнопці. Сервер одразу стирає акаунт: усі його пристрої, опубліковані теки й трансляції, входи та буфер обміну. Теки, які ви додали, лишаються у списку, але показуються як більше не опубліковані. Кнопка у вікні відкриває сторінку сайту проєкту про те, як це влаштовано.",
+          "undo": "Скасувати не можна. Акаунт, його список пристроїв і все опубліковане через нього зникають із сервера; новий акаунт можна отримати лише за новим запрошенням, і він буде порожнім."
+        },
+        "devices-list": {
+          "name": "Список пристроїв",
+          "summary": "Пристрої цього акаунта й те, чи кожен у мережі.",
+          "details": "Вікно з адресою сервера в заголовку перелічує всі пристрої акаунта: ім’я, програму на ньому, а також «У мережі» або «Не в мережі» словами. Цей телефон показано як «Цей телефон». Пристрій, що призупинив спільний доступ, позначено. «Закрити» закриває вікно."
+        },
+        "devices-revoke": {
+          "summary": "Відключає пристрій від акаунта.",
+          "details": "У кожного пристрою, крім цього телефона, є кнопка «Відкликати». Вона спершу питає й називає пристрій. Пристрій втрачає доступ і може повернутися, лише ввійшовши знову. У цього телефона такої кнопки немає - він виходить через «Вийти з акаунта на цьому пристрої».",
+          "undo": "Пристрій одразу виключається з акаунта. Щоб повернути його, увійдіть на ньому знову з паролем або кодом сполучення."
+        },
+        "devices-pairing": {
+          "summary": "Створює одноразовий код для входу з іншого пристрою.",
+          "details": "Код з’являється під кнопкою разом із часом, до якого він діє. Введіть його на іншому пристрої замість пароля; код працює один раз, тож, якщо він не знадобився, видайте новий. Зручно для ТВ-приставки та інших пристроїв, де важко набирати надійний пароль."
+        },
+        "signin-string": {
+          "summary": "Заповнює сервер за рядком підключення.",
+          "details": "Вставте отриманий текст, натисніть «Вставити», щоб узяти його з буфера обміну, «Сканувати QR», щоб зчитати код камерою, або «Вибрати файл», щоб відкрити файл, який створює сервер. У рядку адреса сервера й відбиток його сертифіката, але ніколи не логін і пароль; він заповнює те, що може. Якщо це запрошення, вікно перетворюється на створення нового акаунта: пароль питається двічі, а кнопка називається «Створити акаунт»."
+        },
+        "signin-address": {
+          "summary": "Де розташований сервер: хост і порт.",
+          "details": "Заповнюється рядком підключення або вводиться вручну як хост:порт. Неправильну форму підсвітять ще до надсилання. Якщо змінити адресу після читання рядка, сертифікат, що прийшов із ним, відкидається."
+        },
+        "signin-login": {
+          "summary": "Ваш логін на цьому сервері.",
+          "details": "Логін - від 3 до 64 латинських літер, цифр, крапок, дефісів або підкреслень. Це лише ім’я акаунта; його дає власник сервера або ви обираєте його, приймаючи запрошення."
+        },
+        "signin-password": {
+          "summary": "Ваш пароль на цьому сервері.",
+          "details": "Він надсилається серверу один раз і не зберігається на телефоні: телефон зберігає вхід пристрою. Якщо позначено, що у вас код сполучення, це поле стає полем «Код сполучення»."
+        },
+        "signin-code": {
+          "summary": "Дає змогу використати код сполучення замість пароля.",
+          "details": "Позначте, якщо інший ваш пристрій видав одноразовий код. Поле «Пароль» перетвориться на «Код сполучення». Код працює один раз і недовго."
+        },
+        "signin-submit": {
+          "summary": "Пробує увійти.",
+          "details": "Поки сервер відповідає, вікно показує перебіг. Якщо сервер пред’являє сертифікат, якого телефон не знає, вікно просить звірити відбиток із тим, що показує сервер, і потім «Довіряти» чи «Скасувати»; не довіряйте відбитку, який не збігається. У разі успіху вікно закривається, а сервер з’являється карткою."
+        }
+      }
+    }
+  }
+}

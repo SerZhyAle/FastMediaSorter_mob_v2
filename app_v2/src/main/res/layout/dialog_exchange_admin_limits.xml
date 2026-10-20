@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/dialog_padding_large">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_exchange_admin_max_accounts"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/exchange_admin_limit_max_accounts"
+        android:visibility="gone">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_exchange_admin_max_accounts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:inputType="number"
+            android:focusable="true"
+            android:clickable="true" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_exchange_admin_limit_devices"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/exchange_admin_limit_devices">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_exchange_admin_limit_devices"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:inputType="number"
+            android:focusable="true"
+            android:clickable="true" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_exchange_admin_limit_resources"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/exchange_admin_limit_resources">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_exchange_admin_limit_resources"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:inputType="number"
+            android:focusable="true"
+            android:clickable="true" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_exchange_admin_limit_broadcasts"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/exchange_admin_limit_broadcasts">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_exchange_admin_limit_broadcasts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:inputType="number"
+            android:focusable="true"
+            android:clickable="true" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_exchange_admin_limit_broadcasts_per_device"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/exchange_admin_limit_broadcasts_per_device">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_exchange_admin_limit_broadcasts_per_device"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:inputType="number"
+            android:focusable="true"
+            android:clickable="true" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_exchange_admin_limit_clipboard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/exchange_admin_limit_clipboard">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_exchange_admin_limit_clipboard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:inputType="number"
+            android:focusable="true"
+            android:clickable="true" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:text="@string/exchange_admin_limit_hint"
+        android:textAppearance="?attr/textAppearanceBodySmall" />
+</LinearLayout>

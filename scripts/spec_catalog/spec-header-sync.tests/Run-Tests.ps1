@@ -33,9 +33,9 @@
     forwarder overwrites SZA_PROJECT_ROOT with the repository root, so a sandboxed run through it
     would mutate the real PLAN/ journal and take a real lock (S2520).
 
-Exit codes: 0 = every contract held (or the suite skipped with a stated reason),
+Exit codes: 0 = every contract held,
             1 = a contract failed,
-            2 = could not verify (harness unresolvable, fixture could not be built).
+            2 = could not verify (harness unresolvable or too old, fixture could not be built).
 #>
 [CmdletBinding()]
 param()
@@ -99,8 +99,8 @@ if (-not $fixPresent) {
     Write-Host '  session can bump CANON_VERSION and run deploy.ps1. Point SZA_HARNESS_ROOT at the' -ForegroundColor Yellow
     Write-Host '  checkout to exercise it before the deploy lands.' -ForegroundColor Yellow
     Write-Host ''
-    Write-Host 'spec-header-sync: 0 passed, 4 contracts skipped (harness predates S2512)' -ForegroundColor Yellow
-    exit 0
+    Write-Host 'spec-header-sync: COULD NOT VERIFY (run=0 skipped=4; harness predates S2512)' -ForegroundColor Yellow
+    exit 2
 }
 
 # ── Fixture ──────────────────────────────────────────────────────────────────────────────────
@@ -236,9 +236,9 @@ try {
 # ── Verdict ──────────────────────────────────────────────────────────────────────────────────
 Write-Host ''
 if ($failures.Count -gt 0) {
-    Write-Host ("spec-header-sync: {0} passed, {1} FAILED, 0 skipped" -f $passes, $failures.Count) -ForegroundColor Red
+    Write-Host "spec-header-sync: FAIL (run=$($passes + $failures.Count) skipped=0)" -ForegroundColor Red
     foreach ($f in $failures) { Write-Host "  - $f" -ForegroundColor Red }
     exit 1
 }
-Write-Host ("spec-header-sync: {0} passed, 0 failed, 0 skipped" -f $passes) -ForegroundColor Green
+Write-Host "spec-header-sync: PASS (run=$passes skipped=0)" -ForegroundColor Green
 exit 0

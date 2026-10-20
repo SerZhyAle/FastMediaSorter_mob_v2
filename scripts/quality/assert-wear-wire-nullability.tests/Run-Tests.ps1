@@ -130,6 +130,6 @@ Test-Case 'a baseline row without a justification refuses' '    val version: Int
 Test-Case 'a baseline row for another field does not cover this one' '    val version: Int = 4' 1 "$subjectFile::other | a stated reason"
 
 Write-Host ''
-Write-Host "assert-wear-wire-nullability.tests: $($script:pass) passed, $($script:fail) failed"
+Write-Host "assert-wear-wire-nullability.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

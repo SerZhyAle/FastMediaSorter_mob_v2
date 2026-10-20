@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.wear.di
 
+import com.sza.fastmediasorter.wear.data.openin.AndroidWearOpenInRepository
 import com.sza.fastmediasorter.wear.data.wear.AndroidWearClipboardTextSender
 import com.sza.fastmediasorter.wear.domain.repository.WearClipboardTextSender
+import com.sza.fastmediasorter.wear.domain.repository.WearOpenInRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -22,4 +24,10 @@ abstract class WearClipboardModule {
     abstract fun bindClipboardTextSender(
         impl: AndroidWearClipboardTextSender
     ): WearClipboardTextSender
+
+    /** S4381: "Open in.." on the Clipboard screen hands its object to an application installed on the watch. */
+    @Binds
+    abstract fun bindOpenInRepository(
+        impl: AndroidWearOpenInRepository
+    ): WearOpenInRepository
 }

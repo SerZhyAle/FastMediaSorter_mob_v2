@@ -98,7 +98,7 @@ steps:
     text: |
       Since Android 11 an app sees every kind of file in a folder only if it holds the special "access to all files" permission, or if you picked the folder yourself in Android's folder window. Some editions never ask for "access to all files", and in the others you may have said no, so a folder added by its path shows only photos, video and audio. The app tells you so instead of pretending the folder is complete:
 
-      - The file count on the resource reads, for example, "124 - photos, video and audio only". The All Documents collection shows "Documents cannot be read" instead of a zero.
+      - The file count on the resource reads, for example, "124 - IVAG": the colored letters name the kinds of files the number covers - I images, V video, A audio, G GIF. The All Documents collection shows "Documents cannot be read" instead of a zero.
       - The first time you open such a folder, a note at the top explains how to see the documents too.
       - The filter does not offer document types that the folder cannot return.
   - number: 6
@@ -146,6 +146,6 @@ next_recipes:
     description: Look through a resource as tiles or as a list.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.18 01:23</sub>
 
 Add a folder from the phone, a memory card or a USB drive as a resource, meet the ready-made collections the app creates for you, and let a folder show every kind of file with Reconnect resource.

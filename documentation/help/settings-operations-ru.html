@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Справка - Настройки: Управление</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Оглавление справки">
+<a href="index-ru.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Настройки: Управление</span>
+</nav>
+<header class="hero">
+<h1>Настройки: Управление</h1>
+</header>
+<h2>Для чего этот экран</h2>
+<p class="lead">На вкладке «Управление» вы настраиваете, как копируются, перемещаются и удаляются файлы, какие ресурсы служат назначениями быстрой сортировки, что приложение записывает и делает в фоне и какие дополнительные программы и жесты включены.</p>
+<figure class="shot">
+<img class="on-light" src="img/settings-operations-ru-light.webp" alt="Настройки: Управление">
+<img class="on-dark" src="img/settings-operations-ru-dark.webp" alt="Настройки: Управление">
+</figure>
+<h2>Порядок действий</h2>
+<p class="order-note">Единого порядка здесь нет - каждый параметр работает сам по себе. Ниже они сгруппированы по тем же заголовкам разделов, что и на вкладке. Некоторые группы, например «Wear-компаньон» или запланированные операции, есть только там, где их поддерживают устройство или версия приложения.</p>
+<h2>Элементы</h2>
+<div class="elements">
+<h3>Копирование, перемещение и перезапись</h3>
+<details class="el" id="enable-copying">
+<summary><span class="mk">1</span><span><span class="name">Разрешить копирование</span><span class="one">Разрешает копировать файлы в папки-назначения.</span></span></summary>
+<div class="full">
+<p>Вместе с назначениями быстрой сортировки ниже позволяет копировать текущий файл одним нажатием.</p>
+</div>
+</details>
+<details class="el" id="overwrite-copy">
+<summary><span class="mk">2</span><span><span class="name">Перезаписывать при копировании</span><span class="one">Заменяет файл с тем же именем при копировании.</span></span></summary>
+<div class="full">
+<p>Действует, когда в назначении уже лежит файл с таким именем.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Перезаписанный файл заменяется новым, поэтому не включайте параметр, если не уверены.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="next-after-copy">
+<summary><span class="mk">3</span><span><span class="name">Переходить к следующему после копирования</span><span class="one">Переходит к следующему файлу после успешного копирования.</span></span></summary>
+<div class="full">
+<p>Ускоряет разбор пачки файлов: вручную переходить не нужно.</p>
+</div>
+</details>
+<details class="el" id="enable-moving">
+<summary><span class="mk">4</span><span><span class="name">Разрешить перемещение</span><span class="one">Разрешает перемещать файлы в папки-назначения.</span></span></summary>
+<div class="full">
+<p>Вместе с назначениями быстрой сортировки ниже позволяет переместить текущий файл одним нажатием.</p>
+</div>
+</details>
+<details class="el" id="overwrite-move">
+<summary><span class="mk">5</span><span><span class="name">Перезаписывать при перемещении</span><span class="one">Заменяет файл с тем же именем при перемещении.</span></span></summary>
+<div class="full">
+<p>Действует, когда в назначении уже лежит файл с таким именем.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Перезаписанный файл заменяется новым, поэтому не включайте параметр, если не уверены.</dd>
+</dl>
+</div>
+</details>
+<h3>Удаление файлов, корзина</h3>
+<details class="el" id="safe-mode">
+<summary><span class="mk">6</span><span><span class="name">Включить безопасный режим</span><span class="one">Спрашивает подтверждение перед удалением и перемещением.</span></span></summary>
+<div class="full">
+<p>Когда режим включён, приложение спрашивает перед удалением или перемещением файлов, чтобы не потерять данные случайно. Два параметра ниже включают вопросы по отдельности.</p>
+</div>
+</details>
+<details class="el" id="confirm-delete">
+<summary><span class="mk">7</span><span><span class="name">Подтверждать удаление</span><span class="one">Спрашивает подтверждение перед удалением файлов.</span></span></summary>
+<div class="full">
+<p>У вкладки «Плеер» есть свой переключатель для удаления внутри плеера.</p>
+</div>
+</details>
+<details class="el" id="confirm-move">
+<summary><span class="mk">8</span><span><span class="name">Подтверждать перемещение</span><span class="one">Спрашивает подтверждение перед перемещением файлов.</span></span></summary>
+<div class="full">
+<p>Перемещение меняет место файла, поэтому вопрос даёт возможность остановиться.</p>
+</div>
+</details>
+<details class="el" id="use-trash">
+<summary><span class="mk">9</span><span><span class="name">Использовать корзину (.trash)</span><span class="one">Отправляет удалённые файлы в скрытую папку .trash, а не стирает их насовсем.</span></span></summary>
+<div class="full">
+<p>На локальных ресурсах файл можно вернуть кнопкой «Отменить», пока ресурс не закрыт. Сетевые и облачные файлы всегда удаляются безвозвратно. В Android 12 и новее некоторым общим папкам нужно разрешение «Управление медиафайлами»; без него удаление может стать необратимым. Когда параметр выключен, файлы удаляются сразу, а место освобождается немедленно.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Корзина - это страховка, а не архив: если очистить её кнопкой «Удалить всё в корзине», эти файлы пропадут насовсем.</dd>
+</dl>
+</div>
+</details>
+<h3>Назначения быстрой сортировки</h3>
+<details class="el" id="max-destinations">
+<summary><span class="mk">10</span><span><span class="name">Макс. назначений (1-30)</span><span class="one">Ограничивает число назначений быстрой сортировки.</span></span></summary>
+<div class="full">
+<p>От 1 до 30. У каждого назначения есть номер и цвет, чтобы его было легко узнать.</p>
+</div>
+</details>
+<details class="el" id="add-destination">
+<summary><span class="mk">11</span><span><span class="name">+ Добавить</span><span class="one">Отмечает ещё один ресурс как назначение быстрой сортировки.</span></span></summary>
+<div class="full">
+<p>Кнопка появляется, когда есть ресурсы, которые ещё не стали назначениями. Сначала добавьте ресурсы на главном экране, а потом отметьте их здесь.</p>
+</div>
+</details>
+<details class="el" id="destinations-list">
+<summary><span class="mk">12</span><span><span class="name">Назначения быстрой сортировки</span><span class="one">Ваши назначения быстрой сортировки по порядку номеров.</span></span></summary>
+<div class="full">
+<p>В строке видны номер и цвет назначения, его имя и путь. Стрелки меняют порядок, а кнопка удаления убирает назначение из списка.</p>
+<dl class="facts">
+<dt>Отмена</dt><dd>Удаление назначения лишь снимает отметку с ресурса. Сам ресурс и его файлы остаются на месте.</dd>
+</dl>
+</div>
+</details>
+<h3>Запланированные операции по расписанию</h3>
+<details class="el" id="scheduled-ops">
+<summary><span class="mk">13</span><span><span class="name">Использовать операции по расписанию</span><span class="one">Включает и выключает запуск по расписанию.</span></span></summary>
+<div class="full">
+<p>Пока параметр выключен, ничего не запускается по расписанию, но ваши операции сохраняются. Включите, и они продолжат работу.</p>
+</div>
+</details>
+<details class="el" id="manage-scheduled">
+<summary><span class="mk">14</span><span><span class="name">Управление операциями по расписанию</span><span class="one">Открывает окно, где вы создаёте запланированные операции и управляете ими.</span></span></summary>
+<div class="full">
+<p>Запланированная операция копирует, перемещает или удаляет файлы в фоне по расписанию, которое вы задаёте.</p>
+</div>
+</details>
+<h3>Поведение и правила программы</h3>
+<details class="el" id="detailed-errors">
+<summary><span class="mk">15</span><span><span class="name">Показывать детальные ошибки</span><span class="one">Показывает полные сведения об ошибке вместо упрощённых сообщений.</span></span></summary>
+<div class="full">
+<p>Пригодится, когда вы ищете причину проблемы или сообщаете о ней.</p>
+</div>
+</details>
+<details class="el" id="resume-playback">
+<summary><span class="mk">16</span><span><span class="name">Продолжать воспроизведение при следующем запуске</span><span class="one">Открывает последний проигрываемый файл при запуске приложения.</span></span></summary>
+<div class="full">
+<p>Воспроизведение продолжается с того места, где вы остановились.</p>
+</div>
+</details>
+<details class="el" id="remember-file-list">
+<summary><span class="mk">17</span><span><span class="name">Запоминать списки файлов (по умолчанию для новых ресурсов)</span><span class="one">Сохраняет список файлов новых ресурсов, чтобы они открывались быстрее.</span></span></summary>
+<div class="full">
+<p>После сканирования список хранится в базе приложения, и в следующий раз загружается сразу. Чтобы подхватить изменения, сделанные вне приложения, нажмите «Обновить». Это лишь значение по умолчанию для новых ресурсов.</p>
+</div>
+</details>
+<h3>Фотографирование</h3>
+<details class="el" id="camera-photo">
+<summary><span class="mk">18</span><span><span class="name">Включить съёмку фото</span><span class="one">Показывает команду камеры в браузере файлов.</span></span></summary>
+<div class="full">
+<p>Новые фото сохраняются в ресурс, который вы просматриваете. Рядом есть параметры: спрашивать имя файла, открывать фото для правки, копировать его в буфер обмена, добавлять геометку и выбрать другое место сохранения.</p>
+</div>
+</details>
+<h3>Видеосъёмка</h3>
+<details class="el" id="video-recording">
+<summary><span class="mk">19</span><span><span class="name">Включить запись видео</span><span class="one">Показывает команду записи видео прямо в текущий ресурс.</span></span></summary>
+<div class="full">
+<p>Дополнительный параметр открывает готовое видео в плеере, а ещё можно выбрать другую папку для сохранения.</p>
+</div>
+</details>
+<h3>Диктофон</h3>
+<details class="el" id="mic-recording">
+<summary><span class="mk">20</span><span><span class="name">Включить запись с микрофона</span><span class="one">Показывает кнопку микрофона в браузере файлов.</span></span></summary>
+<div class="full">
+<p>Звук записывается в выбранный ресурс или в папку Downloads. Можно также включить вопрос об имени файла при каждой записи.</p>
+</div>
+</details>
+<h3>Запись видео с экрана</h3>
+<details class="el" id="screen-recording">
+<summary><span class="mk">21</span><span><span class="name">Видеозапись экрана</span><span class="one">Записывает весь экран в видеофайл со звуком с микрофона.</span></span></summary>
+<div class="full">
+<p>Во время записи появляются кнопка остановки и таймер. Место сохранения видео можно выбрать.</p>
+</div>
+</details>
+<h3>Wear-компаньон</h3>
+<details class="el" id="wear-companion">
+<summary><span class="mk">22</span><span><span class="name">Wear-компаньон</span><span class="one">Показывает Wear-компаньон в панели программ и в меню.</span></span></summary>
+<div class="full">
+<p>Включите, если у вас есть часы с Wear OS. Компаньон открывается оттуда и решает, чем этот телефон делится с часами.</p>
+</div>
+</details>
+<h3>Дополнительные программы и сценарии</h3>
+<details class="el" id="camera-ocr">
+<summary><span class="mk">23</span><span><span class="name">Быстрый перевод с камеры</span><span class="one">Включает быстрый сценарий: фото, распознавание текста и перевод.</span></span></summary>
+<div class="full">
+<p>Сделайте снимок, и приложение распознает текст и переведёт его. Дополнительный параметр пропускает перевод и показывает распознанный текст как есть.</p>
+</div>
+</details>
+<details class="el" id="calculator">
+<summary><span class="mk">24</span><span><span class="name">Калькулятор</span><span class="one">Добавляет программу «Калькулятор».</span></span></summary>
+<div class="full">
+<p>Она появляется в меню программ, на панели быстрого доступа и на рабочем столе лаунчера.</p>
+</div>
+</details>
+<details class="el" id="stopwatch">
+<summary><span class="mk">25</span><span><span class="name">Секундомер</span><span class="one">Добавляет программу «Секундомер».</span></span></summary>
+<div class="full">
+<p>Она появляется в меню программ, на панели быстрого доступа и на рабочем столе лаунчера. Её настройки - строкой ниже.</p>
+</div>
+</details>
+<details class="el" id="network-monitor">
+<summary><span class="mk">26</span><span><span class="name">Сетевой монитор</span><span class="one">Добавляет диагностическую программу для сети.</span></span></summary>
+<div class="full">
+<p>Она показывает соединение, уровень сигнала и сведения о сети.</p>
+</div>
+</details>
+<details class="el" id="system-info-program">
+<summary><span class="mk">27</span><span><span class="name">Сведения о системе</span><span class="one">Показывает сведения о системе в панели программ и в меню.</span></span></summary>
+<div class="full">
+<p>Включите, чтобы открывать их, не заходя в настройки.</p>
+</div>
+</details>
+<h3>Взаимодействие с операционной системой</h3>
+<details class="el" id="prevent-sleep">
+<summary><span class="mk">28</span><span><span class="name">Запретить сон устройства</span><span class="one">Не гасит экран, пока вы пользуетесь приложением.</span></span></summary>
+<div class="full">
+<p>Пока вы смотрите медиафайлы, устройство не засыпает и не тускнеет ни при воспроизведении, ни при просмотре.</p>
+</div>
+</details>
+<details class="el" id="link-autodownload">
+<summary><span class="mk">29</span><span><span class="name">При получении ссылки - скачать</span><span class="one">Скачивает файл по ссылке, присланной в приложение.</span></span></summary>
+<div class="full">
+<p>Когда вы делитесь с FastMediaSorter ссылкой http(s), файл по ссылке загружается в выбранный ресурс. Дополнительный параметр сразу открывает его во встроенном плеере после успешной загрузки; иначе вы увидите короткое сообщение.</p>
+</div>
+</details>
+<details class="el" id="home-widget">
+<summary><span class="mk">30</span><span><span class="name">Добавить виджет на домашний экран Android..</span><span class="one">Позволяет поместить виджет приложения на домашний экран Android.</span></span></summary>
+<div class="full">
+<p>Выберите виджет и разместите его на домашнем экране.</p>
+</div>
+</details>
+<details class="el" id="default-apps">
+<summary><span class="mk">31</span><span><span class="name">Задать по-умолчанию</span><span class="one">Открывает окно, где FastMediaSorter можно назначить приложением по умолчанию.</span></span></summary>
+<div class="full">
+<p>В нём по кнопке на каждый тип файлов - изображения, аудио, видео и документы - и два переключателя: показывать приложение в «Открыть с помощью» и обрабатывать медиакнопки, а также принимать файлы из других приложений. Всё применяется сразу.</p>
+</div>
+</details>
+<h3>Жесты с краёв экрана</h3>
+<details class="el" id="gesture-overlay">
+<summary><span class="mk">32</span><span><span class="name">Оверлей жестов</span><span class="one">Показывает тонкие полосы жестов по краям экрана поверх других приложений.</span></span></summary>
+<div class="full">
+<p>До четырёх полос, по две с каждой стороны. Свайп от полосы запускает назначенное действие: скриншот, камеру, фонарик, громкость или яркость, открытие приложения. Нужно разрешение «Поверх других приложений».</p>
+</div>
+</details>
+<details class="el" id="edge-gesture-config">
+<summary><span class="mk">33</span><span><span class="name">Настроить жесты</span><span class="one">Открывает настройку жестов с краёв экрана.</span></span></summary>
+<div class="full">
+<p>Выберите, какие зоны включены, видны ли их подсказки и какое действие назначено на каждое направление свайпа: вверх, вниз или внутрь.</p>
+</div>
+</details>
+<h3>Управление и клавиши</h3>
+<details class="el" id="keybindings">
+<summary><span class="mk">34</span><span><span class="name">Управление и клавиши</span><span class="one">Открывает переназначение клавиш и кнопок для управления медиа.</span></span></summary>
+<div class="full">
+<p>Любую команду можно назначить на кнопку D-pad, кнопку геймпада, клавишу клавиатуры или кнопку мыши.</p>
+</div>
+</details>
+<h3>Сброс</h3>
+<details class="el" id="reset-operations">
+<summary><span class="mk">35</span><span><span class="name">Сбросить настройки управления</span><span class="one">Возвращает к значениям по умолчанию только эту вкладку.</span></span></summary>
+<div class="full">
+<p>Настройки на других вкладках сохраняются. Перед сбросом приложение просит подтвердить действие.</p>
+</div>
+</details>
+</div>
+<h2>Связанное</h2>
+<ul class="related">
+<li><a href="main-ru.html"><b>Главный экран</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-general-ru.html"><b>Настройки: Общие</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-media-ru.html"><b>Настройки: Медиа</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-playback-ru.html"><b>Настройки: Плеер</b><span class="pill">Экран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/controls-and-key-remapping-ru.html"><b>Controls and Key Remapping - Keyboard, TV Remote and Gamepad, Your Way</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-copy-move-delete-ru.html"><b>Copying, Moving and Deleting Files and Folders</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/destination-targets-setup-ru.html"><b>Sorting Files into Destinations with Quick Sort</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/scheduled-operations-ru.html"><b>Running File Jobs on a Schedule</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/edge-gestures-and-quick-access-panel-ru.html"><b>Screen-Edge Gestures and the Quick-Access Panel</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/built-in-mini-apps-ru.html"><b>Built-in Programs - Switching Them On, the Lights, the Mirror and the SOS Signal</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="index-ru.html"><b>Оглавление справки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index-ru.html">Оглавление справки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
+</footer>
+</main>
+</body>
+</html>

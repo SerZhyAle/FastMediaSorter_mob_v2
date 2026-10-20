@@ -1,9 +1,13 @@
 package com.sza.fastmediasorter.wear.data.exchange
 
+import com.sza.fastmediasorter.data.security.e2e.E2eDeviceKey
+import com.sza.fastmediasorter.data.security.e2e.E2eRecipient
+import com.sza.fastmediasorter.data.security.e2e.E2eSelf
 import com.sza.fastmediasorter.wear.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.wear.data.broadcast.BroadcastEndpointDto
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -74,6 +78,37 @@ class WearExchangeBroadcastRecordsTest {
     @Test
     fun `a broadcast id is in the share-id form`() {
         assertEquals(22, WearExchangeBroadcastRecords.newBroadcastId().length)
+    }
+
+    @Test
+    fun `boxKeyOf changes when a recipient or sender key rotates and ignores recipient order`() {
+        val watch1 = E2eSelf("watch-1", E2eDeviceKey.generate())
+        val watch2 = E2eSelf("watch-1", E2eDeviceKey.generate())
+        val phone1 = E2eRecipient("phone-1", E2eDeviceKey.generate().publicKey)
+        val phone2 = E2eRecipient("phone-1", E2eDeviceKey.generate().publicKey)
+        val tablet = E2eRecipient("tablet-1", E2eDeviceKey.generate().publicKey)
+        val relayKey = byteArrayOf(1, 2, 3, 4)
+
+        val initial = WearExchangeBroadcastAnnouncer.boxKeyOf(
+            WearSealing(watch1, listOf(phone1, tablet), emptyMap()),
+            relayKey,
+        )
+        val reordered = WearExchangeBroadcastAnnouncer.boxKeyOf(
+            WearSealing(watch1, listOf(tablet, phone1), emptyMap()),
+            relayKey,
+        )
+        val recipientRotated = WearExchangeBroadcastAnnouncer.boxKeyOf(
+            WearSealing(watch1, listOf(phone2, tablet), emptyMap()),
+            relayKey,
+        )
+        val senderRotated = WearExchangeBroadcastAnnouncer.boxKeyOf(
+            WearSealing(watch2, listOf(phone2, tablet), emptyMap()),
+            relayKey,
+        )
+
+        assertEquals(initial, reordered)
+        assertNotEquals(initial, recipientRotated)
+        assertNotEquals(recipientRotated, senderRotated)
     }
 
     private fun endpoints(publication: WearExchangeBroadcastPublication, relayUploading: Boolean) =

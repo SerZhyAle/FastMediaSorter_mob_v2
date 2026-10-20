@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "📖 कैसे-करें गाइड"
 permalink: /docs/HOW_TO-hi.html
 ---
-<sub class="doc-stamp">26.10.09 14:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
 
@@ -15,8 +15,6 @@ permalink: /docs/HOW_TO-hi.html
 
 - वास्तविक जीवन के व्यापक वर्कफ़्लो और सुविधाओं के संयोजन के लिए **परिदृश्य समूह**.
 - आगे नीचे सीधे एक-सुविधा वाली रेसिपी के लिए **मुख्य कार्य संदर्भ**.
-
-{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="hi" %}
 
 ---
 

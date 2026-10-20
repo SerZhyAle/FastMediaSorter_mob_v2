@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.03 04:27</sub>
+<sub class="doc-stamp">26.10.15 12:08</sub>
 
 # Writing Maestro Tests - Developer Guide
 
@@ -121,6 +121,45 @@ whether or not the behaviour happened, which is the definition of a fictitious t
 
 Resilience comes from waiting longer, not from asserting less. Use `extendedWaitUntil` when an
 operation is slow.
+
+#### The cost of a failed lookup
+
+Maestro 2.6.1 answers a lookup that **succeeds** in 0.2-1 s and spends about 7.3 s on one that
+**fails**, once per unbroken run of failures (a success in between starts the clock again). Measured
+2026-10-15 from `--debug-output` command timelines (S4252). A failed lookup is any of:
+
+- `tapOn ... optional: true` on an element that is not there;
+- `when: visible` on an element that is not there;
+- `when: notVisible` on an element that is there.
+
+A shared fragment that runs in front of every flow pays that price on every flow, so it must ask the
+question whose common answer is a success. For a rare dialog that means "is it gone?" - `notVisible`
+is true when the element is absent - and the tap behind a flag that the failing case sets:
+
+```yaml
+- extendedWaitUntil:          # carries its own timeout, does not use the 7.3 s clock
+    visible:
+      text: "Allow|OK"
+    timeout: 1000
+    optional: true
+- evalScript: ${output.dialogUp = true}
+- runFlow:
+    when:
+      notVisible:
+        text: "Allow|OK"
+    commands:
+      - evalScript: ${output.dialogUp = false}
+- runFlow:
+    when:
+      true: ${output.dialogUp}
+    commands:
+      - tapOn: "Allow"
+```
+
+`_shared/permissions.yaml`, `_shared/dismiss_settings_dialogs.yaml`, `_shared/open_all_images.yaml`
+and `_shared/go_home.yaml` are written this way; read them before adding a guard to a fragment.
+The one wait left by design is `go_home.yaml` when the tabs are already on screen at the start: the
+two start states cannot both be answered by a success.
 
 ### 3. Wait for UI to Stabilize
 

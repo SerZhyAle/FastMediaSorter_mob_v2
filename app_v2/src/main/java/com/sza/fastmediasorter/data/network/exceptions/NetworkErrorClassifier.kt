@@ -307,7 +307,6 @@ object NetworkErrorClassifier {
         val link = causeChain(throwable).firstOrNull {
             it is ExchangeTunnelUnavailableException || it is SftpPeerUnreachableFromHereException
         } ?: return null
-        Timber.d("S4110: tunnel or rendezvous failure classified as peer unreachable")
         val reason = if (link is ExchangeTunnelUnavailableException) {
             NetworkPeerUnreachableException.Reason.TUNNEL_NOT_REGISTERED
         } else {

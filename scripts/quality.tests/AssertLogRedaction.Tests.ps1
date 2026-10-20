@@ -52,10 +52,18 @@ $networkDir = Join-Path $fixtureRoot 'app_v2/src/main/java/com/sza/fastmediasort
 $uiDir = Join-Path $fixtureRoot 'app_v2/src/main/java/com/sza/fastmediasorter/ui/settings'
 $baseline = Join-Path $fixtureRoot 'baseline.txt'
 
+# The scoped path refuses a tree whose HEAD cannot be resolved (exit 2, CHECK-VERDICT rule 2.12), so the
+# fixture is a repository holding one empty commit: every fixture file is absent from HEAD, hence wholly new.
+function Initialize-FixtureRepo {
+    & git -C $fixtureRoot init --quiet 2>$null | Out-Null
+    & git -C $fixtureRoot -c user.name=fixture -c user.email=fixture@example.invalid -c commit.gpgsign=false commit --quiet --allow-empty -m fixture 2>$null | Out-Null
+}
+
 function Reset-Fixture {
     if (Test-Path -LiteralPath $fixtureRoot) { Remove-Item -LiteralPath $fixtureRoot -Recurse -Force }
     New-Item -ItemType Directory -Path $networkDir -Force | Out-Null
     New-Item -ItemType Directory -Path $uiDir -Force | Out-Null
+    Initialize-FixtureRepo
 }
 
 function Set-Baseline([int]$Value) {
@@ -221,6 +229,6 @@ finally {
     Remove-Item -LiteralPath $fixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-Write-Host ("AssertLogRedaction.Tests: {0} passed, {1} failed." -f $script:pass, $script:fail)
+Write-Host "AssertLogRedaction.Tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }
 exit 0

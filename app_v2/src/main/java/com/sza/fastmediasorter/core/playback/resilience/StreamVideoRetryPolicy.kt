@@ -13,6 +13,8 @@ internal data class StreamVideoFailure(
     val errorCode: Int,
     /** RTSP carries no sliding live window, so the re-anchor branch is never offered for it. */
     val isRtsp: Boolean,
+    /** A protected broadcast refused the pair: asking again with the same pair cannot change the answer. */
+    val isPasswordRefusal: Boolean = false,
 )
 
 /**
@@ -72,8 +74,11 @@ internal class StreamVideoRetryPolicy(
      * The two budgets are deliberately separate: a channel whose live window keeps outrunning the
      * playhead must not eat the allowance a genuine network drop will need.
      */
-    fun onFailure(failure: StreamVideoFailure): StreamVideoRetryDecision =
-        when (failure.failureClass) {
+    fun onFailure(failure: StreamVideoFailure): StreamVideoRetryDecision {
+        // RTSP reports a refused answer as a plain IO error, which the class below would retry; the dialog that
+        // asks for the password must open at once, not after the whole backoff ladder (S4258).
+        if (failure.isPasswordRefusal) return StreamVideoRetryDecision.Surface
+        return when (failure.failureClass) {
             StreamFailureClass.BEHIND_LIVE_WINDOW -> decideBehindLive(failure.isRtsp)
             // The status the classifier read out of the cause chain is the evidence this branch
             // needs; the code adds nothing, being the bad-HTTP-status one by construction.
@@ -81,6 +86,7 @@ internal class StreamVideoRetryPolicy(
             StreamFailureClass.TRANSIENT_NETWORK -> decideTransient(failure.errorCode)
             StreamFailureClass.NOT_RETRYABLE -> StreamVideoRetryDecision.Surface
         }
+    }
 
     private fun decideBehindLive(isRtsp: Boolean): StreamVideoRetryDecision {
         if (isRtsp || behindLiveRecoveries >= maxBehindLiveRecoveries) {

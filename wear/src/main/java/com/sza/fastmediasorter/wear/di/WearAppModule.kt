@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeTunnelClient
+import com.sza.fastmediasorter.wear.data.exchange.WearResourcePinStore
 import com.sza.fastmediasorter.wear.data.network.StreamNetworkHoldManager
 import com.sza.fastmediasorter.wear.data.network.WearEndpointResolver
 import com.sza.fastmediasorter.wear.data.network.WearNetworkChannelMonitorImpl
@@ -221,8 +223,11 @@ object WearAppModule {
 
     @Provides
     @Singleton
-    fun provideSftpDataSource(endpointResolver: WearEndpointResolver): SftpDataSource =
-        SftpDataSource(endpointResolver)
+    fun provideSftpDataSource(
+        endpointResolver: WearEndpointResolver,
+        pinStore: WearResourcePinStore,
+        tunnelClient: WearExchangeTunnelClient
+    ): SftpDataSource = SftpDataSource(endpointResolver, pinStore, tunnelClient)
 
     @Provides
     @Singleton

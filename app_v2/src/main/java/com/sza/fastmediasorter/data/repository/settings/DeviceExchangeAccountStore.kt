@@ -10,6 +10,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.core.security.PrivateDiagnosticValues
+import com.sza.fastmediasorter.data.remote.exchange.ExchangePinRecorder
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -29,7 +30,7 @@ import javax.inject.Singleton
 @Singleton
 class DeviceExchangeAccountStore @Inject constructor(
     private val dataStore: DataStore<Preferences>,
-) {
+) : ExchangePinRecorder {
 
     val entries: Flow<List<DeviceExchangeAccountEntry>> = dataStore.data
         .map { it[keyEntries] }
@@ -62,6 +63,36 @@ class DeviceExchangeAccountStore @Inject constructor(
         if (index < 0) kept + entry else kept
     }
 
+    /**
+     * Moves the entry of [oldIdentity] to [host] and [port] inside the same edit, so concurrent changes of other
+     * fields (pins, features, accountKind) survive; an absent identity changes nothing.
+     */
+    suspend fun changeAddress(oldIdentity: String, host: String, port: Int): DeviceExchangeAccountEntry? {
+        var moved: DeviceExchangeAccountEntry? = null
+        mutate { current ->
+            val index = current.indexOfFirst { it.identity == oldIdentity }
+            if (index < 0) return@mutate current
+            val target = current[index].copy(host = host, port = port)
+            moved = target
+            current.mapIndexedNotNull { i, held ->
+                when {
+                    i == index -> target
+                    held.identity == target.identity -> null
+                    target.outgoing -> held.copy(outgoing = false)
+                    else -> held
+                }
+            }
+        }
+        return moved
+    }
+
+    /**
+     * Rewrites the entry of [identity] from the value held inside the same edit, so a concurrent change of another
+     * field - a pin renewal through [recordPin] - survives; an absent identity changes nothing.
+     */
+    suspend fun update(identity: String, change: (DeviceExchangeAccountEntry) -> DeviceExchangeAccountEntry) =
+        mutate { current -> current.map { held -> if (held.identity == identity) change(held) else held } }
+
     suspend fun remove(identity: String) = mutate { current -> current.filterNot { it.identity == identity } }
 
     /** The entry the device publishes and broadcasts through (item AC), or null while none is chosen. */
@@ -71,6 +102,23 @@ class DeviceExchangeAccountStore @Inject constructor(
     suspend fun setOutgoing(identity: String?) = mutate { current ->
         current.map { held -> held.copy(outgoing = held.identity == identity) }
     }
+
+    /**
+     * Writes [leaf] and [key] as the pin of the entry of [identity] (19 item AY), read inside the same edit so a
+     * concurrent change of another field survives. An entry that pins nothing stays platform-trusted: a pin is
+     * only ever the user's acceptance, never something a connect creates.
+     */
+    suspend fun recordPin(identity: String, leaf: String, key: String) = mutate { current ->
+        current.map { held ->
+            if (held.identity == identity && held.pinnedCertificate != null) {
+                held.copy(pinnedCertificate = leaf, pinnedKey = key)
+            } else {
+                held
+            }
+        }
+    }
+
+    override suspend fun record(identity: String, leaf: String, key: String) = recordPin(identity, leaf, key)
 
     private suspend fun mutate(change: (List<DeviceExchangeAccountEntry>) -> List<DeviceExchangeAccountEntry>) {
         dataStore.edit { preferences ->
@@ -104,8 +152,10 @@ class DeviceExchangeAccountStore @Inject constructor(
         val account = login?.let { name -> json.text(KEY_DEVICE_ID)?.takeIf(String::isNotBlank)?.let { name to it } }
         if (host == null || port == null || account == null) return null
         val pin = json.text(KEY_PIN)
+        // A key is half of a pin; without the leaf it would vouch for nothing.
+        val pinnedKey = pin?.let { json.text(KEY_PINNED_KEY) }
         val publicEndpoint = json.text(KEY_PUBLIC_ENDPOINT)
-        PrivateDiagnosticValues.register(host, account.first, pin, publicEndpoint)
+        PrivateDiagnosticValues.register(host, account.first, pin, pinnedKey, publicEndpoint)
         return DeviceExchangeAccountEntry(
             host = host,
             port = port,
@@ -116,6 +166,9 @@ class DeviceExchangeAccountStore @Inject constructor(
             publicEndpoint = publicEndpoint,
             outgoing = json.flag(KEY_OUTGOING),
             pinCapable = json.flag(KEY_PIN_CAPABLE),
+            features = json.textList(KEY_FEATURES),
+            accountKind = json.text(KEY_ACCOUNT_KIND),
+            pinnedKey = pinnedKey,
         )
     }
 
@@ -132,6 +185,9 @@ class DeviceExchangeAccountStore @Inject constructor(
                     entry.publicEndpoint?.let { addProperty(KEY_PUBLIC_ENDPOINT, it) }
                     if (entry.outgoing) addProperty(KEY_OUTGOING, true)
                     if (entry.pinCapable) addProperty(KEY_PIN_CAPABLE, true)
+                    entry.features?.let { features -> add(KEY_FEATURES, JsonArray().apply { features.forEach(::add) }) }
+                    entry.accountKind?.let { addProperty(KEY_ACCOUNT_KIND, it) }
+                    entry.pinnedKey?.let { addProperty(KEY_PINNED_KEY, it) }
                 }
             )
         }
@@ -139,6 +195,12 @@ class DeviceExchangeAccountStore @Inject constructor(
 
     private fun JsonObject.text(key: String): String? =
         get(key)?.takeIf { it.isJsonPrimitive && it.asJsonPrimitive.isString }?.asString
+
+    // Absent or malformed reads as "not seen yet": an older build drops the key on its next write (S4226).
+    private fun JsonObject.textList(key: String): List<String>? =
+        get(key)?.takeIf(JsonElement::isJsonArray)?.asJsonArray?.mapNotNull { element ->
+            element.takeIf { it.isJsonPrimitive && it.asJsonPrimitive.isString }?.asString
+        }
 
     private fun JsonObject.flag(key: String): Boolean =
         get(key)?.takeIf { it.isJsonPrimitive && it.asJsonPrimitive.isBoolean }?.asBoolean ?: false
@@ -154,5 +216,8 @@ class DeviceExchangeAccountStore @Inject constructor(
         const val KEY_PUBLIC_ENDPOINT = "publicEndpoint"
         const val KEY_OUTGOING = "outgoing"
         const val KEY_PIN_CAPABLE = "pinCapable"
+        const val KEY_FEATURES = "features"
+        const val KEY_ACCOUNT_KIND = "accountKind"
+        const val KEY_PINNED_KEY = "pinnedKey"
     }
 }

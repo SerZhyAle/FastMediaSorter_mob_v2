@@ -2,7 +2,7 @@ appId: com.sza.fastmediasorter.debug
 ---
 # Open Settings and bring the General -> Interface section into view, expanded.
 #
-# S1043: SettingsActivity restores the last-active tab, and headerInterface / rowLauncherModeEnabled
+# S1043: SettingsActivity restores the last-active tab, and headerInterface / rowLauncherPrimaryWindow
 # / rowLauncherSettings live only on "Общие". Run after a flow that ended on Медиа, Плеер or
 # Управление and they are simply not in the view tree - the failure surfaces further down as a
 # scroll timeout rather than at the tab, which is how it read as a launcher regression during the
@@ -22,10 +22,16 @@ appId: com.sza.fastmediasorter.debug
       id: "com.sza.fastmediasorter.debug:id/headerInterface"
     timeout: 15000
 
+# S4250: the header tap TOGGLES the section and its state persists in SharedPreferences across
+# force-stop, so the guard must name a row that really exists. It used rowLauncherModeEnabled, which
+# S3024 removed from every layout: the guard was always true, every call flipped the section, and the
+# three launcher flows failed every other run - first attempt collapsed it, the retry expanded it.
+# rowLanguage is the first row of containerInterface in every flavor and sits right under the
+# header, which is the first card on the tab, so it is on screen whenever the section is expanded.
 - runFlow:
     when:
       notVisible:
-        id: "com.sza.fastmediasorter.debug:id/rowLauncherModeEnabled"
+        id: "com.sza.fastmediasorter.debug:id/rowLanguage"
     commands:
       - tapOn:
           id: "com.sza.fastmediasorter.debug:id/headerInterface"

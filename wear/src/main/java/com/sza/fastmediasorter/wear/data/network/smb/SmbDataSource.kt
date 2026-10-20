@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.data.network.smb
 
+import android.net.Network
 import androidx.annotation.WorkerThread
 import com.hierynomus.msdtyp.AccessMask
 import com.hierynomus.msfscc.FileAttributes
@@ -12,6 +13,8 @@ import com.hierynomus.smbj.connection.Connection
 import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
 import com.sza.fastmediasorter.wear.data.network.WearEndpointResolver
+import com.sza.fastmediasorter.wear.domain.files.WearFileNameConflictResolver
+import com.sza.fastmediasorter.wear.domain.files.WearRemoteFileNames
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry.Companion.PARENT_ENTRY
@@ -45,6 +48,12 @@ internal interface SmbLink : Closeable {
 /** The smbj seam: the lock discipline of [SmbDataSource] is testable only with the socket behind it. */
 internal fun interface SmbLinkOpener {
     suspend fun open(source: NetworkSource): SmbLink
+
+    /**
+     * S4230: a link whose sockets leave through [network] - the watch's own Wi-Fi or LTE - when one is given. A
+     * default body keeps every existing opener, test lambdas included, a single-method interface.
+     */
+    suspend fun open(source: NetworkSource, network: Network?): SmbLink = open(source)
 }
 
 /**
@@ -310,6 +319,65 @@ class SmbDataSource internal constructor(
     }
 
     /**
+     * S4230: store [input] in [directory] (share-relative) and return the name it ended up with.
+     *
+     * A link of its own, never the shared one browse, the player and the thumbnails read through: a write on that
+     * link would interleave with them, and only a link opened here can be bound to the granted [network]. The bytes
+     * go under a partial name and are renamed after the last one landed; a name the folder already holds is
+     * replaced by a free one, so nothing the watch did not create is overwritten.
+     */
+    suspend fun storeFile(
+        sourceIn: NetworkSource,
+        directory: String,
+        intendedName: String,
+        input: InputStream,
+        network: Network? = null
+    ): Result<String> = withContext(Dispatchers.IO) {
+        val source = endpointResolver.resolve(sourceIn, network)
+        var storeLink: SmbLink? = null
+        try {
+            storeLink = linkOpener.open(source, network)
+            val storeShare = checkNotNull(storeLink.share) { "Not connected to share" }
+            Result.success(storeOnShare(storeShare, directory, intendedName, input))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Mirrors the catch at the foot of getFileStream: smbj reports every server-side refusal as an unchecked
+            // SMBApiException, and the failure classifier reads the type back off it.
+            Timber.w(e, "Failed to store SMB file")
+            Result.failure(e)
+        } finally {
+            storeLink?.let { runCatching { it.close() } }
+        }
+    }
+
+    private fun storeOnShare(share: DiskShare, directory: String, intendedName: String, input: InputStream): String {
+        val folder = directory.trim('/', '\\').replace('/', '\\')
+        val existing = share.list(folder).map { it.fileName }.toSet()
+        val finalName = WearFileNameConflictResolver.resolveAmong(existing, intendedName).first
+        val token = WearRemoteFileNames.newToken()
+        val partial = WearRemoteFileNames.joinShare(folder, WearRemoteFileNames.partialName(token))
+        var renamed = false
+        try {
+            share.openFile(
+                partial,
+                EnumSet.of(AccessMask.GENERIC_WRITE, AccessMask.DELETE),
+                EnumSet.of(FileAttributes.FILE_ATTRIBUTE_NORMAL),
+                SMB2ShareAccess.ALL,
+                SMB2CreateDisposition.FILE_CREATE,
+                null
+            ).use { file ->
+                file.outputStream.use { output -> input.copyTo(output) }
+                file.rename(WearRemoteFileNames.joinShare(folder, finalName), false)
+            }
+            renamed = true
+        } finally {
+            if (!renamed) runCatching { share.rm(partial) }
+        }
+        return finalName
+    }
+
+    /**
      * Check if currently connected.
      */
     fun isConnected(): Boolean = link?.let(::isAliveQuietly) == true
@@ -317,42 +385,61 @@ class SmbDataSource internal constructor(
 
 private class SmbjLinkOpener : SmbLinkOpener {
 
-    private val client = SMBClient(
-        SmbConfig.builder()
-            .withTimeout(SMB_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .withSoTimeout(SMB_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .build()
-    )
+    private val client = SMBClient(baseConfig().build())
+
+    override suspend fun open(source: NetworkSource): SmbLink = openOn(client, source, ownsClient = false)
+
+    /**
+     * S4230: a bound link needs a client of its own, because the socket factory is part of the client's
+     * configuration; the link closes that client with itself so nothing is left running after the send.
+     */
+    override suspend fun open(source: NetworkSource, network: Network?): SmbLink =
+        if (network == null) {
+            open(source)
+        } else {
+            val bound = SMBClient(baseConfig().withSocketFactory(network.socketFactory).build())
+            openOn(bound, source, ownsClient = true)
+        }
+
+    private fun baseConfig(): SmbConfig.Builder = SmbConfig.builder()
+        .withTimeout(SMB_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .withSoTimeout(SMB_TIMEOUT_SECONDS, TimeUnit.SECONDS)
 
     /** A half-open link is closed here: nothing else holds its connection to close it later. */
-    override suspend fun open(source: NetworkSource): SmbLink = handingOffCloseable { handOff ->
-        withContext(Dispatchers.IO) {
-            val connection = client.connect(source.server, source.port)
-            // finally rather than a catch-all: every failure - cancellation included - still closes the
-            // half-open connection and propagates untouched, with no catch arm that could swallow it.
-            var linked = false
-            try {
-                // A null domain is the workgroup login.
-                val session = connection.authenticate(
-                    AuthenticationContext(source.username, source.password.toCharArray(), null)
-                )
-                val share = source.shareName?.let { name -> session.connectShare(name) as? DiskShare }
-                if (share != null) Timber.d("Connected to share: ${source.shareName}")
-                handOff.track(SmbjLink(connection, session, share)).also { linked = true }
-            } finally {
-                if (!linked) {
-                    runCatching { connection.close() }
-                        .onFailure { closeError -> Timber.w(closeError, "Failed to close a half-open SMB connection") }
+    private suspend fun openOn(smbClient: SMBClient, source: NetworkSource, ownsClient: Boolean): SmbLink =
+        handingOffCloseable { handOff ->
+            withContext(Dispatchers.IO) {
+                var connection: Connection? = null
+                // finally rather than a catch-all: every failure - cancellation included - still closes the
+                // half-open connection and propagates untouched, with no catch arm that could swallow it.
+                var linked = false
+                try {
+                    val opened = smbClient.connect(source.server, source.port)
+                    connection = opened
+                    // A null domain is the workgroup login.
+                    val session = opened.authenticate(
+                        AuthenticationContext(source.username, source.password.toCharArray(), null)
+                    )
+                    val share = source.shareName?.let { name -> session.connectShare(name) as? DiskShare }
+                    if (share != null) Timber.d("Connected to share: ${source.shareName}")
+                    val link = SmbjLink(opened, session, share, smbClient.takeIf { ownsClient })
+                    handOff.track(link).also { linked = true }
+                } finally {
+                    if (!linked) {
+                        runCatching { connection?.close() }
+                            .onFailure { err -> Timber.w(err, "Failed to close a half-open SMB connection") }
+                        if (ownsClient) runCatching { smbClient.close() }
+                    }
                 }
             }
         }
-    }
 }
 
 private class SmbjLink(
     private val connection: Connection,
     private val session: Session,
-    override val share: DiskShare?
+    override val share: DiskShare?,
+    private val ownedClient: SMBClient? = null
 ) : SmbLink {
 
     override val isAlive: Boolean
@@ -364,7 +451,11 @@ private class SmbjLink(
             share?.close()
             session.close()
         } finally {
-            connection.close()
+            try {
+                connection.close()
+            } finally {
+                ownedClient?.close()
+            }
         }
     }
 }

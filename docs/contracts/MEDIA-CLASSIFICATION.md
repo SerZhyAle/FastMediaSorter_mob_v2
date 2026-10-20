@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 21:53</sub>
+<sub class="doc-stamp">26.10.18 17:46</sub>
 
 # Pointer - `MEDIA-CLASSIFICATION`
 
 | | |
 | --- | --- |
 | **Id** | `MEDIA-CLASSIFICATION` |
-| **Version** | 0.10, draft. Owner: this product |
+| **Version** | 0.12, draft. Owner: this product |
 | **Home** | `media-classification/README.md` in the shared contracts catalog |
 | **Role here** | owner, producer and consumer (primary file and stream classifier) |
 
@@ -16,7 +16,8 @@
 - Recognize sidecar patterns (subtitles, lyrics, covers, metadata) without reclassifying the parent media item.
 - Exclude system junk (dot-files, `Thumbs.db`, `desktop.ini`, `*.tmp`, `*.~*`, `*.swp`) before classification; it receives no category, and the enum has no `SYSTEM_IGNORED` value (rule 5).
 - Classify by file name or MIME only, never by what the product does with the file (rule 1).
-- List `.tiff .ico .wmf .emf` as `IMAGE` and `.3g2 .asf` as `VIDEO`; `.ts` stays `VIDEO` (rule 1, 0.10).
+- List `.tiff .ico .wmf .emf` as `IMAGE` and `.3g2 .asf` as `VIDEO`; `.ts` stays `VIDEO` (rule 1, 0.10);
+  `.jxl` is `IMAGE` (0.12).
 - MIME-first resolution for SAF/cloud providers, falling back to extension matching when MIME is absent or `application/octet-stream`.
 
 ## Where it lives here

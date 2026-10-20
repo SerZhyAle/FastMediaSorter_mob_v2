@@ -110,6 +110,11 @@ if ($violations.Count -gt 0) {
     Write-Host "Fix B: ensure the NotificationChannel exists (ensureChannel/createNotificationChannel) before setForeground/startForeground." -ForegroundColor Cyan
     exit 1
 }
+if ($scoped -and $ktFiles.Count -eq 0) {
+    . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+    Write-EmptySetPass -GateName 'assert-fgs-notifications'
+    exit 0
+}
 $judged = if ($scoped) { "$($ktFiles.Count) changed Kotlin file(s)" } else { "$($ktFiles.Count) Kotlin file(s), whole tree" }
 Write-Host "assert-fgs-notifications: PASS - $judged (no ?attr notification icons; every FGS path creates its channel)." -ForegroundColor Green
 exit 0

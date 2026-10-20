@@ -1,9 +1,9 @@
 ---
-layout: default
+layout: doc
 title: "توصيل الساعة الذكية بمشاركات NAS وجهاز الكمبيوتر - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-network-ar.html
 ---
-<sub class="doc-stamp">26.09.25 02:26</sub>
+<sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
 
@@ -12,8 +12,6 @@ permalink: /docs/howto/scenario-watch-network-ar.html
 > **المستوى:** متوسط &bull; **الوقت:** ~10 دقائق &bull; **الجهاز:** ساعة Wear OS ذكية
 
 > **الإصدار الكامل فقط** - هذا الدليل غير مطبّق في الإصدار الموزّع عبر Google Play. ينطبق على الإصدار الكامل، وهو تنزيل مباشر لملف APK من [التنزيلات](../DOWNLOADS.md).
-
-{% include lang-switcher.html doc="scenario-watch-network" dir="/docs/howto/" current="ar" %}
 
 يتصل FastMediaSorter على Wear OS مباشرة بتخزين شبكتك المنزلية (NAS، أو مجلدات كمبيوتر مشتركة، أو خوادم FTP، أو SFTP) عبر Wi-Fi. يمكنك تصفح الملفات البعيدة، وبث الموسيقى إلى سماعات بلوتوث، ومزامنة مجلداتك المفضلة دون الحاجة لهاتفك.
 

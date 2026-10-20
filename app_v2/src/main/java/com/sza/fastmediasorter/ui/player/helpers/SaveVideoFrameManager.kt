@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
 import com.sza.fastmediasorter.util.CaptureFileNamer
+import com.sza.fastmediasorter.util.ExifTimeWriter
 import com.sza.fastmediasorter.util.PngTimeChunk
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import kotlinx.coroutines.Dispatchers
@@ -193,6 +194,9 @@ class SaveVideoFrameManager(
             } else {
                 PngTimeChunk.writePng(bitmap, captureMillis, out)
             }
+        }
+        if (useJpeg) {
+            ExifTimeWriter.writeCaptureTime(tempFile, captureMillis)
         }
         tempFile
     }

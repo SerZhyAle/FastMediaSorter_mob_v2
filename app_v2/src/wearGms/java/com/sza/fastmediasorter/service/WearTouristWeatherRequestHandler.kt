@@ -28,7 +28,6 @@ class WearTouristWeatherRequestHandler @Inject constructor(
 
     suspend fun handle(data: ByteArray) {
         val request = decode(data) ?: return
-        Timber.d("S4152: weather request received lat=%s lon=%s", request.latitude, request.longitude)
         val answer: WearTouristWeatherPayload? = getWatchTouristWeatherUseCase(request.latitude, request.longitude)
         if (answer == null) {
             Timber.i("Watch Tourist weather request left unanswered - no reading on the phone")

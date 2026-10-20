@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="uk" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Довідка - Мережевий монітор</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Зміст довідки">
+<a href="index-uk.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Мережевий монітор</span>
+</nav>
+<header class="hero">
+<h1>Мережевий монітор</h1>
+</header>
+<h2>Для чого цей екран</h2>
+<p class="lead">Живий огляд ваших підключень: Wi-Fi, мобільна мережа, Bluetooth і супутники, з графіками сигналу та подробицями активного каналу. Тут же є перевірки, які можна запустити, - швидкість, пінґ і сканування локальної мережі, - та історія вимірювань.</p>
+<h2>Порядок дій</h2>
+<ol class="order">
+<li>Почніть зі зведення. Картка вгорі <a class="ref" href="#active-connection">1</a> каже, до чого ви підключені й чи працює інтернет; нижче - ваша локальна адреса <a class="ref" href="#local-ip">2</a>, зовнішня адреса <a class="ref" href="#external-ip">3</a> і швидкість у цю мить <a class="ref" href="#current-speed">4</a>.</li>
+<li>Кожна плитка <a class="ref" href="#tile-wifi">5</a> відкриває свій розділ. Рядок на плитці словами каже, чи працює розділ на цьому пристрої, чи потрібен дозвіл, чи показувати нічого, - тож ви знаєте це ще до відкриття.</li>
+<li>Wi-Fi <a class="ref" href="#wifi-radio">13</a>, мобільна мережа <a class="ref" href="#mobile-sims">18</a> і Bluetooth <a class="ref" href="#bt-radio">20</a> показують, до чого ви підключені, і малюють графік сигналу. Супутники <a class="ref" href="#gnss-satellites">23</a> показують, скільки супутників бачить телефон і де він себе знаходить.</li>
+<li>«Інтернет» <a class="ref" href="#internet-path">27</a> малює шлях від телефону до інтернету та поточний трафік. Виберіть, що перевіряти <a class="ref" href="#internet-target">29</a>, і перевірте ресурс, просканувайте локальну мережу, дізнайтеся зовнішню адресу чи виміряйте швидкість. Спершу може з’явитися сповіщення <a class="ref" href="#notice-continue">50</a>.</li>
+<li>«Інструменти» <a class="ref" href="#tools-host">35</a> пінґують вузол, трасують його маршрут і сканують діапазон адрес. «Швидкість до ресурсу» <a class="ref" href="#speed-target">42</a> вимірює швидкість до одного з ваших ресурсів.</li>
+<li>Кожна запущена перевірка зберігається в розділі «Історія» <a class="ref" href="#history-list">45</a>. Експортуйте її <a class="ref" href="#history-export">46</a>, щоб надіслати список комусь, або очистьте <a class="ref" href="#history-clear">47</a>.</li>
+<li>Якщо на екрані написано, що Мережевий монітор вимкнено, натисніть <a class="ref" href="#off-open-settings">49</a>: відкриються налаштування, де його можна ввімкнути.</li>
+</ol>
+<h2>Елементи</h2>
+<div class="elements">
+<h3>Зведення</h3>
+<details class="el" id="active-connection">
+<summary><span class="mk">1</span><span><span class="name">Активне підключення</span><span class="one">Каже, до чого ви підключені й чи виходить це підключення в інтернет.</span></span></summary>
+<div class="full">
+<p>Заголовок виглядає так: Wi-Fi - МояМережа - Інтернет працює. Остання частина повідомляє, чи працює інтернет, чи вимагає мережа входу, чи ви підключені без інтернету, чи ви не в мережі. Якщо нічого не підключено, картка так і пише та радить увімкнути Wi-Fi або мобільні дані.</p>
+<p>Показання оновлюються приблизно раз на секунду, поки екран відкритий.</p>
+</div>
+</details>
+<details class="el" id="local-ip">
+<summary><span class="mk">2</span><span><span class="name">Внутрішній IP</span><span class="one">Адреса вашого телефону всередині мережі, в якій ви перебуваєте.</span></span></summary>
+<div class="full">
+<p>Натисніть рядок, щоб скопіювати адресу. Рядок видно лише поки щось підключено. Якщо в телефону поки немає адреси, написано «Невідомо».</p>
+</div>
+</details>
+<details class="el" id="external-ip">
+<summary><span class="mk">3</span><span><span class="name">Зовнішній IP</span><span class="one">Адреса, під якою вас бачить інтернет, - показується лише коли ви попросите.</span></span></summary>
+<div class="full">
+<p>Вона схована, доки ви не натиснете рядок, бо для її визначення доводиться питати публічний сервіс в інтернеті. Потім рядок показує «Запитуємо..» і після цього адресу; натисніть ще раз, щоб скопіювати. Адреса зберігається лише поки працює застосунок і ніколи не записується в історію.</p>
+<p>Цей самий запит є в розділі «Інтернет», але там перед ним з’являється сповіщення.</p>
+</div>
+</details>
+<details class="el" id="current-speed">
+<summary><span class="mk">4</span><span><span class="name">Поточна швидкість</span><span class="one">Скільки даних зараз іде на телефон і з нього.</span></span></summary>
+<div class="full">
+<p>Два значення: вхідне зі стрілкою вниз і вихідне зі стрілкою вгору, по всьому телефону, а не лише по цьому застосунку. Це живе показання, а не тест швидкості; графік є в розділі «Інтернет». Поки нічого не підключено, рядок схований.</p>
+</div>
+</details>
+<details class="el" id="tile-wifi">
+<summary><span class="mk">5</span><span><span class="name">Wi-Fi</span><span class="one">Відкриває розділ Wi-Fi.</span></span></summary>
+<div class="full">
+<p>На плитці видно ім’я мережі та швидкість каналу, якщо телефон їх знає. Рядок стану каже «Доступно» або пояснює, чому ні: «Дозвіл не надано», «Зараз нічого не підключено» або «На цьому пристрої немає такого модуля». До першого показання там написано «Відкрийте, щоб перевірити».</p>
+</div>
+</details>
+<details class="el" id="tile-mobile">
+<summary><span class="mk">6</span><span><span class="name">Мобільна мережа</span><span class="one">Відкриває розділ мобільної мережі.</span></span></summary>
+<div class="full">
+<p>На плитці видно назву оператора, чия SIM використовується для даних. Рядок стану працює так само, як на кожній плитці.</p>
+</div>
+</details>
+<details class="el" id="tile-bluetooth">
+<summary><span class="mk">7</span><span><span class="name">Bluetooth</span><span class="one">Відкриває розділ Bluetooth.</span></span></summary>
+<div class="full">
+<p>На плитці видно, скільки пристроїв підключено зараз, наприклад «Зараз підключено: 2».</p>
+</div>
+</details>
+<details class="el" id="tile-satellites">
+<summary><span class="mk">8</span><span><span class="name">Супутники</span><span class="one">Відкриває розділ супутників.</span></span></summary>
+<div class="full">
+<p>Плитка використовує приймач геолокації телефону. Якщо геолокацію вимкнено в налаштуваннях системи, рядок стану так і пише: «Геолокацію вимкнено в налаштуваннях системи».</p>
+</div>
+</details>
+<details class="el" id="tile-internet">
+<summary><span class="mk">9</span><span><span class="name">Інтернет</span><span class="one">Відкриває розділ «Інтернет»: шлях, трафік і перевірки.</span></span></summary>
+<div class="full">
+<p>Якщо в цьому сеансі ви вже дізнавалися зовнішню адресу, плитка показує її.</p>
+</div>
+</details>
+<details class="el" id="tile-history">
+<summary><span class="mk">10</span><span><span class="name">Історія</span><span class="one">Відкриває список виконаних вами вимірювань.</span></span></summary>
+<div class="full">
+<p>Сюди потрапляють перевірки, запущені з розділів «Інтернет», «Інструменти» та «Швидкість до ресурсу».</p>
+</div>
+</details>
+<details class="el" id="tile-tools">
+<summary><span class="mk">11</span><span><span class="name">Інструменти</span><span class="one">Відкриває пінґ, трасування та сканування підмережі.</span></span></summary>
+<div class="full">
+<p>Це для тих, кому треба перевірити конкретний вузол або вивчити локальну мережу.</p>
+</div>
+</details>
+<details class="el" id="tile-resource-speed">
+<summary><span class="mk">12</span><span><span class="name">Швидкість до ресурсу</span><span class="one">Відкриває тест швидкості до одного з ваших ресурсів.</span></span></summary>
+<div class="full">
+<p>Він вимірює, як швидко файли йдуть до мережевого чи хмарного ресурсу, доданого в застосунок, і від нього.</p>
+</div>
+</details>
+<h3>Wi-Fi, мобільна мережа та Bluetooth</h3>
+<details class="el" id="wifi-radio">
+<summary><span class="mk">13</span><span><span class="name">Радіо Wi-Fi</span><span class="one">Вмикає та вимикає радіо Wi-Fi.</span></span></summary>
+<div class="full">
+<p>Android 10 і новіші зазвичай не дають застосунку самому перемикати Wi-Fi. Коли ви натискаєте перемикач, застосунок пробує, а якщо система відмовляє, відкриває системну панель Wi-Fi; перемикач зсунеться, коли панель змінить стан. Якщо пристрій узагалі не дозволяє перемикання, перемикач неактивний і поруч коротке пояснення. Якщо стан прочитати не можна, написано «Стан невідомий».</p>
+<p>Натисніть заголовок розділу, щоб відкрити системні налаштування Wi-Fi.</p>
+</div>
+</details>
+<details class="el" id="wifi-network">
+<summary><span class="mk">14</span><span><span class="name">Мережа</span><span class="one">Мережа, до якої ви підключені, її частота, швидкість каналу та стандарт Wi-Fi.</span></span></summary>
+<div class="full">
+<p>Для імені мережі потрібен дозвіл на точну геолокацію, адже Android вважає назву Wi-Fi даними про місцеперебування. Без нього цей рядок пише «Дозвіл не надано. Натисніть, щоб надати його.» або «Дозвіл заблоковано. Натисніть, щоб відкрити налаштування програми.», а решта рядків і далі працює. Коли нічого не підключено, блок замінюється причиною.</p>
+</div>
+</details>
+<details class="el" id="wifi-hotspot">
+<summary><span class="mk">15</span><span><span class="name">Точка доступу</span><span class="one">Показує, чи роздає телефон своє підключення як точку доступу.</span></span></summary>
+<div class="full">
+<p>Написано «Роздача: увімкнена», «Роздача: вимкнена» або «Роздача: не визначено». Натисніть, щоб відкрити системні налаштування точки доступу. Якщо телефон не може визначити стан, рядок схований.</p>
+</div>
+</details>
+<details class="el" id="wifi-signal-chart">
+<summary><span class="mk">16</span><span><span class="name">Сигнал</span><span class="one">Графік рівня сигналу Wi-Fi за останні хвилини.</span></span></summary>
+<div class="full">
+<p>Одне показання на секунду, в дБм; що ближче значення до 0, то сильніший сигнал. Під графіком видно поточне, найменше й найбільше значення та тренд: зростає, падає чи стабільний. Поки показань немає, написано «Триває збір даних..». Потрібен дозвіл на точну геолокацію.</p>
+<p>Натисніть графік, щоб перезапустити його й збирати дані наново. Про перезапуск оголосить програма читання з екрана.</p>
+</div>
+</details>
+<details class="el" id="link-details">
+<summary><span class="mk">17</span><span><span class="name">Параметри каналу</span><span class="one">Технічні подробиці активного підключення.</span></span></summary>
+<div class="full">
+<p>Інтерфейс, адреси IPv4 та IPv6, сервери DNS, шлюз, наявність маршруту за замовчуванням, проксі й оцінки пропускної здатності для вхідних і вихідних даних. Відсутнє значення читається як «Невідомо». Знадобиться, коли треба розповісти фахівцеві, як улаштована ваша мережа.</p>
+</div>
+</details>
+<details class="el" id="mobile-sims">
+<summary><span class="mk">18</span><span><span class="name">SIM-картки</span><span class="one">Скільки модемів активно і якому оператору належить кожна SIM.</span></span></summary>
+<div class="full">
+<p>Кількість активних модемів не потребує дозволу. Рядки SIM показують оператора SIM 1 і SIM 2 та позначають ту, що основна для даних; для них потрібен дозвіл на телефон, а без нього розділ пише «Дозвіл не надано». Натисніть, щоб надати. У кожної SIM свій графік сигналу, який можна перезапустити натисканням.</p>
+</div>
+</details>
+<details class="el" id="mobile-open-system">
+<summary><span class="mk">19</span><span><span class="name">Відкрити системні налаштування мережі</span><span class="one">Відкриває системний екран, де керуються мобільні дані та SIM.</span></span></summary>
+<div class="full">
+<p>Android не дозволяє застосунку перемикати мобільні дані чи вибирати SIM, про що сказано в примітці на екрані. Ця кнопка веде в системні налаштування мережі, де це можна зробити.</p>
+</div>
+</details>
+<details class="el" id="bt-radio">
+<summary><span class="mk">20</span><span><span class="name">Радіо Bluetooth</span><span class="one">Вмикає та вимикає радіо Bluetooth.</span></span></summary>
+<div class="full">
+<p>Працює як перемикач Wi-Fi: застосунок пробує, а якщо система відмовляє, відкриває системні налаштування Bluetooth. Натисніть заголовок розділу, щоб відкрити їх одразу. Рядок «Адаптер» показує «Увімкнено», «Вимкнено» або «Відсутній на цьому пристрої».</p>
+</div>
+</details>
+<details class="el" id="bt-devices">
+<summary><span class="mk">21</span><span><span class="name">Підключені зараз</span><span class="one">Перелічує пристрої, підключені зараз, і ті, що лише спарені.</span></span></summary>
+<div class="full">
+<p>Два списки: «Підключені зараз» і «Спарені, але не підключені», у кожного є примітка, якщо він порожній. Щоб їх прочитати, потрібен дозвіл Bluetooth («Пристрої поблизу» в Android 12 і новіших); без нього списки пишуть «Дозвіл не надано», а натискання запитує його.</p>
+</div>
+</details>
+<details class="el" id="bt-picker">
+<summary><span class="mk">22</span><span><span class="name">Графік підключеного пристрою</span><span class="one">Вибирає підключений пристрій, щоб намалювати графік його сигналу.</span></span></summary>
+<div class="full">
+<p>У списку пристрої, підключені зараз. Щойно ви виберете один, з’явиться графік «Сигнал пристрою» і поповнюватиметься раз на секунду; натисніть графік, щоб перезапустити. Якщо підключених пристроїв немає, поле повідомляє, що будувати графік нема для чого.</p>
+</div>
+</details>
+<h3>Супутники та інтернет</h3>
+<details class="el" id="gnss-satellites">
+<summary><span class="mk">23</span><span><span class="name">Супутників видно</span><span class="one">Скільки супутників бачить телефон і скільки з них він використовує для визначення позиції.</span></span></summary>
+<div class="full">
+<p>Під двома лічильниками по рядку на кожен супутник: система й номер, рівень сигналу в дБ-Гц і чи враховується він у позиції. Поки перші супутники не знайдено, написано «Шукаємо супутники..». Нижче графік рівня сигналу; натисніть, щоб перезапустити.</p>
+<p>Розділу потрібні дозвіл на точну геолокацію та ввімкнена геолокація. Натискання на заголовок або будь-який лічильник відкриває системні налаштування геолокації.</p>
+</div>
+</details>
+<details class="el" id="gnss-position">
+<summary><span class="mk">24</span><span><span class="name">Позиція</span><span class="one">Ваші координати, їхня точність і час визначення.</span></span></summary>
+<div class="full">
+<p>Широта й довгота, точність (наприклад ±5 м) і час фіксації. Без фіксації або без дозволу блок замість координат пояснює причину. Координати залишаються на екрані й нікуди не надсилаються.</p>
+</div>
+</details>
+<details class="el" id="gnss-record">
+<summary><span class="mk">25</span><span><span class="name">Записувати трек на цьому пристрої</span><span class="one">Записує шлях, яким ви рухаєтеся, поки відкрито цей екран.</span></span></summary>
+<div class="full">
+<p>Трек залишається на цьому пристрої й пишеться лише поки відкрито екран. Нічого нікуди не надсилається. Під час запису рядок рахує записані точки.</p>
+</div>
+</details>
+<details class="el" id="gnss-share">
+<summary><span class="mk">26</span><span><span class="name">Поділитися файлом треку</span><span class="one">Надсилає файл записаного треку до іншого застосунку.</span></span></summary>
+<div class="full">
+<p>Кнопка з’являється, коли є файл треку. Вона відкриває системне меню надсилання з файлом CSV. Якщо файл замінив новіший запис, примітка просить увімкнути запис і спробувати знову.</p>
+</div>
+</details>
+<details class="el" id="internet-path">
+<summary><span class="mk">27</span><span><span class="name">Шлях в інтернет</span><span class="one">Малює шлях від телефону до інтернету в чотири кроки.</span></span></summary>
+<div class="full">
+<p>«Цей пристрій», «Шлюз» (ваш роутер), DNS та «Інтернет» - у кожного своя адреса чи стан і позначка, відповідає він чи ні. Де лінія обривається, там і треба шукати: роутер, сервери імен або з’єднання за ними.</p>
+</div>
+</details>
+<details class="el" id="internet-traffic">
+<summary><span class="mk">28</span><span><span class="name">Трафік цього пристрою</span><span class="one">Показує трафік усього телефону - зараз і за останні хвилини.</span></span></summary>
+<div class="full">
+<p>«Вхідний зараз» і «Вихідний зараз» та графік під ними. Рахується все, що передає телефон, а не лише цей застосунок. Натисніть графік, щоб перезапустити його.</p>
+</div>
+</details>
+<details class="el" id="internet-target">
+<summary><span class="mk">29</span><span><span class="name">Що перевіряти</span><span class="one">Вибирає, на що дивляться перевірки нижче: інтернет чи один із ваших ресурсів.</span></span></summary>
+<div class="full">
+<p>Список починається з пункту «Інтернет» і продовжується доданими вами ресурсами. Кнопка «Перевірити вибраний ресурс» доступна, лише коли вибрано ресурс.</p>
+</div>
+</details>
+<details class="el" id="internet-check-resource">
+<summary><span class="mk">30</span><span><span class="name">Перевірити вибраний ресурс</span><span class="one">Перевіряє, чи відповідає вибраний ресурс.</span></span></summary>
+<div class="full">
+<p>Застосунок намагається зв’язатися з ресурсом за збереженою адресою та даними входу й повідомляє, що ресурс відповів чи не відповів, - тоді перевірте адресу й дані. Якщо ресурс тим часом видалено, результат так і скаже.</p>
+</div>
+</details>
+<details class="el" id="internet-scan">
+<summary><span class="mk">31</span><span><span class="name">Просканувати локальну мережу</span><span class="one">Шукає пристрої у вашій локальній мережі та відкриті в них порти.</span></span></summary>
+<div class="full">
+<p>Заповніть адреси «Від» і «До» або залиште діапазон, підставлений для вашої мережі. Результат повідомляє, скільки з опитаних адрес відповіло, і перелічує їх із відкритими портами. Надто великий діапазон чи не пара адрес відхиляються з підказкою. На нових версіях Android скануванню потрібен дозвіл на доступ до локальної мережі; якщо його немає, результат просить надати його в налаштуваннях системи й повторити.</p>
+<p>Сканування звертається до адрес вашої мережі. Деякі офісні та кампусні мережі вважають це небажаним, тому першого разу за сеанс застосунок показує сповіщення.</p>
+</div>
+</details>
+<details class="el" id="internet-external-ip">
+<summary><span class="mk">32</span><span><span class="name">Показати зовнішню адресу</span><span class="one">Питає в публічного сервісу адресу, під якою вас бачить інтернет.</span></span></summary>
+<div class="full">
+<p>Результат показує адресу та примітку, чи вона власна у вас, чи оператор підміняє її для своїх клієнтів. Якщо роутер не відповів, примітка каже, що нічого певного сказати не можна. Якщо сервіс не відповів, результат так і скаже й запропонує повторити. Першого разу за сеанс сповіщення пояснює, що сервіс бачить адресу, з якої отримав запит.</p>
+</div>
+</details>
+<details class="el" id="internet-speed">
+<summary><span class="mk">33</span><span><span class="name">Виміряти швидкість</span><span class="one">Вимірює швидкість завантаження й надсилання до інтернету чи до вибраного ресурсу.</span></span></summary>
+<div class="full">
+<p>Тест завантажує й надсилає приблизно 20 МБ, тому спершу з’являється сповіщення. У мережі, яку телефон вважає тарифікованою, сповіщення з’являється щоразу, і без вашої згоди нічого не вимірюється. Результат показує обидві швидкості в Мбіт/с. Якщо тест не завершився, результат просить перевірити підключення.</p>
+</div>
+</details>
+<details class="el" id="internet-stop">
+<summary><span class="mk">34</span><span><span class="name">Зупинити</span><span class="one">Зупиняє перевірку, що йде.</span></span></summary>
+<div class="full">
+<p>З’являється разом із індикатором ходу, поки йде перевірка. Зупинити можна будь-коли; інші перевірки недоступні, поки та, що йде, не завершиться або не буде зупинена.</p>
+</div>
+</details>
+<h3>Інструменти, швидкість до ресурсу та історія</h3>
+<details class="el" id="tools-host">
+<summary><span class="mk">35</span><span><span class="name">IP або ім'я вузла</span><span class="one">Адреса або ім’я вузла для пінґа чи трасування.</span></span></summary>
+<div class="full">
+<p>Введіть IP-адресу або ім’я вузла. Під полем - мітки з вузлами, які ви вже використовували: натисніть мітку, щоб підставити вузол, натисніть її хрестик, щоб забути.</p>
+</div>
+</details>
+<details class="el" id="tools-ping">
+<summary><span class="mk">36</span><span><span class="name">Пінґ</span><span class="one">Надсилає вузлу кілька невеликих запитів і повідомляє, як швидко він відповідає.</span></span></summary>
+<div class="full">
+<p>У консолі кожна спроба з часом у мілісекундах або «Відповіді не дочекались», а наприкінці - скільки спроб отримали відповідь. Ім’я, яке не визначилося, і відсутність мережі теж описуються в консолі.</p>
+</div>
+</details>
+<details class="el" id="tools-traceroute">
+<summary><span class="mk">37</span><span><span class="name">Трасування</span><span class="one">Показує переходи між телефоном і вузлом.</span></span></summary>
+<div class="full">
+<p>Кожен перехід, що відповідає, указано зі своїм часом. Трасування закінчується, коли вузол досягнуто або вичерпано максимум переходів. Знадобиться, щоб побачити, де з’єднання сповільнюється чи обривається.</p>
+</div>
+</details>
+<details class="el" id="tools-scan">
+<summary><span class="mk">38</span><span><span class="name">Просканувати локальну мережу</span><span class="one">Шукає пристрої, що відповідають у діапазоні адрес.</span></span></summary>
+<div class="full">
+<p>Працює як сканування в розділі «Інтернет», з тими самими полями «Від» і «До», і пише адреси, що відповіли, в консоль. Користуйтеся лише у своїх мережах.</p>
+</div>
+</details>
+<details class="el" id="tools-console">
+<summary><span class="mk">39</span><span><span class="name">Консоль результатів</span><span class="one">Показує результати пінґа, трасування та сканування у вигляді тексту.</span></span></summary>
+<div class="full">
+<p>Поки нічого не запускалося, написано, що тут з’являться результати. Поки операція йде, над консоллю видно індикатор ходу й кнопку «Зупинити».</p>
+</div>
+</details>
+<details class="el" id="tools-copy">
+<summary><span class="mk">40</span><span><span class="name">Скопіювати</span><span class="one">Копіює текст консолі до буфера обміну.</span></span></summary>
+<div class="full">
+<p>Знадобиться, щоб вставити результати в повідомлення чи нотатку. Якщо консоль порожня, нічого не копіюється.</p>
+</div>
+</details>
+<details class="el" id="tools-clear">
+<summary><span class="mk">41</span><span><span class="name">Очистити</span><span class="one">Очищує консоль.</span></span></summary>
+<div class="full">
+<p>Прибирається лише текст на екрані. Вимірювання, уже записані в історію, лишаються там.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Текст консолі зникає без можливості повернути. Якщо він потрібен, спершу скопіюйте його.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="speed-target">
+<summary><span class="mk">42</span><span><span class="name">Цільовий ресурс</span><span class="one">Вибирає, до чого вимірювати швидкість: до інтернету чи до одного ресурсу.</span></span></summary>
+<div class="full">
+<p>Список починається з пункту «Інтернет» і продовжується доданими мережевими та хмарними ресурсами.</p>
+</div>
+</details>
+<details class="el" id="speed-start">
+<summary><span class="mk">43</span><span><span class="name">Виміряти швидкість</span><span class="one">Вимірює, як швидко дані йдуть до вибраної цілі й від неї.</span></span></summary>
+<div class="full">
+<p>Спершу перевіряється, чи відповідає ціль, потім іде замір. Поки він іде, видно індикатор ходу й кнопку «Зупинити». У тарифікованій мережі спершу з’являється вікно із запитанням, чи продовжувати.</p>
+</div>
+</details>
+<details class="el" id="speed-results">
+<summary><span class="mk">44</span><span><span class="name">Результати вимірювання</span><span class="one">Виміряні швидкості завантаження й надсилання в Мбіт/с.</span></span></summary>
+<div class="full">
+<p>Завантаження та надсилання, кожна в мегабітах на секунду. У ресурсу лише для читання замість надсилання написано «(Ресурс тільки для читання)», бо надсилання записало б у нього дані. Під значеннями рядок стану повідомляє, що замір завершено, зупинено або чому не вдався.</p>
+</div>
+</details>
+<details class="el" id="history-list">
+<summary><span class="mk">45</span><span><span class="name">Історія</span><span class="one">Виконані вами вимірювання, нові зверху.</span></span></summary>
+<div class="full">
+<p>У кожному рядку вид вимірювання (швидкість, перевірка ресурсу, зовнішня адреса, сканування мережі, пінґ чи трасування), мережа, в якій воно йшло, час і чи відповів вузол. Список зберігається на цьому пристрої. Поки він порожній, екран повідомляє, що вимірювань ще немає.</p>
+</div>
+</details>
+<details class="el" id="history-export">
+<summary><span class="mk">46</span><span><span class="name">Експорт</span><span class="one">Надсилає весь список у вигляді текстового файлу.</span></span></summary>
+<div class="full">
+<p>Відкривається системне меню надсилання зі звичайним текстовим файлом. Якщо файл підготувати не вдалося, примітка просить звільнити місце. Кнопку видно, лише коли в списку є рядки.</p>
+</div>
+</details>
+<details class="el" id="history-clear">
+<summary><span class="mk">47</span><span><span class="name">Очистити</span><span class="one">Видаляє всі збережені вимірювання.</span></span></summary>
+<div class="full">
+<p>Спершу з’являється вікно із запитанням. Кнопку видно, лише коли в списку є рядки.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Усі вимірювання видаляються з пристрою, відновити їх не можна. Якщо вони ще потрібні, спершу експортуйте список.</dd>
+</dl>
+</div>
+</details>
+<h3>Коли Мережевий монітор вимкнено</h3>
+<details class="el" id="off-notice">
+<summary><span class="mk">48</span><span><span class="name">Мережевий монітор вимкнено</span><span class="one">Повідомляє, що Мережевий монітор вимкнено в налаштуваннях.</span></span></summary>
+<div class="full">
+<p>Замість розділів ви бачите коротке повідомлення і, якщо функція є, кнопку. У деяких редакціях Мережевого монітора в застосунку немає взагалі; тоді повідомлення так і каже, а кнопки немає. Поки екран ще з’ясовує, чи ввімкнено монітор, повідомлення він не показує.</p>
+</div>
+</details>
+<details class="el" id="off-open-settings">
+<summary><span class="mk">49</span><span><span class="name">Відкрити налаштування</span><span class="one">Відкриває налаштування на вкладці, де Мережевий монітор вмикається.</span></span></summary>
+<div class="full">
+<p>Кнопка веде на вкладку «Управління», де перемикач міститься в розділі «Додаткові програми та сценарії» (в повідомленні на цьому екрані її названо «Операції»). Увімкніть монітор, поверніться - і зведення з’явиться.</p>
+</div>
+</details>
+<h3>Вікна сповіщення та підтвердження</h3>
+<details class="el" id="notice-continue">
+<summary><span class="mk">50</span><span><span class="name">Продовжити</span><span class="one">Продовжує перевірку після того, як ви прочитали сповіщення.</span></span></summary>
+<div class="full">
+<p>Сповіщення каже, що робить перевірка: тест швидкості витрачає близько 20 МБ трафіку, сканування звертається до вашої локальної мережі, визначення зовнішньої адреси передається публічному сервісу, або ця мережа тарифікує трафік. Сповіщення про трафік, сканування та адресу приходять раз за сеанс, а про тарифіковану мережу - перед кожним тестом швидкості.</p>
+</div>
+</details>
+<details class="el" id="notice-cancel">
+<summary><span class="mk">51</span><span><span class="name">Скасувати</span><span class="one">Закриває сповіщення й не запускає перевірку.</span></span></summary>
+<div class="full">
+<p>Нічого не надсилається й нічого не вимірюється.</p>
+</div>
+</details>
+<details class="el" id="clear-confirm">
+<summary><span class="mk">52</span><span><span class="name">Очистити</span><span class="one">Підтверджує, що ви хочете очистити історію вимірювань.</span></span></summary>
+<div class="full">
+<p>У вікні сказано, що збережені вимірювання буде видалено з цього пристрою, і запропоновано спершу експортувати їх.</p>
+<dl class="facts">
+<dt>Скасування</dt><dd>Вимірювання видаляються назавжди. Якщо вони можуть знадобитися, експортуйте їх до підтвердження.</dd>
+</dl>
+</div>
+</details>
+<details class="el" id="clear-cancel">
+<summary><span class="mk">53</span><span><span class="name">Скасувати</span><span class="one">Закриває вікно й залишає історію.</span></span></summary>
+<div class="full">
+<p>Нічого не видаляється.</p>
+</div>
+</details>
+</div>
+<h2>Пов'язане</h2>
+<ul class="related">
+<li><a href="main-uk.html"><b>Головний екран</b><span class="pill">Екран</span></a></li>
+<li><a href="settings-operations-uk.html"><b>Налаштування: Управління</b><span class="pill">Екран</span></a></li>
+<li><a href="system-info-uk.html"><b>Відомості про систему</b><span class="pill">Екран</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/network-monitor-uk.html"><b>Checking Your Connection with Network Monitor</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/permissions-guide-uk.html"><b>Understanding App Permissions</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="index-uk.html"><b>Зміст довідки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-10-18</span>
+<a href="index-uk.html">Зміст довідки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
+</footer>
+</main>
+</body>
+</html>

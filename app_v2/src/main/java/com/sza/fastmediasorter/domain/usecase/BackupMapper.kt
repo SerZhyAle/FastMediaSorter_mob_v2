@@ -9,8 +9,10 @@ import com.sza.fastmediasorter.data.local.db.LauncherJournalEntity
 import com.sza.fastmediasorter.data.local.db.LauncherLaunchStatsEntity
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BackupHostPort
 import com.sza.fastmediasorter.domain.model.BackupLauncherRecent
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
+import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.LauncherRecentsMerge
 import com.sza.fastmediasorter.domain.model.LetterboxHaloSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -87,9 +89,13 @@ object BackupMapper {
             isEnabled = op.isEnabled,
             sourceResourcePath = src.path,
             sourceResourceType = src.type.name,
+            sourceExchangeAccount = src.exchangeAccount,
+            sourceExchangeResourceId = src.exchangeResourceId,
             operationType = op.operationType.name,
             targetResourcePath = dst?.path,
             targetResourceType = dst?.type?.name,
+            targetExchangeAccount = dst?.exchangeAccount,
+            targetExchangeResourceId = dst?.exchangeResourceId,
             fileTypeMask = op.fileTypeMask,
             fileTypeFilter = null,
             timeFilter = op.timeFilter.name,
@@ -111,21 +117,24 @@ object BackupMapper {
         backup: BackupScheduledOperation,
         resourcesByPath: Map<String, MediaResource>
     ): ScheduledOperation? {
-        val srcKey = "${backup.sourceResourcePath}|${backup.sourceResourceType}"
-        val src = resourcesByPath.values.firstOrNull {
-            it.path == backup.sourceResourcePath && it.type.name == backup.sourceResourceType
-        } ?: return null
+        val src = findResource(
+            candidates = resourcesByPath.values,
+            exchangeAccount = backup.sourceExchangeAccount,
+            exchangeResourceId = backup.sourceExchangeResourceId,
+            path = backup.sourceResourcePath,
+            type = backup.sourceResourceType
+        ) ?: return null
 
         val opType = runCatching { ScheduledOpType.valueOf(backup.operationType) }
             .getOrElse { ScheduledOpType.COPY }
 
-        val dst = if (backup.targetResourcePath != null && backup.targetResourceType != null) {
-            resourcesByPath.values.firstOrNull {
-                it.path == backup.targetResourcePath && it.type.name == backup.targetResourceType
-            }
-        } else {
-            null
-        }
+        val dst = findResource(
+            candidates = resourcesByPath.values,
+            exchangeAccount = backup.targetExchangeAccount,
+            exchangeResourceId = backup.targetExchangeResourceId,
+            path = backup.targetResourcePath,
+            type = backup.targetResourceType
+        )
 
         if (opType != ScheduledOpType.DELETE && dst == null) return null
 
@@ -153,6 +162,32 @@ object BackupMapper {
                 maxSizeBytes = backup.maxSizeBytes
             )
         )
+    }
+
+    /**
+     * S4238: the exchange identity names a resource the way the exchange directory does and outlives a
+     * changed path, so it is tried first; path and type remain the key for everything that never came from
+     * the directory and for a payload written before the identity was carried.
+     */
+    private fun findResource(
+        candidates: Collection<MediaResource>,
+        exchangeAccount: String?,
+        exchangeResourceId: String?,
+        path: String?,
+        type: String?
+    ): MediaResource? {
+        val byIdentity = if (exchangeAccount != null && exchangeResourceId != null) {
+            candidates.firstOrNull {
+                it.exchangeAccount == exchangeAccount && it.exchangeResourceId == exchangeResourceId
+            }
+        } else {
+            null
+        }
+        return byIdentity ?: if (path != null && type != null) {
+            candidates.firstOrNull { it.path == path && it.type.name == type }
+        } else {
+            null
+        }
     }
 
     fun toBackupSettings(settings: AppSettings): BackupSettings {
@@ -368,7 +403,12 @@ object BackupMapper {
             slideshowInterval = resource.slideshowInterval,
             rememberFileList = resource.rememberFileList,
             comment = resource.comment,
-            showCommandPanel = resource.showCommandPanel
+            showCommandPanel = resource.showCommandPanel,
+            hostKeyFingerprint = resource.hostKeyFingerprint,
+            altAccessPaths = resource.altAccessPaths.takeIf { it.isNotEmpty() }
+                ?.map { BackupHostPort(host = it.host, port = it.port) },
+            exchangeAccount = resource.exchangeAccount,
+            exchangeResourceId = resource.exchangeResourceId
         )
     }
 
@@ -616,7 +656,13 @@ object BackupMapper {
             slideshowInterval = backup.slideshowInterval,
             rememberFileList = backup.rememberFileList,
             comment = backup.comment,
-            showCommandPanel = backup.showCommandPanel
+            showCommandPanel = backup.showCommandPanel,
+            hostKeyFingerprint = backup.hostKeyFingerprint,
+            altAccessPaths = backup.altAccessPaths.orEmpty()
+                .filter { it.host.isNotBlank() && it.port > 0 }
+                .map { HostPort(it.host, it.port) },
+            exchangeAccount = backup.exchangeAccount,
+            exchangeResourceId = backup.exchangeResourceId
         )
     }
 

@@ -67,6 +67,6 @@ object ScheduledLogEntryParser {
         raw = line,
     )
 
-    private val OPERATIONS = setOf("COPY", "MOVE", "DELETE")
+    private val OPERATIONS = setOf("COPY", "MOVE", "DELETE", "ARCHIVE")
     private val TS_REGEX = Regex("""\d{4}-\d{2}-\d{2} \d{2}:\d{2}""")
 }

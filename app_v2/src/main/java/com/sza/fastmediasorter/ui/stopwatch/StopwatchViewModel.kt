@@ -71,7 +71,6 @@ class StopwatchViewModel @Inject constructor(
                 if (autostartPending) {
                     autostartPending = false
                     startAll()
-                    Timber.d("S4180: phone stopwatch autostart participants=%d", _state.value.participantCount)
                 }
             }
         }

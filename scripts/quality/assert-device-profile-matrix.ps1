@@ -49,7 +49,8 @@ $check = Join-Path $repoRoot 'scripts/check_device_profile_presets.ps1'
 
 if (-not (Test-Path $check)) {
     Write-Error "assert-device-profile-matrix: check script not found: $check" -ErrorAction Continue
-    exit 1
+    Write-Host "assert-device-profile-matrix: COULD NOT VERIFY (check script not found: $check)"
+    exit 2
 }
 
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
@@ -68,5 +69,11 @@ $code = $LASTEXITCODE
 
 if ($code -ne 0 -and $Gate) {
     Write-Error 'assert-device-profile-matrix: FAIL - see the violations above.' -ErrorAction Continue
+}
+# CHECK-VERDICT rule 5: the last stdout line is this wrapper's own verdict, mapped from the child's code.
+switch ($code) {
+    0 { Write-Host 'assert-device-profile-matrix: PASS' }
+    1 { Write-Host 'assert-device-profile-matrix: FAIL (see the violations above)' }
+    default { Write-Host "assert-device-profile-matrix: COULD NOT VERIFY (check_device_profile_presets.ps1 exited $code)" }
 }
 exit $code
