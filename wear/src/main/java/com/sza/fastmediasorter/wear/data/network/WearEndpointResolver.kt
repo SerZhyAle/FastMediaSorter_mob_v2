@@ -104,7 +104,6 @@ class WearEndpointResolver @Inject constructor(
         val account = source.exchangeAccount
         val resourceId = source.exchangeResourceId
         if (account == null || resourceId == null) return WearSftpRoute.Direct(resolve(source, network))
-        Timber.d("S4228: route of an exchange folder requested, bluetooth gate then direct then tunnel")
 
         val currentChannel = channelMonitor.channel.value
         // Contract 23 item CF: an exchange folder's data never rides the Bluetooth proxy; a granted network is not it.

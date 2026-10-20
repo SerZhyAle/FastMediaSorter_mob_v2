@@ -150,7 +150,6 @@ class SftpServerController @Inject constructor(
                 val running = mutableState.value as? SftpServerState.Running ?: return@withLock
                 val current = advertisedAddresses()
                 if (current == running.addresses) return@withLock
-                Timber.d("S4225: LAN addresses changed, re-advertising the share")
                 mutableState.value = running.copy(addresses = current)
                 restartTunnel()
             }

@@ -14,7 +14,6 @@ import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 import java.text.BreakIterator
 
 /**
@@ -165,7 +164,6 @@ fun View.applyTopSystemBarInsetMargin() {
             insets.getInsets(WindowInsetsCompat.Type.systemBars()).top,
             insets.getInsets(WindowInsetsCompat.Type.displayCutout()).top,
         )
-        Timber.d("S4305: top inset margin inset=$inset baseTop=${base.top}")
         val params = layoutParams as? ViewGroup.MarginLayoutParams ?: return
         val constraintParams = params as? ConstraintLayout.LayoutParams
         val goneTop = base.goneTop + inset

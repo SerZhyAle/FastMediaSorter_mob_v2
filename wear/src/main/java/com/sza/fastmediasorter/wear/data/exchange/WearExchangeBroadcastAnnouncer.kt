@@ -142,7 +142,6 @@ class WearExchangeBroadcastAnnouncer @Inject constructor(
         val self = sealing.self
         val key = boxKeyOf(sealing, relayKey)
         if (key == announced.boxKey) return
-        Timber.d("S4240: watch seals its broadcast box to ${recipients.size} devices")
         announced.boxKey = key
         announced.box = if (self == null || recipients.isEmpty() || relayKey == null) {
             null

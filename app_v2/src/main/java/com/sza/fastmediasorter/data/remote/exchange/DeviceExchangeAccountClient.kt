@@ -200,7 +200,6 @@ class DeviceExchangeAccountClient @Inject constructor(
         val key = connection.keyFingerprint ?: return
         val learned = entry.pinnedCertificate != null && (leaf != entry.pinnedCertificate || entry.pinnedKey == null)
         if (!learned) return
-        Timber.d("S4257: phone keeps the learned pin of a pinned entry")
         try {
             pins.record(entry.identity, leaf, key)
         } catch (e: IOException) {

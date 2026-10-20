@@ -22,7 +22,6 @@ import com.sza.fastmediasorter.databinding.DialogPlayerFileNumberBinding
 import com.sza.fastmediasorter.databinding.ItemPlayerFileBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.util.showBoundTo
-import timber.log.Timber
 
 /** Owns file-selection windows without retaining a second live collection or changing its order. */
 class PlayerFileSelectionManager(
@@ -36,7 +35,6 @@ class PlayerFileSelectionManager(
     val isShowing: Boolean get() = dialog?.isShowing == true
 
     fun showFiles(grid: Boolean): Boolean {
-        Timber.d("S4373: file panel opened grid=$grid")
         if (!isShowing) availableFiles()?.let { showFiles(it, grid) }
         return true
     }
@@ -83,7 +81,6 @@ class PlayerFileSelectionManager(
     }
 
     fun showNumber(): Boolean {
-        Timber.d("S4373: file number dialog opened")
         if (!isShowing) availableFiles()?.let(::showNumber)
         return true
     }

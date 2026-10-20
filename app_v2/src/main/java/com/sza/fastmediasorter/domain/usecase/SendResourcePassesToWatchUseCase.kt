@@ -32,7 +32,6 @@ class SendResourcePassesToWatchUseCase @Inject constructor(
 
     /** Returns how many of [resources]' passes reached at least one watch. */
     suspend operator fun invoke(resources: List<MediaResource>): Int {
-        Timber.d("S4228: phone sends PIN passes of protected exchange folders to the watch")
         val passes = resources.mapNotNull { passFor(it) }
         if (passes.isEmpty()) return 0
         val nodes = dataLayer.getConnectedNodes()

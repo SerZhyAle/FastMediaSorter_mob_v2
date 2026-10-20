@@ -109,7 +109,6 @@ class BroadcastPreviewProvider @Inject constructor(
         val size = renderer.encoderSize
         val portrait = size.x < size.y
         try {
-            Timber.d("S4347: addMultiPreviewSurface portrait=$portrait")
             renderer.addMultiPreviewSurface(
                 view.holder.surface,
                 MultiPreviewConfig(width = frame.width(), height = frame.height(), isPortrait = portrait),

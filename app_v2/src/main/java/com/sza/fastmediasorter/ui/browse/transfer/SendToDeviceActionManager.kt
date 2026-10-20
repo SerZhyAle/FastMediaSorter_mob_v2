@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -61,7 +60,6 @@ class SendToDeviceActionManager @Inject constructor(
         filePath: String,
         target: CrossDeviceTarget? = null
     ): Result<Unit> = withContext(ioDispatcher) {
-        Timber.d("S4231: send a file via Google Drive")
         val file = File(filePath)
         val fileName = file.name
         if (!file.isFile || !file.canRead()) {

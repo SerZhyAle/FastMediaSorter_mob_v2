@@ -83,7 +83,6 @@ class BroadcastScreenService : Service(), ConnectChecker, ClientListener {
         override fun onStop() {
             // The library stops the projection itself on our own stop, so this also fires after a user stop.
             if (isStreaming.getAndSet(false)) {
-                Timber.d("S4233: projection stopped by the platform, broadcast over")
                 stopBroadcast()
                 leaveForegroundAndStop()
             }
@@ -165,7 +164,6 @@ class BroadcastScreenService : Service(), ConnectChecker, ClientListener {
 
     @Suppress("TooGenericExceptionCaught")
     private suspend fun openSession(resultCode: Int, resultData: Intent) {
-        Timber.d("S4233: screen session opening")
         val config = readSessionConfig()
         // LIVE-BROADCAST producer rule 1: no LAN address, no session - the screen is never captured
         // for a descriptor nobody could reach.
@@ -241,7 +239,6 @@ class BroadcastScreenService : Service(), ConnectChecker, ClientListener {
             activeLensId = null,
             source = BROADCAST_SOURCE_SCREEN,
         )
-        Timber.d("S4233: screen broadcast live, RTSP endpoint published")
         Timber.d("BroadcastScreenService: RTSP screen streaming started at %s", endpoint)
     }
 

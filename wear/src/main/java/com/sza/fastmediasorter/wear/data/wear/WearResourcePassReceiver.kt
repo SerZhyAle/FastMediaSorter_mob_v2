@@ -24,7 +24,6 @@ class WearResourcePassReceiver @Inject constructor(
 ) {
 
     suspend fun handle(nodeId: String, data: ByteArray) {
-        Timber.d("S4228: watch received a PIN pass from the phone")
         val ack = when (val parsed = WearResourcePassCodec.parse(data, gson)) {
             WearResourcePassParseResult.Malformed -> refusal(requestId = "", WearResourcePassReasons.MALFORMED)
             is WearResourcePassParseResult.UnsupportedVersion -> unsupportedVersionRefusal(parsed)

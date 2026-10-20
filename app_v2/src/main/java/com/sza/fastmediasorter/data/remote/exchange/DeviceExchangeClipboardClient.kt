@@ -148,7 +148,6 @@ class DeviceExchangeClipboardClient @Inject constructor(
             ExchangeClipboardPutResult.NoRecipient
         } else {
             Timber.i("Exchange clipboard put: kind=%s size=%d sealed", meta.kind, meta.size)
-            Timber.d("S4240: phone seals a clipboard value")
             val (box, contentKey) = E2eSealedBox.sealWithKey(
                 payloadOf(meta, clearSha256),
                 E2eSealedBox.CLIPBOARD_CONTEXT,

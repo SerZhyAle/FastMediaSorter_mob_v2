@@ -213,8 +213,6 @@ class PlayerKeyboardHandler(
         if (event == null) return false
         if (textInputFocused() || callback.hasModalInput()) return false
 
-        Timber.d("S4363: player keyboard key=%s type=%s", effectiveKeyCode, currentType)
-
         // Primary path: resolve trigger → commandId → handleCommand.
         val commandId = keyBindingManager.resolve(InputTrigger.fromKeyEvent(event), DomainSurface.PLAYER)
         if (commandId != null) {
@@ -333,7 +331,6 @@ class PlayerKeyboardHandler(
 
     internal fun handleCommand(commandId: String): Boolean {
         if (callback.hasModalInput()) return false
-        Timber.d("S4362: handleCommand id=$commandId")
         val currentType = callback.getCurrentMediaType()
         return handleViewerKeyCommand(commandId, currentType) ?: when (commandId) {
             CommandId.PAUSE_PLAY, CommandId.PLAY, CommandId.PAUSE -> { handlePlayPause(); true }
@@ -430,7 +427,6 @@ class PlayerKeyboardHandler(
         if (isZoomWheel) {
             val scroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
             if (scroll != 0f) {
-                Timber.d("S4362: ctrl wheel zoom factor branch")
                 val factor = if (scroll > 0f) ViewerZoomMath.STEP else 1f / ViewerZoomMath.STEP
                 return callback.onZoomAt(factor, event.x, event.y)
             }

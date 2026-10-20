@@ -64,7 +64,6 @@ class WearAccountFoldersViewModel @Inject constructor(
 
     /** A second tap while the first is being written is a no-op, so one tap never writes twice. */
     fun attach(row: WearAccountFolderRow) {
-        Timber.d("S4228: an account folder was tapped to add to the watch")
         val target = entry ?: return
         if (attaching?.isActive == true) return
         attaching = viewModelScope.launch {

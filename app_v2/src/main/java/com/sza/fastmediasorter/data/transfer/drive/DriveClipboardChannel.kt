@@ -16,7 +16,6 @@ import com.sza.fastmediasorter.domain.transfer.CrossDeviceTransferRepository
 import com.sza.fastmediasorter.domain.transfer.DriveChannelSettings
 import com.sza.fastmediasorter.domain.transfer.DriveClipboardValue
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 import java.io.InputStream
 import java.util.UUID
 import javax.inject.Inject
@@ -36,7 +35,6 @@ class DriveClipboardChannel @Inject constructor(
 ) {
 
     suspend fun put(kind: ClipKind, name: String, mimeType: String, size: Long, open: () -> InputStream): Result<Unit> {
-        Timber.d("S4231: put the clipboard via Google Drive")
         if (!isOn()) return Result.failure(DriveChannelOff())
         val self = identity.current()
         val fileName = if (kind == ClipKind.TEXT) TEXT_FILE_NAME else name

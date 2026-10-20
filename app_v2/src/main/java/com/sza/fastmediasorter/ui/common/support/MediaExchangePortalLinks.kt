@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.common.support
 import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.ui.common.input.UiSurface
-import timber.log.Timber
 
 /**
  * S4143: the pages of the media exchange portal (`docs/media-exchange-portal/`) the app links to.
@@ -152,7 +151,6 @@ object MediaExchangePortalLinks {
     /** Opens [page] in the device language; an offline or browserless device gets the fallback dialog. */
     fun open(activity: FragmentActivity, page: Page) {
         val language = LocaleHelper.getLanguage(activity)
-        Timber.d("S4237: portal page %s opens in %s", page, language)
         DocsPageOpenManager.open(activity, urlFor(page, language))
     }
 }

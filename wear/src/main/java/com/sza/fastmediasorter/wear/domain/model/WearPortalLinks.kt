@@ -1,6 +1,4 @@
 package com.sza.fastmediasorter.wear.domain.model
-
-import timber.log.Timber
 import java.util.Locale
 
 /**
@@ -27,8 +25,6 @@ object WearPortalLinks {
      * gets the English page, never the nearest published one (SITE-STRUCTURE 0.2 item C).
      */
     fun watchExchangeUrl(language: String = Locale.getDefault().language): String {
-        Timber.d("S4237: watch portal address asked for language %s", language)
-        Timber.d("S4273: About rows open the watch page of the portal")
         return when (language.lowercase()) {
             "ru" -> WATCH_EXCHANGE_RU
             "uk" -> WATCH_EXCHANGE_UK

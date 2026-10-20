@@ -16,7 +16,6 @@ import com.sza.fastmediasorter.ui.exchange.ExchangeDirectoryViewModel
 import com.sza.fastmediasorter.ui.exchange.MyDevicesActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import timber.log.Timber
 
 /**
  * The "From my devices" dialog of the add-resource wizard. A completed batch returns to the resource list;
@@ -36,7 +35,6 @@ class ExchangeDirectoryDialogManager(
         activity.collectOnLifecycle(viewModel.state, block = ::render)
         activity.collectOnLifecycle(viewModel.pinPrompt, block = pinPrompt::render)
         activity.collectOnLifecycle(viewModel.attachmentsCompleted) {
-            Timber.d("S4402: exchange import completed; closing resource type selection")
             dialog?.dismiss()
             activity.finish()
         }
@@ -76,12 +74,10 @@ class ExchangeDirectoryDialogManager(
         dialog?.getButton(DialogInterface.BUTTON_POSITIVE)?.setOnClickListener { viewModel.attachSelected() }
         dialog?.getButton(DialogInterface.BUTTON_NEUTRAL)?.setOnClickListener { viewModel.attachAll() }
         viewModel.open()
-        Timber.d("S4348: directory dialog shown")
     }
 
     private fun render(state: ExchangeDirectoryState) {
         val view = binding ?: return
-        Timber.d("S4348: directory dialog render")
         val loaded = state as? ExchangeDirectoryState.Loaded
         val status = when {
             loaded == null -> R.string.exchange_devices_list_loading

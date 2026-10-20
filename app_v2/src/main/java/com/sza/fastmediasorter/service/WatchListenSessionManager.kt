@@ -147,7 +147,6 @@ class WatchListenSessionManager @Inject constructor(
 
     /** The stop action, from whichever surface offers it. */
     fun stop() {
-        Timber.d("S4280: stop requested while ${_listenState.value}")
         endListenSession(messageRes = null)
     }
 

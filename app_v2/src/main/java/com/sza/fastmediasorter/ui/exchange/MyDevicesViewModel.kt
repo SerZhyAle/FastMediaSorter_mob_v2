@@ -186,7 +186,6 @@ class MyDevicesViewModel @Inject constructor(
 
     private fun formatUnsupported(major: Int): ExchangeIntakeOutcome {
         Timber.i("DEVICE-EXCHANGE: connection string major %d refused as format-unsupported", major)
-        Timber.d("S4353: sign-in connection string refused as format-unsupported")
         return ExchangeIntakeOutcome.Refused(ExchangeMessageText.what(ExchangeMessage.FORMAT_UNSUPPORTED))
     }
 
@@ -204,7 +203,6 @@ class MyDevicesViewModel @Inject constructor(
     }
 
     fun signIn(request: ExchangeSignInRequest, acceptedPin: String? = null) {
-        Timber.d("S4223: sign-in form submitted, registers=${request.registers}")
         signInState.value = ExchangeSignInState.InProgress
         viewModelScope.launch {
             val result = if (request.registers) {
@@ -252,7 +250,6 @@ class MyDevicesViewModel @Inject constructor(
     fun signInAgainString(entry: DeviceExchangeAccountEntry): String? = accounts.signInAgainString(entry)
 
     fun changePassword(entry: DeviceExchangeAccountEntry, oldPassword: String, newPassword: String) {
-        Timber.d("S4223: password change requested")
         accountActionState.value = ExchangeAccountActionState.InProgress
         viewModelScope.launch {
             accountActionState.value = when (val call = accounts.changePassword(entry, oldPassword, newPassword)) {
@@ -266,7 +263,6 @@ class MyDevicesViewModel @Inject constructor(
     }
 
     fun deleteAccount(entry: DeviceExchangeAccountEntry, password: String) {
-        Timber.d("S4223: account deletion requested")
         accountActionState.value = ExchangeAccountActionState.InProgress
         viewModelScope.launch {
             accountActionState.value = when (val call = accounts.deleteAccount(entry, password)) {

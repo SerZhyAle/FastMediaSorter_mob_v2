@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.20 16:50</sub>
+<sub class="doc-stamp">26.10.20 23:43</sub>
 
 # Development Changelog
 
@@ -36982,3 +36982,4 @@ Format: | datetime | file | target | description |
 | 2026-10-20 16:50:44 | `app_v2/src/main/res/layout/activity_settings.xml` | `spec-prerelease` | Package-46 pre-release sweep: ratchet fixes (settings collapse-all as MaterialButton in 3 layouts; live-broadcast mapping moved from a UI manager to ObserveLiveBroadcastSourcesUseCase), icon inventory and legends regenerated, 28 new lexemes translated to ten locales, Play vitals read, stream catalog refreshed, setup_test_media keeps the four Docs fixtures alone; closes the 2026-10-18 sweep carry-over (translations, exchange class moves) [set of 115: app_v2/src/main/res/layout-land/activity_settings.xml, app_v2/src/main/res/layout-w600dp/activity_settings.xml, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/exchange/ObserveLiveBroadcastSourcesUseCase.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/StreamsViewModel.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/StreamSourceAdapter.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/StreamsActivity.kt, +108 more] [branch: DEBUG-v046] |
 | 2026-10-20 23:16:18 | `PLAN/S4412_bugfix-exchange-table-missing-format-unsupported-row.md` | `S4412` | Capture Draft S4412 bugfix-exchange-table-missing-format-unsupported-row [branch: DEBUG-v046] |
 | 2026-10-20 23:20:51 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and showcase update for v2.61.0202.318 - plateau merge from DEBUG-v046 [branch: DEBUG-v046] |
+| 2026-10-20 23:43:31 | `scripts/quality/assert-release-tree-binding.ps1` | `assert-release-tree-binding` | Release binding gate accepts a tested-vs-tag difference made only of store changelogs, which step 12a commits to main after the next DEBUG branch exists; any other path still refuses (release 46 false refusal) [set of 2: scripts/quality/assert-release-tree-binding.tests/Run-Tests.ps1] [branch: DEBUG-v047] |

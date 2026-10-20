@@ -81,7 +81,6 @@ class WearAccountBroadcastsViewModel @Inject constructor(
     /** A second tap while the first resolves is a no-op, so one pick never opens two players. */
     fun play(broadcast: WearAccountBroadcast, fallbackTitle: String) {
         if (playing?.isActive == true) return
-        Timber.d("S4229: a broadcast was picked from the account list")
         playing = viewModelScope.launch {
             // The resolver moves its own blocking work (the LAN probe, the bridge) onto the IO dispatcher.
             val opening = playBroadcast(broadcast, fallbackTitle)

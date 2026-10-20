@@ -78,7 +78,6 @@ class ClipboardViewModel @Inject constructor(
      * nothing (strategic goal 5).
      */
     fun getFromServer() {
-        Timber.d("S4227: get clipboard from the server tapped")
         if (state.value.server.receiving) {
             return
         }
@@ -107,7 +106,6 @@ class ClipboardViewModel @Inject constructor(
      * [sendToPhone] does, so the list is built for what the clipboard holds now.
      */
     fun openInClipboard() {
-        Timber.d("S4381: open in tapped for the watch clipboard text")
         if (state.value.openIn != null) {
             return
         }
@@ -121,7 +119,6 @@ class ClipboardViewModel @Inject constructor(
 
     /** S4381: opens the value received from the server on this visit in an application the wearer picks. */
     fun openInServerValue() {
-        Timber.d("S4381: open in tapped for the received server value")
         openIn.openReceived()
     }
 

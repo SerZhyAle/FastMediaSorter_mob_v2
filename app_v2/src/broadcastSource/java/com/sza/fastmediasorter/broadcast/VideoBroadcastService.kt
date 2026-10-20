@@ -283,7 +283,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
     private fun prepareEncoders(camera: RtspServerCamera2, config: BroadcastSessionConfig): Boolean {
         // RootEncoder rotates both the pixels and encoder dimensions for the session's display orientation.
         val rotation = CameraHelper.getCameraOrientation(this)
-        Timber.d("S4403: prepare camera rotation=$rotation size=${config.videoWidth}x${config.videoHeight}")
         val videoPrepared = camera.prepareVideo(
             config.videoWidth,
             config.videoHeight,

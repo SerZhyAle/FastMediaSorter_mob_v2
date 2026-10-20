@@ -4,7 +4,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
-import timber.log.Timber
 
 // S0238: VR-entry button visibility - open for video and pixel-media (image, gif).
 // Audio / docs / text / pdf / epub do not benefit from VR.
@@ -433,7 +432,6 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         allowVrLaunch: Boolean = false,
     ): List<PlayerCommand> {
         val file = state.currentFile ?: return emptyList()
-        Timber.d("S4325: buildActiveCommands file=%s stream=%b", file.name, state.isLiveVideoStream)
 
         // S0631: live video stream profile. A stream is not a managed file, so delete/rename/edit-file/
         // copy/move/slideshow/favorite/sleep-timer etc. are inapplicable and hidden. Return only the

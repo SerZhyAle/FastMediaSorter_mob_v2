@@ -69,7 +69,6 @@ class BroadcastSharePanelManager @Inject constructor(
         }
         // Outside the share panel: the way to start is shown before there is anything to share.
         binding.btnBroadcastPortalStart.setOnClickListener {
-            Timber.d("S4273: go on air link tapped on the broadcast control screen")
             MediaExchangePortalLinks.open(activity, MediaExchangePortalLinks.Page.BROADCAST_START)
         }
     }

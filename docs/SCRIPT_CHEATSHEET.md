@@ -8703,9 +8703,6 @@ scripts/spec_catalog/spec-next-preflight.ps1
     -NoDrift                   [SwitchParameter]
     -Format                    [String] = 'json'  {json|table}
     -MaxScan                   [Int32] = 25
-    -Claim                     [SwitchParameter]
-    -ClaimAs                   [String] = ''
-    -Reason                    [String] = 'spec-next-preflight'
     -AdditionalExclude         [String[]] = @()
   Exit: 2 - usage error only.
 ```

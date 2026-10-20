@@ -707,7 +707,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
     private fun setupCollapseAllButton() {
         binding.btnCollapseAllGroups.setOnClickListener {
-            Timber.d("S4394: collapse-all clicked")
             (getSettingsFragment(binding.viewPager.currentItem) as? BaseSettingsFragment)?.collapseAllSections()
         }
         binding.viewPager.post { refreshCollapseAllButton() }
@@ -728,7 +727,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         fragment.observeCollapseState { anyExpanded ->
             if (binding.viewPager.currentItem == position) {
                 binding.btnCollapseAllGroups.isVisible = anyExpanded
-                Timber.d("S4394: collapse-all visible=$anyExpanded")
             }
         }
     }

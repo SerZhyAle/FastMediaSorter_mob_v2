@@ -100,7 +100,6 @@ class StreamsDeviceBroadcastsViewModel @Inject constructor(
         ImportStreamBroadcastUseCase.ImportResult.InvalidDescriptor -> R.string.broadcast_import_malformed
         ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion -> {
             Timber.i("LIVE-BROADCAST: device broadcast schema above supported, format-unsupported")
-            Timber.d("S4353: device broadcast refused as format-unsupported")
             ExchangeMessageText.what(ExchangeMessage.FORMAT_UNSUPPORTED)
         }
     }

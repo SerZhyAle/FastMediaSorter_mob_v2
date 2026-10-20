@@ -108,7 +108,6 @@ private fun ScalingLazyListScope.broadcastItems(
 ) {
     val topStatusRes = topLevelBroadcastStatusRes(state)
     if (topStatusRes != null) {
-        Timber.d("S4340: broadcasts top status=%d", topStatusRes)
         item { StatusLine(topStatusRes) }
         return
     }

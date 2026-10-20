@@ -187,7 +187,6 @@ class ExchangeRelayUploader @Inject constructor(
                 accepted = ring != null && accepted(session, generation.broadcastId)
                 if (ring != null && accepted) {
                     publishAccepted(generation)
-                    Timber.d("S4240: phone uploads a sealed relay epoch")
                     val sealer = ExchangeRelaySealer(generation.broadcastId, source.contentType, ring) {
                         keys.isCurrent(generation.broadcastId, ring)
                     }

@@ -31,7 +31,6 @@ class ExchangeSealedContentOpener @Inject constructor(
 ) {
 
     suspend fun open(entry: DeviceExchangeAccountEntry, directory: DeviceExchangeDirectory): DeviceExchangeDirectory {
-        Timber.d("S4240: phone opens the sealed records of a directory")
         val sealing = e2e.sealing(entry, directory.devices)
         val grants = GrantTrust(e2e.grantSenders(entry))
         // Item DJ: a granted record whose box is the registering one is not listed until its replacing box arrives;
@@ -46,9 +45,6 @@ class ExchangeSealedContentOpener @Inject constructor(
             broadcasts = directory.broadcasts.filterNot { registering(it.grantId, it.sealed) }
                 .map { openBroadcast(sealing, it, grants) },
         )
-        if (opened.broadcasts.size + opened.resources.size < directory.broadcasts.size + directory.resources.size) {
-            Timber.d("S4272: guest hides a granted record that carries only the registering box")
-        }
         e2e.learnGrantSenders(entry, grants.learned)
         return opened
     }

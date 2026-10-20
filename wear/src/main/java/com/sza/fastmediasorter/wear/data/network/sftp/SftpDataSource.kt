@@ -282,7 +282,6 @@ class SftpDataSource @Inject constructor(
      */
     private suspend fun openSession(route: WearSftpRoute, network: Network? = null): Session {
         val tunnel = route as? WearSftpRoute.Tunnel
-        Timber.d("S4228: sftp session opens, tunnel=${tunnel != null}, pinProtected=${route.source.pinProtected}")
         val pin = rootProofPin(route.source)
         val connection = try {
             tunnel?.let { tunnelClient.open(it.entry, it.resourceId, network) }

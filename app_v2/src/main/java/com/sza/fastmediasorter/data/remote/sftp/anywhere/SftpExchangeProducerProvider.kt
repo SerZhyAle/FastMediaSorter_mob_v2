@@ -26,7 +26,6 @@ import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import com.sza.fastmediasorter.domain.model.SftpRendezvousResource
 import com.sza.fastmediasorter.domain.model.SftpShareId
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 import javax.net.ssl.SSLContext
@@ -51,7 +50,6 @@ class ExchangeGrantSealing(
         return when {
             audience == null -> null
             to == null -> {
-                Timber.d("S4272: phone sends a first grant with the registering box")
                 E2eSealedBox.registration(context, self)
             }
             else -> to.takeIf { it.isNotEmpty() }?.let { E2eSealedBox.seal(payload, context, self, it) }
@@ -242,7 +240,6 @@ class SftpExchangeProducerProvider @Inject constructor(
                 addProperty(KEY_DESCRIPTOR, descriptor)
                 record.root?.let { addProperty(KEY_ROOT, it) }
             }
-            Timber.d("S4240: phone publishes a folder with sealedAccess")
             val box = E2eSealedBox.seal(access, E2eSealedBox.accessContext(record.resourceId), self, recipients)
             SealedShareRecord(withheld.copy(sealedAccess = box.toString()), key)
         }

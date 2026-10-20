@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.databinding.ItemDeviceBroadcastRowBinding
 import com.sza.fastmediasorter.domain.model.ExchangeDeviceBroadcast
 import com.sza.fastmediasorter.ui.streams.DeviceBroadcastsSectionState
-import timber.log.Timber
 
 /**
  * Renders the "Broadcasts of my devices" section of the streams list (S4116 phase 07): a header that opens and
@@ -65,7 +64,6 @@ class StreamDeviceBroadcastsManager(
         portalLink.isVisible = state.expanded
         list.isVisible = items.isNotEmpty()
         if (items != renderedItems) {
-            Timber.d("S4342: rebuilding rows items=${items.size}")
             list.removeAllViews()
             items.forEach { list.addView(row(it)) }
             renderedItems = items

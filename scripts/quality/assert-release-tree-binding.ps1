@@ -22,7 +22,15 @@
                another versionCode
 
     Trees are compared, not commits: the --no-ff merge commit is a different commit with the same
-    tree when main had nothing the DEBUG branch lacked, which is the bound case. Gitignored inputs
+    tree when main had nothing the DEBUG branch lacked, which is the bound case.
+
+    One difference is bound by construction: store changelogs alone
+    (fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt). /skill-release step 12a commits
+    them to main after step 11 has already branched the next DEBUG line, so every release tag carries
+    the previous release's changelogs and no DEBUG head does (release 46, 2026-10-20: the only
+    difference was the three 261014150.txt files). They are store text, not build input, and enter no
+    artifact. A tested difference made only of such paths is reported and passes; any other path in
+    the difference still refuses. Gitignored inputs
     copied in by scripts/release-worktree-sync.txt (signing, local.properties, prebuilt AARs) are
     outside the tracked tree and outside this binding.
 
@@ -96,8 +104,16 @@ if (-not $headTree) { Exit-CannotVerify "HEAD does not resolve in $Worktree" }
 
 $findings = [System.Collections.Generic.List[string]]::new()
 
+$storeChangelogPath = '^fastlane/metadata/android/[^/]+/changelogs/\d+\.txt$'
 if ($testedTree -ne $tagTree) {
-    $findings.Add("tested: $TestedRef tree $testedTree differs from $Tag tree $tagTree - the tag carries changes CI never tested.")
+    $diffPaths = @(& git -C $Worktree diff --name-only $TestedRef $Tag 2>$null)
+    if ($LASTEXITCODE -ne 0) { Exit-CannotVerify "git diff $TestedRef $Tag failed in $Worktree" }
+    $untested = @($diffPaths | Where-Object { $_ -and $_ -notmatch $storeChangelogPath })
+    if ($untested.Count -eq 0 -and $diffPaths.Count -gt 0) {
+        Write-Host "assert-release-tree-binding: tested tree differs only in $($diffPaths.Count) store changelog file(s), which enter no artifact - $(($diffPaths | Select-Object -First 3) -join ', ')"
+    } else {
+        $findings.Add("tested: $TestedRef tree $testedTree differs from $Tag tree $tagTree - the tag carries changes CI never tested: $(($untested | Select-Object -First 5) -join ', ').")
+    }
 }
 if ($headTree -ne $tagTree) {
     $findings.Add("built: worktree HEAD tree $headTree differs from $Tag tree $tagTree - the artifact was built from another tree than the tag.")

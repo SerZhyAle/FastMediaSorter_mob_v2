@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /** S4231: what the browse-via-Google-Drive dialog says above its list (strategic 3.4). */
@@ -91,7 +90,6 @@ class DriveChannelBrowseViewModel @Inject constructor(
 
     /** Find who published the resource, then list its root; a resource nobody publishes is said in words. */
     fun open() {
-        Timber.d("S4231: open a folder via Google Drive")
         lastAction = { open() }
         _state.update { it.copy(busy = true, status = null) }
         viewModelScope.launch {

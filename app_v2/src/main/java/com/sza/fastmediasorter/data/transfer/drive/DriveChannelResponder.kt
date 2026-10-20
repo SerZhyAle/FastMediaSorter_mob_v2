@@ -58,7 +58,6 @@ class DriveChannelResponder @Inject constructor(
         val isOurs = manifest.payloadKind == CrossDevicePayloadKind.REQUEST &&
             ReceiveCrossDevicePacketUseCase.isTargetedAt(manifest, self)
         if (isOurs && handled.putIfAbsent(entry.packetId, serverNowMs) == null) {
-            Timber.d("S4231: answer a Drive channel request")
             runCatching { answer(manifest, self) }
                 .onFailure { it.rethrowIfCancellation() }
                 .onSuccess { repository.deletePacket(entry) }

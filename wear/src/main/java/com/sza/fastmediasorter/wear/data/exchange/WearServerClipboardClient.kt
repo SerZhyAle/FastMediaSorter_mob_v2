@@ -176,7 +176,6 @@ class WearServerClipboardClient @Inject constructor(
                     offer.size,
                     sealed.clearSha256,
                 )
-                Timber.d("S4240: watch seals a clipboard value")
                 val (box, contentKey) = E2eSealedBox.sealWithKey(
                     payload,
                     E2eSealedBox.CLIPBOARD_CONTEXT,

@@ -11,7 +11,6 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.PlayerMessage
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.exoplayer.video.VideoFrameMetadataListener
-import timber.log.Timber
 import java.lang.ref.WeakReference
 import java.util.ArrayDeque
 import java.util.WeakHashMap
@@ -46,7 +45,6 @@ object PlayerFrameStepManager {
     }
 
     fun stepForward(player: ExoPlayer): Boolean {
-        Timber.d("S4373: frame step forward requested")
         return clocks[player]?.step() == true
     }
 

@@ -11,7 +11,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -100,7 +99,6 @@ class WearExchangeDirectoryClient @Inject constructor(
             val result = if (self == null || box == null) {
                 null
             } else {
-                Timber.d("S4240: watch opens a folder's sealed access")
                 E2eSealedBox.open(box, E2eSealedBox.accessContext(resourceId), self, sealing::trusts)
             }
             return (result as? E2eOpenResult.Opened)?.payload

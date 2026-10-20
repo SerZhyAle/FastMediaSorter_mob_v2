@@ -401,7 +401,6 @@ class SftpServerTunnelManager @Inject constructor(
         val reason = envelope.string(DeviceExchangeEnvelope.KEY_REASON)
         val grant = control.takeIf { reason in GRANT_REFUSALS }?.oldestUnanswered() ?: return refusal(reason)
         if (grant.broadcast) broadcastGrants.markRefusedPending()
-        Timber.d("S4272: grant refusal kept the control stream")
         Timber.w("SftpServerTunnelManager: grant refused (%s)", reason)
         return null
     }
@@ -590,7 +589,6 @@ class SftpServerTunnelManager @Inject constructor(
         try {
             val stream = track(client.attach(entry, tunnelId))
             data = stream
-            Timber.d("S4240: phone answers a tunnel stream, inner TLS=${tls != null}")
             val clear: Socket = tls?.let { context ->
                 track(BroadcastTunnelTls.serve(context, stream.input, stream.output, stream)).also { secure = it }
             } ?: stream.socket

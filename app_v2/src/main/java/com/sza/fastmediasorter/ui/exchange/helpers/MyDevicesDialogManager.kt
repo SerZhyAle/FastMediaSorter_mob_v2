@@ -30,7 +30,6 @@ import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 /**
  * Every dialog of the "My devices" screen: sign-in with the certificate check of amendment D, the device list
@@ -220,13 +219,11 @@ class MyDevicesDialogManager(
             it.showProgress(activity.getString(R.string.exchange_devices_list_loading))
         }
         viewModel.openDevices(entry)
-        Timber.d("S4348: devices dialog shown")
     }
 
     fun renderDevices(state: ExchangeDevicesState) {
         val binding = devicesBinding ?: return
         val panel = devicesPanel ?: return
-        Timber.d("S4348: devices dialog render")
         when (state) {
             ExchangeDevicesState.Closed, ExchangeDevicesState.Loading ->
                 panel.showProgress(activity.getString(R.string.exchange_devices_list_loading))

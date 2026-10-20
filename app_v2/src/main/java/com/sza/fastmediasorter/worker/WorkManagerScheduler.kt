@@ -231,7 +231,6 @@ class WorkManagerScheduler @Inject constructor(
                 .addTag("sched_op_${operation.id}")
                 .addTag(TAG_SCHEDULED_OP)
                 .build()
-            Timber.d("S4232: scheduled run requested with the any-network constraint")
             WorkManager.getInstance(context).enqueueUniqueWork(
                 "sched_op_${operation.id}",
                 ExistingWorkPolicy.REPLACE,

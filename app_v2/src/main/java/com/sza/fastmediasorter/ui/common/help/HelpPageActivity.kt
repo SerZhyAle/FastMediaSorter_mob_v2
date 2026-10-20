@@ -131,7 +131,6 @@ class HelpPageActivity : BaseActivity<ActivityHelpPageBinding>() {
                 webView.loadUrl(assetUrl)
                 return@launch
             }
-            Timber.d("S4288: help body mirrored rtl")
             webView.loadDataWithBaseURL(assetUrl, html, "text/html", "utf-8", assetUrl)
         }
     }

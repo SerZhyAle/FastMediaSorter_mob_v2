@@ -95,7 +95,6 @@ class BroadcastSourceControllerImpl @Inject constructor(
     override fun startFile(uri: Uri) {
         switchJob?.cancel()
         switchJob = scope.launch {
-            Timber.d("S4234: startFile entry, stopping live sessions then routing by tracks uri=$uri")
             stopCapturedSessionsAndWait()
             stopSourceSessionsAndWait()
             // The track kinds decide the shape: a film takes the RTSP service, a music file the
@@ -115,7 +114,6 @@ class BroadcastSourceControllerImpl @Inject constructor(
     override fun startScreen(resultCode: Int, data: Intent) {
         switchJob?.cancel()
         switchJob = scope.launch {
-            Timber.d("S4233: startScreen entry, stopping live sessions then opening the projection")
             stopCapturedSessionsAndWait()
             stopSourceSessionsAndWait()
             BroadcastScreenService.start(context, resultCode, data)

@@ -184,7 +184,6 @@ class BroadcastControlManager @Inject constructor(
             binding.containerSharePanel,
             key = SECTION_SHARE_PANEL_KEY,
         )
-        Timber.d("S4336: broadcast control groups registered")
     }
 
     private fun setupPreStreamControls(
@@ -451,7 +450,6 @@ class BroadcastControlManager @Inject constructor(
         if (!wearSendAvailable || wearSendInProgress) return
 
         wearSendInProgress = true
-        Timber.d("S4261: live broadcast to watch")
         renderSendToWatch(binding, liveState)
         activity.lifecycleScope.launch {
             try {
@@ -529,7 +527,6 @@ class BroadcastControlManager @Inject constructor(
             is BroadcastState.Live -> {
                 val switching = switchTargetMode?.let { it.name != state.descriptor.mode } == true
                 if (!switching) switchTargetMode = null
-                Timber.d("S4336: live state render")
                 preStreamPreview.stop()
                 binding.btnStartBroadcast.visibility = View.GONE
                 binding.layoutLiveControls.visibility = View.VISIBLE

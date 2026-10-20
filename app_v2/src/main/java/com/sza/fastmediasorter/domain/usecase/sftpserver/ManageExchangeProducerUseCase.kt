@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import timber.log.Timber
 import javax.inject.Inject
 
 /** How a request to publish the share through the exchange ended. */
@@ -52,7 +51,6 @@ class ManageExchangeProducerUseCase @Inject constructor(
 
     /** A guest outgoing entry asks for another one, exactly as no outgoing entry does. */
     suspend fun startPublishing(): ExchangePublishStart {
-        Timber.d("S4257: publish start passes the guest producer gate")
         if (accounts.outgoingEntry()?.mayProduce != true) return ExchangePublishStart.NEEDS_OUTGOING
         server.setExchangeEnabled(true)
         server.applyExchangeSettings()

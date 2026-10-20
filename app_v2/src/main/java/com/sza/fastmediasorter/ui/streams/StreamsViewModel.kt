@@ -181,7 +181,6 @@ class StreamsViewModel @Inject constructor(
         viewModelScope.launch {
             // S4261: a broadcast with a server endpoint or `auth` travels with its descriptor and pass, never bare.
             val form = buildWatchBroadcastHandoff.get().forStoredChannel(source)
-            Timber.d("S4261: stored channel to watch, form=%s", form.javaClass.simpleName)
             if (form is BuildWatchBroadcastHandoffUseCase.Result.PasswordMissing) {
                 _events.send(StreamsEvent.Message(R.string.stream_send_to_watch_password_first))
                 return@launch
@@ -512,7 +511,6 @@ class StreamsViewModel @Inject constructor(
                 R.string.broadcast_import_malformed
             ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion -> {
                 Timber.i("LIVE-BROADCAST: descriptor schema above supported refused as format-unsupported")
-                Timber.d("S4353: broadcast import refused as format-unsupported")
                 ExchangeMessageText.what(ExchangeMessage.FORMAT_UNSUPPORTED)
             }
         }
@@ -799,7 +797,6 @@ class StreamsViewModel @Inject constructor(
 
     /** S4392: re-polls live broadcasts of the exchange account on screen start or pull-to-refresh. */
     fun refreshLiveBroadcasts() {
-        Timber.d("S4392: live broadcasts refreshed from exchange directory")
         liveRefresh.value = System.currentTimeMillis()
     }
 

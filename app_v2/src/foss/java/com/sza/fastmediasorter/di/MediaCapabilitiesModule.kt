@@ -6,7 +6,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import timber.log.Timber
 import javax.inject.Singleton
 
 /**
@@ -21,7 +20,6 @@ object MediaCapabilitiesModule {
     @Provides
     @Singleton
     fun provideMediaCapabilities(): MediaCapabilities {
-        Timber.d("S0403: foss capability set bound - no cloud, cast or watch pairing on this build")
         return MediaCapabilities(
             supportsVideo = BuildConfig.SUPPORT_VIDEO,
             supportsAudio = BuildConfig.SUPPORT_AUDIO,

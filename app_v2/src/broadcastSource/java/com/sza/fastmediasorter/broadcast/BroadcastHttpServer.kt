@@ -217,7 +217,6 @@ class BroadcastHttpServer(
                     // NanoHTTPD keeps one value per header name and writes it verbatim, so the second challenge
                     // rides in the first value behind its own field line; a second map key would print in hash
                     // order and could put MD5 ahead of SHA-256.
-                    Timber.d("S4258: http 401 with one challenge field per algorithm")
                     val fieldBreak = "\r\n${BroadcastDigest.HEADER_CHALLENGE}: "
                     val fields = BroadcastDigest.httpChallenges(nonce).joinToString(fieldBreak)
                     addHeader(BroadcastDigest.HEADER_CHALLENGE, fields)

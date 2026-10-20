@@ -112,7 +112,6 @@ class CrossDeviceTransferViewModel @Inject constructor(
      * shows (contract item CQ) - and its list follows that poll instead of a timer of its own.
      */
     fun onVisible() {
-        Timber.d("S4231: Drive queue dialog visible")
         if (demand != null) return
         demand = queue.acquire(PollDemand.ACTIVE)
         visibleJob = viewModelScope.launch {
