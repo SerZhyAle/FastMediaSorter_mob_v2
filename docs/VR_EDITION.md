@@ -4,27 +4,27 @@ title: "FastMediaSorter VR Edition"
 permalink: /docs/VR_EDITION.html
 ---
 
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.10.21 15:56</sub>
 
 # FastMediaSorter VR Edition
 
 ## What is the VR Edition?
 
-FastMediaSorter VR is a dedicated build of FastMediaSorter for VR headsets - Meta Quest 3, Quest Pro, Quest 2, and Android XR devices (Samsung Project Moohan and future). It shares the exact same codebase and features as Standard, plus the OpenXR scaffolding for stereoscopic headset rendering.
+FastMediaSorter VR is a dedicated build of FastMediaSorter for VR headsets - Meta Quest 3, Quest Pro, Quest 2, and Android XR devices. It shares the exact same codebase and features as Standard, plus the OpenXR layer for stereoscopic headset rendering.
 
 The VR edition is not a separate app - it is the same codebase built as a `vr` product flavor with an additional OpenXR rendering layer.
 
-**Where things stand today:** the immersive, per-eye headset experience is live in the `noLegal` sideload build (see the [VR Sideloading Guide](VR_SIDELOAD.md)). The `vr` flavor - the one meant for Meta Horizon Store / Google Play - builds the same OpenXR scaffolding, but its headset rendering isn't wired up yet; that work is tracked in epic S0773. Until it ships, installing `vr` gets you the full app on a headset with no working immersive mode - use `noLegal` if you want 3D immersion today.
+**Immersive mode:** the per-eye headset experience runs in the `vr` build and in the `noLegal` sideload build (see the [VR Sideloading Guide](VR_SIDELOAD.md)). The controls are on [VR Immersive Controls](VR_CONTROLS.md).
 
 ## Key Differences from Standard
 
 | Feature | Standard | VR (`vr` / `noLegal`) |
 |---------|----------|----|
 | Single-eye 3D crop for SBS/OU/180/360 content | Included, works in the flat player | Included, same code |
-| Full per-eye immersive rendering on a headset | Not available | `noLegal`: yes, today. `vr`: planned (epic S0773) |
+| Full per-eye immersive rendering on a headset | Not available | Yes |
 | Manual 3D-format override + detection-source settings | Hidden | Active (3D tab in the Control dialog, VR/3D block in Media settings) |
 | Wear OS companion | Included | Not included |
-| Target devices | Phones, tablets | Phones/tablets today; Quest and Android XR headsets once the immersive rewrite ships |
+| Target devices | Phones, tablets | Phones, tablets, Quest and Android XR headsets |
 
 ## What's Identical
 
@@ -34,38 +34,34 @@ Everything else works the same - file operations (copy, move, delete, rename), s
 
 1. **Single-eye 3D, every flavor:** SBS/OU/180/360 content is auto-detected (filename markers, MP4/Matroska metadata, or an optional aspect-ratio heuristic) and cropped to one eye so it plays back normally on any flat screen - phone, tablet, or a headset's regular 2D window. This works out of the box, no VR build required.
 
-2. **Full immersion, `noLegal` today:** on a Quest or other OpenXR headset running the `noLegal` sideload build, opening 3D content through the player's VR badge, Browse's "Open in VR Cinema" menu item, or the "Test Immersive" button in Settings starts a dedicated OpenXR session with real per-eye rendering for SBS/OU/180/360 content. Moving between files inside that session is next/previous, or through the in-headset browser described below; any button, key, or click exits back to the flat screen.
+2. **Full immersion, `vr` and `noLegal`:** on a Quest or other OpenXR headset, opening 3D content through the player's VR badge, Browse's "Open in VR Cinema" menu item, or the "Test Immersive" button in Settings starts a dedicated OpenXR session with real per-eye rendering for SBS/OU/180/360 content. A HUD strip in the headset carries the transport, a seek bar, volume, stereo depth and the audio and subtitle tracks; the thumbstick seeks, and grip with the thumbstick steps between files. **A** or **X**, or the strip's **EXIT** button, returns to the flat screen at the same position.
 
-**Browsing inside the headset:** the immersive session has its own browse window, so you are not limited to the one file that opened it. Choosing **"Open in VR Cinema"** on a *resource* (rather than on a single file) opens that resource as a tile grid in front of you. Aim the controller ray at a tile and pull the trigger to select it: folders open in place, and a video or 3D image starts in the immersive player without ever dropping back to the flat screen. Tiles carry previews, and 3D images are classified by the same SBS/OU/equirectangular detection the flat player uses.
-
-Two limits worth knowing: the in-headset browser reads **local resources only** - network and cloud sources are not offered there yet - and the grid is driven by the controller ray, not by the thumbstick.
-
-3. **`vr` flavor:** builds and installs, but its headset rendering isn't connected yet - it plays like Standard until the immersive rewrite (epic S0773) lands.
+**Browsing inside the headset:** the immersive session has its own browse window, so you are not limited to the one file that opened it. Choosing **"Open in VR Cinema"** on a *resource* (rather than on a single file) opens that resource as a tile grid in front of you. Aim the controller ray at a tile and pull the trigger, or walk the grid with the thumbstick: folders open in place, and a video or 3D image starts in the immersive player without ever dropping back to the flat screen. Tiles carry previews, and 3D images are classified by the same SBS/OU/equirectangular detection the flat player uses.
 
 ## Supported Content
 
 | Content Type | Rendering |
 |-------------|-----------|
-| SBS video (Side-by-Side) | Single-eye crop everywhere; full per-eye stereo in immersive mode (`noLegal`) |
+| SBS video (Side-by-Side) | Single-eye crop everywhere; full per-eye stereo in immersive mode |
 | OU video (Over-Under) | Same as above |
-| SBS/OU photos | Single-eye crop everywhere; per-eye stereo in immersive mode (`noLegal`) |
+| SBS/OU photos | Single-eye crop everywhere; per-eye stereo in immersive mode |
+| 180° / 360° video and photos | A hemisphere or a sphere around you in immersive mode |
 | 2D video / 2D photos | Normal playback and display, same as Standard |
 | Audio | Standard playback (inherited) |
 | Internet radio (http/HLS, ICY) | Inline audio playback via Streams mini-player |
-| Video stream / RTSP | Fullscreen player, same as Standard; not available inside the immersive OpenXR session yet |
+| Video stream / RTSP | Fullscreen player, same as Standard |
 
 ## Distribution
 
-Today, only the `noLegal` sideload build has a working immersive headset experience. The `vr` flavor below is the intended Store channel, but its headset rendering isn't wired up yet (epic S0773) - installing it gets you the full app with no working immersive mode.
-
-| Store | Platform | Build | Status |
+| Store | Platform | Build | Immersive mode |
 |-------|----------|-------|--------|
-| Meta Horizon Store | Quest 3 / Quest Pro / Quest 2 | `assembleVrRelease` | Planned - immersive mode not wired yet |
-| Google Play | Android XR devices | `bundleVrRelease` (AAB) | Planned - immersive mode not wired yet |
+| Meta Horizon Store | Quest 3 / Quest Pro / Quest 2 | `assembleVrRelease` | Yes |
+| Google Play | Android XR devices | `bundleVrRelease` (AAB) | Yes |
+| Sideload | Phones, tablets, Quest, Android XR | `noLegal` APK | Yes |
 
 Package name: `com.sza.fastmediasorter` - shared with the `standard` flavor (see Technical Constraints below).
 
-For a working 3D immersive experience today, sideload the `noLegal` build instead - see the [VR Sideloading Guide](VR_SIDELOAD.md).
+To install without a store, see the [VR Sideloading Guide](VR_SIDELOAD.md).
 
 ## Build Commands
 
@@ -93,24 +89,25 @@ To install a build on a headset, see the [VR Sideloading Guide](VR_SIDELOAD.md).
 - **XR runtime:** OpenXR 1.1.48+ is required to enter immersive mode. Without an XR runtime detected, the app plays normally in the flat player - there is no separate fallback screen.
 - **Native code:** ships the OpenXR loader AAR plus `openxr_native.so` (C++ bridge built by CMake). Adds ~8 MB of native payload over the standard build.
 - **No Wear OS companion:** headsets have no paired watch, so `SUPPORT_WEAR_COMPANION = false`.
-- **Package ID:** the `vr` flavor has no `applicationIdSuffix` of its own - it shares `com.sza.fastmediasorter` with `standard` and with the sideload-VR `noLegal` build. Only one of the three can be installed on a device at a time; installing another replaces whichever is already there. A dedicated `.vr` identity is deferred until the flavor actually ships to a store (S0555 / S0556).
+- **Package ID:** the `vr` flavor has no `applicationIdSuffix` of its own - it shares `com.sza.fastmediasorter` with `standard` and with the sideload-VR `noLegal` build. Only one of the three can be installed on a device at a time; installing another replaces whichever is already there.
 - **DTS / extended codecs:** always bundled via `fms-ffmpeg-dts.aar`. Quest hardware is uniformly arm64, so the single-ABI AAR is sufficient for every VR user.
 
 ### Distribution Channels
 
-Two flavors build the VR/XR code paths, but only one has a working immersive experience today:
+Two flavors carry the immersive VR/XR session:
 
-- **`noLegal`** - ADB sideload via Developer Mode. The all-inclusive sideload build covers phones, tablets, Quest, and Android XR in a single APK. Always ships DTS, Python+yt-dlp+NewPipeExtractor, and the full VR runtime regardless of store policy - it's the only channel where immersive headset playback actually works today. The VR feature surface is runtime-gated: on devices without an OpenXR runtime the VR controls show as disabled with an advisory notice.
-- **`vr`** - Meta Horizon Store / Google Play AAB. Stays Store-clean: no GPL extractors, no Python runtime, no yt-dlp. Builds the same OpenXR scaffolding as `noLegal`, but its immersive rendering isn't connected yet (epic S0773) - today it plays like Standard on a headset.
+- **`noLegal`** - ADB sideload via Developer Mode. The all-inclusive sideload build covers phones, tablets, Quest, and Android XR in a single APK. Always ships DTS, Python+yt-dlp+NewPipeExtractor, and the full VR runtime regardless of store policy. The VR feature surface is runtime-gated: on devices without an OpenXR runtime the VR controls show as disabled with an advisory notice.
+- **`vr`** - Meta Horizon Store / Google Play AAB. Stays Store-clean: no GPL extractors, no Python runtime, no yt-dlp. Carries the same immersive OpenXR session as `noLegal`.
 
 > **Historical note.** The current VR / noLegal surface is documented in [FEATURES.md](FEATURES.md) and [VR_SIDELOAD.md](VR_SIDELOAD.md). The legacy `vrUnlicensed` split is no longer the public reference path in this repository.
 
 ### Phone Fallback
 
-If the `vr` APK is launched on a regular phone, it works exactly like Standard - there is no dedicated fallback screen today, since the flavor's immersive rendering isn't wired up yet (epic S0773). Once that lands, a phone without an XR runtime is expected to keep using the normal flat player.
+If the `vr` APK is launched on a regular phone without an XR runtime, it works exactly like Standard and plays everything in the normal flat player.
 
 ## Related Documentation
 
 - [VR Sideloading Guide](VR_SIDELOAD.md) - how to install the VR APK on Quest without a store
+- [VR Immersive Controls](VR_CONTROLS.md) - controller bindings in the headset
 - [Features](FEATURES.md) - full feature inventory
 - [Architecture](ARCHITECTURE.md) - project architecture overview

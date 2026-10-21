@@ -3,7 +3,7 @@ layout: doc
 title: "Wear OS - How to Set Up SMB Network Storage"
 permalink: /docs/WEAR_OS_SMB_SETUP.html
 ---
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.10.21 16:08</sub>
 
 # Wear OS - How to Set Up SMB Network Storage
 
@@ -21,6 +21,18 @@ SMB allows your Wear OS watch to access files from:
 - NAS devices (Synology, QNAP, etc.)
 - Linux servers (Samba)
 
+<a id="adding-a-connection-on-the-watch-development-builds-only"></a>
+<a id="ui-steps-development-builds"></a>
+<a id="step-1-open-resources"></a>
+<a id="step-2-tap-add-smb-connection"></a>
+<a id="step-3-enter-server-details"></a>
+<a id="option-a-voice-input-recommended"></a>
+<a id="option-b-character-picker"></a>
+<a id="option-c-phone-app-see-the-phone-route-at-the-top-of-this-page"></a>
+<a id="step-4-fill-in-fields"></a>
+<a id="step-5-test-connection"></a>
+<a id="step-6-save-connection"></a>
+<a id="text-input-not-working"></a>
 ## How to add a connection: use your phone
 
 **Add network connections in the phone app. They sync to your watch automatically.** This is the normal
@@ -47,109 +59,6 @@ status and remove it. Only *creating* one belongs to the phone.
 
 ---
 
-## Adding a connection on the watch (development builds only)
-
-> **This section does not apply to the app from Google Play**, which has no network sources at all. The
-> **+ Add SMB Connection** button is present only in `noLegal` development builds. If you are looking for that button and cannot find it, that is
-> expected - use the phone instead, as described above.
-
-### UI steps, development builds
-
-### Step 1: Open Resources
-
-**On your Wear watch:**
-
-1. Open **FastMediaSorter** app
-2. Navigate to **Browse** tab
-3. Scroll down to **Resources** section
-4. Tap on **Resources** or **Add Connection**
-
-> **What you see:** A list showing:
->
-> - "📡 Resources" (title)
-> - Any previously saved connections (e.g., "Home NAS", "PC Shared")
-> - **+ Add SMB Connection** button at the bottom
-
-### Step 2: Tap "Add SMB Connection"
-
-Click the **"+ Add SMB Connection"** button
-
-> **What appears:** The "Add SMB Connection" screen with these fields:
->
-> - Server
-> - Share
-> - User  
-> - Base path
-> - Status message
-> - Test Connection button
-> - Save button
-
-### Step 3: Enter Server Details
-
-Since Wear OS has limited text input, you'll need to enter details using:
-
-#### **Option A: Voice Input (Recommended)**
-
-1. Long-press the **"Server:"** chip
-2. Say your server IP or hostname
-   - Example: "192 dot 168 dot 1 dot 50"
-   - Example: "nas dot local"
-3. Watch will display what it heard
-
-#### **Option B: Character Picker**
-
-1. Tap the **"Server:"** chip
-2. A character picker appears (tap letters/numbers)
-3. Enter your server address
-
-#### **Option C: Phone App** (see the phone route at the top of this page)
-
-1. On your **phone**, use the main app to add the network source
-2. Both devices share the same account
-3. The connection syncs automatically to your watch
-
-### Step 4: Fill in Fields
-
-**Server**: IP address or hostname
-
-- Example: `192.168.1.50` (NAS device on your network)
-- Example: `nas.local` (if using hostname)
-- Example: `192.168.1.100` (Windows PC)
-
-**Share**: Folder name to access
-
-- Example: `media` (common NAS share name)
-- Example: `SharedMedia` (Windows shared folder)
-- Example: `backup` (backup folder)
-
-**User**: Your username (if required)
-
-- Leave empty for guest access
-- Example: `admin` (NAS default)
-- Example: `user` (your login)
-
-**Password**: Your password (if required)
-
-- Swipe to reveal password field after entering username
-- Leave empty for guest access
-
-### Step 5: Test Connection
-
-1. After entering all required fields, tap **"Test Connection"** button
-2. Watch shows status:
-   - ✓ **"Connected"** - Success! Green indicator
-   - ✗ **"Failed: Access Denied"** - Check credentials
-   - ✗ **"Failed: Cannot reach server"** - Check IP/hostname
-
-### Step 6: Save Connection
-
-1. Once test succeeds, tap **"Save"** button
-2. Watch shows: **"Connection saved"**
-3. You're returned to Resources list
-4. Your new connection now appears in the list!
-
----
-
 ## Example: Adding a NAS Device
 
 **Typical settings:**
@@ -169,9 +78,6 @@ Password: your_password
 4. User: `admin`, Password: your password
 5. Tap **Save**
 6. On the watch: **Browse -> Resources** - the NAS is there, ready to browse
-
-> In a development build you can also enter these on the watch itself; see the development-builds
-> section above.
 
 ---
 
@@ -219,7 +125,7 @@ When a saved connection stops answering, you can test it without retyping anythi
 
 **Delete** sits in the same menu and still asks for confirmation before removing anything.
 
-This works for connections that arrived from your phone as well as ones typed on the watch.
+This works for every connection your phone sent to the watch.
 
 ---
 
@@ -251,13 +157,6 @@ This works for connections that arrived from your phone as well as ones typed on
   - On PC: `File Explorer → Network → Computer → see share names`
   - On NAS: Admin panel → File Services → Shared Folders
   - Try different share names
-
-### "Text input not working"
-
-- **Solutions:**
-  1. Use **voice input** (easiest on watch)
-  2. Use **phone app** to add connection, it syncs to watch
-  3. Try **character picker** popup
 
 ---
 

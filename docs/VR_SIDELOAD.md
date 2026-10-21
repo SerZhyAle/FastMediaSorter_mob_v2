@@ -4,18 +4,15 @@ title: "VR Sideloading Guide"
 permalink: /docs/VR_SIDELOAD.html
 ---
 
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.10.21 15:59</sub>
 
 # VR Sideloading Guide
 
-How to install the working immersive VR build (`noLegal`) on Meta Quest without using a store.
+How to install the immersive VR sideload build (`noLegal`) on Meta Quest without using a store.
 
-The `vr` flavor is the intended Meta Horizon Store channel. Its immersive rendering is wired up
-now - the S0773 epic that built it is finished - but it still launches into the flat panel from the
-headset library rather than straight into VR, so it is not submittable yet (S0555) - see
-[VR Edition Overview](VR_EDITION.md).
-Today the only channel with a working immersive experience is `noLegal`, which this guide
-installs.
+The `vr` flavor is the Meta Horizon Store build - see [VR Edition Overview](VR_EDITION.md). This
+guide installs the all-inclusive `noLegal` sideload build: one APK for phones, tablets, Quest and
+Android XR.
 
 ## Prerequisites
 

@@ -1,24 +1,22 @@
 ---
 layout: doc
-title: "Development Roadmap"
+title: "Releases and Requests"
 permalink: /docs/TODO_V2.html
 lang: en
 ---
 
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.10.21 16:02</sub>
 
-# Development Roadmap
+# Releases and Requests
 
-This page is a public pointer, not a promised schedule or a live export of internal planning.
-
-## Published changes
+## Published versions
 
 - [GitHub Releases](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases): downloadable versions and their release notes.
 - [Product history](PRODUCT_HISTORY.html): the published product timeline.
-- [Source change history](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/commits/main/): changes committed to `main`. A source commit is not proof that the change is released.
+- [Source change history](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/commits/main/): changes committed to `main`.
 
-## Requests and issue status
+## Requests
 
-Use [public GitHub issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) for reported problems and feature requests. Closed issues and merged pull requests are not a guarantee of store availability.
+Use [public GitHub issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) for reported problems and feature requests.
 
-Internal engineering plans and local test records are not served by this website. [Technical documentation](V2_Specification.html) describes the current source configuration; [product downloads](../index.html#download) identify available packages.
+[Technical documentation](V2_Specification.html) describes the source configuration; [product downloads](../index.html#download) list the packages.

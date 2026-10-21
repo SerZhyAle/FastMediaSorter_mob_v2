@@ -3,7 +3,7 @@ layout: doc
 title: "📖 Guías prácticas"
 permalink: /docs/HOW_TO-es.html
 ---
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.10.21 16:00</sub>
 
 <div lang="es" dir="ltr" markdown="1">
 
@@ -186,11 +186,10 @@ Estas secciones son deliberadamente más variadas que los bloques de referencia 
 **Cuándo ayuda**
 
 - Quieres revisitar grabaciones archivadas en SBS/OU/360°/180° sin una app de vídeo VR aparte.
-- Tienes una Quest y quieres probar hoy la inmersión completa con tus propios archivos, aceptando que por ahora la navegación es solo siguiente/anterior.
+- Tienes una Quest y quieres la inmersión completa con tus propios archivos, con búsqueda, paso entre archivos y una cuadrícula de exploración dentro del visor, todo desde los mandos.
 
 **Evita esto**
 
-- No esperes que la compilación `vr` de Meta Horizon Store / Google Play entre en modo inmersivo todavía - esa parte sigue en desarrollo.
 - La búsqueda, la selección de pista y subtítulos, y la profundidad estéreo están en la franja HUD dentro del visor. Las operaciones con archivos no lo están - vuelve al panel plano para copiar, mover o eliminar.
 
 ## Escucha radio por Internet en un equipo de coche o reproductor de audio
@@ -328,10 +327,6 @@ Estas secciones son deliberadamente más variadas que los bloques de referencia 
 **Cuándo ayuda**
 
 - Quieres un único centro de archivos remotos sin renunciar a las mejores herramientas especializadas.
-
-**Evita esto**
-
-- No esperes todavía la entrega desde la nube por esta vía exacta.
 
 ## Cálculos matemáticos y de texto rápidos {#quick-math-and-text-calculations}
 
@@ -544,7 +539,7 @@ Estas secciones son deliberadamente más variadas que los bloques de referencia 
 
 **Avanzado:**
 
-- **Autenticación con clave SSH:** actualmente no admitida (solo contraseña)
+- **Autenticación con clave SSH:** elige un archivo de clave privada, con frase de contraseña opcional, en lugar de una contraseña
 - **Puerto personalizado:** cambia el número de puerto si el servidor usa uno distinto del predeterminado
 
 **Solución de problemas:**
@@ -1065,7 +1060,6 @@ Los archivos eliminados van a carpetas `.trash/` y permanecen ahí hasta que se 
 - ✅ Recursos compartidos de red SMB/CIFS
 - ✅ Servidores SFTP
 - ✅ Servidores FTP
-- ❌ Almacenamiento en la nube (aún no implementado)
 
 **Consejos:**
 

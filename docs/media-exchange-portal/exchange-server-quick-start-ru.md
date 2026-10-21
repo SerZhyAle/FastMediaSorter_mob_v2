@@ -5,17 +5,13 @@ description: "Короткий список шагов, чтобы запуст�
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/exchange-server-quick-start-ru.html
 ---
-<sub class="doc-stamp">26.10.20 12:19</sub>
+<sub class="doc-stamp">26.10.21 15:52</sub>
 
 # Разверните свой сервер обмена
 
 <img src="exchange-mark/full-256.png" alt="Media Exchange Server" width="128">
 
 Это короткий список. Причины и подробности - на странице [Установка и проверка сервера обмена](exchange-server-install-ru.html). Для чего нужен сервер: [Для чего нужен сервер обмена](exchange-server-purpose-ru.html).
-
-<div class="doc-callout doc-callout-warn" markdown="1">
-**Ещё не выпущен.** Серверная программа для Windows есть в версии для разработки и ни в одном выпущенном пакете, поэтому шаги ниже описывают её так, как она создаётся.
-</div>
 
 ## Прежде чем начать {#before-you-start}
 
@@ -25,7 +21,7 @@ permalink: /docs/media-exchange-portal/exchange-server-quick-start-ru.html
 
 ## Шаги {#steps}
 
-1. **Возьмите пакет.** Сервера обмена пока нет ни в одном выпущенном пакете, поэтому ставить сегодня нечего; где он сейчас, сказано в [Серверах Windows](windows-servers-ru.html#availability). Серверная редакция, которую можно получить сегодня (winget `SerZhyAle.FastMediaSorter.Server` или установочный файл со [страницы серверной редакции](https://serzhyale.github.io/FastMediaSorter_Lite/server.html)), раздаёт папки по SFTP и сервера обмена не содержит. Не из Microsoft Store: приложение из Store не может работать как служба Windows.
+1. **Возьмите пакет.** Установите Fast Media Sorter & Sharing for Windows, отметив сервер обмена: серверную редакцию (winget `SerZhyAle.FastMediaSorter.Server` или установочный файл со [страницы серверной редакции](https://serzhyale.github.io/FastMediaSorter_Lite/server.html)) для ПК, который только раздаёт, или полный пакет для ПК, за которым вы ещё и работаете, - см. [Серверы Windows](windows-servers-ru.html#availability). Не из Microsoft Store: приложение из Store не может работать как служба Windows.
 2. **Ответьте Windows.** На **"Windows protected your PC"** нажмите **Подробнее** (**More info**), затем **Выполнить в любом случае** (**Run anyway**). На **"Do you want to allow this app to make changes to your device?"** нажмите **Да**: это добавляет службу Windows и одно правило брандмауэра для программы сервера. Установщик не подписан, поэтому Windows предупреждает.
 3. **Откройте Share Manager** и перейдите в **Media Exchange Server**. На свежей установке первый запуск проведёт вас по порту, выбору брандмауэра и службы, публичному адресу, первому аккаунту и сертификату.
 4. **Создайте первый аккаунт.** Это ваш собственный аккаунт, и этот ПК входит в него сам.

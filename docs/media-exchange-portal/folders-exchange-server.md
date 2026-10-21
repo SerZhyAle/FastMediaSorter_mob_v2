@@ -5,7 +5,7 @@ description: "How to open a folder of one of your devices from another one on an
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/folders-exchange-server.html
 ---
-<sub class="doc-stamp">26.10.15 15:10</sub>
+<sub class="doc-stamp">26.10.21 15:52</sub>
 
 # Folders through the exchange server
 
@@ -73,7 +73,5 @@ The app shows **The connection did not work** with what failed and, under **Anot
 Back to the [portal start page](index.html).
 
 ## Windows settings windows {#windows-settings-windows}
-
-For Windows builds with separate settings windows. Earlier builds keep these pages together under Manager settings. This navigation change does not make an unreleased component available. The availability statements above still apply.
 
 On Windows, sign in, publish resources and manage this PC through Manager settings, Exchange account. Local exchange-server administration has a separate window and is not a prerequisite for joining somebody else’s server. Existing remote-administration actions keep the selected remote target.

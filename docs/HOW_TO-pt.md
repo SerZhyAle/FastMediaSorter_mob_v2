@@ -3,7 +3,7 @@ layout: doc
 title: "📖 Guias Práticos"
 permalink: /docs/HOW_TO-pt.html
 ---
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.10.21 16:00</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
@@ -186,11 +186,10 @@ Estas seções são intencionalmente mais variadas do que os blocos de referênc
 **Quando isso ajuda**
 
 - Você quer rever filmagens SBS/OU/360°/180° arquivadas sem um aplicativo de mídia VR separado.
-- Você tem um Quest e quer experimentar a imersão total com seus próprios arquivos hoje, aceitando que a navegação por enquanto é apenas avançar/voltar.
+- Você tem um Quest e quer a imersão total com seus próprios arquivos, com busca, troca entre arquivos e uma grade de navegação dentro do headset, tudo pelos controles.
 
 **Evite isto**
 
-- Não espere que o build `vr` da Meta Horizon Store / Google Play entre no modo imersivo ainda - essa parte ainda está em desenvolvimento.
 - Buscar, selecionar faixa e legenda, e a profundidade estéreo ficam na faixa de HUD dentro do headset. Operações de arquivo não - volte ao painel plano para copiar, mover ou excluir.
 
 ## Reproduzir Rádio pela Internet em um Rádio Automotivo ou Player de Áudio
@@ -328,10 +327,6 @@ Estas seções são intencionalmente mais variadas do que os blocos de referênc
 **Quando isso ajuda**
 
 - Você quer um único hub de arquivos remotos sem abrir mão das melhores ferramentas especializadas.
-
-**Evite isto**
-
-- Não espere ainda a transferência para a nuvem por esse mesmo fluxo.
 
 ## Cálculos matemáticos e de texto rápidos {#quick-math-and-text-calculations}
 
@@ -544,7 +539,7 @@ Estas seções são intencionalmente mais variadas do que os blocos de referênc
 
 **Avançado:**
 
-- **Autenticação por chave SSH:** atualmente não suportada (apenas senha)
+- **Autenticação por chave SSH:** escolha um arquivo de chave privada, com frase secreta opcional, em vez de uma senha
 - **Porta personalizada:** altere o número da porta se o servidor usar uma porta não padrão
 
 **Solução de problemas:**
@@ -1065,7 +1060,6 @@ Os arquivos excluídos vão para pastas `.trash/` e permanecem lá até serem es
 - ✅ Compartilhamentos de rede SMB/CIFS
 - ✅ Servidores SFTP
 - ✅ Servidores FTP
-- ❌ Armazenamento em nuvem (ainda não implementado)
 
 **Dicas:**
 

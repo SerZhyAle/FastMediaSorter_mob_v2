@@ -3,7 +3,7 @@ layout: doc
 title: "Wear OS SMB Quick Reference"
 permalink: /docs/WEAR_OS_SMB_QUICK_REF.html
 ---
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.10.21 16:08</sub>
 
 # Wear OS SMB Quick Reference
 
@@ -12,6 +12,7 @@ permalink: /docs/WEAR_OS_SMB_QUICK_REF.html
 > **Both builds since S4029.** SMB connections added on the phone work on the watch in the version from
 > Google Play too. Typing a new connection's username and password on the watch itself is `noLegal` only.
 
+<a id="adding-on-the-watch---development-builds-only"></a>
 ## Add a Connection (on your phone)
 
 ```
@@ -38,12 +39,6 @@ Browse → Resources → tap a connection   (browse and play)
 Browse → Resources → Sync from Phone    (pull the phone list now)
 Browse → Resources → tap ⋯ → Delete     (remove a connection)
 ```
-
-### Adding on the watch - development builds only
-
-A `+ Add SMB Connection` chip appears only in development builds. If you do not see it, that is expected;
-add the connection on the phone. In those builds the fields are the same as the table above, filled by
-voice input or the character picker, then `Test Connection` and `Save`.
 
 ### Check a Saved Connection
 

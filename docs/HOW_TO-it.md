@@ -3,7 +3,7 @@ layout: doc
 title: "📖 Guide pratiche"
 permalink: /docs/HOW_TO-it.html
 ---
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.10.21 16:00</sub>
 
 <div lang="it" dir="ltr" markdown="1">
 
@@ -186,11 +186,10 @@ Queste sezioni sono volutamente più varie dei blocchi di riferimento principali
 **Quando aiuta**
 
 - Vuoi rivedere filmati archiviati in SBS/OU/360°/180° senza un'app VR dedicata separata.
-- Hai un Quest e vuoi provare oggi l'immersione completa sui tuoi file, accettando che per ora la navigazione sia solo avanti/indietro.
+- Hai un Quest e vuoi l'immersione completa sui tuoi file, con ricerca, passaggio tra i file e una griglia di navigazione nel visore, tutto dai controller.
 
 **Da evitare**
 
-- Non aspettarti che la build `vr` del Meta Horizon Store / Google Play entri già in modalità immersiva - quella parte è ancora in sviluppo.
 - La ricerca, la selezione di traccia e sottotitoli e la profondità stereo si trovano sulla barra HUD nel visore. Le operazioni sui file no - torna al pannello piatto per copiare, spostare o eliminare.
 
 ## Ascoltare la radio Internet sull'autoradio o su un lettore audio {#play-internet-radio-on-a-car-head-unit-or-audio-player}
@@ -328,10 +327,6 @@ Queste sezioni sono volutamente più varie dei blocchi di riferimento principali
 **Quando aiuta**
 
 - Vuoi un unico hub per i file remoti senza rinunciare ai migliori strumenti specialistici della categoria.
-
-**Da evitare**
-
-- Non aspettarti ancora il passaggio dal cloud tramite esattamente questo flusso.
 
 ## Calcoli matematici e testuali rapidi {#quick-math-and-text-calculations}
 
@@ -544,7 +539,7 @@ Queste sezioni sono volutamente più varie dei blocchi di riferimento principali
 
 **Avanzate:**
 
-- **Autenticazione con chiave SSH:** attualmente non supportata (solo password)
+- **Autenticazione con chiave SSH:** scegli un file di chiave privata, con passphrase facoltativa, al posto della password
 - **Porta personalizzata:** cambia il numero di porta se il server ne usa una non predefinita
 
 **Risoluzione dei problemi:**
@@ -1065,7 +1060,6 @@ I file eliminati vanno nelle cartelle `.trash/` e vi restano finché non vengono
 - ✅ Condivisioni di rete SMB/CIFS
 - ✅ Server SFTP
 - ✅ Server FTP
-- ❌ Archiviazione cloud (non ancora implementato)
 
 **Suggerimenti:**
 

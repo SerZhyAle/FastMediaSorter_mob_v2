@@ -24,7 +24,7 @@ steps:
     id: meet-companion
     title: Meet Fast Media Sorter & Sharing for Windows
     text: |
-      [Fast Media Sorter & Sharing for Windows](term:windows-companion) is a program for the PC, not for the phone. It has three optional parts - a viewer and sorter, folder sharing and the exchange server, which is not released yet - and this page is about folder sharing: picking a folder or two and publishing them so this app can open them, no NAS and no typing a server address by hand. Install the program [viewer first](../../docs/media-exchange-portal/windows-servers.html#viewer-first), or [server first](../../docs/media-exchange-portal/windows-servers.html#server-first) for a PC that only serves. The first-time [welcome wizard](term:welcome-wizard)'s Network sources page already mentions it, with a short note - "Media on a Windows PC? Fast Media Sorter & Sharing for Windows shares those folders here in a couple of clicks - no server setup needed." - next to a **Get the Windows app** button that opens its site.
+      [Fast Media Sorter & Sharing for Windows](term:windows-companion) is a program for the PC, not for the phone. It has three optional parts - a viewer and sorter, folder sharing and the exchange server - and this page is about folder sharing: picking a folder or two and publishing them so this app can open them, no NAS and no typing a server address by hand. Install the program [viewer first](../../docs/media-exchange-portal/windows-servers.html#viewer-first), or [server first](../../docs/media-exchange-portal/windows-servers.html#server-first) for a PC that only serves. The first-time [welcome wizard](term:welcome-wizard)'s Network sources page already mentions it, with a short note - "Media on a Windows PC? Fast Media Sorter & Sharing for Windows shares those folders here in a couple of clicks - no server setup needed." - next to a **Get the Windows app** button that opens its site.
 
       Whatever it shares arrives here as an ordinary [SFTP](term:sftp) [resource](term:resource), read-only or writable, sitting on the main screen next to everything else - there is no separate "companion folder" type to learn.
   - number: 2
@@ -110,6 +110,6 @@ next_recipes:
     description: The overview of every kind of network and cloud place this app can open.
 ---
 
-<sub class="doc-stamp">26.10.20 12:20</sub>
+<sub class="doc-stamp">26.10.21 15:53</sub>
 
 Fast Media Sorter & Sharing for Windows publishes PC folders so this app opens them with no server address to type - bring them in with a file or a QR scan, and the connection follows the phone off the home network and back.

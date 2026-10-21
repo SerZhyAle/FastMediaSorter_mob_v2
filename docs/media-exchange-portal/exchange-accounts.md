@@ -5,7 +5,7 @@ description: "How an account on an exchange server is created from an invitation
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-accounts.html
 ---
-<sub class="doc-stamp">26.10.15 14:25</sub>
+<sub class="doc-stamp">26.10.21 15:52</sub>
 
 # Accounts, invitations and passwords
 
@@ -88,7 +88,5 @@ A request that would cross a limit is refused and changes nothing; a limit lower
 Back to [the exchange server](exchange-server.html) or to the [portal start page](index.html).
 
 ## Windows settings windows {#windows-settings-windows}
-
-For Windows builds with separate settings windows. Earlier builds keep these pages together under Manager settings. This navigation change does not make an unreleased component available. The availability statements above still apply.
 
 On Windows, sign in, publish resources and manage this PC through Manager settings, Exchange account. Local exchange-server administration has a separate window and is not a prerequisite for joining somebody else’s server. Existing remote-administration actions keep the selected remote target.
