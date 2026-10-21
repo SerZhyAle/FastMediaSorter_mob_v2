@@ -79,7 +79,7 @@ steps:
     text: |
       In the same card, the **Access from anywhere** section can register the phone's server on an exchange server, so devices on any network reach it without a VPN or port forwarding. Switch on **Exchange server** - "Reach this server from any network through your exchange server" - fill in the **Exchange server address**, the **Exchange server port** and the **Exchange server password** (at least 10 characters with upper- and lower-case Latin letters and digits), and tap **Save server**. The status line moves from "Only reachable on the local network" to "Reachable from anywhere through" and the server's name once the exchange server accepts the phone. The section is off by default.
 
-      A pairing code shown afterwards carries the exchange server too: a phone that scans it falls back to the relayed connection when no direct address answers, still checking the same host key. **New access link** makes every code shared earlier stop opening this server. No public exchange server is running yet; what works today instead is on the [media exchange portal](../../docs/media-exchange-portal/exchange-server.html).
+      A pairing code shown afterwards carries the exchange server too: a phone that scans it falls back to the relayed connection when no direct address answers, still checking the same host key. **New access link** makes every code shared earlier stop opening this server. To reach the phone from any network with no port forwarded, run your own exchange server or join one a person you know runs - see the [media exchange portal](../../docs/media-exchange-portal/exchange-server.html).
 
       **Signed in to Google Drive on both devices?** Switch on **Share access through Google Drive** in the same card - it is off by default. While the server runs, the phone then keeps its current address and sign-in details in the app's private space of your Drive, so another device on the same Google account opens the paired share at its new address after a network change, without scanning the code again - as long as it can reach the phone at all.
 outcome: |
@@ -107,6 +107,6 @@ next_recipes:
     description: The overview of every kind of network and cloud place this app can open.
 ---
 
-<sub class="doc-stamp">26.10.10 14:45</sub>
+<sub class="doc-stamp">26.10.21 15:53</sub>
 
 Share folders straight from this phone over SFTP - pick them with the folder picker, sign in with a password or an SSH key, and pair another FastMediaSorter in one scan instead of typing an address.

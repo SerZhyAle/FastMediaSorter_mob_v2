@@ -3,7 +3,7 @@ layout: doc
 title: "📖 Guides pratiques"
 permalink: /docs/HOW_TO-fr.html
 ---
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.10.21 16:00</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
@@ -186,11 +186,10 @@ Ces sections sont volontairement plus variées que les blocs de référence de b
 **Quand c'est utile**
 
 - Vous voulez revoir des images SBS/OU/360°/180° archivées sans une application VR dédiée séparée.
-- Vous avez un Quest et voulez essayer l'immersion complète sur vos propres fichiers dès aujourd'hui, en acceptant que la navigation soit pour l'instant limitée au suivant/précédent.
+- Vous avez un Quest et voulez l'immersion complète sur vos propres fichiers, avec la recherche, le passage d'un fichier à l'autre et une grille de navigation dans le casque, le tout aux manettes.
 
 **À éviter**
 
-- Ne vous attendez pas encore à ce que le build `vr` du Meta Horizon Store / Google Play entre en mode immersif - cette partie est encore en développement.
 - La recherche, la sélection de piste et de sous-titres et la profondeur stéréo se trouvent sur la bande HUD dans le casque. Les opérations sur les fichiers, non - revenez au panneau plat pour copier, déplacer ou supprimer.
 
 ## Écouter la radio Internet sur un autoradio ou un lecteur audio
@@ -328,10 +327,6 @@ Ces sections sont volontairement plus variées que les blocs de référence de b
 **Quand c'est utile**
 
 - Vous voulez un seul hub de fichiers distants sans renoncer aux meilleurs outils spécialisés du marché.
-
-**À éviter**
-
-- Ne vous attendez pas encore au transfert cloud via exactement ce flux.
 
 ## Calculs rapides sur du texte {#quick-math-and-text-calculations}
 
@@ -544,7 +539,7 @@ Ces sections sont volontairement plus variées que les blocs de référence de b
 
 **Avancé :**
 
-- **Authentification par clé SSH :** actuellement non prise en charge (mot de passe uniquement)
+- **Authentification par clé SSH :** choisissez un fichier de clé privée, avec une phrase secrète facultative, à la place d'un mot de passe
 - **Port personnalisé :** changez le numéro de port si le serveur utilise un port non standard
 
 **Dépannage :**
@@ -1065,7 +1060,6 @@ Les fichiers supprimés vont dans des dossiers `.trash/` et y restent jusqu'à c
 - ✅ Partages réseau SMB/CIFS
 - ✅ Serveurs SFTP
 - ✅ Serveurs FTP
-- ❌ Stockage cloud (pas encore implémenté)
 
 **Astuces :**
 

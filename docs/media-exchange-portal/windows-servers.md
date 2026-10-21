@@ -1,21 +1,21 @@
 ---
 layout: doc
 title: "Windows servers: sharing PC folders to your devices"
-description: "What Fast Media Sorter & Sharing for Windows does for exchange: its three optional parts - viewer, folder sharing over SFTP and the exchange server - two ways to start, what is released and what is not, pairing a phone by QR code or file, one code with several addresses, and the always-on Server edition."
+description: "What Fast Media Sorter & Sharing for Windows does for exchange: its three optional parts - viewer, folder sharing over SFTP and the exchange server - two ways to start, what each package holds, pairing a phone by QR code or file, one code with several addresses, and the always-on Server edition."
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/windows-servers.html
 ---
-<sub class="doc-stamp">26.10.20 12:32</sub>
+<sub class="doc-stamp">26.10.21 16:08</sub>
 
 # Windows servers: sharing PC folders to your devices
 
-On a Windows PC the exchange is done by **[Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)**. It is one program with **three optional parts**, and you install the ones you came for: a **viewer and sorter** for photos and videos, **folder sharing** that opens the PC's folders on your phone, tablet, TV or headset, and the **Media Exchange Server**. This page is kept together with the Windows product. It keeps the two server roles apart, and it separates what is released from what exists only in the development version.
+On a Windows PC the exchange is done by **[Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/)**. It is one program with **three optional parts**, and you install the ones you came for: a **viewer and sorter** for photos and videos, **folder sharing** that opens the PC's folders on your phone, tablet, TV or headset, and the **Media Exchange Server**. This page is kept together with the Windows product. It keeps the two server roles apart and says which package holds which part.
 
 ## Three optional parts {#three-parts}
 
 - **Viewer and sorter.** Looks through and sorts photos and videos on the PC, one key per file. It needs no server and no account.
 - **Folder sharing.** Shares the folders you pick over SFTP, so a phone, a tablet, a TV, a headset or any SFTP app opens them straight from the PC - on your own network, or from anywhere with one forwarded port. It needs no account and no exchange server. FileDO virtual disks are an optional extra of this sharing, off until you register a disk. Details: [what you share](#what-you-share).
-- **Media Exchange Server.** A different part, not a mode of folder sharing. Folder sharing hands a PC's folders to a device that can reach the PC. The exchange server is a meeting point for devices that cannot: each one dials out to it, and one account lists all your folders and broadcasts. **It is not released yet** - see [what is released](#availability) and [Exchange server](exchange-server.html).
+- **Media Exchange Server.** A different part, not a mode of folder sharing. Folder sharing hands a PC's folders to a device that can reach the PC. The exchange server is a meeting point for devices that cannot: each one dials out to it, and one account lists all your folders and broadcasts. See [what each package holds](#availability) and [Exchange server](exchange-server.html).
 
 You do not need all three. Start with the viewer and add folder sharing if you want it, or start with a server and add the viewer if you want it: choosing the viewer does not require a server, and choosing a server does not require the viewer.
 
@@ -37,20 +37,17 @@ For a PC whose job is to stay available. Folder sharing runs as a Windows servic
 
 - **Get it:** winget `SerZhyAle.FastMediaSorter.Server`, or the setup file from the [Server edition page](https://serzhyale.github.io/FastMediaSorter_Lite/server.html).
 - **One visible approval.** The installer registers the service and asks for administrator approval once, in a prompt you see.
-- **What it holds today:** folder sharing as a service and the viewer as an optional part. It does not contain the exchange server yet.
+- **What it holds:** folder sharing as a service, with the exchange server and the viewer as optional parts.
 
-## What is released {#availability}
-
-"Released" means the part is in a released package of the Windows program. The development version carries more; the sections [The PC as a client too](#pc-as-client) and [Planned](#planned) list it.
+## What each package holds {#availability}
 
 | | Viewer and sorter | Folder sharing | Media Exchange Server |
 |:--|:--|:--|:--|
-| Released | Yes | Yes | **No.** Development version only; nothing to download |
-| Viewer first (full package) | Always installed | In the Full setup type, left out of Compact; off until you switch it on | Planned as an optional part, unticked |
-| Server first (Server edition) | Optional part, unticked | The whole job: a Windows service from boot | Planned as an optional part, unticked |
+| Viewer first (full package) | Always installed | In the Full setup type, left out of Compact; off until you switch it on | Optional part, unticked |
+| Server first (Server edition) | Optional part, unticked | The whole job: a Windows service from boot | Optional part, unticked |
 | Microsoft Store version | Yes | Yes, in user mode only | Not in it |
-| Where it runs | While you are signed in | While you are signed in, or as a Windows service | As a Windows service (planned) |
-| Administrator prompt | None, unless you install for all users | Once to switch sharing on, which adds a firewall rule; once more to register a service | Once, to register the service and add a firewall rule (planned) |
+| Where it runs | While you are signed in | While you are signed in, or as a Windows service | As a Windows service |
+| Administrator prompt | None, unless you install for all users | Once to switch sharing on, which adds a firewall rule; once more to register a service | Once, to register the service and add a firewall rule |
 {: .doc-table}
 
 Folder sharing and the exchange server need 64-bit Windows 10 version 1607 or newer. The 32-bit fallback viewer for Windows 7, Windows 8.1 and 32-bit Windows can open and sort media, but it cannot share.
@@ -106,26 +103,18 @@ By default the folders are reachable while you are signed in and Share Manager r
 
 ## The PC as a client too {#pc-as-client}
 
-<div class="doc-callout doc-callout-warn" markdown="1">
-**Development version, not in the latest release.** The two points below describe the Windows viewer as it is being built. A released Fast Media Sorter & Sharing for Windows does not have them yet.
-</div>
-
 - **Opening SFTP servers like a folder.** The viewer opens an SFTP server - a NAS, another PC's Share Manager, or the built-in SFTP server of a phone - as a folder from its list of resources.
 - **Configuration files.** It imports a `.fmscfg` file and exports a saved server as one (64-bit version only).
+- **Playing straight from an address.** The viewer's **Open URL..** command plays a video straight from an `smb://`, `sftp://`, `ftp://`, `http(s)://` or `rtsp://` address, without copying the file first.
 
-What is released today is the viewer's **Open URL..** command: it plays a video straight from an `smb://`, `sftp://`, `ftp://`, `http(s)://` or `rtsp://` address, without copying the file first.
+<a id="planned"></a>
+## The PC in your exchange account {#exchange-member}
 
-## Planned {#planned}
+- **Media Exchange Server** - the third part, separate from folder sharing: a connect service for a share that has neither a reachable address nor a forwarded port, and the meeting point of the devices on one account. It is an optional part, unticked, in both starts, and it is not in the Microsoft Store version. It is administered from Share Manager. Whoever runs a server is its operator. See [Exchange server](exchange-server.html).
+- **The PC as a member of an exchange account** - it publishes its shares and opens the folders of other devices through the server.
+- **Broadcasting from the PC** - screen, camera, microphone and system sound. See [Live broadcast](live-broadcast.html).
 
-<div class="doc-callout doc-callout-warn" markdown="1">
-**Not available yet.** Nothing below is in a release, and no exchange server is running anywhere. The Windows side is being prepared in the development version so that it is ready when the server is.
-</div>
-
-- **Media Exchange Server** - the third part, separate from folder sharing: a connect service for a share that has neither a reachable address nor a forwarded port, and the meeting point of the devices on one account. Both Windows installers already define it as an optional part, unticked, but release builds leave it out, so no released package includes it. When a release carries it, it will be an optional part in both starts and will not be in the Microsoft Store version; it will be administered from Share Manager. Whoever runs a server is its operator. See [Exchange server](exchange-server.html).
-- **The PC as a member of an exchange account** - publishing its shares and opening the folders of other devices through the server.
-- **Broadcasting from the PC** - screen, camera, microphone and system sound. Fast Media Sorter & Sharing for Windows does not broadcast today. See [Live broadcast](live-broadcast.html).
-
-Playing live broadcasts on a Windows PC works today in [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/).
+Live broadcasts also play on a Windows PC in [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/).
 
 ## Step-by-step guides {#guides}
 
@@ -135,8 +124,6 @@ Playing live broadcasts on a Windows PC works today in [STREAMS Player](https://
 Back to the [portal start page](index.html).
 
 ## Windows settings windows {#windows-settings-windows}
-
-For Windows builds with separate settings windows. Earlier builds keep these pages together under Manager settings. This navigation change does not make an unreleased component available. The availability statements above still apply.
 
 Open Manager settings for startup, theme, language, the remote exchange account, publishing, clipboard and scheduled file operations. Open SFTP sharing settings for the SFTP port, LAN-only policy, connection limit and Hosting page. Administer the installed local server in Exchange server settings. A remote account requires no local exchange-server installation.
 

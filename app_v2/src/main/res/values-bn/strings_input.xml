@@ -133,7 +133,6 @@
     <string name="keybinding_label_vr_zoom_end">জুম শেষ</string>
     <string name="keybinding_label_vr_zoom_grip">জুম (গ্রিপ)</string>
     <string name="keybinding_label_vr_zoom_start">জুম শুরু</string>
-    <string name="keybinding_remap_not_impl">সবকিছু রিসেট করুন - শীঘ্রই আসছে</string>
     <string name="keybinding_remap_reset_all">সব রিসেট করুন</string>
     <string name="keybinding_remap_search_hint">অনুসন্ধান কমান্ডসমূহ..</string>
     <string name="keybinding_row_remap">বাইন্ডিং সম্পাদনা করুন</string>

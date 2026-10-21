@@ -3,7 +3,7 @@ layout: doc
 title: "📖 How-To Guides"
 permalink: /docs/HOW_TO.html
 ---
-<sub class="doc-stamp">26.10.16 22:21</sub>
+<sub class="doc-stamp">26.10.21 16:00</sub>
 
 # 📖 How-To Guides
 
@@ -186,11 +186,10 @@ These sections are intentionally more varied than the core reference blocks belo
 **When It Helps**
 
 - You want to revisit archived SBS/OU/360°/180° footage without a separate VR media app.
-- You have a Quest and want to try full immersion on your own files today, accepting that navigation is next/previous only for now.
+- You have a Quest and want full immersion on your own files, with seeking, file stepping and an in-headset browse grid on the controllers.
 
 **Avoid This**
 
-- Do not expect the Meta Horizon Store / Google Play `vr` build to enter immersive mode yet - that part is still in development.
 - Seeking, track and subtitle selection and stereo depth are on the HUD strip in the headset. File operations are not - drop back to the flat panel to copy, move or delete.
 
 ## Play Internet Radio on a Car Head Unit or Audio Player
@@ -328,10 +327,6 @@ These sections are intentionally more varied than the core reference blocks belo
 **When It Helps**
 
 - You want one remote file hub without giving up best-in-class specialist tools.
-
-**Avoid This**
-
-- Do not expect cloud handoff through this exact flow yet.
 
 ## Quick Math & Text Calculations
 
@@ -544,7 +539,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **Advanced:**
 
-- **SSH Key authentication:** Currently not supported (password only)
+- **SSH key authentication:** pick a private key file, with an optional passphrase, instead of a password
 - **Custom port:** Change port number if server uses non-default
 
 **Troubleshooting:**
@@ -1065,7 +1060,6 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 - ✅ SMB/CIFS network shares
 - ✅ SFTP servers
 - ✅ FTP servers
-- ❌ Cloud storage (not yet implemented)
 
 **Tips:**
 

@@ -5,17 +5,13 @@ description: "The short list of steps to run your own exchange server on a Windo
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server-quick-start.html
 ---
-<sub class="doc-stamp">26.10.20 12:19</sub>
+<sub class="doc-stamp">26.10.21 15:52</sub>
 
 # Deploy your own exchange server
 
 <img src="exchange-mark/full-256.png" alt="Media Exchange Server" width="128">
 
 This is the short list. The reasons and the details are on [Installing and checking your exchange server](exchange-server-install.html). What the server is for: [What the exchange server is for](exchange-server-purpose.html).
-
-<div class="doc-callout doc-callout-warn" markdown="1">
-**Not released yet.** The server program for Windows is in the development version and in no released package, so the steps below describe it as it is being built.
-</div>
 
 ## Before you start {#before-you-start}
 
@@ -25,7 +21,7 @@ This is the short list. The reasons and the details are on [Installing and check
 
 ## Steps {#steps}
 
-1. **Get the package.** The exchange server is in no released package yet, so there is nothing to install today; [Windows servers](windows-servers.html#availability) says where it stands. The Server edition you can get today (winget `SerZhyAle.FastMediaSorter.Server`, or the setup file from the [Server edition page](https://serzhyale.github.io/FastMediaSorter_Lite/server.html)) shares folders over SFTP and does not contain the exchange server. Not from the Microsoft Store: a Store app cannot run as a Windows service.
+1. **Get the package.** Install Fast Media Sorter & Sharing for Windows with the exchange server ticked: the Server edition (winget `SerZhyAle.FastMediaSorter.Server`, or the setup file from the [Server edition page](https://serzhyale.github.io/FastMediaSorter_Lite/server.html)) for a PC that only serves, or the full package for a PC you also work on - see [Windows servers](windows-servers.html#availability). Not from the Microsoft Store: a Store app cannot run as a Windows service.
 2. **Answer Windows.** On **"Windows protected your PC"** click **More info**, then **Run anyway**. On **"Do you want to allow this app to make changes to your device?"** click **Yes**: it adds the Windows service and one firewall rule for the server program. The installer is not signed, so Windows warns.
 3. **Open Share Manager** and go to **Media Exchange Server**. On a fresh install the first-run guide walks you through the port, the firewall and service choices, the public address, the first account and the certificate.
 4. **Create the first account.** It is your own account, and the PC joins it by itself.

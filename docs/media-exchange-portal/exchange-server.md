@@ -5,7 +5,7 @@ description: "One account for all your devices and access from any network witho
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server.html
 ---
-<sub class="doc-stamp">26.10.20 12:24</sub>
+<sub class="doc-stamp">26.10.21 16:08</sub>
 
 # Exchange server: your devices from any network
 
@@ -38,11 +38,7 @@ On one Wi-Fi network the devices still connect to each other directly. A folder 
 
 ## Where the server comes from {#where-the-server-comes-from}
 
-<div class="doc-callout doc-callout-warn" markdown="1">
-**Not released yet.** The server program for Windows is in the development version of [Fast Media Sorter & Sharing for Windows](windows-servers.html), and no released package contains it. Nothing is offered for download, and no exchange server is running anywhere.
-</div>
-
-The exchange server is the third optional part of that program, next to the viewer and sorter and to folder sharing. It is not folder sharing: sharing hands a PC's folders to a device that can reach the PC, while the exchange server is a meeting point for devices that cannot. When a release carries it, it will be an optional part, unticked by default, whichever way you start - [viewer first](windows-servers.html#viewer-first) or [server first](windows-servers.html#server-first). The Microsoft Store version will not carry it, because it runs in user mode only and a Store app cannot run as a Windows service. What each part is and where it is released: [Windows servers](windows-servers.html#availability).
+The exchange server is the third optional part of [Fast Media Sorter & Sharing for Windows](windows-servers.html), next to the viewer and sorter and to folder sharing. It is not folder sharing: sharing hands a PC's folders to a device that can reach the PC, while the exchange server is a meeting point for devices that cannot. It is an optional part, unticked by default, whichever way you start - [viewer first](windows-servers.html#viewer-first) or [server first](windows-servers.html#server-first). The Microsoft Store version does not carry it, because it runs in user mode only and a Store app cannot run as a Windows service. What each package holds: [Windows servers](windows-servers.html#availability).
 
 The server is administered in Share Manager: accounts and invitations, the public address, the certificate and running it as a Windows service. How to install it, what Windows says about the installer and how to check that it works from another network: [Installing and checking your exchange server](exchange-server-install.html).
 
@@ -97,7 +93,8 @@ An account is a login and a password on one server. You create it from an invita
 - **Old codes keep working after an update**: `FMSSFTP1` codes, `.fmscfg` files, folders on your own network and saved schedules.
 - **One thing needs the same generation on both sides: encryption of content.** Folders, broadcasts and the clipboard go through a server only when the program and the server can both encrypt them end to end. With an older server the list of your devices still works, but nothing is sent through it until the server is updated; the program says so. Direct connections on your own network do not pass through a server and do not change.
 
-## Ways that need no server {#what-works-today}
+<a id="what-works-today"></a>
+## Ways that need no server {#no-server-needed}
 
 - **The home network**: a forwarded port and a public address or a dynamic DNS name make your folders reachable from anywhere - see [Home network](home-network.html).
 - **Folder sharing on a Windows PC** needs no exchange server: the Server edition runs the same SFTP sharing as a Windows service that starts at boot, keeps a PC's folders available around the clock, and paired phones keep working - see [Windows servers](windows-servers.html#editions).

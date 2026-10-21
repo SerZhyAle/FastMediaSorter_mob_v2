@@ -5,7 +5,7 @@ description: "Share folders from a media PC or a phone over your own router: dir
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/home-network.html
 ---
-<sub class="doc-stamp">26.10.20 12:17</sub>
+<sub class="doc-stamp">26.10.21 15:52</sub>
 
 # Home network: your storage, reachable from outside
 
@@ -61,7 +61,5 @@ Inside the home network the devices connect to each other directly, at full loca
 Back to the [portal start page](index.html).
 
 ## Windows settings windows {#windows-settings-windows}
-
-For Windows builds with separate settings windows. Earlier builds keep these pages together under Manager settings. This navigation change does not make an unreleased component available. The availability statements above still apply.
 
 First identify the connection: direct SFTP sharing or a connection through an exchange account. For direct SFTP, inspect Network and Hosting in SFTP sharing settings. For a remote account, inspect Exchange account in Manager settings. For the server installed on this PC, use Exchange server settings. Installed, enabled, running and reachable are different states; opening settings does not enable or start anything.

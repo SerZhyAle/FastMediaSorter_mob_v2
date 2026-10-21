@@ -3,7 +3,7 @@ layout: doc
 title: "📖 Anleitungen"
 permalink: /docs/HOW_TO-de.html
 ---
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.10.21 16:00</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
@@ -186,11 +186,10 @@ Diese Abschnitte sind bewusst vielfältiger gestaltet als die Kernreferenz-Blöc
 **Wann es hilft**
 
 - Sie möchten archivierte SBS/OU/360°/180°-Aufnahmen ansehen, ohne eine separate VR-Medien-App zu benötigen.
-- Sie besitzen eine Quest und möchten schon heute die volle Immersion mit Ihren eigenen Dateien ausprobieren - und akzeptieren, dass die Navigation vorerst nur Weiter/Zurück bietet.
+- Sie besitzen eine Quest und möchten die volle Immersion mit Ihren eigenen Dateien - mit Spulen, Dateiwechsel und einem Raster zum Durchsuchen direkt im Headset, alles über die Controller.
 
 **Das sollten Sie vermeiden**
 
-- Erwarten Sie noch nicht, dass der `vr`-Build aus dem Meta Horizon Store / Google Play in den Immersiv-Modus wechselt - dieser Teil befindet sich noch in der Entwicklung.
 - Suchen, die Auswahl von Spur und Untertiteln sowie die Stereotiefe befinden sich auf der HUD-Leiste im Headset. Dateioperationen dagegen nicht - wechseln Sie zum flachen Bedienfeld zurück, um zu kopieren, zu verschieben oder zu löschen.
 
 ## Internetradio auf einem Autoradio oder Audioplayer abspielen
@@ -328,10 +327,6 @@ Diese Abschnitte sind bewusst vielfältiger gestaltet als die Kernreferenz-Blöc
 **Wann es hilft**
 
 - Sie möchten einen zentralen Hub für entfernte Dateien, ohne auf erstklassige Spezial-Tools zu verzichten.
-
-**Das sollten Sie vermeiden**
-
-- Erwarten Sie über genau diesen Ablauf noch keine Cloud-Übergabe.
 
 ## Schnelle Mathe- & Textberechnungen {#quick-math-and-text-calculations}
 
@@ -544,7 +539,7 @@ Diese Abschnitte sind bewusst vielfältiger gestaltet als die Kernreferenz-Blöc
 
 **Erweitert:**
 
-- **SSH-Schlüssel-Authentifizierung:** derzeit nicht unterstützt (nur Passwort)
+- **SSH-Schlüssel-Authentifizierung:** statt eines Passworts eine private Schlüsseldatei wählen, optional mit Passphrase
 - **Benutzerdefinierter Port:** Ändern Sie die Portnummer, wenn der Server nicht den Standard verwendet
 
 **Fehlerbehebung:**
@@ -1065,7 +1060,6 @@ Gelöschte Dateien wandern in `.trash/`-Ordner und bleiben dort, bis sie manuell
 - ✅ SMB/CIFS-Netzwerkfreigaben
 - ✅ SFTP-Server
 - ✅ FTP-Server
-- ❌ Cloud-Speicher (noch nicht implementiert)
 
 **Tipps:**
 

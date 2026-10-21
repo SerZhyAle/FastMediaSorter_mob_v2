@@ -91,7 +91,7 @@ tips:
   - "**Started in the wrong language and cannot read the menus?** Open **Settings** and look for the row with **Язык** and **Мова** in its name - it is the language row in every language."
   - "**The language download failed?** The app shows a short message and stays in its current language. Check the internet connection and pick the language again."
   - "**Switched to US units but the phone shows a 24-hour clock?** That is expected: the app follows its own **Unit system**, not the phone's clock setting."
-  - "**Want the app in a language that is not in the list?** It is not available yet; the app keeps the closest language from your phone's list, or English."
+  - "**Want the app in a language that is not in the list?** The app then keeps the closest language from your phone's list, or English."
 next_recipes:
   - title: The seven editions
     url: page:flavors.overview-and-comparison
@@ -110,6 +110,6 @@ next_recipes:
     description: Find any setting in a few taps, or by typing its name.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.21 15:53</sub>
 
 FastMediaSorter speaks thirteen languages and shows times, distances and temperatures in metric or US units. This page shows how the app picks its language, how to change it, and how to choose your units.

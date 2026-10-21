@@ -1,28 +1,26 @@
 ---
 layout: doc
-title: "Розвиток продукту"
+title: "Випуски й запити"
 permalink: /docs/TODO_V2-uk.html
 lang: uk
 ---
 
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.10.21 16:02</sub>
 
 <div lang="uk" markdown="1">
 
-# Розвиток продукту
+# Випуски й запити
 
-Ця сторінка - публічний покажчик, а не обіцяний графік чи експорт внутрішніх планів.
-
-## Опубліковані зміни
+## Опубліковані версії
 
 - [Випуски GitHub](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases): доступні версії та примітки до випуску.
 - [Історія продукту](PRODUCT_HISTORY-uk.html): опублікована хронологія.
-- [Історія вихідного коду](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/commits/main/): зміни в `main`. Коміт не доводить, що зміну вже випущено.
+- [Історія вихідного коду](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/commits/main/): зміни в `main`.
 
-## Запити та стан задач
+## Запити
 
-Повідомлення про проблеми й запити функцій є в [публічних задачах GitHub](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues). Закриття задачі або злиття PR не гарантує доступність у магазині.
+Повідомлення про проблеми й запити функцій є в [публічних задачах GitHub](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues).
 
-Внутрішні плани й локальні протоколи тестів не публікуються на сайті. [Технічна документація](V2_Specification-uk.html) описує поточні вихідні файли, а [розділ завантажень](../index-uk.html#download) показує доступні пакети.
+[Технічна документація](V2_Specification-uk.html) описує вихідні файли, а [розділ завантажень](../index-uk.html#download) показує пакети.
 
 </div>

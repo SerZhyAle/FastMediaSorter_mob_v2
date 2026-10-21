@@ -133,7 +133,6 @@
     <string name="keybinding_label_vr_zoom_end">ज़ूम समाप्त</string>
     <string name="keybinding_label_vr_zoom_grip">ज़ूम (ग्रिप)</string>
     <string name="keybinding_label_vr_zoom_start">ज़ूम शुरू करें</string>
-    <string name="keybinding_remap_not_impl">सभी रीसेट करें - जल्द ही आ रहा है</string>
     <string name="keybinding_remap_reset_all">सभी को पुनः तैयार करना</string>
     <string name="keybinding_remap_search_hint">खोज कमांड..</string>
     <string name="keybinding_row_remap">बाइंडिंग बदलें</string>

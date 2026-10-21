@@ -5,7 +5,7 @@ description: "Which Windows package carries the exchange server, what Windows sa
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server-install.html
 ---
-<sub class="doc-stamp">26.10.20 12:19</sub>
+<sub class="doc-stamp">26.10.21 15:52</sub>
 
 # Installing and checking your exchange server
 
@@ -21,14 +21,10 @@ This page is for the person who runs a server: a Windows PC that stays on, an ad
 
 ## Which package {#which-package}
 
-<div class="doc-callout doc-callout-warn" markdown="1">
-**Not released yet.** The exchange server is in the development version of [Fast Media Sorter & Sharing for Windows](windows-servers.html) and in no released package. The steps on this page describe it as it is being built; there is nothing to download yet.
-</div>
+The exchange server is the third optional part of [Fast Media Sorter & Sharing for Windows](windows-servers.html), separate from folder sharing, and the program has two ways to start. In both the server is an optional part, unticked by default:
 
-The exchange server is the third optional part of that program, separate from folder sharing, and the program has two ways to start. When a release carries the server, it will be an optional part, unticked by default, in both:
-
-- **[Server first](windows-servers.html#server-first)** - for a PC whose job is to stay available: the server runs as a Windows service that starts with Windows. The Server edition you can get today (winget `SerZhyAle.FastMediaSorter.Server`, or the setup file from its [page](https://serzhyale.github.io/FastMediaSorter_Lite/server.html)) shares folders over SFTP and does not contain the exchange server.
-- **[Viewer first](windows-servers.html#viewer-first)** - the ordinary package; the exchange server in it will be an optional part that stays off until you switch it on in Share Manager. Right for a PC you also work on.
+- **[Server first](windows-servers.html#server-first)** - for a PC whose job is to stay available: the server runs as a Windows service that starts with Windows. Get the Server edition from winget `SerZhyAle.FastMediaSorter.Server`, or the setup file from its [page](https://serzhyale.github.io/FastMediaSorter_Lite/server.html).
+- **[Viewer first](windows-servers.html#viewer-first)** - the ordinary package; the exchange server in it is an optional part that stays off until you switch it on in Share Manager. Right for a PC you also work on.
 - **Not the Microsoft Store.** The Store version carries the viewer and folder sharing in user mode only, and a Store app cannot run as a Windows service.
 
 ## What the warning is {#the-warning}
@@ -109,8 +105,6 @@ Devices need one address to dial. Take the first that fits:
 Back to [the exchange server](exchange-server.html) or to the [portal start page](index.html).
 
 ## Windows settings windows {#windows-settings-windows}
-
-For Windows builds with separate settings windows. Earlier builds keep these pages together under Manager settings. This navigation change does not make an unreleased component available. The availability statements above still apply.
 
 After the server wizard finishes, use Exchange server settings to inspect the local listener and public endpoint, TLS certificate, accounts, devices, invitations, service, keep-awake, logs and remote-administration readiness. The SFTP port and service belong to SFTP sharing settings and are separate. Confirm the target component before applying changes.
 

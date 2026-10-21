@@ -133,7 +133,6 @@
     <string name="keybinding_label_vr_zoom_end">缩放结束</string>
     <string name="keybinding_label_vr_zoom_grip">变焦（手柄）</string>
     <string name="keybinding_label_vr_zoom_start">开始缩放</string>
-    <string name="keybinding_remap_not_impl">全部重置 - 即将推出</string>
     <string name="keybinding_remap_reset_all">全部重置</string>
     <string name="keybinding_remap_search_hint">搜索命令..</string>
     <string name="keybinding_row_remap">编辑按键绑定</string>

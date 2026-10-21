@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.20 12:06</sub>
+<sub class="doc-stamp">26.10.21 15:52</sub>
 
 # Media exchange and broadcasting portal - illustration set
 
@@ -61,28 +61,23 @@ shows, where it came from, what it may and may not claim, and where it belongs o
   - The Server edition runs the same worker as a Windows service that starts at boot; the full package
     can switch itself to that mode. The 32-bit fallback viewer cannot share.
 
-## Drawn ahead of the product
+## Windows behaviour the pictures show
 
-The portal must say which of these is not shipped yet, or wait until it is. Status checked 2026-10-10.
+Every picture shows shipped behaviour, and the pages describe it as available. Owner statement, 2026-10-21:
+nothing in the family is held back.
 
-- Broadcasting from a Windows PC is drawn as present by the owner's decision (`broadcast-simple`,
-  `broadcast-scheme`, `broadcast-cast` and the Windows broadcast card). Fast Media Sorter & Sharing for Windows does
-  not broadcast and has no implementation of it yet; it is planned for after the first check of the
-  exchange server. Live-broadcast playback that ships on Windows today is StreamsPlayer. The viewer of the
-  development tree can listen live to a phone or watch broadcast, but real-device acceptance has not run,
-  so no page promises a delay.
-- The exchange server (a Go program, `fms-exchange-server`, administered in Share Manager) runs and was
-  checked by the owner (S4203, section 6.2); its wire is the contract `DEVICE-EXCHANGE` with
-  `ANYWHERE-ACCESS`. No public deployment exists by decision: each person runs a server, or joins one that
-  a person they know runs. The pages `exchange-server`, `exchange-server-install`, `exchange-accounts`,
-  `exchange-clipboard` and `account-deletion` describe it as part of release 46 (S4243).
-- Everything that shows a Windows PC as a member of the exchange - the "Windows zone" of `exchange-scheme`,
-  the home and office PCs of `exchange-simple`, the Windows card `quick-scheme-1-internet` - rests on that
-  development-tree work: the PC enrols into an account, publishes its shares and opens other devices'
-  folders.
-- Cast between devices of one account is part of the same proposed contract.
-- A Windows laptop opening the home storage (`home-scheme`) works with any SFTP client today; the viewer
-  doing it as a built-in resource is in the development tree.
+- Broadcasting from a Windows PC (`broadcast-simple`, `broadcast-scheme`, `broadcast-cast` and the Windows
+  broadcast card): Fast Media Sorter & Sharing for Windows broadcasts its screen, camera, microphone and
+  system sound. Live broadcasts play on Windows in the viewer and in StreamsPlayer. No page promises a delay.
+- The exchange server (a Go program, `fms-exchange-server`, administered in Share Manager) is an optional
+  part of both Windows starts; its wire is the contract `DEVICE-EXCHANGE` with `ANYWHERE-ACCESS`. No public
+  deployment exists by decision: each person runs a server, or joins one that a person they know runs.
+- A Windows PC as a member of the exchange - the "Windows zone" of `exchange-scheme`, the home and office
+  PCs of `exchange-simple`, the Windows card `quick-scheme-1-internet`: the PC enrols into an account,
+  publishes its shares and opens other devices' folders.
+- Cast between devices of one account, per the same contract.
+- A Windows laptop opens the home storage (`home-scheme`) as a built-in resource of the viewer, or with any
+  SFTP client.
 
 ## Addresses on the pictures
 
