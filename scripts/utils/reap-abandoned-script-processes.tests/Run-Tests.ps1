@@ -1,4 +1,5 @@
 #requires -Version 7.0
+# Parallel: serial
 <#
 .SYNOPSIS
     Contract suite for scripts/utils/reap-abandoned-script-processes.ps1 (S2610).

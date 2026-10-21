@@ -355,7 +355,11 @@
     <string name="exchange_admin_not_persisted">يبقى التغيير ساريًا حتى إعادة تشغيل الخادم.</string>
     <string name="exchange_admin_over_cap">تم إنشاء الحساب، لكن الخادم يحتوي الآن على حسابات أكثر من حدّه.</string>
     <plurals name="exchange_admin_signed_out_devices">
+        <item quantity="zero">تم تسجيل خروج %1$d أجهزة.</item>
         <item quantity="one">تم تسجيل خروج %1$d جهاز.</item>
+        <item quantity="two">تم تسجيل خروج %1$d جهازين.</item>
+        <item quantity="few">تم تسجيل خروج %1$d أجهزة.</item>
+        <item quantity="many">تم تسجيل خروج %1$d جهازًا.</item>
         <item quantity="other">تم تسجيل خروج %1$d من الأجهزة.</item>
     </plurals>
     <string name="exchange_format_unsupported">هذه الصيغة أحدث مما يدعمه هذا البرنامج. لم يُستورد شيء. استخدم برنامجًا متوافقًا.</string>

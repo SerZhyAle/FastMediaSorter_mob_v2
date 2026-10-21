@@ -155,6 +155,7 @@ $logAudit = Join-Path $repoRoot 'scripts/devtest/prerelease-log-audit.ps1'
 . (Join-Path $PSScriptRoot 'lib/wear-walk-position.ps1')
 . (Join-Path $PSScriptRoot 'lib/wear-foreign-window.ps1')
 . (Join-Path $PSScriptRoot 'lib/wear-battery.ps1')
+. (Join-Path $PSScriptRoot 'lib/invoke-child-pwsh.ps1')
 if (-not $ScreenList) { $ScreenList = Join-Path $PSScriptRoot 'wear-prerelease-screens.json' }
 
 $result = [ordered]@{
@@ -204,8 +205,7 @@ function Invoke-AdbVerb {
     param([Parameter(Mandatory)][string[]]$Arguments)
     $callArgs = @($Arguments)
     if ($DeviceId) { $callArgs += @('-DeviceId', $DeviceId) }
-    $output = & pwsh -NoProfile -File $AdbWrapper @callArgs 2>&1
-    return [pscustomobject]@{ Exit = $LASTEXITCODE; Output = ($output -join "`n") }
+    return (Invoke-ChildPwsh -Script $AdbWrapper -Arguments $callArgs)
 }
 
 # --- Device state journal (S3201) ---------------------------------------------------------------

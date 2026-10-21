@@ -16,9 +16,17 @@
     Archive layout:
         <ArchiveRoot>\<versionCode>\<variant>-deobfuscation.zip
         <ArchiveRoot>\<versionCode>\manifest.json
+        <ArchiveRoot>\<versionCode>\fgs-types.json      (standard only)
 
     The payload zip holds mapping.txt at its root and symbols/<abi>/<lib>.so.dbg
     beneath it, whichever source produced them.
+
+    fgs-types.json (S4413) records the foreground-service types of the merged
+    standard-release manifest of the tree that built the bundle: versionCode,
+    variant and the sorted types. assert-fgs-types-vs-previous.ps1 reads the newest
+    one as the previous release's baseline. A missing or unreadable merged manifest
+    only warns - the comparison then falls back to the registry - and never fails
+    the retention.
 
     Exit codes:
       0 - payload stored, or already present with an identical mapping.
@@ -55,6 +63,12 @@
     folder the build scripts already publish APKs into, so it syncs without human action
     and survives a machine reinstall.
 
+.PARAMETER MergedManifest
+    The merged standard-release manifest that fgs-types.json is read from. Default:
+    under the build directory the -Bundle (or -Mapping) path sits in, i.e.
+    <module>\build\intermediates\merged_manifests\standardRelease\, so a bundle built
+    in the release worktree is described by that worktree's manifest.
+
 .PARAMETER Force
     Overwrite an already-stored payload whose mapping differs from the incoming
     one. Without it, that case is an error rather than a silent overwrite.
@@ -79,6 +93,7 @@ param(
     [string] $Mapping,
     [string] $NativeSymbols,
     [string] $ArchiveRoot,
+    [string] $MergedManifest,
     [switch] $Force,
     [switch] $DryRun,
     [switch] $Help
@@ -197,6 +212,57 @@ function Get-StoredRecord {
     return @($manifest.variants | Where-Object { $_.variant -eq $Variant }) | Select-Object -First 1
 }
 
+# S4413: the previous release's foreground-service type set, the baseline the next
+# campaign's assess-step check compares against. A failure here warns only: the
+# payload is the retention's job, and the check falls back to the registry.
+function Write-FgsTypeSnapshot {
+    if ($Variant -ne 'standard') { return }
+    $manifestFile = $MergedManifest
+    if (-not $manifestFile) {
+        # Walk up from the source to its build directory: the bundle (or mapping) and the
+        # merged manifest that describes it live under the same tree's build output.
+        $buildDir = $null
+        $source = if ($Bundle) { $Bundle } else { $Mapping }
+        if ($source) {
+            $cursor = Split-Path -Parent ([System.IO.Path]::GetFullPath($source))
+            while ($cursor) {
+                if ((Split-Path -Leaf $cursor) -eq 'build') { $buildDir = $cursor; break }
+                $cursor = Split-Path -Parent $cursor
+            }
+        }
+        if (-not $buildDir) { $buildDir = Join-Path $PSScriptRoot '..\..\app_v2\build' }
+        $mergedRoot = Join-Path $buildDir 'intermediates\merged_manifests\standardRelease'
+        if (Test-Path -LiteralPath $mergedRoot) {
+            $found = Get-ChildItem -LiteralPath $mergedRoot -Recurse -File -Filter 'AndroidManifest.xml' -ErrorAction SilentlyContinue |
+                Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            if ($found) { $manifestFile = $found.FullName }
+        }
+    }
+    if (-not $manifestFile -or -not (Test-Path -LiteralPath $manifestFile -PathType Leaf)) {
+        Write-Warning "retain-deobfuscation: merged standard-release manifest not found, fgs-types.json not written (the FGS check falls back to the registry)."
+        return
+    }
+    try {
+        $doc = [System.Xml.XmlDocument]::new()
+        $doc.Load($manifestFile)
+        $androidNs = 'http://schemas.android.com/apk/res/android'
+        $types = [System.Collections.Generic.SortedSet[string]]::new([StringComparer]::Ordinal)
+        foreach ($service in $doc.SelectNodes('//service')) {
+            if ($service.GetAttribute('node', 'http://schemas.android.com/tools') -eq 'remove') { continue }
+            foreach ($raw in ($service.GetAttribute('foregroundServiceType', $androidNs) -split '\|')) {
+                if ($raw.Trim()) { [void]$types.Add($raw.Trim()) }
+            }
+        }
+        $snapshot = [ordered]@{ versionCode = $VersionCode; variant = $Variant; types = @($types) }
+        $snapshotPath = Join-Path $releaseDir 'fgs-types.json'
+        [System.IO.File]::WriteAllText($snapshotPath, ($snapshot | ConvertTo-Json -Depth 3))
+        Write-Host "FGS types:    $(@($types) -join ', ') -> $snapshotPath" -ForegroundColor Green
+    }
+    catch {
+        Write-Warning "retain-deobfuscation: fgs-types.json not written from $manifestFile ($($_.Exception.Message)); the FGS check falls back to the registry."
+    }
+}
+
 # Commits the staged payload, or refuses to. A stored payload is never silently
 # replaced: overwriting it would reintroduce exactly the loss this ticket exists
 # to end, only inside the archive that was supposed to prevent it.
@@ -215,6 +281,7 @@ function Complete-Retention {
     if ($stored -and $payloadPresent -and $stored.mappingSha256 -eq $MappingHash) {
         Remove-Item -LiteralPath $StagingPath -Force
         Write-Host "Already retained: $Variant at versionCode $VersionCode is identical, nothing rewritten." -ForegroundColor Green
+        Write-FgsTypeSnapshot
         exit 0
     }
 
@@ -258,6 +325,7 @@ function Complete-Retention {
     Write-Host "Stored:       mapping.txt + $SymbolCount symbol file(s) from $SourceKind" -ForegroundColor Green
     Write-Host "Payload:      $([math]::Round($record.payloadBytes / 1MB, 2)) MB" -ForegroundColor Green
     Write-Host "Manifest:     $manifestPath" -ForegroundColor Green
+    Write-FgsTypeSnapshot
 }
 
 # ----------------------------------------------------------------------

@@ -52,8 +52,9 @@
 
 .PARAMETER Json
   Emit a single JSON object
-  { pass, total, failed, skipped, reason, launcherMode, shard:{index,count}, device,
-    flows:[{flow,pass,status,skipReason,log,attempts,firstAttemptStatus,firstAttemptLog,flaky,advisory}] }
+  { pass, total, failed, skipped, reason, launcherMode, shard:{index,count}, device, medianStartSeconds,
+    flows:[{flow,pass,status,skipReason,log,attempts,firstAttemptStatus,firstAttemptLog,flaky,advisory,
+            preDeviceSeconds,startSeconds,transportWaitSeconds,attemptTimings:[{preDeviceSeconds,startSeconds,transportWaitSeconds}]}] }
   instead of human-readable lines. device is the resolved target serial or null. Per flow, status,
   pass and log describe the FINAL attempt; attempts is 1 or 2 (a failed or execError first attempt is
   retried once), firstAttemptStatus and firstAttemptLog keep attempt 1, flaky is true only when
@@ -65,6 +66,20 @@
   so a consumer aggregating a release verdict must not count it as a defect (S2396). skip means the
   flow was never run because its declared precondition could not be established here (S2720) - also
   not a defect, and skipReason carries the sentence explaining it.
+
+  Start timings (S4413): each invocation passes --debug-output temp/scratch/maestro/debug/<flow>_<stamp>,
+  and that run's maestro.log yields preDeviceSeconds (last logSystemInfo line to 'Selected device')
+  and startSeconds (to the first 'Running flow'), $null when a line is missing. The flat fields are
+  the final attempt's; attemptTimings keeps every attempt. medianStartSeconds is the median of
+  startSeconds over all attempts and is also printed on the human summary line.
+
+  Child environment (S4413): every Maestro invocation runs with ANDROID_AVD_HOME pointed at the
+  empty directory temp/scratch/maestro/empty-avd-home, restored afterwards. Maestro 2.6.1 runs
+  'avdmanager list avd' three times per start and waited 30 s on each with 16 AVDs on the host;
+  measured 2026-10-21, startSeconds fell from 93.3 s to 3.7 s.
+  transportWaitSeconds is the time Wait-DeviceTransport spent proving the adb transport (get-state
+  'device' plus a shell echo, up to 20 s, one 'adb reconnect offline') before that attempt; a first
+  attempt that died on 'device offline' gets the transport proved before Reset-App, not after.
 
 .PARAMETER AllowHomeRoleGrant
   Permit flows marked '# maestro-requires: home-role' to take the ROLE_HOME system role on a
@@ -136,6 +151,17 @@ $LogDir      = Join-Path $ProjectRoot 'temp/scratch/maestro'
 # Probed once in the preflight; reported in both output modes so -Json callers see it too (S1673).
 $script:LauncherMode = 'unknown'
 $script:TargetDevice = $null
+$script:MedianStartSeconds = $null
+# Environment set on the Maestro CLI child for each invocation and restored afterwards (S4413).
+# ANDROID_AVD_HOME -> an empty directory: Maestro 2.6.1 lists connected devices by running
+# 'avdmanager list avd' three times per start and waits up to 30 s on each. With this workstation's
+# 16 AVDs the listing is 4340 bytes and the call ran into the 30 s wait every time (measured
+# 2026-10-21: startSeconds 93.3 s -> 3.7 s, preDeviceSeconds 61.5 s -> 1.9 s). The listing only
+# names AVDs; the runner never asks Maestro to boot one, so an empty AVD home loses nothing.
+# Refuted on the same emulator: MAESTRO_CLI_NO_ANALYTICS and MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED
+# (93.1 s), and a private user.home away from the Maestro MCP servers' session files (93.0 s).
+$script:EmptyAvdHome = Join-Path $LogDir 'empty-avd-home'
+$script:MaestroChildEnv = [ordered]@{ ANDROID_AVD_HOME = $script:EmptyAvdHome }
 
 function Write-Line {
     param([string]$Text, [string]$Color = 'White')
@@ -148,8 +174,8 @@ function Exit-Suite {
         ([ordered]@{ pass = $Pass; total = $Total; failed = $Failed; skipped = $Skipped; reason = $Reason
                      launcherMode = $script:LauncherMode
                      shard = [ordered]@{ index = $ShardIndex; count = $ShardCount }
-                     device = $script:TargetDevice; flows = $Flows } |
-            ConvertTo-Json -Depth 5 -Compress)
+                     device = $script:TargetDevice; medianStartSeconds = $script:MedianStartSeconds; flows = $Flows } |
+            ConvertTo-Json -Depth 6 -Compress)
     } else {
         $verdict = if ($Pass) { 'PASS' } else { 'FAIL' }
         $color   = if ($Pass) { 'Green' } else { 'Red' }
@@ -157,6 +183,8 @@ function Exit-Suite {
         # into either count - a summary reading "23/25 passed" with no third number is how a
         # precondition that never held reads as coverage that did (S2720).
         $skipNote = if ($Skipped -gt 0) { ", $Skipped skipped" } else { '' }
+        # S4413 criterion 5: the CLI start is the largest share of a flow, so the suite names it.
+        if ($null -ne $script:MedianStartSeconds) { $skipNote += (", median start {0} s" -f $script:MedianStartSeconds) }
         if ($Reason) { Write-Host "SUITE $verdict ($Code) - $Reason$skipNote" -ForegroundColor $color }
         else { Write-Host ("SUITE {0} - {1}/{2} flows passed{3}" -f $verdict, ($Total - $Failed - $Skipped), $Total, $skipNote) -ForegroundColor $color }
     }
@@ -383,6 +411,47 @@ function Reset-App {
     Start-Sleep -Milliseconds 800
 }
 
+# S4413: 15 first attempts of release 46 died at the CLI's first adb call with 'device offline', and
+# each retry paid a whole CLI start again. The transport is proved here, cheaply, before the CLI is
+# started: get-state must read 'device' and a shell must answer. An 'offline' state gets one
+# 'adb reconnect offline'. Returns the seconds spent and whether the transport answered; never
+# throws and never blocks past the timeout - a device that stays gone still reaches the CLI, which
+# then reports it as the execError it is.
+function Wait-DeviceTransport {
+    param([string]$Sdk, [string]$Device, [int]$TimeoutSeconds = 20)
+    $adb = Find-Adb -Sdk $Sdk
+    if (-not $adb) { return [ordered]@{ ready = $null; seconds = $null } }
+    $target = if ($Device) { @('-s', $Device) } else { @() }
+    $clock = [System.Diagnostics.Stopwatch]::StartNew()
+    $reconnected = $false
+    $ready = $false
+    while ($clock.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
+        $state = ''
+        try { $state = ((& $adb @target get-state 2>&1) -join ' ').Trim() } catch { $state = "$_" }
+        if ($state -match 'offline' -and -not $reconnected) {
+            try { & $adb reconnect offline *> $null } catch { }
+            $reconnected = $true
+        } elseif ($state -eq 'device') {
+            $echo = ''
+            try { $echo = ((& $adb @target shell echo ok 2>&1) -join ' ').Trim() } catch { }
+            if ($echo -eq 'ok') { $ready = $true; break }
+        }
+        Start-Sleep -Milliseconds 500
+    }
+    return [ordered]@{ ready = $ready; seconds = [math]::Round($clock.Elapsed.TotalSeconds, 1) }
+}
+
+# Whether an attempt died on an offline transport - read from the runner's trace and the run's own
+# maestro.log, because the dadb exception is written to the latter and only sometimes echoed.
+function Test-DeviceOfflineAttempt {
+    param($Attempt)
+    foreach ($path in @($Attempt.log, $Attempt.debugLog)) {
+        if (-not $path -or -not (Test-Path -LiteralPath $path -PathType Leaf)) { continue }
+        if (Select-String -LiteralPath $path -Pattern 'device offline' -SimpleMatch -Quiet) { return $true }
+    }
+    return $false
+}
+
 # ---------- flow-set resolution from -Suite ----------
 function Get-RelativeFlowPath {
     param([System.IO.FileInfo]$File)
@@ -483,7 +552,7 @@ function Get-RunFlowSet {
 
 # ---------- run one flow, capture trace off-context ----------
 function Invoke-Flow {
-    param([string]$Maestro, [System.IO.FileInfo]$FlowFile)
+    param([string]$Maestro, [System.IO.FileInfo]$FlowFile, $TransportWaitSeconds = $null)
 
     # Maestro 2.x can leave a local session lock after stopApp/relaunch-heavy flows; clearing the
     # per-user session cache before each isolated CLI invocation keeps the suite deterministic.
@@ -491,15 +560,36 @@ function Invoke-Flow {
     # shard would delete a sibling's live session (S4249). The orchestrator clears it once instead.
     if ($ShardCount -eq 1) { Clear-MaestroSessions }
 
-    $stamp   = (Get-Date).ToString('yyyyMMdd_HHmmss')
-    $logFile = Join-Path $LogDir ("{0}_maestro_{1}.log" -f $FlowFile.BaseName, $stamp)
+    $stamp    = (Get-Date).ToString('yyyyMMdd_HHmmss_fff')
+    $logFile  = Join-Path $LogDir ("{0}_maestro_{1}.log" -f $FlowFile.BaseName, $stamp)
+    # S4413: the run's own maestro.log, kept per invocation, is where the CLI start is measured.
+    # Without --debug-output it lands in a shared ~/.maestro/tests/<stamp> folder that concurrent
+    # shards can collide on within one second.
+    $debugDir = Join-Path $LogDir ("debug/{0}_{1}" -f $FlowFile.BaseName, $stamp)
+    New-Item -ItemType Directory -Path $debugDir -Force | Out-Null
 
     $argList = @()
     if ($DeviceId) { $argList += @('--device', $DeviceId) }
-    $argList += @('test', $FlowFile.FullName)
+    $argList += @('test', $FlowFile.FullName, '--debug-output', $debugDir, '--flatten-debug-output')
 
-    & $Maestro @argList *> $logFile
-    $maestroExit = $LASTEXITCODE
+    $savedEnv = @{}
+    foreach ($name in $script:MaestroChildEnv.Keys) {
+        $savedEnv[$name] = [Environment]::GetEnvironmentVariable($name)
+        [Environment]::SetEnvironmentVariable($name, $script:MaestroChildEnv[$name])
+    }
+    try {
+        & $Maestro @argList *> $logFile
+        $maestroExit = $LASTEXITCODE
+    } finally {
+        foreach ($name in $savedEnv.Keys) { [Environment]::SetEnvironmentVariable($name, $savedEnv[$name]) }
+    }
+
+    $debugLog = Get-ChildItem -LiteralPath $debugDir -Recurse -Filter 'maestro.log' -File -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    $timings = [ordered]@{ preDeviceSeconds = $null; startSeconds = $null }
+    if ($debugLog) {
+        $timings = Get-MaestroStartTimings -Lines @(Get-Content -LiteralPath $debugLog.FullName -ErrorAction SilentlyContinue)
+    }
 
     $status = 'pass'
     if ($maestroExit -ne 0) {
@@ -525,12 +615,21 @@ function Invoke-Flow {
             $status = 'fail'
         }
     }
-    return [ordered]@{ flow = $FlowFile.Name; status = $status; pass = ($status -eq 'pass'); log = $logFile }
+    return [ordered]@{ flow = $FlowFile.Name; status = $status; pass = ($status -eq 'pass'); log = $logFile
+                       debugLog = $(if ($debugLog) { $debugLog.FullName } else { $null })
+                       preDeviceSeconds = $timings.preDeviceSeconds; startSeconds = $timings.startSeconds
+                       transportWaitSeconds = $TransportWaitSeconds }
 }
 
 # ---------- main ----------
 if (-not (Test-Path -Path $LogDir -PathType Container)) {
     New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
+}
+# Emptied every run: an AVD that lands here would bring the 30 s avdmanager wait back (S4413).
+if (Test-Path -LiteralPath $script:EmptyAvdHome) {
+    Get-ChildItem -LiteralPath $script:EmptyAvdHome -Force | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+} else {
+    New-Item -ItemType Directory -Path $script:EmptyAvdHome -Force | Out-Null
 }
 
 # -ListFlows answers the selection question alone. It runs before binary discovery and before any
@@ -635,7 +734,11 @@ foreach ($flow in $flows) {
     }
 
     $advisoryKind = Get-FlowAdvisoryKind -FlowFile $flow
-    $r = Invoke-Flow -Maestro $maestro -FlowFile $flow
+    $transport = Wait-DeviceTransport -Sdk $sdk -Device $targetDevice
+    if ($transport.ready -eq $false) {
+        Write-Line ("  {0,-8} {1}  (transport did not answer within {2} s - running the flow anyway)" -f 'WAIT', $flow.Name, $transport.seconds) 'Yellow'
+    }
+    $r = Invoke-Flow -Maestro $maestro -FlowFile $flow -TransportWaitSeconds $transport.seconds
     $r2 = $null
     # Single retry for a transient assertion failure. Emulator UI suites flake run-to-run (state
     # contamination between flows, scroll determinism); an isolated re-run almost always passes, and a
@@ -646,8 +749,17 @@ foreach ($flow in $flows) {
     # One attempt only, so a device that is genuinely gone still ends the flow instead of looping.
     if ($r.status -eq 'fail' -or $r.status -eq 'execError') {
         Write-Line ("  RETRY    {0}  (first attempt {1} - transient flake guard)" -f $r.flow, $r.status) 'Yellow'
-        Reset-App -Sdk $sdk -Device $DeviceId
-        $r2 = Invoke-Flow -Maestro $maestro -FlowFile $flow
+        if ($r.status -eq 'execError' -and (Test-DeviceOfflineAttempt -Attempt $r)) {
+            # S4413: 'device offline' at the first adb call - the force-stop in Reset-App would meet the
+            # same dead transport, so the transport is proved first. The retry stays visible as flaky
+            # (S4249); an app crash in its log still fails through the log dimension.
+            $retryTransport = Wait-DeviceTransport -Sdk $sdk -Device $targetDevice
+            Reset-App -Sdk $sdk -Device $DeviceId
+        } else {
+            Reset-App -Sdk $sdk -Device $DeviceId
+            $retryTransport = Wait-DeviceTransport -Sdk $sdk -Device $targetDevice
+        }
+        $r2 = Invoke-Flow -Maestro $maestro -FlowFile $flow -TransportWaitSeconds $retryTransport.seconds
     }
     # Both attempts stay in the record: a pass on the retry is flaky, not clean (S4249).
     $r = Resolve-FlowAttempts -First $r -Retry $r2 -Advisory $advisoryKind
@@ -690,8 +802,14 @@ $flowsOut     = @($results | ForEach-Object {
                 firstAttemptStatus = $(if ($_.Contains('firstAttemptStatus')) { $_.firstAttemptStatus } else { $null })
                 firstAttemptLog = $(if ($_.Contains('firstAttemptLog')) { $_.firstAttemptLog } else { $null })
                 flaky = $(if ($_.Contains('flaky')) { [bool]$_.flaky } else { $false })
-                advisory = $(if ($_.Contains('advisory')) { $_.advisory } else { $null }) }
+                advisory = $(if ($_.Contains('advisory')) { $_.advisory } else { $null })
+                preDeviceSeconds = $(if ($_.Contains('preDeviceSeconds')) { $_.preDeviceSeconds } else { $null })
+                startSeconds = $(if ($_.Contains('startSeconds')) { $_.startSeconds } else { $null })
+                transportWaitSeconds = $(if ($_.Contains('transportWaitSeconds')) { $_.transportWaitSeconds } else { $null })
+                attemptTimings = @(if ($_.Contains('attemptTimings')) { $_.attemptTimings }) }
 })
+# Every attempt paid its own CLI start, so the median runs over attempts, not flows (S4413).
+$script:MedianStartSeconds = Get-MedianValue -Values @($flowsOut | ForEach-Object { @($_.attemptTimings) } | ForEach-Object { $_.startSeconds })
 
 # The next run reads this list to put these flows first. A shard writes its own file and the merge
 # (maestro/merge-shard-results.ps1) writes last-failed.json, so concurrent shards never race on it.

@@ -44,6 +44,7 @@ class ExchangeMessageTest {
             ExchangeMessage.KEY_CHANGED to null,
             ExchangeMessage.SERVER_NO_E2E to "operator",
             ExchangeMessage.SEALED_FAILED to null,
+            ExchangeMessage.FORMAT_UNSUPPORTED to null,
             ExchangeMessage.REFUSED to "operator",
             ExchangeMessage.ADMIN_DISABLED to null,
             ExchangeMessage.TOKEN_NOT_STORED to null,

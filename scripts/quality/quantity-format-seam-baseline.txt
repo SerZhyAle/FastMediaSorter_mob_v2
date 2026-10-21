@@ -33,6 +33,7 @@ wear/src/main/java/com/sza/fastmediasorter/wear/core/logging/WearLogTree.kt | IN
 app_v2/src/main/java/com/sza/fastmediasorter/core/util/CacheStatusHelper.kt | INTERNAL | startup diagnostic dump into Timber, no surface reads it
 app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaMetadataHelper.kt | INTERNAL | parses the EXIF input format
 app_v2/src/main/java/com/sza/fastmediasorter/core/util/CachedMediaMetadataExtractor.kt | INTERNAL | parses the EXIF input format
+app_v2/src/main/java/com/sza/fastmediasorter/util/ExifTimeWriter.kt | INTERNAL | writes the EXIF date-time and offset tag text, a fixed Locale.US format that readers of the file parse
 
 app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt | INTERNAL | backup field read back on restore
 app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupToGoogleDriveUseCase.kt | INTERNAL | backup file name

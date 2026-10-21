@@ -11,7 +11,9 @@ import androidx.work.workDataOf
 import com.google.common.util.concurrent.Futures
 import com.sza.fastmediasorter.core.clipboard.ExchangeClipboardFiles
 import com.sza.fastmediasorter.core.clipboard.ExchangeClipboardPlacer
+import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardKind
+import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
 import com.sza.fastmediasorter.domain.usecase.exchange.GetClipboardFromServerUseCase
 import com.sza.fastmediasorter.domain.usecase.exchange.SendClipboardToServerUseCase
 import io.mockk.every
@@ -120,6 +122,8 @@ class ExchangeClipboardTransferWorkerTest {
             getClipboard = mockk<GetClipboardFromServerUseCase>(relaxed = true),
             files = files,
             placer = mockk<ExchangeClipboardPlacer>(relaxed = true),
+            quantityFormatter = mockk<QuantityFormatter>(relaxed = true),
+            unitSystem = mockk<UnitSystemProvider>(relaxed = true),
             ioDispatcher = Dispatchers.IO,
         )
     }

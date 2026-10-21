@@ -80,6 +80,7 @@ $ONBOARDING_SETTLE_MS = 1500
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . "$PSScriptRoot\..\utils\find-build-artifact.ps1"
 . "$PSScriptRoot\lib\wear-wakefulness.ps1"
+. "$PSScriptRoot\lib\invoke-child-pwsh.ps1"
 $adbWrapper = Join-Path $repoRoot 'scripts/devtest/adb.ps1'
 $wearBuilder = Join-Path $repoRoot 'scripts/builders/build-wear-release.PS1'
 
@@ -111,8 +112,7 @@ foreach ($required in @($adbWrapper, $wearBuilder)) {
 
 function Invoke-AdbVerb {
     param([Parameter(Mandatory)][string[]]$Arguments)
-    $output = & pwsh -NoProfile -File $adbWrapper @Arguments 2>&1
-    return [pscustomobject]@{ Exit = $LASTEXITCODE; Output = ($output -join "`n") }
+    return (Invoke-ChildPwsh -Script $adbWrapper -Arguments $Arguments)
 }
 
 # --- Device selection -------------------------------------------------------------------------

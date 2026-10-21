@@ -6,7 +6,10 @@
 .DESCRIPTION
     Subject: scripts/quality/run-script-suites.ps1
 
-    S3515 adds the pass-cache cases (C1-C5).
+    S3515 adds the pass-cache cases (C1-C5); S4413 the worker-pool cases (P1-P4) and the
+    campaign-cache cases (K1-K6), with the
+    campaign record, its journal and the campaign store all sandboxed through
+    FMS_RELEASE_CAMPAIGN_ROOT and FMS_SCRIPT_SUITE_CAMPAIGN_CACHE, so no case can touch temp/metrics.
 
     This ticket exists because 37 suites sat in the tree with no run site, and shipping the run site
     without a suite of its own would leave exactly one script in the repository whose correctness
@@ -50,6 +53,10 @@ $inheritedGuard = $env:FMS_SCRIPT_SUITE_RUNNER
 $env:FMS_SCRIPT_SUITE_RUNNER = $null
 # Every case records into a fixture store, never into the closure's real pass cache.
 $inheritedCache = $env:FMS_SCRIPT_SUITE_CACHE
+# A release campaign open on this machine would otherwise put every full-sweep case below into
+# campaign mode and journal fixture suites into the real campaign.
+$inheritedCampaignRoot = $env:FMS_RELEASE_CAMPAIGN_ROOT
+$inheritedCampaignCache = $env:FMS_SCRIPT_SUITE_CAMPAIGN_CACHE
 
 $script:pass = 0
 $script:fail = 0
@@ -88,6 +95,10 @@ function Invoke-Runner([string[]]$RunnerArgs) {
 try {
     New-Item -ItemType Directory -Path $fixtureRoot -Force | Out-Null
     $env:FMS_SCRIPT_SUITE_CACHE = Join-Path $fixtureRoot 'pass-cache.json'
+    $campaignRoot = Join-Path $fixtureRoot 'campaign'
+    New-Item -ItemType Directory -Path $campaignRoot -Force | Out-Null
+    $env:FMS_RELEASE_CAMPAIGN_ROOT = $campaignRoot
+    $env:FMS_SCRIPT_SUITE_CAMPAIGN_CACHE = Join-Path $fixtureRoot 'campaign-cache.json'
     New-FixtureSuite -Name 'alpha' -ExitCode 0
     New-FixtureSuite -Name 'beta' -ExitCode 1
     New-FixtureSuite -Name 'gamma' -ExitCode 2
@@ -203,10 +214,143 @@ try {
     Assert-That 'C5 an edited library the subject dot-sources executes the suite again' `
         ($libEdited.Code -eq 0 -and $libEdited.Text -match 'fixture suite epsilon reporting' -and $libEdited.Text -notmatch 'cached PASS') `
         "exit $($libEdited.Code); text: $($libEdited.Text)"
+
+    Write-Host 'Campaign cache (S4413)' -ForegroundColor Yellow
+
+    # Five fixture suites now: alpha, epsilon and oddly-named pass, beta fails, gamma cannot verify.
+    $campaignStore = $env:FMS_SCRIPT_SUITE_CAMPAIGN_CACHE
+    $resultJson = Join-Path $fixtureRoot 'campaign-results.json'
+    $campaignRecord = Join-Path $campaignRoot 'release-campaign.json'
+    function Set-FixtureCampaign([string]$Id, [string]$State) {
+        Set-Content -LiteralPath $campaignRecord -Encoding utf8NoBOM -Value (
+            [ordered]@{ schema = 1; id = $Id; package = 0; state = $State; startedAt = (Get-Date).ToString('o') } | ConvertTo-Json)
+    }
+    function Get-SourceOf([string]$SuiteName) {
+        $rows = @(Get-Content -LiteralPath $resultJson -Raw | ConvertFrom-Json)
+        return @($rows | Where-Object { $_.Suite -like "*/$SuiteName.tests/*" } | ForEach-Object { $_.Source }) -join ','
+    }
+    function Get-Sources {
+        return @(@(Get-Content -LiteralPath $resultJson -Raw | ConvertFrom-Json) | ForEach-Object { $_.Source })
+    }
+
+    Set-FixtureCampaign -Id 'k-one' -State 'open'
+    $k1 = Invoke-Runner @('-Root', $fixtureRoot, '-Json', $resultJson)
+    $k1Sources = Get-Sources
+    Assert-That 'K1 the first pass of an open campaign executes every suite (Source=run)' `
+        ($k1.Text -match 'campaign cache: 0 reused, 5 executed' -and $k1Sources.Count -eq 5 -and
+        @($k1Sources | Where-Object { $_ -ne 'run' }).Count -eq 0 -and (Test-Path -LiteralPath $campaignStore)) `
+        "exit $($k1.Code); sources: $($k1Sources -join ','); text: $($k1.Text)"
+
+    $k2 = Invoke-Runner @('-Root', $fixtureRoot, '-Json', $resultJson)
+    Assert-That 'K2 a second pass in the same campaign reuses every passing suite and executes the failing ones again' `
+        ($k2.Text -match 'campaign cache: 3 reused, 2 executed' -and (Get-SourceOf 'alpha') -eq 'campaign-cache' -and
+        (Get-SourceOf 'beta') -eq 'run' -and (Get-SourceOf 'gamma') -eq 'run' -and $k2.Code -eq 1 -and
+        $k2.Text -notmatch 'fixture suite alpha reporting') `
+        "exit $($k2.Code); text: $($k2.Text)"
+
+    Add-Content -LiteralPath (Join-Path $fixtureRoot 'alpha.ps1') -Value '# edited in campaign' -Encoding utf8NoBOM
+    $k3 = Invoke-Runner @('-Root', $fixtureRoot, '-Json', $resultJson)
+    Assert-That 'K3 editing one suite''s subject re-executes exactly that suite' `
+        ($k3.Text -match 'campaign cache: 2 reused, 3 executed' -and (Get-SourceOf 'alpha') -eq 'run' -and
+        (Get-SourceOf 'epsilon') -eq 'campaign-cache' -and (Get-SourceOf 'oddly-named') -eq 'campaign-cache') `
+        "text: $($k3.Text)"
+
+    $journal = Join-Path $campaignRoot 'release-campaign-phases.jsonl'
+    $suiteRows = @(if (Test-Path -LiteralPath $journal) {
+            Get-Content -LiteralPath $journal | ForEach-Object { $_ | ConvertFrom-Json } | Where-Object { $_.name -like 'suite:*' }
+        })
+    Assert-That 'K4 every suite is journalled into the campaign, cached ones with elapsedMs 0' `
+        ($suiteRows.Count -eq 15 -and @($suiteRows | Where-Object { $_.detail -eq 'campaign-cache' -and $_.elapsedMs -eq 0 }).Count -eq 5 -and
+        @($suiteRows | Where-Object { $_.campaignId -ne 'k-one' }).Count -eq 0) `
+        "suite rows: $($suiteRows.Count); journal: $(if (Test-Path -LiteralPath $journal) { Get-Content -LiteralPath $journal -Raw })"
+
+    $k5 = Invoke-Runner @('-Root', $fixtureRoot, '-CampaignId', 'k-two', '-Json', $resultJson)
+    $storeCampaigns = @((Get-Content -LiteralPath $campaignStore -Raw | ConvertFrom-Json -AsHashtable).Values | ForEach-Object { $_.campaign } | Select-Object -Unique)
+    Assert-That 'K5 a new campaign id executes everything again and drops the old campaign''s entries' `
+        ($k5.Text -match 'campaign cache: 0 reused, 5 executed' -and ($storeCampaigns -join ',') -eq 'k-two') `
+        "store campaigns: $($storeCampaigns -join ','); text: $($k5.Text)"
+
+    Remove-Item -LiteralPath $campaignStore -Force
+    $ticketInCampaign = Invoke-Runner @('-Root', $fixtureRoot, '-ChangedFiles', "$fixtureRel/alpha.ps1")
+    Set-FixtureCampaign -Id 'k-one' -State 'closed'
+    $k6 = Invoke-Runner @('-Root', $fixtureRoot)
+    Assert-That 'K6 a changed set or no open campaign neither reads nor writes the campaign store' `
+        ($ticketInCampaign.Code -eq 0 -and $k6.Text -notmatch 'campaign cache:' -and $k6.Text -notmatch 'campaign-cached' -and
+        -not (Test-Path -LiteralPath $campaignStore)) `
+        "store present: $(Test-Path -LiteralPath $campaignStore); ticket: $($ticketInCampaign.Text) | sweep: $($k6.Text)"
+
+    Write-Host 'Worker pool (S4413)' -ForegroundColor Yellow
+
+    # Created after the campaign cases so their counts stay five. Two serial suites stamp their own
+    # start and end into one shared file while holding it long enough for an overlap to show; a
+    # third suite reports the re-entry guard as its own environment sees it.
+    $windowLog = Join-Path $fixtureRoot 'serial-windows.log'
+    # Assembled, not written whole: a grep for the declaration over the real suites must count the
+    # suites that declare it, not this fixture's source.
+    $serialDeclaration = '# Parallel:' + ' serial'
+    foreach ($serialName in @('serial-one', 'serial-two')) {
+        Set-Content -LiteralPath (Join-Path $fixtureRoot "$serialName.ps1") -Value "# fixture subject $serialName" -Encoding utf8NoBOM
+        New-Item -ItemType Directory -Path (Join-Path $fixtureRoot "$serialName.tests") -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $fixtureRoot "$serialName.tests/Run-Tests.ps1") -Encoding utf8NoBOM -Value @(
+            $serialDeclaration,
+            '$start = [DateTime]::UtcNow.Ticks',
+            'Start-Sleep -Milliseconds 1500',
+            '$end = [DateTime]::UtcNow.Ticks',
+            "Add-Content -LiteralPath '$windowLog' -Value ('$serialName {0} {1}' -f `$start, `$end)",
+            "Write-Host 'fixture suite $serialName reporting'",
+            'exit 0'
+        )
+    }
+    Set-Content -LiteralPath (Join-Path $fixtureRoot 'guard-echo.ps1') -Value '# fixture subject guard-echo' -Encoding utf8NoBOM
+    New-Item -ItemType Directory -Path (Join-Path $fixtureRoot 'guard-echo.tests') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $fixtureRoot 'guard-echo.tests/Run-Tests.ps1') -Encoding utf8NoBOM -Value @(
+        'Write-Host "fixture suite guard-echo sees runner guard [$env:FMS_SCRIPT_SUITE_RUNNER]"',
+        'exit 0'
+    )
+
+    function Get-VerdictSet([string]$Path) {
+        return (@(@(Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json) | ForEach-Object { "$($_.Suite)=$($_.Verdict)" }) -join ';')
+    }
+    $w1Json = Join-Path $fixtureRoot 'w1.json'
+    $w3Json = Join-Path $fixtureRoot 'w3.json'
+    $w1 = Invoke-Runner @('-Root', $fixtureRoot, '-Workers', '1', '-Json', $w1Json)
+    Remove-Item -LiteralPath $windowLog -Force -ErrorAction SilentlyContinue
+    $w3 = Invoke-Runner @('-Root', $fixtureRoot, '-Workers', '3', '-Json', $w3Json)
+    $w1Set = Get-VerdictSet $w1Json
+    $w3Set = Get-VerdictSet $w3Json
+    Assert-That 'P1 -Workers 3 yields the same per-suite verdict set as -Workers 1, in the same order' `
+        ($w1Set -eq $w3Set -and $w1.Code -eq $w3.Code -and $w3.Text -match '8 suite\(s\)' -and $w3.Text -match 'with 3 worker\(s\)') `
+        "w1: exit $($w1.Code) $w1Set | w3: exit $($w3.Code) $w3Set"
+
+    $windows = @(Get-Content -LiteralPath $windowLog -ErrorAction SilentlyContinue | ForEach-Object {
+            $parts = $_ -split ' '
+            [pscustomobject]@{ Name = $parts[0]; Start = [long]$parts[1]; End = [long]$parts[2] }
+        })
+    $overlap = ($windows.Count -eq 2) -and ($windows[0].Start -lt $windows[1].End) -and ($windows[1].Start -lt $windows[0].End)
+    Assert-That 'P2 two suites declaring the serial header line never run at the same time under the pool' `
+        ($windows.Count -eq 2 -and -not $overlap) `
+        "windows: $(@($windows | ForEach-Object { "$($_.Name) $($_.Start)-$($_.End)" }) -join '; ')"
+
+    Assert-That 'P3 a failing suite under the pool still fails the run and its output is echoed' `
+        ($w3.Code -eq 1 -and $w3.Text -match 'FAIL\s+[\d.]+s\s+\S*beta\.tests' -and $w3.Text -match 'fixture suite beta reporting') `
+        "exit $($w3.Code); text: $($w3.Text)"
+
+    # In-process on purpose: only a run inside this process can show what it leaves in the parent's
+    # environment. The script's own `exit` ends the script, not this host.
+    $null = & $runner -Root $fixtureRoot -Workers 3 *>&1
+    $guardAfterPool = $env:FMS_SCRIPT_SUITE_RUNNER
+    $null = & $runner -Root $fixtureRoot -Workers 1 *>&1
+    $guardAfterInline = $env:FMS_SCRIPT_SUITE_RUNNER
+    Assert-That 'P4 the child sees the re-entry guard and the parent has none after either run' `
+        ($w3.Text -match 'guard-echo sees runner guard \[1\]' -and $w1.Text -match 'guard-echo sees runner guard \[1\]' -and
+        [string]::IsNullOrEmpty($guardAfterPool) -and [string]::IsNullOrEmpty($guardAfterInline)) `
+        "after pool: '$guardAfterPool'; after inline: '$guardAfterInline'; w3 text: $($w3.Text)"
 }
 finally {
     $env:FMS_SCRIPT_SUITE_RUNNER = $inheritedGuard
     $env:FMS_SCRIPT_SUITE_CACHE = $inheritedCache
+    $env:FMS_RELEASE_CAMPAIGN_ROOT = $inheritedCampaignRoot
+    $env:FMS_SCRIPT_SUITE_CAMPAIGN_CACHE = $inheritedCampaignCache
     if (Test-Path -LiteralPath $fixtureRoot) {
         Remove-Item -LiteralPath $fixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
     }

@@ -2,7 +2,7 @@
 <#
 .SYNOPSIS
     S4249 contract suite for the Maestro runner's pure half: header markers, run order, shard
-    partition, attempt records and the shard-result merge.
+    partition, attempt records, the S4413 CLI start timings and the shard-result merge.
 
 # Subject: maestro/run-tests.ps1, maestro/lib/flow-selection.ps1, maestro/merge-shard-results.ps1
 
@@ -134,6 +134,40 @@ try {
     $hardEntry = Resolve-FlowAttempts -First $first -Retry $retryFail -Advisory $null
     Assert-Equal -Label 'failed retry: final status is the retry, not flaky' `
         -Expected 'execError/False/False' -Actual ("{0}/{1}/{2}" -f $hardEntry.status, $hardEntry.pass, $hardEntry.flaky)
+
+    $timedFirst = [ordered]@{ flow = 't.yaml'; status = 'execError'; pass = $false; log = 'l1'; preDeviceSeconds = 62.0; startSeconds = 95.4; transportWaitSeconds = 0.3 }
+    $timedRetry = [ordered]@{ flow = 't.yaml'; status = 'pass'; pass = $true; log = 'l2'; preDeviceSeconds = 1.0; startSeconds = 7.5; transportWaitSeconds = 4.2 }
+    $timedEntry = Resolve-FlowAttempts -First $timedFirst -Retry $timedRetry -Advisory $null
+    Assert-Equal -Label 'S4413 timings: flat fields are the final attempt, attemptTimings keeps both' `
+        -Expected '1/7.5/4.2/2/95.4' `
+        -Actual ("{0}/{1}/{2}/{3}/{4}" -f $timedEntry.preDeviceSeconds, $timedEntry.startSeconds, $timedEntry.transportWaitSeconds, @($timedEntry.attemptTimings).Count, @($timedEntry.attemptTimings)[0].startSeconds)
+    Assert-Equal -Label 'S4413 timings: an attempt record without timing fields yields nulls' `
+        -Expected 'True/True' -Actual ("{0}/{1}" -f ($null -eq $cleanEntry.startSeconds), ($null -eq $cleanEntry.preDeviceSeconds))
+
+    # --- CLI start timings (S4413) --------------------------------------------------------------
+    $logLines = @(
+        '14:12:02.100 [ INFO] maestro.cli.report.TestDebugReporter.logSystemInfo: Debug output path: x',
+        '14:12:02.187 [ INFO] MAESTRO.logSystemInfo: ---------------------',
+        '14:12:03.000 [DEBUG] io.micrometer.common.util.internal.logging.InternalLoggerFactory.newDefaultFactory: x',
+        '14:13:04.187 [ INFO] maestro.cli.command.TestCommand.runShardSuite: [shard 1] Selected device emulator-5556 using port 1',
+        '	at some.stack.Frame(Running flow mention inside a trace without a timestamp)',
+        '14:13:37.687 [ INFO] maestro.cli.runner.TestRunner.runSingle$lambda$0: Running flow app_launch.yaml...',
+        '14:14:00.000 [ INFO] maestro.cli.runner.TestRunner.runSingle$lambda$0: Running flow other.yaml...')
+    $t = Get-MaestroStartTimings -Lines $logLines
+    Assert-Equal -Label 'start timings: anchored on the last logSystemInfo line, first Selected device and Running flow' `
+        -Expected '62/95.5' -Actual ("{0}/{1}" -f $t.preDeviceSeconds, $t.startSeconds)
+    $noFlow = Get-MaestroStartTimings -Lines @($logLines[0..3])
+    Assert-Equal -Label 'start timings: a run that never reached a flow reports a null start, not zero' `
+        -Expected '62/True' -Actual ("{0}/{1}" -f $noFlow.preDeviceSeconds, ($null -eq $noFlow.startSeconds))
+    $noAnchor = Get-MaestroStartTimings -Lines @('garbage', 'Running flow x')
+    Assert-Equal -Label 'start timings: no system-info line yields both null' `
+        -Expected 'True/True' -Actual ("{0}/{1}" -f ($null -eq $noAnchor.preDeviceSeconds), ($null -eq $noAnchor.startSeconds))
+    $midnight = Get-MaestroStartTimings -Lines @('23:59:50.000 [ INFO] MAESTRO.logSystemInfo: ---', '00:00:01.000 [ INFO] x: Selected device e', '00:00:05.500 [ INFO] x: Running flow f')
+    Assert-Equal -Label 'start timings: an interval across midnight stays positive' `
+        -Expected '11/15.5' -Actual ("{0}/{1}" -f $midnight.preDeviceSeconds, $midnight.startSeconds)
+    Assert-Equal -Label 'median: odd count, nulls ignored' -Expected '7.5' -Actual (Get-MedianValue -Values @(95.4, $null, 7.5, 6.0))
+    Assert-Equal -Label 'median: even count averages the middle pair' -Expected '8' -Actual (Get-MedianValue -Values @(6, 7, 9, 100))
+    Assert-Equal -Label 'median: no values yields null' -Expected 'True' -Actual ($null -eq (Get-MedianValue -Values @($null)))
 
     # --- shard partition ----------------------------------------------------------------------
     $list = @(1..10 | ForEach-Object { "flow$_" })

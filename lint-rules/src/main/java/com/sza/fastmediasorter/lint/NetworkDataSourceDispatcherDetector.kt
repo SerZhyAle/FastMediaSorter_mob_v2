@@ -228,8 +228,12 @@ class NetworkDataSourceDispatcherDetector : Detector(), SourceCodeScanner {
         private val COROUTINE_CONFINERS = setOf("withContext", "launch", "async")
         private val BACKGROUND_DISPATCHERS = setOf("IO", "Default")
 
-        /** Value objects, builders and credential holders - none of them owns a connection. */
+        /**
+         * Value objects, builders, credential holders and failures already thrown - none of them owns a
+         * connection. A failure classifier reads `SMBApiException.getStatus` long after the exchange ended.
+         */
         private val LOCAL_OWNER_PREFIXES = setOf(
+            "com.hierynomus.mssmb2.SMBApiException",
             "com.hierynomus.msfscc.fileinformation",
             "com.hierynomus.msdtyp",
             "com.hierynomus.smbj.SmbConfig",

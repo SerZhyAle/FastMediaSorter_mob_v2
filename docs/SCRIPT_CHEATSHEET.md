@@ -2163,6 +2163,15 @@ scripts/devtest/lib/frame-signal.ps1
   (no param block)
 ```
 
+### invoke-child-pwsh.ps1
+S4413 - runs a child pwsh script through System.Diagnostics.Process, never the call operator.
+
+```
+scripts/devtest/lib/invoke-child-pwsh.ps1
+  S4413 - runs a child pwsh script through System.Diagnostics.Process, never the call operator.
+  (no param block)
+```
+
 ### logcat-snapshot.ps1
 Bounded logcat snapshot for the builders that install and launch what they just built (S3297).
 
@@ -2268,6 +2277,18 @@ scripts/devtest/lib/device-store-paths.tests/Run-Tests.ps1
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
+## scripts\devtest\lib\invoke-child-pwsh.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/devtest/lib/invoke-child-pwsh.ps1 (S4413).
+
+```
+scripts/devtest/lib/invoke-child-pwsh.tests/Run-Tests.ps1
+  Contract tests for scripts/devtest/lib/invoke-child-pwsh.ps1 (S4413).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed, or the library is missing.
+```
+
 ## scripts\devtest\lib\logcat-snapshot.tests
 
 ### Run-Tests.ps1
@@ -2295,11 +2316,11 @@ scripts/devtest/lib/target-device.tests/Run-Tests.ps1
 ## scripts\devtest\maestro-run-tests.tests
 
 ### Run-Tests.ps1
-S4249 contract suite for the Maestro runner's pure half: header markers, run order, shard partition, attempt records and the shard-result merge. # Subject: maestro/run-tests.ps1, maestro/lib/flow-selection.ps1, maestro/merge-shard-results.ps1
+S4249 contract suite for the Maestro runner's pure half: header markers, run order, shard partition, attempt records, the S4413 CLI start timings and the shard-result merge. # Subject: maestro/run-tests.ps1, maestro/lib/flow-selection.ps1, maestro/merge-shard-results.ps1
 
 ```
 scripts/devtest/maestro-run-tests.tests/Run-Tests.ps1
-  S4249 contract suite for the Maestro runner's pure half: header markers, run order, shard partition, attempt records and the shard-result merge. # Subject: maestro/run-tests.ps1, maestro/lib/flow-selection.ps1, maestro/merge-shard-results.ps1
+  S4249 contract suite for the Maestro runner's pure half: header markers, run order, shard partition, attempt records, the S4413 CLI start timings and the shard-result merge. # Subject: maestro/run-tests.ps1, maestro/lib/flow-selection.ps1, maestro/merge-shard-results.ps1
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
@@ -6111,6 +6132,8 @@ scripts/quality/run-script-suites.ps1
     -Json                       [String]
     -NoCache                    [SwitchParameter]
     -CacheMaxAgeMinutes         [Int32] = 120
+    -CampaignId                 [String]
+    -Workers                    [Int32] = 1  {range 1..16}
     -Help                       [SwitchParameter]
   Exit: 0 every selected suite passed, or none was selected, or -ListOnly.; 1 at least one suite failed.; 2 no suite failed, but at least one could not verify and -Gate was passed.
 ```
@@ -6532,11 +6555,11 @@ scripts/quality/assert-docs-translation-freshness.tests/Run-Tests.ps1
 ## scripts\quality\assert-document-registry-coverage.tests
 
 ### Run-Tests.ps1
-Subject: scripts/quality/assert-document-registry-coverage.ps1
+Regression suite for assert-document-registry-coverage.ps1 (S2618).
 
 ```
 scripts/quality/assert-document-registry-coverage.tests/Run-Tests.ps1
-  Subject: scripts/quality/assert-document-registry-coverage.ps1
+  Regression suite for assert-document-registry-coverage.ps1 (S2618).
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
 ```
@@ -6544,11 +6567,11 @@ scripts/quality/assert-document-registry-coverage.tests/Run-Tests.ps1
 ## scripts\quality\assert-dotsource-tracked.tests
 
 ### Run-Tests.ps1
-Subject: scripts/quality/assert-dotsource-tracked.ps1
+Regression suite for assert-dotsource-tracked.ps1 and the index helper it shares (S2616).
 
 ```
 scripts/quality/assert-dotsource-tracked.tests/Run-Tests.ps1
-  Subject: scripts/quality/assert-dotsource-tracked.ps1
+  Regression suite for assert-dotsource-tracked.ps1 and the index helper it shares (S2616).
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (git absent, or the sandbox could not be built).
 ```
@@ -6615,11 +6638,11 @@ scripts/quality/assert-gate-placement.tests/Run-Tests.ps1
 ## scripts\quality\assert-gate-timing-claims.tests
 
 ### Run-Tests.ps1
-Subject: scripts/quality/assert-gate-timing-claims.ps1
+Regression suite for assert-gate-timing-claims.ps1 (S2453).
 
 ```
 scripts/quality/assert-gate-timing-claims.tests/Run-Tests.ps1
-  Subject: scripts/quality/assert-gate-timing-claims.ps1
+  Regression suite for assert-gate-timing-claims.ps1 (S2453).
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
 ```
@@ -6693,11 +6716,11 @@ scripts/quality/assert-install-trust.tests/Run-Tests.ps1
 ## scripts\quality\assert-invoked-tracked.tests
 
 ### Run-Tests.ps1
-Subject: scripts/quality/assert-invoked-tracked.ps1
+Regression suite for assert-invoked-tracked.ps1 (S2654).
 
 ```
 scripts/quality/assert-invoked-tracked.tests/Run-Tests.ps1
-  Subject: scripts/quality/assert-invoked-tracked.ps1
+  Regression suite for assert-invoked-tracked.ps1 (S2654).
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 fixtures could not be prepared.
 ```
@@ -6809,11 +6832,11 @@ scripts/quality/assert-page-style.tests/Run-Tests.ps1
 ## scripts\quality\assert-play-listing-screenshot-geometry.tests
 
 ### Run-Tests.ps1
-Subject: scripts/quality/assert-play-listing-screenshot-geometry.ps1
+Regression suite for the ALPHA and FRAME dimensions of assert-play-listing-screenshot-geometry.ps1 (S2764).
 
 ```
 scripts/quality/assert-play-listing-screenshot-geometry.tests/Run-Tests.ps1
-  Subject: scripts/quality/assert-play-listing-screenshot-geometry.ps1
+  Regression suite for the ALPHA and FRAME dimensions of assert-play-listing-screenshot-geometry.ps1 (S2764).
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (the venv python or Pillow absent, or the source
 ```
@@ -6978,11 +7001,11 @@ scripts/quality/assert-stream-facet-values.tests/Run-Tests.ps1
 ## scripts\quality\assert-suite-tracked.tests
 
 ### Run-Tests.ps1
-Subject: scripts/quality/run-script-suites.ps1
+Regression suite for assert-suite-tracked.ps1 and the list mode it reads (S2411).
 
 ```
 scripts/quality/assert-suite-tracked.tests/Run-Tests.ps1
-  Subject: scripts/quality/run-script-suites.ps1
+  Regression suite for assert-suite-tracked.ps1 and the list mode it reads (S2411).
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (git absent, or the sandbox could not be built).
 ```
@@ -7071,22 +7094,22 @@ scripts/quality/assert-wear-walk-contract.tests/Run-Tests.ps1
 ## scripts\quality\assert-wear-wire-nullability.tests
 
 ### Run-Tests.ps1
-Subject: scripts/quality/assert-wear-wire-nullability.ps1
+S2887: Regression suite for assert-wear-wire-nullability.ps1.
 
 ```
 scripts/quality/assert-wear-wire-nullability.tests/Run-Tests.ps1
-  Subject: scripts/quality/assert-wear-wire-nullability.ps1
+  S2887: Regression suite for assert-wear-wire-nullability.ps1.
   (no param block)
 ```
 
 ## scripts\quality\assert-wear-wire-vocabulary-parity.tests
 
 ### Run-Tests.ps1
-Subject: scripts/quality/assert-wear-wire-vocabulary-parity.ps1
+S2642: Regression suite for assert-wear-wire-vocabulary-parity.ps1.
 
 ```
 scripts/quality/assert-wear-wire-vocabulary-parity.tests/Run-Tests.ps1
-  Subject: scripts/quality/assert-wear-wire-vocabulary-parity.ps1
+  S2642: Regression suite for assert-wear-wire-vocabulary-parity.ps1.
   (no param block)
 ```
 
@@ -7151,11 +7174,11 @@ scripts/quality/doc-icon-gate-routing.tests/Run-Tests.ps1
 ## scripts\quality\explain-last-failure.tests
 
 ### Run-Tests.ps1
-Subject: scripts/quality/explain-last-failure.ps1
+Regression suite for the failure explainer (S3288).
 
 ```
 scripts/quality/explain-last-failure.tests/Run-Tests.ps1
-  Subject: scripts/quality/explain-last-failure.ps1
+  Regression suite for the failure explainer (S3288).
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
 ```
@@ -7603,11 +7626,11 @@ scripts/quality/lib/room-databases.tests/Run-Tests.ps1
 ## scripts\quality\lib\tool-failure-journal.tests
 
 ### Run-Tests.ps1
-Subject: scripts/quality/lib/tool-failure-journal.ps1
+Regression suite for the failing-invocation journal (S3288).
 
 ```
 scripts/quality/lib/tool-failure-journal.tests/Run-Tests.ps1
-  Subject: scripts/quality/lib/tool-failure-journal.ps1
+  Regression suite for the failing-invocation journal (S3288).
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
 ```
@@ -7615,11 +7638,11 @@ scripts/quality/lib/tool-failure-journal.tests/Run-Tests.ps1
 ## scripts\quality\measure-gate-frequency.tests
 
 ### Run-Tests.ps1
-Subject: scripts/quality/measure-gate-frequency.ps1
+Regression suite for the placement view of measure-gate-frequency.ps1 (S2537).
 
 ```
 scripts/quality/measure-gate-frequency.tests/Run-Tests.ps1
-  Subject: scripts/quality/measure-gate-frequency.ps1
+  Regression suite for the placement view of measure-gate-frequency.ps1 (S2537).
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
 ```
@@ -7707,6 +7730,22 @@ scripts/release/apply-github-store-metadata.ps1
     -DryRun         [SwitchParameter]
     -Owner          [String] = "SerZhyAle"
     -Repo           [String] = "FastMediaSorter_mob_v2"
+```
+
+### assert-fgs-types-vs-previous.ps1
+Refuse a foreground-service type in the standard release that the previous release did not ship and the registry does not allow for standard (S4413).
+
+```
+scripts/release/assert-fgs-types-vs-previous.ps1
+  Refuse a foreground-service type in the standard release that the previous release did not ship and the registry does not allow for standard (S4413).
+  Params:
+    -Manifest             [String]
+    -Snapshot             [String]
+    -ArchiveRoot          [String]
+    -RegistryPath         [String]
+    -Build                [SwitchParameter]
+    -Help                 [SwitchParameter]
+  Exit: 0 - pass: every foreground-service type is in the baseline or registered for standard; the
 ```
 
 ### assert-play-review-batches.ps1
@@ -7969,6 +8008,26 @@ scripts/release/register-play-vitals-task.ps1
   Exit: 0 - done: registered, removed, or the Status of a registered task printed; 1 - Status or Unregister found no task of that name; 2 - could not act: the ScheduledTasks module is unavailable, -At is not a time, or the scheduler refused
 ```
 
+### release-campaign.ps1
+Open, mark, report and close a release campaign (S4413).
+
+```
+scripts/release/release-campaign.ps1
+  Open, mark, report and close a release campaign (S4413).
+  Params:
+    -Verb              [String]  {Start|Status|Phase|Report|End}
+    -Package           [Int32] = 0
+    -Force             [SwitchParameter]
+    -Name              [String] = ''
+    -State             [String] = ''  {begin|end|point}
+    -ElapsedMs         [Int64] = -1
+    -ExitCode          [Int32] = -1
+    -Detail            [String] = ''
+    -Json              [SwitchParameter]
+    -Help              [SwitchParameter]
+  Exit: 0 the verb succeeded (Phase also when no campaign is open - nothing recorded).; 2 unusable arguments, or the campaign record exists but could not be read or written.; 3 Status / End: no campaign is open. Report: no campaign record exists.; 4 Start refused: a campaign is already open (pass -Force to replace it).
+```
+
 ### retain-deobfuscation.ps1
 Retain one release variant's deobfuscation payload - the R8 mapping and the native debug symbols - in the out-of-repo archive, keyed by versionCode.
 
@@ -7976,17 +8035,32 @@ Retain one release variant's deobfuscation payload - the R8 mapping and the nati
 scripts/release/retain-deobfuscation.ps1
   Retain one release variant's deobfuscation payload - the R8 mapping and the native debug symbols - in the out-of-repo archive, keyed by versionCode.
   Params:
-    -VersionCode    (req)  [Int32]
-    -VersionName           [String]
-    -Variant        (req)  [String]  {standard|lite|photos|legacy|vr|noLegal|wear}
-    -Bundle                [String]
-    -Mapping               [String]
-    -NativeSymbols         [String]
-    -ArchiveRoot           [String]
-    -Force                 [SwitchParameter]
-    -DryRun                [SwitchParameter]
-    -Help                  [SwitchParameter]
+    -VersionCode     (req)  [Int32]
+    -VersionName            [String]
+    -Variant         (req)  [String]  {standard|lite|photos|legacy|vr|noLegal|wear}
+    -Bundle                 [String]
+    -Mapping                [String]
+    -NativeSymbols          [String]
+    -ArchiveRoot            [String]
+    -MergedManifest         [String]
+    -Force                  [SwitchParameter]
+    -DryRun                 [SwitchParameter]
+    -Help                   [SwitchParameter]
   Exit: 0 - payload stored, or already present with an identical mapping.; 1 - retention failed: the source could not be read, the bundle carries no
+```
+
+### run-ci-parity.ps1
+Run here the checks GitHub's CI runs, so a red is found before the push and not after it.
+
+```
+scripts/release/run-ci-parity.ps1
+  Run here the checks GitHub's CI runs, so a red is found before the push and not after it.
+  Params:
+    -Only             [String[]]
+    -List             [SwitchParameter]
+    -PlanPath         [String]
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 - every selected step exited 0; 1 - at least one selected step failed (it exited non-zero other than 2); 2 - could not verify: an unknown step name, an unreadable plan, or a step that itself
 ```
 
 ### seed-store-shot-media.ps1
@@ -8061,6 +8135,18 @@ scripts/release/watch-play-vitals.ps1
     -LogDir                [String]
     -Package               [String] = 'com.sza.fastmediasorter'
   Exit: 0 - read, judged and recorded (whatever the verdict colour); tickets filed where a band was red; 1 - -Check found at least one block out of date; nothing was written; 2 - could not verify: the read failed, the verdict refused, a document or its marker pair is
+```
+
+## scripts\release\assert-fgs-types-vs-previous.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/release/assert-fgs-types-vs-previous.ps1 (S4413).
+
+```
+scripts/release/assert-fgs-types-vs-previous.tests/Run-Tests.ps1
+  Contract tests for scripts/release/assert-fgs-types-vs-previous.ps1 (S4413).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\release\assert-sweep-verdicts.tests
@@ -8149,6 +8235,15 @@ scripts/release/lib/play-vitals-verdict.ps1
   (no param block)
 ```
 
+### release-campaign.ps1
+Release-campaign record and append-only phase journal (S4413), dot-sourced by the CLI and by every gate, suite or sweep step that reports its duration into a campaign.
+
+```
+scripts/release/lib/release-campaign.ps1
+  Release-campaign record and append-only phase journal (S4413), dot-sourced by the CLI and by every gate, suite or sweep step that reports its duration into a campaign.
+  (no param block)
+```
+
 ## scripts\release\publish-play-listing.tests
 
 ### Run-Tests.ps1
@@ -8171,6 +8266,30 @@ scripts/release/publish-play-release.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2346) - regression suite for the exit-code contract of the Play AAB uploader.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (a subject is missing, or the project virtual environment is absent).
+```
+
+## scripts\release\release-campaign.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/release/release-campaign.ps1 and its library (S4413).
+
+```
+scripts/release/release-campaign.tests/Run-Tests.ps1
+  Contract tests for scripts/release/release-campaign.ps1 and its library (S4413).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\release\run-ci-parity.tests
+
+### Run-Tests.ps1
+Contract suite for run-ci-parity.ps1: step selection, every step running after a red, exit mapping.
+
+```
+scripts/release/run-ci-parity.tests/Run-Tests.ps1
+  Contract suite for run-ci-parity.ps1: step selection, every step running after a red, exit mapping.
+  (no param block)
+  Exit: 0 - every assertion passed; 1 - an assertion failed; 2 - the script under test is missing
 ```
 
 ## scripts\release\watch-play-vitals.tests

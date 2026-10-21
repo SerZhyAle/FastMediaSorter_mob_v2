@@ -126,6 +126,7 @@ class WearExchangeControlStreams @Inject constructor(
         val message = WearExchangeFailureClassifier.of(failure)
         mutableFailures.update { it + (identity to message) }
         Timber.i("WearExchangeControlStreams: stream did not open, code=%s", message.code)
+        Timber.d("S4236: watch stream failure classified code=${message.code}")
         return openOutcome(failure)
     }
 

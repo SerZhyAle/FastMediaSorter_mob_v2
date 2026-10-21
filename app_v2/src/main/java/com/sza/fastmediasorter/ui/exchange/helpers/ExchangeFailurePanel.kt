@@ -44,6 +44,7 @@ class ExchangeFailurePanel(
         diagnosis = failure
         stepIndex = 0
         Timber.i("Exchange failure shown: code=%s steps=%d", failure.code, failure.steps.size)
+        Timber.d("S4236: failure panel shown code=${failure.code} firstStep=${failure.steps.firstOrNull()}")
         binding.root.isVisible = true
         binding.textExchangeFailureWhat.setText(ExchangeMessageText.what(failure.message))
         binding.textExchangeFailureCode.text = activity.getString(R.string.exchange_failure_details_code, failure.code)

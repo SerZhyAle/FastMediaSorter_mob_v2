@@ -42,8 +42,7 @@
       - assert-device-profile-matrix   (S1216 device matrix, registry and applier agreement)
       - assert-archive-artefacts       (S2592 every spec archive record vs the file it points at)
       - assert-source-gates            (S2110 every lexical ratchet baseline, over the whole tree)
-      - run-script-suites              (S2122 every *.tests/Run-Tests.ps1 suite in the repository)
-      - assert-suite-tracked           (S2411 every discovered suite runner is in the git index)
+      - assert-suite-tracked          (S2411 every discovered suite runner is in the git index)
       - assert-dotsource-tracked       (S2616 every dot-sourced script target is in the git index)
       - assert-document-registry-coverage (S2618 every directory holding documents is registered or excused)
       - assert-temp-root-inventory     (S3030 every top-level entry of temp/ is declared or ticket-bound)
@@ -102,6 +101,11 @@
       2  cannot verify - a gate script is missing from scripts/quality/.
       Under -OnlyGroups the codes are unchanged; a gate that did not run is neither PASS nor FAIL and
       is reported as SKIPPED.
+
+    The full run of every *.tests/Run-Tests.ps1 suite is NOT a member (S4413, owner decision
+    2026-10-21). The suites test the repository's scripts, not the app, and each one already runs at
+    the closure of every change to its subject (post-change.ps1 gate script-suite-regression). In
+    release 46 the full run cost 32-36 min and ran three times per campaign. By hand: .\a.ps1 fs.
 #>
 [CmdletBinding()]
 param(
@@ -119,6 +123,18 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib/gate-telemetry.ps1')
 . (Join-Path $PSScriptRoot 'lib/verdict-word.ps1')
+# S4413: each gate's duration also lands in the open release campaign's journal, because the gate
+# journal keeps only an aggregate a campaign report cannot be read from. The library only measures,
+# so its absence or a load failure leaves every verdict exactly as before.
+$campaignLibLoaded = $false
+$campaignLib = Join-Path $PSScriptRoot '../release/lib/release-campaign.ps1'
+if (Test-Path -LiteralPath $campaignLib) {
+    try {
+        . $campaignLib
+        $campaignLibLoaded = $true
+    }
+    catch { Write-Host "assert-release-scope-gates: release-campaign library not loaded - $($_.Exception.Message)" -ForegroundColor DarkGray }
+}
 
 if ($Help) {
     Get-Help $PSCommandPath
@@ -286,21 +302,6 @@ $gates = [ordered]@{
     # layout-hardcoded-dimens sat 6 above its baseline in committed HEAD with every closure green,
     # because a file no author named is judged by neither mode.
     'assert-source-gates.ps1'          = @()
-    # S2122. The full sweep of every *.tests/Run-Tests.ps1 in the repository. Last on purpose: the
-    # table is ordered cheapest first and this is the most expensive member by a wide margin - the
-    # 37-suite sweep measured 214.8 s on 2026-08-27, against the 120 s foreground budget.
-    #
-    # Rule 33 puts it here on three grounds at once. It is attributable to no changed file, since it
-    # runs everything; it exceeds the foreground budget the per-ticket closure must stay inside; and
-    # it can fail on a sibling session's in-flight work, which is the accepted price of the release
-    # scope and intolerable in a ticket close. The per-ticket half lives in post-change.ps1 as
-    # `script-suite-regression`, where the changed set selects only the neighbouring suites.
-    #
-    # -Gate is what makes "could not verify" fatal here. The runner returns 2 when a suite could not
-    # run for want of an environment tool; the closure calls it without -Gate and treats that as
-    # advisory, because a developer machine missing rg must still be able to close a ticket. Before a
-    # release the environment must be complete, and the loop below collapses every non-zero code to
-    # FAIL - so the inversion needs no second code path here, only the switch.
     # S2411. Asks git whether every discovered *.tests/Run-Tests.ps1 is in the index. Placed here on
     # all four Rule 33 criteria: an untracked suite reaches no user between releases, its subject is
     # the whole tree, each finding prints its own path and the `git add` that clears it, and staging
@@ -308,9 +309,6 @@ $gates = [ordered]@{
     # judges only a runner the changed set names - it catches the defect at birth, this catches what
     # already accumulated, including suites belonging to sessions that have long since ended.
     #
-    # Runs after the sweep above rather than before it: both read the same discovery, and a sweep that
-    # went red is the more urgent report of the two.
-    'run-script-suites.ps1'            = @('-Quiet')
     'assert-suite-tracked.ps1'         = @()
     # S2616. The same index question over a wider selection: every statically resolvable dot-source
     # target, which is the set whose absence stops a consumer from PARSING in a fresh clone. Here on
@@ -436,7 +434,6 @@ $gateInputGroups = @{
     'assert-archive-artefacts.ps1'                = @('specs-archive')
     'assert-source-gates.ps1'                     = @('phone-src', 'wear-src')
     'assert-document-registry-coverage.ps1'       = @('docs', 'scripts')
-    'run-script-suites.ps1'                       = @('scripts')
     'assert-suite-tracked.ps1'                    = @('scripts')
     'assert-dotsource-tracked.ps1'                = @('scripts')
     'assert-wear-store-boundary.ps1'              = @('wear-src')
@@ -494,6 +491,7 @@ foreach ($entry in $gates.GetEnumerator()) {
         $results.Add([pscustomobject]@{ Gate = $entry.Key; Status = 'MISSING'; Ms = 0 })
         Write-GateTelemetryRecord -Runner 'assert-release-scope-gates' -Gate $entry.Key `
             -Status 'MISSING' -ExitCode 2 -ElapsedMs 0
+        if ($campaignLibLoaded) { Add-ReleaseCampaignPhase -Name "gate:$($entry.Key)" -State point -ElapsedMs 0 -ExitCode 2 -Detail 'MISSING' }
         $missing++
         continue
     }
@@ -520,6 +518,7 @@ foreach ($entry in $gates.GetEnumerator()) {
     $results.Add([pscustomobject]@{ Gate = $entry.Key; Status = $status; Ms = [int]$sw.Elapsed.TotalMilliseconds })
     Write-GateTelemetryRecord -Runner 'assert-release-scope-gates' -Gate $entry.Key `
         -Status (($status -eq 'N/A') ? 'SKIP' : $status) -ExitCode $childExit -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
+    if ($campaignLibLoaded) { Add-ReleaseCampaignPhase -Name "gate:$($entry.Key)" -State point -ElapsedMs ([long]$sw.ElapsedMilliseconds) -ExitCode $childExit -Detail $status }
 }
 
 if ($Json) {
@@ -616,7 +615,7 @@ if ($notApplicable -gt 0 -and $passedRun -eq 0) {
     exit 0
 }
 
-# S2409: post a best-effort finding on a clean run
+# S2409: post a best-effort finding on a clean run.
 try {
     $chatStore = Join-Path $PSScriptRoot '../utils/agent-chat-store.ps1'
     if (Test-Path -LiteralPath $chatStore) {

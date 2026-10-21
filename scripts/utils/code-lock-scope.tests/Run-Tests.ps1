@@ -1,4 +1,5 @@
 #requires -Version 7.0
+# Parallel: serial
 <#
 .SYNOPSIS
     S2615 - contract tests for scripts/utils/code-lock-scope.ps1.
@@ -58,6 +59,18 @@ function Assert-Case {
     }
 }
 
+# S4413: the holder runs under an identity of its own with no transcript. A code lock's owner is
+# judged by its session's transcript write time, and this suite used to inherit the caller's
+# CLAUDE_CODE_SESSION_ID. Inside an unattended release sweep that transcript sits still for half an
+# hour - the caller waits on a background run - so past SessionStaleMinutes the foreign probe of
+# cases 15 and 19 read a lock taken one second earlier as foreign-stale, reclaimed it and exited 0,
+# and the holder's release then deleted the probe's lock (release 46, third full sweep; reproduced
+# by pointing CLAUDE_CODE_SESSION_ID at a month-old transcript). With no transcript, liveness falls
+# to the acquisition's own chat line and acquire time, both seconds old. Set before the helper is
+# dot-sourced, so every identity read in this process sees it.
+$env:FMS_AGENT_ID = 'code-lock-scope-tests-holder'
+$env:CLAUDE_CODE_SESSION_ID = $null
+
 . $helper
 
 $docTarget = Join-Path $repoRoot 'docs/ICON_LEGEND.md'
@@ -65,7 +78,7 @@ $fixtureRelative = 'temp/lock-fixture/code-lock-scope.txt'
 $fixtureTarget = Join-Path $repoRoot $fixtureRelative
 $fixtureLock = Get-AgentLockPath -Name 'Code.Fixture'
 $allCodeDomains = 'Code.Phone,Code.Wear,Code.Scripts,Code.Fixture'
-$testIdentities = @('code-lock-scope-tests-foreign', 'code-lock-scope-tests-skipper')
+$testIdentities = @('code-lock-scope-tests-holder', 'code-lock-scope-tests-foreign', 'code-lock-scope-tests-skipper')
 
 # Every OTHER code domain this session holds after an acquiring case would be a leak the fixture
 # retarget exists to prevent; a sibling's lock on them is not ours and is ignored.
@@ -78,7 +91,9 @@ $testIdentities = @('code-lock-scope-tests-foreign', 'code-lock-scope-tests-skip
 # run-script-suites -Gate while the subject was provably intact, diagnosed at the price of a
 # 1172 s suite run plus an isolated re-run. The baseline below is the difference: a hold that
 # predates the run and never moved is the caller's, a hold that appeared - or was released and
-# retaken - inside the run is the leak, and the acquisition stamp separates them.
+# retaken - inside the run is the leak, and the acquisition stamp separates them. Since S4413 the
+# suite runs as its own holder identity (above), so a caller's hold no longer reads as ours at all;
+# the baseline stays as the guard for a caller that runs under that same identity.
 $productionCodeDomains = @('Code.Phone', 'Code.Wear', 'Code.Scripts')
 
 function Get-OwnProductionCodeHolds {

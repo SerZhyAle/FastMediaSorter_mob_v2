@@ -1770,6 +1770,40 @@ class CustomLintRulesTest {
     }
 
     @Test
+    fun testNetworkDataSourceDispatcherIgnoresThrownFailureStatusRead() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                coroutinesStub,
+                smbjStub,
+                kotlin(
+                    """
+                    package com.hierynomus.mssmb2
+
+                    class SMBApiException {
+                        fun getStatus(): Any? = null
+                    }
+                    """.trimIndent()
+                ),
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.data.network
+
+                    import com.hierynomus.mssmb2.SMBApiException
+
+                    class SendFailureClassifier {
+                        fun classify(error: Throwable): String? =
+                            (error as? SMBApiException)?.getStatus()?.toString()
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(NetworkDataSourceDispatcherDetector.ISSUE)
+            .run()
+            .expectClean()
+    }
+
+    @Test
     fun testNetworkDataSourceDispatcherAcceptsWorkerThreadScopingFunction() {
         lint()
             .allowMissingSdk()

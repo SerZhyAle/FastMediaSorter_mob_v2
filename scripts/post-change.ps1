@@ -942,16 +942,14 @@ foreach ($pruneModule in @('app_v2', 'wear')) {
         "scripts/quality/prune-detekt-baseline.ps1 -Module $pruneModule -Deleted `"$($deletedKt -join ',')`" -Apply -Reason '<ticket>'")
 }
 
-# S2122: the per-ticket half of the regression-suite run site. Only the suites whose subject this
-# change touched are run, which is what makes a finding attributable to this ticket under Rule 33;
-# the full 38-suite sweep is release-scope (assert-release-scope-gates.ps1) because it is attributable
-# to no changed file and exceeds the foreground budget.
+# S2122: the regression-suite run site. Only the suites whose subject this change touched are run,
+# which is what makes a finding attributable to this ticket under Rule 33. Since S4413 (2026-10-21)
+# this is the only automatic run: the full sweep left the release scope and is by hand (.\a.ps1 fs).
 #
 # NOT called with -Gate on purpose. With -Gate the runner returns 2 for a suite that could not run
 # for want of an environment tool, and Invoke-Gate treats every non-zero code as fatal - which would
 # block a ticket close on a developer machine simply missing an optional tool such as rg. Without
-# -Gate the same condition prints an advisory line and returns 0. The release-scope caller passes
-# -Gate precisely to invert that reading.
+# -Gate the same condition prints an advisory line and returns 0.
 if ($runsScriptSuiteGate) {
     Invoke-Gate "script-suite-regression" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/run-script-suites.ps1") `

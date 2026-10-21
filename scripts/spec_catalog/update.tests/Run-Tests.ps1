@@ -1,4 +1,5 @@
 # Run-Tests.ps1 (S1504) - regression suite for argument binding in scripts/spec_catalog/update.ps1
+# Parallel: serial
 # and insert.ps1, and for the `name` integrity check in _lib.ps1's Assert-Record.
 #
 # Regression origin: closing S1474 on 2026-08-08, a status note ending

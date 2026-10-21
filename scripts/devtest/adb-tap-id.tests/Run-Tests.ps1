@@ -93,6 +93,30 @@ Assert-Equal 0 $byLabel.Count 'a node without an identifier is never matched by 
 $absent = @(Select-UiNodesById $nodes 'rowNothingHere')
 Assert-Equal 0 $absent.Count 'an identifier that is not on screen matches nothing - the caller taps nothing'
 
+# ---- a sliver at the display edge is not a tap target ---------------------------------------------
+# Bounds recorded on the 384x384 small-round Wear emulator: the row's centre rounds to y=384, one pixel
+# past the glass.
+$edgeTree = [xml]@'
+<hierarchy rotation="0">
+  <node text="" resource-id="" class="android.view.View" bounds="[0,0][384,384]">
+    <node text="Allow microphone" resource-id="" class="android.widget.TextView" bounds="[126,267][318,300]" />
+    <node text="My notes" resource-id="wear_voice_note_open_list" class="android.widget.TextView" bounds="[126,383][244,384]" />
+  </node>
+</hierarchy>
+'@
+$edgeNodes = @(Get-UiNodes $edgeTree)
+$sliver = @($edgeNodes | Where-Object { $_.label -eq 'My notes' })[0]
+$row    = @($edgeNodes | Where-Object { $_.label -eq 'Allow microphone' })[0]
+Assert-Equal 384 $sliver.tapY 'the recorded sliver centre rounds past the 384 px glass - the tap that missed'
+Assert-Equal $false (Test-UiNodeTappable $sliver) 'a 1 px sliver at the edge is not a tap target'
+Assert-Equal $true  (Test-UiNodeTappable $row)    'a fully drawn row is a tap target'
+Assert-Equal 0 @(Select-UiNodesById $edgeNodes 'wear_voice_note_open_list' | Where-Object { Test-UiNodeTappable $_ }).Count `
+    'tap-id filters the sliver out, so the caller gets exit 8 and scrolls'
+$atLimit = [ordered]@{ x1 = 0; y1 = 376; x2 = 100; y2 = 384 }
+Assert-Equal $true  (Test-UiNodeTappable $atLimit) 'eight pixels on both axes is enough'
+$thin = [ordered]@{ x1 = 0; y1 = 0; x2 = 7; y2 = 100 }
+Assert-Equal $false (Test-UiNodeTappable $thin) 'a sliver at a side edge is refused the same way'
+
 # ---- the soft keyboard's region (S4290) ------------------------------------------------------------
 # The IME block is the shape recorded on emulator-5554 (Android 15, Gboard) with the keyboard shown.
 # The neighbouring window's region is constructed to the same shape: it must never be read as the keyboard's.

@@ -94,13 +94,38 @@ jobs:
       # on a 64 GB workstation. ubuntu-latest is 4 vCPU / 16 GB, where 8 forks sit beside a 6 GB
       # Gradle daemon and a 4 GB Kotlin daemon. Both modules read the property through
       # providers.gradleProperty, so -P overrides the runner without touching the workstation.
+      # Diagnostic: run 39505061820 stopped printing after the 20th test worker started and the unit task was
+      # killed by its 20-minute ceiling with 4779 of ~6900 tests done, leaving no result XML and so no record
+      # of what the workers were doing. This samples the runner's memory every 30 s into a file the next step
+      # uploads, so a memory-starved runner and a test that never returns can be told apart. Every 5 minutes it
+      # also dumps the project frames of each test worker's threads: a worker that spins in a test (S2584 saw
+      # one inside Throwable.fillInStackTrace) shows the same frames in consecutive dumps and names the test.
+      - name: Sample runner memory and test-worker threads (diagnostic)
+        run: |
+          nohup bash -c 'n=0; while true; do { date -u +%T; free -m | sed -n 2p; ps -eo rss,args --sort=-rss | head -4 | cut -c1-140; } >> "$RUNNER_TEMP/runner-memory.log"; n=$((n+1)); if [ $((n % 10)) -eq 0 ]; then for p in $(pgrep -f "Gradle Test Executor"); do { echo "--- worker pid=$p at $(date -u +%T)"; jcmd "$p" Thread.print 2>&1 | grep -B3 -A12 "com.sza.fastmediasorter" | head -90; } >> "$RUNNER_TEMP/runner-threads.log"; done; fi; sleep 30; done' > /dev/null 2>&1 &
+
       - name: Lint + unit tests + standard debug build (single invocation)
         # S3155: 2, not 4. On JDK 21 the Robolectric SDK 36 workers carry more native memory than the
         # classMethod-failing JDK 17 run ever reached; 4 x 2 GB forks beside the 6 GB and 4 GB daemons
         # got the runner killed with a shutdown signal mid-suite, twice at the same point.
-        run: ./gradlew :app_v2:lintStandardDebug :app_v2:testStandardDebugUnitTest :app_v2:assembleStandardDebug --continue --stacktrace -Pfms.unitTestMaxParallelForks=2
+        # fms.unitTestLogStarts prints every test as it starts, so a stalled worker names its test. The
+        # unit ceiling stays at the shipped 20 minutes: the suite ran 6712 tests in 10 minutes on 2026-10-14,
+        # and a worker that spins ignores any ceiling (dev/REFUTED_APPROACHES.md, S2585), so a longer one
+        # would only make the same stall cost more.
+        run: ./gradlew :app_v2:lintStandardDebug :app_v2:testStandardDebugUnitTest :app_v2:assembleStandardDebug --continue --stacktrace -Pfms.unitTestMaxParallelForks=2 -Pfms.unitTestLogStarts=true
         env:
           DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
+
+      - name: Upload runner memory samples and worker thread dumps
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: runner-memory
+          path: |
+            ${{ runner.temp }}/runner-memory.log
+            ${{ runner.temp }}/runner-threads.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Upload lint report
         if: always()

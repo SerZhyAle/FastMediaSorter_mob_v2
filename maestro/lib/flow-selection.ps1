@@ -1,7 +1,8 @@
 <#
 .SYNOPSIS
   Pure flow-selection functions of the Maestro runner (S4249): header markers, run order, shard
-  partition, attempt records and the shard-result merge.
+  partition, attempt records, the CLI start timings read from a run's maestro.log (S4413) and the
+  shard-result merge.
 
 .DESCRIPTION
   Dot-sourced by maestro/run-tests.ps1 and maestro/merge-shard-results.ps1, and by the hermetic
@@ -83,17 +84,97 @@ function Resolve-FlowAttempts {
     $final = if ($null -ne $Retry) { $Retry } else { $First }
     $attempts = if ($null -ne $Retry) { 2 } else { 1 }
     $flaky = ($null -ne $Retry) -and ($First.status -in @('fail', 'execError')) -and ($Retry.status -eq 'pass')
+    # S4413: every attempt pays its own CLI start, so the timings stay per attempt; the flat fields
+    # repeat the final attempt's values for a consumer that reads one number per flow.
+    $timings = @(@($First, $Retry) | Where-Object { $null -ne $_ } | ForEach-Object { Get-AttemptTimings -Attempt $_ })
+    $finalTimings = $timings[-1]
     return [ordered]@{
-        flow               = $final.flow
-        status             = $final.status
-        pass               = ($final.status -eq 'pass')
-        log                = $final.log
-        attempts           = $attempts
-        firstAttemptStatus = $First.status
-        firstAttemptLog    = $First.log
-        flaky              = [bool]$flaky
-        advisory           = $(if ($Advisory) { $Advisory } else { $null })
+        flow                 = $final.flow
+        status               = $final.status
+        pass                 = ($final.status -eq 'pass')
+        log                  = $final.log
+        attempts             = $attempts
+        firstAttemptStatus   = $First.status
+        firstAttemptLog      = $First.log
+        flaky                = [bool]$flaky
+        advisory             = $(if ($Advisory) { $Advisory } else { $null })
+        preDeviceSeconds     = $finalTimings.preDeviceSeconds
+        startSeconds         = $finalTimings.startSeconds
+        transportWaitSeconds = $finalTimings.transportWaitSeconds
+        attemptTimings       = $timings
     }
+}
+
+# The three timing fields of one attempt record, $null for any the record lacks - an attempt record
+# built before S4413, or by a fixture, carries none of them.
+function Get-AttemptTimings {
+    param($Attempt)
+    $read = {
+        param($Name)
+        if ($Attempt -is [System.Collections.IDictionary]) { if ($Attempt.Contains($Name)) { return $Attempt[$Name] } return $null }
+        $prop = $Attempt.PSObject.Properties[$Name]
+        if ($prop) { return $prop.Value }
+        return $null
+    }
+    return [ordered]@{
+        preDeviceSeconds     = (& $read 'preDeviceSeconds')
+        startSeconds         = (& $read 'startSeconds')
+        transportWaitSeconds = (& $read 'transportWaitSeconds')
+    }
+}
+
+# ---------- CLI start timings ----------
+# S4413: about 95 s of each 145 s flow in release 46 was the Maestro CLI starting, measured by hand
+# from per-run logs; this reads the same two intervals from one run's maestro.log so every suite
+# reports them. The anchor is the LAST logSystemInfo line (the system-info block ends there and the
+# silent wait begins); preDeviceSeconds runs to 'Selected device', startSeconds to the first
+# 'Running flow'. Either is $null when its line is missing - a run that never reached a device must
+# not report a start time of zero. Log times carry no date, so a negative interval crossed midnight.
+function Get-MaestroStartTimings {
+    param([string[]]$Lines)
+    $timeOf = {
+        param([string]$Line)
+        $m = [regex]::Match($Line, '^(\d{2}):(\d{2}):(\d{2})\.(\d{3})\s')
+        if (-not $m.Success) { return $null }
+        return ([int]$m.Groups[1].Value * 3600) + ([int]$m.Groups[2].Value * 60) + [int]$m.Groups[3].Value + ([int]$m.Groups[4].Value / 1000.0)
+    }
+    $interval = {
+        param($From, $To)
+        if ($null -eq $From -or $null -eq $To) { return $null }
+        $d = $To - $From
+        if ($d -lt 0) { $d += 86400 }
+        return [math]::Round($d, 1)
+    }
+    $all = @($Lines)
+    $anchorIndex = -1
+    for ($i = 0; $i -lt $all.Count; $i++) {
+        if ($all[$i] -match 'logSystemInfo' -and $null -ne (& $timeOf $all[$i])) { $anchorIndex = $i }
+    }
+    $result = [ordered]@{ preDeviceSeconds = $null; startSeconds = $null }
+    if ($anchorIndex -lt 0) { return $result }
+    $anchor = & $timeOf $all[$anchorIndex]
+    $selected = $null
+    $running = $null
+    for ($i = $anchorIndex + 1; $i -lt $all.Count; $i++) {
+        # A stack-trace continuation carries no time and may quote either phrase.
+        $at = & $timeOf $all[$i]
+        if ($null -eq $at) { continue }
+        if ($null -eq $selected -and $all[$i] -match 'Selected device') { $selected = $at }
+        if ($all[$i] -match 'Running flow') { $running = $at; break }
+    }
+    $result.preDeviceSeconds = & $interval $anchor $selected
+    $result.startSeconds = & $interval $anchor $running
+    return $result
+}
+
+# Median of the non-null numbers, $null when there are none.
+function Get-MedianValue {
+    param([object[]]$Values)
+    $nums = @(@($Values) | Where-Object { $null -ne $_ } | ForEach-Object { [double]$_ } | Sort-Object)
+    if ($nums.Count -eq 0) { return $null }
+    $mid = [int][math]::Floor($nums.Count / 2)
+    if ($nums.Count % 2 -eq 1) { return [math]::Round($nums[$mid], 1) }
+    return [math]::Round(($nums[$mid - 1] + $nums[$mid]) / 2, 1)
 }
 
 # Names whose final status is a judged or transport failure - the next run's "previously failed".

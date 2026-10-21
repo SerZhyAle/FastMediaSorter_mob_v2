@@ -110,7 +110,6 @@ class ExchangeMessageTableConformanceTest {
     }
 
     private fun keyOf(message: ExchangeMessage): String {
-        val base = "exchange_failure_" + message.code.replace('-', '_')
         val variant = when (message) {
             ExchangeMessage.BAD_CREDENTIALS_ONE_TIME_CODE -> "_one_time_code"
             ExchangeMessage.LIMIT_REACHED_CLIPBOARD -> "_clipboard"
@@ -118,12 +117,12 @@ class ExchangeMessageTableConformanceTest {
             ExchangeMessage.UNREACHABLE_DEVICE -> "_device"
             else -> ""
         }
-        return base + variant
+        return KEY_BY_CODE[message.code] ?: ("exchange_failure_" + message.code.replace('-', '_') + variant)
     }
 
     private fun messageKey(firstCell: String): String {
         val match = checkNotNull(CODE_CELL.matchEntire(firstCell)) { "not a code cell: $firstCell" }
-        val code = match.groupValues[1].replace('-', '_')
+        val code = match.groupValues[1]
         val suffix = when (val qualifier = match.groupValues[2].trim()) {
             "" -> ""
             "with a one-time code" -> "_one_time_code"
@@ -132,12 +131,35 @@ class ExchangeMessageTableConformanceTest {
             "to a device" -> "_device"
             else -> error("unknown qualifier: $qualifier")
         }
-        return "exchange_failure_$code$suffix"
+        return KEY_BY_CODE[code] ?: "exchange_failure_${code.replace('-', '_')}$suffix"
     }
 
     private fun stripTicks(cell: String): String = cell.trim('`')
 
-    private fun messageRows(): List<Row> = tableRows().filter { CODE_CELL.matches(it.first) && it.second in KINDS }
+    // A row the table already holds wins over the amendment's prose, so a later consolidation that adds the table row
+    // changes nothing here.
+    private fun messageRows(): List<Row> {
+        val tabled = tableRows().filter { CODE_CELL.matches(it.first) && it.second in KINDS }
+        val tabledKeys = tabled.map { messageKey(it.first) }.toSet()
+        return tabled + amendmentRows().filter { messageKey(it.first) !in tabledKeys }
+    }
+
+    // A normative amendment may state a row in prose instead of in the table: the amendment of 2026-10-17 does so for
+    // `format-unsupported` (the EN, RU and UK texts quoted on three lines, then its code, kind and step) and prevails
+    // over the table, which never gained the row.
+    private fun amendmentRows(): List<Row> {
+        val lines = contractFile(README).readLines(Charsets.UTF_8)
+        return lines.mapIndexedNotNull { index, line ->
+            AMENDMENT_ROW.find(line)?.let { match ->
+                val quoted = lines.subList(index - AMENDMENT_LANGUAGES.size, index).map {
+                    checkNotNull(AMENDMENT_TEXT.matchEntire(it)) { "not a quoted text of an amendment row: $it" }
+                }
+                check(quoted.map { it.groupValues[1] } == AMENDMENT_LANGUAGES) { "texts of ${match.value} misordered" }
+                val head = listOf("`${match.groupValues[1]}`", match.groupValues[2], match.groupValues[3])
+                Row(head + quoted.map { it.groupValues[2] })
+            }
+        }
+    }
 
     private fun stepRows(): List<Row> = tableRows().filter { it.first.toIntOrNull() != null }
 
@@ -207,6 +229,12 @@ class ExchangeMessageTableConformanceTest {
         val CODE_CELL = Regex("""`([a-z0-9-]+)`(.*)""")
         val KINDS = setOf("wire", "cast", "local", "state", "result", "wire, cast")
         val ESCAPE = Regex("""\\(.)""")
+        val AMENDMENT_ROW = Regex("""^Code `([a-z0-9-]+)`, kind (\w+), step `?([a-z0-9-]+)`?\.""")
+        val AMENDMENT_TEXT = Regex("""^(EN|RU|UK) "(.*)"$""")
+        val AMENDMENT_LANGUAGES = listOf("EN", "RU", "UK")
+
+        // The later-major refusal kept the name of its intake string (S4353) instead of the exchange_failure_ prefix.
+        val KEY_BY_CODE = mapOf("format-unsupported" to "exchange_format_unsupported")
         val ITEM_HEADING = Regex("""^\*\*([A-Z]{1,2})(?: \[[^\]]*])? - """)
         val CONTRACT_ITEMS = listOf("CV", "CW", "CX", "CY", "CZ", "DA", "DR")
     }

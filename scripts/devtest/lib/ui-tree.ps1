@@ -89,6 +89,16 @@ function Select-UiNodesById {
     return $hits
 }
 
+# Whether a node shows enough of itself to take a tap at its centre. A list scrolled until a row is
+# nearly gone leaves a sliver whose centre rounds onto the first pixel PAST the display edge: measured
+# on the 384x384 small-round Wear emulator 2026-10-21, `My notes` sat at [126,383][244,384], the tap
+# went to y=384 and landed on nothing, and the walk scored a working screen `failed`. A tap verb treats
+# such a node as not visible (exit 8), which is what sends a hunting caller to scroll it into view.
+function Test-UiNodeTappable {
+    param($Node, [int]$MinExtentPx = 8)
+    return (($Node.x2 - $Node.x1) -ge $MinExtentPx) -and (($Node.y2 - $Node.y1) -ge $MinExtentPx)
+}
+
 # Decide which corner radius the geometry below may be measured against (S3357). Pure: the caller
 # owns every adb call and hands the readings in.
 #
