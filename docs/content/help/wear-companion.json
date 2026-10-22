@@ -130,7 +130,7 @@
         "sel-empty": {
           "name": "Empty list message",
           "summary": "Tells you that there is nothing to send yet.",
-          "details": "It appears when you have no SMB, FTP or SFTP resources. Add one on the main screen, then come back to pick what the watch gets."
+          "details": "It appears when you have no SMB, FTP or SFTP resources. Add one in the resource list, then come back to pick what the watch gets."
         },
         "sel-list": {
           "name": "Resource list",
@@ -259,7 +259,7 @@
         "sel-empty": {
           "name": "Сообщение о пустом списке",
           "summary": "Сообщает, что отправлять пока нечего.",
-          "details": "Появляется, когда у вас нет ресурсов SMB, FTP или SFTP. Добавьте такой ресурс на главном экране и вернитесь сюда, чтобы выбрать, что получат часы."
+          "details": "Появляется, когда у вас нет ресурсов SMB, FTP или SFTP. Добавьте такой ресурс в список ресурсов и вернитесь сюда, чтобы выбрать, что получат часы."
         },
         "sel-list": {
           "name": "Список ресурсов",
@@ -388,7 +388,7 @@
         "sel-empty": {
           "name": "Повідомлення про порожній список",
           "summary": "Повідомляє, що надсилати поки нічого.",
-          "details": "З’являється, коли у вас немає ресурсів SMB, FTP чи SFTP. Додайте такий ресурс на головному екрані й поверніться сюди, щоб вибрати, що отримає годинник."
+          "details": "З’являється, коли у вас немає ресурсів SMB, FTP чи SFTP. Додайте такий ресурс до списку ресурсів і поверніться сюди, щоб вибрати, що отримає годинник."
         },
         "sel-list": {
           "name": "Список ресурсів",

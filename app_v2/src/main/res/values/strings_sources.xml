@@ -60,7 +60,7 @@
     <string name="cloud_list_files_failed">Couldn\'t load files from the cloud. Try again.</string>
     <string name="cloud_list_folders_failed">Couldn\'t load folders from the cloud. Try again.</string>
     <string name="cloud_metadata_failed">Couldn\'t load file details from the cloud. Try again.</string>
-    <string name="cloud_restore_instructions">Google Drive connection needs to be restored.\n\nPlease:\n1. Open the main screen\n2. Tap \"%1$s\"\n3. Sign in with your Google account</string>
+    <string name="cloud_restore_instructions">Google Drive connection needs to be restored.\n\nPlease:\n1. Open the resource list\n2. Tap \"%1$s\"\n3. Sign in with your Google account</string>
     <string name="cloud_search_failed">Couldn\'t search the cloud storage. Try again.</string>
     <string name="cloud_sign_out_failed">Couldn\'t sign out of the cloud account. Try again.</string>
     <string name="cloud_storage">Cloud Storage</string>

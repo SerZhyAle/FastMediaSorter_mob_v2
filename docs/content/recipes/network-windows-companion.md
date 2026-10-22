@@ -26,12 +26,12 @@ steps:
     text: |
       [Fast Media Sorter & Sharing for Windows](term:windows-companion) is a program for the PC, not for the phone. It has three optional parts - a viewer and sorter, folder sharing and the exchange server - and this page is about folder sharing: picking a folder or two and publishing them so this app can open them, no NAS and no typing a server address by hand. Install the program [viewer first](../../docs/media-exchange-portal/windows-servers.html#viewer-first), or [server first](../../docs/media-exchange-portal/windows-servers.html#server-first) for a PC that only serves. The first-time [welcome wizard](term:welcome-wizard)'s Network sources page already mentions it, with a short note - "Media on a Windows PC? Fast Media Sorter & Sharing for Windows shares those folders here in a couple of clicks - no server setup needed." - next to a **Get the Windows app** button that opens its site.
 
-      Whatever it shares arrives here as an ordinary [SFTP](term:sftp) [resource](term:resource), read-only or writable, sitting on the main screen next to everything else - there is no separate "companion folder" type to learn.
+      Whatever it shares arrives here as an ordinary [SFTP](term:sftp) [resource](term:resource), read-only or writable, sitting in the resource list next to everything else - there is no separate "companion folder" type to learn.
   - number: 2
     id: import-file
     title: Bring in a shared config with one tap
     text: |
-      On the main screen tap **Add** to open **Add Resource**. Two buttons sit above the four resource-type cards, and the same pair repeats inside the **SFTP / FTP** card's own header: **Import from file** and **Import by barcode**.
+      In the resource list tap **Add** to open **Add Resource**. Two buttons sit above the four resource-type cards, and the same pair repeats inside the **SFTP / FTP** card's own header: **Import from file** and **Import by barcode**.
 
       Tap **Import from file** and pick the config the companion program saved on the PC (send it to the phone however suits you - a cable, a chat message, a cloud folder). The **Import access** dialog asks to confirm, for example "Add the SFTP resource "Living Room PC" on 192.168.1.20 with 2 folder(s)?", and if the config carries no password it asks for one first ("Password for this server"). The first time a given PC is imported, and it has not been verified yet, the dialog also warns "This server has not been verified - connect only if you trust the sender." - connect only if you recognize where the file came from.
 
@@ -86,7 +86,7 @@ steps:
       title: "Screenshot: Companion connection guidance"
       desc: File browser opened on a companion SFTP resource that cannot be reached, guidance message shown in place of the file list.
 outcome: |
-  PC folders sit on the main screen next to everything else, added by picking a file or scanning a code instead of typing a server address, and they keep opening whether you are on the home Wi-Fi or out with mobile data. When one cannot be reached, the app says why instead of just timing out.
+  PC folders sit in the resource list next to everything else, added by picking a file or scanning a code instead of typing a server address, and they keep opening whether you are on the home Wi-Fi or out with mobile data. When one cannot be reached, the app says why instead of just timing out.
 tips:
   - "**Setting a server up by hand instead?** [Connecting SFTP and FTP servers](page:network.sftp-ftp-servers) covers entering a host, username and SSH key yourself."
   - "**Want to share from the phone instead?** [Turning the phone into an SFTP server](page:network.phone-as-sftp-server) covers the other direction - this phone as the one being connected to."

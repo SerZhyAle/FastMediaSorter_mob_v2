@@ -5,7 +5,7 @@ description: "How to delete your account on an exchange server of FastMediaSorte
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/account-deletion.html
 ---
-<sub class="doc-stamp">26.10.15 14:25</sub>
+<sub class="doc-stamp">26.10.22 01:29</sub>
 
 # How to delete an account
 
@@ -31,7 +31,7 @@ The developer of the app cannot delete an account on a server the developer does
 
 ## What is erased at once {#what-is-erased}
 
-- The account and the hash of its password.
+- The account and its password in a scrambled form that cannot be read back.
 - Every device of the account and its sign-in, the ones that were revoked included - **the watch too**: deleting the account on the phone ends the watch's enrollment with it.
 - Every folder and broadcast the account published.
 - The clipboard on the server.

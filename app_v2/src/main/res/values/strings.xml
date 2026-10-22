@@ -392,7 +392,7 @@
     <string name="overwrite_on_move">Overwrite existing file when moving</string>
     <string name="add_destination">+ Add</string>
     <string name="destinations_list_header">Quick Sort destinations</string>
-    <string name="add_resources_first_message">Add resources on the main screen first, then mark them for Quick Sort.</string>
+    <string name="add_resources_first_message">Add resources to the resource list first, then mark them for Quick Sort.</string>
     <string name="register_as_destination">Mark for Quick Sort</string>
 
     <!-- Resource editor (add / duplicate / type) -->
@@ -2048,7 +2048,7 @@
     <string name="ext_uninstall_all_confirm_title">Delete all extensions?</string>
     <string name="ext_uninstall_all_confirm_message">Remove all installed extensions and free up their space? You can download them again later.</string>
     <string name="slideshow_stop">Stop slideshow</string>
-    <string name="open_in_fms_external_file_notice">This file is outside a resource added to the app, so the app home opened instead.</string>
+    <string name="open_in_fms_external_file_notice">This file is outside a resource added to the app, so the resource list opened instead.</string>
     <string name="sftp_host_key_fingerprint_hint">Expected host key fingerprint (SHA256, optional)</string>
     <string name="sftp_host_key_fingerprint_invalid">Cannot parse fingerprint. Use SHA256:base64, hex with colons, or raw base64.</string>
     <string name="sftp_host_key_mismatch_title">Couldn’t verify the server</string>
@@ -2434,7 +2434,7 @@
     <string name="camera_geotag_permission_denied">Geotagging needs location permission</string>
     <string name="setting_show_programs_panel_title">Programs panel</string>
     <string name="setting_show_programs_panel_summary">Mirror the programs menu as a horizontal bar above the resource list. Hides the three-dots button.</string>
-    <string name="setting_show_streams_panel_title">Show streams panel on the main screen</string>
+    <string name="setting_show_streams_panel_title">Show streams panel in the resource list</string>
     <string name="setting_show_streams_panel_summary">Show pinned channels as a horizontal bar above the resource list, with a shortcut to Streams.</string>
     <string name="panel_remove_title">Remove from panel?</string>
     <string name="panel_remove_program_message">%1$s will be hidden. You can turn it back on in Settings.</string>
@@ -2499,7 +2499,7 @@
     <string name="camera_scenario_ocr_translate">Text recognition</string>
     <string name="recording_pause">Pause recording</string>
     <string name="recording_resume">Resume recording</string>
-    <string name="settings_category_main_window_interface">Main screen interface</string>
+    <string name="settings_category_main_window_interface">Resource list interface</string>
     <string name="streams_move_up">Move up</string>
     <string name="streams_move_down">Move down</string>
     <string name="streams_move_to_top">Move to top</string>
@@ -3365,7 +3365,7 @@
     <string name="wear_resource_selection_title">Resources for the watch</string>
     <string name="wear_resource_selection_hint">Only network resources (SMB, FTP, SFTP) can be sent to the watch, so only those are listed. Tick the ones to send.</string>
     <string name="wear_resource_selection_select_all">Select all</string>
-    <string name="wear_resource_selection_empty">No network resources yet. Only SMB, FTP and SFTP resources can be sent to the watch - add one on the main screen, then come back to pick what the watch gets.</string>
+    <string name="wear_resource_selection_empty">No network resources yet. Only SMB, FTP and SFTP resources can be sent to the watch - add one in the resource list, then come back to pick what the watch gets.</string>
     <string name="wear_sync_nothing_selected">No resources are marked for the watch yet. Open Resources for the watch and tick the ones to send.</string>
     <string name="wear_settings_view_mode">Home and Resources view</string>
     <string name="wear_settings_view_mode_list">List</string>
@@ -3684,7 +3684,7 @@
     <string name="storage_reach_limited_browse">Only photos, video and audio are available in this folder. To view documents, add the folder again and select it in the system folder window.</string>
     <string name="reach_limited_nothing_readable">Documents cannot be read</string>
     <string name="storage_reach_limited_virtual">Documents and other files on this device are not visible to the app. To open them, add the folder you need through the system folder window.</string>
-    <string name="storage_reach_limited_browse_reconnect">Only photos, video and audio are available in this folder. To view documents, open the three-dots menu on the folder row on the main screen and select Reconnect resource.</string>
+    <string name="storage_reach_limited_browse_reconnect">Only photos, video and audio are available in this folder. To view documents, open the three-dots menu on the folder row in the resource list and select Reconnect resource.</string>
     <string name="wear_settings_group_media_types">Media types</string>
     <string name="wear_settings_group_slideshow">Slideshow</string>
     <string name="wear_settings_group_screen">Screen</string>
@@ -4100,10 +4100,10 @@
     <string name="launcher_primary_window_home_desc">The app becomes your device home screen</string>
     <string name="launcher_primary_window_desktop_title">Desktop as primary window</string>
     <string name="launcher_primary_window_desktop_desc">Open desktop inside the app without changing the device home screen</string>
-    <string name="launcher_primary_window_resource_manager_title">Main screen</string>
+    <string name="launcher_primary_window_resource_manager_title">Resource list</string>
     <string name="launcher_primary_window_resource_manager_desc">Open file and media resource management directly</string>
     <string name="setting_launcher_primary_window_title">Primary startup window</string>
-    <string name="setting_launcher_primary_window_desc">Choose whether the app opens as the device home screen, in-app desktop, or main screen</string>
+    <string name="setting_launcher_primary_window_desc">Choose whether the app opens as the device home screen, in-app desktop, or resource list</string>
 
     <string-array name="launcher_primary_window_options">
         <item>@string/launcher_primary_window_home_title</item>
@@ -4198,7 +4198,7 @@
     <string name="sftp_server_notification_address">Connect to %1$s</string>
     <string name="sftp_server_notification_no_network">Not on Wi-Fi - other devices reach this phone through the exchange server or via Google Drive</string>
     <string name="sftp_server_action_stop">Stop</string>
-    <string name="settings_sftp_server_title">Share over SFTP</string>
+    <string name="settings_sftp_server_title">Share from phone</string>
     <string name="settings_sftp_server_enable_title">SFTP server</string>
     <string name="settings_sftp_server_enable_subtitle">Other devices on your network can open the folders you pick</string>
     <string name="settings_sftp_server_status_off">Off</string>
@@ -4557,4 +4557,6 @@
     <string name="broadcast_control_group_share">Link and sharing</string>
     <string name="msg_transfer_same_folder_refused">This is already the file\'s folder. Pick a different destination.</string>
     <string name="settings_collapse_all">Collapse all</string>
+    <string name="settings_category_about_app">All about this application</string>
+    <string name="broadcast_control_preview_toggle_cd">Broadcast picture. Tap to show or hide the controls</string>
 </resources>

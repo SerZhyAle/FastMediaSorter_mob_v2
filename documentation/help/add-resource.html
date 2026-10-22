@@ -17,14 +17,14 @@
 <h1>Add Resource</h1>
 </header>
 <h2>What this is for</h2>
-<p class="lead">Add Resource is where you connect a new place with your files to the app: a folder on the device, a network share, an SFTP or FTP server, a cloud folder, an internet stream or your watch. Pick a type, fill in a short form, and the new resource appears in the list on the main screen.</p>
+<p class="lead">Add Resource is where you connect a new place with your files to the app: a folder on the device, a network share, an SFTP or FTP server, a cloud folder, an internet stream or your watch. Pick a type, fill in a short form, and the new resource appears in the list in the resource list.</p>
 <figure class="shot">
 <img class="on-light" src="img/add-resource-en-light.webp" alt="Add Resource">
 <img class="on-dark" src="img/add-resource-en-dark.webp" alt="Add Resource">
 </figure>
 <h2>In this order</h2>
 <ol class="order">
-<li>Choose what to add: Local Folder <a class="ref" href="#type-local">2</a> for this device, Network Folder <a class="ref" href="#type-network">3</a> for an SMB share, SFTP / FTP <a class="ref" href="#type-sftp">4</a>, Cloud Storage <a class="ref" href="#type-cloud">5</a>, Stream <a class="ref" href="#type-stream">6</a>, Paired watch <a class="ref" href="#type-watch">7</a> or From my devices <a class="ref" href="#type-my-devices">8</a>. Types that are switched off in Settings or missing from your edition are not listed, and if you press Add on the main screen while a type tab is open, that type's form opens at once.</li>
+<li>Choose what to add: Local Folder <a class="ref" href="#type-local">2</a> for this device, Network Folder <a class="ref" href="#type-network">3</a> for an SMB share, SFTP / FTP <a class="ref" href="#type-sftp">4</a>, Cloud Storage <a class="ref" href="#type-cloud">5</a>, Stream <a class="ref" href="#type-stream">6</a>, Paired watch <a class="ref" href="#type-watch">7</a> or From my devices <a class="ref" href="#type-my-devices">8</a>. Types that are switched off in Settings or missing from your edition are not listed, and if you press Add in the resource list while a type tab is open, that type's form opens at once.</li>
 <li>Device folder: press SCAN <a class="ref" href="#local-scan">12</a> to get suggestions or Add Manually <a class="ref" href="#local-add-manually">13</a> to pick a folder yourself, tick what you want in the list <a class="ref" href="#local-list">14</a>, then press Add to Resources <a class="ref" href="#add-to-resources">11</a>.</li>
 <li>Network share: enter the server address <a class="ref" href="#smb-server">17</a>, or find it with Scan Network <a class="ref" href="#smb-scan-network">16</a>. Add the username <a class="ref" href="#smb-username">18</a> and password <a class="ref" href="#smb-password">19</a>, check them with Test connection <a class="ref" href="#smb-test">20</a>, choose the share with Scan host <a class="ref" href="#smb-scan-shares">21</a> or type its name <a class="ref" href="#smb-share-name">22</a>, then press Add This Resource <a class="ref" href="#smb-add">27</a>.</li>
 <li>SFTP or FTP: choose the protocol <a class="ref" href="#sftp-protocol">29</a>, enter the host <a class="ref" href="#sftp-host">30</a> and the sign-in <a class="ref" href="#sftp-auth">31</a>, try Test Connection <a class="ref" href="#sftp-test">32</a>, set the remote path <a class="ref" href="#sftp-remote-path">34</a> and press Add Resource <a class="ref" href="#sftp-add">36</a>.</li>
@@ -38,7 +38,7 @@
 <details class="el" id="back">
 <summary><span class="mk">1</span><span><span class="name">Back</span><span class="one">Leaves this screen without adding what you have not saved yet.</span></span></summary>
 <div class="full">
-<p>From the type list or from any form, the button takes you back to the screen you came from, usually the main screen. It does not step back from a form to the type list - to choose another type, open Add again. What you typed in a form and did not add is dropped.</p>
+<p>From the type list or from any form, the button takes you back to the screen you came from, usually the resource list. It does not step back from a form to the type list - to choose another type, open Add again. What you typed in a form and did not add is dropped.</p>
 <dl class="facts">
 <dt>Shortcut</dt><dd><kbd>Esc</kbd> / <kbd>F10</kbd></dd>
 </dl>
@@ -323,9 +323,9 @@
 <details class="el" id="picker-select">
 <summary><span class="mk">46</span><span><span class="name">Select</span><span class="one">Adds this folder to your resources.</span></span></summary>
 <div class="full">
-<p>Creates a cloud resource from the folder, using your Add as destination and Scan subdirectories choices and the media types enabled in Settings. You see Resource added and land on the main screen. A folder you added before is refused with a note.</p>
+<p>Creates a cloud resource from the folder, using your Add as destination and Scan subdirectories choices and the media types enabled in Settings. You see Resource added and land in the resource list. A folder you added before is refused with a note.</p>
 <dl class="facts">
-<dt>Undo</dt><dd>Nothing in the cloud changes. To undo it, delete the resource on the main screen; the folder stays where it is.</dd>
+<dt>Undo</dt><dd>Nothing in the cloud changes. To undo it, delete the resource in the resource list; the folder stays where it is.</dd>
 </dl>
 </div>
 </details>
@@ -341,7 +341,7 @@
 </div>
 <h2>Related</h2>
 <ul class="related">
-<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="main.html"><b>Resource list</b><span class="pill">Screen</span></a></li>
 <li><a href="settings-general.html"><b>Settings: General</b><span class="pill">Screen</span></a></li>
 <li><a href="resource-editor.html"><b>Edit Resource</b><span class="pill">Screen</span></a></li>
 <li><a href="auth-sessions.html"><b>Saved authorizations</b><span class="pill">Screen</span></a></li>
@@ -353,7 +353,7 @@
 <li><a href="index.html"><b>Help index</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-18</span>
+<span>Fast Media Sorter, 2026-10-21</span>
 <a href="index.html">Help index</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
 </footer>

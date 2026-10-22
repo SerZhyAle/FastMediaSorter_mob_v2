@@ -1,5 +1,8 @@
 package com.sza.fastmediasorter.data.security.fdsec
 
+import java.nio.ByteBuffer
+import java.nio.charset.CharacterCodingException
+import java.nio.charset.CodingErrorAction
 import java.text.Normalizer
 
 /**
@@ -71,13 +74,29 @@ class FdSecMetadata(
             return block
         }
 
-        /** Returns null when the block cannot hold the fields it declares - a damaged container. */
+        /**
+         * Returns null when the block cannot hold the fields it declares, or when the sealed name is
+         * not valid UTF-8 - a damaged container. Use [hasMalformedName] to tell the two apart.
+         */
         fun decode(block: ByteArray): FdSecMetadata? {
             if (block.size != FdSecFormat.METADATA_PLAINTEXT_SIZE) {
                 return null
             }
             val nameLength = FdSecBytes.readU16le(block, 0)
             return if (isLayoutValid(nameLength)) decodeChecked(block, nameLength) else null
+        }
+
+        /**
+         * True when the block's layout is sound but the sealed name bytes are not valid UTF-8, which
+         * FDSEC-FORMAT section 22 classes as damage in every suite. Kept apart from [decode] because
+         * a lossy decode would substitute U+FFFD and restore the file under a different name.
+         */
+        fun hasMalformedName(block: ByteArray): Boolean {
+            if (block.size != FdSecFormat.METADATA_PLAINTEXT_SIZE) {
+                return false
+            }
+            val nameLength = FdSecBytes.readU16le(block, 0)
+            return isLayoutValid(nameLength) && strictName(block, nameLength) == null
         }
 
         private fun isLayoutValid(nameLength: Int): Boolean {
@@ -89,8 +108,20 @@ class FdSecMetadata(
             return fixed + nameLength <= FdSecFormat.METADATA_PLAINTEXT_SIZE
         }
 
-        private fun decodeChecked(block: ByteArray, nameLength: Int): FdSecMetadata {
-            val name = String(block, NAME_LENGTH_FIELD_SIZE, nameLength, Charsets.UTF_8)
+        /** A legitimate U+FFFD (EF BF BD) decodes fine; only a malformed byte sequence yields null. */
+        private fun strictName(block: ByteArray, nameLength: Int): String? =
+            try {
+                Charsets.UTF_8.newDecoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT)
+                    .decode(ByteBuffer.wrap(block, NAME_LENGTH_FIELD_SIZE, nameLength))
+                    .toString()
+            } catch (ignored: CharacterCodingException) {
+                null
+            }
+
+        private fun decodeChecked(block: ByteArray, nameLength: Int): FdSecMetadata? {
+            val name = strictName(block, nameLength) ?: return null
             var offset = NAME_LENGTH_FIELD_SIZE + nameLength
             val realSize = FdSecBytes.readU64le(block, offset)
             offset += SIZE_FIELD_SIZE

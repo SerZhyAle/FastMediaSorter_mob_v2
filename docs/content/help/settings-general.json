@@ -21,6 +21,8 @@
     { "id": "ftp", "viewId": "rowSourceFtp", "labelKey": "settings_remote_source_ftp_title" },
     { "id": "cloud", "viewId": "rowSourceCloud", "labelKey": "settings_remote_source_cloud_title" },
     { "id": "sftp-server", "viewId": "rowSftpServerEnabled", "labelKey": "settings_sftp_server_enable_title" },
+    { "id": "drive-access", "viewId": "rowSftpDriveAccess", "labelKey": "settings_sftp_drive_access_title" },
+    { "id": "exchange-server", "viewId": "rowSftpExchangeEnabled", "labelKey": "settings_sftp_exchange_enable_title" },
     { "id": "saved-auth", "viewId": "row_saved_authorizations", "labelKey": "setting_saved_authorizations_title" },
     { "id": "secure-screens", "viewId": "rowSecureSensitiveScreens", "labelKey": "settings_secure_sensitive_screens_title" },
     { "id": "export-settings", "viewId": "btnExportSettings", "labelKey": "export_settings" },
@@ -35,12 +37,12 @@
     { "id": "cache-limit", "viewId": "actvCacheSizeLimit", "labelKey": "cache_size_limit" },
     { "id": "clear-cache", "viewId": "btnClearCache", "labelKey": "clear_cache" },
     { "id": "statistics", "viewId": "rowEnableStatistics", "labelKey": "settings_statistics_collection_title" },
+    { "id": "reset-general", "viewId": "btnResetGeneralSection", "labelKey": "reset_general_section" },
     { "id": "extensions", "viewId": "btnDownloadableExtensions", "labelKey": "ext_manager_title" },
     { "id": "permissions", "viewId": "btnPermissionsManagement", "labelKey": "settings_category_permissions" },
     { "id": "system-info", "viewId": "btnSystemInfo", "labelKey": "settings_system_info_button" },
     { "id": "user-guide", "viewId": "btnUserGuide", "labelKey": "user_guide" },
-    { "id": "welcome", "viewId": "btnOpenWelcome", "labelKey": "open_welcome_tutorial" },
-    { "id": "reset-general", "viewId": "btnResetGeneralSection", "labelKey": "reset_general_section" }
+    { "id": "welcome", "viewId": "btnOpenWelcome", "labelKey": "open_welcome_tutorial" }
   ],
   "related": [
     { "help": "main" },
@@ -66,14 +68,16 @@
       "orderNote": "There is no fixed order here - every option works on its own. They are grouped below by the same section headers you see on the tab.",
       "groups": [
         { "title": "General interface settings", "elements": ["language", "color-theme", "device-profile", "compact", "animations", "power-saving", "favorites", "separate-window"] },
-        { "title": "Main screen interface", "elements": ["grid-cell-size", "programs-panel"] },
+        { "title": "Resource list interface", "elements": ["grid-cell-size", "programs-panel"] },
         { "title": "File browser interface", "elements": ["all-files", "hidden-files", "subfolders", "swipe-left", "swipe-right"] },
         { "title": "Remote resources (SMB/(S)FTP/Cloud)", "elements": ["smb", "ftp", "cloud"] },
-        { "title": "Share over SFTP", "elements": ["sftp-server"] },
+        { "title": "Share from phone", "elements": ["sftp-server"] },
+        { "title": "Access from anywhere", "elements": ["drive-access", "exchange-server"] },
         { "title": "Authorization and accounts", "elements": ["saved-auth", "secure-screens"] },
         { "title": "Backups, restore and settings export", "elements": ["export-settings", "import-settings", "backup", "restore", "reset-settings"] },
         { "title": "Background sync, network and cache", "elements": ["parallelism", "prefetch", "background-sync", "thumb-preload", "cache-limit", "clear-cache", "statistics"] },
-        { "title": "Tools, guides and reset", "elements": ["extensions", "permissions", "system-info", "user-guide", "welcome", "reset-general"] }
+        { "title": "Reset General section", "elements": ["reset-general"] },
+        { "title": "All about this application", "elements": ["extensions", "permissions", "system-info", "user-guide", "welcome"] }
       ],
       "elements": {
         "language": {
@@ -103,7 +107,7 @@
         },
         "favorites": {
           "summary": "Turns the Favorites feature on or off.",
-          "details": "With it on, you can mark files as favorites, see them in one list and put them on a home screen widget. The Favorites button on the main screen appears along with it."
+          "details": "With it on, you can mark files as favorites, see them in one list and put them on a home screen widget. The Favorites button in the resource list appears along with it."
         },
         "separate-window": {
           "summary": "Adds an action that opens a folder or file in a new window.",
@@ -111,7 +115,7 @@
         },
         "grid-cell-size": {
           "summary": "Sets how big resource tiles are in grid view.",
-          "details": "It applies to the resource list on the main screen. Smaller cells fit more resources, larger ones are easier to read. Grid view itself is switched on with the view button on the main screen."
+          "details": "It applies to the resource list. Smaller cells fit more resources, larger ones are easier to read. Grid view itself is switched on with the view button in the resource list."
         },
         "programs-panel": {
           "summary": "Shows the programs menu as a bar above the resource list.",
@@ -139,19 +143,27 @@
         },
         "smb": {
           "summary": "Turns on connecting to shared folders on your local network.",
-          "details": "Use it for a home NAS, a Windows PC with file sharing on, or a router with a USB drive. With it on, you can add SMB resources, and the SMB tab appears on the main screen."
+          "details": "Use it for a home NAS, a Windows PC with file sharing on, or a router with a USB drive. With it on, you can add SMB resources, and the SMB tab appears in the resource list."
         },
         "ftp": {
           "summary": "Turns on connecting to servers over FTP and SFTP.",
-          "details": "Use it for a home server, a NAS, web hosting or a router that supports (S)FTP. With it on, you can add such resources, and the S/FTP tab appears on the main screen."
+          "details": "Use it for a home server, a NAS, web hosting or a router that supports (S)FTP. With it on, you can add such resources, and the S/FTP tab appears in the resource list."
         },
         "cloud": {
           "summary": "Turns on cloud storage: Google Drive, OneDrive and Dropbox.",
-          "details": "Connect an account and your cloud folders open right inside the app. With it on, the Cloud tab appears on the main screen."
+          "details": "Connect an account and your cloud folders open right inside the app. With it on, the Cloud tab appears in the resource list."
         },
         "sftp-server": {
           "summary": "Lets other devices open folders from this one over SFTP.",
           "details": "Add at least one shared folder, choose password or SSH key sign-in and a port from 1024 to 65535, then turn the server on. Another device connects with the address shown here, or by scanning the pairing code in FastMediaSorter. After you change its settings, turn the server off and on again to apply them."
+        },
+        "drive-access": {
+          "summary": "Lets your other devices on the same Google account connect to this phone's share.",
+          "details": "Puts the server's address, login and password in the app folder of your Google Drive. With it off, those devices still see the share but cannot connect to it."
+        },
+        "exchange-server": {
+          "summary": "Makes this phone's share reachable from any network through your exchange server.",
+          "details": "Pick the outgoing exchange server with Change, then switch it on; the status line shows the address the share is reachable at. New access link issues a fresh link to the share."
         },
         "saved-auth": {
           "summary": "Reviews the sign-ins the app saved from its web sign-in screen.",
@@ -244,14 +256,16 @@
       "orderNote": "Единого порядка здесь нет - каждый параметр работает сам по себе. Ниже они сгруппированы по тем же заголовкам разделов, что и на вкладке.",
       "groups": [
         { "title": "Общие настройки интерфейса", "elements": ["language", "color-theme", "device-profile", "compact", "animations", "power-saving", "favorites", "separate-window"] },
-        { "title": "Интерфейс главного экрана", "elements": ["grid-cell-size", "programs-panel"] },
+        { "title": "Интерфейс списка ресурсов", "elements": ["grid-cell-size", "programs-panel"] },
         { "title": "Интерфейс браузера файлов", "elements": ["all-files", "hidden-files", "subfolders", "swipe-left", "swipe-right"] },
         { "title": "Удалённые ресурсы (SMB/(S)FTP/Облако)", "elements": ["smb", "ftp", "cloud"] },
-        { "title": "Доступ по SFTP", "elements": ["sftp-server"] },
+        { "title": "Доступ с телефона", "elements": ["sftp-server"] },
+        { "title": "Доступ отовсюду", "elements": ["drive-access", "exchange-server"] },
         { "title": "Авторизация и аккаунты", "elements": ["saved-auth", "secure-screens"] },
         { "title": "Резервные копии, восстановление и экспорт", "elements": ["export-settings", "import-settings", "backup", "restore", "reset-settings"] },
         { "title": "Фоновая синхронизация, сеть и кэш", "elements": ["parallelism", "prefetch", "background-sync", "thumb-preload", "cache-limit", "clear-cache", "statistics"] },
-        { "title": "Инструменты, руководство и сброс", "elements": ["extensions", "permissions", "system-info", "user-guide", "welcome", "reset-general"] }
+        { "title": "Сброс раздела «Общие»", "elements": ["reset-general"] },
+        { "title": "Всё об этом приложении", "elements": ["extensions", "permissions", "system-info", "user-guide", "welcome"] }
       ],
       "elements": {
         "language": {
@@ -281,7 +295,7 @@
         },
         "favorites": {
           "summary": "Включает или выключает «Избранное».",
-          "details": "Когда оно включено, файлы можно отмечать избранными, смотреть их одним списком и выводить на виджет рабочего стола. Кнопка «Избранное» на главном экране появляется вместе с ним."
+          "details": "Когда оно включено, файлы можно отмечать избранными, смотреть их одним списком и выводить на виджет рабочего стола. Кнопка «Избранное» в списке ресурсов появляется вместе с ним."
         },
         "separate-window": {
           "summary": "Добавляет действие «Открыть в новом окне».",
@@ -289,7 +303,7 @@
         },
         "grid-cell-size": {
           "summary": "Задаёт размер плиток ресурсов в виде сетки.",
-          "details": "Относится к списку ресурсов на главном экране. Мелкие ячейки вмещают больше ресурсов, крупные удобнее читать. Сама сетка включается кнопкой вида на главном экране."
+          "details": "Относится к списку ресурсов в списке ресурсов. Мелкие ячейки вмещают больше ресурсов, крупные удобнее читать. Сама сетка включается кнопкой вида в списке ресурсов."
         },
         "programs-panel": {
           "summary": "Показывает меню программ полосой над списком ресурсов.",
@@ -317,19 +331,27 @@
         },
         "smb": {
           "summary": "Включает подключение к общим папкам в локальной сети.",
-          "details": "Подойдёт для домашнего NAS, компьютера с Windows и включённым общим доступом или роутера с USB-диском. Когда переключатель включён, можно добавлять SMB-ресурсы, а на главном экране появляется вкладка SMB."
+          "details": "Подойдёт для домашнего NAS, компьютера с Windows и включённым общим доступом или роутера с USB-диском. Когда переключатель включён, можно добавлять SMB-ресурсы, а в списке ресурсов появляется вкладка SMB."
         },
         "ftp": {
           "summary": "Включает подключение к серверам по FTP и SFTP.",
-          "details": "Подойдёт для домашнего сервера, NAS, веб-хостинга или роутера с поддержкой (S)FTP. Когда переключатель включён, можно добавлять такие ресурсы, а на главном экране появляется вкладка S/FTP."
+          "details": "Подойдёт для домашнего сервера, NAS, веб-хостинга или роутера с поддержкой (S)FTP. Когда переключатель включён, можно добавлять такие ресурсы, а в списке ресурсов появляется вкладка S/FTP."
         },
         "cloud": {
           "summary": "Включает облачные хранилища: Google Drive, OneDrive и Dropbox.",
-          "details": "Подключите аккаунт, и облачные папки откроются прямо в приложении. Когда переключатель включён, на главном экране появляется вкладка «Облако»."
+          "details": "Подключите аккаунт, и облачные папки откроются прямо в приложении. Когда переключатель включён, в списке ресурсов появляется вкладка «Облако»."
         },
         "sftp-server": {
           "summary": "Позволяет другим устройствам открывать папки с этого устройства по SFTP.",
           "details": "Добавьте хотя бы одну общую папку, выберите вход по паролю или SSH-ключу и порт от 1024 до 65535, затем включите сервер. Другое устройство подключится по показанному здесь адресу или по коду сопряжения в FastMediaSorter. Изменив настройки, выключите и снова включите сервер, чтобы они вступили в силу."
+        },
+        "drive-access": {
+          "summary": "Позволяет другим вашим устройствам с тем же аккаунтом Google подключаться к общим папкам этого телефона.",
+          "details": "Адрес сервера, логин и пароль кладутся в папку приложения на вашем Google Drive. Когда переключатель выключен, эти устройства видят общий доступ, но подключиться к нему не могут."
+        },
+        "exchange-server": {
+          "summary": "Делает общие папки этого телефона доступными из любой сети через ваш обменный сервер.",
+          "details": "Выберите исходящий обменный сервер кнопкой «Изменить» и включите переключатель; строка состояния покажет адрес, по которому доступны папки. «Новая ссылка доступа» выдаёт свежую ссылку на общий доступ."
         },
         "saved-auth": {
           "summary": "Показывает входы, которые приложение сохранило на экране веб-входа.",
@@ -422,14 +444,16 @@
       "orderNote": "Єдиного порядку тут немає - кожен параметр працює сам по собі. Нижче їх згруповано за тими самими заголовками розділів, що й на вкладці.",
       "groups": [
         { "title": "Загальні налаштування інтерфейсу", "elements": ["language", "color-theme", "device-profile", "compact", "animations", "power-saving", "favorites", "separate-window"] },
-        { "title": "Інтерфейс головного екрана", "elements": ["grid-cell-size", "programs-panel"] },
+        { "title": "Інтерфейс списку ресурсів", "elements": ["grid-cell-size", "programs-panel"] },
         { "title": "Інтерфейс браузера файлів", "elements": ["all-files", "hidden-files", "subfolders", "swipe-left", "swipe-right"] },
         { "title": "Віддалені ресурси (SMB/(S)FTP/Хмара)", "elements": ["smb", "ftp", "cloud"] },
-        { "title": "Доступ через SFTP", "elements": ["sftp-server"] },
+        { "title": "Доступ з телефону", "elements": ["sftp-server"] },
+        { "title": "Доступ звідусіль", "elements": ["drive-access", "exchange-server"] },
         { "title": "Авторизація й акаунти", "elements": ["saved-auth", "secure-screens"] },
         { "title": "Резервні копії, відновлення й експорт", "elements": ["export-settings", "import-settings", "backup", "restore", "reset-settings"] },
         { "title": "Фонова синхронізація, мережа й кеш", "elements": ["parallelism", "prefetch", "background-sync", "thumb-preload", "cache-limit", "clear-cache", "statistics"] },
-        { "title": "Інструменти, керівництво та скидання", "elements": ["extensions", "permissions", "system-info", "user-guide", "welcome", "reset-general"] }
+        { "title": "Скидання розділу «Загальні»", "elements": ["reset-general"] },
+        { "title": "Усе про цей застосунок", "elements": ["extensions", "permissions", "system-info", "user-guide", "welcome"] }
       ],
       "elements": {
         "language": {
@@ -459,7 +483,7 @@
         },
         "favorites": {
           "summary": "Вмикає або вимикає «Обране».",
-          "details": "Коли його ввімкнено, файли можна позначати обраними, бачити їх одним списком і виводити на віджет робочого стола. Кнопка «Обране» на головному екрані з’являється разом з ним."
+          "details": "Коли його ввімкнено, файли можна позначати обраними, бачити їх одним списком і виводити на віджет робочого стола. Кнопка «Обране» у списку ресурсів з’являється разом з ним."
         },
         "separate-window": {
           "summary": "Додає дію «Відкрити в новому вікні».",
@@ -467,7 +491,7 @@
         },
         "grid-cell-size": {
           "summary": "Задає розмір плиток ресурсів у вигляді сітки.",
-          "details": "Стосується списку ресурсів на головному екрані. Дрібні комірки вміщують більше ресурсів, більші - зручніше читати. Саму сітку вмикає кнопка вигляду на головному екрані."
+          "details": "Стосується списку ресурсів у списку ресурсів. Дрібні комірки вміщують більше ресурсів, більші - зручніше читати. Саму сітку вмикає кнопка вигляду у списку ресурсів."
         },
         "programs-panel": {
           "summary": "Показує меню програм смугою над списком ресурсів.",
@@ -495,19 +519,27 @@
         },
         "smb": {
           "summary": "Вмикає підключення до спільних папок у локальній мережі.",
-          "details": "Підійде для домашнього NAS, комп’ютера з Windows і ввімкненим спільним доступом або роутера з USB-диском. Коли перемикач увімкнено, можна додавати SMB-ресурси, а на головному екрані з’являється вкладка SMB."
+          "details": "Підійде для домашнього NAS, комп’ютера з Windows і ввімкненим спільним доступом або роутера з USB-диском. Коли перемикач увімкнено, можна додавати SMB-ресурси, а у списку ресурсів з’являється вкладка SMB."
         },
         "ftp": {
           "summary": "Вмикає підключення до серверів через FTP і SFTP.",
-          "details": "Підійде для домашнього сервера, NAS, вебхостингу або роутера з підтримкою (S)FTP. Коли перемикач увімкнено, можна додавати такі ресурси, а на головному екрані з’являється вкладка S/FTP."
+          "details": "Підійде для домашнього сервера, NAS, вебхостингу або роутера з підтримкою (S)FTP. Коли перемикач увімкнено, можна додавати такі ресурси, а у списку ресурсів з’являється вкладка S/FTP."
         },
         "cloud": {
           "summary": "Вмикає хмарні сховища: Google Drive, OneDrive і Dropbox.",
-          "details": "Підключіть акаунт, і хмарні папки відкриються просто в застосунку. Коли перемикач увімкнено, на головному екрані з’являється вкладка «Хмара»."
+          "details": "Підключіть акаунт, і хмарні папки відкриються просто в застосунку. Коли перемикач увімкнено, у списку ресурсів з’являється вкладка «Хмара»."
         },
         "sftp-server": {
           "summary": "Дозволяє іншим пристроям відкривати папки з цього пристрою через SFTP.",
           "details": "Додайте хоча б одну спільну папку, оберіть вхід за паролем або SSH-ключем і порт від 1024 до 65535, а тоді ввімкніть сервер. Інший пристрій підключиться за показаною тут адресою або за кодом сполучення у FastMediaSorter. Змінивши налаштування, вимкніть і знову ввімкніть сервер, щоб вони набули чинності."
+        },
+        "drive-access": {
+          "summary": "Дозволяє іншим вашим пристроям із тим самим акаунтом Google підключатися до спільних папок цього телефона.",
+          "details": "Адреса сервера, логін і пароль потрапляють у папку застосунку на вашому Google Drive. Коли перемикач вимкнено, ці пристрої бачать спільний доступ, але підключитися до нього не можуть."
+        },
+        "exchange-server": {
+          "summary": "Робить спільні папки цього телефона доступними з будь-якої мережі через ваш обмінний сервер.",
+          "details": "Оберіть вихідний обмінний сервер кнопкою «Змінити» й увімкніть перемикач; рядок стану покаже адресу, за якою доступні папки. «Нове посилання доступу» видає свіже посилання на спільний доступ."
         },
         "saved-auth": {
           "summary": "Показує входи, які застосунок зберіг на екрані вебвходу.",

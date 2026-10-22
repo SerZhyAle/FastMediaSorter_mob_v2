@@ -23,7 +23,7 @@ steps:
     id: open-calculator
     title: Open the calculator
     text: |
-      Open **Calculator** from the programs menu or the [programs panel](term:programs-panel) of the [main screen](term:main-screen), or put the **Calculator** [widget](term:widget) on your home screen - see [FastMediaSorter widgets for your home screen](page:launcher.home-screen-widgets). If the calculator is switched off, the widget says **Calculator is off** and offers **Open Settings**.
+      Open **Calculator** from the programs menu or the [programs panel](term:programs-panel) of the [resource list](term:resource-list), or put the **Calculator** [widget](term:widget) on your home screen - see [FastMediaSorter widgets for your home screen](page:launcher.home-screen-widgets). If the calculator is switched off, the widget says **Calculator is off** and offers **Open Settings**.
 
       From the text editor you can also select a sum written in a note, such as `12*7+5`, and send it to the calculator - see [Reading and editing text files](page:documents.text-code-editor).
     image_bookmark:

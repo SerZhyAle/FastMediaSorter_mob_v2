@@ -99,7 +99,7 @@ permalink: /docs/ICON_LEGEND-uk.html
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Жести з країв екрана |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Запис відео з екрана |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Команди надіслати файл у.. |
-| <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Доступ через SFTP |
+| <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Доступ з телефону |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Трансляції |
 | <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Фонова синхронізація, мережа й кеш |
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Взаємодія з операційною системою |

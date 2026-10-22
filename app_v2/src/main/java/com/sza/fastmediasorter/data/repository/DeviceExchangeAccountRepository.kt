@@ -50,7 +50,7 @@ class DeviceExchangeAccountRepository @Inject constructor(
 
     val entries: Flow<List<DeviceExchangeAccountEntry>> = store.entries
 
-    /** The entry the device publishes and broadcasts through (item AC); null while none is chosen. */
+    /** The entry the device publishes and broadcasts through (item AC); null only while no entry may produce (DS). */
     val outgoing: Flow<DeviceExchangeAccountEntry?> = store.entries.map { held -> held.firstOrNull { it.outgoing } }
 
     suspend fun outgoingEntry(): DeviceExchangeAccountEntry? = store.outgoing()

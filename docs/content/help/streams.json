@@ -10,7 +10,6 @@
     { "id": "media-own", "viewId": "btnMediaKindOwn", "labelKey": "streams_media_filter_own" },
     { "id": "filter", "viewId": "btnFilter", "labelKey": "streams_filter" },
     { "id": "sort", "viewId": "btnSort", "labelKey": "streams_sort" },
-    { "id": "collections", "viewId": "streamCollectionsStrip", "labelKey": "streams_collection_strip_description" },
     { "id": "devices-header", "viewId": "streamsDevicesHeader", "labelKey": "streams_section_device_broadcasts" },
     { "id": "devices-portal", "viewId": "btnDevicesPortal", "labelKey": "exchange_portal_link_broadcast" },
     { "id": "pinned-header", "viewId": "streamsPinnedHeader", "labelKey": "streams_section_pinned" },
@@ -58,7 +57,7 @@
       "title": "Streams",
       "purpose": "Streams is your list of internet radio stations, TV channels and cameras. Add a stream by its address, bring in the built-in catalog or a ready playlist, find a channel and play it - radio plays right on this screen, video opens in the full-screen player.",
       "steps": [
-        "Open Streams from the programs on the main screen. While the list is empty, Add stream (15) takes the address of one station or channel, and Import list (16) brings in a ready list.",
+        "Open Streams from the programs in the resource list. While the list is empty, Add stream (15) takes the address of one station or channel, and Import list (16) brings in a ready list.",
         "To fill the list with the built-in catalog, press Import catalog (23) in the toolbar. The banner (2) may offer the same update when you open the screen.",
         "Find a channel: type a few letters into Search (3), tap the video, audio or own-streams button (4, 5, 6), or open Filter (7) for category, topic, language and country. Collections (9) are hand-picked sets, shown when the catalog has them.",
         "Sort (8) sets the order, and the view button (22) switches between rows and tiles.",
@@ -67,7 +66,7 @@
         "Broadcasts of your other devices wait under (10). Refresh channel status (27) checks which channels answer, and Help (29) opens this page."
       ],
       "groups": [
-        { "title": "Toolbar, search and filters", "elements": ["toolbar", "catalog-banner", "search", "media-video", "media-audio", "media-own", "filter", "sort", "collections"] },
+        { "title": "Toolbar, search and filters", "elements": ["toolbar", "catalog-banner", "search", "media-video", "media-audio", "media-own", "filter", "sort"] },
         { "title": "Channel lists", "elements": ["devices-header", "devices-portal", "pinned-header", "main-header", "channel-list", "empty-add", "empty-import"] },
         { "title": "Scrolling and playback", "elements": ["scroll-top", "page-up", "page-down", "scroll-bottom", "mini-stop"] },
         { "title": "Toolbar buttons and menu", "elements": ["view-toggle", "import-catalog", "menu-add", "menu-import-url", "menu-import-broadcast", "menu-refresh", "menu-clear", "menu-help"] },
@@ -106,10 +105,6 @@
         "sort": {
           "summary": "Chooses the order of the channels.",
           "details": "Pick By name, By topic, By language, By country or Recently added; the order is remembered. Pinned channels keep their own order in their own section, so Sort changes the Channels section. With a collection selected, a sort replaces the curator's order but keeps you inside the collection."
-        },
-        "collections": {
-          "summary": "Hand-picked sets of channels, as a row of chips.",
-          "details": "The row appears only after the catalog has delivered collections. The first chip, All, shows the whole list; tap another chip to see just that set, in the order its compilers chose. Only one chip is active at a time."
         },
         "devices-header": {
           "summary": "Live broadcasts of your other devices, folded away until you open it.",
@@ -240,7 +235,7 @@
       "title": "Трансляции",
       "purpose": "«Трансляции» - ваш список интернет-радио, телеканалов и камер. Добавьте трансляцию по адресу, загрузите встроенный каталог или готовый плейлист, найдите канал и запустите: радио играет прямо на этом экране, видео открывается в полноэкранном плеере.",
       "steps": [
-        "Откройте «Трансляции» из программ на главном экране. Пока список пуст, «Добавить трансляцию» (15) принимает адрес одной станции или канала, а «Импорт списка» (16) загружает готовый список.",
+        "Откройте «Трансляции» из программ в списке ресурсов. Пока список пуст, «Добавить трансляцию» (15) принимает адрес одной станции или канала, а «Импорт списка» (16) загружает готовый список.",
         "Чтобы наполнить список встроенным каталогом, нажмите «Импорт каталога» (23) на панели. Ту же загрузку может предложить баннер (2) при открытии экрана.",
         "Найдите канал: введите несколько букв в «Поиск» (3), нажмите кнопку видео, аудио или своих трансляций (4, 5, 6) либо откройте «Фильтр» (7) - категория, рубрика, язык и страна. «Подборки» (9) - наборы, составленные вручную; они видны, если есть в каталоге.",
         "«Сортировка» (8) задаёт порядок, а кнопка вида (22) переключает строки и плитки.",
@@ -249,7 +244,7 @@
         "Трансляции ваших других устройств ждут в разделе (10). «Обновить состояние каналов» (27) проверяет, какие каналы отвечают, а «Справка» (29) открывает эту страницу."
       ],
       "groups": [
-        { "title": "Панель, поиск и фильтры", "elements": ["toolbar", "catalog-banner", "search", "media-video", "media-audio", "media-own", "filter", "sort", "collections"] },
+        { "title": "Панель, поиск и фильтры", "elements": ["toolbar", "catalog-banner", "search", "media-video", "media-audio", "media-own", "filter", "sort"] },
         { "title": "Списки каналов", "elements": ["devices-header", "devices-portal", "pinned-header", "main-header", "channel-list", "empty-add", "empty-import"] },
         { "title": "Прокрутка и воспроизведение", "elements": ["scroll-top", "page-up", "page-down", "scroll-bottom", "mini-stop"] },
         { "title": "Кнопки и меню панели", "elements": ["view-toggle", "import-catalog", "menu-add", "menu-import-url", "menu-import-broadcast", "menu-refresh", "menu-clear", "menu-help"] },
@@ -288,10 +283,6 @@
         "sort": {
           "summary": "Выбирает порядок каналов.",
           "details": "Варианты: «По названию», «По рубрике», «По языку», «По стране» и «Недавно добавленные»; порядок запоминается. Закреплённые каналы идут в своём разделе в вашем порядке, поэтому сортировка меняет раздел «Каналы». Если выбрана подборка, сортировка заменяет порядок составителя, но подборка остаётся."
-        },
-        "collections": {
-          "summary": "Наборы каналов, подобранные вручную, - строкой плашек.",
-          "details": "Строка появляется, только когда каталог привёз подборки. Первая плашка, «Все», показывает весь список; нажмите другую, чтобы увидеть только этот набор в порядке, выбранном составителями. Активна всегда одна плашка."
         },
         "devices-header": {
           "summary": "Прямые трансляции ваших других устройств; раздел свёрнут, пока вы его не откроете.",
@@ -422,7 +413,7 @@
       "title": "Трансляції",
       "purpose": "«Трансляції» - ваш список інтернет-радіо, телеканалів і камер. Додайте трансляцію за адресою, завантажте вбудований каталог або готовий плейлист, знайдіть канал і запустіть: радіо грає просто на цьому екрані, відео відкривається в повноекранному плеєрі.",
       "steps": [
-        "Відкрийте «Трансляції» з програм на головному екрані. Поки список порожній, «Додати трансляцію» (15) приймає адресу однієї станції чи каналу, а «Імпорт списку» (16) завантажує готовий список.",
+        "Відкрийте «Трансляції» з програм у списку ресурсів. Поки список порожній, «Додати трансляцію» (15) приймає адресу однієї станції чи каналу, а «Імпорт списку» (16) завантажує готовий список.",
         "Щоб наповнити список вбудованим каталогом, натисніть «Імпорт каталогу» (23) на панелі. Те саме оновлення може запропонувати банер (2) під час відкриття екрана.",
         "Знайдіть канал: введіть кілька літер у «Пошук» (3), натисніть кнопку відео, аудіо або власних трансляцій (4, 5, 6) чи відкрийте «Фільтр» (7) - категорія, рубрика, мова й країна. «Добірки» (9) - набори, складені вручну; вони видимі, якщо є в каталозі.",
         "«Сортування» (8) задає порядок, а кнопка вигляду (22) перемикає рядки й плитки.",
@@ -431,7 +422,7 @@
         "Трансляції ваших інших пристроїв чекають у розділі (10). «Оновити стан каналів» (27) перевіряє, які канали відповідають, а «Довідка» (29) відкриває цю сторінку."
       ],
       "groups": [
-        { "title": "Панель, пошук і фільтри", "elements": ["toolbar", "catalog-banner", "search", "media-video", "media-audio", "media-own", "filter", "sort", "collections"] },
+        { "title": "Панель, пошук і фільтри", "elements": ["toolbar", "catalog-banner", "search", "media-video", "media-audio", "media-own", "filter", "sort"] },
         { "title": "Списки каналів", "elements": ["devices-header", "devices-portal", "pinned-header", "main-header", "channel-list", "empty-add", "empty-import"] },
         { "title": "Прокручування й відтворення", "elements": ["scroll-top", "page-up", "page-down", "scroll-bottom", "mini-stop"] },
         { "title": "Кнопки й меню панелі", "elements": ["view-toggle", "import-catalog", "menu-add", "menu-import-url", "menu-import-broadcast", "menu-refresh", "menu-clear", "menu-help"] },
@@ -470,10 +461,6 @@
         "sort": {
           "summary": "Вибирає порядок каналів.",
           "details": "Варіанти: «За назвою», «За рубрикою», «За мовою», «За країною» та «Нещодавно додані»; порядок запам’ятовується. Закріплені канали йдуть у своєму розділі у вашому порядку, тому сортування змінює розділ «Канали». Якщо вибрано добірку, сортування замінює порядок укладача, але добірка лишається."
-        },
-        "collections": {
-          "summary": "Набори каналів, дібрані вручну, - рядком плашок.",
-          "details": "Рядок з’являється, лише коли каталог привіз добірки. Перша плашка, «Усі», показує весь список; натисніть іншу, щоб побачити тільки цей набір у порядку, який обрали укладачі. Активна завжди одна плашка."
         },
         "devices-header": {
           "summary": "Прямі трансляції ваших інших пристроїв; розділ згорнуто, доки ви його не відкриєте.",

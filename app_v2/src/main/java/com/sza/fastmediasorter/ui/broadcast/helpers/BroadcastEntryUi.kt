@@ -77,4 +77,16 @@ object BroadcastEntryUi {
      */
     fun showsTorchButton(state: BroadcastState): Boolean =
         state is BroadcastState.Live && showsLightControls(state) && state.torchAvailable && state.cameraEnabled
+
+    /**
+     * S4418: the player's rule (S0667) is that landscape means fullscreen for a visual medium. On this
+     * screen it applies only to a live camera picture: while idle the two-pane layout is where the mode,
+     * the lens and the start button are, and a session without a picture has nothing to enlarge.
+     * [controlsShown] is the user's tap on the picture asking for the panel back.
+     */
+    fun showsFullscreenPreview(
+        isLandscape: Boolean,
+        pictureOnScreen: Boolean,
+        controlsShown: Boolean,
+    ): Boolean = isLandscape && pictureOnScreen && !controlsShown
 }

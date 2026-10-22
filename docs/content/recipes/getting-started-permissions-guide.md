@@ -112,7 +112,7 @@ next_recipes:
     badge: Getting Started
     badge_type: docs
     description: The short version of this same permissions list, on the last page of first setup.
-  - title: Navigating the main screen
+  - title: Navigating the resource list
     url: page:getting-started.main-screen-overview
     badge: Getting Started
     badge_type: docs

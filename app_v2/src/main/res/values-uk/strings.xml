@@ -461,7 +461,7 @@
     <string name="overwrite_on_move">Перезаписувати при переміщенні</string>
     <string name="add_destination">+ Додати</string>
     <string name="destinations_list_header">Призначення швидкого сортування</string>
-    <string name="add_resources_first_message">Спочатку додайте ресурси на головному екрані, потім позначте їх для швидкого сортування.</string>
+    <string name="add_resources_first_message">Спочатку додайте ресурси до списку ресурсів, потім позначте їх для швидкого сортування.</string>
     <string name="register_as_destination">Швидке сортування</string>
 
     <!-- Edit Folder -->
@@ -1959,7 +1959,7 @@
     <string name="ext_uninstall_all_confirm_title">Видалити всі розширення?</string>
     <string name="ext_uninstall_all_confirm_message">Видалити всі встановлені розширення і звільнити місце? Пізніше можна завантажити знову.</string>
     <string name="slideshow_stop">Зупинити слайд-шоу</string>
-    <string name="open_in_fms_external_file_notice">Цей файл розташований поза ресурсом, доданим до застосунку, тому відкрився головний екран.</string>
+    <string name="open_in_fms_external_file_notice">Цей файл розташований поза ресурсом, доданим до застосунку, тому відкрився список ресурсів.</string>
     <string name="sftp_host_key_fingerprint_hint">Очікуваний відбиток host-key (SHA256, опційно)</string>
     <string name="sftp_host_key_fingerprint_invalid">Не вдалося розібрати відбиток. Підтримуються SHA256:base64, hex з двокрапками, чистий base64.</string>
     <string name="sftp_host_key_mismatch_title">Не вдалося підтвердити сервер</string>
@@ -2348,7 +2348,7 @@
     <string name="camera_geotag_permission_denied">Для геотегування потрібен дозвіл на геолокацію</string>
     <string name="setting_show_programs_panel_title">Панель програм</string>
     <string name="setting_show_programs_panel_summary">Дублювати меню програм горизонтальною смугою над списком ресурсів. Приховує кнопку «три крапки».</string>
-    <string name="setting_show_streams_panel_title">Показувати панель трансляцій на головному екрані</string>
+    <string name="setting_show_streams_panel_title">Показувати панель трансляцій у списку ресурсів</string>
     <string name="setting_show_streams_panel_summary">Показувати закріплені канали горизонтальною смугою над списком ресурсів, із переходом до трансляцій.</string>
     <string name="panel_remove_title">Прибрати з панелі?</string>
     <string name="panel_remove_program_message">%1$s буде прихований. Увімкнути знову можна в налаштуваннях.</string>
@@ -2415,7 +2415,7 @@
     <string name="remove_resource">Видалити ресурс</string>
     <string name="recording_pause">Призупинити запис</string>
     <string name="recording_resume">Продовжити запис</string>
-    <string name="settings_category_main_window_interface">Інтерфейс головного екрана</string>
+    <string name="settings_category_main_window_interface">Інтерфейс списку ресурсів</string>
     <string name="streams_move_up">Вгору</string>
     <string name="streams_move_down">Вниз</string>
     <string name="streams_move_to_top">На самий верх</string>
@@ -3292,7 +3292,7 @@
     <string name="wear_resource_selection_title">Ресурси для годинника</string>
     <string name="wear_resource_selection_hint">На годинник можна надіслати лише мережеві ресурси (SMB, FTP, SFTP), тому в списку лише вони. Позначте ті, які потрібно надіслати.</string>
     <string name="wear_resource_selection_select_all">Вибрати всі</string>
-    <string name="wear_resource_selection_empty">Мережевих ресурсів поки немає. На годинник можна надіслати лише SMB, FTP і SFTP - додайте такий ресурс на головному екрані й поверніться сюди, щоб вибрати, що отримає годинник.</string>
+    <string name="wear_resource_selection_empty">Мережевих ресурсів поки немає. На годинник можна надіслати лише SMB, FTP і SFTP - додайте такий ресурс до списку ресурсів і поверніться сюди, щоб вибрати, що отримає годинник.</string>
     <string name="wear_sync_nothing_selected">На годинник поки не позначено жодного ресурсу. Відкрийте «Ресурси для годинника» та позначте ті, які потрібно надіслати.</string>
     <string name="wear_settings_view_mode">Вигляд головного екрана та ресурсів</string>
     <string name="wear_settings_view_mode_list">Список</string>
@@ -3612,7 +3612,7 @@
     <string name="storage_reach_limited_browse">У цій папці доступні лише фото, відео та звук. Щоб побачити документи, додайте папку знову й виберіть її у системному вікні.</string>
     <string name="reach_limited_nothing_readable">Документи не читаються</string>
     <string name="storage_reach_limited_virtual">Документи та інші файли на цьому пристрої застосунку не видно. Щоб відкрити їх, додайте потрібну папку через системне вікно вибору.</string>
-    <string name="storage_reach_limited_browse_reconnect">У цій папці доступні лише фото, відео та звук. Щоб побачити документи, відкрийте меню з трьома крапками в рядку папки на головному екрані та виберіть «Перепідключити ресурс».</string>
+    <string name="storage_reach_limited_browse_reconnect">У цій папці доступні лише фото, відео та звук. Щоб побачити документи, відкрийте меню з трьома крапками в рядку папки в списку ресурсів та виберіть «Перепідключити ресурс».</string>
     <string name="wear_settings_group_media_types">Типи медіа</string>
     <string name="wear_settings_group_slideshow">Слайд-шоу</string>
     <string name="wear_settings_group_screen">Екран</string>
@@ -4028,10 +4028,10 @@
     <string name="launcher_primary_window_home_desc">Застосунок стає домашнім екраном пристрою</string>
     <string name="launcher_primary_window_desktop_title">Робочий стіл як основне вікно</string>
     <string name="launcher_primary_window_desktop_desc">Відкривати робочий стіл усередині програми, не змінюючи домашній екран пристрою</string>
-    <string name="launcher_primary_window_resource_manager_title">Головний екран</string>
+    <string name="launcher_primary_window_resource_manager_title">Список ресурсів</string>
     <string name="launcher_primary_window_resource_manager_desc">Відкривати керування файлами та ресурсами напряму</string>
     <string name="setting_launcher_primary_window_title">Основне стартове вікно</string>
-    <string name="setting_launcher_primary_window_desc">Вибір режиму: домашній екран пристрою, робочий стіл усередині застосунку або головний екран</string>
+    <string name="setting_launcher_primary_window_desc">Вибір режиму: домашній екран пристрою, робочий стіл усередині застосунку або список ресурсів</string>
     <string name="broadcast_default_stream_title">Мовлення з телефона</string>
     <string name="broadcast_share_help">Як це дивитися</string>
     <string name="sos_title">Аварійний сигнал SOS</string>
@@ -4120,7 +4120,7 @@
     <string name="sftp_server_notification_address">Підключайтеся до %1$s</string>
     <string name="sftp_server_notification_no_network">Немає Wi-Fi - інші пристрої підключаються до телефона через сервер обміну або через Google Drive</string>
     <string name="sftp_server_action_stop">Зупинити</string>
-    <string name="settings_sftp_server_title">Доступ через SFTP</string>
+    <string name="settings_sftp_server_title">Доступ з телефону</string>
     <string name="settings_sftp_server_enable_title">SFTP-сервер</string>
     <string name="settings_sftp_server_enable_subtitle">Інші пристрої у вашій мережі зможуть відкрити вибрані папки</string>
     <string name="settings_sftp_server_status_off">Вимкнено</string>
@@ -4479,4 +4479,6 @@
     <string name="broadcast_control_group_share">Посилання й обмін</string>
     <string name="msg_transfer_same_folder_refused">Це та сама папка, де лежить файл. Виберіть інше призначення.</string>
     <string name="settings_collapse_all">Згорнути всі</string>
+    <string name="settings_category_about_app">Усе про цей застосунок</string>
+    <string name="broadcast_control_preview_toggle_cd">Картинка мовлення. Торкніться, щоб показати або сховати кнопки керування</string>
 </resources>

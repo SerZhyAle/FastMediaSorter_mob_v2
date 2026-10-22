@@ -1,7 +1,7 @@
 ---
 page_id: getting-started.main-screen-overview
-title: Navigating the Main Screen
-nav_title: The main screen at a glance
+title: Navigating the Resource List
+nav_title: The resource list at a glance
 description: What the resource list, the command bar, the resource-type tabs and the programs and streams panels do, how to sort and filter your resources, and how to read the recording indicator and the reconnect prompt.
 category: Getting Started
 category_slug: getting-started
@@ -10,7 +10,7 @@ availability: all
 recipe_number: "03"
 canonical_url: documentation/getting-started/main-screen-overview.html
 why: |
-  The [main screen](term:main-screen) is where every session with FastMediaSorter starts and usually ends. It is the one screen that has to make sense at a glance whether you have three resources or thirty - a folder on the phone, a shared drive at home, a handful of streams - so knowing what each part of it does saves you a few taps every single time you open the app.
+  The [resource list](term:resource-list) is where every session with FastMediaSorter starts and usually ends. It is the one screen that has to make sense at a glance whether you have three resources or thirty - a folder on the phone, a shared drive at home, a handful of streams - so knowing what each part of it does saves you a few taps every single time you open the app.
 
   Nothing here changes your files. This page is a map of the screen, not a set of actions to perform.
 ingredients:
@@ -28,10 +28,10 @@ steps:
       shot_id: getting-started.main-screen-resource-list
       device_profile: phone
       screen_state: main-screen-resource-list
-      alt: The FastMediaSorter main screen with the resource list showing several folders and network shares as tiles
+      alt: The FastMediaSorter resource list with the resource list showing several folders and network shares as tiles
       caption: "The resource list, in grid view."
-      title: "Screenshot: Main screen resource list"
-      desc: Main screen, grid view, All Files pinned first followed by a few user-added resources.
+      title: "Screenshot: Resource list"
+      desc: Resource list, grid view, All Files pinned first followed by a few user-added resources.
   - number: 2
     id: command-bar
     title: The command bar across the top
@@ -41,10 +41,10 @@ steps:
       shot_id: getting-started.main-screen-command-bar
       device_profile: phone
       screen_state: main-screen-command-bar-overflow
-      alt: The command bar at the top of the main screen with its icons and the More actions menu at the right holding the buttons that did not fit
+      alt: The command bar at the top of the resource list with its icons and the More actions menu at the right holding the buttons that did not fit
       caption: "Buttons that do not fit move into More actions."
       title: "Screenshot: Command bar"
-      desc: Main screen in portrait, More actions menu open.
+      desc: Resource list in portrait, More actions menu open.
     callout:
       type: tip
       title: Everything still reachable
@@ -61,7 +61,7 @@ steps:
       alt: The resource-type tab strip below the command bar with ALL, Local, SMB, S/FTP and Cloud tabs all visible
       caption: "Every resource-type tab fits, even on a narrow screen."
       title: "Screenshot: Resource-type tabs"
-      desc: Main screen, tab strip under the command bar, ALL tab selected.
+      desc: Resource list, tab strip under the command bar, ALL tab selected.
   - number: 4
     id: panels
     title: The programs and streams panels
@@ -73,10 +73,10 @@ steps:
       shot_id: getting-started.main-screen-panels
       device_profile: phone
       screen_state: main-screen-programs-streams-panels
-      alt: The main screen with the programs panel and streams panel both shown above the resource list
+      alt: The resource list with the programs panel and streams panel both shown above the resource list
       caption: "The programs panel and the streams panel, above the resource list."
       title: "Screenshot: Programs and streams panels"
-      desc: Main screen with both optional panels visible above the resource list.
+      desc: Resource list with both optional panels visible above the resource list.
   - number: 5
     id: sort-and-filter
     title: Sort and filter the resource list
@@ -91,7 +91,7 @@ steps:
       alt: The Filter and Sort Resources dialog with resource-type filters, media-type filters and a sort order list
       caption: "The Filter and Sort Resources dialog."
       title: "Screenshot: Filter and sort dialog"
-      desc: Filter and Sort Resources dialog open over the main screen, a few filters checked.
+      desc: Filter and Sort Resources dialog open over the resource list, a few filters checked.
     callout:
       type: tip
       title: Cell size for grid view
@@ -105,23 +105,23 @@ steps:
       shot_id: getting-started.main-screen-resource-menu
       device_profile: phone
       screen_state: main-screen-resource-three-dots-menu
-      alt: The three-dots menu of one resource row open on the main screen, with Reconnect resource among its actions
+      alt: The three-dots menu of one resource row open in the resource list, with Reconnect resource among its actions
       caption: "Actions for one resource live in its three-dots menu."
       title: "Screenshot: Resource menu"
-      desc: Main screen, three-dots menu opened on a local folder resource.
+      desc: Resource list, three-dots menu opened on a local folder resource.
   - number: 7
     id: recording-indicator
     title: The recording indicator
     text: |
-      While a screen recording or a quick voice capture is running, a small pill appears in a corner of the screen - a dot, a timer, and pause/resume and stop buttons - so you can check on or stop the recording without leaving the main screen. It now shows up reliably on wide landscape layouts too, such as a car head unit, where it used to stay invisible. See [Recording the device screen with audio](page:capture.screen-recording-and-audio).
+      While a screen recording or a quick voice capture is running, a small pill appears in a corner of the screen - a dot, a timer, and pause/resume and stop buttons - so you can check on or stop the recording without leaving the resource list. It now shows up reliably on wide landscape layouts too, such as a car head unit, where it used to stay invisible. See [Recording the device screen with audio](page:capture.screen-recording-and-audio).
     image_bookmark:
       shot_id: getting-started.main-screen-recording-indicator
       device_profile: phone
       screen_state: main-screen-recording-indicator-landscape
-      alt: The recording indicator pill in the corner of the main screen showing a running timer and stop button
+      alt: The recording indicator pill in the corner of the resource list showing a running timer and stop button
       caption: "The recording indicator, while a recording is running."
       title: "Screenshot: Recording indicator"
-      desc: Main screen in landscape with the recording indicator pill visible in the corner, timer counting up.
+      desc: Resource list in landscape with the recording indicator pill visible in the corner, timer counting up.
 outcome: |
   You can read the resource list at a glance, reach every command whether or not the screen has room for its label, narrow the list with the tabs and the filter dialog, tell at a glance when something is recording, and know where to look when a resource needs reconnecting.
 tips:
@@ -148,4 +148,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 03:42</sub>
 
-The [main screen](term:main-screen) is your home base: a [resource list](term:resource-list) with All Files pinned first, a command bar that never runs out of room, tabs and optional panels that fit any screen width, and a filter and sort dialog that remembers your choice - with a corner pill to tell you when something is recording.
+The [resource list](term:resource-list) is your home base: a [resource list](term:resource-list) with All Files pinned first, a command bar that never runs out of room, tabs and optional panels that fit any screen width, and a filter and sort dialog that remembers your choice - with a corner pill to tell you when something is recording.

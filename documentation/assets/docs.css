@@ -373,6 +373,15 @@ header.doc-header {
     width: 100%;
 }
 
+/* SVGs and screenshots carry pixel sizes wider than the column; :where keeps class-sized icons (.doc-term-icon) winning. */
+:where(.doc-content) img {
+    max-width: 100%;
+}
+
+:where(.doc-content) img:is([width], :not([height])) {
+    height: auto;
+}
+
 .doc-content h1,
 .doc-article h1 {
     font-family: var(--doc-font-heading);

@@ -2,7 +2,7 @@
 page_id: launcher.taskbar-and-dock
 title: Using the Desktop Dock and Taskbar
 nav_title: Taskbar and dock
-description: How to place the launcher taskbar, pin and manage the apps on it, jump to the Start menu or the main screen, open the quick-launch dock, and flip the flashlight or a radio on and off with one tap.
+description: How to place the launcher taskbar, pin and manage the apps on it, jump to the Start menu or the resource list, open the quick-launch dock, and flip the flashlight or a radio on and off with one tap.
 category: "Launcher: Taskbar, Menus and Gestures"
 category_slug: launcher
 ticket: S2960
@@ -53,7 +53,7 @@ steps:
     text: |
       The **Start** button on the taskbar opens the Start menu - see [The Start menu and the full app list](page:launcher.start-menu-and-all-apps) for what is on it.
 
-      Tapping the FastMediaSorter app icon itself depends on one setting: **Settings**, **General**, **Primary startup window**, with **Device home screen**, **Desktop as primary window** or **Main screen** to choose from - the same choice the [welcome wizard](term:welcome-wizard) offers on first install, and it can be changed later at any time. Whenever the app is not set as your device's actual home screen, tapping its icon opens the [main screen](term:main-screen) with your files and folders directly, instead of a second copy of the desktop.
+      Tapping the FastMediaSorter app icon itself depends on one setting: **Settings**, **General**, **Primary startup window**, with **Device home screen**, **Desktop as primary window** or **Resource list** to choose from - the same choice the [welcome wizard](term:welcome-wizard) offers on first install, and it can be changed later at any time. Whenever the app is not set as your device's actual home screen, tapping its icon opens the [resource list](term:resource-list) with your files and folders directly, instead of a second copy of the desktop.
 
       And from anywhere the taskbar or desktop sent you, the system Back button brings you straight back to the desktop rather than leaving you stranded in whatever screen you reached.
   - number: 4

@@ -23,7 +23,7 @@ steps:
     id: set-pin
     title: Lock a resource with a PIN
     text: |
-      On the main screen long-press the resource and choose **Edit**. In the field **PIN Code (Optional)** - "4-6 digits to protect this resource" - type a code of 4 to 6 digits and save.
+      In the resource list long-press the resource and choose **Edit**. In the field **PIN Code (Optional)** - "4-6 digits to protect this resource" - type a code of 4 to 6 digits and save.
 
       From now on, opening the resource, starting its slideshow or opening its settings first asks for the PIN in a small window titled with the resource's name. A wrong code shows "Incorrect PIN" and nothing opens. To remove the PIN, open **Edit** (you will be asked for the current PIN), clear the field and save.
     image_bookmark:
@@ -33,7 +33,7 @@ steps:
       alt: A small window asking for the PIN of a resource named Documents, with a PIN field and OK and Cancel buttons
       caption: "The PIN window before a protected resource opens."
       title: "Screenshot: PIN prompt"
-      desc: Main screen, tapping a PIN-protected local folder.
+      desc: Resource list, tapping a PIN-protected local folder.
     callout:
       type: warning
       title: There is no "forgot my PIN"

@@ -544,12 +544,14 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         register(binding.headerFileBrowser, binding.containerFileBrowser, "general__file_browser")
         register(binding.headerRemoteSources, binding.containerRemoteSources, "general__remote_sources")
         register(binding.headerSftpServer, binding.containerSftpServer, "general__sftp_server")
+        register(binding.headerSftpExchange, binding.containerSftpExchange, "general__sftp_exchange")
         register(binding.headerAuthorization, binding.containerAuthorization, "general__authorization")
         register(binding.headerAppData, binding.containerAppData, "general__app_data")
         register(binding.headerSystem, binding.containerSystem, "general__system")
         if (BuildConfig.DEBUG) {
             register(binding.headerDebugSettings, binding.containerDebugSettings, "general__debug")
         }
+        register(binding.headerAboutApp, binding.containerAboutApp, "general__about_app")
     }
 
     private fun setupGeneralLayouts() {

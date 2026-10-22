@@ -147,7 +147,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetMediaSection" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="end" android:layout_marginTop="@dimen/margin_small" android:layout_marginEnd="@dimen/margin_small" android:text="@string/reset_media_section" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetMediaSection" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="end" android:layout_marginTop="@dimen/margin_small" android:layout_marginEnd="@dimen/margin_small" android:text="@string/reset_media_section" app:icon="@drawable/ic_restore_defaults" app:iconSize="@dimen/settings_icon_size" />
 
     </LinearLayout>
 

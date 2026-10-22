@@ -22,7 +22,7 @@ steps:
     id: open-and-switch-view
     title: Open a resource and choose grid or list
     text: |
-      Tap a resource on the [main screen](term:main-screen) to open it in the file browser. Tap **View** in the toolbar to switch the whole folder between [grid view](term:grid-view), with a picture tile for every file, and [list view](term:list-view), with one line per file and more room for text. Audio-only resources always stay in list view, since there is no picture to show. Your choice is remembered separately for every resource.
+      Tap a resource on the [resource list](term:resource-list) to open it in the file browser. Tap **View** in the toolbar to switch the whole folder between [grid view](term:grid-view), with a picture tile for every file, and [list view](term:list-view), with one line per file and more room for text. Audio-only resources always stay in list view, since there is no picture to show. Your choice is remembered separately for every resource.
 
       Under each thumbnail or name, a second line fills in with whatever detail matters most for that file: the resolution and date taken for a photo, the resolution and length for a video, the artist and title for a song, and the size and date for everything else.
     image_bookmark:
@@ -67,7 +67,7 @@ steps:
     callout:
       type: tip
       title: Settings, one tap away
-      text: "The same three-dots menu has an App settings entry at the bottom, so you can adjust a setting mid-browse and come straight back instead of returning to the main screen first."
+      text: "The same three-dots menu has an App settings entry at the bottom, so you can adjust a setting mid-browse and come straight back instead of returning to the resource list first."
   - number: 5
     id: file-details-and-favorites
     title: Check a file's details and mark your favorites
@@ -94,7 +94,7 @@ steps:
     text: |
       Two settings on a resource keep it from changing by accident. Turn on **Read-only mode** in the resource editor and every button that copies, moves, renames or deletes a file disappears from that resource; anything that tries anyway is stopped with a clear message.
 
-      Set a [PIN](term:pin) - four to six digits, called **Access PIN** in the resource editor - and the file browser asks for it every time before that resource opens, with a small lock shown on its row on the main screen. This PIN only protects the resource inside the app; it has nothing to do with your device's own lock screen.
+      Set a [PIN](term:pin) - four to six digits, called **Access PIN** in the resource editor - and the file browser asks for it every time before that resource opens, with a small lock shown on its row in the resource list. This PIN only protects the resource inside the app; it has nothing to do with your device's own lock screen.
     image_bookmark:
       shot_id: browsing.resource-pin-lock
       device_profile: phone

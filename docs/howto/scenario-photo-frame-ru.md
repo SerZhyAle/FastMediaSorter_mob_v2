@@ -45,13 +45,13 @@ permalink: /docs/howto/scenario-photo-frame-ru.html
 2. Нажмите **Войти** → пройдите аутентификацию в браузере
 3. Выберите папку с фото → **Готово**
 
-![FastMediaSorter main screen - photo resource cards visible after adding a photo folder](screenshots/screenshot-pf-step1.png)
+![FastMediaSorter resource list - photo resource cards visible after adding a photo folder](screenshots/screenshot-pf-step1.png)
 
 ---
 
 ## Шаг 2 - Настройте папку для слайд-шоу
 
-Долгое нажатие на папку с фото на главном экране → нажмите **Изменить (значок карандаша)**.
+Долгое нажатие на папку с фото в списке ресурсов → нажмите **Изменить (значок карандаша)**.
 
 Установите эти параметры:
 
@@ -87,7 +87,7 @@ permalink: /docs/howto/scenario-photo-frame-ru.html
 
 ## Шаг 4 - Запустите слайд-шоу
 
-1. Нажмите на папку с фото на главном экране
+1. Нажмите на папку с фото в списке ресурсов
 2. Нажмите **любое фото** для открытия полноэкранного просмотра
 3. Нажмите **"Слайд-шоу" <img src="../icons/doc/ic_slideshow.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** на панели инструментов
 

@@ -29,7 +29,7 @@ steps:
       There are three ways, use whichever is closest:
 
       - When adding a folder, tick **Add to Quick Sort** (for a network folder or an SFTP server: **Mark for Quick Sort**).
-      - On the main screen or in the [file browser](term:file-browser), open the resource's [three-dots menu](term:three-dots-menu) and tap **Add to Quick Sort**.
+      - In the resource list or in the [file browser](term:file-browser), open the resource's [three-dots menu](term:three-dots-menu) and tap **Add to Quick Sort**.
       - Open **Settings**, the **Management** tab, the group **Quick Sort destinations**, and tap **+ Add**. The list offers every resource you can write to that is not a destination yet.
 
       Each new destination gets the next free number and its own color from a set of ten.

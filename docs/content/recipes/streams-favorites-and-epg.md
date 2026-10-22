@@ -59,7 +59,7 @@ steps:
     id: reorder-pinned
     title: Put your pinned channels in the order you want
     text: |
-      With two or more channels pinned, each one's ⋮ menu gains three extra rows: **Move up**, **Move down** and **Move to top**. They move a channel only within the pinned block, and gray out at the ends - Move up and Move to top on the first pinned channel, Move down on the last - so there is never a row to tap that would not do anything. The order you set here is the same order the [streams panel](term:streams-panel) on the [main screen](page:getting-started.main-screen-overview) plays your pinned channels in.
+      With two or more channels pinned, each one's ⋮ menu gains three extra rows: **Move up**, **Move down** and **Move to top**. They move a channel only within the pinned block, and gray out at the ends - Move up and Move to top on the first pinned channel, Move down on the last - so there is never a row to tap that would not do anything. The order you set here is the same order the [streams panel](term:streams-panel) on the [resource list](page:getting-started.main-screen-overview) plays your pinned channels in.
     image_bookmark:
       shot_id: streams.reorder-pinned-menu
       device_profile: phone

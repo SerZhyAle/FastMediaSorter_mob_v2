@@ -45,22 +45,22 @@ steps:
     id: fast-honest-start
     title: Behind the splash - a fast, honest start
     text: |
-      A few things happen while that splash is up, or right after it, that you notice as an absence of problems rather than as a feature: the first thumbnail grid does not stall, because the image loader is built on a background thread instead of on the main thread during your first photo load. The app itself does not stall either, because its file-transfer preferences open on first use instead of while the main screen is still being built.
+      A few things happen while that splash is up, or right after it, that you notice as an absence of problems rather than as a feature: the first thumbnail grid does not stall, because the image loader is built on a background thread instead of on the main thread during your first photo load. The app itself does not stall either, because its file-transfer preferences open on first use instead of while the resource list is still being built.
 
-      And on a completely fresh install, the built-in collections on the main screen - [All Music](term:all-music), [All Videos](term:all-videos), [All Images](term:all-images), Camera Photos and Recent Media - already show their real file counts instead of a row of zeros. FastMediaSorter fills those [virtual resource](term:virtual-resource) counts in on its own, in the background, at startup, so you do not have to open each one or run a manual rescan just to find out there is anything in it.
+      And on a completely fresh install, the built-in collections in the resource list - [All Music](term:all-music), [All Videos](term:all-videos), [All Images](term:all-images), Camera Photos and Recent Media - already show their real file counts instead of a row of zeros. FastMediaSorter fills those [virtual resource](term:virtual-resource) counts in on its own, in the background, at startup, so you do not have to open each one or run a manual rescan just to find out there is anything in it.
     image_bookmark:
       shot_id: getting-started.main-screen-fresh-install
       device_profile: phone
       screen_state: main-screen-virtual-resource-counts
-      alt: FastMediaSorter main screen right after a fresh install showing real file counts on the All Music, All Videos and All Images built-in resources
+      alt: FastMediaSorter resource list right after a fresh install showing real file counts on the All Music, All Videos and All Images built-in resources
       caption: "A fresh install, with real counts already on the built-in collections."
-      title: "Screenshot: Main screen, fresh install"
-      desc: Main screen resource list, built-in virtual resources showing non-zero file counts.
+      title: "Screenshot: Resource list, fresh install"
+      desc: Resource list, built-in virtual resources showing non-zero file counts.
   - number: 4
     id: map-of-the-app
     title: A quick look around, by role
     text: |
-      Page 1 of the welcome wizard pitches FastMediaSorter as a handful of roles rather than a feature list, and this documentation site is organized the same way. Once you have looked around the [main screen](page:getting-started.main-screen-overview), here is where each role's own recipes live:
+      Page 1 of the welcome wizard pitches FastMediaSorter as a handful of roles rather than a feature list, and this documentation site is organized the same way. Once you have looked around the [resource list](page:getting-started.main-screen-overview), here is where each role's own recipes live:
 
       - **File manager** - browsing, sorting and file operations start at [grid and list views](page:browsing.grid-and-list-views) and [copy, move and delete](page:storage.file-copy-move-delete).
       - **Player** - photos and GIFs in [the image viewer](page:images.viewer-and-gestures), video in [playback controls](page:player.video-playback-controls), and music in [playing and organizing](page:audio.playing-and-organizing-music).
@@ -108,7 +108,7 @@ next_recipes:
     url: page:getting-started.main-screen-overview
     badge: Getting Started
     badge_type: docs
-    description: A full tour of the main screen you land on after setup.
+    description: A full tour of the resource list you land on after setup.
   - title: Seven editions compared
     url: page:flavors.overview-and-comparison
     badge: Editions

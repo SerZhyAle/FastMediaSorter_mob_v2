@@ -466,7 +466,7 @@
     <string name="overwrite_on_move">Перезаписывать при перемещении</string>
     <string name="add_destination">+ Добавить</string>
     <string name="destinations_list_header">Назначения быстрой сортировки</string>
-    <string name="add_resources_first_message">Сначала добавьте ресурсы на главном экране, затем отметьте их для быстрой сортировки.</string>
+    <string name="add_resources_first_message">Сначала добавьте ресурсы в список ресурсов, затем отметьте их для быстрой сортировки.</string>
     <string name="register_as_destination">Быстрая сортировка</string>
 
     <!-- S0021: panel-fps-overlay -->
@@ -1990,7 +1990,7 @@
     <string name="ext_uninstall_all_confirm_title">Удалить все расширения?</string>
     <string name="ext_uninstall_all_confirm_message">Удалить все установленные расширения и освободить место? Позже можно скачать снова.</string>
     <string name="slideshow_stop">Остановить слайд-шоу</string>
-    <string name="open_in_fms_external_file_notice">Этот файл находится вне ресурса, добавленного в приложение, поэтому открылся главный экран.</string>
+    <string name="open_in_fms_external_file_notice">Этот файл находится вне ресурса, добавленного в приложение, поэтому открылся список ресурсов.</string>
     <string name="sftp_host_key_fingerprint_hint">Ожидаемый отпечаток host-key (SHA256, опционально)</string>
     <string name="sftp_host_key_fingerprint_invalid">Не удалось разобрать отпечаток. Поддерживаются SHA256:base64, hex с двоеточиями, чистый base64.</string>
     <string name="sftp_host_key_mismatch_title">Не удалось подтвердить сервер</string>
@@ -2375,7 +2375,7 @@
     <string name="camera_geotag_permission_denied">Для геотегирования нужно разрешение на геолокацию</string>
     <string name="setting_show_programs_panel_title">Панель программ</string>
     <string name="setting_show_programs_panel_summary">Дублировать меню программ горизонтальной полосой над списком ресурсов. Скрывает кнопку «три точки».</string>
-    <string name="setting_show_streams_panel_title">Показывать панель трансляций на главном экране</string>
+    <string name="setting_show_streams_panel_title">Показывать панель трансляций в списке ресурсов</string>
     <string name="setting_show_streams_panel_summary">Показывать закреплённые каналы горизонтальной полосой над списком ресурсов, с переходом к трансляциям.</string>
     <string name="panel_remove_title">Убрать с панели?</string>
     <string name="panel_remove_program_message">%1$s будет скрыт. Включить обратно можно в настройках.</string>
@@ -2441,7 +2441,7 @@
     <string name="remove_resource">Удалить ресурс</string>
     <string name="recording_pause">Приостановить запись</string>
     <string name="recording_resume">Продолжить запись</string>
-    <string name="settings_category_main_window_interface">Интерфейс главного экрана</string>
+    <string name="settings_category_main_window_interface">Интерфейс списка ресурсов</string>
     <string name="streams_move_up">Вверх</string>
     <string name="streams_move_down">Вниз</string>
     <string name="streams_move_to_top">В самый верх</string>
@@ -3307,7 +3307,7 @@
     <string name="wear_resource_selection_title">Ресурсы для часов</string>
     <string name="wear_resource_selection_hint">На часы можно отправить только сетевые ресурсы (SMB, FTP, SFTP), поэтому в списке только они. Отметьте те, что нужно отправить.</string>
     <string name="wear_resource_selection_select_all">Выбрать все</string>
-    <string name="wear_resource_selection_empty">Сетевых ресурсов пока нет. На часы можно отправить только SMB, FTP и SFTP - добавьте такой ресурс на главном экране и вернитесь сюда, чтобы выбрать, что получат часы.</string>
+    <string name="wear_resource_selection_empty">Сетевых ресурсов пока нет. На часы можно отправить только SMB, FTP и SFTP - добавьте такой ресурс в список ресурсов и вернитесь сюда, чтобы выбрать, что получат часы.</string>
     <string name="wear_sync_nothing_selected">На часы пока не отмечен ни один ресурс. Откройте «Ресурсы для часов» и отметьте те, что нужно отправить.</string>
     <string name="wear_settings_view_mode">Вид главного экрана и ресурсов</string>
     <string name="wear_settings_view_mode_list">Список</string>
@@ -3627,7 +3627,7 @@
     <string name="storage_reach_limited_browse">В этой папке доступны только фото, видео и звук. Чтобы увидеть документы, добавьте папку заново и выберите её в системном окне.</string>
     <string name="reach_limited_nothing_readable">Документы не читаются</string>
     <string name="storage_reach_limited_virtual">Документы и другие файлы на этом устройстве приложению не видны. Чтобы открыть их, добавьте нужную папку через системное окно выбора.</string>
-    <string name="storage_reach_limited_browse_reconnect">В этой папке доступны только фото, видео и звук. Чтобы увидеть документы, откройте меню с тремя точками в строке папки на главном экране и выберите «Переподключить ресурс».</string>
+    <string name="storage_reach_limited_browse_reconnect">В этой папке доступны только фото, видео и звук. Чтобы увидеть документы, откройте меню с тремя точками в строке папки в списке ресурсов и выберите «Переподключить ресурс».</string>
     <string name="wear_settings_group_media_types">Типы медиа</string>
     <string name="wear_settings_group_slideshow">Слайд-шоу</string>
     <string name="wear_settings_group_screen">Экран</string>
@@ -4043,10 +4043,10 @@
     <string name="launcher_primary_window_home_desc">Приложение становится домашним экраном устройства</string>
     <string name="launcher_primary_window_desktop_title">Рабочий стол как основное окно</string>
     <string name="launcher_primary_window_desktop_desc">Открывать рабочий стол внутри программы, не меняя домашний экран устройства</string>
-    <string name="launcher_primary_window_resource_manager_title">Главный экран</string>
+    <string name="launcher_primary_window_resource_manager_title">Список ресурсов</string>
     <string name="launcher_primary_window_resource_manager_desc">Открывать управление файлами и ресурсами напрямую</string>
     <string name="setting_launcher_primary_window_title">Основное стартовое окно</string>
-    <string name="setting_launcher_primary_window_desc">Выбор режима: домашний экран устройства, рабочий стол внутри приложения или главный экран</string>
+    <string name="setting_launcher_primary_window_desc">Выбор режима: домашний экран устройства, рабочий стол внутри приложения или список ресурсов</string>
     <string name="broadcast_default_stream_title">Вещание с телефона</string>
     <string name="broadcast_share_help">Как это смотреть</string>
     <string name="sos_title">Аварийный сигнал SOS</string>
@@ -4135,7 +4135,7 @@
     <string name="sftp_server_notification_address">Подключайтесь к %1$s</string>
     <string name="sftp_server_notification_no_network">Нет Wi-Fi - другие устройства подключаются к телефону через сервер обмена или через Google Drive</string>
     <string name="sftp_server_action_stop">Остановить</string>
-    <string name="settings_sftp_server_title">Доступ по SFTP</string>
+    <string name="settings_sftp_server_title">Доступ с телефона</string>
     <string name="settings_sftp_server_enable_title">SFTP-сервер</string>
     <string name="settings_sftp_server_enable_subtitle">Другие устройства в вашей сети смогут открыть выбранные папки</string>
     <string name="settings_sftp_server_status_off">Выключен</string>
@@ -4494,4 +4494,6 @@
     <string name="broadcast_control_group_share">Ссылка и обмен</string>
     <string name="msg_transfer_same_folder_refused">Это и есть папка файла. Выберите другое назначение.</string>
     <string name="settings_collapse_all">Свернуть всё</string>
+    <string name="settings_category_about_app">Всё об этом приложении</string>
+    <string name="broadcast_control_preview_toggle_cd">Картинка вещания. Нажмите, чтобы показать или скрыть кнопки управления</string>
 </resources>

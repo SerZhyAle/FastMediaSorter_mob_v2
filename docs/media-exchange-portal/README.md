@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.21 15:52</sub>
+<sub class="doc-stamp">26.10.22 00:33</sub>
 
 # Media exchange and broadcasting portal - illustration set
 
@@ -17,15 +17,13 @@ shows, where it came from, what it may and may not claim, and where it belongs o
 
 ## Folder layout
 
-- `diagrams/` - the generated set, 22 pictures in English, Russian and Ukrainian (`<name>-<lang>.svg`).
+- `diagrams/` - the generated set, 17 pictures in English, Russian and Ukrainian (`<name>-<lang>.svg`).
   Render targets: never edit them, change the drawing or the labels and re-render.
 - `labels/labels.<lang>.json` - every word on the generated pictures, one file per language.
-- `from-windows/` - three "quick scheme" cards from the Windows product, Russian only, copied with fixes.
 - `exchange-mark/` - vendored identity artwork of the Media Exchange Server per contract `EXCHANGE-MARK` 0.3 (`mark-24.png`, `mark-32.png`, `full-256.png`, `banner-1200x630.png`). Byte-exact copies from the catalog; never scaled or altered.
 - Drawing code: `scripts/docs/render-usage-schemes.ps1` (driver), `scripts/docs/usage-schemes/SvgKit.ps1`
   (primitives), `scripts/docs/usage-schemes/Diagrams.ps1` (one function per picture).
-- The pages use the pictures by relative path - `diagrams/<name>-<lang>.svg` and
-  `from-windows/<card>.svg` - and take the picture's `*.desc` label as the base of the alt text. The page
+- The pages use the pictures by relative path - `diagrams/<name>-<lang>.svg` - and take the picture's `*.desc` label as the base of the alt text. The page
   texts belong to the portal, not to this file; renaming a picture here breaks every page that embeds it,
   so a name never changes once a page uses it.
 
@@ -66,17 +64,16 @@ shows, where it came from, what it may and may not claim, and where it belongs o
 Every picture shows shipped behaviour, and the pages describe it as available. Owner statement, 2026-10-21:
 nothing in the family is held back.
 
-- Broadcasting from a Windows PC (`broadcast-simple`, `broadcast-scheme`, `broadcast-cast` and the Windows
-  broadcast card): Fast Media Sorter & Sharing for Windows broadcasts its screen, camera, microphone and
+- Broadcasting from a Windows PC (`broadcast-simple` and `broadcast-cast`): Fast Media Sorter & Sharing for Windows broadcasts its screen, camera, microphone and
   system sound. Live broadcasts play on Windows in the viewer and in StreamsPlayer. No page promises a delay.
 - The exchange server (a Go program, `fms-exchange-server`, administered in Share Manager) is an optional
   part of both Windows starts; its wire is the contract `DEVICE-EXCHANGE` with `ANYWHERE-ACCESS`. No public
   deployment exists by decision: each person runs a server, or joins one that a person they know runs.
-- A Windows PC as a member of the exchange - the "Windows zone" of `exchange-scheme`, the home and office
-  PCs of `exchange-simple`, the Windows card `quick-scheme-1-internet`: the PC enrols into an account,
+- A Windows PC as a member of the exchange - the home and office PCs of
+  `exchange-simple`: the PC enrols into an account,
   publishes its shares and opens other devices' folders.
 - Cast between devices of one account, per the same contract.
-- A Windows laptop opens the home storage (`home-scheme`) as a built-in resource of the viewer, or with any
+- A Windows laptop opens the home storage (`home-simple`) as a built-in resource of the viewer, or with any
   SFTP client.
 
 ## Addresses on the pictures
@@ -95,56 +92,50 @@ The first selection compared picture by picture the 13 generated here with the 1
 `P:\WINDOWS\FastMediaSorter_Lite\assets\diagrams` (Fast Media Sorter & Sharing for Windows, 2026-10). `home-pairing`
 was added afterwards (picture 15).
 
-- **Selected for the portal: 15** - 12 generated pictures in three languages, 3 Windows quick schemes in
-  Russian.
-- **Reserve: 2** generated pictures, for a how-to page rather than the portal.
+- **Selected for the portal: 8** generated pictures in three languages, plus the phone form of the cover.
 - **Rejected: 12** pictures of the Windows set, reasons below.
+- **Removed by S4415:** `three-ways`, the detailed `exchange-scheme`, `broadcast-scheme` and `home-scheme`,
+  the reserve `exchange-steps` and `broadcast-order`, and the three Russian Windows cards - each repeated
+  another picture of the same page.
+
+### The rule of the set
+
+- One idea per picture: a page never shows two pictures of the same connection.
+- The picture shows who connects to whom and names the devices; explanations, conditions and the names of
+  technologies live in the page text, where they are translated, searched, read aloud and fitted to the
+  screen.
+- A picture no page shows is deleted together with its drawing and its labels in three languages.
 
 ### Proposed order on the portal page
 
-1. Cover - `ecosystem-hero`.
-2. Choosing a way - `three-ways`.
-3. Exchange server - `exchange-simple`, then `exchange-scheme`, then `exchange-keeps`; the Windows card
-   `quick-scheme-1-internet` in the Russian edition.
-4. Live broadcast - `broadcast-simple`, then `broadcast-scheme`, then `broadcast-cast`; the Windows card
-   `quick-scheme-2-broadcast` in the Russian edition.
-5. Home network - `home-simple`, then `home-pairing`, then `home-scheme`, then `home-steps`; the Windows
-   card `quick-scheme-3-router` in the Russian edition.
-
+1. Cover - `ecosystem-hero`, with `ecosystem-hero-phone` at 768 pixels and below.
+2. Exchange server - `exchange-simple`, then `exchange-keeps`.
+3. Live broadcast - `broadcast-simple`, then `broadcast-cast`.
+4. Home network - `home-simple`, then `home-pairing`, then `home-steps`.
 ## Selected pictures
 
-### 1. ecosystem-hero - one family of apps, every device
+### 1. ecosystem-hero - your files on all your devices
 
 - Files: `diagrams/ecosystem-hero-en.svg`, `-ru.svg`, `-uk.svg`.
 - Style: presentation slide, 1920 x 1080, dark brand gradient with the waves-and-particles motif.
-- Shows: eight devices on an oval around a glowing exchange hub - phone, watch, TV, VR headset, laptop,
-  Windows PC, router, phone acting as a server - joined to the hub by dotted lines coloured by role.
-- Title: "One family of apps, every device"; subtitle names FastMediaSorter on phones, TV, watch and VR and
-  Fast Media Sorter & Sharing for Windows on PCs.
-- Use: the portal's cover image and its social preview; the picture every product shows first when it
-  links to the portal.
-- Why selected: the only picture that names every product of the family at once, with no technical detail
-  to go stale.
-- Alt text: "Phones, a watch, a TV, a VR headset, a laptop, a Windows PC, a router and a phone acting as a
-  server, all connected around the exchange server."
+- Shows: six devices on an oval around a glowing hub - phone, watch, TV, VR headset, laptop, Windows PC -
+  joined to the hub by dotted lines coloured by role. The router and the phone acting as a server are means,
+  not devices a person opens files on, so the cover leaves them to the section pictures.
+- Title: the benefit, "Your files on all your devices"; the hub reads "Your devices, together". No subtitle.
+- Text size: 44 for device names and the hub, 64 for the title, so every word is at least 12 pixels in the
+  630-pixel column of a 1280-pixel window.
+- Use: the start page's only picture and its social preview.
+- Alt text: the `hero.desc` label of the chosen language.
 
-### 2. three-ways - three ways to connect your devices
+### 1a. ecosystem-hero-phone - the cover in portrait
 
-- Files: `diagrams/three-ways-<lang>.svg`.
-- Style: presentation slide, 1920 x 1080.
-- Shows: three cards side by side.
-  - Home network: your own router, no server - a media PC or a phone with an SFTP server, a fixed local
-    address and port forwarding, a public IP or a dynamic DNS name, fastest at home and reachable from
-    anywhere.
-  - Exchange server: any network, no router setup - a small server with a public address, one account for
-    all devices, works behind carrier NAT and hotel Wi-Fi, all folders in one list.
-  - Live broadcast: camera, microphone, screen - a phone, a watch or a PC goes on air, a phone, a watch, a
-    TV or a PC plays it, direct on Wi-Fi and through the relay elsewhere, Cast to a chosen device.
-- Use: right under the cover, as the page's table of contents; each card links to its section.
-- Why selected: answers the reader's first question - which way is mine - before any detail.
-- Alt text: "Three cards: the home network with a router and no server, the exchange server that works from
-  any network, and live broadcast from any device to any device."
-
+- Files: `diagrams/ecosystem-hero-phone-<lang>.svg`.
+- Style: the same slide look, 1080 x 1350; the title on two lines, two rows of three devices around the hub.
+- Text size: 48 for device names and the hub, 64 for the title, so every word is at least 12 pixels in the
+  280-pixel column of a 360-pixel window.
+- Use: the start page embeds both forms in one `<picture>`; the browser takes this one at 768 pixels and
+  below and loads only one of the two.
+- Why: scaled into a phone column the wide cover shows its words at about 3 pixels.
 ### 3. exchange-simple - your devices, connected from any network
 
 - Files: `diagrams/exchange-simple-<lang>.svg`.
@@ -158,33 +149,6 @@ was added afterwards (picture 15).
 - Why selected: the clearest one-glance answer to "how do my devices find each other"; light background
   reads well on both themes and in print.
 - Alt text: the `ex.simple.desc` label of the chosen language.
-
-### 4. exchange-scheme - access from anywhere through the exchange server (detailed)
-
-- Files: `diagrams/exchange-scheme-<lang>.svg`.
-- Style: detailed blueprint scheme, 1600 x 940, dark grid background.
-- Shows, top row:
-  - "How it works" panel, four numbered steps: each device signs in once and keeps a device token, never
-    the password; a PC or a phone publishes its shared folders; any other device lists all folders and
-    attaches the ones it needs; opening a folder asks for a tunnel, and the server joins the two outgoing
-    connections without reading the bytes.
-  - The exchange server at `198.51.100.7:443`: accounts with a salted password hash, enrolled devices with
-    hashed tokens, the directory of folders and live broadcasts, the user log without secrets, tunnels and
-    relay buffers in memory only.
-  - Legend: dashed blue control stream (sign-in, presence, directory over TLS), solid green data tunnel
-    (SFTP inside TLS), orange media to receivers, "every device dials out - no port forwarding", "your files
-    never touch the server's disk".
-- Shows, middle: the internet band - any network, including carrier NAT.
-- Shows, bottom: a Windows zone (home PC with an SFTP share and a client on the same PC, office PC with
-  SFTP shares, laptop as a client only) and an Android zone (phone as a client, phone as a server, watch and
-  Android TV as receivers). Each device has a dashed control line and a solid data or media line to the
-  server.
-- Footer: a folder for someone outside the account travels by its own share link; on one Wi-Fi the devices
-  still connect directly.
-- Use: the reference picture of the exchange section; the image an implementer or an administrator reads.
-- Why selected over the Windows detailed scheme: the same content in three languages, with no overlapping
-  text and no claims the contract does not make.
-- Alt text: the `ex.scheme.desc` label.
 
 ### 5. exchange-keeps - what the exchange server keeps
 
@@ -216,27 +180,6 @@ was added afterwards (picture 15).
   watch.
 - Alt text: the `br.simple.desc` label.
 
-### 7. broadcast-scheme - live broadcast across devices and networks (detailed)
-
-- Files: `diagrams/broadcast-scheme-<lang>.svg`.
-- Style: detailed blueprint scheme, 1600 x 1000.
-- Shows, left ("On air"): an Android phone - camera and microphone, video with sound, video only or audio
-  only, H.264 and AAC in MPEG-TS; a Wear OS watch - microphone, AAC audio, up to 4 listeners at once; a
-  Windows PC - screen, camera, microphone, system sound.
-- Shows, centre: the exchange server - the directory of live broadcasts, the fan-out relay (one upload,
-  many listeners), the 2-second buffer (a slow listener skips ahead, never falls behind), Cast routing, a
-  tunnel for players that need RTSP or HTTP, a log without stream ids.
-- Shows, right ("Listening and watching"): an Android phone (Streams, player, recording), a Wear OS watch
-  (audio broadcasts), an Android TV (accepts Cast), a Windows PC (Fast Media Sorter & Sharing for Windows,
-  StreamsPlayer).
-- A dashed purple arc over the server: same Wi-Fi, direct to the broadcaster, lowest delay. A dashed blue
-  line from the server to the TV: Cast.
-- Footer: route order for every receiver - same Wi-Fi first, then the relay, then a tunnel.
-- Use: the reference picture of the broadcast section.
-- Why selected over the Windows detailed scheme: no invented limits (an 8 MB buffer, Opus audio, a 1-second
-  keyframe are not in the contract) and three languages.
-- Alt text: the `br.scheme.desc` label.
-
 ### 8. broadcast-cast - start playback on another device
 
 - Files: `diagrams/broadcast-cast-<lang>.svg`.
@@ -248,8 +191,7 @@ was added afterwards (picture 15).
   3. The TV asks whether to play the broadcast from the office PC.
   4. Accepted - the answer returns to the PC.
   5. The TV plays the stream from the relay.
-- Use: the Cast block of the broadcast section. The PC end is drawn ahead of the product - see "Drawn ahead
-  of the product".
+- Use: the Cast block of the broadcast section.
 - Why selected: the only picture of the Cast handshake; it also shows that a receiver asks before it plays,
   which the Windows cards get wrong.
 - Alt text: the `br.cast.desc` label.
@@ -267,26 +209,6 @@ was added afterwards (picture 15).
   to the home storage from outside - with no exchange server in the picture.
 - Alt text: the `home.simple.desc` label.
 
-### 10. home-scheme - home network without an exchange server (detailed)
-
-- Files: `diagrams/home-scheme-<lang>.svg`.
-- Style: detailed blueprint scheme, 1600 x 1000.
-- Shows, left (outside): a phone on mobile data with `sftp://203.0.113.25:2222`, a laptop in a hotel with
-  `sftp://myhome.example.net:2222`, and a public address card - a static IP or a dynamic DNS name.
-- Shows, centre: the router - WAN `203.0.113.25`; port forwarding `TCP 2222 -> 192.168.1.20:2222` and
-  `TCP 2223 -> 192.168.1.42:2222`; reserved DHCP addresses for the PC and the phone.
-- Shows, right (home network `192.168.1.0/24`): a media PC running Fast Media Sorter & Sharing for Windows with SFTP on
-  `192.168.1.20:2222` and folders on `D:\Media`; a phone acting as a server on `192.168.1.42:2222`; a phone,
-  an Android TV and a Windows laptop at home connecting directly at full local speed.
-- Legend and notes: blue from the internet to the public address, green forwarded by the router, dashed
-  purple direct inside the home network; each resource stores both addresses and tries the local one
-  first; no public IP from the provider (carrier NAT) means the exchange server instead.
-- Use: the reference picture of the home network section.
-- Why selected over the Windows detailed scheme: a documentation address instead of a real public IP, manual
-  forwarding taught as the reliable route (Share Manager also tries UPnP / NAT-PMP, but a router may refuse
-  it) and the carrier NAT limit stated.
-- Alt text: the `home.scheme.desc` label.
-
 ### 11. home-steps - home storage reachable from outside in six steps
 
 - Files: `diagrams/home-steps-<lang>.svg`.
@@ -302,51 +224,10 @@ was added afterwards (picture 15).
 - Use: the setup checklist closing the home network section.
 - Alt text: the `home.steps.desc` label.
 
-### 12. from-windows/quick-scheme-1-internet - exchange server setup card (Russian)
-
-- File: `from-windows/quick-scheme-1-internet.svg`, 1100 x 720, Russian only.
-- Origin: `P:\WINDOWS\FastMediaSorter_Lite\assets\diagrams\quick-scheme-1-internet.svg`.
-- Shows: the exchange server in the middle; around it a Windows PC at home, a Windows laptop away, an Android
-  phone as a client, a phone as a server, a Smart TV and a Wear OS watch. Every card has two blocks - what
-  it does and what to set up (for the PC: pick folders in Share Manager and press the share button).
-- Fixes made in this copy: "punches through NAT" became "works behind NAT" (devices dial out, nothing is
-  punched); "the server is ready" became "the server is deployed once"; the watch's "share notifications"
-  became "media and streams"; house style (`ё`, plain hyphen).
-- Use: the Russian edition's setup block of the exchange section.
-- Why selected: the only picture that tells the reader which button to press on each device.
-
-### 13. from-windows/quick-scheme-2-broadcast - broadcast setup card (Russian)
-
-- File: `from-windows/quick-scheme-2-broadcast.svg`, 1100 x 720, Russian only.
-- Origin: the Windows set, same name.
-- Shows: a Windows PC and a phone as broadcasters, the server relay, a Smart TV, a phone, a Wear OS watch
-  and a second Windows PC as receivers, each with what it does and what to set up.
-- Fixes made in this copy: "no delay" became "the delay does not build up" (the relay keeps about two
-  seconds); "lossless sound" became "the broadcast's sound (AAC)"; the TV "starts by itself" became "asks
-  and starts" (a receiver asks by default); house style.
-- Use: the Russian edition's setup block of the broadcast section.
-
-### 14. from-windows/quick-scheme-3-router - home network setup card (Russian)
-
-- File: `from-windows/quick-scheme-3-router.svg`, 1100 x 720, Russian only.
-- Origin: the Windows set, same name.
-- Shows: a phone outside on 4G, a phone at home on Wi-Fi, the home router with what to set up in it (bind
-  the PC's MAC to `192.168.1.100`, forward port 2222), the home storage PC with what to set up on it (pick
-  folders, port 2222, share and get a QR code), a TV and laptops at home.
-- Fixes made in this copy: `myhome.ddns.net`, a real provider's domain, became `myhome.example.net`;
-  "the Windows service runs 24/7" became "serves while the PC is on" (service mode is the Server edition's
-  or an explicit switch, not the default); house style.
-- What the card leaves out on purpose: it shows manual port forwarding only, because that is the reliable
-  route and the same on every router. It is not a statement that nothing else exists - Share Manager also
-  tries UPnP / NAT-PMP by itself when the router allows it (skipped in "local network only" mode) and then
-  checks the port from the internet, saying plainly whether it answers. The `home-network` page carries
-  that part; the card stays the manual checklist.
-- Use: the Russian edition's setup block of the home network section.
-
 ### 15. home-pairing - one code, three addresses
 
 - Files: `diagrams/home-pairing-<lang>.svg`.
-- Style: presentation slide, 1920 x 1080, the same family as `three-ways` and `home-steps`.
+- Style: presentation slide, 1920 x 1080, the same family as `home-steps`.
 - Shows: on the left a Windows PC running Share Manager (folder `D:\Media`, SFTP on `192.168.1.20:2222`)
   that produces a QR code or an `.fmscfg` file; on the right a phone that scanned it and remembers all
   three addresses; between them three numbered lanes the phone tries at once, in order of preference:
@@ -357,9 +238,9 @@ was added afterwards (picture 15).
 - Footer: "The phone picks the fastest address that answers; the PC's host key is pinned at the first
   pairing." and a second line: a phone on the same Wi-Fi also finds the PC by itself if its address
   changed.
-- Position: the home network section, right after `home-simple` and before the detailed `home-scheme`;
+- Position: the home network section, right after `home-simple`;
   it is the picture for the paragraph that explains why one scan works at home and away.
-- Why added: `home-simple` and `home-scheme` show two addresses; the shipped Windows product puts three
+- Why added: `home-simple` shows two addresses; the shipped Windows product puts three
   into one code (local, IPv6, internet), and the IPv6 lane is what works behind carrier NAT, which no
   other picture shows.
 - Scope: facts only from the shipped Windows product and the shipped Android import; no exchange server
@@ -402,13 +283,6 @@ The words follow the terms table of the contract (item CW): exchange server, via
 broadcasting, clipboard, cast to your own device. A picture added here needs its page, its manifest section
 and its three label sets in the same change.
 
-## Reserve - generated, not for the portal
-
-- `exchange-steps` - how a folder opens in five steps (sign in, publish, list, connect, open). Repeats the
-  "How it works" panel of `exchange-scheme`; better on a how-to page of a single product.
-- `broadcast-order` - the three routes a receiver tries: same network, relay, tunnel. Repeated by the footer
-  of `broadcast-scheme`; better in troubleshooting.
-
 ## Rejected - the Windows set
 
 - Six JPG slides and infographics (`slide-*.jpg`, `presentation-*.jpg`): generated imagery with broken
@@ -419,6 +293,6 @@ and its three label sets in the same change.
 - Three detailed SVG schemes (`scheme-*-detailed.svg`): Russian only; overlapping text in the scheme 1
   legend and the scheme 3 tablet card; numbers the contracts do not hold (an 8 MB relay buffer, Opus audio,
   a 1-second keyframe); a real public IP (`93.184.216.34`) as the example address; UPnP offered as the setup
-  path (it is a convenience that a router may refuse, not a route to promise). Their content is covered by `exchange-scheme`, `broadcast-scheme` and `home-scheme`.
+  path (it is a convenience that a router may refuse, not a route to promise). Their content is told by the section pages' text.
 - Three simple SVG schemes (`scheme-*-simple.svg`): Russian only, thinner than the generated simple
   pictures, and scheme 1 names a "server edition" as a separate device role the contracts do not define.

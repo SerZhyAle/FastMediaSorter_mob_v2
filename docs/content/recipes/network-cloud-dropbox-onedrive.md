@@ -11,7 +11,7 @@ availability_note: Standard, noLegal, Photos, Legacy and VR - not Lite, not FOSS
 recipe_number: "06"
 canonical_url: documentation/network/cloud-dropbox-onedrive.html
 why: |
-  Work files live in OneDrive, personal photos are backed up to Dropbox, and you would rather browse both from inside FastMediaSorter than juggle two more apps. Sign in to either one, or both, and their folders sit on the main screen next to everything else.
+  Work files live in OneDrive, personal photos are backed up to Dropbox, and you would rather browse both from inside FastMediaSorter than juggle two more apps. Sign in to either one, or both, and their folders sit in the resource list next to everything else.
 ingredients:
   - "FastMediaSorter in the Standard, noLegal, Photos, Legacy or VR [edition](term:edition) - not Lite, not FOSS. See [The seven editions](page:flavors.overview-and-comparison)."
   - "A [Dropbox](term:dropbox) account, a Microsoft account for [OneDrive](term:onedrive), or both."
@@ -20,9 +20,9 @@ steps:
     id: dropbox
     title: Add a Dropbox folder
     text: |
-      On the main screen tap **Add**, then **Cloud Storage**, and choose **Dropbox** on the **Select Cloud Provider** screen. Dropbox's own sign-in window opens; approve it there, and the app shows "Signed in: " with your account. A folder picker - Dropbox's own - opens next so you can choose the folder to add.
+      In the resource list tap **Add**, then **Cloud Storage**, and choose **Dropbox** on the **Select Cloud Provider** screen. Dropbox's own sign-in window opens; approve it there, and the app shows "Signed in: " with your account. A folder picker - Dropbox's own - opens next so you can choose the folder to add.
 
-      Each folder becomes its own [resource](term:resource) on the main screen. Tap **Dropbox** again later, once you are already signed in, and a dialog offers **Select Folder** to add another one or **Sign out** to end the session; **Cancel** just backs out.
+      Each folder becomes its own [resource](term:resource) in the resource list. Tap **Dropbox** again later, once you are already signed in, and a dialog offers **Select Folder** to add another one or **Sign out** to end the session; **Cancel** just backs out.
   - number: 2
     id: onedrive
     title: Add a OneDrive folder
@@ -44,7 +44,7 @@ steps:
     text: |
       Close the sign-in window before finishing and the app says "Dropbox authentication canceled" or "OneDrive authentication canceled" - nothing is added, and you can just try again. A sign-in that fails outright is reported as "Dropbox authentication failed" or "OneDrive authentication failed" rather than a bare error, and if a folder you already added stops answering, the app names it: "Connection failed: " with the reason.
 outcome: |
-  Dropbox and OneDrive folders sit on the main screen next to your local and Google Drive ones, sign-in and sign-out work the same simple way for both, and a canceled or failed sign-in tells you plainly instead of leaving you guessing.
+  Dropbox and OneDrive folders sit in the resource list next to your local and Google Drive ones, sign-in and sign-out work the same simple way for both, and a canceled or failed sign-in tells you plainly instead of leaving you guessing.
 tips:
   - "**Moved to a new phone?** OneDrive keeps its sign-in in a place the app cannot carry over automatically, so you sign in to OneDrive once more there - see the new-phone notes in [Adding network folders and cloud storage as sources](page:storage.network-and-cloud-sources)."
   - "**Looking for Google Drive?** It gets its own page, with account binding and the cross-device transfer queue that rides on it - see [Google Drive Integration](page:network.cloud-google-drive)."

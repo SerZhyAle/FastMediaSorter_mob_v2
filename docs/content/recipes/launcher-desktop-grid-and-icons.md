@@ -26,14 +26,14 @@ steps:
 
       - **Device home screen** - FastMediaSorter becomes the [home screen](term:home-screen) you see after unlocking. Android asks you to confirm: allow it, or on older Android versions pick FastMediaSorter and tap **Always** the next time you press Home.
       - **Desktop as primary window** - the [desktop](term:desktop) opens when you start the app from its icon, but your usual home screen stays as it is. A good way to try the desktop without committing.
-      - **Main screen** - the app opens on its [main screen](term:main-screen) with your resources, as before.
+      - **Resource list** - the app opens on its [resource list](term:resource-list) with your resources, as before.
 
       You can also choose this on the first page of the [welcome wizard](page:getting-started.welcome-and-setup) when you install the app.
     image_bookmark:
       shot_id: launcher.primary-startup-window
       device_profile: phone
       screen_state: settings-general-primary-startup-window
-      alt: The Primary startup window chooser in Settings, General, with Device home screen, Desktop as primary window and Main screen
+      alt: The Primary startup window chooser in Settings, General, with Device home screen, Desktop as primary window and Resource list
       caption: "Primary startup window in Settings, General."
       title: "Screenshot: Primary startup window"
       desc: Settings, General tab, the Primary startup window dialog open with its three choices.

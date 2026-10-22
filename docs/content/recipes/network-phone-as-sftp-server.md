@@ -22,7 +22,7 @@ steps:
     id: turn-on
     title: Turn the server on
     text: |
-      Open **Settings**, the **General** tab, and find the **Share over SFTP** card. Switch on **SFTP server** - "Other devices on your network can open the folders you pick" - and the status line below moves from **Off** to **Starting..** and then to **Running at 192.168.1.42:2222**, its address and port. Turning it on with nothing shared yet, or with no way to sign in configured, is caught before it starts: "Add at least one folder to share, then turn the server on" or "Add a public key or switch to password login, then turn the server on."
+      Open **Settings**, the **General** tab, and find the **Share from phone** card. Switch on **SFTP server** - "Other devices on your network can open the folders you pick" - and the status line below moves from **Off** to **Starting..** and then to **Running at 192.168.1.42:2222**, its address and port. Turning it on with nothing shared yet, or with no way to sign in configured, is caught before it starts: "Add at least one folder to share, then turn the server on" or "Add a public key or switch to password login, then turn the server on."
 
       A phone with no Wi-Fi connection can still switch the server on, but it says so plainly: "Running, but the phone is not on Wi-Fi - other devices reach it through the exchange server or via Google Drive." A foreground notification, "SFTP server is on", stays up the whole time with the address to connect to and a one-tap **Stop** button; when the phone moves to another Wi-Fi network, the address shown follows it.
 
@@ -36,7 +36,7 @@ steps:
       A folder you add while the server is already running joins it immediately - no need to turn the server off and on again for a new folder.
     image:
       src: assets/images/network/phone-as-sftp-server-shared-folders.png
-      alt: The Share over SFTP card's Shared folders section with two folders added and their remove buttons, and the Add folder button
+      alt: The Share from phone card's Shared folders section with two folders added and their remove buttons, and the Add folder button
       caption: "Picking which folders the server shares."
   - number: 3
     id: choose-login
@@ -49,10 +49,10 @@ steps:
       shot_id: network.phone-as-sftp-server-auth-mode
       device_profile: phone
       screen_state: settings-sftp-server-auth-password-mode
-      alt: The Share over SFTP card's authentication section with Password selected, the New password button, and the running credentials line showing the login and password
+      alt: The Share from phone card's authentication section with Password selected, the New password button, and the running credentials line showing the login and password
       caption: "Password sign-in, with the current password shown while the server runs."
       title: "Screenshot: SFTP server sign-in mode"
-      desc: Settings, General tab, Share over SFTP card, Password mode selected, server running, credentials line visible.
+      desc: Settings, General tab, Share from phone card, Password mode selected, server running, credentials line visible.
   - number: 4
     id: change-while-running
     title: Change a setting without losing the connection
@@ -69,19 +69,19 @@ steps:
       shot_id: network.phone-as-sftp-server-pairing-qr
       device_profile: phone
       screen_state: settings-sftp-server-pairing-qr-visible
-      alt: The Share over SFTP card with the pairing QR code shown and the Hide pairing code button
+      alt: The Share from phone card with the pairing QR code shown and the Hide pairing code button
       caption: "The pairing code, ready to scan from another device."
       title: "Screenshot: SFTP server pairing QR"
-      desc: Settings, General tab, Share over SFTP card, server running, pairing QR code revealed below the Hide pairing code button.
+      desc: Settings, General tab, Share from phone card, server running, pairing QR code revealed below the Hide pairing code button.
   - number: 6
     id: reach-from-anywhere
     title: Reach the phone from another network
     text: |
-      In the same card, the **Access from anywhere** section can register the phone's server on an exchange server, so devices on any network reach it without a VPN or port forwarding. Switch on **Exchange server** - "Reach this server from any network through your exchange server" - fill in the **Exchange server address**, the **Exchange server port** and the **Exchange server password** (at least 10 characters with upper- and lower-case Latin letters and digits), and tap **Save server**. The status line moves from "Only reachable on the local network" to "Reachable from anywhere through" and the server's name once the exchange server accepts the phone. The section is off by default.
+      The **Access from anywhere** group next to it can register the phone's server on an exchange server, so devices on any network reach it without a VPN or port forwarding. Switch on **Exchange server** - "Reach this server from any network through your exchange server" - fill in the **Exchange server address**, the **Exchange server port** and the **Exchange server password** (at least 10 characters with upper- and lower-case Latin letters and digits), and tap **Save server**. The status line moves from "Only reachable on the local network" to "Reachable from anywhere through" and the server's name once the exchange server accepts the phone. The section is off by default.
 
       A pairing code shown afterwards carries the exchange server too: a phone that scans it falls back to the relayed connection when no direct address answers, still checking the same host key. **New access link** makes every code shared earlier stop opening this server. To reach the phone from any network with no port forwarded, run your own exchange server or join one a person you know runs - see the [media exchange portal](../../docs/media-exchange-portal/exchange-server.html).
 
-      **Signed in to Google Drive on both devices?** Switch on **Share access through Google Drive** in the same card - it is off by default. While the server runs, the phone then keeps its current address and sign-in details in the app's private space of your Drive, so another device on the same Google account opens the paired share at its new address after a network change, without scanning the code again - as long as it can reach the phone at all.
+      **Signed in to Google Drive on both devices?** Switch on **Share access through Google Drive** in the **Access from anywhere** group - it is off by default. While the server runs, the phone then keeps its current address and sign-in details in the app's private space of your Drive, so another device on the same Google account opens the paired share at its new address after a network change, without scanning the code again - as long as it can reach the phone at all.
 outcome: |
   The phone shares exactly the folders you picked, with everyone else needing either a password or an accepted SSH key to get in, and pairing another FastMediaSorter takes one scan instead of typing an address by hand. A tap on Stop, in the app or the notification, ends it until you turn it on again.
 tips:
@@ -107,6 +107,6 @@ next_recipes:
     description: The overview of every kind of network and cloud place this app can open.
 ---
 
-<sub class="doc-stamp">26.10.21 15:53</sub>
+<sub class="doc-stamp">26.10.21 23:38</sub>
 
 Share folders straight from this phone over SFTP - pick them with the folder picker, sign in with a password or an SSH key, and pair another FastMediaSorter in one scan instead of typing an address.

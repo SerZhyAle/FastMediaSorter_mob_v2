@@ -26,7 +26,7 @@ steps:
     text: |
       In the [file browser](term:file-browser) tap the EPUB file. EPUB books show their cover in the file browser, so a shelf of books is easy to recognize. The book opens in the reader at the chapter where you stopped last time.
 
-      Books from a [network folder](term:network-folder) or [cloud storage](term:cloud-storage) are downloaded first and then open the same way. To collect all your books, PDFs and notes in one list, add the [All Documents](term:all-documents) resource on the [main screen](term:main-screen).
+      Books from a [network folder](term:network-folder) or [cloud storage](term:cloud-storage) are downloaded first and then open the same way. To collect all your books, PDFs and notes in one list, add the [All Documents](term:all-documents) resource on the [resource list](term:resource-list).
 
       If a book is protected, you will see "This file is protected and cannot be opened inside the app." - open it in the app of the shop you bought it from.
 

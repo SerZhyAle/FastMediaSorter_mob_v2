@@ -9,7 +9,6 @@
 <link rel="stylesheet" href="../help.css">
 </head>
 <body class="help">
-<div class="doc-stamp">26.10.19 20:26</div>
 <main class="container">
 <nav class="help-crumbs" aria-label="Зміст довідки">
 <a href="index.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Трансляції</span>
@@ -25,13 +24,13 @@
 </figure>
 <h2>Порядок дій</h2>
 <ol class="order">
-<li>Відкрийте «Трансляції» з програм на головному екрані. Поки список порожній, «Додати трансляцію» <a class="ref" href="#empty-add">15</a> приймає адресу однієї станції чи каналу, а «Імпорт списку» <a class="ref" href="#empty-import">16</a> завантажує готовий список.</li>
-<li>Щоб наповнити список вбудованим каталогом, натисніть «Імпорт каталогу» <a class="ref" href="#import-catalog">23</a> на панелі. Те саме оновлення може запропонувати банер <a class="ref" href="#catalog-banner">2</a> під час відкриття екрана.</li>
-<li>Знайдіть канал: введіть кілька літер у «Пошук» <a class="ref" href="#search">3</a>, натисніть кнопку відео, аудіо або власних трансляцій (4, 5, 6) чи відкрийте «Фільтр» <a class="ref" href="#filter">7</a> - добірка, категорія, рубрика, мова й країна. «Добірки» <a class="ref" href="#collections">9</a> - набори, складені вручну; вони видимі, якщо є в каталозі.</li>
-<li>«Сортування» <a class="ref" href="#sort">8</a> задає порядок, а кнопка вигляду <a class="ref" href="#view-toggle">22</a> перемикає рядки й плитки.</li>
-<li>Натисніть канал у списку <a class="ref" href="#channel-list">14</a>, щоб запустити. Радіо грає просто тут, унизу з’являється «Зупинити» <a class="ref" href="#mini-stop">21</a>; відео відкривається в повноекранному плеєрі.</li>
-<li>Натисніть канал і втримуйте, щоб закріпити. Закріплені збираються в «Закріплені» <a class="ref" href="#pinned-header">12</a> над «Канали» <a class="ref" href="#main-header">13</a>; натискання на заголовок згортає розділ.</li>
-<li>Трансляції ваших інших пристроїв чекають у розділі <a class="ref" href="#devices-header">10</a>. «Оновити стан каналів» <a class="ref" href="#menu-refresh">27</a> перевіряє, які канали відповідають, а «Довідка» <a class="ref" href="#menu-help">29</a> відкриває цю сторінку.</li>
+<li>Відкрийте «Трансляції» з програм у списку ресурсів. Поки список порожній, «Додати трансляцію» <a class="ref" href="#empty-import">15</a> приймає адресу однієї станції чи каналу, а «Імпорт списку» <a class="ref" href="#scroll-top">16</a> завантажує готовий список.</li>
+<li>Щоб наповнити список вбудованим каталогом, натисніть «Імпорт каталогу» <a class="ref" href="#menu-add">23</a> на панелі. Те саме оновлення може запропонувати банер <a class="ref" href="#catalog-banner">2</a> під час відкриття екрана.</li>
+<li>Знайдіть канал: введіть кілька літер у «Пошук» <a class="ref" href="#search">3</a>, натисніть кнопку відео, аудіо або власних трансляцій (4, 5, 6) чи відкрийте «Фільтр» <a class="ref" href="#filter">7</a> - категорія, рубрика, мова й країна. «Добірки» <a class="ref" href="#devices-header">9</a> - набори, складені вручну; вони видимі, якщо є в каталозі.</li>
+<li>«Сортування» <a class="ref" href="#sort">8</a> задає порядок, а кнопка вигляду <a class="ref" href="#import-catalog">22</a> перемикає рядки й плитки.</li>
+<li>Натисніть канал у списку <a class="ref" href="#empty-add">14</a>, щоб запустити. Радіо грає просто тут, унизу з’являється «Зупинити» <a class="ref" href="#view-toggle">21</a>; відео відкривається в повноекранному плеєрі.</li>
+<li>Натисніть канал і втримуйте, щоб закріпити. Закріплені збираються в «Закріплені» <a class="ref" href="#main-header">12</a> над «Канали» <a class="ref" href="#channel-list">13</a>; натискання на заголовок згортає розділ.</li>
+<li>Трансляції ваших інших пристроїв чекають у розділі <a class="ref" href="#devices-portal">10</a>. «Оновити стан каналів» <a class="ref" href="#menu-clear">27</a> перевіряє, які канали відповідають, а «Довідка» <a class="ref" href="#add-url">29</a> відкриває цю сторінку.</li>
 </ol>
 <h2>Елементи</h2>
 <div class="elements">
@@ -84,39 +83,33 @@
 <p>Варіанти: «За назвою», «За рубрикою», «За мовою», «За країною» та «Нещодавно додані»; порядок запам’ятовується. Закріплені канали йдуть у своєму розділі у вашому порядку, тому сортування змінює розділ «Канали». Якщо вибрано добірку, сортування замінює порядок укладача, але добірка лишається.</p>
 </div>
 </details>
-<details class="el" id="collections">
-<summary><span class="mk">9</span><span><span class="name">Добірки</span><span class="one">Набори каналів, дібрані вручну, - обираються у фільтрі.</span></span></summary>
-<div class="full">
-<p>Рядок «Добірка» з’являється у фільтрі, лише коли каталог привіз добірки. Залиште «Усі», щоб бачити весь список; оберіть добірку, щоб побачити тільки цей набір у порядку, який обрали укладачі. Активна завжди одна добірка.</p>
-</div>
-</details>
 <h3>Списки каналів</h3>
 <details class="el" id="devices-header">
-<summary><span class="mk">10</span><span><span class="name">Трансляції моїх пристроїв</span><span class="one">Прямі трансляції ваших інших пристроїв; розділ згорнуто, доки ви його не відкриєте.</span></span></summary>
+<summary><span class="mk">9</span><span><span class="name">Трансляції моїх пристроїв</span><span class="one">Прямі трансляції ваших інших пристроїв; розділ згорнуто, доки ви його не відкриєте.</span></span></summary>
 <div class="full">
 <p>Розділ видно, лише коли телефон увійшов на сервер обміну (див. «Мої пристрої»). Він починає згорнутим, а застосунок шукає трансляції, лише поки він відкритий, - так заощаджується трафік. Після розгортання спершу видно «Шукаємо трансляції..», потім список: назва, ім’я пристрою й режим - лише аудіо, лише камера або камера й аудіо. Натисніть трансляцію, щоб додати її до каналів; повідомлення скаже, чи її додано, оновлено, чи вона вже була, а запускати її ви будете зі списку «Канали». Трансляцію, яку ця версія не вміє відтворювати, позначено.</p>
 </div>
 </details>
 <details class="el" id="devices-portal">
-<summary><span class="mk">11</span><span><span class="name">Про трансляції та cast</span><span class="one">Відкриває сторінку сайту проєкту про трансляції та cast.</span></span></summary>
+<summary><span class="mk">10</span><span><span class="name">Про трансляції та cast</span><span class="one">Відкриває сторінку сайту проєкту про трансляції та cast.</span></span></summary>
 <div class="full">
 <p>Кнопка видима, лише поки розділ вище розгорнуто. Сторінка відкривається в браузері й пояснює, як прийняти трансляцію з іншого пристрою.</p>
 </div>
 </details>
 <details class="el" id="pinned-header">
-<summary><span class="mk">12</span><span><span class="name">Закріплені</span><span class="one">Закріплені канали - завжди вгорі.</span></span></summary>
+<summary><span class="mk">11</span><span><span class="name">Закріплені</span><span class="one">Закріплені канали - завжди вгорі.</span></span></summary>
 <div class="full">
 <p>Розділ з’являється, щойно закріплено хоча б один канал, і зникає, коли закріплених немає. Натисніть заголовок, щоб згорнути розділ і віддати все місце решті каналів; ще раз - щоб розгорнути. Згортання не запам’ятовується між запусками. У цьому розділі меню з трьома крапками біля каналу додатково пропонує «Вгору», «Вниз» і «На самий верх» - так ви задаєте власний порядок. Годинник показує першими ці самі канали, а «Закріплені трансляції годинника» у Wear-супутнику редагують саме цей набір.</p>
 </div>
 </details>
 <details class="el" id="main-header">
-<summary><span class="mk">13</span><span><span class="name">Канали</span><span class="one">Усі канали, які не закріплено.</span></span></summary>
+<summary><span class="mk">12</span><span><span class="name">Канали</span><span class="one">Усі канали, які не закріплено.</span></span></summary>
 <div class="full">
 <p>Тут каталог, імпортовані списки та додані вами трансляції. Поки є закріплені канали, натискання на заголовок згортає цей розділ і віддає весь екран закріпленим. Якщо закріплених немає, заголовок нічого не робить.</p>
 </div>
 </details>
 <details class="el" id="channel-list">
-<summary><span class="mk">14</span><span><span class="name">Список каналів</span><span class="one">Самі канали: натисніть, щоб запустити, втримуйте, щоб закріпити.</span></span></summary>
+<summary><span class="mk">13</span><span><span class="name">Список каналів</span><span class="one">Самі канали: натисніть, щоб запустити, втримуйте, щоб закріпити.</span></span></summary>
 <div class="full">
 <p>У рядку - логотип чи прапор каналу, назва й адреса, маленькі позначки регіону, рубрики, країни та мови, а також позначка стану: порожнє кільце - ще не запускався, галочка - запускався звідси, знак оклику - остання спроба не вдалася. Натисніть рядок, щоб запустити. Радіо продовжує грати на цьому екрані з кнопкою «Зупинити» внизу; повторне натискання на рядок, що грає, теж зупиняє його. Відео відкривається в повноекранному плеєрі. Без мережі застосунок одразу про це каже, а не чекає. Якщо станція не відповідає, вікно пропонує «Повторити спробу» або «Видалити»; коли телефон не в мережі, лишається тільки «Повторити спробу».</p>
 <p>Натисніть рядок і втримуйте або натисніть значок кнопки закріплення, щоб закріпити чи відкріпити канал. Три крапки біля рядка відкривають решту: «До обраного» (коли ввімкнено «Обране»), «На домашній екран», «Змінити» (для трансляцій, доданих вручну), «Надіслати на годинник» і «Відкрити на годиннику» (коли ввімкнено Wear-супутник), «Відкрити у VR» (для відеоканалів, якщо підключено шолом), «Інформація про канал», «Надіслати посилання» та «Видалити». У режимі плиток плитка робить те саме, зі значком закріплення, а «Закріпити» й «Відкріпити» лежать у меню. Правий клік миші відкриває те саме меню.</p>
@@ -126,87 +119,87 @@
 </div>
 </details>
 <details class="el" id="empty-add">
-<summary><span class="mk">15</span><span><span class="name">Додати трансляцію</span><span class="one">Відкриває вікно, де вводиться адреса трансляції.</span></span></summary>
+<summary><span class="mk">14</span><span><span class="name">Додати трансляцію</span><span class="one">Відкриває вікно, де вводиться адреса трансляції.</span></span></summary>
 <div class="full">
 <p>Це повідомлення з двома кнопками з’являється, коли показувати нічого - під час першого запуску або якщо пошук і фільтри нічого не знайшли. «Додати трансляцію» відкриває те саме вікно, що й команда в меню панелі: адреса, необов’язкова назва та необов’язковий вибір мов.</p>
 </div>
 </details>
 <details class="el" id="empty-import">
-<summary><span class="mk">16</span><span><span class="name">Імпорт списку</span><span class="one">Завантажує одразу цілий список каналів.</span></span></summary>
+<summary><span class="mk">15</span><span><span class="name">Імпорт списку</span><span class="one">Завантажує одразу цілий список каналів.</span></span></summary>
 <div class="full">
 <p>Застосунок спитає, як саме: «Імпорт каталогу» завантажує вбудований каталог, «Імпорт за URL» бере адресу плейлиста, який у вас уже є. Обидва варіанти є й на панелі.</p>
 </div>
 </details>
 <h3>Прокручування й відтворення</h3>
 <details class="el" id="scroll-top">
-<summary><span class="mk">17</span><span><span class="name">На початок списку</span><span class="one">Переходить до першого каналу.</span></span></summary>
+<summary><span class="mk">16</span><span><span class="name">На початок списку</span><span class="one">Переходить до першого каналу.</span></span></summary>
 <div class="full">
 <p>Чотири круглі кнопки біля правого краю стосуються списку «Канали» й з’являються, лише коли він довший за екран. Ця кнопка видна, коли ви відійшли від початку списку.</p>
 </div>
 </details>
 <details class="el" id="page-up">
-<summary><span class="mk">18</span><span><span class="name">Сторінка вгору</span><span class="one">Прокручує список на сторінку вгору.</span></span></summary>
+<summary><span class="mk">17</span><span><span class="name">Сторінка вгору</span><span class="one">Прокручує список на сторінку вгору.</span></span></summary>
 <div class="full">
 <p>З’являється разом із «На початок списку», коли ви не на початку списку.</p>
 </div>
 </details>
 <details class="el" id="page-down">
-<summary><span class="mk">19</span><span><span class="name">Сторінка вниз</span><span class="one">Прокручує список на сторінку вниз.</span></span></summary>
+<summary><span class="mk">18</span><span><span class="name">Сторінка вниз</span><span class="one">Прокручує список на сторінку вниз.</span></span></summary>
 <div class="full">
 <p>Видна, поки нижче є ще канали, і зникає наприкінці списку.</p>
 </div>
 </details>
 <details class="el" id="scroll-bottom">
-<summary><span class="mk">20</span><span><span class="name">В кінець списку</span><span class="one">Переходить до останнього каналу.</span></span></summary>
+<summary><span class="mk">19</span><span><span class="name">В кінець списку</span><span class="one">Переходить до останнього каналу.</span></span></summary>
 <div class="full">
 <p>Корисно в довгому каталозі, коли потрібний канал за такого сортування опиняється в кінці. Зникає, коли ви вже внизу.</p>
 </div>
 </details>
 <details class="el" id="mini-stop">
-<summary><span class="mk">21</span><span><span class="name">Зупинити</span><span class="one">Зупиняє радіо, що грає на цьому екрані.</span></span></summary>
+<summary><span class="mk">20</span><span><span class="name">Зупинити</span><span class="one">Зупиняє радіо, що грає на цьому екрані.</span></span></summary>
 <div class="full">
 <p>Тонка смуга внизу з’являється, поки тут грає станція. У ній назва станції та, якщо станція її передає, назва пісні. «Зупинити» припиняє відтворення; те саме робить натискання на рядок, що грає. Якщо в налаштуваннях увімкнено відтворення у фоні, станція може грати й після виходу з екрана.</p>
 </div>
 </details>
 <h3>Кнопки й меню панелі</h3>
 <details class="el" id="view-toggle">
-<summary><span class="mk">22</span><span><span class="name">Сіткою / Списком</span><span class="one">Перемикає списки між рядками та плитками.</span></span></summary>
+<summary><span class="mk">21</span><span><span class="name">Сіткою / Списком</span><span class="one">Перемикає списки між рядками та плитками.</span></span></summary>
 <div class="full">
 <p>Кнопка показує вигляд, який увімкнеться наступним: значок сітки, поки на екрані рядки, і значок списку, поки плитки. Плитки показують картинку кожного каналу - живий кадр, попередній перегляд чи логотип - і зручні для перегляду відео; рядки лишають більше місця для тексту. Закріплений і основний розділи перемикаються разом, а вибір запам’ятовується. У режимі плиток рух пальця вниз по списку оновлює картинки видимих плиток.</p>
 </div>
 </details>
 <details class="el" id="import-catalog">
-<summary><span class="mk">23</span><span><span class="name">Імпорт каталогу</span><span class="one">Завантажує вбудований каталог каналів і додає його до списку.</span></span></summary>
+<summary><span class="mk">22</span><span><span class="name">Імпорт каталогу</span><span class="one">Завантажує вбудований каталог каналів і додає його до списку.</span></span></summary>
 <div class="full">
 <p>Потрібна мережа. Коли завантаження закінчиться, повідомлення скаже, скільки каналів додано, оновлено й вилучено. Одразу після оновлення застосунок може запропонувати завантажити картинки каналів і логотипи станцій; це окремі додаткові завантаження, від кожного можна відмовитися. Трансляції, які ви додали чи імпортували самі, каталог не змінює.</p>
 </div>
 </details>
 <details class="el" id="menu-add">
-<summary><span class="mk">24</span><span><span class="name">Додати трансляцію</span><span class="one">Додає одну трансляцію за адресою.</span></span></summary>
+<summary><span class="mk">23</span><span><span class="name">Додати трансляцію</span><span class="one">Додає одну трансляцію за адресою.</span></span></summary>
 <div class="full">
 <p>Відкриває вікно «Додати трансляцію», як і кнопка в порожньому списку. Якщо адреса некоректна або вже є в списку, з’явиться коротке повідомлення, а канал не додасться.</p>
 </div>
 </details>
 <details class="el" id="menu-import-url">
-<summary><span class="mk">25</span><span><span class="name">Імпорт за URL</span><span class="one">Імпортує цілий плейлист за його адресою.</span></span></summary>
+<summary><span class="mk">24</span><span><span class="name">Імпорт за URL</span><span class="one">Імпортує цілий плейлист за його адресою.</span></span></summary>
 <div class="full">
 <p>Відкриває те саме вікно із заголовком «Імпорт списку» та одним полем для адреси плейлиста .m3u або .m3u8. Канали потрапляють до вашого списку, а повідомлення скаже, скільки їх прийшло. Плейлист у форматі JSON не підтримується - застосунок про це скаже. Імпортовані канали вважаються завантаженими, а не власними.</p>
 </div>
 </details>
 <details class="el" id="menu-import-broadcast">
-<summary><span class="mk">26</span><span><span class="name">Імпорт трансляції (QR / файл)</span><span class="one">Додає канал за описом прямої трансляції.</span></span></summary>
+<summary><span class="mk">25</span><span><span class="name">Імпорт трансляції (QR / файл)</span><span class="one">Додає канал за описом прямої трансляції.</span></span></summary>
 <div class="full">
 <p>Застосунок спитає, як отримати опис: «Сканувати QR-код» або «Обрати файл опису». Користуйтеся, коли інший пристрій в ефірі й дав вам код чи файл. Трансляція з паролем спершу запитає його. Потім трансляція з’явиться в списку як звичайний канал.</p>
 </div>
 </details>
 <details class="el" id="menu-refresh">
-<summary><span class="mk">27</span><span><span class="name">Оновити стан каналів</span><span class="one">Перевіряє, які з каналів на екрані відповідають.</span></span></summary>
+<summary><span class="mk">26</span><span><span class="name">Оновити стан каналів</span><span class="one">Перевіряє, які з каналів на екрані відповідають.</span></span></summary>
 <div class="full">
 <p>Застосунок тихо пробує кожен видимий нині канал і оновлює позначку поряд із ним: галочка біля каналу, що відповідає, порожнє кільце біля того, чия відповідь не підтверджена. Сама перевірка ніколи не позначає канал як невдалий - це може зробити тільки справжня спроба запуску. У режимі плиток заразом оновлюються картинки. Якщо під час перевірки торкнутися списку, пошуку чи фільтрів, вона припиняється. У порожньому списку нічого не відбувається.</p>
 </div>
 </details>
 <details class="el" id="menu-clear">
-<summary><span class="mk">28</span><span><span class="name">Видалити всі завантажені</span><span class="one">Видаляє всі канали, що прийшли з каталогу чи імпортованих списків.</span></span></summary>
+<summary><span class="mk">27</span><span><span class="name">Видалити всі завантажені</span><span class="one">Видаляє всі канали, що прийшли з каталогу чи імпортованих списків.</span></span></summary>
 <div class="full">
 <p>Спершу питає «Очистити завантажені канали?» і каже, що залишиться: канали, додані вручну. Після цього повідомлення скаже, скільки каналів вилучено. Пункт стоїть у меню останнім навмисно - подалі від команд імпорту, дію яких він скасовує.</p>
 <dl class="facts">
@@ -215,7 +208,7 @@
 </div>
 </details>
 <details class="el" id="menu-help">
-<summary><span class="mk">29</span><span><span class="name">Довідка</span><span class="one">Відкриває цю сторінку.</span></span></summary>
+<summary><span class="mk">28</span><span><span class="name">Довідка</span><span class="one">Відкриває цю сторінку.</span></span></summary>
 <div class="full">
 <p>Тут описано кожну кнопку екрана й звичайний порядок дій. Те саме відкриває клавіша F1.</p>
 <dl class="facts">
@@ -225,44 +218,44 @@
 </details>
 <h3>Вікно додавання трансляції</h3>
 <details class="el" id="add-url">
-<summary><span class="mk">30</span><span><span class="name">URL трансляції (http, https, rtsp)</span><span class="one">Адреса трансляції, яку ви додаєте.</span></span></summary>
+<summary><span class="mk">29</span><span><span class="name">URL трансляції (http, https, rtsp)</span><span class="one">Адреса трансляції, яку ви додаєте.</span></span></summary>
 <div class="full">
 <p>Введіть або вставте адресу, що починається з http, https або rtsp, - радіостанція, телеканал, камера. Аудіо чи відео застосунок визначає за адресою; пізніше це можна змінити у вікні «Змінити» біля каналу. У режимі «Імпорт списку» те саме поле приймає адресу плейлиста, а заголовок вікна підказує, де ви перебуваєте. «OK» додає, «Скасувати» закриває вікно без збереження.</p>
 </div>
 </details>
 <details class="el" id="add-title">
-<summary><span class="mk">31</span><span><span class="name">Назва (необовʼязково)</span><span class="one">Назва каналу.</span></span></summary>
+<summary><span class="mk">30</span><span><span class="name">Назва (необовʼязково)</span><span class="one">Назва каналу.</span></span></summary>
 <div class="full">
 <p>Показується у списку замість адреси. Якщо залишити поле порожнім, береться ім’я сайту з адреси. Це поле є лише у вікнах додавання та зміни - імпортований плейлист приносить власні назви.</p>
 </div>
 </details>
 <details class="el" id="add-audio-lang">
-<summary><span class="mk">32</span><span><span class="name">Мова аудіо</span><span class="one">Мова звуку, з якої канал почне грати.</span></span></summary>
+<summary><span class="mk">31</span><span><span class="name">Мова аудіо</span><span class="one">Мова звуку, з якої канал почне грати.</span></span></summary>
 <div class="full">
 <p>«За замовчуванням» слідує загальним налаштуванням трансляцій, а «Англійська», «Російська» чи «Українська» діють лише для цього каналу. Це важливо для каналів із кількома звуковими доріжками. Рядок є під час додавання одного каналу, але не під час імпорту списку.</p>
 </div>
 </details>
 <details class="el" id="add-subtitle-lang">
-<summary><span class="mk">33</span><span><span class="name">Мова субтитрів</span><span class="one">Мова субтитрів для цього каналу.</span></span></summary>
+<summary><span class="mk">32</span><span><span class="name">Мова субтитрів</span><span class="one">Мова субтитрів для цього каналу.</span></span></summary>
 <div class="full">
 <p>«За замовчуванням» слідує загальним налаштуванням трансляцій, або оберіть «Англійська», «Російська» чи «Українська» лише для цього каналу. Працює разом із рядком «Субтитри» нижче.</p>
 </div>
 </details>
 <details class="el" id="add-subtitles">
-<summary><span class="mk">34</span><span><span class="name">Субтитри</span><span class="one">Вмикає або вимикає субтитри для цього каналу.</span></span></summary>
+<summary><span class="mk">33</span><span><span class="name">Субтитри</span><span class="one">Вмикає або вимикає субтитри для цього каналу.</span></span></summary>
 <div class="full">
 <p>«За замовчуванням» слідує загальним налаштуванням, «Увімкнені» показують субтитри, якщо вони є в каналу, «Вимк» ховає їх. Вибір прив’язано до адреси каналу, і він зберігається, коли ви його змінюєте.</p>
 </div>
 </details>
 <h3>Вікно «Зберегти локальну копію»</h3>
 <details class="el" id="offload-info">
-<summary><span class="mk">35</span><span><span class="name">Зберегти локальну копію?</span><span class="one">Вікно в плеєрі, яке пропонує завантажити файл замість відтворення мережею.</span></span></summary>
+<summary><span class="mk">34</span><span><span class="name">Зберегти локальну копію?</span><span class="one">Вікно в плеєрі, яке пропонує завантажити файл замість відтворення мережею.</span></span></summary>
 <div class="full">
 <p>Плеєр показує його, коли вирішує, що файл із мережевої папки чи хмари за поточної швидкості не гратиме плавно. У вікні вказано розмір файлу, швидкість з’єднання та швидкість, потрібну файлу, приблизний час завантаження, вільне місце на телефоні й куди ляже копія. Якщо місця не вистачає, з’являється попередження, а «Зберегти локальну копію» вимикається. Вікно стосується файлів мережевих ресурсів і хмари, а не живих інтернет-каналів.</p>
 </div>
 </details>
 <details class="el" id="offload-download">
-<summary><span class="mk">36</span><span><span class="name">Зберегти локальну копію</span><span class="one">Завантажує файл на телефон і відтворює звідти.</span></span></summary>
+<summary><span class="mk">35</span><span><span class="name">Зберегти локальну копію</span><span class="one">Завантажує файл на телефон і відтворює звідти.</span></span></summary>
 <div class="full">
 <p>Вікно з ходом завантаження дає змогу її скасувати. Коли завантаження закінчиться, відтворення продовжиться з локальної копії, і мережа вже не потрібна. Кнопку вимкнено, якщо на телефоні немає місця під файл і запас у десяту частину. Під час виходу з плеєра вас можуть спитати, залишити копію чи видалити, якщо це ще не вирішено налаштуванням кешу трансляцій.</p>
 <dl class="facts">
@@ -272,13 +265,13 @@
 </div>
 </details>
 <details class="el" id="offload-try-anyway">
-<summary><span class="mk">37</span><span><span class="name">Спробувати все одно</span><span class="one">Залишає відтворення мережею як було.</span></span></summary>
+<summary><span class="mk">36</span><span><span class="name">Спробувати все одно</span><span class="one">Залишає відтворення мережею як було.</span></span></summary>
 <div class="full">
 <p>Закриває вікно й далі грає мережею. Поки з’єднання повільне, можливі паузи. Нічого не завантажується й не змінюється.</p>
 </div>
 </details>
 <details class="el" id="offload-cancel">
-<summary><span class="mk">38</span><span><span class="name">Скасувати</span><span class="one">Відхиляє пропозицію.</span></span></summary>
+<summary><span class="mk">37</span><span><span class="name">Скасувати</span><span class="one">Відхиляє пропозицію.</span></span></summary>
 <div class="full">
 <p>Закриває вікно й продовжує відтворення мережею - так само, як «Спробувати все одно». Те саме робить системний жест «Назад» або дотик поза вікном.</p>
 </div>
@@ -286,7 +279,7 @@
 </div>
 <h2>Пов'язане</h2>
 <ul class="related">
-<li><a href="main.html"><b>Головний екран</b><span class="pill">Екран</span></a></li>
+<li><a href="main.html"><b>Список ресурсів</b><span class="pill">Екран</span></a></li>
 <li><a href="player.html"><b>Плеєр</b><span class="pill">Екран</span></a></li>
 <li><a href="settings-media.html"><b>Налаштування: Медіа</b><span class="pill">Екран</span></a></li>
 <li><a href="my-devices.html"><b>Мої пристрої</b><span class="pill">Екран</span></a></li>
@@ -299,7 +292,7 @@
 <li><a href="index.html"><b>Зміст довідки</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-18</span>
+<span>Fast Media Sorter, 2026-10-21</span>
 <a href="index.html">Зміст довідки</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
 </footer>

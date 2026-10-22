@@ -5,7 +5,7 @@ description: "How an account on an exchange server is created from an invitation
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-accounts.html
 ---
-<sub class="doc-stamp">26.10.21 15:52</sub>
+<sub class="doc-stamp">26.10.22 01:29</sub>
 
 # Accounts, invitations and passwords
 
@@ -48,7 +48,7 @@ In short, by case:
 ## A login and a password {#login-and-password}
 
 - **A login** is 3 to 64 Latin letters, digits, dots, hyphens or underscores; capital letters count as small ones.
-- **A password** is at least 10 characters, with capital and small Latin letters and digits. The server stores only a salted hash of it, so nobody can read it back, and the owner cannot see it either.
+- **A password** is at least 10 characters, with capital and small Latin letters and digits. The server stores only a scrambled form of it that cannot be turned back into the password, so nobody can read it back, and the owner cannot see it either.
 - **Guessing is slowed down.** The server checks one password per second for a login and for an address, with no lockout: a wrong try costs a second, and the right one works right after it.
 
 ## People outside your account {#outside}
@@ -87,6 +87,6 @@ A request that would cross a limit is refused and changes nothing; a limit lower
 
 Back to [the exchange server](exchange-server.html) or to the [portal start page](index.html).
 
-## Windows settings windows {#windows-settings-windows}
+## Settings windows of the Windows program {#windows-settings-windows}
 
-On Windows, sign in, publish resources and manage this PC through Manager settings, Exchange account. Local exchange-server administration has a separate window and is not a prerequisite for joining somebody else’s server. Existing remote-administration actions keep the selected remote target.
+On Windows, sign in, publish resources and manage this PC through **Manager settings**, **Exchange account**. Running your own server has a separate window and is not needed to join somebody else’s server. Administering a server from another computer keeps working on the server you picked.

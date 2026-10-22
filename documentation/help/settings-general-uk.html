@@ -69,7 +69,7 @@
 <details class="el" id="favorites">
 <summary><span class="mk">7</span><span><span class="name">Увімкнути обране</span><span class="one">Вмикає або вимикає «Обране».</span></span></summary>
 <div class="full">
-<p>Коли його ввімкнено, файли можна позначати обраними, бачити їх одним списком і виводити на віджет робочого стола. Кнопка «Обране» на головному екрані з’являється разом з ним.</p>
+<p>Коли його ввімкнено, файли можна позначати обраними, бачити їх одним списком і виводити на віджет робочого стола. Кнопка «Обране» у списку ресурсів з’являється разом з ним.</p>
 </div>
 </details>
 <details class="el" id="separate-window">
@@ -78,11 +78,11 @@
 <p>Дія з’являється в браузері файлів і в плеєрі. Вона зручна на планшетах, складних пристроях, Chromebook та великих екранах із кількома вікнами. Коли її вимкнено, усе відкривається в поточному вікні.</p>
 </div>
 </details>
-<h3>Інтерфейс головного екрана</h3>
+<h3>Інтерфейс списку ресурсів</h3>
 <details class="el" id="grid-cell-size">
 <summary><span class="mk">9</span><span><span class="name">Розмір комірок сітки ресурсів</span><span class="one">Задає розмір плиток ресурсів у вигляді сітки.</span></span></summary>
 <div class="full">
-<p>Стосується списку ресурсів на головному екрані. Дрібні комірки вміщують більше ресурсів, більші - зручніше читати. Саму сітку вмикає кнопка вигляду на головному екрані.</p>
+<p>Стосується списку ресурсів у списку ресурсів. Дрібні комірки вміщують більше ресурсів, більші - зручніше читати. Саму сітку вмикає кнопка вигляду у списку ресурсів.</p>
 </div>
 </details>
 <details class="el" id="programs-panel">
@@ -126,50 +126,63 @@
 <details class="el" id="smb">
 <summary><span class="mk">16</span><span><span class="name">Локальна мережа (Ethernet) SMB</span><span class="one">Вмикає підключення до спільних папок у локальній мережі.</span></span></summary>
 <div class="full">
-<p>Підійде для домашнього NAS, комп’ютера з Windows і ввімкненим спільним доступом або роутера з USB-диском. Коли перемикач увімкнено, можна додавати SMB-ресурси, а на головному екрані з’являється вкладка SMB.</p>
+<p>Підійде для домашнього NAS, комп’ютера з Windows і ввімкненим спільним доступом або роутера з USB-диском. Коли перемикач увімкнено, можна додавати SMB-ресурси, а у списку ресурсів з’являється вкладка SMB.</p>
 </div>
 </details>
 <details class="el" id="ftp">
 <summary><span class="mk">17</span><span><span class="name">Комп'ютер в інтернеті (S)FTP</span><span class="one">Вмикає підключення до серверів через FTP і SFTP.</span></span></summary>
 <div class="full">
-<p>Підійде для домашнього сервера, NAS, вебхостингу або роутера з підтримкою (S)FTP. Коли перемикач увімкнено, можна додавати такі ресурси, а на головному екрані з’являється вкладка S/FTP.</p>
+<p>Підійде для домашнього сервера, NAS, вебхостингу або роутера з підтримкою (S)FTP. Коли перемикач увімкнено, можна додавати такі ресурси, а у списку ресурсів з’являється вкладка S/FTP.</p>
 </div>
 </details>
 <details class="el" id="cloud">
 <summary><span class="mk">18</span><span><span class="name">У хмарних ресурсах</span><span class="one">Вмикає хмарні сховища: Google Drive, OneDrive і Dropbox.</span></span></summary>
 <div class="full">
-<p>Підключіть акаунт, і хмарні папки відкриються просто в застосунку. Коли перемикач увімкнено, на головному екрані з’являється вкладка «Хмара».</p>
+<p>Підключіть акаунт, і хмарні папки відкриються просто в застосунку. Коли перемикач увімкнено, у списку ресурсів з’являється вкладка «Хмара».</p>
 </div>
 </details>
-<h3>Доступ через SFTP</h3>
+<h3>Доступ з телефону</h3>
 <details class="el" id="sftp-server">
 <summary><span class="mk">19</span><span><span class="name">SFTP-сервер</span><span class="one">Дозволяє іншим пристроям відкривати папки з цього пристрою через SFTP.</span></span></summary>
 <div class="full">
 <p>Додайте хоча б одну спільну папку, оберіть вхід за паролем або SSH-ключем і порт від 1024 до 65535, а тоді ввімкніть сервер. Інший пристрій підключиться за показаною тут адресою або за кодом сполучення у FastMediaSorter. Змінивши налаштування, вимкніть і знову ввімкніть сервер, щоб вони набули чинності.</p>
 </div>
 </details>
+<h3>Доступ звідусіль</h3>
+<details class="el" id="drive-access">
+<summary><span class="mk">20</span><span><span class="name">Доступ через Google Drive</span><span class="one">Дозволяє іншим вашим пристроям із тим самим акаунтом Google підключатися до спільних папок цього телефона.</span></span></summary>
+<div class="full">
+<p>Адреса сервера, логін і пароль потрапляють у папку застосунку на вашому Google Drive. Коли перемикач вимкнено, ці пристрої бачать спільний доступ, але підключитися до нього не можуть.</p>
+</div>
+</details>
+<details class="el" id="exchange-server">
+<summary><span class="mk">21</span><span><span class="name">Сервер обміну</span><span class="one">Робить спільні папки цього телефона доступними з будь-якої мережі через ваш обмінний сервер.</span></span></summary>
+<div class="full">
+<p>Оберіть вихідний обмінний сервер кнопкою «Змінити» й увімкніть перемикач; рядок стану покаже адресу, за якою доступні папки. «Нове посилання доступу» видає свіже посилання на спільний доступ.</p>
+</div>
+</details>
 <h3>Авторизація й акаунти</h3>
 <details class="el" id="saved-auth">
-<summary><span class="mk">20</span><span><span class="name">Збережені авторизації</span><span class="one">Показує входи, які застосунок зберіг на екрані вебвходу.</span></span></summary>
+<summary><span class="mk">22</span><span><span class="name">Збережені авторизації</span><span class="one">Показує входи, які застосунок зберіг на екрані вебвходу.</span></span></summary>
 <div class="full">
 <p>Екран вебвходу в застосунку зберігає cookie та логіни, щоб застосунок міг завантажувати файли із сайтів, де потрібен вхід. Відкрийте цей екран і видаліть те, що вже не потрібне.</p>
 </div>
 </details>
 <details class="el" id="secure-screens">
-<summary><span class="mk">21</span><span><span class="name">Захищати секретні екрани</span><span class="one">Ховає важливі екрани від скриншотів і прев’ю в списку нещодавніх.</span></span></summary>
+<summary><span class="mk">23</span><span><span class="name">Захищати секретні екрани</span><span class="one">Ховає важливі екрани від скриншотів і прев’ю в списку нещодавніх.</span></span></summary>
 <div class="full">
 <p>Стосується екранів, на яких видно паролі: їх не можна зняти на скриншот, і вони не показуються в прев’ю списку нещодавніх застосунків.</p>
 </div>
 </details>
 <h3>Резервні копії, відновлення й експорт</h3>
 <details class="el" id="export-settings">
-<summary><span class="mk">22</span><span><span class="name">Вивантажити всі налаштування у файл</span><span class="one">Зберігає всі налаштування у файл.</span></span></summary>
+<summary><span class="mk">24</span><span><span class="name">Вивантажити всі налаштування у файл</span><span class="one">Зберігає всі налаштування у файл.</span></span></summary>
 <div class="full">
 <p>Файл FastMediaSorter_export.xml лежить у папці Downloads. Він стане в пригоді, щоб перенести налаштування на інший пристрій або повернутися до них пізніше.</p>
 </div>
 </details>
 <details class="el" id="import-settings">
-<summary><span class="mk">23</span><span><span class="name">Завантажити налаштування з файлу</span><span class="one">Завантажує налаштування з файлу експорту.</span></span></summary>
+<summary><span class="mk">25</span><span><span class="name">Завантажити налаштування з файлу</span><span class="one">Завантажує налаштування з файлу експорту.</span></span></summary>
 <div class="full">
 <p>Читає FastMediaSorter_export.xml із папки Downloads, тому спершу покладіть туди файл - наприклад, вивантажений на іншому пристрої.</p>
 <dl class="facts">
@@ -178,19 +191,19 @@
 </div>
 </details>
 <details class="el" id="backup">
-<summary><span class="mk">24</span><span><span class="name">Копіювати налаштування в Google Drive</span><span class="one">Зберігає налаштування у вашому Google Drive.</span></span></summary>
+<summary><span class="mk">26</span><span><span class="name">Копіювати налаштування в Google Drive</span><span class="one">Зберігає налаштування у вашому Google Drive.</span></span></summary>
 <div class="full">
 <p>До резервної копії входять усі налаштування, список ресурсів, мережеві паролі та збережені входи на сайти, тож тримайте файл копії в таємниці. Входи в хмари (Google Drive, OneDrive, Dropbox) не зберігаються. Коли копія з’явиться, нижче буде видно її дату й акаунт.</p>
 </div>
 </details>
 <details class="el" id="restore">
-<summary><span class="mk">25</span><span><span class="name">Відновити налаштування з Google Drive</span><span class="one">Повертає налаштування з резервної копії в Google Drive.</span></span></summary>
+<summary><span class="mk">27</span><span><span class="name">Відновити налаштування з Google Drive</span><span class="one">Повертає налаштування з резервної копії в Google Drive.</span></span></summary>
 <div class="full">
 <p>Стане в пригоді на новому пристрої або після скидання. Входи в хмари до копії не входять, тож потім увійдіть у Google Drive, OneDrive або Dropbox знову.</p>
 </div>
 </details>
 <details class="el" id="reset-settings">
-<summary><span class="mk">26</span><span><span class="name">СКИД налаштувань</span><span class="one">Повертає всі налаштування до значень за замовчуванням.</span></span></summary>
+<summary><span class="mk">28</span><span><span class="name">СКИД налаштувань</span><span class="one">Повертає всі налаштування до значень за замовчуванням.</span></span></summary>
 <div class="full">
 <p>Ресурси й призначення залишаються на місці. Перед скиданням застосунок просить підтвердити дію.</p>
 <dl class="facts">
@@ -200,37 +213,37 @@
 </details>
 <h3>Фонова синхронізація, мережа й кеш</h3>
 <details class="el" id="parallelism">
-<summary><span class="mk">27</span><span><span class="name">Паралелізм мережі</span><span class="one">Задає, скільки мережевих операцій виконується одночасно.</span></span></summary>
+<summary><span class="mk">29</span><span><span class="name">Паралелізм мережі</span><span class="one">Задає, скільки мережевих операцій виконується одночасно.</span></span></summary>
 <div class="full">
 <p>Значення від 1 до 24, за замовчуванням 4. Більше операцій одразу можуть працювати швидше в швидкій мережі, менше - дбайливіше для повільного з’єднання чи слабкого сервера.</p>
 </div>
 </details>
 <details class="el" id="prefetch">
-<summary><span class="mk">28</span><span><span class="name">Розмір попереднього кешу відео</span><span class="one">Задає, яка частина потокового відео буферизується наперед.</span></span></summary>
+<summary><span class="mk">30</span><span><span class="name">Розмір попереднього кешу відео</span><span class="one">Задає, яка частина потокового відео буферизується наперед.</span></span></summary>
 <div class="full">
 <p>«Менше» (0,5×) заощаджує місце й трафік, але в повільній мережі відтворення може уривчастись. «Авто» залишає вибір плеєру. «Більше» (2×) відтворює плавніше в нестабільній мережі й займає більше місця на диску.</p>
 </div>
 </details>
 <details class="el" id="background-sync">
-<summary><span class="mk">29</span><span><span class="name">Увімкнути фонову синхронізацію</span><span class="one">Перевіряє мережеві ресурси на зміни файлів у фоні.</span></span></summary>
+<summary><span class="mk">31</span><span><span class="name">Увімкнути фонову синхронізацію</span><span class="one">Перевіряє мережеві ресурси на зміни файлів у фоні.</span></span></summary>
 <div class="full">
 <p>Оберіть, як часто перевіряти, або запустіть перевірку одразу кнопкою «Синхронізувати зараз». Рядок нижче показує, коли синхронізація була востаннє.</p>
 </div>
 </details>
 <details class="el" id="thumb-preload">
-<summary><span class="mk">30</span><span><span class="name">Попереднє завантаження мініатюр</span><span class="one">Готує мініатюри мережевих відео та PDF після кожної синхронізації.</span></span></summary>
+<summary><span class="mk">32</span><span><span class="name">Попереднє завантаження мініатюр</span><span class="one">Готує мініатюри мережевих відео та PDF після кожної синхронізації.</span></span></summary>
 <div class="full">
 <p>Мініатюри створюються у фоні, і на момент, коли ви відкриєте папку, вони вже готові. Окремий параметр обмежує це мережами без обмежень за трафіком, як-от Wi-Fi.</p>
 </div>
 </details>
 <details class="el" id="cache-limit">
-<summary><span class="mk">31</span><span><span class="name">Розмір кешу</span><span class="one">Задає, скільки місця на диску може зайняти кеш зображень.</span></span></summary>
+<summary><span class="mk">33</span><span><span class="name">Розмір кешу</span><span class="one">Задає, скільки місця на диску може зайняти кеш зображень.</span></span></summary>
 <div class="full">
 <p>У кеші зберігаються прев’ю й мініатюри, щоб наступного разу вони відкривалися швидко. Введіть розмір у мегабайтах або натисніть «Авто» - застосунок підбере його за обсягом пам’яті пристрою. За замовчуванням це 2 ГБ.</p>
 </div>
 </details>
 <details class="el" id="clear-cache">
-<summary><span class="mk">32</span><span><span class="name">Очистити кеш</span><span class="one">Очищає кеш застосунку, щоб звільнити місце.</span></span></summary>
+<summary><span class="mk">34</span><span><span class="name">Очистити кеш</span><span class="one">Очищає кеш застосунку, щоб звільнити місце.</span></span></summary>
 <div class="full">
 <p>Видаляються прев’ю, мініатюри й тимчасові файли, завантажені з мережі. Поруч із кнопкою показано поточний розмір кешу, а перед очищенням застосунок просить підтвердити дію. Кеш наповниться знову в міру перегляду.</p>
 <dl class="facts">
@@ -239,52 +252,53 @@
 </div>
 </details>
 <details class="el" id="statistics">
-<summary><span class="mk">33</span><span><span class="name">Збір статистики</span><span class="one">Збирає статистику використання на вашому пристрої.</span></span></summary>
+<summary><span class="mk">35</span><span><span class="name">Збір статистики</span><span class="one">Збирає статистику використання на вашому пристрої.</span></span></summary>
 <div class="full">
 <p>Дані лишаються на пристрої, автоматично нічого не надсилається. Поки збирання ввімкнено, з’являється рядок «Статистика», що відкриває зібране.</p>
 </div>
 </details>
-<h3>Інструменти, керівництво та скидання</h3>
+<h3>Скидання розділу «Загальні»</h3>
+<details class="el" id="reset-general">
+<summary><span class="mk">36</span><span><span class="name">Скинути розділ Загальні</span><span class="one">Повертає до значень за замовчуванням лише цю вкладку.</span></span></summary>
+<div class="full">
+<p>Налаштування на інших вкладках зберігаються. Перед скиданням застосунок просить підтвердити дію.</p>
+</div>
+</details>
+<h3>Усе про цей застосунок</h3>
 <details class="el" id="extensions">
-<summary><span class="mk">34</span><span><span class="name">Додаткові модулі</span><span class="one">Керує необов’язковими частинами застосунку, які ви завантажуєте.</span></span></summary>
+<summary><span class="mk">37</span><span><span class="name">Додаткові модулі</span><span class="one">Керує необов’язковими частинами застосунку, які ви завантажуєте.</span></span></summary>
 <div class="full">
 <p>Розширення - наприклад, розпізнавання тексту, переклад чи додаткові декодери - завантажуються лише коли вони потрібні й видаляються, щоб звільнити місце.</p>
 </div>
 </details>
 <details class="el" id="permissions">
-<summary><span class="mk">35</span><span><span class="name">Дозволи та доступ</span><span class="one">Показує, до чого застосунок має доступ, і дає змогу надати його.</span></span></summary>
+<summary><span class="mk">38</span><span><span class="name">Дозволи та доступ</span><span class="one">Показує, до чого застосунок має доступ, і дає змогу надати його.</span></span></summary>
 <div class="full">
 <p>У кожного дозволу є короткий підпис про те, навіщо він потрібен. Надайте потрібне, а для тих, що Android не дає запитати напряму, відкрийте системні налаштування.</p>
 </div>
 </details>
 <details class="el" id="system-info">
-<summary><span class="mk">36</span><span><span class="name">Про систему</span><span class="one">Відкриває екран із відомостями про пристрій і застосунок.</span></span></summary>
+<summary><span class="mk">39</span><span><span class="name">Про систему</span><span class="one">Відкриває екран із відомостями про пристрій і застосунок.</span></span></summary>
 <div class="full">
 <p>Там зібрано технічні дані про цей пристрій і застосунок.</p>
 </div>
 </details>
 <details class="el" id="user-guide">
-<summary><span class="mk">37</span><span><span class="name">Керівництво користувача</span><span class="one">Відкриває керівництво користувача в браузері.</span></span></summary>
+<summary><span class="mk">40</span><span><span class="name">Керівництво користувача</span><span class="one">Відкриває керівництво користувача в браузері.</span></span></summary>
 <div class="full">
 <p>Керівництво відкривається українською, російською або англійською - залежно від мови застосунку.</p>
 </div>
 </details>
 <details class="el" id="welcome">
-<summary><span class="mk">38</span><span><span class="name">Вступний екран</span><span class="one">Знову відкриває майстер привітання.</span></span></summary>
+<summary><span class="mk">41</span><span><span class="name">Вступний екран</span><span class="one">Знову відкриває майстер привітання.</span></span></summary>
 <div class="full">
 <p>Пройдіть сторінки першого запуску ще раз: мова, тема, профіль пристрою, мережеві джерела, можливості та дозволи.</p>
-</div>
-</details>
-<details class="el" id="reset-general">
-<summary><span class="mk">39</span><span><span class="name">Скинути розділ Загальні</span><span class="one">Повертає до значень за замовчуванням лише цю вкладку.</span></span></summary>
-<div class="full">
-<p>Налаштування на інших вкладках зберігаються. Перед скиданням застосунок просить підтвердити дію.</p>
 </div>
 </details>
 </div>
 <h2>Пов'язане</h2>
 <ul class="related">
-<li><a href="main-uk.html"><b>Головний екран</b><span class="pill">Екран</span></a></li>
+<li><a href="main-uk.html"><b>Список ресурсів</b><span class="pill">Екран</span></a></li>
 <li><a href="settings-media-uk.html"><b>Налаштування: Медіа</b><span class="pill">Екран</span></a></li>
 <li><a href="settings-playback-uk.html"><b>Налаштування: Плеєр</b><span class="pill">Екран</span></a></li>
 <li><a href="settings-operations-uk.html"><b>Налаштування: Управління</b><span class="pill">Екран</span></a></li>
@@ -302,7 +316,7 @@
 <li><a href="index-uk.html"><b>Зміст довідки</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-18</span>
+<span>Fast Media Sorter, 2026-10-21</span>
 <a href="index-uk.html">Зміст довідки</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
 </footer>

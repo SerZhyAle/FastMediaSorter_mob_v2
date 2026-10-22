@@ -323,7 +323,8 @@ class DeviceExchangeAccountRepositoryTest {
 
         runCatching { repository().deleteAccount(entry, password) }
 
-        assertEquals(listOf(entry), store.snapshot())
+        // Item DS makes the only producing entry the outgoing one as soon as it is stored.
+        assertEquals(listOf(entry.copy(outgoing = true)), store.snapshot())
         assertEquals(TOKEN, tokens.token(entry))
     }
 

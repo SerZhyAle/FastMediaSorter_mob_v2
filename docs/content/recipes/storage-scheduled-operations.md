@@ -45,7 +45,7 @@ steps:
     text: |
       Tap **+** (**Add**). In the new operation:
 
-      - **Source** - pick one of your resources, or the first item **Local Folder** to choose any folder in Android's folder window. Such a folder is used only by this job and does not appear on the main screen.
+      - **Source** - pick one of your resources, or the first item **Local Folder** to choose any folder in Android's folder window. Such a folder is used only by this job and does not appear in the resource list.
       - **Operation** - **Copy**, **Move** or **Delete**.
       - **Destination** - for copy and move: one of your destinations, or **Local Folder** again for any folder on the device. If you have exactly one destination, it is filled in for you.
 

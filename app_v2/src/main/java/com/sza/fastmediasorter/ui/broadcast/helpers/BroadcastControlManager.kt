@@ -63,6 +63,9 @@ class BroadcastControlManager @Inject constructor(
     /** S4281: built here because this singleton is what keeps its on/off flag alive across a rotation. */
     private val lightFrame = BroadcastLightFrameManager()
 
+    /** S4418: built here for the same reason - its "controls asked for" flag has to survive a rotation. */
+    private val landscapeVideo = BroadcastLandscapeVideoManager()
+
     /**
      * The mode a live switch is re-opening the session in, null while nothing switches. Until that mode
      * is on air the screen keeps its live layout: an audio-video switch passes through `Idle`, and the
@@ -125,6 +128,7 @@ class BroadcastControlManager @Inject constructor(
         }
         setupPreStreamControls(activity, binding)
         setupLiveControls(activity, binding)
+        landscapeVideo.bind(activity, binding) { controller.state.value }
         sharePanel.setup(activity, binding)
         sourceEntries.setup(controller, activity, binding)
         setupCollapsibleSections(activity, binding)
@@ -543,6 +547,7 @@ class BroadcastControlManager @Inject constructor(
                 renderSendToWatch(binding, state)
                 sharePanel.render(activity, binding)
                 previewBinder.attach(binding.previewContainer)
+                landscapeVideo.render(activity, binding, state)
             }
             // The transient idle between the two services of an audio-video switch is not the end of the session.
             is BroadcastState.Idle -> if (switchTargetMode == null) renderPreStream(activity, binding, state)
@@ -576,6 +581,7 @@ class BroadcastControlManager @Inject constructor(
         binding.layoutSharePanel.visibility = View.GONE
         renderLightControls(binding, state)
         renderScreenRealEstate(binding, state)
+        landscapeVideo.render(activity, binding, state)
         selectionRows.setEnabled(binding, true)
         refreshPreStreamPreview(activity, binding)
     }

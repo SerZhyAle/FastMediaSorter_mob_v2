@@ -22,7 +22,7 @@ steps:
     id: open-photo
     title: Open a photo full screen
     text: |
-      Open a resource on the [main screen](term:main-screen), then tap any picture in the [file browser](page:browsing.grid-and-list-views). The picture opens in the [image viewer](term:image-viewer), filling the screen.
+      Open a resource on the [resource list](term:resource-list), then tap any picture in the [file browser](page:browsing.grid-and-list-views). The picture opens in the [image viewer](term:image-viewer), filling the screen.
 
       The viewer shows JPG, PNG, WebP, BMP and GIF pictures, animated WebP and APNG, and HEIC, HEIF and AVIF photos. If your Android is too old for HEIC or AVIF, the viewer does not fail silently: it tells you which Android version the picture needs, for example "requires Android 9 (API 28) or newer".
     image_bookmark:

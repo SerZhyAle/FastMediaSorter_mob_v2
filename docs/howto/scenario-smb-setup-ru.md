@@ -68,9 +68,9 @@ IP-адрес - это «домашний адрес» вашего ПК в Wi-F
 ## Шаг 3 - Откройте FastMediaSorter и нажмите "+"
 
 1. Откройте приложение
-2. На **главном экране** нажмите кнопку **Добавить <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** на панели инструментов
+2. На **списке ресурсов** нажмите кнопку **Добавить <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** на панели инструментов
 
-![FastMediaSorter main screen - Add button highlighted in top toolbar, SMB tab visible](screenshots/screenshot-smb-step3.png)
+![FastMediaSorter resource list - Add button highlighted in top toolbar, SMB tab visible](screenshots/screenshot-smb-step3.png)
 
 ---
 
@@ -141,11 +141,11 @@ IP-адрес - это «домашний адрес» вашего ПК в Wi-F
 
 ## Шаг 8 - Сохраните и откройте
 
-Нажмите **"Сохранить"**. Новая папка появляется на главном экране со значком SMB.
+Нажмите **"Сохранить"**. Новая папка появляется в списке ресурсов со значком SMB.
 
 Нажмите на неё - отобразятся фото, видео и другие файлы в виде миниатюр, как обычная локальная папка.
 
-![FastMediaSorter main screen - new "Common" SMB resource card (smb://192.168.1.100/Common) with Network folder SMB badge highlighted](screenshots/screenshot-smb-step8.png)
+![FastMediaSorter resource list - new "Common" SMB resource card (smb://192.168.1.100/Common) with Network folder SMB badge highlighted](screenshots/screenshot-smb-step8.png)
 
 ---
 

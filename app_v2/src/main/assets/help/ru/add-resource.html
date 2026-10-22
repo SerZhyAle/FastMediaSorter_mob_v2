@@ -9,7 +9,6 @@
 <link rel="stylesheet" href="../help.css">
 </head>
 <body class="help">
-<div class="doc-stamp">26.10.18 02:39</div>
 <main class="container">
 <nav class="help-crumbs" aria-label="Оглавление справки">
 <a href="index.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Добавить ресурс</span>
@@ -18,14 +17,14 @@
 <h1>Добавить ресурс</h1>
 </header>
 <h2>Для чего этот экран</h2>
-<p class="lead">«Добавить ресурс» - экран, где вы подключаете к приложению новое место с файлами: папку на устройстве, сетевую папку, сервер SFTP или FTP, облачную папку, интернет-трансляцию или часы. Выберите тип, заполните короткую форму - и новый ресурс появится в списке на главном экране.</p>
+<p class="lead">«Добавить ресурс» - экран, где вы подключаете к приложению новое место с файлами: папку на устройстве, сетевую папку, сервер SFTP или FTP, облачную папку, интернет-трансляцию или часы. Выберите тип, заполните короткую форму - и новый ресурс появится в списке в списке ресурсов.</p>
 <figure class="shot">
 <img class="on-light" src="../img/add-resource-ru-light.webp" alt="Добавить ресурс">
 <img class="on-dark" src="../img/add-resource-ru-dark.webp" alt="Добавить ресурс">
 </figure>
 <h2>Порядок действий</h2>
 <ol class="order">
-<li>Выберите, что добавить: «Локальная папка» <a class="ref" href="#type-local">2</a> - папка на устройстве, «Сетевая папка» <a class="ref" href="#type-network">3</a> - ресурс SMB, затем «SFTP / FTP» <a class="ref" href="#type-sftp">4</a>, «Облачное хранилище» <a class="ref" href="#type-cloud">5</a>, «Трансляция» <a class="ref" href="#type-stream">6</a>, «Спаренные часы» <a class="ref" href="#type-watch">7</a> или «С моих устройств» <a class="ref" href="#type-my-devices">8</a>. Типы, выключенные в настройках или отсутствующие в вашей редакции, не показываются, а если нажать «Добавить» на главном экране при открытой вкладке типа, сразу откроется форма этого типа.</li>
+<li>Выберите, что добавить: «Локальная папка» <a class="ref" href="#type-local">2</a> - папка на устройстве, «Сетевая папка» <a class="ref" href="#type-network">3</a> - ресурс SMB, затем «SFTP / FTP» <a class="ref" href="#type-sftp">4</a>, «Облачное хранилище» <a class="ref" href="#type-cloud">5</a>, «Трансляция» <a class="ref" href="#type-stream">6</a>, «Спаренные часы» <a class="ref" href="#type-watch">7</a> или «С моих устройств» <a class="ref" href="#type-my-devices">8</a>. Типы, выключенные в настройках или отсутствующие в вашей редакции, не показываются, а если нажать «Добавить» в списке ресурсов при открытой вкладке типа, сразу откроется форма этого типа.</li>
 <li>Папка на устройстве: нажмите «СКАНИРОВАТЬ» <a class="ref" href="#local-scan">12</a>, чтобы получить подсказки, или «Добавить вручную» <a class="ref" href="#local-add-manually">13</a>, чтобы выбрать папку самому; отметьте нужное в списке <a class="ref" href="#local-list">14</a> и нажмите «Добавить к ресурсам» <a class="ref" href="#add-to-resources">11</a>.</li>
 <li>Сетевая папка: введите адрес сервера <a class="ref" href="#smb-server">17</a> или найдите его через «Сканировать сеть» <a class="ref" href="#smb-scan-network">16</a>. Укажите имя пользователя <a class="ref" href="#smb-username">18</a> и пароль <a class="ref" href="#smb-password">19</a>, проверьте их кнопкой «Тест соединения» <a class="ref" href="#smb-test">20</a>, выберите папку через «Сканировать хост» <a class="ref" href="#smb-scan-shares">21</a> или впишите её имя <a class="ref" href="#smb-share-name">22</a> и нажмите «Добавить этот ресурс» <a class="ref" href="#smb-add">27</a>.</li>
 <li>SFTP или FTP: выберите протокол <a class="ref" href="#sftp-protocol">29</a>, введите хост <a class="ref" href="#sftp-host">30</a> и данные для входа <a class="ref" href="#sftp-auth">31</a>, проверьте кнопкой «Проверить соединение» <a class="ref" href="#sftp-test">32</a>, укажите путь на сервере <a class="ref" href="#sftp-remote-path">34</a> и нажмите «Добавить ресурс» <a class="ref" href="#sftp-add">36</a>.</li>
@@ -324,9 +323,9 @@
 <details class="el" id="picker-select">
 <summary><span class="mk">46</span><span><span class="name">Выбор</span><span class="one">Добавляет эту папку в ваши ресурсы.</span></span></summary>
 <div class="full">
-<p>Создаёт облачный ресурс из папки с учётом ваших флажков «Добавить в назначения» и «С подпапками» и типов медиа, включённых в настройках. Вы увидите «Ресурс добавлен» и окажетесь на главном экране. Папку, которую вы уже добавляли, приложение отклонит с пояснением.</p>
+<p>Создаёт облачный ресурс из папки с учётом ваших флажков «Добавить в назначения» и «С подпапками» и типов медиа, включённых в настройках. Вы увидите «Ресурс добавлен» и окажетесь в списке ресурсов. Папку, которую вы уже добавляли, приложение отклонит с пояснением.</p>
 <dl class="facts">
-<dt>Отмена</dt><dd>В облаке ничего не меняется. Чтобы отменить, удалите ресурс на главном экране - папка останется на месте.</dd>
+<dt>Отмена</dt><dd>В облаке ничего не меняется. Чтобы отменить, удалите ресурс в списке ресурсов - папка останется на месте.</dd>
 </dl>
 </div>
 </details>
@@ -342,7 +341,7 @@
 </div>
 <h2>Связанное</h2>
 <ul class="related">
-<li><a href="main.html"><b>Главный экран</b><span class="pill">Экран</span></a></li>
+<li><a href="main.html"><b>Список ресурсов</b><span class="pill">Экран</span></a></li>
 <li><a href="settings-general.html"><b>Настройки: Общие</b><span class="pill">Экран</span></a></li>
 <li><a href="resource-editor.html"><b>Редактировать ресурс</b><span class="pill">Экран</span></a></li>
 <li><a href="auth-sessions.html"><b>Сохранённые авторизации</b><span class="pill">Экран</span></a></li>
@@ -354,7 +353,7 @@
 <li><a href="index.html"><b>Оглавление справки</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-18</span>
+<span>Fast Media Sorter, 2026-10-21</span>
 <a href="index.html">Оглавление справки</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
 </footer>

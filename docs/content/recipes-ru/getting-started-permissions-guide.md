@@ -111,7 +111,7 @@ next_recipes:
     badge: Первые шаги
     badge_type: docs
     description: Краткая версия этого же списка разрешений на финальном шаге первоначальной настройки.
-  - title: Обзор главного экрана
+  - title: Обзор списка ресурсов
     url: page:getting-started.main-screen-overview
     badge: Первые шаги
     badge_type: docs

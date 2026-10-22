@@ -11,11 +11,11 @@ permalink: /docs/media-exchange-portal/phone-sharing.html
 
 A phone can be the device that keeps the folders: FastMediaSorter turns it into an SFTP server, and your other devices open the folders you picked. This page is about the server itself - how it starts, how long it lasts and what it costs. Reaching it from outside is on [Folders through the exchange server](folders-exchange-server.html) and [Home network](home-network.html).
 
-![Four steps: switch on the SFTP server in Share over SFTP, add the folders, leave it running - it lasts until you switch it off and resumes whenever the app is shown - and mind the mobile data other devices use.](diagrams/steps-phone-sharing-en.svg)
+![Four steps: switch on the SFTP server in Share from phone, add the folders, leave it running - it lasts until you switch it off and resumes whenever the app is shown - and mind the mobile data other devices use.](diagrams/steps-phone-sharing-en.svg)
 
 ## Switch it on
 
-1. Open **Settings**, the **General** tab, the **Share over SFTP** card.
+1. Open **Settings**, the **General** tab, the **Share from phone** card.
 2. Under **Shared folders** tap **Add folder** and pick folders with the system folder picker. A folder you add while the server runs joins it at once.
 3. Choose how people sign in, **Password** or **SSH key**.
 4. Switch on **SFTP server**. The status moves from **Off** to **Starting..** and then **Running at** the address and port.

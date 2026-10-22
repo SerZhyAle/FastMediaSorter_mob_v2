@@ -60,7 +60,7 @@ steps:
 
       The FastMediaSorter [Windows companion](term:windows-companion) can prepare a complete resource on your computer - the shared folder, the account, the kinds of files, even a PIN - and hand it to the phone as a small `.fmscfg` file or as a barcode on the screen.
 
-      On the phone tap **Add** on the main screen. Under **Import a ready configuration** tap **Import from file** and pick the `.fmscfg` file, or tap **Import by barcode** and point the camera at the barcode on the computer screen. The resource arrives fully set up. Files from older versions of the companion still import; a file from a newer version than the app understands is refused, and nothing changes.
+      On the phone tap **Add** in the resource list. Under **Import a ready configuration** tap **Import from file** and pick the `.fmscfg` file, or tap **Import by barcode** and point the camera at the barcode on the computer screen. The resource arrives fully set up. Files from older versions of the companion still import; a file from a newer version than the app understands is refused, and nothing changes.
     image_bookmark:
       shot_id: storage.add-resource-import-configuration
       device_profile: phone

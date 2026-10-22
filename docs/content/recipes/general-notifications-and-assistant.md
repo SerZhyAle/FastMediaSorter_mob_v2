@@ -74,10 +74,10 @@ steps:
       shot_id: general.content-type-colors
       device_profile: phone
       screen_state: main-screen-resource-list-type-badges
-      alt: The resource list on the main screen with colored media-type badges on each row, one color per type of content
+      alt: The resource list with colored media-type badges on each row, one color per type of content
       caption: "One color per type of content."
       title: "Screenshot: Content type colors"
-      desc: Main screen, resource list with several resources, each row showing its colored media-type badges.
+      desc: Resource list with several resources, each row showing its colored media-type badges.
   - number: 4
     id: privacy
     title: Hide password screens from the recent-apps list

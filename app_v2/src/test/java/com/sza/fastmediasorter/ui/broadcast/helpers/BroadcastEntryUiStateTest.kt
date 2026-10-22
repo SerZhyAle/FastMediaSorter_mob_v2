@@ -139,6 +139,42 @@ class BroadcastEntryUiStateTest {
         )
     }
 
+    @Test
+    fun `a live landscape picture is fullscreen until the controls are asked for`() {
+        assertTrue(
+            BroadcastEntryUi.showsFullscreenPreview(isLandscape = true, pictureOnScreen = true, controlsShown = false),
+        )
+        assertFalse(
+            BroadcastEntryUi.showsFullscreenPreview(isLandscape = true, pictureOnScreen = true, controlsShown = true),
+        )
+    }
+
+    @Test
+    fun `portrait never goes fullscreen`() {
+        listOf(true, false).forEach { controlsShown ->
+            assertFalse(
+                BroadcastEntryUi.showsFullscreenPreview(
+                    isLandscape = false,
+                    pictureOnScreen = true,
+                    controlsShown = controlsShown,
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `landscape without a live picture keeps the two-pane layout`() {
+        listOf(true, false).forEach { controlsShown ->
+            assertFalse(
+                BroadcastEntryUi.showsFullscreenPreview(
+                    isLandscape = true,
+                    pictureOnScreen = false,
+                    controlsShown = controlsShown,
+                ),
+            )
+        }
+    }
+
     private fun lensChoice(vararg ids: String) = BroadcastLensChoice(
         options = ids.map { id ->
             BroadcastLensOption(id = id, facing = BroadcastLensOption.FACING_BACK, zoomMultiplier = 1f)

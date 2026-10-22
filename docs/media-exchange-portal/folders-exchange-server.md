@@ -5,7 +5,7 @@ description: "How to open a folder of one of your devices from another one on an
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/folders-exchange-server.html
 ---
-<sub class="doc-stamp">26.10.21 15:52</sub>
+<sub class="doc-stamp">26.10.22 01:23</sub>
 
 # Folders through the exchange server
 
@@ -21,10 +21,10 @@ A folder that lives on one of your devices can be opened on another from any net
 
 ## Share a folder from a phone
 
-1. Open **Settings**, the **General** tab, the **Share over SFTP** card.
+1. Open **Settings**, the **General** tab, the **Share from phone** card.
 2. Under **Shared folders** tap **Add folder** and pick the folder with the system folder picker. Each folder is an entry of its own, and a folder you add while the server runs joins it at once.
 3. Switch on **SFTP server**.
-4. In the same card, in the **Access from anywhere** section, switch on **Exchange server**. With more than one server, **Change** picks the outgoing one: the line **Through the server** names it. The status line then reads **Reachable from anywhere through** the server's name.
+4. In the **Access from anywhere** group, switch on **Exchange server**. With more than one server, **Change** picks the outgoing one: the line **Through the server** names it. The status line then reads **Reachable from anywhere through** the server's name.
 
 ## Open the folder on another device
 
@@ -72,6 +72,6 @@ The app shows **The connection did not work** with what failed and, under **Anot
 
 Back to the [portal start page](index.html).
 
-## Windows settings windows {#windows-settings-windows}
+## Settings windows of the Windows program {#windows-settings-windows}
 
-On Windows, sign in, publish resources and manage this PC through Manager settings, Exchange account. Local exchange-server administration has a separate window and is not a prerequisite for joining somebody else’s server. Existing remote-administration actions keep the selected remote target.
+On Windows, sign in, publish resources and manage this PC through **Manager settings**, **Exchange account**. Running your own server has a separate window and is not needed to join somebody else’s server. Administering a server from another computer keeps working on the server you picked.

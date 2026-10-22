@@ -331,7 +331,7 @@ ICY metadata requires an Icecast/Shoutcast stream that sends the `Icy-MetaData: 
 **Solution:**
 1. Check **Settings** → **Media** → **Documents**
 2. Ensure **"Support Text Files"** and **"Support PDF Files"** are enabled.
-3. Check **Filters** on main screen (funnel icon) to ensure they are selected.
+3. Check **Filters** on resource list (funnel icon) to ensure they are selected.
 4. **Rescan** the folder (pull-to-refresh).
 
 ---

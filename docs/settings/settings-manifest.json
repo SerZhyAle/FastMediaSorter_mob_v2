@@ -1721,6 +1721,16 @@
       "titleUk": "Розмір іконок для сітки (пікселі)"
     },
     {
+      "key": "headerAboutApp",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SECTION_HEADER",
+      "titleEn": "All about this application",
+      "titleRu": "Всё об этом приложении",
+      "titleUk": "Усе про цей застосунок"
+    },
+    {
       "key": "headerAppData",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1776,9 +1786,9 @@
       "destination": "GENERAL",
       "layout": "fragment_settings_general",
       "kind": "SECTION_HEADER",
-      "titleEn": "Main screen interface",
-      "titleRu": "Интерфейс главного экрана",
-      "titleUk": "Інтерфейс головного екрана"
+      "titleEn": "Resource list interface",
+      "titleRu": "Интерфейс списка ресурсов",
+      "titleUk": "Інтерфейс списку ресурсів"
     },
     {
       "key": "headerRemoteSources",
@@ -1791,14 +1801,24 @@
       "titleUk": "Віддалені ресурси (SMB/(S)FTP/Хмара)"
     },
     {
+      "key": "headerSftpExchange",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Access from anywhere",
+      "titleRu": "Доступ отовсюду",
+      "titleUk": "Доступ звідусіль"
+    },
+    {
       "key": "headerSftpServer",
       "sectionId": "general",
       "destination": "GENERAL",
       "layout": "fragment_settings_general",
       "kind": "SECTION_HEADER",
-      "titleEn": "Share over SFTP",
-      "titleRu": "Доступ по SFTP",
-      "titleUk": "Доступ через SFTP"
+      "titleEn": "Share from phone",
+      "titleRu": "Доступ с телефона",
+      "titleUk": "Доступ з телефону"
     },
     {
       "key": "headerSystem",
@@ -2176,9 +2196,9 @@
       "destination": "GENERAL",
       "layout": "fragment_settings_general",
       "kind": "TOGGLE_ROW",
-      "titleEn": "Show streams panel on the main screen",
-      "titleRu": "Показывать панель трансляций на главном экране",
-      "titleUk": "Показувати панель трансляцій на головному екрані"
+      "titleEn": "Show streams panel in the resource list",
+      "titleRu": "Показывать панель трансляций в списке ресурсов",
+      "titleUk": "Показувати панель трансляцій у списку ресурсів"
     },
     {
       "key": "rowShowSubfoldersAsItems",

@@ -14,7 +14,7 @@ This guide now has two layers:
 - **Scenario Groups** for richer real-life workflows and combinations of features.
 - **Core Task Reference** for direct one-feature recipes further below.
 
-Every main screen also has its own help page: press the `?` button or F1 inside the app to open it without internet, or browse them all in the [in-app help index](../documentation/help/index.html).
+Every resource list also has its own help page: press the `?` button or F1 inside the app to open it without internet, or browse them all in the [in-app help index](../documentation/help/index.html).
 
 ---
 
@@ -474,7 +474,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **Steps:**
 
-1. **Tap "+" button** on main screen
+1. **Tap "+" button** on resource list
 2. Select **"Network folder (SMB)"**
 3. Fill in details:
    - **Auto-Discovery (New):**
@@ -522,7 +522,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **Steps:**
 
-1. **Tap "+" button** on main screen
+1. **Tap "+" button** on resource list
 2. Select **"SFTP / FTP"**
 3. Choose Protocol: **SFTP** or **FTP**
 4. Fill in details:
@@ -571,7 +571,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **On the phone - Method A, scan the code (fastest):**
 
-1. **Tap the "+" button** on the main screen.
+1. **Tap the "+" button** in the resource list.
 2. Tap **"Import by barcode"** - it sits next to the four resource-type cards and in the SFTP form header.
 3. Point the camera at the QR on the PC (tap **Torch** in a dark room), then confirm the **Import access** dialog.
 4. Done - one read-only resource per shared folder appears, with the server key pinned automatically.
@@ -596,7 +596,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **Steps:**
 
-1. **Tap "+" button** on main screen
+1. **Tap "+" button** on resource list
 2. Select **"Cloud Storage"**
 3. Select provider: **Google Drive**, **OneDrive**, or **Dropbox**
 4. Tap **"Sign in.."** button
@@ -652,7 +652,7 @@ When you add a new network resource, the app automatically runs a speed test in 
 
 **Method 2: From Folder Settings**
 
-1. Main screen → **Long-press on folder**
+1. Resource list → **Long-press on folder**
 2. Tap **"Edit"** (pencil icon)
 3. Enable **"Mark for Quick Sort"**
 4. Tap **"Save"**
@@ -766,7 +766,7 @@ Then use **command panel buttons** instead.
 **Customize speed:**
 
 1. **Edit folder settings:**
-   - Main screen → Long-press folder → Edit
+   - Resource list → Long-press folder → Edit
 2. Change **"Slideshow Interval":**
    - Fast: 2 seconds
    - Normal: 5 seconds
@@ -835,7 +835,7 @@ Then use **command panel buttons** instead.
 
 **Steps:**
 
-1. Main screen → **Long-press on folder**
+1. Resource list → **Long-press on folder**
 2. Tap **"Edit"** (pencil icon)
 3. Scroll to **"PIN Code"** field
 4. Enter **4-6 digit PIN** (e.g., 1234)
@@ -969,7 +969,7 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 
 **2. Filter by Media Type:**
 
-1. Tap the **Filter icon** (funnel) on the main screen (top right).
+1. Tap the **Filter icon** (funnel) in the resource list (top right).
 2. Use checkboxes to select media types:
    - Images
    - Videos
@@ -1239,7 +1239,7 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 **Steps:**
 
 1. Install the app from Google Play or sideload an APK. Standard flavor is recommended.
-2. On the main screen, press **OK** on the (+) button to add a resource.
+2. In the resource list, press **OK** on the (+) button to add a resource.
 3. Choose **Local Folder** for USB/SD storage, or **Network folder** to connect to a NAS via SMB.
 4. After adding the resource, navigate into it with D-pad + OK to browse files.
 5. Open any video, image, or audio file - the player works fully via remote.
@@ -1405,7 +1405,7 @@ Photos from the in-app camera, screenshots, snapshots and auto-downloaded files 
 
 1. Open the setting for what you are saving - capture, screenshot, snapshot or auto-download.
 2. Choose the destination folder. The system folder browser opens, so you can point at any local folder, including one you have never added to the app.
-3. That folder becomes the write destination for that setting only. It stays out of your general resource list, so picking a scratch folder for screenshots does not clutter the main screen.
+3. That folder becomes the write destination for that setting only. It stays out of your general resource list, so picking a scratch folder for screenshots does not clutter the resource list.
 
 **Tips:**
 

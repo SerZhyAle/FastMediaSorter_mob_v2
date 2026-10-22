@@ -10,7 +10,7 @@ availability: all
 recipe_number: "01"
 canonical_url: documentation/storage/storage-sources-setup.html
 why: |
-  Your photos from the last holiday sit in the camera folder, the music you copied years ago lives on the memory card, and a USB stick from a friend is plugged into the phone. FastMediaSorter shows none of them until you tell it where to look. Every place you add becomes a [resource](term:resource) - one row or tile on the [main screen](term:main-screen) that opens straight into that folder.
+  Your photos from the last holiday sit in the camera folder, the music you copied years ago lives on the memory card, and a USB stick from a friend is plugged into the phone. FastMediaSorter shows none of them until you tell it where to look. Every place you add becomes a [resource](term:resource) - one row or tile on the [resource list](term:resource-list) that opens straight into that folder.
 
   Adding a [local folder](term:local-folder) takes a minute and changes nothing in your files. Removing the resource later removes only the app's entry; the folder and everything in it stay where they are.
 ingredients:
@@ -34,15 +34,15 @@ steps:
       shot_id: storage.ready-made-resources
       device_profile: phone
       screen_state: main-screen-default-virtual-resources
-      alt: The main screen right after first launch, showing Recent Media, All Music, All Videos, Camera Photos, All Images and All Documents
+      alt: The resource list right after first launch, showing Recent Media, All Music, All Videos, Camera Photos, All Images and All Documents
       caption: "The ready-made collections on a fresh install."
       title: "Screenshot: Ready-made resources"
-      desc: Main screen, fresh install, list view with the six virtual resources.
+      desc: Resource list, fresh install, list view with the six virtual resources.
   - number: 2
     id: open-add
     title: Open the Add Resource screen
     text: |
-      On the main screen tap **Add** on the [command bar](term:command-bar). The **Add Resource** screen opens with the heading **Select Resource Type** and a card for each kind of place: **Local Folder**, **Network Folder**, **SFTP / FTP**, **Cloud Storage** and **Stream**, as far as your edition has them.
+      In the resource list tap **Add** on the [command bar](term:command-bar). The **Add Resource** screen opens with the heading **Select Resource Type** and a card for each kind of place: **Local Folder**, **Network Folder**, **SFTP / FTP**, **Cloud Storage** and **Stream**, as far as your edition has them.
 
       Tap **Local Folder** - "Add folders from device storage". In the editions where no network or cloud places exist, or when you have switched them all off, the app skips this choice and opens the local folder screen straight away.
     image_bookmark:
@@ -107,7 +107,7 @@ steps:
     text: |
       To let the app see documents and other files in that folder, give it the folder through Android's folder window:
 
-      1. On the main screen tap the [three-dots menu](term:three-dots-menu) on the folder's row.
+      1. In the resource list tap the [three-dots menu](term:three-dots-menu) on the folder's row.
       2. Tap **Reconnect resource**.
       3. Android's folder window opens. Walk to the same folder and tap **Use this folder**.
 
@@ -116,12 +116,12 @@ steps:
       shot_id: storage.reconnect-resource-menu
       device_profile: phone
       screen_state: main-resource-row-menu-reconnect
-      alt: The three-dots menu of a local folder on the main screen with the Reconnect resource item highlighted
+      alt: The three-dots menu of a local folder in the resource list with the Reconnect resource item highlighted
       caption: "Reconnect resource in the folder's menu."
       title: "Screenshot: Reconnect resource"
-      desc: Main screen, row menu of a path-based local folder open on Android 13, Play Store edition.
+      desc: Resource list, row menu of a path-based local folder open on Android 13, Play Store edition.
 outcome: |
-  Your camera roll, your music folder, the memory card and the USB stick each have their own resource on the main screen. One tap opens any of them in the [file browser](term:file-browser), and the ready-made collections keep gathering new files by themselves.
+  Your camera roll, your music folder, the memory card and the USB stick each have their own resource in the resource list. One tap opens any of them in the [file browser](term:file-browser), and the ready-made collections keep gathering new files by themselves.
 tips:
   - "**One Resource Profile dialog.** Choosing a [resource profile](term:resource-profile) opens the same **Resource Profile** dialog when you add a resource and when you edit it; the File Manager profile keeps the switches for the kinds of files visible, and each preset sets the same kinds of files wherever you pick it."
   - "**Removing a resource never deletes files.** Long-press it and remove it: only the app's entry goes away."

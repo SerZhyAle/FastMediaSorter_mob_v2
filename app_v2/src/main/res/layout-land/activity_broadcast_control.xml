@@ -7,6 +7,9 @@
     android:orientation="horizontal"
     android:padding="@dimen/padding_normal">
 
+    <!-- S4418: while a live camera picture is on air this container is the fullscreen video rectangle and a
+         tap on it brings the panel back; BroadcastLandscapeVideoManager sets clickable and focusable by code,
+         so the idle lens preview is not a dead button. -->
     <FrameLayout
         android:id="@+id/previewContainer"
         android:layout_width="0dp"
@@ -14,9 +17,12 @@
         android:layout_weight="1"
         android:importantForAccessibility="noHideDescendants"
         android:background="@android:color/black"
+        android:foreground="?attr/selectableItemBackground"
+        android:nextFocusRight="@id/btnToggleCamera"
         android:layout_marginEnd="@dimen/margin_normal" />
 
     <ScrollView
+        android:id="@+id/controlsScroll"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"

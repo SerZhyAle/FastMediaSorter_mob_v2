@@ -23,7 +23,7 @@ steps:
     id: open-quick-capture
     title: Open Quick capture from the Programs menu
     text: |
-      On the main screen, open the [Programs menu](term:program). Near the top you see **"Quick capture"** and **"Voice recording"** - tap either one and the camera or the recorder opens right away, no stutter while it starts up.
+      In the resource list, open the [Programs menu](term:program). Near the top you see **"Quick capture"** and **"Voice recording"** - tap either one and the camera or the recorder opens right away, no stutter while it starts up.
 
       Photos, videos and voice notes each save straight into the phone's standard Pictures, Movies or Recordings folder. This is different from **Take photo** in the [file browser](term:file-browser)'s [three-dots menu](term:three-dots-menu), which saves into whatever [resource](term:resource) you have open instead - see [Taking Photos, Videos and Voice Notes Straight into a Folder](page:storage.capture-to-destination) for that version.
 
@@ -32,10 +32,10 @@ steps:
       shot_id: capture.main-menu-quick-capture
       device_profile: phone
       screen_state: main-programs-menu-quick-capture
-      alt: The main screen Programs menu with Quick capture and Voice recording rows near the top
+      alt: The resource list Programs menu with Quick capture and Voice recording rows near the top
       caption: "Quick capture and Voice recording in the Programs menu."
       title: "Screenshot: Programs menu"
-      desc: Main screen, Programs menu open, the Quick capture and Voice recording rows visible near the top.
+      desc: Resource list, Programs menu open, the Quick capture and Voice recording rows visible near the top.
   - number: 2
     id: viewfinder-tour
     title: Get to know the viewfinder

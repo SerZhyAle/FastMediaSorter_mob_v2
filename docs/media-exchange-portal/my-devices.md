@@ -44,7 +44,7 @@ In the menu of the server's card choose **Pass the server on**. The screen shows
 
 A device publishes its folders and its broadcasts through one server at a time, the **Outgoing** one.
 
-- **Make outgoing** in the card menu chooses it; **Through the server** in the **Access from anywhere** section of **Share over SFTP** names it and **Change** picks another.
+- **Make outgoing** in the card menu chooses it; **Through the server** in the **Access from anywhere** group names it and **Change** picks another.
 - **Attach everything automatically** in the same menu makes this device attach by itself every folder the account lists that needs no PIN, so a new folder of the account shows up without a visit to **From my devices**. A folder protected with a PIN is still attached by hand, with its PIN.
 
 ## What else the card menu does

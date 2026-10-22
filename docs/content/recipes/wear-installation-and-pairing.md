@@ -84,7 +84,7 @@ steps:
     id: open-companion-window
     title: Open the Wear Companion window
     text: |
-      Once the switch is on, Wear Companion behaves like the other built-in programs such as [Calculator](term:calculator): it has its own entry in the [programs panel](term:programs-panel) and in the programs menu of the [main screen](term:main-screen). Tap **Wear Companion** there, or the button of the same name in Settings, and its window opens. It can also open in a new window, and you can take it off the panel like any other program.
+      Once the switch is on, Wear Companion behaves like the other built-in programs such as [Calculator](term:calculator): it has its own entry in the [programs panel](term:programs-panel) and in the programs menu of the [resource list](term:resource-list). Tap **Wear Companion** there, or the button of the same name in Settings, and its window opens. It can also open in a new window, and you can take it off the panel like any other program.
 
       The window has the usual title bar with a back arrow. On the right of the title bar sit the **Sync settings** button and a line that says when the phone and watch last agreed on their settings - **Never synced** on a fresh pair. Below come the **Watch operations** group with the things you do with the watch, then the watch settings groups, and at the very bottom two links: **All about the watch** and **How to install on a watch**.
 
@@ -101,7 +101,7 @@ steps:
     id: watch-as-resource
     title: Make the watch one of your resources
     text: |
-      In **Watch operations**, tap **Add or open the watch**. The first tap adds your paired watch to the [resource list](term:resource-list) as a [resource](term:resource) of its own - "Send files to the watch and pick up what it records" - so it appears on the main screen and in the lists where you pick a [destination](term:destination) for copying and moving. Every later tap opens that same resource in the [file browser](term:file-browser); a second copy is never created.
+      In **Watch operations**, tap **Add or open the watch**. The first tap adds your paired watch to the [resource list](term:resource-list) as a [resource](term:resource) of its own - "Send files to the watch and pick up what it records" - so it appears in the resource list and in the lists where you pick a [destination](term:destination) for copying and moving. Every later tap opens that same resource in the [file browser](term:file-browser); a second copy is never created.
 
       If the watch is not reachable at that moment, the phone says **Watch not connected**.
   - number: 7
@@ -122,7 +122,7 @@ steps:
       title: "Screenshot: Watch home screen"
       desc: Round watch, FastMediaSorter home screen, section list Resources, Phone, Local, Streams, Apps visible.
 outcome: |
-  The watch app is on your wrist, Wear Companion is switched on and reachable from the programs panel, the phone shows the watch as connected, and the watch is a resource on the main screen that you can send files to.
+  The watch app is on your wrist, Wear Companion is switched on and reachable from the programs panel, the phone shows the watch as connected, and the watch is a resource in the resource list that you can send files to.
 tips:
   - "**Using a screen reader?** Every control of the Wear Companion window says what it is: each switch reads its name and state, the group headers announce whether they are expanded and can be opened and closed from TalkBack, and each button says what it does."
   - "**No Wear Companion group in Settings?** Your phone runs an edition without the watch link - Lite, Photos, Legacy, VR or FOSS. Install the Standard or noLegal edition to use a watch."

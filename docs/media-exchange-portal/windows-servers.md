@@ -5,7 +5,7 @@ description: "What Fast Media Sorter & Sharing for Windows does for exchange: it
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/windows-servers.html
 ---
-<sub class="doc-stamp">26.10.21 16:08</sub>
+<sub class="doc-stamp">26.10.22 01:27</sub>
 
 # Windows servers: sharing PC folders to your devices
 
@@ -14,7 +14,7 @@ On a Windows PC the exchange is done by **[Fast Media Sorter & Sharing for Windo
 ## Three optional parts {#three-parts}
 
 - **Viewer and sorter.** Looks through and sorts photos and videos on the PC, one key per file. It needs no server and no account.
-- **Folder sharing.** Shares the folders you pick over SFTP, so a phone, a tablet, a TV, a headset or any SFTP app opens them straight from the PC - on your own network, or from anywhere with one forwarded port. It needs no account and no exchange server. FileDO virtual disks are an optional extra of this sharing, off until you register a disk. Details: [what you share](#what-you-share).
+- **Folder sharing.** Shares the folders you pick over SFTP (the standard way devices share folders), so a phone, a tablet, a TV, a headset or any SFTP app opens them straight from the PC - on your own network, or from anywhere after one setting in the router (a forwarded port). It needs no account and no exchange server. FileDO virtual disks are an optional extra of this sharing, off until you register a disk. Details: [what you share](#what-you-share).
 - **Media Exchange Server.** A different part, not a mode of folder sharing. Folder sharing hands a PC's folders to a device that can reach the PC. The exchange server is a meeting point for devices that cannot: each one dials out to it, and one account lists all your folders and broadcasts. See [what each package holds](#availability) and [Exchange server](exchange-server.html).
 
 You do not need all three. Start with the viewer and add folder sharing if you want it, or start with a server and add the viewer if you want it: choosing the viewer does not require a server, and choosing a server does not require the viewer.
@@ -73,13 +73,13 @@ The QR code and the `.fmscfg` file carry every address the PC can be reached at:
 
 - the **local address** on your Wi-Fi or cable network;
 - an **IPv6 address**, when the PC has one - it can work where the provider shares one internet address among many customers and a forwarded port cannot, provided the phone's network has IPv6 too;
-- the **internet address** - the public address or a dynamic DNS name plus the forwarded port.
+- the **internet address** - an address on the internet (a fixed one, or a free name that follows a changing address) plus the forwarded port.
 
 The phone tries them and prefers the fast local one, so one scan works at home and away. On the same Wi-Fi network it also finds the PC by itself if the PC's address changed, because it recognises the PC by its host key.
 
 Two settings keep this predictable:
 
-- **The port does not move by itself.** The PC picks the listening port once, on the first start, and keeps it. A router forwarding rule and a printed QR code stay valid. If that port cannot be taken, the server stays down and says so, rather than quietly moving to another port.
+- **The port does not move by itself.** The PC picks the port it answers on once, on the first start, and keeps it. A router setting and a printed QR code stay valid. If that port cannot be taken, the server stays down and says so, rather than quietly moving to another port.
 - **A "local network only" switch** leaves only the local address in the code and stops any attempt to open the router. Use it for a share that must never be reachable from outside.
 
 ## Opening the way from outside {#from-outside}
@@ -90,7 +90,7 @@ For access away from home the router has to pass the port to the PC. Share Manag
 2. It then checks the port **from the internet**, through an outside checking service (check-host.net), and tells you plainly what it found: that the share works from the internet, that the port does not answer and the forwarding should be checked, or that the router opened the port but your provider blocks incoming connections.
 3. When the router does not open the port itself, it shows the router's address, has an **Open router** button, and can search for a guide for your router model.
 
-If the provider blocks incoming connections altogether (a carrier-grade address shared among customers), Share Manager warns about that, and a forwarded port will not help; the IPv6 address above may. Setting up the port by hand is described in [Home network](home-network.html).
+If the provider blocks incoming connections altogether (one internet address shared among many customers), Share Manager warns about that, and a forwarded port will not help; the IPv6 address above may. Setting up the port by hand is described in [Home network](home-network.html).
 
 ## A PC that serves with nobody signed in {#always-on}
 
@@ -123,8 +123,8 @@ Live broadcasts also play on a Windows PC in [STREAMS Player](https://serzhyale.
 
 Back to the [portal start page](index.html).
 
-## Windows settings windows {#windows-settings-windows}
+## Settings windows of the Windows program {#windows-settings-windows}
 
-Open Manager settings for startup, theme, language, the remote exchange account, publishing, clipboard and scheduled file operations. Open SFTP sharing settings for the SFTP port, LAN-only policy, connection limit and Hosting page. Administer the installed local server in Exchange server settings. A remote account requires no local exchange-server installation.
+The program has three settings windows, one per part. **Manager settings** holds startup, theme, language, your account on an exchange server, publishing, the clipboard and scheduled file operations. **SFTP sharing settings** holds the port that folder sharing uses, the choice to share on the local network only, the limit on connections and the Hosting page. **Exchange server settings** administers the exchange server installed on this PC; to join somebody else's server you do not need it installed.
 
-Use the links at the lower left to open the other installed component. Each destination reuses one window and remembers its page, groups, scroll and size. Windows can stay open together. Opening or closing settings starts or stops no server. An unapplied SFTP port survives switching windows; on close, apply, discard or continue editing.
+Use the links at the lower left to move to another installed part. Each part opens in one window that remembers its page, groups, scroll position and size, and the windows can stay open together. Opening or closing a settings window starts or stops no server. A port number you typed but have not applied is kept while you switch windows; on closing you can apply it, discard it or keep editing.

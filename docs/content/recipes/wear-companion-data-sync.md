@@ -31,7 +31,7 @@ steps:
 
       Tick the ones you want, or tap **Select all**. Nothing is ticked on your first visit: the phone never pushes your whole library by surprise. Your choice is remembered for the next sync.
 
-      No network resources yet? The list says so and points you back to the main screen to add one.
+      No network resources yet? The list says so and points you back to the resource list to add one.
     image_bookmark:
       shot_id: wear.resource-selection
       device_profile: phone
@@ -176,6 +176,6 @@ next_recipes:
     description: The first steps, if the watch and phone do not see each other yet.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.10.15 01:19</sub>
 
 Choose which [network resources](term:network-resource) the [watch](term:watch) gets, push them, read what the sync reports, and set the watch up from the phone's [Wear Companion](term:wear-companion) window - media types, slideshow, screen, color scheme, background and power saving.

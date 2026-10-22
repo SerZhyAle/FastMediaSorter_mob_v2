@@ -49,7 +49,7 @@ steps:
     text: |
       A program you switched on appears in several places at once:
 
-      - the programs menu, behind the three-dots button (**More actions**) in the command bar of the [main screen](term:main-screen);
+      - the programs menu, behind the three-dots button (**More actions**) in the command bar of the [resource list](term:resource-list);
       - the [programs panel](term:programs-panel), a bar above the resource list that shows the same programs as buttons. Turn on **Programs panel** in **Settings**, **General** - the three-dots button then gives its place to the panel. The panel's own menu has **Configure panel**, **Collapse panel** and **Hide panel**;
       - the [launcher](term:launcher) [desktop](term:desktop), in the Standard and noLegal editions - see [Your launcher desktop](page:launcher.desktop-grid-and-icons);
       - for the front flashlight, the water flashlight and the stopwatch, a one-cell [widget](term:widget) for your home screen - see [FastMediaSorter widgets for your home screen](page:launcher.home-screen-widgets).
@@ -57,10 +57,10 @@ steps:
       shot_id: programs.programs-menu
       device_profile: phone
       screen_state: main-programs-menu-open
-      alt: The main screen with the Programs menu open, listing the programs that are switched on
+      alt: The resource list with the Programs menu open, listing the programs that are switched on
       caption: "The programs menu."
       title: "Screenshot: Programs menu"
-      desc: Main screen, three-dots button tapped, menu with Front flashlight, Water flashlight, Mirror, Calculator, Stopwatch and SOS listed, portrait.
+      desc: Resource list, three-dots button tapped, menu with Front flashlight, Water flashlight, Mirror, Calculator, Stopwatch and SOS listed, portrait.
   - number: 3
     id: front-flashlight
     title: Light up a room with the screen - Front flashlight

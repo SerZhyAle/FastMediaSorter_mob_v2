@@ -8,42 +8,6 @@
 
 Set-StrictMode -Version Latest
 
-# A panel with a header (icon, title, optional mono line) and icon rows, used for the server and router.
-function New-SvgPanel {
-    param(
-        [double]$X, [double]$Y, [double]$W, [double]$H, [string]$Icon, [string]$Title, [string]$MonoRaw = '',
-        [object[]]$Rows = @(), [string]$Accent = 'server', [double]$RowStep = 40, [double]$RowSize = 15,
-        [double]$RowTop = 0
-    )
-    $p = $script:Palette
-    $ac = $p[$Accent]
-    $filter = if ($script:Style -eq 'simple') { 'soft' } else { '' }
-    $sb = [System.Text.StringBuilder]::new('<g>')
-    [void]$sb.Append((New-SvgRect -X $X -Y $Y -W $W -H $H -Fill $p.panel -Stroke $ac -StrokeWidth 2 -Rx 18 -Filter $filter))
-    [void]$sb.Append((New-SvgIcon -Name $Icon -X ($X + 20) -Y ($Y + 18) -Size 38 -Fill $ac))
-    [void]$sb.Append((New-SvgText -X ($X + 70) -Y ($Y + 44) -Key $Title -Size 22 -Fill $p.text -Weight '700'))
-    if ($MonoRaw) {
-        [void]$sb.Append((New-SvgText -X ($X + $W - 20) -Y ($Y + 44) -Raw $MonoRaw -Size 15 -Fill $ac -Anchor end -Mono))
-    }
-    [void]$sb.Append("<line x1=`"$(Format-SvgNumber ($X + 16))`" y1=`"$(Format-SvgNumber ($Y + 66))`" x2=`"$(Format-SvgNumber ($X + $W - 16))`" y2=`"$(Format-SvgNumber ($Y + 66))`" stroke=`"$($p.panelStroke)`" stroke-width=`"1`"/>")
-    $ry = if ($RowTop -gt 0) { $RowTop } else { $Y + 100 }
-    foreach ($row in $Rows) {
-        if ($row.ContainsKey('monoKey')) {
-            [void]$sb.Append((New-SvgText -X ($X + 30) -Y $ry -Key $row.monoKey -Size $RowSize -Fill $p.text -Mono))
-        }
-        elseif ($row.ContainsKey('mono')) {
-            [void]$sb.Append((New-SvgText -X ($X + 30) -Y $ry -Raw $row.mono -Size $RowSize -Fill $p.text -Mono))
-        }
-        else {
-            if ($row.icon) { [void]$sb.Append((New-SvgIcon -Name $row.icon -X ($X + 22) -Y ($ry - 17) -Size 22 -Fill $ac)) }
-            [void]$sb.Append((New-SvgText -X ($X + 56) -Y $ry -Key $row.key -Size $RowSize -Fill $p.text))
-        }
-        $ry += $RowStep
-    }
-    [void]$sb.Append('</g>')
-    return $sb.ToString()
-}
-
 # A labelled background zone (a network, a group of devices).
 function New-SvgZone {
     param(
@@ -128,102 +92,6 @@ function Build-ExchangeSimple {
     return $sb.ToString()
 }
 
-function Build-ExchangeScheme {
-    $p = $script:Palette
-    $sb = Open-SvgDocument -W 1600 -H 940 -TitleKey 'ex.scheme.title' -DescKey 'ex.scheme.desc'
-    [void]$sb.Append((New-SvgHeading -TitleKey 'ex.scheme.title' -SubKey 'ex.scheme.sub' -X 40 -Y 56 -TitleSize 30 -SubSize 16))
-
-    # How-it-works panel, left of the server.
-    [void]$sb.Append((New-SvgRect -X 40 -Y 120 -W 480 -H 300 -Fill $p.panel -Stroke $p.panelStroke -Rx 16))
-    [void]$sb.Append((New-SvgText -X 60 -Y 154 -Key 'ex.how.title' -Size 18 -Fill $p.text -Weight '700'))
-    $hy = 196
-    for ($i = 1; $i -le 4; $i++) {
-        [void]$sb.Append((New-SvgStepBadge -X 72 -Y ($hy - 6) -Number $i -R 13))
-        [void]$sb.Append((New-SvgText -X 98 -Y $hy -Key "ex.how.$i" -Size 14.5 -Fill $p.text -LineHeight 1.3))
-        $hy += 56
-    }
-
-    $rows = @(
-        @{ icon = 'person'; key = 'srv.accounts' }
-        @{ icon = 'tune'; key = 'srv.devices' }
-        @{ icon = 'folder'; key = 'srv.directory' }
-        @{ icon = 'log'; key = 'srv.log' }
-        @{ icon = 'memory'; key = 'srv.tunnels' }
-    )
-    [void]$sb.Append((New-SvgPanel -X 560 -Y 120 -W 480 -H 300 -Icon 'server' -Title 'node.server' -MonoRaw '198.51.100.7:443' -Rows $rows -RowStep 42 -RowSize 15.5 -RowTop 214))
-
-    # Legend panel, right of the server.
-    [void]$sb.Append((New-SvgRect -X 1080 -Y 120 -W 480 -H 300 -Fill $p.panel -Stroke $p.panelStroke -Rx 16))
-    [void]$sb.Append((New-SvgText -X 1100 -Y 154 -Key 'legend' -Size 18 -Fill $p.text -Weight '700'))
-    [void]$sb.Append((New-SvgLegendItem -X 1100 -Y 196 -Color 'control' -Dash '7 6' -Key 'lg.control' -Size 14.5))
-    [void]$sb.Append((New-SvgLegendItem -X 1100 -Y 236 -Color 'tunnel' -Key 'lg.tunnel' -Size 14.5))
-    [void]$sb.Append((New-SvgLegendItem -X 1100 -Y 276 -Color 'media' -Key 'lg.media' -Size 14.5))
-    [void]$sb.Append((New-SvgIcon -Name 'shield' -X 1100 -Y 306 -Size 22 -Fill $p.tunnel))
-    [void]$sb.Append((New-SvgText -X 1134 -Y 323 -Key 'lg.note.dialout' -Size 14.5 -Fill $p.text))
-    [void]$sb.Append((New-SvgIcon -Name 'disk' -X 1100 -Y 350 -Size 22 -Fill $p.tunnel))
-    [void]$sb.Append((New-SvgText -X 1134 -Y 367 -Key 'lg.note.nodisk' -Size 14.5 -Fill $p.text))
-
-    # Internet band; its caption is drawn after the connectors, on a plate of its own.
-    [void]$sb.Append((New-SvgRect -X 40 -Y 452 -W 1520 -H 50 -Fill $p.zone -Stroke $p.zoneStroke -Rx 25 -Dash '4 6'))
-
-    [void]$sb.Append((New-SvgZone -X 40 -Y 530 -W 740 -H 290 -Key 'zone.windows' -Icon 'windows' -Accent 'control' -LabelBottom))
-    [void]$sb.Append((New-SvgZone -X 820 -Y 530 -W 740 -H 290 -Key 'zone.android' -Icon 'phone' -Accent 'tunnel' -LabelBottom))
-
-    $devices = @(
-        @{ x = 60; w = 220; icon = 'desktop'; badge = 'folder'; t = 'dev.homepc'; s = 'ex.dev.homepc.sub'; data = 'tunnel'; anchor = 590 }
-        @{ x = 300; w = 220; icon = 'desktop'; badge = 'folder'; t = 'dev.officepc'; s = 'ex.dev.officepc.sub'; data = 'tunnel'; anchor = 660 }
-        @{ x = 540; w = 220; icon = 'laptop'; badge = ''; t = 'dev.laptop'; s = 'ex.dev.laptop.sub'; data = 'tunnel'; anchor = 730 }
-        @{ x = 840; w = 170; icon = 'phone'; badge = ''; t = 'dev.phone'; s = 'ex.dev.phone.sub'; data = 'tunnel'; anchor = 810 }
-        @{ x = 1025; w = 170; icon = 'phone'; badge = 'folder'; t = 'dev.phoneserver'; s = 'ex.dev.phonesrv.sub'; data = 'tunnel'; anchor = 880 }
-        @{ x = 1210; w = 160; icon = 'watch'; badge = ''; t = 'dev.watch'; s = 'ex.dev.recv.sub'; data = 'media'; anchor = 950 }
-        @{ x = 1385; w = 160; icon = 'tv'; badge = ''; t = 'dev.androidtv'; s = 'ex.dev.recv.sub'; data = 'media'; anchor = 1010 }
-    )
-    foreach ($d in $devices) {
-        $cx = $d.x + $d.w / 2
-        [void]$sb.Append((New-SvgLine -Points @(($cx - 8), 580, ($d.anchor - 8), 422) -Color 'control' -Dash '7 6' -Width 2 -Arrow none))
-        $arrow = if ($d.data -eq 'media') { 'start' } else { 'both' }
-        [void]$sb.Append((New-SvgLine -Points @(($cx + 8), 580, ($d.anchor + 8), 422) -Color $d.data -Width 3 -Arrow $arrow))
-    }
-    $caption = Get-Label 'ex.scheme.internet'
-    $plateW = 64 + $caption.Length * 7.9
-    [void]$sb.Append((New-SvgRect -X 52 -Y 458 -W $plateW -H 38 -Fill $p.bg -Stroke $p.zoneStroke -Rx 19))
-    [void]$sb.Append((New-SvgIcon -Name 'globe' -X 64 -Y 464 -Size 26 -Fill $p.control))
-    [void]$sb.Append((New-SvgText -X 100 -Y 483 -Key 'ex.scheme.internet' -Size 15 -Fill $p.control -Weight '600'))
-    foreach ($d in $devices) {
-        [void]$sb.Append((New-SvgNode -X $d.x -Y 580 -W $d.w -H 180 -Icon $d.icon -Badge $d.badge -Title $d.t -Sub $d.s -Accent ($(if ($d.data -eq 'media') { 'media' } elseif ($d.x -lt 800) { 'control' } else { 'tunnel' })) -TitleSize 17 -SubSize 13 -IconSize 42))
-    }
-    [void]$sb.Append((New-SvgText -X 40 -Y 856 -Key 'ex.scheme.foot1' -Size 15 -Fill $p.text))
-    [void]$sb.Append((New-SvgText -X 40 -Y 884 -Key 'ex.scheme.foot2' -Size 15 -Fill $p.text))
-    [void]$sb.Append((New-SvgText -X 40 -Y 916 -Key 'foot.addresses' -Size 13 -Fill $p.muted))
-    [void]$sb.Append('</svg>')
-    return $sb.ToString()
-}
-
-function Build-ExchangeSteps {
-    $p = $script:Palette
-    $sb = Open-SvgDocument -W 1920 -H 1080 -TitleKey 'ex.steps.title' -DescKey 'ex.steps.desc'
-    [void]$sb.Append((New-SvgWaves -W 1920 -H 1080 -Base 930 -Seed 11))
-    [void]$sb.Append((New-SvgHeading -TitleKey 'ex.steps.title' -SubKey 'ex.steps.sub' -X 100 -Y 140 -TitleSize 54 -SubSize 26))
-    $icons = @('person', 'folder', 'search', 'swap', 'lock')
-    $accents = @('control', 'tunnel', 'server', 'media', 'tunnel')
-    $xs = @(250, 605, 960, 1315, 1670)
-    for ($i = 0; $i -lt 5; $i++) {
-        if ($i -lt 4) {
-            [void]$sb.Append((New-SvgLine -Points @(($xs[$i] + 115), 450, ($xs[$i + 1] - 115), 450) -Color 'muted' -Width 3 -Dash '2 10'))
-        }
-    }
-    for ($i = 0; $i -lt 5; $i++) {
-        [void]$sb.Append((New-SvgOrb -X $xs[$i] -Y 450 -R 92 -Icon $icons[$i] -Accent $accents[$i] -IconScale 0.85))
-        [void]$sb.Append((New-SvgStepBadge -X ($xs[$i] - 72) -Y 375 -Number ($i + 1) -Accent $accents[$i] -R 26))
-        [void]$sb.Append((New-SvgText -X $xs[$i] -Y 625 -Key "ex.steps.$($i + 1).t" -Size 30 -Fill $p.text -Weight '700' -Anchor middle))
-        [void]$sb.Append((New-SvgText -X $xs[$i] -Y 675 -Key "ex.steps.$($i + 1).b" -Size 21 -Fill $p.muted -Anchor middle -LineHeight 1.35))
-    }
-    [void]$sb.Append((New-SvgIcon -Name 'shield' -X 100 -Y 982 -Size 34 -Fill $p.tunnel))
-    [void]$sb.Append((New-SvgText -X 148 -Y 1008 -Key 'ex.steps.foot' -Size 22 -Fill $p.text))
-    [void]$sb.Append('</svg>')
-    return $sb.ToString()
-}
-
 function Build-ExchangeKeeps {
     $p = $script:Palette
     $sb = Open-SvgDocument -W 1920 -H 1080 -TitleKey 'ex.keeps.title' -DescKey 'ex.keeps.desc'
@@ -288,91 +156,6 @@ function Build-BroadcastSimple {
     return $sb.ToString()
 }
 
-function Build-BroadcastScheme {
-    $p = $script:Palette
-    $sb = Open-SvgDocument -W 1600 -H 1000 -TitleKey 'br.scheme.title' -DescKey 'br.scheme.desc'
-    [void]$sb.Append((New-SvgHeading -TitleKey 'br.scheme.title' -SubKey 'br.scheme.sub' -X 40 -Y 56 -TitleSize 30 -SubSize 16))
-    [void]$sb.Append((New-SvgZone -X 40 -Y 130 -W 400 -H 730 -Key 'zone.broadcasters' -Icon 'antenna' -Accent 'media'))
-    [void]$sb.Append((New-SvgZone -X 1160 -Y 130 -W 400 -H 730 -Key 'zone.receivers' -Icon 'play' -Accent 'tunnel'))
-    $senders = @(
-        @{ y = 180; icon = 'phone'; badge = 'camera'; t = 'dev.androidphone'; s = 'br.b.phone.sub' }
-        @{ y = 405; icon = 'watch'; badge = 'mic'; t = 'dev.wearwatch'; s = 'br.b.watch.sub' }
-        @{ y = 630; icon = 'desktop'; badge = 'camera'; t = 'dev.windowspc'; s = 'br.b.pc.sub' }
-    )
-    $receivers = @(
-        @{ y = 180; icon = 'phone'; t = 'dev.androidphone'; s = 'br.r.phone.sub' }
-        @{ y = 350; icon = 'watch'; t = 'dev.wearwatch'; s = 'br.r.watch.sub' }
-        @{ y = 520; icon = 'tv'; t = 'dev.androidtv'; s = 'br.r.tv.sub' }
-        @{ y = 690; icon = 'desktop'; t = 'dev.windowspc'; s = 'br.r.pc.sub' }
-    )
-    # LAN direct route arches over the server: same Wi-Fi means no server at all.
-    [void]$sb.Append("<path d=`"M400 250 C 560 110, 1040 110, 1200 252`" fill=`"none`" stroke=`"$($p.lan)`" stroke-width=`"3`" stroke-dasharray=`"9 7`" marker-end=`"url(#arr-lan)`"/>")
-    [void]$sb.Append((New-SvgText -X 800 -Y 128 -Key 'br.scheme.lan' -Size 15 -Fill $p.lan -Weight '600' -Anchor middle))
-    $i = 0
-    foreach ($s in $senders) {
-        [void]$sb.Append((New-SvgLine -Points @(400, ($s.y + 100), 560, (360 + $i * 90)) -Color 'media' -Width 3.5))
-        $i++
-    }
-    $i = 0
-    foreach ($r in $receivers) {
-        [void]$sb.Append((New-SvgLine -Points @(1040, (330 + $i * 80), 1180, ($r.y + 75)) -Color 'media' -Width 3.5))
-        $i++
-    }
-    [void]$sb.Append((New-SvgLine -Points @(1040, 670, 1180, 640) -Color 'control' -Dash '7 6' -Width 2.5 -Curve -30))
-    [void]$sb.Append((New-SvgText -X 1100 -Y 712 -Key 'br.scheme.cast' -Size 14 -Fill $p.control -Weight '600' -Anchor middle))
-    $rows = @(
-        @{ icon = 'antenna'; key = 'br.srv.directory' }
-        @{ icon = 'swap'; key = 'br.srv.relay' }
-        @{ icon = 'memory'; key = 'br.srv.buffer' }
-        @{ icon = 'cast'; key = 'br.srv.cast' }
-        @{ icon = 'lock'; key = 'br.srv.tunnel' }
-        @{ icon = 'log'; key = 'br.srv.log' }
-    )
-    [void]$sb.Append((New-SvgPanel -X 560 -Y 260 -W 480 -H 440 -Icon 'server' -Title 'node.server' -MonoRaw '198.51.100.7:443' -Rows $rows -RowStep 56 -RowSize 15 -RowTop 360 -Accent 'media'))
-    foreach ($s in $senders) {
-        [void]$sb.Append((New-SvgNode -X 60 -Y $s.y -W 340 -H 180 -Icon $s.icon -Badge $s.badge -Title $s.t -Sub $s.s -Accent 'media' -TitleSize 18 -SubSize 13.5 -IconSize 44))
-    }
-    foreach ($r in $receivers) {
-        [void]$sb.Append((New-SvgNode -X 1180 -Y $r.y -W 360 -H 150 -Icon $r.icon -Title $r.t -Sub $r.s -Accent 'tunnel' -TitleSize 17 -SubSize 13 -IconSize 38))
-    }
-    [void]$sb.Append((New-SvgLegendItem -X 40 -Y 905 -Color 'media' -Key 'lg.broadcast' -Size 14.5))
-    [void]$sb.Append((New-SvgLegendItem -X 560 -Y 905 -Color 'control' -Dash '7 6' -Key 'lg.cast' -Size 14.5))
-    [void]$sb.Append((New-SvgLegendItem -X 1040 -Y 905 -Color 'lan' -Dash '9 7' -Key 'lg.lan' -Size 14.5))
-    [void]$sb.Append((New-SvgText -X 40 -Y 950 -Key 'br.scheme.order' -Size 15 -Fill $p.text -Weight '600'))
-    [void]$sb.Append((New-SvgText -X 40 -Y 980 -Key 'foot.addresses' -Size 13 -Fill $p.muted))
-    [void]$sb.Append('</svg>')
-    return $sb.ToString()
-}
-
-function Build-BroadcastOrder {
-    $p = $script:Palette
-    $sb = Open-SvgDocument -W 1600 -H 900 -TitleKey 'br.order.title' -DescKey 'br.order.desc'
-    [void]$sb.Append((New-SvgHeading -TitleKey 'br.order.title' -SubKey 'br.order.sub'))
-    $cards = @(
-        @{ y = 200; icon = 'wifi'; accent = 'lan'; k = 1 }
-        @{ y = 420; icon = 'antenna'; accent = 'media'; k = 2 }
-        @{ y = 640; icon = 'lock'; accent = 'control'; k = 3 }
-    )
-    foreach ($c in $cards) {
-        [void]$sb.Append((New-SvgRect -X 200 -Y $c.y -W 1200 -H 175 -Fill $p.card -Stroke $p.panelStroke -Rx 22 -Filter 'soft'))
-        [void]$sb.Append((New-SvgRect -X 200 -Y $c.y -W 12 -H 175 -Fill $p[$c.accent] -Rx 6))
-        [void]$sb.Append((New-SvgStepBadge -X 270 -Y ($c.y + 87) -Number $c.k -Accent $c.accent -R 30))
-        [void]$sb.Append((New-SvgIcon -Name $c.icon -X 330 -Y ($c.y + 55) -Size 64 -Fill $p[$c.accent]))
-        [void]$sb.Append((New-SvgText -X 425 -Y ($c.y + 62) -Key "br.order.$($c.k).t" -Size 28 -Fill $p.text -Weight '700'))
-        [void]$sb.Append((New-SvgText -X 425 -Y ($c.y + 102) -Key "br.order.$($c.k).b" -Size 18 -Fill $p.muted -LineHeight 1.35))
-        [void]$sb.Append((New-SvgRect -X 1190 -Y ($c.y + 62) -W 180 -H 50 -Fill $p[$c.accent] -Rx 25 -Opacity 0.14))
-        [void]$sb.Append((New-SvgText -X 1280 -Y ($c.y + 94) -Key "br.order.$($c.k).p" -Size 19 -Fill $p[$c.accent] -Weight '700' -Anchor middle))
-    }
-    [void]$sb.Append((New-SvgLine -Points @(140, 290, 140, 368) -Color 'muted' -Width 3 -Arrow none))
-    [void]$sb.Append((New-SvgLine -Points @(140, 434, 140, 505) -Color 'muted' -Width 3))
-    [void]$sb.Append((New-SvgLine -Points @(140, 510, 140, 586) -Color 'muted' -Width 3 -Arrow none))
-    [void]$sb.Append((New-SvgLine -Points @(140, 652, 140, 725) -Color 'muted' -Width 3))
-    [void]$sb.Append((New-SvgText -X 140 -Y 400 -Key 'br.order.fallback' -Size 14 -Fill $p.muted -Anchor middle -Middle))
-    [void]$sb.Append((New-SvgText -X 140 -Y 618 -Key 'br.order.fallback' -Size 14 -Fill $p.muted -Anchor middle -Middle))
-    [void]$sb.Append('</svg>')
-    return $sb.ToString()
-}
-
 function Build-BroadcastCast {
     $p = $script:Palette
     $sb = Open-SvgDocument -W 1920 -H 1080 -TitleKey 'br.cast.title' -DescKey 'br.cast.desc'
@@ -431,57 +214,6 @@ function Build-HomeSimple {
     [void]$sb.Append((New-SvgNode -X 960 -Y 590 -W 240 -H 170 -Icon 'phone' -Badge 'wifi' -Title 'dev.phone.home' -Sub 'home.simple.lan.sub' -Accent 'lan' -TitleSize 19 -SubSize 15))
     [void]$sb.Append((New-SvgNode -X 1240 -Y 590 -W 240 -H 170 -Icon 'tv' -Badge 'wifi' -Title 'dev.androidtv' -Sub 'home.simple.lan.sub' -Accent 'lan' -TitleSize 19 -SubSize 15))
     [void]$sb.Append((New-SvgText -X 800 -Y 868 -Key 'home.simple.foot' -Size 18 -Fill $p.muted -Anchor middle))
-    [void]$sb.Append('</svg>')
-    return $sb.ToString()
-}
-
-function Build-HomeScheme {
-    $p = $script:Palette
-    $sb = Open-SvgDocument -W 1600 -H 1000 -TitleKey 'home.scheme.title' -DescKey 'home.scheme.desc'
-    [void]$sb.Append((New-SvgHeading -TitleKey 'home.scheme.title' -SubKey 'home.scheme.sub' -X 40 -Y 56 -TitleSize 30 -SubSize 16))
-    [void]$sb.Append((New-SvgZone -X 40 -Y 130 -W 340 -H 740 -Key 'home.zone.outside' -Icon 'globe' -Accent 'control'))
-    [void]$sb.Append((New-SvgZone -X 820 -Y 130 -W 740 -H 740 -Key 'home.zone.lan.cidr' -Icon 'home' -Accent 'lan'))
-
-    # Outside -> router WAN.
-    [void]$sb.Append((New-SvgLine -Points @(350, 285, 430, 420) -Color 'control' -Width 3.5))
-    [void]$sb.Append((New-SvgLine -Points @(350, 505, 430, 470) -Color 'control' -Width 3.5))
-    # Router -> forwarded servers.
-    [void]$sb.Append((New-SvgLine -Points @(760, 470, 850, 300) -Color 'tunnel' -Width 3.5 -Arrow both))
-    [void]$sb.Append((New-SvgLine -Points @(770, 520, 1240, 407) -Color 'tunnel' -Width 3.5 -Arrow both))
-    # Inside clients -> servers, straight over the LAN.
-    [void]$sb.Append((New-SvgLine -Points @(955, 590, 990, 405) -Color 'lan' -Width 3 -Dash '9 7' -Arrow both))
-    [void]$sb.Append((New-SvgLine -Points @(1185, 590, 1060, 405) -Color 'lan' -Width 3 -Dash '9 7' -Arrow both))
-    [void]$sb.Append((New-SvgLine -Points @(1420, 590, 1380, 405) -Color 'lan' -Width 3 -Dash '9 7' -Arrow both))
-
-    [void]$sb.Append((New-SvgNode -X 60 -Y 180 -W 290 -H 200 -Icon 'phone' -Badge 'cellular' -Title 'dev.phone.away' -Sub 'home.scheme.away1.sub' -Accent 'control' -TitleSize 17 -SubSize 13))
-    [void]$sb.Append((New-SvgNode -X 60 -Y 405 -W 290 -H 200 -Icon 'laptop' -Title 'dev.laptop.hotel' -Sub 'home.scheme.away2.sub' -Accent 'control' -TitleSize 17 -SubSize 13))
-    [void]$sb.Append((New-SvgNode -X 60 -Y 630 -W 290 -H 210 -Icon 'pin' -Title 'home.public.title' -Sub 'home.public.sub' -Accent 'media' -TitleSize 17 -SubSize 13))
-
-    $rows = @(
-        @{ mono = 'WAN  203.0.113.25' }
-        @{ key = 'home.r.forward'; icon = 'swap' }
-        @{ mono = 'TCP 2222 -> 192.168.1.20:2222' }
-        @{ mono = 'TCP 2223 -> 192.168.1.42:2222' }
-        @{ key = 'home.r.dhcp'; icon = 'pin' }
-        @{ monoKey = 'home.r.pc' }
-        @{ monoKey = 'home.r.phone' }
-    )
-    [void]$sb.Append((New-SvgPanel -X 410 -Y 300 -W 360 -H 400 -Icon 'router' -Title 'dev.router' -Rows $rows -RowStep 42 -RowSize 14.5 -RowTop 400 -Accent 'control'))
-
-    [void]$sb.Append((New-SvgNode -X 850 -Y 180 -W 330 -H 225 -Icon 'desktop' -Badge 'disk' -Title 'dev.mediapc' -Sub 'home.scheme.pc.sub' -Accent 'tunnel' -TitleSize 18 -SubSize 13.5))
-    [void]$sb.Append((New-SvgNode -X 1210 -Y 180 -W 330 -H 225 -Icon 'phone' -Badge 'folder' -Title 'dev.phoneserver' -Sub 'home.scheme.phonesrv.sub' -Accent 'tunnel' -TitleSize 18 -SubSize 13.5))
-    [void]$sb.Append((New-SvgNode -X 850 -Y 590 -W 210 -H 210 -Icon 'phone' -Badge 'wifi' -Title 'dev.phone.home' -Sub 'home.scheme.lan1.sub' -Accent 'lan' -TitleSize 17 -SubSize 13))
-    [void]$sb.Append((New-SvgNode -X 1080 -Y 590 -W 210 -H 210 -Icon 'tv' -Badge 'wifi' -Title 'dev.androidtv' -Sub 'home.scheme.lan2.sub' -Accent 'lan' -TitleSize 17 -SubSize 13))
-    [void]$sb.Append((New-SvgNode -X 1310 -Y 590 -W 230 -H 210 -Icon 'laptop' -Badge 'wifi' -Title 'dev.windowslaptop' -Sub 'home.scheme.lan3.sub' -Accent 'lan' -TitleSize 17 -SubSize 13))
-    [void]$sb.Append((New-SvgText -X 850 -Y 838 -Key 'home.scheme.lanlabel' -Size 14 -Fill $p.lan -Weight '600'))
-
-    [void]$sb.Append((New-SvgLegendItem -X 40 -Y 905 -Color 'control' -Key 'lg.internet' -Size 14.5))
-    [void]$sb.Append((New-SvgLegendItem -X 560 -Y 905 -Color 'tunnel' -Key 'lg.forwarded' -Size 14.5))
-    [void]$sb.Append((New-SvgLegendItem -X 1040 -Y 905 -Color 'lan' -Dash '9 7' -Key 'lg.lan.direct' -Size 14.5))
-    [void]$sb.Append((New-SvgIcon -Name 'swap' -X 40 -Y 930 -Size 22 -Fill $p.tunnel))
-    [void]$sb.Append((New-SvgText -X 72 -Y 947 -Key 'home.note.order' -Size 14.5 -Fill $p.text))
-    [void]$sb.Append((New-SvgIcon -Name 'block' -X 40 -Y 960 -Size 22 -Fill $p.danger))
-    [void]$sb.Append((New-SvgText -X 72 -Y 977 -Key 'home.note.cgnat' -Size 14.5 -Fill $p.danger))
     [void]$sb.Append('</svg>')
     return $sb.ToString()
 }
@@ -580,67 +312,75 @@ function Build-HomePairing {
 # Overview pictures
 # ---------------------------------------------------------------------------------------------------
 
-function Build-ThreeWays {
+# The six devices that hold or open your files; the router and the phone-as-server are means, not devices you
+# reach your files on, so the cover leaves them to the section pictures.
+$script:HeroDevices = @(
+    @{ icon = 'phone'; k = 'dev.phone'; a = 'tunnel' }
+    @{ icon = 'watch'; k = 'dev.watch'; a = 'media' }
+    @{ icon = 'tv'; k = 'dev.tv'; a = 'media' }
+    @{ icon = 'headset'; k = 'dev.headset'; a = 'lan' }
+    @{ icon = 'laptop'; k = 'dev.laptop'; a = 'control' }
+    @{ icon = 'desktop'; k = 'dev.windowspc'; a = 'control' }
+)
+
+# Hub and devices of the cover. Text sizes keep every word at 12 px or more where the page shows the picture:
+# 40+ on the 1920 canvas in a 630 px column, 47+ on the 1080 canvas in a 280 px column (S4415).
+function Add-HeroHub {
+    param($Sb, [double]$Cx, [double]$Cy, [object[]]$Pos, [double]$TextSize, [double]$LabelGap)
     $p = $script:Palette
-    $sb = Open-SvgDocument -W 1920 -H 1080 -TitleKey 'ov.title' -DescKey 'ov.desc'
-    [void]$sb.Append((New-SvgWaves -W 1920 -H 1080 -Base 1030 -Seed 21 -Amp 20))
-    [void]$sb.Append((New-SvgHeading -TitleKey 'ov.title' -SubKey 'ov.sub' -X 100 -Y 140 -TitleSize 54 -SubSize 26))
-    $cards = @(
-        @{ x = 100; icon = 'home'; a = 'lan'; k = 'home' }
-        @{ x = 700; icon = 'cloud'; a = 'server'; k = 'exchange' }
-        @{ x = 1300; icon = 'antenna'; a = 'media'; k = 'broadcast' }
-    )
-    foreach ($c in $cards) {
-        [void]$sb.Append((New-SvgRect -X $c.x -Y 270 -W 520 -H 720 -Fill $p.panel -Stroke $p[$c.a] -StrokeWidth 2 -Rx 28))
-        [void]$sb.Append((New-SvgOrb -X ($c.x + 260) -Y 400 -R 82 -Icon $c.icon -Accent $c.a))
-        [void]$sb.Append((New-SvgText -X ($c.x + 260) -Y 555 -Key "ov.$($c.k).t" -Size 36 -Fill $p.text -Weight '700' -Anchor middle))
-        [void]$sb.Append((New-SvgText -X ($c.x + 260) -Y 600 -Key "ov.$($c.k).tag" -Size 22 -Fill $p[$c.a] -Weight '600' -Anchor middle))
-        $y = 680
-        for ($i = 1; $i -le 4; $i++) {
-            [void]$sb.Append((New-SvgBullet -X ($c.x + 44) -Y $y -Key "ov.$($c.k).$i" -Accent $c.a -Size 21))
-            $y += 76
-        }
+    $devices = $script:HeroDevices
+    for ($i = 0; $i -lt $devices.Count; $i++) {
+        [void]$Sb.Append((New-SvgLine -Points @($Cx, $Cy, $Pos[$i].x, $Pos[$i].y) -Color $devices[$i].a -Width 2.5 -Dash '3 9' -Arrow none -Opacity 0.8))
     }
-    [void]$sb.Append('</svg>')
-    return $sb.ToString()
+    [void]$Sb.Append((New-SvgCircle -X $Cx -Y $Cy -R 190 -Fill 'url(#hub)'))
+    [void]$Sb.Append((New-SvgOrb -X $Cx -Y $Cy -R 100 -Icon 'cloud' -Accent 'server'))
+    [void]$Sb.Append((New-SvgText -X $Cx -Y ($Cy + 150) -Key 'hero.hub' -Size $TextSize -Fill $p.text -Weight '700' -Anchor middle))
+    for ($i = 0; $i -lt $devices.Count; $i++) {
+        $d = $devices[$i]
+        [void]$Sb.Append((New-SvgOrb -X $Pos[$i].x -Y $Pos[$i].y -R 56 -Icon $d.icon -Accent $d.a -IconScale 0.95))
+        [void]$Sb.Append((New-SvgText -X $Pos[$i].x -Y ($Pos[$i].y + $LabelGap) -Key $d.k -Size $TextSize -Fill $p.text -Weight '600' -Anchor middle))
+    }
 }
 
 function Build-EcosystemHero {
     $p = $script:Palette
     $sb = Open-SvgDocument -W 1920 -H 1080 -TitleKey 'hero.title' -DescKey 'hero.desc'
-    [void]$sb.Append((New-SvgWaves -W 1920 -H 1080 -Base 960 -Seed 13 -Amp 40))
-    [void]$sb.Append((New-SvgHeading -TitleKey 'hero.title' -SubKey 'hero.sub' -X 100 -Y 130 -TitleSize 58 -SubSize 26))
-    $cx = 960; $cy = 640; $rx = 640; $ry = 270
-    $devices = @(
-        @{ icon = 'phone'; k = 'dev.phone'; a = 'tunnel' }
-        @{ icon = 'watch'; k = 'dev.watch'; a = 'media' }
-        @{ icon = 'tv'; k = 'dev.tv'; a = 'media' }
-        @{ icon = 'headset'; k = 'dev.headset'; a = 'lan' }
-        @{ icon = 'laptop'; k = 'dev.laptop'; a = 'control' }
-        @{ icon = 'desktop'; k = 'dev.windowspc'; a = 'control' }
-        @{ icon = 'router'; k = 'dev.router'; a = 'lan' }
-        @{ icon = 'phone'; k = 'dev.phoneserver'; a = 'tunnel' }
-    )
-    $n = $devices.Count
-    $pos = for ($i = 0; $i -lt $n; $i++) {
-        $ang = -[math]::PI / 2 + $i * 2 * [math]::PI / $n
+    [void]$sb.Append((New-SvgWaves -W 1920 -H 1080 -Base 980 -Seed 13 -Amp 30))
+    [void]$sb.Append((New-SvgText -X 100 -Y 150 -Key 'hero.title' -Size 64 -Fill $p.text -Weight '700'))
+    $cx = 960; $cy = 600; $rx = 640; $ry = 270
+    # Started a sixth of a turn off the vertical, so no device sits straight above or below the hub label.
+    $pos = for ($i = 0; $i -lt $script:HeroDevices.Count; $i++) {
+        $ang = -[math]::PI / 2 + [math]::PI / 6 + $i * [math]::PI / 3
         @{ x = $cx + [math]::Cos($ang) * $rx; y = $cy + [math]::Sin($ang) * $ry }
     }
-    for ($i = 0; $i -lt $n; $i++) {
-        [void]$sb.Append((New-SvgLine -Points @($cx, $cy, $pos[$i].x, $pos[$i].y) -Color $devices[$i].a -Width 2.5 -Dash '3 9' -Arrow none -Opacity 0.8))
-    }
-    [void]$sb.Append((New-SvgCircle -X $cx -Y $cy -R 190 -Fill 'url(#hub)'))
-    [void]$sb.Append((New-SvgOrb -X $cx -Y $cy -R 100 -Icon 'cloud' -Accent 'server'))
-    [void]$sb.Append((New-SvgText -X $cx -Y ($cy + 150) -Key 'hero.hub' -Size 24 -Fill $p.text -Weight '700' -Anchor middle))
-    for ($i = 0; $i -lt $n; $i++) {
-        $d = $devices[$i]
-        [void]$sb.Append((New-SvgOrb -X $pos[$i].x -Y $pos[$i].y -R 56 -Icon $d.icon -Accent $d.a -IconScale 0.95))
-        [void]$sb.Append((New-SvgText -X $pos[$i].x -Y ($pos[$i].y + 100) -Key $d.k -Size 21 -Fill $p.text -Weight '600' -Anchor middle))
-    }
+    Add-HeroHub -Sb $sb -Cx $cx -Cy $cy -Pos $pos -TextSize 44 -LabelGap 120
     [void]$sb.Append('</svg>')
     return $sb.ToString()
 }
 
+# The portrait cover the start page shows at 768 px and below: the same words, two rows of three devices.
+function Build-EcosystemHeroPhone {
+    $p = $script:Palette
+    $sb = Open-SvgDocument -W 1080 -H 1350 -TitleKey 'hero.title' -DescKey 'hero.desc'
+    [void]$sb.Append((New-SvgWaves -W 1080 -H 1350 -Base 1270 -Seed 13 -Amp 24))
+    # The title does not fit one line at this size, so it breaks at the space nearest its middle.
+    $title = Get-Label 'hero.title'
+    $mid = $title.Length / 2
+    $cut = -1
+    for ($i = 0; $i -lt $title.Length; $i++) {
+        if ($title[$i] -eq ' ' -and ($cut -lt 0 -or [math]::Abs($i - $mid) -lt [math]::Abs($cut - $mid))) { $cut = $i }
+    }
+    $twoLines = if ($cut -gt 0) { $title.Substring(0, $cut) + "`n" + $title.Substring($cut + 1) } else { $title }
+    [void]$sb.Append((New-SvgText -X 540 -Y 130 -Raw $twoLines -Size 64 -Fill $p.text -Weight '700' -Anchor middle -LineHeight 1.2))
+    $cols = @(200, 540, 880)
+    $pos = @(
+        foreach ($x in $cols) { @{ x = $x; y = 360 } }
+        foreach ($x in $cols) { @{ x = $x; y = 1030 } }
+    )
+    Add-HeroHub -Sb $sb -Cx 540 -Cy 695 -Pos $pos -TextSize 48 -LabelGap 120
+    [void]$sb.Append('</svg>')
+    return $sb.ToString()
+}
 # A numbered "how to set it up" slide for one scenario page of the portal (S4242): four cards in two columns,
 # or six in three, drawn like home-steps. Keys are <Prefix>.title, .desc, .sub and <Prefix>.<n>.t / .b.
 function Build-ScenarioSteps {
@@ -672,17 +412,12 @@ function Build-ScenarioSteps {
 # The picture set, in the order the docs page shows it. `name` is the published file stem.
 $script:UsageSchemeDiagrams = @(
     @{ name = 'ecosystem-hero'; style = 'slide'; build = { Build-EcosystemHero } }
-    @{ name = 'three-ways'; style = 'slide'; build = { Build-ThreeWays } }
+    @{ name = 'ecosystem-hero-phone'; style = 'slide'; build = { Build-EcosystemHeroPhone } }
     @{ name = 'exchange-simple'; style = 'simple'; build = { Build-ExchangeSimple } }
-    @{ name = 'exchange-scheme'; style = 'scheme'; build = { Build-ExchangeScheme } }
-    @{ name = 'exchange-steps'; style = 'slide'; build = { Build-ExchangeSteps } }
     @{ name = 'exchange-keeps'; style = 'slide'; build = { Build-ExchangeKeeps } }
     @{ name = 'broadcast-simple'; style = 'simple'; build = { Build-BroadcastSimple } }
-    @{ name = 'broadcast-scheme'; style = 'scheme'; build = { Build-BroadcastScheme } }
-    @{ name = 'broadcast-order'; style = 'simple'; build = { Build-BroadcastOrder } }
     @{ name = 'broadcast-cast'; style = 'slide'; build = { Build-BroadcastCast } }
     @{ name = 'home-simple'; style = 'simple'; build = { Build-HomeSimple } }
-    @{ name = 'home-scheme'; style = 'scheme'; build = { Build-HomeScheme } }
     @{ name = 'home-steps'; style = 'slide'; build = { Build-HomeSteps } }
     @{ name = 'home-pairing'; style = 'slide'; build = { Build-HomePairing } }
     @{ name = 'steps-folders-exchange'; style = 'slide'; build = { Build-ScenarioSteps -Prefix 'sc.folders-exchange' -Seed 3 -Icons @('person', 'folder', 'swap', 'search', 'check', 'lock') -Accents @('control', 'tunnel', 'server', 'media', 'tunnel', 'lan') } }

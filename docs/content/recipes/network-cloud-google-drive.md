@@ -20,9 +20,9 @@ steps:
     id: add-drive-folder
     title: Sign in and add a Drive folder
     text: |
-      On the main screen tap **Add**, then **Cloud Storage** - "Tap on a provider to authenticate and select folders" - and choose **Google Drive** on the **Select Cloud Provider** screen. A sign-in window opens for your Google account; approve it, and the app shows "Signed in: " with your address.
+      In the resource list tap **Add**, then **Cloud Storage** - "Tap on a provider to authenticate and select folders" - and choose **Google Drive** on the **Select Cloud Provider** screen. A sign-in window opens for your Google account; approve it, and the app shows "Signed in: " with your address.
 
-      Tap **Select Folder** and pick the [Drive](term:google-drive) folder you want to see in the app. Each folder you choose becomes a [resource](term:resource) of its own, sitting on the main screen exactly like a folder on the phone. If the sign-in window is closed or canceled, the app says so plainly and nothing is added; if a later check fails, it reports "Connection failed: " with the reason instead of a bare error.
+      Tap **Select Folder** and pick the [Drive](term:google-drive) folder you want to see in the app. Each folder you choose becomes a [resource](term:resource) of its own, sitting in the resource list exactly like a folder on the phone. If the sign-in window is closed or canceled, the app says so plainly and nothing is added; if a later check fails, it reports "Connection failed: " with the reason instead of a bare error.
     image_bookmark:
       shot_id: network.cloud-google-drive-select-folder
       device_profile: phone
@@ -67,7 +67,7 @@ steps:
       title: "Screenshot: Pending device transfers"
       desc: Pending device transfers dialog open, one packet listed, Send to my device (Drive) and Remove expired packets buttons visible.
 outcome: |
-  Your Drive folders sit on the main screen like any other, one Google Account card covers both adding folders and backing up settings, the connection keeps working across app updates, and your own devices can hand files and settings to each other through a private queue in your Drive - nothing more, nothing shared with anyone else.
+  Your Drive folders sit in the resource list like any other, one Google Account card covers both adding folders and backing up settings, the connection keeps working across app updates, and your own devices can hand files and settings to each other through a private queue in your Drive - nothing more, nothing shared with anyone else.
 tips:
   - "**Canceled a sign-in by mistake?** The app says so in plain words and adds nothing - just tap Google Drive again to retry."
   - "**Looking for Dropbox or OneDrive instead?** See [Dropbox and OneDrive](page:network.cloud-dropbox-onedrive)."

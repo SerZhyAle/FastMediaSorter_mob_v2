@@ -14,7 +14,7 @@ import javax.inject.Inject
 enum class ExchangePublishStart {
     STARTED,
 
-    /** No entry that may produce is the outgoing one yet: the screen lets the user pick one, then asks again. */
+    /** The device holds no entry that may produce (item DS assigns one when it can); the screen leads to adding one. */
     NEEDS_OUTGOING,
 }
 
@@ -49,7 +49,7 @@ class ManageExchangeProducerUseCase @Inject constructor(
 
     val publishing: Flow<Boolean> get() = server.exchangeConfig.map { it.enabled }.distinctUntilChanged()
 
-    /** A guest outgoing entry asks for another one, exactly as no outgoing entry does. */
+    /** Only a guest outgoing entry, or none, gets here: item DS leaves no producing entry unassigned. */
     suspend fun startPublishing(): ExchangePublishStart {
         if (accounts.outgoingEntry()?.mayProduce != true) return ExchangePublishStart.NEEDS_OUTGOING
         server.setExchangeEnabled(true)

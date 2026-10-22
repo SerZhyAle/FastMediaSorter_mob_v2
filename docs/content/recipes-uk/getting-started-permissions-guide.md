@@ -111,7 +111,7 @@ next_recipes:
     badge: Перші кроки
     badge_type: docs
     description: Коротка версія цього самого списку дозволів на останній сторінці першого налаштування.
-  - title: Навігація головним екраном
+  - title: Навігація списком ресурсів
     url: page:getting-started.main-screen-overview
     badge: Перші кроки
     badge_type: docs

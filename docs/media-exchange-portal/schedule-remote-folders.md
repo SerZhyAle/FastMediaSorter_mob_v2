@@ -5,7 +5,7 @@ description: "How to schedule copy, move and delete over a folder of another of 
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/schedule-remote-folders.html
 ---
-<sub class="doc-stamp">26.10.21 15:52</sub>
+<sub class="doc-stamp">26.10.22 01:23</sub>
 
 # A schedule over folders of other devices
 
@@ -62,6 +62,6 @@ Via Google Drive, files and the clipboard are kept in your own Google account, l
 
 Back to the [portal start page](index.html).
 
-## Windows settings windows {#windows-settings-windows}
+## Settings windows of the Windows program {#windows-settings-windows}
 
-On Windows, open Manager settings, Scheduled file operations, or use the schedule entry in the tray or folder menu. Schedules belong to the signed-in manager and do not require SFTP to be enabled or the local exchange server to be installed. Closing a settings window does not stop scheduled work.
+On Windows, open **Manager settings**, **Scheduled file operations**, or use the schedule entry in the tray or folder menu. Schedules belong to the signed-in manager and do not need folder sharing to be switched on or an exchange server to be installed on this PC. Closing a settings window does not stop scheduled work.
