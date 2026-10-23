@@ -32,11 +32,11 @@ permalink: /docs/howto/scenario-download-organizer.html
    - If you don't see it: try the path `/sdcard/Download`
 5. Tap **Select** (or **OK**)
 
-The folder appears on the main screen as a card.
+The folder appears in the resource list as a card.
 
 > **The Downloads folder is where your browser, Telegram, WhatsApp and other apps save files.** That's usually the messiest place on any phone.
 
-![FastMediaSorter main screen - Downloads resource card added, Local badge visible](screenshots/screenshot-dl-step1.png)
+![FastMediaSorter resource list - Downloads resource card added, Local badge visible](screenshots/screenshot-dl-step1.png)
 
 ---
 
@@ -71,7 +71,7 @@ Or create the folders in your phone's regular file manager - they'll appear auto
 
 ## Step 4 - Add Your Destination Folders to Quick Sort
 
-1. A destination is a resource, so first add each category folder on the main screen: **Add** → **"Local Folder"** → pick the folder (e.g. `Work`)
+1. A destination is a resource, so first add each category folder in the resource list: **Add** → **"Local Folder"** → pick the folder (e.g. `Work`)
 2. Back in **Quick Sort destinations**, tap **"+ Add"**
 3. Pick the folder from the list of your resources
 4. The folder gets a **number badge (1)** and a **color** automatically
@@ -85,7 +85,7 @@ Or create the folders in your phone's regular file manager - they'll appear auto
 
 ## Step 5 - Open a File to Sort
 
-1. On the main screen, tap your **Downloads** resource
+1. In the resource list, tap your **Downloads** resource
 2. Files appear as a list - you see the file names and previews
 3. Tap **any file** to open it full-screen
 

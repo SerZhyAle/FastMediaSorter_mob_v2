@@ -41,6 +41,7 @@
     { "field": "broadcastMicGainPercent", "reason": "personal session tuning - the gain depends on the room and the speaker, not on the device class" },
     { "field": "broadcastFeedbackGuardEnabled", "reason": "a safety default rather than a property of a device class - every phone ships it on" },
     { "field": "broadcastCameraLensId", "reason": "identifier of a lens this install enumerated - a profile names a class of devices, so an id valid on one member names a different lens or none at all on the rest; see broadcastSourceDeviceId for the same reasoning (S3237)" },
+    { "field": "broadcastLinkPasswordMode", "reason": "privacy choice - whether a broadcast link asks for a password is the broadcaster's decision, never a device profile's (S4405)" },
     { "field": "broadcastWatchCameraStandby", "reason": "standing consent for the owner's own paired watch to see his camera - a privacy arrangement between one person and one watch, and arming it starts a camera session, which no device profile may do on his behalf (S2551)" },
     { "field": "streamsCastPlayAtOnce", "reason": "consent - playing a cast that another of the person's devices sends without asking first is a trust decision only he makes, never a device profile's (S4116)" },
 

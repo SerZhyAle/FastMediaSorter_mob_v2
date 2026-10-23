@@ -33,8 +33,8 @@
   ],
   "locales": {
     "en": {
-      "title": "Main screen",
-      "purpose": "The main screen lists your resources - the device folders, network shares and cloud folders you added. Add a resource, open it to browse its files, or start playback straight from here.",
+      "title": "Resource list",
+      "purpose": "The resource list lists your resources - the device folders, network shares and cloud folders you added. Add a resource, open it to browse its files, or start playback straight from here.",
       "steps": [
         "Press Add (2) to connect your first resource: a device folder, a network share or a cloud folder. Until you do, the list stays empty.",
         "If you use network or cloud resources, pick a kind with the tabs (12) to see only those. The tabs show up once a remote source is turned on.",
@@ -105,8 +105,8 @@
       }
     },
     "ru": {
-      "title": "Главный экран",
-      "purpose": "На главном экране собраны ваши ресурсы - папки на устройстве, сетевые папки и облачные хранилища, которые вы добавили. Добавьте ресурс, откройте его и просматривайте файлы или сразу запустите воспроизведение.",
+      "title": "Список ресурсов",
+      "purpose": "В списке ресурсов собраны ваши ресурсы - папки на устройстве, сетевые папки и облачные хранилища, которые вы добавили. Добавьте ресурс, откройте его и просматривайте файлы или сразу запустите воспроизведение.",
       "steps": [
         "Нажмите «Добавить» (2) и подключите первый ресурс: папку на устройстве, сетевую папку или облако. Пока ресурсов нет, список пуст.",
         "Если вы используете сетевые или облачные ресурсы, выберите нужный тип на вкладках (12). Вкладки появляются, когда включён хотя бы один удалённый источник.",
@@ -177,8 +177,8 @@
       }
     },
     "uk": {
-      "title": "Головний екран",
-      "purpose": "На головному екрані зібрано ваші ресурси - папки на пристрої, мережеві папки та хмарні сховища, які ви додали. Додайте ресурс, відкрийте його й переглядайте файли або одразу запустіть відтворення.",
+      "title": "Список ресурсів",
+      "purpose": "У списку ресурсів зібрано ваші ресурси - папки на пристрої, мережеві папки та хмарні сховища, які ви додали. Додайте ресурс, відкрийте його й переглядайте файли або одразу запустіть відтворення.",
       "steps": [
         "Натисніть «Додати» (2) і підключіть перший ресурс: папку на пристрої, мережеву папку або хмару. Поки ресурсів немає, список порожній.",
         "Якщо ви користуєтеся мережевими чи хмарними ресурсами, оберіть потрібний тип на вкладках (12). Вкладки з’являються, щойно ввімкнено хоча б одне віддалене джерело.",

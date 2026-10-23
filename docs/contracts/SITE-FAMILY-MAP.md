@@ -1,17 +1,20 @@
-<sub class="doc-stamp">26.10.18 17:45</sub>
+<sub class="doc-stamp">26.10.22 02:15</sub>
 
 # Pointer - `SITE-FAMILY-MAP`
 
 | | |
 | --- | --- |
 | **Id** | `SITE-FAMILY-MAP` |
-| **Version** | 1.5, active. Owner: the sza.od.ua hub |
+| **Version** | 1.9, active. Owner: the sza.od.ua hub |
 | **Home** | `product-web-pages/SITE-FAMILY-MAP.md` in the shared contracts catalog |
 | **Role here** | consumer - the footer of the product site |
 
 ## What this repository must do to stay conformant
 
 - The footer grid carries every sibling product of the map's section 2, with the `Tool` name and the URL the map states: a corrective step of the map (1.3, 1.4) changes a label and nothing else, so a name left at its old spelling still links the right page and misstates only the label.
+- The `Tool` cell is the product's own display name, so the Windows row reads *Fast Media Sorter & Sharing for
+  Windows* (1.9). A help-index cell (1.6, 1.7) is a column of its row and never a footer link (rule 6), and the
+  shared pages this product owns are the map's section 2a records (1.8); their canonical addresses stay permanent.
 - One contact everywhere: the email and the GitHub account the map names.
 - A cross-link to a sibling inside body copy stays body copy, not a second footer.
 - The deviations currently open are recorded as exceptions in the catalog's registry.

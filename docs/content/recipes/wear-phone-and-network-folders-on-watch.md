@@ -140,15 +140,15 @@ steps:
     id: watch-as-resource
     title: The watch is one more resource on the phone
     text: |
-      It runs the other way too: add your paired watch as its own resource on the phone's main screen, right beside your local and cloud ones. Browse whatever the watch holds, copy or move files onto it from any phone screen, and anything the watch sends back lands wherever you choose. Each transfer is capped at 32 MB and reports its outcome through the usual transfer notification, the same one every other copy or move uses.
+      It runs the other way too: add your paired watch as its own resource on the phone's resource list, right beside your local and cloud ones. Browse whatever the watch holds, copy or move files onto it from any phone screen, and anything the watch sends back lands wherever you choose. Each transfer is capped at 32 MB and reports its outcome through the usual transfer notification, the same one every other copy or move uses.
     image_bookmark:
       shot_id: wear.watch-resource-card
       device_profile: phone
       screen_state: phone-main-screen-paired-watch-resource
-      alt: The phone's main screen resource list with a Paired watch card among the local and cloud resources
+      alt: The phone's resource list with a Paired watch card among the local and cloud resources
       caption: "The paired watch, listed as a resource."
       title: "Screenshot: Watch as a resource"
-      desc: Phone, main screen resource list, Paired watch card visible among local and network resources.
+      desc: Phone, resource list, Paired watch card visible among local and network resources.
 outcome: |
   Your phone's photos, your NAS, the FTP share at work and anything you copy over live on the watch too - browsable, searchable, and just as reachable when the phone is out of the room.
 tips:

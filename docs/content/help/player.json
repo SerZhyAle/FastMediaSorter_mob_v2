@@ -80,7 +80,7 @@
         },
         "favorite": {
           "summary": "Adds the file to your favorites, or takes it out.",
-          "details": "Everything you mark is gathered in Favorites on the main screen."
+          "details": "Everything you mark is gathered in Favorites in the resource list."
         },
         "share": {
           "summary": "Sends the file to another app or person.",
@@ -199,7 +199,7 @@
         },
         "favorite": {
           "summary": "Добавляет файл в избранное или убирает его оттуда.",
-          "details": "Всё отмеченное собирается в «Избранном» на главном экране."
+          "details": "Всё отмеченное собирается в «Избранном» в списке ресурсов."
         },
         "share": {
           "summary": "Отправляет файл в другое приложение или человеку.",
@@ -318,7 +318,7 @@
         },
         "favorite": {
           "summary": "Додає файл до обраного або прибирає його звідти.",
-          "details": "Усе позначене збирається в «Обраному» на головному екрані."
+          "details": "Усе позначене збирається в «Обраному» у списку ресурсів."
         },
         "share": {
           "summary": "Надсилає файл в інший застосунок або людині.",

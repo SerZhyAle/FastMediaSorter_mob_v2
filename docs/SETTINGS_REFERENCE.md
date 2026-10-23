@@ -46,7 +46,7 @@ _Generated from the app. Do not edit by hand._
 | Reset SMB | Clears all saved SMB network connection credentials and configurations. |
 | Restore settings from Google Drive | Restores app settings from a backup stored in your Google Drive account. |
 | Save Debug Logs | Saves the current debug log to a file on the device for sharing or inspection. |
-| Change | Picks which of your exchange servers the share is published through; the line above names the current outgoing server. |
+| Change | Changes which of your exchange servers the share and broadcasts go through. The outgoing server is chosen by itself: the first server you add becomes outgoing, and removing it passes the role to the next one. The line above names the current outgoing server. |
 | About folders through the exchange server | Opens the portal page about sharing a folder on this phone and opening it on another of your devices from any network. |
 | My devices | Opens My devices, where you add, move, share and remove your exchange servers. |
 | New access link | Issues a new access link: every code shared before stops opening this server through the exchange server. |
@@ -66,14 +66,16 @@ _Generated from the app. Do not edit by hand._
 | Unused credentials | Shows how many saved network passwords and keys no resource uses any more, and removes them after a confirmation that lists them. The row is hidden while there are none. |
 | User Guide | Opens the full user guide for the app. |
 | Icon size for grid (pixels) | Sets the thumbnail icon size in pixels for grid view. |
+| All about this application | Groups the extensions manager, permissions, system information and the guides and legal links; the logo with the full version text stays below the group. |
 | Backups, restore and settings export | Settings for backing up, restoring, and exporting app data and configuration. |
 | Authorization and accounts | Settings for linked accounts and authorization with cloud and remote services. |
 | Debug logs and test tools | Tools for viewing logs, running integration tests, and diagnosing app issues. |
 | File browser interface | Settings that control the layout and behavior of the file browser. |
 | General interface settings | Settings that control the overall look and interaction style of the app. |
-| Main screen interface | Settings that control which optional panels and menus appear on the main window. |
+| Resource list interface | Settings that control which optional panels and menus appear in the resource list. |
 | Remote resources (SMB/(S)FTP/Cloud) | Settings for connecting to remote file sources: SMB network shares, FTP/SFTP servers, and cloud storage. |
-| Share over SFTP | Groups the embedded SFTP server: share folders picked on this phone with other devices on the network. |
+| Access from anywhere | Groups the ways a phone share is reached from outside the home network: through Google Drive and through an exchange server. |
+| Share from phone | Groups the embedded SFTP server: share folders picked on this phone with other devices on the network. |
 | Background sync, network and cache | Settings for background sync, network connection limits, and local cache management. |
 | Allow All Files mode | Grants access to all files on the device, including system folders (requires All Files permission). |
 | Allow new windows | Allows opening additional app windows in multi-window or split-screen mode. |
@@ -99,19 +101,19 @@ _Generated from the app. Do not edit by hand._
 | Settings | Chooses app settings as the data set to export or import. |
 | Pinned streams | Chooses the pinned stream list as the data set to export or import. |
 | Language/Язык/Мова | Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. |
-| Primary startup window | Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the main screen. On a Googlebook the device home screen is not offered and the in-app desktop is the default. |
+| Primary startup window | Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the resource list. On a Googlebook the device home screen is not offered and the in-app desktop is the default. |
 | System launcher settings | Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density. |
 | Statistics | Opens the usage statistics screen. |
 | Power saving mode | Chooses when power saving mode is activated: off, on, or automatically when battery drops below 30%. |
-| Resource grid cell size | Sets how large the resource cells are in the main window grid: small fits more resources per row, large makes each one bigger. |
+| Resource grid cell size | Sets how large the resource cells are in the resource list grid: small fits more resources per row, large makes each one bigger. |
 | Show resource actions in menu ⋮ | Off adds shortcut buttons for the frequent resource actions (edit, duplicate, move, delete) directly on the row. The ⋮ menu with the full action list is always available either way. |
 | Secure sensitive screens | Blocks screenshots and the Recents preview on screens that show passwords (add/edit resource, credentials in Settings, the login WebView, and the credential QR). On by default. |
 | Share access through Google Drive | Puts the SFTP server's address, login and password in your Google Drive app folder so your devices on the same Google account can connect; off by default, and while off those devices see the share but cannot connect to it. |
-| Exchange server | Publishes the SFTP share through your outgoing exchange server so your devices in any network can reach it; with no outgoing server chosen it asks for one first, and off keeps the share local-network only. |
+| Exchange server | Publishes the SFTP share through your outgoing exchange server so your devices in any network can reach it; with no server that may publish it leads to My devices to add one, and off keeps the share local-network only. |
 | SFTP server | Starts or stops the SFTP server; while it runs a notification with a Stop action stays in the shade. |
 | Show hidden files | Shows files and folders whose names begin with a dot (hidden by convention). |
-| Programs panel | Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu. |
-| Show streams panel on the main screen | Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section. |
+| Programs panel | Shows a horizontal panel of programs and scenarios above the resource list, mirroring the programs menu. |
+| Show streams panel in the resource list | Shows a horizontal panel of pinned stream channels above the resource list, with a shortcut to the Streams section. |
 | Show subfolders separately | Lists subfolders as individual items in the file browser instead of navigating into them directly. |
 | In cloud resources | Enables adding cloud storage (Google Drive, etc.) as remote resources. |
 | Computer on the internet (S)FTP | Enables adding internet-accessible FTP/SFTP servers as remote resources. |

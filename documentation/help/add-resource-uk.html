@@ -17,14 +17,14 @@
 <h1>Додати ресурс</h1>
 </header>
 <h2>Для чого цей екран</h2>
-<p class="lead">«Додати ресурс» - екран, де ви підключаєте до застосунку нове місце з файлами: папку на пристрої, мережеву папку, сервер SFTP чи FTP, хмарну папку, інтернет-трансляцію або годинник. Оберіть тип, заповніть коротку форму - і новий ресурс з’явиться в списку на головному екрані.</p>
+<p class="lead">«Додати ресурс» - екран, де ви підключаєте до застосунку нове місце з файлами: папку на пристрої, мережеву папку, сервер SFTP чи FTP, хмарну папку, інтернет-трансляцію або годинник. Оберіть тип, заповніть коротку форму - і новий ресурс з’явиться в списку у списку ресурсів.</p>
 <figure class="shot">
 <img class="on-light" src="img/add-resource-uk-light.webp" alt="Додати ресурс">
 <img class="on-dark" src="img/add-resource-uk-dark.webp" alt="Додати ресурс">
 </figure>
 <h2>Порядок дій</h2>
 <ol class="order">
-<li>Оберіть, що додати: «Локальна папка» <a class="ref" href="#type-local">2</a> - папка на пристрої, «Мережева папка» <a class="ref" href="#type-network">3</a> - ресурс SMB, далі «SFTP / FTP» <a class="ref" href="#type-sftp">4</a>, «Хмарне сховище» <a class="ref" href="#type-cloud">5</a>, «Трансляція» <a class="ref" href="#type-stream">6</a>, «Спарений годинник» <a class="ref" href="#type-watch">7</a> або «З моїх пристроїв» <a class="ref" href="#type-my-devices">8</a>. Типи, вимкнені в налаштуваннях або відсутні у вашій редакції, не показуються, а якщо натиснути «Додати» на головному екрані при відкритій вкладці типу, одразу відкриється форма цього типу.</li>
+<li>Оберіть, що додати: «Локальна папка» <a class="ref" href="#type-local">2</a> - папка на пристрої, «Мережева папка» <a class="ref" href="#type-network">3</a> - ресурс SMB, далі «SFTP / FTP» <a class="ref" href="#type-sftp">4</a>, «Хмарне сховище» <a class="ref" href="#type-cloud">5</a>, «Трансляція» <a class="ref" href="#type-stream">6</a>, «Спарений годинник» <a class="ref" href="#type-watch">7</a> або «З моїх пристроїв» <a class="ref" href="#type-my-devices">8</a>. Типи, вимкнені в налаштуваннях або відсутні у вашій редакції, не показуються, а якщо натиснути «Додати» у списку ресурсів при відкритій вкладці типу, одразу відкриється форма цього типу.</li>
 <li>Папка на пристрої: натисніть «СКАНУВАТИ» <a class="ref" href="#local-scan">12</a>, щоб отримати підказки, або «Додати вручну» <a class="ref" href="#local-add-manually">13</a>, щоб обрати папку самому; позначте потрібне в списку <a class="ref" href="#local-list">14</a> і натисніть «Додати до ресурсів» <a class="ref" href="#add-to-resources">11</a>.</li>
 <li>Мережева папка: введіть адресу сервера <a class="ref" href="#smb-server">17</a> або знайдіть її через «Сканувати мережу» <a class="ref" href="#smb-scan-network">16</a>. Вкажіть ім’я користувача <a class="ref" href="#smb-username">18</a> і пароль <a class="ref" href="#smb-password">19</a>, перевірте їх кнопкою «Тест з'єднання» <a class="ref" href="#smb-test">20</a>, оберіть папку через «Сканувати хост» <a class="ref" href="#smb-scan-shares">21</a> або впишіть її ім’я <a class="ref" href="#smb-share-name">22</a> і натисніть «Додати цей ресурс» <a class="ref" href="#smb-add">27</a>.</li>
 <li>SFTP або FTP: оберіть протокол <a class="ref" href="#sftp-protocol">29</a>, введіть хост <a class="ref" href="#sftp-host">30</a> і дані для входу <a class="ref" href="#sftp-auth">31</a>, перевірте кнопкою «Перевірити з'єднання» <a class="ref" href="#sftp-test">32</a>, вкажіть шлях на сервері <a class="ref" href="#sftp-remote-path">34</a> і натисніть «Додати ресурс» <a class="ref" href="#sftp-add">36</a>.</li>
@@ -323,9 +323,9 @@
 <details class="el" id="picker-select">
 <summary><span class="mk">46</span><span><span class="name">Вибір</span><span class="one">Додає цю папку до ваших ресурсів.</span></span></summary>
 <div class="full">
-<p>Створює хмарний ресурс із папки з урахуванням ваших прапорців «Додати до призначень» і «З підпапками» та типів медіа, увімкнених у налаштуваннях. Ви побачите «Ресурс додано» й опинитеся на головному екрані. Папку, яку ви вже додавали, застосунок відхилить із поясненням.</p>
+<p>Створює хмарний ресурс із папки з урахуванням ваших прапорців «Додати до призначень» і «З підпапками» та типів медіа, увімкнених у налаштуваннях. Ви побачите «Ресурс додано» й опинитеся у списку ресурсів. Папку, яку ви вже додавали, застосунок відхилить із поясненням.</p>
 <dl class="facts">
-<dt>Скасування</dt><dd>У хмарі нічого не змінюється. Щоб скасувати, видаліть ресурс на головному екрані - папка залишиться на місці.</dd>
+<dt>Скасування</dt><dd>У хмарі нічого не змінюється. Щоб скасувати, видаліть ресурс у списку ресурсів - папка залишиться на місці.</dd>
 </dl>
 </div>
 </details>
@@ -341,7 +341,7 @@
 </div>
 <h2>Пов'язане</h2>
 <ul class="related">
-<li><a href="main-uk.html"><b>Головний екран</b><span class="pill">Екран</span></a></li>
+<li><a href="main-uk.html"><b>Список ресурсів</b><span class="pill">Екран</span></a></li>
 <li><a href="settings-general-uk.html"><b>Налаштування: Загальні</b><span class="pill">Екран</span></a></li>
 <li><a href="resource-editor-uk.html"><b>Редагувати ресурс</b><span class="pill">Екран</span></a></li>
 <li><a href="auth-sessions-uk.html"><b>Збережені авторизації</b><span class="pill">Екран</span></a></li>
@@ -353,7 +353,7 @@
 <li><a href="index-uk.html"><b>Зміст довідки</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-18</span>
+<span>Fast Media Sorter, 2026-10-23</span>
 <a href="index-uk.html">Зміст довідки</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
 </footer>

@@ -118,7 +118,7 @@
         },
         "add-destination": {
           "summary": "Marks another resource as a Quick Sort destination.",
-          "details": "The button shows up once you have resources that are not destinations yet. Add resources on the main screen first, then mark them here."
+          "details": "The button shows up once you have resources that are not destinations yet. Add resources in the resource list first, then mark them here."
         },
         "destinations-list": {
           "summary": "Your Quick Sort destinations, in the order of their numbers.",
@@ -286,7 +286,7 @@
         },
         "add-destination": {
           "summary": "Отмечает ещё один ресурс как назначение быстрой сортировки.",
-          "details": "Кнопка появляется, когда есть ресурсы, которые ещё не стали назначениями. Сначала добавьте ресурсы на главном экране, а потом отметьте их здесь."
+          "details": "Кнопка появляется, когда есть ресурсы, которые ещё не стали назначениями. Сначала добавьте ресурсы в списке ресурсов, а потом отметьте их здесь."
         },
         "destinations-list": {
           "summary": "Ваши назначения быстрой сортировки по порядку номеров.",
@@ -454,7 +454,7 @@
         },
         "add-destination": {
           "summary": "Позначає ще один ресурс як призначення швидкого сортування.",
-          "details": "Кнопка з’являється, коли є ресурси, які ще не стали призначеннями. Спершу додайте ресурси на головному екрані, а тоді позначте їх тут."
+          "details": "Кнопка з’являється, коли є ресурси, які ще не стали призначеннями. Спершу додайте ресурси у списку ресурсів, а тоді позначте їх тут."
         },
         "destinations-list": {
           "summary": "Ваші призначення швидкого сортування за порядком номерів.",

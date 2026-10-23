@@ -373,6 +373,22 @@ header.doc-header {
     width: 100%;
 }
 
+/* SVGs and screenshots carry pixel sizes wider than the column; :where keeps class-sized icons (.doc-term-icon) winning. */
+:where(.doc-content) img {
+    max-width: 100%;
+}
+
+:where(.doc-content) img:is([width], :not([height])) {
+    height: auto;
+}
+
+/* The usage-scheme SVGs under diagrams/ are vector drawings with a fixed 1600 or 1920 px size; max-width alone
+   leaves them at that size inside a 3000 px column on a 4K screen, so they scale to the column instead. */
+.doc-content img[src*="diagrams/"] {
+    width: 100%;
+    height: auto;
+}
+
 .doc-content h1,
 .doc-article h1 {
     font-family: var(--doc-font-heading);

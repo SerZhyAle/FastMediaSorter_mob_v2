@@ -52,10 +52,10 @@ steps:
       shot_id: getting-started.main-screen-recording-indicator
       device_profile: phone
       screen_state: main-screen-recording-indicator
-      alt: Угловой индикатор записи на главном экране с бегущим таймером и кнопкой остановки
+      alt: Угловой индикатор записи в списке ресурсов с бегущим таймером и кнопкой остановки
       caption: "Индикатор записи, пока FastMediaSorter открыт на экране."
       title: "Скриншот: Индикатор записи"
-      desc: Главный экран, угловой индикатор записи, идет отсчет времени.
+      desc: Список ресурсов, угловой индикатор записи, идет отсчет времени.
   - number: 4
     id: start-with-a-gesture
     title: Запускайте и останавливайте запись боковым жестом

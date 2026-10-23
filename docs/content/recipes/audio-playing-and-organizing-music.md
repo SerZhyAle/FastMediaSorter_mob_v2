@@ -24,7 +24,7 @@ steps:
     id: open-track
     title: Open a track
     text: |
-      Open a resource with music on the [main screen](term:main-screen) and tap a track in the [file browser](page:browsing.grid-and-list-views). The audio player opens and starts playing.
+      Open a resource with music on the [resource list](term:resource-list) and tap a track in the [file browser](page:browsing.grid-and-list-views). The audio player opens and starts playing.
 
       The screen shows the album cover, the track name and details such as size, format and sample rate, a progress bar you can drag, and the playback buttons. A small spinning vinyl record in the corner tells you at a glance that music is playing; it stops when you pause.
 

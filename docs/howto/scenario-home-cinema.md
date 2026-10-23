@@ -52,7 +52,7 @@ On **Windows:**
 
 ## Step 3 - Open the Video Folder
 
-Tap your newly added resource on the main screen.
+Tap your newly added resource in the resource list.
 
 Your series folders and video files appear as a grid with thumbnails - just like browsing locally.
 
@@ -64,7 +64,7 @@ Your series folders and video files appear as a grid with thumbnails - just like
 
 So the next episode starts automatically when one ends - no need to pick the next one manually:
 
-1. Go back to the main screen → **long-press** your video resource → tap **Edit**
+1. Go back to the resource list → **long-press** your video resource → tap **Edit**
 2. Set **Supported Types** → **Video only** (hides non-video files)
 3. Set **Sort mode** → **Name (A→Z)** - this ensures episodes play in order (Episode 1, 2, 3..)
 4. Tap **Save**

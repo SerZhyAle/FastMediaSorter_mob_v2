@@ -24,7 +24,7 @@ steps:
     id: network-folder
     title: Add a shared folder from your home network
     text: |
-      On the main screen tap **Add**, then **Network Folder** - "Add SMB network shares". The **Create Network Resource (SMB)** screen asks for:
+      In the resource list tap **Add**, then **Network Folder** - "Add SMB network shares". The **Create Network Resource (SMB)** screen asks for:
 
       - **Server IP**, for example `192.168.1.100`. Not sure? Tap the network scan button and pick your computer or NAS from the list of devices the app finds.
       - **Username** and **Password** of the shared folder, and a **Domain** only if your network uses one ("Leave empty if not needed").
@@ -106,7 +106,7 @@ steps:
 
       OneDrive keeps its sign-in in a place the app cannot copy, so on the new phone you sign in to OneDrive once more. If you signed out of a provider on the old phone before the move, that provider is not carried over either.
 outcome: |
-  The computer in the living room, the NAS and your cloud folders sit on the main screen next to the phone's own folders. Lists open instantly, previews appear without waiting, and you decide how much space the streaming cache may take.
+  The computer in the living room, the NAS and your cloud folders sit in the resource list next to the phone's own folders. Lists open instantly, previews appear without waiting, and you decide how much space the streaming cache may take.
 tips:
   - "**A slow shared folder recovers on time.** When an SMB connection starts to falter while several files load at once, the app notices every timeout and reconnects when it should, instead of missing some of them."
   - "**A wrong SFTP path says so.** An SFTP resource whose folder no longer exists on the server shows a plain 'not found' message instead of a general error."

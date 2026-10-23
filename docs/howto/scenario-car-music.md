@@ -41,7 +41,7 @@ FastMediaSorter works great as a car music player on Android head units - instan
 
 ## Step 2 - Configure the Folder for Music
 
-Long-press your music folder on the main screen → tap **Edit (pencil icon)**.
+Long-press your music folder in the resource list → tap **Edit (pencil icon)**.
 
 This opens the folder settings. Set these options:
 
@@ -61,7 +61,7 @@ Tap **Save**.
 
 ## Step 3 - Open the Folder and Start Playing
 
-1. Tap your music folder on the main screen
+1. Tap your music folder in the resource list
 2. All tracks appear in a list with album art thumbnails
 3. Tap **any track** to start playing
 
@@ -100,12 +100,12 @@ Press **Next** or **Previous** on your steering wheel.
 
 If your music is spread across multiple folders (e.g. some on SD card, some in internal storage), the **All Music** virtual resource collects everything into one place automatically:
 
-1. On the main screen, look for the **"All Music"** card - it's usually created automatically if you have local audio files
+1. In the resource list, look for the **"All Music"** card - it's usually created automatically if you have local audio files
 2. If it's not there: tap **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → scroll to **Virtual Resources** → tap **"All Music"**
 
 Now all your tracks from all locations appear together in one list.
 
-![FastMediaSorter main screen - All Music virtual resource card visible](screenshots/screenshot-car-step6.png)
+![FastMediaSorter resource list - All Music virtual resource card visible](screenshots/screenshot-car-step6.png)
 
 ---
 

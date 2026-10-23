@@ -54,11 +54,11 @@ The "companion" is a built-in feature of **[Fast Media Sorter & Sharing for Wind
 
 ## Step 2, Method A - Scan the Code (fastest)
 
-1. Open FastMediaSorter and tap the **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** button on the main screen.
+1. Open FastMediaSorter and tap the **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** button in the resource list.
 2. Tap **"Import by barcode"** - it sits next to the four resource-type cards (Local, SMB, SFTP/FTP, Cloud) and in the SFTP form header.
 3. The camera opens with the hint *"Point the camera at the companion QR code"*. Hold the phone up to the QR on your PC. In a dark room, tap **Torch**.
 4. A confirmation appears - *"Import access - Add the SFTP resource .. with N folder(s)?"*. Tap **Import**.
-5. Done. One read-only resource per shared folder appears on the main screen, with the server's key pinned automatically.
+5. Done. One read-only resource per shared folder appears in the resource list, with the server's key pinned automatically.
 
 > The **Import by barcode** entry is hidden on devices without a camera and on VR headsets - use Method B there.
 

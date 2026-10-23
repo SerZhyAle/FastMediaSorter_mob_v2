@@ -67,7 +67,7 @@ steps:
       - **Computer on the internet (S)[FTP](term:ftp)** - "Server folders over FTP and [SFTP](term:sftp)." For example, a hosting account over FTP, your own home server over SFTP, or a camera that uploads photos to an FTP folder.
       - **In [cloud resources](term:cloud-provider)** - "[Google Drive](term:google-drive), [OneDrive](term:onedrive), [Dropbox](term:dropbox)." For example, sign in to Google Drive once and browse your photo backup like any other folder.
 
-      Each switch only permits the group - you still add the actual folder or account afterward, from the main screen. The cloud row disappears on an edition without cloud support, and the whole page is left out on an edition with neither group.
+      Each switch only permits the group - you still add the actual folder or account afterward, from the resource list. The cloud row disappears on an edition without cloud support, and the whole page is left out on an edition with neither group.
     image_bookmark:
       shot_id: getting-started.network-sources-page
       device_profile: phone
@@ -150,7 +150,7 @@ steps:
     id: finish
     title: Finish, and what happens right after
     text: |
-      Tap **Finish** on the last page and the wizard closes. The very first time only, FastMediaSorter opens **Settings** once on its own, with the main screen waiting behind it - so backing out of Settings lands you on the main screen, not back in the wizard. It never opens Settings uninvited again after that.
+      Tap **Finish** on the last page and the wizard closes. The very first time only, FastMediaSorter opens **Settings** once on its own, with the resource list waiting behind it - so backing out of Settings lands you in the resource list, not back in the wizard. It never opens Settings uninvited again after that.
 
       Changed your mind about the device profile, or want to turn a whole group of sources on or off again? Reopen this same wizard any time from Settings. It warns you first, since running it again can overwrite settings you have since tuned by hand.
 outcome: |
@@ -171,7 +171,7 @@ next_recipes:
     url: page:getting-started.main-screen-overview
     badge: Getting Started
     badge_type: docs
-    description: What you land on right after setup, and how the main screen is laid out.
+    description: What you land on right after setup, and how the resource list is laid out.
   - title: Quick product tour
     url: page:getting-started.quick-tour
     badge: Getting Started

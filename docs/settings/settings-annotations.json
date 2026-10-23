@@ -539,10 +539,15 @@
     "ru": "Настройки системного трея лаунчера: часы, Bluetooth, индикаторы SIM, скорость сети и батарея.",
     "uk": "Налаштування системного трею лаунчера: годинник, Bluetooth, індикатори SIM, швидкість мережі та батарея."
   },
+  "headerAboutApp": {
+    "en": "Groups the extensions manager, permissions, system information and the guides and legal links; the logo with the full version text stays below the group.",
+    "ru": "Объединяет менеджер расширений, разрешения, сведения о системе, руководства и юридические ссылки; логотип с полной версией остаётся под группой.",
+    "uk": "Обʼєднує менеджер розширень, дозволи, відомості про систему, посібники та юридичні посилання; логотип із повною версією залишається під групою."
+  },
   "headerMainWindowInterface": {
-    "en": "Settings that control which optional panels and menus appear on the main window.",
-    "ru": "Настройки, определяющие, какие необязательные панели и меню отображаются на главном окне.",
-    "uk": "Налаштування, що визначають, які необов'язкові панелі та меню відображаються на головному вікні."
+    "en": "Settings that control which optional panels and menus appear in the resource list.",
+    "ru": "Настройки, определяющие, какие необязательные панели и меню отображаются в списке ресурсов.",
+    "uk": "Налаштування, що визначають, які необов'язкові панелі та меню відображаються у списку ресурсів."
   },
   "headerMicRecording": {
     "en": "Settings for recording voice notes with the microphone and choosing where recordings are saved.",
@@ -1295,9 +1300,9 @@
     "uk": "Блокує вхід у режим редагування робочого стола довгим натисканням; вхід через меню «Пуск» лишається доступним."
   },
   "rowLauncherPrimaryWindow": {
-    "en": "Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the main screen. On a Googlebook the device home screen is not offered and the in-app desktop is the default.",
-    "ru": "Выбирает, что открывается при запуске FastMediaSorter или нажатии кнопки «Домой»: домашний экран устройства, рабочий стол внутри приложения без смены системного домашнего экрана или главный экран. На Googlebook домашнего экрана устройства в списке нет, по умолчанию выбран рабочий стол.",
-    "uk": "Вибирає, що відкривається під час запуску FastMediaSorter або натискання кнопки «Додому»: домашній екран пристрою, робочий стіл усередині застосунку без заміни системного домашнього екрана або головний екран. На Googlebook домашнього екрана пристрою у списку немає, за замовчуванням вибрано робочий стіл."
+    "en": "Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the resource list. On a Googlebook the device home screen is not offered and the in-app desktop is the default.",
+    "ru": "Выбирает, что открывается при запуске FastMediaSorter или нажатии кнопки «Домой»: домашний экран устройства, рабочий стол внутри приложения без смены системного домашнего экрана или список ресурсов. На Googlebook домашнего экрана устройства в списке нет, по умолчанию выбран рабочий стол.",
+    "uk": "Вибирає, що відкривається під час запуску FastMediaSorter або натискання кнопки «Додому»: домашній екран пристрою, робочий стіл усередині застосунку без заміни системного домашнього екрана або список ресурсів. На Googlebook домашнього екрана пристрою у списку немає, за замовчуванням вибрано робочий стіл."
   },
   "rowLauncherOpenHomeSettings": {
     "en": "Opens Android's default-launcher chooser to switch the system home screen. Hidden on Googlebook and XR, where the system does not let another app become the home screen.",
@@ -1530,9 +1535,9 @@
     "uk": "Задає щільність піктограм, з якою скидання лаунчера розкладає стартовий набір; відкривається на щільності з профілю пристрою."
   },
   "rowResourceGridCellSize": {
-    "en": "Sets how large the resource cells are in the main window grid: small fits more resources per row, large makes each one bigger.",
-    "ru": "Задаёт размер ячеек в сетке ресурсов главного окна: малый умещает больше ресурсов в строке, большой делает каждый крупнее.",
-    "uk": "Задає розмір комірок у сітці ресурсів головного вікна: малий вміщує більше ресурсів у рядку, великий робить кожен більшим."
+    "en": "Sets how large the resource cells are in the resource list grid: small fits more resources per row, large makes each one bigger.",
+    "ru": "Задаёт размер ячеек в сетке списка ресурсов: малый умещает больше ресурсов в строке, большой делает каждый крупнее.",
+    "uk": "Задає розмір комірок у сітці списку ресурсів: малий вміщує більше ресурсів у рядку, великий робить кожен більшим."
   },
   "rowResourceOpsInOverflowMenu": {
     "en": "Off adds shortcut buttons for the frequent resource actions (edit, duplicate, move, delete) directly on the row. The ⋮ menu with the full action list is always available either way.",
@@ -1605,9 +1610,9 @@
     "uk": "Показує підказку з поясненням сенсорних зон при першому відкритті плеєра."
   },
   "rowShowProgramsPanel": {
-    "en": "Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu.",
+    "en": "Shows a horizontal panel of programs and scenarios above the resource list, mirroring the programs menu.",
     "ru": "Показывает горизонтальную панель программ и сценариев над списком ресурсов в основном окне, дублируя меню программ.",
-    "uk": "Показує горизонтальну панель програм і сценаріїв над списком ресурсів у головному вікні, дублюючи меню програм."
+    "uk": "Показує горизонтальну панель програм і сценаріїв над списком ресурсів, дублюючи меню програм."
   },
   "rowShowScreenNumber": {
     "en": "Draws the desktop screen's number over the wallpaper while paging between screens. Off by default, and independent of whether animation is allowed - the number appears with the sliding transition as well as without it.",
@@ -1615,9 +1620,9 @@
     "uk": "Малює номер робочого столу поверх шпалер під час гортання екранів. Типово вимкнено й не залежить від того, чи дозволені анімації: номер з'являється і зі слайдом, і без нього."
   },
   "rowShowStreamsPanel": {
-    "en": "Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section.",
+    "en": "Shows a horizontal panel of pinned stream channels above the resource list, with a shortcut to the Streams section.",
     "ru": "Показывает горизонтальную панель закреплённых каналов трансляций над списком ресурсов в основном окне, с переходом к разделу трансляций.",
-    "uk": "Показує горизонтальну панель закріплених каналів трансляцій над списком ресурсів у головному вікні, із переходом до розділу трансляцій."
+    "uk": "Показує горизонтальну панель закріплених каналів трансляцій над списком ресурсів, із переходом до розділу трансляцій."
   },
   "rowShowSubfoldersAsItems": {
     "en": "Lists subfolders as individual items in the file browser instead of navigating into them directly.",
@@ -1663,6 +1668,11 @@
     "en": "Enables adding local-network SMB shares (NAS, PC) as remote resources.",
     "ru": "Включает возможность добавлять SMB-ресурсы локальной сети (NAS, ПК) как удалённые ресурсы.",
     "uk": "Вмикає можливість додавати SMB-ресурси локальної мережі (NAS, ПК) як віддалені ресурси."
+  },
+  "rowLinkPassword": {
+    "en": "Chooses how the broadcast link is protected when the broadcast goes out through an exchange server: an automatic password, no password, or your own. Your own password stays on this phone and never goes into a backup.",
+    "ru": "Выбирает, как защищена ссылка вещания, когда оно идёт через сервер обмена: автоматический пароль, без пароля или свой. Свой пароль хранится только на этом телефоне и не попадает в резервную копию.",
+    "uk": "Вибирає, як захищене посилання мовлення, коли воно йде через сервер обміну: автоматичний пароль, без пароля або власний. Власний пароль зберігається лише на цьому телефоні й не потрапляє до резервної копії."
   },
   "rowStreamTitle": {
     "en": "Sets the broadcast title sent in both the ICY metadata and the descriptor, so receivers display a consistent name.",
@@ -2019,6 +2029,11 @@
     "ru": "Объединяет встроенный SFTP-сервер: доступ к выбранным на телефоне папкам для других устройств в сети.",
     "uk": "Обʼєднує вбудований SFTP-сервер: доступ до вибраних на телефоні папок для інших пристроїв у мережі."
   },
+  "headerSftpExchange": {
+    "en": "Groups the ways a phone share is reached from outside the home network: through Google Drive and through an exchange server.",
+    "ru": "Объединяет способы добраться до папок телефона из-за пределов домашней сети: через Google Drive и через обменный сервер.",
+    "uk": "Обʼєднує способи дістатися до папок телефона поза домашньою мережею: через Google Drive та через обмінний сервер."
+  },
   "rowSftpServerEnabled": {
     "en": "Starts or stops the SFTP server; while it runs a notification with a Stop action stays in the shade.",
     "ru": "Запускает или останавливает SFTP-сервер; пока он работает, в шторке висит уведомление с кнопкой остановки.",
@@ -2049,14 +2064,14 @@
     "uk": "Записує адресу, логін і пароль SFTP-сервера в папку застосунку на вашому Google Диску, щоб ваші пристрої з тим самим обліковим записом Google могли підключитися; типово вимкнено, і тоді ці пристрої бачать ресурс, але підключитися до нього не можуть."
   },
   "rowSftpExchangeEnabled": {
-    "en": "Publishes the SFTP share through your outgoing exchange server so your devices in any network can reach it; with no outgoing server chosen it asks for one first, and off keeps the share local-network only.",
-    "ru": "Публикует SFTP-шару через ваш исходящий сервер обмена, чтобы к ней подключались ваши устройства из любой сети; если исходящий сервер не выбран, сначала предлагает выбрать его, а выключено - шара доступна только в локальной сети.",
-    "uk": "Публікує SFTP-спільну папку через ваш вихідний сервер обміну, щоб до неї підключалися ваші пристрої з будь-якої мережі; якщо вихідний сервер не вибрано, спочатку пропонує вибрати його, а вимкнено - папка доступна лише в локальній мережі."
+    "en": "Publishes the SFTP share through your outgoing exchange server so your devices in any network can reach it; with no server that may publish it leads to My devices to add one, and off keeps the share local-network only.",
+    "ru": "Публикует SFTP-шару через ваш исходящий сервер обмена, чтобы к ней подключались ваши устройства из любой сети; если сервера, через который можно публиковать, нет, ведёт в «Мои устройства», чтобы добавить его, а выключено - шара доступна только в локальной сети.",
+    "uk": "Публікує SFTP-спільну папку через ваш вихідний сервер обміну, щоб до неї підключалися ваші пристрої з будь-якої мережі; якщо сервера, через який можна публікувати, немає, веде до «Моїх пристроїв», щоб додати його, а вимкнено - папка доступна лише в локальній мережі."
   },
   "btnSftpExchangeChangeOutgoing": {
-    "en": "Picks which of your exchange servers the share is published through; the line above names the current outgoing server.",
-    "ru": "Выбирает, через какой из ваших серверов обмена публикуется шара; строка выше называет текущий исходящий сервер.",
-    "uk": "Вибирає, через який із ваших серверів обміну публікується спільна папка; рядок вище називає поточний вихідний сервер."
+    "en": "Changes which of your exchange servers the share and broadcasts go through. The outgoing server is chosen by itself: the first server you add becomes outgoing, and removing it passes the role to the next one. The line above names the current outgoing server.",
+    "ru": "Меняет, через какой из ваших серверов обмена идут шара и трансляции. Исходящий сервер выбирается сам: первый добавленный сервер становится исходящим, а при его удалении эта роль переходит к следующему. Строка выше называет текущий исходящий сервер.",
+    "uk": "Змінює, через який із ваших серверів обміну йдуть спільна папка й трансляції. Вихідний сервер вибирається сам: перший доданий сервер стає вихідним, а після його видалення ця роль переходить до наступного. Рядок вище називає поточний вихідний сервер."
   },
   "btnSftpExchangeNewLink": {
     "en": "Issues a new access link: every code shared before stops opening this server through the exchange server.",

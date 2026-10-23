@@ -68,9 +68,9 @@ On **Windows:**
 ## Step 3 - Open FastMediaSorter and Tap "+"
 
 1. Open the app
-2. On the **main screen**, tap the **"Add" <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** button in the top toolbar
+2. On the **resource list**, tap the **"Add" <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** button in the top toolbar
 
-![FastMediaSorter main screen - Add button highlighted in top toolbar, SMB tab visible](screenshots/screenshot-smb-step3.png)
+![FastMediaSorter resource list - Add button highlighted in top toolbar, SMB tab visible](screenshots/screenshot-smb-step3.png)
 
 ---
 
@@ -141,11 +141,11 @@ Tap **"Test Connection"**.
 
 ## Step 8 - Save and Open
 
-Tap **"Save"**. The new folder appears on the main screen with an SMB badge.
+Tap **"Save"**. The new folder appears in the resource list with an SMB badge.
 
 Tap it to browse its contents - photos, videos, and other files appear as thumbnails like any local folder.
 
-![FastMediaSorter main screen - new "Common" SMB resource card (smb://192.168.1.100/Common) with Network folder SMB badge highlighted](screenshots/screenshot-smb-step8.png)
+![FastMediaSorter resource list - new "Common" SMB resource card (smb://192.168.1.100/Common) with Network folder SMB badge highlighted](screenshots/screenshot-smb-step8.png)
 
 ---
 

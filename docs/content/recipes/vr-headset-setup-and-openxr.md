@@ -63,7 +63,7 @@ steps:
       FastMediaSorter calls its immersive playback session [VR Cinema](term:vr-cinema), and it is never more than one tap away from a video, wherever you found it:
 
       - From a video tile in the [file browser](term:file-browser), the tile's overflow menu offers **Open in VR Cinema**.
-      - From a video [resource](term:resource) on the main screen, the same entry sits in that resource's own menu.
+      - From a video [resource](term:resource) in the resource list, the same entry sits in that resource's own menu.
       - From inside the flat [video player](term:video-player), it is a badge and an overflow entry - covered in [spatial 3D/360 cinema and video playback](page:vr.spatial-cinema-playback).
 
       If the headset is busy or not reachable at the moment, FastMediaSorter says so plainly - **VR Cinema is unavailable right now** - rather than leaving you staring at nothing.

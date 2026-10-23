@@ -75,7 +75,7 @@
       ],
       "elements": {
         "back": {
-          "summary": "Goes one step back: out of the current folder, and from the top folder to the main screen.",
+          "summary": "Goes one step back: out of the current folder, and from the top folder to the resource list.",
           "details": "The Back button of the device does the same, so you leave a deep folder one level at a time instead of dropping out of the resource in one tap."
         },
         "path": {
@@ -212,7 +212,7 @@
       ],
       "elements": {
         "back": {
-          "summary": "Возвращает на шаг назад: из текущей папки, а из верхней папки - на главный экран.",
+          "summary": "Возвращает на шаг назад: из текущей папки, а из верхней папки - в список ресурсов.",
           "details": "Кнопка «Назад» устройства делает то же самое, поэтому из глубокой папки вы выходите по одному уровню, а не вылетаете из ресурса одним нажатием."
         },
         "path": {
@@ -349,7 +349,7 @@
       ],
       "elements": {
         "back": {
-          "summary": "Повертає на крок назад: із поточної папки, а з верхньої папки - на головний екран.",
+          "summary": "Повертає на крок назад: із поточної папки, а з верхньої папки - до списку ресурсів.",
           "details": "Кнопка «Назад» пристрою робить те саме, тож із глибокої папки ви виходите по одному рівню, а не вилітаєте з ресурсу одним натисканням."
         },
         "path": {

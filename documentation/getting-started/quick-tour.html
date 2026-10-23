@@ -78,14 +78,14 @@ layout: null
           "@type": "HowToStep",
           "position": 3,
           "name": "Behind the splash - a fast, honest start",
-          "text": "A few things happen while that splash is up, or right after it, that you notice as an absence of problems rather than as a feature: the first thumbnail grid does not stall, because the image loader is built on a background thread instead of on the main thread during your first photo load. The app itself does not stall either, because its file-transfer preferences open on first use instead of while the main screen is still being built. And on a completely fresh install, the built-in collections on the main screen - All Music, All Videos, All Images, Camera Photos and Recent Media - already show their real file counts instead of a row of zeros. FastMediaSorter fills those virtual resource counts in on its own, in the background, at startup, so you do not have to open each one or run a manual rescan just to find out there is anything in it.",
+          "text": "A few things happen while that splash is up, or right after it, that you notice as an absence of problems rather than as a feature: the first thumbnail grid does not stall, because the image loader is built on a background thread instead of on the main thread during your first photo load. The app itself does not stall either, because its file-transfer preferences open on first use instead of while the resource list is still being built. And on a completely fresh install, the built-in collections in the resource list - All Music, All Videos, All Images, Camera Photos and Recent Media - already show their real file counts instead of a row of zeros. FastMediaSorter fills those virtual resource counts in on its own, in the background, at startup, so you do not have to open each one or run a manual rescan just to find out there is anything in it.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/quick-tour.html#fast-honest-start"
         },
         {
           "@type": "HowToStep",
           "position": 4,
           "name": "A quick look around, by role",
-          "text": "Page 1 of the welcome wizard pitches FastMediaSorter as a handful of roles rather than a feature list, and this documentation site is organized the same way. Once you have looked around the main screen, here is where each role\u0027s own recipes live: - File manager - browsing, sorting and file operations start at grid and list views and copy, move and delete. - Player - photos and GIFs in the image viewer, video in playback controls, and music in playing and organizing. - Any source - local, network and cloud folders start at storage sources setup and Windows network shares. - Streams, on the editions that carry it - begins at the channel catalog. - More - the desktop launcher, the watch app, the VR headset, and the full Settings map all branch off from here, alongside the seven editions compared.",
+          "text": "Page 1 of the welcome wizard pitches FastMediaSorter as a handful of roles rather than a feature list, and this documentation site is organized the same way. Once you have looked around the resource list, here is where each role\u0027s own recipes live: - File manager - browsing, sorting and file operations start at grid and list views and copy, move and delete. - Player - photos and GIFs in the image viewer, video in playback controls, and music in playing and organizing. - Any source - local, network and cloud folders start at storage sources setup and Windows network shares. - Streams, on the editions that carry it - begins at the channel catalog. - More - the desktop launcher, the watch app, the VR headset, and the full Settings map all branch off from here, alongside the seven editions compared.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/quick-tour.html#map-of-the-app"
         },
         {
@@ -259,7 +259,7 @@ layout: null
                     <ul class="doc-sidebar-list">
                         <li><a href="../getting-started/welcome-and-setup.html" class="doc-sidebar-link">First launch and setup</a></li>
                         <li><a href="../getting-started/permissions-guide.html" class="doc-sidebar-link">App permissions explained</a></li>
-                        <li><a href="../getting-started/main-screen-overview.html" class="doc-sidebar-link">The main screen at a glance</a></li>
+                        <li><a href="../getting-started/main-screen-overview.html" class="doc-sidebar-link">The resource list at a glance</a></li>
                         <li><a href="../getting-started/quick-tour.html" class="doc-sidebar-link active">Quick product tour</a></li>
                     </ul>
                 </div>
@@ -477,10 +477,10 @@ layout: null
                         <h2 class="doc-step-title">Behind the splash - a fast, honest start</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>A few things happen while that splash is up, or right after it, that you notice as an absence of problems rather than as a feature: the first thumbnail grid does not stall, because the image loader is built on a background thread instead of on the main thread during your first photo load. The app itself does not stall either, because its file-transfer preferences open on first use instead of while the main screen is still being built.</p>
-                        <p>And on a completely fresh install, the built-in collections on the main screen - <span class="doc-link-term" data-term="all-music">All Music</span>, <span class="doc-link-term" data-term="all-videos">All Videos</span>, <span class="doc-link-term" data-term="all-images">All Images</span>, Camera Photos and Recent Media - already show their real file counts instead of a row of zeros. FastMediaSorter fills those <span class="doc-link-term" data-term="virtual-resource">virtual resource</span> counts in on its own, in the background, at startup, so you do not have to open each one or run a manual rescan just to find out there is anything in it.</p>
+                        <p>A few things happen while that splash is up, or right after it, that you notice as an absence of problems rather than as a feature: the first thumbnail grid does not stall, because the image loader is built on a background thread instead of on the main thread during your first photo load. The app itself does not stall either, because its file-transfer preferences open on first use instead of while the resource list is still being built.</p>
+                        <p>And on a completely fresh install, the built-in collections in the resource list - <span class="doc-link-term" data-term="all-music">All Music</span>, <span class="doc-link-term" data-term="all-videos">All Videos</span>, <span class="doc-link-term" data-term="all-images">All Images</span>, Camera Photos and Recent Media - already show their real file counts instead of a row of zeros. FastMediaSorter fills those <span class="doc-link-term" data-term="virtual-resource">virtual resource</span> counts in on its own, in the background, at startup, so you do not have to open each one or run a manual rescan just to find out there is anything in it.</p>
                         <figure class="doc-figure" data-shot-id="getting-started.main-screen-fresh-install">
-                            <img src="../assets/images/getting-started/main-screen-fresh-install.png" alt="FastMediaSorter main screen right after a fresh install showing real file counts on the All Music, All Videos and All Images built-in resources" class="doc-screenshot" loading="lazy" />
+                            <img src="../assets/images/getting-started/main-screen-fresh-install.png" alt="FastMediaSorter resource list right after a fresh install showing real file counts on the All Music, All Videos and All Images built-in resources" class="doc-screenshot" loading="lazy" />
                             <figcaption>A fresh install, with real counts already on the built-in collections.</figcaption>
                         </figure>
                     </div>
@@ -493,7 +493,7 @@ layout: null
                         <h2 class="doc-step-title">A quick look around, by role</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Page 1 of the welcome wizard pitches FastMediaSorter as a handful of roles rather than a feature list, and this documentation site is organized the same way. Once you have looked around the <a href="main-screen-overview.html" class="doc-link">main screen</a>, here is where each role's own recipes live:</p>
+                        <p>Page 1 of the welcome wizard pitches FastMediaSorter as a handful of roles rather than a feature list, and this documentation site is organized the same way. Once you have looked around the <a href="main-screen-overview.html" class="doc-link">resource list</a>, here is where each role's own recipes live:</p>
                         <ul><li><strong>File manager</strong> - browsing, sorting and file operations start at <a href="../browsing/grid-and-list-views.html" class="doc-link">grid and list views</a> and <a href="../storage/file-copy-move-delete.html" class="doc-link">copy, move and delete</a>.</li><li><strong>Player</strong> - photos and GIFs in <a href="../images/viewer-and-gestures.html" class="doc-link">the image viewer</a>, video in <a href="../player/video-playback-controls.html" class="doc-link">playback controls</a>, and music in <a href="../audio/playing-and-organizing-music.html" class="doc-link">playing and organizing</a>.</li><li><strong>Any source</strong> - local, network and cloud folders start at <a href="../storage/storage-sources-setup.html" class="doc-link">storage sources setup</a> and <a href="../network/smb-samba-shares.html" class="doc-link">Windows network shares</a>.</li><li><strong>Streams</strong>, on the editions that carry it - begins at <a href="../streams/channel-catalog-browsing.html" class="doc-link">the channel catalog</a>.</li><li><strong>More</strong> - the desktop <a href="../launcher/desktop-grid-and-icons.html" class="doc-link">launcher</a>, the <a href="../wear/installation-and-pairing.html" class="doc-link">watch app</a>, the <a href="../vr/headset-setup-and-openxr.html" class="doc-link">VR headset</a>, and the full <a href="../settings/settings-overview-and-search.html" class="doc-link">Settings map</a> all branch off from here, alongside the <a href="../flavors/overview-and-comparison.html" class="doc-link">seven editions compared</a>.</li></ul>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
@@ -552,7 +552,7 @@ layout: null
                         <a href="main-screen-overview.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Getting Started</span>
                             <h3>Navigating the main workspace</h3>
-                            <p>A full tour of the main screen you land on after setup.</p>
+                            <p>A full tour of the resource list you land on after setup.</p>
                         </a>
                         <a href="../flavors/overview-and-comparison.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Editions</span>

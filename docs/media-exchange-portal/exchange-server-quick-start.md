@@ -5,7 +5,7 @@ description: "The short list of steps to run your own exchange server on a Windo
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server-quick-start.html
 ---
-<sub class="doc-stamp">26.10.21 15:52</sub>
+<sub class="doc-stamp">26.10.22 01:25</sub>
 
 # Deploy your own exchange server
 
@@ -23,13 +23,13 @@ This is the short list. The reasons and the details are on [Installing and check
 
 1. **Get the package.** Install Fast Media Sorter & Sharing for Windows with the exchange server ticked: the Server edition (winget `SerZhyAle.FastMediaSorter.Server`, or the setup file from the [Server edition page](https://serzhyale.github.io/FastMediaSorter_Lite/server.html)) for a PC that only serves, or the full package for a PC you also work on - see [Windows servers](windows-servers.html#availability). Not from the Microsoft Store: a Store app cannot run as a Windows service.
 2. **Answer Windows.** On **"Windows protected your PC"** click **More info**, then **Run anyway**. On **"Do you want to allow this app to make changes to your device?"** click **Yes**: it adds the Windows service and one firewall rule for the server program. The installer is not signed, so Windows warns.
-3. **Open Share Manager** and go to **Media Exchange Server**. On a fresh install the first-run guide walks you through the port, the firewall and service choices, the public address, the first account and the certificate.
+3. **Open Share Manager** and go to **Media Exchange Server**. On a fresh install the first-run guide walks you through the port, the firewall and service choices, the address on the internet, the first account and the security certificate.
 4. **Create the first account.** It is your own account, and the PC joins it by itself.
 5. **Give the server an address.** Take the first that fits:
-   - a public IPv4 address, or a free dynamic DNS name such as `myhome.example.net`, with one port forwarded in the router to this PC - see [Home network](home-network.html);
-   - IPv6, when your provider shares one address among many customers - no forwarding is needed, but a device with no IPv6 cannot reach the server;
+   - a fixed address on the internet from your provider, or a free name such as `myhome.example.net` that follows a changing address (a "dynamic DNS" service), with one port forwarded in the router to this PC - see [Home network](home-network.html);
+   - IPv6 (a newer kind of internet address), when your provider shares one address among many customers - no forwarding is needed, but a device with no IPv6 cannot reach the server;
    - neither: the server then works on your own network or through a VPN into it.
-6. **Get the connection string.** In Share Manager choose **Get connection string..**: it gives a text, a `.fmsexch` file and a QR code of the same string. It holds the server's address and the fingerprint of its certificate, never a login or a password.
+6. **Get the connection string.** In Share Manager choose **Get connection string..**: it gives a text, a `.fmsexch` file and a QR code of the same string. It holds the server's address and the fingerprint of its certificate (a short code that identifies the server), never a login or a password.
 7. **Add the server on the phone.** In FastMediaSorter open **Settings**, the **General** tab, **My devices**, then tap **Add server**. Paste the string, or **Scan QR**, or **Choose file**, then enter the login and the password. The server's card says **Connected, devices: 1** or more. More: [My devices](my-devices.html).
 8. **Check it from another network.** Switch the phone to mobile data and open **My devices** again. A card that connects proves the server is reachable from outside.
 9. **If it does not connect**, the app says at which step it broke. Check in this order:

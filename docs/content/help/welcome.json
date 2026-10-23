@@ -99,7 +99,7 @@
           "undo": "You can change the profile later in Settings."
         },
         "primary-window": {
-          "summary": "Chooses what the app opens as: device home screen, in-app desktop or main screen.",
+          "summary": "Chooses what the app opens as: device home screen, in-app desktop or resource list.",
           "details": "This choice appears only in editions that include the home surface. The recommended option is marked."
         },
         "smb": {
@@ -249,7 +249,7 @@
           "undo": "Профиль можно сменить позже в настройках."
         },
         "primary-window": {
-          "summary": "Выбирает, чем будет приложение при запуске: домашним экраном устройства, рабочим столом внутри приложения или главным экраном.",
+          "summary": "Выбирает, чем будет приложение при запуске: домашним экраном устройства, рабочим столом внутри приложения или списком ресурсов.",
           "details": "Этот выбор есть только в версиях, где есть домашний экран. Рекомендуемый вариант отмечен."
         },
         "smb": {
@@ -399,7 +399,7 @@
           "undo": "Профіль можна змінити пізніше в налаштуваннях."
         },
         "primary-window": {
-          "summary": "Обирає, чим буде застосунок під час запуску: домашнім екраном пристрою, робочим столом усередині застосунку чи головним екраном.",
+          "summary": "Обирає, чим буде застосунок під час запуску: домашнім екраном пристрою, робочим столом усередині застосунку чи списком ресурсів.",
           "details": "Цей вибір є лише у версіях, де є домашній екран. Рекомендований варіант позначено."
         },
         "smb": {

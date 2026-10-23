@@ -24,7 +24,7 @@ steps:
     text: |
       Open the first photo of the folder in the [image viewer](term:image-viewer) and tap **Slideshow** on the control bar. The button turns red while the slideshow runs. Tap it again to stop.
 
-      There is also a shortcut on the [main screen](term:main-screen): some resources show a small **Start slideshow** icon on their card, which opens the folder and starts the slideshow in one tap.
+      There is also a shortcut on the [resource list](term:resource-list): some resources show a small **Start slideshow** icon on their card, which opens the folder and starts the slideshow in one tap.
 
       The slideshow walks through the folder in the same order as the [file browser](page:browsing.sorting-and-filtering). The next photo replaces the previous one at once, without fades or other effects.
     image_bookmark:
@@ -43,7 +43,7 @@ steps:
     id: interval
     title: Choose how long each photo stays
     text: |
-      Each photo stays on screen for 10 seconds unless you choose otherwise. You can set a different time for every resource: on the main screen open the resource for editing, expand **Advanced Settings** and type the number of seconds into **Slideshow Interval (seconds)**. Anything from 1 second to 3600 seconds (one hour) works. Tap **Save Changes**.
+      Each photo stays on screen for 10 seconds unless you choose otherwise. You can set a different time for every resource: in the resource list open the resource for editing, expand **Advanced Settings** and type the number of seconds into **Slideshow Interval (seconds)**. Anything from 1 second to 3600 seconds (one hour) works. Tap **Save Changes**.
 
       The default for new resources is in **Settings**, the **Player** tab, section **Sorting, slideshow and playback order**, field **Slideshow (s)**.
     image:

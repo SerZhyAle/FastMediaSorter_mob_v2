@@ -5,13 +5,13 @@ description: "Who can go on air and who can play a live broadcast, how it travel
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/live-broadcast.html
 ---
-<sub class="doc-stamp">26.10.15 15:10</sub>
+<sub class="doc-stamp">26.10.22 01:29</sub>
 
 # Live broadcast: any device on air, your other devices listening
 
 A live broadcast sends what a device sees or hears right now - its camera, its microphone, its screen or a ready file - to your other devices while it happens. It goes directly on one Wi-Fi network and through your [exchange server](exchange-server.html) from any other network.
 
-![A phone camera, a watch microphone and a Windows PC screen broadcast through the exchange server relay to a phone, a watch, an Android TV and a Windows PC.](diagrams/broadcast-simple-en.svg)
+![A phone camera, a watch microphone and a Windows PC screen broadcast through the exchange server to a phone, a watch, an Android TV and a Windows PC.](diagrams/broadcast-simple-en.svg)
 
 ## Who goes on air
 
@@ -29,9 +29,7 @@ A live broadcast sends what a device sees or hears right now - its camera, its m
 ## How it travels
 
 - **On one Wi-Fi network** a receiver connects to the broadcasting device directly, with the lowest delay.
-- **From any other network** a receiver goes through the exchange server's relay: one upload from the broadcaster, any number of listeners, and only the last two seconds kept, so a slow listener skips ahead instead of falling behind. The picture and the sound are encrypted on the broadcasting device; the server sees only that a broadcast exists, see [the exchange server](exchange-server.html).
-
-![Detailed scheme. Broadcasters: an Android phone with camera and microphone, a Wear OS watch microphone with up to four listeners, a Windows PC screen, camera and system sound. The exchange server lists live broadcasts, relays one upload to any number of listeners keeping only the last two seconds, routes Cast requests and offers tunnels. Receivers: an Android phone, a watch, an Android TV and a Windows PC. On one Wi-Fi the stream goes direct.](diagrams/broadcast-scheme-en.svg)
+- **From any other network** a receiver goes through the exchange server: the server passes the stream on to every listener - one upload from the broadcaster, any number of listeners, and only the last two seconds kept, so a slow listener skips ahead instead of falling behind. The picture and the sound are encrypted on the broadcasting device; the server sees only that a broadcast exists, see [the exchange server](exchange-server.html).
 
 ## Cast
 
@@ -39,7 +37,7 @@ A live broadcast sends what a device sees or hears right now - its camera, its m
 
 **A cast to your own device** lets one of your devices ask another to start playing a broadcast - for example, an office PC asks the living-room TV. The receiving device always asks before it plays. It is not Google Cast: the two never share a button label. See [Receiving a broadcast](broadcast-receive.html).
 
-![An office Windows PC broadcasts its screen through the exchange server and casts it to the living-room TV, which asks, accepts and plays the stream from the relay.](diagrams/broadcast-cast-en.svg)
+![An office Windows PC broadcasts its screen through the exchange server and casts it to the living-room TV, which asks, accepts and plays the stream from the server.](diagrams/broadcast-cast-en.svg)
 
 ## Step-by-step guides
 

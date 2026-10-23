@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.18 18:09</sub>
+<sub class="doc-stamp">26.10.22 02:15</sub>
 
 # Pointer - `PAGE-STYLE`
 
 | | |
 | --- | --- |
 | **Id** | `PAGE-STYLE` |
-| **Version** | 3.1, active. Owner: the sza.od.ua hub |
+| **Version** | 3.4, active. Owner: the sza.od.ua hub |
 | **Home** | `product-web-pages/PAGE-STYLE.md` in the shared contracts catalog |
 | **Role here** | consumer - the product site's landing and sideload pages, and the documentation portal (per-language documentation pages, section 6) |
 
@@ -24,6 +24,10 @@
   vendored kit alone is a provenance check, not conformance, so a page links an identified adapter after it
   (section 4.6) and claims no rendered conformance without evidence.
 - Monochrome `ICON-SET` glyphs beside labels, never emoji.
+- The 3.3 kit revision (the kit draws the unified controls and is itself the adapter) is not vendored here: the
+  product stylesheet carries the kit's tokens and components in its own layer, which is the kit exception open in
+  the catalog's registry. The exchange server's picture is drawn unaltered with the `alt` of `EXCHANGE-MARK`
+  rule 10 and never as an action glyph (3.4, section 9); the help layer of a help page stays beside the kit (3.2).
 - Walk the per-site acceptance checklist (section 11) before publishing a page change.
 - The deviations currently open are recorded as exceptions in the catalog's registry.
 

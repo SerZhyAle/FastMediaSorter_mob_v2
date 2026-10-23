@@ -1,21 +1,21 @@
 ---
 layout: doc
 title: "The phone as a server: how long it lasts, launcher mode and mobile data"
-description: "How the phone shares its folders over SFTP for your other devices: switching it on, how long it keeps running, what resumes it, the Android 15 daily limit, launcher mode, a phone with no local address and the reminder about mobile data."
+description: "How the phone shares its folders with your other devices: switching it on, how long it keeps running, what resumes it, the Android 15 daily limit, launcher mode, a phone with no local address and the reminder about mobile data."
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/phone-sharing.html
 ---
-<sub class="doc-stamp">26.10.15 15:10</sub>
+<sub class="doc-stamp">26.10.23 14:53</sub>
 
 # The phone as a server
 
-A phone can be the device that keeps the folders: FastMediaSorter turns it into an SFTP server, and your other devices open the folders you picked. This page is about the server itself - how it starts, how long it lasts and what it costs. Reaching it from outside is on [Folders through the exchange server](folders-exchange-server.html) and [Home network](home-network.html).
+A phone can be the device that keeps the folders: FastMediaSorter turns it into a small server that shares the folders you picked in the ordinary way for network folders, called SFTP (the switch in the app is named **SFTP server**), and your other devices open them. This page is about the server itself - how it starts, how long it lasts and what it costs. Reaching it from outside is on [Folders through the exchange server](folders-exchange-server.html) and [Home network](home-network.html).
 
-![Four steps: switch on the SFTP server in Share over SFTP, add the folders, leave it running - it lasts until you switch it off and resumes whenever the app is shown - and mind the mobile data other devices use.](diagrams/steps-phone-sharing-en.svg)
+![Four steps: switch on the SFTP server in Share from phone, add the folders, leave it running - it lasts until you switch it off and resumes whenever the app is shown - and mind the mobile data other devices use.](diagrams/steps-phone-sharing-en.svg)
 
 ## Switch it on
 
-1. Open **Settings**, the **General** tab, the **Share over SFTP** card.
+1. Open **Settings**, the **General** tab, the **Share from phone** card.
 2. Under **Shared folders** tap **Add folder** and pick folders with the system folder picker. A folder you add while the server runs joins it at once.
 3. Choose how people sign in, **Password** or **SSH key**.
 4. Switch on **SFTP server**. The status moves from **Off** to **Starting..** and then **Running at** the address and port.

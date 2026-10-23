@@ -5,7 +5,7 @@ description: "How to start a live broadcast from a phone - sound, camera, the sc
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/broadcast-start.html
 ---
-<sub class="doc-stamp">26.10.15 15:10</sub>
+<sub class="doc-stamp">26.10.22 01:29</sub>
 
 # Going on air: broadcast from a phone or a watch
 
@@ -53,7 +53,7 @@ A broadcast can be protected by a password. The share screen shows it as **Passw
 ## How it reaches the listeners
 
 - **On one Wi-Fi network** a listener connects to your device directly, with the lowest delay.
-- **From another network**, through your [exchange server](exchange-server.html): when the device is signed in to a server in **My devices**, it announces the broadcast there and uploads it once, and the server's relay hands it to every listener, keeping only the last two seconds, so a slow listener skips ahead instead of falling behind. What the server sees of it is on the [exchange server](exchange-server.html) page; the picture and the sound are encrypted on your device.
+- **From another network**, through your [exchange server](exchange-server.html): when the device is signed in to a server in **My devices**, it announces the broadcast there and uploads it once, and the server passes the stream on to every listener, keeping only the last two seconds, so a slow listener skips ahead instead of falling behind. What the server sees of it is on the [exchange server](exchange-server.html) page; the picture and the sound are encrypted on your device.
 - **Via Google Drive** a broadcast is only announced; the stream itself never goes through Drive, see [Files via Google Drive](folders-google-drive.html).
 
 ## Step-by-step guides

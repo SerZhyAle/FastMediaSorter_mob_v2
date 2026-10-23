@@ -53,10 +53,10 @@ steps:
       shot_id: getting-started.main-screen-recording-indicator
       device_profile: phone
       screen_state: main-screen-recording-indicator
-      alt: The recording indicator pill in the corner of the main screen showing a running timer and stop button
+      alt: The recording indicator pill in the corner of the resource list showing a running timer and stop button
       caption: "The recording indicator while FastMediaSorter is in front."
       title: "Screenshot: Recording indicator"
-      desc: Main screen, recording indicator pill in the corner, timer running.
+      desc: Resource list, recording indicator pill in the corner, timer running.
   - number: 4
     id: start-with-a-gesture
     title: Start (and stop) with an edge gesture

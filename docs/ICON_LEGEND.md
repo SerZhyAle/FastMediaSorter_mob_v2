@@ -99,7 +99,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Edge screen gestures |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen recording |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Send file to.. |
-| <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Share over SFTP |
+| <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Share from phone |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Streams |
 | <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Background sync, network and cache |
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Operating system interaction |

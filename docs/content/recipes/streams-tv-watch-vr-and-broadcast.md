@@ -107,7 +107,7 @@ steps:
       - You choose the camera lens before you start and can switch it while you are on air. Turning the camera off keeps your listeners connected, and **Stop** in the notification ends the broadcast.
       - The settings button on the broadcast screen opens title, port, bit rate, audio format, microphone gain and **Auto-open share screen** in place, without leaving the screen.
       - **Send to watch** on the broadcast screen sends the running broadcast to your paired watch and asks it to start playing at once (Standard and noLegal editions).
-      - While you broadcast, the live mark on the main screen counts the time from the moment you started, even after you come back to the main screen from somewhere else.
+      - While you broadcast, the live mark in the resource list counts the time from the moment you started, even after you come back to the resource list from somewhere else.
 outcome: |
   A live channel plays on the TV, on your wrist or all around you in a headset, and a friend's broadcast sits in your Streams list, ready to open whenever they go on air.
 tips:

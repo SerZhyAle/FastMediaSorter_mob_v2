@@ -38,17 +38,17 @@ steps:
     id: wide-layout
     title: Let a wide screen give you more room
     text: |
-      When the window is wide - a tablet, an unfolded foldable, a large phone, or any phone turned sideways - FastMediaSorter switches to its roomy layout: the [main screen](term:main-screen), the [file browser](term:file-browser) and **[Settings](term:settings)** spread out, and the collapsed groups of Settings stand in two columns. The switch depends on the width the app actually gets, not only on how the device is held, so a big phone held upright gets the roomy layout too, and a narrow split-screen half gets the compact one.
+      When the window is wide - a tablet, an unfolded foldable, a large phone, or any phone turned sideways - FastMediaSorter switches to its roomy layout: the [resource list](term:resource-list), the [file browser](term:file-browser) and **[Settings](term:settings)** spread out, and the collapsed groups of Settings stand in two columns. The switch depends on the width the app actually gets, not only on how the device is held, so a big phone held upright gets the roomy layout too, and a narrow split-screen half gets the compact one.
 
-      On the main screen, the buttons of the top bar, the [programs panel](term:programs-panel), the [streams panel](term:streams-panel) and the [resource type tabs](term:resource-type-tabs) line up along one left edge, in one column of finger-sized buttons.
+      In the resource list, the buttons of the top bar, the [programs panel](term:programs-panel), the [streams panel](term:streams-panel) and the [resource type tabs](term:resource-type-tabs) line up along one left edge, in one column of finger-sized buttons.
     image_bookmark:
       shot_id: general.wide-layout-tablet
       device_profile: tablet
       screen_state: main-screen-wide-layout-landscape
-      alt: The main screen on a tablet in landscape using the wide layout, with panels aligned along one edge
+      alt: The resource list on a tablet in landscape using the wide layout, with panels aligned along one edge
       caption: "The roomy layout on a wide screen."
       title: "Screenshot: Wide layout on a tablet"
-      desc: Main screen on a tablet in landscape, wide layout, the top panels aligned to the same left edge.
+      desc: Resource list on a tablet in landscape, wide layout, the top panels aligned to the same left edge.
   - number: 3
     id: new-window
     title: Open a folder or a file in a new window

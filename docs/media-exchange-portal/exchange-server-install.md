@@ -5,7 +5,7 @@ description: "Which Windows package carries the exchange server, what Windows sa
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server-install.html
 ---
-<sub class="doc-stamp">26.10.21 15:52</sub>
+<sub class="doc-stamp">26.10.22 01:25</sub>
 
 # Installing and checking your exchange server
 
@@ -35,7 +35,7 @@ Windows shows up to three things when it meets this installer. The quoted words 
 - **"Do you want to allow this app to make changes to your device?"** (the administrator prompt). Switching the server on asks for it once, and it does two things:
   - **Registers the server as a Windows service**, so that it starts with Windows and works with nobody signed in.
   - **Adds one firewall rule**, limited to the server program, so that your devices can reach this PC. Without it Windows closes the way silently.
-- **An antivirus warning.** Some antivirus programs treat a new unsigned program cautiously, and a program that listens on a network port and registers itself as a service is exactly what they watch.
+- **An antivirus warning.** Some antivirus programs treat a new unsigned program cautiously, and a program that waits for connections from the network and registers itself as a service is exactly what they watch.
 
 Which downloads meet it: the setup file and the ZIP from GitHub and the package from winget do; the Microsoft Store version does not, because Microsoft signs it during certification.
 
@@ -60,27 +60,27 @@ If you would rather verify than trust: every release has a `.sha256` file beside
 
 - It sends nothing to the developer: no telemetry, no analytics, no account with the developer, no advertising.
 - It never sends your files anywhere by itself - they travel only between your own devices, and inside the server they are only passed through.
-- It never opens a port and never asks for administrator rights on its own: the server is off until you switch it on, and the window shows what it listens on.
+- It never opens a port and never asks for administrator rights on its own: the server is off until you switch it on, and the window shows the address it answers on.
 - It never writes a password, a token or an invitation into its log.
 
 The same list is in the [privacy policy](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.html).
 
 ## First run {#first-run}
 
-1. Open **Share Manager** and go to **Media Exchange Server**. On a fresh install a first-run guide walks you through the port, the firewall and service choices, the public address if you have one, the first account and the certificate.
+1. Open **Share Manager** and go to **Media Exchange Server**. On a fresh install a first-run guide walks you through the port (the numbered door the server answers on), the firewall and service choices, the address on the internet if you have one, the first account and the security certificate.
 2. **Create the first account.** That is your own account; the PC joins it by itself.
-3. **Hand the connection string to your devices.** **Get connection string..** gives a text, a `.fmsexch` file and a QR code of the same string. It carries the server's address and the fingerprint of its certificate, never a login or a password.
+3. **Hand the connection string to your devices.** **Get connection string..** gives a text, a `.fmsexch` file and a QR code of the same string. It carries the server's address and the fingerprint of its certificate (a short code that identifies the server), never a login or a password.
 4. To let relatives and friends in, make invitations: [Accounts, invitations and passwords](exchange-accounts.html).
 
 ## The address {#the-address}
 
 Devices need one address to dial. Take the first that fits:
 
-1. **A public IPv4 address, or a free dynamic DNS name** such as `myhome.example.net`, with one port forwarded in the router to this PC. The router step is the same as for a folder - see [Home network](home-network.html).
-2. **IPv6**, when your provider shares one address among many customers (carrier NAT) and no forwarded port can work. No forwarding is needed, but a device that has no IPv6 on its network cannot reach the server.
+1. **A fixed address on the internet from your provider, or a free name** such as `myhome.example.net` that follows a changing address (a "dynamic DNS" service), with one port forwarded in the router to this PC. The router step is the same as for a folder - see [Home network](home-network.html).
+2. **IPv6** (a newer kind of internet address), when your provider shares one address among many customers and no forwarded port can work. No forwarding is needed, but a device that has no IPv6 on its network cannot reach the server.
 3. **Neither:** then the server is reachable only on your own network, or through a VPN into it.
 
-**The certificate.** The server presents a certificate it made itself. A device remembers its fingerprint when it first connects: the connection string already carries it, or the device shows the fingerprint and asks you to compare it with the one your server shows. Renewing the certificate keeps the same key, so your devices do not ask again.
+**The security certificate.** The server proves who it is with a certificate it made itself. A device remembers the certificate's fingerprint - a short code - when it first connects: the connection string already carries it, or the device shows the fingerprint and asks you to compare it with the one your server shows. Renewing the certificate keeps the same key, so your devices do not ask again.
 
 ## Check that it works {#check}
 
@@ -104,8 +104,8 @@ Devices need one address to dial. Take the first that fits:
 
 Back to [the exchange server](exchange-server.html) or to the [portal start page](index.html).
 
-## Windows settings windows {#windows-settings-windows}
+## Settings windows of the Windows program {#windows-settings-windows}
 
-After the server wizard finishes, use Exchange server settings to inspect the local listener and public endpoint, TLS certificate, accounts, devices, invitations, service, keep-awake, logs and remote-administration readiness. The SFTP port and service belong to SFTP sharing settings and are separate. Confirm the target component before applying changes.
+After the server wizard finishes, open **Exchange server settings** to see the address the server answers on, the address your devices dial from outside, the server's security certificate, accounts, devices, invitations, the Windows service, keeping the PC awake, logs and readiness for administration from another computer. The port and service of folder sharing belong to **SFTP sharing settings** and are separate. Check which part you are changing before you apply anything.
 
-Use the links at the lower left to open the other installed component. Each destination reuses one window and remembers its page, groups, scroll and size. Windows can stay open together. Opening or closing settings starts or stops no server. An unapplied SFTP port survives switching windows; on close, apply, discard or continue editing.
+Use the links at the lower left to move to another installed part. Each part opens in one window that remembers its page, groups, scroll position and size, and the windows can stay open together. Opening or closing a settings window starts or stops no server. A port number you typed but have not applied is kept while you switch windows; on closing you can apply it, discard it or keep editing.

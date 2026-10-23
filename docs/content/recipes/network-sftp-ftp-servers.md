@@ -24,7 +24,7 @@ steps:
     id: add-a-server
     title: Add a server by address
     text: |
-      On the main screen tap **Add**, then **SFTP / FTP** - the **Add S/FTP Resource** screen opens. Under **Select Protocol:** choose **SFTP (port 22)** or **FTP (port 21)**; the **Port** field fills itself in, with a hint of "SFTP: 22, FTP: 21" if you change your mind. Enter the **Host** (the server's address) - the field itself explains it wants a "Server IP address", though a domain name works too.
+      In the resource list tap **Add**, then **SFTP / FTP** - the **Add S/FTP Resource** screen opens. Under **Select Protocol:** choose **SFTP (port 22)** or **FTP (port 21)**; the **Port** field fills itself in, with a hint of "SFTP: 22, FTP: 21" if you change your mind. Enter the **Host** (the server's address) - the field itself explains it wants a "Server IP address", though a domain name works too.
 
       SFTP encrypts the whole conversation; plain FTP does not, so pick FTP only when a server does not offer SFTP at all.
     image:

@@ -49,7 +49,7 @@ steps:
       - **Camera OCR** - points the camera at text, reads it and translates it - see [Extracting text with offline OCR](page:tools.ocr-text-recognition). Standard, noLegal, Legacy and VR editions.
       - **Quick Recorder** - one tap starts a voice recording, a second tap stops and saves it. Standard, noLegal, Legacy and VR editions.
       - **Random Music** - plays a random track from the resource you chose. Every edition except Photos.
-      - **Resource Launch** - opens one resource folder you chose. You can also add it from the resource itself: open the resource's [three-dots menu](term:three-dots-menu) on the [main screen](term:main-screen), or the resource editor. All editions.
+      - **Resource Launch** - opens one resource folder you chose. You can also add it from the resource itself: open the resource's [three-dots menu](term:three-dots-menu) on the [resource list](term:resource-list), or the resource editor. All editions.
       - **Calculator** - opens the app's [calculator](term:calculator). All editions.
 
       **Larger widgets** - you can stretch these on the home screen:

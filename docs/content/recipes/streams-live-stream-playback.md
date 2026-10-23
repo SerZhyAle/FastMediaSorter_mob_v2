@@ -24,9 +24,9 @@ steps:
     id: open-streams
     title: Open Streams
     text: |
-      When Streams is turned on, a **Streams** item appears in the main menu of the [main screen](term:main-screen), and the welcome wizard offers it too. Turning **Enable Streams** off hides the item again; your channels stay stored and come back when you turn it on.
+      When Streams is turned on, a **Streams** item appears in the main menu of the [resource list](term:resource-list), and the welcome wizard offers it too. Turning **Enable Streams** off hides the item again; your channels stay stored and come back when you turn it on.
 
-      You can also open Streams from the [streams panel](term:streams-panel) above the resource list - see [streams on the home screen and the main screen](page:streams.shortcuts-widget-and-panel).
+      You can also open Streams from the [streams panel](term:streams-panel) above the resource list - see [streams on the home screen and the resource list](page:streams.shortcuts-widget-and-panel).
   - number: 2
     id: play-radio-inline
     title: Listen to a radio station without leaving the list
@@ -112,7 +112,7 @@ steps:
 
       When you go back from Streams while a station plays, the app asks: **Music is playing in the background. What would you like to do?** - **Stop**, **Keep Playing**, **Always Stop** or **Always Continue**. The last two remember your answer. You can change that answer later in the same group, row **When leaving player or streams**: **Ask every time (default)**, **Always stop** or **Always keep playing**. It is the same question the music player asks - see [picture-in-picture and background play](page:player.pip-and-background-play).
 
-      While a station plays in the background, a slim bar on the main screen shows what is on and has a **Stop** button in its left corner.
+      While a station plays in the background, a slim bar in the resource list shows what is on and has a **Stop** button in its left corner.
     image_bookmark:
       shot_id: streams.background-exit-choice
       device_profile: phone
@@ -141,7 +141,7 @@ next_recipes:
     badge: Streams
     badge_type: docs
     description: Buffering, reconnecting, picture quality and the failure dialogs.
-  - title: Streams on the home screen and the main screen
+  - title: Streams on the home screen and the resource list
     url: page:streams.shortcuts-widget-and-panel
     badge: Streams
     badge_type: docs

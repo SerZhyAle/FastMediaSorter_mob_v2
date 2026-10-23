@@ -116,7 +116,7 @@ For exact feature-by-edition availability, use the canonical documentation:
 
 ## Screenshots 📱
 
-| Main Screen | File Actions | Settings |
+| Resource List | File Actions | Settings |
 |:-----------:|:------------:|:--------:|
 | <a href="images/Screenshot_20251109_000251.png"><img src="images/Screenshot_20251109_000251.png" width="200"></a> | <a href="images/Screenshot_20251109_000314.png"><img src="images/Screenshot_20251109_000314.png" width="200"></a> | <a href="images/Screenshot_20251109_000323.png"><img src="images/Screenshot_20251109_000323.png" width="200"></a> |
 | **Player View** | | |
@@ -124,7 +124,7 @@ For exact feature-by-edition availability, use the canonical documentation:
 
 Full-size images:
 
-- [Main Screen](images/Screenshot_20251109_000251.png)
+- [Resource List](images/Screenshot_20251109_000251.png)
 - [File Actions](images/Screenshot_20251109_000314.png)
 - [Settings](images/Screenshot_20251109_000323.png)
 - [Player View](images/Screenshot_20251114_184930.png)
@@ -415,9 +415,9 @@ Tests run automatically on every push via GitHub Actions. See [`.github/workflow
 ## First Steps (Quick Usage Guide) 🚀
 
 1. **Adding a Folder (Resource):**
-    - On the main screen, press the button with the "Plus" (+) icon to add a new resource.
+    - In the resource list, press the button with the "Plus" (+) icon to add a new resource.
     - Select the resource type (e.g., "Local Folder").
-    - Use scanning or add the folder manually. After adding, it will appear in the list on the main screen.
+    - Use scanning or add the folder manually. After adding, it will appear in the list in the resource list.
 
 2. **Viewing Files:**
     - Double-tap (or long press) on the added resource in the list.

@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 12:24</sub>
+<sub class="doc-stamp">26.10.22 02:15</sub>
 
 # Pointer - `FDSEC-FORMAT` and `FDSEC-BEHAVIOUR`
 
 | | |
 | --- | --- |
 | **Id** | `FDSEC-FORMAT`, `FDSEC-BEHAVIOUR` |
-| **Version** | 1.4 and 1.6, active; wire carrier: format version byte at head offset 16 (value 1), suite 1. Owner: FileDO |
+| **Version** | 1.5 and 1.7, active; wire carrier: format version byte at head offset 16 (value 1), suite 1. Owner: FileDO |
 | **Home** | `secure-container/README.md` in the shared contracts catalog |
 | **Role here** | a port - writes and reads `.fd-sec` containers on the phone and the watch |
 
@@ -23,6 +23,13 @@
   protection and never launch an executable recovered from a container (rules 7, 8).
 - The original is kept after every pack - the only section 9 disposition implemented here - and the
   success message says so. A second disposition arrives as its own feature carrying the section 9 caveat.
+- A sealed name whose bytes are not valid UTF-8 is damaged in every suite and is never decoded lossily into a
+  renamed file; a legitimate U+FFFD is valid, a reserved device stem is refused whatever extension follows,
+  and a reader neither normalises nor substitutes a sealed name to open a container (format section 22,
+  behaviour 4.3).
+- A destination that cannot create a valid sealed name is an I/O failure, never damage (behaviour section 18).
+  The `destination-name` reason token of behaviour section 19 belongs to a command line and an event
+  stream; this product has neither.
 - A document tree, a network share or a cloud drive gets the same guarantees through a private copy:
   the proven result is written under a temporary name in the destination folder, read back, compared and
   only then renamed (`PlaceVerifiedFileBesideUseCase`).
@@ -34,7 +41,8 @@
 
 ## Where it lives here
 
-- `app_v2/.../data/security/fdsec/` - format, key schedule, container, outcomes, XChaCha20-Poly1305.
+- `app_v2/.../data/security/fdsec/` - format, key schedule, container, outcomes, XChaCha20-Poly1305. The strict
+  name decode is `FdSecMetadata.hasMalformedName`, applied by `FdSecContainer` before any restore.
 - `wear/.../domain/files/WearFdSecUseCase.kt` and `wear/.../ui/fdsec/`.
 - Tests: `app_v2/src/test/java/.../data/security/fdsec/` (`FdSecVectorsTest.kt` runs the vectors and
   holds them to `app_v2/src/test/resources/fdsec/PROVENANCE.txt`).

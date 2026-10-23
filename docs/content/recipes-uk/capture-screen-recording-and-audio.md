@@ -52,10 +52,10 @@ steps:
       shot_id: getting-started.main-screen-recording-indicator
       device_profile: phone
       screen_state: main-screen-recording-indicator
-      alt: Піґулка-індикатор запису в кутку головного екрана показує таймер, що йде, і кнопку зупинки
+      alt: Піґулка-індикатор запису в кутку списку ресурсів показує таймер, що йде, і кнопку зупинки
       caption: "Індикатор запису, поки FastMediaSorter на передньому плані."
       title: "Знімок екрана: індикатор запису"
-      desc: Головний екран, піґулка-індикатор запису в кутку, таймер іде.
+      desc: Список ресурсів, піґулка-індикатор запису в кутку, таймер іде.
   - number: 4
     id: start-with-a-gesture
     title: Почніть (і зупиніть) крайовим жестом

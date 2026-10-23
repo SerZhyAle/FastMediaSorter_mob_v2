@@ -45,13 +45,13 @@ Choose where your photos live:
 2. Tap **Sign in** → complete authentication in browser
 3. Select the folder with your photos → **Done**
 
-![FastMediaSorter main screen - photo resource cards visible after adding a photo folder](screenshots/screenshot-pf-step1.png)
+![FastMediaSorter resource list - photo resource cards visible after adding a photo folder](screenshots/screenshot-pf-step1.png)
 
 ---
 
 ## Step 2 - Configure the Folder for Slideshow
 
-Long-press your photo folder on the main screen → tap **Edit (pencil icon)**.
+Long-press your photo folder in the resource list → tap **Edit (pencil icon)**.
 
 Set these options:
 
@@ -87,7 +87,7 @@ Then go to **Settings → Media tab → Images, GIFs and slideshow**:
 
 ## Step 4 - Start the Slideshow
 
-1. Tap your **photo folder** on the main screen to open it
+1. Tap your **photo folder** in the resource list to open it
 2. Tap **any photo** to open the full-screen viewer
 3. Tap **"Slideshow" <img src="../icons/doc/ic_slideshow.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** in the top toolbar
 

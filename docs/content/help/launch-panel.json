@@ -74,8 +74,8 @@
         },
         "open-programs": {
           "name": "Programs menu",
-          "summary": "The Quick launch entry of the main screen's programs.",
-          "details": "On the main screen, Quick launch is always in the list of programs - there is no switch for it. You find the list in the programs panel, or under More actions when that panel is off. Choosing the entry opens the panel."
+          "summary": "The Quick launch entry of the resource list's programs.",
+          "details": "In the resource list, Quick launch is always in the list of programs - there is no switch for it. You find the list in the programs panel, or under More actions when that panel is off. Choosing the entry opens the panel."
         }
       }
     },
@@ -134,8 +134,8 @@
         },
         "open-programs": {
           "name": "Меню программ",
-          "summary": "Пункт «Быстрый запуск» среди программ главного экрана.",
-          "details": "На главном экране «Быстрый запуск» всегда есть в списке программ - выключателя для него нет. Список находится на панели программ или, когда она выключена, в меню «Ещё». Выбор этого пункта открывает панель."
+          "summary": "Пункт «Быстрый запуск» среди программ списка ресурсов.",
+          "details": "В списке ресурсов «Быстрый запуск» всегда есть в списке программ - выключателя для него нет. Список находится на панели программ или, когда она выключена, в меню «Ещё». Выбор этого пункта открывает панель."
         }
       }
     },
@@ -194,8 +194,8 @@
         },
         "open-programs": {
           "name": "Меню програм",
-          "summary": "Пункт «Швидкий запуск» серед програм головного екрана.",
-          "details": "На головному екрані «Швидкий запуск» завжди є в списку програм - перемикача для нього немає. Список розташований на панелі програм або, коли її вимкнено, в меню «Ще». Вибір цього пункту відкриває панель."
+          "summary": "Пункт «Швидкий запуск» серед програм списку ресурсів.",
+          "details": "У списку ресурсів «Швидкий запуск» завжди є в списку програм - перемикача для нього немає. Список розташований на панелі програм або, коли її вимкнено, в меню «Ще». Вибір цього пункту відкриває панель."
         }
       }
     }

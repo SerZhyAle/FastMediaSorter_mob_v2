@@ -69,7 +69,7 @@
 <details class="el" id="favorites">
 <summary><span class="mk">7</span><span><span class="name">Enable Favorites</span><span class="one">Turns the Favorites feature on or off.</span></span></summary>
 <div class="full">
-<p>With it on, you can mark files as favorites, see them in one list and put them on a home screen widget. The Favorites button on the main screen appears along with it.</p>
+<p>With it on, you can mark files as favorites, see them in one list and put them on a home screen widget. The Favorites button in the resource list appears along with it.</p>
 </div>
 </details>
 <details class="el" id="separate-window">
@@ -78,11 +78,11 @@
 <p>The action shows up in the file browser and the player. It is useful on tablets, foldables, Chromebooks and large displays with several windows. When it is off, everything opens in the current window.</p>
 </div>
 </details>
-<h3>Main screen interface</h3>
+<h3>Resource list interface</h3>
 <details class="el" id="grid-cell-size">
 <summary><span class="mk">9</span><span><span class="name">Resource grid cell size</span><span class="one">Sets how big resource tiles are in grid view.</span></span></summary>
 <div class="full">
-<p>It applies to the resource list on the main screen. Smaller cells fit more resources, larger ones are easier to read. Grid view itself is switched on with the view button on the main screen.</p>
+<p>It applies to the resource list. Smaller cells fit more resources, larger ones are easier to read. Grid view itself is switched on with the view button in the resource list.</p>
 </div>
 </details>
 <details class="el" id="programs-panel">
@@ -126,50 +126,63 @@
 <details class="el" id="smb">
 <summary><span class="mk">16</span><span><span class="name">Local network (Ethernet) SMB</span><span class="one">Turns on connecting to shared folders on your local network.</span></span></summary>
 <div class="full">
-<p>Use it for a home NAS, a Windows PC with file sharing on, or a router with a USB drive. With it on, you can add SMB resources, and the SMB tab appears on the main screen.</p>
+<p>Use it for a home NAS, a Windows PC with file sharing on, or a router with a USB drive. With it on, you can add SMB resources, and the SMB tab appears in the resource list.</p>
 </div>
 </details>
 <details class="el" id="ftp">
 <summary><span class="mk">17</span><span><span class="name">Computer on the internet (S)FTP</span><span class="one">Turns on connecting to servers over FTP and SFTP.</span></span></summary>
 <div class="full">
-<p>Use it for a home server, a NAS, web hosting or a router that supports (S)FTP. With it on, you can add such resources, and the S/FTP tab appears on the main screen.</p>
+<p>Use it for a home server, a NAS, web hosting or a router that supports (S)FTP. With it on, you can add such resources, and the S/FTP tab appears in the resource list.</p>
 </div>
 </details>
 <details class="el" id="cloud">
 <summary><span class="mk">18</span><span><span class="name">In cloud resources</span><span class="one">Turns on cloud storage: Google Drive, OneDrive and Dropbox.</span></span></summary>
 <div class="full">
-<p>Connect an account and your cloud folders open right inside the app. With it on, the Cloud tab appears on the main screen.</p>
+<p>Connect an account and your cloud folders open right inside the app. With it on, the Cloud tab appears in the resource list.</p>
 </div>
 </details>
-<h3>Share over SFTP</h3>
+<h3>Share from phone</h3>
 <details class="el" id="sftp-server">
 <summary><span class="mk">19</span><span><span class="name">SFTP server</span><span class="one">Lets other devices open folders from this one over SFTP.</span></span></summary>
 <div class="full">
 <p>Add at least one shared folder, choose password or SSH key sign-in and a port from 1024 to 65535, then turn the server on. Another device connects with the address shown here, or by scanning the pairing code in FastMediaSorter. After you change its settings, turn the server off and on again to apply them.</p>
 </div>
 </details>
+<h3>Access from anywhere</h3>
+<details class="el" id="drive-access">
+<summary><span class="mk">20</span><span><span class="name">Share access through Google Drive</span><span class="one">Lets your other devices on the same Google account connect to this phone's share.</span></span></summary>
+<div class="full">
+<p>Puts the server's address, login and password in the app folder of your Google Drive. With it off, those devices still see the share but cannot connect to it.</p>
+</div>
+</details>
+<details class="el" id="exchange-server">
+<summary><span class="mk">21</span><span><span class="name">Exchange server</span><span class="one">Makes this phone's share reachable from any network through your exchange server.</span></span></summary>
+<div class="full">
+<p>Switch it on to publish through the outgoing exchange server - the first server you add becomes outgoing by itself, and Change only picks another one; the status line shows the address the share is reachable at. New access link issues a fresh link to the share.</p>
+</div>
+</details>
 <h3>Authorization and accounts</h3>
 <details class="el" id="saved-auth">
-<summary><span class="mk">20</span><span><span class="name">Saved authorizations</span><span class="one">Reviews the sign-ins the app saved from its web sign-in screen.</span></span></summary>
+<summary><span class="mk">22</span><span><span class="name">Saved authorizations</span><span class="one">Reviews the sign-ins the app saved from its web sign-in screen.</span></span></summary>
 <div class="full">
 <p>The in-app web sign-in keeps cookies and logins so the app can download files from sites that need you signed in. Open this screen to remove the ones you no longer need.</p>
 </div>
 </details>
 <details class="el" id="secure-screens">
-<summary><span class="mk">21</span><span><span class="name">Secure sensitive screens</span><span class="one">Hides sensitive screens from screenshots and the Recents preview.</span></span></summary>
+<summary><span class="mk">23</span><span><span class="name">Secure sensitive screens</span><span class="one">Hides sensitive screens from screenshots and the Recents preview.</span></span></summary>
 <div class="full">
 <p>It covers screens that show passwords. They cannot be captured in a screenshot and do not appear in the Recents preview.</p>
 </div>
 </details>
 <h3>Backups, restore and settings export</h3>
 <details class="el" id="export-settings">
-<summary><span class="mk">22</span><span><span class="name">Export All Settings to File</span><span class="one">Saves all settings to a file.</span></span></summary>
+<summary><span class="mk">24</span><span><span class="name">Export All Settings to File</span><span class="one">Saves all settings to a file.</span></span></summary>
 <div class="full">
 <p>The file is FastMediaSorter_export.xml in the Downloads folder. Keep it to move your setup to another device or to return to it later.</p>
 </div>
 </details>
 <details class="el" id="import-settings">
-<summary><span class="mk">23</span><span><span class="name">Import Settings from File</span><span class="one">Loads settings from the export file.</span></span></summary>
+<summary><span class="mk">25</span><span><span class="name">Import Settings from File</span><span class="one">Loads settings from the export file.</span></span></summary>
 <div class="full">
 <p>It reads FastMediaSorter_export.xml from the Downloads folder, so put the file there first - for example one exported on another device.</p>
 <dl class="facts">
@@ -178,19 +191,19 @@
 </div>
 </details>
 <details class="el" id="backup">
-<summary><span class="mk">24</span><span><span class="name">Backup settings to Google Drive</span><span class="one">Saves your settings to your Google Drive.</span></span></summary>
+<summary><span class="mk">26</span><span><span class="name">Backup settings to Google Drive</span><span class="one">Saves your settings to your Google Drive.</span></span></summary>
 <div class="full">
 <p>A backup holds all settings, the resource list, network passwords and saved site sign-ins, so keep the backup file private. Cloud sign-ins for Google Drive, OneDrive and Dropbox are not included. Once a backup exists, its date and account are shown below.</p>
 </div>
 </details>
 <details class="el" id="restore">
-<summary><span class="mk">25</span><span><span class="name">Restore settings from Google Drive</span><span class="one">Brings settings back from your Google Drive backup.</span></span></summary>
+<summary><span class="mk">27</span><span><span class="name">Restore settings from Google Drive</span><span class="one">Brings settings back from your Google Drive backup.</span></span></summary>
 <div class="full">
 <p>Use it on a new device or after a reset. Cloud sign-ins are not part of a backup, so sign in to Google Drive, OneDrive or Dropbox again afterwards.</p>
 </div>
 </details>
 <details class="el" id="reset-settings">
-<summary><span class="mk">26</span><span><span class="name">SET default settings</span><span class="one">Returns all settings to their defaults.</span></span></summary>
+<summary><span class="mk">28</span><span><span class="name">SET default settings</span><span class="one">Returns all settings to their defaults.</span></span></summary>
 <div class="full">
 <p>Your resources and destinations stay in place. The app asks you to confirm before it resets anything.</p>
 <dl class="facts">
@@ -200,37 +213,37 @@
 </details>
 <h3>Background sync, network and cache</h3>
 <details class="el" id="parallelism">
-<summary><span class="mk">27</span><span><span class="name">Network Parallelism</span><span class="one">Sets how many network operations run at once.</span></span></summary>
+<summary><span class="mk">29</span><span><span class="name">Network Parallelism</span><span class="one">Sets how many network operations run at once.</span></span></summary>
 <div class="full">
 <p>Values run from 1 to 24 and the default is 4. More at once can be faster on a fast network; fewer is gentler on a slow connection or a small server.</p>
 </div>
 </details>
 <details class="el" id="prefetch">
-<summary><span class="mk">28</span><span><span class="name">Video pre-cache size</span><span class="one">Sets how much of a streamed video is buffered ahead.</span></span></summary>
+<summary><span class="mk">30</span><span><span class="name">Video pre-cache size</span><span class="one">Sets how much of a streamed video is buffered ahead.</span></span></summary>
 <div class="full">
 <p>Less (0.5x) saves disk space and bandwidth, but playback may stutter on a slow network. Auto lets the player decide. More (2x) plays smoother on an unstable network and uses more disk space.</p>
 </div>
 </details>
 <details class="el" id="background-sync">
-<summary><span class="mk">29</span><span><span class="name">Enable background sync</span><span class="one">Checks network resources for file changes in the background.</span></span></summary>
+<summary><span class="mk">31</span><span><span class="name">Enable background sync</span><span class="one">Checks network resources for file changes in the background.</span></span></summary>
 <div class="full">
 <p>Choose how often it checks, or run a check right away with the Sync Now button. A line below shows when the last sync happened.</p>
 </div>
 </details>
 <details class="el" id="thumb-preload">
-<summary><span class="mk">30</span><span><span class="name">Preload thumbnails</span><span class="one">Prepares thumbnails for network videos and PDFs after each sync.</span></span></summary>
+<summary><span class="mk">32</span><span><span class="name">Preload thumbnails</span><span class="one">Prepares thumbnails for network videos and PDFs after each sync.</span></span></summary>
 <div class="full">
 <p>Thumbnails are made in the background, so they are ready when you open the folder. A separate option limits this to unmetered networks such as Wi-Fi.</p>
 </div>
 </details>
 <details class="el" id="cache-limit">
-<summary><span class="mk">31</span><span><span class="name">Cache Size Limit</span><span class="one">Sets how much disk space the image cache may use.</span></span></summary>
+<summary><span class="mk">33</span><span><span class="name">Cache Size Limit</span><span class="one">Sets how much disk space the image cache may use.</span></span></summary>
 <div class="full">
 <p>The cache keeps thumbnails and previews so they load fast next time. Enter a size in megabytes, or press Auto and the app picks one from the storage your device has. The default is 2 GB.</p>
 </div>
 </details>
 <details class="el" id="clear-cache">
-<summary><span class="mk">32</span><span><span class="name">Clear Cache</span><span class="one">Clears the app cache to free space.</span></span></summary>
+<summary><span class="mk">34</span><span><span class="name">Clear Cache</span><span class="one">Clears the app cache to free space.</span></span></summary>
 <div class="full">
 <p>It removes thumbnails, previews and temporary files downloaded from the network. The current cache size is shown next to the button, and the app asks you to confirm first. The cache fills up again as you browse.</p>
 <dl class="facts">
@@ -239,52 +252,53 @@
 </div>
 </details>
 <details class="el" id="statistics">
-<summary><span class="mk">33</span><span><span class="name">Statistics collection</span><span class="one">Collects usage statistics on your device.</span></span></summary>
+<summary><span class="mk">35</span><span><span class="name">Statistics collection</span><span class="one">Collects usage statistics on your device.</span></span></summary>
 <div class="full">
 <p>The data stays on the device and nothing is sent automatically. While collection is on, a Statistics row appears that opens what was gathered.</p>
 </div>
 </details>
-<h3>Tools, guides and reset</h3>
+<h3>Reset General section</h3>
+<details class="el" id="reset-general">
+<summary><span class="mk">36</span><span><span class="name">Reset General section</span><span class="one">Returns only this tab to its defaults.</span></span></summary>
+<div class="full">
+<p>Settings on the other tabs keep their values. The app asks you to confirm first.</p>
+</div>
+</details>
+<h3>All about this application</h3>
 <details class="el" id="extensions">
-<summary><span class="mk">34</span><span><span class="name">Downloadable Extensions</span><span class="one">Manages optional parts of the app that you download.</span></span></summary>
+<summary><span class="mk">37</span><span><span class="name">Downloadable Extensions</span><span class="one">Manages optional parts of the app that you download.</span></span></summary>
 <div class="full">
 <p>Extensions, such as text recognition, translation or extra decoders, are downloaded only when you want them and can be deleted again to free space.</p>
 </div>
 </details>
 <details class="el" id="permissions">
-<summary><span class="mk">35</span><span><span class="name">Permissions &amp; Access</span><span class="one">Shows what the app may access and lets you grant it.</span></span></summary>
+<summary><span class="mk">38</span><span><span class="name">Permissions &amp; Access</span><span class="one">Shows what the app may access and lets you grant it.</span></span></summary>
 <div class="full">
 <p>Each permission has a short note on what it is for. Grant what you need, and open system settings for the ones Android does not let the app request on its own.</p>
 </div>
 </details>
 <details class="el" id="system-info">
-<summary><span class="mk">36</span><span><span class="name">About system</span><span class="one">Opens a screen with information about your device and the app.</span></span></summary>
+<summary><span class="mk">39</span><span><span class="name">About system</span><span class="one">Opens a screen with information about your device and the app.</span></span></summary>
 <div class="full">
 <p>It shows technical details about this device and the app.</p>
 </div>
 </details>
 <details class="el" id="user-guide">
-<summary><span class="mk">37</span><span><span class="name">User Guide</span><span class="one">Opens the online user guide in your browser.</span></span></summary>
+<summary><span class="mk">40</span><span><span class="name">User Guide</span><span class="one">Opens the online user guide in your browser.</span></span></summary>
 <div class="full">
 <p>The guide opens in Russian, Ukrainian or English, depending on the app language.</p>
 </div>
 </details>
 <details class="el" id="welcome">
-<summary><span class="mk">38</span><span><span class="name">Welcome Tutorial</span><span class="one">Opens the welcome wizard again.</span></span></summary>
+<summary><span class="mk">41</span><span><span class="name">Welcome Tutorial</span><span class="one">Opens the welcome wizard again.</span></span></summary>
 <div class="full">
 <p>Go through the first-run pages once more: language, theme, device profile, network sources, capabilities and permissions.</p>
-</div>
-</details>
-<details class="el" id="reset-general">
-<summary><span class="mk">39</span><span><span class="name">Reset General section</span><span class="one">Returns only this tab to its defaults.</span></span></summary>
-<div class="full">
-<p>Settings on the other tabs keep their values. The app asks you to confirm first.</p>
 </div>
 </details>
 </div>
 <h2>Related</h2>
 <ul class="related">
-<li><a href="main.html"><b>Main screen</b><span class="pill">Screen</span></a></li>
+<li><a href="main.html"><b>Resource list</b><span class="pill">Screen</span></a></li>
 <li><a href="settings-media.html"><b>Settings: Media</b><span class="pill">Screen</span></a></li>
 <li><a href="settings-playback.html"><b>Settings: Player</b><span class="pill">Screen</span></a></li>
 <li><a href="settings-operations.html"><b>Settings: Management</b><span class="pill">Screen</span></a></li>
@@ -302,7 +316,7 @@
 <li><a href="index.html"><b>Help index</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-18</span>
+<span>Fast Media Sorter, 2026-10-23</span>
 <a href="index.html">Help index</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
 </footer>

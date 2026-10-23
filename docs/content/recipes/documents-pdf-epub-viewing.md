@@ -28,7 +28,7 @@ steps:
 
       You can also open a PDF that another app hands over, for example an attachment in your e-mail: choose FastMediaSorter in the **Open with** list. It opens in a separate reader window with the same tools. To have every PDF open in FastMediaSorter straight away, switch on **Set as default document viewer** in **Settings**, the **Media** tab, **Documents**.
 
-      To see all your PDFs, books and text files in one list, add the [All Documents](term:all-documents) resource on the [main screen](term:main-screen).
+      To see all your PDFs, books and text files in one list, add the [All Documents](term:all-documents) resource on the [resource list](term:resource-list).
     image_bookmark:
       shot_id: documents.pdf-page-view
       device_profile: phone

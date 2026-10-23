@@ -125,7 +125,7 @@ steps:
       alt: The Link to download box filled in with a link taken from the clipboard
       caption: "The link from the clipboard is already filled in."
       title: "Screenshot: Download by link"
-      desc: Main screen, link auto-download on, Download by link tapped with a link on the clipboard.
+      desc: Resource list, link auto-download on, Download by link tapped with a link on the clipboard.
   - number: 7
     id: sftp-qr-share
     title: Share an SFTP resource as a QR code
@@ -137,7 +137,7 @@ steps:
       - **Share** - creates a small access file and opens the system share sheet with it, the same way you would send any file.
       - **Show QR** - shows a QR code on screen instead: "Scan to add the resource", with the hint "In FastMediaSorter: Add resource -> Scan QR."
 
-      On the other phone, tap **Add** on the main screen and, under **Import a ready configuration**, tap **Import by barcode** and point the camera at the code - the resource arrives fully set up, exactly like importing a Windows companion configuration.
+      On the other phone, tap **Add** in the resource list and, under **Import a ready configuration**, tap **Import by barcode** and point the camera at the code - the resource arrives fully set up, exactly like importing a Windows companion configuration.
     image:
       src: assets/images/network/sftp-ftp-servers-share-access.png
       alt: The Share SFTP access screen with the password warning, the Do not include the password checkbox and the Share button

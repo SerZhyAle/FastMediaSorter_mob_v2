@@ -5,7 +5,7 @@ description: "Google Drive, Dropbox and OneDrive as a place every one of your si
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/clouds.html
 ---
-<sub class="doc-stamp">26.10.21 15:52</sub>
+<sub class="doc-stamp">26.10.23 14:53</sub>
 
 # Clouds: a shared box for your devices
 
@@ -23,7 +23,7 @@ Each cloud appears in FastMediaSorter as a resource next to the local folders an
 
 - **Settings backup** - one device backs up the app settings to Drive, and another device signed in to the same account restores them.
 - **App data** - settings, favorites, pinned streams and resources travel between your devices as one file per kind in your Drive.
-- **The phone's SFTP address** - with **Share access through Google Drive** switched on, Drive keeps the current address of the phone's SFTP server, so your other devices find it after a network change. See [Exchange server](exchange-server.html#no-server-needed).
+- **The phone's address** - with **Share access through Google Drive** switched on, Drive keeps the current address at which the phone shares its folders, so your other devices find it after a network change. See [Exchange server](exchange-server.html#no-server-needed).
 
 ## Between your own devices, with no server
 

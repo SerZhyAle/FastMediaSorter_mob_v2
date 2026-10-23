@@ -59,7 +59,7 @@ On the very first launch, right under the language picker, the welcome screen as
 
 ## Step 1: Add Your First Folder (30 seconds)
 
-1. **Open the app** - you'll see the main screen
+1. **Open the app** - you'll see the resource list
 2. **Tap the "+" button** (bottom-right corner)
 3. **Select "Local Folder"** (or Network/Cloud)
 4. **Choose a folder**

@@ -5,7 +5,7 @@ description: "What an exchange server is for, in plain sentences, and the full l
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server-purpose.html
 ---
-<sub class="doc-stamp">26.10.20 12:03</sub>
+<sub class="doc-stamp">26.10.22 01:26</sub>
 
 # What the exchange server is for
 
@@ -17,7 +17,7 @@ To run one, see [Deploy your own exchange server](exchange-server-quick-start.ht
 
 ## When you need it {#when-you-need-it}
 
-- Your provider gives you no public address (carrier NAT), so no forwarded port can work.
+- Your provider gives you no address of your own (it shares one among many customers), so nothing set up in the router can work.
 - You are on a hotel Wi-Fi or a mobile network and want a folder from home.
 - You want one account for the phone, the tablet, the TV, the watch and the PC.
 - You want to give a relative or a friend a folder or a broadcast without opening your home network.
@@ -27,7 +27,7 @@ To run one, see [Deploy your own exchange server](exchange-server-quick-start.ht
 ### Folders {#scenarios-folders}
 
 - **Open the folders of a phone on another device.** A phone shares a folder, and any other device of the account opens it from any network. See [Folders through the exchange server](folders-exchange-server.html).
-- **Open the shared folders of a home PC from anywhere.** A Windows PC publishes the folders it shares, and the phone opens them from mobile data with no port forwarded. See [Windows servers](windows-servers.html).
+- **Open the shared folders of a home PC from anywhere.** A Windows PC publishes the folders it shares, and the phone opens them from mobile data with nothing set up in the router. See [Windows servers](windows-servers.html).
 - **Run a schedule over folders of other devices.** A phone fetches every new photo of another one overnight, by copy or by move. See [A schedule over folders of other devices](schedule-remote-folders.html).
 - **Give a folder to a guest.** The guest registers with an invitation of the kind **Guest** and sees only that folder. See [People outside your account](exchange-accounts.html#outside).
 - **Give a folder to a person with no account.** Send a link with a password and tell the password another way. See [People outside your account](exchange-accounts.html#outside).
@@ -58,14 +58,14 @@ To run one, see [Deploy your own exchange server](exchange-server-quick-start.ht
 
 ## What the server is not for {#not-for}
 
-- **It is not storage.** Your files pass through a tunnel and never touch the server's disk.
+- **It is not storage.** Your files pass through a live link between your devices and never touch the server's disk.
 - **It cannot read what goes through it.** Folders, broadcasts and the clipboard are encrypted on your device.
 - **It is not a public service.** Nobody runs a server for everybody: you run your own, or you join the one of a person you know.
 - **It is not needed on one Wi-Fi network.** Your devices connect to each other directly there.
 
 ## Ways that need no server {#no-server}
 
-- [Home network](home-network.html) - a forwarded port and a public address or a dynamic DNS name.
+- [Home network](home-network.html) - one setting in the router and an address on the internet (a fixed one, or a free name that follows a changing address).
 - [Files and folders via Google Drive](folders-google-drive.html) - between your own devices, with no server and no address.
 - [Clouds](clouds.html) - Google Drive, Dropbox and OneDrive as a shared box.
 - [Windows servers](windows-servers.html) - the Server edition shares a PC's folders around the clock with no exchange server.

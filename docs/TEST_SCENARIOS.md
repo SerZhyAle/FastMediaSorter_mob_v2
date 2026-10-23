@@ -27,7 +27,7 @@
 ### Steps:
 
 **1.1 Add Local Resource**
-- Main screen → Add Resource → "SCAN" for local folders
+- Resource list → Add Resource → "SCAN" for local folders
 - Select "Download" or "Pictures" folder
 - Mark as destination (checkbox "In destinations")
 - Click "Add to resources"
@@ -90,7 +90,7 @@ Paste log in response with label: "LOG SCENARIO 1 - LOCAL"
 ### Steps:
 
 **2.1 Add SMB Resource**
-- Main screen → Add Resource → Network folder
+- Resource list → Add Resource → Network folder
 - Enter IP: `192.168.1.xxx` (your SMB server)
 - Enter credentials (user/password)
 - Click "Test" button first
@@ -155,7 +155,7 @@ Paste log in response with label: "LOG SCENARIO 2 - SMB"
 ### Steps:
 
 **3.1 Add FTP Resource**
-- Main screen → Add Resource → SFTP/FTP
+- Resource list → Add Resource → SFTP/FTP
 - Enter FTP server details
 - Test connection
 - Add resource if successful

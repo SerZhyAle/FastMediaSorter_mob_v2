@@ -64,9 +64,9 @@
   "locales": {
     "en": {
       "title": "Add Resource",
-      "purpose": "Add Resource is where you connect a new place with your files to the app: a folder on the device, a network share, an SFTP or FTP server, a cloud folder, an internet stream or your watch. Pick a type, fill in a short form, and the new resource appears in the list on the main screen.",
+      "purpose": "Add Resource is where you connect a new place with your files to the app: a folder on the device, a network share, an SFTP or FTP server, a cloud folder, an internet stream or your watch. Pick a type, fill in a short form, and the new resource appears in the list in the resource list.",
       "steps": [
-        "Choose what to add: Local Folder (2) for this device, Network Folder (3) for an SMB share, SFTP / FTP (4), Cloud Storage (5), Stream (6), Paired watch (7) or From my devices (8). Types that are switched off in Settings or missing from your edition are not listed, and if you press Add on the main screen while a type tab is open, that type's form opens at once.",
+        "Choose what to add: Local Folder (2) for this device, Network Folder (3) for an SMB share, SFTP / FTP (4), Cloud Storage (5), Stream (6), Paired watch (7) or From my devices (8). Types that are switched off in Settings or missing from your edition are not listed, and if you press Add in the resource list while a type tab is open, that type's form opens at once.",
         "Device folder: press SCAN (12) to get suggestions or Add Manually (13) to pick a folder yourself, tick what you want in the list (14), then press Add to Resources (11).",
         "Network share: enter the server address (17), or find it with Scan Network (16). Add the username (18) and password (19), check them with Test connection (20), choose the share with Scan host (21) or type its name (22), then press Add This Resource (27).",
         "SFTP or FTP: choose the protocol (29), enter the host (30) and the sign-in (31), try Test Connection (32), set the remote path (34) and press Add Resource (36).",
@@ -85,7 +85,7 @@
       "elements": {
         "back": {
           "summary": "Leaves this screen without adding what you have not saved yet.",
-          "details": "From the type list or from any form, the button takes you back to the screen you came from, usually the main screen. It does not step back from a form to the type list - to choose another type, open Add again. What you typed in a form and did not add is dropped.",
+          "details": "From the type list or from any form, the button takes you back to the screen you came from, usually the resource list. It does not step back from a form to the type list - to choose another type, open Add again. What you typed in a form and did not add is dropped.",
           "shortcut": "Esc / F10"
         },
         "type-local": {
@@ -273,8 +273,8 @@
         },
         "picker-select": {
           "summary": "Adds this folder to your resources.",
-          "details": "Creates a cloud resource from the folder, using your Add as destination and Scan subdirectories choices and the media types enabled in Settings. You see Resource added and land on the main screen. A folder you added before is refused with a note.",
-          "undo": "Nothing in the cloud changes. To undo it, delete the resource on the main screen; the folder stays where it is."
+          "details": "Creates a cloud resource from the folder, using your Add as destination and Scan subdirectories choices and the media types enabled in Settings. You see Resource added and land in the resource list. A folder you added before is refused with a note.",
+          "undo": "Nothing in the cloud changes. To undo it, delete the resource in the resource list; the folder stays where it is."
         },
         "picker-back": {
           "summary": "Goes up one level.",
@@ -285,9 +285,9 @@
     },
     "ru": {
       "title": "Добавить ресурс",
-      "purpose": "«Добавить ресурс» - экран, где вы подключаете к приложению новое место с файлами: папку на устройстве, сетевую папку, сервер SFTP или FTP, облачную папку, интернет-трансляцию или часы. Выберите тип, заполните короткую форму - и новый ресурс появится в списке на главном экране.",
+      "purpose": "«Добавить ресурс» - экран, где вы подключаете к приложению новое место с файлами: папку на устройстве, сетевую папку, сервер SFTP или FTP, облачную папку, интернет-трансляцию или часы. Выберите тип, заполните короткую форму - и новый ресурс появится в списке в списке ресурсов.",
       "steps": [
-        "Выберите, что добавить: «Локальная папка» (2) - папка на устройстве, «Сетевая папка» (3) - ресурс SMB, затем «SFTP / FTP» (4), «Облачное хранилище» (5), «Трансляция» (6), «Спаренные часы» (7) или «С моих устройств» (8). Типы, выключенные в настройках или отсутствующие в вашей редакции, не показываются, а если нажать «Добавить» на главном экране при открытой вкладке типа, сразу откроется форма этого типа.",
+        "Выберите, что добавить: «Локальная папка» (2) - папка на устройстве, «Сетевая папка» (3) - ресурс SMB, затем «SFTP / FTP» (4), «Облачное хранилище» (5), «Трансляция» (6), «Спаренные часы» (7) или «С моих устройств» (8). Типы, выключенные в настройках или отсутствующие в вашей редакции, не показываются, а если нажать «Добавить» в списке ресурсов при открытой вкладке типа, сразу откроется форма этого типа.",
         "Папка на устройстве: нажмите «СКАНИРОВАТЬ» (12), чтобы получить подсказки, или «Добавить вручную» (13), чтобы выбрать папку самому; отметьте нужное в списке (14) и нажмите «Добавить к ресурсам» (11).",
         "Сетевая папка: введите адрес сервера (17) или найдите его через «Сканировать сеть» (16). Укажите имя пользователя (18) и пароль (19), проверьте их кнопкой «Тест соединения» (20), выберите папку через «Сканировать хост» (21) или впишите её имя (22) и нажмите «Добавить этот ресурс» (27).",
         "SFTP или FTP: выберите протокол (29), введите хост (30) и данные для входа (31), проверьте кнопкой «Проверить соединение» (32), укажите путь на сервере (34) и нажмите «Добавить ресурс» (36).",
@@ -494,8 +494,8 @@
         },
         "picker-select": {
           "summary": "Добавляет эту папку в ваши ресурсы.",
-          "details": "Создаёт облачный ресурс из папки с учётом ваших флажков «Добавить в назначения» и «С подпапками» и типов медиа, включённых в настройках. Вы увидите «Ресурс добавлен» и окажетесь на главном экране. Папку, которую вы уже добавляли, приложение отклонит с пояснением.",
-          "undo": "В облаке ничего не меняется. Чтобы отменить, удалите ресурс на главном экране - папка останется на месте."
+          "details": "Создаёт облачный ресурс из папки с учётом ваших флажков «Добавить в назначения» и «С подпапками» и типов медиа, включённых в настройках. Вы увидите «Ресурс добавлен» и окажетесь в списке ресурсов. Папку, которую вы уже добавляли, приложение отклонит с пояснением.",
+          "undo": "В облаке ничего не меняется. Чтобы отменить, удалите ресурс в списке ресурсов - папка останется на месте."
         },
         "picker-back": {
           "summary": "Поднимается на один уровень выше.",
@@ -506,9 +506,9 @@
     },
     "uk": {
       "title": "Додати ресурс",
-      "purpose": "«Додати ресурс» - екран, де ви підключаєте до застосунку нове місце з файлами: папку на пристрої, мережеву папку, сервер SFTP чи FTP, хмарну папку, інтернет-трансляцію або годинник. Оберіть тип, заповніть коротку форму - і новий ресурс з’явиться в списку на головному екрані.",
+      "purpose": "«Додати ресурс» - екран, де ви підключаєте до застосунку нове місце з файлами: папку на пристрої, мережеву папку, сервер SFTP чи FTP, хмарну папку, інтернет-трансляцію або годинник. Оберіть тип, заповніть коротку форму - і новий ресурс з’явиться в списку у списку ресурсів.",
       "steps": [
-        "Оберіть, що додати: «Локальна папка» (2) - папка на пристрої, «Мережева папка» (3) - ресурс SMB, далі «SFTP / FTP» (4), «Хмарне сховище» (5), «Трансляція» (6), «Спарений годинник» (7) або «З моїх пристроїв» (8). Типи, вимкнені в налаштуваннях або відсутні у вашій редакції, не показуються, а якщо натиснути «Додати» на головному екрані при відкритій вкладці типу, одразу відкриється форма цього типу.",
+        "Оберіть, що додати: «Локальна папка» (2) - папка на пристрої, «Мережева папка» (3) - ресурс SMB, далі «SFTP / FTP» (4), «Хмарне сховище» (5), «Трансляція» (6), «Спарений годинник» (7) або «З моїх пристроїв» (8). Типи, вимкнені в налаштуваннях або відсутні у вашій редакції, не показуються, а якщо натиснути «Додати» у списку ресурсів при відкритій вкладці типу, одразу відкриється форма цього типу.",
         "Папка на пристрої: натисніть «СКАНУВАТИ» (12), щоб отримати підказки, або «Додати вручну» (13), щоб обрати папку самому; позначте потрібне в списку (14) і натисніть «Додати до ресурсів» (11).",
         "Мережева папка: введіть адресу сервера (17) або знайдіть її через «Сканувати мережу» (16). Вкажіть ім’я користувача (18) і пароль (19), перевірте їх кнопкою «Тест з'єднання» (20), оберіть папку через «Сканувати хост» (21) або впишіть її ім’я (22) і натисніть «Додати цей ресурс» (27).",
         "SFTP або FTP: оберіть протокол (29), введіть хост (30) і дані для входу (31), перевірте кнопкою «Перевірити з'єднання» (32), вкажіть шлях на сервері (34) і натисніть «Додати ресурс» (36).",
@@ -715,8 +715,8 @@
         },
         "picker-select": {
           "summary": "Додає цю папку до ваших ресурсів.",
-          "details": "Створює хмарний ресурс із папки з урахуванням ваших прапорців «Додати до призначень» і «З підпапками» та типів медіа, увімкнених у налаштуваннях. Ви побачите «Ресурс додано» й опинитеся на головному екрані. Папку, яку ви вже додавали, застосунок відхилить із поясненням.",
-          "undo": "У хмарі нічого не змінюється. Щоб скасувати, видаліть ресурс на головному екрані - папка залишиться на місці."
+          "details": "Створює хмарний ресурс із папки з урахуванням ваших прапорців «Додати до призначень» і «З підпапками» та типів медіа, увімкнених у налаштуваннях. Ви побачите «Ресурс додано» й опинитеся у списку ресурсів. Папку, яку ви вже додавали, застосунок відхилить із поясненням.",
+          "undo": "У хмарі нічого не змінюється. Щоб скасувати, видаліть ресурс у списку ресурсів - папка залишиться на місці."
         },
         "picker-back": {
           "summary": "Піднімається на один рівень вище.",

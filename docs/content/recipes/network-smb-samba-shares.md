@@ -35,7 +35,7 @@ steps:
     id: find-and-add
     title: Find your computer and add the shared folder
     text: |
-      On the main screen tap **Add**, then **Network Folder** - "Add SMB network shares". On the **Create Network Resource (SMB)** screen tap **Scan Network**: the app scans your [network](term:network-folder) subnet for SMB, FTP and SFTP hosts while "Scanning local subnet.." shows, then "Scan complete" and a list of the devices it found. Tap yours.
+      In the resource list tap **Add**, then **Network Folder** - "Add SMB network shares". On the **Create Network Resource (SMB)** screen tap **Scan Network**: the app scans your [network](term:network-folder) subnet for SMB, FTP and SFTP hosts while "Scanning local subnet.." shows, then "Scan complete" and a list of the devices it found. Tap yours.
 
       With the **Server IP** field filled in (or typed by hand, for example `192.168.1.100`), enter **Username** and **Password**, then tap **Scan host**. The app lists the shared folders under "Shares on <computer name>" - tick the one you want. If nothing turns up, "No shares found on this server. Close this message and enter the share name manually." tells you exactly what to do next; if the scan itself fails, "Couldn't scan the shares. Try again." means just that - no shares were read yet, nothing is wrong with the folder itself.
     image:
@@ -52,7 +52,7 @@ steps:
       - **Username** and **Password** of the shared folder, and **Domain (optional)** only if your network uses one ("Leave empty if not needed").
       - **Port** - leave it at its default (`445`) unless you were told otherwise.
       - **ShareName/subfolder** - the exact name Windows gave the share, for example `Common` or `Photos`.
-      - **Resource Name** - what the folder is called on your main screen; leave it empty and the app names it for you.
+      - **Resource Name** - what the folder is called in your resource list; leave it empty and the app names it for you.
   - number: 4
     id: test-connection
     title: Test the connection before you commit
@@ -92,7 +92,7 @@ steps:
 
       [FTP](term:ftp) and [SFTP](term:sftp) reach a server by its address instead of a share name, and they work just as well over the internet as on a home network - useful for a server that lives outside your house, or a NAS with FTP turned on instead of SMB. SFTP encrypts everything it sends; plain FTP does not, so use it only where SFTP is not offered. The full walk-through, including signing in with an SSH key, is in [Connecting SFTP and FTP servers](page:network.sftp-ftp-servers).
 outcome: |
-  The computer or NAS shows up on your main screen the moment you scan for it, a wrong password or a missing share tells you exactly what to fix, transfer speed tunes itself, and a resource that briefly drops off the network says so calmly instead of throwing an error at you.
+  The computer or NAS shows up in your resource list the moment you scan for it, a wrong password or a missing share tells you exactly what to fix, transfer speed tunes itself, and a resource that briefly drops off the network says so calmly instead of throwing an error at you.
 tips:
   - "**Windows asks you to sign in and you are not sure with what.** Use the same user name and password you use to log into that Windows PC, not your Microsoft account email, unless you specifically created a separate share user."
   - "**The share works from a computer but not from the phone.** Confirm both are on the same Wi-Fi network, not one on Wi-Fi and one on mobile data, and that the PC has not gone to sleep."

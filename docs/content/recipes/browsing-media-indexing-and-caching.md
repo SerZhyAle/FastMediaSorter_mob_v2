@@ -68,15 +68,15 @@ steps:
     id: resource-stats
     title: Your file counts and folder stats stay accurate
     text: |
-      A resource's file count, subfolder count, and when it was last opened or last synced are written down whenever you browse it, and no longer reset to zero - or to nothing at all - just by leaving the screen or opening a file. A cloud resource records the time of its last sync the same way. See [Navigating the Main Screen](page:getting-started.main-screen-overview) for where these numbers show up on a resource's card.
+      A resource's file count, subfolder count, and when it was last opened or last synced are written down whenever you browse it, and no longer reset to zero - or to nothing at all - just by leaving the screen or opening a file. A cloud resource records the time of its last sync the same way. See [Navigating the Resource List](page:getting-started.main-screen-overview) for where these numbers show up on a resource's card.
     image_bookmark:
       shot_id: browsing.resource-stats-persist
       device_profile: phone
       screen_state: main-screen-resource-card-stats
-      alt: A resource card on the main screen showing a file count and a last-opened date
+      alt: A resource card in the resource list showing a file count and a last-opened date
       caption: "A resource's file count and last-opened date, kept accurate."
       title: "Screenshot: Resource statistics"
-      desc: Main screen resource card with file count and last-opened line visible.
+      desc: Resource list resource card with file count and last-opened line visible.
   - number: 7
     id: synthetic-resources-stable
     title: Built-in collections stay steady during a copy or move

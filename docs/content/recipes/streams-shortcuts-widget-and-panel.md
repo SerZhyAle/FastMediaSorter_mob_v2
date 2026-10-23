@@ -2,7 +2,7 @@
 page_id: streams.shortcuts-widget-and-panel
 title: Your Stations One Tap Away - Shortcuts, the Stream Widget and the Streams Panel
 nav_title: Shortcuts, widget and streams panel
-description: How to start a favorite radio station or TV channel with one tap - from a shortcut or a widget on the Android home screen, or from the streams panel on the FastMediaSorter main screen - and how to hide the panel again.
+description: How to start a favorite radio station or TV channel with one tap - from a shortcut or a widget on the Android home screen, or from the streams panel on the FastMediaSorter resource list - and how to hide the panel again.
 category: Internet Streams
 category_slug: streams
 ticket: S2955
@@ -12,7 +12,7 @@ canonical_url: documentation/streams/shortcuts-widget-and-panel.html
 why: |
   You probably come back to the same two or three stations every day. Opening the app, finding [Streams](term:streams-screen) and scrolling to the station each time is three steps too many.
 
-  FastMediaSorter gives you three ways to skip them. A [shortcut](term:shortcut) or a [widget](term:widget) on the Android [home screen](term:home-screen) starts a station without opening any screen at all. The [streams panel](term:streams-panel) puts your pinned [channels](term:channel) right on the app's [main screen](term:main-screen), above your resources.
+  FastMediaSorter gives you three ways to skip them. A [shortcut](term:shortcut) or a [widget](term:widget) on the Android [home screen](term:home-screen) starts a station without opening any screen at all. The [streams panel](term:streams-panel) puts your pinned [channels](term:channel) right on the app's [resource list](term:resource-list), above your resources.
 ingredients:
   - "FastMediaSorter in the Standard, noLegal, Legacy or VR [edition](term:edition), with Streams turned on."
   - "The channels you want at hand. For the streams panel they must be pinned - see [pinned and favorite channels](page:streams.favorites-and-epg)."
@@ -67,9 +67,9 @@ steps:
       desc: Stream widget configuration screen, a search typed, radio and video sections visible.
   - number: 4
     id: streams-panel-on
-    title: Turn on the streams panel on the main screen
+    title: Turn on the streams panel in the resource list
     text: |
-      Open **Settings**, the **General** tab, and switch on **Show streams panel on the main screen**. It is off until you turn it on, and it appears only while Streams is enabled.
+      Open **Settings**, the **General** tab, and switch on **Show streams panel in the resource list**. It is off until you turn it on, and it appears only while Streams is enabled.
 
       A horizontal bar appears above the resource list. It starts with the **Streams..** button, which opens the Streams screen, followed by your pinned channels in the order you pinned them. Each channel shows its logo, its short name or both - whatever fits the width of your screen.
 
@@ -78,15 +78,15 @@ steps:
       shot_id: streams.main-screen-panel
       device_profile: phone
       screen_state: main-screen-streams-panel
-      alt: The main screen with the streams panel above the resource list, showing the Streams button and several pinned channels with logos
-      caption: "Pinned channels on the main screen."
-      title: "Screenshot: Streams panel on the main screen"
-      desc: Main screen, streams panel on, the Streams.. button and four pinned channel chips with logos and short names.
+      alt: The resource list with the streams panel above the resource list, showing the Streams button and several pinned channels with logos
+      caption: "Pinned channels in the resource list."
+      title: "Screenshot: Streams panel in the resource list"
+      desc: Resource list, streams panel on, the Streams.. button and four pinned channel chips with logos and short names.
   - number: 5
     id: streams-panel-play
     title: Play a station from the panel
     text: |
-      Tap a radio channel on the panel. It plays right on the main screen: a bar at the bottom shows the channel name, the current song and a **Stop** button, and you keep browsing your files. Tap the same channel again to stop it.
+      Tap a radio channel on the panel. It plays right in the resource list: a bar at the bottom shows the channel name, the current song and a **Stop** button, and you keep browsing your files. Tap the same channel again to stop it.
 
       A video channel opens the Streams screen and plays there.
   - number: 6
@@ -99,9 +99,9 @@ steps:
       - **Hide panel** - removes only the panel; Streams stays on and its button moves back to the [programs panel](term:programs-panel) and the menu;
       - **Disable** - turns the whole Streams feature off.
 
-      To bring a hidden panel back, switch on **Show streams panel on the main screen** in **Settings**, the **General** tab, again.
+      To bring a hidden panel back, switch on **Show streams panel in the resource list** in **Settings**, the **General** tab, again.
 outcome: |
-  Your everyday stations start with one tap from the home screen or the main screen, radio plays without opening anything, and the panel shows only when you want it.
+  Your everyday stations start with one tap from the home screen or the resource list, radio plays without opening anything, and the panel shows only when you want it.
 tips:
   - "**A shortcut opens Streams instead of playing?** Check that **Background Playback** is on and that you are online; video channels always open a screen."
   - "**Want the panel in a different order?** It follows the order of your pinned channels. Reorder them in Streams - see [pinned and favorite channels](page:streams.favorites-and-epg)."
@@ -126,4 +126,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-Your everyday stations, one tap away: a [shortcut](term:shortcut) or the **Stream** [widget](term:widget) on the Android home screen, or the [streams panel](term:streams-panel) with your pinned [channels](term:channel) on the FastMediaSorter main screen.
+Your everyday stations, one tap away: a [shortcut](term:shortcut) or the **Stream** [widget](term:widget) on the Android home screen, or the [streams panel](term:streams-panel) with your pinned [channels](term:channel) on the FastMediaSorter resource list.

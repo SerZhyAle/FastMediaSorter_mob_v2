@@ -15,7 +15,7 @@ steps:
   - number: 1
     id: step-1
     title: Open the Programs Menu and Launch Statistics
-    text: From the main screen, swipe open the drawer and select **Programs & Tools** → **Media Statistics**.
+    text: From the resource list, swipe open the drawer and select **Programs & Tools** → **Media Statistics**.
   - number: 2
     id: step-2
     title: Explore Storage Distribution by Type and Size

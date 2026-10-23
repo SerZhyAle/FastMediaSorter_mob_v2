@@ -26,7 +26,7 @@ FastMediaSorter includes a dedicated Streams screen for internet audio and video
 ## Step 1 - Open the Streams Screen
 
 Three ways to get there:
-- Main screen dropdown menu -> **Streams**
+- Resource list dropdown menu -> **Streams**
 - **Settings -> Media -> Streams** -> tap the Streams shortcut button
 - Welcome onboarding -> Streams row (first launch only)
 
